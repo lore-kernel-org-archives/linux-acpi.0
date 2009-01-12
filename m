@@ -1,260 +1,131 @@
-From: Zhao Yakui <yakui.zhao@intel.com>
-Subject: Re: [PATCH] : ACPI : Use clocksource to get the C-state time
-	instead of ACPI PM timer
-Date: Mon, 12 Jan 2009 17:39:22 +0800
-Message-ID: <1231753162.4026.76.camel@yakui_zhao.sh.intel.com>
-References: <20081031184233.8588.42241.stgit@thinkpad>
-	 <1231744070.4026.56.camel@yakui_zhao.sh.intel.com>
-	 <200901120858.46440.rjw@sisk.pl>
+From: Stefan Assmann <sassmann@suse.de>
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
+ interrupt equivalent
+Date: Mon, 12 Jan 2009 12:09:25 +0100
+Message-ID: <496B24E5.1070804@suse.de>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11984 "EHLO mga11.intel.com"
+Received: from ns2.suse.de ([195.135.220.15]:46967 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752136AbZALJ2R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jan 2009 04:28:17 -0500
-In-Reply-To: <200901120858.46440.rjw@sisk.pl>
+	id S1752351AbZALLJ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jan 2009 06:09:27 -0500
+In-Reply-To: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LenBrown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>
 
-On Mon, 2009-01-12 at 15:58 +0800, Rafael J. Wysocki wrote:
-> On Monday 12 January 2009, Zhao Yakui wrote:
-> > Subject: ACPI: Use clocksource to get the C-state time instead of ACPI PM timer
-> > From: Zhao Yakui <yakui.zhao@intel.com>
-> > 
-> >     On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
-> > clock. In such case the max C-state sleep time should be less than 4687ms when
-> > it is used to record C2/C3 duration time. 
-> >     But on some boxes the max C-state sleep time is more than 4687ms. In such
-> > case the overflow happens and the C-state duration time can't be counted
-> > accurately.
-> >     Use clocksource to get the C-state time instead of ACPI PM timer
-> 
-> I haven't looked at the patch in detail, but what I would do would be to use
-> the ACPI PM timer by default and _if_ the results from that are not reasonable,
-> _then_ fall back to the clocksource.  Is this what you have implemented?
+Hi Len,
 
-> What you said is also OK. But it is not easy to detect whether the
-result by using ACPI PM timer is not reasonable.  If doing so, another
-clocksource(for example: hpet) should also be used in cpuidle driver and
-compared with ACPI PM timer. (Sometimes the ACPI PM timer will be used
-as the current clocksource. In such case it will be duplicated).
+Len Brown wrote:
+> Stefan,
+> I had to exclude your changes to drivers/acpi/pci_irq.c from
+> e1d3a90846b40ad3160bf4b648d36c6badad39ac
+> in order to get some other changes to that file upstream in the
+> 2.6.29 merge window.
+>=20
+> I left the other parts of the quirk intact - so at the moment
+> on one of the quirked machines, you'll see
+>=20
+> PCI quirk: reroute interrupts for...
+>=20
+> but will not see
+>=20
+> pci irq %d -> rerouted to legacy
+>=20
+> as the quirk is effectively disabled.
+>=20
+> I had difficulty trying to port this patch to the new pci_irq.c
+> because fundamentally I don't understand what it is trying
+> to do, and why.
 
-So the current clocksource will be used to count the C-state time
-instead of ACPI PM timer. If the current clocksource is not changed by
-user, OS will select the reliable clocksource as the current one. 
-> Rafael
-> 
->  
-> > Signed-off-by: Yakui Zhao <yakui.zhao@intel.com>
-> > Signed-off-by: Alexs Shi <alex.shi@intel.com>
-> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > ---
-> >  drivers/acpi/processor_idle.c |   68 +++++++++++++++++++++++++-----------------
-> >  1 file changed, 42 insertions(+), 26 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/acpi/processor_idle.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/processor_idle.c
-> > +++ linux-2.6/drivers/acpi/processor_idle.c
-> > @@ -397,8 +397,8 @@ static void acpi_processor_idle(void)
-> >  	struct acpi_processor_cx *cx = NULL;
-> >  	struct acpi_processor_cx *next_state = NULL;
-> >  	int sleep_ticks = 0;
-> > -	u32 t1, t2 = 0;
-> > -
-> > +	ktime_t kt1, kt2;
-> > +	u64 sleep_interval;
-> >  	/*
-> >  	 * Interrupts must be disabled during bus mastering calculations and
-> >  	 * for C2/C3 transitions.
-> > @@ -543,23 +543,26 @@ static void acpi_processor_idle(void)
-> >  		break;
-> >  
-> >  	case ACPI_STATE_C2:
-> > -		/* Get start time (ticks) */
-> > -		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +		kt1 = ktime_get();
-> >  		/* Tell the scheduler that we are going deep-idle: */
-> >  		sched_clock_idle_sleep_event();
-> >  		/* Invoke C2 */
-> >  		acpi_state_timer_broadcast(pr, cx, 1);
-> >  		acpi_cstate_enter(cx);
-> >  		/* Get end time (ticks) */
-> > -		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > -
-> > +		kt2 = ktime_get();
-> >  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-> >  		/* TSC halts in C2, so notify users */
-> >  		if (tsc_halts_in_c(ACPI_STATE_C2))
-> >  			mark_tsc_unstable("possible TSC halt in C2");
-> >  #endif
-> > +		/*
-> > +		 * Use the function of ktime_sub to get the time interval and
-> > +		 * then convert it to microsecond
-> > +		 */
-> > +		sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
-> >  		/* Compute time (ticks) that we were actually asleep */
-> > -		sleep_ticks = ticks_elapsed(t1, t2);
-> > +		sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
-> >  
-> >  		/* Tell the scheduler how much we idled: */
-> >  		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-> > @@ -605,13 +608,13 @@ static void acpi_processor_idle(void)
-> >  		}
-> >  
-> >  		/* Get start time (ticks) */
-> > -		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +		kt1 = ktime_get();
-> >  		/* Invoke C3 */
-> >  		/* Tell the scheduler that we are going deep-idle: */
-> >  		sched_clock_idle_sleep_event();
-> >  		acpi_cstate_enter(cx);
-> >  		/* Get end time (ticks) */
-> > -		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +		kt2 = ktime_get();
-> >  		if (pr->flags.bm_check && pr->flags.bm_control) {
-> >  			/* Enable bus master arbitration */
-> >  			atomic_dec(&c3_cpu_count);
-> > @@ -623,8 +626,13 @@ static void acpi_processor_idle(void)
-> >  		if (tsc_halts_in_c(ACPI_STATE_C3))
-> >  			mark_tsc_unstable("TSC halts in C3");
-> >  #endif
-> > +		/*
-> > +		 * Use the function of ktime_sub to get the time interval
-> > +		 * and convert it to microsecond.
-> > +		 */
-> > +		sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
-> >  		/* Compute time (ticks) that we were actually asleep */
-> > -		sleep_ticks = ticks_elapsed(t1, t2);
-> > +		sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
-> >  		/* Tell the scheduler how much we idled: */
-> >  		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-> >  
-> > @@ -1455,7 +1463,8 @@ static inline void acpi_idle_do_entry(st
-> >  static int acpi_idle_enter_c1(struct cpuidle_device *dev,
-> >  			      struct cpuidle_state *state)
-> >  {
-> > -	u32 t1, t2;
-> > +	ktime_t kt1, kt2;
-> > +	u64 sleep_interval;
-> >  	struct acpi_processor *pr;
-> >  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
-> >  
-> > @@ -1476,14 +1485,18 @@ static int acpi_idle_enter_c1(struct cpu
-> >  	if (pr->flags.bm_check)
-> >  		acpi_idle_update_bm_rld(pr, cx);
-> >  
-> > -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +	kt1 = ktime_get();
-> >  	acpi_idle_do_entry(cx);
-> > -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +	kt2 = ktime_get();
-> >  
-> >  	local_irq_enable();
-> >  	cx->usage++;
-> > -
-> > -	return ticks_elapsed_in_us(t1, t2);
-> > +	/*
-> > +	 * Use the ktime_sub to get the time interval and then convert
-> > +	 * it to microseconds
-> > +	 */
-> > +	sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
-> > +	return sleep_interval;
-> >  }
-> >  
-> >  /**
-> > @@ -1496,7 +1509,8 @@ static int acpi_idle_enter_simple(struct
-> >  {
-> >  	struct acpi_processor *pr;
-> >  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
-> > -	u32 t1, t2;
-> > +	ktime_t kt1, kt2;
-> > +	u64 sleep_interval;
-> >  	int sleep_ticks = 0;
-> >  
-> >  	pr = __get_cpu_var(processors);
-> > @@ -1533,18 +1547,19 @@ static int acpi_idle_enter_simple(struct
-> >  	if (cx->type == ACPI_STATE_C3)
-> >  		ACPI_FLUSH_CPU_CACHE();
-> >  
-> > -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +	kt1 = ktime_get();
-> >  	/* Tell the scheduler that we are going deep-idle: */
-> >  	sched_clock_idle_sleep_event();
-> >  	acpi_idle_do_entry(cx);
-> > -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +	kt2 = ktime_get();
-> >  
-> >  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-> >  	/* TSC could halt in idle, so notify users */
-> >  	if (tsc_halts_in_c(cx->type))
-> >  		mark_tsc_unstable("TSC halts in idle");;
-> >  #endif
-> > -	sleep_ticks = ticks_elapsed(t1, t2);
-> > +	sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
-> > +	sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
-> >  
-> >  	/* Tell the scheduler how much we idled: */
-> >  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-> > @@ -1556,7 +1571,7 @@ static int acpi_idle_enter_simple(struct
-> >  
-> >  	acpi_state_timer_broadcast(pr, cx, 0);
-> >  	cx->time += sleep_ticks;
-> > -	return ticks_elapsed_in_us(t1, t2);
-> > +	return sleep_interval;
-> >  }
-> >  
-> >  static int c3_cpu_count;
-> > @@ -1574,7 +1589,8 @@ static int acpi_idle_enter_bm(struct cpu
-> >  {
-> >  	struct acpi_processor *pr;
-> >  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
-> > -	u32 t1, t2;
-> > +	ktime_t  kt1, kt2;
-> > +	u64 sleep_interval;
-> >  	int sleep_ticks = 0;
-> >  
-> >  	pr = __get_cpu_var(processors);
-> > @@ -1643,10 +1659,9 @@ static int acpi_idle_enter_bm(struct cpu
-> >  	} else if (!pr->flags.bm_check) {
-> >  		ACPI_FLUSH_CPU_CACHE();
-> >  	}
-> > -
-> > -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +	kt1 = ktime_get();
-> >  	acpi_idle_do_entry(cx);
-> > -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> > +	kt2 = ktime_get();
-> >  
-> >  	/* Re-enable bus master arbitration */
-> >  	if (pr->flags.bm_check && pr->flags.bm_control) {
-> > @@ -1661,7 +1676,8 @@ static int acpi_idle_enter_bm(struct cpu
-> >  	if (tsc_halts_in_c(ACPI_STATE_C3))
-> >  		mark_tsc_unstable("TSC halts in idle");
-> >  #endif
-> > -	sleep_ticks = ticks_elapsed(t1, t2);
-> > +	sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
-> > +	sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
-> >  	/* Tell the scheduler how much we idled: */
-> >  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-> >  
-> > @@ -1672,7 +1688,7 @@ static int acpi_idle_enter_bm(struct cpu
-> >  
-> >  	acpi_state_timer_broadcast(pr, cx, 0);
-> >  	cx->time += sleep_ticks;
-> > -	return ticks_elapsed_in_us(t1, t2);
-> > +	return sleep_interval;
-> >  }
-> >  
-> >  struct cpuidle_driver acpi_idle_driver = {
-> > 
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Let me try to give you a short overview of what's happening there.
 
+If an IRQ arrives at line X of a non-primary IO-APIC and that line is
+masked a new IRQ will be generated on the primary IO-APIC/PIC. This is
+called a "Boot Interrupt" by Intel. It's purpose is, as the name
+suggests, to ensure that the IRQ is handled at boot time (when the
+non-primary) IO-APIC is still disabled.
+
+Condition to be met for "Boot Interrupts":
+- line X on non-primary IO-APIC interrupt line is masked
+- line X is asserted
+
+This behavior is not necessary during normal operation as the IRQ is
+handled by the non-primary IO-APIC itself. Now imagine what happens if
+these Boot Interrupts would occur during normal operation. You'd see
+spurious IRQs on your primary IO-APIC which, in the worst case, will
+bring down the interrupt line they occur on! Every device that shares t=
+his
+interrupt line will fail when this happens.
+
+Why can these IRQ lines be brought down by Boot Interrupts? Because
+there's no handler installed on the primary IO-APIC IRQ line that can
+take care of them and after too many unhandled IRQs the line will be sh=
+ut
+down by the kernel.
+
+What this quirk does:
+It installs the interrupt handler on the primary IO-APICs interrupt lin=
+e
+instead of the (original) non-primary IO-APICs interrupt line, keeping
+the original interrupt line masked. This guarantees that for every IRQ
+arriving at the non-primary IO-APIC a Boot Interrupt is generated _and_
+handled properly.
+
+Note: You need this quirk if you mask your interrupts during handling.
+
+> The quirk is specific to Intel chipsets, so with all the
+> Linux guys now working at Intel, I'm hopeful that we can
+> reach a clear understanding of the issue and a consensus
+> on the proper fix.
+>=20
+> BTW. I'm not excited about how the original patch
+> drops a chipset specific workaround inside the ACPI code
+> to go behind the mirrors and lie about what ACPI returns.
+> I'm hopeful that a better place for the workaround
+> can be found if this is the approach we need to take..
+
+Yes, I agree with you and I'm totally open for discussing a better plac=
+e
+for this quirk if you find any. You see the problem here is to "move" t=
+he
+interrupt handler from one line to another and so far we haven't found =
+a
+better way to do this. If I'm not mistaken this technically is pretty
+similar to what this new "derive an IRQ for this device from a parent
+bridge" does.
+
+>=20
+> Can you help us understand what the failure is?
+
+I hope this explains a little bit what this is all about. In case your
+looking for more in-depth information about the interrupt routing I'd
+suggest to have a look for example at the Intel=C2=AE 6700PXH 64-bit PC=
+I Hub
+Datasheet, especially chapter 2.15 I/OxAPIC Interrupt Controller. Feel
+free to ask any further questions that might arise.
+
+Taking a look at the new pci_irq.c code now, could you tell me where
+exactly you're seeing trouble with the quirk. It shouldn't be too
+troublesome to put it in again, but let me have a look and thanks for
+your efforts.
+
+> thanks,
+> -Len
+>=20
+
+  Stefan
+
+--=20
+Stefan Assmann          | SUSE LINUX Products GmbH
+Software Engineer       | Maxfeldstr. 5, D-90409 Nuernberg
+Mail: sassmann@suse.de  | GF: Markus Rex, HRB 16746 (AG Nuernberg)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
