@@ -1,8 +1,8 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
 Subject: Re: [PATCH] : ACPI : Use clocksource to get the C-state time
 	instead of ACPI PM timer
-Date: Mon, 12 Jan 2009 17:31:59 +0800
-Message-ID: <1231752719.4026.73.camel@yakui_zhao.sh.intel.com>
+Date: Mon, 12 Jan 2009 17:39:22 +0800
+Message-ID: <1231753162.4026.76.camel@yakui_zhao.sh.intel.com>
 References: <20081031184233.8588.42241.stgit@thinkpad>
 	 <1231744070.4026.56.camel@yakui_zhao.sh.intel.com>
 	 <200901120858.46440.rjw@sisk.pl>
@@ -10,10 +10,10 @@ Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:57738 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:11984 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750720AbZALJVD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jan 2009 04:21:03 -0500
+	id S1752136AbZALJ2R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jan 2009 04:28:17 -0500
 In-Reply-To: <200901120858.46440.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -37,19 +37,15 @@ On Mon, 2009-01-12 at 15:58 +0800, Rafael J. Wysocki wrote:
 > the ACPI PM timer by default and _if_ the results from that are not reasonable,
 > _then_ fall back to the clocksource.  Is this what you have implemented?
 
-What you said is also OK. But it is not easy to detect whether the
+> What you said is also OK. But it is not easy to detect whether the
 result by using ACPI PM timer is not reasonable.  If doing so, another
 clocksource(for example: hpet) should also be used in cpuidle driver and
 compared with ACPI PM timer. (Sometimes the ACPI PM timer will be used
 as the current clocksource. In such case it will be duplicated).
 
 So the current clocksource will be used to count the C-state time
-instead of ACPI PM timer. If the current clocksource is changed by user,
-OS will select the reliable clocksource as the current one.
-
-Best regards.
-   Yakui.
-> 
+instead of ACPI PM timer. If the current clocksource is not changed by
+user, OS will select the reliable clocksource as the current one. 
 > Rafael
 > 
 >  
