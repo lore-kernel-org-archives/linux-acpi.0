@@ -1,68 +1,44 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH] : ACPI : Use RSDT instead of XSDT by adding boot option of "acpi=rsdt"
-Date: Mon, 12 Jan 2009 23:38:57 +0000
-Message-ID: <20090112233857.GB6849@srcf.ucam.org>
-References: <20081031184233.8588.42241.stgit@thinkpad> <200901121513.06126.trenn@suse.de> <20090112141655.GA21052@srcf.ucam.org> <200901122317.08849.trenn@suse.de>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot interrupt equivalent
+Date: Mon, 12 Jan 2009 15:36:29 -0800
+Message-ID: <m1d4esxfk2.fsf@frodo.ebiederm.org>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>
+	<496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43480 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbZALXjI (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 18:39:08 -0500
-Content-Disposition: inline
-In-Reply-To: <200901122317.08849.trenn@suse.de>
+Received: from out01.mta.xmission.com ([166.70.13.231]:54110 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751995AbZALXr7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 18:47:59 -0500
+In-Reply-To: <200901121151.53195.bjorn.helgaas@hp.com> (Bjorn Helgaas's
+	message of "Mon, 12 Jan 2009 11:51:51 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, Zhao Yakui <yakui.zhao@intel.com>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>, me@markdoughty.co.uk, ibm-acpi-devel@lists.sourceforge.net
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Stefan Assmann <sassmann@suse.de>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Maciej W. Rozycki" <macro@linux-mips.org>, Jon Masters <jcm@redhat.com>
 
-On Mon, Jan 12, 2009 at 11:17:07PM +0100, Thomas Renninger wrote:
-> On Monday 12 January 2009 03:16:55 pm Matthew Garrett wrote:
-> > On Mon, Jan 12, 2009 at 03:13:04PM +0100, Thomas Renninger wrote:
-> > > 99.998% of all machines work fine with the current, spec conform
-> > > implementation.
-> > > There are the two ThinkPads for which the vendor admitted that the BIOS
-> > > is broken which work better with the rsdt blacklisted.
-> >
-> > Two Thinkpads, an entire range of HP workstations, how many others?
-> You wanted to provide more info about the HPs. Are they even sold? Have you 
-> informed HP that their BIOSes are broken?
-> It's easy and safe (also in respect of not breaking Windows) for them to fix 
-> them. If we do not wait some more months, I am confident they are going to do 
-> it, tell me privately if you need contacts.
 
-Yes, this has been discussed with HP. Some of the machines are still 
-being sold - some are out of support and so will not receive updated 
-BIOSes. http://www.google.com/search?q=32%2F64X%20address%20mismatch 
-shows that it's not just limited to Thinkpads and HPs.
+I don't get it. Why are we trying to do such a stupid thing?
 
-> > We have no idea which bugs are being triggered by this. Refusing to fix it 
-> > because we'll potentially break some machines that may not even exist is 
-> > not a sensible plan.
-> The plan is to stay to the spec. Is that so wrong?
+This hardware behavior is not specific to boot interrupts or Intel.
+This is the classic x86 ioapic behaviour of redirecting a ioapic irq
+into a legacy irq when the ioapic entry is disabled.
 
-When sticking to the spec results in hardware that fails to work, then 
-yes, sticking to the spec is the wrong thing to do. We violate all sorts 
-of specs in all sorts of places simply because hardware and software are 
-written by humans who make mistakes. When producing an operating system, 
-the aim is for it to work on the hardware our users want supported.
+If you really want not to have problems ensure all irqs 0-15
+are disabled, and not needed.  Otherwise you are taking the chance
+on something like this happening.
 
-> There are netbooks which only support Linux and I hope there will be a lot 
-> more machines only supporting Linux as OS in the future.
-> Such Windows compatibility, Spec violating fixes will break them.
-> It's the broken BIOSes, those machines the vendor never ever tried booting 
-> Linux which need the boot param and blacklist adding...
+Disabling irqs generically appears to be a crap shoot, and not on a
+path hardware vendors look at or care about heavily.  Disabling an irq
+in hardware on every interrupt, increasing the cost of the interrupt
+and walking down these neglected hardware paths seems stupid.  Especially
+when the interrupt line might be shared and we can be disabling several
+devices at once.
 
-Find me one x86 netbook vendor who hasn't validated Windows on their 
-system.
 
-> Maybe we come away with this change this time, maybe we hurt someone badly who
-> did everything right: stick to the spec, tested and verified that Linux works 
-> fine.
+Is this case really so interesting and compelling that we want to fight
+through and figure what we need to do to make this work reliably on every
+x86 chipset?
 
-Or, more likely, we make this change and people find that their hardware 
-starts working.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Eric
