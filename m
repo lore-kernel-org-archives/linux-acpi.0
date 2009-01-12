@@ -1,104 +1,244 @@
-From: Philipp Kolmann <philipp@kolmann.at>
-Subject: Re: ACPI Problem with HP EliteBook 2530p
-Date: Mon, 12 Jan 2009 08:14:34 +0100
-Message-ID: <496AEDDA.6030408@kolmann.at>
-References: <494D31B0.90807@kolmann.at> <494D530C.8000209@gmail.com> <494E164C.2090406@kolmann.at> <494E1CE3.90005@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] : ACPI : Use clocksource to get the C-state time instead of ACPI PM timer
+Date: Mon, 12 Jan 2009 08:58:46 +0100
+Message-ID: <200901120858.46440.rjw@sisk.pl>
+References: <20081031184233.8588.42241.stgit@thinkpad> <1231744070.4026.56.camel@yakui_zhao.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from scs2.zid.tuwien.ac.at ([128.130.33.92]:52666 "EHLO
-	scs2.zid.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235AbZALHOm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 02:14:42 -0500
-In-Reply-To: <494E1CE3.90005@gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:39882 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751605AbZALH7c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jan 2009 02:59:32 -0500
+In-Reply-To: <1231744070.4026.56.camel@yakui_zhao.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: LenBrown <lenb@kernel.org>, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com
 
-Hi,
+On Monday 12 January 2009, Zhao Yakui wrote:
+> Subject: ACPI: Use clocksource to get the C-state time instead of ACPI PM timer
+> From: Zhao Yakui <yakui.zhao@intel.com>
+> 
+>     On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
+> clock. In such case the max C-state sleep time should be less than 4687ms when
+> it is used to record C2/C3 duration time. 
+>     But on some boxes the max C-state sleep time is more than 4687ms. In such
+> case the overflow happens and the C-state duration time can't be counted
+> accurately.
+>     Use clocksource to get the C-state time instead of ACPI PM timer
 
-just compiled .29-rc1 and I am still having the issue.
+I haven't looked at the patch in detail, but what I would do would be to use
+the ACPI PM timer by default and _if_ the results from that are not reasonable,
+_then_ fall back to the clocksource.  Is this what you have implemented?
 
-I checked in the sources and the check for ASUS is still missing. Adding 
-it by hand makes .29-rc1 working for me.
-Could you please get this into rc2.
+Rafael
 
-Thanks
-Philipp
-
-Alexey Starikovskiy wrote:
-> With some luck it even may still appear in .28...
-> Certainly .29 will have it.
->
-> Regards,
-> Alex.
->
-> Philipp Kolmann wrote:
->> Hi Alexey,
->>
->> thank you very much for your help.
->>
->> I can confirm, that the patch in #63 works with 2530p as well. Now 
->> the kernel boots without any special acpi parameter.
->>
->> Only regression I now see with full ACPI turned on, is that  I can't 
->> dim the display anymore.
->>
->> Will this patch go into 2.6.29?
->>
->> Thanks
->> Philipp
->>
->> Alexey Starikovskiy wrote:
->>> Hi Philipp,
->>>
->>> Please check if http://bugzilla.kernel.org/show_bug.cgi?id=11884 is 
->>> the same problem.
->>> There is  a patch, which is reported to help with HP 2730p.
->>> If patch does not help you, please create new bug report and attach 
->>> your acpidump and dmesg (at least from acpi=ht run).
->>>
->>> Regards,
->>> Alex.
->>>
->>> Philipp Kolmann wrote:
->>>> Hi,
->>>>
->>>> I hope I don't mistreat any code of the mailinglist. I am new here.
->>>>
->>>> I have a new HP Elitebook 2530p with Debian on it (and also Vista).
->>>>
->>>> With 2.6.27 I had no ACPI problems until a VISTA Update somehow 
->>>> broke the ACPI tables.
->>>>
->>>> Now if I boot with ACPI enabled on 2.6.27 and 2.6.28-rc9 the 
->>>> computer hangs completely.
->>>> It only works with acpi=ht.
->>>>
->>>> I also tried pci=noacpi, acpi=noirq, there it hung saying it has a 
->>>> problem with the second CPU.
->>>>
->>>> Can anyone tell me, how to get the proper debugging info for you, 
->>>> so you can help.
->>>>
->>>> Do you prefer screenshots?
->>>>
->>>> thanks
->>>> Philipp
->>>> -- 
->>>> To unsubscribe from this list: send the line "unsubscribe 
->>>> linux-acpi" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->>
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+ 
+> Signed-off-by: Yakui Zhao <yakui.zhao@intel.com>
+> Signed-off-by: Alexs Shi <alex.shi@intel.com>
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> ---
+>  drivers/acpi/processor_idle.c |   68 +++++++++++++++++++++++++-----------------
+>  1 file changed, 42 insertions(+), 26 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/processor_idle.c
+> +++ linux-2.6/drivers/acpi/processor_idle.c
+> @@ -397,8 +397,8 @@ static void acpi_processor_idle(void)
+>  	struct acpi_processor_cx *cx = NULL;
+>  	struct acpi_processor_cx *next_state = NULL;
+>  	int sleep_ticks = 0;
+> -	u32 t1, t2 = 0;
+> -
+> +	ktime_t kt1, kt2;
+> +	u64 sleep_interval;
+>  	/*
+>  	 * Interrupts must be disabled during bus mastering calculations and
+>  	 * for C2/C3 transitions.
+> @@ -543,23 +543,26 @@ static void acpi_processor_idle(void)
+>  		break;
+>  
+>  	case ACPI_STATE_C2:
+> -		/* Get start time (ticks) */
+> -		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt1 = ktime_get();
+>  		/* Tell the scheduler that we are going deep-idle: */
+>  		sched_clock_idle_sleep_event();
+>  		/* Invoke C2 */
+>  		acpi_state_timer_broadcast(pr, cx, 1);
+>  		acpi_cstate_enter(cx);
+>  		/* Get end time (ticks) */
+> -		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> -
+> +		kt2 = ktime_get();
+>  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+>  		/* TSC halts in C2, so notify users */
+>  		if (tsc_halts_in_c(ACPI_STATE_C2))
+>  			mark_tsc_unstable("possible TSC halt in C2");
+>  #endif
+> +		/*
+> +		 * Use the function of ktime_sub to get the time interval and
+> +		 * then convert it to microsecond
+> +		 */
+> +		sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
+>  		/* Compute time (ticks) that we were actually asleep */
+> -		sleep_ticks = ticks_elapsed(t1, t2);
+> +		sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
+>  
+>  		/* Tell the scheduler how much we idled: */
+>  		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+> @@ -605,13 +608,13 @@ static void acpi_processor_idle(void)
+>  		}
+>  
+>  		/* Get start time (ticks) */
+> -		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt1 = ktime_get();
+>  		/* Invoke C3 */
+>  		/* Tell the scheduler that we are going deep-idle: */
+>  		sched_clock_idle_sleep_event();
+>  		acpi_cstate_enter(cx);
+>  		/* Get end time (ticks) */
+> -		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt2 = ktime_get();
+>  		if (pr->flags.bm_check && pr->flags.bm_control) {
+>  			/* Enable bus master arbitration */
+>  			atomic_dec(&c3_cpu_count);
+> @@ -623,8 +626,13 @@ static void acpi_processor_idle(void)
+>  		if (tsc_halts_in_c(ACPI_STATE_C3))
+>  			mark_tsc_unstable("TSC halts in C3");
+>  #endif
+> +		/*
+> +		 * Use the function of ktime_sub to get the time interval
+> +		 * and convert it to microsecond.
+> +		 */
+> +		sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
+>  		/* Compute time (ticks) that we were actually asleep */
+> -		sleep_ticks = ticks_elapsed(t1, t2);
+> +		sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
+>  		/* Tell the scheduler how much we idled: */
+>  		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+>  
+> @@ -1455,7 +1463,8 @@ static inline void acpi_idle_do_entry(st
+>  static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+>  			      struct cpuidle_state *state)
+>  {
+> -	u32 t1, t2;
+> +	ktime_t kt1, kt2;
+> +	u64 sleep_interval;
+>  	struct acpi_processor *pr;
+>  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+>  
+> @@ -1476,14 +1485,18 @@ static int acpi_idle_enter_c1(struct cpu
+>  	if (pr->flags.bm_check)
+>  		acpi_idle_update_bm_rld(pr, cx);
+>  
+> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt1 = ktime_get();
+>  	acpi_idle_do_entry(cx);
+> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt2 = ktime_get();
+>  
+>  	local_irq_enable();
+>  	cx->usage++;
+> -
+> -	return ticks_elapsed_in_us(t1, t2);
+> +	/*
+> +	 * Use the ktime_sub to get the time interval and then convert
+> +	 * it to microseconds
+> +	 */
+> +	sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
+> +	return sleep_interval;
+>  }
+>  
+>  /**
+> @@ -1496,7 +1509,8 @@ static int acpi_idle_enter_simple(struct
+>  {
+>  	struct acpi_processor *pr;
+>  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+> -	u32 t1, t2;
+> +	ktime_t kt1, kt2;
+> +	u64 sleep_interval;
+>  	int sleep_ticks = 0;
+>  
+>  	pr = __get_cpu_var(processors);
+> @@ -1533,18 +1547,19 @@ static int acpi_idle_enter_simple(struct
+>  	if (cx->type == ACPI_STATE_C3)
+>  		ACPI_FLUSH_CPU_CACHE();
+>  
+> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt1 = ktime_get();
+>  	/* Tell the scheduler that we are going deep-idle: */
+>  	sched_clock_idle_sleep_event();
+>  	acpi_idle_do_entry(cx);
+> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt2 = ktime_get();
+>  
+>  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+>  	/* TSC could halt in idle, so notify users */
+>  	if (tsc_halts_in_c(cx->type))
+>  		mark_tsc_unstable("TSC halts in idle");;
+>  #endif
+> -	sleep_ticks = ticks_elapsed(t1, t2);
+> +	sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
+> +	sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
+>  
+>  	/* Tell the scheduler how much we idled: */
+>  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+> @@ -1556,7 +1571,7 @@ static int acpi_idle_enter_simple(struct
+>  
+>  	acpi_state_timer_broadcast(pr, cx, 0);
+>  	cx->time += sleep_ticks;
+> -	return ticks_elapsed_in_us(t1, t2);
+> +	return sleep_interval;
+>  }
+>  
+>  static int c3_cpu_count;
+> @@ -1574,7 +1589,8 @@ static int acpi_idle_enter_bm(struct cpu
+>  {
+>  	struct acpi_processor *pr;
+>  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+> -	u32 t1, t2;
+> +	ktime_t  kt1, kt2;
+> +	u64 sleep_interval;
+>  	int sleep_ticks = 0;
+>  
+>  	pr = __get_cpu_var(processors);
+> @@ -1643,10 +1659,9 @@ static int acpi_idle_enter_bm(struct cpu
+>  	} else if (!pr->flags.bm_check) {
+>  		ACPI_FLUSH_CPU_CACHE();
+>  	}
+> -
+> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt1 = ktime_get();
+>  	acpi_idle_do_entry(cx);
+> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt2 = ktime_get();
+>  
+>  	/* Re-enable bus master arbitration */
+>  	if (pr->flags.bm_check && pr->flags.bm_control) {
+> @@ -1661,7 +1676,8 @@ static int acpi_idle_enter_bm(struct cpu
+>  	if (tsc_halts_in_c(ACPI_STATE_C3))
+>  		mark_tsc_unstable("TSC halts in idle");
+>  #endif
+> -	sleep_ticks = ticks_elapsed(t1, t2);
+> +	sleep_interval = ktime_to_us(ktime_sub(kt2, kt1));
+> +	sleep_ticks = US_TO_PM_TIMER_TICKS(sleep_interval);
+>  	/* Tell the scheduler how much we idled: */
+>  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+>  
+> @@ -1672,7 +1688,7 @@ static int acpi_idle_enter_bm(struct cpu
+>  
+>  	acpi_state_timer_broadcast(pr, cx, 0);
+>  	cx->time += sleep_ticks;
+> -	return ticks_elapsed_in_us(t1, t2);
+> +	return sleep_interval;
+>  }
+>  
+>  struct cpuidle_driver acpi_idle_driver = {
+> 
+> 
