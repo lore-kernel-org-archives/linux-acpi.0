@@ -1,60 +1,57 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [Regression] USB wakeup problem on Toshiba Portege R500
-Date: Mon, 12 Jan 2009 22:10:43 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0901122207400.18052-100000@netrider.rowland.org>
-References: <200901122353.59887.rjw@sisk.pl>
+From: Jaswinder Singh Rajput <jaswinderlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.29-rc1: Reported regressions from 2.6.28
+Date: Tue, 13 Jan 2009 08:54:33 +0530
+Message-ID: <3f9a31f40901121924v86b528er652b27e670c5fe0@mail.gmail.com>
+References: <XU-8icArWLM.A.UpG.8GfaJB@chimera>
+	 <3f9a31f40901110546h4c069b5dx9726a0fbf8caf5a1@mail.gmail.com>
+	 <20090111135237.GA20184@elte.hu> <200901112001.00394.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:3662 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752040AbZAMDKp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 22:10:45 -0500
-In-Reply-To: <200901122353.59887.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200901112001.00394.rjw-KKrjLPT3xs0@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Frans Pop <elendil@planet.nl>, oliver@neukum.org, gregkh@suse.de, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, pavel@suse.cz, torvalds@linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Mon, 12 Jan 2009, Rafael J. Wysocki wrote:
+Hello Rafael,
 
-> On Monday 12 January 2009, Alan Stern wrote:
-> > On Fri, 9 Jan 2009, Rafael J. Wysocki wrote:
-> > 
-> > > > My proposal:
-> > > > 
-> > > > 	Devices and events that are clearly associated with system
-> > > > 	wakeup should be enabled by default.  For example: Power
-> > > > 	button and laptop lid.
-> > > 
-> > > Agreed.
-> > > 
-> > > > 	All other devices capable of waking up the system should be
-> > > > 	disabled by default.  This presumably includes every PCI
-> > > > 	device.  If users want keyboard or mouse events to cause
-> > > > 	a system resume then they will have to configure their
-> > > > 	desktop management program to enable it.
-> > > 
-> > > I generally agree, with one exception.  There are network adapters which
-> > > can be enabled to wake up by the BIOS and their drivers set them up for WoL
-> > > currently on this basis.  These should remain enabled IMO.
-> > 
-> > How do we know which adapters these are?  IMO the PCI core should
-> > disable wakeup by default for all devices when they are detected.
-> 
-> This is what we do.
-> 
-> > Is it sufficient to have the adapter drivers enable wakeup during
-> > their probe routines?
-> 
-> Yes, it is.
+On Mon, Jan 12, 2009 at 12:30 AM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+> On Sunday 11 January 2009, Ingo Molnar wrote:
+>>
+>> * Jaswinder Singh Rajput <jaswinderlinux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>
+>> > On Sun, Jan 11, 2009 at 4:42 PM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+>> > >
+>> > > Regressions with patches
+>> > > ------------------------
+>> > >
+>> > > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12428
+>> > > Subject         : Build error on latest git
+>> > > Submitter       : Petr Titera <P.Titera-0E4lWjIyFdTrBKCeMvbIDA@public.gmane.org>
+>> > > Date            : 2009-01-11 9:49 (1 days old)
+>> > > References      : http://marc.info/?l=linux-kernel&m=123166856318712&w=4
+>> > > Handled-By      : Petr Titera <P.Titera-0E4lWjIyFdTrBKCeMvbIDA@public.gmane.org>
+>> > > Patch           : http://marc.info/?l=linux-kernel&m=123167509024996&w=4
+>> >
+>> > This is a wrong fix, asm/smp.h should only be included when CONFIG_SMP
+>> > is defined.
+>> >
+>> > I am still in the process of cleaning non-smp data from asm/smp.h for
+>> > x86
+>> >
+>> > Attach patch is the solution for the time being
+>> >
+>> > Ingo, can you please put this in urgent queue.
+>>
+>> yes, it already is - see below.
+>
+> Link to this patch was added to the bug entry.  Pleaes let me know or close the
+> bug when it's merged.
+>
 
-Therefore all we need is a patch to change the USB host controller
-drivers.  They should call device_set_wakeup_capable() instead of
-device_init_wakeup().
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=4884d8e6a05026ec906355436cea9dc1acb1d09e
 
-I just got back from vacation so things will be busy for a few days, 
-but I'll send out such a patch soon.
-
-Alan Stern
-
+--
+JSR
