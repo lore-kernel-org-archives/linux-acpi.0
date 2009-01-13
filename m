@@ -1,267 +1,101 @@
-From: "Karthik Gopalakrishnan" <karthik.g.krishnan@gmail.com>
-Subject: Re: [RFC] [PATCH] panasonic-laptop.c: add support for CD power management
-Date: Tue, 13 Jan 2009 12:16:45 -0500
-Message-ID: <5e0a1fd80901130916x510395ddwdab40c867e32212b@mail.gmail.com>
-References: <20090113163233.GA734@dezo.moloch.sk>
+From: Olaf Dabrunz <od@suse.de>
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
+	interrupt equivalent
+Date: Tue, 13 Jan 2009 19:22:59 +0100
+Message-ID: <20090113182259.GN25512@suse.de>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com> <1231788349.4094.21.camel@perihelion.bos.jonmasters.org> <496C9807.1010109@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:33605 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753204AbZAMRQs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2009 12:16:48 -0500
-Received: by ey-out-2122.google.com with SMTP id 22so20530eye.37
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2009 09:16:46 -0800 (PST)
-In-Reply-To: <20090113163233.GA734@dezo.moloch.sk>
+Received: from mx2.suse.de ([195.135.220.15]:57010 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754199AbZAMSXE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Jan 2009 13:23:04 -0500
 Content-Disposition: inline
+In-Reply-To: <496C9807.1010109@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Lucina <mato@kotelna.sk>
-Cc: linux-acpi@vger.kernel.org, laforge@gnumonks.org
+To: Stefan Assmann <sassmann@suse.de>
+Cc: Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Eric W. Biederman" <ebiederm@xmission.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Hi Martin.
+On 13-Jan-09, Stefan Assmann wrote:
+> Hi Jon,
+>=20
+> Jon Masters wrote:
+> > On Mon, 2009-01-12 at 11:51 -0700, Bjorn Helgaas wrote:
+> >> (I added Eric, Maciej, and Jon because they participated in
+> >> previous discussion here: http://lkml.org/lkml/2008/6/2/269)
+> >=20
+> > Thanks. You know what I'd really like even more than being on the C=
+C?
+> > I'd *love* someone to post a link to documentation on how this actu=
+ally
+> > is supposed to work. We had to guess last time because none of the
+> > public documentation actually explains this. The guys at SuSE likel=
+y
+> > received some docs, but I'm not sure where from or the title thereo=
+f.
+>=20
+> Actually, most of the Boot Interrupt patches resulted from reading th=
+e
+> intel specs and observing the behavior of failing machines. We're try=
+ing
+> to wrap up all the information gathered in a paper, which is pretty t=
+ime
+> consuming and a few steps away from being ready to publish.
 
-To an end user, writing "0" to enable the device & "1" to disable it
-sounds counter-intuitive, especially when the sysfs entry is called
-"cdpower". Is there a reason to not flip that?
+We read the specs of the chips, analyzed code, put up hypotheses and
+tested them. Then read the specs again, finding new hypotheses and
+tested again. Also reading what you guys sent out to lkml and reading
+through the public discussions for *BSD, Darwin, XEN etc. helped.
+And some colleagues discussed hypotheses and solution attempts with us.
 
-Regards,
-Karthik
+We summarized many of our end results in a presentation that we gave
+internally, and I am working on making this available online (in
+addition to the paper/slides that Stefan mentions below).
 
-On Tue, Jan 13, 2009 at 11:32 AM, Martin Lucina <mato@kotelna.sk> wrote:
-> Hello,
->
-> attached is a patch to the panasonic-laptop driver to enable power
-> management (i.e. on/off) of the built-in optical drive.  It creates a
-> sysfs interface /sys/devices/platform/panasonic/cdpower which can be
-> either queried or written to.  Writing "0" enables the device, "1"
-> disables it.
->
-> This code is based on reading the existing code[1][2],
-> examining the DSDT on my CF-W4 system and experimentation.
->
-> The presence of the CF-Y series in the DMI table is based on the
-> assumption that this method works on recent CF-Yx models.
->
-> I have a few questions I'd like to clear up before actually submitting
-> this for inclusion:
->
-> 1) Is a platform device the right way to do this?
->
-> 2) Rather than checking the DMI system vendor and product name would it
-> be a better approach to simply check for the presence of the \_SB.FBAY()
-> and \_SB.STAT() ACPI methods and enable the platform device on any
-> (Panasonic) system where these are present?  This would seem like a
-> more future-proof approach.
->
-> 3) Please advise on the correct way to propagate an error result from
-> the functions that call the ACPI methods {get,set}optd_power_state() to
-> userspace in the sysfs interface.  I couldn't find a straightforward
-> example anywhere.
->
-> Thanks!
->
-> -mato
->
-> [1] Referenced here http://www.da-cha.jp/letsnote as "A patch to handle
-> CD on/off button(need to merge)" (now a dead link)
-> [2] http://www.netlab.is.tsukuba.ac.jp/~yokota/izumi/panasonic_acpi/,
-> see the 20070907 version ("includes small hack for CD-ROM drive")
->
-> ---
->
-> --- linux-2.6.28/drivers/misc/panasonic-laptop.c.orig   2009-01-13 17:01:53.327106958 +0100
-> +++ linux-2.6.28/drivers/misc/panasonic-laptop.c        2009-01-13 17:04:04.911106197 +0100
-> @@ -24,6 +24,8 @@
->  *---------------------------------------------------------------------------
->  *
->  * ChangeLog:
-> + *     Jan.13, 2009    Martin Lucina <mato@kotelna.sk>
-> + *             -v0.96  add support for optical drive power in Y and W series
->  *     Sep.23, 2008    Harald Welte <laforge@gnumonks.org>
->  *             -v0.95  rename driver from drivers/acpi/pcc_acpi.c to
->  *                     drivers/misc/panasonic-laptop.c
-> @@ -127,6 +129,8 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  #include <linux/input.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/dmi.h>
->
->
->  #ifndef ACPI_HOTKEY_COMPONENT
-> @@ -219,6 +223,7 @@ struct pcc_acpi {
->        struct acpi_device      *device;
->        struct input_dev        *input_dev;
->        struct backlight_device *backlight;
-> +       struct platform_device  *platform;
->        int                     keymap[KEYMAP_SIZE];
->  };
->
-> @@ -226,6 +231,27 @@ struct pcc_keyinput {
->        struct acpi_hotkey      *hotkey;
->  };
->
-> +/* known models with optical drive */
-> +static struct dmi_system_id pcc_platform_dmi_table[] = {
-> +       {
-> +               .ident = "Panasonic Toughbook W Series",
-> +               .matches = {
-> +                       DMI_MATCH(DMI_SYS_VENDOR,
-> +                               "Matsushita Electric Industrial Co.,Ltd."),
-> +                       DMI_MATCH(DMI_PRODUCT_NAME, "CF-W"),
-> +               },
-> +       },
-> +       {
-> +                .ident = "Panasonic Toughbook Y Series",
-> +               .matches = {
-> +                       DMI_MATCH(DMI_SYS_VENDOR,
-> +                               "Matsushita Electric Industrial Co.,Ltd."),
-> +                       DMI_MATCH(DMI_PRODUCT_NAME, "CF-Y"),
-> +               },
-> +       },
-> +       { }
-> +};
-> +
->  /* method access functions */
->  static int acpi_pcc_write_sset(struct pcc_acpi *pcc, int func, int val)
->  {
-> @@ -360,6 +386,63 @@ static struct backlight_ops pcc_backligh
->        .update_status  = bl_set_status,
->  };
->
-> +/* get optical driver power state */
-> +
-> +static int get_optd_power_state(void)
-> +{
-> +       acpi_status status;
-> +       unsigned long long state;
-> +       int result;
-> +
-> +       status = acpi_evaluate_integer(NULL, "\\_SB.STAT", NULL, &state);
-> +       if (ACPI_FAILURE(status)) {
-> +               result = -EIO;
-> +               goto out;
-> +       }
-> +       switch (state) {
-> +       case 0: /* power off */
-> +               result = 1;
-> +               break;
-> +       case 0x0f: /* power on */
-> +               result = 0;
-> +               break;
-> +       default:
-> +               result = -EIO;
-> +               break;
-> +       }
-> +out:
-> +       return result;
-> +}
-> +
-> +/* set optical drive power state */
-> +
-> +static int set_optd_power_state(int new_state)
-> +{
-> +       int state, result;
-> +       acpi_status status;
-> +
-> +       state = get_optd_power_state();
-> +       if (new_state == state)
-> +               return 0;
-> +
-> +       result = 0;
-> +       switch (new_state) {
-> +       case 0: /* power on */
-> +               status = acpi_evaluate_object (NULL, "\\_SB.FBAY", NULL, NULL);
-> +               if (ACPI_FAILURE(status))
-> +                       result = -EIO;
-> +               break;
-> +       case 1: /* power off */
-> +               status = acpi_evaluate_object (NULL, "\\_SB.CDDI", NULL, NULL);
-> +               if (ACPI_FAILURE(status))
-> +                       result = -EIO;
-> +               break;
-> +       default:
-> +               result = -EINVAL;
-> +               break;
-> +       }
-> +       return result;
-> +}
->
->  /* sysfs user interface functions */
->
-> @@ -427,10 +510,29 @@ static ssize_t set_sticky(struct device
->        return count;
->  }
->
-> +static ssize_t show_cdpower(struct device *dev, struct device_attribute *attr,
-> +                           char *buf)
-> +{
-> +       return snprintf(buf, PAGE_SIZE, "%d\n", get_optd_power_state());
-> +}
-> +
-> +static ssize_t set_cdpower(struct device *dev, struct device_attribute *attr,
-> +                          const char *buf, size_t count)
-> +{
-> +       int value;
-> +
-> +       if (count) {
-> +               value = simple_strtoul(buf, NULL, 10);
-> +               set_optd_power_state (value);
-> +       }
-> +       return count;
-> +}
-> +
->  static DEVICE_ATTR(numbatt, S_IRUGO, show_numbatt, NULL);
->  static DEVICE_ATTR(lcdtype, S_IRUGO, show_lcdtype, NULL);
->  static DEVICE_ATTR(mute, S_IRUGO, show_mute, NULL);
->  static DEVICE_ATTR(sticky_key, S_IRUGO | S_IWUSR, show_sticky, set_sticky);
-> +static DEVICE_ATTR(cdpower, S_IRUGO | S_IWUSR, show_cdpower, set_cdpower);
->
->  static struct attribute *pcc_sysfs_entries[] = {
->        &dev_attr_numbatt.attr,
-> @@ -691,8 +793,26 @@ static int acpi_pcc_hotkey_add(struct ac
->        if (result)
->                goto out_backlight;
->
-> +       /* platform device initialization */
-> +       if (!dmi_check_system(pcc_platform_dmi_table)) {
-> +               pcc->platform = NULL;
-> +               goto out_no_optd;
-> +       }
-> +       pcc->platform = platform_device_register_simple("panasonic", -1,
-> +               NULL, 0);
-> +       if (IS_ERR(pcc->platform)) {
-> +               result = PTR_ERR(pcc->platform);
-> +               goto out_backlight;
-> +       }
-> +       result = device_create_file(&pcc->platform->dev, &dev_attr_cdpower);
-> +       if (result)
-> +               goto out_platform;
-> +
-> +out_no_optd:
->        return 0;
->
-> +out_platform:
-> +       platform_device_unregister(pcc->platform);
->  out_backlight:
->        backlight_device_unregister(pcc->backlight);
->  out_notify:
-> @@ -738,6 +858,11 @@ static int acpi_pcc_hotkey_remove(struct
->        if (!device || !pcc)
->                return -EINVAL;
->
-> +       if (pcc->platform) {
-> +               device_remove_file(&pcc->platform->dev, &dev_attr_cdpower);
-> +               platform_device_unregister(pcc->platform);
-> +       }
-> +
->        sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
->
->        backlight_device_unregister(pcc->backlight);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+The "real" paper still needs much work.
+
+> > If we all knew how this was supposed to work then we might have a m=
+uch
+> > better likelihood of fixing this behavior. It's only going to get w=
+orse
+> > over time - we want to get threaded IRQs upstream (I'm about to be
+> > poking at that again over here) and that'll mean mainline has to le=
+arn
+> > to deal with these boot interrupts just as much as RT does today.
+>=20
+> At the moment I'm uploading the slides we showed at the 10th
+> Real-Time Linux Workshop, which are a small, stripped down excerpt of
+> our upcoming paper.
+>=20
+> It should be available soon at:
+> ftp://ftp.suse.com/pub/people/sassmann/publication/boot_irq_quirks_rt=
+lws10.pdf
+>=20
+> Meanwhile I'd suggest to have a look at United States Patent 6466998.
+> That is intels patent for this interrupt routing mechanism.
+>=20
+> Hope this is helpful, we'll try to make more information available as=
+ap.
+>=20
+> >=20
+> > Jon.
+> >=20
+>=20
+>   Stefan
+>=20
+> --=20
+> Stefan Assmann          | SUSE LINUX Products GmbH
+> Software Engineer       | Maxfeldstr. 5, D-90409 Nuernberg
+> Mail: sassmann@suse.de  | GF: Markus Rex, HRB 16746 (AG Nuernberg)
+
+--=20
+Olaf Dabrunz (od/odabrunz), SUSE Linux Products GmbH, N=C3=BCrnberg
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
