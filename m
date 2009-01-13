@@ -1,63 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.29-rc1: Reported regressions from 2.6.28
-Date: Tue, 13 Jan 2009 12:23:01 +0100
-Message-ID: <200901131223.02813.rjw@sisk.pl>
-References: <XU-8icArWLM.A.UpG.8GfaJB@chimera> <200901112001.00394.rjw@sisk.pl> <3f9a31f40901121924v86b528er652b27e670c5fe0@mail.gmail.com>
+From: Stefan Assmann <sassmann@suse.de>
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
+ interrupt equivalent
+Date: Tue, 13 Jan 2009 14:32:55 +0100
+Message-ID: <496C9807.1010109@suse.de>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>	 <496B24E5.1070804@suse.de>  <200901121151.53195.bjorn.helgaas@hp.com> <1231788349.4094.21.camel@perihelion.bos.jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49452 "EHLO ogre.sisk.pl"
+Received: from cantor.suse.de ([195.135.220.2]:43738 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750825AbZAMLXh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Jan 2009 06:23:37 -0500
-In-Reply-To: <3f9a31f40901121924v86b528er652b27e670c5fe0@mail.gmail.com>
-Content-Disposition: inline
+	id S1757605AbZAMNc7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Jan 2009 08:32:59 -0500
+In-Reply-To: <1231788349.4094.21.camel@perihelion.bos.jonmasters.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+To: Jon Masters <jcm@redhat.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Eric W. Biederman" <ebiederm@xmission.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
 
-On Tuesday 13 January 2009, Jaswinder Singh Rajput wrote:
-> Hello Rafael,
+Hi Jon,
+
+Jon Masters wrote:
+> On Mon, 2009-01-12 at 11:51 -0700, Bjorn Helgaas wrote:
+>> (I added Eric, Maciej, and Jon because they participated in
+>> previous discussion here: http://lkml.org/lkml/2008/6/2/269)
 > 
-> On Mon, Jan 12, 2009 at 12:30 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Sunday 11 January 2009, Ingo Molnar wrote:
-> >>
-> >> * Jaswinder Singh Rajput <jaswinderlinux@gmail.com> wrote:
-> >>
-> >> > On Sun, Jan 11, 2009 at 4:42 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> > >
-> >> > > Regressions with patches
-> >> > > ------------------------
-> >> > >
-> >> > > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12428
-> >> > > Subject         : Build error on latest git
-> >> > > Submitter       : Petr Titera <P.Titera@century.cz>
-> >> > > Date            : 2009-01-11 9:49 (1 days old)
-> >> > > References      : http://marc.info/?l=linux-kernel&m=123166856318712&w=4
-> >> > > Handled-By      : Petr Titera <P.Titera@century.cz>
-> >> > > Patch           : http://marc.info/?l=linux-kernel&m=123167509024996&w=4
-> >> >
-> >> > This is a wrong fix, asm/smp.h should only be included when CONFIG_SMP
-> >> > is defined.
-> >> >
-> >> > I am still in the process of cleaning non-smp data from asm/smp.h for
-> >> > x86
-> >> >
-> >> > Attach patch is the solution for the time being
-> >> >
-> >> > Ingo, can you please put this in urgent queue.
-> >>
-> >> yes, it already is - see below.
-> >
-> > Link to this patch was added to the bug entry.  Pleaes let me know or close the
-> > bug when it's merged.
-> >
+> Thanks. You know what I'd really like even more than being on the CC?
+> I'd *love* someone to post a link to documentation on how this actually
+> is supposed to work. We had to guess last time because none of the
+> public documentation actually explains this. The guys at SuSE likely
+> received some docs, but I'm not sure where from or the title thereof.
+
+Actually, most of the Boot Interrupt patches resulted from reading the
+intel specs and observing the behavior of failing machines. We're trying
+to wrap up all the information gathered in a paper, which is pretty time
+consuming and a few steps away from being ready to publish.
+
+> If we all knew how this was supposed to work then we might have a much
+> better likelihood of fixing this behavior. It's only going to get worse
+> over time - we want to get threaded IRQs upstream (I'm about to be
+> poking at that again over here) and that'll mean mainline has to learn
+> to deal with these boot interrupts just as much as RT does today.
+
+At the moment I'm uploading the slides we showed at the 10th
+Real-Time Linux Workshop, which are a small, stripped down excerpt of
+our upcoming paper.
+
+It should be available soon at:
+ftp://ftp.suse.com/pub/people/sassmann/publication/boot_irq_quirks_rtlws10.pdf
+
+Meanwhile I'd suggest to have a look at United States Patent 6466998.
+That is intels patent for this interrupt routing mechanism.
+
+Hope this is helpful, we'll try to make more information available asap.
+
 > 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=4884d8e6a05026ec906355436cea9dc1acb1d09e
+> Jon.
+> 
 
-Thanks, the bug has been closed.
+  Stefan
 
-Rafael
+-- 
+Stefan Assmann          | SUSE LINUX Products GmbH
+Software Engineer       | Maxfeldstr. 5, D-90409 Nuernberg
+Mail: sassmann@suse.de  | GF: Markus Rex, HRB 16746 (AG Nuernberg)
