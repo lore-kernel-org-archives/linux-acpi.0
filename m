@@ -1,8 +1,8 @@
 From: Zhao Yakui <yakui.zhao@intel.com>
 Subject: Re: [PATCH] : ACPI : Use clocksource to get the C-state time
 	instead	of ACPI PM timer
-Date: Tue, 13 Jan 2009 09:26:10 +0800
-Message-ID: <1231809970.4026.83.camel@yakui_zhao.sh.intel.com>
+Date: Tue, 13 Jan 2009 09:42:38 +0800
+Message-ID: <1231810958.4026.94.camel@yakui_zhao.sh.intel.com>
 References: <20081031184233.8588.42241.stgit@thinkpad>
 	 <1231744070.4026.56.camel@yakui_zhao.sh.intel.com>
 	 <20090112220941.GA1446@linux-os.sc.intel.com>
@@ -10,10 +10,10 @@ Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42304 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:27982 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756960AbZAMBPD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jan 2009 20:15:03 -0500
+	id S1757347AbZAMBb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jan 2009 20:31:29 -0500
 In-Reply-To: <20090112220941.GA1446@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -24,14 +24,13 @@ On Tue, 2009-01-13 at 06:09 +0800, Pallipadi, Venkatesh wrote:
 > 
 > Patch looks ok in general. However, I am wonderng whether we reall need
 > ktime_get() here or can we use getnstimeofday() directly. Using
-It will also be OK to use the function of getnstimeofday(). 
-In fact the main part of ktime_get is to call the function of
-getnstimeofday.
-And the monotonic time is returned by ktime_get. 
-
 > getnstimeofday() should be cheaper, especially if we are doing frequent
 > calls from multiple CPUs on every idle enter/exit. And I don't think we
 > need to worry about monotonic clock from ktime here...
+What you said is right. It is unnecessary to get the monotonic clock.
+How about using the function of ktime_get_real? The function of
+getnstimeofday is called in ktime_get_real. And then time is converted
+to ktime format, which is very convenient to get the time interval.
 
 > 
 > Thanks,
