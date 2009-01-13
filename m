@@ -1,70 +1,60 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI hotplug panic with current git head
-Date: Mon, 12 Jan 2009 22:40:53 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901122230130.5859@localhost.localdomain>
-References: <1231604250.3642.33.camel@localhost.localdomain>
- <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>
- <1231807693.27151.21.camel@localhost.localdomain>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot interrupt equivalent
+Date: Mon, 12 Jan 2009 19:47:32 -0800
+Message-ID: <m1prirx3xn.fsf@frodo.ebiederm.org>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>
+	<496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com>
+	<m1d4esxfk2.fsf@frodo.ebiederm.org>
+	<1231806563.4094.25.camel@perihelion.bos.jonmasters.org>
+	<20090113014723.GA11366@elte.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:35298 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555AbZAMDlh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 22:41:37 -0500
-In-reply-to: <1231807693.27151.21.camel@localhost.localdomain>
+Received: from out02.mta.xmission.com ([166.70.13.232]:56835 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754325AbZAMD55 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 22:57:57 -0500
+In-Reply-To: <20090113014723.GA11366@elte.hu> (Ingo Molnar's message of "Tue,
+	13 Jan 2009 02:47:23 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Stefan Assmann <sassmann@suse.de>, Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
 
+Ingo Molnar <mingo@elte.hu> writes:
 
+> * Jon Masters <jcm@redhat.com> wrote:
+>
+>> On Mon, 2009-01-12 at 15:36 -0800, Eric W. Biederman wrote:
+>> 
+>> > This hardware behavior is not specific to boot interrupts or Intel.
+>> 
+>> It's not specific to Intel, but it is a specific compatibility behavior.
+>> 
+>> > Is this case really so interesting and compelling that we want to 
+>> > fight through and figure what we need to do to make this work reliably 
+>> > on every x86 chipset?
+>> 
+>> How else do you propose implementing IRQ handling in e.g. the RT kernel? 
+>> We get a hardware interrupt, we can't FastEOI, we can't process 
+>> synchronously, we can't do all of those things you might expect. 
+>> Implementing RT requires that we delay handling of the IRQ until 
+>> arbitrarily later in the future when we get around to it.
+>
+> a number of mainline drivers also mask/unmask irqs from within the IRQ 
+> handler. It's not particularly smart in a native driver, but can happen - 
+> and if we get an active line after that point (and this can happen because 
+> the driver is active), we are in trouble.
 
-On Mon, 12 Jan 2009, James Bottomley wrote:
+Yep.  Right now it might be simpler to fix the mainline drivers.
 
-> On Mon, 2009-01-12 at 16:16 -0500, Len Brown wrote:
-> > > This is on an IBM Maia system with the calgary IOMMU enabled. It's a
-> > > fatal boot up panic.
-> > > 
-> > 
-> > James,
-> > A guided bisect...
-> > Please let me know which of these fail
-> > 
-> > a3a798c88a14b35e5d4ca30716dbc9eb9a1ddfe2 is 2.6.29 at ACPI merge
-> > efcb3cf7f00c3c424db012380a8a974c2676a3c8 is 2.6.29 before ACPI merge
-> 
-> Didn't try these (being after the failure)
-> 
-> > ec9f168fcc344d2ffec1c8c822076bf22dab5c33 is 2.6.28 with most ACPI
-> 
-> This is the failing one.
-> 
-> > e8443c358c34f3fe65236e24147ddf0cd0e61b08 is 2.6.28 plus just ACPICA
-> 
-> This one boots fine.
-> 
-> > Please test the "2.6.28+ACPICA" one first.
-> > If it fails, we are close so you can skip the others above
-> > and bisect between that and 2.6.28.
-> 
-> I'll try bisecting between ec9f168fcc344d2ffec1c8c822076bf22dab5c33 and
-> e8443c358c34f3fe65236e24147ddf0cd0e61b08.
+If we can sit down and write some nice clean obviously correct patches
+I am all for fixing this bug, possibly even a chipset at a time.
 
-Intersting.
-The last thing merged into the failing branch was bjorn's _PRT changes
-087da3b4e2d7d3ef70a4fa649b9a286fdeb0e44e
-If that commit fails, then it is a straight shot back though
-his changes to 2.6.28
+However this is a really weird case and people seem to be really struggling
+to understand what is going on and to write those patches.  We are outside
+the descriptions provided by ACPI so it requires chipset specific knowledge,
+and a general understanding of how chipsets work to actually even comprehend
+the problem.
 
-If his changes work, then there is more to choose from...
-b2576e1d4408e134e2188c967b1f28af39cd79d4
-'merge brnach 'linus' into release'
-is after I updated my tree with Linus' 2.6.29 eggnog-merge-window stuff
-
-3cc8a5f4ba91f67bbdb81a43a99281a26aab8d77 "Merge Branch 'suspend into 
-release" is my tree before merging with Linus' stuff
-
-thanks,
--Len
-
+Eric
