@@ -1,83 +1,50 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [RFC] [PATCH] panasonic-laptop.c: add support for CD power
-	management
-Date: Wed, 14 Jan 2009 14:08:34 +0800
-Message-ID: <20090114060834.GN4791@prithivi.gnumonks.org>
-References: <20090113163233.GA734@dezo.moloch.sk>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: [PATCH 1/6] fastboot: Asynchronous function calls to speed up
+ kernel boot
+Date: Wed, 14 Jan 2009 09:04:33 +0000
+Message-ID: <20090114090433.45cf1e78@infradead.org>
+References: <20090105200959.04a626ac@infradead.org>
+	<20090105201041.3289d3dd@infradead.org>
+	<1231911163.20746.126.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="G6nVm6DDWH/FONJq"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:50311 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459AbZANGIp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2009 01:08:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20090113163233.GA734@dezo.moloch.sk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1231911163.20746.126.camel@rzhang-dt>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@elte.hu" <mingo@elte.hu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Martin Lucina <mato@kotelna.sk>
-Cc: linux-acpi@vger.kernel.org
+
+On Wed, 14 Jan 2009 13:32:43 +0800
+Zhang Rui <rui.zhang@intel.com> wrote:
+> > +
+> > +       wait_event(async_done, lowest_in_progress >= cookie);
+> > +
+> 
+> In some cases, we only want to wait for a specific cookie
+> rather than all the cookies smaller than it.
+> 
+> For example:
+> device          cookie
+> ACPI battery    1
+> ata port 0      2
+> ata port 1      3
+> ata port 0 and port 1 in the same host can not be probed in parallel.
+> 
+> In this case, ata port1 should only wait for cookie 2 rather than
+> both 1 and 2.
+> 
+
+I really don't want to go this way; ordering is really important and I
+don't want to break this.
+
+If you really have a fully separate domain (and there's only few of
+those in our kernel), then use a special run list.
 
 
---G6nVm6DDWH/FONJq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Martin,
-
-thanks for your patch, here some comments:
-
-* please provide Signed-off-by line
-* please invert the logic (as discussed earlier in the thread)
-* please don't use the goto construct in pcc_hotkey_add(), since it
-  makes it easy to introduce future bugs while adding more code,
-  just check for the ODD drive presence and put the entire block
-  in an 'if ()  { }' construct.
-* I agree, checking for _SB.FBAY and _SB.STAT is probably the better
-  solution.  I would accept both versions, though.
-* Please run your patch through checkpatch.pl, I think there were some
-  indentation errors in it (just spotted them with my eye, didn't run
-  the script)
-
-> 3) Please advise on the correct way to propagate an error result from
-> the functions that call the ACPI methods {get,set}optd_power_state() to
-> userspace in the sysfs interface.  I couldn't find a straightforward
-> example anywhere.
-
-I cannot help with that either, sorry.  I'm not the ACPI expert here, just
-happening to have merged the panasonic driver ;)
-
-Oh, and with regard to 'who in userspace is responsible': This is actually a
-good question.  I've had many of this kind of cases in embedded development,
-where you had to explicitly have to enable the power to a certain peripheral
-before using.  I personally believe this doesn't belong into userspace, and
-the kernel should provide hooks for it, i.e. issue some kind of
-event/notifier/... to call any power-up hanlers before using, and then doing
-the inverse after use.
-
-Regards,
---=20
-- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
-
---G6nVm6DDWH/FONJq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQFJbYFiXaXGVTD0i/8RAt/vAJ4tYyMPNI4LNkHAcZp8pFhOwPBSOQCgj7w2
-W0dgFyCH2EKD1umXTeu2Tbo=
-=HgCX
------END PGP SIGNATURE-----
-
---G6nVm6DDWH/FONJq--
+-- 
+Arjan van de Ven 	Intel Open Source Technology Centre
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
