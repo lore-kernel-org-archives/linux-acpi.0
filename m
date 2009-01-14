@@ -1,141 +1,447 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 3/3] ACPI: EC: Don't trust ECDT tables from ASUS
-Date: Wed, 14 Jan 2009 02:57:53 +0300
-Message-ID: <20090113235753.10548.54917.stgit@thinkpad>
-References: <20090113235739.10548.20626.stgit@thinkpad>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/6] fastboot: Asynchronous function calls to speed up
+	kernel boot
+Date: Wed, 14 Jan 2009 13:32:43 +0800
+Message-ID: <1231911163.20746.126.camel@rzhang-dt>
+References: <20090105200959.04a626ac@infradead.org>
+	 <20090105201041.3289d3dd@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:35208 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755652AbZAMX5v (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 13 Jan 2009 18:57:51 -0500
-In-Reply-To: <20090113235739.10548.20626.stgit@thinkpad>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-xyn4g45CHn0zagyI9pxI"
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20090105201041.3289d3dd@infradead.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@elte.hu" <mingo@elte.hu>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
 
-References: http://bugzilla.kernel.org/show_bug.cgi?id=9399
-	    http://bugzilla.kernel.org/show_bug.cgi?id=11880
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+--=-xyn4g45CHn0zagyI9pxI
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+On Tue, 2009-01-06 at 12:10 +0800, Arjan van de Ven wrote:
+> From 15815a54b95e6866ff9532dead9cca4d6a298b54 Mon Sep 17 00:00:00 2001
+> From: Arjan van de Ven <arjan@linux.intel.com>
+> Date: Sun, 4 Jan 2009 05:32:28 -0800
+> Subject: [PATCH] fastboot: Asynchronous function calls to speed up kernel boot
+> 
+> Right now, most of the kernel boot is strictly synchronous, such that
+> various hardware delays are done sequentially.
+> 
+> In order to make the kernel boot faster, this patch introduces
+> infrastructure to allow doing some of the initialization steps
+> asynchronously, which will hide significant portions of the hardware delays
+> in practice.
+> 
+> In order to not change device order and other similar observables, this
+> patch does NOT do full parallel initialization.
+> 
+> Rather, it operates more in the way an out of order CPU does; the work may
+> be done out of order and asynchronous, but the observable effects
+> (instruction retiring for the CPU) are still done in the original sequence.
+> 
+> Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+
+> +
+> +void async_synchronize_cookie(async_cookie_t cookie)
+> +{
+> +       ktime_t starttime, delta, endtime;
+> +
+> +       if (initcall_debug) {
+> +               printk("async_waiting @ %i\n", task_pid_nr(current));
+> +               starttime = ktime_get();
+> +       }
+> +
+> +       wait_event(async_done, lowest_in_progress >= cookie);
+> +
+
+In some cases, we only want to wait for a specific cookie
+rather than all the cookies smaller than it.
+
+For example:
+device          cookie
+ACPI battery    1
+ata port 0      2
+ata port 1      3
+ata port 0 and port 1 in the same host can not be probed in parallel.
+
+In this case, ata port1 should only wait for cookie 2 rather than both 1 and 2.
+
+how about the patch below? (it's just a prototype and I have not tested it yet)
+If it's okay, I'll do some tricks in the libata-core so that port1 can get the cookie of port 0.
+
+Introduces two new interfaces
+async_synchronize_one_cookie
+async_synchronize_one_cookie_special
+users can use these to wait for a specific cookie.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
+ drivers/ata/libata-core.c |    4 +-
+ include/linux/async.h     |    6 ++-
+ kernel/async.c            |   82 +++++++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 80 insertions(+), 12 deletions(-)
 
- drivers/acpi/ec.c |   74 +++++++++++++++++++++--------------------------------
- 1 files changed, 30 insertions(+), 44 deletions(-)
-
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e079426..a2b82c9 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -120,31 +120,6 @@ static struct acpi_ec {
- 	spinlock_t curr_lock;
- } *boot_ec, *first_ec;
- 
--/* 
-- * Some Asus system have exchanged ECDT data/command IO addresses.
-- */
--static int print_ecdt_error(const struct dmi_system_id *id)
--{
--	printk(KERN_NOTICE PREFIX "%s detected - "
--		"ECDT has exchanged control/data I/O address\n",
--		id->ident);
--	return 0;
--}
--
--static struct dmi_system_id __cpuinitdata ec_dmi_table[] = {
--	{
--	print_ecdt_error, "Asus L4R", {
--	DMI_MATCH(DMI_BIOS_VERSION, "1008.006"),
--	DMI_MATCH(DMI_PRODUCT_NAME, "L4R"),
--	DMI_MATCH(DMI_BOARD_NAME, "L4R") }, NULL},
--	{
--	print_ecdt_error, "Asus M6R", {
--	DMI_MATCH(DMI_BIOS_VERSION, "0207"),
--	DMI_MATCH(DMI_PRODUCT_NAME, "M6R"),
--	DMI_MATCH(DMI_BOARD_NAME, "M6R") }, NULL},
--	{},
--};
--
- /* --------------------------------------------------------------------------
-                              Transaction Management
-    -------------------------------------------------------------------------- */
-@@ -983,8 +958,8 @@ static const struct acpi_device_id ec_device_ids[] = {
- int __init acpi_ec_ecdt_probe(void)
- {
- 	acpi_status status;
-+	struct acpi_ec *saved_ec = NULL;
- 	struct acpi_table_ecdt *ecdt_ptr;
--	acpi_handle dummy;
- 
- 	boot_ec = make_acpi_ec();
- 	if (!boot_ec)
-@@ -998,21 +973,16 @@ int __init acpi_ec_ecdt_probe(void)
- 		pr_info(PREFIX "EC description table is found, configuring boot EC\n");
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
--		if (dmi_check_system(ec_dmi_table)) {
--			/*
--			 * If the board falls into ec_dmi_table, it means
--			 * that ECDT table gives the incorrect command/status
--			 * & data I/O address. Just fix it.
--			 */
--			boot_ec->data_addr = ecdt_ptr->control.address;
--			boot_ec->command_addr = ecdt_ptr->data.address;
--		}
- 		boot_ec->gpe = ecdt_ptr->gpe;
- 		boot_ec->handle = ACPI_ROOT_OBJECT;
- 		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
--		/* Add some basic check against completely broken table */
--		if (boot_ec->data_addr != boot_ec->command_addr)
-+		/* Don't trust ECDT, which comes from ASUSTek */
-+		if (!dmi_name_in_vendors("ASUS"))
- 			goto install;
-+		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
-+		if (!saved_ec)
-+			return -ENOMEM;
-+		memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
- 	/* fall through */
- 	}
- 	/* This workaround is needed only on some broken machines,
-@@ -1023,13 +993,29 @@ int __init acpi_ec_ecdt_probe(void)
- 	/* Check that acpi_get_devices actually find something */
- 	if (ACPI_FAILURE(status) || !boot_ec->handle)
- 		goto error;
--	/* We really need to limit this workaround, the only ASUS,
--	 * which needs it, has fake EC._INI method, so use it as flag.
--	 * Keep boot_ec struct as it will be needed soon.
--	 */
--	if (!dmi_name_in_vendors("ASUS") ||
--	    ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &dummy)))
--		return -ENODEV;
-+	if (saved_ec) {
-+		/* try to find good ECDT from ASUSTek */
-+		if (saved_ec->command_addr != boot_ec->command_addr ||
-+		    saved_ec->data_addr != boot_ec->data_addr ||
-+		    saved_ec->gpe != boot_ec->gpe ||
-+		    saved_ec->handle != boot_ec->handle)
-+			pr_info(PREFIX "ASUSTek keeps feeding us with broken "
-+			"ECDT tables, which are very hard to workaround. "
-+			"Trying to use DSDT EC info instead. Please send "
-+			"output of acpidump to linux-acpi@vger.kernel.org\n");
-+		kfree(saved_ec);
-+		saved_ec = NULL;
-+	} else {
-+		/* We really need to limit this workaround, the only ASUS,
-+		* which needs it, has fake EC._INI method, so use it as flag.
-+		* Keep boot_ec struct as it will be needed soon.
-+		*/
-+		acpi_handle dummy;
-+		if (!dmi_name_in_vendors("ASUS") ||
-+		    ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI",
-+							&dummy)))
-+			return -ENODEV;
+Index: linux-2.6/kernel/async.c
+===================================================================
+--- linux-2.6.orig/kernel/async.c
++++ linux-2.6/kernel/async.c
+@@ -87,6 +87,44 @@ extern int initcall_debug;
+ /*
+  * MUST be called with the lock held!
+  */
++static int __cookie_is_done(struct list_head *running, async_cookie_t cookie)
++{
++	struct async_entry *entry;
++
++        if (!list_empty(running)) {
++		list_for_each_entry(entry, running, list) {
++			if (entry->cookie > cookie)
++				break;
++			if (entry->cookie == cookie)
++				return 0;
++		}
 +	}
- install:
- 	if (!ec_install_handlers(boot_ec)) {
- 		first_ec = boot_ec;
++
++	if (!list_empty(&async_pending)) {
++		list_for_each_entry(entry, &async_pending, list) {
++			if (entry->cookie > cookie)
++				break;
++			if (entry->cookie == cookie)
++				return 0;
++		}
++	}
++	return 1;
++}
++
++static int cookie_is_done(struct list_head *running, async_cookie_t cookie)
++{
++	unsigned long flags;
++	async_cookie_t ret;
++
++	spin_lock_irqsave(&async_lock, flags);
++	ret = __cookie_is_done(running, cookie);
++	spin_unlock_irqrestore(&async_lock, flags);
++	return ret;
++}
++
++/*
++ * MUST be called with the lock held!
++ */
+ static async_cookie_t  __lowest_in_progress(struct list_head *running)
+ {
+ 	struct async_entry *entry;
+@@ -220,18 +258,19 @@ EXPORT_SYMBOL_GPL(async_schedule_special
+ void async_synchronize_full(void)
+ {
+ 	do {
+-		async_synchronize_cookie(next_cookie);
++		async_synchronize_cookies(next_cookie);
+ 	} while (!list_empty(&async_running) || !list_empty(&async_pending));
+ }
+ EXPORT_SYMBOL_GPL(async_synchronize_full);
+ 
+ void async_synchronize_full_special(struct list_head *list)
+ {
+-	async_synchronize_cookie_special(next_cookie, list);
++	async_synchronize_cookies_special(next_cookie, list);
+ }
+ EXPORT_SYMBOL_GPL(async_synchronize_full_special);
+ 
+-void async_synchronize_cookie_special(async_cookie_t cookie, struct list_head *running)
++static void __async_synchronize_cookie_special(async_cookie_t cookie,
++						struct list_head *running, int type)
+ {
+ 	ktime_t starttime, delta, endtime;
+ 
+@@ -240,7 +279,10 @@ void async_synchronize_cookie_special(as
+ 		starttime = ktime_get();
+ 	}
+ 
+-	wait_event(async_done, lowest_in_progress(running) >= cookie);
++	if (type)
++		wait_event(async_done, lowest_in_progress(running) >= cookie);
++	else
++		wait_event(async_done, cookie_is_done(running, cookie));
+ 
+ 	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+ 		endtime = ktime_get();
+@@ -250,13 +292,37 @@ void async_synchronize_cookie_special(as
+ 			task_pid_nr(current), ktime_to_ns(delta) >> 10);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(async_synchronize_cookie_special);
+ 
+-void async_synchronize_cookie(async_cookie_t cookie)
++void async_synchronize_cookies_special(async_cookie_t cookie, struct list_head *running)
++{
++	__async_synchronize_cookie_special(cookie, running, 1);
++}
++EXPORT_SYMBOL_GPL(async_synchronize_cookies_special);
++
++void async_synchronize_cookies(async_cookie_t cookie)
++{
++	__async_synchronize_cookie_special(cookie, &async_running, 1);
++}
++EXPORT_SYMBOL_GPL(async_synchronize_cookies);
++
++
++/*
++ * sychronize a specific cookie
++ * block until the entry with a speicific cookie is done.
++ * Note that waiting for a cookie while holding it is not allowed.
++ * because it may cause a deadlock issue.
++ */
++void async_synchronize_one_cookie_special(async_cookie_t cookie, struct list_head *running)
++{
++	__async_synchronize_cookie_special(cookie, running, 0);
++}
++EXPORT_SYMBOL_GPL(async_synchronize_one_cookie_special);
++
++void async_synchronize_one_cookie(async_cookie_t cookie)
+ {
+-	async_synchronize_cookie_special(cookie, &async_running);
++	__async_synchronize_cookie_special(cookie, &async_running, 0);
+ }
+-EXPORT_SYMBOL_GPL(async_synchronize_cookie);
++EXPORT_SYMBOL_GPL(async_synchronize_one_cookie);
+ 
+ 
+ static int async_thread(void *unused)
+Index: linux-2.6/include/linux/async.h
+===================================================================
+--- linux-2.6.orig/include/linux/async.h
++++ linux-2.6/include/linux/async.h
+@@ -20,6 +20,8 @@ extern async_cookie_t async_schedule(asy
+ extern async_cookie_t async_schedule_special(async_func_ptr *ptr, void *data, struct list_head *list);
+ extern void async_synchronize_full(void);
+ extern void async_synchronize_full_special(struct list_head *list);
+-extern void async_synchronize_cookie(async_cookie_t cookie);
+-extern void async_synchronize_cookie_special(async_cookie_t cookie, struct list_head *list);
++extern void async_synchronize_cookies(async_cookie_t cookie);
++extern void async_synchronize_cookies_special(async_cookie_t cookie, struct list_head *list);
++extern void async_synchronize_one_cookie(async_cookie_t cookie);
++extern void async_synchronize_one_cookie_special(async_cookie_t cookie, struct list_head *list);
+ 
+Index: linux-2.6/drivers/ata/libata-core.c
+===================================================================
+--- linux-2.6.orig/drivers/ata/libata-core.c
++++ linux-2.6/drivers/ata/libata-core.c
+@@ -5929,7 +5929,7 @@ static void async_port_probe(void *data,
+ 	 * don't need to wait for port 0, only for later ports.
+ 	 */
+ 	if (!(ap->host->flags & ATA_HOST_PARALLEL_SCAN) && ap->port_no != 0)
+-		async_synchronize_cookie(cookie);
++		async_synchronize_cookies(cookie);
+ 
+ 	/* probe */
+ 	if (ap->ops->error_handler) {
+@@ -5969,7 +5969,7 @@ static void async_port_probe(void *data,
+ 	}
+ 
+ 	/* in order to keep device order, we need to synchronize at this point */
+-	async_synchronize_cookie(cookie);
++	async_synchronize_cookies(cookie);
+ 
+ 	ata_scsi_scan_host(ap, 1);
+ 
+
+
+
+
+--=-xyn4g45CHn0zagyI9pxI
+Content-Disposition: attachment; filename=patch-async-introduce-new-interface
+Content-Type: text/plain; name=patch-async-introduce-new-interface; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+
+In some cases, we only want to wait for a specific cookie
+rather than all the cookies smaller than it.
+Introduces two new interfaces
+async_synchronize_one_cookie
+async_synchronize_one_cookie_special
+users can use these to wait for a specific cookie.
+
+For example:
+device          cookie
+ACPI battery    1
+ata port 0      2
+ata port 1      3
+ata port 0 and port 1 in the same host can not be porbed in parallel.
+
+In this case, ata port1 should only wait for cookie 2 rather than both 1 and 2.
+And using the new interface would be a better choice.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/ata/libata-core.c |    4 +-
+ include/linux/async.h     |    6 ++-
+ kernel/async.c            |   82 +++++++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 80 insertions(+), 12 deletions(-)
+
+Index: linux-2.6/kernel/async.c
+===================================================================
+--- linux-2.6.orig/kernel/async.c
++++ linux-2.6/kernel/async.c
+@@ -87,6 +87,44 @@ extern int initcall_debug;
+ /*
+  * MUST be called with the lock held!
+  */
++static int __cookie_is_done(struct list_head *running, async_cookie_t cookie)
++{
++	struct async_entry *entry;
++
++        if (!list_empty(running)) {
++		list_for_each_entry(entry, running, list) {
++			if (entry->cookie > cookie)
++				break;
++			if (entry->cookie == cookie)
++				return 0;
++		}
++	}
++
++	if (!list_empty(&async_pending)) {
++		list_for_each_entry(entry, &async_pending, list) {
++			if (entry->cookie > cookie)
++				break;
++			if (entry->cookie == cookie)
++				return 0;
++		}
++	}
++	return 1;
++}
++
++static int cookie_is_done(struct list_head *running, async_cookie_t cookie)
++{
++	unsigned long flags;
++	async_cookie_t ret;
++
++	spin_lock_irqsave(&async_lock, flags);
++	ret = __cookie_is_done(running, cookie);
++	spin_unlock_irqrestore(&async_lock, flags);
++	return ret;
++}
++
++/*
++ * MUST be called with the lock held!
++ */
+ static async_cookie_t  __lowest_in_progress(struct list_head *running)
+ {
+ 	struct async_entry *entry;
+@@ -220,18 +258,19 @@ EXPORT_SYMBOL_GPL(async_schedule_special
+ void async_synchronize_full(void)
+ {
+ 	do {
+-		async_synchronize_cookie(next_cookie);
++		async_synchronize_cookies(next_cookie);
+ 	} while (!list_empty(&async_running) || !list_empty(&async_pending));
+ }
+ EXPORT_SYMBOL_GPL(async_synchronize_full);
+ 
+ void async_synchronize_full_special(struct list_head *list)
+ {
+-	async_synchronize_cookie_special(next_cookie, list);
++	async_synchronize_cookies_special(next_cookie, list);
+ }
+ EXPORT_SYMBOL_GPL(async_synchronize_full_special);
+ 
+-void async_synchronize_cookie_special(async_cookie_t cookie, struct list_head *running)
++static void __async_synchronize_cookie_special(async_cookie_t cookie,
++						struct list_head *running, int type)
+ {
+ 	ktime_t starttime, delta, endtime;
+ 
+@@ -240,7 +279,10 @@ void async_synchronize_cookie_special(as
+ 		starttime = ktime_get();
+ 	}
+ 
+-	wait_event(async_done, lowest_in_progress(running) >= cookie);
++	if (type)
++		wait_event(async_done, lowest_in_progress(running) >= cookie);
++	else
++		wait_event(async_done, cookie_is_done(running, cookie));
+ 
+ 	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+ 		endtime = ktime_get();
+@@ -250,13 +292,37 @@ void async_synchronize_cookie_special(as
+ 			task_pid_nr(current), ktime_to_ns(delta) >> 10);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(async_synchronize_cookie_special);
+ 
+-void async_synchronize_cookie(async_cookie_t cookie)
++void async_synchronize_cookies_special(async_cookie_t cookie, struct list_head *running)
++{
++	__async_synchronize_cookie_special(cookie, running, 1);
++}
++EXPORT_SYMBOL_GPL(async_synchronize_cookies_special);
++
++void async_synchronize_cookies(async_cookie_t cookie)
++{
++	__async_synchronize_cookie_special(cookie, &async_running, 1);
++}
++EXPORT_SYMBOL_GPL(async_synchronize_cookies);
++
++
++/*
++ * sychronize a specific cookie
++ * block until the entry with a speicific cookie is done.
++ * Note that waiting for a cookie while holding it is not allowed.
++ * because it may cause a deadlock issue.
++ */
++void async_synchronize_one_cookie_special(async_cookie_t cookie, struct list_head *running)
++{
++	__async_synchronize_cookie_special(cookie, running, 0);
++}
++EXPORT_SYMBOL_GPL(async_synchronize_one_cookie_special);
++
++void async_synchronize_one_cookie(async_cookie_t cookie)
+ {
+-	async_synchronize_cookie_special(cookie, &async_running);
++	__async_synchronize_cookie_special(cookie, &async_running, 0);
+ }
+-EXPORT_SYMBOL_GPL(async_synchronize_cookie);
++EXPORT_SYMBOL_GPL(async_synchronize_one_cookie);
+ 
+ 
+ static int async_thread(void *unused)
+Index: linux-2.6/include/linux/async.h
+===================================================================
+--- linux-2.6.orig/include/linux/async.h
++++ linux-2.6/include/linux/async.h
+@@ -20,6 +20,8 @@ extern async_cookie_t async_schedule(asy
+ extern async_cookie_t async_schedule_special(async_func_ptr *ptr, void *data, struct list_head *list);
+ extern void async_synchronize_full(void);
+ extern void async_synchronize_full_special(struct list_head *list);
+-extern void async_synchronize_cookie(async_cookie_t cookie);
+-extern void async_synchronize_cookie_special(async_cookie_t cookie, struct list_head *list);
++extern void async_synchronize_cookies(async_cookie_t cookie);
++extern void async_synchronize_cookies_special(async_cookie_t cookie, struct list_head *list);
++extern void async_synchronize_one_cookie(async_cookie_t cookie);
++extern void async_synchronize_one_cookie_special(async_cookie_t cookie, struct list_head *list);
+ 
+Index: linux-2.6/drivers/ata/libata-core.c
+===================================================================
+--- linux-2.6.orig/drivers/ata/libata-core.c
++++ linux-2.6/drivers/ata/libata-core.c
+@@ -5929,7 +5929,7 @@ static void async_port_probe(void *data,
+ 	 * don't need to wait for port 0, only for later ports.
+ 	 */
+ 	if (!(ap->host->flags & ATA_HOST_PARALLEL_SCAN) && ap->port_no != 0)
+-		async_synchronize_cookie(cookie);
++		async_synchronize_cookies(cookie);
+ 
+ 	/* probe */
+ 	if (ap->ops->error_handler) {
+@@ -5969,7 +5969,7 @@ static void async_port_probe(void *data,
+ 	}
+ 
+ 	/* in order to keep device order, we need to synchronize at this point */
+-	async_synchronize_cookie(cookie);
++	async_synchronize_cookies(cookie);
+ 
+ 	ata_scsi_scan_host(ap, 1);
+ 
+
+--=-xyn4g45CHn0zagyI9pxI--
 
