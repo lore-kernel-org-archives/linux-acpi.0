@@ -1,37 +1,96 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: Fwd: [PATCH 01/02] Initial work to let ACPI buttons work over
-	INPUT layer
-Date: Wed, 14 Jan 2009 10:57:21 +0100
-Message-ID: <71cd59b00901140157n760b8e55i13119bfdb193b9d@mail.gmail.com>
-References: <200811291834.46109.dnascimento@gmail.com>
-	 <4ff2fa00812190834s8ef5629ofa1f17a74aa6bfef@mail.gmail.com>
-	 <1231328320.402.5.camel@zimtstern>
-	 <71cd59b00901120359h4c0ff723v4f49bdd180fcc9e8@mail.gmail.com>
-	 <71cd59b00901120400t1545e85avcfaa5b23a3c3ee79@mail.gmail.com>
+From: Stefan Assmann <sassmann@suse.de>
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
+ interrupt equivalent
+Date: Wed, 14 Jan 2009 10:57:22 +0100
+Message-ID: <496DB702.40302@suse.de>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <496B24E5.1070804@suse.de> <20090113082513.GA18449@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:39343 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758097AbZANJ5Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2009 04:57:24 -0500
-Received: by bwz14 with SMTP id 14so1466911bwz.13
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2009 01:57:22 -0800 (PST)
-In-Reply-To: <71cd59b00901120400t1545e85avcfaa5b23a3c3ee79@mail.gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:39224 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758324AbZANJ5Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Jan 2009 04:57:25 -0500
+In-Reply-To: <20090113082513.GA18449@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timo Hoenig <thoenig@nouse.net>
-Cc: Nicolas Trangez <ikke@nicolast.be>, sziwan@users.sourceforge.net, linux-acpi@vger.kernel.org, Daniel Nascimento <dnascimento@gmail.com>, acpi4asus-user@lists.sourceforge.net
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sven Dietrich <sdietrich@novell.com>
 
-Hi,
-Just done a patch based on eeepc-laptop.
-You can get it there:
-http://git.iksaif.net/?p=acpi4asus.git;a=shortlog;h=refs/heads/asus-laptop-input
-I didn't test it yet, I'll only have my laptops this weekend.
-Could you test it please ?
-Thanks
+Shaohua Li wrote:
+> On Mon, Jan 12, 2009 at 07:09:25PM +0800, Stefan Assmann wrote:
+>> Hi Len,
+>>
+>> Len Brown wrote:
+>>> Stefan,
+>>> I had to exclude your changes to drivers/acpi/pci_irq.c from
+>>> e1d3a90846b40ad3160bf4b648d36c6badad39ac
+>>> in order to get some other changes to that file upstream in the
+>>> 2.6.29 merge window.
+>>>
+>>> I left the other parts of the quirk intact - so at the moment
+>>> on one of the quirked machines, you'll see
+>>>
+>>> PCI quirk: reroute interrupts for...
+>>>
+>>> but will not see
+>>>
+>>> pci irq %d -> rerouted to legacy
+>>>
+>>> as the quirk is effectively disabled.
+>>>
+>>> I had difficulty trying to port this patch to the new pci_irq.c
+>>> because fundamentally I don't understand what it is trying
+>>> to do, and why.
+>> Let me try to give you a short overview of what's happening there.
+>>
+>> If an IRQ arrives at line X of a non-primary IO-APIC and that line is
+>> masked a new IRQ will be generated on the primary IO-APIC/PIC. This is
+>> called a "Boot Interrupt" by Intel. It's purpose is, as the name
+>> suggests, to ensure that the IRQ is handled at boot time (when the
+>> non-primary) IO-APIC is still disabled.
+>>
+>> Condition to be met for "Boot Interrupts":
+>> - line X on non-primary IO-APIC interrupt line is masked
+>> - line X is asserted
+>>
+>> This behavior is not necessary during normal operation as the IRQ is
+>> handled by the non-primary IO-APIC itself. Now imagine what happens if
+>> these Boot Interrupts would occur during normal operation. You'd see
+>> spurious IRQs on your primary IO-APIC which, in the worst case, will
+>> bring down the interrupt line they occur on! Every device that shares this
+>> interrupt line will fail when this happens.
+>>
+>> Why can these IRQ lines be brought down by Boot Interrupts? Because
+>> there's no handler installed on the primary IO-APIC IRQ line that can
+>> take care of them and after too many unhandled IRQs the line will be shut
+>> down by the kernel.
+>>
+>> What this quirk does:
+>> It installs the interrupt handler on the primary IO-APICs interrupt line
+>> instead of the (original) non-primary IO-APICs interrupt line, keeping
+>> the original interrupt line masked. This guarantees that for every IRQ
+>> arriving at the non-primary IO-APIC a Boot Interrupt is generated _and_
+>> handled properly.
+>>
+>> Note: You need this quirk if you mask your interrupts during handling.
+> So a device can generate interrupt from two irqs. And we can get the irq
+> number for the routing table. Can we extend the irq mechanism and
+> automatically register the interrupt handler for the two irqs?
+
+This would not solve the problem of asserting 2 different interrupt
+lines, in the masked interrupt handling case, for 1 interrupt request.
+The result would be that the ISR is called twice and at the second call
+you can't be sure that the device hasn't already been serviced.
+
+> 
+> Thanks,
+> Shaohua
+
+  Stefan
 
 -- 
-Corentin Chary
-http://xf.iksaif.net
+Stefan Assmann          | SUSE LINUX Products GmbH
+Software Engineer       | Maxfeldstr. 5, D-90409 Nuernberg
+Mail: sassmann@suse.de  | GF: Markus Rex, HRB 16746 (AG Nuernberg)
