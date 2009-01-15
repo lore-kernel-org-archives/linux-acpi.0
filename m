@@ -1,100 +1,78 @@
-From: Stefan Assmann <sassmann@suse.de>
+From: Olaf Dabrunz <od@suse.de>
 Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
- interrupt equivalent
-Date: Thu, 15 Jan 2009 15:08:48 +0100
-Message-ID: <496F4370.4010406@suse.de>
-References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <496C788C.9050305@suse.de> <20090113155717.GM25512@suse.de> <200901141710.33859.bjorn.helgaas@hp.com>
+	interrupt equivalent
+Date: Thu, 15 Jan 2009 16:34:44 +0100
+Message-ID: <20090115153444.GT25512@suse.de>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com> <1231788349.4094.21.camel@perihelion.bos.jonmasters.org> <496C9807.1010109@suse.de> <20090113182259.GN25512@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:50405 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:45259 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756333AbZAOOIv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2009 09:08:51 -0500
-In-Reply-To: <200901141710.33859.bjorn.helgaas@hp.com>
+	id S1754545AbZAOPes (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2009 10:34:48 -0500
+Content-Disposition: inline
+In-Reply-To: <20090113182259.GN25512@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Olaf Dabrunz <od@suse.de>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Eric W. Biederman" <ebiederm@xmission.com>, "Maciej W. Rozycki" <macro@linux-mips.org>, Jon Masters <jcm@redhat.com>
+To: Stefan Assmann <sassmann@suse.de>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@>
 
-Bjorn Helgaas wrote:
-> On Tuesday 13 January 2009 08:57:17 am Olaf Dabrunz wrote:
->> On 13-Jan-09, Stefan Assmann wrote:
->>> Bjorn Helgaas wrote:
->>>> (I added Eric, Maciej, and Jon because they participated in
->>>> previous discussion here: http://lkml.org/lkml/2008/6/2/269)
->>>>
->>>> On Monday 12 January 2009 04:09:25 am Stefan Assmann wrote:
->>>>> Len Brown wrote:
->>>>>> Stefan,
->>>>>> I had to exclude your changes to drivers/acpi/pci_irq.c from
->>>>>> e1d3a90846b40ad3160bf4b648d36c6badad39ac
->>>>>> in order to get some other changes to that file upstream in the
->>>>>> 2.6.29 merge window. ...
->>>>> Let me try to give you a short overview of what's happening there.
->>>>>
->>>>> If an IRQ arrives at line X of a non-primary IO-APIC and that line is
->>>>> masked a new IRQ will be generated on the primary IO-APIC/PIC. This is
->>>>> called a "Boot Interrupt" by Intel. It's purpose is, as the name
->>>>> suggests, to ensure that the IRQ is handled at boot time (when the
->>>>> non-primary) IO-APIC is still disabled.
->>>>>
->>>>> Condition to be met for "Boot Interrupts":
->>>>> - line X on non-primary IO-APIC interrupt line is masked
->>>>> - line X is asserted
->>>> Thanks.  Let me replay this to see whether I understand.  Please
->>>> correct any of my misapprehensions :-)
->>>>
->>>> Since your patch doesn't look at the IOxAPIC RDL register to see
->>>> whether the pin is masked, you must be assuming that Linux is
->>>> *always* using boot interrupts, and never unmasking the non-primary
->>>> IOxAPIC entry.
->>> Yes, for this special case that is correct.
->> Right. The current reroute code assumes that all interrupts use masking.
-> 
-> I'm not an expert in the "classic x86 ioapic behaviour" or in RT
-> interrupt handling.  My main objections are that the patch as proposed
-> is a gross hack in the ACPI _PRT lookup path, and that it didn't touch
-> the non-ACPI lookup path, which should have the same problem.  Now that
+On 13-Jan-09, Olaf Dabrunz wrote:
+> On 13-Jan-09, Stefan Assmann wrote:
+> > Hi Jon,
+> >=20
+> > Jon Masters wrote:
+> > > On Mon, 2009-01-12 at 11:51 -0700, Bjorn Helgaas wrote:
+> > >> (I added Eric, Maciej, and Jon because they participated in
+> > >> previous discussion here: http://lkml.org/lkml/2008/6/2/269)
+> > >=20
+> > > Thanks. You know what I'd really like even more than being on the=
+ CC?
+> > > I'd *love* someone to post a link to documentation on how this ac=
+tually
+> > > is supposed to work. We had to guess last time because none of th=
+e
+> > > public documentation actually explains this. The guys at SuSE lik=
+ely
+> > > received some docs, but I'm not sure where from or the title ther=
+eof.
+> >=20
+> > Actually, most of the Boot Interrupt patches resulted from reading =
+the
+> > intel specs and observing the behavior of failing machines. We're t=
+rying
+> > to wrap up all the information gathered in a paper, which is pretty=
+ time
+> > consuming and a few steps away from being ready to publish.
+>=20
+> We read the specs of the chips, analyzed code, put up hypotheses and
+> tested them. Then read the specs again, finding new hypotheses and
+> tested again. Also reading what you guys sent out to lkml and reading
+> through the public discussions for *BSD, Darwin, XEN etc. helped.
+> And some colleagues discussed hypotheses and solution attempts with u=
+s.
+>=20
+> We summarized many of our end results in a presentation that we gave
+> internally, and I am working on making this available online (in
+> addition to the paper/slides that Stefan mentions below).
 
-I guess by non-ACPI path you refer to the MP_TABLE. So in case you boot
-with "acpi=off" the system falls back to the MP_TABLE information and
-this is not covered yet.
+The presentation can be found at
 
-> Eric pointed out this is just classic behavior, I also wonder why the
-> quirk doesn't list more devices.
+    http://www.suse.de/~odabrunz/Boot_Interrupts_and_IRQ_Threads.pdf
 
-The reason why the list of quirks isn't larger is that there's no
-documentation available in public for some of the chipsets. For example
-for Nvidia and VIA chipsets. Note that there is only a problem if more
-than one IO-APIC exists in the system. Additional IO-APICs usually
-appear on PCI bridges. We have not encountered any systems yet that are
-Nvidia or VIA based with more than one IO-APIC. But your mileage may
-vary.
+Some parts of it have been corrected and updated.
 
-> The effect of the patch sounds sort of similar to using "noapic" --
-> you're basically ignoring the IOAPIC and using only the "boot interrupt"
-> or legacy PIC interrupt or whatever it is.  Can you contrast it with
-> that?
+Please do not miss the "Details" slides after the License and the
+Disclaimer. The Details should answer many questions.
 
-The main difference here is that "noapic" disables any IO-APIC in the
-system, whereas the patch leaves them intact. We won't be falling back
-to the PIC instead we fall back to the first IO-APIC.
+Thanks,
 
-What difference does this make? We won't lose all the enhancements of
-the IO-APIC over the PIC. What comes to mind first is that, when using
-the PIC all non-MSI interrupts have to be dealt with by CPU0. You have
-no IRQ balancing, pinning and such things.
+--=20
+Olaf Dabrunz (od/odabrunz), SUSE Linux Products GmbH, N=C3=BCrnberg
 
-> 
-> Bjorn
-> 
-> 
-
-  Stefan
-
--- 
-Stefan Assmann          | SUSE LINUX Products GmbH
-Software Engineer       | Maxfeldstr. 5, D-90409 Nuernberg
-Mail: sassmann@suse.de  | GF: Markus Rex, HRB 16746 (AG Nuernberg)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
