@@ -1,41 +1,78 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH][REPOST] thinkpad-acpi queue for 2.6.29
-Date: Thu, 15 Jan 2009 13:56:47 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901151352450.4737@localhost.localdomain>
-References: <1231650070-21722-1-git-send-email-hmh@hmh.eng.br>
+Subject: Re: wrong ACPI estimate (fwd)
+Date: Thu, 15 Jan 2009 14:13:45 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901151411290.4737@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:59265 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756545AbZAOTPk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2009 14:15:40 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:52170 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752652AbZAOTXR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2009 14:23:17 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KDJ007LX0MOIVK0@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 15 Jan 2009 12:56:54 -0600 (CST)
-In-reply-to: <1231650070-21722-1-git-send-email-hmh@hmh.eng.br>
+ with ESMTPA id <0KDJ00MVI1F0KH10@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 15 Jan 2009 13:14:13 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, power@bughost.org
 
-> Len,
+Alexey, Henrique,
+Is this related to the power supply sysfs wrong-units bug?
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+---------- Forwarded message ----------
+Date: Thu, 15 Jan 2009 10:14:41 -0800
+From: "Kok, Auke" <auke-jan.h.kok@intel.com>
+To: Winfried Tilanus <winfried@tilanus.com>
+Cc: "power@bughost.org" <power@bughost.org>
+Subject: Re: wrong ACPI estimate
+
+Winfried Tilanus wrote:
+> Hi,
 > 
-> This is a repost of the thinkpad-acpi queue.  I sent it to you on
-> 2008-11-22, but apparently it fell through the cracks...
+> I am running Debian Lenny on a thinkpad x61s, with tp_smapi modules. I
+> incorrectly thought the following problem was fixed:
 > 
-> The patchset was rebased to apply on top of 2.6.29-rc1.
+> $ sudo powertop -d | grep "Power usage"
+> Power usage (ACPI estimate): 200.4W (0.3 hours)
+> 
+> This problem is discussed in Debian bug 497929
+> (http://bugs.debian.org/497929)
+> The problem is fixed by reverting the a code change mentioned there:
+> 
+> @@ -644,7 +651,7 @@ void print_battery_sysfs(void)
+>                         continue;
+>                 memset(line, 0, 1024);
+>                 if (fgets(line, 1024, file) != NULL) {
+> -                       watts_drawn = strtoull(line, NULL, 10) / 1000000.0;
+> +                       amperes_drawn = strtoull(line, NULL, 10) /
+> 1000000.0;
+>                 }
+>                 fclose(file);
+> 
+> Is there a way to fix this?
 
-Hmmm, I remember searching for patches from you Henrique,
-but I'm sure went back only as far as Thanksgiving,
-not realizing I'd missed this right before Thanksgiving.
-Thanks for remembering, re-basing and re-posting.
-It is in my tree now.
+I doubt that we can fix this for everyone :/
 
-Maybe we'll cut over to the web-based patch tracking
-system on linux-acpi some day to improve from my
-leaky inbox...
+unfortunately it seems that the numbers reported back to the kernel are of
+different types on various systems.
 
--Len
+I will revert this change in the next release, just because the initial change
+that did this did not take this into account, and I'd rather be back at the
+initial (broken) stage than another (broken) stage.
+
+We'll have to figure out we somehow can distinguish between the two units when we
+read the data, which will likely be more complex, or involve fixing various ACPI
+drivers to unify their number reporting.
+
+Auke
+
+_______________________________________________
+Power mailing list
+Power@bughost.org
+http://www.bughost.org/mailman/listinfo/power
