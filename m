@@ -1,94 +1,47 @@
-From: Stefan Assmann <sassmann@suse.de>
-Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
- interrupt equivalent
-Date: Thu, 15 Jan 2009 11:16:34 +0100
-Message-ID: <496F0D02.1090402@suse.de>
-References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>	<496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com>	<m1d4esxfk2.fsf@frodo.ebiederm.org>	<1231806563.4094.25.camel@perihelion.bos.jonmasters.org>	<20090113014723.GA11366@elte.hu> <m1prirx3xn.fsf@frodo.ebiederm.org>	<1231820798.4094.34.camel@perihelion.bos.jonmasters.org>	<20090114114006.GF8625@elte.hu>	<1231960709.23174.0.camel@londonpacket.bos.redhat.com> <m11vv5wlug.fsf@frodo.ebiederm.org>
+From: Fabien Crespel <fabien@crespel.net>
+Subject: Re: Fwd: [PATCH 01/02] Initial work to let ACPI buttons work over
+    INPUT layer
+Date: Thu, 15 Jan 2009 13:31:47 +0100
+Message-ID: <496F2CB3.5000102@crespel.net>
+References: <200811291834.46109.dnascimento@gmail.com>	 <4ff2fa00812190834s8ef5629ofa1f17a74aa6bfef@mail.gmail.com>	 <1231328320.402.5.camel@zimtstern>	 <71cd59b00901120359h4c0ff723v4f49bdd180fcc9e8@mail.gmail.com>	 <71cd59b00901120400t1545e85avcfaa5b23a3c3ee79@mail.gmail.com> <71cd59b00901140157n760b8e55i13119bfdb193b9d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:54698 "EHLO mx2.suse.de"
+Received: from smtp2e.orange.fr ([80.12.242.111]:61673 "EHLO smtp2e.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754600AbZAOKQh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2009 05:16:37 -0500
-In-Reply-To: <m11vv5wlug.fsf@frodo.ebiederm.org>
+	id S1753490AbZAOMbq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2009 07:31:46 -0500
+In-Reply-To: <71cd59b00901140157n760b8e55i13119bfdb193b9d@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jon Masters <jcm@redhat.com>, Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Timo Hoenig <thoenig@nouse.net>, Nicolas Trangez <ikke@nicolast.be>, sziwan@users.sourceforge.net, linux-acpi@vger.kernel.org, Daniel Nascimento <dnascimento@gmail.com>, acpi4asus-user@lists.sourceforge.net
 
-Eric W. Biederman wrote:
-> Jon Masters <jcm@redhat.com> writes:
+Corentin Chary wrote:
+> Hi,
+> Just done a patch based on eeepc-laptop.
+> You can get it there:
+> http://git.iksaif.net/?p=acpi4asus.git;a=shortlog;h=refs/heads/asus-laptop-input
+> I didn't test it yet, I'll only have my laptops this weekend.
+> Could you test it please ?
+> Thanks
 > 
->> On Wed, 2009-01-14 at 12:40 +0100, Ingo Molnar wrote:
->>
->>> it's not just -rt, but it is also needed for the concept of threaded IRQ 
->>> handlers - which was discussed at the Kernel Summit to be desired for 
->>> mainline.
->> Right. I'm poking at Thomas' patches and hope to post something soon on
->> that front - I'm acutely aware that this will be impacted aswell but
->> because it's vaguely RT related had banded it under that banner.
-> 
-> Stepping back a moment.  The only way I can see this working reliably
-> is if we disable the boot interrupt.  Anything that leaves the boot interrupt
-> enabled means that when we disable the primary interrupt the boot interrupt
-> will scream, and thus we must disable it as well.
 
-Disabling Boot Interrupts is our goal, if they don't appear everything
-is fine. Now if you take a closer look at United States Patent 6466998
-you can read that there has to be a way to disable Boot Interrupts on
-APIC aware OSes.
+Hello,
 
-Let me back this up with a quote from that patent:
-"Therefore, 8259 PIC may be incorporated into a system board along with
-the APIC system to ensure proper operation of an operating system (OS)
-regardless whether such an operating system (OS) may or may not support
-an APIC system. However, external logic devices are required to route
-particular interrupts from a non-legacy peripheral bus to the 8259 PIC.
-General purpose I/O pins are then needed to enable/disable this
-functionality once an operating system (OS) which understands the APIC
-system is loaded."
+I haven't tested this patch, but there is a mistake in the keymap here:
 
-We already managed to successfully disable Boot Interrupt generation on
-several chipsets. See the following posts:
+{KE_KEY, 0x7D, KEY_BLUETOOTH}, /* Bluetooth up */
+{KE_KEY, 0x7E, KEY_BLUETOOTH}, /* Bluetooth down */
 
-http://lkml.org/lkml/2008/7/8/213
-http://lkml.org/lkml/2008/7/8/215
-http://lkml.org/lkml/2008/6/2/270
+These are not keys, they are notifications that occur *after* the bluetooth state
+is changed by the firmware (by pressing the bluetooth key on some models, for
+example). Therefore, they should not be reported to the input layer.
 
-What makes things complicated is that we have to deal with buggy
-hardware which can't disable the generation of Boot Interrupts, that's
-why we introduced the reroute to legacy interrupt patch.
+There is also a 0x88 scancode for the radio key on some models. On Windows, this
+key cycles through radio states: WLAN + BT => WLAN => BT => None. AFAIK there is
+no equivalent on Linux yet for such a key... What would be best to do to support it?
 
-> Which leads to my problem with the entire development process of this feature.
-> 
->  People want the feature.
->  People don't want to pay attention to the limits of the hardware.
->  Which leads to countless broken patches proposed.
+- Fabien.
 
-Sorry if you feel that way, really trying to pay attention to
-hardware limitations here. I bet you have a lot more experience in this
-field than I have, so please let me know what technical reasons you
-see for this being a dead end.
-
-> Which leads me to conclude.
-> - IRQ handling in the RT kernel is hopelessly broken.
-> - IRQ threads are a bad idea.
-> 
-> Because it is all leading to stupid patches and stupid development.
-> 
-> None of this works reliably on level triggered ioapic irqs.
-
-We're trying really hard to make it work reliably, but this is a
-complicated matter and it sure needs a lot of research.
-
-> 
-> Eric
-
-  Stefan
-
--- 
-Stefan Assmann          | SUSE LINUX Products GmbH
-Software Engineer       | Maxfeldstr. 5, D-90409 Nuernberg
-Mail: sassmann@suse.de  | GF: Markus Rex, HRB 16746 (AG Nuernberg)
