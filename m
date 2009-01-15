@@ -1,78 +1,175 @@
-From: Olaf Dabrunz <od@suse.de>
-Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
-	interrupt equivalent
-Date: Thu, 15 Jan 2009 16:34:44 +0100
-Message-ID: <20090115153444.GT25512@suse.de>
-References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com> <1231788349.4094.21.camel@perihelion.bos.jonmasters.org> <496C9807.1010109@suse.de> <20090113182259.GN25512@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 05/13] ACPI: thinkpad-acpi: preserve radio state across
+ shutdown
+Date: Thu, 15 Jan 2009 13:34:58 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901151332010.4737@localhost.localdomain>
+References: <1231650070-21722-6-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:45259 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754545AbZAOPes (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2009 10:34:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20090113182259.GN25512@suse.de>
+Received: from vms044pub.verizon.net ([206.46.252.44]:57894 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579AbZAOSo1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2009 13:44:27 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KDI0055EZMCPAT2@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 15 Jan 2009 12:35:01 -0600 (CST)
+In-reply-to: <1231650070-21722-6-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Assmann <sassmann@suse.de>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Ivo van Doorn <IvDoorn@gmail.com>
 
-On 13-Jan-09, Olaf Dabrunz wrote:
-> On 13-Jan-09, Stefan Assmann wrote:
-> > Hi Jon,
-> >=20
-> > Jon Masters wrote:
-> > > On Mon, 2009-01-12 at 11:51 -0700, Bjorn Helgaas wrote:
-> > >> (I added Eric, Maciej, and Jon because they participated in
-> > >> previous discussion here: http://lkml.org/lkml/2008/6/2/269)
-> > >=20
-> > > Thanks. You know what I'd really like even more than being on the=
- CC?
-> > > I'd *love* someone to post a link to documentation on how this ac=
-tually
-> > > is supposed to work. We had to guess last time because none of th=
-e
-> > > public documentation actually explains this. The guys at SuSE lik=
-ely
-> > > received some docs, but I'm not sure where from or the title ther=
-eof.
-> >=20
-> > Actually, most of the Boot Interrupt patches resulted from reading =
-the
-> > intel specs and observing the behavior of failing machines. We're t=
-rying
-> > to wrap up all the information gathered in a paper, which is pretty=
- time
-> > consuming and a few steps away from being ready to publish.
->=20
-> We read the specs of the chips, analyzed code, put up hypotheses and
-> tested them. Then read the specs again, finding new hypotheses and
-> tested again. Also reading what you guys sent out to lkml and reading
-> through the public discussions for *BSD, Darwin, XEN etc. helped.
-> And some colleagues discussed hypotheses and solution attempts with u=
-s.
->=20
-> We summarized many of our end results in a presentation that we gave
-> internally, and I am working on making this available online (in
-> addition to the paper/slides that Stefan mentions below).
 
-The presentation can be found at
+Interesting.  So an ACPI method is writing the radio state
+to NVRAM and you pick it back up on boot (or resume).
 
-    http://www.suse.de/~odabrunz/Boot_Interrupts_and_IRQ_Threads.pdf
+Very nice -- to bad we don't have this method for all laptops.
+Len Brown, Intel Open Source Technology Center
 
-Some parts of it have been corrected and updated.
+On Sun, 11 Jan 2009, Henrique de Moraes Holschuh wrote:
 
-Please do not miss the "Details" slides after the License and the
-Disclaimer. The Details should answer many questions.
-
-Thanks,
-
---=20
-Olaf Dabrunz (od/odabrunz), SUSE Linux Products GmbH, N=C3=BCrnberg
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Store in firmware NVRAM the radio state on machine shutdown for WWAN and
+> bluetooth.  Also, try to set the initial boot state of these radios as the
+> rfkill default state for their respective classes.
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Cc: Ivo van Doorn <IvDoorn@gmail.com>
+> ---
+>  drivers/platform/x86/thinkpad_acpi.c |   59 +++++++++++++++++++++++++++++++--
+>  1 files changed, 55 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+> index b2c5913..27d709b 100644
+> --- a/drivers/platform/x86/thinkpad_acpi.c
+> +++ b/drivers/platform/x86/thinkpad_acpi.c
+> @@ -222,6 +222,7 @@ struct ibm_struct {
+>  	void (*exit) (void);
+>  	void (*resume) (void);
+>  	void (*suspend) (pm_message_t state);
+> +	void (*shutdown) (void);
+>  
+>  	struct list_head all_drivers;
+>  
+> @@ -759,6 +760,18 @@ static int tpacpi_resume_handler(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +static void tpacpi_shutdown_handler(struct platform_device *pdev)
+> +{
+> +	struct ibm_struct *ibm, *itmp;
+> +
+> +	list_for_each_entry_safe(ibm, itmp,
+> +				 &tpacpi_all_drivers,
+> +				 all_drivers) {
+> +		if (ibm->shutdown)
+> +			(ibm->shutdown)();
+> +	}
+> +}
+> +
+>  static struct platform_driver tpacpi_pdriver = {
+>  	.driver = {
+>  		.name = TPACPI_DRVR_NAME,
+> @@ -766,6 +779,7 @@ static struct platform_driver tpacpi_pdriver = {
+>  	},
+>  	.suspend = tpacpi_suspend_handler,
+>  	.resume = tpacpi_resume_handler,
+> +	.shutdown = tpacpi_shutdown_handler,
+>  };
+>  
+>  static struct platform_driver tpacpi_hwmon_pdriver = {
+> @@ -957,7 +971,22 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
+>  			int (*get_state)(void *, enum rfkill_state *))
+>  {
+>  	int res;
+> -	enum rfkill_state initial_state;
+> +	enum rfkill_state initial_state = RFKILL_STATE_SOFT_BLOCKED;
+> +
+> +	res = get_state(NULL, &initial_state);
+> +	if (res < 0) {
+> +		printk(TPACPI_ERR
+> +			"failed to read initial state for %s, error %d; "
+> +			"will turn radio off\n", name, res);
+> +	} else {
+> +		/* try to set the initial state as the default for the rfkill
+> +		 * type, since we ask the firmware to preserve it across S5 in
+> +		 * NVRAM */
+> +		rfkill_set_default(rfktype,
+> +				(initial_state == RFKILL_STATE_UNBLOCKED) ?
+> +					RFKILL_STATE_UNBLOCKED :
+> +					RFKILL_STATE_SOFT_BLOCKED);
+> +	}
+>  
+>  	*rfk = rfkill_allocate(&tpacpi_pdev->dev, rfktype);
+>  	if (!*rfk) {
+> @@ -969,9 +998,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
+>  	(*rfk)->name = name;
+>  	(*rfk)->get_state = get_state;
+>  	(*rfk)->toggle_radio = toggle_radio;
+> -
+> -	if (!get_state(NULL, &initial_state))
+> -		(*rfk)->state = initial_state;
+> +	(*rfk)->state = initial_state;
+>  
+>  	res = rfkill_register(*rfk);
+>  	if (res < 0) {
+> @@ -2943,8 +2970,19 @@ static int tpacpi_bluetooth_rfk_set(void *data, enum rfkill_state state)
+>  	return bluetooth_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
+>  }
+>  
+> +static void bluetooth_shutdown(void)
+> +{
+> +	/* Order firmware to save current state to NVRAM */
+> +	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
+> +			TP_ACPI_BLTH_SAVE_STATE))
+> +		printk(TPACPI_NOTICE
+> +			"failed to save bluetooth state to NVRAM\n");
+> +}
+> +
+>  static void bluetooth_exit(void)
+>  {
+> +	bluetooth_shutdown();
+> +
+>  	if (tpacpi_bluetooth_rfkill)
+>  		rfkill_unregister(tpacpi_bluetooth_rfkill);
+>  
+> @@ -3050,6 +3088,7 @@ static struct ibm_struct bluetooth_driver_data = {
+>  	.write = bluetooth_write,
+>  	.exit = bluetooth_exit,
+>  	.suspend = bluetooth_suspend,
+> +	.shutdown = bluetooth_shutdown,
+>  };
+>  
+>  /*************************************************************************
+> @@ -3207,8 +3246,19 @@ static int tpacpi_wan_rfk_set(void *data, enum rfkill_state state)
+>  	return wan_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
+>  }
+>  
+> +static void wan_shutdown(void)
+> +{
+> +	/* Order firmware to save current state to NVRAM */
+> +	if (!acpi_evalf(NULL, NULL, "\\WGSV", "vd",
+> +			TP_ACPI_WGSV_SAVE_STATE))
+> +		printk(TPACPI_NOTICE
+> +			"failed to save WWAN state to NVRAM\n");
+> +}
+> +
+>  static void wan_exit(void)
+>  {
+> +	wan_shutdown();
+> +
+>  	if (tpacpi_wan_rfkill)
+>  		rfkill_unregister(tpacpi_wan_rfkill);
+>  
+> @@ -3312,6 +3362,7 @@ static struct ibm_struct wan_driver_data = {
+>  	.write = wan_write,
+>  	.exit = wan_exit,
+>  	.suspend = wan_suspend,
+> +	.shutdown = wan_shutdown,
+>  };
+>  
+>  /*************************************************************************
+> -- 
+> 1.5.6.5
+> 
