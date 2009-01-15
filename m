@@ -1,31 +1,35 @@
-From: Martin Michlmayr <tbm@cyrius.com>
-Subject: Re: [2.6.28] Kernel panic after closing lid on HP 2510p
-Date: Thu, 15 Jan 2009 08:41:34 +0100
-Message-ID: <20090115074134.GA22704@deprecation.cyrius.com>
-References: <200901121356.46236.elendil@planet.nl> <20090113123056.GA2464@deprecation.cyrius.com> <20090114162603.c632d82e.akpm@linux-foundation.org> <20090115020311.GA18740@srcf.ucam.org> <20090114181542.34614acf.akpm@linux-foundation.org> <20090115022106.GA19069@srcf.ucam.org> <1231988103.20746.149.camel@rzhang-dt>
+From: Florian Echtler <floe@butterbrot.org>
+Subject: Fan running continuously after kernel switch
+Date: Thu, 15 Jan 2009 09:42:21 +0100
+Message-ID: <1232008941.24218.6.camel@pancake>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755191AbZAOHl6@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1231988103.20746.149.camel@rzhang-dt>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrew Morton <akpm@linux-foundation.org>, "elendil@planet.nl" <elendil@planet.nl>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, fengguang.wu@intel.com
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static.88-198-47-201.clients.your-server.de ([88.198.47.201]:50889
+	"EHLO butterbrot.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758263AbZAOIsL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2009 03:48:11 -0500
+Received: from [131.159.10.70] (unknown [131.159.10.70])
+	(using SSLv3 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by butterbrot.org (Postfix) with ESMTPSA id 9B047154100
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Jan 2009 09:44:10 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-* Zhang Rui <rui.zhang@intel.com> [2009-01-15 10:55]:
-> please check if this is a duplicate of bug #11259.
-> http://bugzilla.kernel.org/show_bug.cgi?id=11259
+Hello everyone,
 
-It certainly sounds so.
+yesterday, I switched from kernel 2.6.25-gentoo-r8 to 2.6.27-gentoo-r7
+on my Thinkpad T60. Since then, the fan has been running continuously. I
+have loaded the thinkpad_acpi module and could, of course, switch to
+some userspace fan controller, but I'm always a bit reluctant about
+those. I've reviewed the Gentoo patches, and none of them seem to have
+to do anything with ACPI. So now I'm looking for suggestions on how to
+debug this..
 
-BTW, here is my original bug report which contains an easy recipe to
-reproduce the problem: http://lkml.org/lkml/2008/6/16/157
-And here's a bug report from Ubuntu that shows that the HP 6710b,
-HP 6510b and HP 2510p laptops are affected:
-https://bugs.launchpad.net/ubuntu/+source/acpid/+bug/157691
-
-Thanks for looking into this issue.
+Many thanks, Yours, Florian
 -- 
-Martin Michlmayr
-http://www.cyrius.com/
+0666 - Filemode of the Beast
+
