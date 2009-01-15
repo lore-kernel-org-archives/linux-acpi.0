@@ -1,175 +1,68 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 05/13] ACPI: thinkpad-acpi: preserve radio state across
- shutdown
-Date: Thu, 15 Jan 2009 13:34:58 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901151332010.4737@localhost.localdomain>
-References: <1231650070-21722-6-git-send-email-hmh@hmh.eng.br>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: ACPI hotplug panic with current git head
+Date: Thu, 15 Jan 2009 14:01:48 -0500
+Message-ID: <1232046108.5966.57.camel@localhost.localdomain>
+References: <1231604250.3642.33.camel@localhost.localdomain>
+	 <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>
+	 <1231807693.27151.21.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:57894 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579AbZAOSo1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2009 13:44:27 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KDI0055EZMCPAT2@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 15 Jan 2009 12:35:01 -0600 (CST)
-In-reply-to: <1231650070-21722-6-git-send-email-hmh@hmh.eng.br>
+Received: from accolon.hansenpartnership.com ([76.243.235.52]:56640 "EHLO
+	accolon.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754249AbZAOTBv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2009 14:01:51 -0500
+In-Reply-To: <1231807693.27151.21.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Ivo van Doorn <IvDoorn@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-
-Interesting.  So an ACPI method is writing the radio state
-to NVRAM and you pick it back up on boot (or resume).
-
-Very nice -- to bad we don't have this method for all laptops.
-Len Brown, Intel Open Source Technology Center
-
-On Sun, 11 Jan 2009, Henrique de Moraes Holschuh wrote:
-
-> Store in firmware NVRAM the radio state on machine shutdown for WWAN and
-> bluetooth.  Also, try to set the initial boot state of these radios as the
-> rfkill default state for their respective classes.
+On Mon, 2009-01-12 at 18:48 -0600, James Bottomley wrote:
+> On Mon, 2009-01-12 at 16:16 -0500, Len Brown wrote:
+> > > This is on an IBM Maia system with the calgary IOMMU enabled. It's a
+> > > fatal boot up panic.
+> > > 
+> > 
+> > James,
+> > A guided bisect...
+> > Please let me know which of these fail
+> > 
+> > a3a798c88a14b35e5d4ca30716dbc9eb9a1ddfe2 is 2.6.29 at ACPI merge
+> > efcb3cf7f00c3c424db012380a8a974c2676a3c8 is 2.6.29 before ACPI merge
 > 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Cc: Ivo van Doorn <IvDoorn@gmail.com>
-> ---
->  drivers/platform/x86/thinkpad_acpi.c |   59 +++++++++++++++++++++++++++++++--
->  1 files changed, 55 insertions(+), 4 deletions(-)
+> Didn't try these (being after the failure)
 > 
-> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-> index b2c5913..27d709b 100644
-> --- a/drivers/platform/x86/thinkpad_acpi.c
-> +++ b/drivers/platform/x86/thinkpad_acpi.c
-> @@ -222,6 +222,7 @@ struct ibm_struct {
->  	void (*exit) (void);
->  	void (*resume) (void);
->  	void (*suspend) (pm_message_t state);
-> +	void (*shutdown) (void);
->  
->  	struct list_head all_drivers;
->  
-> @@ -759,6 +760,18 @@ static int tpacpi_resume_handler(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +static void tpacpi_shutdown_handler(struct platform_device *pdev)
-> +{
-> +	struct ibm_struct *ibm, *itmp;
-> +
-> +	list_for_each_entry_safe(ibm, itmp,
-> +				 &tpacpi_all_drivers,
-> +				 all_drivers) {
-> +		if (ibm->shutdown)
-> +			(ibm->shutdown)();
-> +	}
-> +}
-> +
->  static struct platform_driver tpacpi_pdriver = {
->  	.driver = {
->  		.name = TPACPI_DRVR_NAME,
-> @@ -766,6 +779,7 @@ static struct platform_driver tpacpi_pdriver = {
->  	},
->  	.suspend = tpacpi_suspend_handler,
->  	.resume = tpacpi_resume_handler,
-> +	.shutdown = tpacpi_shutdown_handler,
->  };
->  
->  static struct platform_driver tpacpi_hwmon_pdriver = {
-> @@ -957,7 +971,22 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
->  			int (*get_state)(void *, enum rfkill_state *))
->  {
->  	int res;
-> -	enum rfkill_state initial_state;
-> +	enum rfkill_state initial_state = RFKILL_STATE_SOFT_BLOCKED;
-> +
-> +	res = get_state(NULL, &initial_state);
-> +	if (res < 0) {
-> +		printk(TPACPI_ERR
-> +			"failed to read initial state for %s, error %d; "
-> +			"will turn radio off\n", name, res);
-> +	} else {
-> +		/* try to set the initial state as the default for the rfkill
-> +		 * type, since we ask the firmware to preserve it across S5 in
-> +		 * NVRAM */
-> +		rfkill_set_default(rfktype,
-> +				(initial_state == RFKILL_STATE_UNBLOCKED) ?
-> +					RFKILL_STATE_UNBLOCKED :
-> +					RFKILL_STATE_SOFT_BLOCKED);
-> +	}
->  
->  	*rfk = rfkill_allocate(&tpacpi_pdev->dev, rfktype);
->  	if (!*rfk) {
-> @@ -969,9 +998,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
->  	(*rfk)->name = name;
->  	(*rfk)->get_state = get_state;
->  	(*rfk)->toggle_radio = toggle_radio;
-> -
-> -	if (!get_state(NULL, &initial_state))
-> -		(*rfk)->state = initial_state;
-> +	(*rfk)->state = initial_state;
->  
->  	res = rfkill_register(*rfk);
->  	if (res < 0) {
-> @@ -2943,8 +2970,19 @@ static int tpacpi_bluetooth_rfk_set(void *data, enum rfkill_state state)
->  	return bluetooth_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
->  }
->  
-> +static void bluetooth_shutdown(void)
-> +{
-> +	/* Order firmware to save current state to NVRAM */
-> +	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
-> +			TP_ACPI_BLTH_SAVE_STATE))
-> +		printk(TPACPI_NOTICE
-> +			"failed to save bluetooth state to NVRAM\n");
-> +}
-> +
->  static void bluetooth_exit(void)
->  {
-> +	bluetooth_shutdown();
-> +
->  	if (tpacpi_bluetooth_rfkill)
->  		rfkill_unregister(tpacpi_bluetooth_rfkill);
->  
-> @@ -3050,6 +3088,7 @@ static struct ibm_struct bluetooth_driver_data = {
->  	.write = bluetooth_write,
->  	.exit = bluetooth_exit,
->  	.suspend = bluetooth_suspend,
-> +	.shutdown = bluetooth_shutdown,
->  };
->  
->  /*************************************************************************
-> @@ -3207,8 +3246,19 @@ static int tpacpi_wan_rfk_set(void *data, enum rfkill_state state)
->  	return wan_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
->  }
->  
-> +static void wan_shutdown(void)
-> +{
-> +	/* Order firmware to save current state to NVRAM */
-> +	if (!acpi_evalf(NULL, NULL, "\\WGSV", "vd",
-> +			TP_ACPI_WGSV_SAVE_STATE))
-> +		printk(TPACPI_NOTICE
-> +			"failed to save WWAN state to NVRAM\n");
-> +}
-> +
->  static void wan_exit(void)
->  {
-> +	wan_shutdown();
-> +
->  	if (tpacpi_wan_rfkill)
->  		rfkill_unregister(tpacpi_wan_rfkill);
->  
-> @@ -3312,6 +3362,7 @@ static struct ibm_struct wan_driver_data = {
->  	.write = wan_write,
->  	.exit = wan_exit,
->  	.suspend = wan_suspend,
-> +	.shutdown = wan_shutdown,
->  };
->  
->  /*************************************************************************
-> -- 
-> 1.5.6.5
+> > ec9f168fcc344d2ffec1c8c822076bf22dab5c33 is 2.6.28 with most ACPI
 > 
+> This is the failing one.
+> 
+> > e8443c358c34f3fe65236e24147ddf0cd0e61b08 is 2.6.28 plus just ACPICA
+> 
+> This one boots fine.
+> 
+> > Please test the "2.6.28+ACPICA" one first.
+> > If it fails, we are close so you can skip the others above
+> > and bisect between that and 2.6.28.
+> 
+> I'll try bisecting between ec9f168fcc344d2ffec1c8c822076bf22dab5c33 and
+> e8443c358c34f3fe65236e24147ddf0cd0e61b08.
+
+OK, bisection complete.  It's not actually coming from the ACPI tree but
+from the PCI one (appropriate CC's added).
+
+The commit causing the boot panic is:
+
+commit e8c331e963c58b83db24b7d0e39e8c07f687dbc6
+Author: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Date:   Wed Dec 17 12:09:12 2008 +0900
+
+    PCI hotplug: introduce functions for ACPI slot detection
+
+I'm still not sure why, though
+
+James
+
+
