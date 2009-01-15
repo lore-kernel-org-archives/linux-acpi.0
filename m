@@ -1,75 +1,73 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
-	interrupt equivalent
-Date: Wed, 14 Jan 2009 17:56:00 -0500
-Message-ID: <1231973760.23174.33.camel@londonpacket.bos.redhat.com>
-References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain>
-	 <496B24E5.1070804@suse.de> <200901121151.53195.bjorn.helgaas@hp.com>
-	 <m1d4esxfk2.fsf@frodo.ebiederm.org>
-	 <1231806563.4094.25.camel@perihelion.bos.jonmasters.org>
-	 <20090113014723.GA11366@elte.hu> <m1prirx3xn.fsf@frodo.ebiederm.org>
-	 <1231820798.4094.34.camel@perihelion.bos.jonmasters.org>
-	 <20090114114006.GF8625@elte.hu>
-	 <1231960709.23174.0.camel@londonpacket.bos.redhat.com>
-	 <m11vv5wlug.fsf@frodo.ebiederm.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot interrupt equivalent
+Date: Wed, 14 Jan 2009 17:10:33 -0700
+Message-ID: <200901141710.33859.bjorn.helgaas@hp.com>
+References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <496C788C.9050305@suse.de> <20090113155717.GM25512@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:45455 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754570AbZANW4p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Jan 2009 17:56:45 -0500
-In-Reply-To: <m11vv5wlug.fsf@frodo.ebiederm.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:24485 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755116AbZAOAKj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2009 19:10:39 -0500
+In-Reply-To: <20090113155717.GM25512@suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Stefan Assmann <sassmann@suse.de>, Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: Olaf Dabrunz <od@suse.de>
+Cc: Stefan Assmann <sassmann@suse.de>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Eric W. Biederman" <ebiederm@xmission.com>, "Maciej W. Rozycki" <macro@linux-mips.org>, Jon Masters <jcm@redhat.com>
 
-On Wed, 2009-01-14 at 14:42 -0800, Eric W. Biederman wrote:
-> Jon Masters <jcm@redhat.com> writes:
+On Tuesday 13 January 2009 08:57:17 am Olaf Dabrunz wrote:
+> On 13-Jan-09, Stefan Assmann wrote:
+> > Bjorn Helgaas wrote:
+> > > (I added Eric, Maciej, and Jon because they participated in
+> > > previous discussion here: http://lkml.org/lkml/2008/6/2/269)
+> > > 
+> > > On Monday 12 January 2009 04:09:25 am Stefan Assmann wrote:
+> > >> Len Brown wrote:
+> > >>> Stefan,
+> > >>> I had to exclude your changes to drivers/acpi/pci_irq.c from
+> > >>> e1d3a90846b40ad3160bf4b648d36c6badad39ac
+> > >>> in order to get some other changes to that file upstream in the
+> > >>> 2.6.29 merge window. ...
+> > >> Let me try to give you a short overview of what's happening there.
+> > >>
+> > >> If an IRQ arrives at line X of a non-primary IO-APIC and that line is
+> > >> masked a new IRQ will be generated on the primary IO-APIC/PIC. This is
+> > >> called a "Boot Interrupt" by Intel. It's purpose is, as the name
+> > >> suggests, to ensure that the IRQ is handled at boot time (when the
+> > >> non-primary) IO-APIC is still disabled.
+> > >>
+> > >> Condition to be met for "Boot Interrupts":
+> > >> - line X on non-primary IO-APIC interrupt line is masked
+> > >> - line X is asserted
+> > > 
+> > > Thanks.  Let me replay this to see whether I understand.  Please
+> > > correct any of my misapprehensions :-)
+> > > 
+> > > Since your patch doesn't look at the IOxAPIC RDL register to see
+> > > whether the pin is masked, you must be assuming that Linux is
+> > > *always* using boot interrupts, and never unmasking the non-primary
+> > > IOxAPIC entry.
+> > 
+> > Yes, for this special case that is correct.
 > 
-> > On Wed, 2009-01-14 at 12:40 +0100, Ingo Molnar wrote:
-> >
-> >> it's not just -rt, but it is also needed for the concept of threaded IRQ 
-> >> handlers - which was discussed at the Kernel Summit to be desired for 
-> >> mainline.
-> >
-> > Right. I'm poking at Thomas' patches and hope to post something soon on
-> > that front - I'm acutely aware that this will be impacted aswell but
-> > because it's vaguely RT related had banded it under that banner.
-> 
-> Stepping back a moment.  The only way I can see this working reliably
-> is if we disable the boot interrupt.  Anything that leaves the boot interrupt
-> enabled means that when we disable the primary interrupt the boot interrupt
-> will scream, and thus we must disable it as well.
-> 
-> Which leads to my problem with the entire development process of this feature.
-> 
->  People want the feature.
->  People don't want to pay attention to the limits of the hardware.
->  Which leads to countless broken patches proposed.
+> Right. The current reroute code assumes that all interrupts use masking.
 
-Is a patch broken because hardware has limitations? If that were always
-true then many of the patches we see in the kernel wouldn't be there.
+I'm not an expert in the "classic x86 ioapic behaviour" or in RT
+interrupt handling.  My main objections are that the patch as proposed
+is a gross hack in the ACPI _PRT lookup path, and that it didn't touch
+the non-ACPI lookup path, which should have the same problem.  Now that
+Eric pointed out this is just classic behavior, I also wonder why the
+quirk doesn't list more devices.
 
-> Which leads me to conclude.
-> - IRQ handling in the RT kernel is hopelessly broken.
+The effect of the patch sounds sort of similar to using "noapic" --
+you're basically ignoring the IOAPIC and using only the "boot interrupt"
+or legacy PIC interrupt or whatever it is.  Can you contrast it with
+that?
 
-Nope. It's done in a very similar way to other real time kernels already
-out there - really there are only so many ways to do this.
-
-> - IRQ threads are a bad idea.
-
-Why? IRQ threads actually make life so much easier - you have a task
-context, you can do everything inside that rather than scheduling all
-kinds of deferred work (that in RT will be done in another task later),
-and so forth.
-
-> None of this works reliably on level triggered ioapic irqs.
-
-Level triggered IOAPIC IRQs have quirks, film at 11!
-
-Jon.
+Bjorn
 
 
