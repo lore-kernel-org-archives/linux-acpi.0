@@ -1,47 +1,117 @@
-From: Fabien Crespel <fabien@crespel.net>
-Subject: Re: Fwd: [PATCH 01/02] Initial work to let ACPI buttons work over
-    INPUT layer
-Date: Thu, 15 Jan 2009 13:31:47 +0100
-Message-ID: <496F2CB3.5000102@crespel.net>
-References: <200811291834.46109.dnascimento@gmail.com>	 <4ff2fa00812190834s8ef5629ofa1f17a74aa6bfef@mail.gmail.com>	 <1231328320.402.5.camel@zimtstern>	 <71cd59b00901120359h4c0ff723v4f49bdd180fcc9e8@mail.gmail.com>	 <71cd59b00901120400t1545e85avcfaa5b23a3c3ee79@mail.gmail.com> <71cd59b00901140157n760b8e55i13119bfdb193b9d@mail.gmail.com>
+From: Olaf Dabrunz <od@suse.de>
+Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot
+	interrupt equivalent
+Date: Thu, 15 Jan 2009 13:36:07 +0100
+Message-ID: <20090115123607.GS25512@suse.de>
+References: <200901121151.53195.bjorn.helgaas@hp.com> <m1d4esxfk2.fsf@frodo.ebiederm.org> <1231806563.4094.25.camel@perihelion.bos.jonmasters.org> <20090113014723.GA11366@elte.hu> <m1prirx3xn.fsf@frodo.ebiederm.org> <1231820798.4094.34.camel@perihelion.bos.jonmasters.org> <20090114114006.GF8625@elte.hu> <1231960709.23174.0.camel@londonpacket.bos.redhat.com> <m11vv5wlug.fsf@frodo.ebiederm.org> <1231973760.23174.33.camel@londonpacket.bos.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2e.orange.fr ([80.12.242.111]:61673 "EHLO smtp2e.orange.fr"
+Received: from ns2.suse.de ([195.135.220.15]:34382 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753490AbZAOMbq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2009 07:31:46 -0500
-In-Reply-To: <71cd59b00901140157n760b8e55i13119bfdb193b9d@mail.gmail.com>
+	id S1754929AbZAOMgK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2009 07:36:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1231973760.23174.33.camel@londonpacket.bos.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Timo Hoenig <thoenig@nouse.net>, Nicolas Trangez <ikke@nicolast.be>, sziwan@users.sourceforge.net, linux-acpi@vger.kernel.org, Daniel Nascimento <dnascimento@gmail.com>, acpi4asus-user@lists.sourceforge.net
+To: Jon Masters <jcm@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Ingo Molnar <mingo@elte.hu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Stefan Assmann <sassmann@suse.de>, Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Corentin Chary wrote:
-> Hi,
-> Just done a patch based on eeepc-laptop.
-> You can get it there:
-> http://git.iksaif.net/?p=acpi4asus.git;a=shortlog;h=refs/heads/asus-laptop-input
-> I didn't test it yet, I'll only have my laptops this weekend.
-> Could you test it please ?
-> Thanks
-> 
+On 14-Jan-09, Jon Masters wrote:
+> On Wed, 2009-01-14 at 14:42 -0800, Eric W. Biederman wrote:
+> > Jon Masters <jcm@redhat.com> writes:
+> >=20
+> > > On Wed, 2009-01-14 at 12:40 +0100, Ingo Molnar wrote:
+> > >
+> > >> it's not just -rt, but it is also needed for the concept of thre=
+aded IRQ=20
+> > >> handlers - which was discussed at the Kernel Summit to be desire=
+d for=20
+> > >> mainline.
+> > >
+> > > Right. I'm poking at Thomas' patches and hope to post something s=
+oon on
+> > > that front - I'm acutely aware that this will be impacted aswell =
+but
+> > > because it's vaguely RT related had banded it under that banner.
+> >=20
+> > Stepping back a moment.  The only way I can see this working reliab=
+ly
+> > is if we disable the boot interrupt.  Anything that leaves the boot=
+ interrupt
+> > enabled means that when we disable the primary interrupt the boot i=
+nterrupt
+> > will scream, and thus we must disable it as well.
+> >=20
+> > Which leads to my problem with the entire development process of th=
+is feature.
+> >=20
+> >  People want the feature.
+> >  People don't want to pay attention to the limits of the hardware.
+> >  Which leads to countless broken patches proposed.
+>=20
+> Is a patch broken because hardware has limitations? If that were alwa=
+ys
+> true then many of the patches we see in the kernel wouldn't be there.
+>=20
+> > Which leads me to conclude.
+> > - IRQ handling in the RT kernel is hopelessly broken.
+>=20
+> Nope. It's done in a very similar way to other real time kernels alre=
+ady
+> out there - really there are only so many ways to do this.
+>=20
+> > - IRQ threads are a bad idea.
+>=20
+> Why? IRQ threads actually make life so much easier - you have a task
+> context, you can do everything inside that rather than scheduling all
+> kinds of deferred work (that in RT will be done in another task later=
+),
+> and so forth.
+>=20
+> > None of this works reliably on level triggered ioapic irqs.
 
-Hello,
+Actually it works very well. The patches are also not _that_
+complicated. We have two kinds of patches:
 
-I haven't tested this patch, but there is a mistake in the keymap here:
+    1) if possible on the chipset, disable boot irqs (if in APIC mode)
 
-{KE_KEY, 0x7D, KEY_BLUETOOTH}, /* Bluetooth up */
-{KE_KEY, 0x7E, KEY_BLUETOOTH}, /* Bluetooth down */
+       - this works as designed and has no problems
 
-These are not keys, they are notifications that occur *after* the bluetooth state
-is changed by the firmware (by pressing the bluetooth key on some models, for
-example). Therefore, they should not be reported to the input layer.
+       - we cover up for broken BIOSes here that forget to disable boot
+         irqs
 
-There is also a 0x88 scancode for the radio key on some models. On Windows, this
-key cycles through radio states: WLAN + BT => WLAN => BT => None. AFAIK there is
-no equivalent on Linux yet for such a key... What would be best to do to support it?
+    2) if we cannot disable boot irqs, disable the original interrupt
+       line and only use the boot irq line -> no duplicated interrupts,
+       but increased interrupt sharing
 
-- Fabien.
+       - this is a hack for older, but widely used chipsets
 
+       - we cover up for broken hardware (wrt threaded IRQ handling)
+
+       - when the broken hardware falls out of use, this is not needed
+         anymore
+
+
+The only limitations we have so far:
+
+    - For newer chipsets, we have to make sure that we find the disable
+      bit. Vendors should put this bit in a common place.
+
+    - It is a lot of work to describe all of the findings and
+      experimental results we had, in a digestable way.
+
+> Level triggered IOAPIC IRQs have quirks, film at 11!
+
+Love this. *grin* :)
+
+--=20
+Olaf Dabrunz (od/odabrunz), SUSE Linux Products GmbH, N=C3=BCrnberg
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
