@@ -1,77 +1,110 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/23] ACPI: thinkpad-acpi: bump up version to 0.22
-Date: Fri, 16 Jan 2009 15:25:02 -0500
-Message-ID: <aa2fbcec07b0d594808bc3058692395d24eba66e.1232137452.git.len.brown@intel.com>
+Subject: [PATCH 16/23] thermal fixup for broken BIOS which has invalid trip
+ points.
+Date: Fri, 16 Jan 2009 15:25:05 -0500
+Message-ID: <0e4240d94628530a912d216cad1e32d2e3827327.1232137452.git.len.brown@intel.com>
 References: <1232137512-17327-1-git-send-email-lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:52853 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760006AbZAPUZf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:35 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:49435 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759841AbZAPUZg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:36 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KDK00MKYZE7KZV4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:20 -0600 (CST)
+ with ESMTPA id <0KDK0085GZE8XNR3@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:26 -0600 (CST)
 In-reply-to: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 References: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+=46rom: Zhang Rui <rui.zhang@intel.com>
 
-It is about time to bump up the version.
+ACPI thermal driver only re-evaluate VALID trip points.
 
-Features added since 0.21:  fan suspend/resume support, preserve radio
-state across power off (for some radio types), built-in UWB radio
-rfkill support and thermal alarm events support.
+=46or the broken BIOS show in
+http://bugzilla.kernel.org/show_bug.cgi?id=3D8544
+the active[0] is set to invalid at boot time
+and it will not be re-evaluated again.
+We can still get a single warning message at boot time.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+http://marc.info/?l=3Dlinux-kernel&m=3D120496222629983&w=3D2
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3D12203
+
+Signed-off-by: Zhang Rui<rui.zhang@intel.com>
+Tested-by: M=C3=A1rton N=C3=A9meth <nm127@freemail.hu>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    6 +++---
- drivers/platform/x86/thinkpad_acpi.c    |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/thermal.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 91c0001..41bc99f 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1,7 +1,7 @@
- 		     ThinkPad ACPI Extras Driver
- 
--                            Version 0.21
--                           May 29th, 2008
-+                            Version 0.22
-+                        November 23rd,  2008
- 
-                Borislav Deianov <borislav@users.sf.net>
-              Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-@@ -17,7 +17,7 @@ This driver used to be named ibm-acpi until kernel 2.6.21 and release
- 0.13-20070314.  It used to be in the drivers/acpi tree, but it was
- moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
- 2.6.22, and release 0.14.  It was moved to drivers/platform/x86 for
--kernel 2.6.29.
-+kernel 2.6.29 and release 0.22.
- 
- The driver is named "thinkpad-acpi".  In some places, like module
- names, "thinkpad_acpi" is used because of userspace issues.
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 886a430..bcbc051 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
- 
--#define TPACPI_VERSION "0.21"
-+#define TPACPI_VERSION "0.22"
- #define TPACPI_SYSFS_VERSION 0x020200
- 
- /*
--- 
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 073ff09..99e6f1f 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -416,7 +416,8 @@ static int acpi_thermal_trips_update(struct acpi_th=
+ermal *tz, int flag)
+ 	}
+=20
+ 	/* Passive (optional) */
+-	if (flag & ACPI_TRIPS_PASSIVE) {
++	if (((flag & ACPI_TRIPS_PASSIVE) && tz->trips.passive.flags.valid) ||
++		(flag =3D=3D ACPI_TRIPS_INIT)) {
+ 		valid =3D tz->trips.passive.flags.valid;
+ 		if (psv =3D=3D -1) {
+ 			status =3D AE_SUPPORT;
+@@ -462,8 +463,11 @@ static int acpi_thermal_trips_update(struct acpi_t=
+hermal *tz, int flag)
+ 		memset(&devices, 0, sizeof(struct acpi_handle_list));
+ 		status =3D acpi_evaluate_reference(tz->device->handle, "_PSL",
+ 							NULL, &devices);
+-		if (ACPI_FAILURE(status))
++		if (ACPI_FAILURE(status)) {
++			printk(KERN_WARNING PREFIX
++				"Invalid passive threshold\n");
+ 			tz->trips.passive.flags.valid =3D 0;
++		}
+ 		else
+ 			tz->trips.passive.flags.valid =3D 1;
+=20
+@@ -487,7 +491,8 @@ static int acpi_thermal_trips_update(struct acpi_th=
+ermal *tz, int flag)
+ 		if (act =3D=3D -1)
+ 			break; /* disable all active trip points */
+=20
+-		if (flag & ACPI_TRIPS_ACTIVE) {
++		if ((flag =3D=3D ACPI_TRIPS_INIT) || ((flag & ACPI_TRIPS_ACTIVE) &&
++			tz->trips.active[i].flags.valid)) {
+ 			status =3D acpi_evaluate_integer(tz->device->handle,
+ 							name, NULL, &tmp);
+ 			if (ACPI_FAILURE(status)) {
+@@ -521,8 +526,11 @@ static int acpi_thermal_trips_update(struct acpi_t=
+hermal *tz, int flag)
+ 			memset(&devices, 0, sizeof(struct acpi_handle_list));
+ 			status =3D acpi_evaluate_reference(tz->device->handle,
+ 						name, NULL, &devices);
+-			if (ACPI_FAILURE(status))
++			if (ACPI_FAILURE(status)) {
++				printk(KERN_WARNING PREFIX
++					"Invalid active%d threshold\n", i);
+ 				tz->trips.active[i].flags.valid =3D 0;
++			}
+ 			else
+ 				tz->trips.active[i].flags.valid =3D 1;
+=20
+--=20
 1.5.6.6
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
