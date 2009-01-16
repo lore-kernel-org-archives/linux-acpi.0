@@ -1,49 +1,86 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] acpi: move thermal trip handling to generic thermal layer
-Date: Fri, 16 Jan 2009 14:48:52 +0100
-Message-ID: <200901161448.53765.trenn@suse.de>
-References: <20081127174813.GA24258@srcf.ucam.org> <1229482938.562.29.camel@rzhang-dt> <20081217031215.GC19430@srcf.ucam.org>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: ACPI hotplug panic with current git head
+Date: Fri, 16 Jan 2009 09:19:06 -0500
+Message-ID: <1232115546.3224.5.camel@localhost.localdomain>
+References: <1231604250.3642.33.camel@localhost.localdomain>
+	 <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>
+	 <1231807693.27151.21.camel@localhost.localdomain>
+	 <1232046108.5966.57.camel@localhost.localdomain>
+	 <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain>
+	 <1232049269.5966.64.camel@localhost.localdomain>
+	 <1232050347.5966.66.camel@localhost.localdomain>
+	 <4970242C.4010404@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:54822 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757455AbZAPNs4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Jan 2009 08:48:56 -0500
-In-Reply-To: <20081217031215.GC19430@srcf.ucam.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4970242C.4010404@jp.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, shaohua.li@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>
 
-On Wednesday 17 December 2008 04:12:15 Matthew Garrett wrote:
-> On Wed, Dec 17, 2008 at 11:02:18AM +0800, Zhang Rui wrote:
-> > On Mon, 2008-12-08 at 20:59 +0800, Matthew Garrett wrote:
-> > > They're needed if you want to implement any sort of sensible
-> > > implementation of passive cooling. They might not be expressed in quite
-> > > the same way, but the basic concept is identical.
-> >
-> > Seeing tc1, tc2, tsp under /sys/class/thermal/ is not good because we
-> > don't want to make the generic thermal driver too ACPI specific, before
-> > we've really concluded some basic concepts for passive cooling.
-> > so why not do this after we have another generic thermal user with
-> > passive cooling support?
->
-> They're not exposed in /sys/class, and I don't think doing so is a
-> sensible thing to do. If you know values for the hardware in question
-> then they should be supplied by the firmware. But even so, the generic
-> thermal layer needs a way of implementing passive cooling. Doing so
-> involves deriving a formula to describe the behaviour of the system
-> around the passive trip level, and the best used implementation of that
-> in Linux at the moment is the one described in the ACPI spec. I don't
-> see any real need to generate new terms to describe well documented
-> concepts, even if other implementations don't use ACPI.
+On Fri, 2009-01-16 at 15:07 +0900, Kenji Kaneshige wrote:
+> > It looks like acpi_pci_get_bridge_handle() is returning NULL, so this is
+> > the fix that works for me.
+> > 
+> 
+> I'm sorry for troubling you, and thank you for your patience.
+> 
+> The patch seems to avoid the kernel panic, but I still don't know
+> why acpi_pci_get_bridge_handle() returns NULL here. I assumed
+> it should return non-NULL value here. So I'd like to investigate
+> it more.
 
-If others need a specific algorithm, another (set of) callback function(s)
-could be added later which would provide the possibility of
-a platform specific override?
+Sure, Len and I couldn't work out why it was returning NULL on this box
+(other than that perhaps it doesn't have an ACPI entry).  The two
+offending busses which trigger this are the two internal ones (which
+aren't hotplug).  The layout of the box is:
 
-     Thomas
+sparkweed:~# lspci -t
+-+-[0000:0c]---00.0
+ +-[0000:0a]---00.0
+ +-[0000:08]---00.0
+ +-[0000:06]---00.0
+ +-[0000:04]---00.0
+ +-[0000:02]---00.0
+ +-[0000:01]-+-00.0
+ |           +-01.0
+ |           +-01.1
+ |           \-02.0
+ \-[0000:00]-+-00.0
+             +-01.0
+             +-03.0
+             +-03.1
+             +-03.2
+             +-0f.0
+             +-0f.1
+             \-0f.3
+sparkweed:~# lspci   
+00:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+00:01.0 VGA compatible controller: ATI Technologies Inc Radeon RV100 QY
+[Radeon 7000/VE]
+00:03.0 USB Controller: NEC Corporation USB (rev 43)
+00:03.1 USB Controller: NEC Corporation USB (rev 43)
+00:03.2 USB Controller: NEC Corporation USB 2.0 (rev 04)
+00:0f.0 Host bridge: Broadcom CSB6 South Bridge (rev a0)
+00:0f.1 IDE interface: Broadcom CSB6 RAID/IDE Controller (rev a0)
+00:0f.3 ISA bridge: Broadcom GCLE-2 Host Bridge
+01:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+01:01.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5704
+Gigabit Ethernet (rev 10)
+01:01.1 Ethernet controller: Broadcom Corporation NetXtreme BCM5704
+Gigabit Ethernet (rev 10)
+01:02.0 SCSI storage controller: Adaptec AIC-9410W SAS (Razor ASIC
+non-RAID) (rev 08)
+02:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+04:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+06:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+08:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+0a:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+0c:00.0 Host bridge: IBM Calgary PCI-X Host Bridge (rev 02)
+
+And when I annotate the problem, the two busses returning NULL are
+0000:00 and 0000:01
+
+James
