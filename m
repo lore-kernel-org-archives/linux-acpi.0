@@ -1,108 +1,56 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: AE_ERROR, ACPI thermal trip point state changed
-Date: Thu, 15 Jan 2009 16:56:56 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901151655540.4737@localhost.localdomain>
-References: <47B328AA.1000800@freemail.hu> <47B3F147.7000704@freemail.hu>
- <47CF96E2.9020302@freemail.hu>
- <1204757373.10256.179.camel@acpi-hp-zz.sh.intel.com>
- <823A93EED437D048963A3697DB0E35DE0129BB78@pdsmsx414.ccr.corp.intel.com>
- <47D0E694.5050102@freemail.hu>
- <1204874686.10256.185.camel@acpi-hp-zz.sh.intel.com>
- <47D24341.5070908@freemail.hu>
- <1205113940.10256.191.camel@acpi-hp-zz.sh.intel.com>
- <48ABDF1E.3010101@freemail.hu>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 09/13] ACPI: thinkpad-acpi: handle HKEY thermal and
+	battery alarms
+Date: Fri, 16 Jan 2009 01:06:52 -0200
+Message-ID: <20090116030652.GA16322@khazad-dum.debian.net>
+References: <1231650070-21722-10-git-send-email-hmh@hmh.eng.br> <alpine.LFD.2.00.0901151342011.4737@localhost.localdomain> <20090115195110.GA4200@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_n1VZ5EvLrde/b4NIiQKO6A)"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:40648 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378AbZAOV5A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2009 16:57:00 -0500
-In-reply-to: <48ABDF1E.3010101@freemail.hu>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:36665 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753889AbZAPDHa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2009 22:07:30 -0500
+Content-Disposition: inline
+In-Reply-To: <20090115195110.GA4200@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---Boundary_(ID_n1VZ5EvLrde/b4NIiQKO6A)
-Content-type: TEXT/PLAIN; charset=UTF-8
-Content-transfer-encoding: 8BIT
-
-On Wed, 20 Aug 2008, Németh Márton wrote:
-
-> Zhang, Rui wrote:
-> > On Sat, 2008-03-08 at 15:41 +0800, Németh Márton wrote:
-> >> Zhang, Rui wrote:
-> >>> On Fri, 2008-03-07 at 14:54 +0800, Németh Márton wrote:
-> >>>> Hi,
-> >>>>
-> >>>> I downloaded pmtools from
-> >>>>
-> >> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools-20071116.tar.bz2 and
-> >>>> compiled: it created exactly the same result what my currently
-> >>>> installed acpidump Debian
-> >>>> package version 20071116-1. I think it is useless to send the same
-> >> log
-> >>>> again.
-> >>>>
-> >>>> After I boot the "Please send acpidump to
-> >> linux-acpi@vger.kernel.org"
-> >>>> message is already
-> >>>> there. So when I first get the prompt I checked for this message in
-> >>>> dmesg and executed
-> >>>> the given command. Here is my result:
-> >>>>
-> >>>> # cat /proc/acpi/thermal_zone/*/*
-> >>>> 0 - Active; 1 - Passive
-> >>>> <polling disabled>
-> >>>> state:                   ok
-> >>>> temperature:             42 C
-> >>>> critical (S5):           155 C
-> >>>> passive:                 84 C: tc1=2 tc2=5 tsp=0 devices=CPU0
-> >>>> active[0]:               70 C: devices=
-> >>>> # ls /proc/acpi/thermal_zone/*/*
-> >>>> /proc/acpi/thermal_zone/THRM/cooling_mode
-> >>>> /proc/acpi/thermal_zone/THRM/polling_frequency
-> >>>> /proc/acpi/thermal_zone/THRM/state
-> >>>> /proc/acpi/thermal_zone/THRM/temperature
-> >>>> /proc/acpi/thermal_zone/THRM/trip_points
-> >>>>
-> >>>> Maybe this is related to
-> >>>> http://bugzilla.kernel.org/show_bug.cgi?id=8544 ?
-> >>>>
-> >>> Hi, Németh,
-> >>>
-> >>> Please ignore the debug patch I sent and try this one.
-> >> I created both the dmesg logs:
-> >>
-> >> 1. Clevo-D410J-patch-debug-thermal2.txt: the patch-debug-thermal was
-> >> only
-> >> applied, (and added a missing "\n").
-> >>
-> >> 2. Clevo-D410J-thermal-fix.txt: the thermal-fix patch was also
-> >> applied.
-> >> In this case the AE_ERROR message is not there any more on Clevo D410J
-> >> laptop.
-> >>
-> > Thanks for your help in debugging this.
-> > We will get the "thermal-fix" patch upstream soon.
+On Thu, 15 Jan 2009, Matthew Garrett wrote:
+> On Thu, Jan 15, 2009 at 01:45:19PM -0500, Len Brown wrote:
+> > While useful to a techie, it is hard to imagine that these will
+> > become useful to a generic Linux GUI some day that is used by
+> > regular people.
 > 
-> As of 2.6.27-rc3 the patch is still not included in the mainstream. I
-> hope that this patch was not forgotten completely.
-> 
-> 	Márton Németh
+> I think it makes sense to tie them to uevents on the appropriate generic 
+> devices. Even if most hardware doesn't generate them, the ability to pop 
+> up a notification telling the user that the firmware thinks their system 
+> is too hot is useful.
 
-Apparently it was dropped.
+Well, it should actually be useful even without the uevents... as long as
+the desktop environments are actually smart enough to notice the kernel
+really wants to tell the user something when it outputs CRITICAL, ALERT and
+EMERGENCY level messages...
 
-should have put the patch here:
-http://bugzilla.kernel.org/show_bug.cgi?id=8544
+Anyway, I actually asked Lenovo what we should do when we get such alarms.
 
-I'll do it now.
+For the non-critical alarms, they suggest warning the user that he needs to
+take IMMEDIATE action (save work and suspend, hibernate or power down).
 
-thanks,
--Len
+For the critical alarms, the operating system is to initate an immediate,
+forced S3 or S4 suspend.  There is real risk of hardware damage if the
+machine is not powered down to S3 or S4 levels within a few seconds (thermal
+alarm), or of data loss (power failure imminent).
 
---Boundary_(ID_n1VZ5EvLrde/b4NIiQKO6A)--
+Since those are two very generic and proper responses to two very generic
+and proper alarms, I am all for exporting them over uevents... in a generic
+way.  That's why I didn't add thinkpad-acpi-specific uevents for them.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
