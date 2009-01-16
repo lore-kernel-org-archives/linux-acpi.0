@@ -1,169 +1,63 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/23] ACPI: thinkpad-acpi: preserve radio state across shutdown
-Date: Fri, 16 Jan 2009 15:24:54 -0500
-Message-ID: <90d9d3c79c44bcf95bc487e9bbceaff2de370310.1232137452.git.len.brown@intel.com>
+Subject: [PATCH 20/23] eeepc-laptop: enable Bluetooth ACPI details
+Date: Fri, 16 Jan 2009 15:25:09 -0500
+Message-ID: <3af9bfcb433c110839e4c815a9928377f66bbd0e.1232137453.git.len.brown@intel.com>
 References: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:62939 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633AbZAPUZU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:20 -0500
+Received: from vms173009pub.verizon.net ([206.46.173.9]:60431 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759585AbZAPUZ0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:26 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KDK0083TZE452M1@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:19 -0600 (CST)
+ with ESMTPA id <0KDK0038SZ6EBNE1@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:20:38 -0600 (CST)
 In-reply-to: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 References: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Ivo van Doorn <IvDoorn@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Jonathan McDowell <noodles@earth.li>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Jonathan McDowell <noodles@earth.li>
 
-Store in firmware NVRAM the radio state on machine shutdown for WWAN and
-bluetooth.  Also, try to set the initial boot state of these radios as the
-rfkill default state for their respective classes.
+Although rfkill support for the EEE bluetooth device has been added to
+2.6.28-rc the appropriate ACPI accessor definitions were not added, so
+the support was non functional. The patch below adds the get and set
+accessors and has been verified to work on an EEE 901.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Signed-off-by: Jonathan McDowell <noodles@earth.li>
+Acked-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   59 +++++++++++++++++++++++++++++++--
- 1 files changed, 55 insertions(+), 4 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index b2c5913..27d709b 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -222,6 +222,7 @@ struct ibm_struct {
- 	void (*exit) (void);
- 	void (*resume) (void);
- 	void (*suspend) (pm_message_t state);
-+	void (*shutdown) (void);
- 
- 	struct list_head all_drivers;
- 
-@@ -759,6 +760,18 @@ static int tpacpi_resume_handler(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static void tpacpi_shutdown_handler(struct platform_device *pdev)
-+{
-+	struct ibm_struct *ibm, *itmp;
-+
-+	list_for_each_entry_safe(ibm, itmp,
-+				 &tpacpi_all_drivers,
-+				 all_drivers) {
-+		if (ibm->shutdown)
-+			(ibm->shutdown)();
-+	}
-+}
-+
- static struct platform_driver tpacpi_pdriver = {
- 	.driver = {
- 		.name = TPACPI_DRVR_NAME,
-@@ -766,6 +779,7 @@ static struct platform_driver tpacpi_pdriver = {
- 	},
- 	.suspend = tpacpi_suspend_handler,
- 	.resume = tpacpi_resume_handler,
-+	.shutdown = tpacpi_shutdown_handler,
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 02fe2b8..9d93cb9 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -90,7 +90,7 @@ enum {
  };
  
- static struct platform_driver tpacpi_hwmon_pdriver = {
-@@ -957,7 +971,22 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
- 			int (*get_state)(void *, enum rfkill_state *))
- {
- 	int res;
--	enum rfkill_state initial_state;
-+	enum rfkill_state initial_state = RFKILL_STATE_SOFT_BLOCKED;
-+
-+	res = get_state(NULL, &initial_state);
-+	if (res < 0) {
-+		printk(TPACPI_ERR
-+			"failed to read initial state for %s, error %d; "
-+			"will turn radio off\n", name, res);
-+	} else {
-+		/* try to set the initial state as the default for the rfkill
-+		 * type, since we ask the firmware to preserve it across S5 in
-+		 * NVRAM */
-+		rfkill_set_default(rfktype,
-+				(initial_state == RFKILL_STATE_UNBLOCKED) ?
-+					RFKILL_STATE_UNBLOCKED :
-+					RFKILL_STATE_SOFT_BLOCKED);
-+	}
- 
- 	*rfk = rfkill_allocate(&tpacpi_pdev->dev, rfktype);
- 	if (!*rfk) {
-@@ -969,9 +998,7 @@ static int __init tpacpi_new_rfkill(const unsigned int id,
- 	(*rfk)->name = name;
- 	(*rfk)->get_state = get_state;
- 	(*rfk)->toggle_radio = toggle_radio;
--
--	if (!get_state(NULL, &initial_state))
--		(*rfk)->state = initial_state;
-+	(*rfk)->state = initial_state;
- 
- 	res = rfkill_register(*rfk);
- 	if (res < 0) {
-@@ -2943,8 +2970,19 @@ static int tpacpi_bluetooth_rfk_set(void *data, enum rfkill_state state)
- 	return bluetooth_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
- }
- 
-+static void bluetooth_shutdown(void)
-+{
-+	/* Order firmware to save current state to NVRAM */
-+	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
-+			TP_ACPI_BLTH_SAVE_STATE))
-+		printk(TPACPI_NOTICE
-+			"failed to save bluetooth state to NVRAM\n");
-+}
-+
- static void bluetooth_exit(void)
- {
-+	bluetooth_shutdown();
-+
- 	if (tpacpi_bluetooth_rfkill)
- 		rfkill_unregister(tpacpi_bluetooth_rfkill);
- 
-@@ -3050,6 +3088,7 @@ static struct ibm_struct bluetooth_driver_data = {
- 	.write = bluetooth_write,
- 	.exit = bluetooth_exit,
- 	.suspend = bluetooth_suspend,
-+	.shutdown = bluetooth_shutdown,
+ static const char *cm_getv[] = {
+-	"WLDG", NULL, NULL, NULL,
++	"WLDG", "BTHG", NULL, NULL,
+ 	"CAMG", NULL, NULL, NULL,
+ 	NULL, "PBLG", NULL, NULL,
+ 	"CFVG", NULL, NULL, NULL,
+@@ -99,7 +99,7 @@ static const char *cm_getv[] = {
  };
  
- /*************************************************************************
-@@ -3207,8 +3246,19 @@ static int tpacpi_wan_rfk_set(void *data, enum rfkill_state state)
- 	return wan_set_radiosw((state == RFKILL_STATE_UNBLOCKED), 0);
- }
- 
-+static void wan_shutdown(void)
-+{
-+	/* Order firmware to save current state to NVRAM */
-+	if (!acpi_evalf(NULL, NULL, "\\WGSV", "vd",
-+			TP_ACPI_WGSV_SAVE_STATE))
-+		printk(TPACPI_NOTICE
-+			"failed to save WWAN state to NVRAM\n");
-+}
-+
- static void wan_exit(void)
- {
-+	wan_shutdown();
-+
- 	if (tpacpi_wan_rfkill)
- 		rfkill_unregister(tpacpi_wan_rfkill);
- 
-@@ -3312,6 +3362,7 @@ static struct ibm_struct wan_driver_data = {
- 	.write = wan_write,
- 	.exit = wan_exit,
- 	.suspend = wan_suspend,
-+	.shutdown = wan_shutdown,
- };
- 
- /*************************************************************************
+ static const char *cm_setv[] = {
+-	"WLDS", NULL, NULL, NULL,
++	"WLDS", "BTHS", NULL, NULL,
+ 	"CAMS", NULL, NULL, NULL,
+ 	"SDSP", "PBLS", "HDPS", NULL,
+ 	"CFVS", NULL, NULL, NULL,
 -- 
 1.5.6.6
 
