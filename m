@@ -1,169 +1,100 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/23] ACPI: thinkpad-acpi: resume with radios disabled
-Date: Fri, 16 Jan 2009 15:24:53 -0500
-Message-ID: <153f82207c51193e4d6a7e6f0e3f9442eabeba1c.1232137452.git.len.brown@intel.com>
+Subject: [PATCH 21/23] dell-laptop: move to drivers/platform/x86/ from
+ drivers/misc/
+Date: Fri, 16 Jan 2009 15:25:10 -0500
+Message-ID: <cad73120ab0dfd484682229346de8c16073577e1.1232137453.git.len.brown@intel.com>
 References: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:49435 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759765AbZAPUZd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:33 -0500
+Received: from vms046pub.verizon.net ([206.46.252.46]:43575 "EHLO
+	vms046pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759589AbZAPUZe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:34 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KDK0078EZE4JCP4@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:22 -0600 (CST)
+ by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KDK00F5LZEBQNX7@vms046.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:24 -0600 (CST)
 In-reply-to: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 References: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Len Brown <len.brown@intel.com>
 
-Instruct the firmware to not enable the radios when resuming.  This
-is safer, and the rfkill core will take care to manually enable any
-radios that need to be enabled.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   66 ++++++++++++++++++++++++++++-----
- 1 files changed, 56 insertions(+), 10 deletions(-)
+ drivers/misc/Makefile                        |    1 -
+ drivers/platform/x86/Kconfig                 |   12 ++++++++++++
+ drivers/platform/x86/Makefile                |    1 +
+ drivers/{misc => platform/x86}/dell-laptop.c |    2 +-
+ 4 files changed, 14 insertions(+), 2 deletions(-)
+ rename drivers/{misc => platform/x86}/dell-laptop.c (99%)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index a086ce8..b2c5913 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -122,6 +122,27 @@ enum {
- #define TPACPI_HKEY_INPUT_PRODUCT	0x5054 /* "TP" */
- #define TPACPI_HKEY_INPUT_VERSION	0x4101
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 9cf8ae6..d5749a7 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -10,7 +10,6 @@ obj-$(CONFIG_ATMEL_TCLIB)	+= atmel_tclib.o
+ obj-$(CONFIG_ICS932S401)	+= ics932s401.o
+ obj-$(CONFIG_LKDTM)		+= lkdtm.o
+ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+-obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+ obj-$(CONFIG_PHANTOM)		+= phantom.o
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index e65448e..9e8f948 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -54,6 +54,18 @@ config ASUS_LAPTOP
  
-+/* ACPI \WGSV commands */
-+enum {
-+	TP_ACPI_WGSV_GET_STATE		= 0x01, /* Get state information */
-+	TP_ACPI_WGSV_PWR_ON_ON_RESUME	= 0x02, /* Resume WWAN powered on */
-+	TP_ACPI_WGSV_PWR_OFF_ON_RESUME	= 0x03,	/* Resume WWAN powered off */
-+	TP_ACPI_WGSV_SAVE_STATE		= 0x04, /* Save state for S4/S5 */
-+};
+ 	  If you have an ACPI-compatible ASUS laptop, say Y or M here.
+ 
++config DELL_LAPTOP
++	tristate "Dell Laptop Extras (EXPERIMENTAL)"
++	depends on X86
++	depends on DCDBAS
++	depends on EXPERIMENTAL
++	depends on BACKLIGHT_CLASS_DEVICE
++	depends on RFKILL
++	default n
++	---help---
++	This driver adds support for rfkill and backlight control to Dell
++	laptops.
 +
-+/* TP_ACPI_WGSV_GET_STATE bits */
-+enum {
-+	TP_ACPI_WGSV_STATE_WWANEXIST	= 0x0001, /* WWAN hw available */
-+	TP_ACPI_WGSV_STATE_WWANPWR	= 0x0002, /* WWAN radio enabled */
-+	TP_ACPI_WGSV_STATE_WWANPWRRES	= 0x0004, /* WWAN state at resume */
-+	TP_ACPI_WGSV_STATE_WWANBIOSOFF	= 0x0008, /* WWAN disabled in BIOS */
-+	TP_ACPI_WGSV_STATE_BLTHEXIST	= 0x0001, /* BLTH hw available */
-+	TP_ACPI_WGSV_STATE_BLTHPWR	= 0x0002, /* BLTH radio enabled */
-+	TP_ACPI_WGSV_STATE_BLTHPWRRES	= 0x0004, /* BLTH state at resume */
-+	TP_ACPI_WGSV_STATE_BLTHBIOSOFF	= 0x0008, /* BLTH disabled in BIOS */
-+	TP_ACPI_WGSV_STATE_UWBEXIST	= 0x0010, /* UWB hw available */
-+	TP_ACPI_WGSV_STATE_UWBPWR	= 0x0020, /* UWB radio enabled */
-+};
+ config FUJITSU_LAPTOP
+ 	tristate "Fujitsu Laptop Extras"
+ 	depends on ACPI
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 1e9de2a..e290651 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -6,6 +6,7 @@ obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
+ obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
+ obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
+ obj-$(CONFIG_COMPAL_LAPTOP)	+= compal-laptop.o
++obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop.o
+ obj-$(CONFIG_ACER_WMI)		+= acer-wmi.o
+ obj-$(CONFIG_HP_WMI)		+= hp-wmi.o
+ obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
+diff --git a/drivers/misc/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
+similarity index 99%
+rename from drivers/misc/dell-laptop.c
+rename to drivers/platform/x86/dell-laptop.c
+index 4d33a20..16e11c2 100644
+--- a/drivers/misc/dell-laptop.c
++++ b/drivers/platform/x86/dell-laptop.c
+@@ -22,7 +22,7 @@
+ #include <linux/rfkill.h>
+ #include <linux/power_supply.h>
+ #include <linux/acpi.h>
+-#include "../firmware/dcdbas.h"
++#include "../../firmware/dcdbas.h"
  
- /****************************************************************************
-  * Main driver
-@@ -2766,11 +2787,28 @@ enum {
- 	/* ACPI GBDC/SBDC bits */
- 	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
- 	TP_ACPI_BLUETOOTH_RADIOSSW	= 0x02,	/* Bluetooth radio enabled */
--	TP_ACPI_BLUETOOTH_UNK		= 0x04,	/* unknown function */
-+	TP_ACPI_BLUETOOTH_RESUMECTRL	= 0x04,	/* Bluetooth state at resume:
-+						   off / last state */
-+};
-+
-+enum {
-+	/* ACPI \BLTH commands */
-+	TP_ACPI_BLTH_GET_ULTRAPORT_ID	= 0x00, /* Get Ultraport BT ID */
-+	TP_ACPI_BLTH_GET_PWR_ON_RESUME	= 0x01, /* Get power-on-resume state */
-+	TP_ACPI_BLTH_PWR_ON_ON_RESUME	= 0x02, /* Resume powered on */
-+	TP_ACPI_BLTH_PWR_OFF_ON_RESUME	= 0x03,	/* Resume powered off */
-+	TP_ACPI_BLTH_SAVE_STATE		= 0x05, /* Save state for S4/S5 */
- };
+ #define BRIGHTNESS_TOKEN 0x7d
  
- static struct rfkill *tpacpi_bluetooth_rfkill;
- 
-+static void bluetooth_suspend(pm_message_t state)
-+{
-+	/* Try to make sure radio will resume powered off */
-+	acpi_evalf(NULL, NULL, "\\BLTH", "vd",
-+		   TP_ACPI_BLTH_PWR_OFF_ON_RESUME);
-+}
-+
- static int bluetooth_get_radiosw(void)
- {
- 	int status;
-@@ -2830,12 +2868,11 @@ static int bluetooth_set_radiosw(int radio_on, int update_rfk)
- 	}
- #endif
- 
--	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
--		return -EIO;
-+	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
- 	if (radio_on)
--		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
-+		status = TP_ACPI_BLUETOOTH_RADIOSSW;
- 	else
--		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
-+		status = 0;
- 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
- 		return -EIO;
- 
-@@ -3012,6 +3049,7 @@ static struct ibm_struct bluetooth_driver_data = {
- 	.read = bluetooth_read,
- 	.write = bluetooth_write,
- 	.exit = bluetooth_exit,
-+	.suspend = bluetooth_suspend,
- };
- 
- /*************************************************************************
-@@ -3022,11 +3060,19 @@ enum {
- 	/* ACPI GWAN/SWAN bits */
- 	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
- 	TP_ACPI_WANCARD_RADIOSSW	= 0x02,	/* Wan radio enabled */
--	TP_ACPI_WANCARD_UNK		= 0x04,	/* unknown function */
-+	TP_ACPI_WANCARD_RESUMECTRL	= 0x04,	/* Wan state at resume:
-+						   off / last state */
- };
- 
- static struct rfkill *tpacpi_wan_rfkill;
- 
-+static void wan_suspend(pm_message_t state)
-+{
-+	/* Try to make sure radio will resume powered off */
-+	acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
-+		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME);
-+}
-+
- static int wan_get_radiosw(void)
- {
- 	int status;
-@@ -3086,12 +3132,11 @@ static int wan_set_radiosw(int radio_on, int update_rfk)
- 	}
- #endif
- 
--	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
--		return -EIO;
-+	/* We make sure to keep TP_ACPI_WANCARD_RESUMECTRL off */
- 	if (radio_on)
--		status |= TP_ACPI_WANCARD_RADIOSSW;
-+		status = TP_ACPI_WANCARD_RADIOSSW;
- 	else
--		status &= ~TP_ACPI_WANCARD_RADIOSSW;
-+		status = 0;
- 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
- 		return -EIO;
- 
-@@ -3266,6 +3311,7 @@ static struct ibm_struct wan_driver_data = {
- 	.read = wan_read,
- 	.write = wan_write,
- 	.exit = wan_exit,
-+	.suspend = wan_suspend,
- };
- 
- /*************************************************************************
 -- 
 1.5.6.6
 
