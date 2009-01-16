@@ -1,17 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 08/23] ACPI: thinkpad-acpi: clean up hotkey_notify()
-Date: Fri, 16 Jan 2009 15:24:57 -0500
-Message-ID: <3827e7a3fd03718d4d204c66d9e3ab9b125ae552.1232137452.git.len.brown@intel.com>
+Subject: [PATCH 07/23] ACPI: thinkpad-acpi: use killable instead of
+ interruptible mutexes
+Date: Fri, 16 Jan 2009 15:24:56 -0500
+Message-ID: <7646ea88af80a92f2775e17d4283830d7f09ea2d.1232137452.git.len.brown@intel.com>
 References: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:50288 "EHLO
-	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758730AbZAPUZV (ORCPT
+Received: from vms173003pub.verizon.net ([206.46.173.3]:62939 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757235AbZAPUZV (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:21 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KDK0048RZE5G213@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:20 -0600 (CST)
+ by vms173003.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KDK008IHZE558N1@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:19 -0600 (CST)
 In-reply-to: <1232137512-17327-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
 References: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
@@ -22,250 +24,139 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Clean up the hotkey_notify() handler, which handles the HKEY notifications
-from the ACPI firmware.  It was getting too long and deep.
+Unfortunately, POSIX in all of its braindamage, do not state that userspace has
+to deal with EINTR in read/write and friends... so, lesser code just doesn't.
 
-No functional changes.
+Switch from *_interruptible to *_killable on the sysfs- and procfs-related
+mutexes.  This closes this possible can of worms.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |  174 +++++++++++++++++++++-------------
- 1 files changed, 109 insertions(+), 65 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 7670c8e..d833ee6 100644
+index c1d4041..7670c8e 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -2571,13 +2571,100 @@ err_exit:
- 	return (res < 0)? res : 1;
- }
- 
-+static bool hotkey_notify_hotkey(const u32 hkey,
-+				 bool *send_acpi_ev,
-+				 bool *ignore_acpi_ev)
-+{
-+	/* 0x1000-0x1FFF: key presses */
-+	unsigned int scancode = hkey & 0xfff;
-+	*send_acpi_ev = true;
-+	*ignore_acpi_ev = false;
-+
-+	if (scancode > 0 && scancode < 0x21) {
-+		scancode--;
-+		if (!(hotkey_source_mask & (1 << scancode))) {
-+			tpacpi_input_send_key(scancode);
-+			*send_acpi_ev = false;
-+		} else {
-+			*ignore_acpi_ev = true;
-+		}
-+		return true;
-+	}
-+	return false;
-+}
-+
-+static bool hotkey_notify_wakeup(const u32 hkey,
-+				 bool *send_acpi_ev,
-+				 bool *ignore_acpi_ev)
-+{
-+	/* 0x2000-0x2FFF: Wakeup reason */
-+	*send_acpi_ev = true;
-+	*ignore_acpi_ev = false;
-+
-+	switch (hkey) {
-+	case 0x2304: /* suspend, undock */
-+	case 0x2404: /* hibernation, undock */
-+		hotkey_wakeup_reason = TP_ACPI_WAKEUP_UNDOCK;
-+		*ignore_acpi_ev = true;
-+		break;
-+
-+	case 0x2305: /* suspend, bay eject */
-+	case 0x2405: /* hibernation, bay eject */
-+		hotkey_wakeup_reason = TP_ACPI_WAKEUP_BAYEJ;
-+		*ignore_acpi_ev = true;
-+		break;
-+
-+	default:
-+		return false;
-+	}
-+
-+	if (hotkey_wakeup_reason != TP_ACPI_WAKEUP_NONE) {
-+		printk(TPACPI_INFO
-+		       "woke up due to a hot-unplug "
-+		       "request...\n");
-+		hotkey_wakeup_reason_notify_change();
-+	}
-+	return true;
-+}
-+
-+static bool hotkey_notify_usrevent(const u32 hkey,
-+				 bool *send_acpi_ev,
-+				 bool *ignore_acpi_ev)
-+{
-+	/* 0x5000-0x5FFF: human interface helpers */
-+	*send_acpi_ev = true;
-+	*ignore_acpi_ev = false;
-+
-+	switch (hkey) {
-+	case 0x5010: /* Lenovo new BIOS: brightness changed */
-+	case 0x500b: /* X61t: tablet pen inserted into bay */
-+	case 0x500c: /* X61t: tablet pen removed from bay */
-+		return true;
-+
-+	case 0x5009: /* X41t-X61t: swivel up (tablet mode) */
-+	case 0x500a: /* X41t-X61t: swivel down (normal mode) */
-+		tpacpi_input_send_tabletsw();
-+		hotkey_tablet_mode_notify_change();
-+		*send_acpi_ev = false;
-+		return true;
-+
-+	case 0x5001:
-+	case 0x5002:
-+		/* LID switch events.  Do not propagate */
-+		*ignore_acpi_ev = true;
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -1878,7 +1878,7 @@ static ssize_t hotkey_mask_show(struct device *dev,
  {
- 	u32 hkey;
--	unsigned int scancode;
--	int send_acpi_ev;
--	int ignore_acpi_ev;
--	int unk_ev;
-+	bool send_acpi_ev;
-+	bool ignore_acpi_ev;
-+	bool known_ev;
+ 	int res;
  
- 	if (event != 0x80) {
- 		printk(TPACPI_ERR
-@@ -2601,105 +2688,62 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 			return;
- 		}
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 	res = hotkey_mask_get();
+ 	mutex_unlock(&hotkey_mutex);
+@@ -1897,7 +1897,7 @@ static ssize_t hotkey_mask_store(struct device *dev,
+ 	if (parse_strtoul(buf, 0xffffffffUL, &t))
+ 		return -EINVAL;
  
--		send_acpi_ev = 1;
--		ignore_acpi_ev = 0;
--		unk_ev = 0;
-+		send_acpi_ev = true;
-+		ignore_acpi_ev = false;
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
  
- 		switch (hkey >> 12) {
- 		case 1:
- 			/* 0x1000-0x1FFF: key presses */
--			scancode = hkey & 0xfff;
--			if (scancode > 0 && scancode < 0x21) {
--				scancode--;
--				if (!(hotkey_source_mask & (1 << scancode))) {
--					tpacpi_input_send_key(scancode);
--					send_acpi_ev = 0;
--				} else {
--					ignore_acpi_ev = 1;
--				}
--			} else {
--				unk_ev = 1;
--			}
-+			known_ev = hotkey_notify_hotkey(hkey, &send_acpi_ev,
-+						 &ignore_acpi_ev);
- 			break;
- 		case 2:
--			/* Wakeup reason */
--			switch (hkey) {
--			case 0x2304: /* suspend, undock */
--			case 0x2404: /* hibernation, undock */
--				hotkey_wakeup_reason = TP_ACPI_WAKEUP_UNDOCK;
--				ignore_acpi_ev = 1;
--				break;
--			case 0x2305: /* suspend, bay eject */
--			case 0x2405: /* hibernation, bay eject */
--				hotkey_wakeup_reason = TP_ACPI_WAKEUP_BAYEJ;
--				ignore_acpi_ev = 1;
--				break;
--			default:
--				unk_ev = 1;
--			}
--			if (hotkey_wakeup_reason != TP_ACPI_WAKEUP_NONE) {
--				printk(TPACPI_INFO
--				       "woke up due to a hot-unplug "
--				       "request...\n");
--				hotkey_wakeup_reason_notify_change();
--			}
-+			/* 0x2000-0x2FFF: Wakeup reason */
-+			known_ev = hotkey_notify_wakeup(hkey, &send_acpi_ev,
-+						 &ignore_acpi_ev);
- 			break;
- 		case 3:
--			/* bay-related wakeups */
-+			/* 0x3000-0x3FFF: bay-related wakeups */
- 			if (hkey == 0x3003) {
- 				hotkey_autosleep_ack = 1;
- 				printk(TPACPI_INFO
- 				       "bay ejected\n");
- 				hotkey_wakeup_hotunplug_complete_notify_change();
-+				known_ev = true;
- 			} else {
--				unk_ev = 1;
-+				known_ev = false;
- 			}
- 			break;
- 		case 4:
--			/* dock-related wakeups */
-+			/* 0x4000-0x4FFF: dock-related wakeups */
- 			if (hkey == 0x4003) {
- 				hotkey_autosleep_ack = 1;
- 				printk(TPACPI_INFO
- 				       "undocked\n");
- 				hotkey_wakeup_hotunplug_complete_notify_change();
-+				known_ev = true;
- 			} else {
--				unk_ev = 1;
-+				known_ev = false;
- 			}
- 			break;
- 		case 5:
- 			/* 0x5000-0x5FFF: human interface helpers */
--			switch (hkey) {
--			case 0x5010: /* Lenovo new BIOS: brightness changed */
--			case 0x500b: /* X61t: tablet pen inserted into bay */
--			case 0x500c: /* X61t: tablet pen removed from bay */
--				break;
--			case 0x5009: /* X41t-X61t: swivel up (tablet mode) */
--			case 0x500a: /* X41t-X61t: swivel down (normal mode) */
--				tpacpi_input_send_tabletsw();
--				hotkey_tablet_mode_notify_change();
--				send_acpi_ev = 0;
--				break;
--			case 0x5001:
--			case 0x5002:
--				/* LID switch events.  Do not propagate */
--				ignore_acpi_ev = 1;
--				break;
--			default:
--				unk_ev = 1;
--			}
-+			known_ev = hotkey_notify_usrevent(hkey, &send_acpi_ev,
-+						 &ignore_acpi_ev);
- 			break;
- 		case 7:
- 			/* 0x7000-0x7FFF: misc */
- 			if (tp_features.hotkey_wlsw && hkey == 0x7000) {
- 				tpacpi_send_radiosw_update();
- 				send_acpi_ev = 0;
-+				known_ev = true;
- 				break;
- 			}
- 			/* fallthrough to default */
- 		default:
--			unk_ev = 1;
-+			known_ev = false;
- 		}
--		if (unk_ev) {
-+		if (!known_ev) {
- 			printk(TPACPI_NOTICE
- 			       "unhandled HKEY event 0x%04x\n", hkey);
- 		}
+ 	res = hotkey_mask_set(t);
+@@ -1983,7 +1983,7 @@ static ssize_t hotkey_source_mask_store(struct device *dev,
+ 		((t & ~TPACPI_HKEY_NVRAM_KNOWN_MASK) != 0))
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	HOTKEY_CONFIG_CRITICAL_START
+@@ -2018,7 +2018,7 @@ static ssize_t hotkey_poll_freq_store(struct device *dev,
+ 	if (parse_strtoul(buf, 25, &t))
+ 		return -EINVAL;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	hotkey_poll_freq = t;
+@@ -2754,7 +2754,7 @@ static int hotkey_read(char *p)
+ 		return len;
+ 	}
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 	res = hotkey_status_get(&status);
+ 	if (!res)
+@@ -2785,7 +2785,7 @@ static int hotkey_write(char *buf)
+ 	if (!tp_features.hotkey)
+ 		return -ENODEV;
+ 
+-	if (mutex_lock_interruptible(&hotkey_mutex))
++	if (mutex_lock_killable(&hotkey_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	status = -1;
+@@ -5311,7 +5311,7 @@ static int brightness_set(int value)
+ 	    value < 0)
+ 		return -EINVAL;
+ 
+-	res = mutex_lock_interruptible(&brightness_mutex);
++	res = mutex_lock_killable(&brightness_mutex);
+ 	if (res < 0)
+ 		return res;
+ 
+@@ -5849,7 +5849,7 @@ static int fan_get_status_safe(u8 *status)
+ 	int rc;
+ 	u8 s;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 	rc = fan_get_status(&s);
+ 	if (!rc)
+@@ -5932,7 +5932,7 @@ static int fan_set_level_safe(int level)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	if (level == TPACPI_FAN_LAST_LEVEL)
+@@ -5954,7 +5954,7 @@ static int fan_set_enable(void)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	switch (fan_control_access_mode) {
+@@ -6009,7 +6009,7 @@ static int fan_set_disable(void)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	rc = 0;
+@@ -6047,7 +6047,7 @@ static int fan_set_speed(int speed)
+ 	if (!fan_control_allowed)
+ 		return -EPERM;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	rc = 0;
+@@ -6249,7 +6249,7 @@ static ssize_t fan_pwm1_store(struct device *dev,
+ 	/* scale down from 0-255 to 0-7 */
+ 	newlevel = (s >> 5) & 0x07;
+ 
+-	if (mutex_lock_interruptible(&fan_mutex))
++	if (mutex_lock_killable(&fan_mutex))
+ 		return -ERESTARTSYS;
+ 
+ 	rc = fan_get_status(&status);
 -- 
 1.5.6.6
 
