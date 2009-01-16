@@ -1,50 +1,66 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Florian Echtler <floe@butterbrot.org>
 Subject: Re: Fan running continuously after kernel switch
-Date: Fri, 16 Jan 2009 19:23:26 -0200
-Message-ID: <20090116212326.GE5719@khazad-dum.debian.net>
-References: <1232008941.24218.6.camel@pancake> <1232011776.3989.25.camel@yakui_zhao.sh.intel.com> <1232011930.24218.13.camel@pancake> <1232088736.4001.6.camel@yakui_zhao.sh.intel.com>
+Date: Fri, 16 Jan 2009 23:04:31 +0100
+Message-ID: <1232143471.15602.24.camel@pancake>
+References: <1232008941.24218.6.camel@pancake>
+	 <1232011776.3989.25.camel@yakui_zhao.sh.intel.com>
+	 <1232011930.24218.13.camel@pancake>
+	 <1232088736.4001.6.camel@yakui_zhao.sh.intel.com>
+	 <20090116212326.GE5719@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50200 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755748AbZAPVXa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Jan 2009 16:23:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1232088736.4001.6.camel@yakui_zhao.sh.intel.com>
+Received: from static.88-198-47-201.clients.your-server.de ([88.198.47.201]:59424
+	"EHLO butterbrot.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761567AbZAPWEe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 17:04:34 -0500
+In-Reply-To: <20090116212326.GE5719@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Florian Echtler <floe@butterbrot.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 16 Jan 2009, Zhao Yakui wrote:
-> On Thu, 2009-01-15 at 17:32 +0800, Florian Echtler wrote:
-> > > > yesterday, I switched from kernel 2.6.25-gentoo-r8 to 2.6.27-gentoo-r7
-> > > Please attach the output of acpidump so that we can confirm whether the
-> > > fan device is controlled by thinkpad acpi driver or generic fan driver.
-> > Dumpfile is attached.
-> thanks for the acpidump.
-> >From the dumpfile it seems that the fan is not controlled by the generic
-> ACPI fan driver. It seems that it is controlled by thinkpad_acpi driver.
-> cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> The thinkpad-acpi driver exports an interface that can be used to con=
+trol
+> the fan, but you do it on your own risk, and you have to EXPLICLTY op=
+t-in by
+> giving it the fan_control=3D1 parameter.
+Yes, I read about that option, but I'd rather like to avoid it..
 
-The thinkpad-acpi driver exports an interface that can be used to control
-the fan, but you do it on your own risk, and you have to EXPLICLTY opt-in by
-giving it the fan_control=1 parameter.
+> What can help is for you to tell us the temperatures that thinkpad-ac=
+pi
+> report.  If any of them is above 43C, the fan will be left on continu=
+ously
+> by the EC.
+Here's the temperatures:
 
-Even if you do give thinkpad-acpi the fan_control=1 parameter, it won't
-touch the fan at all unless you command it to through procfs or sysfs.
+cat /proc/acpi/ibm/thermal=20
+temperatures:	43 37 35 45 50 -128 29 -128 37 46 43 -128 -128 -128 -128
+-128
 
-The driver doesn't do any sort of automated control, the EC does it by
-itself.
+However, there's obviously a bit more to this.
 
-What can help is for you to tell us the temperatures that thinkpad-acpi
-report.  If any of them is above 43C, the fan will be left on continuously
-by the EC.
+a) when I load the coretemp module and try to read the temperature via
+lm-sensors, I get two values around 60 =C2=B0C, while thinkpad-acpi sho=
+ws the
+above. Same applies to the standard ACPI thermal interface. I have a
+total of 13 different thermal measurements.. :-)
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+b) the really weird part: when I remove the power supply and let the
+laptop run on battery, the fan immediately stops! Some minutes later, i=
+t
+starts again, but I'm pretty sure that the temperatures are not the onl=
+y
+factor here. When I plug the power cord back in after some minutes, the
+fan stops again..
+
+Yours, Florian
+--=20
+0666 - Filemode of the Beast
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
