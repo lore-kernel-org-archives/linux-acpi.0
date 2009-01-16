@@ -1,50 +1,50 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/23] ACPI: thinkpad-acpi: update documents for the new
- location
-Date: Fri, 16 Jan 2009 15:24:50 -0500
-Message-ID: <9abf0eea877d6107d3a8a5c6913450e961fb7050.1232137452.git.len.brown@intel.com>
-References: <1232137512-17327-1-git-send-email-lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Fan running continuously after kernel switch
+Date: Fri, 16 Jan 2009 19:23:26 -0200
+Message-ID: <20090116212326.GE5719@khazad-dum.debian.net>
+References: <1232008941.24218.6.camel@pancake> <1232011776.3989.25.camel@yakui_zhao.sh.intel.com> <1232011930.24218.13.camel@pancake> <1232088736.4001.6.camel@yakui_zhao.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:52853 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759871AbZAPUZe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 15:25:34 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
- (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
- with ESMTPA id <0KDK00MKTZE2KZV4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 16 Jan 2009 14:25:15 -0600 (CST)
-In-reply-to: <1232137512-17327-1-git-send-email-lenb@kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50200 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755748AbZAPVXa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Jan 2009 16:23:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1232088736.4001.6.camel@yakui_zhao.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+To: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Florian Echtler <floe@butterbrot.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+On Fri, 16 Jan 2009, Zhao Yakui wrote:
+> On Thu, 2009-01-15 at 17:32 +0800, Florian Echtler wrote:
+> > > > yesterday, I switched from kernel 2.6.25-gentoo-r8 to 2.6.27-gentoo-r7
+> > > Please attach the output of acpidump so that we can confirm whether the
+> > > fan device is controlled by thinkpad acpi driver or generic fan driver.
+> > Dumpfile is attached.
+> thanks for the acpidump.
+> >From the dumpfile it seems that the fan is not controlled by the generic
+> ACPI fan driver. It seems that it is controlled by thinkpad_acpi driver.
+> cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Update documentation to reflect the new location of the
-thinkpad-acpi driver.
+The thinkpad-acpi driver exports an interface that can be used to control
+the fan, but you do it on your own risk, and you have to EXPLICLTY opt-in by
+giving it the fan_control=1 parameter.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- Documentation/laptops/thinkpad-acpi.txt |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Even if you do give thinkpad-acpi the fan_control=1 parameter, it won't
+touch the fan at all unless you command it to through procfs or sysfs.
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 898b498..ddc371e 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -16,7 +16,8 @@ supported by the generic Linux ACPI drivers.
- This driver used to be named ibm-acpi until kernel 2.6.21 and release
- 0.13-20070314.  It used to be in the drivers/acpi tree, but it was
- moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
--2.6.22, and release 0.14.
-+2.6.22, and release 0.14.  It was moved to drivers/platform/x86 for
-+kernel 2.6.29.
- 
- The driver is named "thinkpad-acpi".  In some places, like module
- names, "thinkpad_acpi" is used because of userspace issues.
+The driver doesn't do any sort of automated control, the EC does it by
+itself.
+
+What can help is for you to tell us the temperatures that thinkpad-acpi
+report.  If any of them is above 43C, the fan will be left on continuously
+by the EC.
+
 -- 
-1.5.6.6
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
