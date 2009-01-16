@@ -1,90 +1,48 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] PM: Fix compilation warning in kernel/power/main.c
-Date: Fri, 16 Jan 2009 18:14:07 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901161813480.31281@localhost.localdomain>
-References: <200901170010.45699.rjw@sisk.pl>
+From: Frans Pop <elendil@planet.nl>
+Subject: [regression] hp-wmi: hangs system on boot
+Date: Sat, 17 Jan 2009 00:13:54 +0100
+Message-ID: <200901170013.55786.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:47643 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763597AbZAPXOL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 18:14:11 -0500
-In-reply-to: <200901170010.45699.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1765804AbZAPXOW@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-applied
+When I first booted .29-rc2 my HP 2510p notebook hung while loading
+hp-wmi, which I have listed in /etc/modules. Hard poweroff was needed.
 
-thanks,
---
-Len Brown, Intel Open Source Technology Center
+The last line on the console was:
+input: HP WMI hotkeys as /class/input/input11
 
-On Sat, 17 Jan 2009, Rafael J. Wysocki wrote:
+After commenting out hp-wmi in /etc/modules the system booted correctly.
 
-> 
-> Reorder the code in kernel/power/main.c to fix compilation warning
-> triggered by unsetting CONFIG_SUSPEND.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  kernel/power/main.c |   26 +++++++++++++-------------
->  1 file changed, 13 insertions(+), 13 deletions(-)
-> 
-> Index: linux-2.6/kernel/power/main.c
-> ===================================================================
-> --- linux-2.6.orig/kernel/power/main.c
-> +++ linux-2.6/kernel/power/main.c
-> @@ -57,16 +57,6 @@ int pm_notifier_call_chain(unsigned long
->  #ifdef CONFIG_PM_DEBUG
->  int pm_test_level = TEST_NONE;
->  
-> -static int suspend_test(int level)
-> -{
-> -	if (pm_test_level == level) {
-> -		printk(KERN_INFO "suspend debug: Waiting for 5 seconds.\n");
-> -		mdelay(5000);
-> -		return 1;
-> -	}
-> -	return 0;
-> -}
-> -
->  static const char * const pm_tests[__TEST_AFTER_LAST] = {
->  	[TEST_NONE] = "none",
->  	[TEST_CORE] = "core",
-> @@ -125,14 +115,24 @@ static ssize_t pm_test_store(struct kobj
->  }
->  
->  power_attr(pm_test);
-> -#else /* !CONFIG_PM_DEBUG */
-> -static inline int suspend_test(int level) { return 0; }
-> -#endif /* !CONFIG_PM_DEBUG */
-> +#endif /* CONFIG_PM_DEBUG */
->  
->  #endif /* CONFIG_PM_SLEEP */
->  
->  #ifdef CONFIG_SUSPEND
->  
-> +static int suspend_test(int level)
-> +{
-> +#ifdef CONFIG_PM_DEBUG
-> +	if (pm_test_level == level) {
-> +		printk(KERN_INFO "suspend debug: Waiting for 5 seconds.\n");
-> +		mdelay(5000);
-> +		return 1;
-> +	}
-> +#endif /* !CONFIG_PM_DEBUG */
-> +	return 0;
-> +}
-> +
->  #ifdef CONFIG_PM_TEST_SUSPEND
->  
->  /*
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+After the successful boot I tried loading the module manually using
+modprobe, which resulted in:
+input: HP WMI hotkeys as /class/input/input11
+iwlagn: Radio Frequency Kill Switch is On:
+Kill switch must be turned off for wireless networking to work.
+wlan0: No ProbeResp from current AP 00:14:c1:38:e5:15 - assume out of range
+iwlagn: Error sending REPLY_ADD_STA: enqueue_hcmd failed: -5
+mac80211-phy0: failed to remove key (0, 00:14:c1:38:e5:15) from hardware (-5)
+iwlagn: Error sending REPLY_ADD_STA: enqueue_hcmd failed: -5
+mac80211-phy0: failed to remove key (1, ff:ff:ff:ff:ff:ff) from hardware (-5)
+
+I also noticed that /sys/bus/platform/devices/hp-wmi/dock is missing.
+And I lost my wireless connection.
+
+Difference between loading hp-wmi from /etc/modules and manually could be
+that normally wlan is started _after_ /etc/modules is processed. So with
+the hang wlan was not yet active, while for the manual modprobe wlan was
+active.
+
+With 2.6.28 hp-wmi works perfectly.
+
+System is running x84_64, Debian Lenny.
+
+Cheers,
+FJP
