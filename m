@@ -1,58 +1,35 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: Sony backlight regression from 2.6.28 to 29-rc
-Date: Mon, 19 Jan 2009 21:58:09 +0900
-Message-ID: <20090119125808.GB21586@kamineko.org>
-References: <20090119081423.GA25297@gamma.logic.tuwien.ac.at>
+From: Arnaldo Carvalho de Melo <acme@redhat.com>
+Subject: Re: WARNING: at kernel/trace/ftrace.c:434 ftrace_bug+0xdb/0x2b1()
+	in 2.6.29-rc1-next-20090116
+Date: Sat, 17 Jan 2009 00:40:49 -0200
+Message-ID: <20090117024049.GI6562@ghostprotocols.net>
+References: <1232144843.6614.14.camel@localhost.localdomain> <alpine.DEB.1.10.0901161939320.9232@gandalf.stny.rr.com> <1232158716.6614.20.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:41281
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761226AbZASNEq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jan 2009 08:04:46 -0500
+Received: from mx2.redhat.com ([66.187.237.31]:58942 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751433AbZASNYS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Jan 2009 08:24:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20090119081423.GA25297@gamma.logic.tuwien.ac.at>
+In-Reply-To: <1232158716.6614.20.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-acpi@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Eric Paris <eparis@redhat.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jan 19, 2009 at 09:14:23AM +0100, Norbert Preining wrote:
-> Dear all,
+Em Fri, Jan 16, 2009 at 09:18:36PM -0500, Eric Paris escreveu:
+> On Fri, 2009-01-16 at 19:47 -0500, Steven Rostedt wrote:
+> > # mount -t debugfs none /sys/kernel/debug
+> > # cat /sys/kernel/debug/tracing/dyn_ftrace_total_info
 > 
-> there is a regression from 2.6.28 to 2.6.29-rc, namely that the
-> backlight cannot be controlled anymore.
-> 
-> Previously I was able to get a working backlight control with late
-> 2.6.28 kernels, not sure if I needed some patches posted by Mattia.
+> [root@unused ~]# cat /sys/kernel/debug/tracing/dyn_ftrace_total_info 
+> 0 0 0
 
-You probably required and still require
-  [sony-laptop] detect the ICH9 chipset as Type3
-and
-  [sony-laptop] call the extra enable function for SNC on Vaio Z
-at least.
+Rostedt, see?
 
-> Now, with 2.6.29-rc2 with and without these patches the backlight does
-> not work at all, no change.
-> 
-> INterestingly changing the "values" in the sys-files does work (via
-> /sys/class/backlight/acpi_video0/brightness), either per hand or using
-> xbacklight. but there is no effect on the actual brightness.
+/me now using /d/tracing/
 
-what were you using before? the acpi_video0 entry or the sony-laptop
-one?
-
-> And the sony_laptop sys entries have lost their brightness values.
-> 
-> Is there a way to restore this behaviour?
-> 
-> (Even better, get sony_laptop fixed completely?)
-> 
-> Hardware: Vaio VGN-Z11
-
-well, there as been no change to the sony-laptop driver from 2.6.28 to
-.29-rc2 except for moving it to drivers/platform/x86.
-
--- 
-mattia
-:wq!
+;-)
+ 
+- Arnaldo
