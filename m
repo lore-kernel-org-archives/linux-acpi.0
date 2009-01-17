@@ -1,41 +1,103 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH] ACPI: Fix crash on ASUS laptops
-Date: Sat, 17 Jan 2009 20:20:02 +0300
-Message-ID: <49721342.40305@suse.de>
-References: <alpine.LFD.2.00.0901171303040.3032@localhost.localdomain>
+From: Tamas Hegedus <hegedus@med.unc.edu>
+Subject: works better
+Date: Sat, 17 Jan 2009 12:00:11 -0500
+Message-ID: <49720E9B.1080408@med.unc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:53269 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1763100AbZAQRUD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2009 12:20:03 -0500
-In-Reply-To: <alpine.LFD.2.00.0901171303040.3032@localhost.localdomain>
+Received: from riordans.med.unc.edu ([152.19.83.63]:39435 "EHLO
+	riordans.med.unc.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338AbZAQRVr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2009 12:21:47 -0500
+Received: from [152.19.83.61] (violin.med.unc.edu [152.19.83.61])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by riordans.med.unc.edu (Postfix) with ESMTP id A9B896FCD8
+	for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2009 12:02:57 -0500 (EST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tero Roponen <tero.roponen@gmail.com>
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
+To: linux-acpi@vger.kernel.org
 
-Thanks, ACK
-Alex.
-Tero Roponen wrote:
-> This patch fixes the crash I experienced in 2.6.29-rc2.
-> Tested on ASUS M50vm.
-> 
-> Signed-off-by: Tero Roponen <tero.roponen@gmail.com>
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index a2b82c9..5c2f5d3 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -982,7 +982,7 @@ int __init acpi_ec_ecdt_probe(void)
->  		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
->  		if (!saved_ec)
->  			return -ENOMEM;
-> -		memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
-> +		memcpy(saved_ec, boot_ec, sizeof(*saved_ec));
->  	/* fall through */
->  	}
->  	/* This workaround is needed only on some broken machines,
+Hi,
 
+
+[    0.280017] ACPI: EC: Look up EC in DSDT
+[    0.305045] ACPI: BIOS _OSI(Linux) query ignored
+[    0.305049] ACPI: DMI System Vendor: Dell Inc.
+[    0.305052] ACPI: DMI Product Name: Precision WorkStation 370
+[    0.305054] ACPI: DMI Product Version:
+[    0.305057] ACPI: DMI Board Name: 0M3849
+[    0.305059] ACPI: DMI BIOS Vendor: Dell Inc.
+[    0.305061] ACPI: DMI BIOS Date: 07/07/2006
+[    0.305063] ACPI: Please send DMI info above to 
+linux-acpi@vger.kernel.org
+[    0.305066] ACPI: If "acpi_osi=Linux" works better, please notify 
+linux-acpi@vger.kernel.org
+
+*********************************
+AFTER ADDING ACPI_OSI=LINUX:
+
+
+[    0.000000] ACPI: RSDP 000FEBF0, 0014 (r0 DELL  )
+[    0.000000] ACPI: RSDT 000FCC29, 0040 (r1 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: FACP 000FCC69, 0074 (r1 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: DSDT FFFC8EAC, 2E37 (r1   DELL    dt_ex     1000 
+MSFT  100000D)
+[    0.000000] ACPI: FACS BFE8AC00, 0040
+[    0.000000] ACPI: SSDT FFFCBCE3, 00A7 (r1   DELL    st_ex     1000 
+MSFT  100000D)
+[    0.000000] ACPI: APIC 000FCCDD, 0092 (r1 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: BOOT 000FCD6F, 0028 (r1 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: ASF! 000FCD97, 0067 (r16 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: MCFG 000FCDFE, 003E (r1 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: HPET 000FCE3C, 0038 (r1 DELL    WS 370         7 
+ASL        61)
+[    0.000000] ACPI: PM-Timer IO Port: 0x808
+[    0.000000] ACPI: Local APIC address 0xfee00000
+[    0.000000] ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x03] lapic_id[0x06] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x04] lapic_id[0x02] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x05] lapic_id[0x04] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x06] lapic_id[0x07] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x07] lapic_id[0x03] disabled)
+[    0.000000] ACPI: LAPIC (acpi_id[0x08] lapic_id[0x05] disabled)
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0xff] high level lint[0x1])
+[    0.000000] ACPI: IOAPIC (id[0x08] address[0xfec00000] gsi_base[0])
+[    0.000000] IOAPIC[0]: apic_id 8, version 32, address 0xfec00000, GSI 
+0-23
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: IRQ0 used by override.
+[    0.000000] ACPI: IRQ2 used by override.
+[    0.000000] ACPI: IRQ9 used by override.
+[    0.000000] Enabling APIC mode:  Flat.  Using 1 I/O APICs
+[    0.000000] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.000000] Using ACPI (MADT) for SMP configuration information
+[    0.000000] Allocating PCI resources starting at c2000000 (gap: 
+c0000000:20000000)
+[    0.000000] PM: Registered nosave memory: 00000000000a0000 - 
+00000000000f0000
+[    0.000000] PM: Registered nosave memory: 00000000000f0000 - 
+0000000000100000
+[    0.000000] SMP: Allowing 8 CPUs, 6 hotplug CPUs
+[    0.000000] PERCPU: Allocating 37960 bytes of per cpu data
+[    0.000000] NR_CPUS: 8, nr_cpu_ids: 8
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on. 
+Total pages: 779916
+[    0.000000] Kernel command line: acpi_osi=Linux 
+root=/dev/mapper/violin-root ro quiet
+[    0.000000] ACPI: Added _OSI(Linux)
+
+-- 
+Tamas Hegedus, PhD          | phone: (1) 919-966 0329
+UNC - Biochem & Biophys     | fax:   (1) 919-966 5178
+6107 Thurston-Bowles Bldg   | mailto:hegedus@med.unc.edu
+Chapel Hill, NC, 27599-7248 | http://biohegedus.org
