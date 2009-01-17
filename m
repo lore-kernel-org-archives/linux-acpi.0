@@ -1,87 +1,78 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: WARNING: at kernel/trace/ftrace.c:434 ftrace_bug+0xdb/0x2b1()
- in 2.6.29-rc1-next-20090116
-Date: Fri, 16 Jan 2009 22:22:16 -0500 (EST)
-Message-ID: <alpine.DEB.1.10.0901162214330.9232@gandalf.stny.rr.com>
-References: <1232144843.6614.14.camel@localhost.localdomain>  <alpine.DEB.1.10.0901161939320.9232@gandalf.stny.rr.com> <1232159830.20005.0.camel@localhost.localdomain>
+From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: Re: [linux-pm] [RFC PATCH 2/3] PCI: parallel resume for pci
+	devices on bus 0
+Date: Sat, 17 Jan 2009 15:31:49 +0800
+Message-ID: <1232177509.3971.18.camel@yakui_zhao.sh.intel.com>
+References: <Pine.LNX.4.44L0.0901161005130.2417-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:34130 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752699AbZAQDWS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2009 22:22:18 -0500
-In-Reply-To: <1232159830.20005.0.camel@localhost.localdomain>
+Received: from mga11.intel.com ([192.55.52.93]:38052 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754760AbZAQHU2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Jan 2009 02:20:28 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0901161005130.2417-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Paris <eparis@redhat.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-
-On Fri, 16 Jan 2009, Eric Paris wrote:
-
-> On Fri, 2009-01-16 at 19:47 -0500, Steven Rostedt wrote:
+On Fri, 2009-01-16 at 23:10 +0800, Alan Stern wrote:
+> On Fri, 16 Jan 2009, Zhao Yakui wrote:
 > 
-> > And perhaps, if possible, could I get a copy of the vmlinux that was 
-> > built, and a CONFIG to go with it.
+> > Hi, Alan
+> >     We do a test on the laptop based on intel ICH9 chipset. In the test
+> > the UHCI HCD driver is not loaded in the boot phase. A low-speed USB
+> > mouse is plugged. In such case the USB mouse is not detected. After the
+> > boot is finished, the uhci hcd driver is loaded manually. Then USB mouse
+> > is loaded and can work well.
+> >     Is this different with that EHCI driver is resumed before UHCI
+> > driver?
 > 
-> So I didn't see it when I rebuilt without any of my patch stack, I'm
-> trying to build them back in to see if it was one of mine....
+> I don't understand your question.  Can you rephrase it more explicitly?
+> 
+> >     Do there exist the rediscovery and re-enumberation for the low-speed
+> > device if the EHCI driver resume is finished before the UHCI driver?
+> 
+> I still don't understand.  You said your test involved booting without
+> uhci-hcd, then plugging in a mouse, then loading uhci-hcd manually.  
+> The test did not involve suspending or resuming.  So why ask a question
+> about EHCI driver resume?  The question has nothing to do with the
+> test.
+The low-speed USB device is ignored by EHCI HCD, And when the uhci
+driver is loaded after EHCI driver, the low-speed USB device can be
+handler correctly.
+So we hope to resume EHCI before UHCI and see whether the exists the
+rediscovery and re-enumeration.
+In fact there exists quite a lot of delay in UHCI/EHCI driver. We want
+to use the parallel resume to reduce the resume time.
 
-I'm looking at the dump of the vmlinux, and here's something that is 
-interesting:
+I also do another test, in which the EHCI hcd driver is resumed before
+UHCI. This is based on Intel ICH9 chipset.
+     >1a.0/1a.1/1a.2 is UHCI
+     >1a.7 is EHCI 
+     EHCI will be resumed before the corresponding UHCI.
 
-  0x815d45e0 19132281 ffffffff f9132281 ffffffff ..".......".....
-  0x815d45f0 51152281 ffffffff 7e152281 ffffffff Q.".....~.".....
-  0x815d4600 b0152281 ffffffff e2152281 ffffffff ..".......".....
-  0x815d4610 0b162281 ffffffff 42162281 ffffffff ..".....B.".....
-  0x815d4620 d8162281 ffffffff 33172281 ffffffff ..".....3.".....
-  0x815d4630 26182281 ffffffff 21192281 ffffffff &.".....!.".....
-  0x815d4640 091d2281 ffffffff 3f1d2281 ffffffff ..".....?.".....
-  0x815d4650 94232281 ffffffff 1d242281 ffffffff .#"......$".....
-  0x815d4660 c1242281 ffffffff 0d252281 ffffffff .$"......%".....
-  0x815d4670 56252281 ffffffff 1d262281 ffffffff V%"......&".....
-  0x815d4680 9f262281 ffffffff ef272281 ffffffff .&"......'".....
-  0x815d4690 06282281 ffffffff 2a282281 ffffffff .(".....*(".....
-  0x815d46a0 d82c2281 ffffffff fd2c2281 ffffffff .,"......,".....
-  0x815d46b0 342d2281 ffffffff 942d2281 ffffffff 4-"......-".....
-  0x815d46c0 f32f2281 ffffffff 5c302281 ffffffff ./".....\0".....
-  0x815d46d0 12312281 ffffffff 9f312281 ffffffff .1"......1".....
-  0x815d46e0 3d322281 ffffffff 62322281 ffffffff =2".....b2".....
-  0x815d46f0 87322281 ffffffff ac322281 ffffffff .2"......2".....
-  0x815d4700 de322281 ffffffff b6332281 ffffffff .2"......3".....
-  0x815d4710 df342281 ffffffff 51152281 ffffffff .4".....Q.".....
-  0x815d4720 7e152281 ffffffff b0152281 ffffffff ~.".......".....
-  0x815d4730 e2152281 ffffffff 0b162281 ffffffff ..".......".....
-  0x815d4740 42162281 ffffffff d8162281 ffffffff B.".......".....
-  0x815d4750 33172281 ffffffff 26182281 ffffffff 3.".....&.".....
-  0x815d4760 21192281 ffffffff 091d2281 ffffffff !.".......".....
-  0x815d4770 3f1d2281 ffffffff 94232281 ffffffff ?."......#".....
-  0x815d4780 1d242281 ffffffff c1242281 ffffffff .$"......$".....
-  0x815d4790 0d252281 ffffffff 56252281 ffffffff .%".....V%".....
-  0x815d47a0 1d262281 ffffffff 9f262281 ffffffff .&"......&".....
-  0x815d47b0 ef272281 ffffffff 06282281 ffffffff .'"......(".....
-  0x815d47c0 2a282281 ffffffff d82c2281 ffffffff *("......,".....
-  0x815d47d0 fd2c2281 ffffffff 342d2281 ffffffff .,".....4-".....
-  0x815d47e0 942d2281 ffffffff f32f2281 ffffffff .-"....../".....
-  0x815d47f0 5c302281 ffffffff 12312281 ffffffff \0"......1".....
-  0x815d4800 9f312281 ffffffff 3d322281 ffffffff .1".....=2".....
-  0x815d4810 62322281 ffffffff 87322281 ffffffff b2"......2".....
-  0x815d4820 ac322281 ffffffff de322281 ffffffff .2"......2".....
-  0x815d4830 b6332281 ffffffff df342281 ffffffff .3"......4".....
-  0x815d4840 9d352281 ffffffff c1352281 ffffffff .5"......5".....
+    In my test there is no rediscovery and re-enumeration about
+low-speed USB device. And after it is resumed, the two low-speed device
+can still work well.
+    
+So my question is whether the EHCI can be resumed before UHCI. If we
+can't, we want to do partial parallel. This means that the UHCI devices
+will be resumed parallelly . After the UHCI resume is finished, the ECHI
+will be resumed.  But we don't know whether the resume order of root HUB
+should be considered.
+If we can, it will be very simple.
 
-
-The entries from 0x815d45f0 to 0x815d4710 are identical to the entries 
-from 0x815d4711 to 0x815d4831. Due to the history of the code, the entries 
-are added first into a link list, and then the addresses are modifed in 
-reverse order. Since b6332281 ffffffff was last (executed first) it was 
-the first one to see the change.
-
-I'm betting that you had an old version of the thermal.o that had the 
-mcount_loc already in, and somehow had the recordmcount.o executed again 
-on it, creating a duplicate copy. This would cause such an error. By 
-rebuilding the whole tree, you fixed things up.
-
--- Steve
+Thanks for your comments and advice.
+Best regards
+Yakui
+> 
+> Alan Stern
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
