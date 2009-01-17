@@ -1,37 +1,27 @@
-From: Tero Roponen <tero.roponen@gmail.com>
-Subject: [PATCH] ACPI: Fix crash on ASUS laptops
-Date: Sat, 17 Jan 2009 13:06:02 +0200 (EET)
-Message-ID: <alpine.LFD.2.00.0901171303040.3032@localhost.localdomain>
+From: Jason Moore Corporations <vankleef@sympatico.ca>
+Subject: Loan  Application!!!
+Date: Sat, 17 Jan 2009 8:16:52 -0500
+Message-ID: <20090117131652.GCJU1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+Reply-To: mr_jasonmiller_loanoffer.co81@yahoo.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:50409 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755497AbZAQLFy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2009 06:05:54 -0500
-Received: by ey-out-2122.google.com with SMTP id 22so373480eye.37
-        for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2009 03:05:52 -0800 (PST)
+Received: from simmts7-qfe0.srvr.bell.ca ([206.47.199.165]:39248 "EHLO
+	simmts7-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756293AbZAQNQy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Jan 2009 08:16:54 -0500
+Received: from simip9-ac.srvr.bell.ca ([206.47.199.87])
+          by simmts7-srv.bellnexxia.net
+          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
+          id <20090117131652.GCJU1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+          for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2009 08:16:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: astarikovskiy@suse.de, len.brown@intel.com
+To: info@loanoffer.co.uk
 
+We give loan at 0.3%,Any interested person, Contact us now Via mr_jasonmiller_loanoffer.co81@yahoo.com with the following details: Full Names:Address,Amount Required,Duration Of Loan.
+Regards,
+Jason Miller Corporation
 
-This patch fixes the crash I experienced in 2.6.29-rc2.
-Tested on ASUS M50vm.
-
-Signed-off-by: Tero Roponen <tero.roponen@gmail.com>
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a2b82c9..5c2f5d3 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -982,7 +982,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
- 		if (!saved_ec)
- 			return -ENOMEM;
--		memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
-+		memcpy(saved_ec, boot_ec, sizeof(*saved_ec));
- 	/* fall through */
- 	}
- 	/* This workaround is needed only on some broken machines,
