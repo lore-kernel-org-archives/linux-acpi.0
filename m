@@ -1,26 +1,47 @@
-From: Stephen Gildea <stepheng+linux@gildea.com>
-Subject: Re: [PATCH RFT] fujitsu-laptop: Use RFKILL support bitmask from firmware
-Date: Sun, 18 Jan 2009 02:29:58 -0500
-Message-ID: <6054.1232263798@ma.gildea.net>
-References: <20090118015303.DF36D10077@gold.linx.net>
+From: Peter Klotz <peter.klotz@aon.at>
+Subject: Re: ACPI related kernel panic when booting 2.6.29-rc2
+Date: Sun, 18 Jan 2009 09:57:49 +0100
+Message-ID: <4972EF0D.7050109@aon.at>
+References: <497243D5.8000708@aon.at> <497260A0.6030401@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phobia.gildea.net ([63.193.242.231]:2622 "EHLO mail.gildea.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755458AbZARHbO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 Jan 2009 02:31:14 -0500
-Received: from owl.ma.gildea.net (c-24-61-40-140.hsd1.ma.comcast.net [24.61.40.140])
-	by mail.gildea.net (8.12.11/8.12.11) with ESMTP id n0I7VAP2005943
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2009 23:31:13 -0800 (PST)
-	(envelope-from stepheng+linux@gildea.com)
-In-Reply-To: Message from tony@linx.net of 18 Jan 2009 01:53:03 GMT
-    <20090118015303.DF36D10077@gold.linx.net>
+Received: from WARSL404PIP1.highway.telekom.at ([195.3.96.112]:12428 "EHLO
+	email.aon.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752699AbZARI5x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Jan 2009 03:57:53 -0500
+Received: from 212-183-96-37.adsl.highway.telekom.at (HELO [192.168.0.100]) ([212.183.96.37])
+          (envelope-sender <peter.klotz@aon.at>)
+          by smarthub92.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-acpi@vger.kernel.org>; 18 Jan 2009 08:57:50 -0000
+In-Reply-To: <497260A0.6030401@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Vroon <tony@linx.net>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-The /sys/devices/platform/fujitsu-laptop/{dock,radios,lid} files
-still work on my P8010.  I applied this patch to 2.6.29-rc2.
+Alexey Starikovskiy wrote:
+> please use the patch from Tero Roponen.
+> 
+> This patch fixes the crash I experienced in 2.6.29-rc2.
+> Tested on ASUS M50vm.
+> 
+> Signed-off-by: Tero Roponen <tero.roponen@gmail.com>
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index a2b82c9..5c2f5d3 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -982,7 +982,7 @@ int __init acpi_ec_ecdt_probe(void)
+>         saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+>         if (!saved_ec)
+>             return -ENOMEM;
+> -        memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
+> +        memcpy(saved_ec, boot_ec, sizeof(*saved_ec));
+>     /* fall through */
+>     }
+>     /* This workaround is needed only on some broken machines,
 
-Tested-by: Stephen Gildea <stepheng+linux@gildea.com>
+Thanks a lot, this patch fixed the problem on my Asus B50A.
+
+Regards, Peter.
