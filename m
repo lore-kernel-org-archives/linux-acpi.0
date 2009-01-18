@@ -1,57 +1,59 @@
-From: Frank Rehberger <Frank.Rehberger@web.de>
-Subject: Medion Akoya 1210: BIOS _OSI(Linux) query ignored
-Date: Sat, 17 Jan 2009 23:53:13 +0100
-Message-ID: <1232232793.6996.3.camel@cereza>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: Fix crash on ASUS laptops
+Date: Sat, 17 Jan 2009 20:17:47 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901172017390.20606@localhost.localdomain>
+References: <alpine.LFD.2.00.0901171303040.3032@localhost.localdomain>
+ <49721342.40305@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate02.web.de ([217.72.192.227]:53885 "EHLO
-	fmmailgate02.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755339AbZAQWxQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2009 17:53:16 -0500
-Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
-	by fmmailgate02.web.de (Postfix) with ESMTP id D5FEBF8FEC08
-	for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2009 23:53:14 +0100 (CET)
-Received: from [217.83.79.251] (helo=[192.168.1.101])
-	by smtp06.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277)
-	id 1LOK2U-00051d-00
-	for linux-acpi@vger.kernel.org; Sat, 17 Jan 2009 23:53:14 +0100
+Received: from vms173005pub.verizon.net ([206.46.173.5]:55621 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755323AbZARBSI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2009 20:18:08 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KDN0050M7LQ5JQ5@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 17 Jan 2009 19:17:55 -0600 (CST)
+In-reply-to: <49721342.40305@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Tero Roponen <tero.roponen@gmail.com>, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-Hi, 
+applied.
 
-the "Medion Akoya 1210" is a re-branded MSI-Wind U100, it seems the ACPI
-is not supported correctly. I get the following message
-in /var/log/messages.
+thanks,
+--
+Len Brown, Intel Open Source Technology Center
 
+On Sat, 17 Jan 2009, Alexey Starikovskiy wrote:
 
-Jan 14 14:32:07 cereza kernel: [    0.791904] ACPI: BIOS _OSI(Linux)
-query ignored
-Jan 14 14:32:07 cereza kernel: [    0.791911] ACPI: DMI System Vendor:
-MEDION
-Jan 14 14:32:07 cereza kernel: [    0.791915] ACPI: DMI Product Name:
-E1210
-Jan 14 14:32:07 cereza kernel: [    0.791919] ACPI: DMI Product Version:
-Ver.001
-Jan 14 14:32:07 cereza kernel: [    0.791923] ACPI: DMI Board Name:
-E1210
-Jan 14 14:32:07 cereza kernel: [    0.791928] ACPI: DMI BIOS Vendor:
-American Me
-gatrends Inc.
-Jan 14 14:32:07 cereza kernel: [    0.791932] ACPI: DMI BIOS Date:
-06/26/2008
-Jan 14 14:32:07 cereza kernel: [    0.791936] ACPI: Please send DMI info
-above to linux-acpi@vger.kernel.org
-Jan 14 14:32:07 cereza kernel: [    0.791942] ACPI: If "acpi_osi=Linux"
-works better, please notify linux-acpi@vger.kernel.org
-Jan 14 14:32:07 cereza kernel: [    0.797629] ACPI: Interpreter enabled
-Jan 14 14:32:07 cereza kernel: [    0.797635] ACPI: (supports S0 S1 S3
-S4 S5)
-Jan 14 14:32:07 cereza kernel: [    0.797676] ACPI: Using IOAPIC for
-interrupt routing
-
-
+> Thanks, ACK
+> Alex.
+> Tero Roponen wrote:
+> > This patch fixes the crash I experienced in 2.6.29-rc2.
+> > Tested on ASUS M50vm.
+> > 
+> > Signed-off-by: Tero Roponen <tero.roponen@gmail.com>
+> > 
+> > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> > index a2b82c9..5c2f5d3 100644
+> > --- a/drivers/acpi/ec.c
+> > +++ b/drivers/acpi/ec.c
+> > @@ -982,7 +982,7 @@ int __init acpi_ec_ecdt_probe(void)
+> >  		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+> >  		if (!saved_ec)
+> >  			return -ENOMEM;
+> > -		memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
+> > +		memcpy(saved_ec, boot_ec, sizeof(*saved_ec));
+> >  	/* fall through */
+> >  	}
+> >  	/* This workaround is needed only on some broken machines,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
