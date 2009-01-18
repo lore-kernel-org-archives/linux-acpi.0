@@ -1,41 +1,43 @@
-From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-Subject: Re: 2.6.29-rc2 regression: hibernation hang on eeepc-701 (method
-	"platform" only)
-Date: Sun, 18 Jan 2009 19:19:48 +0000
-Message-ID: <9b2b86520901181119kfdc15bev7f6d859172355055@mail.gmail.com>
-References: <9b2b86520901180345j434eacbdn7386958991ee50b@mail.gmail.com>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH RFT] fujitsu-laptop: Use RFKILL support bitmask from firmware
+Date: Mon, 19 Jan 2009 09:40:35 +1030 (CST)
+Message-ID: <200901182310.n0INAZxp017967@mercury.physics.adelaide.edu.au>
+References: <20090118015303.DF36D10077@gold.linx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9b2b86520901180345j434eacbdn7386958991ee50b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:42386 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752834AbZARXLR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Jan 2009 18:11:17 -0500
+In-Reply-To: <20090118015303.DF36D10077@gold.linx.net> from "Tony Vroon" at Jan 18, 2009 01:53:03 AM
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tony Vroon <tony@linx.net>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
-On 1/18/09, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org> wrote:
-> Hibernation hangs just after writing the image.  With s2disk I can see
-> this from the console messages.  The same hang happens with kernel
-> swsusp ('echo disk | sudo tee /sys/power/state'), and I can see that
-> the image has been written from the HDD led.
->
-> In either case, I can still hard-power-off and resume from hibernation.
->
-> It doesn't hang if I use the shutdown method (either 'echo shutdown |
-> sudo tee /sys/power/disk' or  's2disk -P "shutdown method=shutdown"').
+Hi Tony
 
-As a wild guess I tried "acpi_sleep=s4_nonvs", but it didn't help.
+> Up until now, we polled the rfkill status for every incoming FUJ02E3 ACPI event. 
+> It turns out that the firmware has a bitmask which indicates what rfkill-related 
+> state it can report.
+> The rfkill_supported bitmask is now used to avoid polling for rfkill at all in 
+> the notification handler if there is no support. Also, it is used in the platform 
+> device callbacks. As before we register all callbacks and report "unknown" if the 
+> firmware does not give us status updates for that particular bit.
+> 
+> This was fed through checkpatch.pl and tested on the S6420 platform.
+> Jonathan, your platform is of particular importance as you are the only tester 
+> on a platform with no S000 function in the DSDT. Please confirm you still get a 
+> unknown status in the platform files. With debugging on full, you should see the 
+> 0x1000 0x4 0x0 0x0 call disappear from your trace entirely.
 
-In fact it didn't seem to work.  The kernel log says that NVS was
-still saved and restored.
+I'll check this as soon as I can.  I'm at Linux.conf.au this week though so
+I'm not sure I'll be able to.  We'll see.
 
-$ dmesg | grep -i nvs
-[    0.000000]  BIOS-e820: 000000001f790000 - 000000001f7d0000 (ACPI NVS)
-[    0.000000] Kernel command line: root=/dev/sda2 ro resume=/dev/sda2
-resume_offset=144480 quiet acpi_sleep=s4_nonvs
-[   91.105449] PM: Saving platform NVS memory
-[   91.106707] PM: Restoring platform NVS memory
+What kernel is the patch against?
 
-Thanks
-Alan
+Regards
+  jonathan
