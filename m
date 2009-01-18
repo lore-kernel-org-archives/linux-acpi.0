@@ -1,33 +1,42 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: PCI, ACPI, IRQ, IOAPIC: reroute PCI interrupt to legacy boot interrupt equivalent
-Date: Mon, 12 Jan 2009 12:45:16 -0700
-Message-ID: <200901121245.17479.bjorn.helgaas@hp.com>
-References: <alpine.LFD.2.00.0901091743310.20020@localhost.localdomain> <200901121151.53195.bjorn.helgaas@hp.com> <1231788349.4094.21.camel@perihelion.bos.jonmasters.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH] asus-laptop: update Kconfig for input layer
+Date: Sun, 18 Jan 2009 19:01:54 +0100
+Message-ID: <1232301715-20292-6-git-send-email-corentincj@iksaif.net>
+References: <1232301715-20292-1-git-send-email-corentincj@iksaif.net>
+ <1232301715-20292-2-git-send-email-corentincj@iksaif.net>
+ <1232301715-20292-3-git-send-email-corentincj@iksaif.net>
+ <1232301715-20292-4-git-send-email-corentincj@iksaif.net>
+ <1232301715-20292-5-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:4386 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756595AbZALTq0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2009 14:46:26 -0500
-In-Reply-To: <1231788349.4094.21.camel@perihelion.bos.jonmasters.org>
-Content-Disposition: inline
+Received: from iksaif.net ([88.191.73.63]:58972 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758024AbZARSRN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Jan 2009 13:17:13 -0500
+In-Reply-To: <1232301715-20292-5-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Stefan Assmann <sassmann@suse.de>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Olaf Dabrunz <od@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Sven Dietrich <sdietrich@novell.com>, "Eric W. Biederman" <ebiederm@xmission.com>, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-On Monday 12 January 2009 12:25:49 pm Jon Masters wrote:
-> On Mon, 2009-01-12 at 11:51 -0700, Bjorn Helgaas wrote:
-> > (I added Eric, Maciej, and Jon because they participated in
-> > previous discussion here: http://lkml.org/lkml/2008/6/2/269)
-> 
-> Thanks. You know what I'd really like even more than being on the CC?
-> I'd *love* someone to post a link to documentation on how this actually
-> is supposed to work.
+Update Kconfig, now asus-laptop use the input layer.
 
-I don't work for Intel, so I don't have any internal knowledge.  All
-I know is what I read in section 2.15 of the 6700PXH datasheet here:
-  http://www.intel.com/Assets/PDF/datasheet/302628.pdf
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 1a266d4..9436311 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -42,6 +42,7 @@ config ASUS_LAPTOP
+ 	depends on LEDS_CLASS
+ 	depends on NEW_LEDS
+ 	depends on BACKLIGHT_CLASS_DEVICE
++	depends on INPUT
+ 	---help---
+ 	  This is the new Linux driver for Asus laptops. It may also support some
+ 	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
+-- 
+1.6.0.6
+
