@@ -1,75 +1,68 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH] eeepc-laptop: split eeepc_backlight_exit()
-Date: Sun, 18 Jan 2009 19:01:50 +0100
-Message-ID: <1232301715-20292-2-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH] asus_acpi: Add R1F support
+Date: Sun, 18 Jan 2009 19:01:51 +0100
+Message-ID: <1232301715-20292-3-git-send-email-corentincj@iksaif.net>
 References: <1232301715-20292-1-git-send-email-corentincj@iksaif.net>
+ <1232301715-20292-2-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:58973 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:58971 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757981AbZARSRN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1757934AbZARSRN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 18 Jan 2009 13:17:13 -0500
-In-Reply-To: <1232301715-20292-1-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1232301715-20292-2-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-eeepc_backlight_exit() was doing rfkill and input stuff, which
-is a nonsense. This patch add two specific exit functions, one
-for input and one for rfkill.
+Add R1F support
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   18 +++++++++++++++---
- 1 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/platform/x86/asus_acpi.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 9d93cb9..66d611b 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -737,13 +737,21 @@ static void eeepc_backlight_exit(void)
- {
- 	if (eeepc_backlight_device)
- 		backlight_device_unregister(eeepc_backlight_device);
--	if (ehotk->inputdev)
--		input_unregister_device(ehotk->inputdev);
-+	eeepc_backlight_device = NULL;
-+}
-+
-+static void eeepc_rfkill_exit(void)
-+{
- 	if (ehotk->eeepc_wlan_rfkill)
- 		rfkill_unregister(ehotk->eeepc_wlan_rfkill);
- 	if (ehotk->eeepc_bluetooth_rfkill)
- 		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
--	eeepc_backlight_device = NULL;
-+}
-+
-+static void eeepc_input_exit(void)
-+{
-+	if (ehotk->inputdev)
-+		input_unregister_device(ehotk->inputdev);
- }
+diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
+index 1e74988..d63f26e 100644
+--- a/drivers/platform/x86/asus_acpi.c
++++ b/drivers/platform/x86/asus_acpi.c
+@@ -143,6 +143,7 @@ struct asus_hotk {
+ 							 S1300N, S5200N*/
+ 		A4S,            /* Z81sp */
+ 		F3Sa,		/* (Centrino) */
++		R1F,
+ 		END_MODEL
+ 	} model;		/* Models currently supported */
+ 	u16 event_count[128];	/* Count for each event TODO make this better */
+@@ -420,7 +421,18 @@ static struct model_data model_conf[END_MODEL] = {
+ 		.display_get	= "\\ADVG",
+ 		.display_set	= "SDSP",
+ 	},
+-
++	{
++		.name = "R1F",
++		.mt_bt_switch = "BLED",
++		.mt_mled = "MLED",
++		.mt_wled = "WLED",
++		.mt_lcd_switch = "\\Q10",
++		.lcd_status = "\\GP06",
++		.brightness_set = "SPLV",
++		.brightness_get = "GPLV",
++		.display_set = "SDSP",
++		.display_get = "\\INFB"
++	}
+ };
  
- static void eeepc_hwmon_exit(void)
-@@ -762,6 +770,8 @@ static void eeepc_hwmon_exit(void)
- static void __exit eeepc_laptop_exit(void)
- {
- 	eeepc_backlight_exit();
-+	eeepc_rfkill_exit();
-+	eeepc_input_exit();
- 	eeepc_hwmon_exit();
- 	acpi_bus_unregister_driver(&eeepc_hotk_driver);
- 	sysfs_remove_group(&platform_device->dev.kobj,
-@@ -865,6 +875,8 @@ fail_platform_driver:
- fail_hwmon:
- 	eeepc_backlight_exit();
- fail_backlight:
-+	eeepc_input_exit();
-+	eeepc_rfkill_exit();
- 	return result;
- }
- 
+ /* procdir we use */
+@@ -1165,6 +1177,8 @@ static int asus_model_match(char *model)
+ 		return W3V;
+ 	else if (strncmp(model, "W5A", 3) == 0)
+ 		return W5A;
++	else if (strncmp(model, "R1F", 3) == 0)
++		return R1F;
+ 	else if (strncmp(model, "A4S", 3) == 0)
+ 		return A4S;
+ 	else if (strncmp(model, "F3Sa", 4) == 0)
 -- 
 1.6.0.6
 
