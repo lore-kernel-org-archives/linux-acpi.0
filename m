@@ -1,72 +1,99 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Medion Akoya 1210: BIOS _OSI(Linux) query ignored
-Date: Sat, 17 Jan 2009 20:22:45 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0901172021570.20606@localhost.localdomain>
-References: <1232232793.6996.3.camel@cereza>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Tony Vroon <tony@linx.net>
+Subject: [PATCH RFT] fujitsu-laptop: Use RFKILL support bitmask from firmware
+Date: Sun, 18 Jan 2009 01:53:03 +0000 (GMT)
+Message-ID: <20090118015303.DF36D10077@gold.linx.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms042pub.verizon.net ([206.46.252.42]:65118 "EHLO
-	vms042pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753906AbZARBWw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2009 20:22:52 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms042.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KDN001417TXF324@vms042.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 17 Jan 2009 19:22:51 -0600 (CST)
-In-reply-to: <1232232793.6996.3.camel@cereza>
+Received: from gold.linx.net ([195.66.232.40]:35659 "EHLO gold.linx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755330AbZARBxG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Jan 2009 20:53:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frank Rehberger <Frank.Rehberger@web.de>
-Cc: linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
-you can ignore these messages.
-they are deleted from the latest kernel.
+Up until now, we polled the rfkill status for every incoming FUJ02E3 ACPI event. 
+It turns out that the firmware has a bitmask which indicates what rfkill-related 
+state it can report.
+The rfkill_supported bitmask is now used to avoid polling for rfkill at all in 
+the notification handler if there is no support. Also, it is used in the platform 
+device callbacks. As before we register all callbacks and report "unknown" if the 
+firmware does not give us status updates for that particular bit.
 
-(unless "acpi_osi=Linux" actually makes some functional improvement
- on this system)
+This was fed through checkpatch.pl and tested on the S6420 platform.
+Jonathan, your platform is of particular importance as you are the only tester 
+on a platform with no S000 function in the DSDT. Please confirm you still get a 
+unknown status in the platform files. With debugging on full, you should see the 
+0x1000 0x4 0x0 0x0 call disappear from your trace entirely.
 
-thanks,
---
-Len Brown, Intel Open Source Technology Center
+Signed-off-by: Tony Vroon <tony@linx.net>
 
-On Sat, 17 Jan 2009, Frank Rehberger wrote:
-
-> Hi, 
-> 
-> the "Medion Akoya 1210" is a re-branded MSI-Wind U100, it seems the ACPI
-> is not supported correctly. I get the following message
-> in /var/log/messages.
-> 
-> 
-> Jan 14 14:32:07 cereza kernel: [    0.791904] ACPI: BIOS _OSI(Linux)
-> query ignored
-> Jan 14 14:32:07 cereza kernel: [    0.791911] ACPI: DMI System Vendor:
-> MEDION
-> Jan 14 14:32:07 cereza kernel: [    0.791915] ACPI: DMI Product Name:
-> E1210
-> Jan 14 14:32:07 cereza kernel: [    0.791919] ACPI: DMI Product Version:
-> Ver.001
-> Jan 14 14:32:07 cereza kernel: [    0.791923] ACPI: DMI Board Name:
-> E1210
-> Jan 14 14:32:07 cereza kernel: [    0.791928] ACPI: DMI BIOS Vendor:
-> American Me
-> gatrends Inc.
-> Jan 14 14:32:07 cereza kernel: [    0.791932] ACPI: DMI BIOS Date:
-> 06/26/2008
-> Jan 14 14:32:07 cereza kernel: [    0.791936] ACPI: Please send DMI info
-> above to linux-acpi@vger.kernel.org
-> Jan 14 14:32:07 cereza kernel: [    0.791942] ACPI: If "acpi_osi=Linux"
-> works better, please notify linux-acpi@vger.kernel.org
-> Jan 14 14:32:07 cereza kernel: [    0.797629] ACPI: Interpreter enabled
-> Jan 14 14:32:07 cereza kernel: [    0.797635] ACPI: (supports S0 S1 S3
-> S4 S5)
-> Jan 14 14:32:07 cereza kernel: [    0.797676] ACPI: Using IOAPIC for
-> interrupt routing
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--- linux-2.6/drivers/platform/x86/fujitsu-laptop.c.orig	2009-01-18 01:05:55.000000000 +0000
++++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c	2009-01-18 01:21:27.000000000 +0000
+@@ -166,6 +166,7 @@
+ 	struct platform_device *pf_device;
+ 	struct kfifo *fifo;
+ 	spinlock_t fifo_lock;
++	int rfkill_supported;
+ 	int rfkill_state;
+ 	int logolamp_registered;
+ 	int kblamps_registered;
+@@ -526,7 +527,7 @@
+ show_lid_state(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
++	if (!(fujitsu_hotkey->rfkill_supported & 0x100))
+ 		return sprintf(buf, "unknown\n");
+ 	if (fujitsu_hotkey->rfkill_state & 0x100)
+ 		return sprintf(buf, "open\n");
+@@ -538,7 +539,7 @@
+ show_dock_state(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
++	if (!(fujitsu_hotkey->rfkill_supported & 0x200))
+ 		return sprintf(buf, "unknown\n");
+ 	if (fujitsu_hotkey->rfkill_state & 0x200)
+ 		return sprintf(buf, "docked\n");
+@@ -550,7 +551,7 @@
+ show_radios_state(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
++	if (!(fujitsu_hotkey->rfkill_supported & 0x20))
+ 		return sprintf(buf, "unknown\n");
+ 	if (fujitsu_hotkey->rfkill_state & 0x20)
+ 		return sprintf(buf, "on\n");
+@@ -928,8 +929,17 @@
+ 		; /* No action, result is discarded */
+ 	vdbg_printk(FUJLAPTOP_DBG_INFO, "Discarded %i ringbuffer entries\n", i);
+ 
+-	fujitsu_hotkey->rfkill_state =
+-		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
++	fujitsu_hotkey->rfkill_supported =
++		call_fext_func(FUNC_RFKILL, 0x0, 0x0, 0x0);
++
++	/* Make sure our bitmask of supported functions is cleared if the
++	   RFKILL function block is not implemented, like on the S7020. */
++	if (fujitsu_hotkey->rfkill_supported == UNSUPPORTED_CMD)
++		fujitsu_hotkey->rfkill_supported = 0;
++
++	if (fujitsu_hotkey->rfkill_supported)
++		fujitsu_hotkey->rfkill_state =
++			call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+ 
+ 	/* Suspect this is a keymap of the application panel, print it */
+ 	printk(KERN_INFO "fujitsu-laptop: BTNI: [0x%x]\n",
+@@ -1005,8 +1015,9 @@
+ 
+ 	input = fujitsu_hotkey->input;
+ 
+-	fujitsu_hotkey->rfkill_state =
+-		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
++	if (fujitsu_hotkey->rfkill_supported)
++		fujitsu_hotkey->rfkill_state =
++			call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+ 
+ 	switch (event) {
+ 	case ACPI_FUJITSU_NOTIFY_CODE1:
