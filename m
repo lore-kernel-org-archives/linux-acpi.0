@@ -1,59 +1,147 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: Sony backlight regression from 2.6.28 to 29-rc
-Date: Mon, 19 Jan 2009 15:19:41 +0100
-Message-ID: <20090119141941.GA28372@gamma.logic.tuwien.ac.at>
-References: <20090119081423.GA25297@gamma.logic.tuwien.ac.at> <20090119125808.GB21586@kamineko.org>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: [2.6.29-rc2] ALi USB OHCI enables interrupts during power down in suspend.
+Date: Mon, 19 Jan 2009 21:37:23 +0300
+Message-ID: <200901192137.25988.arvidjaar@mail.ru>
+References: <200901181642.00886.arvidjaar@mail.ru> <200901190722.10762.arvidjaar@mail.ru> <200901191051.13211.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:43069 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759303AbZASOTo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jan 2009 09:19:44 -0500
-Content-Disposition: inline
-In-Reply-To: <20090119125808.GB21586@kamineko.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart2089579.RIkFXiB8SQ";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753262AbZASSih@vger.kernel.org>
+In-Reply-To: <200901191051.13211.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
 
-On Mo, 19 Jan 2009, Mattia Dongili wrote:
-> You probably required and still require
->   [sony-laptop] detect the ICH9 chipset as Type3
-> and
->   [sony-laptop] call the extra enable function for SNC on Vaio Z
-> at least.
+--nextPart2089579.RIkFXiB8SQ
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I have that one, I have all from the series
-	[PATCH 0/7] sony-laptop for acpi-test
-plus the one from Ishikawa-san fixing the spic_types[4] ->
-spic_types[2].
+On 19 =D1=8F=D0=BD=D0=B2=D0=B0=D1=80=D1=8F 2009 12:51:12 Rafael J. Wysocki =
+wrote:
+> On Monday 19 January 2009, Andrey Borzenkov wrote:
+> > On 19 =D1=8F=D0=BD=D0=B2=D0=B0=D1=80=D1=8F 2009 03:17:49 Rafael J. Wyso=
+cki wrote:
+> > > On Sunday 18 January 2009, Andrey Borzenkov wrote:
+> > > > On 18 =D1=8F=D0=BD=D0=B2=D0=B0=D1=80=D1=8F 2009 23:21:24 Rafael J. =
+Wysocki wrote:
+> > > > > > > As far as I can tell, timekeeping_resume is called via
+> > > > > > > class ->resume method; and according to comments in
+> > > > > > > sysdev_resume() and device_power_up(), they are called
+> > > > > > > with interrupts disabled.
+> > > > > > >
+> > > > > > > Looking at suspend_enter, irqs *are* disabled at this
+> > > > > > > point.
+> > > > > > >
+> > > > > > > So it actually looks like something (may be some driver)
+> > > > > > > unconditionally enabled irqs in resume path.
+> > > > > > >
+> > > > > > > I believe the patch should be hold back until this is
+> > > > > > > clarified.
+> > > > > >
+> > > > > > That's a nice theory!
+> > > > >
+> > > > > That would be a bad bug.
+[...]
+>
+> However, I suspect the problem is somewhere else.
+>
 
-Still no success.
+Right.=20
 
-> what were you using before? the acpi_video0 entry or the sony-laptop
-> one?
+> Can you apply the patch I sent earlier in this thread
+> (http://lkml.org/lkml/2009/1/18/183) and retest?
+>
 
-Both, and both were working.
+I did and it was silent. But with patch below I get:
 
-> well, there as been no change to the sony-laptop driver from 2.6.28 to
-> .29-rc2 except for moving it to drivers/platform/x86.
+[  152.526550] Freezing user space processes ... (elapsed 0.01 seconds)=20
+done.
+[  152.544162] Freezing remaining freezable tasks ... (elapsed 0.00 seconds=
+)=20
+done.
+[  152.544854] Suspending console(s) (use no_console_suspend to debug)
+[  152.556234] sd 0:0:0:0: [sda] Synchronizing SCSI cache
+[  152.907091] sd 0:0:0:0: [sda] Stopping disk
+[  153.579824] pci 0000:01:00.0: power state changed by ACPI to D3
+[  153.594449] e100 0000:00:0a.0: PME# enabled
+[  153.594688] e100 0000:00:0a.0: wake-up capability enabled by ACPI
+[  153.594855] e100 0000:00:0a.0: PCI INT A disabled
+[  153.650834] ALI 5451 0000:00:06.0: PCI INT A disabled
+[  153.663826] ALI 5451 0000:00:06.0: power state changed by ACPI to D3
+[  154.417072] pata_ali 0000:00:04.0: can't derive routing for PCI INT A
+[  154.430275] ohci_hcd 0000:00:02.0: PME# enabled
+[  154.430490] ohci_hcd 0000:00:02.0: wake-up capability enabled by ACPI
+[  154.430520] ohci_hcd 0000:00:02.0: PCI INT A disabled
+[  154.446867] ACPI: Preparing to enter system sleep state S3
+[  154.460237] ------------[ cut here ]------------
+[  154.460250] WARNING: at /home/bor/src/linux-
+git/drivers/base/power/main.c:579 device_power_down+0x18f/0x1e0()
+[  154.460259] Hardware name: PORTEGE 4000
+[  154.460265] Interrupts enabled after 0000:00:02.0!
 
-Hmmm, actually I had 2.6.28-rc9, but I guess there was no important
-difference to 2.6.28-final.
+The device is
 
-Strange.
+{pts/2}% lspci -nnv -s 00:02.0
+00:02.0 USB Controller [0c03]: ALi Corporation USB 1.1 Controller=20
+[10b9:5237] (rev 03) (prog-if 10 [OHCI])
+        Subsystem: Toshiba America Info Systems Device [1179:0004]
+        Flags: bus master, medium devsel, latency 64, IRQ 11
+        Memory at f7eff000 (32-bit, non-prefetchable) [size=3D4K]
+        Capabilities: <access denied>
+        Kernel driver in use: ohci_hcd
+        Kernel modules: ohci-hcd
 
-Best wishes
+and this does not surprise me at all given all the problems I had with this=
+=20
+USB controller.
 
-Norbert
+Suspicious is=20
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-QUEENZIEBURN (n.)
-Something that happens when people make it up after an agglethorpe
-(q.v.)
-			--- Douglas Adams, The Meaning of Liff
+ohci_hcd 0000:00:02.0: wake-up capability enabled by ACPI
+
+this controller has history of broken wake up functionality.
+
+Patch follows:
+
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index 670c9d6..e5e9c11 100644
+=2D-- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -569,12 +569,14 @@ int device_power_down(pm_message_t state)
+        struct device *dev;
+        int error =3D 0;
+
++       WARN_ONCE(!irqs_disabled(), "Interrupts enabled!\n");
+        list_for_each_entry_reverse(dev, &dpm_list, power.entry) {
+                error =3D suspend_device_noirq(dev, state);
+                if (error) {
+                        pm_dev_err(dev, state, " late", error);
+                        break;
+                }
++               WARN_ONCE(!irqs_disabled(), "Interrupts enabled after %s!
+\n", de
+v_name(dev));
+                dev->power.status =3D DPM_OFF_IRQ;
+        }
+        if (!error)
+
+
+--nextPart2089579.RIkFXiB8SQ
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkl0yGUACgkQR6LMutpd94xaRwCcD9Qp9iIc8MdkGWVUOWJAVxD8
+skYAnAvpN/65ZCRuvi6FTLIezJu5Qm2c
+=GzqB
+-----END PGP SIGNATURE-----
+
+--nextPart2089579.RIkFXiB8SQ--
