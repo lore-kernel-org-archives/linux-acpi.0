@@ -1,155 +1,42 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 09/10] eeepc-laptop: Implement rfkill hotplugging in eeepc-laptop
-Date: Tue, 20 Jan 2009 16:17:48 +0100
-Message-ID: <1232464669-29619-10-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 03/10] asus-laptop: use generic netlink interface
+Date: Tue, 20 Jan 2009 16:17:42 +0100
+Message-ID: <1232464669-29619-4-git-send-email-corentincj@iksaif.net>
 References: <1232464669-29619-1-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:59555 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:59553 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757469AbZATPR6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jan 2009 10:17:58 -0500
+	id S1757178AbZATPRz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jan 2009 10:17:55 -0500
 In-Reply-To: <1232464669-29619-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-From: Matthew Garrett <mjg@redhat.com>
+To be prepared for /proc/acpi/event removal we export events
+also through generic netlink interface.
 
-The Eee implements rfkill by logically unplugging the wireless card from the
-PCI bus. Despite sending ACPI notifications, this does not appear to be
-implemented using standard ACPI hotplug - nor does the firmware provide the
-_OSC method required to support native PCIe hotplug. The only sensible choice
-appears to be to handle the hotplugging directly in the eeepc-laptop driver.
-Tested successfully on a 700, 900 and 901.
-
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   83 +++++++++++++++++++++++++++++++++++
- 1 files changed, 83 insertions(+), 0 deletions(-)
+ drivers/platform/x86/asus-laptop.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 21e5206..66655d2 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -30,6 +30,7 @@
- #include <linux/uaccess.h>
- #include <linux/input.h>
- #include <linux/rfkill.h>
-+#include <linux/pci.h>
- 
- #define EEEPC_LAPTOP_VERSION	"0.1"
- 
-@@ -517,6 +518,41 @@ static void notify_brn(void)
- 	bd->props.brightness = read_brightness(bd);
- }
- 
-+static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct pci_dev *dev;
-+	struct pci_bus *bus = pci_find_bus(0, 1);
-+
-+	if (event != ACPI_NOTIFY_BUS_CHECK)
-+		return;
-+
-+	if (!bus) {
-+		printk(EEEPC_WARNING "Unable to find PCI bus 1?\n");
-+		return;
-+	}
-+
-+	if (get_acpi(CM_ASL_WLAN) == 1) {
-+		dev = pci_get_slot(bus, 0);
-+		if (dev) {
-+			/* Device already present */
-+			pci_dev_put(dev);
-+			return;
-+		}
-+		dev = pci_scan_single_device(bus, 0);
-+		if (dev) {
-+			pci_bus_assign_resources(bus);
-+			if (pci_bus_add_device(dev))
-+				printk(EEEPC_ERR "Unable to hotplug wifi\n");
-+		}
-+	} else {
-+		dev = pci_get_slot(bus, 0);
-+		if (dev) {
-+			pci_remove_bus_device(dev);
-+			pci_dev_put(dev);
-+		}
-+	}
-+}
-+
- static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
- 	static struct key_entry *key;
-@@ -543,6 +579,45 @@ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 8fb8b35..1b7a28c 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -738,8 +738,9 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ 		lcd_blank(FB_BLANK_POWERDOWN);
  	}
- }
  
-+static int eeepc_register_rfkill_notifier(char *node)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_handle handle;
-+
-+	status = acpi_get_handle(NULL, node, &handle);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_install_notify_handler(handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     eeepc_rfkill_notify,
-+						     NULL);
-+		if (ACPI_FAILURE(status))
-+			printk(EEEPC_WARNING
-+			       "Failed to register notify on %s\n", node);
-+	} else
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void eeepc_unregister_rfkill_notifier(char *node)
-+{
-+	acpi_status status = AE_OK;
-+	acpi_handle handle;
-+
-+	status = acpi_get_handle(NULL, node, &handle);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_remove_notify_handler(handle,
-+						     ACPI_SYSTEM_NOTIFY,
-+						     eeepc_rfkill_notify);
-+		if (ACPI_FAILURE(status))
-+			printk(EEEPC_ERR
-+			       "Error removing rfkill notify handler %s\n",
-+				node);
-+	}
-+}
-+
- static int eeepc_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -622,6 +697,10 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 		if (result)
- 			goto bluetooth_fail;
- 	}
-+
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
-+
- 	return 0;
+-	acpi_bus_generate_proc_event(hotk->device, event,
+-				hotk->event_count[event % 128]++);
++	acpi_bus_generate_netlink_event(hotk->device->pnp.device_class,
++					dev_name(&hotk->device->dev), event,
++					hotk->event_count[event % 128]++);
  
-  bluetooth_fail:
-@@ -649,6 +728,10 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
- 					    eeepc_hotk_notify);
- 	if (ACPI_FAILURE(status))
- 		printk(EEEPC_ERR "Error removing notify handler\n");
-+
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
-+
- 	kfree(ehotk);
- 	return 0;
+ 	return;
  }
 -- 
 1.6.1
