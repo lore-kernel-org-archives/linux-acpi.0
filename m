@@ -1,70 +1,45 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] eeepc-laptop: split eeepc_backlight_exit()
-Date: Tue, 20 Jan 2009 17:56:49 +0100
-Message-ID: <71cd59b00901200856s7d1fcfbep4aeefccc35881723@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: acpi4asus: asus_acpi, eeepc-laptop and asus-laptop updates
+Date: Tue, 20 Jan 2009 14:27:46 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901201141080.5575@localhost.localdomain>
 References: <1232301715-20292-1-git-send-email-corentincj@iksaif.net>
-	 <1232301715-20292-2-git-send-email-corentincj@iksaif.net>
-	 <200901181911.05619.corentincj@iksaif.net>
-	 <alpine.LFD.2.00.0901201137350.5575@localhost.localdomain>
+ <71cd59b00901182300p1bf4b30xa2f71d1e8f7ca0d8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:39053 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755392AbZATRFI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2009 12:05:08 -0500
-Received: by bwz14 with SMTP id 14so11171426bwz.13
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Jan 2009 09:05:06 -0800 (PST)
-In-Reply-To: <alpine.LFD.2.00.0901201137350.5575@localhost.localdomain>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:19424 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134AbZATT1x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2009 14:27:53 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173009.mailsrvcs.net
+ (Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+ with ESMTPA id <0KDS00AVLB6CRNO0@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 20 Jan 2009 13:23:03 -0600 (CST)
+In-reply-to: <71cd59b00901182300p1bf4b30xa2f71d1e8f7ca0d8@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: Corentin Chary <corentin.chary@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-> Len Brown, Intel Open Source Technology Center
->
-> On Sun, 18 Jan 2009, Corentin Chary wrote:
->
->> Arg .. don't know what I did, but I clearly messed up with git-send-email.
->>
->> Isn't git send-email --compose --to linux-acpi@vger.kernel.org --cc
->> lenb@kernel.org  *patch the right command line ?
->>
->> It seems the intro email was lost in the process:
->>
->> > Hi Len,
->> > Here are some patch for asus platform drivers.
->> > The last one is the most interesting, it adds
->> > input layer support for reporting hotkeys.
->
->
-> yes, it is correct, and I received the intro message.
-> I use this.
->
-> git send-email --from "Len Brown <lenb@kernel.org>" --compose --to
-> linux-acpi@vger.kernel.org  --suppress-from --no-chain-reply-to
-> patch-release
->
-> Note that you can assume i'm on linux-acpi, so you don't
-> have to cc me.  The intro message is helpful, however,
-> so I know if you think the patches are for testing
-> or you think they're ready for release.
->
-> cheers,
-> -Len
 
-Thanks for the tips.
 
-As I said in another mail you can forget this series and some forgoten
-patch in the mailling list from Mathiew.
-I now have a working git tree
-http://git.iksaif.net/?p=acpi4asus.git;a=summary and I just send
-another series
-regrouping all this patches.
+> On Sun, Jan 18, 2009 at 7:01 PM, Corentin Chary <corentincj@iksaif.net> wrote:
+> > Hi Len,
+> > Here are some patch for asus platform drivers.
+> > The last one is the most interesting, it adds
+> > input layer support for reporting hotkeys.
+> >
+> 
+> Sorry the series was not sended correctly (the patch are not numeroted).
+> Len, is it still ok for you ? If it's not, I can re-send the whole
+> serie correctly.
 
-git is really a great tool =).
+Yes, numbering is ideal, but for a short series where the patches
+are a repliy-to sieries, that also works.
 
--- 
-Corentin Chary
-http://xf.iksaif.net
+I use --no-chain-reply-to on git send-email because for a longer series
+the indentations of all the replies make it hard to view in some mailers.
+
+cheers,
+-Len
