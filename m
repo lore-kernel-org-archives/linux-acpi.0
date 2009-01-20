@@ -1,50 +1,45 @@
-From: Tomas Carnecky <tom@dbservice.com>
-Subject: Re: Suspned/resume can't work on the 2.6.29-rc1 but it can work	well
- on the 2.6.28
-Date: Tue, 20 Jan 2009 13:53:51 +0100
-Message-ID: <4975C95F.7000302@dbservice.com>
-References: <1232413680.3971.32.camel@yakui_zhao.sh.intel.com> <20090120074534.GE16426@elte.hu>
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: Re: [PATCH v2 1/3] eeepc-laptop: Add support for extended hotkeys
+Date: Tue, 20 Jan 2009 16:08:31 +0100
+Message-ID: <200901201608.31634.corentincj@iksaif.net>
+References: <a26244bd6e7cae264155edca7f3c22f8f319b239.1227194932.git.mjg@redhat.com> <71cd59b00812290312u282851eepb1ecc2666d6013ab@mail.gmail.com> <9b2b86520901180204q29802ec6kd6dceaa165e61555@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from office.neopsis.com ([78.46.209.98]:41152 "EHLO
-	office.neopsis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754364AbZATM4E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2009 07:56:04 -0500
-In-Reply-To: <20090120074534.GE16426@elte.hu>
+Received: from iksaif.net ([88.191.73.63]:46484 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755540AbZATPIh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jan 2009 10:08:37 -0500
+In-Reply-To: <9b2b86520901180204q29802ec6kd6dceaa165e61555@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, ecc@cmu.edu, linux acpi <linux-acpi@vger.kernel.org>
 
-On 01/20/2009 08:45 AM, Ingo Molnar wrote:
-> * Zhao Yakui<yakui.zhao@intel.com>  wrote:
+On Sunday 18 January 2009 11:04:01 Alan Jenkins wrote:
+> On 12/29/08, Corentin Chary <corentin.chary@gmail.com> wrote:
+> > On Sun, Dec 28, 2008 at 4:20 PM, Matthew Garrett <mjg59@srcf.ucam.org>
+> >
+> > wrote:
+> >> Hi Len,
+> >>
+> >> Can these be merged for .29?
+> >
+> > Acked-by: Corentin Chary <corentincj@iksaif.net>
 >
->> Hi, All
->>      I do some tests about suspend/resume on my two boxes. One is HP
->> laptop and the other is Asus EEEPC901. The suspend/resume can't work
->> well. Even after core is selected as the test mode, it still can't work
->> well.(echo core>  /sys/power/pm_test)
->>
->>      Then I do the same test by using the 2.6.28 kernel. And
->> suspend/resume can work well.
->>
->>      Of course I will try to use the git-bisect to identify the first bad
->> commit ASAP.
+> They're not present in 2.6.29-rc2.  Have they just missed the boat?
 >
-> make sure you try this patch from Rafael first (it's not on lkml it
-> appears - Rafael, mind resending the patch to this thread?):
->
-> Subject: [PATCH] PCI PM: Restore standard config registers of all devices early
->          (was: Re: EeePC resume failure - timers)
->
+> Thanks
+> Alan
 
-Would that also fix http://bugzilla.kernel.org/show_bug.cgi?id=12492?
+They are now in git://git.iksaif.net/acpi4asus.git acpi4asus and I'll re-send 
+them soon to Len because this serie is a litle outdated now that the drivers
+have been moved into drivers/platform/x86/ .
 
-I should add that pm_tests freezer, devices and platform work, but
-processors fails (I didn't test core since I suppose that when 
-processors fails, core will fail as well).
-
-tom
-
+-- 
+--
+Corentin Chary
+http://xf.iksaif.net
