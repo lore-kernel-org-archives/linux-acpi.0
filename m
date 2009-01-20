@@ -1,43 +1,59 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 10/10] eeepc-laptop: use netlink interface
-Date: Tue, 20 Jan 2009 16:17:49 +0100
-Message-ID: <1232464669-29619-11-git-send-email-corentincj@iksaif.net>
-References: <1232464669-29619-1-git-send-email-corentincj@iksaif.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] eeepc-laptop: split eeepc_backlight_exit()
+Date: Tue, 20 Jan 2009 11:40:25 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0901201137350.5575@localhost.localdomain>
+References: <1232301715-20292-1-git-send-email-corentincj@iksaif.net>
+ <1232301715-20292-2-git-send-email-corentincj@iksaif.net>
+ <200901181911.05619.corentincj@iksaif.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:59557 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757181AbZATPR6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jan 2009 10:17:58 -0500
-In-Reply-To: <1232464669-29619-1-git-send-email-corentincj@iksaif.net>
+Received: from vms044pub.verizon.net ([206.46.252.44]:38458 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756088AbZATQk2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2009 11:40:28 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
+ 3 2006)) with ESMTPA id <0KDS00DOX3NFKUD2@vms044.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 20 Jan 2009 10:40:27 -0600 (CST)
+In-reply-to: <200901181911.05619.corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org
 
-To be prepared for /proc/acpi/event removal we export events
-also through generic netlink interface.
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/eeepc-laptop.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 66655d2..4348d99 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -560,8 +560,9 @@ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
- 		return;
- 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
- 		notify_brn();
--	acpi_bus_generate_proc_event(ehotk->device, event,
--				     ehotk->event_count[event % 128]++);
-+	acpi_bus_generate_netlink_event(ehotk->device->pnp.device_class,
-+					dev_name(&ehotk->device->dev), event,
-+					ehotk->event_count[event % 128]++);
- 	if (ehotk->inputdev) {
- 		key = eepc_get_entry_by_scancode(event);
- 		if (key) {
--- 
-1.6.1
+--
+Len Brown, Intel Open Source Technology Center
+
+On Sun, 18 Jan 2009, Corentin Chary wrote:
+
+> Arg .. don't know what I did, but I clearly messed up with git-send-email.
+> 
+> Isn't git send-email --compose --to linux-acpi@vger.kernel.org --cc 
+> lenb@kernel.org  *patch the right command line ?
+> 
+> It seems the intro email was lost in the process:
+> 
+> > Hi Len,
+> > Here are some patch for asus platform drivers.
+> > The last one is the most interesting, it adds 
+> > input layer support for reporting hotkeys.
+
+
+yes, it is correct, and I received the intro message.
+I use this.
+
+git send-email --from "Len Brown <lenb@kernel.org>" --compose --to 
+linux-acpi@vger.kernel.org  --suppress-from --no-chain-reply-to 
+patch-release
+
+Note that you can assume i'm on linux-acpi, so you don't
+have to cc me.  The intro message is helpful, however,
+so I know if you think the patches are for testing
+or you think they're ready for release.
+
+cheers,
+-Len
 
