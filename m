@@ -1,37 +1,52 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: boot regression from rc1 to rc2
-Date: Thu, 22 Jan 2009 23:48:22 +0300
-Message-ID: <4978DB96.1090104@suse.de>
-References: <200901222128.20865.oliver@neukum.org>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] Make PNP IDs all uppercase
+Date: Thu, 22 Jan 2009 23:03:38 +0000
+Message-ID: <200901222303.41737.carlos@strangeworlds.co.uk>
+References: <49733678.40006@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:39350 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752077AbZAVUsR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2009 15:48:17 -0500
-In-Reply-To: <200901222128.20865.oliver@neukum.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:41784 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757612AbZAVXG2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2009 18:06:28 -0500
+In-Reply-To: <49733678.40006@gmx.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Philipp Kohlbecher <xt28@gmx.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, Vojtech Pavlik <vojtech@ucw.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jiri Kosina <jkosina@suse.cz>, linux-input@vger.kernel.org, Pau Oliva Fora <pof@eslack.org>, Hans Verkuil <hverkuil@xs4all.nl>, "David S. Miller" <davem@davemloft.net>, Jaroslav Kysela <perex@perex.cz>, Adam Belay <abelay@mit.edu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org
 
-Oliver Neukum wrote:
-> Hi,
-> 
-> 2.6.29-rc2 crashes hard during boot on my laptop.
-> I've bisected it down to commit c6cb0e878446c79f42e7833d7bb69ed6bfbb381f
-> ACPI: EC: Don't trust ECDT tables from ASUS
-> 
-> The laptop boots with "acpi=off".
-> 
-> 	Regards
-> 		Oliver
-Hi,
-Mea culpa, patch is here:
-http://bugzilla.kernel.org/show_bug.cgi?id=12493
+On Sunday 18 January 2009 14:02:32 Philipp Kohlbecher wrote:
+> If I understand correctly, ACPI _HIDs (including PNP IDs) should be all
+> uppercase, including the hex digits, cf. ACPI Specification 3.0b [1],
+> pp. 162-3 and acpi_glb_hex_to_ascii[] in drivers/acpi/utilities/utglobal.c.
 
-Regards,
-Alex.
+ACPI-WMI violates the spec here.
 
+> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+> index 8a8b377..79b8af7 100644
+> --- a/drivers/platform/x86/wmi.c
+> +++ b/drivers/platform/x86/wmi.c
+> @@ -84,7 +84,7 @@ static int acpi_wmi_add(struct acpi_device *device);
+>
+>   static const struct acpi_device_id wmi_device_ids[] = {
+>   	{"PNP0C14", 0},
+> -	{"pnp0c14", 0},
+> +	{"PNP0C14", 0},
+>   	{"", 0},
+>   };
+>   MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
+> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+> index 8473fe5..18c9335 100644
+
+NAK to the ACPI-WMI changes. There really is a pnp0c14 and a PNP0C14, and 
+removing the lower case version breaks ACPI-WMI on my laptop.
+
+-Carlos
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
