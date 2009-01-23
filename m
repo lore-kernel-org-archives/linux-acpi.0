@@ -1,52 +1,30 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH] Make PNP IDs all uppercase
-Date: Thu, 22 Jan 2009 23:03:38 +0000
-Message-ID: <200901222303.41737.carlos@strangeworlds.co.uk>
-References: <49733678.40006@gmx.de>
+From: Alan Zimmerman <alanz@miranetworks.net>
+Subject: ACPI Lenovo Y410
+Date: Fri, 23 Jan 2009 11:38:06 +0200
+Message-ID: <1232703486.4757.35.camel@alanz-laptop.miranetworks.net>
+Reply-To: alanz@miranetworks.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:41784 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757612AbZAVXG2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2009 18:06:28 -0500
-In-Reply-To: <49733678.40006@gmx.de>
-Content-Disposition: inline
+Received: from mail-ew0-f22.google.com ([209.85.219.22]:49439 "EHLO
+	mail-ew0-f22.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758938AbZAWJwD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Jan 2009 04:52:03 -0500
+Received: by ewy3 with SMTP id 3so42412ewy.13
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Jan 2009 01:52:00 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Philipp Kohlbecher <xt28@gmx.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, Vojtech Pavlik <vojtech@ucw.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jiri Kosina <jkosina@suse.cz>, linux-input@vger.kernel.org, Pau Oliva Fora <pof@eslack.org>, Hans Verkuil <hverkuil@xs4all.nl>, "David S. Miller" <davem@davemloft.net>, Jaroslav Kysela <perex@perex.cz>, Adam Belay <abelay@mit.edu>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sunday 18 January 2009 14:02:32 Philipp Kohlbecher wrote:
-> If I understand correctly, ACPI _HIDs (including PNP IDs) should be all
-> uppercase, including the hex digits, cf. ACPI Specification 3.0b [1],
-> pp. 162-3 and acpi_glb_hex_to_ascii[] in drivers/acpi/utilities/utglobal.c.
+[    0.255189] ACPI: BIOS _OSI(Linux) query ignored
+[    0.255249] ACPI: DMI System Vendor: LENOVO
+[    0.255304] ACPI: DMI Product Name: LENOVO3000 Y410                 
+[    0.255361] ACPI: DMI Product Version:         
+[    0.255417] ACPI: DMI Board Name: IGT30
+[    0.255471] ACPI: DMI BIOS Vendor: LENOVO
+[    0.255526] ACPI: DMI BIOS Date: 08/29/2007
+[    0.255580] ACPI: Please send DMI info above to
+linux-acpi@vger.kernel.org
 
-ACPI-WMI violates the spec here.
 
-> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-> index 8a8b377..79b8af7 100644
-> --- a/drivers/platform/x86/wmi.c
-> +++ b/drivers/platform/x86/wmi.c
-> @@ -84,7 +84,7 @@ static int acpi_wmi_add(struct acpi_device *device);
->
->   static const struct acpi_device_id wmi_device_ids[] = {
->   	{"PNP0C14", 0},
-> -	{"pnp0c14", 0},
-> +	{"PNP0C14", 0},
->   	{"", 0},
->   };
->   MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
-> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-> index 8473fe5..18c9335 100644
-
-NAK to the ACPI-WMI changes. There really is a pnp0c14 and a PNP0C14, and 
-removing the lower case version breaks ACPI-WMI on my laptop.
-
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
