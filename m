@@ -1,48 +1,151 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [patch] ACPI battery driver emits POWER_SUPPLY_STATUS_FULL when
- power lead plugged in
-Date: Sun, 25 Jan 2009 22:50:10 +0300
-Message-ID: <497CC272.8050607@suse.de>
-References: <1232729843.3504.6.camel@hughsie-work.lan>	 <497A13C0.5020604@suse.de> <20090123220243.GB26701@khazad-dum.debian.net>	 <1232753981.3504.10.camel@hughsie-work.lan> <497A5D49.6070706@suse.de>	 <20090124124158.GC5325@khazad-dum.debian.net> <497B43D3.80703@suse.de>	 <1232879297.3518.26.camel@hughsie-work.lan>	 <20090125134203.GA12776@khazad-dum.debian.net> <1232896408.3990.5.camel@hughsie-work.lan>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Sun, 25 Jan 2009 22:05:20 +0100
+Message-ID: <20090125210520.GA12963@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:41096 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751104AbZAYTty (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jan 2009 14:49:54 -0500
-In-Reply-To: <1232896408.3990.5.camel@hughsie-work.lan>
+Received: from mu-out-0910.google.com ([209.85.134.190]:24218 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751582AbZAYVFm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jan 2009 16:05:42 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, mjg <mjg@redhat.com>, Matthias Clasen <mclasen@redhat.com>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>
 
-Richard Hughes wrote:
-> On Sun, 2009-01-25 at 11:42 -0200, Henrique de Moraes Holschuh wrote:
->>  So, the above test will still break on any proper battery subsystem with the
->> high watermark set below 100%, as those systems update full_charge_capacity
->> *only* when the cells really are full (and not because the EC decided to
->> stop the charging before they were full).
-> 
-> This is what I observed when testing my patch.
-> 
-> The attached patch checks the last full and design charge, as this seems
-> to work in all cases I have here. In the case of broken batteries or
-> broken hardware, we just return UNKNOWN in this "settling" state, which
-> is much better for userspace than falling back to full.
-> 
-> With the attached patch userspace gets the right states. In the future,
-> maybe we can do some sort of metric over time (watching to see if the
-> present charge changes) but for the most part the patch fixes things up
-> for userspace.
-> 		else
-> 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
-This last else should return STATUS_NOT_CHARGING, IMHO. We know this little bit about it.
-> 
-> Please review,
-> 
-> Richard.
-> 
-> 
+(This is an improved version of my earlier patch, I've reworked deviced
+detection to simply check for the desired HID)
 
+The following patch adds "auto" option to "acpi_enforce_resource"; this value
+is also the new default.
+"auto" enforces strict resource checking - disallowing access by native drivers
+to IO ports and memory regions claimed by ACPI firmware - when a device with a
+known ACPI driver is found (currently only ASUS ATK0110 is checked), and
+reverts to lax checking otherwise.
+
+The patch is mainly aimed to block native hwmon drivers from touching
+monitoring chips that ACPI thinks it own.
+
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+---
+New revision, now it simply checks the HID.
+
+ Documentation/kernel-parameters.txt |   19 ++++++++++++++++
+ drivers/acpi/osl.c                  |   41 +++++++++++++++++++++++++++++++++---
+ 2 files changed, 57 insertions(+), 3 deletions(-)
+
+Index: b/Documentation/kernel-parameters.txt
+===================================================================
+--- a/Documentation/kernel-parameters.txt	2009-01-17 21:22:49.218882286 +0100
++++ b/Documentation/kernel-parameters.txt	2009-01-21 23:25:41.262478018 +0100
+@@ -258,6 +258,25 @@
+ 			to assume that this machine's pmtimer latches its value
+ 			and always returns good values.
+ 
++	acpi_enforce_resources=	[ACPI]
++			{ strict, auto, lax, no }
++			Check for resource conflicts between native drivers
++			and ACPI OperationRegions (SystemIO and System Memory
++			only). IO ports and memory declared in ACPI might be
++			used by the ACPI subsystem in arbitrary AML code and
++			can interfere with legacy drivers.
++			strict: access to resources claimed by ACPI is denied;
++			legacy drivers trying to access reserved resources
++			will fail to load.
++			auto (default): try and detect ACPI devices with known
++			ACPI drivers; escalates the setting to "strict" if such
++			a device is found, otherwise behaves like "lax".
++			lax: access to resources claimed by ACPI is allowed;
++			legacy drivers trying to access reserved resources
++			will load and a warning message is logged.
++			no: ACPI OperationRegions are not marked as reserved,
++			no further checks are performed.
++
+ 	agp=		[AGP]
+ 			{ off | try_unsupported }
+ 			off: disable AGP support
+Index: b/drivers/acpi/osl.c
+===================================================================
+--- a/drivers/acpi/osl.c	2009-01-17 21:22:49.190882303 +0100
++++ b/drivers/acpi/osl.c	2009-01-25 22:04:30.759209000 +0100
+@@ -1063,7 +1063,10 @@
+  * in arbitrary AML code and can interfere with legacy drivers.
+  * acpi_enforce_resources= can be set to:
+  *
+- *   - strict           (2)
++ *   - auto             (2)
++ *     -> detect possible conflicts with ACPI drivers and switch to
++ *     strict if needed, otherwise act like lax
++ *   - strict           (3)
+  *     -> further driver trying to access the resources will not load
+  *   - lax (default)    (1)
+  *     -> further driver trying to access the resources will load, but you
+@@ -1073,11 +1076,12 @@
+  *     -> ACPI Operation Region resources will not be registered
+  *
+  */
+-#define ENFORCE_RESOURCES_STRICT 2
++#define ENFORCE_RESOURCES_STRICT 3
++#define ENFORCE_RESOURCES_AUTO   2
+ #define ENFORCE_RESOURCES_LAX    1
+ #define ENFORCE_RESOURCES_NO     0
+ 
+-static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
+ 
+ static int __init acpi_enforce_resources_setup(char *str)
+ {
+@@ -1086,6 +1090,8 @@
+ 
+ 	if (!strcmp("strict", str))
+ 		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
++	else if (!strcmp("auto", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
+ 	else if (!strcmp("lax", str))
+ 		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+ 	else if (!strcmp("no", str))
+@@ -1096,6 +1102,35 @@
+ 
+ __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
+ 
++static acpi_status acpi_detect_asus_atk_cb(acpi_handle obj_handle,
++		u32 nesting_level, void *context, void **return_value)
++{
++	*((bool *)return_value) = true;
++	return AE_CTRL_TERMINATE;
++}
++
++static int __init acpi_detect_asus_atk(void)
++{
++	acpi_status ret;
++	bool found = false;
++
++	if (acpi_enforce_resources != ENFORCE_RESOURCES_AUTO)
++		return 0;
++
++	ret = acpi_get_devices("ATK0110", acpi_detect_asus_atk_cb,
++			NULL, (void **)&found);
++
++	if (ret == AE_OK && found) {
++		printk(KERN_DEBUG "Asus ATK0110 interface detected: "
++				"enforcing resource checking.\n");
++		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
++	} else
++		acpi_enforce_resources =  ENFORCE_RESOURCES_LAX;
++
++	return 0;
++}
++fs_initcall(acpi_detect_asus_atk);
++
+ /* Check for resource conflicts between ACPI OperationRegions and native
+  * drivers */
+ int acpi_check_resource_conflict(struct resource *res)
+
+
+Luca
+-- 
+La vasca da bagno fu inventata nel 1850, il telefono nel 1875.
+Se fossi vissuto nel 1850, avrei potuto restare in vasca per 25 anni
+senza sentir squillare il telefono
