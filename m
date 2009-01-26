@@ -1,67 +1,29 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: ACPI hotplug panic with current git head
-Date: Mon, 26 Jan 2009 21:27:35 +0900
-Message-ID: <497DAC37.5030002@jp.fujitsu.com>
-References: <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain> <1232049269.5966.64.camel@localhost.localdomain> <1232050347.5966.66.camel@localhost.localdomain> <4970242C.4010404@jp.fujitsu.com> <1232115546.3224.5.camel@localhost.localdomain> <4973D2EE.3060203@jp.fujitsu.com> <1232328216.3247.68.camel@localhost.localdomain> <4973EF64.2050404@jp.fujitsu.com> <1232558780.736.24.camel@localhost.localdomain> <497D1BD7.9000609@jp.fujitsu.com> <20090126062132.GC4376@colo.lackof.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] hp-wmi: set initial docking state
+Date: Mon, 26 Jan 2009 14:38:08 +0000
+Message-ID: <20090126143808.GA15597@srcf.ucam.org>
+References: <200901261536.02809.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090126062132.GC4376@colo.lackof.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Grant Grundler <grundler@parisc-linux.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, shaohua.li@intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:51208 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172AbZAZOiN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jan 2009 09:38:13 -0500
+Content-Disposition: inline
+In-Reply-To: <200901261536.02809.elendil@planet.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-Grant Grundler wrote:
-> On Mon, Jan 26, 2009 at 11:11:35AM +0900, Kenji Kaneshige wrote:
-> ...
->> Thanks to you, I found the root cause of the
->> problem. The acpi_pci_get_bridge_handle() function assumes
->> pci_bus->self is NULL on the root bus.
-> 
-> Mea culpa: I contributed this mess too. This worked for PA-RISC
-> and lacking better guidance, is what I used in 1/2 the places.
-> 
->> But it is not true
->> and pci_bus->self can have a non-NULL value on some
->> platfroms (like yours). So it must check pci_bus->parent
->> instead.
-> 
-> It is true for PA-RISC and some other architectures.
-> These architectures don't provide fake PCI devices
-> (emulated PCI config space) for Host-PCI Bus controllers.
-> 
->> I found some other code that has the same wrong assumption.
->> I'll make a fix for them and send it soon.
-> 
-> I would like to keep the code consistent. Attached is a patch
-> for drivers/parisc. Please include with my
->     Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
-> 
-> Or if you prefer, I can repost as a separate patch.
-> 
-> I've compiled the iosapic/lba changes and will test those shortly.
-> I have no HW (by choice) to test the dino code change.
-> 
+On Mon, Jan 26, 2009 at 03:36:01PM +0100, Frans Pop wrote:
+> If the initial state is not set when the input device is set up, the
+> first docking event after the module is loaded will be lost.
+>     
+> Signed-off-by: Frans Pop <elendil@planet.nl>
+> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 
-Thank you for the patch for drivers/parisc.
-
-I cannot change platform dependent code or driver for each hardware
-because I don't have enough knowledge. Maybe all I can do is only
-for generic pci code. So I'd like you to post it as a separate patch.
-
-BTW, I'm wondering if a function something like below is useful
-to keep the code consistent. What do you think about it?
-
-/*
- * Returns true if the pci bus is root (behind host-pci brdige),
- * false otherwise
- */
-static inline bool pci_is_root_bus(struct pci_bus *pbus)
-{
-       return !(pbus->parent);
-}
-
-Thanks,
-Kenji Kaneshige
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
