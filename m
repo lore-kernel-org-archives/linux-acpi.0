@@ -1,57 +1,111 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+From: Grant Grundler <grundler@parisc-linux.org>
 Subject: Re: ACPI hotplug panic with current git head
-Date: Mon, 26 Jan 2009 11:11:35 +0900
-Message-ID: <497D1BD7.9000609@jp.fujitsu.com>
-References: <1231604250.3642.33.camel@localhost.localdomain>	 <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>	 <1231807693.27151.21.camel@localhost.localdomain>	 <1232046108.5966.57.camel@localhost.localdomain>	 <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain>	 <1232049269.5966.64.camel@localhost.localdomain>	 <1232050347.5966.66.camel@localhost.localdomain>	 <4970242C.4010404@jp.fujitsu.com>	 <1232115546.3224.5.camel@localhost.localdomain>	 <4973D2EE.3060203@jp.fujitsu.com>	 <1232328216.3247.68.camel@localhost.localdomain>	 <4973EF64.2050404@jp.fujitsu.com> <1232558780.736.24.camel@localhost.localdomain>
+Date: Sun, 25 Jan 2009 23:21:32 -0700
+Message-ID: <20090126062132.GC4376@colo.lackof.org>
+References: <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain> <1232049269.5966.64.camel@localhost.localdomain> <1232050347.5966.66.camel@localhost.localdomain> <4970242C.4010404@jp.fujitsu.com> <1232115546.3224.5.camel@localhost.localdomain> <4973D2EE.3060203@jp.fujitsu.com> <1232328216.3247.68.camel@localhost.localdomain> <4973EF64.2050404@jp.fujitsu.com> <1232558780.736.24.camel@localhost.localdomain> <497D1BD7.9000609@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1232558780.736.24.camel@localhost.localdomain>
+Content-Disposition: inline
+In-Reply-To: <497D1BD7.9000609@jp.fujitsu.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, shaohua.li@intel.com
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, shaohua.li@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-James Bottomley wrote:
-> On Mon, 2009-01-19 at 12:11 +0900, Kenji Kaneshige wrote:
->> I'm sending the debug patch against 2.6.29-rc1 below. I'm also
->> sending it as an attachment. It also contains the code to prevent
->> the kernel panic from you. Please note that you will see two
->> WARN_ON(1) messages with the patch. Those are shown by my debug
->> patch.
->>
->> Could you try it and send me the whole dmsg output?
-> 
-> Actually, the machine is now running -rc2, so the patch doesn't quite
-> apply: 
-> 
-> jejb@sparkweed> patch -p1 < ~/tmp.diff
-> patching file include/linux/pci-acpi.h
-> patching file drivers/pci/hotplug/acpiphp_glue.c
-> Hunk #1 FAILED at 266.
-> Hunk #2 succeeded at 467 (offset 2 lines).
-> Hunk #3 succeeded at 489 (offset 2 lines).
-> Hunk #4 succeeded at 518 (offset 2 lines).
-> Hunk #5 succeeded at 556 (offset 2 lines).
-> 
-> Looks like the rejection is in the NULL check piece, so I've already
-> actually sent you the information it would produce.
-> 
-> The dmesg output is pretty big, below.
-> 
+On Mon, Jan 26, 2009 at 11:11:35AM +0900, Kenji Kaneshige wrote:
+...
+> Thanks to you, I found the root cause of the
+> problem. The acpi_pci_get_bridge_handle() function assumes
+> pci_bus->self is NULL on the root bus.
 
-Thank you very much, James.
+Mea culpa: I contributed this mess too. This worked for PA-RISC
+and lacking better guidance, is what I used in 1/2 the places.
 
-Thanks to you, I found the root cause of the
-problem. The acpi_pci_get_bridge_handle() function assumes
-pci_bus->self is NULL on the root bus. But it is not true
-and pci_bus->self can have a non-NULL value on some
-platfroms (like yours). So it must check pci_bus->parent
-instead.
+> But it is not true
+> and pci_bus->self can have a non-NULL value on some
+> platfroms (like yours). So it must check pci_bus->parent
+> instead.
 
-I found some other code that has the same wrong assumption.
-I'll make a fix for them and send it soon.
+It is true for PA-RISC and some other architectures.
+These architectures don't provide fake PCI devices
+(emulated PCI config space) for Host-PCI Bus controllers.
 
-Thanks,
-Kenji Kaneshige
+> I found some other code that has the same wrong assumption.
+> I'll make a fix for them and send it soon.
+
+I would like to keep the code consistent. Attached is a patch
+for drivers/parisc. Please include with my
+    Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
+
+Or if you prefer, I can repost as a separate patch.
+
+I've compiled the iosapic/lba changes and will test those shortly.
+I have no HW (by choice) to test the dino code change.
+
+thanks,
+grant
+
+
+diff --git a/drivers/parisc/dino.c b/drivers/parisc/dino.c
+index d539d9d..f79266c 100644
+--- a/drivers/parisc/dino.c
++++ b/drivers/parisc/dino.c
+@@ -587,7 +587,7 @@ dino_fixup_bus(struct pci_bus *bus)
+ 			bus->resource[i+1] = &res[i];
+ 		}
+ 
+-	} else if(bus->self) {
++	} else if (bus->parent) {
+ 		int i;
+ 
+ 		pci_read_bridge_bases(bus);
+diff --git a/drivers/parisc/iosapic.c b/drivers/parisc/iosapic.c
+index 0797659..1cdfdea 100644
+--- a/drivers/parisc/iosapic.c
++++ b/drivers/parisc/iosapic.c
+@@ -487,7 +487,7 @@ iosapic_xlate_pin(struct iosapic_info *isi, struct pci_dev *pcidev)
+ 	}
+ 
+ 	/* Check if pcidev behind a PPB */
+-	if (NULL != pcidev->bus->self) {
++	if (pcidev->bus->parent) {
+ 		/* Convert pcidev INTR_PIN into something we
+ 		** can lookup in the IRT.
+ 		*/
+@@ -523,10 +523,9 @@ iosapic_xlate_pin(struct iosapic_info *isi, struct pci_dev *pcidev)
+ #endif /* PCI_BRIDGE_FUNCS */
+ 
+ 		/*
+-		** Locate the host slot the PPB nearest the Host bus
+-		** adapter.
+-		*/
+-		while (NULL != p->parent->self)
++		 * Locate the host slot of the PPB.
++		 */
++		while (p->parent->parent)
+ 			p = p->parent;
+ 
+ 		intr_slot = PCI_SLOT(p->self->devfn);
+diff --git a/drivers/parisc/lba_pci.c b/drivers/parisc/lba_pci.c
+index d8233de..59fbbf1 100644
+--- a/drivers/parisc/lba_pci.c
++++ b/drivers/parisc/lba_pci.c
+@@ -644,7 +644,7 @@ lba_fixup_bus(struct pci_bus *bus)
+ 	** Properly Setup MMIO resources for this bus.
+ 	** pci_alloc_primary_bus() mangles this.
+ 	*/
+-	if (bus->self) {
++	if (bus->parent) {
+ 		int i;
+ 		/* PCI-PCI Bridge */
+ 		pci_read_bridge_bases(bus);
+@@ -802,7 +802,7 @@ lba_fixup_bus(struct pci_bus *bus)
+ ** Can't fixup here anyway....garr...
+ */
+ 	if (fbb_enable) {
+-		if (bus->self) {
++		if (bus->parent) {
+ 			u8 control;
+ 			/* enable on PPB */
+ 			(void) pci_read_config_byte(bus->self, PCI_BRIDGE_CONTROL, &control);
