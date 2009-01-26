@@ -1,62 +1,57 @@
-From: Kay Sievers <kay.sievers@vrfy.org>
-Subject: acpi: struct device - replace bus_id with dev_name(),
- dev_set_name()
-Date: Sun, 25 Jan 2009 23:40:56 +0100
-Message-ID: <1232923256.2924.3.camel@nga>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: ACPI hotplug panic with current git head
+Date: Mon, 26 Jan 2009 11:11:35 +0900
+Message-ID: <497D1BD7.9000609@jp.fujitsu.com>
+References: <1231604250.3642.33.camel@localhost.localdomain>	 <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>	 <1231807693.27151.21.camel@localhost.localdomain>	 <1232046108.5966.57.camel@localhost.localdomain>	 <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain>	 <1232049269.5966.64.camel@localhost.localdomain>	 <1232050347.5966.66.camel@localhost.localdomain>	 <4970242C.4010404@jp.fujitsu.com>	 <1232115546.3224.5.camel@localhost.localdomain>	 <4973D2EE.3060203@jp.fujitsu.com>	 <1232328216.3247.68.camel@localhost.localdomain>	 <4973EF64.2050404@jp.fujitsu.com> <1232558780.736.24.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:37267 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781AbZAYWlt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jan 2009 17:41:49 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so3298169fgg.17
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Jan 2009 14:41:47 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1232558780.736.24.camel@localhost.localdomain>
+Sender: linux-pci-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, shaohua.li@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>
 
-From: Kay Sievers <kay.sievers@vrfy.org>
-Subject: acpi: struct device - replace bus_id with dev_name(), dev_set_name()
+James Bottomley wrote:
+> On Mon, 2009-01-19 at 12:11 +0900, Kenji Kaneshige wrote:
+>> I'm sending the debug patch against 2.6.29-rc1 below. I'm also
+>> sending it as an attachment. It also contains the code to prevent
+>> the kernel panic from you. Please note that you will see two
+>> WARN_ON(1) messages with the patch. Those are shown by my debug
+>> patch.
+>>
+>> Could you try it and send me the whole dmsg output?
+> 
+> Actually, the machine is now running -rc2, so the patch doesn't quite
+> apply: 
+> 
+> jejb@sparkweed> patch -p1 < ~/tmp.diff
+> patching file include/linux/pci-acpi.h
+> patching file drivers/pci/hotplug/acpiphp_glue.c
+> Hunk #1 FAILED at 266.
+> Hunk #2 succeeded at 467 (offset 2 lines).
+> Hunk #3 succeeded at 489 (offset 2 lines).
+> Hunk #4 succeeded at 518 (offset 2 lines).
+> Hunk #5 succeeded at 556 (offset 2 lines).
+> 
+> Looks like the rejection is in the NULL check piece, so I've already
+> actually sent you the information it would produce.
+> 
+> The dmesg output is pretty big, below.
+> 
 
-Cc: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
----
- drivers/acpi/glue.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thank you very much, James.
 
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -255,12 +255,12 @@ static int acpi_platform_notify(struct d
- 	}
- 	type = acpi_get_bus_type(dev->bus);
- 	if (!type) {
--		DBG("No ACPI bus support for %s\n", dev->bus_id);
-+		DBG("No ACPI bus support for %s\n", dev_name(dev));
- 		ret = -EINVAL;
- 		goto end;
- 	}
- 	if ((ret = type->find_device(dev, &handle)) != 0)
--		DBG("Can't get handler for %s\n", dev->bus_id);
-+		DBG("Can't get handler for %s\n", dev_name(dev));
-       end:
- 	if (!ret)
- 		acpi_bind_one(dev, handle);
-@@ -271,10 +271,10 @@ static int acpi_platform_notify(struct d
- 
- 		acpi_get_name(dev->archdata.acpi_handle,
- 			      ACPI_FULL_PATHNAME, &buffer);
--		DBG("Device %s -> %s\n", dev->bus_id, (char *)buffer.pointer);
-+		DBG("Device %s -> %s\n", dev_name(dev), (char *)buffer.pointer);
- 		kfree(buffer.pointer);
- 	} else
--		DBG("Device %s -> No ACPI support\n", dev->bus_id);
-+		DBG("Device %s -> No ACPI support\n", dev_name(dev));
- #endif
- 
- 	return ret;
+Thanks to you, I found the root cause of the
+problem. The acpi_pci_get_bridge_handle() function assumes
+pci_bus->self is NULL on the root bus. But it is not true
+and pci_bus->self can have a non-NULL value on some
+platfroms (like yours). So it must check pci_bus->parent
+instead.
 
+I found some other code that has the same wrong assumption.
+I'll make a fix for them and send it soon.
+
+Thanks,
+Kenji Kaneshige
