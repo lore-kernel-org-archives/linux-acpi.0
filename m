@@ -1,111 +1,165 @@
-From: Grant Grundler <grundler@parisc-linux.org>
-Subject: Re: ACPI hotplug panic with current git head
-Date: Sun, 25 Jan 2009 23:21:32 -0700
-Message-ID: <20090126062132.GC4376@colo.lackof.org>
-References: <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain> <1232049269.5966.64.camel@localhost.localdomain> <1232050347.5966.66.camel@localhost.localdomain> <4970242C.4010404@jp.fujitsu.com> <1232115546.3224.5.camel@localhost.localdomain> <4973D2EE.3060203@jp.fujitsu.com> <1232328216.3247.68.camel@localhost.localdomain> <4973EF64.2050404@jp.fujitsu.com> <1232558780.736.24.camel@localhost.localdomain> <497D1BD7.9000609@jp.fujitsu.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Mon, 26 Jan 2009 09:37:21 +0100
+Message-ID: <497D7641.3090603@redhat.com>
+References: <20090125210520.GA12963@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <497D1BD7.9000609@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>, shaohua.li@intel.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.redhat.com ([66.187.237.31]:51543 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750979AbZAZIek (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jan 2009 03:34:40 -0500
+In-Reply-To: <20090125210520.GA12963@dreamland.darkstar.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Mon, Jan 26, 2009 at 11:11:35AM +0900, Kenji Kaneshige wrote:
-...
-> Thanks to you, I found the root cause of the
-> problem. The acpi_pci_get_bridge_handle() function assumes
-> pci_bus->self is NULL on the root bus.
-
-Mea culpa: I contributed this mess too. This worked for PA-RISC
-and lacking better guidance, is what I used in 1/2 the places.
-
-> But it is not true
-> and pci_bus->self can have a non-NULL value on some
-> platfroms (like yours). So it must check pci_bus->parent
-> instead.
-
-It is true for PA-RISC and some other architectures.
-These architectures don't provide fake PCI devices
-(emulated PCI config space) for Host-PCI Bus controllers.
-
-> I found some other code that has the same wrong assumption.
-> I'll make a fix for them and send it soon.
-
-I would like to keep the code consistent. Attached is a patch
-for drivers/parisc. Please include with my
-    Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
-
-Or if you prefer, I can repost as a separate patch.
-
-I've compiled the iosapic/lba changes and will test those shortly.
-I have no HW (by choice) to test the dino code change.
-
-thanks,
-grant
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
 
-diff --git a/drivers/parisc/dino.c b/drivers/parisc/dino.c
-index d539d9d..f79266c 100644
---- a/drivers/parisc/dino.c
-+++ b/drivers/parisc/dino.c
-@@ -587,7 +587,7 @@ dino_fixup_bus(struct pci_bus *bus)
- 			bus->resource[i+1] = &res[i];
- 		}
- 
--	} else if(bus->self) {
-+	} else if (bus->parent) {
- 		int i;
- 
- 		pci_read_bridge_bases(bus);
-diff --git a/drivers/parisc/iosapic.c b/drivers/parisc/iosapic.c
-index 0797659..1cdfdea 100644
---- a/drivers/parisc/iosapic.c
-+++ b/drivers/parisc/iosapic.c
-@@ -487,7 +487,7 @@ iosapic_xlate_pin(struct iosapic_info *isi, struct pci_dev *pcidev)
- 	}
- 
- 	/* Check if pcidev behind a PPB */
--	if (NULL != pcidev->bus->self) {
-+	if (pcidev->bus->parent) {
- 		/* Convert pcidev INTR_PIN into something we
- 		** can lookup in the IRT.
- 		*/
-@@ -523,10 +523,9 @@ iosapic_xlate_pin(struct iosapic_info *isi, struct pci_dev *pcidev)
- #endif /* PCI_BRIDGE_FUNCS */
- 
- 		/*
--		** Locate the host slot the PPB nearest the Host bus
--		** adapter.
--		*/
--		while (NULL != p->parent->self)
-+		 * Locate the host slot of the PPB.
-+		 */
-+		while (p->parent->parent)
- 			p = p->parent;
- 
- 		intr_slot = PCI_SLOT(p->self->devfn);
-diff --git a/drivers/parisc/lba_pci.c b/drivers/parisc/lba_pci.c
-index d8233de..59fbbf1 100644
---- a/drivers/parisc/lba_pci.c
-+++ b/drivers/parisc/lba_pci.c
-@@ -644,7 +644,7 @@ lba_fixup_bus(struct pci_bus *bus)
- 	** Properly Setup MMIO resources for this bus.
- 	** pci_alloc_primary_bus() mangles this.
- 	*/
--	if (bus->self) {
-+	if (bus->parent) {
- 		int i;
- 		/* PCI-PCI Bridge */
- 		pci_read_bridge_bases(bus);
-@@ -802,7 +802,7 @@ lba_fixup_bus(struct pci_bus *bus)
- ** Can't fixup here anyway....garr...
- */
- 	if (fbb_enable) {
--		if (bus->self) {
-+		if (bus->parent) {
- 			u8 control;
- 			/* enable on PPB */
- 			(void) pci_read_config_byte(bus->self, PCI_BRIDGE_CONTROL, &control);
+
+Luca Tettamanti wrote:
+> (This is an improved version of my earlier patch, I've reworked deviced
+> detection to simply check for the desired HID)
+> 
+> The following patch adds "auto" option to "acpi_enforce_resource"; this value
+> is also the new default.
+> "auto" enforces strict resource checking - disallowing access by native drivers
+> to IO ports and memory regions claimed by ACPI firmware - when a device with a
+> known ACPI driver is found (currently only ASUS ATK0110 is checked), and
+> reverts to lax checking otherwise.
+> 
+> The patch is mainly aimed to block native hwmon drivers from touching
+> monitoring chips that ACPI thinks it own.
+> 
+> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+
+This looks very good!
+
+ACPI team, any chance we can get this in the mainline?
+
+We want to add a driver (for the asus atk0110 ACPI interface) to the hwmon 
+subsys which talks to hwmon IC's through ACPI, but before we can do that we 
+must make sure that potentially conflicting native IC drivers do not load.
+
+Thanks & Regards,
+
+Hans
+
+> ---
+> New revision, now it simply checks the HID.
+> 
+>  Documentation/kernel-parameters.txt |   19 ++++++++++++++++
+>  drivers/acpi/osl.c                  |   41 +++++++++++++++++++++++++++++++++---
+>  2 files changed, 57 insertions(+), 3 deletions(-)
+> 
+> Index: b/Documentation/kernel-parameters.txt
+> ===================================================================
+> --- a/Documentation/kernel-parameters.txt	2009-01-17 21:22:49.218882286 +0100
+> +++ b/Documentation/kernel-parameters.txt	2009-01-21 23:25:41.262478018 +0100
+> @@ -258,6 +258,25 @@
+>  			to assume that this machine's pmtimer latches its value
+>  			and always returns good values.
+>  
+> +	acpi_enforce_resources=	[ACPI]
+> +			{ strict, auto, lax, no }
+> +			Check for resource conflicts between native drivers
+> +			and ACPI OperationRegions (SystemIO and System Memory
+> +			only). IO ports and memory declared in ACPI might be
+> +			used by the ACPI subsystem in arbitrary AML code and
+> +			can interfere with legacy drivers.
+> +			strict: access to resources claimed by ACPI is denied;
+> +			legacy drivers trying to access reserved resources
+> +			will fail to load.
+> +			auto (default): try and detect ACPI devices with known
+> +			ACPI drivers; escalates the setting to "strict" if such
+> +			a device is found, otherwise behaves like "lax".
+> +			lax: access to resources claimed by ACPI is allowed;
+> +			legacy drivers trying to access reserved resources
+> +			will load and a warning message is logged.
+> +			no: ACPI OperationRegions are not marked as reserved,
+> +			no further checks are performed.
+> +
+>  	agp=		[AGP]
+>  			{ off | try_unsupported }
+>  			off: disable AGP support
+> Index: b/drivers/acpi/osl.c
+> ===================================================================
+> --- a/drivers/acpi/osl.c	2009-01-17 21:22:49.190882303 +0100
+> +++ b/drivers/acpi/osl.c	2009-01-25 22:04:30.759209000 +0100
+> @@ -1063,7 +1063,10 @@
+>   * in arbitrary AML code and can interfere with legacy drivers.
+>   * acpi_enforce_resources= can be set to:
+>   *
+> - *   - strict           (2)
+> + *   - auto             (2)
+> + *     -> detect possible conflicts with ACPI drivers and switch to
+> + *     strict if needed, otherwise act like lax
+> + *   - strict           (3)
+>   *     -> further driver trying to access the resources will not load
+>   *   - lax (default)    (1)
+>   *     -> further driver trying to access the resources will load, but you
+> @@ -1073,11 +1076,12 @@
+>   *     -> ACPI Operation Region resources will not be registered
+>   *
+>   */
+> -#define ENFORCE_RESOURCES_STRICT 2
+> +#define ENFORCE_RESOURCES_STRICT 3
+> +#define ENFORCE_RESOURCES_AUTO   2
+>  #define ENFORCE_RESOURCES_LAX    1
+>  #define ENFORCE_RESOURCES_NO     0
+>  
+> -static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+> +static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
+>  
+>  static int __init acpi_enforce_resources_setup(char *str)
+>  {
+> @@ -1086,6 +1090,8 @@
+>  
+>  	if (!strcmp("strict", str))
+>  		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+> +	else if (!strcmp("auto", str))
+> +		acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
+>  	else if (!strcmp("lax", str))
+>  		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+>  	else if (!strcmp("no", str))
+> @@ -1096,6 +1102,35 @@
+>  
+>  __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
+>  
+> +static acpi_status acpi_detect_asus_atk_cb(acpi_handle obj_handle,
+> +		u32 nesting_level, void *context, void **return_value)
+> +{
+> +	*((bool *)return_value) = true;
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +static int __init acpi_detect_asus_atk(void)
+> +{
+> +	acpi_status ret;
+> +	bool found = false;
+> +
+> +	if (acpi_enforce_resources != ENFORCE_RESOURCES_AUTO)
+> +		return 0;
+> +
+> +	ret = acpi_get_devices("ATK0110", acpi_detect_asus_atk_cb,
+> +			NULL, (void **)&found);
+> +
+> +	if (ret == AE_OK && found) {
+> +		printk(KERN_DEBUG "Asus ATK0110 interface detected: "
+> +				"enforcing resource checking.\n");
+> +		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+> +	} else
+> +		acpi_enforce_resources =  ENFORCE_RESOURCES_LAX;
+> +
+> +	return 0;
+> +}
+> +fs_initcall(acpi_detect_asus_atk);
+> +
+>  /* Check for resource conflicts between ACPI OperationRegions and native
+>   * drivers */
+>  int acpi_check_resource_conflict(struct resource *res)
+> 
+> 
+> Luca
