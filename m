@@ -1,62 +1,83 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
-Subject: Re: How should I handle device with two PNP-BIOS ids?
-Date: Tue, 27 Jan 2009 19:17:52 +0200
-Message-ID: <20090127171752.GI4996@sci.fi>
-References: <497d80991ef709.35340258@wp.pl> <200901261513.32348.bjorn.helgaas@hp.com> <20090127094255.fc038987.krzysztof.h1@wp.pl> <200901270852.52153.bjorn.helgaas@hp.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] ACPI: dock: Don't eval _STA on every show_docked sysfs
+ read
+Date: Tue, 27 Jan 2009 13:04:55 -0800
+Message-ID: <20090127130455.2c1b0cd4.akpm@linux-foundation.org>
+References: <1232450304.5286.4.camel@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756926AbZA0RSQ@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200901270852.52153.bjorn.helgaas@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>, Adam Belay <abelay@mit.edu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34662 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753397AbZA0VFp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Jan 2009 16:05:45 -0500
+In-Reply-To: <1232450304.5286.4.camel@homac.suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: hmacht@suse.de
+Cc: linux-acpi@vger.kernel.org, stable@kernel.org, lenb@kernel.org, Li@suse.de, shaohua.li@intel.com, marvin@mydatex.cz
 
-On Tue, Jan 27, 2009 at 08:52:51AM -0700, Bjorn Helgaas wrote:
-> On Tuesday 27 January 2009 01:42:55 am Krzysztof Helt wrote:
-> > On Mon, 26 Jan 2009 15:13:31 -0700
-> > Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > > Systems with the old chip probably report the device with a singl=
-e
-> > > PNP ID.  For PNPBIOS, that would be the "device product identifie=
-r."
-> > > For ACPI, it would be the _HID.
-> > >=20
-> > > Systems with the new chip should report both PNP IDs.  The PNPBIO=
-S
-> > > device product identifier or the ACPI _HID should be the new ID, =
-and
-> > > the older ID for backward compatibility should be reported in the
-> > > PNPBIOS "compatible device identifiers" list or the ACPI _CID.
-> > >=20
-> > > The driver would list both IDs in the pnp_device_id table, and it
-> > > looks like the driver probe routine gets called with the ID that
-> > > matched.
-> > >=20
-> > > I don't see any drivers that actually do this, but I think the
-> > > probe routine should be able to look at the ID that matched and
-> > > determine whether the additional I/O range is present.
-> >=20
-> > The laptop in question is the Dell Latitude CPi and it does not
-> > have ACPI only the PnP BIOS.=20
-> > The both ids are reported as unrelated (two separate nodes in=20
-> > the /sys/bus/pnp/).
->=20
-> Oh.  That sounds like a BIOS bug.  If there's only one actual
-> chip, the BIOS should not report it as two separate devices.
+On Tue, 20 Jan 2009 12:18:24 +0100
+Holger Macht <hmacht@suse.de> wrote:
 
-It's not a bug. The cs423x chips contain several logical devices.
-WSS, MPU401, joystick etc. The control logical device (which is
-not present in the early models) is unfortunately some kind of dumping
-ground for new registers to keep the other logical devices' backwards
-compatible. It contains at least some extra mixer control registers and
-power management registers.
+> Cc: stable@kernel.org
 
-The datasheets are available at ftp.alsa-project.org.
+The patch applied OK to 2.6.28 but not to any earlier kernel.  If we
+decide that it should be backported to 2.6.27 or earlier, a new patch
+might be needed for that.
 
---=20
-Ville Syrj=E4l=E4
-syrjala@sci.fi
-http://www.sci.fi/~syrjala/
+> Some devices trigger a DEVICE_CHECK on every evalutation of _STA. This
+> can also be seen in commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db
+> (ACPI: dock: avoid check _STA method).  If an undock is processed, the
+> dock driver sends a uevent and userspace might read the show_docked
+> property in sysfs. This causes an evaluation of _STA of the particular
+> device which causes the dock driver to immediately dock again.
+> 
+> In any case, evaluation of _STA (show_docked) does not necessarily mean
+> that we are docked, so check with the internal device structure.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=12360
+> 
+> Signed-off-by: Holger Macht <hmacht@suse.de>
+> ---
+> 
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index 5b30b8d..afd5db3 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -855,10 +855,14 @@ fdd_out:
+>  static ssize_t show_docked(struct device *dev,
+>  			   struct device_attribute *attr, char *buf)
+>  {
+> +	struct acpi_device *tmp;
+> +
+>  	struct dock_station *dock_station = *((struct dock_station **)
+>  		dev->platform_data);
+> -	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
+>  
+> +	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
+> +		return snprintf(buf, PAGE_SIZE, "1\n");
+> +	return snprintf(buf, PAGE_SIZE, "0\n");
+>  }
+>  static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+
+That seems a little overwrought.  Won't plain old strcpy suffice?
+
+
+--- a/drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification
++++ a/drivers/acpi/dock.c
+@@ -861,8 +861,8 @@ static ssize_t show_docked(struct device
+ 		dev->platform_data);
+ 
+ 	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
+-		return snprintf(buf, PAGE_SIZE, "1\n");
+-	return snprintf(buf, PAGE_SIZE, "0\n");
++		return strcpy(buf, "1\n");
++	return strcpy(buf, "0\n");
+ }
+ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+ 
+_
+
