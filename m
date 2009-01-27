@@ -1,40 +1,51 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: suspend to ram regression from 2.6.28 to 2.6.29-rc2
-Date: Tue, 27 Jan 2009 01:02:38 +0100
-Message-ID: <20090127000238.GA2138@gamma.logic.tuwien.ac.at>
-References: <20090126221554.GA15492@gamma.logic.tuwien.ac.at> <497E3750.8030501@dbservice.com>
+From: Web Help Desk <info@helpdesk.com>
+Subject: ***********Account Verification Update !
+ ! !************
+Date: Tue, 27 Jan 2009 04:15:34 +0200 (IST)
+Message-ID: <20090127041534.HAQ05375@mas21.bezeqint.net>
+Reply-To: helpdeskcenter11@live.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:42859 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542AbZA0ACw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jan 2009 19:02:52 -0500
-Content-Disposition: inline
-In-Reply-To: <497E3750.8030501@dbservice.com>
+Received: from omr2.bezeqint.net ([192.115.104.10]:50964 "EHLO
+	omr2.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768AbZA0CRb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jan 2009 21:17:31 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomas Carnecky <tom@dbservice.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mo, 26 Jan 2009, Tomas Carnecky wrote:
-> Try this: http://bugzilla.kernel.org/show_bug.cgi?id=12495#c2
-> With the four patches (three linked to directly and the one from bug 
-> 12422) I can suspend and resume fine.
+The Helpdesk Program that periodically checks the size of 
+your e-mail  
+space is sending you this information. The program runs 
+weekly to  
+ensure your inbox does not grow too large, thus preventing 
+you from  
+receiving or sending new e-mail. As this message is being 
+sent, you  
+have 18 megabytes (MB) or more stored in your inbox. To help 
+us reset  
+your space in our database, please enter your current user 
+name  
+(_________________)  password (_______________) 
 
-Confirmed. Adding these four patches make S2R work again.
+You will receive a periodic alert if your inbox size is 
+between 18 and  
+20 MB. If your inbox size is 20 MB, a program on your 
+Webmail will  
+move your oldest e-mails to a folder in your home directory 
+to ensure  
+you can continue receiving incoming e-mail. You will be 
+notified this  
+has taken place. 
 
-Thanks a lot.
+If your inbox grows to 25 MB, you will be unable to receive 
+new e-mail  
+and it will be returned to sender. All this is programmed to 
+ensure  
+your e-mail continues to function well. 
 
-Best wishes
+Thank you for your cooperation. 
+Help Desk.
+Important: Email Account Verification Update ! ! !
 
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-CLUN (n.)
-A leg which has gone to sleep and has to be hauled around after you.
-			--- Douglas Adams, The Meaning of Liff
