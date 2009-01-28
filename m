@@ -1,83 +1,87 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] ACPI: dock: Don't eval _STA on every show_docked sysfs
- read
-Date: Tue, 27 Jan 2009 13:04:55 -0800
-Message-ID: <20090127130455.2c1b0cd4.akpm@linux-foundation.org>
-References: <1232450304.5286.4.camel@homac.suse.de>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: ACPI hotplug panic with current git head
+Date: Wed, 28 Jan 2009 20:47:29 +0900
+Message-ID: <498045D1.60005@jp.fujitsu.com>
+References: <1231604250.3642.33.camel@localhost.localdomain>	 <alpine.LFD.2.00.0901121604380.5859@localhost.localdomain>	 <1231807693.27151.21.camel@localhost.localdomain>	 <1232046108.5966.57.camel@localhost.localdomain>	 <alpine.LFD.2.00.0901151421110.4737@localhost.localdomain>	 <1232049269.5966.64.camel@localhost.localdomain>	 <1232050347.5966.66.camel@localhost.localdomain>	 <4970242C.4010404@jp.fujitsu.com>	 <1232115546.3224.5.camel@localhost.localdomain>	 <4973D2EE.3060203@jp.fujitsu.com>	 <1232328216.3247.68.camel@localhost.localdomain>	 <4973EF64.2050404@jp.fujitsu.com> <1232558780.736.24.camel@localhost.localdomain> <497D1BD7.9000609@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34662 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753397AbZA0VFp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Jan 2009 16:05:45 -0500
-In-Reply-To: <1232450304.5286.4.camel@homac.suse.de>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:60244 "EHLO
+	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbZA1Lrr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jan 2009 06:47:47 -0500
+In-Reply-To: <497D1BD7.9000609@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hmacht@suse.de
-Cc: linux-acpi@vger.kernel.org, stable@kernel.org, lenb@kernel.org, Li@suse.de, shaohua.li@intel.com, marvin@mydatex.cz
+To: linux-pci@vger.kernel.org, "Barnes, Jesse" <jesse.barnes@intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, shaohua.li@intel.com, Grant Grundler <grundler@parisc-linux.org>
 
-On Tue, 20 Jan 2009 12:18:24 +0100
-Holger Macht <hmacht@suse.de> wrote:
-
-> Cc: stable@kernel.org
-
-The patch applied OK to 2.6.28 but not to any earlier kernel.  If we
-decide that it should be backported to 2.6.27 or earlier, a new patch
-might be needed for that.
-
-> Some devices trigger a DEVICE_CHECK on every evalutation of _STA. This
-> can also be seen in commit 8b59560a3baf2e7c24e0fb92ea5d09eca92805db
-> (ACPI: dock: avoid check _STA method).  If an undock is processed, the
-> dock driver sends a uevent and userspace might read the show_docked
-> property in sysfs. This causes an evaluation of _STA of the particular
-> device which causes the dock driver to immediately dock again.
+Kenji Kaneshige wrote:
+> James Bottomley wrote:
+>> On Mon, 2009-01-19 at 12:11 +0900, Kenji Kaneshige wrote:
+>>> I'm sending the debug patch against 2.6.29-rc1 below. I'm also
+>>> sending it as an attachment. It also contains the code to prevent
+>>> the kernel panic from you. Please note that you will see two
+>>> WARN_ON(1) messages with the patch. Those are shown by my debug
+>>> patch.
+>>>
+>>> Could you try it and send me the whole dmsg output?
+>> Actually, the machine is now running -rc2, so the patch doesn't quite
+>> apply: 
+>>
+>> jejb@sparkweed> patch -p1 < ~/tmp.diff
+>> patching file include/linux/pci-acpi.h
+>> patching file drivers/pci/hotplug/acpiphp_glue.c
+>> Hunk #1 FAILED at 266.
+>> Hunk #2 succeeded at 467 (offset 2 lines).
+>> Hunk #3 succeeded at 489 (offset 2 lines).
+>> Hunk #4 succeeded at 518 (offset 2 lines).
+>> Hunk #5 succeeded at 556 (offset 2 lines).
+>>
+>> Looks like the rejection is in the NULL check piece, so I've already
+>> actually sent you the information it would produce.
+>>
+>> The dmesg output is pretty big, below.
+>>
 > 
-> In any case, evaluation of _STA (show_docked) does not necessarily mean
-> that we are docked, so check with the internal device structure.
+> Thank you very much, James.
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=12360
+> Thanks to you, I found the root cause of the
+> problem. The acpi_pci_get_bridge_handle() function assumes
+> pci_bus->self is NULL on the root bus. But it is not true
+> and pci_bus->self can have a non-NULL value on some
+> platfroms (like yours). So it must check pci_bus->parent
+> instead.
 > 
-> Signed-off-by: Holger Macht <hmacht@suse.de>
-> ---
+> I found some other code that has the same wrong assumption.
+> I'll make a fix for them and send it soon.
 > 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 5b30b8d..afd5db3 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -855,10 +855,14 @@ fdd_out:
->  static ssize_t show_docked(struct device *dev,
->  			   struct device_attribute *attr, char *buf)
->  {
-> +	struct acpi_device *tmp;
-> +
->  	struct dock_station *dock_station = *((struct dock_station **)
->  		dev->platform_data);
-> -	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
->  
-> +	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
-> +		return snprintf(buf, PAGE_SIZE, "1\n");
-> +	return snprintf(buf, PAGE_SIZE, "0\n");
->  }
->  static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
 
-That seems a little overwrought.  Won't plain old strcpy suffice?
+I made several patches to fix the wrong assumption described
+above. It is very difficult for me to check all the code that
+refers pci_bus->self. So I checked include/linux/pci-acpi.h and
+the code under drivers/pci/ only. And I made patches for the code
+like below:
 
+ - The code that clearly chooses host bridge operation or
+   PCI-to-PCI bridge operation based on pci_bus->self.
 
---- a/drivers/acpi/dock.c~acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification
-+++ a/drivers/acpi/dock.c
-@@ -861,8 +861,8 @@ static ssize_t show_docked(struct device
- 		dev->platform_data);
- 
- 	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
--		return snprintf(buf, PAGE_SIZE, "1\n");
--	return snprintf(buf, PAGE_SIZE, "0\n");
-+		return strcpy(buf, "1\n");
-+	return strcpy(buf, "0\n");
- }
- static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
- 
-_
+ - The code that might cause endless loop if pci_bus->self is
+   not NULL on the PCI root bus.
+
+The patches are
+
+ - [PATCH 1/8] PCI/ACPI: fix wrong assumption in acpi_pci_get_bridge_handle
+ - [PATCH 2/8] PCI/ACPI: fix wrong assumption in acpi_find_root_bridge_handle
+ - [PATCH 3/8] PCI hotplug: fix wrong assumption in acpi_get_hp_params_from_firmware
+ - [PATCH 4/8] PCI hotplug: fix wrong assumption in acpi_get_hp_hw_control_from_firmware
+ - [PATCH 5/8] PCI: fix wrong assumption in pci_find_upstream_pcie_bridge
+ - [PATCH 6/8] PCI: fix wrong assumption in pci_read_bridge_bases
+ - [PATCH 7/8] PCI: fix wrong assumption in pci_get_interrupt_pin
+ - [PATCH 8/8] PCI: fix wrong assumption in pci_common_swizzle
+
+Thanks,
+Kenji Kaneshige
+
 
