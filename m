@@ -1,78 +1,243 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Thu, 29 Jan 2009 16:16:38 +0100
-Message-ID: <68676e00901290716g1aabd6c0p1e5202fbdbc659a4@mail.gmail.com>
-References: <20090125210520.GA12963@dreamland.darkstar.lan>
-	 <200901291130.35434.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] ACPI: cpufreq: Remove deprecated /proc/acpi/processor/../performance proc entries
+Date: Thu, 29 Jan 2009 16:22:57 +0100
+Message-ID: <1233242577-2880-8-git-send-email-trenn@suse.de>
+References: <1233242577-2880-1-git-send-email-trenn@suse.de>
+ <1233242577-2880-2-git-send-email-trenn@suse.de>
+ <1233242577-2880-3-git-send-email-trenn@suse.de>
+ <1233242577-2880-4-git-send-email-trenn@suse.de>
+ <1233242577-2880-5-git-send-email-trenn@suse.de>
+ <1233242577-2880-6-git-send-email-trenn@suse.de>
+ <1233242577-2880-7-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:34743 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753607AbZA2PQl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jan 2009 10:16:41 -0500
-In-Reply-To: <200901291130.35434.trenn@suse.de>
+Received: from mx2.suse.de ([195.135.220.15]:44180 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750701AbZA2PW7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Jan 2009 10:22:59 -0500
+In-Reply-To: <1233242577-2880-7-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, khali@linux-fr.org
+To: davej@codemonkey.org.uk, cpufreq@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, Linux ACPI list <linux-acpi@vger.kernel.org>
 
-On Thu, Jan 29, 2009 at 11:30 AM, Thomas Renninger <trenn@suse.de> wrote:
-> On Sunday 25 January 2009 22:05:20 Luca Tettamanti wrote:
->> (This is an improved version of my earlier patch, I've reworked deviced
->> detection to simply check for the desired HID)
->>
->> The following patch adds "auto" option to "acpi_enforce_resource"; this
->> value is also the new default.
->> "auto" enforces strict resource checking - disallowing access by native
->> drivers to IO ports and memory regions claimed by ACPI firmware - when a
->> device with a known ACPI driver is found (currently only ASUS ATK0110 is
->> checked), and reverts to lax checking otherwise.
->>
->> The patch is mainly aimed to block native hwmon drivers from touching
->> monitoring chips that ACPI thinks it own.
->
-> Having this in the core ACPI code is ugly.
+They were long enough set deprecated...
 
-I think we all agree :-)
+Update Documentation/cpu-freq/users-guide.txt:
+The deprecated files listed there seen not to exist for some time anymore
+already.
 
-> Either this should be more generic (instead of hardcoded "ATK0110" device,
-> use a list to add further specific thermal ACPI drivers). Hmm, maybe it's
-> only ASUS violating the spec?
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: Linux ACPI list <linux-acpi@vger.kernel.org>
+---
+ Documentation/cpu-freq/user-guide.txt |   16 -----
+ arch/x86/kernel/cpu/cpufreq/Kconfig   |   11 ----
+ drivers/acpi/processor_perflib.c      |  105 ---------------------------------
+ 3 files changed, 0 insertions(+), 132 deletions(-)
 
-ASUS it's not actually violating any spec...
+diff --git a/Documentation/cpu-freq/user-guide.txt b/Documentation/cpu-freq/user-guide.txt
+index 57f23cb..75f4119 100644
+--- a/Documentation/cpu-freq/user-guide.txt
++++ b/Documentation/cpu-freq/user-guide.txt
+@@ -207,19 +207,3 @@ scaling_setspeed.		By "echoing" a new frequency into this
+ 				you can change the speed of the CPU,
+ 				but only within the limits of
+ 				scaling_min_freq and scaling_max_freq.
+-				
+-
+-3.2 Deprecated Interfaces
+--------------------------
+-
+-Depending on your kernel configuration, you might find the following 
+-cpufreq-related files:
+-/proc/cpufreq
+-/proc/sys/cpu/*/speed
+-/proc/sys/cpu/*/speed-min
+-/proc/sys/cpu/*/speed-max
+-
+-These are files for deprecated interfaces to cpufreq, which offer far
+-less functionality. Because of this, these interfaces aren't described
+-here.
+-
+diff --git a/arch/x86/kernel/cpu/cpufreq/Kconfig b/arch/x86/kernel/cpu/cpufreq/Kconfig
+index b63b0db..52c8398 100644
+--- a/arch/x86/kernel/cpu/cpufreq/Kconfig
++++ b/arch/x86/kernel/cpu/cpufreq/Kconfig
+@@ -230,17 +230,6 @@ config X86_E_POWERSAVER
+ 
+ comment "shared options"
+ 
+-config X86_ACPI_CPUFREQ_PROC_INTF
+-	bool "/proc/acpi/processor/../performance interface (deprecated)"
+-	depends on PROC_FS
+-	depends on X86_ACPI_CPUFREQ || X86_POWERNOW_K7_ACPI || X86_POWERNOW_K8_ACPI
+-	help
+-	  This enables the deprecated /proc/acpi/processor/../performance
+-	  interface. While it is helpful for debugging, the generic,
+-	  cross-architecture cpufreq interfaces should be used.
+-
+-	  If in doubt, say N.
+-
+ config X86_SPEEDSTEP_LIB
+ 	tristate
+ 	default (X86_SPEEDSTEP_ICH || X86_SPEEDSTEP_SMI || X86_P4_CLOCKMOD)
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 846e227..9cc769b 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -31,14 +31,6 @@
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+ 
+-#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/mutex.h>
+-
+-#include <asm/uaccess.h>
+-#endif
+-
+ #ifdef CONFIG_X86
+ #include <asm/cpufeature.h>
+ #endif
+@@ -434,96 +426,6 @@ int acpi_processor_notify_smm(struct module *calling_module)
+ 
+ EXPORT_SYMBOL(acpi_processor_notify_smm);
+ 
+-#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+-/* /proc/acpi/processor/../performance interface (DEPRECATED) */
+-
+-static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file);
+-static struct file_operations acpi_processor_perf_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_processor_perf_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_processor_perf_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_processor *pr = seq->private;
+-	int i;
+-
+-
+-	if (!pr)
+-		goto end;
+-
+-	if (!pr->performance) {
+-		seq_puts(seq, "<not supported>\n");
+-		goto end;
+-	}
+-
+-	seq_printf(seq, "state count:             %d\n"
+-		   "active state:            P%d\n",
+-		   pr->performance->state_count, pr->performance->state);
+-
+-	seq_puts(seq, "states:\n");
+-	for (i = 0; i < pr->performance->state_count; i++)
+-		seq_printf(seq,
+-			   "   %cP%d:                  %d MHz, %d mW, %d uS\n",
+-			   (i == pr->performance->state ? '*' : ' '), i,
+-			   (u32) pr->performance->states[i].core_frequency,
+-			   (u32) pr->performance->states[i].power,
+-			   (u32) pr->performance->states[i].transition_latency);
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_processor_perf_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static void acpi_cpufreq_add_file(struct acpi_processor *pr)
+-{
+-	struct acpi_device *device = NULL;
+-
+-
+-	if (acpi_bus_get_device(pr->handle, &device))
+-		return;
+-
+-	/* add file 'performance' [R/W] */
+-	proc_create_data(ACPI_PROCESSOR_FILE_PERFORMANCE, S_IFREG | S_IRUGO,
+-			 acpi_device_dir(device),
+-			 &acpi_processor_perf_fops, acpi_driver_data(device));
+-	return;
+-}
+-
+-static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
+-{
+-	struct acpi_device *device = NULL;
+-
+-
+-	if (acpi_bus_get_device(pr->handle, &device))
+-		return;
+-
+-	/* remove file 'performance' */
+-	remove_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
+-			  acpi_device_dir(device));
+-
+-	return;
+-}
+-
+-#else
+-static void acpi_cpufreq_add_file(struct acpi_processor *pr)
+-{
+-	return;
+-}
+-static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
+-{
+-	return;
+-}
+-#endif				/* CONFIG_X86_ACPI_CPUFREQ_PROC_INTF */
+-
+ static int acpi_processor_get_psd(struct acpi_processor	*pr)
+ {
+ 	int result = 0;
+@@ -747,14 +649,12 @@ err_ret:
+ }
+ EXPORT_SYMBOL(acpi_processor_preregister_performance);
+ 
+-
+ int
+ acpi_processor_register_performance(struct acpi_processor_performance
+ 				    *performance, unsigned int cpu)
+ {
+ 	struct acpi_processor *pr;
+ 
+-
+ 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+ 		return -EINVAL;
+ 
+@@ -781,8 +681,6 @@ acpi_processor_register_performance(struct acpi_processor_performance
+ 		return -EIO;
+ 	}
+ 
+-	acpi_cpufreq_add_file(pr);
+-
+ 	mutex_unlock(&performance_mutex);
+ 	return 0;
+ }
+@@ -795,7 +693,6 @@ acpi_processor_unregister_performance(struct acpi_processor_performance
+ {
+ 	struct acpi_processor *pr;
+ 
+-
+ 	mutex_lock(&performance_mutex);
+ 
+ 	pr = per_cpu(processors, cpu);
+@@ -808,8 +705,6 @@ acpi_processor_unregister_performance(struct acpi_processor_performance
+ 		kfree(pr->performance->states);
+ 	pr->performance = NULL;
+ 
+-	acpi_cpufreq_remove_file(pr);
+-
+ 	mutex_unlock(&performance_mutex);
+ 
+ 	return;
+-- 
+1.6.0.2
 
-> Thinkpads seem to read out extra thermal
-> data from EC and shouldn't interfere with hwmon drivers.
-
-The point is that there is only 1 physical sensor, which both ACPI and
-a native driver want to drive; transaction on SMBus to read the sensor
-are usually in the form "select bank" + "read" and the sequence is
-*not* atomic. In ASUS case the IO ports are correctly reserved by the
-firmware, but (historically) this wasn't taken into account.
-Aside from ASUS the problem is generic since there are two drivers
-poking at the same hardware; for example there are reports of native
-drivers interfering with normal TZ polling (see [1]). The EC does not
-make any difference, since a native driver would speak directly to the
-monitoring chip, effectively by-passing the EC.
-Now, in principle "strict" is the correct behaviour for the resource
-checking code, but it would break many working setups leaving the
-users without any kind of hw monitoring. The "auto" hack is meant to
-force the users to migrate to the ACPI driver...
-
-> Are there other known, model specific ACPI devices,
-> accessing thermal IOs directly which could interfere with hwmon, then it
-> might be worth it.
-
-Right now "auto" is ASUS-specific because *I* know that there any many
-different native drivers that works on various boards (and I wrote the
-the ACPI driver...); At least eeepc and (some?) thinkpads have ACPI
-hwmon capabilities but I don't know whether there are native drivers
-available or not (but they could be "blacklisted"  preemptively like
-ASUS ATK).
-
-
-Luca
-[1] http://www.lm-sensors.org/ticket/2072 and:
-http://thread.gmane.org/gmane.linux.drivers.sensors/12359
