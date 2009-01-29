@@ -1,22 +1,23 @@
 From: Thomas Renninger <trenn@suse.de>
 Subject: [PATCH] ACPI: cpufreq: Remove deprecated /proc/acpi/processor/../performance proc entries
-Date: Thu, 29 Jan 2009 16:00:36 +0100
-Message-ID: <1233241236-24578-7-git-send-email-trenn@suse.de>
-References: <1233241236-24578-1-git-send-email-trenn@suse.de>
- <1233241236-24578-2-git-send-email-trenn@suse.de>
- <1233241236-24578-3-git-send-email-trenn@suse.de>
- <1233241236-24578-4-git-send-email-trenn@suse.de>
- <1233241236-24578-5-git-send-email-trenn@suse.de>
- <1233241236-24578-6-git-send-email-trenn@suse.de>
+Date: Thu, 29 Jan 2009 16:10:20 +0100
+Message-ID: <1233241820-25853-8-git-send-email-trenn@suse.de>
+References: <1233241820-25853-1-git-send-email-trenn@suse.de>
+ <1233241820-25853-2-git-send-email-trenn@suse.de>
+ <1233241820-25853-3-git-send-email-trenn@suse.de>
+ <1233241820-25853-4-git-send-email-trenn@suse.de>
+ <1233241820-25853-5-git-send-email-trenn@suse.de>
+ <1233241820-25853-6-git-send-email-trenn@suse.de>
+ <1233241820-25853-7-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:43549 "EHLO mx2.suse.de"
+Received: from mail.suse.de ([195.135.220.2]:57626 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753951AbZA2PAi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Jan 2009 10:00:38 -0500
-In-Reply-To: <1233241236-24578-6-git-send-email-trenn@suse.de>
+	id S1759350AbZA2PKX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Jan 2009 10:10:23 -0500
+In-Reply-To: <1233241820-25853-7-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: davej@codemonkey.org.uk
+To: davej@codemonkey.org.uk, cpufreq@lists.linux.org.uk
 Cc: Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, Linux ACPI list <linux-acpi@vger.kernel.org>
 
 They were long enough set deprecated...
