@@ -1,66 +1,47 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Fri, 30 Jan 2009 00:07:58 -0800
-Message-ID: <20090130000758.1dff0113.akpm@linux-foundation.org>
-References: <4978767D.4060700@intertwingly.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [patch] ACPI battery driver emits POWER_SUPPLY_STATUS_FULL
+	when power lead plugged in (resend)
+Date: Fri, 30 Jan 2009 12:07:02 -0200
+Message-ID: <20090130140702.GA14714@khazad-dum.debian.net>
+References: <1232729843.3504.6.camel@hughsie-work.lan> <497A13C0.5020604@suse.de> <20090123220243.GB26701@khazad-dum.debian.net> <1232753981.3504.10.camel@hughsie-work.lan> <497A5D49.6070706@suse.de> <20090124124158.GC5325@khazad-dum.debian.net> <497B43D3.80703@suse.de> <1232879297.3518.26.camel@hughsie-work.lan> <20090125134203.GA12776@khazad-dum.debian.net> <1233148811.4231.0.camel@hughsie-work.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53560 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751521AbZA3IIf (ORCPT
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:40528 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752969AbZA3OHG (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Jan 2009 03:08:35 -0500
-In-Reply-To: <4978767D.4060700@intertwingly.net>
+	Fri, 30 Jan 2009 09:07:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1233148811.4231.0.camel@hughsie-work.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sam Ruby <rubys@intertwingly.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, mjg <mjg@redhat.com>, Matthias Clasen <mclasen@redhat.com>, Len Brown <lenb@kernel.org>
 
-On Thu, 22 Jan 2009 08:37:01 -0500 Sam Ruby <rubys@intertwingly.net> wrote:
-
-> Hardware summary: http://tinyurl.com/ap79ra
-> APIC details: http://intertwingly.net/stories/2009/01/22/
-> Note acpidump.err: Wrong checksum for OEMB!
+On Wed, 28 Jan 2009, Richard Hughes wrote:
+> The attached patch checks the last full and design charge, as this seems
+> to work in all cases I have here. In the case of broken batteries or
+> broken hardware, we just return UNKNOWN in this "settling" state, which
+> is much better for userspace than falling back to full.
 > 
-> Messages on boot using Intrepid, Jaunty Alpha 3, or Fedora 10:
-> 
-> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
->   Boot with apic=debug and send a report.  Then try booting with the 
-> 'noapic' option.
-> [    0.296001]
-> 
-> Able to get past this issue using "noapic", at which point things mostly 
-> work,
+> With the attached patch userspace gets the right states. In the future,
+> maybe we can do some sort of metric over time (watching to see if the
+> present charge changes) but for the most part the patch fixes things up
+> for userspace.
 
-Join the ever-growing noapic club :(
+I am ok with this patch, but it does have *one* corner case.
 
-I assume this is an ACPI problem.  Or at least, a BIOS problem which
-ACPI can solve for us.
+Brand new good batteries will be reported as full while still charging, when
+they're near 100% (they will be above the design capacity).
 
-> but rsync of large iso images result in corrupt files.  Able to 
-> copy those same files using Vista on the same machine, or using Hardy on 
-> another machine.  This problem may not be related to the above, but it 
-> seems plausible to me that this might be an interrupt issue.
+That isn't enough for me to complain about the patch, and the patch makes it
+MUCH better than the current broken behaviour.
 
-Yes, it might be unrelated.  There are no kernel messages when it happens?
+So you can have my Acked-by if you want it, for whatever little it is worth.
 
-> memtest86+ runs clean.
-> 
-> Quite willing to invest time in installing kernels or distributions on 
-> fresh hard drives, run tests, obtain debug information, and report back.
-> 
-> More background here: http://intertwingly.net/blog/2009/01/20/noAPIC
-> 
-> Not subscribed, but will actively monitor the web archives for this 
-> mailing list for the next several days.
-
-It'd be best to raise a report against ACPI?BIOS (I think) at
-bugzilla.kernel.org, please.
-
-If any previous kernel version worked OK, please be sure to note that.
-
-Thanks.
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
