@@ -1,131 +1,61 @@
-From: Myron Stowe <myron.stowe@hp.com>
-Subject: [PATCH 2/2] ACPICA: 80 column adherence (no functional change)
-Date: Fri, 30 Jan 2009 15:44:58 -0700
-Message-ID: <20090130224458.24329.8120.stgit@bob.kio>
-References: <20090130223832.24329.5434.stgit@bob.kio>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: mmotm 2009-01-28-02-17 uploaded - docking station issues.
+Date: Fri, 30 Jan 2009 21:03:52 -0800
+Message-ID: <20090130210352.cf9e4d7f.akpm@linux-foundation.org>
+References: <200901281019.n0SAJ9C6013727@imap1.linux-foundation.org>
+	<20830.1233246343@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:2284 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756677AbZA3Wo7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Jan 2009 17:44:59 -0500
-In-Reply-To: <20090130223832.24329.5434.stgit@bob.kio>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38284 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750715AbZAaFD7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 31 Jan 2009 00:03:59 -0500
+In-Reply-To: <20830.1233246343@turing-police.cc.vt.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, myron.stowe@hp.comMyron Stowe <myron.stowe@hp.com>
+To: Valdis.Kletnieks@vt.edu
+Cc: linux-kernel@vger.kernel.org, Holger Macht <hmacht@suse.de>, linux-acpi@vger.kernel.org
 
-This patch modifies a file derived from ACPI CA and as such formatting
-may come directly from the CA code or indirectly from some type of parsing
-of the original CA code.  As such, non-functional formatting changes may be
-counter productive.  If this is the case then feel free to ignore this
-component of the patch series.
+On Thu, 29 Jan 2009 11:25:43 -0500 Valdis.Kletnieks@vt.edu wrote:
 
+> On Wed, 28 Jan 2009 02:19:09 PST, akpm@linux-foundation.org said:
+> > The mm-of-the-moment snapshot 2009-01-28-02-17 has been uploaded to
+> >=20
+> >    http://userweb.kernel.org/~akpm/mmotm/
+>=20
+> % ls -l /sys/devices/platform/dock.0/docked
+> -r--r--r-- 1 root root 4096 2009-01-29 10:49 /sys/devices/platform/do=
+ck.0/docked
+> % cat /sys/devices/platform/dock.0/docked
+> =F1=DEcat: write error: Bad address
+>=20
+> strace of the cat shows:
+>=20
+> open("/sys/devices/platform/dock.0/docked", O_RDONLY) =3D 3
+> fstat(3, {st_mode=3DS_IFREG|0444, st_size=3D4096, ...}) =3D 0
+> read(3, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0=
+\0\0\0"..., 4096) =3D 1812586496
+>=20
+> Under 2.6.29-rc2-mmotm0116, this would return either "0" or "1", not =
+4K
+> of nulls.
+>=20
 
-This modification may be used under either the GPL or the BSD-style
-license used for Intel ACPI CA code.
+Is it due to=20
 
-Signed-off-by: Myron Stowe <myron.stowe@hp.com>
----
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read.patch
 
- drivers/acpi/acpica/tbutils.c |   36 +++++++++++++++++++++++++-----------
- 1 files changed, 25 insertions(+), 11 deletions(-)
+and/or
 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 22ce489..e5c24b8 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -179,7 +179,10 @@ acpi_tb_print_table_header(acpi_physical_address address,
- 
- 	if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_FACS)) {
- 
--		/* FACS only has signature and length fields of common table header */
-+		/*
-+		 * FACS only has signature and length fields of common table
-+		 * header
-+		 */
- 
- 		ACPI_INFO((AE_INFO, "%4.4s %08lX, %04X",
- 			   header->signature, (unsigned long)address,
-@@ -379,14 +382,18 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
- 	} else {
- 		/*
- 		 * 32-bit platform, XSDT: Truncate 64-bit to 32-bit and return
--		 * 64-bit platform, XSDT: Move (unaligned) 64-bit to local, return 64-bit
-+		 * 64-bit platform, XSDT: Move (unaligned) 64-bit to local,
-+		 * return 64-bit
- 		 */
- 		ACPI_MOVE_64_TO_64(&address64, table_entry);
- 
- #if ACPI_MACHINE_WIDTH == 32
- 		if (address64 > ACPI_UINT32_MAX) {
- 
--			/* Will truncate 64-bit address to 32 bits, issue warning */
-+			/*
-+			 * Will truncate 64-bit address to 32 bits, issue
-+			 * warning
-+			 */
- 
- 			ACPI_WARNING((AE_INFO,
- 				      "64-bit Physical Address in XSDT is too large (%8.8X%8.8X), truncating",
-@@ -448,9 +455,9 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
- 	if (rsdp->revision > 1 && rsdp->xsdt_physical_address
- 			&& !acpi_rsdt_forced) {
- 		/*
--		 * Root table is an XSDT (64-bit physical addresses). We must use the
--		 * XSDT if the revision is > 1 and the XSDT pointer is present, as per
--		 * the ACPI specification.
-+		 * Root table is an XSDT (64-bit physical addresses). We must
-+		 * use the XSDT if the revision is > 1 and the XSDT pointer
-+		 * is present, as per * the ACPI specification.
- 		 */
- 		address = (acpi_physical_address) rsdp->xsdt_physical_address;
- 		table_entry_size = sizeof(u64);
-@@ -487,7 +494,7 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
- 
- 	acpi_tb_print_table_header(address, table);
- 
--	/* Get the length of the full table, verify length and map entire table */
-+	/* Get the length of the full table, verify len, and map entire table */
- 
- 	length = table->length;
- 	acpi_os_unmap_memory(table, sizeof(struct acpi_table_header));
-@@ -518,8 +525,9 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
- 		    sizeof(struct acpi_table_header)) / table_entry_size);
- 
- 	/*
--	 * First two entries in the table array are reserved for the DSDT and FACS,
--	 * which are not actually present in the RSDT/XSDT - they come from the FADT
-+	 * First two entries in the table array are reserved for the DSDT and
-+	 * FACS, * which are not actually present in the RSDT/XSDT - they come
-+	 * from the FADT
- 	 */
- 	table_entry =
- 	    ACPI_CAST_PTR(u8, table) + sizeof(struct acpi_table_header);
-@@ -532,7 +540,10 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
- 		if (acpi_gbl_root_table_list.count >=
- 		    acpi_gbl_root_table_list.size) {
- 
--			/* There is no more room in the root table array, attempt resize */
-+			/*
-+			 * There is no more room in the root table array,
-+			 * attempt resize
-+			 */
- 
- 			status = acpi_tb_resize_root_table_list();
- 			if (ACPI_FAILURE(status)) {
-@@ -545,7 +556,10 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
- 			}
- 		}
- 
--		/* Get the table physical address (32-bit for RSDT, 64-bit for XSDT) */
-+		/*
-+		 * Get the table physical address (32-bit for RSDT,
-+		 * 64-bit for XSDT)
-+		 */
- 
- 		acpi_gbl_root_table_list.tables[acpi_gbl_root_table_list.count].
- 		    address =
+acpi-dock-dont-eval-_sta-on-every-show_docked-sysfs-read-simplification=
+=2Epatch
 
+?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
