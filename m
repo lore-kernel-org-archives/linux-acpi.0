@@ -1,55 +1,53 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
-Date: Mon, 2 Feb 2009 20:40:27 +0100
-Message-ID: <20090202204027.006bb2e2@mjolnir.drzeus.cx>
-References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
-	<20081108213414.579e178d@mjolnir.drzeus.cx>
-	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
-	<20081114222557.04025d36@mjolnir.drzeus.cx>
-	<20081025214602.GB27030@gamma.logic.tuwien.ac.at>
-	<20081108213414.579e178d@mjolnir.drzeus.cx>
-	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
-	<20090127004840.GA7246@gamma.logic.tuwien.ac.at>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: [PATCH] Enable bit 11 in _PDC to advertise hw coord
+Date: Mon, 2 Feb 2009 11:57:18 -0800
+Message-ID: <20090202195717.GA24510@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:54975 "EHLO
-	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753011AbZBBTpp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Feb 2009 14:45:45 -0500
-In-Reply-To: <20090127004840.GA7246@gamma.logic.tuwien.ac.at>
+Received: from mga14.intel.com ([143.182.124.37]:61297 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753140AbZBBT5W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Feb 2009 14:57:22 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Jens Axboe <jens.axboe@oracle.com>, Chris Mason <chris.mason@oracle.com>
 
-On Tue, 27 Jan 2009 01:48:40 +0100
-Norbert Preining <preining@logic.at> wrote:
 
-> 
-> Funny things happened: WIth 2.6.29-rc2 inserting the card did not help,
-> nothing showed up. But then I did WITH THE CARD IN THE SLOT a suspend
-> and afterwards resume, and voila, there is the card, can be read ...
-> I send you the output of dmesg, MMC_DEBUG is still on. It shows from
-> boot on the errors while
-> 
-> Maybe you can squeeze something out of that.
-> 
+Bit 11 in intel PDC definitions is meant for OS capability to handle
+hardware coordination of P-states. In Linux we have always supported
+hwardware coordination of P-states. Just let the BIOSes know that we
+support it, by setting this bit.
 
-Hmmm...
+Some BIOSes use this bit to choose between hardware or software coordination
+and without this change below, BIOSes switch to software coordination, which
+is not very optimal in terms of power consumption and extra wakeups from idle.
 
-Could you try building without ricoh_mmc and see if things work? Also
-try having the card in during boot.
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Rgds
--- 
-     -- Pierre Ossman
+---
+ include/acpi/pdc_intel.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+Index: linux-2.6/include/acpi/pdc_intel.h
+===================================================================
+--- linux-2.6.orig/include/acpi/pdc_intel.h	2009-01-20 16:11:20.000000000 -0800
++++ linux-2.6/include/acpi/pdc_intel.h	2009-02-02 10:32:06.000000000 -0800
+@@ -14,6 +14,7 @@
+ #define ACPI_PDC_SMP_T_SWCOORD		(0x0080)
+ #define ACPI_PDC_C_C1_FFH		(0x0100)
+ #define ACPI_PDC_C_C2C3_FFH		(0x0200)
++#define ACPI_PDC_SMP_P_HWCOORD		(0x0800)
+ 
+ #define ACPI_PDC_EST_CAPABILITY_SMP	(ACPI_PDC_SMP_C1PT | \
+ 					 ACPI_PDC_C_C1_HALT | \
+@@ -22,6 +23,7 @@
+ #define ACPI_PDC_EST_CAPABILITY_SWSMP	(ACPI_PDC_SMP_C1PT | \
+ 					 ACPI_PDC_C_C1_HALT | \
+ 					 ACPI_PDC_SMP_P_SWCOORD | \
++					 ACPI_PDC_SMP_P_HWCOORD | \
+ 					 ACPI_PDC_P_FFH)
+ 
+ #define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3  | \
