@@ -1,83 +1,173 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Skip the first two elements in the _BCL package
-Date: Mon, 02 Feb 2009 11:33:41 +0800
-Message-ID: <1233545621.3715.42.camel@localhost.localdomain>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Mon, 2 Feb 2009 10:11:03 +0100
+Message-ID: <20090202101103.1208c035@hyperion.delvare>
+References: <20090125210520.GA12963@dreamland.darkstar.lan>
+	<200901291729.24859.trenn@suse.de>
+	<4981FC38.205@redhat.com>
+	<200901301529.14810.trenn@suse.de>
+	<20090201212243.GA23852@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24500 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753525AbZBBDWD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Feb 2009 22:22:03 -0500
+Received: from zone0.gcu-squad.org ([212.85.147.21]:28305 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751517AbZBBJLS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2009 04:11:18 -0500
+In-Reply-To: <20090201212243.GA23852@dreamland.darkstar.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Thomas Renninger <trenn@suse.de>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Subject: ACPI: Skip the first two elements in the _BCL package
-From: Zhao Yakui <yakui.zhao@intel.com> 
-   According to the Spec the first two elements in the _BCL package won't be
-regarded as the available brightness level. The first is the brightness when 
-full power is connected to the box(It means that the AC adapter is plugged).
-The second is the brightness level when the box is on battery.
-    If the first two elements are still used while finding the next brightness
-level, it will fall back to the lowest level when keeping on pressing 
-hotkey. (On some boxes the brightness will be changed twice when hotkey is
-pressed once. One is in the ACPI video driver. The other is changed by sys I/F.
-In the ACPI video driver the first two elements will be used while changing
-the brightness. But the first two elements is skipped while using sys I/F.
-In such case there exists the inconsistency).
-    So he first two elements had better be skipped while showing the available
-brightness or finding the next brightness level.
-     
-http://bugzilla.kernel.org/show_bug.cgi?id=12450
+Hi Luca,
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-cc: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+On Sun, 1 Feb 2009 22:22:43 +0100, Luca Tettamanti wrote:
+> I've rewritten the patch, the idea behind it is still the same but the
+> solution is more generic. The code checks a list of DMI entries and
+> (optionally) a HID for each entry; if the DMI data matches and the HID
+> (if not NULL) is found then resource checking is set to strict, otherwise
+> it falls back to lax.
+> 
+> ---
+> Just RFC, it's still UNTESTED...
+> 
+>  drivers/acpi/osl.c |   79 ++++++++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 76 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 6729a49..c6d1a1c 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1063,7 +1063,10 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+>   * in arbitrary AML code and can interfere with legacy drivers.
+>   * acpi_enforce_resources= can be set to:
+>   *
+> - *   - strict           (2)
+> + *   - auto             (2)
+> + *     -> detect possible conflicts with ACPI drivers and switch to
+> + *     strict if needed, otherwise act like lax
+> + *   - strict           (3)
+>   *     -> further driver trying to access the resources will not load
+>   *   - lax (default)    (1)
+>   *     -> further driver trying to access the resources will load, but you
+> @@ -1073,11 +1076,12 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+>   *     -> ACPI Operation Region resources will not be registered
+>   *
+>   */
+> -#define ENFORCE_RESOURCES_STRICT 2
+> +#define ENFORCE_RESOURCES_STRICT 3
+> +#define ENFORCE_RESOURCES_AUTO   2
+>  #define ENFORCE_RESOURCES_LAX    1
+>  #define ENFORCE_RESOURCES_NO     0
 
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c	2009-01-23 14:47:25.000000000 +0800
-+++ linux-2.6/drivers/acpi/video.c	2009-02-02 11:11:55.000000000 +0800
-@@ -1020,7 +1020,7 @@
- 	}
- 
- 	seq_printf(seq, "levels: ");
--	for (i = 0; i < dev->brightness->count; i++)
-+	for (i = 2; i < dev->brightness->count; i++)
- 		seq_printf(seq, " %d", dev->brightness->levels[i]);
- 	seq_printf(seq, "\ncurrent: %d\n", dev->brightness->curr);
- 
-@@ -1059,7 +1059,7 @@
- 		return -EFAULT;
- 
- 	/* validate through the list of available levels */
--	for (i = 0; i < dev->brightness->count; i++)
-+	for (i = 2; i < dev->brightness->count; i++)
- 		if (level == dev->brightness->levels[i]) {
- 			if (ACPI_SUCCESS
- 			    (acpi_video_device_lcd_set_level(dev, level)))
-@@ -1712,7 +1712,7 @@
- 	max = max_below = 0;
- 	min = min_above = 255;
- 	/* Find closest level to level_current */
--	for (i = 0; i < device->brightness->count; i++) {
-+	for (i = 2; i < device->brightness->count; i++) {
- 		l = device->brightness->levels[i];
- 		if (abs(l - level_current) < abs(delta)) {
- 			delta = l - level_current;
-@@ -1722,7 +1722,7 @@
- 	}
- 	/* Ajust level_current to closest available level */
- 	level_current += delta;
--	for (i = 0; i < device->brightness->count; i++) {
-+	for (i = 2; i < device->brightness->count; i++) {
- 		l = device->brightness->levels[i];
- 		if (l < min)
- 			min = l;
+I don't see any reason to change ENFORCE_RESOURCES_STRICT from 2 to 3.
+Just add ENFORCE_RESOURCES_AUTO as 3 and that's it, makes your patch
+smaller.
 
+>  
+> -static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+> +static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
+>  
+>  static int __init acpi_enforce_resources_setup(char *str)
+>  {
+> @@ -1086,6 +1090,8 @@ static int __init acpi_enforce_resources_setup(char *str)
+>  
+>  	if (!strcmp("strict", str))
+>  		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+> +	else if (!strcmp("auto", str))
+> +		acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
+>  	else if (!strcmp("lax", str))
+>  		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+>  	else if (!strcmp("no", str))
+> @@ -1096,6 +1102,73 @@ static int __init acpi_enforce_resources_setup(char *str)
+>  
+>  __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
+>  
+> +static acpi_status acpi_res_quick_check_hid_cb(acpi_handle obj_handle,
+> +		u32 nesting_level, void *context, void **return_value)
+> +{
+> +	*((bool *)return_value) = true;
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +static int acpi_res_quick_check_hid(const struct dmi_system_id *d)
+> +{
+> +	acpi_status ret;
+> +	bool found = false;
+> +	char *hid;
+> +
+> +	if (!d->driver_data)
+> +		goto strict;
+> +
+> +	hid = d->driver_data;
+> +	ret = acpi_get_devices(hid, acpi_res_quick_check_hid_cb,
+> +				NULL, (void **)&found);
+> +
+> +	if (ret == AE_OK && found)
+> +		goto strict;
+> +
+> +	return 0;
+> +strict:
+> +	printk(KERN_DEBUG "ACPI: detected %s system: "
+> +			"enforcing strict resource checking\n", d->ident);
 
+Should be pr_debug().
+
+> +	return 1;
+> +}
+> +
+> +/* The following systems have ACPI drivers that might overlap the
+> + * functionality of native drivers (mostly in hwmon subsys). If
+> + * acpi_enforce_resources is set to auto the following table is
+> + * used to enforce strict checking in matching systems, in order
+> + * to avoid conflicts.
+> + * Note that driver_data and the acpi_res_quick_check_hid callback
+> + * are used to further refine the match, checking for the presence
+> + * of the given HID (driver_data) in the DSDT. Both fields are
+> + * optional for DMI-only rules.
+> + */
+> +static const struct dmi_system_id resource_quirks[] = {
+
+You must include <linux/dmi.h> for this.
+
+I think it's better to tag this structure as __initdata than const, so
+that it is cleaned up after initialization. Then I guess you can also
+tag acpi_res_quick_check_hid_cb() and acpi_res_quick_check_hid() as
+__init so the runtime memory overhead is zero.
+
+> +	{
+> +		.ident = "Asus",
+> +		.matches = {
+> +			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer"),
+> +		},
+> +		.driver_data = "ATK0110",
+> +		.callback = acpi_res_quick_check_hid,
+> +	},
+> +	{ }
+> +};
+> +
+> +static int __init acpi_apply_resource_quirk(void)
+> +{
+> +	if (acpi_enforce_resources != ENFORCE_RESOURCES_AUTO)
+> +		return 0;
+> +
+> +	dmi_check_system(resource_quirks);
+> +
+> +	if (acpi_enforce_resources == ENFORCE_RESOURCES_AUTO)
+> +		/* This system is not listed, fallback to 'lax' */
+> +		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+> +
+> +	return 0;
+> +}
+> +fs_initcall(acpi_apply_resource_quirk);
+> +
+>  /* Check for resource conflicts between ACPI OperationRegions and native
+>   * drivers */
+>  int acpi_check_resource_conflict(struct resource *res)
+
+Otherwise it looks good to me, pretty clean and flexible. Good work!
+
+-- 
+Jean Delvare
