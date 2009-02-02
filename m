@@ -1,126 +1,245 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH RFT] fujitsu-laptop: Use RFKILL support bitmask from firmware
-Date: Mon, 2 Feb 2009 11:01:38 +1030 (CST)
-Message-ID: <200902020031.n120Vceb032221@turbo.physics.adelaide.edu.au>
-References: <20090118015303.DF36D10077@gold.linx.net>
+From: "alex.shi" <alex.shi@intel.com>
+Subject: Re: [patch]: fixing of pmtimer overflow that make Cx states time
+	incorrect
+Date: Mon, 02 Feb 2009 09:46:57 +0800
+Message-ID: <1233539217.4069.24.camel@alexs-hp>
+References: <1232342024.21839.6.camel@alexs-hp>
+	 <20090126225235.5e64d0ef.akpm@linux-foundation.org>
+	 <1233453863.3715.35.camel@localhost.localdomain>
+Reply-To: alex.shi@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:46373 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751667AbZBBAcM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Feb 2009 19:32:12 -0500
-In-Reply-To: <20090118015303.DF36D10077@gold.linx.net> from "Tony Vroon" at Jan 18, 2009 01:53:03 AM
+Received: from mga11.intel.com ([192.55.52.93]:47349 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751419AbZBBBqa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Feb 2009 20:46:30 -0500
+In-Reply-To: <1233453863.3715.35.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Vroon <tony@linx.net>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Stephen Gildea <stepheng+linux@gildea.com>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, "; lenb"@kernel.org
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "; linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "; venkatesh.pallipadi"@intel.com
 
-Hi Tony
+Yagui want to give a clear explanation to be used for commitment. So I resend
+this again. 
 
-> Jonathan, your platform is of particular importance as you are the only
-> tester on a platform with no S000 function in the DSDT. Please confirm you
-> still get a unknown status in the platform files. With debugging on full,
-> you should see the 0x1000 0x4 0x0 0x0 call disappear from your trace
-> entirely.
+    On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
+clock. In such case the max C-state sleep time should be less than 4687ms when
+it is used to record C2/C3 duration time. 
+    But on some boxes the max C-state sleep time is more than 4687ms. In such
+case the overflow happens and the C-state duration time can't be counted
+accurately.
 
-I can confirm that this patch does not break the S7020 - I still get
-"unknown" in the status platform files, as expected.
+    Use clocksource to get the C-state time instead of ACPI PM timer. and use
+div64_u64 to convert US_TO_PM_TIME_TICKS in i386 mode.
 
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Thanks
+Alex 
 
-Patch reproduced below for convenience.
+Asked-by: venkatesh.pallipadi@intel.com
+Tested-by: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Alex Shi <alex.shi@intel.com>
+Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Regards
-  jonathan
-
-
-Up until now, we polled the rfkill status for every incoming FUJ02E3 ACPI event. 
-It turns out that the firmware has a bitmask which indicates what rfkill-related 
-state it can report.
-The rfkill_supported bitmask is now used to avoid polling for rfkill at all in 
-the notification handler if there is no support. Also, it is used in the platform 
-device callbacks. As before we register all callbacks and report "unknown" if the 
-firmware does not give us status updates for that particular bit.
-
-This was fed through checkpatch.pl and tested on the S6420 platform.
-Jonathan, your platform is of particular importance as you are the only tester 
-on a platform with no S000 function in the DSDT. Please confirm you still get a 
-unknown status in the platform files. With debugging on full, you should see the 
-0x1000 0x4 0x0 0x0 call disappear from your trace entirely.
-
-Signed-off-by: Tony Vroon <tony@linx.net>
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+---
 
 
---- linux-2.6/drivers/platform/x86/fujitsu-laptop.c.orig	2009-01-18 01:05:55.000000000 +0000
-+++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c	2009-01-18 01:21:27.000000000 +0000
-@@ -166,6 +166,7 @@
- 	struct platform_device *pf_device;
- 	struct kfifo *fifo;
- 	spinlock_t fifo_lock;
-+	int rfkill_supported;
- 	int rfkill_state;
- 	int logolamp_registered;
- 	int kblamps_registered;
-@@ -526,7 +527,7 @@
- show_lid_state(struct device *dev,
- 			struct device_attribute *attr, char *buf)
+Index: linux-2.6.29-rc3/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.29-rc3.orig/drivers/acpi/processor_idle.c
++++ linux-2.6.29-rc3/drivers/acpi/processor_idle.c
+@@ -64,7 +64,8 @@
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+ #define ACPI_PROCESSOR_FILE_POWER	"power"
+-#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
++#define US_TO_PM_TIMER_TICKS(t)		div64_u64(\
++	(t * (PM_TIMER_FREQUENCY/1000)), 1000ULL)
+ #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
+ #ifndef CONFIG_CPU_IDLE
+ #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+@@ -396,8 +397,9 @@ static void acpi_processor_idle(void)
+ 	struct acpi_processor *pr = NULL;
+ 	struct acpi_processor_cx *cx = NULL;
+ 	struct acpi_processor_cx *next_state = NULL;
+-	int sleep_ticks = 0;
+-	u32 t1, t2 = 0;
++	s64 sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
+ 
+ 	/*
+ 	 * Interrupts must be disabled during bus mastering calculations and
+@@ -544,14 +546,15 @@ static void acpi_processor_idle(void)
+ 
+ 	case ACPI_STATE_C2:
+ 		/* Get start time (ticks) */
+-		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt1 = ktime_get_real();
+ 		/* Tell the scheduler that we are going deep-idle: */
+ 		sched_clock_idle_sleep_event();
+ 		/* Invoke C2 */
+ 		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+-		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt2 = ktime_get_real();
++		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 		/* TSC halts in C2, so notify users */
+@@ -559,7 +562,7 @@ static void acpi_processor_idle(void)
+ 			mark_tsc_unstable("possible TSC halt in C2");
+ #endif
+ 		/* Compute time (ticks) that we were actually asleep */
+-		sleep_ticks = ticks_elapsed(t1, t2);
++		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 
+ 		/* Tell the scheduler how much we idled: */
+ 		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+@@ -605,13 +608,14 @@ static void acpi_processor_idle(void)
+ 		}
+ 
+ 		/* Get start time (ticks) */
+-		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt1 = ktime_get_real();
+ 		/* Invoke C3 */
+ 		/* Tell the scheduler that we are going deep-idle: */
+ 		sched_clock_idle_sleep_event();
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+-		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt2 = ktime_get_real();
++		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 		if (pr->flags.bm_check && pr->flags.bm_control) {
+ 			/* Enable bus master arbitration */
+ 			atomic_dec(&c3_cpu_count);
+@@ -624,7 +628,7 @@ static void acpi_processor_idle(void)
+ 			mark_tsc_unstable("TSC halts in C3");
+ #endif
+ 		/* Compute time (ticks) that we were actually asleep */
+-		sleep_ticks = ticks_elapsed(t1, t2);
++		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 		/* Tell the scheduler how much we idled: */
+ 		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+ 
+@@ -1455,7 +1459,8 @@ static inline void acpi_idle_do_entry(st
+ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 			      struct cpuidle_state *state)
  {
--	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
-+	if (!(fujitsu_hotkey->rfkill_supported & 0x100))
- 		return sprintf(buf, "unknown\n");
- 	if (fujitsu_hotkey->rfkill_state & 0x100)
- 		return sprintf(buf, "open\n");
-@@ -538,7 +539,7 @@
- show_dock_state(struct device *dev,
- 			struct device_attribute *attr, char *buf)
+-	u32 t1, t2;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 
+@@ -1476,14 +1481,15 @@ static int acpi_idle_enter_c1(struct cpu
+ 	if (pr->flags.bm_check)
+ 		acpi_idle_update_bm_rld(pr, cx);
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
+ 
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ /**
+@@ -1496,8 +1502,9 @@ static int acpi_idle_enter_simple(struct
  {
--	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
-+	if (!(fujitsu_hotkey->rfkill_supported & 0x200))
- 		return sprintf(buf, "unknown\n");
- 	if (fujitsu_hotkey->rfkill_state & 0x200)
- 		return sprintf(buf, "docked\n");
-@@ -550,7 +551,7 @@
- show_radios_state(struct device *dev,
- 			struct device_attribute *attr, char *buf)
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
+ 
+ 	pr = __get_cpu_var(processors);
+ 
+@@ -1533,18 +1540,19 @@ static int acpi_idle_enter_simple(struct
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	/* Tell the scheduler that we are going deep-idle: */
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+ 	if (tsc_halts_in_c(cx->type))
+ 		mark_tsc_unstable("TSC halts in idle");;
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+@@ -1556,7 +1564,7 @@ static int acpi_idle_enter_simple(struct
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ static int c3_cpu_count;
+@@ -1574,8 +1582,9 @@ static int acpi_idle_enter_bm(struct cpu
  {
--	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
-+	if (!(fujitsu_hotkey->rfkill_supported & 0x20))
- 		return sprintf(buf, "unknown\n");
- 	if (fujitsu_hotkey->rfkill_state & 0x20)
- 		return sprintf(buf, "on\n");
-@@ -928,8 +929,17 @@
- 		; /* No action, result is discarded */
- 	vdbg_printk(FUJLAPTOP_DBG_INFO, "Discarded %i ringbuffer entries\n", i);
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
  
--	fujitsu_hotkey->rfkill_state =
--		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
-+	fujitsu_hotkey->rfkill_supported =
-+		call_fext_func(FUNC_RFKILL, 0x0, 0x0, 0x0);
-+
-+	/* Make sure our bitmask of supported functions is cleared if the
-+	   RFKILL function block is not implemented, like on the S7020. */
-+	if (fujitsu_hotkey->rfkill_supported == UNSUPPORTED_CMD)
-+		fujitsu_hotkey->rfkill_supported = 0;
-+
-+	if (fujitsu_hotkey->rfkill_supported)
-+		fujitsu_hotkey->rfkill_state =
-+			call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+ 	pr = __get_cpu_var(processors);
  
- 	/* Suspect this is a keymap of the application panel, print it */
- 	printk(KERN_INFO "fujitsu-laptop: BTNI: [0x%x]\n",
-@@ -1005,8 +1015,9 @@
+@@ -1644,9 +1653,10 @@ static int acpi_idle_enter_bm(struct cpu
+ 		ACPI_FLUSH_CPU_CACHE();
+ 	}
  
- 	input = fujitsu_hotkey->input;
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
--	fujitsu_hotkey->rfkill_state =
--		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
-+	if (fujitsu_hotkey->rfkill_supported)
-+		fujitsu_hotkey->rfkill_state =
-+			call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+ 	/* Re-enable bus master arbitration */
+ 	if (pr->flags.bm_check && pr->flags.bm_control) {
+@@ -1661,7 +1671,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 	if (tsc_halts_in_c(ACPI_STATE_C3))
+ 		mark_tsc_unstable("TSC halts in idle");
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+ 	/* Tell the scheduler how much we idled: */
+ 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
  
- 	switch (event) {
- 	case ACPI_FUJITSU_NOTIFY_CODE1:
+@@ -1672,7 +1682,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ struct cpuidle_driver acpi_idle_driver = {
+
 
