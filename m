@@ -1,173 +1,105 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Mon, 2 Feb 2009 10:11:03 +0100
-Message-ID: <20090202101103.1208c035@hyperion.delvare>
-References: <20090125210520.GA12963@dreamland.darkstar.lan>
-	<200901291729.24859.trenn@suse.de>
-	<4981FC38.205@redhat.com>
-	<200901301529.14810.trenn@suse.de>
-	<20090201212243.GA23852@dreamland.darkstar.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Tony Vroon <tony@linx.net>
+Subject: [PATCH 2.6.29] fujitsu-laptop: Use RFKILL support bitmask from firmware
+Date: Mon,  2 Feb 2009 11:11:10 +0000 (GMT)
+Message-ID: <20090202111110.83B1D10076@gold.linx.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:28305 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751517AbZBBJLS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2009 04:11:18 -0500
-In-Reply-To: <20090201212243.GA23852@dreamland.darkstar.lan>
+Received: from gold.linx.net ([195.66.232.40]:40791 "EHLO gold.linx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752665AbZBBLLN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Feb 2009 06:11:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Thomas Renninger <trenn@suse.de>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Peter Gruber <nokos@gmx.net>, Julian Brown <jules@panic.cs-bristol.org.uk>, linux-acpi@vger.kernel.org
 
-Hi Luca,
+Up until now, we polled the rfkill status for every incoming FUJ02E3 ACPI event. 
+It turns out that the firmware has a bitmask which indicates what rfkill-related 
+state it can report.
+The rfkill_supported bitmask is now used to avoid polling for rfkill at all in 
+the notification handler if there is no support. Also, it is used in the platform  
+device callbacks. As before we register all callbacks and report "unknown" if the 
+firmware does not give us status updates for that particular bit.
 
-On Sun, 1 Feb 2009 22:22:43 +0100, Luca Tettamanti wrote:
-> I've rewritten the patch, the idea behind it is still the same but the
-> solution is more generic. The code checks a list of DMI entries and
-> (optionally) a HID for each entry; if the DMI data matches and the HID
-> (if not NULL) is found then resource checking is set to strict, otherwise
-> it falls back to lax.
-> 
-> ---
-> Just RFC, it's still UNTESTED...
-> 
->  drivers/acpi/osl.c |   79 ++++++++++++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 76 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 6729a49..c6d1a1c 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1063,7 +1063,10 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
->   * in arbitrary AML code and can interfere with legacy drivers.
->   * acpi_enforce_resources= can be set to:
->   *
-> - *   - strict           (2)
-> + *   - auto             (2)
-> + *     -> detect possible conflicts with ACPI drivers and switch to
-> + *     strict if needed, otherwise act like lax
-> + *   - strict           (3)
->   *     -> further driver trying to access the resources will not load
->   *   - lax (default)    (1)
->   *     -> further driver trying to access the resources will load, but you
-> @@ -1073,11 +1076,12 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
->   *     -> ACPI Operation Region resources will not be registered
->   *
->   */
-> -#define ENFORCE_RESOURCES_STRICT 2
-> +#define ENFORCE_RESOURCES_STRICT 3
-> +#define ENFORCE_RESOURCES_AUTO   2
->  #define ENFORCE_RESOURCES_LAX    1
->  #define ENFORCE_RESOURCES_NO     0
+This was fed through checkpatch.pl and tested on the S6420, S7020 and P8010
+platforms.
 
-I don't see any reason to change ENFORCE_RESOURCES_STRICT from 2 to 3.
-Just add ENFORCE_RESOURCES_AUTO as 3 and that's it, makes your patch
-smaller.
+Signed-off-by: Tony Vroon <tony@linx.net>
+Tested-by: Stephen Gildea <stepheng+linux@gildea.com>
+Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+--
+Len, could we have this in 2.6.29 please. It turns out (based on DSDT analysis) 
+that there are platforms that do not implement all 3 status bits and could thus 
+report invalid information in one of the 3 platform files.
+An example of such a machine would be the Lifebook N6460 which apparently can't 
+be docked.
 
->  
-> -static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-> +static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
->  
->  static int __init acpi_enforce_resources_setup(char *str)
->  {
-> @@ -1086,6 +1090,8 @@ static int __init acpi_enforce_resources_setup(char *str)
->  
->  	if (!strcmp("strict", str))
->  		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
-> +	else if (!strcmp("auto", str))
-> +		acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
->  	else if (!strcmp("lax", str))
->  		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
->  	else if (!strcmp("no", str))
-> @@ -1096,6 +1102,73 @@ static int __init acpi_enforce_resources_setup(char *str)
->  
->  __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
->  
-> +static acpi_status acpi_res_quick_check_hid_cb(acpi_handle obj_handle,
-> +		u32 nesting_level, void *context, void **return_value)
-> +{
-> +	*((bool *)return_value) = true;
-> +	return AE_CTRL_TERMINATE;
-> +}
-> +
-> +static int acpi_res_quick_check_hid(const struct dmi_system_id *d)
-> +{
-> +	acpi_status ret;
-> +	bool found = false;
-> +	char *hid;
-> +
-> +	if (!d->driver_data)
-> +		goto strict;
-> +
-> +	hid = d->driver_data;
-> +	ret = acpi_get_devices(hid, acpi_res_quick_check_hid_cb,
-> +				NULL, (void **)&found);
-> +
-> +	if (ret == AE_OK && found)
-> +		goto strict;
-> +
-> +	return 0;
-> +strict:
-> +	printk(KERN_DEBUG "ACPI: detected %s system: "
-> +			"enforcing strict resource checking\n", d->ident);
+--- linux-2.6/drivers/platform/x86/fujitsu-laptop.c.orig	2009-01-18 01:05:55.000000000 +0000
++++ linux-2.6/drivers/platform/x86/fujitsu-laptop.c	2009-01-18 01:21:27.000000000 +0000
+@@ -166,6 +166,7 @@
+ 	struct platform_device *pf_device;
+ 	struct kfifo *fifo;
+ 	spinlock_t fifo_lock;
++	int rfkill_supported;
+ 	int rfkill_state;
+ 	int logolamp_registered;
+ 	int kblamps_registered;
+@@ -526,7 +527,7 @@
+ show_lid_state(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
++	if (!(fujitsu_hotkey->rfkill_supported & 0x100))
+ 		return sprintf(buf, "unknown\n");
+ 	if (fujitsu_hotkey->rfkill_state & 0x100)
+ 		return sprintf(buf, "open\n");
+@@ -538,7 +539,7 @@
+ show_dock_state(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
++	if (!(fujitsu_hotkey->rfkill_supported & 0x200))
+ 		return sprintf(buf, "unknown\n");
+ 	if (fujitsu_hotkey->rfkill_state & 0x200)
+ 		return sprintf(buf, "docked\n");
+@@ -550,7 +551,7 @@
+ show_radios_state(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	if (fujitsu_hotkey->rfkill_state == UNSUPPORTED_CMD)
++	if (!(fujitsu_hotkey->rfkill_supported & 0x20))
+ 		return sprintf(buf, "unknown\n");
+ 	if (fujitsu_hotkey->rfkill_state & 0x20)
+ 		return sprintf(buf, "on\n");
+@@ -928,8 +929,17 @@
+ 		; /* No action, result is discarded */
+ 	vdbg_printk(FUJLAPTOP_DBG_INFO, "Discarded %i ringbuffer entries\n", i);
+ 
+-	fujitsu_hotkey->rfkill_state =
+-		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
++	fujitsu_hotkey->rfkill_supported =
++		call_fext_func(FUNC_RFKILL, 0x0, 0x0, 0x0);
++
++	/* Make sure our bitmask of supported functions is cleared if the
++	   RFKILL function block is not implemented, like on the S7020. */
++	if (fujitsu_hotkey->rfkill_supported == UNSUPPORTED_CMD)
++		fujitsu_hotkey->rfkill_supported = 0;
++
++	if (fujitsu_hotkey->rfkill_supported)
++		fujitsu_hotkey->rfkill_state =
++			call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+ 
+ 	/* Suspect this is a keymap of the application panel, print it */
+ 	printk(KERN_INFO "fujitsu-laptop: BTNI: [0x%x]\n",
+@@ -1005,8 +1015,9 @@
+ 
+ 	input = fujitsu_hotkey->input;
+ 
+-	fujitsu_hotkey->rfkill_state =
+-		call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
++	if (fujitsu_hotkey->rfkill_supported)
++		fujitsu_hotkey->rfkill_state =
++			call_fext_func(FUNC_RFKILL, 0x4, 0x0, 0x0);
+ 
+ 	switch (event) {
+ 	case ACPI_FUJITSU_NOTIFY_CODE1:
 
-Should be pr_debug().
-
-> +	return 1;
-> +}
-> +
-> +/* The following systems have ACPI drivers that might overlap the
-> + * functionality of native drivers (mostly in hwmon subsys). If
-> + * acpi_enforce_resources is set to auto the following table is
-> + * used to enforce strict checking in matching systems, in order
-> + * to avoid conflicts.
-> + * Note that driver_data and the acpi_res_quick_check_hid callback
-> + * are used to further refine the match, checking for the presence
-> + * of the given HID (driver_data) in the DSDT. Both fields are
-> + * optional for DMI-only rules.
-> + */
-> +static const struct dmi_system_id resource_quirks[] = {
-
-You must include <linux/dmi.h> for this.
-
-I think it's better to tag this structure as __initdata than const, so
-that it is cleaned up after initialization. Then I guess you can also
-tag acpi_res_quick_check_hid_cb() and acpi_res_quick_check_hid() as
-__init so the runtime memory overhead is zero.
-
-> +	{
-> +		.ident = "Asus",
-> +		.matches = {
-> +			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer"),
-> +		},
-> +		.driver_data = "ATK0110",
-> +		.callback = acpi_res_quick_check_hid,
-> +	},
-> +	{ }
-> +};
-> +
-> +static int __init acpi_apply_resource_quirk(void)
-> +{
-> +	if (acpi_enforce_resources != ENFORCE_RESOURCES_AUTO)
-> +		return 0;
-> +
-> +	dmi_check_system(resource_quirks);
-> +
-> +	if (acpi_enforce_resources == ENFORCE_RESOURCES_AUTO)
-> +		/* This system is not listed, fallback to 'lax' */
-> +		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-> +
-> +	return 0;
-> +}
-> +fs_initcall(acpi_apply_resource_quirk);
-> +
->  /* Check for resource conflicts between ACPI OperationRegions and native
->   * drivers */
->  int acpi_check_resource_conflict(struct resource *res)
-
-Otherwise it looks good to me, pretty clean and flexible. Good work!
-
--- 
-Jean Delvare
