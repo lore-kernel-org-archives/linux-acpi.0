@@ -1,183 +1,138 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Mon, 2 Feb 2009 12:38:56 +0100
-Message-ID: <200902021238.57790.trenn@suse.de>
-References: <20090125210520.GA12963@dreamland.darkstar.lan> <200901301529.14810.trenn@suse.de> <20090201212243.GA23852@dreamland.darkstar.lan>
+Subject: [PATCH 1/2] RFC: ACPI: Interface for ACPI drivers to place quirk code which gets executed early
+Date: Mon, 2 Feb 2009 18:22:10 +0100
+Message-ID: <200902021822.11906.trenn@suse.de>
+References: <20090125210520.GA12963@dreamland.darkstar.lan> <20090202101103.1208c035@hyperion.delvare> <68676e00902020338o7326ff7dx4efadf94ed534acf@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+  charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:58720 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:50400 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752676AbZBBLjA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Feb 2009 06:39:00 -0500
-In-Reply-To: <20090201212243.GA23852@dreamland.darkstar.lan>
+	id S1753212AbZBBRWO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Feb 2009 12:22:14 -0500
+In-Reply-To: <68676e00902020338o7326ff7dx4efadf94ed534acf@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, khali@linux-fr.org
+Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Sunday 01 February 2009 22:22:43 Luca Tettamanti wrote:
-> On Fri, Jan 30, 2009 at 03:29:13PM +0100, Thomas Renninger wrote:
-> > I thought it may only be one specific hwmon driver which could
-> > interfere on ASUS boards with the ATK0110 device. I agree that
-> > it would not make sense to cluster all hwmon drivers.
-> >
-> > The problem is similar to the video backlight switching problem
-> > (legacy drivers vs preferred generic ACPI video driver) where
-> > you also must know which driver to take before module loading time.
-> >
-> > I hoped to be able to come up with something more clever or say a nicer
-> > solution or at least a short discussion. But I also have no better idea.
-> > Maybe all such code should end up in a drivers/acpi/quirks.c file
-> > at some time, similar to other places in the kernel.
-> >
-> > I think it's time for Len looking at this. I wonder whether he will take
-> > this patch or why he won't.
-> > This is an ugly problem which unfortunately needs an ugly fix/check.
->
-> I've rewritten the patch, the idea behind it is still the same but the
-> solution is more generic. The code checks a list of DMI entries and
-> (optionally) a HID for each entry; if the DMI data matches and the HID
-> (if not NULL) is found then resource checking is set to strict, otherwise
-> it falls back to lax.
-Please wait.
-I am currently on a solution which would encapsulate such workarounds a bit 
-more into an own file.
-
-Give me an hour or two, I hope to be able to come up with something until
-then.
-
-    Thomas
-
->
-> ---
-> Just RFC, it's still UNTESTED...
->
->  drivers/acpi/osl.c |   79
-> ++++++++++++++++++++++++++++++++++++++++++++++++++--- 1 file changed, 76
-> insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 6729a49..c6d1a1c 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1063,7 +1063,10 @@ __setup("acpi_wake_gpes_always_on",
-> acpi_wake_gpes_always_on_setup); * in arbitrary AML code and can interfere
-> with legacy drivers.
->   * acpi_enforce_resources= can be set to:
->   *
-> - *   - strict           (2)
-> + *   - auto             (2)
-> + *     -> detect possible conflicts with ACPI drivers and switch to
-> + *     strict if needed, otherwise act like lax
-> + *   - strict           (3)
->   *     -> further driver trying to access the resources will not load
->   *   - lax (default)    (1)
->   *     -> further driver trying to access the resources will load, but you
-> @@ -1073,11 +1076,12 @@ __setup("acpi_wake_gpes_always_on",
-> acpi_wake_gpes_always_on_setup); *     -> ACPI Operation Region resources
-> will not be registered
->   *
->   */
-> -#define ENFORCE_RESOURCES_STRICT 2
-> +#define ENFORCE_RESOURCES_STRICT 3
-> +#define ENFORCE_RESOURCES_AUTO   2
->  #define ENFORCE_RESOURCES_LAX    1
->  #define ENFORCE_RESOURCES_NO     0
->
-> -static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-> +static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
->
->  static int __init acpi_enforce_resources_setup(char *str)
->  {
-> @@ -1086,6 +1090,8 @@ static int __init acpi_enforce_resources_setup(char
-> *str)
->
->  	if (!strcmp("strict", str))
->  		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
-> +	else if (!strcmp("auto", str))
-> +		acpi_enforce_resources = ENFORCE_RESOURCES_AUTO;
->  	else if (!strcmp("lax", str))
->  		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
->  	else if (!strcmp("no", str))
-> @@ -1096,6 +1102,73 @@ static int __init acpi_enforce_resources_setup(char
-> *str)
->
->  __setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
->
-> +static acpi_status acpi_res_quick_check_hid_cb(acpi_handle obj_handle,
-> +		u32 nesting_level, void *context, void **return_value)
-> +{
-> +	*((bool *)return_value) = true;
-> +	return AE_CTRL_TERMINATE;
-> +}
-> +
-> +static int acpi_res_quick_check_hid(const struct dmi_system_id *d)
-> +{
-> +	acpi_status ret;
-> +	bool found = false;
-> +	char *hid;
-> +
-> +	if (!d->driver_data)
-> +		goto strict;
-> +
-> +	hid = d->driver_data;
-> +	ret = acpi_get_devices(hid, acpi_res_quick_check_hid_cb,
-> +				NULL, (void **)&found);
-> +
-> +	if (ret == AE_OK && found)
-> +		goto strict;
-> +
-> +	return 0;
-> +strict:
-> +	printk(KERN_DEBUG "ACPI: detected %s system: "
-> +			"enforcing strict resource checking\n", d->ident);
-> +	return 1;
-> +}
-> +
-> +/* The following systems have ACPI drivers that might overlap the
-> + * functionality of native drivers (mostly in hwmon subsys). If
-> + * acpi_enforce_resources is set to auto the following table is
-> + * used to enforce strict checking in matching systems, in order
-> + * to avoid conflicts.
-> + * Note that driver_data and the acpi_res_quick_check_hid callback
-> + * are used to further refine the match, checking for the presence
-> + * of the given HID (driver_data) in the DSDT. Both fields are
-> + * optional for DMI-only rules.
-> + */
-> +static const struct dmi_system_id resource_quirks[] = {
-> +	{
-> +		.ident = "Asus",
-> +		.matches = {
-> +			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer"),
-> +		},
-> +		.driver_data = "ATK0110",
-> +		.callback = acpi_res_quick_check_hid,
-> +	},
-> +	{ }
-> +};
-> +
-> +static int __init acpi_apply_resource_quirk(void)
-> +{
-> +	if (acpi_enforce_resources != ENFORCE_RESOURCES_AUTO)
-> +		return 0;
-> +
-> +	dmi_check_system(resource_quirks);
-> +
-> +	if (acpi_enforce_resources == ENFORCE_RESOURCES_AUTO)
-> +		/* This system is not listed, fallback to 'lax' */
-> +		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-> +
-> +	return 0;
-> +}
-> +fs_initcall(acpi_apply_resource_quirk);
-> +
->  /* Check for resource conflicts between ACPI OperationRegions and native
->   * drivers */
->  int acpi_check_resource_conflict(struct resource *res)
->
-> Luca
-
+SGksCgpPbiBNb25kYXkgMDIgRmVicnVhcnkgMjAwOSAxMjozODoyNCBMdWNhIFRldHRhbWFudGkg
+d3JvdGU6Cj4gT24gTW9uLCBGZWIgMiwgMjAwOSBhdCAxMDoxMSBBTSwgSmVhbiBEZWx2YXJlIDxr
+aGFsaUBsaW51eC1mci5vcmc+IHdyb3RlOgo+ID4gT24gU3VuLCAxIEZlYiAyMDA5IDIyOjIyOjQz
+ICswMTAwLCBMdWNhIFRldHRhbWFudGkgd3JvdGU6Cj4gPj4gLS0tIGEvZHJpdmVycy9hY3BpL29z
+bC5jCj4gPj4gKysrIGIvZHJpdmVycy9hY3BpL29zbC5jCj4gPj4gQEAgLTEwNjMsNyArMTA2Mywx
+MCBAQCBfX3NldHVwKCJhY3BpX3dha2VfZ3Blc19hbHdheXNfb24iLAo+ID4+IGFjcGlfd2FrZV9n
+cGVzX2Fsd2F5c19vbl9zZXR1cCk7ICogaW4gYXJiaXRyYXJ5IEFNTCBjb2RlIGFuZCBjYW4KPiA+
+PiBpbnRlcmZlcmUgd2l0aCBsZWdhY3kgZHJpdmVycy4gKiBhY3BpX2VuZm9yY2VfcmVzb3VyY2Vz
+PSBjYW4gYmUgc2V0IHRvOgo+ID4+ICAgKgo+ID4+IC0gKiAgIC0gc3RyaWN0ICAgICAgICAgICAo
+MikKPiA+PiArICogICAtIGF1dG8gICAgICAgICAgICAgKDIpCj4gPj4gKyAqICAgICAtPiBkZXRl
+Y3QgcG9zc2libGUgY29uZmxpY3RzIHdpdGggQUNQSSBkcml2ZXJzIGFuZCBzd2l0Y2ggdG8KPiA+
+PiArICogICAgIHN0cmljdCBpZiBuZWVkZWQsIG90aGVyd2lzZSBhY3QgbGlrZSBsYXgKPiA+PiAr
+ICogICAtIHN0cmljdCAgICAgICAgICAgKDMpCj4gPj4gICAqICAgICAtPiBmdXJ0aGVyIGRyaXZl
+ciB0cnlpbmcgdG8gYWNjZXNzIHRoZSByZXNvdXJjZXMgd2lsbCBub3QgbG9hZAo+ID4+ICAgKiAg
+IC0gbGF4IChkZWZhdWx0KSAgICAoMSkKPiA+PiAgICogICAgIC0+IGZ1cnRoZXIgZHJpdmVyIHRy
+eWluZyB0byBhY2Nlc3MgdGhlIHJlc291cmNlcyB3aWxsIGxvYWQsIGJ1dAo+ID4+IHlvdSBAQCAt
+MTA3MywxMSArMTA3NiwxMiBAQCBfX3NldHVwKCJhY3BpX3dha2VfZ3Blc19hbHdheXNfb24iLAo+
+ID4+IGFjcGlfd2FrZV9ncGVzX2Fsd2F5c19vbl9zZXR1cCk7ICogICAgIC0+IEFDUEkgT3BlcmF0
+aW9uIFJlZ2lvbgo+ID4+IHJlc291cmNlcyB3aWxsIG5vdCBiZSByZWdpc3RlcmVkICoKPiA+PiAg
+ICovCj4gPj4gLSNkZWZpbmUgRU5GT1JDRV9SRVNPVVJDRVNfU1RSSUNUIDIKPiA+PiArI2RlZmlu
+ZSBFTkZPUkNFX1JFU09VUkNFU19TVFJJQ1QgMwo+ID4+ICsjZGVmaW5lIEVORk9SQ0VfUkVTT1VS
+Q0VTX0FVVE8gICAyCj4gPj4gICNkZWZpbmUgRU5GT1JDRV9SRVNPVVJDRVNfTEFYICAgIDEKPiA+
+PiAgI2RlZmluZSBFTkZPUkNFX1JFU09VUkNFU19OTyAgICAgMAo+ID4KPiA+IEkgZG9uJ3Qgc2Vl
+IGFueSByZWFzb24gdG8gY2hhbmdlIEVORk9SQ0VfUkVTT1VSQ0VTX1NUUklDVCBmcm9tIDIgdG8g
+My4KPiA+IEp1c3QgYWRkIEVORk9SQ0VfUkVTT1VSQ0VTX0FVVE8gYXMgMyBhbmQgdGhhdCdzIGl0
+LCBtYWtlcyB5b3VyIHBhdGNoCj4gPiBzbWFsbGVyLgo+Cj4gVGhlcmUncyBhbiB1bnNwb2tlbiBy
+ZWFzb24gOy0pIFRoZSBvcHRpb25zIGFyZSBvcmRlcmVkIGJ5Cj4gInN0cmljdG5lc3MiLCBJIHdh
+cyBleHBlcmltZW50aW5nIHdpdGggYW4gQVBJIHRvIGV4cG9ydCB0aGUgcGFyYW1ldGVyLAo+IGlu
+IG9yZGVyIHRvIG1vdmUgdGhlIGNvZGUgdG8gYSBzZXBhcmF0ZSBxdWlyayBmaWxlLiBTaW5jZSBp
+dCdzIG5vdAo+IHJlbGV2YW50IGluIHRoaXMgcGF0Y2ggSSdsbCBiYWNrIG91dCB0aGUgY2hhbmdl
+LgoKSSBhbSBzdGlsbCBydW5uaW5nIGFuIGZzY2sgYXMgSSBmaWxsZWQgdXAgdGhlIGZzIEkgd29y
+a2VkIG9uIHRvIDEwMCUsIHdoaWNoCnRha2VzIGhvdXJzIGZvciB0aGUgMzAwRyBwYXJ0aXRpb24u
+IEkgaG9wZSBJIGRpZG4ndCBtZXNzIHVwIHNvbWV0aGluZywgZHVlCnRvIHRoZSBmdWxsIGZzLCBi
+dXQgSSBkbyBub3Qgd2FudCB0byB3YWl0IHVudGlsIHRvbW9ycm93LCB5b3UgYWxyZWFkeSBtaWdo
+dAp3YW50IHRvIGhhdmUgYSBsb29rIGF0IHRoaXMuCgpUaGVzZSB0d28gcGF0Y2hlcyBhcmUgdGVz
+dGVkIG9uIGEgQVNVUyBtYWNoaW5lIGFuZCB3b3JrZWQgYXMgZXhwZWN0ZWQsCmJ1dCBwcm9iYWJs
+eSBtYXkgc3RpbGwgbmVlZCBzb21lIGNsZWFudXAuCgpUaGVyZSBpcyB0aGUgcHJvYmxlbSB0aGF0
+IHRoZSBxdWlya3MgYXJlIG5vdCBleGVjdXRlZCBmb3IgZGV2aWNlcwp3aGljaCBhcmUgbm90IHBy
+ZXNlbnQuIEJ1dCB0aGlzIGlzIGR1ZSB0byB0aGUgcG9vciBBQ1BJIGhvdHBsdWcgZGVzaWduLAp3
+aGljaCBob3BlZnVsbHkgd2lsbCBiZSByZXdvcmtlZCBhdCBzb21lIHRpbWUuCgpCb3RoIGFyZSBh
+Z2FpbnN0IExlbidzIGxhdGVzdCBBQ1BJIGdpdCB0ZXN0IGJyYW5jaC4KCkxlbiwgaWYgeW91IGxp
+a2UgdGhlc2UsIHRlbGwgbWUgYW5kIEkgYW0gZ29pbmcgdG8gbWFrZSB0aGVtCmNoZWNrX3BhdGNo
+IGNsZWFuIGFuZCBJIHdpbGwgc2VuZCB0aGVtIGFnYWluLgoKVGhhbmtzLAoKICAgIFRob21hcwoK
+LS0tCgpBQ1BJOiBJbnRlcmZhY2UgZm9yIEFDUEkgZHJpdmVycyB0byBwbGFjZSBxdWlyayBjb2Rl
+IHdoaWNoIGdldHMgZXhlY3V0ZWQgZWFybHkKClNvbWUgQUNQSSBkcml2ZXJzIG5lZWQgQUNQSSBu
+YW1lc3BhY2UgaW5mbyBiZWZvcmUgdGhlIGRyaXZlciBpcyBhY3R1YWxseQpsb2FkZWQuCkJlc3Qg
+ZXhhbXBsZXMgYXJlIGxlZ2FjeSB2cyBBQ1BJIGRyaXZlciBjb21wZXRpdG9ycyBsaWtlIEFUSzAx
+MTAgdnMgaHdtb24KZHJpdmVycyBhbmQgdGhlIGdlbmVyaWMgQUNQSSB2aWRlbyBkcml2ZXIgdnMg
+bGFwdG9wIGRyaXZlcnMuClRoZXJlIG1heSBhbHNvIHBvcCB1cCBvdGhlciBleGFtcGxlcyBpbiB0
+aGUgZnV0dXJlIHdoZXJlIHRoaXMgaW50ZXJmYWNlIHdpbGwKYmVjb21lIGNvbnZlbmllbnQuCgpT
+aWduZWQtb2ZmLWJ5OiBUaG9tYXMgUmVubmluZ2VyIDx0cmVubkBzdXNlLmRlPgoKZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvYWNwaS9NYWtlZmlsZSBiL2RyaXZlcnMvYWNwaS9NYWtlZmlsZQppbmRleCA2
+NWQ5MGM3Li40OThjYzZmIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvTWFrZWZpbGUKKysrIGIv
+ZHJpdmVycy9hY3BpL01ha2VmaWxlCkBAIC01OSwzICs1OSw0IEBAIG9iai0kKENPTkZJR19BQ1BJ
+X0hPVFBMVUdfTUVNT1JZKQkrPSBhY3BpX21lbWhvdHBsdWcubwogb2JqLSQoQ09ORklHX0FDUElf
+UFJPQ0ZTX1BPV0VSKQkrPSBjbV9zYnMubwogb2JqLSQoQ09ORklHX0FDUElfU0JTKQkJKz0gc2Jz
+aGMubwogb2JqLSQoQ09ORklHX0FDUElfU0JTKQkJKz0gc2JzLm8KK29iai15ICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgKz0gcXVpcmtzLm8KXCBObyBuZXdsaW5lIGF0IGVuZCBvZiBmaWxlCmRp
+ZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaS5oIGIvZHJpdmVycy9hY3BpL2FjcGkuaApuZXcg
+ZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi45NWUyOWNhCi0tLSAvZGV2L251bGwKKysr
+IGIvZHJpdmVycy9hY3BpL2FjcGkuaApAQCAtMCwwICsxLDggQEAKKyNpZm5kZWYgX0xJTlVYX0xP
+Q0FMX0FDUElfSAorI2RlZmluZSBfTElOVVhfTE9DQUxfQUNQSV9ICisKKyNpbmNsdWRlIDxsaW51
+eC9pbml0Lmg+CisKK3ZvaWQgX19pbml0IGFjcGlfZGV2aWNlX3F1aXJrcyh2b2lkKTsKKworI2Vu
+ZGlmIC8qIF9MSU5VWF9MT0NBTF9BQ1BJX0ggKi8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9x
+dWlya3MuYyBiL2RyaXZlcnMvYWNwaS9xdWlya3MuYwpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRl
+eCAwMDAwMDAwLi44NDQ0ODBlCi0tLSAvZGV2L251bGwKKysrIGIvZHJpdmVycy9hY3BpL3F1aXJr
+cy5jCkBAIC0wLDAgKzEsNzMgQEAKKy8qCisgKiAgQ29weXJpZ2h0IChjKSAyMDA4IFRob21hcyBS
+ZW5uaW5nZXIgPHRyZW5uQHN1c2UuZGU+CisgKgorICogfn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4KKyAqCisg
+KiAgVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0
+IGFuZC9vciBtb2RpZnkKKyAqICBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFs
+IFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieQorICogIHRoZSBGcmVlIFNvZnR3YXJlIEZv
+dW5kYXRpb247IGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisgKiAgKGF0IHlv
+dXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KKyAqCisgKiAgVGhpcyBwcm9ncmFtIGlzIGRp
+c3RyaWJ1dGVkIGluIHRoZSBob3BlIHRoYXQgaXQgd2lsbCBiZSB1c2VmdWwsCisgKiAgYnV0IFdJ
+VEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YK
+KyAqICBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0Uu
+ICBTZWUgdGhlCisgKiAgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWls
+cy4KKyAqCisgKiAgWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdl
+bmVyYWwgUHVibGljIExpY2Vuc2UKKyAqICBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90
+LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQorICogIEZvdW5kYXRpb24sIEluYy4sIDU5IFRl
+bXBsZSBQbGFjZSwgU3VpdGUgMzMwLCBCb3N0b24sIE1BICAwMjExMS0xMzA3ICBVU0EKKyAqCisg
+KiB+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fgorICovCisKKyNpbmNsdWRlIDxsaW51eC9tb2RfZGV2aWNldGFi
+bGUuaD4KKyNpbmNsdWRlIDxhY3BpL2FjcGlfYnVzLmg+CisjaW5jbHVkZSAiYWNwaS5oIgorCitz
+dHJ1Y3QgYWNwaV9kZXZpY2VfZml4dXAgeworCWNvbnN0IGNoYXIgKmhpZDsKKwlpbnQgKCpmaXh1
+cF9jYikoc3RydWN0IGFjcGlfZGV2aWNlKik7Cit9OworCisvKgorICogQWRkIGEgY2FsbGJhY2sg
+aGVyZSBpZiB5b3VyIG1vZHVsZSBuZWVkcyB0byBwcm9jZXNzIGNvZGUgYWZ0ZXIgdGhlIEFDUEkK
+KyAqIGNvcmUgaGFzIHBhcnNlZCB0aGUgRFNEVCBhbmQgaW5pdGlhbGl6ZWQgYWxsIGRldmljZXMs
+IGJ1dCB0aGUgY29kZSBtdXN0CisgKiBiZSBwcm9jZXNzZWQgYmVmb3JlIG1vZHVsZSBsb2FkIHRp
+bWUuCisgKiBHb29kIGNhbmRpYXRlcyBhcmUgQUNQSSB2cyBsZWdhY3kgZHJpdmVyIGRlY2lzaW9u
+cyB3aGljaCBtdXN0IGJlIG1hZGUKKyAqIGJlZm9yZSB0aGUgZHJpdmVyIGlzIGxvYWRlZC4KKyAq
+LworY29uc3Qgc3RydWN0IGFjcGlfZGV2aWNlX2ZpeHVwIF9faW5pdGRhdGEgZml4dXBfdGFibGVb
+XSA9IHsKK307CisKK3N0YXRpYyBhY3BpX3N0YXR1cyBfX2luaXQKK2FjcGlfZGV2aWNlX3F1aXJr
+c19jYWxsYmFjayhhY3BpX2hhbmRsZSBoYW5kbGUsCisJCQkgICAgdTMyIGxldmVsLCB2b2lkICpj
+dHh0LCB2b2lkICoqcmV0dikKK3sKKwlhY3BpX3N0YXR1cyBzdGF0dXM7CisJc3RydWN0IGFjcGlf
+ZGV2aWNlICpkZXY7CisJc3RydWN0IGFjcGlfZGV2aWNlX2lkIGRldl9pZDsKKwlpbnQgeCwgcmV0
+OworCisJc3RhdHVzID0gYWNwaV9idXNfZ2V0X2RldmljZShoYW5kbGUsICZkZXYpOworCWlmIChB
+Q1BJX0ZBSUxVUkUoc3RhdHVzKSkKKwkJcmV0dXJuIEFFX09LOworCisJZm9yICh4ID0gMDsgeCA8
+IEFSUkFZX1NJWkUoZml4dXBfdGFibGUpOyB4KyspIHsKKwkJbWVtY3B5KCZkZXZfaWQuaWQsIGZp
+eHVwX3RhYmxlW3hdLmhpZCwgQUNQSV9JRF9MRU4pOworCQlpZiAoIWFjcGlfbWF0Y2hfZGV2aWNl
+X2lkcyhkZXYsICZkZXZfaWQpKSB7CisJCQlyZXQgPSBmaXh1cF90YWJsZVt4XS5maXh1cF9jYihk
+ZXYpOworCQkJaWYgKHJldCkKKwkJCQlwcmludGsgKEtFUk5fRVJSICJGaXh1cCBmYWlsZWQgZm9y
+IGRldmljZTogIgorCQkJCQkiJXNcbiIsIGZpeHVwX3RhYmxlW3hdLmhpZCk7CisJCX0KKwl9CisJ
+cmV0dXJuIEFFX09LOworfQorCit2b2lkIF9faW5pdCBhY3BpX2RldmljZV9xdWlya3Modm9pZCkg
+eworCisJYWNwaV93YWxrX25hbWVzcGFjZShBQ1BJX1RZUEVfREVWSUNFLCBBQ1BJX1JPT1RfT0JK
+RUNULAorCQkJICAgIEFDUElfVUlOVDMyX01BWCwKKwkJCSAgICBhY3BpX2RldmljZV9xdWlya3Nf
+Y2FsbGJhY2ssCisJCQkgICAgTlVMTCwgTlVMTCk7Cit9CmRpZmYgLS1naXQgYS9kcml2ZXJzL2Fj
+cGkvc2Nhbi5jIGIvZHJpdmVycy9hY3BpL3NjYW4uYwppbmRleCBjNTRkN2I2Li4xYzI1NzQ3IDEw
+MDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvc2Nhbi5jCisrKyBiL2RyaXZlcnMvYWNwaS9zY2FuLmMK
+QEAgLTEwLDYgKzEwLDcgQEAKICNpbmNsdWRlIDxsaW51eC9rdGhyZWFkLmg+CiAKICNpbmNsdWRl
+IDxhY3BpL2FjcGlfZHJpdmVycy5oPgorI2luY2x1ZGUgImFjcGkuaCIKIAogI2RlZmluZSBfQ09N
+UE9ORU5UCQlBQ1BJX0JVU19DT01QT05FTlQKIEFDUElfTU9EVUxFX05BTUUoInNjYW4iKTsKQEAg
+LTE1NjIsNiArMTU2Myw4IEBAIHN0YXRpYyBpbnQgX19pbml0IGFjcGlfc2Nhbl9pbml0KHZvaWQp
+CiAKIAlpZiAocmVzdWx0KQogCQlhY3BpX2RldmljZV91bnJlZ2lzdGVyKGFjcGlfcm9vdCwgQUNQ
+SV9CVVNfUkVNT1ZBTF9OT1JNQUwpOworCWVsc2UKKwkJYWNwaV9kZXZpY2VfcXVpcmtzKCk7CiAK
+ICAgICAgIERvbmU6CiAJcmV0dXJuIHJlc3VsdDsKAAo=
