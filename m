@@ -1,53 +1,62 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: [PATCH] Enable bit 11 in _PDC to advertise hw coord
-Date: Mon, 2 Feb 2009 11:57:18 -0800
-Message-ID: <20090202195717.GA24510@linux-os.sc.intel.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [PATCH 1/2] RFC: ACPI: Interface for ACPI drivers to place
+	quirk code which gets executed early
+Date: Mon, 2 Feb 2009 21:22:46 +0100
+Message-ID: <20090202202246.GA9023@dreamland.darkstar.lan>
+References: <20090125210520.GA12963@dreamland.darkstar.lan> <20090202101103.1208c035@hyperion.delvare> <68676e00902020338o7326ff7dx4efadf94ed534acf@mail.gmail.com> <200902021822.11906.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:61297 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753140AbZBBT5W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Feb 2009 14:57:22 -0500
+Received: from fg-out-1718.google.com ([72.14.220.153]:56037 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087AbZBBUWq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2009 15:22:46 -0500
 Content-Disposition: inline
+In-Reply-To: <200902021822.11906.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Jens Axboe <jens.axboe@oracle.com>, Chris Mason <chris.mason@oracle.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
+Il Mon, Feb 02, 2009 at 06:22:10PM +0100, Thomas Renninger ha scritto: 
+> These two patches are tested on a ASUS machine and worked as expected,
+> but probably may still need some cleanup.
 
-Bit 11 in intel PDC definitions is meant for OS capability to handle
-hardware coordination of P-states. In Linux we have always supported
-hwardware coordination of P-states. Just let the BIOSes know that we
-support it, by setting this bit.
+I'd keep the DMI+HID approach since it's more flexible:
+- (AFAICS) Thinkpads have different methods for hwmon depending on the
+  model and no fixed HID
+- With DMI it would be possible to include ASUS motherboards (ATK w/
+  hwmon) but exclude ASUS laptops (ATK w/o hwmon).
 
-Some BIOSes use this bit to choose between hardware or software coordination
-and without this change below, BIOSes switch to software coordination, which
-is not very optimal in terms of power consumption and extra wakeups from idle.
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index c54d7b6..1c25747 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/kthread.h>
+>  
+>  #include <acpi/acpi_drivers.h>
+> +#include "acpi.h"
+>  
+>  #define _COMPONENT		ACPI_BUS_COMPONENT
+>  ACPI_MODULE_NAME("scan");
+> @@ -1562,6 +1563,8 @@ static int __init acpi_scan_init(void)
+>  
+>  	if (result)
+>  		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
+> +	else
+> +		acpi_device_quirks();
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Hum, it's not immediatly clear why you put that call in the else
+branch. Maybe put:
 
----
- include/acpi/pdc_intel.h |    2 ++
- 1 file changed, 2 insertions(+)
+if (!result)
+        acpi_device_quirks();
 
-Index: linux-2.6/include/acpi/pdc_intel.h
-===================================================================
---- linux-2.6.orig/include/acpi/pdc_intel.h	2009-01-20 16:11:20.000000000 -0800
-+++ linux-2.6/include/acpi/pdc_intel.h	2009-02-02 10:32:06.000000000 -0800
-@@ -14,6 +14,7 @@
- #define ACPI_PDC_SMP_T_SWCOORD		(0x0080)
- #define ACPI_PDC_C_C1_FFH		(0x0100)
- #define ACPI_PDC_C_C2C3_FFH		(0x0200)
-+#define ACPI_PDC_SMP_P_HWCOORD		(0x0800)
- 
- #define ACPI_PDC_EST_CAPABILITY_SMP	(ACPI_PDC_SMP_C1PT | \
- 					 ACPI_PDC_C_C1_HALT | \
-@@ -22,6 +23,7 @@
- #define ACPI_PDC_EST_CAPABILITY_SWSMP	(ACPI_PDC_SMP_C1PT | \
- 					 ACPI_PDC_C_C1_HALT | \
- 					 ACPI_PDC_SMP_P_SWCOORD | \
-+					 ACPI_PDC_SMP_P_HWCOORD | \
- 					 ACPI_PDC_P_FFH)
- 
- #define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3  | \
+before the cleanup?
+
+Luca
+-- 
+"La mia teoria scientifica preferita e` quella secondo la quale gli 
+ anelli di Saturno sarebbero interamente composti dai bagagli andati 
+ persi nei viaggi aerei." -- Mark Russel
