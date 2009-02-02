@@ -1,245 +1,83 @@
-From: "alex.shi" <alex.shi@intel.com>
-Subject: Re: [patch]: fixing of pmtimer overflow that make Cx states time
-	incorrect
-Date: Mon, 02 Feb 2009 09:46:57 +0800
-Message-ID: <1233539217.4069.24.camel@alexs-hp>
-References: <1232342024.21839.6.camel@alexs-hp>
-	 <20090126225235.5e64d0ef.akpm@linux-foundation.org>
-	 <1233453863.3715.35.camel@localhost.localdomain>
-Reply-To: alex.shi@intel.com
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Skip the first two elements in the _BCL package
+Date: Mon, 02 Feb 2009 11:33:41 +0800
+Message-ID: <1233545621.3715.42.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:47349 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:24500 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751419AbZBBBqa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Feb 2009 20:46:30 -0500
-In-Reply-To: <1233453863.3715.35.camel@localhost.localdomain>
+	id S1753525AbZBBDWD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Feb 2009 22:22:03 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, "; lenb"@kernel.org
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "; linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "; venkatesh.pallipadi"@intel.com
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Yagui want to give a clear explanation to be used for commitment. So I resend
-this again. 
+Subject: ACPI: Skip the first two elements in the _BCL package
+From: Zhao Yakui <yakui.zhao@intel.com> 
+   According to the Spec the first two elements in the _BCL package won't be
+regarded as the available brightness level. The first is the brightness when 
+full power is connected to the box(It means that the AC adapter is plugged).
+The second is the brightness level when the box is on battery.
+    If the first two elements are still used while finding the next brightness
+level, it will fall back to the lowest level when keeping on pressing 
+hotkey. (On some boxes the brightness will be changed twice when hotkey is
+pressed once. One is in the ACPI video driver. The other is changed by sys I/F.
+In the ACPI video driver the first two elements will be used while changing
+the brightness. But the first two elements is skipped while using sys I/F.
+In such case there exists the inconsistency).
+    So he first two elements had better be skipped while showing the available
+brightness or finding the next brightness level.
+     
+http://bugzilla.kernel.org/show_bug.cgi?id=12450
 
-    On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
-clock. In such case the max C-state sleep time should be less than 4687ms when
-it is used to record C2/C3 duration time. 
-    But on some boxes the max C-state sleep time is more than 4687ms. In such
-case the overflow happens and the C-state duration time can't be counted
-accurately.
-
-    Use clocksource to get the C-state time instead of ACPI PM timer. and use
-div64_u64 to convert US_TO_PM_TIME_TICKS in i386 mode.
-
-Thanks
-Alex 
-
-Asked-by: venkatesh.pallipadi@intel.com
-Tested-by: Alex Shi <alex.shi@intel.com>
-Signed-off-by: Alex Shi <alex.shi@intel.com>
-Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+cc: Zhang Rui <rui.zhang@intel.com>
 ---
+ drivers/acpi/video.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-
-Index: linux-2.6.29-rc3/drivers/acpi/processor_idle.c
+Index: linux-2.6/drivers/acpi/video.c
 ===================================================================
---- linux-2.6.29-rc3.orig/drivers/acpi/processor_idle.c
-+++ linux-2.6.29-rc3/drivers/acpi/processor_idle.c
-@@ -64,7 +64,8 @@
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_idle");
- #define ACPI_PROCESSOR_FILE_POWER	"power"
--#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
-+#define US_TO_PM_TIMER_TICKS(t)		div64_u64(\
-+	(t * (PM_TIMER_FREQUENCY/1000)), 1000ULL)
- #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
- #ifndef CONFIG_CPU_IDLE
- #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
-@@ -396,8 +397,9 @@ static void acpi_processor_idle(void)
- 	struct acpi_processor *pr = NULL;
- 	struct acpi_processor_cx *cx = NULL;
- 	struct acpi_processor_cx *next_state = NULL;
--	int sleep_ticks = 0;
--	u32 t1, t2 = 0;
-+	s64 sleep_ticks = 0;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
- 
- 	/*
- 	 * Interrupts must be disabled during bus mastering calculations and
-@@ -544,14 +546,15 @@ static void acpi_processor_idle(void)
- 
- 	case ACPI_STATE_C2:
- 		/* Get start time (ticks) */
--		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+		kt1 = ktime_get_real();
- 		/* Tell the scheduler that we are going deep-idle: */
- 		sched_clock_idle_sleep_event();
- 		/* Invoke C2 */
- 		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
--		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+		kt2 = ktime_get_real();
-+		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
- #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
- 		/* TSC halts in C2, so notify users */
-@@ -559,7 +562,7 @@ static void acpi_processor_idle(void)
- 			mark_tsc_unstable("possible TSC halt in C2");
- #endif
- 		/* Compute time (ticks) that we were actually asleep */
--		sleep_ticks = ticks_elapsed(t1, t2);
-+		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
- 
- 		/* Tell the scheduler how much we idled: */
- 		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-@@ -605,13 +608,14 @@ static void acpi_processor_idle(void)
- 		}
- 
- 		/* Get start time (ticks) */
--		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+		kt1 = ktime_get_real();
- 		/* Invoke C3 */
- 		/* Tell the scheduler that we are going deep-idle: */
- 		sched_clock_idle_sleep_event();
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
--		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+		kt2 = ktime_get_real();
-+		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 		if (pr->flags.bm_check && pr->flags.bm_control) {
- 			/* Enable bus master arbitration */
- 			atomic_dec(&c3_cpu_count);
-@@ -624,7 +628,7 @@ static void acpi_processor_idle(void)
- 			mark_tsc_unstable("TSC halts in C3");
- #endif
- 		/* Compute time (ticks) that we were actually asleep */
--		sleep_ticks = ticks_elapsed(t1, t2);
-+		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
- 		/* Tell the scheduler how much we idled: */
- 		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
- 
-@@ -1455,7 +1459,8 @@ static inline void acpi_idle_do_entry(st
- static int acpi_idle_enter_c1(struct cpuidle_device *dev,
- 			      struct cpuidle_state *state)
- {
--	u32 t1, t2;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
- 
-@@ -1476,14 +1481,15 @@ static int acpi_idle_enter_c1(struct cpu
- 	if (pr->flags.bm_check)
- 		acpi_idle_update_bm_rld(pr, cx);
- 
--	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt1 = ktime_get_real();
- 	acpi_idle_do_entry(cx);
--	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt2 = ktime_get_real();
-+	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
- 	local_irq_enable();
- 	cx->usage++;
- 
--	return ticks_elapsed_in_us(t1, t2);
-+	return idle_time;
- }
- 
- /**
-@@ -1496,8 +1502,9 @@ static int acpi_idle_enter_simple(struct
- {
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
--	u32 t1, t2;
--	int sleep_ticks = 0;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
-+	s64 sleep_ticks = 0;
- 
- 	pr = __get_cpu_var(processors);
- 
-@@ -1533,18 +1540,19 @@ static int acpi_idle_enter_simple(struct
- 	if (cx->type == ACPI_STATE_C3)
- 		ACPI_FLUSH_CPU_CACHE();
- 
--	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt1 = ktime_get_real();
- 	/* Tell the scheduler that we are going deep-idle: */
- 	sched_clock_idle_sleep_event();
- 	acpi_idle_do_entry(cx);
--	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt2 = ktime_get_real();
-+	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
- #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
- 	/* TSC could halt in idle, so notify users */
- 	if (tsc_halts_in_c(cx->type))
- 		mark_tsc_unstable("TSC halts in idle");;
- #endif
--	sleep_ticks = ticks_elapsed(t1, t2);
-+	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
- 
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-@@ -1556,7 +1564,7 @@ static int acpi_idle_enter_simple(struct
- 
- 	acpi_state_timer_broadcast(pr, cx, 0);
- 	cx->time += sleep_ticks;
--	return ticks_elapsed_in_us(t1, t2);
-+	return idle_time;
- }
- 
- static int c3_cpu_count;
-@@ -1574,8 +1582,9 @@ static int acpi_idle_enter_bm(struct cpu
- {
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
--	u32 t1, t2;
--	int sleep_ticks = 0;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
-+	s64 sleep_ticks = 0;
- 
- 	pr = __get_cpu_var(processors);
- 
-@@ -1644,9 +1653,10 @@ static int acpi_idle_enter_bm(struct cpu
- 		ACPI_FLUSH_CPU_CACHE();
+--- linux-2.6.orig/drivers/acpi/video.c	2009-01-23 14:47:25.000000000 +0800
++++ linux-2.6/drivers/acpi/video.c	2009-02-02 11:11:55.000000000 +0800
+@@ -1020,7 +1020,7 @@
  	}
  
--	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt1 = ktime_get_real();
- 	acpi_idle_do_entry(cx);
--	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt2 = ktime_get_real();
-+	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 	seq_printf(seq, "levels: ");
+-	for (i = 0; i < dev->brightness->count; i++)
++	for (i = 2; i < dev->brightness->count; i++)
+ 		seq_printf(seq, " %d", dev->brightness->levels[i]);
+ 	seq_printf(seq, "\ncurrent: %d\n", dev->brightness->curr);
  
- 	/* Re-enable bus master arbitration */
- 	if (pr->flags.bm_check && pr->flags.bm_control) {
-@@ -1661,7 +1671,7 @@ static int acpi_idle_enter_bm(struct cpu
- 	if (tsc_halts_in_c(ACPI_STATE_C3))
- 		mark_tsc_unstable("TSC halts in idle");
- #endif
--	sleep_ticks = ticks_elapsed(t1, t2);
-+	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+@@ -1059,7 +1059,7 @@
+ 		return -EFAULT;
  
-@@ -1672,7 +1682,7 @@ static int acpi_idle_enter_bm(struct cpu
- 
- 	acpi_state_timer_broadcast(pr, cx, 0);
- 	cx->time += sleep_ticks;
--	return ticks_elapsed_in_us(t1, t2);
-+	return idle_time;
- }
- 
- struct cpuidle_driver acpi_idle_driver = {
+ 	/* validate through the list of available levels */
+-	for (i = 0; i < dev->brightness->count; i++)
++	for (i = 2; i < dev->brightness->count; i++)
+ 		if (level == dev->brightness->levels[i]) {
+ 			if (ACPI_SUCCESS
+ 			    (acpi_video_device_lcd_set_level(dev, level)))
+@@ -1712,7 +1712,7 @@
+ 	max = max_below = 0;
+ 	min = min_above = 255;
+ 	/* Find closest level to level_current */
+-	for (i = 0; i < device->brightness->count; i++) {
++	for (i = 2; i < device->brightness->count; i++) {
+ 		l = device->brightness->levels[i];
+ 		if (abs(l - level_current) < abs(delta)) {
+ 			delta = l - level_current;
+@@ -1722,7 +1722,7 @@
+ 	}
+ 	/* Ajust level_current to closest available level */
+ 	level_current += delta;
+-	for (i = 0; i < device->brightness->count; i++) {
++	for (i = 2; i < device->brightness->count; i++) {
+ 		l = device->brightness->levels[i];
+ 		if (l < min)
+ 			min = l;
 
 
