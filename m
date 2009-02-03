@@ -1,64 +1,42 @@
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Acer 6592 TM, suspend to ram and resume freeze
-Date: Tue, 03 Feb 2009 21:36:19 +0100
-Message-ID: <873aevl0l8.fsf@free.fr>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
+Date: Tue, 3 Feb 2009 22:03:25 +0100 (CET)
+Message-ID: <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
+References: <4978767D.4060700@intertwingly.net> <20090130000758.1dff0113.akpm@linux-foundation.org> <498885CC.4060509@intertwingly.net> <20090203114849.b661f1ce.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.tglx.de ([62.245.132.106]:56885 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751071AbZBCVDy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Feb 2009 16:03:54 -0500
+In-Reply-To: <20090203114849.b661f1ce.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Sam Ruby <rubys@intertwingly.net>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>
 
-First of all, sorry for the duplicate on linux-pm, but as Pavel suggested, this
-topic gains wider audience as acpi and pm are involved.
+On Tue, 3 Feb 2009, Andrew Morton wrote:
+> > >> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+> > >> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
+Sigh.
 
-I have an issue with my laptop with suspend to ram.
-My laptop is an Acer Travelmate 6592g :
+> Not sure.  Perhaps platform_i386/platform_x86_64 would be correct.
+> Can the x86 maintainers please advise?
 
-> [rj@velvet wireshark-1.0.5 (master)]$ sudo s2ram -i
-> This machine can be identified by:
->     sys_vendor   = "Acer"
->     sys_product  = "TravelMate 6592"
->     sys_version  = "PSMBOU-1234567"
->     bios_version = "V1.53   "
+Yup. That's correct
 
-The kernel running is the last I have : 2.6.29-rc1, but the problem is the same
-whatever the kernel version I take (between 2.6.16 and 2.6.29-rc1).
+@Sam: I just checked, that your machine has a serial port. That's a
+good start :)
 
-The issue is that even if the laptop enters suspend correctly, it hangs on
-comming out of it. After some research, I cornered down the module which changes
-the behaviour : acpi_cpufreq.ko.
+Do you have a second computer around with a serial port ? If yes, then
+please add the following to the kernel command line:
 
-When I forbid the laptop to load this module, the suspend to ram works like a
-charm, in "init" single mode or multi-user mode. When I load the module, the
-resume always hangs (fan goes high speed like crazy, no LCD back, hard drive led
-stays on, caps_lock key not responsive, ...)
+       earlyprintk=serial,ttyS0,115200 apic=debug
 
-Now, I notice that loading acpi-cpufreq triggers the following message :
-> log: Jan 19 18:23:42 velvet kernel: ACPI: EC: non-query interrupt received, switching to interrupt mode
+and connect the serial ports with a null modem cable. Fire up a
+terminal program on the second machine and capture the output.
 
-As this is not the part of the kernel I'm most at ease with, I'd like some help
-to investigate. I'll gladly make any test or apply patches to my own git tree.
+Thanks,
 
-I join to this mail a URL [1] to see the little information I have :
- - kernel messages (/var/log/messages), for single user startup
- - ACPI table
- - my kernel configuration
- - kernel message for a working suspend to ram (ie. without acpi_cpufreq).
- - I suspend using s2ram -f -v -p -s
-
-Best regards.
-
---
-Robert
-
-[1] http://belgarath.hd.free.fr/download/acer6592tm/
+	tglx
