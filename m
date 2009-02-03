@@ -1,79 +1,105 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: XEON E5420 and Namespace lookup failure
-Date: Tue, 03 Feb 2009 14:57:04 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902031446130.5607@localhost.localdomain>
-References: <20081108222454.GA29284@frix.fri.uniza.sk>
+From: Sam Ruby <rubys@intertwingly.net>
+Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
+Date: Tue, 03 Feb 2009 15:19:37 -0500
+Message-ID: <4988A6D9.8000605@intertwingly.net>
+References: <4978767D.4060700@intertwingly.net>	<20090130000758.1dff0113.akpm@linux-foundation.org>	<498885CC.4060509@intertwingly.net> <20090203114849.b661f1ce.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:29624 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751755AbZBCUDS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 15:03:18 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-2.01 (built Jun 13 2007; 32bit))
- with ESMTPA id <0KEI007RXA37LNH6@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 03 Feb 2009 13:57:08 -0600 (CST)
-In-reply-to: <20081108222454.GA29284@frix.fri.uniza.sk>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:52694 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751627AbZBCUTc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 15:19:32 -0500
+In-Reply-To: <20090203114849.b661f1ce.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Strazovec <bubak@frix.fri.uniza.sk>
-Cc: linux-acpi@vger.kernel.org, peters@rosina.sk
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-> Hello, I have problem with Namespace lookup failure on E5420. Thus acpi not
-> functional (cpufrequ via p-states, etc...).
+Andrew Morton wrote:
+> On Tue, 03 Feb 2009 12:58:36 -0500
+> Sam Ruby <rubys@intertwingly.net> wrote:
 > 
-> Does anyone know about some patch or some hint?
+>> Andrew Morton wrote:
+>>> On Thu, 22 Jan 2009 08:37:01 -0500 Sam Ruby <rubys@intertwingly.net> wrote:
+>>>
+>>>> Hardware summary: http://tinyurl.com/ap79ra
+>>>> APIC details: http://intertwingly.net/stories/2009/01/22/
+>>>> Note acpidump.err: Wrong checksum for OEMB!
+>>>>
+>>>> Messages on boot using Intrepid, Jaunty Alpha 3, or Fedora 10:
+>>>>
+>>>> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+>>>> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
+>>>>   Boot with apic=debug and send a report.  Then try booting with the 
+>>>> 'noapic' option.
+>>>> [    0.296001]
+>>>>
+>>>> Able to get past this issue using "noapic", at which point things mostly 
+>>>> work,
+>>> Join the ever-growing noapic club :(
+>>>
+>>> I assume this is an ACPI problem.  Or at least, a BIOS problem which
+>>> ACPI can solve for us.
+>> My understanding is that APCI and APIC are two different things.
+> 
+> They sure are.  But it is ACPI which communicates with the BIOS to tell
+> the kernel about the APIC, hwo it's wired up, etc.
+> 
+> Although in this case it looks like the problem might be with the
+> mp-bios tables, which ACPI does not handle.  In which case it would be
+> core x86 code which will have to fix this up, not ACPI.
+> 
+> Did you try updating the BIOS?
 
-from the dmesg:
+My understanding is that a BIOS may be specific to the machine.
+In the past, I've been able to find BIOS updates at manufacturer web 
+sites.  This one is difficult to navigate, but the closest I have been 
+able to find is:
 
-Linux version 2.6.27-gentoo-r2_cargo
-...
-ACPI: SSDT CFE5F800, 00D8 (r1 HP      CPU0CST        1 INTL 20061109)
-Parsing all Control Methods:
-Table [SSDT](id 00C6) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Error (psargs-0358): [CS03] Namespace lookup failure, AE_NOT_FOUND
-ACPI Error (psparse-0530): Method parse/execution failed [\_PR_.CPU0._CST] 
-(Node ffff88012f860a10), AE_NOT_FOUND
-processor ACPI0007:00: registered as cooling_device0
-ACPI: SSDT CFE5F900, 00D8 (r1 HP      CPU1CST        1 INTL 20061109)
-Parsing all Control Methods:
-Table [SSDT](id 00CB) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Error (psargs-0358): [CS03] Namespace lookup failure, AE_NOT_FOUND
-ACPI Error (psparse-0530): Method parse/execution failed [\_PR_.CPU1._CST] 
-(Node ffff88012f860a30), AE_NOT_FOUND
-processor ACPI0007:01: registered as cooling_device1
-ACPI: SSDT CFE5FA00, 00D8 (r1 HP      CPU2CST        1 INTL 20061109)
-Parsing all Control Methods:
-Table [SSDT](id 00D0) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Error (psargs-0358): [CS03] Namespace lookup failure, AE_NOT_FOUND
-ACPI Error (psparse-0530): Method parse/execution failed [\_PR_.CPU2._CST] 
-(Node ffff88012f860ad0), AE_NOT_FOUND
-processor ACPI0007:02: registered as cooling_device2
-ACPI: SSDT CFE5FB00, 00D8 (r1 HP      CPU3CST        1 INTL 20061109)
-Parsing all Control Methods:
-Table [SSDT](id 00D5) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Error (psargs-0358): [CS03] Namespace lookup failure, AE_NOT_FOUND
-ACPI Error (psparse-0530): Method parse/execution failed [\_PR_.CPU3._CST] 
-(Node ffff88012f8609f0), AE_NOT_FOUND
+http://www.acerpanam.com/synapse/forms/portal20.cfm?website=AcerPanAm.com&siteid=7117&areaid=2&formid=3394#results
 
-Most of ACPI is actually functioning properly on this machine,
-having configured your interrupts etc.
+Product Line => Desktop
+Aspire M3640
+Search
 
-It looks like this box is trying to present some C-states
-via _CST, and that is failing.  I don't see any messages
-related to P-states -- is acpi_cpufreq included in your .config?
+In the list that results, I see "INT15 Driver for AMI BIOS Core" for 
+Vista, but no BIOS.  It could be that I just don't know where to look.
 
-Please start by confirming that 2.6.28 still has this issue.
-If it does, then please open a bug report here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-and attach the dmesg (uncompressed is fine)
-along with the output from
-acpidump > acpidump.out
-acpidump -a 0xCFE5F800 -l 0x00D8 > ssdt.out
+Note: my actual machine is designated AM3641-EQ8200A
 
-thanks,
---
-Len Brown, Intel Open Source Technology Center
+>>>> but rsync of large iso images result in corrupt files.  Able to 
+>>>> copy those same files using Vista on the same machine, or using Hardy on 
+>>>> another machine.  This problem may not be related to the above, but it 
+>>>> seems plausible to me that this might be an interrupt issue.
+>>> Yes, it might be unrelated.  There are no kernel messages when it happens?
+>> I see no messages to /var/log/messages while doing the following (which 
+>> involves rsync'ing a 2618793984 byte file from an NTFS to ext3 drive on 
+>> the same machine:
+>>
+>> rubys@rubix4:~/tmp$ rsync /mnt/shared/windows7_7000.iso .
+>> rubys@rubix4:~/tmp$ openssl md5 windows7_7000.iso
+>> MD5(windows7_7000.iso)= 953b9ac92d58f5edef525004bcce048d
+>> rubys@rubix4:~/tmp$ rsync /mnt/shared/windows7_7000.iso .
+>> rubys@rubix4:~/tmp$ openssl md5 windows7_7000.iso
+>> MD5(windows7_7000.iso)= 695328ef1280708eb73303656f6ef0b2
+>>
+>>>> memtest86+ runs clean.
+>>>>
+>>>> Quite willing to invest time in installing kernels or distributions on 
+>>>> fresh hard drives, run tests, obtain debug information, and report back.
+>>>>
+>>>> More background here: http://intertwingly.net/blog/2009/01/20/noAPIC
+>>>>
+>>>> Not subscribed, but will actively monitor the web archives for this 
+>>>> mailing list for the next several days.
+>>> It'd be best to raise a report against ACPI?BIOS (I think) at
+>>> bugzilla.kernel.org, please.
+>> Once again, I'm talking about apic not acpi... does this advice still hold?
+> 
+> Not sure.  Perhaps platform_i386/platform_x86_64 would be correct.
+> Can the x86 maintainers please advise?
+
+- Sam Ruby
 
