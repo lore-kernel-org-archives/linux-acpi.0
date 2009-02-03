@@ -1,63 +1,76 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch]: fixing of pmtimer overflow that make Cx states time
- incorrect
-Date: Mon, 2 Feb 2009 23:24:38 -0800
-Message-ID: <20090202232438.d91d19f7.akpm@linux-foundation.org>
-References: <1232342024.21839.6.camel@alexs-hp>
-	<20090126225235.5e64d0ef.akpm@linux-foundation.org>
-	<1233453863.3715.35.camel@localhost.localdomain>
-	<1233539217.4069.24.camel@alexs-hp>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 1/2] RFC: ACPI: Interface for ACPI drivers to place quirk code which gets executed early
+Date: Tue, 3 Feb 2009 14:08:10 +0100
+Message-ID: <200902031408.12237.trenn@suse.de>
+References: <20090125210520.GA12963@dreamland.darkstar.lan> <200902021822.11906.trenn@suse.de> <20090202202246.GA9023@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60223 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751122AbZBCHYr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 02:24:47 -0500
-In-Reply-To: <1233539217.4069.24.camel@alexs-hp>
+Received: from ns2.suse.de ([195.135.220.15]:48986 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752465AbZBCNIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Feb 2009 08:08:14 -0500
+In-Reply-To: <20090202202246.GA9023@dreamland.darkstar.lan>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: alex.shi@intel.com
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
+On Monday 02 February 2009 21:22:46 Luca Tettamanti wrote:
+> Il Mon, Feb 02, 2009 at 06:22:10PM +0100, Thomas Renninger ha scritto:
+> > These two patches are tested on a ASUS machine and worked as expected,
+> > but probably may still need some cleanup.
+>
+> I'd keep the DMI+HID approach since it's more flexible:
+> - (AFAICS) Thinkpads have different methods for hwmon depending on the
+>   model and no fixed HID
+> - With DMI it would be possible to include ASUS motherboards (ATK w/
+>   hwmon) but exclude ASUS laptops (ATK w/o hwmon).
+I thought the ATK01[01]0 devices are ASUS specific.
+I now found an ATK0100 (not the ATK0110 this is about) on a Sony and a
+Samsung.
+I still wonder why you want to restrict the check to ASUS.
+Your ATK0110 driver would also load on any other machine which has such
+a device. And why shouldn't a Samsung/Sony/... machine with a ATK0110
+device not access the hwmon sensor through it?
+Should we already look a bit deeper into the ATK0110 device in the quirk
+to make sure it provides thermal, fan or other hwmon device accessing
+functionality?
 
-(Cc: line rewritten.  What on earth is your email client doing??)
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index c54d7b6..1c25747 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -10,6 +10,7 @@
+> >  #include <linux/kthread.h>
+> >
+> >  #include <acpi/acpi_drivers.h>
+> > +#include "acpi.h"
+> >
+> >  #define _COMPONENT		ACPI_BUS_COMPONENT
+> >  ACPI_MODULE_NAME("scan");
+> > @@ -1562,6 +1563,8 @@ static int __init acpi_scan_init(void)
+> >
+> >  	if (result)
+> >  		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
+> > +	else
+> > +		acpi_device_quirks();
+>
+> Hum, it's not immediatly clear why you put that call in the else
+> branch. Maybe put:
+>
+> if (!result)
+>         acpi_device_quirks();
+>
+> before the cleanup?
+Yes that looks ugly, yours is nicer...
 
-On Mon, 02 Feb 2009 09:46:57 +0800 "alex.shi" <alex.shi@intel.com> wrote:
+Also thanks for the "auto not handled properly" hint, I forgot
+that part.
 
-> Yagui want to give a clear explanation to be used for commitment. So I resend
-> this again. 
-> 
->     On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
-> clock. In such case the max C-state sleep time should be less than 4687ms when
-> it is used to record C2/C3 duration time. 
->     But on some boxes the max C-state sleep time is more than 4687ms. In such
-> case the overflow happens and the C-state duration time can't be counted
-> accurately.
-> 
->     Use clocksource to get the C-state time instead of ACPI PM timer. and use
-> div64_u64 to convert US_TO_PM_TIME_TICKS in i386 mode.
-> 
+Thanks,
 
-A minor thing..
-
-> --- linux-2.6.29-rc3.orig/drivers/acpi/processor_idle.c
-> +++ linux-2.6.29-rc3/drivers/acpi/processor_idle.c
-> @@ -64,7 +64,8 @@
->  #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
->  ACPI_MODULE_NAME("processor_idle");
->  #define ACPI_PROCESSOR_FILE_POWER	"power"
-> -#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
-> +#define US_TO_PM_TIMER_TICKS(t)		div64_u64(\
-> +	(t * (PM_TIMER_FREQUENCY/1000)), 1000ULL)
-
-I suppose it doesn't matter much, but we could make this function more
-accurate via
-
-	(t * PM_TIMER_FREQUENCY) / 1000
-
-Also, it would be nicer to implement this is a regular C function. 
-There's no need at all for it to be an ugly all-caps macro.
-
-
+    Thomas
