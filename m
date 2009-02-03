@@ -1,105 +1,64 @@
-From: Sam Ruby <rubys@intertwingly.net>
-Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Tue, 03 Feb 2009 15:19:37 -0500
-Message-ID: <4988A6D9.8000605@intertwingly.net>
-References: <4978767D.4060700@intertwingly.net>	<20090130000758.1dff0113.akpm@linux-foundation.org>	<498885CC.4060509@intertwingly.net> <20090203114849.b661f1ce.akpm@linux-foundation.org>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Acer 6592 TM, suspend to ram and resume freeze
+Date: Tue, 03 Feb 2009 21:36:19 +0100
+Message-ID: <873aevl0l8.fsf@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:52694 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627AbZBCUTc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 15:19:32 -0500
-In-Reply-To: <20090203114849.b661f1ce.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-Andrew Morton wrote:
-> On Tue, 03 Feb 2009 12:58:36 -0500
-> Sam Ruby <rubys@intertwingly.net> wrote:
-> 
->> Andrew Morton wrote:
->>> On Thu, 22 Jan 2009 08:37:01 -0500 Sam Ruby <rubys@intertwingly.net> wrote:
->>>
->>>> Hardware summary: http://tinyurl.com/ap79ra
->>>> APIC details: http://intertwingly.net/stories/2009/01/22/
->>>> Note acpidump.err: Wrong checksum for OEMB!
->>>>
->>>> Messages on boot using Intrepid, Jaunty Alpha 3, or Fedora 10:
->>>>
->>>> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
->>>> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
->>>>   Boot with apic=debug and send a report.  Then try booting with the 
->>>> 'noapic' option.
->>>> [    0.296001]
->>>>
->>>> Able to get past this issue using "noapic", at which point things mostly 
->>>> work,
->>> Join the ever-growing noapic club :(
->>>
->>> I assume this is an ACPI problem.  Or at least, a BIOS problem which
->>> ACPI can solve for us.
->> My understanding is that APCI and APIC are two different things.
-> 
-> They sure are.  But it is ACPI which communicates with the BIOS to tell
-> the kernel about the APIC, hwo it's wired up, etc.
-> 
-> Although in this case it looks like the problem might be with the
-> mp-bios tables, which ACPI does not handle.  In which case it would be
-> core x86 code which will have to fix this up, not ACPI.
-> 
-> Did you try updating the BIOS?
+First of all, sorry for the duplicate on linux-pm, but as Pavel suggested, this
+topic gains wider audience as acpi and pm are involved.
 
-My understanding is that a BIOS may be specific to the machine.
-In the past, I've been able to find BIOS updates at manufacturer web 
-sites.  This one is difficult to navigate, but the closest I have been 
-able to find is:
+I have an issue with my laptop with suspend to ram.
+My laptop is an Acer Travelmate 6592g :
 
-http://www.acerpanam.com/synapse/forms/portal20.cfm?website=AcerPanAm.com&siteid=7117&areaid=2&formid=3394#results
+> [rj@velvet wireshark-1.0.5 (master)]$ sudo s2ram -i
+> This machine can be identified by:
+>     sys_vendor   = "Acer"
+>     sys_product  = "TravelMate 6592"
+>     sys_version  = "PSMBOU-1234567"
+>     bios_version = "V1.53   "
 
-Product Line => Desktop
-Aspire M3640
-Search
+The kernel running is the last I have : 2.6.29-rc1, but the problem is the same
+whatever the kernel version I take (between 2.6.16 and 2.6.29-rc1).
 
-In the list that results, I see "INT15 Driver for AMI BIOS Core" for 
-Vista, but no BIOS.  It could be that I just don't know where to look.
+The issue is that even if the laptop enters suspend correctly, it hangs on
+comming out of it. After some research, I cornered down the module which changes
+the behaviour : acpi_cpufreq.ko.
 
-Note: my actual machine is designated AM3641-EQ8200A
+When I forbid the laptop to load this module, the suspend to ram works like a
+charm, in "init" single mode or multi-user mode. When I load the module, the
+resume always hangs (fan goes high speed like crazy, no LCD back, hard drive led
+stays on, caps_lock key not responsive, ...)
 
->>>> but rsync of large iso images result in corrupt files.  Able to 
->>>> copy those same files using Vista on the same machine, or using Hardy on 
->>>> another machine.  This problem may not be related to the above, but it 
->>>> seems plausible to me that this might be an interrupt issue.
->>> Yes, it might be unrelated.  There are no kernel messages when it happens?
->> I see no messages to /var/log/messages while doing the following (which 
->> involves rsync'ing a 2618793984 byte file from an NTFS to ext3 drive on 
->> the same machine:
->>
->> rubys@rubix4:~/tmp$ rsync /mnt/shared/windows7_7000.iso .
->> rubys@rubix4:~/tmp$ openssl md5 windows7_7000.iso
->> MD5(windows7_7000.iso)= 953b9ac92d58f5edef525004bcce048d
->> rubys@rubix4:~/tmp$ rsync /mnt/shared/windows7_7000.iso .
->> rubys@rubix4:~/tmp$ openssl md5 windows7_7000.iso
->> MD5(windows7_7000.iso)= 695328ef1280708eb73303656f6ef0b2
->>
->>>> memtest86+ runs clean.
->>>>
->>>> Quite willing to invest time in installing kernels or distributions on 
->>>> fresh hard drives, run tests, obtain debug information, and report back.
->>>>
->>>> More background here: http://intertwingly.net/blog/2009/01/20/noAPIC
->>>>
->>>> Not subscribed, but will actively monitor the web archives for this 
->>>> mailing list for the next several days.
->>> It'd be best to raise a report against ACPI?BIOS (I think) at
->>> bugzilla.kernel.org, please.
->> Once again, I'm talking about apic not acpi... does this advice still hold?
-> 
-> Not sure.  Perhaps platform_i386/platform_x86_64 would be correct.
-> Can the x86 maintainers please advise?
+Now, I notice that loading acpi-cpufreq triggers the following message :
+> log: Jan 19 18:23:42 velvet kernel: ACPI: EC: non-query interrupt received, switching to interrupt mode
 
-- Sam Ruby
+As this is not the part of the kernel I'm most at ease with, I'd like some help
+to investigate. I'll gladly make any test or apply patches to my own git tree.
 
+I join to this mail a URL [1] to see the little information I have :
+ - kernel messages (/var/log/messages), for single user startup
+ - ACPI table
+ - my kernel configuration
+ - kernel message for a working suspend to ram (ie. without acpi_cpufreq).
+ - I suspend using s2ram -f -v -p -s
+
+Best regards.
+
+--
+Robert
+
+[1] http://belgarath.hd.free.fr/download/acer6592tm/
