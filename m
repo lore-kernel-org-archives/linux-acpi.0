@@ -1,16 +1,16 @@
 From: Sam Ruby <rubys@intertwingly.net>
 Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Tue, 03 Feb 2009 12:58:36 -0500
-Message-ID: <498885CC.4060509@intertwingly.net>
+Date: Tue, 03 Feb 2009 12:55:50 -0500
+Message-ID: <49888526.60803@intertwingly.net>
 References: <4978767D.4060700@intertwingly.net> <20090130000758.1dff0113.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:56461 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735AbZBCR6b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 12:58:31 -0500
+Received: from vanadium.sabren.com ([67.19.173.84]:32887 "EHLO
+	vanadium.sabren.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445AbZBCSpa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 13:45:30 -0500
 In-Reply-To: <20090130000758.1dff0113.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -77,8 +77,7 @@ Once again, I'm talking about apic not acpi... does this advice still hold?
 
 > If any previous kernel version worked OK, please be sure to note that.
 
-I don't believe that's the case.  Put another way, I've yet to find a 
-Linux kernel that can boot without the noapic option on this machine.
+I don't believe that's the case.
 
 > Thanks.
 
