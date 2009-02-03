@@ -1,484 +1,521 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: [PATCH] PCI/ACPI: move _OSC code to pci_root.c
-Date: Tue, 03 Feb 2009 14:57:00 +0900
-Message-ID: <4987DCAC.3010009@jp.fujitsu.com>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: [patch]: fixing of pmtimer overflow that make Cx states time
+	incorrect
+Date: Tue, 03 Feb 2009 14:18:55 +0800
+Message-ID: <1233641935.3684.20.camel@localhost.localdomain>
+References: <1232342024.21839.6.camel@alexs-hp>
+	 <20090126225235.5e64d0ef.akpm@linux-foundation.org>
+	 <1233453863.3715.35.camel@localhost.localdomain>
+	 <1233539217.4069.24.camel@alexs-hp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Matthew Wilcox <matthew@wil.cx>, Andrew Patterson <andrew.patterson@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:23537 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751447AbZBCGHT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Feb 2009 01:07:19 -0500
+In-Reply-To: <1233539217.4069.24.camel@alexs-hp>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Shi, Alex" <alex.shi@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "\"; lenb\"@kernel.org" <"; lenb"@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "; linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "\"; venkatesh.pallipadi\"@intel.com" <"; venkatesh.pallipadi"@intel.com>
 
-Move PCI _OSC management code from drivers/pci/pci-acpi.c to
-drivers/acpi/pci_root.c. The benefits are
+On Mon, 2009-02-02 at 09:46 +0800, alex.shi wrote:
+> Yagui want to give a clear explanation to be used for commitment. So I resend
+> this again. 
+> 
+>     On most boxes the ACPI PM timer is 24-bit counter that runs on 3.579545MHz
+> clock. In such case the max C-state sleep time should be less than 4687ms when
+> it is used to record C2/C3 duration time. 
+>     But on some boxes the max C-state sleep time is more than 4687ms. In such
+> case the overflow happens and the C-state duration time can't be counted
+> accurately.
+Hi, All
 
-- We no longer need struct osc_data and its management code (contents
-  are moved to struct acpi_pci_root). This simplify the code, and we
-  no longer care about kmalloc() failure.
-
-- We can make pci_acpi_osc_support() be a static function, which is
-  called only from drivers/acpi/pci_root.c.
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-
+   When the clocksource is used to get the C-state idle time, the unit
+of idle_time will be microsecond. To be compatible with
+the /proc/acpi/processor/*/power interface, it will be converted to ACPI
+PM timer sleep ticks by using the macro definition of
+US_TO_PM_TIMER_TICKS(this I/F will be used by the powertop tool of early
+version).  When the macro definition is used, sometimes the overflow
+will happen if the 32-bit data type is used.  
+   So the function of div64_u64 is used in the macro definition of
+US_TO_PM_TIMER_TICKS.
+   On the x86_64 platform the function of div64_u64 is very simple. But
+on the i386 platform it will be very complex. 
+   
+   In fact in the latest powertop the sys I/F will be preferred instead
+of /proc I/F. The time unit of sys I/F is microsecond. In such case it
+seems redundant that the C-state idle time is converted to PM timer
+sleep ticks. 
+   How about delete the conversion? If so, the time unit of /proc I/F
+will also be microsecond. And the div operation will be omitted.
+   
 ---
- drivers/acpi/pci_root.c  |  178 ++++++++++++++++++++++++++++++++++++++
- drivers/pci/pci-acpi.c   |  215 -----------------------------------------------
- include/linux/pci-acpi.h |    1 
- 3 files changed, 176 insertions(+), 218 deletions(-)
+ drivers/acpi/processor_idle.c |   83
++++++++++++++++++++++---------------------
+ 1 file changed, 42 insertions(+), 41 deletions(-)
 
-Index: 20090130/drivers/acpi/pci_root.c
+Index: linux-2.6/drivers/acpi/processor_idle.c
 ===================================================================
---- 20090130.orig/drivers/acpi/pci_root.c
-+++ 20090130/drivers/acpi/pci_root.c
-@@ -66,11 +66,18 @@ struct acpi_pci_root {
- 	struct acpi_device * device;
- 	struct acpi_pci_id id;
- 	struct pci_bus *bus;
-+
-+	u32 osc_support_set;	/* _OSC state of support bits */
-+	u32 osc_control_set;	/* _OSC state of control bits */
-+	u32 osc_control_qry;	/* the latest _OSC query result */
-+
-+	u32 osc_queried:1;	/* has _OSC control been queried? */
- };
+--- linux-2.6.orig/drivers/acpi/processor_idle.c	2009-02-03
+13:41:07.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_idle.c	2009-02-03
+14:16:30.000000000 +0800
+@@ -67,8 +67,8 @@
+ #define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) /
+1000)
+ #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
+ #ifndef CONFIG_CPU_IDLE
+-#define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+-#define C3_OVERHEAD			4	/* 1us (3.579 ticks per us) */
++#define C2_OVERHEAD			1	/* 1us (3.579 ticks per us) */
++#define C3_OVERHEAD			1	/* 1us (3.579 ticks per us) */
+ static void (*pm_idle_save) (void) __read_mostly;
+ #else
+ #define C2_OVERHEAD			1	/* 1us */
+@@ -396,8 +396,9 @@
+ 	struct acpi_processor *pr = NULL;
+ 	struct acpi_processor_cx *cx = NULL;
+ 	struct acpi_processor_cx *next_state = NULL;
+-	int sleep_ticks = 0;
+-	u32 t1, t2 = 0;
++	s64 sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
  
- static LIST_HEAD(acpi_pci_roots);
+ 	/*
+ 	 * Interrupts must be disabled during bus mastering calculations and
+@@ -544,26 +545,26 @@
  
- static struct acpi_pci_driver *sub_driver;
-+static DEFINE_MUTEX(osc_lock);
+ 	case ACPI_STATE_C2:
+ 		/* Get start time (ticks) */
+-		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt1 = ktime_get_real();
+ 		/* Tell the scheduler that we are going deep-idle: */
+ 		sched_clock_idle_sleep_event();
+ 		/* Invoke C2 */
+ 		acpi_state_timer_broadcast(pr, cx, 1);
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+-		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt2 = ktime_get_real();
++		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
- int acpi_pci_register_driver(struct acpi_pci_driver *driver)
- {
-@@ -185,6 +192,173 @@ static void acpi_pci_bridge_scan(struct 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 		/* TSC halts in C2, so notify users */
+ 		if (tsc_halts_in_c(ACPI_STATE_C2))
+ 			mark_tsc_unstable("possible TSC halt in C2");
+ #endif
+-		/* Compute time (ticks) that we were actually asleep */
+-		sleep_ticks = ticks_elapsed(t1, t2);
+ 
+ 		/* Tell the scheduler how much we idled: */
+-		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+-
++		/* the unit of idle_time is us. We need convert it to NS */
++		sched_clock_idle_wakeup_event(idle_time * 1000);
++		sleep_ticks = idle_time;
+ 		/* Re-enable interrupts */
+ 		local_irq_enable();
+ 		/* Do not account our idle-switching overhead: */
+@@ -605,13 +606,14 @@
  		}
+ 
+ 		/* Get start time (ticks) */
+-		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt1 = ktime_get_real();
+ 		/* Invoke C3 */
+ 		/* Tell the scheduler that we are going deep-idle: */
+ 		sched_clock_idle_sleep_event();
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+-		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++		kt2 = ktime_get_real();
++		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 		if (pr->flags.bm_check && pr->flags.bm_control) {
+ 			/* Enable bus master arbitration */
+ 			atomic_dec(&c3_cpu_count);
+@@ -624,9 +626,10 @@
+ 			mark_tsc_unstable("TSC halts in C3");
+ #endif
+ 		/* Compute time (ticks) that we were actually asleep */
+-		sleep_ticks = ticks_elapsed(t1, t2);
++		sleep_ticks = idle_time;
+ 		/* Tell the scheduler how much we idled: */
+-		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
++		/* the unit of sleept_ticks is us. We need convert it to NS */
++		sched_clock_idle_wakeup_event(idle_time * 1000);
+ 
+ 		/* Re-enable interrupts */
+ 		local_irq_enable();
+@@ -1046,12 +1049,8 @@
+ 	 * Normalize the C2 latency to expidite policy
+ 	 */
+ 	cx->valid = 1;
+-
+-#ifndef CONFIG_CPU_IDLE
+-	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
+-#else
++	/* the unit of latency_ticks will always be US */
+ 	cx->latency_ticks = cx->latency;
+-#endif
+ 
+ 	return;
+ }
+@@ -1132,11 +1131,7 @@
+ 	 */
+ 	cx->valid = 1;
+ 
+-#ifndef CONFIG_CPU_IDLE
+-	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
+-#else
+ 	cx->latency_ticks = cx->latency;
+-#endif
+ 
+ 	return;
+ }
+@@ -1455,7 +1450,8 @@
+ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 			      struct cpuidle_state *state)
+ {
+-	u32 t1, t2;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 
+@@ -1476,14 +1472,15 @@
+ 	if (pr->flags.bm_check)
+ 		acpi_idle_update_bm_rld(pr, cx);
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
+ 
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
  }
  
-+static u8 OSC_UUID[16] = {0x5B, 0x4D, 0xDB, 0x33, 0xF7, 0x1F, 0x1C, 0x40,
-+			  0x96, 0x57, 0x74, 0x41, 0xC0, 0x3D, 0xD7, 0x66};
-+
-+static acpi_status acpi_pci_run_osc(acpi_handle handle,
-+				    const u32 *capbuf, u32 *retval)
-+{
-+	acpi_status status;
-+	struct acpi_object_list input;
-+	union acpi_object in_params[4];
-+	struct acpi_buffer output = {ACPI_ALLOCATE_BUFFER, NULL};
-+	union acpi_object *out_obj;
-+	u32 errors;
-+
-+	/* Setting up input parameters */
-+	input.count = 4;
-+	input.pointer = in_params;
-+	in_params[0].type 		= ACPI_TYPE_BUFFER;
-+	in_params[0].buffer.length 	= 16;
-+	in_params[0].buffer.pointer	= OSC_UUID;
-+	in_params[1].type 		= ACPI_TYPE_INTEGER;
-+	in_params[1].integer.value 	= 1;
-+	in_params[2].type 		= ACPI_TYPE_INTEGER;
-+	in_params[2].integer.value	= 3;
-+	in_params[3].type		= ACPI_TYPE_BUFFER;
-+	in_params[3].buffer.length 	= 12;
-+	in_params[3].buffer.pointer 	= (u8 *)capbuf;
-+
-+	status = acpi_evaluate_object(handle, "_OSC", &input, &output);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	if (!output.length)
-+		return AE_NULL_OBJECT;
-+
-+	out_obj = output.pointer;
-+	if (out_obj->type != ACPI_TYPE_BUFFER) {
-+		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
-+		status = AE_TYPE;
-+		goto out_kfree;
-+	}
-+	/* Need to ignore the bit0 in result code */
-+	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
-+	if (errors) {
-+		if (errors & OSC_REQUEST_ERROR)
-+			printk(KERN_DEBUG "_OSC request fails\n");
-+		if (errors & OSC_INVALID_UUID_ERROR)
-+			printk(KERN_DEBUG "_OSC invalid UUID\n");
-+		if (errors & OSC_INVALID_REVISION_ERROR)
-+			printk(KERN_DEBUG "_OSC invalid revision\n");
-+		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
-+			if (capbuf[OSC_QUERY_TYPE] & OSC_QUERY_ENABLE)
-+				goto out_success;
-+			printk(KERN_DEBUG "_OSC FW not grant req. control\n");
-+			status = AE_SUPPORT;
-+			goto out_kfree;
-+		}
-+		status = AE_ERROR;
-+		goto out_kfree;
-+	}
-+out_success:
-+	*retval = *((u32 *)(out_obj->buffer.pointer + 8));
-+	status = AE_OK;
-+
-+out_kfree:
-+	kfree(output.pointer);
-+	return status;
-+}
-+
-+static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root, u32 flags)
-+{
-+	acpi_status status;
-+	u32 support_set, result, capbuf[3];
-+
-+	/* do _OSC query for all possible controls */
-+	support_set = root->osc_support_set | (flags & OSC_SUPPORT_MASKS);
-+	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-+	capbuf[OSC_SUPPORT_TYPE] = support_set;
-+	capbuf[OSC_CONTROL_TYPE] = OSC_CONTROL_MASKS;
-+
-+	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
-+	if (ACPI_SUCCESS(status)) {
-+		root->osc_support_set = support_set;
-+		root->osc_control_qry = result;
-+		root->osc_queried = 1;
-+	}
-+	return status;
-+}
-+
-+static acpi_status acpi_pci_osc_support(struct acpi_pci_root *root, u32 flags)
-+{
-+	acpi_status status;
-+	acpi_handle tmp;
-+
-+	status = acpi_get_handle(root->device->handle, "_OSC", &tmp);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+	mutex_lock(&osc_lock);
-+	status = acpi_pci_query_osc(root, flags);
-+	mutex_unlock(&osc_lock);
-+	return status;
-+}
-+
-+static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
-+{
-+	struct acpi_pci_root *root;
-+	list_for_each_entry(root, &acpi_pci_roots, node) {
-+		if (root->device->handle == handle)
-+			return root;
-+	}
-+	return NULL;
-+}
-+
-+/**
-+ * pci_osc_control_set - commit requested control to Firmware
-+ * @handle: acpi_handle for the target ACPI object
-+ * @flags: driver's requested control bits
-+ *
-+ * Attempt to take control from Firmware on requested control bits.
-+ **/
-+acpi_status pci_osc_control_set(acpi_handle handle, u32 flags)
-+{
-+	acpi_status status;
-+	u32 control_req, result, capbuf[3];
-+	acpi_handle tmp;
-+	struct acpi_pci_root *root;
-+
-+	status = acpi_get_handle(handle, "_OSC", &tmp);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	control_req = (flags & OSC_CONTROL_MASKS);
-+	if (!control_req)
-+		return AE_TYPE;
-+
-+	root = acpi_pci_find_root(handle);
-+	if (!root)
-+		return AE_NOT_EXIST;
-+
-+	mutex_lock(&osc_lock);
-+	/* No need to evaluate _OSC if the control was already granted. */
-+	if ((root->osc_control_set & control_req) == control_req)
-+		goto out;
-+
-+	/* Need to query controls first before requesting them */
-+	if (!root->osc_queried) {
-+		status = acpi_pci_query_osc(root, root->osc_support_set);
-+		if (ACPI_FAILURE(status))
-+			goto out;
-+	}
-+	if ((root->osc_control_qry & control_req) != control_req) {
-+		printk(KERN_DEBUG "_OSC FW not grant req. control\n");
-+		status = AE_SUPPORT;
-+		goto out;
-+	}
-+
-+	capbuf[OSC_QUERY_TYPE] = 0;
-+	capbuf[OSC_SUPPORT_TYPE] = root->osc_support_set;
-+	capbuf[OSC_CONTROL_TYPE] = root->osc_control_set | control_req;
-+	status = acpi_pci_run_osc(handle, capbuf, &result);
-+	if (ACPI_SUCCESS(status))
-+		root->osc_control_set = result;
-+out:
-+	mutex_unlock(&osc_lock);
-+	return status;
-+}
-+EXPORT_SYMBOL(pci_osc_control_set);
-+
- static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ /**
+@@ -1496,8 +1493,9 @@
  {
- 	int result = 0;
-@@ -217,7 +391,7 @@ static int __devinit acpi_pci_root_add(s
- 	 * PCI domains, so we indicate this in _OSC support capabilities.
- 	 */
- 	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
--	pci_acpi_osc_support(device->handle, flags);
-+	acpi_pci_osc_support(root, flags);
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
  
- 	/* 
- 	 * Segment
-@@ -353,7 +527,7 @@ static int __devinit acpi_pci_root_add(s
- 	if (pci_msi_enabled())
- 		flags |= OSC_MSI_SUPPORT;
- 	if (flags != base_flags)
--		pci_acpi_osc_support(device->handle, flags);
-+		acpi_pci_osc_support(root, flags);
+ 	pr = __get_cpu_var(processors);
  
-       end:
- 	if (result) {
-Index: 20090130/drivers/pci/pci-acpi.c
-===================================================================
---- 20090130.orig/drivers/pci/pci-acpi.c
-+++ 20090130/drivers/pci/pci-acpi.c
-@@ -18,221 +18,6 @@
- #include <linux/pci-acpi.h>
- #include "pci.h"
+@@ -1533,21 +1531,22 @@
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
  
--struct acpi_osc_data {
--	acpi_handle handle;
--	u32 support_set;
--	u32 control_set;
--	u32 control_query;
--	int is_queried;
--	struct list_head sibiling;
--};
--static LIST_HEAD(acpi_osc_data_list);
--
--struct acpi_osc_args {
--	u32 capbuf[3];
--};
--
--static DEFINE_MUTEX(pci_acpi_lock);
--
--static struct acpi_osc_data *acpi_get_osc_data(acpi_handle handle)
--{
--	struct acpi_osc_data *data;
--
--	list_for_each_entry(data, &acpi_osc_data_list, sibiling) {
--		if (data->handle == handle)
--			return data;
--	}
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
--	if (!data)
--		return NULL;
--	INIT_LIST_HEAD(&data->sibiling);
--	data->handle = handle;
--	list_add_tail(&data->sibiling, &acpi_osc_data_list);
--	return data;
--}
--
--static u8 OSC_UUID[16] = {0x5B, 0x4D, 0xDB, 0x33, 0xF7, 0x1F, 0x1C, 0x40,
--			  0x96, 0x57, 0x74, 0x41, 0xC0, 0x3D, 0xD7, 0x66};
--
--static acpi_status acpi_run_osc(acpi_handle handle,
--				struct acpi_osc_args *osc_args, u32 *retval)
--{
--	acpi_status status;
--	struct acpi_object_list input;
--	union acpi_object in_params[4];
--	struct acpi_buffer output = {ACPI_ALLOCATE_BUFFER, NULL};
--	union acpi_object *out_obj;
--	u32 errors, flags = osc_args->capbuf[OSC_QUERY_TYPE];
--
--	/* Setting up input parameters */
--	input.count = 4;
--	input.pointer = in_params;
--	in_params[0].type 		= ACPI_TYPE_BUFFER;
--	in_params[0].buffer.length 	= 16;
--	in_params[0].buffer.pointer	= OSC_UUID;
--	in_params[1].type 		= ACPI_TYPE_INTEGER;
--	in_params[1].integer.value 	= 1;
--	in_params[2].type 		= ACPI_TYPE_INTEGER;
--	in_params[2].integer.value	= 3;
--	in_params[3].type		= ACPI_TYPE_BUFFER;
--	in_params[3].buffer.length 	= 12;
--	in_params[3].buffer.pointer 	= (u8 *)osc_args->capbuf;
--
--	status = acpi_evaluate_object(handle, "_OSC", &input, &output);
--	if (ACPI_FAILURE(status))
--		return status;
--
--	if (!output.length)
--		return AE_NULL_OBJECT;
--
--	out_obj = output.pointer;
--	if (out_obj->type != ACPI_TYPE_BUFFER) {
--		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
--		status = AE_TYPE;
--		goto out_kfree;
--	}
--	/* Need to ignore the bit0 in result code */
--	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
--	if (errors) {
--		if (errors & OSC_REQUEST_ERROR)
--			printk(KERN_DEBUG "_OSC request fails\n"); 
--		if (errors & OSC_INVALID_UUID_ERROR)
--			printk(KERN_DEBUG "_OSC invalid UUID\n"); 
--		if (errors & OSC_INVALID_REVISION_ERROR)
--			printk(KERN_DEBUG "_OSC invalid revision\n"); 
--		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
--			if (flags & OSC_QUERY_ENABLE)
--				goto out_success;
--			printk(KERN_DEBUG "_OSC FW not grant req. control\n");
--			status = AE_SUPPORT;
--			goto out_kfree;
--		}
--		status = AE_ERROR;
--		goto out_kfree;
--	}
--out_success:
--	*retval = *((u32 *)(out_obj->buffer.pointer + 8));
--	status = AE_OK;
--
--out_kfree:
--	kfree(output.pointer);
--	return status;
--}
--
--static acpi_status __acpi_query_osc(u32 flags, struct acpi_osc_data *osc_data)
--{
--	acpi_status status;
--	u32 support_set, result;
--	struct acpi_osc_args osc_args;
--
--	/* do _OSC query for all possible controls */
--	support_set = osc_data->support_set | (flags & OSC_SUPPORT_MASKS);
--	osc_args.capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
--	osc_args.capbuf[OSC_SUPPORT_TYPE] = support_set;
--	osc_args.capbuf[OSC_CONTROL_TYPE] = OSC_CONTROL_MASKS;
--
--	status = acpi_run_osc(osc_data->handle, &osc_args, &result);
--	if (ACPI_SUCCESS(status)) {
--		osc_data->support_set = support_set;
--		osc_data->control_query = result;
--		osc_data->is_queried = 1;
--	}
--
--	return status;
--}
--
--/*
-- * pci_acpi_osc_support: Invoke _OSC indicating support for the given feature
-- * @flags: Bitmask of flags to support
-- *
-- * See the ACPI spec for the definition of the flags
-- */
--int pci_acpi_osc_support(acpi_handle handle, u32 flags)
--{
--	acpi_status status;
--	acpi_handle tmp;
--	struct acpi_osc_data *osc_data;
--	int rc = 0;
--
--	status = acpi_get_handle(handle, "_OSC", &tmp);
--	if (ACPI_FAILURE(status))
--		return -ENOTTY;
--
--	mutex_lock(&pci_acpi_lock);
--	osc_data = acpi_get_osc_data(handle);
--	if (!osc_data) {
--		printk(KERN_ERR "acpi osc data array is full\n");
--		rc = -ENOMEM;
--		goto out;
--	}
--
--	__acpi_query_osc(flags, osc_data);
--out:
--	mutex_unlock(&pci_acpi_lock);
--	return rc;
--}
--
--/**
-- * pci_osc_control_set - commit requested control to Firmware
-- * @handle: acpi_handle for the target ACPI object
-- * @flags: driver's requested control bits
-- *
-- * Attempt to take control from Firmware on requested control bits.
-- **/
--acpi_status pci_osc_control_set(acpi_handle handle, u32 flags)
--{
--	acpi_status status;
--	u32 control_req, control_set, result;
--	acpi_handle tmp;
--	struct acpi_osc_data *osc_data;
--	struct acpi_osc_args osc_args;
--
--	status = acpi_get_handle(handle, "_OSC", &tmp);
--	if (ACPI_FAILURE(status))
--		return status;
--
--	mutex_lock(&pci_acpi_lock);
--	osc_data = acpi_get_osc_data(handle);
--	if (!osc_data) {
--		printk(KERN_ERR "acpi osc data array is full\n");
--		status = AE_ERROR;
--		goto out;
--	}
--
--	control_req = (flags & OSC_CONTROL_MASKS);
--	if (!control_req) {
--		status = AE_TYPE;
--		goto out;
--	}
--
--	/* No need to evaluate _OSC if the control was already granted. */
--	if ((osc_data->control_set & control_req) == control_req)
--		goto out;
--
--	if (!osc_data->is_queried) {
--		status = __acpi_query_osc(osc_data->support_set, osc_data);
--		if (ACPI_FAILURE(status))
--			goto out;
--	}
--
--	if ((osc_data->control_query & control_req) != control_req) {
--		status = AE_SUPPORT;
--		goto out;
--	}
--
--	control_set = osc_data->control_set | control_req;
--	osc_args.capbuf[OSC_QUERY_TYPE] = 0;
--	osc_args.capbuf[OSC_SUPPORT_TYPE] = osc_data->support_set;
--	osc_args.capbuf[OSC_CONTROL_TYPE] = control_set;
--	status = acpi_run_osc(handle, &osc_args, &result);
--	if (ACPI_SUCCESS(status))
--		osc_data->control_set = result;
--out:
--	mutex_unlock(&pci_acpi_lock);
--	return status;
--}
--EXPORT_SYMBOL(pci_osc_control_set);
--
- /*
-  * _SxD returns the D-state with the highest power
-  * (lowest D-state number) supported in the S-state "x".
-Index: 20090130/include/linux/pci-acpi.h
-===================================================================
---- 20090130.orig/include/linux/pci-acpi.h
-+++ 20090130/include/linux/pci-acpi.h
-@@ -50,7 +50,6 @@
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	/* Tell the scheduler that we are going deep-idle: */
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
- #ifdef CONFIG_ACPI
- extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
--int pci_acpi_osc_support(acpi_handle handle, u32 flags);
- static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+ 	if (tsc_halts_in_c(cx->type))
+ 		mark_tsc_unstable("TSC halts in idle");;
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = idle_time;
+ 
+ 	/* Tell the scheduler how much we idled: */
+-	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
++	sched_clock_idle_wakeup_event(idle_time * 1000);
+ 
+ 	local_irq_enable();
+ 	current_thread_info()->status |= TS_POLLING;
+@@ -1556,7 +1555,7 @@
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ static int c3_cpu_count;
+@@ -1574,8 +1573,9 @@
  {
- 	/* Find root host bridge */
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+-	u32 t1, t2;
+-	int sleep_ticks = 0;
++	ktime_t  kt1, kt2;
++	s64 idle_time;
++	s64 sleep_ticks = 0;
+ 
+ 	pr = __get_cpu_var(processors);
+ 
+@@ -1644,9 +1644,10 @@
+ 		ACPI_FLUSH_CPU_CACHE();
+ 	}
+ 
+-	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	/* Re-enable bus master arbitration */
+ 	if (pr->flags.bm_check && pr->flags.bm_control) {
+@@ -1661,9 +1662,9 @@
+ 	if (tsc_halts_in_c(ACPI_STATE_C3))
+ 		mark_tsc_unstable("TSC halts in idle");
+ #endif
+-	sleep_ticks = ticks_elapsed(t1, t2);
++	sleep_ticks = idle_time;
+ 	/* Tell the scheduler how much we idled: */
+-	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
++	sched_clock_idle_wakeup_event(idle_time * 1000);
+ 
+ 	local_irq_enable();
+ 	current_thread_info()->status |= TS_POLLING;
+@@ -1672,7 +1673,7 @@
+ 
+ 	acpi_state_timer_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+-	return ticks_elapsed_in_us(t1, t2);
++	return idle_time;
+ }
+ 
+ struct cpuidle_driver acpi_idle_driver = {
+
+   
+> 
+>     Use clocksource to get the C-state time instead of ACPI PM timer. and use
+> div64_u64 to convert US_TO_PM_TIME_TICKS in i386 mode.
+> 
+> Thanks
+> Alex 
+> 
+> Asked-by: venkatesh.pallipadi@intel.com
+> Tested-by: Alex Shi <alex.shi@intel.com>
+> Signed-off-by: Alex Shi <alex.shi@intel.com>
+> Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> 
+> ---
+> 
+> 
+> Index: linux-2.6.29-rc3/drivers/acpi/processor_idle.c
+> ===================================================================
+> --- linux-2.6.29-rc3.orig/drivers/acpi/processor_idle.c
+> +++ linux-2.6.29-rc3/drivers/acpi/processor_idle.c
+> @@ -64,7 +64,8 @@
+>  #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+>  ACPI_MODULE_NAME("processor_idle");
+>  #define ACPI_PROCESSOR_FILE_POWER	"power"
+> -#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
+> +#define US_TO_PM_TIMER_TICKS(t)		div64_u64(\
+> +	(t * (PM_TIMER_FREQUENCY/1000)), 1000ULL)
+>  #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
+>  #ifndef CONFIG_CPU_IDLE
+>  #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+> @@ -396,8 +397,9 @@ static void acpi_processor_idle(void)
+>  	struct acpi_processor *pr = NULL;
+>  	struct acpi_processor_cx *cx = NULL;
+>  	struct acpi_processor_cx *next_state = NULL;
+> -	int sleep_ticks = 0;
+> -	u32 t1, t2 = 0;
+> +	s64 sleep_ticks = 0;
+> +	ktime_t  kt1, kt2;
+> +	s64 idle_time;
+>  
+>  	/*
+>  	 * Interrupts must be disabled during bus mastering calculations and
+> @@ -544,14 +546,15 @@ static void acpi_processor_idle(void)
+>  
+>  	case ACPI_STATE_C2:
+>  		/* Get start time (ticks) */
+> -		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt1 = ktime_get_real();
+>  		/* Tell the scheduler that we are going deep-idle: */
+>  		sched_clock_idle_sleep_event();
+>  		/* Invoke C2 */
+>  		acpi_state_timer_broadcast(pr, cx, 1);
+>  		acpi_cstate_enter(cx);
+>  		/* Get end time (ticks) */
+> -		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt2 = ktime_get_real();
+> +		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  
+>  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+>  		/* TSC halts in C2, so notify users */
+> @@ -559,7 +562,7 @@ static void acpi_processor_idle(void)
+>  			mark_tsc_unstable("possible TSC halt in C2");
+>  #endif
+>  		/* Compute time (ticks) that we were actually asleep */
+> -		sleep_ticks = ticks_elapsed(t1, t2);
+> +		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+>  
+>  		/* Tell the scheduler how much we idled: */
+>  		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+> @@ -605,13 +608,14 @@ static void acpi_processor_idle(void)
+>  		}
+>  
+>  		/* Get start time (ticks) */
+> -		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt1 = ktime_get_real();
+>  		/* Invoke C3 */
+>  		/* Tell the scheduler that we are going deep-idle: */
+>  		sched_clock_idle_sleep_event();
+>  		acpi_cstate_enter(cx);
+>  		/* Get end time (ticks) */
+> -		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		kt2 = ktime_get_real();
+> +		idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  		if (pr->flags.bm_check && pr->flags.bm_control) {
+>  			/* Enable bus master arbitration */
+>  			atomic_dec(&c3_cpu_count);
+> @@ -624,7 +628,7 @@ static void acpi_processor_idle(void)
+>  			mark_tsc_unstable("TSC halts in C3");
+>  #endif
+>  		/* Compute time (ticks) that we were actually asleep */
+> -		sleep_ticks = ticks_elapsed(t1, t2);
+> +		sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+>  		/* Tell the scheduler how much we idled: */
+>  		sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+>  
+> @@ -1455,7 +1459,8 @@ static inline void acpi_idle_do_entry(st
+>  static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+>  			      struct cpuidle_state *state)
+>  {
+> -	u32 t1, t2;
+> +	ktime_t  kt1, kt2;
+> +	s64 idle_time;
+>  	struct acpi_processor *pr;
+>  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+>  
+> @@ -1476,14 +1481,15 @@ static int acpi_idle_enter_c1(struct cpu
+>  	if (pr->flags.bm_check)
+>  		acpi_idle_update_bm_rld(pr, cx);
+>  
+> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt1 = ktime_get_real();
+>  	acpi_idle_do_entry(cx);
+> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt2 = ktime_get_real();
+> +	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  
+>  	local_irq_enable();
+>  	cx->usage++;
+>  
+> -	return ticks_elapsed_in_us(t1, t2);
+> +	return idle_time;
+>  }
+>  
+>  /**
+> @@ -1496,8 +1502,9 @@ static int acpi_idle_enter_simple(struct
+>  {
+>  	struct acpi_processor *pr;
+>  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+> -	u32 t1, t2;
+> -	int sleep_ticks = 0;
+> +	ktime_t  kt1, kt2;
+> +	s64 idle_time;
+> +	s64 sleep_ticks = 0;
+>  
+>  	pr = __get_cpu_var(processors);
+>  
+> @@ -1533,18 +1540,19 @@ static int acpi_idle_enter_simple(struct
+>  	if (cx->type == ACPI_STATE_C3)
+>  		ACPI_FLUSH_CPU_CACHE();
+>  
+> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt1 = ktime_get_real();
+>  	/* Tell the scheduler that we are going deep-idle: */
+>  	sched_clock_idle_sleep_event();
+>  	acpi_idle_do_entry(cx);
+> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt2 = ktime_get_real();
+> +	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  
+>  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+>  	/* TSC could halt in idle, so notify users */
+>  	if (tsc_halts_in_c(cx->type))
+>  		mark_tsc_unstable("TSC halts in idle");;
+>  #endif
+> -	sleep_ticks = ticks_elapsed(t1, t2);
+> +	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+>  
+>  	/* Tell the scheduler how much we idled: */
+>  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+> @@ -1556,7 +1564,7 @@ static int acpi_idle_enter_simple(struct
+>  
+>  	acpi_state_timer_broadcast(pr, cx, 0);
+>  	cx->time += sleep_ticks;
+> -	return ticks_elapsed_in_us(t1, t2);
+> +	return idle_time;
+>  }
+>  
+>  static int c3_cpu_count;
+> @@ -1574,8 +1582,9 @@ static int acpi_idle_enter_bm(struct cpu
+>  {
+>  	struct acpi_processor *pr;
+>  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+> -	u32 t1, t2;
+> -	int sleep_ticks = 0;
+> +	ktime_t  kt1, kt2;
+> +	s64 idle_time;
+> +	s64 sleep_ticks = 0;
+>  
+>  	pr = __get_cpu_var(processors);
+>  
+> @@ -1644,9 +1653,10 @@ static int acpi_idle_enter_bm(struct cpu
+>  		ACPI_FLUSH_CPU_CACHE();
+>  	}
+>  
+> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt1 = ktime_get_real();
+>  	acpi_idle_do_entry(cx);
+> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +	kt2 = ktime_get_real();
+> +	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  
+>  	/* Re-enable bus master arbitration */
+>  	if (pr->flags.bm_check && pr->flags.bm_control) {
+> @@ -1661,7 +1671,7 @@ static int acpi_idle_enter_bm(struct cpu
+>  	if (tsc_halts_in_c(ACPI_STATE_C3))
+>  		mark_tsc_unstable("TSC halts in idle");
+>  #endif
+> -	sleep_ticks = ticks_elapsed(t1, t2);
+> +	sleep_ticks = US_TO_PM_TIMER_TICKS(idle_time);
+>  	/* Tell the scheduler how much we idled: */
+>  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+>  
+> @@ -1672,7 +1682,7 @@ static int acpi_idle_enter_bm(struct cpu
+>  
+>  	acpi_state_timer_broadcast(pr, cx, 0);
+>  	cx->time += sleep_ticks;
+> -	return ticks_elapsed_in_us(t1, t2);
+> +	return idle_time;
+>  }
+>  
+>  struct cpuidle_driver acpi_idle_driver = {
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
