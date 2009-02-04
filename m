@@ -1,47 +1,88 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH] Enable bit 11 in _PDC to advertise hw coord
-Date: Wed, 4 Feb 2009 12:40:36 -0800
-Message-ID: <20090204204036.GB10680@suse.de>
-References: <20090202195717.GA24510@linux-os.sc.intel.com> <20090204085712.GF30821@kernel.dk> <20090204195331.GA905@khazad-dum.debian.net> <1233778002.4286.61.camel@localhost.localdomain>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
+Date: Wed, 4 Feb 2009 22:25:17 +0100
+Message-ID: <20090204212517.GM22608@elte.hu>
+References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:44514 "EHLO mx1.suse.de"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:51417 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755415AbZBDUm0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Feb 2009 15:42:26 -0500
+	id S1752261AbZBDVZa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Feb 2009 16:25:30 -0500
 Content-Disposition: inline
-In-Reply-To: <1233778002.4286.61.camel@localhost.localdomain>
+In-Reply-To: <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Chris Mason <chris.mason@oracle.com>, stable kernel <stable@kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
 
-On Wed, Feb 04, 2009 at 12:06:42PM -0800, Pallipadi, Venkatesh wrote:
-> On Wed, 2009-02-04 at 11:53 -0800, Henrique de Moraes Holschuh wrote:
-> > On Wed, 04 Feb 2009, Jens Axboe wrote:
-> > > On Mon, Feb 02 2009, Pallipadi, Venkatesh wrote:
-> > > > 
-> > > > Bit 11 in intel PDC definitions is meant for OS capability to handle
-> > > > hardware coordination of P-states. In Linux we have always supported
-> > > > hwardware coordination of P-states. Just let the BIOSes know that we
-> > > > support it, by setting this bit.
-> > > > 
-> > > > Some BIOSes use this bit to choose between hardware or software coordination
-> > > > and without this change below, BIOSes switch to software coordination, which
-> > > > is not very optimal in terms of power consumption and extra wakeups from idle.
-> > > 
-> > > I can confirm that this fixes the excessive reschedule ipi count on an
-> > > x60 with the ondemand governor. Can we please get this into 2.6.29?
-> > 
-> > And, after that, -stable?
-> > 
+
+* Yinghai Lu <yinghai@kernel.org> wrote:
+
+> On Wed, Feb 4, 2009 at 8:39 AM, Ed Swierk <eswierk@aristanetworks.com> wrote:
+> > Detect and enable memory-mapped PCI configuration space on the nVidia
+> > MCP55 southbridge even if the ACPI MCFG table is missing or wrong.
+> >
+> > Signed-off-by: Ed Swierk <eswierk@aristanetworks.com>
+> >
+> > ---
+> > Index: linux-2.6.27.4/arch/x86/pci/mmconfig-shared.c
+> > ===================================================================
+> > --- linux-2.6.27.4.orig/arch/x86/pci/mmconfig-shared.c
+> > +++ linux-2.6.27.4/arch/x86/pci/mmconfig-shared.c
+> > @@ -155,6 +155,26 @@ static const char __init *pci_mmcfg_amd_
+> >        return "AMD Family 10h NB";
+> >  }
+> >
+> > +static const char __init *pci_mmcfg_nvidia_mcp55(void)
+> > +{
+> > +       u32 extcfg;
+> > +
+> > +       raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0x90, 4, &extcfg);
+> > +
+> > +       if (!(extcfg & 0x80000000))
+> > +               return NULL;
+> > +       pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
+> > +       if (!pci_mmcfg_config)
+> > +               return NULL;
+> > +       pci_mmcfg_config[0].address = (extcfg & 0x00007fff) << 25;
+> > +       pci_mmcfg_config[0].pci_segment = 0;
+> > +       pci_mmcfg_config[0].start_bus_number = 0;
+> > +       pci_mmcfg_config[0].end_bus_number = (1 << (8 - ((extcfg >> 28) & 3))) - 1;
+> > +       pci_mmcfg_config_num = 1;
+> > +
+> > +       return "nVidia MCP55";
+> > +}
+> > +
+> >  struct pci_mmcfg_hostbridge_probe {
+> >        u32 bus;
+> >        u32 devfn;
+> > @@ -172,6 +192,8 @@ static struct pci_mmcfg_hostbridge_probe
+> >          0x1200, pci_mmcfg_amd_fam10h },
+> >        { 0xff, PCI_DEVFN(0, 0), PCI_VENDOR_ID_AMD,
+> >          0x1200, pci_mmcfg_amd_fam10h },
+> > +       { 0, PCI_DEVFN(0, 0), PCI_VENDOR_ID_NVIDIA,
+> > +         0x0369, pci_mmcfg_nvidia_mcp55 },
 > 
-> Agreed. This should also go to -stable once it gets into mainline.
+> may break amd family 10h + mcp55 system. because some system have setting 
+> in AMD cpu and mcp55 it will find setting in CPU nb, and your code will 
+> partially overwrite those setting.
 
-Can someone send stable@kernel.org the git commit id when it goes into
-Linus's tree?
+That's a good point ...
 
-thanks,
+We could do something like:
 
-greg k-h
+	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
+		boot_cpu_data.x86 >= 0x10) {
+		u64 mmconf_val;
+
+		rdmsrl(MSR_FAM10H_MMIO_CONF_BASE, mmconf_val);
+		if (mmconf_val & FAM10H_MMIO_CONF_ENABLE)
+			return;
+	}
+
+To detect enabled on-CPU mmconf support. We could even put this into a 
+helper function as other places might want to use it too.
+
+	Ingo
