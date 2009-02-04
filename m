@@ -1,34 +1,61 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Tue, 03 Feb 2009 23:35:33 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902032332190.5607@localhost.localdomain>
+Date: Tue, 03 Feb 2009 23:42:12 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902032336000.5607@localhost.localdomain>
 References: <4978767D.4060700@intertwingly.net>
  <20090130000758.1dff0113.akpm@linux-foundation.org>
  <498885CC.4060509@intertwingly.net>
  <20090203114849.b661f1ce.akpm@linux-foundation.org>
  <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
+ <49890B46.8020308@intertwingly.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:26550 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbZBDEfh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 23:35:37 -0500
-In-reply-to: <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
+Received: from vms044pub.verizon.net ([206.46.252.44]:33404 "EHLO
+	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752764AbZBDEmY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 23:42:24 -0500
+In-reply-to: <49890B46.8020308@intertwingly.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Sam Ruby <rubys@intertwingly.net>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: Sam Ruby <rubys@intertwingly.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>
 
+> > Do you have a second computer around with a serial port ? If yes, then
+> > please add the following to the kernel command line:
+> > 
+> >        earlyprintk=serial,ttyS0,115200 apic=debug
+> > 
+> > and connect the serial ports with a null modem cable. Fire up a
+> > terminal program on the second machine and capture the output.
+> 
+> I do have a second computer, and went out and bought a null modem adapter for
+> my serial cable and connected the two machines.  I've tried installing minicom
+> and also connecting it to ttyS0 at 115200 baud on the second machine, but when
+> I boot the first machine I don't see any output on the terminal.
 
-> > > >> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> > > >> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
+/boot/grub/menu.lst:
 
-just for the record, check_timer() is x86 IO-APIC code, not ACPI code.
-So if the machine actually has MPS support, you'll probably get the 
-same result with "acpi=off".  (of course if it doesn't have MPS,
-then acpi=off would boot in uniprocessor legacy PIC mode)
+serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1
+terminal --timeout=300 serial console
 
-cheers,
+is what I use.
+
+this will give you a prompt from grub even before the kernel boots
+so you can select (and edit) your kernel via menu over the serial line
+if you wish.
+
+If this doesn't work, then the kernel earlyprintk is unlikely to work 
+also.
+
+Note that there may be some BIOS SETUP options related to the serial port 
+-- worth checking.
+
+Also, in minicom, be sure to turn off HW flow control
+
+there is a fancy serial console document someplace on this,
+probably at http://tldp.org/
+
+good luck,
 -Len
 
