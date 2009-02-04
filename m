@@ -1,21 +1,21 @@
-From: ZhangRui <rui.zhang@intel.com>
-Subject: Re: [linux-pm] Acer 6592 TM, suspend to ram and resume freeze
-Date: Wed, 04 Feb 2009 09:52:27 +0800
-Message-ID: <1233712347.6643.7.camel@rzhang-desktop>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: Acer 6592 TM, suspend to ram and resume freeze
+Date: Wed, 04 Feb 2009 10:21:59 +0800
+Message-ID: <1233714119.3684.53.camel@localhost.localdomain>
 References: <873aevl0l8.fsf@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:23868 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:24820 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751045AbZBDBvM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Feb 2009 20:51:12 -0500
+	id S1752277AbZBDCKV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Feb 2009 21:10:21 -0500
 In-Reply-To: <873aevl0l8.fsf@free.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
 On Wed, 2009-02-04 at 04:36 +0800, Robert Jarzmik wrote:
 > First of all, sorry for the duplicate on linux-pm, but as Pavel suggested, this
@@ -33,6 +33,11 @@ On Wed, 2009-02-04 at 04:36 +0800, Robert Jarzmik wrote:
 > 
 > The kernel running is the last I have : 2.6.29-rc1, but the problem is the same
 > whatever the kernel version I take (between 2.6.16 and 2.6.29-rc1).
+Will you please try the latest kernel(2.6.29-rc3)?
+     If the problem still exists, please attach the output of dmesg,
+acpidump.
+
+Thanks.
 > 
 > The issue is that even if the laptop enters suspend correctly, it hangs on
 > comming out of it. After some research, I cornered down the module which changes
@@ -42,15 +47,28 @@ On Wed, 2009-02-04 at 04:36 +0800, Robert Jarzmik wrote:
 > charm, in "init" single mode or multi-user mode. When I load the module, the
 > resume always hangs (fan goes high speed like crazy, no LCD back, hard drive led
 > stays on, caps_lock key not responsive, ...)
-what if you build in the ACPI processor driver (CONFIG_ACPI_PROCESSOR=y)
-and boot with "processor.max_cstate=1"?
-
 > 
 > Now, I notice that loading acpi-cpufreq triggers the following message :
 > > log: Jan 19 18:23:42 velvet kernel: ACPI: EC: non-query interrupt received, switching to interrupt mode
 > 
-I don't think these two are related. can you please make a double check?
-
-thanks,
-rui
+> As this is not the part of the kernel I'm most at ease with, I'd like some help
+> to investigate. I'll gladly make any test or apply patches to my own git tree.
+> 
+> I join to this mail a URL [1] to see the little information I have :
+>  - kernel messages (/var/log/messages), for single user startup
+>  - ACPI table
+>  - my kernel configuration
+>  - kernel message for a working suspend to ram (ie. without acpi_cpufreq).
+>  - I suspend using s2ram -f -v -p -s
+> 
+> Best regards.
+> 
+> --
+> Robert
+> 
+> [1] http://belgarath.hd.free.fr/download/acer6592tm/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
