@@ -1,33 +1,33 @@
 From: Matthew Garrett <mjg@redhat.com>
 Subject: Re: [PATCH]: ACPI: Skip the first two elements in the _BCL package
-Date: Wed, 4 Feb 2009 06:08:20 +0000
-Message-ID: <20090204060820.GB28321@srcf.ucam.org>
-References: <1233545621.3715.42.camel@localhost.localdomain> <200902031456.39680.trenn@suse.de> <1233712213.3684.46.camel@localhost.localdomain> <alpine.LFD.2.00.0902032319280.5607@localhost.localdomain>
+Date: Wed, 4 Feb 2009 06:09:38 +0000
+Message-ID: <20090204060938.GC28321@srcf.ucam.org>
+References: <1233545621.3715.42.camel@localhost.localdomain> <200902031456.39680.trenn@suse.de> <alpine.LFD.2.00.0902032304060.5607@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41440 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:41464 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892AbZBDGI0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 01:08:26 -0500
+	with ESMTP id S1750892AbZBDGJn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 01:09:43 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0902032319280.5607@localhost.localdomain>
+In-Reply-To: <alpine.LFD.2.00.0902032304060.5607@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: yakui_zhao <yakui.zhao@intel.com>, Thomas Renninger <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, yakui_zhao <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, rui.zhang@intel.com
 
-On Tue, Feb 03, 2009 at 11:25:45PM -0500, Len Brown wrote:
+On Tue, Feb 03, 2009 at 11:09:26PM -0500, Len Brown wrote:
 
-> per my previous e-mail, i would recommend that if we export them
-> to user-space, that we allow user-space to override them
-> and have the kernel simply consume them.  That way things
-> would work normall even if user-space is ignorant.
+> I should think that it would be prudent to expose the
+> ac and dc defaults to user-space -- allowing user-space
+> to over-ride them, and then on ac events doing the
+> brightness switch in the kernel.  That way it will work
+> even w/o teaching user-space new tricks.
 
-I'm not sure how this would be useful. The kernel doesn't perform the 
-ac/dc brightness change - that's handled by either the firmware or 
-userspace (depending on _DOS bit 2). We can't provide new values to the 
-firmware.
+Woah - it's bad enough that we've got hotkey policy in kernel for ACPI 
+(and nothing else). Please don't add more policy to the core code - we 
+leave that up to userspace for a reason.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
