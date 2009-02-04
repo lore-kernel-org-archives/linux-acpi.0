@@ -1,55 +1,100 @@
-From: Sam Ruby <rubys@intertwingly.net>
-Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Tue, 03 Feb 2009 22:28:06 -0500
-Message-ID: <49890B46.8020308@intertwingly.net>
-References: <4978767D.4060700@intertwingly.net> <20090130000758.1dff0113.akpm@linux-foundation.org> <498885CC.4060509@intertwingly.net> <20090203114849.b661f1ce.akpm@linux-foundation.org> <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: make some IO ports off-limits to AML
+Date: Tue, 03 Feb 2009 22:59:43 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902032258080.5607@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123]:55563 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751358AbZBDD2M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 22:28:12 -0500
-In-Reply-To: <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:16145 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761AbZBDD76 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 22:59:58 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: linux-acpi@vger.kernel.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Thomas Gleixner wrote:
-> On Tue, 3 Feb 2009, Andrew Morton wrote:
->>>>> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
->>>>> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
-> Sigh.
-> 
->> Not sure.  Perhaps platform_i386/platform_x86_64 would be correct.
->> Can the x86 maintainers please advise?
-> 
-> Yup. That's correct
-> 
-> @Sam: I just checked, that your machine has a serial port. That's a
-> good start :)
-> 
-> Do you have a second computer around with a serial port ? If yes, then
-> please add the following to the kernel command line:
-> 
->        earlyprintk=serial,ttyS0,115200 apic=debug
-> 
-> and connect the serial ports with a null modem cable. Fire up a
-> terminal program on the second machine and capture the output.
+From: Len Brown <len.brown@intel.com>
 
-I do have a second computer, and went out and bought a null modem 
-adapter for my serial cable and connected the two machines.  I've tried 
-installing minicom and also connecting it to ttyS0 at 115200 baud on the 
-second machine, but when I boot the first machine I don't see any output 
-on the terminal.
+ACPICA exports acpi_os_validate_address() so the OS
+can prevent BIOS AML from accessing specified addresses.
 
-What am I missing?
+Start using this interface to prevent AML from accessing
+some well known IO addresses that the OS "owns".
 
-> Thanks,
-> 
-> 	tglx
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/osl.c |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
 
-- Sam Ruby
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 6729a49..4fb01b0 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1317,6 +1317,54 @@ acpi_os_validate_interface (char *interface)
+ 	return AE_SUPPORT;
+ }
+ 
++#ifdef	CONFIG_X86
++
++struct aml_port_desc {
++	uint	start;
++	uint	end;
++	char*   name;
++	char	warned;
++};
++
++static struct aml_port_desc aml_invalid_port_list[] = {
++	{0x20, 0x21, "PIC0", 0},
++	{0xA0, 0xA1, "PIC1", 0},
++	{0x4D0, 0x4D1, "ELCR", 0}
++};
++
++/*
++ * valid_aml_io_address()
++ *
++ * if valid, return true
++ * else invalid, warn once, return false
++ */
++static bool valid_aml_io_address(uint address, uint length)
++{
++	int i;
++	int entries = sizeof(aml_invalid_port_list) / sizeof(struct aml_port_desc);
++
++	for (i = 0; i < entries; ++i) {
++		if ((address >= aml_invalid_port_list[i].start &&
++			address <= aml_invalid_port_list[i].end) ||
++			(address + length >= aml_invalid_port_list[i].start &&
++			address  + length <= aml_invalid_port_list[i].end))
++		{
++			if (!aml_invalid_port_list[i].warned)
++			{
++				printk(KERN_ERR "ACPI: Denied BIOS AML access"
++					" to invalid port 0x%x+0x%x (%s)\n",
++					address, length,
++					aml_invalid_port_list[i].name);
++				aml_invalid_port_list[i].warned = 1;
++			}
++			return false;	/* invalid */
++		}
++	}
++	return true;	/* valid */
++}
++#else
++static inline bool valid_aml_io_address(uint address, uint length) { return true; }
++#endif
+ /******************************************************************************
+  *
+  * FUNCTION:    acpi_os_validate_address
+@@ -1346,6 +1394,8 @@ acpi_os_validate_address (
+ 
+ 	switch (space_id) {
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
++		if (!valid_aml_io_address(address, length))
++			return AE_AML_ILLEGAL_ADDRESS;
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+ 		/* Only interference checks against SystemIO and SytemMemory
+ 		   are needed */
+-- 
+1.6.1.2.319.gbd9e
 
