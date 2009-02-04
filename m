@@ -1,213 +1,249 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPICA Release 20090123 linuxized patches
-Date: Wed, 04 Feb 2009 00:05:46 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902032345550.5607@localhost.localdomain>
-References: <1233711772.13659.28.camel@minggr.sh.intel.com>
+Subject: Re: [PATCH 7/7] ACPI: cpufreq: Remove deprecated
+ /proc/acpi/processor/../performance proc entries
+Date: Wed, 04 Feb 2009 00:13:31 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902040012551.5607@localhost.localdomain>
+References: <1233679606-1971-1-git-send-email-trenn@suse.de>
+ <1233679606-1971-8-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms044pub.verizon.net ([206.46.252.44]:51430 "EHLO
+Received: from vms044pub.verizon.net ([206.46.252.44]:57472 "EHLO
 	vms044pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847AbZBDFFu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 00:05:50 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms044.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01 (built Apr
- 3 2006)) with ESMTPA id <0KEI008CTZHNTZZ3@vms044.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 03 Feb 2009 23:05:48 -0600 (CST)
-In-reply-to: <1233711772.13659.28.camel@minggr.sh.intel.com>
+	with ESMTP id S1751188AbZBDFNe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 00:13:34 -0500
+In-reply-to: <1233679606-1971-8-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: davej@codemonkey.org.uk, mark.langsdorf@amd.com, cpufreq@vger.kernel.org, venkatesh.pallipadi@intel.com, linux-kernel@vger.kernel.org, Linux ACPI list <linux-acpi@vger.kernel.org>
 
-> ACPICA: Add error check to debug object dump routine
-> ACPICA: Allow OS override of all ACPI tables
-
-We'll need to expand acpi_os_table_override()
-if we want to take advantage of this new ACPICA feature.
-
-I suppose we'll do it the first time we need it:-)
-
-> ACPICA: Remove extraneous parameter in table manager
-> ACPICA: Add override for dynamic tables
-
-ditto above.
-
-Note that the reason that I didn't accept Thomas' proposal
-to add SSDT overrides to Linux was because if you're doing
-an override, you can always just combine the SSDT into the
-DSDT override and disable loading SSDTs.
-Also, the mechanism to identify the table
-was the signature, and it wasn't immediately obvious how to identify
-one of several SSDTs.
-
-> ACPICA: Update FADT flag definitions
-
-Thanks for digging through this.  It seems that sins
-like the undocumented FADT v2 simply can't be swept under the rug:-)
-
-> ACPICA: Update version to 20090123
-
-I'm going to ignore these warnings from checkpatch.pl,
-but I'd rather not have to...
-
-applied to acpica branch.
+applied
 
 thanks,
+--
 Len Brown, Intel Open Source Technology Center
 
----
-scripts/checkpatch.pl
-ERROR: return is not a function, parentheses are not required
-#25: FILE: drivers/acpi/acpica/nsdump.c:187:
-+		return (AE_OK);
+On Tue, 3 Feb 2009, Thomas Renninger wrote:
 
-WARNING: braces {} are not necessary for single statement blocks
-#98: FILE: drivers/acpi/acpica/tbutils.c:317:
-+	if (!mapped_table) {
- 		return;
- 	}
-
-WARNING: line over 80 characters
-#106: FILE: drivers/acpi/acpica/tbutils.c:323:
-+	if (signature && !ACPI_COMPARE_NAME(mapped_table->signature, 
-signature)) {
-
-WARNING: line over 80 characters
-#110: FILE: drivers/acpi/acpica/tbutils.c:325:
-+			    "Invalid signature 0x%X for ACPI table, 
-expected [%s]",
-
-WARNING: line over 80 characters
-#516: FILE: include/acpi/actbl.h:217:
-+	u8 duty_width;		/* Processor duty cycle value bit width in 
-P_CNT register */
-
-WARNING: line over 80 characters
-#521: FILE: include/acpi/actbl.h:221:
-+	u16 boot_flags;		/* IA-PC Boot Architecture Flags (see 
-below for individual flags) */
-
-WARNING: line over 80 characters
-#531: FILE: include/acpi/actbl.h:241:
-+#define ACPI_FADT_LEGACY_DEVICES    (1)  	/* 00: [V2] System has LPC 
-or ISA bus devices */
-
-WARNING: line over 80 characters
-#532: FILE: include/acpi/actbl.h:242:
-+#define ACPI_FADT_8042              (1<<1)	/* 01: [V3] System has an 
-8042 controller on port 60/64 */
-
-WARNING: line over 80 characters
-#533: FILE: include/acpi/actbl.h:243:
-+#define ACPI_FADT_NO_VGA            (1<<2)	/* 02: [V4] It is not safe 
-to probe for VGA hardware */
-
-WARNING: line over 80 characters
-#534: FILE: include/acpi/actbl.h:244:
-+#define ACPI_FADT_NO_MSI            (1<<3)	/* 03: [V4] Message 
-Signaled Interrupts (MSI) must not be enabled */
-
-WARNING: line over 80 characters
-#535: FILE: include/acpi/actbl.h:245:
-+#define ACPI_FADT_NO_ASPM           (1<<4)	/* 04: [V4] PCIe ASPM 
-control must not be enabled */
-
-WARNING: line over 80 characters
-#561: FILE: include/acpi/actbl.h:251:
-+#define ACPI_FADT_WBINVD            (1)	/* 00: [V1] The wbinvd 
-instruction works properly */
-
-WARNING: line over 80 characters
-#562: FILE: include/acpi/actbl.h:252:
-+#define ACPI_FADT_WBINVD_FLUSH      (1<<1)	/* 01: [V1] wbinvd flushes 
-but does not invalidate caches */
-
-WARNING: line over 80 characters
-#563: FILE: include/acpi/actbl.h:253:
-+#define ACPI_FADT_C1_SUPPORTED      (1<<2)	/* 02: [V1] All processors 
-support C1 state */
-
-WARNING: line over 80 characters
-#564: FILE: include/acpi/actbl.h:254:
-+#define ACPI_FADT_C2_MP_SUPPORTED   (1<<3)	/* 03: [V1] C2 state works 
-on MP system */
-
-WARNING: line over 80 characters
-#565: FILE: include/acpi/actbl.h:255:
-+#define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: [V1] Power button 
-is handled as a control method device */
-
-WARNING: line over 80 characters
-#566: FILE: include/acpi/actbl.h:256:
-+#define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: [V1] Sleep button 
-is handled as a control method device */
-
-WARNING: line over 80 characters
-#567: FILE: include/acpi/actbl.h:257:
-+#define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: [V1] RTC wakeup 
-status not in fixed register space */
-
-WARNING: line over 80 characters
-#568: FILE: include/acpi/actbl.h:258:
-+#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: [V1] RTC alarm can 
-wake system from S4 */
-
-WARNING: line over 80 characters
-#569: FILE: include/acpi/actbl.h:259:
-+#define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: [V1] ACPI timer 
-width is 32-bit (0=24-bit) */
-
-WARNING: line over 80 characters
-#571: FILE: include/acpi/actbl.h:261:
-+#define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: [V2] System reset 
-via the FADT RESET_REG supported */
-
-WARNING: line over 80 characters
-#572: FILE: include/acpi/actbl.h:262:
-+#define ACPI_FADT_SEALED_CASE       (1<<11)	/* 11: [V3] No internal 
-expansion capabilities and case is sealed */
-
-WARNING: line over 80 characters
-#573: FILE: include/acpi/actbl.h:263:
-+#define ACPI_FADT_HEADLESS          (1<<12)	/* 12: [V3] No local video 
-capabilities or local input devices */
-
-WARNING: line over 80 characters
-#574: FILE: include/acpi/actbl.h:264:
-+#define ACPI_FADT_SLEEP_TYPE        (1<<13)	/* 13: [V3] Must execute 
-native instruction after writing  SLP_TYPx register */
-
-WARNING: line over 80 characters
-#575: FILE: include/acpi/actbl.h:265:
-+#define ACPI_FADT_PCI_EXPRESS_WAKE  (1<<14)	/* 14: [V4] System 
-supports PCIEXP_WAKE (STS/EN) bits (ACPI 3.0) */
-
-WARNING: line over 80 characters
-#576: FILE: include/acpi/actbl.h:266:
-+#define ACPI_FADT_PLATFORM_CLOCK    (1<<15)	/* 15: [V4] OSPM should 
-use platform-provided timer (ACPI 3.0) */
-
-WARNING: line over 80 characters
-#577: FILE: include/acpi/actbl.h:267:
-+#define ACPI_FADT_S4_RTC_VALID      (1<<16)	/* 16: [V4] Contents of 
-RTC_STS valid after S4 wake (ACPI 3.0) */
-
-WARNING: line over 80 characters
-#578: FILE: include/acpi/actbl.h:268:
-+#define ACPI_FADT_REMOTE_POWER_ON   (1<<17)	/* 17: [V4] System is 
-compatible with remote power on (ACPI 3.0) */
-
-WARNING: line over 80 characters
-#579: FILE: include/acpi/actbl.h:269:
-+#define ACPI_FADT_APIC_CLUSTER      (1<<18)	/* 18: [V4] All local 
-APICs must use cluster model (ACPI 3.0) */
-
-WARNING: line over 80 characters
-#580: FILE: include/acpi/actbl.h:270:
-+#define ACPI_FADT_APIC_PHYSICAL     (1<<19)	/* 19: [V4] All local 
-x_aPICs must use physical dest mode (ACPI 3.0) */
-
-total: 1 errors, 29 warnings, 458 lines checked
-
-
+> They were long enough set deprecated...
+> 
+> Update Documentation/cpu-freq/users-guide.txt:
+> The deprecated files listed there seen not to exist for some time anymore
+> already.
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: Len Brown <lenb@kernel.org>
+> CC: Linux ACPI list <linux-acpi@vger.kernel.org>
+> ---
+>  Documentation/cpu-freq/user-guide.txt |   16 -----
+>  arch/x86/kernel/cpu/cpufreq/Kconfig   |   11 ----
+>  drivers/acpi/processor_perflib.c      |  105 ---------------------------------
+>  3 files changed, 0 insertions(+), 132 deletions(-)
+> 
+> diff --git a/Documentation/cpu-freq/user-guide.txt b/Documentation/cpu-freq/user-guide.txt
+> index 57f23cb..75f4119 100644
+> --- a/Documentation/cpu-freq/user-guide.txt
+> +++ b/Documentation/cpu-freq/user-guide.txt
+> @@ -207,19 +207,3 @@ scaling_setspeed.		By "echoing" a new frequency into this
+>  				you can change the speed of the CPU,
+>  				but only within the limits of
+>  				scaling_min_freq and scaling_max_freq.
+> -				
+> -
+> -3.2 Deprecated Interfaces
+> --------------------------
+> -
+> -Depending on your kernel configuration, you might find the following 
+> -cpufreq-related files:
+> -/proc/cpufreq
+> -/proc/sys/cpu/*/speed
+> -/proc/sys/cpu/*/speed-min
+> -/proc/sys/cpu/*/speed-max
+> -
+> -These are files for deprecated interfaces to cpufreq, which offer far
+> -less functionality. Because of this, these interfaces aren't described
+> -here.
+> -
+> diff --git a/arch/x86/kernel/cpu/cpufreq/Kconfig b/arch/x86/kernel/cpu/cpufreq/Kconfig
+> index b63b0db..52c8398 100644
+> --- a/arch/x86/kernel/cpu/cpufreq/Kconfig
+> +++ b/arch/x86/kernel/cpu/cpufreq/Kconfig
+> @@ -230,17 +230,6 @@ config X86_E_POWERSAVER
+>  
+>  comment "shared options"
+>  
+> -config X86_ACPI_CPUFREQ_PROC_INTF
+> -	bool "/proc/acpi/processor/../performance interface (deprecated)"
+> -	depends on PROC_FS
+> -	depends on X86_ACPI_CPUFREQ || X86_POWERNOW_K7_ACPI || X86_POWERNOW_K8_ACPI
+> -	help
+> -	  This enables the deprecated /proc/acpi/processor/../performance
+> -	  interface. While it is helpful for debugging, the generic,
+> -	  cross-architecture cpufreq interfaces should be used.
+> -
+> -	  If in doubt, say N.
+> -
+>  config X86_SPEEDSTEP_LIB
+>  	tristate
+>  	default (X86_SPEEDSTEP_ICH || X86_SPEEDSTEP_SMI || X86_P4_CLOCKMOD)
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> index 846e227..9cc769b 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -31,14 +31,6 @@
+>  #include <linux/init.h>
+>  #include <linux/cpufreq.h>
+>  
+> -#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+> -#include <linux/proc_fs.h>
+> -#include <linux/seq_file.h>
+> -#include <linux/mutex.h>
+> -
+> -#include <asm/uaccess.h>
+> -#endif
+> -
+>  #ifdef CONFIG_X86
+>  #include <asm/cpufeature.h>
+>  #endif
+> @@ -434,96 +426,6 @@ int acpi_processor_notify_smm(struct module *calling_module)
+>  
+>  EXPORT_SYMBOL(acpi_processor_notify_smm);
+>  
+> -#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+> -/* /proc/acpi/processor/../performance interface (DEPRECATED) */
+> -
+> -static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file);
+> -static struct file_operations acpi_processor_perf_fops = {
+> -	.owner = THIS_MODULE,
+> -	.open = acpi_processor_perf_open_fs,
+> -	.read = seq_read,
+> -	.llseek = seq_lseek,
+> -	.release = single_release,
+> -};
+> -
+> -static int acpi_processor_perf_seq_show(struct seq_file *seq, void *offset)
+> -{
+> -	struct acpi_processor *pr = seq->private;
+> -	int i;
+> -
+> -
+> -	if (!pr)
+> -		goto end;
+> -
+> -	if (!pr->performance) {
+> -		seq_puts(seq, "<not supported>\n");
+> -		goto end;
+> -	}
+> -
+> -	seq_printf(seq, "state count:             %d\n"
+> -		   "active state:            P%d\n",
+> -		   pr->performance->state_count, pr->performance->state);
+> -
+> -	seq_puts(seq, "states:\n");
+> -	for (i = 0; i < pr->performance->state_count; i++)
+> -		seq_printf(seq,
+> -			   "   %cP%d:                  %d MHz, %d mW, %d uS\n",
+> -			   (i == pr->performance->state ? '*' : ' '), i,
+> -			   (u32) pr->performance->states[i].core_frequency,
+> -			   (u32) pr->performance->states[i].power,
+> -			   (u32) pr->performance->states[i].transition_latency);
+> -
+> -      end:
+> -	return 0;
+> -}
+> -
+> -static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, acpi_processor_perf_seq_show,
+> -			   PDE(inode)->data);
+> -}
+> -
+> -static void acpi_cpufreq_add_file(struct acpi_processor *pr)
+> -{
+> -	struct acpi_device *device = NULL;
+> -
+> -
+> -	if (acpi_bus_get_device(pr->handle, &device))
+> -		return;
+> -
+> -	/* add file 'performance' [R/W] */
+> -	proc_create_data(ACPI_PROCESSOR_FILE_PERFORMANCE, S_IFREG | S_IRUGO,
+> -			 acpi_device_dir(device),
+> -			 &acpi_processor_perf_fops, acpi_driver_data(device));
+> -	return;
+> -}
+> -
+> -static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
+> -{
+> -	struct acpi_device *device = NULL;
+> -
+> -
+> -	if (acpi_bus_get_device(pr->handle, &device))
+> -		return;
+> -
+> -	/* remove file 'performance' */
+> -	remove_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
+> -			  acpi_device_dir(device));
+> -
+> -	return;
+> -}
+> -
+> -#else
+> -static void acpi_cpufreq_add_file(struct acpi_processor *pr)
+> -{
+> -	return;
+> -}
+> -static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
+> -{
+> -	return;
+> -}
+> -#endif				/* CONFIG_X86_ACPI_CPUFREQ_PROC_INTF */
+> -
+>  static int acpi_processor_get_psd(struct acpi_processor	*pr)
+>  {
+>  	int result = 0;
+> @@ -747,14 +649,12 @@ err_ret:
+>  }
+>  EXPORT_SYMBOL(acpi_processor_preregister_performance);
+>  
+> -
+>  int
+>  acpi_processor_register_performance(struct acpi_processor_performance
+>  				    *performance, unsigned int cpu)
+>  {
+>  	struct acpi_processor *pr;
+>  
+> -
+>  	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+>  		return -EINVAL;
+>  
+> @@ -781,8 +681,6 @@ acpi_processor_register_performance(struct acpi_processor_performance
+>  		return -EIO;
+>  	}
+>  
+> -	acpi_cpufreq_add_file(pr);
+> -
+>  	mutex_unlock(&performance_mutex);
+>  	return 0;
+>  }
+> @@ -795,7 +693,6 @@ acpi_processor_unregister_performance(struct acpi_processor_performance
+>  {
+>  	struct acpi_processor *pr;
+>  
+> -
+>  	mutex_lock(&performance_mutex);
+>  
+>  	pr = per_cpu(processors, cpu);
+> @@ -808,8 +705,6 @@ acpi_processor_unregister_performance(struct acpi_processor_performance
+>  		kfree(pr->performance->states);
+>  	pr->performance = NULL;
+>  
+> -	acpi_cpufreq_remove_file(pr);
+> -
+>  	mutex_unlock(&performance_mutex);
+>  
+>  	return;
+> -- 
+> 1.6.0.2
+> 
