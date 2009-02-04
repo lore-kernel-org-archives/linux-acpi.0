@@ -1,135 +1,197 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: add debug dump of BIOS _OSI strings
-Date: Wed, 4 Feb 2009 13:37:54 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D83085811DEB090@orsmsx503.amr.corp.intel.com>
-References: <alpine.LFD.2.00.0902031811400.5607@localhost.localdomain>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
+Date: Wed, 04 Feb 2009 15:10:34 -0800
+Message-ID: <498A206A.2070309@kernel.org>
+References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com> <20090204212517.GM22608@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40072 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244AbZBDVh4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 16:37:56 -0500
-In-Reply-To: <alpine.LFD.2.00.0902031811400.5607@localhost.localdomain>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090204212517.GM22608@elte.hu>
+Sender: linux-pci-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "devel@lists.acpica.org" <devel@lists.acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-I'll put it in.
-Bob
+Ingo Molnar wrote:
+> 
+> To detect enabled on-CPU mmconf support. We could even put this into a 
+> helper function as other places might want to use it too.
+> 
 
+sth like:
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Len Brown
->Sent: Tuesday, February 03, 2009 3:18 PM
->To: devel@lists.acpica.org
->Cc: linux-acpi@vger.kernel.org
->Subject: [PATCH] ACPICA: add debug dump of BIOS _OSI strings
->
->Bob,
->I'd like to make this minor change to the (linuxized) ACPICA code,
->for it can tell us a little about the BIOS w/o having the user
->go to the trouble to dump the tables etc.
->
->If you made this change in the upstream ACPICA code,
->then that would be dandy.
->
->thanks,
->-Len
->
->From 3e0676a9b699d12b2bd0a8807459ac4277b181fc Mon Sep 17 00:00:00 2001
->From: Len Brown <len.brown@intel.com>
->Date: Tue, 3 Feb 2009 18:04:39 -0500
->Subject: [PATCH] ACPICA: add debug dump of BIOS _OSI strings
->Organization: Intel Open Source Technology Center
->
->on boot, print out the OSI strings the BIOS uses to query the OS.
->
->To see this output...
->
->build with CONFIG_ACPI_DEBUG
->
->boot with
->"acpi.debug_level=4" (ACPI_LV_INFO) (enabled by default)
->and
->"acpi.debug_level=1" (ACPI_UTILITIES) (default is 0)
->
->example output:
->
->ACPI: BIOS _OSI(Windows 2001) supported
->ACPI: BIOS _OSI(Windows 2001 SP1) supported
->ACPI: BIOS _OSI(Windows 2001 SP2) supported
->ACPI: BIOS _OSI(Windows 2006) supported
->ACPI: BIOS _OSI(Linux) not-supported
->ACPI: BIOS _OSI(FreeBSD) not-supported
->
->Signed-off-by: Len Brown <len.brown@intel.com>
->---
-> drivers/acpi/acpica/uteval.c |   21 +++++++++------------
-> 1 files changed, 9 insertions(+), 12 deletions(-)
->
->diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
->index da9450b..9c9897d 100644
->--- a/drivers/acpi/acpica/uteval.c
->+++ b/drivers/acpi/acpica/uteval.c
->@@ -116,9 +116,9 @@ acpi_status acpi_ut_osi_implementation(struct
->acpi_walk_state *walk_state)
->                return_ACPI_STATUS(AE_NO_MEMORY);
->        }
->
->-       /* Default return value is SUPPORTED */
->+       /* Default return value is 0, NOT-SUPPORTED */
->
->-       return_desc->integer.value = ACPI_UINT32_MAX;
->+       return_desc->integer.value = 0;
->        walk_state->return_desc = return_desc;
->
->        /* Compare input string to static table of supported interfaces */
->@@ -127,10 +127,8 @@ acpi_status acpi_ut_osi_implementation(struct
->acpi_walk_state *walk_state)
->                if (!ACPI_STRCMP
->                    (string_desc->string.pointer,
->                     acpi_interfaces_supported[i])) {
->-
->-                       /* The interface is supported */
->-
->-                       return_ACPI_STATUS(AE_OK);
->+                       return_desc->integer.value = ACPI_UINT32_MAX;
->+                       goto done;
->                }
->        }
->
->@@ -141,15 +139,14 @@ acpi_status acpi_ut_osi_implementation(struct
->acpi_walk_state *walk_state)
->         */
->        status = acpi_os_validate_interface(string_desc->string.pointer);
->        if (ACPI_SUCCESS(status)) {
->-
->-               /* The interface is supported */
->-
->-               return_ACPI_STATUS(AE_OK);
->+               return_desc->integer.value = ACPI_UINT32_MAX;
->        }
->
->-       /* The interface is not supported */
->+done:
->+       ACPI_DEBUG_PRINT_RAW((ACPI_DB_INFO, "ACPI: BIOS _OSI(%s)
->%ssupported\n",
->+               string_desc->string.pointer,
->+               return_desc->integer.value == 0 ? "not-" : ""));
->
->-       return_desc->integer.value = 0;
->        return_ACPI_STATUS(AE_OK);
-> }
->
->--
->1.6.1.2.319.gbd9e
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[PATCH] x86/pci: host mmconfig detect clean up
+
+Impact: not assume one place for mmconfig in nb
+
+prepare for following case: amd fam10h + mcp55
+
+CPU MSR has some range, mcp55 pci config will have another one.
+in some case: cpu MSR only include bus 0, and leave other to mcp55.
+
+if it s mcp55 detect duties to execlude range that is used by CPU MSR
+aka, if CPU state bus 0-255, range in mcp55 need to be dropped.
+because HW in CPU will not route that mcp55 mmconfig to handle it.
+
+Signed-off-by: Yinghai Lu <yinghai.lu@kernel.org>
+
+---
+ arch/x86/pci/mmconfig-shared.c |   90 ++++++++++++++++++++++-------------------
+ 1 file changed, 50 insertions(+), 40 deletions(-)
+
+Index: linux-2.6/arch/x86/pci/mmconfig-shared.c
+===================================================================
+--- linux-2.6.orig/arch/x86/pci/mmconfig-shared.c
++++ linux-2.6/arch/x86/pci/mmconfig-shared.c
+@@ -24,23 +24,47 @@
+ /* Indicate if the mmcfg resources have been placed into the resource table. */
+ static int __initdata pci_mmcfg_resources_inserted;
+ 
++static __init int extend_mmcfg(int num)
++{
++	struct acpi_mcfg_allocation *new;
++	int new_num = pci_mmcfg_config_num + num;
++
++	new = kzalloc(sizeof(pci_mmcfg_config[0]) * new_num, GFP_KERNEL);
++	if (!new)
++		return -1;
++
++	if (pci_mmcfg_config) {
++		memcpy(new, pci_mmcfg_config,
++			 (sizeof(pci_mmcfg_config[0]) * new_num));
++		kfree(pci_mmcfg_config);
++	}
++	pci_mmcfg_config = new;
++
++	return 0;
++}
++
++static __init void fill_one_mmcfg(u64 addr, int segment, int start, int end)
++{
++	int i = pci_mmcfg_config_num;
++
++	pci_mmcfg_config_num++;
++	pci_mmcfg_config[i].address = addr;
++	pci_mmcfg_config[i].pci_segment = segment;
++	pci_mmcfg_config[i].start_bus_number = start;
++	pci_mmcfg_config[i].end_bus_number = end;
++}
++
+ static const char __init *pci_mmcfg_e7520(void)
+ {
+ 	u32 win;
+ 	raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0xce, 2, &win);
+ 
+ 	win = win & 0xf000;
+-	if(win == 0x0000 || win == 0xf000)
+-		pci_mmcfg_config_num = 0;
+-	else {
+-		pci_mmcfg_config_num = 1;
+-		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
+-		if (!pci_mmcfg_config)
++	if (win != 0x0000 && win != 0xf000) {
++		if (extend_mmcfg(1) == -1)
+ 			return NULL;
+-		pci_mmcfg_config[0].address = win << 16;
+-		pci_mmcfg_config[0].pci_segment = 0;
+-		pci_mmcfg_config[0].start_bus_number = 0;
+-		pci_mmcfg_config[0].end_bus_number = 255;
++
++		fill_one_mmcfg(win << 16, 0, 0, 255);
+ 	}
+ 
+ 	return "Intel Corporation E7520 Memory Controller Hub";
+@@ -50,13 +74,11 @@ static const char __init *pci_mmcfg_inte
+ {
+ 	u32 pciexbar, mask = 0, len = 0;
+ 
+-	pci_mmcfg_config_num = 1;
+-
+ 	raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0x48, 4, &pciexbar);
+ 
+ 	/* Enable bit */
+ 	if (!(pciexbar & 1))
+-		pci_mmcfg_config_num = 0;
++		return NULL;
+ 
+ 	/* Size bits */
+ 	switch ((pciexbar >> 1) & 3) {
+@@ -73,28 +95,23 @@ static const char __init *pci_mmcfg_inte
+ 		len  = 0x04000000U;
+ 		break;
+ 	default:
+-		pci_mmcfg_config_num = 0;
++		return NULL;
+ 	}
+ 
+ 	/* Errata #2, things break when not aligned on a 256Mb boundary */
+ 	/* Can only happen in 64M/128M mode */
+ 
+ 	if ((pciexbar & mask) & 0x0fffffffU)
+-		pci_mmcfg_config_num = 0;
++		return NULL;
+ 
+ 	/* Don't hit the APIC registers and their friends */
+ 	if ((pciexbar & mask) >= 0xf0000000U)
+-		pci_mmcfg_config_num = 0;
++		return NULL;
+ 
+-	if (pci_mmcfg_config_num) {
+-		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
+-		if (!pci_mmcfg_config)
+-			return NULL;
+-		pci_mmcfg_config[0].address = pciexbar & mask;
+-		pci_mmcfg_config[0].pci_segment = 0;
+-		pci_mmcfg_config[0].start_bus_number = 0;
+-		pci_mmcfg_config[0].end_bus_number = (len >> 20) - 1;
+-	}
++	if (extend_mmcfg(1) == -1)
++		return NULL;
++
++	fill_one_mmcfg(pciexbar & mask, 0, 0, (len >> 20) - 1);
+ 
+ 	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
+ }
+@@ -138,18 +155,12 @@ static const char __init *pci_mmcfg_amd_
+ 		busnbits = 8;
+ 	}
+ 
+-	pci_mmcfg_config_num = (1 << segnbits);
+-	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]) *
+-				   pci_mmcfg_config_num, GFP_KERNEL);
+-	if (!pci_mmcfg_config)
++	if (extend_mmcfg(1 << segnbits) == -1)
+ 		return NULL;
+ 
+-	for (i = 0; i < (1 << segnbits); i++) {
+-		pci_mmcfg_config[i].address = base + (1<<28) * i;
+-		pci_mmcfg_config[i].pci_segment = i;
+-		pci_mmcfg_config[i].start_bus_number = 0;
+-		pci_mmcfg_config[i].end_bus_number = (1 << busnbits) - 1;
+-	}
++
++	for (i = 0; i < (1 << segnbits); i++)
++		fill_one_mmcfg(base + (1<<28) * i, i, 0, (1 << busnbits) - 1);
+ 
+ 	return "AMD Family 10h NB";
+ }
+@@ -198,14 +209,13 @@ static int __init pci_mmcfg_check_hostbr
+ 		if (pci_mmcfg_probes[i].vendor == vendor &&
+ 		    pci_mmcfg_probes[i].device == device)
+ 			name = pci_mmcfg_probes[i].probe();
+-	}
+ 
+-	if (name) {
+-		printk(KERN_INFO "PCI: Found %s %s MMCONFIG support.\n",
+-		       name, pci_mmcfg_config_num ? "with" : "without");
++		if (name)
++			printk(KERN_INFO "PCI: Found %s with MMCONFIG support.\n",
++			       name);
+ 	}
+ 
+-	return name != NULL;
++	return pci_mmcfg_config_num != 0;
+ }
+ 
+ static void __init pci_mmcfg_insert_resources(void)
