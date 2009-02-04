@@ -1,143 +1,46 @@
-From: Frank Seidel <fseidel@suse.de>
-Subject: [PATCHv2] ACPI: add missing KERN_* constants to printks
-Date: Wed, 04 Feb 2009 17:03:07 +0100
-Message-ID: <4989BC3B.2070508@suse.de>
-References: <4989A784.3030604@suse.de>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: [PATCH] ACPI: add missing KERN_* constants to printks
+Date: Wed, 4 Feb 2009 17:12:57 +0100
+Message-ID: <200902041713.00301.elendil@planet.nl>
+References: <4989A784.3030604@suse.de> <200902041628.03675.elendil@planet.nl> <alpine.LRH.2.00.0902041642450.7690@vixen.sonytel.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:37308 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754450AbZBDQDZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Feb 2009 11:03:25 -0500
-In-Reply-To: <4989A784.3030604@suse.de>
+Received: from hpsmtp-eml20.KPNXCHANGE.COM ([213.75.38.85]:33841 "EHLO
+	hpsmtp-eml20.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755545AbZBDQNE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Feb 2009 11:13:04 -0500
+In-Reply-To: <alpine.LRH.2.00.0902041642450.7690@vixen.sonytel.be>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux kernel <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, len.brown@intel.com, shaohuhua.li@intel.com, kristen.c.accardi@intel.com, frank@f-seidel.de, Frans Pop <elendil@planet.nl>, Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+To: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Frank Seidel <fseidel@suse.de>, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, len.brown@intel.com, shaohuhua.li@intel.com, kristen.c.accardi@intel.com, frank@f-seidel.de
 
-From: Frank Seidel <frank@f-seidel.de>
+On Wednesday 04 February 2009, Geert Uytterhoeven wrote:
+> > This patch looks broken to me, at least for some of your changes.
+> > For example, in the bit quoted above all printks together make up
+> > *one single* message, which means that only the _first_ of the
+> > printks should have the KERN_* prefix. printks that are continuations
+> > should not have the prefix.
+>
+> Actually they should, but the right prefix :-)
 
-According to kerneljanitors todo list all printk calls (beginning
-a new line) should have an according KERN_* constant.
-Those are the missing peaces here for the acpi subsystem.
+Hmm. I was going by memory and from what I've seen in existing code, but
+also found this (somewhat old) post:
+https://lists.linux-foundation.org/pipermail/kernel-janitors/2005-October/014375.html
 
-Signed-off-by: Frank Seidel <frank@f-seidel.de>
----
- drivers/acpi/container.c |    5 +++--
- drivers/acpi/dock.c      |    8 ++++----
- drivers/acpi/osl.c       |    4 ++--
- drivers/acpi/pci_link.c  |    2 +-
- drivers/acpi/sleep.c     |    2 +-
- drivers/acpi/video.c     |    2 +-
- 6 files changed, 12 insertions(+), 11 deletions(-)
+> Quoting include/linux/kernel.h:
+> | /*
+> |  * Annotation for a "continued" line of log printout (only done after a
+> |  * line that had no enclosing \n). Only to be used by core/arch code
+> |  * during early bootup (a continued line is not SMP-safe otherwise).
+> |  */
+> | #define KERN_CONT       ""
+>
+> Please also consider the note about SMP-safeness.
 
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1260,7 +1260,7 @@ static int acpi_video_bus_POST_info_seq_
- 			printk(KERN_WARNING PREFIX
- 			       "This indicates a BIOS bug. Please contact the manufacturer.\n");
- 		}
--		printk("%llx\n", options);
-+		printk(KERN_WARNING "%llx\n", options);
- 		seq_printf(seq, "can POST: <integrated video>");
- 		if (options & 2)
- 			seq_printf(seq, " <PCI video>");
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -163,7 +163,7 @@ static void container_notify_cb(acpi_han
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* Fall through */
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk("Container driver received %s event\n",
-+		printk(KERN_WARNING "Container driver received %s event\n",
- 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
- 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
- 		status = acpi_bus_get_device(handle, &device);
-@@ -174,7 +174,8 @@ static void container_notify_cb(acpi_han
- 					kobject_uevent(&device->dev.kobj,
- 						       KOBJ_ONLINE);
- 				else
--					printk("Failed to add container\n");
-+					printk(KERN_WARNING
-+					       "Failed to add container\n");
- 			}
- 		} else {
- 			if (ACPI_SUCCESS(status)) {
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -593,7 +593,7 @@ static int acpi_pci_link_allocate(struct
- 		return -ENODEV;
- 	} else {
- 		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
--		printk(PREFIX "%s [%s] enabled at IRQ %d\n",
-+		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
- 		       acpi_device_name(link->device),
- 		       acpi_device_bid(link->device), link->irq.active);
- 	}
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -984,7 +984,7 @@ static int dock_add(acpi_handle handle)
- 
- 	ret = device_create_file(&dock_device->dev, &dev_attr_docked);
- 	if (ret) {
--		printk("Error %d adding sysfs file\n", ret);
-+		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
- 		platform_device_unregister(dock_device);
- 		kfree(dock_station);
- 		dock_station = NULL;
-@@ -992,7 +992,7 @@ static int dock_add(acpi_handle handle)
- 	}
- 	ret = device_create_file(&dock_device->dev, &dev_attr_undock);
- 	if (ret) {
--		printk("Error %d adding sysfs file\n", ret);
-+		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
- 		device_remove_file(&dock_device->dev, &dev_attr_docked);
- 		platform_device_unregister(dock_device);
- 		kfree(dock_station);
-@@ -1001,7 +1001,7 @@ static int dock_add(acpi_handle handle)
- 	}
- 	ret = device_create_file(&dock_device->dev, &dev_attr_uid);
- 	if (ret) {
--		printk("Error %d adding sysfs file\n", ret);
-+		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
- 		device_remove_file(&dock_device->dev, &dev_attr_docked);
- 		device_remove_file(&dock_device->dev, &dev_attr_undock);
- 		platform_device_unregister(dock_device);
-@@ -1011,7 +1011,7 @@ static int dock_add(acpi_handle handle)
- 	}
- 	ret = device_create_file(&dock_device->dev, &dev_attr_flags);
- 	if (ret) {
--		printk("Error %d adding sysfs file\n", ret);
-+		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
- 		device_remove_file(&dock_device->dev, &dev_attr_docked);
- 		device_remove_file(&dock_device->dev, &dev_attr_undock);
- 		device_remove_file(&dock_device->dev, &dev_attr_uid);
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -228,10 +228,10 @@ void acpi_os_vprintf(const char *fmt, va
- 	if (acpi_in_debugger) {
- 		kdb_printf("%s", buffer);
- 	} else {
--		printk("%s", buffer);
-+		printk(KERN_WARNING "%s", buffer);
- 	}
- #else
--	printk("%s", buffer);
-+	printk(KERN_WARNING "%s", buffer);
- #endif
- }
- 
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -679,7 +679,7 @@ static void acpi_power_off_prepare(void)
- static void acpi_power_off(void)
- {
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
--	printk("%s called\n", __func__);
-+	printk(KERN_DEBUG "%s called\n", __func__);
- 	local_irq_disable();
- 	acpi_enable_wakeup_device(ACPI_STATE_S5);
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
-
+>From that it looks like KERN_CONT should only be used in a very limited
+context, but I guess this example qualifies.
