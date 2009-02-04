@@ -1,74 +1,55 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: Acer 6592 TM, suspend to ram and resume freeze
-Date: Wed, 04 Feb 2009 10:21:59 +0800
-Message-ID: <1233714119.3684.53.camel@localhost.localdomain>
-References: <873aevl0l8.fsf@free.fr>
+From: Sam Ruby <rubys@intertwingly.net>
+Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
+Date: Tue, 03 Feb 2009 22:28:06 -0500
+Message-ID: <49890B46.8020308@intertwingly.net>
+References: <4978767D.4060700@intertwingly.net> <20090130000758.1dff0113.akpm@linux-foundation.org> <498885CC.4060509@intertwingly.net> <20090203114849.b661f1ce.akpm@linux-foundation.org> <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24820 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752277AbZBDCKV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Feb 2009 21:10:21 -0500
-In-Reply-To: <873aevl0l8.fsf@free.fr>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123]:55563 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751358AbZBDD2M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 22:28:12 -0500
+In-Reply-To: <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>
 
-On Wed, 2009-02-04 at 04:36 +0800, Robert Jarzmik wrote:
-> First of all, sorry for the duplicate on linux-pm, but as Pavel suggested, this
-> topic gains wider audience as acpi and pm are involved.
+Thomas Gleixner wrote:
+> On Tue, 3 Feb 2009, Andrew Morton wrote:
+>>>>> [    0.296001] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+>>>>> [    0.296001] Kernel panic - not syncing: IO-APIC + timer doesn't work! 
+> Sigh.
 > 
-> I have an issue with my laptop with suspend to ram.
-> My laptop is an Acer Travelmate 6592g :
+>> Not sure.  Perhaps platform_i386/platform_x86_64 would be correct.
+>> Can the x86 maintainers please advise?
 > 
-> > [rj@velvet wireshark-1.0.5 (master)]$ sudo s2ram -i
-> > This machine can be identified by:
-> >     sys_vendor   = "Acer"
-> >     sys_product  = "TravelMate 6592"
-> >     sys_version  = "PSMBOU-1234567"
-> >     bios_version = "V1.53   "
+> Yup. That's correct
 > 
-> The kernel running is the last I have : 2.6.29-rc1, but the problem is the same
-> whatever the kernel version I take (between 2.6.16 and 2.6.29-rc1).
-Will you please try the latest kernel(2.6.29-rc3)?
-     If the problem still exists, please attach the output of dmesg,
-acpidump.
+> @Sam: I just checked, that your machine has a serial port. That's a
+> good start :)
+> 
+> Do you have a second computer around with a serial port ? If yes, then
+> please add the following to the kernel command line:
+> 
+>        earlyprintk=serial,ttyS0,115200 apic=debug
+> 
+> and connect the serial ports with a null modem cable. Fire up a
+> terminal program on the second machine and capture the output.
 
-Thanks.
+I do have a second computer, and went out and bought a null modem 
+adapter for my serial cable and connected the two machines.  I've tried 
+installing minicom and also connecting it to ttyS0 at 115200 baud on the 
+second machine, but when I boot the first machine I don't see any output 
+on the terminal.
+
+What am I missing?
+
+> Thanks,
 > 
-> The issue is that even if the laptop enters suspend correctly, it hangs on
-> comming out of it. After some research, I cornered down the module which changes
-> the behaviour : acpi_cpufreq.ko.
-> 
-> When I forbid the laptop to load this module, the suspend to ram works like a
-> charm, in "init" single mode or multi-user mode. When I load the module, the
-> resume always hangs (fan goes high speed like crazy, no LCD back, hard drive led
-> stays on, caps_lock key not responsive, ...)
-> 
-> Now, I notice that loading acpi-cpufreq triggers the following message :
-> > log: Jan 19 18:23:42 velvet kernel: ACPI: EC: non-query interrupt received, switching to interrupt mode
-> 
-> As this is not the part of the kernel I'm most at ease with, I'd like some help
-> to investigate. I'll gladly make any test or apply patches to my own git tree.
-> 
-> I join to this mail a URL [1] to see the little information I have :
->  - kernel messages (/var/log/messages), for single user startup
->  - ACPI table
->  - my kernel configuration
->  - kernel message for a working suspend to ram (ie. without acpi_cpufreq).
->  - I suspend using s2ram -f -v -p -s
-> 
-> Best regards.
-> 
-> --
-> Robert
-> 
-> [1] http://belgarath.hd.free.fr/download/acer6592tm/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 	tglx
+
+- Sam Ruby
 
