@@ -1,88 +1,135 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
-Date: Wed, 4 Feb 2009 22:25:17 +0100
-Message-ID: <20090204212517.GM22608@elte.hu>
-References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: add debug dump of BIOS _OSI strings
+Date: Wed, 4 Feb 2009 13:37:54 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D83085811DEB090@orsmsx503.amr.corp.intel.com>
+References: <alpine.LFD.2.00.0902031811400.5607@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:51417 "EHLO mx2.mail.elte.hu"
+Received: from mga02.intel.com ([134.134.136.20]:40072 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752261AbZBDVZa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Feb 2009 16:25:30 -0500
-Content-Disposition: inline
-In-Reply-To: <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com>
+	id S1752244AbZBDVh4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 16:37:56 -0500
+In-Reply-To: <alpine.LFD.2.00.0902031811400.5607@localhost.localdomain>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "devel@lists.acpica.org" <devel@lists.acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+
+I'll put it in.
+Bob
 
 
-* Yinghai Lu <yinghai@kernel.org> wrote:
-
-> On Wed, Feb 4, 2009 at 8:39 AM, Ed Swierk <eswierk@aristanetworks.com> wrote:
-> > Detect and enable memory-mapped PCI configuration space on the nVidia
-> > MCP55 southbridge even if the ACPI MCFG table is missing or wrong.
-> >
-> > Signed-off-by: Ed Swierk <eswierk@aristanetworks.com>
-> >
-> > ---
-> > Index: linux-2.6.27.4/arch/x86/pci/mmconfig-shared.c
-> > ===================================================================
-> > --- linux-2.6.27.4.orig/arch/x86/pci/mmconfig-shared.c
-> > +++ linux-2.6.27.4/arch/x86/pci/mmconfig-shared.c
-> > @@ -155,6 +155,26 @@ static const char __init *pci_mmcfg_amd_
-> >        return "AMD Family 10h NB";
-> >  }
-> >
-> > +static const char __init *pci_mmcfg_nvidia_mcp55(void)
-> > +{
-> > +       u32 extcfg;
-> > +
-> > +       raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0x90, 4, &extcfg);
-> > +
-> > +       if (!(extcfg & 0x80000000))
-> > +               return NULL;
-> > +       pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
-> > +       if (!pci_mmcfg_config)
-> > +               return NULL;
-> > +       pci_mmcfg_config[0].address = (extcfg & 0x00007fff) << 25;
-> > +       pci_mmcfg_config[0].pci_segment = 0;
-> > +       pci_mmcfg_config[0].start_bus_number = 0;
-> > +       pci_mmcfg_config[0].end_bus_number = (1 << (8 - ((extcfg >> 28) & 3))) - 1;
-> > +       pci_mmcfg_config_num = 1;
-> > +
-> > +       return "nVidia MCP55";
-> > +}
-> > +
-> >  struct pci_mmcfg_hostbridge_probe {
-> >        u32 bus;
-> >        u32 devfn;
-> > @@ -172,6 +192,8 @@ static struct pci_mmcfg_hostbridge_probe
-> >          0x1200, pci_mmcfg_amd_fam10h },
-> >        { 0xff, PCI_DEVFN(0, 0), PCI_VENDOR_ID_AMD,
-> >          0x1200, pci_mmcfg_amd_fam10h },
-> > +       { 0, PCI_DEVFN(0, 0), PCI_VENDOR_ID_NVIDIA,
-> > +         0x0369, pci_mmcfg_nvidia_mcp55 },
-> 
-> may break amd family 10h + mcp55 system. because some system have setting 
-> in AMD cpu and mcp55 it will find setting in CPU nb, and your code will 
-> partially overwrite those setting.
-
-That's a good point ...
-
-We could do something like:
-
-	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
-		boot_cpu_data.x86 >= 0x10) {
-		u64 mmconf_val;
-
-		rdmsrl(MSR_FAM10H_MMIO_CONF_BASE, mmconf_val);
-		if (mmconf_val & FAM10H_MMIO_CONF_ENABLE)
-			return;
-	}
-
-To detect enabled on-CPU mmconf support. We could even put this into a 
-helper function as other places might want to use it too.
-
-	Ingo
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Len Brown
+>Sent: Tuesday, February 03, 2009 3:18 PM
+>To: devel@lists.acpica.org
+>Cc: linux-acpi@vger.kernel.org
+>Subject: [PATCH] ACPICA: add debug dump of BIOS _OSI strings
+>
+>Bob,
+>I'd like to make this minor change to the (linuxized) ACPICA code,
+>for it can tell us a little about the BIOS w/o having the user
+>go to the trouble to dump the tables etc.
+>
+>If you made this change in the upstream ACPICA code,
+>then that would be dandy.
+>
+>thanks,
+>-Len
+>
+>From 3e0676a9b699d12b2bd0a8807459ac4277b181fc Mon Sep 17 00:00:00 2001
+>From: Len Brown <len.brown@intel.com>
+>Date: Tue, 3 Feb 2009 18:04:39 -0500
+>Subject: [PATCH] ACPICA: add debug dump of BIOS _OSI strings
+>Organization: Intel Open Source Technology Center
+>
+>on boot, print out the OSI strings the BIOS uses to query the OS.
+>
+>To see this output...
+>
+>build with CONFIG_ACPI_DEBUG
+>
+>boot with
+>"acpi.debug_level=4" (ACPI_LV_INFO) (enabled by default)
+>and
+>"acpi.debug_level=1" (ACPI_UTILITIES) (default is 0)
+>
+>example output:
+>
+>ACPI: BIOS _OSI(Windows 2001) supported
+>ACPI: BIOS _OSI(Windows 2001 SP1) supported
+>ACPI: BIOS _OSI(Windows 2001 SP2) supported
+>ACPI: BIOS _OSI(Windows 2006) supported
+>ACPI: BIOS _OSI(Linux) not-supported
+>ACPI: BIOS _OSI(FreeBSD) not-supported
+>
+>Signed-off-by: Len Brown <len.brown@intel.com>
+>---
+> drivers/acpi/acpica/uteval.c |   21 +++++++++------------
+> 1 files changed, 9 insertions(+), 12 deletions(-)
+>
+>diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
+>index da9450b..9c9897d 100644
+>--- a/drivers/acpi/acpica/uteval.c
+>+++ b/drivers/acpi/acpica/uteval.c
+>@@ -116,9 +116,9 @@ acpi_status acpi_ut_osi_implementation(struct
+>acpi_walk_state *walk_state)
+>                return_ACPI_STATUS(AE_NO_MEMORY);
+>        }
+>
+>-       /* Default return value is SUPPORTED */
+>+       /* Default return value is 0, NOT-SUPPORTED */
+>
+>-       return_desc->integer.value = ACPI_UINT32_MAX;
+>+       return_desc->integer.value = 0;
+>        walk_state->return_desc = return_desc;
+>
+>        /* Compare input string to static table of supported interfaces */
+>@@ -127,10 +127,8 @@ acpi_status acpi_ut_osi_implementation(struct
+>acpi_walk_state *walk_state)
+>                if (!ACPI_STRCMP
+>                    (string_desc->string.pointer,
+>                     acpi_interfaces_supported[i])) {
+>-
+>-                       /* The interface is supported */
+>-
+>-                       return_ACPI_STATUS(AE_OK);
+>+                       return_desc->integer.value = ACPI_UINT32_MAX;
+>+                       goto done;
+>                }
+>        }
+>
+>@@ -141,15 +139,14 @@ acpi_status acpi_ut_osi_implementation(struct
+>acpi_walk_state *walk_state)
+>         */
+>        status = acpi_os_validate_interface(string_desc->string.pointer);
+>        if (ACPI_SUCCESS(status)) {
+>-
+>-               /* The interface is supported */
+>-
+>-               return_ACPI_STATUS(AE_OK);
+>+               return_desc->integer.value = ACPI_UINT32_MAX;
+>        }
+>
+>-       /* The interface is not supported */
+>+done:
+>+       ACPI_DEBUG_PRINT_RAW((ACPI_DB_INFO, "ACPI: BIOS _OSI(%s)
+>%ssupported\n",
+>+               string_desc->string.pointer,
+>+               return_desc->integer.value == 0 ? "not-" : ""));
+>
+>-       return_desc->integer.value = 0;
+>        return_ACPI_STATUS(AE_OK);
+> }
+>
+>--
+>1.6.1.2.319.gbd9e
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
