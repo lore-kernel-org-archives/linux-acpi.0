@@ -1,516 +1,237 @@
-From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: Re: [PATCH] PCI/ACPI: move _OSC code to pci_root.c
-Date: Tue, 03 Feb 2009 16:20:52 -0700
-Message-ID: <1233703252.14203.161.camel@localhost>
-References: <4987DCAC.3010009@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 7/7] ACPI: cpufreq: Remove deprecated /proc/acpi/processor/../performance proc entries
+Date: Wed,  4 Feb 2009 01:17:47 +0100
+Message-ID: <1233706667-21861-8-git-send-email-trenn@suse.de>
+References: <1233706667-21861-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:1787 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755326AbZBCXUy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2009 18:20:54 -0500
-In-Reply-To: <4987DCAC.3010009@jp.fujitsu.com>
+Received: from mx1.suse.de ([195.135.220.2]:37308 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752700AbZBDARu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Feb 2009 19:17:50 -0500
+In-Reply-To: <1233706667-21861-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Matthew Wilcox <matthew@wil.cx>
+To: davej@codemonkey.org.uk
+Cc: mark.langsdorf@amd.com, cpufreq@vger.kernel.org, venkatesh.pallipadi@intel.com, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, Linux ACPI list <linux-acpi@vger.kernel.org>
 
-On Tue, 2009-02-03 at 14:57 +0900, Kenji Kaneshige wrote:
-> Move PCI _OSC management code from drivers/pci/pci-acpi.c to
-> drivers/acpi/pci_root.c. The benefits are
-> 
-> - We no longer need struct osc_data and its management code (contents
->   are moved to struct acpi_pci_root). This simplify the code, and we
->   no longer care about kmalloc() failure.
-> 
-> - We can make pci_acpi_osc_support() be a static function, which is
->   called only from drivers/acpi/pci_root.c.
-> 
-> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-> 
-> ---
->  drivers/acpi/pci_root.c  |  178 ++++++++++++++++++++++++++++++++++++++
->  drivers/pci/pci-acpi.c   |  215 -----------------------------------------------
->  include/linux/pci-acpi.h |    1 
->  3 files changed, 176 insertions(+), 218 deletions(-)
-> 
-> Index: 20090130/drivers/acpi/pci_root.c
-> ===================================================================
-> --- 20090130.orig/drivers/acpi/pci_root.c
-> +++ 20090130/drivers/acpi/pci_root.c
-> @@ -66,11 +66,18 @@ struct acpi_pci_root {
->  	struct acpi_device * device;
->  	struct acpi_pci_id id;
->  	struct pci_bus *bus;
-> +
-> +	u32 osc_support_set;	/* _OSC state of support bits */
-> +	u32 osc_control_set;	/* _OSC state of control bits */
-> +	u32 osc_control_qry;	/* the latest _OSC query result */
-> +
-> +	u32 osc_queried:1;	/* has _OSC control been queried? */
->  };
->  
->  static LIST_HEAD(acpi_pci_roots);
->  
->  static struct acpi_pci_driver *sub_driver;
-> +static DEFINE_MUTEX(osc_lock);
->  
->  int acpi_pci_register_driver(struct acpi_pci_driver *driver)
->  {
-> @@ -185,6 +192,173 @@ static void acpi_pci_bridge_scan(struct 
->  		}
->  }
->  
-> +static u8 OSC_UUID[16] = {0x5B, 0x4D, 0xDB, 0x33, 0xF7, 0x1F, 0x1C, 0x40,
-> +			  0x96, 0x57, 0x74, 0x41, 0xC0, 0x3D, 0xD7, 0x66};
-> +
-> +static acpi_status acpi_pci_run_osc(acpi_handle handle,
-> +				    const u32 *capbuf, u32 *retval)
-> +{
-> +	acpi_status status;
-> +	struct acpi_object_list input;
-> +	union acpi_object in_params[4];
-> +	struct acpi_buffer output = {ACPI_ALLOCATE_BUFFER, NULL};
-> +	union acpi_object *out_obj;
-> +	u32 errors;
-> +
-> +	/* Setting up input parameters */
-> +	input.count = 4;
-> +	input.pointer = in_params;
-> +	in_params[0].type 		= ACPI_TYPE_BUFFER;
-> +	in_params[0].buffer.length 	= 16;
-> +	in_params[0].buffer.pointer	= OSC_UUID;
-> +	in_params[1].type 		= ACPI_TYPE_INTEGER;
-> +	in_params[1].integer.value 	= 1;
-> +	in_params[2].type 		= ACPI_TYPE_INTEGER;
-> +	in_params[2].integer.value	= 3;
-> +	in_params[3].type		= ACPI_TYPE_BUFFER;
-> +	in_params[3].buffer.length 	= 12;
-> +	in_params[3].buffer.pointer 	= (u8 *)capbuf;
-> +
-> +	status = acpi_evaluate_object(handle, "_OSC", &input, &output);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	if (!output.length)
-> +		return AE_NULL_OBJECT;
-> +
-> +	out_obj = output.pointer;
-> +	if (out_obj->type != ACPI_TYPE_BUFFER) {
-> +		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
-> +		status = AE_TYPE;
-> +		goto out_kfree;
-> +	}
-> +	/* Need to ignore the bit0 in result code */
-> +	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
-> +	if (errors) {
-> +		if (errors & OSC_REQUEST_ERROR)
-> +			printk(KERN_DEBUG "_OSC request fails\n");
-> +		if (errors & OSC_INVALID_UUID_ERROR)
-> +			printk(KERN_DEBUG "_OSC invalid UUID\n");
-> +		if (errors & OSC_INVALID_REVISION_ERROR)
-> +			printk(KERN_DEBUG "_OSC invalid revision\n");
-> +		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
-> +			if (capbuf[OSC_QUERY_TYPE] & OSC_QUERY_ENABLE)
-> +				goto out_success;
-> +			printk(KERN_DEBUG "_OSC FW not grant req. control\n");
+They were long enough set deprecated...
 
-Can this be worded better? Perhaps "Firmware would not grant requested
-_OSC control"? I know this is not your code, but maybe we can fix this
-now.
+Update Documentation/cpu-freq/users-guide.txt:
+The deprecated files listed there seen not to exist for some time anymore
+already.
 
-> +			status = AE_SUPPORT;
-> +			goto out_kfree;
-> +		}
-> +		status = AE_ERROR;
-> +		goto out_kfree;
-> +	}
-> +out_success:
-> +	*retval = *((u32 *)(out_obj->buffer.pointer + 8));
-> +	status = AE_OK;
-> +
-> +out_kfree:
-> +	kfree(output.pointer);
-> +	return status;
-> +}
-> +
-> +static acpi_status acpi_pci_query_osc(struct acpi_pci_root *root, u32 flags)
-> +{
-> +	acpi_status status;
-> +	u32 support_set, result, capbuf[3];
-> +
-> +	/* do _OSC query for all possible controls */
-> +	support_set = root->osc_support_set | (flags & OSC_SUPPORT_MASKS);
-> +	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-> +	capbuf[OSC_SUPPORT_TYPE] = support_set;
-> +	capbuf[OSC_CONTROL_TYPE] = OSC_CONTROL_MASKS;
-> +
-> +	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
-> +	if (ACPI_SUCCESS(status)) {
-> +		root->osc_support_set = support_set;
-> +		root->osc_control_qry = result;
-> +		root->osc_queried = 1;
-> +	}
-> +	return status;
-> +}
-> +
-> +static acpi_status acpi_pci_osc_support(struct acpi_pci_root *root, u32 flags)
-> +{
-> +	acpi_status status;
-> +	acpi_handle tmp;
-> +
-> +	status = acpi_get_handle(root->device->handle, "_OSC", &tmp);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +	mutex_lock(&osc_lock);
-> +	status = acpi_pci_query_osc(root, flags);
-> +	mutex_unlock(&osc_lock);
-> +	return status;
-> +}
-> +
-> +static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
-> +{
-> +	struct acpi_pci_root *root;
-> +	list_for_each_entry(root, &acpi_pci_roots, node) {
-> +		if (root->device->handle == handle)
-> +			return root;
-> +	}
-> +	return NULL;
-> +}
-> +
-> +/**
-> + * pci_osc_control_set - commit requested control to Firmware
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+CC: Len Brown <lenb@kernel.org>
+CC: Linux ACPI list <linux-acpi@vger.kernel.org>
+---
+ Documentation/cpu-freq/user-guide.txt |   16 -----
+ arch/x86/kernel/cpu/cpufreq/Kconfig   |   11 ----
+ drivers/acpi/processor_perflib.c      |  105 ---------------------------------
+ 3 files changed, 0 insertions(+), 132 deletions(-)
 
-Should this function be renamed to acpi_pci_osc_control_set?
-
-> + * @handle: acpi_handle for the target ACPI object
-> + * @flags: driver's requested control bits
-> + *
-> + * Attempt to take control from Firmware on requested control bits.
-> + **/
-> +acpi_status pci_osc_control_set(acpi_handle handle, u32 flags)
-> +{
-
-> +	acpi_status status;
-> +	u32 control_req, result, capbuf[3];
-> +	acpi_handle tmp;
-> +	struct acpi_pci_root *root;
-> +
-> +	status = acpi_get_handle(handle, "_OSC", &tmp);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	control_req = (flag
-
-> s & OSC_CONTROL_MASKS);
-> +	if (!control_req)
-> +		return AE_TYPE;
-> +
-> +	root = acpi_pci_find_root(handle);
-> +	if (!root)
-> +		return AE_NOT_EXIST;
-> +
-> +	mutex_lock(&osc_lock);
-> +	/* No need to evaluate _OSC if the control was already granted. */
-> +	if ((root->osc_control_set & control_req) == control_req)
-> +		goto out;
-> +
-> +	/* Need to query controls first before requesting them */
-> +	if (!root->osc_queried) {
-> +		status = acpi_pci_query_osc(root, root->osc_support_set);
-> +		if (ACPI_FAILURE(status))
-> +			goto out;
-> +	}
-> +	if ((root->osc_control_qry & control_req) != control_req) {
-> +		printk(KERN
-
-> _DEBUG "_OSC FW not grant req. control\n");
-
-See above.
-
-> +		status = AE_SUPPORT;
-> +		goto out;
-> +	}
-> +
-> +	capbuf[OSC_QUERY_TYPE] = 0;
-> +	capbuf[OSC_SUPPORT_TYPE] = root->osc_support_set;
-> +	capbuf[OSC_CONTROL_TYPE] = root->osc_control_set | control_req;
-> +	status = acpi_pci_run_osc(handle, capbuf, &result);
-> +	if (ACPI_SUCCESS(status))
-> +		root->osc_control_set = result;
-> +out:
-> +	mutex_unlock(&osc_lock);
-> +	return status;
-> +}
-> +EXPORT_SYMBOL(pci_osc_control_set);
-> +
->  static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  {
->  	int result = 0;
-> @@ -217,7 +391,7 @@ static int __devinit acpi_pci_root_add(s
->  	 * PCI domains, so we indicate this in _OSC support capabilities.
->  	 */
->  	flags = base_flags = OSC_PCI_SEGMENT_GROUPS_SUPPORT;
-> -	pci_acpi_osc_support(device->handle, flags);
-> +	acpi_pci_osc_support(root, flags);
->  
->  	/* 
->  	 * Segment
-> @@ -353,7 +527,7 @@ static int __devinit acpi_pci_root_add(s
->  	if (pci_msi_enabled())
->  		flags |= OS
-
-> C_MSI_SUPPORT;
->  	if (flags != base_flags)
-> -		pci_acpi_osc_support(device->handle, flags);
-> +		acpi_pci_osc_support(root, flags);
->  
->        end:
->  	if (result) {
-> Index: 20090130/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- 20090130.orig/drivers/pci/pci-acpi.c
-> +++ 20090130/drivers/pci/pci-acpi.c
-> @@ -18,221 +18,6 @@
->  #include <linux/pci-acpi.h>
->  #include "pci.h"
->  
-> -struct acpi_osc_data {
-> -	acpi_handle handle;
-> -	u32 support_set;
-> -	u32 control_set;
-> -	u32 control_query;
-> -	int is_queried;
-> -	struct list_head sibiling;
-> -};
-> -static LIST_HEAD(acpi_osc_data_list);
-> -
-> -struct acpi_osc_args {
-> -	u32 capbuf[3];
-> -};
-> -
-> -static DEFINE_MUTEX(pci_acpi_lock);
-> -
-> -static struct acpi_osc_data *acpi_get_osc_data(acpi_handle handle)
-> -{
-> -	struct acpi_osc_data *data;
-> -
-> -	list_for_each_entry(data, &acpi_osc_data_list, sibiling) {
-> -		if (data->handle == handle)
-> -			return data;
-> -	}
-> -	data = kzalloc(sizeof(*data), GFP_KERNEL);
-> -	if (!data)
-> -		return NULL;
-> -	INIT_LIST_HEAD(&data->sibiling);
-> -	data->handle = handle;
-> -	list_add_tail(&data->sibiling, &acpi_osc_data_list);
-> -	return data;
-> -}
-> -
-> -static u8 OSC_UUID[16] = {0x5B, 0x4D, 0xDB, 0x33, 0xF7, 0x1F, 0x1C, 0x40,
-> -			  0x96, 0x57, 0x74, 0x41, 0xC0, 0x3D, 0xD7, 0x66};
-> -
-> -static acpi_status acpi_run_osc(acpi_handle handle,
-> -				struct acpi_osc_args *osc_args, u32 *retval)
-> -{
-> -	acpi_status status;
-> -	struct acpi_object_list input;
-> -	union acpi_object in_params[4];
-> -	struct acpi_buffer output = {ACPI_ALLOCATE_BUFFER, NULL};
-> -	union acpi_object *out_obj;
-> -	u32 errors, flags = osc_args->capbuf[OSC_QUERY_TYPE];
-> -
-> -	/* Setting up input parameters */
-> -	input.count = 4;
-> -	input.pointer = in_params;
-> -	in_params[0].type 		= ACPI_TYPE_BUFFER;
-> -	in_params[0].buffer.length 	= 16;
-> -	in_params[0].buffer.pointer	= OSC_UUID;
-> -	in_params[1].type 		= ACPI_TYPE_INTEGER;
-> -	in_params[1].integer.value 	= 1;
-> -	in_params[2].type 		= ACPI_TYPE_INTEGER;
-> -	in_params[2].integer.value	= 3;
-> -	in_params[3].type		= ACPI_TYPE_BUFFER;
-> -	in_params[3].buffer.length 	= 12;
-> -	in_params[3].buffer.pointer 	= (u8 *)osc_args->capbuf;
-> -
-> -	status = acpi_evaluate_object(handle, "_OSC", &input, &output);
-> -	if (ACPI_FAILURE(status))
-> -		return status;
-> -
-> -	if (!output.length)
-> -		return AE_NULL_OBJECT;
-> -
-> -	out_obj = output.pointer;
-> -	if (out_obj->type != ACPI_TYPE_BUFFER) {
-> -		printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
-> -		status = AE_TYPE;
-> -		goto out_kfree;
-> -	}
-> -	/* Need to ignore the bit0 in result code */
-> -	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
-> -	if (errors) {
-> -		if (errors & OSC_REQUEST_ERROR)
-> -			printk(KERN_DEBUG "_OSC request fails\n"); 
-> -		if (errors & OSC_INVALID_UUID_ERROR)
-> -			printk(KERN_DEBUG "_OSC invalid UUID\n"); 
-> -		if (errors & OSC_INVALID_REVISION_ERROR)
-> -			printk(KERN_DEBUG "_OSC invalid revision\n"); 
-> -		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
-> -			if (flags & OSC_QUERY_ENABLE)
-> -				goto out_success;
-> -			printk(KERN_DEBUG "_OSC FW not grant req. control\n");
-> -			status = AE_SUPPORT;
-> -			goto out_kfree;
-> -		}
-> -		status = AE_ERROR;
-> -		goto out_kfree;
-> -	}
-> -out_success:
-> -	*retval = *((u32 *)(out_obj->buffer.pointer + 8));
-> -	status = AE_OK;
-> -
-> -out_kfree:
-> -	kfree(output.pointer);
-> -	return status;
-> -}
-> -
-> -static acpi_status __acpi_
-
-> query_osc(u32 flags, struct acpi_osc_data *osc_data)
-> -{
-> -	acpi_status status;
-> -	u32 support_set, result;
-> -	struct acpi_osc_args osc_args;
-> -
-> -	/* do _OSC query for all possible controls */
-> -	support_set = osc_data->support_set | (flags & OSC_SUPPORT_MASKS);
-> -	osc_args.capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-> -	osc_args.capbuf[OSC_SUPPORT_TYPE] = support_set;
-> -	osc_args.capbuf[OSC_CONTROL_TYPE] = OSC_CONTROL_MASKS;
-> -
-> -	status = acpi_run_osc(osc_data->handle, &osc_args, &result);
-> -	if (ACPI_SUCCESS(status)) {
-> -		osc_data->support_set = support_set;
-> -		osc_data->control_query = result;
-> -		osc_data->is_queried = 1;
-> -	}
-> -
-> -	return status;
-> -}
-> -
-> -/*
-> - * pci_acpi_osc_support: Invoke _OSC indicating support for the given feature
-> - * @flags: Bitmask of flags to support
-> - *
-> - * See the ACPI spec for the definition of the flags
-> - */
-> -int pci_acpi_osc_support(acpi_handle handle, u32 flags)
-> -{
-> -	acpi_status status;
-> -	acpi_handle tmp;
-> -	struct acpi_osc_data *osc_data;
-> -	int rc = 0;
-> -
-> -	status = acpi_get_handle(handle, "_OSC", &tmp);
-> -	if (ACPI_FAILURE(status))
-> -		return -ENOTTY;
-> -
-> -	mutex_lock(&pci_acpi_lock);
-> -	osc_data = acpi_get_osc_data(handle);
-> -	if (!osc_data) {
-> -		printk(KERN_ERR "acpi osc data array is full\n");
-> -		rc = -ENOMEM;
-> -		goto out;
-> -	}
-> -
-> -	__acpi_query_osc(flags, osc_data);
-> -out:
-> -	mutex_unlock(&pci_acpi_lock);
-> -	return rc;
-> -}
-> -
-> -/**
-> - * pci_osc_control_set - commit requested control to Firmware
-> - * @handle: acpi_handle for the target ACPI object
-> - * @flags: driver's requested control bits
-> - *
-> - * Attempt to take control from Firmware on requested control bits.
-> - **/
-> -acpi_status pci_osc_control_set(acpi_handle handle, u32 flags)
-> -{
-> -	acpi_status status;
-> -	u32 control_req, control_set, result;
-> -	acpi_handle tmp;
-> -	struct acpi_osc_data *osc_data;
-> -	struct acpi_osc_args osc_args;
-> -
-> -	status = acpi_get_handle(handle, "_OSC", &tmp);
-> -	if (ACPI_FAILURE(status))
-> -		return status;
-> -
-> -	mutex_lock(&pci_acpi_lock);
-> -	osc_data = acpi_get_osc_data(handle);
-> -	if (!osc_data) {
-> -		printk(KERN_ERR "acpi osc data array is full\n");
-> -		status = AE_ERROR;
-> -		goto out;
-> -	}
-> -
-> -	control_req = (flags & OSC_CONTROL_MASKS);
-> -	if (!control_req) {
-> -		status = AE_TYPE;
-> -		goto out;
-> -	}
-> -
-> -	/* No need to evaluate _OSC if the control was already granted. */
-> -	if ((osc_data->control_set & control_req) == control_req)
-> -		goto out;
-> -
-> -	if (!osc_data->is_queried) {
-> -		status = __acpi_query_osc(osc_data->support_set, osc_data);
-> -		if (ACPI_FAILURE(status))
-> -			goto out;
-> -	}
-> -
-> -	if ((osc_data->control_query & control_req) != control_req) {
-> -		status = AE_SUPPORT;
-> -		goto out;
-> -	}
-> -
-> -	control_set = osc_data->control_set | control_req;
-> -	osc_args.capbuf[OSC_QUERY_TYPE] = 0;
-> -	osc_args.capbuf[OSC_SUPPORT_TYPE] = osc_data->support_set;
-> -	osc_args.capbuf[OSC_CONTROL_TYPE] = control_set;
-> -	status = acpi_run_osc(handle, &osc_args, &result);
-> -	if (ACPI_SUCCESS(status))
-> -		osc_data->control_set = result;
-> -out:
-> -	mutex_unlock(&pci_acpi_lock);
-> -	return status;
-> -}
-> -EXPORT_SYMBOL(pci_osc_control_set);
-> -
->  /*
->   * _SxD returns the D-state with the highest power
->   * (lowest D-state number) supported in the S-state "x".
-> Index: 20090130/include/linux/pci-acpi.h
-> ===================================================================
-> --- 20090130.orig/include/linux/pci-acpi.h
-> +++ 20090130/include/linux/pci-acpi.h
-> @@ -50,7 +50,6 @@
->  
->  #ifdef CONFIG_ACPI
->  extern acpi_status pci_osc_control_set(acpi_handle handle, u32 flags);
-> -int pci_acpi_osc_support(acpi_handle handle, u32 flags);
->  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
->  {
->  	/* Find root host bridge */
-
+diff --git a/Documentation/cpu-freq/user-guide.txt b/Documentation/cpu-freq/user-guide.txt
+index 57f23cb..75f4119 100644
+--- a/Documentation/cpu-freq/user-guide.txt
++++ b/Documentation/cpu-freq/user-guide.txt
+@@ -207,19 +207,3 @@ scaling_setspeed.		By "echoing" a new frequency into this
+ 				you can change the speed of the CPU,
+ 				but only within the limits of
+ 				scaling_min_freq and scaling_max_freq.
+-				
+-
+-3.2 Deprecated Interfaces
+--------------------------
+-
+-Depending on your kernel configuration, you might find the following 
+-cpufreq-related files:
+-/proc/cpufreq
+-/proc/sys/cpu/*/speed
+-/proc/sys/cpu/*/speed-min
+-/proc/sys/cpu/*/speed-max
+-
+-These are files for deprecated interfaces to cpufreq, which offer far
+-less functionality. Because of this, these interfaces aren't described
+-here.
+-
+diff --git a/arch/x86/kernel/cpu/cpufreq/Kconfig b/arch/x86/kernel/cpu/cpufreq/Kconfig
+index b63b0db..52c8398 100644
+--- a/arch/x86/kernel/cpu/cpufreq/Kconfig
++++ b/arch/x86/kernel/cpu/cpufreq/Kconfig
+@@ -230,17 +230,6 @@ config X86_E_POWERSAVER
+ 
+ comment "shared options"
+ 
+-config X86_ACPI_CPUFREQ_PROC_INTF
+-	bool "/proc/acpi/processor/../performance interface (deprecated)"
+-	depends on PROC_FS
+-	depends on X86_ACPI_CPUFREQ || X86_POWERNOW_K7_ACPI || X86_POWERNOW_K8_ACPI
+-	help
+-	  This enables the deprecated /proc/acpi/processor/../performance
+-	  interface. While it is helpful for debugging, the generic,
+-	  cross-architecture cpufreq interfaces should be used.
+-
+-	  If in doubt, say N.
+-
+ config X86_SPEEDSTEP_LIB
+ 	tristate
+ 	default (X86_SPEEDSTEP_ICH || X86_SPEEDSTEP_SMI || X86_P4_CLOCKMOD)
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 846e227..9cc769b 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -31,14 +31,6 @@
+ #include <linux/init.h>
+ #include <linux/cpufreq.h>
+ 
+-#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/mutex.h>
+-
+-#include <asm/uaccess.h>
+-#endif
+-
+ #ifdef CONFIG_X86
+ #include <asm/cpufeature.h>
+ #endif
+@@ -434,96 +426,6 @@ int acpi_processor_notify_smm(struct module *calling_module)
+ 
+ EXPORT_SYMBOL(acpi_processor_notify_smm);
+ 
+-#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+-/* /proc/acpi/processor/../performance interface (DEPRECATED) */
+-
+-static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file);
+-static struct file_operations acpi_processor_perf_fops = {
+-	.owner = THIS_MODULE,
+-	.open = acpi_processor_perf_open_fs,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int acpi_processor_perf_seq_show(struct seq_file *seq, void *offset)
+-{
+-	struct acpi_processor *pr = seq->private;
+-	int i;
+-
+-
+-	if (!pr)
+-		goto end;
+-
+-	if (!pr->performance) {
+-		seq_puts(seq, "<not supported>\n");
+-		goto end;
+-	}
+-
+-	seq_printf(seq, "state count:             %d\n"
+-		   "active state:            P%d\n",
+-		   pr->performance->state_count, pr->performance->state);
+-
+-	seq_puts(seq, "states:\n");
+-	for (i = 0; i < pr->performance->state_count; i++)
+-		seq_printf(seq,
+-			   "   %cP%d:                  %d MHz, %d mW, %d uS\n",
+-			   (i == pr->performance->state ? '*' : ' '), i,
+-			   (u32) pr->performance->states[i].core_frequency,
+-			   (u32) pr->performance->states[i].power,
+-			   (u32) pr->performance->states[i].transition_latency);
+-
+-      end:
+-	return 0;
+-}
+-
+-static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, acpi_processor_perf_seq_show,
+-			   PDE(inode)->data);
+-}
+-
+-static void acpi_cpufreq_add_file(struct acpi_processor *pr)
+-{
+-	struct acpi_device *device = NULL;
+-
+-
+-	if (acpi_bus_get_device(pr->handle, &device))
+-		return;
+-
+-	/* add file 'performance' [R/W] */
+-	proc_create_data(ACPI_PROCESSOR_FILE_PERFORMANCE, S_IFREG | S_IRUGO,
+-			 acpi_device_dir(device),
+-			 &acpi_processor_perf_fops, acpi_driver_data(device));
+-	return;
+-}
+-
+-static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
+-{
+-	struct acpi_device *device = NULL;
+-
+-
+-	if (acpi_bus_get_device(pr->handle, &device))
+-		return;
+-
+-	/* remove file 'performance' */
+-	remove_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
+-			  acpi_device_dir(device));
+-
+-	return;
+-}
+-
+-#else
+-static void acpi_cpufreq_add_file(struct acpi_processor *pr)
+-{
+-	return;
+-}
+-static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
+-{
+-	return;
+-}
+-#endif				/* CONFIG_X86_ACPI_CPUFREQ_PROC_INTF */
+-
+ static int acpi_processor_get_psd(struct acpi_processor	*pr)
+ {
+ 	int result = 0;
+@@ -747,14 +649,12 @@ err_ret:
+ }
+ EXPORT_SYMBOL(acpi_processor_preregister_performance);
+ 
+-
+ int
+ acpi_processor_register_performance(struct acpi_processor_performance
+ 				    *performance, unsigned int cpu)
+ {
+ 	struct acpi_processor *pr;
+ 
+-
+ 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+ 		return -EINVAL;
+ 
+@@ -781,8 +681,6 @@ acpi_processor_register_performance(struct acpi_processor_performance
+ 		return -EIO;
+ 	}
+ 
+-	acpi_cpufreq_add_file(pr);
+-
+ 	mutex_unlock(&performance_mutex);
+ 	return 0;
+ }
+@@ -795,7 +693,6 @@ acpi_processor_unregister_performance(struct acpi_processor_performance
+ {
+ 	struct acpi_processor *pr;
+ 
+-
+ 	mutex_lock(&performance_mutex);
+ 
+ 	pr = per_cpu(processors, cpu);
+@@ -808,8 +705,6 @@ acpi_processor_unregister_performance(struct acpi_processor_performance
+ 		kfree(pr->performance->states);
+ 	pr->performance = NULL;
+ 
+-	acpi_cpufreq_remove_file(pr);
+-
+ 	mutex_unlock(&performance_mutex);
+ 
+ 	return;
 -- 
-Andrew Patterson
-Hewlett-Packard Company
+1.6.0.2
 
