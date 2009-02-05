@@ -1,207 +1,41 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] x86/pci: host mmconfig detect clean up v2
-Date: Wed, 04 Feb 2009 18:24:59 -0800
-Message-ID: <498A4DFB.7040608@kernel.org>
-References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com> <20090204212517.GM22608@elte.hu>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: [PATCH 0/2] PCI/ACPI: move _OSC code to pci_root.c (v.2)
+Date: Thu, 05 Feb 2009 23:18:07 +0900
+Message-ID: <498AF51F.7070200@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090204212517.GM22608@elte.hu>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:40245 "EHLO
+	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbZBEOSR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2009 09:18:17 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Andrew Patterson <andrew.patterson@hp.com>, Alex Chiang <achiang@hp.com>
 
+Hi,
 
-Impact: not assume one place for mmconfig in nb
+Here are updated version (v.2) of "PCI/ACPI: move _OSC code to
+pci_root.c" patches. Patches are
 
-prepare for following case: amd fam10h + mcp55
-CPU MSR has some range, mcp55 pci config will have another one.
+  - [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
+  - [PATCH 2/2] PCI/ACPI: rename pci_osc_control_set()
 
-also prepare for mcp55 + io55 system. every one will have one range.
+ChangeLog
+---------
+[v.1 -> v.2]
+  - Change the debug message.
+    [old]: "_OSC FW not grant req. control."
+    [new]: "Firmware did not grant requested _OSC control"
+    (Based on the feedback from Andrew Patterson and Alex Chiang)
 
-if it s mcp55 detect duties to execlude range that is used by CPU MSR
-aka, if CPU state bus 0-255, range in mcp55 need to be dropped.
-because HW in CPU will not route that mcp55 mmconfig to handle it.
+  - Rename pci_osc_control_set() to acpi_pci_osc_control_set() and
+    move _OSC related definitions from include/linux/pci-acpi.h to
+    include/linux/acpi.h.
+    (Based on the feedback from Andrew Patterson)
 
-v2: fix e7520 exit path
+Thanks,
+Kenji Kaneshige
 
-Signed-off-by: Yinghai Lu <yinghai.lu@kernel.org>
-
----
- arch/x86/pci/mmconfig-shared.c |   98 ++++++++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 44 deletions(-)
-
-Index: linux-2.6/arch/x86/pci/mmconfig-shared.c
-===================================================================
---- linux-2.6.orig/arch/x86/pci/mmconfig-shared.c
-+++ linux-2.6/arch/x86/pci/mmconfig-shared.c
-@@ -24,24 +24,49 @@
- /* Indicate if the mmcfg resources have been placed into the resource table. */
- static int __initdata pci_mmcfg_resources_inserted;
- 
-+static __init int extend_mmcfg(int num)
-+{
-+	struct acpi_mcfg_allocation *new;
-+	int new_num = pci_mmcfg_config_num + num;
-+
-+	new = kzalloc(sizeof(pci_mmcfg_config[0]) * new_num, GFP_KERNEL);
-+	if (!new)
-+		return -1;
-+
-+	if (pci_mmcfg_config) {
-+		memcpy(new, pci_mmcfg_config,
-+			 sizeof(pci_mmcfg_config[0]) * new_num);
-+		kfree(pci_mmcfg_config);
-+	}
-+	pci_mmcfg_config = new;
-+
-+	return 0;
-+}
-+
-+static __init void fill_one_mmcfg(u64 addr, int segment, int start, int end)
-+{
-+	int i = pci_mmcfg_config_num;
-+
-+	pci_mmcfg_config_num++;
-+	pci_mmcfg_config[i].address = addr;
-+	pci_mmcfg_config[i].pci_segment = segment;
-+	pci_mmcfg_config[i].start_bus_number = start;
-+	pci_mmcfg_config[i].end_bus_number = end;
-+}
-+
- static const char __init *pci_mmcfg_e7520(void)
- {
- 	u32 win;
- 	raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0xce, 2, &win);
- 
- 	win = win & 0xf000;
--	if(win == 0x0000 || win == 0xf000)
--		pci_mmcfg_config_num = 0;
--	else {
--		pci_mmcfg_config_num = 1;
--		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
--		if (!pci_mmcfg_config)
--			return NULL;
--		pci_mmcfg_config[0].address = win << 16;
--		pci_mmcfg_config[0].pci_segment = 0;
--		pci_mmcfg_config[0].start_bus_number = 0;
--		pci_mmcfg_config[0].end_bus_number = 255;
--	}
-+	if (win == 0x0000 || win == 0xf000)
-+		return NULL;
-+
-+	if (extend_mmcfg(1) == -1)
-+		return NULL;
-+
-+	fill_one_mmcfg(win << 16, 0, 0, 255);
- 
- 	return "Intel Corporation E7520 Memory Controller Hub";
- }
-@@ -50,13 +75,11 @@ static const char __init *pci_mmcfg_inte
- {
- 	u32 pciexbar, mask = 0, len = 0;
- 
--	pci_mmcfg_config_num = 1;
--
- 	raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0x48, 4, &pciexbar);
- 
- 	/* Enable bit */
- 	if (!(pciexbar & 1))
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 
- 	/* Size bits */
- 	switch ((pciexbar >> 1) & 3) {
-@@ -73,28 +96,23 @@ static const char __init *pci_mmcfg_inte
- 		len  = 0x04000000U;
- 		break;
- 	default:
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 	}
- 
- 	/* Errata #2, things break when not aligned on a 256Mb boundary */
- 	/* Can only happen in 64M/128M mode */
- 
- 	if ((pciexbar & mask) & 0x0fffffffU)
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 
- 	/* Don't hit the APIC registers and their friends */
- 	if ((pciexbar & mask) >= 0xf0000000U)
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 
--	if (pci_mmcfg_config_num) {
--		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
--		if (!pci_mmcfg_config)
--			return NULL;
--		pci_mmcfg_config[0].address = pciexbar & mask;
--		pci_mmcfg_config[0].pci_segment = 0;
--		pci_mmcfg_config[0].start_bus_number = 0;
--		pci_mmcfg_config[0].end_bus_number = (len >> 20) - 1;
--	}
-+	if (extend_mmcfg(1) == -1)
-+		return NULL;
-+
-+	fill_one_mmcfg(pciexbar & mask, 0, 0, (len >> 20) - 1);
- 
- 	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
- }
-@@ -138,18 +156,11 @@ static const char __init *pci_mmcfg_amd_
- 		busnbits = 8;
- 	}
- 
--	pci_mmcfg_config_num = (1 << segnbits);
--	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]) *
--				   pci_mmcfg_config_num, GFP_KERNEL);
--	if (!pci_mmcfg_config)
-+	if (extend_mmcfg(1 << segnbits) == -1)
- 		return NULL;
- 
--	for (i = 0; i < (1 << segnbits); i++) {
--		pci_mmcfg_config[i].address = base + (1<<28) * i;
--		pci_mmcfg_config[i].pci_segment = i;
--		pci_mmcfg_config[i].start_bus_number = 0;
--		pci_mmcfg_config[i].end_bus_number = (1 << busnbits) - 1;
--	}
-+	for (i = 0; i < (1 << segnbits); i++)
-+		fill_one_mmcfg(base + (1<<28) * i, i, 0, (1 << busnbits) - 1);
- 
- 	return "AMD Family 10h NB";
- }
-@@ -186,26 +197,25 @@ static int __init pci_mmcfg_check_hostbr
- 
- 	pci_mmcfg_config_num = 0;
- 	pci_mmcfg_config = NULL;
--	name = NULL;
- 
--	for (i = 0; !name && i < ARRAY_SIZE(pci_mmcfg_probes); i++) {
-+	for (i = 0; i < ARRAY_SIZE(pci_mmcfg_probes); i++) {
- 		bus =  pci_mmcfg_probes[i].bus;
- 		devfn = pci_mmcfg_probes[i].devfn;
- 		raw_pci_ops->read(0, bus, devfn, 0, 4, &l);
- 		vendor = l & 0xffff;
- 		device = (l >> 16) & 0xffff;
- 
-+		name = NULL;
- 		if (pci_mmcfg_probes[i].vendor == vendor &&
- 		    pci_mmcfg_probes[i].device == device)
- 			name = pci_mmcfg_probes[i].probe();
--	}
- 
--	if (name) {
--		printk(KERN_INFO "PCI: Found %s %s MMCONFIG support.\n",
--		       name, pci_mmcfg_config_num ? "with" : "without");
-+		if (name)
-+			printk(KERN_INFO "PCI: Found %s with MMCONFIG support.\n",
-+			       name);
- 	}
- 
--	return name != NULL;
-+	return pci_mmcfg_config_num != 0;
- }
- 
- static void __init pci_mmcfg_insert_resources(void)
