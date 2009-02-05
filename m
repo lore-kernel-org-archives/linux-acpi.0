@@ -1,83 +1,54 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
-Date: Thu, 5 Feb 2009 08:03:06 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858142EB3B4@orsmsx503.amr.corp.intel.com>
-References: <498AF51F.7070200@jp.fujitsu.com>
- <498AF557.4040601@jp.fujitsu.com> <20090205154936.GC24033@ldl.fc.hp.com>
+From: Tvrtko Ursulin <tvrtko.ursulin@sophos.com>
+Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
+Date: Thu, 5 Feb 2009 17:05:32 +0000
+Message-ID: <200902051705.33410.tvrtko.ursulin@sophos.com>
+References: <1233765552.16414.6.camel@localhost.localdomain> <20090204170440.GA31973@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090205154936.GC24033@ldl.fc.hp.com>
-Content-Language: en-US
+In-Reply-To: <20090204170440.GA31973@elte.hu>
+Content-Disposition: inline
 Sender: linux-pci-owner@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Patterson <andrew.patterson@hp.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The acpi_evaluate_object_typed interface automatically handles the two error cases you check for:
+On Wednesday 04 February 2009 17:04:40 Ingo Molnar wrote:
+> 2) Please use vertical spaces when initializing structure fields. Instead
+> of the messy looking (and over-long-line generating) construct of:
+>
+>         pci_mmcfg_config[0].address = (extcfg & 0x00007fff) << 25;
+>         pci_mmcfg_config[0].pci_segment = 0;
+>         pci_mmcfg_config[0].start_bus_number = 0;
+>         pci_mmcfg_config[0].end_bus_number = (1 << (8 - ((extcfg >> 28) &
+> 3))) - 1; pci_mmcfg_config_num = 1;
+>
+>    You will get something like:
+>
+>         config->address                 = (extcfg & 0x00007fff) << 25;
+>         config->pci_segment             = 0;
+>         config->start_bus_number        = 0;
+>         config->end_bus_number          = (1 << (8 - ((extcfg >> 28) &
+> 3)));
+>
+>         pci_mmcfg_config = config;
+>         pci_mmcfg_config_num = 1;
+>
+>    Which makes it more structured, more reviewable - and more pleasant to
+>    look at as well.
 
-1) Checks for the case where no object is returned
-2) Checks for the correct return object type (buffer in this case)
+Is this in CodingStyle now? Since I have noticed you are pushing for this 
+quite a lot lately. And only for structure initialisation and not also for 
+example for variable declarations?
 
-Use of this interface would simplify and shrink the code.
+I find it a matter of personal preference whether it is more pleasant to look 
+at and whether it is more or less readable.
 
-Bob
+It is also worse from diff/patch point of view since it can happen in the 
+future that what would be a one line change now becomes multiline. 
 
+Regards,
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Alex Chiang
->Sent: Thursday, February 05, 2009 7:50 AM
->To: Kenji Kaneshige
->Cc: Jesse Barnes; linux-pci@vger.kernel.org; linux acpi; Andrew Patterson
->Subject: Re: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
->
->Hi Kenji-san,
->
->Sorry, I didn't read your patch in detail last time, and only saw
->the one wording change that Andrew suggested.
->
->Reading through now, I have a few more suggestions.
->
->> +    status = acpi_evaluate_object(handle, "_OSC", &input, &output);
->> +    if (ACPI_FAILURE(status))
->> +            return status;
->> +
->> +    if (!output.length)
->> +            return AE_NULL_OBJECT;
->> +
->> +    out_obj = output.pointer;
->> +    if (out_obj->type != ACPI_TYPE_BUFFER) {
->> +            printk(KERN_DEBUG "Evaluate _OSC returns wrong type\n");
->
->"_OSC evaluation returned wrong type\n"
->
->> +    if (errors) {
->> +            if (errors & OSC_REQUEST_ERROR)
->> +                    printk(KERN_DEBUG "_OSC request fails\n");
->
->"_OSC request failed\n"
->
->> +            if (errors & OSC_INVALID_UUID_ERROR)
->> +                    printk(KERN_DEBUG "_OSC invalid UUID\n");
->> +            if (errors & OSC_INVALID_REVISION_ERROR)
->> +                    printk(KERN_DEBUG "_OSC invalid revision\n");
->> +            if (errors & OSC_CAPABILITIES_MASK_ERROR) {
->> +                    if (capbuf[OSC_QUERY_TYPE] & OSC_QUERY_ENABLE)
->> +                            goto out_success;
->> +                    printk(KERN_DEBUG"Firmware did not grant requested "
->> +                           "_OSC control\n");
->
->I prefer to see this message on one line (and break the 80 column
->rule) to make grepping easier. But this is a judgement call, and
->I'll let you decide.
->
->Thanks.
->
->/ac
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tvrtko
