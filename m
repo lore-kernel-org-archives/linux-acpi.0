@@ -1,29 +1,29 @@
-From: Ed Swierk <eswierk@aristanetworks.com>
+From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: [PATCH] x86/pci: host mmconfig detect clean up v2
-Date: Thu, 5 Feb 2009 14:04:10 -0800
-Message-ID: <9ae48b020902051404g34b25c2cv189f0da8c947cc02@mail.gmail.com>
-References: <1233765552.16414.6.camel@localhost.localdomain>
-	 <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com>
-	 <20090204212517.GM22608@elte.hu> <498A4DFB.7040608@kernel.org>
-	 <20090205181534.GC5661@elte.hu>
-	 <86802c440902051031l78e4cb25va1b0e6274205a3a0@mail.gmail.com>
+Date: Thu, 05 Feb 2009 14:36:10 -0800
+Message-ID: <498B69DA.7020105@kernel.org>
+References: <1233765552.16414.6.camel@localhost.localdomain>	 <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com>	 <20090204212517.GM22608@elte.hu> <498A4DFB.7040608@kernel.org>	 <20090205181534.GC5661@elte.hu>	 <86802c440902051031l78e4cb25va1b0e6274205a3a0@mail.gmail.com> <9ae48b020902051404g34b25c2cv189f0da8c947cc02@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <86802c440902051031l78e4cb25va1b0e6274205a3a0@mail.gmail.com>
+In-Reply-To: <9ae48b020902051404g34b25c2cv189f0da8c947cc02@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
+To: Ed Swierk <eswierk@aristanetworks.com>
 Cc: Ingo Molnar <mingo@elte.hu>, Jesse Barnes <jbarnes@virtuousgeek.org>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 5, 2009 at 10:31 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> should go with Ed's updated patch before.
->
-> to tip or pci tree.
+Ed Swierk wrote:
+> On Thu, Feb 5, 2009 at 10:31 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> should go with Ed's updated patch before.
+>>
+>> to tip or pci tree.
+> 
+> This looks good to me, too. Thanks.
+> 
+> Do you want me to submit a revised patch for detecting MCP55 mmconfig?
+> 
 
-This looks good to me, too. Thanks.
+sure. please make sure the new one support multi mcp55. some system have mcp55 + io55 + io55.
 
-Do you want me to submit a revised patch for detecting MCP55 mmconfig?
-
---Ed
+YH
