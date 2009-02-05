@@ -1,42 +1,84 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86/pci: host mmconfig detect clean up v2
-Date: Thu, 5 Feb 2009 19:15:34 +0100
-Message-ID: <20090205181534.GC5661@elte.hu>
-References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com> <20090204212517.GM22608@elte.hu> <498A4DFB.7040608@kernel.org>
+From: Luca Capello <luca@pca.it>
+Subject: [BUG?] Critical temperature shutdowns on ThinkPad X60 1706-GMG
+Date: Thu, 05 Feb 2009 18:29:25 +0100
+Message-ID: <878wokssga.fsf@gismo.pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <498A4DFB.7040608@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+ protocol="application/pgp-signature"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from victor.unige.ch ([129.194.9.224]:64000 "EHLO victor.unige.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753585AbZBES3p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Feb 2009 13:29:45 -0500
+Received: from gismo.pca.it ([129.194.56.110])
+ by victor.unige.ch (Sun Java(tm) System Messaging Server 6.3-5.02 (built Oct
+ 12 2007; 32bit)) with ESMTPSA id <0KEL00M1TSLHA100@victor.unige.ch> for
+ linux-acpi@vger.kernel.org; Thu, 05 Feb 2009 18:29:41 +0100 (MET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ML Linux-ACPI <linux-acpi@vger.kernel.org>
 
+--=-=-=
 
-* Yinghai Lu <yinghai@kernel.org> wrote:
+Hi there!
 
-> Impact: not assume one place for mmconfig in nb
-> 
-> prepare for following case: amd fam10h + mcp55
-> CPU MSR has some range, mcp55 pci config will have another one.
-> 
-> also prepare for mcp55 + io55 system. every one will have one range.
-> 
-> if it s mcp55 detect duties to execlude range that is used by CPU MSR
-> aka, if CPU state bus 0-255, range in mcp55 need to be dropped.
-> because HW in CPU will not route that mcp55 mmconfig to handle it.
-> 
-> v2: fix e7520 exit path
-> 
-> Signed-off-by: Yinghai Lu <yinghai.lu@kernel.org>
-> 
-> ---
->  arch/x86/pci/mmconfig-shared.c |   98 ++++++++++++++++++++++-------------------
->  1 file changed, 54 insertions(+), 44 deletions(-)
+In July 2008 I reported a problem about critical temperature shutdowns:
 
-looks good to me. One for the PCI tree?
+  http://news.gmane.org/find-root.php?message_id=%3c87zlnyv14h.fsf%5f%2d%5f%40gismo.pca.it%3e
 
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Since I was not the only one experiencing it, reading the mailing list I
+had the impression it had been solved since then.
 
-	Ingo
+And indeed I do not remember I have experienced it again.  However, the
+last week it reappeared, probably because in the meantime I have not
+used my laptop at full power :-(
+
+Anyway, here we are:
+
+- I got 6 "Critical temperature reached (128 C), shutting down"
+  experiences since January 30th
+
+- when I know that temperature could rise (e.g. using QEMU to build
+  Debian packages for armel), I usually set the fan at maximum speed
+
+    $ echo -n "level full-speed" >/proc/acpi/ibm/fan
+
+  However, the last time (10 minutes ago) happened even with that
+  setting and my setup was:
+
+  * my usual Emacs session
+  * Conkeror
+  * a git-buildpackage process (basically building a Debian package from
+    a Git repository and inside a chroot)
+  * the Openmoko FreeRunner was plugged to the left USB port and charging
+  * on one of the right port there was an Eutronsec SIMReaderCombo,
+    basically an OmniKey CardMan 6121 USB SIM-sized smartcard reader
+    coupled with a 2GB flash memory (in my case this is SLC, more
+    information at http://www.eutronsec.it/ )
+  * the laptop is placed on a scientific laboratory desk and the airflow
+    from the fan grid is free to circulate
+  * the laptop is on AC power with no battery inserted
+
+- the last was on Debian kernel 2.6.28-1~experimental.1~snapshot.12674;
+  since I am preparing for FOSDEM, I do not have time right now to test
+  a vanilla kernel, but I will do starting from next Monday.  Which
+  kernel version should I test first, 2.6.28.3?
+
+That is all, I think.  Feel free to ask for more inforation/test.
+
+Thx, bye,
+Gismo / Luca
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iJwEAQECAAYFAkmLIfYACgkQZwOMsWhEDTPh/QQA0YOjHznp7aA20mBv2MUfnPuR
+QB3hchfcLy/ExOQGN8gBYsRBBMsBTisfniVHbuvFy6EbbU1l9/HIi74a85V8tga6
+TnkkqsRntNhIO9P4mXjXz8sZd+Z7qVY7iETwIE87pLDLUglqe+QQWFOHLsaeMtRU
+DM1kZpcmTN3tqzQtHzs=
+=+uim
+-----END PGP SIGNATURE-----
+--=-=-=--
