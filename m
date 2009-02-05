@@ -1,197 +1,89 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
-Date: Wed, 04 Feb 2009 15:10:34 -0800
-Message-ID: <498A206A.2070309@kernel.org>
-References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com> <20090204212517.GM22608@elte.hu>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: How should I handle device with two PNP-BIOS ids?
+Date: Wed, 4 Feb 2009 17:00:19 -0700
+Message-ID: <200902041700.20476.bjorn.helgaas@hp.com>
+References: <497d80991ef709.35340258@wp.pl> <200901270852.52153.bjorn.helgaas@hp.com> <20090127171752.GI4996@sci.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090204212517.GM22608@elte.hu>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:5804 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754799AbZBEAAf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2009 19:00:35 -0500
+In-Reply-To: <20090127171752.GI4996@sci.fi>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ville =?iso-8859-1?q?Syrj=E4l=E4?= <syrjala@sci.fi>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>, Adam Belay <abelay@mit.edu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Ingo Molnar wrote:
-> 
-> To detect enabled on-CPU mmconf support. We could even put this into a 
-> helper function as other places might want to use it too.
-> 
+On Tuesday 27 January 2009 10:17:52 am Ville Syrj=E4l=E4 wrote:
+> On Tue, Jan 27, 2009 at 08:52:51AM -0700, Bjorn Helgaas wrote:
+> > Oh.  That sounds like a BIOS bug.  If there's only one actual
+> > chip, the BIOS should not report it as two separate devices.
+>=20
+> It's not a bug. The cs423x chips contain several logical devices.
+> WSS, MPU401, joystick etc.
 
-sth like:
+Sorry it took me so long to get back to this.
 
-[PATCH] x86/pci: host mmconfig detect clean up
+Yes, you're right.  I was thinking the first device had a set of
+resources, and the second device had a superset that included the
+same resources plus another one, but that's not the case here.
 
-Impact: not assume one place for mmconfig in nb
+> The control logical device (which is=20
+> not present in the early models) is unfortunately some kind of dumpin=
+g
+> ground for new registers to keep the other logical devices' backwards
+> compatible. It contains at least some extra mixer control registers a=
+nd
+> power management registers.
 
-prepare for following case: amd fam10h + mcp55
+In this case, you have:
 
-CPU MSR has some range, mcp55 pci config will have another one.
-in some case: cpu MSR only include bus 0, and leave other to mcp55.
+  /sys/bus/pnp/devices/00:0f/id:CSC0000
+  /sys/bus/pnp/devices/00:0f/resources:state =3D active
+  /sys/bus/pnp/devices/00:0f/resources:io 0x530-0x537
+  /sys/bus/pnp/devices/00:0f/resources:io 0x388-0x38b
+  /sys/bus/pnp/devices/00:0f/resources:io 0x220-0x22f
+  /sys/bus/pnp/devices/00:0f/resources:irq 5
+  /sys/bus/pnp/devices/00:0f/resources:dma 1
+  /sys/bus/pnp/devices/00:0f/resources:dma 0
 
-if it s mcp55 detect duties to execlude range that is used by CPU MSR
-aka, if CPU state bus 0-255, range in mcp55 need to be dropped.
-because HW in CPU will not route that mcp55 mmconfig to handle it.
+  /sys/bus/pnp/devices/00:10/id:CSC0010
+  /sys/bus/pnp/devices/00:10/resources:state =3D active
+  /sys/bus/pnp/devices/00:10/resources:io 0x210-0x217
 
-Signed-off-by: Yinghai Lu <yinghai.lu@kernel.org>
+Can't you just register another struct pnp_driver that claims the
+CSC0010 device?  E.g., something like:
 
----
- arch/x86/pci/mmconfig-shared.c |   90 ++++++++++++++++++++++-------------------
- 1 file changed, 50 insertions(+), 40 deletions(-)
+  static struct pnp_dev *ctrl;
+  static int snd_cs423x_ctrl_pnpbios_detect(struct pnp_dev *dev, ...)
+  {
+	if (pnp_device_is_isapnp(dev)
+		return -ENOENT;
+	ctrl =3D dev;
+	return 0;
+  }
 
-Index: linux-2.6/arch/x86/pci/mmconfig-shared.c
-===================================================================
---- linux-2.6.orig/arch/x86/pci/mmconfig-shared.c
-+++ linux-2.6/arch/x86/pci/mmconfig-shared.c
-@@ -24,23 +24,47 @@
- /* Indicate if the mmcfg resources have been placed into the resource table. */
- static int __initdata pci_mmcfg_resources_inserted;
- 
-+static __init int extend_mmcfg(int num)
-+{
-+	struct acpi_mcfg_allocation *new;
-+	int new_num = pci_mmcfg_config_num + num;
-+
-+	new = kzalloc(sizeof(pci_mmcfg_config[0]) * new_num, GFP_KERNEL);
-+	if (!new)
-+		return -1;
-+
-+	if (pci_mmcfg_config) {
-+		memcpy(new, pci_mmcfg_config,
-+			 (sizeof(pci_mmcfg_config[0]) * new_num));
-+		kfree(pci_mmcfg_config);
-+	}
-+	pci_mmcfg_config = new;
-+
-+	return 0;
-+}
-+
-+static __init void fill_one_mmcfg(u64 addr, int segment, int start, int end)
-+{
-+	int i = pci_mmcfg_config_num;
-+
-+	pci_mmcfg_config_num++;
-+	pci_mmcfg_config[i].address = addr;
-+	pci_mmcfg_config[i].pci_segment = segment;
-+	pci_mmcfg_config[i].start_bus_number = start;
-+	pci_mmcfg_config[i].end_bus_number = end;
-+}
-+
- static const char __init *pci_mmcfg_e7520(void)
- {
- 	u32 win;
- 	raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0xce, 2, &win);
- 
- 	win = win & 0xf000;
--	if(win == 0x0000 || win == 0xf000)
--		pci_mmcfg_config_num = 0;
--	else {
--		pci_mmcfg_config_num = 1;
--		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
--		if (!pci_mmcfg_config)
-+	if (win != 0x0000 && win != 0xf000) {
-+		if (extend_mmcfg(1) == -1)
- 			return NULL;
--		pci_mmcfg_config[0].address = win << 16;
--		pci_mmcfg_config[0].pci_segment = 0;
--		pci_mmcfg_config[0].start_bus_number = 0;
--		pci_mmcfg_config[0].end_bus_number = 255;
-+
-+		fill_one_mmcfg(win << 16, 0, 0, 255);
- 	}
- 
- 	return "Intel Corporation E7520 Memory Controller Hub";
-@@ -50,13 +74,11 @@ static const char __init *pci_mmcfg_inte
- {
- 	u32 pciexbar, mask = 0, len = 0;
- 
--	pci_mmcfg_config_num = 1;
--
- 	raw_pci_ops->read(0, 0, PCI_DEVFN(0, 0), 0x48, 4, &pciexbar);
- 
- 	/* Enable bit */
- 	if (!(pciexbar & 1))
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 
- 	/* Size bits */
- 	switch ((pciexbar >> 1) & 3) {
-@@ -73,28 +95,23 @@ static const char __init *pci_mmcfg_inte
- 		len  = 0x04000000U;
- 		break;
- 	default:
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 	}
- 
- 	/* Errata #2, things break when not aligned on a 256Mb boundary */
- 	/* Can only happen in 64M/128M mode */
- 
- 	if ((pciexbar & mask) & 0x0fffffffU)
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 
- 	/* Don't hit the APIC registers and their friends */
- 	if ((pciexbar & mask) >= 0xf0000000U)
--		pci_mmcfg_config_num = 0;
-+		return NULL;
- 
--	if (pci_mmcfg_config_num) {
--		pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]), GFP_KERNEL);
--		if (!pci_mmcfg_config)
--			return NULL;
--		pci_mmcfg_config[0].address = pciexbar & mask;
--		pci_mmcfg_config[0].pci_segment = 0;
--		pci_mmcfg_config[0].start_bus_number = 0;
--		pci_mmcfg_config[0].end_bus_number = (len >> 20) - 1;
--	}
-+	if (extend_mmcfg(1) == -1)
-+		return NULL;
-+
-+	fill_one_mmcfg(pciexbar & mask, 0, 0, (len >> 20) - 1);
- 
- 	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
- }
-@@ -138,18 +155,12 @@ static const char __init *pci_mmcfg_amd_
- 		busnbits = 8;
- 	}
- 
--	pci_mmcfg_config_num = (1 << segnbits);
--	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]) *
--				   pci_mmcfg_config_num, GFP_KERNEL);
--	if (!pci_mmcfg_config)
-+	if (extend_mmcfg(1 << segnbits) == -1)
- 		return NULL;
- 
--	for (i = 0; i < (1 << segnbits); i++) {
--		pci_mmcfg_config[i].address = base + (1<<28) * i;
--		pci_mmcfg_config[i].pci_segment = i;
--		pci_mmcfg_config[i].start_bus_number = 0;
--		pci_mmcfg_config[i].end_bus_number = (1 << busnbits) - 1;
--	}
-+
-+	for (i = 0; i < (1 << segnbits); i++)
-+		fill_one_mmcfg(base + (1<<28) * i, i, 0, (1 << busnbits) - 1);
- 
- 	return "AMD Family 10h NB";
- }
-@@ -198,14 +209,13 @@ static int __init pci_mmcfg_check_hostbr
- 		if (pci_mmcfg_probes[i].vendor == vendor &&
- 		    pci_mmcfg_probes[i].device == device)
- 			name = pci_mmcfg_probes[i].probe();
--	}
- 
--	if (name) {
--		printk(KERN_INFO "PCI: Found %s %s MMCONFIG support.\n",
--		       name, pci_mmcfg_config_num ? "with" : "without");
-+		if (name)
-+			printk(KERN_INFO "PCI: Found %s with MMCONFIG support.\n",
-+			       name);
- 	}
- 
--	return name != NULL;
-+	return pci_mmcfg_config_num != 0;
- }
- 
- static void __init pci_mmcfg_insert_resources(void)
+  static const struct pnp_device_id snd_cs423x_ctrl_ids[] =3D {
+	{ .id =3D "CSC0010" },
+  };
+  static struct pnp_driver cs423x_ctrl_pnp_driver =3D {
+	.id_table =3D snd_cs423x_ctrl_ids,
+	.probe =3D snd_cs423x_ctrl_pnpbios_detect,
+  };
+
+Obviously that doesn't work for multiple cs423x chips, but I think we
+had that problem before.  For ISAPNP, we have the "card" concept to
+group the related logical devices.  But I don't see anything similar
+in PNPBIOS (maybe I missed it), so I don't see how we could keep track
+of multiple PNPBIOS cs423x chips.
+
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
