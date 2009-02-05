@@ -1,97 +1,42 @@
 From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
-Date: Thu, 5 Feb 2009 19:00:19 +0100
-Message-ID: <20090205180019.GC9233@elte.hu>
-References: <1233765552.16414.6.camel@localhost.localdomain> <20090204170440.GA31973@elte.hu> <200902051705.33410.tvrtko.ursulin@sophos.com>
+Subject: Re: [PATCH] x86/pci: host mmconfig detect clean up v2
+Date: Thu, 5 Feb 2009 19:15:34 +0100
+Message-ID: <20090205181534.GC5661@elte.hu>
+References: <1233765552.16414.6.camel@localhost.localdomain> <86802c440902041212q51f2a444l84e1ac29ee6f702e@mail.gmail.com> <20090204212517.GM22608@elte.hu> <498A4DFB.7040608@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200902051705.33410.tvrtko.ursulin@sophos.com>
+In-Reply-To: <498A4DFB.7040608@kernel.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Tvrtko Ursulin <tvrtko.ursulin@sophos.com>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-* Tvrtko Ursulin <tvrtko.ursulin@sophos.com> wrote:
+* Yinghai Lu <yinghai@kernel.org> wrote:
 
-> On Wednesday 04 February 2009 17:04:40 Ingo Molnar wrote:
-> > 2) Please use vertical spaces when initializing structure fields. Instead
-> > of the messy looking (and over-long-line generating) construct of:
-> >
-> >         pci_mmcfg_config[0].address = (extcfg & 0x00007fff) << 25;
-> >         pci_mmcfg_config[0].pci_segment = 0;
-> >         pci_mmcfg_config[0].start_bus_number = 0;
-> >         pci_mmcfg_config[0].end_bus_number = (1 << (8 - ((extcfg >> 28) &
-> > 3))) - 1; pci_mmcfg_config_num = 1;
-> >
-> >    You will get something like:
-> >
-> >         config->address                 = (extcfg & 0x00007fff) << 25;
-> >         config->pci_segment             = 0;
-> >         config->start_bus_number        = 0;
-> >         config->end_bus_number          = (1 << (8 - ((extcfg >> 28) &
-> > 3)));
-> >
-> >         pci_mmcfg_config = config;
-> >         pci_mmcfg_config_num = 1;
-> >
-> >    Which makes it more structured, more reviewable - and more pleasant to
-> >    look at as well.
+> Impact: not assume one place for mmconfig in nb
+> 
+> prepare for following case: amd fam10h + mcp55
+> CPU MSR has some range, mcp55 pci config will have another one.
+> 
+> also prepare for mcp55 + io55 system. every one will have one range.
+> 
+> if it s mcp55 detect duties to execlude range that is used by CPU MSR
+> aka, if CPU state bus 0-255, range in mcp55 need to be dropped.
+> because HW in CPU will not route that mcp55 mmconfig to handle it.
+> 
+> v2: fix e7520 exit path
+> 
+> Signed-off-by: Yinghai Lu <yinghai.lu@kernel.org>
+> 
+> ---
+>  arch/x86/pci/mmconfig-shared.c |   98 ++++++++++++++++++++++-------------------
+>  1 file changed, 54 insertions(+), 44 deletions(-)
 
-It is arch/x86/ and scheduler / etc. policy for new code - and we follow 
-that principle when we clean up code as well.
+looks good to me. One for the PCI tree?
 
-Same goes for static structure initializers. We do:
-
- static const struct file_operations perf_fops = {
-	.release		= perf_release,
-	.read			= perf_read,
-	.poll			= terf_poll,
-	.unlocked_ioctl		= perf_ioctl,
-	.compat_ioctl		= perf_ioctl,
- };
-
-And not:
-
- static const struct file_operations perf_fops = {
-	.release = perf_release,
-	.read = perf_read,
-	.poll = perf_poll,
-	.unlocked_ioctl	= perf_ioctl,
-	.compat_ioctl = pert_ioctl,
- };
-
-Beyond the prettiness and fun to look at factor, there are other advantages 
-of vertical spaces as well:
-
-Trivia: you play the role of the code reviewer. I have hidden two typos in 
-the initializers above, one in each initializer block. The typos are of the 
-same type but are in difference places so both need to be found 
-individually.
-
-Try to find the typos, and record the number of seconds it took for you to 
-find them. Which typo took less time to find?
-
-I'd suspect that for most people block#1 is the winner.
-
-[ Note, you have a look at it as real source code with fixed width fonts and 
-  you'll see the difference. You seem to be using KMail or so: there's weird 
-  line wraps and other corruption of the code in your quote above - have you 
-  really looked at the real code how it looks like to developers? ]
-
-> I find it a matter of personal preference whether it is more pleasant to 
-> look at and whether it is more or less readable.
-
-Is your argument that to you it is less pleasant to look at?
-
-Differences in taste is OK in borderline issues, but i think this one is far 
-from being borderline, it's a basic typographic and aesthetic principle.
-
-I'm not sure vertical spaces can be properly described via more rigid 
-CodingStyle rules - for example vertical spaces look ugly if there's just 
-two field initializations for example - but in the above case they are 
-clearly the right thing to do.
+Acked-by: Ingo Molnar <mingo@elte.hu>
 
 	Ingo
