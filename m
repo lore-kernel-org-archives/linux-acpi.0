@@ -1,50 +1,87 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] ACPI: dock: Don't eval _STA on every show_docked sysfs
- read
-Date: Fri, 6 Feb 2009 13:33:54 -0800
-Message-ID: <20090206133354.fc1a29f2.akpm@linux-foundation.org>
-References: <1232450304.5286.4.camel@homac.suse.de>
-	<20090127130455.2c1b0cd4.akpm@linux-foundation.org>
-	<1233938876.12590.4.camel@homac.suse.de>
+From: Adam Pigg <piggz1@gmail.com>
+Subject: Re: Problems with Toshiba Satellite L355
+Date: Fri, 6 Feb 2009 21:57:38 +0000
+Message-ID: <200902062157.39694.adam@piggz.co.uk>
+References: <200902052311.31794.adam@piggz.co.uk> <1233883554.3625.8.camel@localhost.localdomain>
+Reply-To: adam@piggz.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39476 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752703AbZBFVeX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Feb 2009 16:34:23 -0500
-In-Reply-To: <1233938876.12590.4.camel@homac.suse.de>
+Received: from nf-out-0910.google.com ([64.233.182.184]:4249 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753966AbZBFWA1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Feb 2009 17:00:27 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so171264nfc.21
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Feb 2009 14:00:25 -0800 (PST)
+In-Reply-To: <1233883554.3625.8.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hmacht@suse.de
-Cc: linux-acpi@vger.kernel.org, stable@kernel.org, lenb@kernel.org, Li@suse.de, shaohua.li@intel.com, marvin@mydatex.cz
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 06 Feb 2009 17:47:56 +0100
-Holger Macht <hmacht@suse.de> wrote:
+Hi 
+Another problem which may or may not be related to acpi, but i suspect it 
+could be.
 
-> Hi,
-> 
-> sorry for the delay...
-> 
-> On Tue, 2009-01-27 at 13:04 -0800, Andrew Morton wrote:
-> > On Tue, 20 Jan 2009 12:18:24 +0100
-> > Holger Macht <hmacht@suse.de> wrote:
-> > 
-> > > Cc: stable@kernel.org
-> > 
-> > The patch applied OK to 2.6.28 but not to any earlier kernel.  If we
-> > decide that it should be backported to 2.6.27 or earlier, a new patch
-> > might be needed for that.
-> 
-> Patch that applies to stable kernel from today is attached.
-> 
+When i plug in my firewire expresscard while running it is not 
+detected...nothing in dmesg or lspci.
 
-ok, thanks.
+But it does work if the card is in when the machine is switched on.
 
-But this won't be going into -stable until the mainline version gets
-merged.
+Cheers
 
-Len, where are we up to with that?
 
-Thanks.
+Adam
+
+
+On Friday 06 February 2009 01:25:54 yakui_zhao wrote:
+> On Fri, 2009-02-06 at 07:11 +0800, Adam Pigg wrote:
+> > Hi
+> >
+> > i have 2 acpi related (i think) problems with my satellite l355 which i
+> > hope someone can help with.
+> >
+> > 1. /proc/acpi/ac_adapter.../state always show the correct state, but
+> > acpi_listen and lshal --monitor dont see any un/plug events.
+>
+> Will you please do the following test?
+>    a. kill the process which is using /proc/acpi/event (Use the command
+> of "lsof /proc/acpi/event" to get the process ID)
+>    b. grep . /sys/firmware/acpi/interrupts/* >interrupts_before;
+>    c. cat /proc/acpi/event . then you plug/unplug the AC adapter and see
+> whether the ACPI event can be reported
+>    d. after the test, grep . /sys/firmware/acpi/interrupts/* >
+> interrupts_after
+>
+>    If no ACPI event is reported, will you please file a bug report at
+> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI and attach the
+> output of acpidump, lspci -vxxx ?
+>    Thanks.
+>
+> > 2. The machine will suspend to ram, resume, but after a second suspend,
+> > wont resume.
+>
+>      Will you please add the boot option of "acpi_sleep=s3_beep" and do
+> the following test?
+>     a. kill the process which is using /proc/acpi/event
+>     b. echo mem > /sys/power/state; dmesg >dmesg_after;
+>     c. press the power button and see whether the box can be resumed.
+>
+>     If it can't be resumed, please reboot the system and check whether
+> there exists the file of "dmesg_after".
+>     Thanks.
+>
+> > I think i saw a similar sounding problem on an R500, but it was fixed.
+> >
+> > Ive attached the output of dmidecode, and am using 2.6.29rc3.
+> >
+> > Anything else that will  help let me know.
+> >
+> > Cheers
+> >
+> > Adam
+
+
