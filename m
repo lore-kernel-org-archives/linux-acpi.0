@@ -1,34 +1,112 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
-Date: Fri, 06 Feb 2009 14:43:06 +0900
-Message-ID: <498BCDEA.6030307@jp.fujitsu.com>
-References: <498AF51F.7070200@jp.fujitsu.com> <498AF557.4040601@jp.fujitsu.com> <20090205154936.GC24033@ldl.fc.hp.com> <4911F71203A09E4D9981D27F9D830858142EB3B4@orsmsx503.amr.corp.intel.com>
+From: Tvrtko Ursulin <tvrtko.ursulin@sophos.com>
+Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
+Date: Fri, 6 Feb 2009 11:30:05 +0000
+Message-ID: <200902061130.05740.tvrtko.ursulin@sophos.com>
+References: <1233765552.16414.6.camel@localhost.localdomain> <200902051705.33410.tvrtko.ursulin@sophos.com> <20090205180019.GC9233@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858142EB3B4@orsmsx503.amr.corp.intel.com>
+In-Reply-To: <20090205180019.GC9233@elte.hu>
+Content-Disposition: inline
 Sender: linux-pci-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Alex Chiang <achiang@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Patterson <andrew.patterson@hp.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Moore, Robert wrote:
-> The acpi_evaluate_object_typed interface automatically handles the two error cases you check for:
-> 
-> 1) Checks for the case where no object is returned
-> 2) Checks for the correct return object type (buffer in this case)
-> 
-> Use of this interface would simplify and shrink the code.
-> 
+On Thursday 05 February 2009 18:00:19 Ingo Molnar wrote:
+> * Tvrtko Ursulin <tvrtko.ursulin@sophos.com> wrote:
+> > On Wednesday 04 February 2009 17:04:40 Ingo Molnar wrote:
+> > > 2) Please use vertical spaces when initializing structure fields.
+> > > Instead of the messy looking (and over-long-line generating) construct
+> > > of:
+> > >
+> > >         pci_mmcfg_config[0].address = (extcfg & 0x00007fff) << 25;
+> > >         pci_mmcfg_config[0].pci_segment = 0;
+> > >         pci_mmcfg_config[0].start_bus_number = 0;
+> > >         pci_mmcfg_config[0].end_bus_number = (1 << (8 - ((extcfg >> 28)
+> > > & 3))) - 1; pci_mmcfg_config_num = 1;
+> > >
+> > >    You will get something like:
+> > >
+> > >         config->address                 = (extcfg & 0x00007fff) << 25;
+> > >         config->pci_segment             = 0;
+> > >         config->start_bus_number        = 0;
+> > >         config->end_bus_number          = (1 << (8 - ((extcfg >> 28) &
+> > > 3)));
+> > >
+> > >         pci_mmcfg_config = config;
+> > >         pci_mmcfg_config_num = 1;
+> > >
+> > >    Which makes it more structured, more reviewable - and more pleasant
+> > > to look at as well.
+>
+> It is arch/x86/ and scheduler / etc. policy for new code - and we follow
+> that principle when we clean up code as well.
 
-Sounds good to me, but I have a question.
+You also didn't say anything about variable declarations I asked about? And I can add structure definition to 
+that question as well. 
 
-The acpi_evaluate_object_typed() function seems to be compiled
-only when ACPI_FUTURE_USAGE is defined. And it seems that there
-is no prototype declaration. I don't know about ACPI_FUTURE_USAGE
-at all. Could you please tell me what I should do to use
-acpi_evaluate_object_typed()?
+> Beyond the prettiness and fun to look at factor, there are other advantages
+> of vertical spaces as well:
+>
+> Trivia: you play the role of the code reviewer. I have hidden two typos in
+> the initializers above, one in each initializer block. The typos are of the
+> same type but are in difference places so both need to be found
+> individually.
+>
+> Try to find the typos, and record the number of seconds it took for you to
+> find them. Which typo took less time to find?
 
-Thanks,
-Kenji Kaneshige
+Actually test was invalidated by me looking for two typos in each block for a long long time. Therefore by 
+providing interesting visual things to look at you made me skip the important bit with instructions. :)
+
+But I personally think it is not such a big difference. And please remember that the part I originally 
+commented on was different in a way that it had expressions on the right hand side. There with a huge gap 
+between left and right you then break to logical association and make brain evaluate it as two separate groups 
+which perhaps doesn't always makes sense.
+
+And how could you say that not vertically aligning increases maximum line length is beyond me.
+
+> I'd suspect that for most people block#1 is the winner.
+
+_You_ think it's fun to look at and you suspect it is the winner, which is basically my point. I think you are 
+going to far. Either you specify the rules in CodingStyle or you don't have it as a reason to send patches for 
+rework. Until then you can't say it is a policy, it can at least depend on circumstances.
+
+> [ Note, you have a look at it as real source code with fixed width fonts
+> and you'll see the difference. You seem to be using KMail or so: there's
+> weird line wraps and other corruption of the code in your quote above -
+> have you really looked at the real code how it looks like to developers? ]
+
+Yes I have, it looks like ordinary word wrap when replying. I don't see any other corruptions though - have 
+you added that just to make it sound more dramatic together with suggesting I am not a developer?
+
+> > I find it a matter of personal preference whether it is more pleasant to
+> > look at and whether it is more or less readable.
+>
+> Is your argument that to you it is less pleasant to look at?
+
+No, my argument is that in this case it is a personal preference what is more pleasant to look at.
+
+> Differences in taste is OK in borderline issues, but i think this one is
+> far from being borderline, it's a basic typographic and aesthetic
+> principle.
+
+While for some cases I also like vertical alignment, for the original code I think it  was borderline _at 
+most_. 
+
+> I'm not sure vertical spaces can be properly described via more rigid
+> CodingStyle rules - for example vertical spaces look ugly if there's just
+> two field initializations for example - but in the above case they are
+> clearly the right thing to do.
+
+Well I don't wish to argue on this subject very much. 
+
+I just thought it is unfair to criticise on an issue which cannot be a hard rule and in a particular example 
+was not an improvement. 
+
+Since you also agree it is not possible to describe it as a hard rule, why bother people with it?
+
+Tvrtko
