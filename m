@@ -1,64 +1,91 @@
 From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: Problems with Toshiba Satellite L355
-Date: Fri, 06 Feb 2009 09:25:54 +0800
-Message-ID: <1233883554.3625.8.camel@localhost.localdomain>
-References: <200902052311.31794.adam@piggz.co.uk>
+Subject: Re: [BUG?] Critical temperature shutdowns on ThinkPad X60 1706-GMG
+Date: Fri, 06 Feb 2009 09:31:53 +0800
+Message-ID: <1233883913.3625.14.camel@localhost.localdomain>
+References: <878wokssga.fsf@gismo.pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38050 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:29842 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757434AbZBFBOP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Feb 2009 20:14:15 -0500
-In-Reply-To: <200902052311.31794.adam@piggz.co.uk>
+	id S1752308AbZBFBUS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Feb 2009 20:20:18 -0500
+In-Reply-To: <878wokssga.fsf@gismo.pca.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "adam@piggz.co.uk" <adam@piggz.co.uk>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Luca Capello <luca@pca.it>
+Cc: ML Linux-ACPI <linux-acpi@vger.kernel.org>
 
-On Fri, 2009-02-06 at 07:11 +0800, Adam Pigg wrote:
-> Hi
-> 
-> i have 2 acpi related (i think) problems with my satellite l355 which i hope 
-> someone can help with.
-> 
-> 1. /proc/acpi/ac_adapter.../state always show the correct state, but 
-> acpi_listen and lshal --monitor dont see any un/plug events.
-Will you please do the following test?
-   a. kill the process which is using /proc/acpi/event (Use the command
-of "lsof /proc/acpi/event" to get the process ID)
-   b. grep . /sys/firmware/acpi/interrupts/* >interrupts_before;
-   c. cat /proc/acpi/event . then you plug/unplug the AC adapter and see
-whether the ACPI event can be reported
-   d. after the test, grep . /sys/firmware/acpi/interrupts/* >
-interrupts_after
+On Fri, 2009-02-06 at 01:29 +0800, Luca Capello wrote:
+> Hi there!
+>=20
+> In July 2008 I reported a problem about critical temperature shutdown=
+s:
+>=20
+>   http://news.gmane.org/find-root.php?message_id=3D%3c87zlnyv14h.fsf%=
+5f%2d%5f%40gismo.pca.it%3e
+>=20
+> Since I was not the only one experiencing it, reading the mailing lis=
+t I
+> had the impression it had been solved since then.
+>=20
+> And indeed I do not remember I have experienced it again.  However, t=
+he
+> last week it reappeared, probably because in the meantime I have not
+> used my laptop at full power :-(
+>=20
+> Anyway, here we are:
+>=20
+> - I got 6 "Critical temperature reached (128 C), shutting down"
+>   experiences since January 30th
+The Critical shutdown threshold is 128. In fact it is quite high.=20
+In fact only when the actual temperature is above 128, the following
+message will be complained and the box will be shutdown.
+   >=EF=BB=BFCritical temperature reached (128 C), shutting down
 
-   If no ACPI event is reported, will you please file a bug report at
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI and attach the
-output of acpidump, lspci -vxxx ?
+Will you please attach the output of acpidump? Let's check whether the
+temperature is obtained by using EC.
    Thanks.
+>=20
+> - when I know that temperature could rise (e.g. using QEMU to build
+>   Debian packages for armel), I usually set the fan at maximum speed
+>=20
+>     $ echo -n "level full-speed" >/proc/acpi/ibm/fan
+>=20
+>   However, the last time (10 minutes ago) happened even with that
+>   setting and my setup was:
+>=20
+>   * my usual Emacs session
+>   * Conkeror
+>   * a git-buildpackage process (basically building a Debian package f=
+rom
+>     a Git repository and inside a chroot)
+>   * the Openmoko FreeRunner was plugged to the left USB port and char=
+ging
+>   * on one of the right port there was an Eutronsec SIMReaderCombo,
+>     basically an OmniKey CardMan 6121 USB SIM-sized smartcard reader
+>     coupled with a 2GB flash memory (in my case this is SLC, more
+>     information at http://www.eutronsec.it/ )
+>   * the laptop is placed on a scientific laboratory desk and the airf=
+low
+>     from the fan grid is free to circulate
+>   * the laptop is on AC power with no battery inserted
+>=20
+> - the last was on Debian kernel 2.6.28-1~experimental.1~snapshot.1267=
+4;
+>   since I am preparing for FOSDEM, I do not have time right now to te=
+st
+>   a vanilla kernel, but I will do starting from next Monday.  Which
+>   kernel version should I test first, 2.6.28.3?
+>=20
+> That is all, I think.  Feel free to ask for more inforation/test.
+>=20
+> Thx, bye,
+> Gismo / Luca
 
-> 
-> 2. The machine will suspend to ram, resume, but after a second suspend, wont 
-> resume.
-     Will you please add the boot option of "acpi_sleep=s3_beep" and do
-the following test?
-    a. kill the process which is using /proc/acpi/event
-    b. echo mem > /sys/power/state; dmesg >dmesg_after;
-    c. press the power button and see whether the box can be resumed.
-    
-    If it can't be resumed, please reboot the system and check whether
-there exists the file of "dmesg_after".
-    Thanks.
-> 
-> I think i saw a similar sounding problem on an R500, but it was fixed.
-> 
-> Ive attached the output of dmidecode, and am using 2.6.29rc3.
-> 
-> Anything else that will  help let me know.
-> 
-> Cheers
-> 
-> Adam
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
