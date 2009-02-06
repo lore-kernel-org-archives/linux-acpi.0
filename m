@@ -1,75 +1,59 @@
-From: Tvrtko Ursulin <tvrtko.ursulin@sophos.com>
-Subject: Re: [PATCH] Detect mmconfig on nVidia MCP55
-Date: Fri, 6 Feb 2009 16:10:10 +0000
-Message-ID: <200902061610.11033.tvrtko.ursulin@sophos.com>
-References: <1233765552.16414.6.camel@localhost.localdomain> <200902061130.05740.tvrtko.ursulin@sophos.com> <20090206154231.GN18368@elte.hu>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
+Date: Fri, 6 Feb 2009 08:14:02 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D830858142EBF63@orsmsx503.amr.corp.intel.com>
+References: <498AF51F.7070200@jp.fujitsu.com>
+ <498AF557.4040601@jp.fujitsu.com> <20090205154936.GC24033@ldl.fc.hp.com>
+ <4911F71203A09E4D9981D27F9D830858142EB3B4@orsmsx503.amr.corp.intel.com>
+ <498BCDEA.6030307@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pmx1.sophos.com ([213.31.172.16]:54784 "EHLO pmx1.sophos.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759251AbZBFQKN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Feb 2009 11:10:13 -0500
-In-Reply-To: <20090206154231.GN18368@elte.hu>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <498BCDEA.6030307@jp.fujitsu.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Alex Chiang <achiang@hp.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Patterson <andrew.patterson@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jbarnes@virtuousgeek.org" <jbarnes@virtuousgeek.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Friday 06 February 2009 15:42:31 Ingo Molnar wrote:
-> * Tvrtko Ursulin <tvrtko.ursulin@sophos.com> wrote:
-> > On Thursday 05 February 2009 18:00:19 Ingo Molnar wrote:
-> > > * Tvrtko Ursulin <tvrtko.ursulin@sophos.com> wrote:
-> > > > On Wednesday 04 February 2009 17:04:40 Ingo Molnar wrote:
-> > > > > 2) Please use vertical spaces when initializing structure fields.
-> > > > > Instead of the messy looking (and over-long-line generating)
-> > > > > construct of:
-> > > > >
-> > > > >         pci_mmcfg_config[0].address = (extcfg & 0x00007fff) << 25;
-> > > > >         pci_mmcfg_config[0].pci_segment = 0;
-> > > > >         pci_mmcfg_config[0].start_bus_number = 0;
-> > > > >         pci_mmcfg_config[0].end_bus_number = (1 << (8 - ((extcfg >>
-> > > > > 28) & 3))) - 1; pci_mmcfg_config_num = 1;
-> > > > >
-> > > > >    You will get something like:
-> > > > >
-> > > > >         config->address                 = (extcfg & 0x00007fff) <<
-> > > > > 25; config->pci_segment             = 0;
-> > > > >         config->start_bus_number        = 0;
-> > > > >         config->end_bus_number          = (1 << (8 - ((extcfg >>
-> > > > > 28) & 3)));
-> > > > >
-> > > > >         pci_mmcfg_config = config;
-> > > > >         pci_mmcfg_config_num = 1;
-> > > > >
-> > > > >    Which makes it more structured, more reviewable - and more
-> > > > > pleasant to look at as well.
-> > >
-> > > It is arch/x86/ and scheduler / etc. policy for new code - and we
-> > > follow that principle when we clean up code as well.
-> >
-> > You also didn't say anything about variable declarations I asked about?
-> > And I can add structure definition to that question as well.
+I guess this means that Linux does not currently use this interface.
+
+I think I remember that Linux implements a utility module with an interface something like "acpi_evaluate_integer", and a couple more. Perhaps acpi_evaluate_buffer already exists, you could use that.
+
+
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Kenji Kaneshige
+>Sent: Thursday, February 05, 2009 9:43 PM
+>To: Moore, Robert
+>Cc: Alex Chiang; Jesse Barnes; linux-pci@vger.kernel.org; linux acpi;
+>Andrew Patterson
+>Subject: Re: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
 >
-> Firstly, when posting on lkml please use proper line length breaks. Your
-> email was almost unreadable in my mailer, so i had to stop reading it.
+>Moore, Robert wrote:
+>> The acpi_evaluate_object_typed interface automatically handles the two
+>error cases you check for:
+>>
+>> 1) Checks for the case where no object is returned
+>> 2) Checks for the correct return object type (buffer in this case)
+>>
+>> Use of this interface would simplify and shrink the code.
+>>
 >
-> Also, i'm surprised you see the need to try to influence things here - i
-> dont see a single upstream contribution from you in the past ~4 years of
-> git log so how can you have any knowledge and experience about such
-> details?
+>Sounds good to me, but I have a question.
 >
-> Both of those issues pretty materially weaken your standing to be taken
-> seriously when it comes to fine details of Linux kernel coding style.
-
-Sorry about the line length, I was trying not to word wrap code this time.
-
-Apart from that, frankly, I find your reply a bit childish. I haven't
-realised I need special talking points to express my opinion on a public 
-mailing list. Especially since in my previous reply I said that I don't
-want to argue about this very much and that I am just expressing my opinion.
-
-Tvrtko
+>The acpi_evaluate_object_typed() function seems to be compiled
+>only when ACPI_FUTURE_USAGE is defined. And it seems that there
+>is no prototype declaration. I don't know about ACPI_FUTURE_USAGE
+>at all. Could you please tell me what I should do to use
+>acpi_evaluate_object_typed()?
+>
+>Thanks,
+>Kenji Kaneshige
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
