@@ -1,85 +1,161 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 29/30] eeepc-laptop: fix oops when changing backlight
- brightness during eeepc-laptop init
-Date: Sat, 07 Feb 2009 01:41:37 -0500
-Message-ID: <7695fb04aca62e2d8a7ca6ede50f6211e1d71e53.1233988827.git.len.brown@intel.com>
+Subject: [PATCH 16/30] ACPI: remove BM_RLD access from idle entry path
+Date: Sat, 07 Feb 2009 01:41:24 -0500
+Message-ID: <31878dd86b7df9a147f5e6cc6e07092b4308782b.1233988825.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:12280 "EHLO
+Received: from vms173017pub.verizon.net ([206.46.173.17]:12159 "EHLO
 	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752795AbZBGGmN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:42:13 -0500
+	with ESMTP id S1752715AbZBGGl5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:57 -0500
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173017.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-2.01 (built Jun 13 2007; 32bit))
- with ESMTPA id <0KEO00J7BNXU9U32@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:55 -0600 (CST)
+ with ESMTPA id <0KEO00JGJNXJ6Y92@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:44 -0600 (CST)
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Darren Salt <linux@youmustbejoking.demon.co.uk>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+From: Len Brown <len.brown@intel.com>
 
-I got the following oops while changing the backlight brightness during
-startup.  When it happens, it prevents use of the hotkeys, Fn-Fx, and the
-lid button.
+It is true that BM_RLD needs to be set to enable
+bus master activity to wake an older chipset (eg PIIX4) from C3.
 
-It's a clear use-before-init, as I verified by testing with an
-appropriately-placed "else printk".
+This is contrary to the erroneous wording the ACPI 2.0, 3.0
+specifications that suggests that BM_RLD is an indicator
+rather than a control bit.
 
-BUG: unable to handle kernel NULL pointer dereference at 00000000
-*pde = 00000000
-Oops: 0002 [#1] PREEMPT SMP
-Pid: 160, comm: kacpi_notify Not tainted (2.6.28.1-eee901 #4) 901
-EIP: 0060:[<c0264e68>]  [<c0264e68>] eeepc_hotk_notify+26/da
-EFLAGS: 00010246 CPU: 1
-Using defaults from ksymoops -t elf32-i386 -a i386
-EAX: 00000009 EBX: 00000000 ECX: 00000009 EDX: f70dbf64
-ESI: 00000029 EDI: f7335188 EBP: c02112c9 ESP: f70dbf80
- DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
- f70731e0 f73acd50 c02164ac f7335180 f70aa040 c02112e6 f733518c c012b62f
- f70aa044 f70aa040 c012bdba f70aa04c 00000000 c012be6e 00000000 f70bdf80
- c012e198 f70dbfc4 f70dbfc4 f70aa040 c012bdba 00000000 c012e0c9 c012e091
-Call Trace:
- [<c02164ac>] ? acpi_ev_notify_dispatch+4c/55
- [<c02112e6>] ? acpi_os_execute_deferred+1d/25
- [<c012b62f>] ? run_workqueue+71/f1
- [<c012bdba>] ? worker_thread+0/bf
- [<c012be6e>] ? worker_thread+b4/bf
- [<c012e198>] ? autoremove_wake_function+0/2b
- [<c012bdba>] ? worker_thread+0/bf
- [<c012e0c9>] ? kthread+38/5f
- [<c012e091>] ? kthread+0/5f
- [<c0103abf>] ? kernel_thread_helper+7/10
-Code: 00 00 00 00 c3 83 3d 60 5c 50 c0 00 56 89 d6 53 0f 84 c4 00 00 00 8d 42
-e0 83 f8 0f 77 0f 8b 1d 68 5c 50 c0 89 d8 e8 a9 fa ff ff <89> 03 8b 1d 60 5c
-50 c0 89 f2 83 e2 7f 0f b7 4c 53 10 8d 41 01
+ACPI 1.0's correct wording should be restored in ACPI 4.0:
+http://www.acpica.org/bugzilla/show_bug.cgi?id=689
 
-Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+But the kernel should not have to clear BM_RLD
+when entering a non C3-type state just to set
+it again when entering a C3-type C-state.
+
+We should be able to set BM_RLD at boot time
+and leave it alone -- removing the overhead of
+accessing this IO register from the idle entry path.
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/acpi/processor_idle.c |   57 ++++++----------------------------------
+ 1 files changed, 9 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 9d93cb9..8fb983f 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -510,7 +510,8 @@ static int eeepc_hotk_check(void)
- static void notify_brn(void)
- {
- 	struct backlight_device *bd = eeepc_backlight_device;
--	bd->props.brightness = read_brightness(bd);
-+	if (bd)
-+		bd->props.brightness = read_brightness(bd);
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index ae00108..7eab733 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -241,26 +241,6 @@ acpi_processor_power_activate(struct acpi_processor *pr,
+ 		old->promotion.count = 0;
+ 	new->demotion.count = 0;
+ 
+-	/* Cleanup from old state. */
+-	if (old) {
+-		switch (old->type) {
+-		case ACPI_STATE_C3:
+-			/* Disable bus master reload */
+-			if (new->type != ACPI_STATE_C3 && pr->flags.bm_check)
+-				acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
+-			break;
+-		}
+-	}
+-
+-	/* Prepare to use new state. */
+-	switch (new->type) {
+-	case ACPI_STATE_C3:
+-		/* Enable bus master reload */
+-		if (old->type != ACPI_STATE_C3 && pr->flags.bm_check)
+-			acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 1);
+-		break;
+-	}
+-
+ 	pr->power.state = new;
+ 
+ 	return;
+@@ -1121,7 +1101,6 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+ 					  " for C3 to be enabled on SMP systems\n"));
+ 			return;
+ 		}
+-		acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
+ 	}
+ 
+ 	/*
+@@ -1137,6 +1116,15 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+ #else
+ 	cx->latency_ticks = cx->latency;
+ #endif
++	/*
++	 * On older chipsets, BM_RLD needs to be set
++	 * in order for Bus Master activity to wake the
++	 * system from C3.  Newer chipsets handle DMA
++	 * during C3 automatically and BM_RLD is a NOP.
++	 * In either case, the proper way to
++	 * handle BM_RLD is to set it and leave it set.
++	 */
++	acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 1);
+ 
+ 	return;
+ }
+@@ -1400,25 +1388,6 @@ static int acpi_idle_bm_check(void)
  }
  
- static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
+ /**
+- * acpi_idle_update_bm_rld - updates the BM_RLD bit depending on target state
+- * @pr: the processor
+- * @target: the new target state
+- */
+-static inline void acpi_idle_update_bm_rld(struct acpi_processor *pr,
+-					   struct acpi_processor_cx *target)
+-{
+-	if (pr->flags.bm_rld_set && target->type != ACPI_STATE_C3) {
+-		acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 0);
+-		pr->flags.bm_rld_set = 0;
+-	}
+-
+-	if (!pr->flags.bm_rld_set && target->type == ACPI_STATE_C3) {
+-		acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD, 1);
+-		pr->flags.bm_rld_set = 1;
+-	}
+-}
+-
+-/**
+  * acpi_idle_do_entry - a helper function that does C2 and C3 type entry
+  * @cx: cstate data
+  *
+@@ -1473,9 +1442,6 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 		return 0;
+ 	}
+ 
+-	if (pr->flags.bm_check)
+-		acpi_idle_update_bm_rld(pr, cx);
+-
+ 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 	acpi_idle_do_entry(cx);
+ 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+@@ -1527,9 +1493,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	 */
+ 	acpi_state_timer_broadcast(pr, cx, 1);
+ 
+-	if (pr->flags.bm_check)
+-		acpi_idle_update_bm_rld(pr, cx);
+-
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
+ 
+@@ -1621,8 +1584,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	 */
+ 	acpi_state_timer_broadcast(pr, cx, 1);
+ 
+-	acpi_idle_update_bm_rld(pr, cx);
+-
+ 	/*
+ 	 * disable bus master
+ 	 * bm_check implies we need ARB_DIS
 -- 
 1.5.6.6
 
