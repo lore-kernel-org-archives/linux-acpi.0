@@ -1,48 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 30/30] ACPI: Kconfig text - Fix the ACPI_CONTAINER module name
- according to the real module name.
-Date: Sat, 07 Feb 2009 01:41:38 -0500
-Message-ID: <370154bbefb627cb5f987f5646284755c7684bc8.1233988827.git.len.brown@intel.com>
+Subject: [PATCH 07/30] asus-laptop: use generic netlink interface
+Date: Sat, 07 Feb 2009 01:41:15 -0500
+Message-ID: <2a7dc0d8c60325e9bf820900bf919430e5a419ab.1233988823.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:55296 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752458AbZBGGmp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:42:45 -0500
+Received: from vms173017pub.verizon.net ([206.46.173.17]:12159 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752554AbZBGGlt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:49 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KEO00ME3NY7MZP1@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:42:08 -0600 (CST)
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-2.01 (built Jun 13 2007; 32bit))
+ with ESMTPA id <0KEO00JFANXA6Y92@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:35 -0600 (CST)
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thierry Vignaud <tvignaud@mandriva.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Thierry Vignaud <tvignaud@mandriva.com>
+From: Corentin Chary <corentincj@iksaif.net>
 
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+To be prepared for /proc/acpi/event removal we export events
+also through generic netlink interface.
+
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/platform/x86/asus-laptop.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index d7f9839..70bdb85 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -287,7 +287,7 @@ config ACPI_CONTAINER
- 	  support physical cpu/memory hot-plug.
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 8fb8b35..1b7a28c 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -738,8 +738,9 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ 		lcd_blank(FB_BLANK_POWERDOWN);
+ 	}
  
- 	  If one selects "m", this driver can be loaded with
--	  "modprobe acpi_container".
-+	  "modprobe container".
+-	acpi_bus_generate_proc_event(hotk->device, event,
+-				hotk->event_count[event % 128]++);
++	acpi_bus_generate_netlink_event(hotk->device->pnp.device_class,
++					dev_name(&hotk->device->dev), event,
++					hotk->event_count[event % 128]++);
  
- config ACPI_HOTPLUG_MEMORY
- 	tristate "Memory Hotplug"
+ 	return;
+ }
 -- 
 1.5.6.6
 
