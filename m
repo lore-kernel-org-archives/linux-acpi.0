@@ -1,153 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCHv2] ACPI: add missing KERN_* constants to printks
-Date: Sat, 07 Feb 2009 00:38:32 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902070022160.26256@localhost.localdomain>
-References: <4989A784.3030604@suse.de> <4989BC3B.2070508@suse.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754115AbZBGFiu@vger.kernel.org>
-In-reply-to: <4989BC3B.2070508@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frank Seidel <fseidel@suse.de>
-Cc: linux kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, shaohuhua.li@intel.com, kristen.c.accardi@intel.com, frank@f-seidel.de, Frans Pop <elendil@planet.nl>, Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: [PATCH 05/30] eeepc-laptop: split eeepc_backlight_exit()
+Date: Sat, 07 Feb 2009 01:41:13 -0500
+Message-ID: <a9df80c5094ed2bac94f4a0d085651f44d549854.1233988822.git.len.brown@intel.com>
+References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:22397 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490AbZBGGlr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:47 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KEO00EK9NXLGHP2@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:46 -0600 (CST)
+In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
+From: Corentin Chary <corentincj@iksaif.net>
 
-applied -- though I changed the two in acpi_os_vprintf()
-to be KERN_CONT, or we'd get a bunch of <4>'s in
-constructed messages.  Yes, we take our chances with SMP on those.
+eeepc_backlight_exit() was doing rfkill and input stuff, which
+is a nonsense. This patch add two specific exit functions, one
+for input and one for rfkill.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/platform/x86/eeepc-laptop.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-On Wed, 4 Feb 2009, Frank Seidel wrote:
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 9d93cb9..66d611b 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -737,13 +737,21 @@ static void eeepc_backlight_exit(void)
+ {
+ 	if (eeepc_backlight_device)
+ 		backlight_device_unregister(eeepc_backlight_device);
+-	if (ehotk->inputdev)
+-		input_unregister_device(ehotk->inputdev);
++	eeepc_backlight_device = NULL;
++}
++
++static void eeepc_rfkill_exit(void)
++{
+ 	if (ehotk->eeepc_wlan_rfkill)
+ 		rfkill_unregister(ehotk->eeepc_wlan_rfkill);
+ 	if (ehotk->eeepc_bluetooth_rfkill)
+ 		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
+-	eeepc_backlight_device = NULL;
++}
++
++static void eeepc_input_exit(void)
++{
++	if (ehotk->inputdev)
++		input_unregister_device(ehotk->inputdev);
+ }
+ 
+ static void eeepc_hwmon_exit(void)
+@@ -762,6 +770,8 @@ static void eeepc_hwmon_exit(void)
+ static void __exit eeepc_laptop_exit(void)
+ {
+ 	eeepc_backlight_exit();
++	eeepc_rfkill_exit();
++	eeepc_input_exit();
+ 	eeepc_hwmon_exit();
+ 	acpi_bus_unregister_driver(&eeepc_hotk_driver);
+ 	sysfs_remove_group(&platform_device->dev.kobj,
+@@ -865,6 +875,8 @@ fail_platform_driver:
+ fail_hwmon:
+ 	eeepc_backlight_exit();
+ fail_backlight:
++	eeepc_input_exit();
++	eeepc_rfkill_exit();
+ 	return result;
+ }
+ 
+-- 
+1.5.6.6
 
-> From: Frank Seidel <frank@f-seidel.de>
-> 
-> According to kerneljanitors todo list all printk calls (beginning
-> a new line) should have an according KERN_* constant.
-> Those are the missing peaces here for the acpi subsystem.
-> 
-> Signed-off-by: Frank Seidel <frank@f-seidel.de>
-> ---
->  drivers/acpi/container.c |    5 +++--
->  drivers/acpi/dock.c      |    8 ++++----
->  drivers/acpi/osl.c       |    4 ++--
->  drivers/acpi/pci_link.c  |    2 +-
->  drivers/acpi/sleep.c     |    2 +-
->  drivers/acpi/video.c     |    2 +-
->  6 files changed, 12 insertions(+), 11 deletions(-)
-> 
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1260,7 +1260,7 @@ static int acpi_video_bus_POST_info_seq_
->  			printk(KERN_WARNING PREFIX
->  			       "This indicates a BIOS bug. Please contact the manufacturer.\n");
->  		}
-> -		printk("%llx\n", options);
-> +		printk(KERN_WARNING "%llx\n", options);
->  		seq_printf(seq, "can POST: <integrated video>");
->  		if (options & 2)
->  			seq_printf(seq, " <PCI video>");
-> --- a/drivers/acpi/container.c
-> +++ b/drivers/acpi/container.c
-> @@ -163,7 +163,7 @@ static void container_notify_cb(acpi_han
->  	case ACPI_NOTIFY_BUS_CHECK:
->  		/* Fall through */
->  	case ACPI_NOTIFY_DEVICE_CHECK:
-> -		printk("Container driver received %s event\n",
-> +		printk(KERN_WARNING "Container driver received %s event\n",
->  		       (type == ACPI_NOTIFY_BUS_CHECK) ?
->  		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
->  		status = acpi_bus_get_device(handle, &device);
-> @@ -174,7 +174,8 @@ static void container_notify_cb(acpi_han
->  					kobject_uevent(&device->dev.kobj,
->  						       KOBJ_ONLINE);
->  				else
-> -					printk("Failed to add container\n");
-> +					printk(KERN_WARNING
-> +					       "Failed to add container\n");
->  			}
->  		} else {
->  			if (ACPI_SUCCESS(status)) {
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -593,7 +593,7 @@ static int acpi_pci_link_allocate(struct
->  		return -ENODEV;
->  	} else {
->  		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
-> -		printk(PREFIX "%s [%s] enabled at IRQ %d\n",
-> +		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
->  		       acpi_device_name(link->device),
->  		       acpi_device_bid(link->device), link->irq.active);
->  	}
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -984,7 +984,7 @@ static int dock_add(acpi_handle handle)
->  
->  	ret = device_create_file(&dock_device->dev, &dev_attr_docked);
->  	if (ret) {
-> -		printk("Error %d adding sysfs file\n", ret);
-> +		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
->  		platform_device_unregister(dock_device);
->  		kfree(dock_station);
->  		dock_station = NULL;
-> @@ -992,7 +992,7 @@ static int dock_add(acpi_handle handle)
->  	}
->  	ret = device_create_file(&dock_device->dev, &dev_attr_undock);
->  	if (ret) {
-> -		printk("Error %d adding sysfs file\n", ret);
-> +		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
->  		device_remove_file(&dock_device->dev, &dev_attr_docked);
->  		platform_device_unregister(dock_device);
->  		kfree(dock_station);
-> @@ -1001,7 +1001,7 @@ static int dock_add(acpi_handle handle)
->  	}
->  	ret = device_create_file(&dock_device->dev, &dev_attr_uid);
->  	if (ret) {
-> -		printk("Error %d adding sysfs file\n", ret);
-> +		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
->  		device_remove_file(&dock_device->dev, &dev_attr_docked);
->  		device_remove_file(&dock_device->dev, &dev_attr_undock);
->  		platform_device_unregister(dock_device);
-> @@ -1011,7 +1011,7 @@ static int dock_add(acpi_handle handle)
->  	}
->  	ret = device_create_file(&dock_device->dev, &dev_attr_flags);
->  	if (ret) {
-> -		printk("Error %d adding sysfs file\n", ret);
-> +		printk(KERN_ERR "Error %d adding sysfs file\n", ret);
->  		device_remove_file(&dock_device->dev, &dev_attr_docked);
->  		device_remove_file(&dock_device->dev, &dev_attr_undock);
->  		device_remove_file(&dock_device->dev, &dev_attr_uid);
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -228,10 +228,10 @@ void acpi_os_vprintf(const char *fmt, va
->  	if (acpi_in_debugger) {
->  		kdb_printf("%s", buffer);
->  	} else {
-> -		printk("%s", buffer);
-> +		printk(KERN_WARNING "%s", buffer);
->  	}
->  #else
-> -	printk("%s", buffer);
-> +	printk(KERN_WARNING "%s", buffer);
->  #endif
->  }
->  
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -679,7 +679,7 @@ static void acpi_power_off_prepare(void)
->  static void acpi_power_off(void)
->  {
->  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
-> -	printk("%s called\n", __func__);
-> +	printk(KERN_DEBUG "%s called\n", __func__);
->  	local_irq_disable();
->  	acpi_enable_wakeup_device(ACPI_STATE_S5);
->  	acpi_enter_sleep_state(ACPI_STATE_S5);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
