@@ -1,82 +1,51 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/30] PM: Fix compilation warning in kernel/power/main.c
-Date: Sat, 07 Feb 2009 01:41:09 -0500
-Message-ID: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+Subject: [PATCH 03/30] ACPI: Fix crash on ASUS laptops
+Date: Sat, 07 Feb 2009 01:41:11 -0500
+Message-ID: <4312495f7db63d27ef52ec83dab55f14a8c43827.1233988822.git.len.brown@intel.com>
+References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:44614 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083AbZBGGls (ORCPT
+Received: from vms173017pub.verizon.net ([206.46.173.17]:12159 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490AbZBGGls (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:48 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KEO00LW4NPAAFZ1@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:36:47 -0600 (CST)
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-2.01 (built Jun 13 2007; 32bit))
+ with ESMTPA id <0KEO00KAFNX8GUA2@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:33 -0600 (CST)
+In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
+References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>
+Cc: Tero Roponen <tero.roponen@gmail.com>, Len Brown <len.brown@intel.com>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+From: Tero Roponen <tero.roponen@gmail.com>
 
-Reorder the code in kernel/power/main.c to fix compilation warning
-triggered by unsetting CONFIG_SUSPEND.
+This patch fixes the crash I experienced in 2.6.29-rc2.
+Tested on ASUS M50vm.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Tero Roponen <tero.roponen@gmail.com>
+Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- kernel/power/main.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/acpi/ec.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 2399888..b4d2190 100644
---- a/kernel/power/main.c
-+++ b/kernel/power/main.c
-@@ -57,16 +57,6 @@ int pm_notifier_call_chain(unsigned long val)
- #ifdef CONFIG_PM_DEBUG
- int pm_test_level = TEST_NONE;
- 
--static int suspend_test(int level)
--{
--	if (pm_test_level == level) {
--		printk(KERN_INFO "suspend debug: Waiting for 5 seconds.\n");
--		mdelay(5000);
--		return 1;
--	}
--	return 0;
--}
--
- static const char * const pm_tests[__TEST_AFTER_LAST] = {
- 	[TEST_NONE] = "none",
- 	[TEST_CORE] = "core",
-@@ -125,14 +115,24 @@ static ssize_t pm_test_store(struct kobject *kobj, struct kobj_attribute *attr,
- }
- 
- power_attr(pm_test);
--#else /* !CONFIG_PM_DEBUG */
--static inline int suspend_test(int level) { return 0; }
--#endif /* !CONFIG_PM_DEBUG */
-+#endif /* CONFIG_PM_DEBUG */
- 
- #endif /* CONFIG_PM_SLEEP */
- 
- #ifdef CONFIG_SUSPEND
- 
-+static int suspend_test(int level)
-+{
-+#ifdef CONFIG_PM_DEBUG
-+	if (pm_test_level == level) {
-+		printk(KERN_INFO "suspend debug: Waiting for 5 seconds.\n");
-+		mdelay(5000);
-+		return 1;
-+	}
-+#endif /* !CONFIG_PM_DEBUG */
-+	return 0;
-+}
-+
- #ifdef CONFIG_PM_TEST_SUSPEND
- 
- /*
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index a2b82c9..5c2f5d3 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -982,7 +982,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+ 		if (!saved_ec)
+ 			return -ENOMEM;
+-		memcpy(&saved_ec, boot_ec, sizeof(saved_ec));
++		memcpy(saved_ec, boot_ec, sizeof(*saved_ec));
+ 	/* fall through */
+ 	}
+ 	/* This workaround is needed only on some broken machines,
 -- 
 1.5.6.6
 
