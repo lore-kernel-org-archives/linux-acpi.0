@@ -1,134 +1,91 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 12/30] eeepc-laptop: Check return values from rfkill_register
-Date: Sat, 07 Feb 2009 01:41:20 -0500
-Message-ID: <c9ddf8fede1271bde0a512fa94f77c4cb1ef4040.1233988824.git.len.brown@intel.com>
+Subject: [PATCH 17/30] ACPI: Skip the first two elements in the _BCL package
+Date: Sat, 07 Feb 2009 01:41:25 -0500
+Message-ID: <0a3db1cec5d476804185114ff5d1845aed3936b3.1233988825.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:10445 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752745AbZBGGl7 (ORCPT
+Received: from vms173019pub.verizon.net ([206.46.173.19]:22488 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752722AbZBGGl7 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:59 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KEO00MDINXSVVZ0@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:53 -0600 (CST)
+ with ESMTPA id <0KEO00NP7NXW4W52@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:57 -0600 (CST)
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Error out if rfkill registration fails, and also set the default system state
-appropriately on boot
+According to the Spec the first two elements in the _BCL package won't be
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+regarded as the available brightness level. The first is the brightness when
+full power is connected to the box(It means that the AC adapter is plugged).
+The second is the brightness level when the box is on battery.
+    If the first two elements are still used while finding the next brightness
+level, it will fall back to the lowest level when keeping on pressing
+hotkey. (On some boxes the brightness will be changed twice when hotkey is
+pressed once. One is in the ACPI video driver. The other is changed by sys I/F.
+In the ACPI video driver the first two elements will be used while changing
+the brightness. But the first two elements is skipped while using sys I/F.
+In such case there exists the inconsistency).
+    So he first two elements had better be skipped while showing the available
+brightness or finding the next brightness level.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=12450
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   51 +++++++++++++++++++++++++---------
- 1 files changed, 37 insertions(+), 14 deletions(-)
+ drivers/acpi/video.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index d153871..21e5206 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -562,7 +562,7 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 	ehotk->device = device;
- 	result = eeepc_hotk_check();
- 	if (result)
--		goto end;
-+		goto ehotk_fail;
- 	status = acpi_install_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
- 					     eeepc_hotk_notify, ehotk);
- 	if (ACPI_FAILURE(status))
-@@ -573,18 +573,25 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 							   RFKILL_TYPE_WLAN);
- 
- 		if (!ehotk->eeepc_wlan_rfkill)
--			goto end;
-+			goto wlan_fail;
- 
- 		ehotk->eeepc_wlan_rfkill->name = "eeepc-wlan";
- 		ehotk->eeepc_wlan_rfkill->toggle_radio = eeepc_wlan_rfkill_set;
- 		ehotk->eeepc_wlan_rfkill->get_state = eeepc_wlan_rfkill_state;
--		if (get_acpi(CM_ASL_WLAN) == 1)
-+		if (get_acpi(CM_ASL_WLAN) == 1) {
- 			ehotk->eeepc_wlan_rfkill->state =
- 				RFKILL_STATE_UNBLOCKED;
--		else
-+			rfkill_set_default(RFKILL_TYPE_WLAN,
-+					   RFKILL_STATE_UNBLOCKED);
-+		} else {
- 			ehotk->eeepc_wlan_rfkill->state =
- 				RFKILL_STATE_SOFT_BLOCKED;
--		rfkill_register(ehotk->eeepc_wlan_rfkill);
-+			rfkill_set_default(RFKILL_TYPE_WLAN,
-+					   RFKILL_STATE_SOFT_BLOCKED);
-+		}
-+		result = rfkill_register(ehotk->eeepc_wlan_rfkill);
-+		if (result)
-+			goto wlan_fail;
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index f261737..c9bfca0 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1020,7 +1020,7 @@ acpi_video_device_brightness_seq_show(struct seq_file *seq, void *offset)
  	}
  
- 	if (get_acpi(CM_ASL_BLUETOOTH) != -1) {
-@@ -592,27 +599,43 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 			rfkill_allocate(&device->dev, RFKILL_TYPE_BLUETOOTH);
+ 	seq_printf(seq, "levels: ");
+-	for (i = 0; i < dev->brightness->count; i++)
++	for (i = 2; i < dev->brightness->count; i++)
+ 		seq_printf(seq, " %d", dev->brightness->levels[i]);
+ 	seq_printf(seq, "\ncurrent: %d\n", dev->brightness->curr);
  
- 		if (!ehotk->eeepc_bluetooth_rfkill)
--			goto end;
-+			goto bluetooth_fail;
+@@ -1059,7 +1059,7 @@ acpi_video_device_write_brightness(struct file *file,
+ 		return -EFAULT;
  
- 		ehotk->eeepc_bluetooth_rfkill->name = "eeepc-bluetooth";
- 		ehotk->eeepc_bluetooth_rfkill->toggle_radio =
- 			eeepc_bluetooth_rfkill_set;
- 		ehotk->eeepc_bluetooth_rfkill->get_state =
- 			eeepc_bluetooth_rfkill_state;
--		if (get_acpi(CM_ASL_BLUETOOTH) == 1)
-+		if (get_acpi(CM_ASL_BLUETOOTH) == 1) {
- 			ehotk->eeepc_bluetooth_rfkill->state =
- 				RFKILL_STATE_UNBLOCKED;
--		else
-+			rfkill_set_default(RFKILL_TYPE_BLUETOOTH,
-+					   RFKILL_STATE_UNBLOCKED);
-+		} else {
- 			ehotk->eeepc_bluetooth_rfkill->state =
- 				RFKILL_STATE_SOFT_BLOCKED;
--		rfkill_register(ehotk->eeepc_bluetooth_rfkill);
--	}
-+			rfkill_set_default(RFKILL_TYPE_BLUETOOTH,
-+					   RFKILL_STATE_SOFT_BLOCKED);
-+		}
- 
-- end:
--	if (result) {
--		kfree(ehotk);
--		ehotk = NULL;
-+		result = rfkill_register(ehotk->eeepc_bluetooth_rfkill);
-+		if (result)
-+			goto bluetooth_fail;
+ 	/* validate through the list of available levels */
+-	for (i = 0; i < dev->brightness->count; i++)
++	for (i = 2; i < dev->brightness->count; i++)
+ 		if (level == dev->brightness->levels[i]) {
+ 			if (ACPI_SUCCESS
+ 			    (acpi_video_device_lcd_set_level(dev, level)))
+@@ -1712,7 +1712,7 @@ acpi_video_get_next_level(struct acpi_video_device *device,
+ 	max = max_below = 0;
+ 	min = min_above = 255;
+ 	/* Find closest level to level_current */
+-	for (i = 0; i < device->brightness->count; i++) {
++	for (i = 2; i < device->brightness->count; i++) {
+ 		l = device->brightness->levels[i];
+ 		if (abs(l - level_current) < abs(delta)) {
+ 			delta = l - level_current;
+@@ -1722,7 +1722,7 @@ acpi_video_get_next_level(struct acpi_video_device *device,
  	}
-+	return 0;
-+
-+ bluetooth_fail:
-+	if (ehotk->eeepc_bluetooth_rfkill)
-+		rfkill_free(ehotk->eeepc_bluetooth_rfkill);
-+	rfkill_unregister(ehotk->eeepc_wlan_rfkill);
-+	ehotk->eeepc_wlan_rfkill = NULL;
-+ wlan_fail:
-+	if (ehotk->eeepc_wlan_rfkill)
-+		rfkill_free(ehotk->eeepc_wlan_rfkill);
-+ ehotk_fail:
-+	kfree(ehotk);
-+	ehotk = NULL;
-+
- 	return result;
- }
- 
+ 	/* Ajust level_current to closest available level */
+ 	level_current += delta;
+-	for (i = 0; i < device->brightness->count; i++) {
++	for (i = 2; i < device->brightness->count; i++) {
+ 		l = device->brightness->levels[i];
+ 		if (l < min)
+ 			min = l;
 -- 
 1.5.6.6
 
