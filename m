@@ -1,53 +1,68 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/30] eeepc-laptop: Add support for extended hotkeys
-Date: Sat, 07 Feb 2009 01:41:19 -0500
-Message-ID: <b5f6f26550700445dcc125bbf75b9104e779d353.1233988824.git.len.brown@intel.com>
+Subject: [PATCH 15/30] ACPI: remove locking from PM1x_STS register reads
+Date: Sat, 07 Feb 2009 01:41:23 -0500
+Message-ID: <a2b7b01c072435b7832ab392167545a1b38cabc3.1233988825.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:12159 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752673AbZBGGlx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:53 -0500
+Received: from vms173019pub.verizon.net ([206.46.173.19]:22488 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752705AbZBGGl4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 01:41:56 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-2.01 (built Jun 13 2007; 32bit))
- with ESMTPA id <0KEO00J67NXD9EZ1@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:39 -0600 (CST)
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KEO00KGTNXVK442@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 00:41:55 -0600 (CST)
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 In-reply-to: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 References: <091d71e023557136e96f0e54f301497a3fc95dc3.1233988822.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Len Brown <len.brown@intel.com>
 
-Newer Eees have extra hotkeys above the function keys. This patch adds support
-for sending them through the input layer.
+PM1a_STS and PM1b_STS are twins that get OR'd together
+on reads, and all writes are repeated to both.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+The fields in PM1x_STS are single bits only,
+there are no multi-bit fields.
+
+So it is not necessary to lock PM1x_STS reads against
+writes because it is impossible to read an intermediate
+value of a single bit.  It will either be 0 or 1,
+even if a write is in progress during the read.
+Reads are asynchronous to writes no matter if a lock
+is used or not.
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_idle.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 66d611b..d153871 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -161,6 +161,10 @@ static struct key_entry eeepc_keymap[] = {
- 	{KE_KEY, 0x13, KEY_MUTE },
- 	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
- 	{KE_KEY, 0x15, KEY_VOLUMEUP },
-+	{KE_KEY, 0x1a, KEY_COFFEE },
-+	{KE_KEY, 0x1b, KEY_ZOOM },
-+	{KE_KEY, 0x1c, KEY_PROG2 },
-+	{KE_KEY, 0x1d, KEY_PROG3 },
- 	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
- 	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
- 	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 66a9d81..ae00108 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -447,7 +447,7 @@ static void acpi_processor_idle(void)
+ 
+ 		pr->power.bm_activity <<= diff;
+ 
+-		acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS, &bm_status);
++		acpi_get_register_unlocked(ACPI_BITREG_BUS_MASTER_STATUS, &bm_status);
+ 		if (bm_status) {
+ 			pr->power.bm_activity |= 0x1;
+ 			acpi_set_register(ACPI_BITREG_BUS_MASTER_STATUS, 1);
+@@ -1383,7 +1383,7 @@ static int acpi_idle_bm_check(void)
+ {
+ 	u32 bm_status = 0;
+ 
+-	acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS, &bm_status);
++	acpi_get_register_unlocked(ACPI_BITREG_BUS_MASTER_STATUS, &bm_status);
+ 	if (bm_status)
+ 		acpi_set_register(ACPI_BITREG_BUS_MASTER_STATUS, 1);
+ 	/*
 -- 
 1.5.6.6
 
