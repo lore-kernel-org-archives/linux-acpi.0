@@ -1,64 +1,54 @@
-From: Benoit Izac <benoit.izac@free.fr>
-Subject: Battery Status Changed repeated every 16 seconds
-Date: Sat, 07 Feb 2009 14:12:43 +0100
-Message-ID: <w53prhue6gk@message.id>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: state of some x86 acpi patches
+Date: Sat, 07 Feb 2009 16:09:00 -0800
+Message-ID: <498E229C.5030205@goop.org>
+References: <4947FF4C.80706@goop.org> <20081216192534.GB843@elte.hu> <alpine.LFD.2.00.0812311821110.3854@localhost.localdomain> <495C677F.6080707@goop.org> <20090102153957.GA1180@elte.hu> <4980EE0C.4070308@goop.org> <49810211.9030808@kernel.org> <498CF8DA.30004@goop.org> <498CFD95.5070004@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lns-bzn-51f-62-147-243-137.adsl.proxad.net ([62.147.243.137]:55709
-	"EHLO wok.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752736AbZBGNXo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 08:23:44 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756042AbZBHAJW@vger.kernel.org>
+In-Reply-To: <498CFD95.5070004@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi,
+Yinghai Lu wrote:
+> Ingo is too busy...
+> It seems Len already agreed those patches can go through tip.
+>   
 
-I have a strange and boring problem with my laptop (Toshiba tecra M9).
-Every 16 seconds (sometimes 32), /proc/acpi/event return a "Battery
-Status Changed" (battery BAT1 00000080 00000001). This event appears
-always, battery charged or not.
+OK, I have them prepared as a branch off tip/git pullable from:
 
-Last night, I tried to remove the AC adapter and record all events in
-a file. After I receive
-    ac_adapter ADP1 00000080 00000000
-    processor CPU0 00000081 00000000
-    processor CPU1 00000081 00000000
-I hadn't other events than battery BAT1 00000080 00000001.
+The following changes since commit 82eda818f26cbef2b0a6bf6580e52645af62e4fd:
+  Ingo Molnar (1):
+        Merge branch 'core/locking'
 
-At this moment if I look at /proc/acpi/event:
-# for a in 1 2 3; do read a < /proc/acpi/event; date; echo $a; \
-  cat /proc/acpi/battery/BAT1/state; done
-Sat Feb  7 14:03:16 CET 2009
-battery BAT1 00000080 00000001
-present:                 yes
-capacity state:          ok
-charging state:          charged
-present rate:            0 mW
-remaining capacity:      46981 mWh
-present voltage:         11340 mV
-Sat Feb  7 14:03:32 CET 2009
-battery BAT1 00000080 00000001
-present:                 yes
-capacity state:          ok
-charging state:          charged
-present rate:            0 mW
-remaining capacity:      46981 mWh
-present voltage:         11340 mV
-Sat Feb  7 14:03:48 CET 2009
-battery BAT1 00000080 00000001
-present:                 yes
-capacity state:          ok
-charging state:          charged
-present rate:            0 mW
-remaining capacity:      46981 mWh
-present voltage:         11340 mV
+are available in the git repository at:
 
-Is this behavior normal?
-How do I know that the battery has low capacity (there is no event for
-this)?
-How can I remove these events (my log files grow for nothing)?
+  git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git acpi/map
 
--- 
-Benoit Izac
+Jeremy Fitzhardinge (3):
+      x86: use early_ioremap in __acpi_map_table
+      x86: always explicitly map acpi memory
+      acpi: remove final __acpi_map_table mapping before setting acpi_gbl_permanent_mmap
+
+Yinghai Lu (2):
+      acpi/x86: introduce __apci_map_table, v4
+      revert_fix_es7000_compiling
+
+ arch/ia64/kernel/acpi.c          |    4 ++++
+ arch/x86/include/asm/acpi.h      |    3 ---
+ arch/x86/include/asm/fixmap_32.h |    4 ----
+ arch/x86/include/asm/fixmap_64.h |    4 ----
+ arch/x86/kernel/acpi/boot.c      |   33 ++++++++-------------------------
+ arch/x86/kernel/es7000_32.c      |    9 ++++++++-
+ drivers/acpi/acpica/tbxface.c    |   17 ++++++++++++++---
+ drivers/acpi/osl.c               |   11 +++++++++--
+ drivers/acpi/tables.c            |   20 ++++++++++++++------
+ include/acpi/acpiosxf.h          |    1 +
+ include/acpi/acpixf.h            |    4 ++++
+ include/linux/acpi.h             |    1 +
+ 12 files changed, 63 insertions(+), 48 deletions(-)
+
+	J
