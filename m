@@ -1,45 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Problems with Toshiba Satellite L355
-Date: Sun, 8 Feb 2009 20:09:38 +0100
-Message-ID: <200902082009.38666.rjw@sisk.pl>
-References: <200902052311.31794.adam@piggz.co.uk>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH] Enable bit 11 in _PDC to advertise hw coord
+Date: Sun, 8 Feb 2009 11:51:01 -0800
+Message-ID: <20090208195101.GA17043@kroah.com>
+References: <20090202195717.GA24510@linux-os.sc.intel.com> <20090204085712.GF30821@kernel.dk> <20090204195331.GA905@khazad-dum.debian.net> <1233778002.4286.61.camel@localhost.localdomain> <20090204204036.GB10680@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39016 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753096AbZBHTKN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 8 Feb 2009 14:10:13 -0500
-In-Reply-To: <200902052311.31794.adam@piggz.co.uk>
+Received: from kroah.org ([198.145.64.141]:56424 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751747AbZBHU3r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 8 Feb 2009 15:29:47 -0500
 Content-Disposition: inline
+In-Reply-To: <20090204204036.GB10680@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: adam@piggz.co.uk
-Cc: linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jens Axboe <jens.axboe@oracle.com>, stable kernel <stable@kernel.org>, Chris Mason <chris.mason@oracle.com>, Len Brown <lenb@kernel.org>
 
-On Friday 06 February 2009, Adam Pigg wrote:
-> Hi
+On Wed, Feb 04, 2009 at 12:40:36PM -0800, Greg KH wrote:
+> On Wed, Feb 04, 2009 at 12:06:42PM -0800, Pallipadi, Venkatesh wrote:
+> > On Wed, 2009-02-04 at 11:53 -0800, Henrique de Moraes Holschuh wrote:
+> > > On Wed, 04 Feb 2009, Jens Axboe wrote:
+> > > > On Mon, Feb 02 2009, Pallipadi, Venkatesh wrote:
+> > > > > 
+> > > > > Bit 11 in intel PDC definitions is meant for OS capability to handle
+> > > > > hardware coordination of P-states. In Linux we have always supported
+> > > > > hwardware coordination of P-states. Just let the BIOSes know that we
+> > > > > support it, by setting this bit.
+> > > > > 
+> > > > > Some BIOSes use this bit to choose between hardware or software coordination
+> > > > > and without this change below, BIOSes switch to software coordination, which
+> > > > > is not very optimal in terms of power consumption and extra wakeups from idle.
+> > > > 
+> > > > I can confirm that this fixes the excessive reschedule ipi count on an
+> > > > x60 with the ondemand governor. Can we please get this into 2.6.29?
+> > > 
+> > > And, after that, -stable?
+> > > 
+> > 
+> > Agreed. This should also go to -stable once it gets into mainline.
 > 
-> i have 2 acpi related (i think) problems with my satellite l355 which i hope 
-> someone can help with.
-> 
-> 1. /proc/acpi/ac_adapter.../state always show the correct state, but 
-> acpi_listen and lshal --monitor dont see any un/plug events.
-> 
-> 2. The machine will suspend to ram, resume, but after a second suspend, wont 
-> resume.
-> 
-> I think i saw a similar sounding problem on an R500, but it was fixed.
+> Can someone send stable@kernel.org the git commit id when it goes into
+> Linus's tree?
 
-In fact, the problem with the R500 was different and indeed it was fixed.
+It's d96f94c604453f87fe24154b87e1e9a3a72511f8, I got it now.
 
-The problem you're seeing has been reported for a few systems out there, but
-we haven't been able to identify the root cause yet.
+thanks,
 
-Still, since quite a few suspend fixes are going to be included into .29-rc4,
-please test this kernel when it's out (that should be really soon now).
-
-Thanks,
-Rafael
+greg k-h
