@@ -1,54 +1,59 @@
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: Re: state of some x86 acpi patches
-Date: Sat, 07 Feb 2009 16:09:00 -0800
-Message-ID: <498E229C.5030205@goop.org>
-References: <4947FF4C.80706@goop.org> <20081216192534.GB843@elte.hu> <alpine.LFD.2.00.0812311821110.3854@localhost.localdomain> <495C677F.6080707@goop.org> <20090102153957.GA1180@elte.hu> <4980EE0C.4070308@goop.org> <49810211.9030808@kernel.org> <498CF8DA.30004@goop.org> <498CFD95.5070004@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch] ACPI battery driver emits POWER_SUPPLY_STATUS_FULL when
+ power lead plugged in (resend)
+Date: Sat, 07 Feb 2009 22:59:04 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902072258330.6197@localhost.localdomain>
+References: <1232729843.3504.6.camel@hughsie-work.lan>
+ <497A13C0.5020604@suse.de> <20090123220243.GB26701@khazad-dum.debian.net>
+ <1232753981.3504.10.camel@hughsie-work.lan> <497A5D49.6070706@suse.de>
+ <20090124124158.GC5325@khazad-dum.debian.net> <497B43D3.80703@suse.de>
+ <1232879297.3518.26.camel@hughsie-work.lan>
+ <20090125134203.GA12776@khazad-dum.debian.net>
+ <1233148811.4231.0.camel@hughsie-work.lan>
+ <20090130140702.GA14714@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756042AbZBHAJW@vger.kernel.org>
-In-Reply-To: <498CFD95.5070004@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:30807 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751944AbZBHEAM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Feb 2009 23:00:12 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KEQ005YKB2I2KO2@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 07 Feb 2009 21:59:07 -0600 (CST)
+In-reply-to: <20090130140702.GA14714@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Hughes <hughsient@gmail.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, mjg <mjg@redhat.com>, Matthias Clasen <mclasen@redhat.com>
 
-Yinghai Lu wrote:
-> Ingo is too busy...
-> It seems Len already agreed those patches can go through tip.
->   
 
-OK, I have them prepared as a branch off tip/git pullable from:
+On Fri, 30 Jan 2009, Henrique de Moraes Holschuh wrote:
 
-The following changes since commit 82eda818f26cbef2b0a6bf6580e52645af62e4fd:
-  Ingo Molnar (1):
-        Merge branch 'core/locking'
+> On Wed, 28 Jan 2009, Richard Hughes wrote:
+> > The attached patch checks the last full and design charge, as this seems
+> > to work in all cases I have here. In the case of broken batteries or
+> > broken hardware, we just return UNKNOWN in this "settling" state, which
+> > is much better for userspace than falling back to full.
+> > 
+> > With the attached patch userspace gets the right states. In the future,
+> > maybe we can do some sort of metric over time (watching to see if the
+> > present charge changes) but for the most part the patch fixes things up
+> > for userspace.
+> 
+> I am ok with this patch, but it does have *one* corner case.
+> 
+> Brand new good batteries will be reported as full while still charging, when
+> they're near 100% (they will be above the design capacity).
+> 
+> That isn't enough for me to complain about the patch, and the patch makes it
+> MUCH better than the current broken behaviour.
+> 
+> So you can have my Acked-by if you want it, for whatever little it is worth.
 
-are available in the git repository at:
+Applied to acpi-test.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen.git acpi/map
-
-Jeremy Fitzhardinge (3):
-      x86: use early_ioremap in __acpi_map_table
-      x86: always explicitly map acpi memory
-      acpi: remove final __acpi_map_table mapping before setting acpi_gbl_permanent_mmap
-
-Yinghai Lu (2):
-      acpi/x86: introduce __apci_map_table, v4
-      revert_fix_es7000_compiling
-
- arch/ia64/kernel/acpi.c          |    4 ++++
- arch/x86/include/asm/acpi.h      |    3 ---
- arch/x86/include/asm/fixmap_32.h |    4 ----
- arch/x86/include/asm/fixmap_64.h |    4 ----
- arch/x86/kernel/acpi/boot.c      |   33 ++++++++-------------------------
- arch/x86/kernel/es7000_32.c      |    9 ++++++++-
- drivers/acpi/acpica/tbxface.c    |   17 ++++++++++++++---
- drivers/acpi/osl.c               |   11 +++++++++--
- drivers/acpi/tables.c            |   20 ++++++++++++++------
- include/acpi/acpiosxf.h          |    1 +
- include/acpi/acpixf.h            |    4 ++++
- include/linux/acpi.h             |    1 +
- 12 files changed, 63 insertions(+), 48 deletions(-)
-
-	J
+thanks,
+Len Brown, Intel Open Source Technology Center
