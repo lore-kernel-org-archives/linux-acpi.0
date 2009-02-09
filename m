@@ -1,146 +1,81 @@
-From: Sam Ruby <rubys@intertwingly.net>
-Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Tue, 10 Feb 2009 06:46:47 -0500
-Message-ID: <49916927.9080200@intertwingly.net>
-References: <4978767D.4060700@intertwingly.net>	 <20090130000758.1dff0113.akpm@linux-foundation.org>	 <498885CC.4060509@intertwingly.net>	 <20090203114849.b661f1ce.akpm@linux-foundation.org>	 <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>	 <49890B46.8020308@intertwingly.net>	 <alpine.LFD.2.00.0902032336000.5607@localhost.localdomain>	 <4990C14B.7060802@intertwingly.net> <1234231805.3706.80.camel@localhost.localdomain>
+From: Matthias Kloas <M.Kloas@planungsteam-eb.de>
+Subject: DMI info Lenovo T500
+Date: Mon, 09 Feb 2009 22:03:00 +0100
+Message-ID: <1234213380.6581.16.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-HluQ6ugx1sADjTW9KN4O"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121]:38542 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbZBJLqz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2009 06:46:55 -0500
-In-Reply-To: <1234231805.3706.80.camel@localhost.localdomain>
+Received: from mail.planungsteam-eb.de ([217.9.60.248]:59631 "EHLO
+	mail.planungsteam-eb.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753437AbZBJMs6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2009 07:48:58 -0500
+Received: from [172.27.1.30]
+	by mail.planungsteam-eb.de with esmtp (Exim 4.63)
+	(envelope-from <M.Kloas@planungsteam-eb.de>)
+	id 1LWrHk-0006p2-0h
+	for linux-acpi@vger.kernel.org; Tue, 10 Feb 2009 13:00:16 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: linux-acpi@vger.kernel.org
 
-yakui_zhao wrote:
-> On Tue, 2009-02-10 at 07:50 +0800, Sam Ruby wrote:
->> Len Brown wrote:
->>>>> Do you have a second computer around with a serial port ? If yes,=
- then
->>>>> please add the following to the kernel command line:
->>>>>
->>>>>        earlyprintk=3Dserial,ttyS0,115200 apic=3Ddebug
->>>>>
->>>>> and connect the serial ports with a null modem cable. Fire up a
->>>>> terminal program on the second machine and capture the output.
->>>> I do have a second computer, and went out and bought a null modem =
-adapter for
->>>> my serial cable and connected the two machines.  I've tried instal=
-ling minicom
->>>> and also connecting it to ttyS0 at 115200 baud on the second machi=
-ne, but when
->>>> I boot the first machine I don't see any output on the terminal.
->>> /boot/grub/menu.lst:
->>>
->>> serial --unit=3D0 --speed=3D115200 --word=3D8 --parity=3Dno --stop=3D=
-1
->>> terminal --timeout=3D300 serial console
-> Do you have an opportunity to try the boot option of "acpi=3Doff" as
-> suggested by Lenb?
 
-That also produces the "MP-BIOS bug" message and halts.
+--=-HluQ6ugx1sADjTW9KN4O
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
->      From the log it seems that there exists the following warning
-> message:
->     >=EF=BB=BFMP-BIOS bug: 8254 timer not connected to IO-APIC
->=20
->     Can you try the following boot options?
->     a. acpi_use_timer_override
+Dear Linux-Acpi Team,
 
-That also produces the "MP-BIOS bug" message and halts.
+I just saw, that my syslog contains a request to send a message to you,
+a request a gladly follow:
 
->     b. acpi_skip_timer_override
 
-That also produces the "MP-BIOS bug" message and halts.
+> Feb  9 19:35:13 localhost kernel: [    0.226160] ACPI: DMI System Vendor:=
+ LENOVO
+> Feb  9 19:35:13 localhost kernel: [    0.226224] ACPI: DMI Product Name: =
+20825BG
+> Feb  9 19:35:13 localhost kernel: [    0.226288] ACPI: DMI Product Versio=
+n: ThinkPad T500
+> Feb  9 19:35:13 localhost kernel: [    0.226354] ACPI: DMI Board Name: 20=
+825BG
+> Feb  9 19:35:13 localhost kernel: [    0.226418] ACPI: DMI BIOS Vendor: L=
+ENOVO
+> Feb  9 19:35:13 localhost kernel: [    0.226482] ACPI: DMI BIOS Date: 08/=
+19/2008
+> Feb  9 19:35:13 localhost kernel: [    0.226546] ACPI: Please send DMI in=
+fo above to linux-acpi@vger.kernel.org
 
->     c. noapic
+I hope that this is the right information. If you need another info please =
+feel free to ask.
+By the way linux works great on the T500 including all the acpi
+functions I tested, at least with the kernel I use (Linux version
+2.6.27-1-686 (Debian 2.6.27-1~experimental.1~snapshot.12406), so thank
+you for the good work.
 
-With that, I can boot, but I get data corruption problems.  Data=20
-corruption problems I don't see when using the same hardware but with=20
-Microsoft Vista.  More details can be found here:
+Greetings,
 
-http://intertwingly.net/blog/2009/01/20/noAPIC
-http://intertwingly.net/stories/2009/01/22/
+	Matthias
 
-I am willing to install new kernels on fresh hard drives, run diagnosti=
-c=20
-programs and report the output, including capturing serial output.  Is=20
-there any data I can gather to help diagnose this problem?
 
->     Thanks.
->>> is what I use.
->>>
->>> this will give you a prompt from grub even before the kernel boots
->>> so you can select (and edit) your kernel via menu over the serial l=
-ine
->>> if you wish.
->> I've got that working now.  I used minicom on the remote machine,=20
->> capturing the output.  You can see me fumbling around, editing the=20
->> kernel command and booting here:
->>
->> http://intertwingly.net/stories/2009/02/09/minicom.out
->>
->> While it is difficult to make out what I did given line wrapping, et=
-c,=20
->> what I started with was:
->>
->> /boot/vmlinuz-2.6.27-11-generic=20
->> root=3DUUID=3D4fce230e-fe72-4685-aab0-294ef1c20efa ro noapic quiet s=
-plash
->>
->> After editing, what I had was
->>
->> /boot/vmlinuz-2.6.27-11-generic=20
->> root=3DUUID=3D4fce230e-fe72-4685-aab0-294ef1c20efa ro quiet splash=20
->> earlyprintk=3Dserial,ttyS0,115200 apic=3Ddebug
->>
->> As you can see, the last line I saw was "Starting up ...", after whi=
-ch=20
->> point the "MP-BIOS bug: 8254 timer not connected to IO-APIC" etc out=
-put=20
->> appeared on the monitor that is directly connected to the machine be=
-ing=20
->> booted (i.e., this text did not appear on the minicom session).
->>
->>> If this doesn't work, then the kernel earlyprintk is unlikely to wo=
-rk=20
->>> also.
->> At the moment, it looks like it works, but earlyprintk does not work=
- for=20
->> me, at least not on Ubuntu 8.10, kernel 2.6.27-11-generic.
->>
->>> Note that there may be some BIOS SETUP options related to the seria=
-l port=20
->>> -- worth checking.
->>>
->>> Also, in minicom, be sure to turn off HW flow control
->>>
->>> there is a fancy serial console document someplace on this,
->>> probably at http://tldp.org/
->> As I have managed to get grub to talk to the serial console, I did n=
-ot=20
->> explore these options further.  Please let me know if there is somet=
-hing=20
->> in particular I should explore.
->>
->>> good luck,
->>> -Len
->> - Sam Ruby
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Dr.-Ing. Matthias Kloas
+planungsteam energie + bauen Ingenieurgesellschaft mbH
+Auguste-Viktoria-Allee 101, 13403 Berlin
+Amtsgericht Charlottenburg, HRB 82174
+Gesch=C3=A4ftsf=C3=BChrer Dr. Matthias Kloas
+Tel: +49 30 / 417 006 05, Fax: +49 30 / 417 006 04
+http://www.planungsteam-eb.de/
 
-- Sam Ruby
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-HluQ6ugx1sADjTW9KN4O
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQBJkJoEfu/oDJhQuUgRArs0AKCv3ymmSSS5CEejXrZ0+y9KAJXi/QCghwWG
+3T72fRtXHfg0zgxInZSsEuA=
+=w4M8
+-----END PGP SIGNATURE-----
+
+--=-HluQ6ugx1sADjTW9KN4O--
+
