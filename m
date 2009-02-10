@@ -1,81 +1,111 @@
-From: Matthias Kloas <M.Kloas@planungsteam-eb.de>
-Subject: DMI info Lenovo T500
-Date: Mon, 09 Feb 2009 22:03:00 +0100
-Message-ID: <1234213380.6581.16.camel@localhost>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Tue, 10 Feb 2009 14:57:16 +0100
+Message-ID: <20090210145716.105ab58b@hyperion.delvare>
+References: <20090125210520.GA12963@dreamland.darkstar.lan>
+	<200901291130.35434.trenn@suse.de>
+	<68676e00901290716g1aabd6c0p1e5202fbdbc659a4@mail.gmail.com>
+	<alpine.LFD.2.00.0902040042570.9833@localhost.localdomain>
+	<20090204060513.GA28321@srcf.ucam.org>
+	<498953DF.5050306@redhat.com>
+	<20090204131708.GA2739@srcf.ucam.org>
+	<20090204142606.1823661b@hyperion.delvare>
+	<20090204142015.GB3923@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-HluQ6ugx1sADjTW9KN4O"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.planungsteam-eb.de ([217.9.60.248]:59631 "EHLO
-	mail.planungsteam-eb.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753437AbZBJMs6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2009 07:48:58 -0500
-Received: from [172.27.1.30]
-	by mail.planungsteam-eb.de with esmtp (Exim 4.63)
-	(envelope-from <M.Kloas@planungsteam-eb.de>)
-	id 1LWrHk-0006p2-0h
-	for linux-acpi@vger.kernel.org; Tue, 10 Feb 2009 13:00:16 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755846AbZBJN5w@vger.kernel.org>
+In-Reply-To: <20090204142015.GB3923@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, Luca Tettamanti <kronos.it@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+Hi Matthew,
 
---=-HluQ6ugx1sADjTW9KN4O
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Sorry for the late answer.
 
-Dear Linux-Acpi Team,
+On Wed, 4 Feb 2009 14:20:15 +0000, Matthew Garrett wrote:
+> On Wed, Feb 04, 2009 at 02:26:06PM +0100, Jean Delvare wrote:
+> > On Wed, 4 Feb 2009 13:17:09 +0000, Matthew Garrett wrote:
+> > > Personally, I'd rather that it was "strict" on everything. We might 
+> > > break some existing setups, but they're already working mostly by luck.
+> > 
+> > Are you the new hwmon and i2c subsystems maintainer and I wasn't aware
+> > of it?
+> 
+> If you've got some programmatic way to tell the difference between safe 
+> and dangerous reuse of ACPI resources then that would obviously be 
+> preferable, but I doubt that's practical.
 
-I just saw, that my syslog contains a request to send a message to you,
-a request a gladly follow:
+I wish we had such a way, but I don't know of any. If someone can think
+of one, that would be someone who knows ACPI much better than I do.
 
+> auto is a compromise that 
+> avoids one specific case of breakage, but it does nothing to protect us 
+> on the majority of systems. Allowing the firmware and the OS to attempt 
+> to access the same hardware without any locking is an invitation for 
+> disaster, and in the absence of any way to prevent the firmware from 
+> doing it...
 
-> Feb  9 19:35:13 localhost kernel: [    0.226160] ACPI: DMI System Vendor:=
- LENOVO
-> Feb  9 19:35:13 localhost kernel: [    0.226224] ACPI: DMI Product Name: =
-20825BG
-> Feb  9 19:35:13 localhost kernel: [    0.226288] ACPI: DMI Product Versio=
-n: ThinkPad T500
-> Feb  9 19:35:13 localhost kernel: [    0.226354] ACPI: DMI Board Name: 20=
-825BG
-> Feb  9 19:35:13 localhost kernel: [    0.226418] ACPI: DMI BIOS Vendor: L=
-ENOVO
-> Feb  9 19:35:13 localhost kernel: [    0.226482] ACPI: DMI BIOS Date: 08/=
-19/2008
-> Feb  9 19:35:13 localhost kernel: [    0.226546] ACPI: Please send DMI in=
-fo above to linux-acpi@vger.kernel.org
+In theory you are, of course, perfectly right. The question is, how do
+we get there without making people angry because of the regression? I
+had yet another example a few days ago:
 
-I hope that this is the right information. If you need another info please =
-feel free to ask.
-By the way linux works great on the T500 including all the acpi
-functions I tested, at least with the kernel I use (Linux version
-2.6.27-1-686 (Debian 2.6.27-1~experimental.1~snapshot.12406), so thank
-you for the good work.
+http://lists.lm-sensors.org/pipermail/lm-sensors/2009-February/025297.html
 
-Greetings,
+That system implements an ACPI thermal zone, which apparently reads its
+values from the second temperature channel of the IT8716F Super-I/O
+chip. This channels happens to be broken (not sure why but that's not
+really the point) and returns a wrong temperature value.
 
-	Matthias
+The same chip can be driven by our native it87 driver, which, on this
+specific board, provides support for 9 voltages, 3 fans, and 1 working
+temperature. Do we really have to tell the user to not use the it87
+driver and instead use the ACPI thermal driver "because that's what the
+firmware wants"?
 
+In this case, I really would like to be able to blacklist the ACPI
+thermal device, and let the it87 driver handle the device. If we can
+have such a blacklist in the kernel, then I am fine switching the
+resource conflict check to "strict" by default. But is is possible? I
+would like the ACPI people to tell me. Basically the logic would be as
+follows:
 
---=20
-Dr.-Ing. Matthias Kloas
-planungsteam energie + bauen Ingenieurgesellschaft mbH
-Auguste-Viktoria-Allee 101, 13403 Berlin
-Amtsgericht Charlottenburg, HRB 82174
-Gesch=C3=A4ftsf=C3=BChrer Dr. Matthias Kloas
-Tel: +49 30 / 417 006 05, Fax: +49 30 / 417 006 04
-http://www.planungsteam-eb.de/
+if (not laptop) {
+	if (ACPI thermal zone defined
+	 && no custom ACPI code dealing with thermal conditions) {
+		disable ACPI thermal zone and free its resources for native driver
+	}
+}
 
---=-HluQ6ugx1sADjTW9KN4O
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
+But I guess there is no way to know what exactly the ACPI thermal zone
+is doing, except by looking at the DSDT, so this can't be automated?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Is it at least possible to disable the ACPI thermal zone either as a
+command-line parameter or an internal blacklist?
 
-iD8DBQBJkJoEfu/oDJhQuUgRArs0AKCv3ymmSSS5CEejXrZ0+y9KAJXi/QCghwWG
-3T72fRtXHfg0zgxInZSsEuA=
-=w4M8
------END PGP SIGNATURE-----
+> But. Hans asked for my opinion - the maintainer's is obviously more 
+> relevant.
 
---=-HluQ6ugx1sADjTW9KN4O--
+Well, officially I am not the maintainer of the hwmon subsystem, only
+whose of the i2c subsystem. But the fact is that the resource conflict
+checking policy affects both the same way. That being said, I'm not
+sure how worth my opinion (about this specific matter) is these days...
 
+What I want you (and everyone) to realize is that just switching the
+default checking level to strict tomorrow isn't going to work. If we
+want the default to be strict then we will have to add a number of
+mechanisms to let the user override this in a way which is as easy and
+transparent as possible for the user.
+
+One approach that may work is to change the default based on the ACPI
+implementation year (I think the info is available, right?) We could
+default to strict for systems with year >= 2009. This may still prevent
+users from getting the best out of their system, but at least won't
+cause a regression for users of older systems where the native driver
+has been used so far. I know it's not an ideal solution, but ACPI
+implementations aren't ideal either.
+
+-- 
+Jean Delvare
