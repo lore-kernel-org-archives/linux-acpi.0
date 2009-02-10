@@ -1,52 +1,44 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Oopses and ACPI problems (Linus 2.6.29-rc4)
-Date: Tue, 10 Feb 2009 15:04:31 +0000
-Message-ID: <20090210150431.GA26798@srcf.ucam.org>
-References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain> <gemini.ket9w800w44dc0hvg.linux@youmustbejoking.demon.co.uk> <20090209234911.GB862@elte.hu> <5030E21460%linux@youmustbejoking.demon.co.uk>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Tue, 10 Feb 2009 16:32:24 +0100
+Message-ID: <49919E08.5050002@redhat.com>
+References: <20090125210520.GA12963@dreamland.darkstar.lan> <200901291130.35434.trenn@suse.de> <68676e00901290716g1aabd6c0p1e5202fbdbc659a4@mail.gmail.com> <alpine.LFD.2.00.0902040042570.9833@localhost.localdomain> <20090204060513.GA28321@srcf.ucam.org> <498953DF.5050306@redhat.com> <20090204131708.GA2739@srcf.ucam.org> <20090204142606.1823661b@hyperion.delvare> <20090204142015.GB3923@srcf.ucam.org> <20090210145716.105ab58b@hyperion.delvare> <20090210140829.GA25397@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52552 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531AbZBJPEk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2009 10:04:40 -0500
-Content-Disposition: inline
-In-Reply-To: <5030E21460%linux@youmustbejoking.demon.co.uk>
+Received: from mx2.redhat.com ([66.187.237.31]:44930 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753103AbZBJPbg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Feb 2009 10:31:36 -0500
+In-Reply-To: <20090210140829.GA25397@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-f>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Len Brown <lenb@kernel.org>, Luca Tettamanti <kronos.it@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Feb 10, 2009 at 02:12:44PM +0000, Darren Salt wrote:
+Matthew Garrett wrote:
+> On Tue, Feb 10, 2009 at 02:57:16PM +0100, Jean Delvare wrote:
+> 
+  year (I think the info is available, right?) We could
+>> default to strict for systems with year >= 2009. This may still prevent
+>> users from getting the best out of their system, but at least won't
+>> cause a regression for users of older systems where the native driver
+>> has been used so far. I know it's not an ideal solution, but ACPI
+>> implementations aren't ideal either.
+> 
+> The problem with this approach is that we still end up with a large 
+> number of malfunctioning machines. Really, I don't think there's any way 
+> to handle this other than defaulting to strict, letting the default be 
+> changed at run and boot time and printing a message when a driver is 
+> refused permission to bind. Distributions that want to obtain the 
+> previous behaviour can change the default back.
+> 
 
-> Reverting this fixes the rfkill oops; things work correctly again. I =
-don't
-> know why this appears to be needed, since things work fine without th=
-is patch
-> =E2=80=92 both Fn-F2 and echoing to /sys/class/rfkill/rfkill0/state =E2=
-=80=92 even when I
-> start up with init=3D/bin/sh and test directly from that shell.
+For the record we have changed the default to strict in Fedora's 
+development branch, for 2 weeks or so now, including in the recently 
+released Fedora 11 release and we've had 0 complaints so far.
 
-If this is BIOS version specific I'm going to be upset, but the general=
-=20
-case behaviour is that rfkill only works on the 901 if you either (a)=20
-pass force=3D1 to pciehp (which you shouldn't) or (b) have native suppo=
-rt=20
-in a driver. My /guess/ is that you've got pciehp loaded, and there's=20
-some kind of awkward race between it and eeepc-laptop.
+Regards,
 
->   input: ETPS/2 Elantech Touchpad as /class/input/input5
->   eeepc: Hotkey init flags 0x41
-> (not seen in .28 or .28.1; not checked later .28.*.)
-
-BIOS bug. There's an explicit delay in the eee bios for some reason, an=
-d=20
-I haven't found any straightforward way to avoid it.
-
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hans
