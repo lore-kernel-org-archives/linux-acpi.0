@@ -1,69 +1,103 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Tue, 10 Feb 2009 14:08:29 +0000
-Message-ID: <20090210140829.GA25397@srcf.ucam.org>
-References: <20090125210520.GA12963@dreamland.darkstar.lan> <200901291130.35434.trenn@suse.de> <68676e00901290716g1aabd6c0p1e5202fbdbc659a4@mail.gmail.com> <alpine.LFD.2.00.0902040042570.9833@localhost.localdomain> <20090204060513.GA28321@srcf.ucam.org> <498953DF.5050306@redhat.com> <20090204131708.GA2739@srcf.ucam.org> <20090204142606.1823661b@hyperion.delvare> <20090204142015.GB3923@srcf.ucam.org> <20090210145716.105ab58b@hyperion.delvare>
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Subject: Re: Oopses and ACPI problems (Linus 2.6.29-rc4)
+Date: Tue, 10 Feb 2009 14:12:44 +0000
+Message-ID: <5030E21460%linux@youmustbejoking.demon.co.uk>
+References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain>
+ <gemini.ket9w800w44dc0hvg.linux@youmustbejoking.demon.co.uk>
+ <20090209234911.GB862@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41842 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754435AbZBJOIj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2009 09:08:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20090210145716.105ab58b@hyperion.delvare>
+Received: from lon1-post-2.mail.demon.net ([195.173.77.149]:45757 "EHLO
+	lon1-post-2.mail.demon.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755075AbZBJOzL convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Feb 2009 09:55:11 -0500
+In-Reply-To: <20090209234911.GB862@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Len Brown <lenb@kernel.org>, Luca Tettamanti <kronos.it@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Garrett <mjg@redhat.com>, Corentin Chary <corentincj@iksaif.net>
 
-On Tue, Feb 10, 2009 at 02:57:16PM +0100, Jean Delvare wrote:
+[Adding Matthew Garrett & Corentin Chary to Cc]
 
-> In theory you are, of course, perfectly right. The question is, how do
-> we get there without making people angry because of the regression? 
+I demand that Ingo Molnar may or may not have written...
 
-The only thing we can do is add a printk that informs users that passing 
-a boot argument will allow them to use the drivers as they used to.
+> * Darren Salt <linux@youmustbejoking.demon.co.uk> wrote:
+>> I'm seeing various oopses with -rc4, where -rc3 is fine; config, dme=
+sg
+>> (captured via netconsole) and decoded oops data attached =C2=B9. The=
+ last few
+>> oopses were followed by a scrambled display and a hard lockup.
 
-> The same chip can be driven by our native it87 driver, which, on this
-> specific board, provides support for 9 voltages, 3 fans, and 1 working
-> temperature. Do we really have to tell the user to not use the it87
-> driver and instead use the ACPI thermal driver "because that's what the
-> firmware wants"?
+>> All oopses follow an otherwise successful suspend-to-RAM.
 
-It's valid (if dumb) for vendors to design their platforms such that 
-enabling ACPI and then not using the thermal code may result in hardware 
-damage. We have no way of determining that in advance, so all we can do 
-is tell the user that they can pass an argument if they know it's safe 
-to do so.
+> Various folks Cc:-ed. There's been a late, rather large ACPI merge, s=
+o
+> one post-rc3 suspect would be one of these commits:
 
-> But I guess there is no way to know what exactly the ACPI thermal zone
-> is doing, except by looking at the DSDT, so this can't be automated?
+[snip]
+> 7695fb0: eeepc-laptop: fix oops when changing backlight brightness du=
+ring
+eeepc-laptop init
 
-Correct.
+No, that one's harmless :-)
 
-> Is it at least possible to disable the ACPI thermal zone either as a
-> command-line parameter or an internal blacklist?
+[snip]
+> 2b25c9f: eeepc-laptop: use netlink interface
 
-It's possible, and we could certainly add an argument to do so. However, 
-removing support for the kernel use of the thermal zone doesn't prevent 
-the firmware from making calls to the thermal code itself. There's no 
-real way we can block that.
+That one makes acpid (apparently) useless. The rest of the commit descr=
+iption
+is:
+    To be prepared for /proc/acpi/event removal we export events
+    also through generic netlink interface.
 
-> One approach that may work is to change the default based on the ACPI
-> implementation year (I think the info is available, right?) We could
-> default to strict for systems with year >= 2009. This may still prevent
-> users from getting the best out of their system, but at least won't
-> cause a regression for users of older systems where the native driver
-> has been used so far. I know it's not an ideal solution, but ACPI
-> implementations aren't ideal either.
+Note that "also". The actual effect of the patch is "instead".
 
-The problem with this approach is that we still end up with a large 
-number of malfunctioning machines. Really, I don't think there's any way 
-to handle this other than defaulting to strict, letting the default be 
-changed at run and boot time and printing a message when a driver is 
-refused permission to bind. Distributions that want to obtain the 
-previous behaviour can change the default back.
+Adding the two removed lines (but removing the post-increment of the ev=
+ent
+count) fixes this.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> 5740294: eeepc-laptop: Implement rfkill hotplugging in eeepc-laptop
+
+Reverting this fixes the rfkill oops; things work correctly again. I do=
+n't
+know why this appears to be needed, since things work fine without this=
+ patch
+=E2=80=92 both Fn-F2 and echoing to /sys/class/rfkill/rfkill0/state =E2=
+=80=92 even when I
+start up with init=3D/bin/sh and test directly from that shell.
+
+(901; BIOS rev. 1808.)
+
+[snip]
+> 2a7dc0d: asus-laptop: use generic netlink interface
+
+That one also says "also" where it should say "instead" (not that it af=
+fects
+me).
+
+=2E.. oh yes, there's a long delay between output of these two lines du=
+ring
+boot:
+  input: ETPS/2 Elantech Touchpad as /class/input/input5
+  eeepc: Hotkey init flags 0x41
+(not seen in .28 or .28.1; not checked later .28.*.)
+
+Anyway, a patch for the ACPI reporting problems will follow this messag=
+e.
+
+[snip]
+--=20
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + Output less CO2 =3D> avoid massive flooding.    TIME IS RUNNING OUT=
+ *FAST*.
+
+Life is that brief interlude between nothingness and eternity.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
