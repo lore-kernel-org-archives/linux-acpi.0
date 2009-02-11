@@ -1,171 +1,257 @@
-From: Sam Ruby <rubys@intertwingly.net>
-Subject: Re: [APIC] Kernel panic, rsync corruption, intel q8200, 2.6.28-rc8
-Date: Tue, 10 Feb 2009 21:06:51 -0500
-Message-ID: <499232BB.2030309@intertwingly.net>
-References: <4978767D.4060700@intertwingly.net>	 <20090130000758.1dff0113.akpm@linux-foundation.org>	 <498885CC.4060509@intertwingly.net>	 <20090203114849.b661f1ce.akpm@linux-foundation.org>	 <alpine.LFD.2.00.0902032152180.22800@localhost.localdomain>	 <49890B46.8020308@intertwingly.net>	 <alpine.LFD.2.00.0902032336000.5607@localhost.localdomain>	 <4990C14B.7060802@intertwingly.net>	 <1234231805.3706.80.camel@localhost.localdomain>	 <49916927.9080200@intertwingly.net> <1234316533.3706.104.camel@localhost.localdomain>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: ACPI regression in 2.6.29 - cpufreq_performance doesn't work
+Date: Wed, 11 Feb 2009 14:10:18 +0900
+Message-ID: <20090211051017.GA641@kamineko.org>
+References: <cc0fa41f0902091953y2ab718fcmdbd1c42acf270e08@mail.gmail.com> <20090210045803.GA31755@kamineko.org> <cc0fa41f0902092215i44823962t39033f6b987f273f@mail.gmail.com> <20090210110802.GB31755@kamineko.org> <cc0fa41f0902101810m77d7054ar7df7b3804cc61e66@mail.gmail.com> <cc0fa41f0902101815s149b3b06mb3fbb72363b49765@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121]:33158 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254AbZBKCGz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2009 21:06:55 -0500
-In-Reply-To: <1234316533.3706.104.camel@localhost.localdomain>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:40984
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750746AbZBKFKU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Feb 2009 00:10:20 -0500
+Content-Disposition: inline
+In-Reply-To: <cc0fa41f0902101815s149b3b06mb3fbb72363b49765@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "Maciej W. Rozycki" <macro@linux-mips.org>
+To: Guilherme Malschitzky Schroeder <guilherme.m.schroeder@gmail.com>
+Cc: linux-kernel@vger.kernel.org, venkatesh.pallipadi@intel.com, CPUFreq Mailing List <cpufreq@lists.linux.org.uk>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-yakui_zhao wrote:
-> On Tue, 2009-02-10 at 19:46 +0800, Sam Ruby wrote:
->> yakui_zhao wrote:
->>> On Tue, 2009-02-10 at 07:50 +0800, Sam Ruby wrote:
->>>> Len Brown wrote:
->>>>>>> Do you have a second computer around with a serial port ? If ye=
-s, then
->>>>>>> please add the following to the kernel command line:
->>>>>>>
->>>>>>>        earlyprintk=3Dserial,ttyS0,115200 apic=3Ddebug
->>>>>>>
->>>>>>> and connect the serial ports with a null modem cable. Fire up a
->>>>>>> terminal program on the second machine and capture the output.
->>>>>> I do have a second computer, and went out and bought a null mode=
-m adapter for
->>>>>> my serial cable and connected the two machines.  I've tried inst=
-alling minicom
->>>>>> and also connecting it to ttyS0 at 115200 baud on the second mac=
-hine, but when
->>>>>> I boot the first machine I don't see any output on the terminal.
->>>>> /boot/grub/menu.lst:
->>>>>
->>>>> serial --unit=3D0 --speed=3D115200 --word=3D8 --parity=3Dno --sto=
-p=3D1
->>>>> terminal --timeout=3D300 serial console
->>> Do you have an opportunity to try the boot option of "acpi=3Doff" a=
-s
->>> suggested by Lenb?
->> That also produces the "MP-BIOS bug" message and halts.
-> Do you mean that the box still can't be booted with ACPI disabled? If
-> so, it should be a BIOS bug. It had better be fixed by bios upgrading=
-=2E
+On Wed, Feb 11, 2009 at 12:15:35AM -0200, Guilherme Malschitzky Schroeder wrote:
+> On Tue, Feb 10, 2009 at 9:08 AM, Mattia Dongili <malattia@linux.it> wrote:
+> > A: Because it messes up the order in which people normally read text.
+> > Q: Why is top-posting such a bad thing?
+> > A: Top-posting.
+> > Q: What is the most annoying thing in e-mail?
+> >
+> > On Tue, Feb 10, 2009 at 04:15:00AM -0200, Guilherme Malschitzky Schroeder wrote:
+> >> yeah mattia, you were right about ondemand module was being used on
+> >> cpu1, so i couldn't remove it.
+> >> with this commited patch, both cpu's can now have different speeds.
+> >
+> > afair this has always been the case. the only difference the patch
+> > introduces is telling the BIOS where the coordination is actually done.
+> >> i was just comparing cat /proc/cpuinfo and didn't notice that cpu0 was
+> >> at 2268MHz.
+> >> cpufrequtils will need an update do deal with this change.
+> >
+> > why? what's wrong with cpufrequtils?
+> 
+> The thing i said about changing cpufrequtils it's because cpufreq-set
+> just set cpu0 governor.
+> With 2.6.29, it'll need to change cpu1 too from what i have understood right?
+> 
+> 2.6.28:
+> 
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> ondemand
+> ondemand
+> # cpufreq-set -g performance
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> performance
+> performance
+> 
+> 2.6.29:
+> 
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> performance
+> performance
+> # cpufreq-set -g ondemand
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> ondemand
+> performance
 
-Yes, that's what I mean.  Linux won't boot with acpi=3Doff, but will bo=
-ot=20
-with noapic.
+Ha! can you check the value for
+/sys/devices/system/cpu/cpu{0,1}/cpufreq/related_cpus
+?
+or even include the full output of cpufreq-info with both kernels.
 
-This is a fairly new machine, and I have yet to see where ACER has=20
-posted a more recent BIOS for this model.
+cpufreq-set behaviour has always been to only change on cpu at a time
+(defaults to cpu0, check the manpage or the notes with --help), what
+might have changed is the cpus that are required to change at the same
+time, i.e. the coordination actually switched from sw to hw for you
+(with d96f94c604453f87fe24154b87e1e9a3a72511f8).
 
->    From the following test it seems that there exists the MPS table,
-> which describes how the timer is connected with I/O APIC. But
-> unfortunately it is still incorrect.=20
->    And the timer still can't work w/o the timer override.
->   =20
->    Only when I/O apic is skipped can the box be booted. The timer is
-> connected with 8259.  And the timer can work as expected. But there
-> still exist other issue.
->    =20
->>>      From the log it seems that there exists the following warning
->>> message:
->>>     >=EF=BB=BFMP-BIOS bug: 8254 timer not connected to IO-APIC
->>>
->>>     Can you try the following boot options?
->>>     a. acpi_use_timer_override
->> That also produces the "MP-BIOS bug" message and halts.
->>
->>>     b. acpi_skip_timer_override
->> That also produces the "MP-BIOS bug" message and halts.
->>
->>>     c. noapic
->> With that, I can boot, but I get data corruption problems.  Data=20
->> corruption problems I don't see when using the same hardware but wit=
-h=20
->> Microsoft Vista.  More details can be found here:
->>
->> http://intertwingly.net/blog/2009/01/20/noAPIC
->> http://intertwingly.net/stories/2009/01/22/
->>
->> I am willing to install new kernels on fresh hard drives, run diagno=
-stic=20
->> programs and report the output, including capturing serial output.  =
-Is=20
->> there any data I can gather to help diagnose this problem?
->>
->>>     Thanks.
->>>>> is what I use.
->>>>>
->>>>> this will give you a prompt from grub even before the kernel boot=
-s
->>>>> so you can select (and edit) your kernel via menu over the serial=
- line
->>>>> if you wish.
->>>> I've got that working now.  I used minicom on the remote machine,=20
->>>> capturing the output.  You can see me fumbling around, editing the=
-=20
->>>> kernel command and booting here:
->>>>
->>>> http://intertwingly.net/stories/2009/02/09/minicom.out
->>>>
->>>> While it is difficult to make out what I did given line wrapping, =
-etc,=20
->>>> what I started with was:
->>>>
->>>> /boot/vmlinuz-2.6.27-11-generic=20
->>>> root=3DUUID=3D4fce230e-fe72-4685-aab0-294ef1c20efa ro noapic quiet=
- splash
->>>>
->>>> After editing, what I had was
->>>>
->>>> /boot/vmlinuz-2.6.27-11-generic=20
->>>> root=3DUUID=3D4fce230e-fe72-4685-aab0-294ef1c20efa ro quiet splash=
-=20
->>>> earlyprintk=3Dserial,ttyS0,115200 apic=3Ddebug
->>>>
->>>> As you can see, the last line I saw was "Starting up ...", after w=
-hich=20
->>>> point the "MP-BIOS bug: 8254 timer not connected to IO-APIC" etc o=
-utput=20
->>>> appeared on the monitor that is directly connected to the machine =
-being=20
->>>> booted (i.e., this text did not appear on the minicom session).
->>>>
->>>>> If this doesn't work, then the kernel earlyprintk is unlikely to =
-work=20
->>>>> also.
->>>> At the moment, it looks like it works, but earlyprintk does not wo=
-rk for=20
->>>> me, at least not on Ubuntu 8.10, kernel 2.6.27-11-generic.
->>>>
->>>>> Note that there may be some BIOS SETUP options related to the ser=
-ial port=20
->>>>> -- worth checking.
->>>>>
->>>>> Also, in minicom, be sure to turn off HW flow control
->>>>>
->>>>> there is a fancy serial console document someplace on this,
->>>>> probably at http://tldp.org/
->>>> As I have managed to get grub to talk to the serial console, I did=
- not=20
->>>> explore these options further.  Please let me know if there is som=
-ething=20
->>>> in particular I should explore.
->>>>
->>>>> good luck,
->>>>> -Len
->>>> - Sam Ruby
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-ac=
-pi" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> - Sam Ruby
+I'm adding linux-acpi and cpufreq ML for more. Also, leaving the full
+context below for them.
 
-- Sam Ruby
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> btw, this looks strange:
+> >>
+> >> dub:~# echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> >> dub:~# cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> >> performance
+> >> ondemand
+> >>
+> >> dub:~# cat /proc/cpuinfo | grep MH
+> >> cpu MHz         : 2268.000
+> >> cpu MHz         : 800.000
+> >>
+> >> dub:~# cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/cpuinfo_cur_freq
+> >> 2267000
+> >> 2267000
+> >
+> > well the former displays what the kernel thinks the frequency is, the
+> > latter reads from hw registers and displays the real frequency.
+> > It's consistent. The kernel doesn't (and can't) know about what the hw
+> > is doing behind its back and present the user consistent information.
+> 
+> Still, i have a doubt with the frequencie of cpu1:
+> 
+> # uname -a
+> Linux dub 2.6.28.4 #1 SMP Tue Feb 10 16:35:16 BRST 2009 x86_64 GNU/Linux
+> 
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> ondemand
+> ondemand
+> 
+> # echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> performance
+> performance
+> 
+> # cat /proc/cpuinfo | grep MH
+> cpu MHz         : 2268.000
+> cpu MHz         : 2268.000
+> 
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/cpuinfo_cur_freq
+> 2267000
+> 2267000
+> 
+> # echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> ondemand
+> ondemand
+> 
+> # uname -a
+> Linux dub 2.6.29-rc4 #28 SMP Tue Feb 10 02:22:06 BRST 2009 x86_64 GNU/Linux
+> 
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> ondemand
+> ondemand
+> 
+> # echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_governor
+> performance
+> ondemand
+> 
+> # cat /proc/cpuinfo | grep MH
+> cpu MHz         : 2268.000
+> cpu MHz         : 800.000
+> 
+> # cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/cpuinfo_cur_freq
+> 2267000
+> 2268000
+> 
+> So, cpu1 is working at 2268MHz or 800? It's using the ondemand
+> governor or performance governor?
+> 
+> >
+> >> dub:~# cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_min_freq
+> >> 800000
+> >> 800000
+> >>
+> >> dub:~# cat /sys/devices/system/cpu/cpu{0,1}/cpufreq/scaling_available_frequencies
+> >> 2268000 2267000 1600000 800000
+> >> 2268000 2267000 1600000 800000
+> >>
+> >> doesn't cpu0/cpufreq/scaling_min_freq needs to be 2268000 and
+> >> scaling_frequencies
+> >> just have 2268000 because it's set to "performance"?
+> >>
+> >> am i forgetting anything else to set?
+> >
+> > no, if I understand your question correctly you're just misinterpreting
+> > what those files are for, take a look at Documentation/cpu-freq
+> >
+> >> thanks,
+> >>
+> >>
+> >> On Tue, Feb 10, 2009 at 2:58 AM, Mattia Dongili <malattia@linux.it> wrote:
+> >> > On Tue, Feb 10, 2009 at 01:53:13AM -0200, Guilherme Malschitzky Schroeder wrote:
+> >> >> Hi,
+> >> >>
+> >> >> If i set performance for scaling_governor using 2.6.29-rc4-git2,
+> >> >> ondemand stills control my CPU.
+> >> >> I get just 800MHz instead of 2268MHz.
+> >> >>
+> >> >> dub:/sys/devices/system/cpu/cpu0/cpufreq# cat cpuinfo_cur_freq
+> >> >> 800000
+> >> >> dub:/sys/devices/system/cpu/cpu0/cpufreq# echo performance > scaling_governor
+> >> >> dub:/sys/devices/system/cpu/cpu0/cpufreq# cat scaling_governor
+> >> >> performance
+> >> >> dub:/sys/devices/system/cpu/cpu0/cpufreq# cat cpuinfo_cur_freq
+> >> >> 2267000
+> >> >>
+> >> >> But, /proc/cpuinfo still shows 800MHz:
+> >> >>
+> >> >> model name      : Intel(R) Core(TM)2 Duo CPU     P8400  @ 2.26GHz
+> >> >> stepping        : 6
+> >> >> cpu MHz         : 800.000
+> >> >>
+> >> >> And i cannot remove the ondemand module, that is not used anymore:
+> >> >>
+> >> >> dub:/sys/devices/system/cpu/cpu0/cpufreq# rmmod cpufreq_ondemand
+> >> >> ERROR: Module cpufreq_ondemand is in use
+> >> >
+> >> > yes, I guess it is used by cpu1, you should repeat the above commands
+> >> > for /sys/devices/system/cpu/cpu1/cpufreq too.
+> >> >
+> >> > ...
+> >> >> I've git bisect from 2.6.28.4 (which was working) to 2.6.29-rc4-git2
+> >> >> and i get into this:
+> >> >>
+> >> >> alemao@dub:~/linux-2.6$ git bisect good
+> >> >> d96f94c604453f87fe24154b87e1e9a3a72511f8 is first bad commit
+> >> >> commit d96f94c604453f87fe24154b87e1e9a3a72511f8
+> >> >> Author: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+> >> >> Date:   Mon Feb 2 11:57:18 2009 -0800
+> >> >>
+> >> >>     ACPI: Enable bit 11 in _PDC to advertise hw coord
+> >> >>
+> >> >>     Bit 11 in intel PDC definitions is meant for OS capability to handle
+> >> >>     hardware coordination of P-states. In Linux we have always supported
+> >> >>     hwardware coordination of P-states. Just let the BIOSes know that we
+> >> >>     support it, by setting this bit.
+> >> >>
+> >> >>     Some BIOSes use this bit to choose between hardware or software coordination
+> >> >>     and without this change below, BIOSes switch to software coordination, which
+> >> >>     is not very optimal in terms of power consumption and extra
+> >> >> wakeups from idle.
+> >> >>
+> >> >>     Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> >> >>     Signed-off-by: Len Brown <len.brown@intel.com>
+> >> >
+> >> > the "coordination of P-states" is required when you have an SMP system
+> >> > that cannot scale cpu voltage independently on each cpu, so the best
+> >> > voltage/frequency have to be selected mediating between all the applied
+> >> > policies.
+> >> > The commit you found above just makes use hw coordination instead of sw
+> >> > and the message explains why.
+> >> >
+> >> > If you make sure you change *all* of the cpu policies you won't see the
+> >> > behaviour you describe.
+> >> >
+> >> > hth
+> >> > --
+> >> > mattia
+> >> > :wq
+> >> >
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> Please read the FAQ at  http://www.tux.org/lkml/
+> >>
+> > --
+> > mattia
+> > :wq!
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+-- 
+mattia
+:wq!
