@@ -1,89 +1,46 @@
-From: Klaus Lichtenwalder <k.lichtenwalder@computer.org>
-Subject: Temperature ridicuously high
-Date: Wed, 11 Feb 2009 17:34:20 +0100
-Message-ID: <1234370060.4341.9.camel@nepomuk.localdomain>
-Reply-To: k.lichtenwalder@computer.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ECW7EKH4kmdXvbOivg+Q"
+From: Andy Whitcroft <apw@canonical.com>
+Subject: [PATCH 1/1] switch the Asus Pundit P1-AH2 to old acpi sleep ordering
+Date: Wed, 11 Feb 2009 18:11:22 +0000
+Message-ID: <1234375882-5193-1-git-send-email-apw@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f20.google.com ([209.85.220.20]:43189 "EHLO
-	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757850AbZBKQeb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Feb 2009 11:34:31 -0500
-Received: by fxm13 with SMTP id 13so799615fxm.13
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Feb 2009 08:34:28 -0800 (PST)
+Received: from adelie.canonical.com ([91.189.90.139]:37046 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754784AbZBKSL0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Feb 2009 13:11:26 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Andy Whitcroft <apw@canonical.com>, Dustin Kirkland <kirkland@canonical.com>
 
+Switch the Asus Pundit P1-AH2 (M2N8L motherboard) to the old ACPI 1.0
+sleep ordering by default.  Without this it will not suspend/resume
+correctly.
 
---=-ECW7EKH4kmdXvbOivg+Q
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Tested-by: Dustin Kirkland <kirkland@canonical.com>
+---
+ drivers/acpi/sleep.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-Hi,
-
-I'm a bit of a loss, I can't find anything about that on google or in
-the archive. I do have to machines with a foxconn G31MX motherboard.
-Everything is working fine, except the thermal_zone temperature is
-ridicuously high. I get a continous reading of about 200=C2=B0... Sometimes=
- a
-machine shuts down because of too high values. In the same time, the
-cores (Intel 5200 DualCore) have a temperature of ca. 52=C2=B0. If I shut
-down the machine and check the bios reading, the temperature is at about
-50=C2=B0... There's been a discussion with broken bioses on foxconn (mine
-have an award bios), but the problem there was suspend.
-
-I'm on Fedora 10. I activated the debug kernel and got the following log
-from acpi:
-
-Feb 11 16:13:21 nepomuk kernel: Execute Method: [\_TZ_.THRM._TMP] (Node
-ffff8800ceea8ea0)
-Feb 11 16:13:21 nepomuk kernel: exregion-0186 [00]
-ex_system_memory_space: System-Memory (width 16) R/W 0
-Address=3D00000000000FF81A
-Feb 11 16:13:21 nepomuk kernel: exregion-0186 [00]
-ex_system_memory_space: System-Memory (width 8) R/W 0
-Address=3D00000000000FF81C
-Feb 11 16:13:21 nepomuk kernel: exregion-0289 [00]
-ex_system_io_space_han: System-IO (width 8) R/W 1
-Address=3D0000000000000295
-Feb 11 16:13:21 nepomuk kernel: exregion-0289 [00]
-ex_system_io_space_han: System-IO (width 8) R/W 0
-Address=3D0000000000000296
-Feb 11 16:13:21 nepomuk kernel: exregion-0186 [00]
-ex_system_memory_space: System-Memory (width 8) R/W 0
-Address=3D00000000000FF81C
-Feb 11 16:13:21 nepomuk kernel: exregion-0186 [00]
-ex_system_memory_space: System-Memory (width 8) R/W 0
-Address=3D00000000000FF840
-Feb 11 16:13:21 nepomuk kernel:   utils-0291 [00]
-evaluate_integer      : Return value [4772]
-Feb 11 16:13:21 nepomuk kernel: thermal-0262 [00]
-thermal_get_temperatur: Temperature is 4772 dK
-
-If somebody could help besides manipulating the kernel routine, this
-would be greatly appreciated.
-
-thanks,
-Klaus
---=20
-------------------------------------------------------------------------=20
- Klaus Lichtenwalder, Dipl. Inform.,  http://lklaus.homelinux.org/Klaus/
- PGP Key fingerprint: A5C0 F73A 2C83 96EE 766B  9C62 DB6D 1258 0E9B B6D1
-
-
---=-ECW7EKH4kmdXvbOivg+Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkmS/gcACgkQ220SWA6bttGdAgCfXy73IbkqtojnXt1XAguXjnr9
-MlkAnRchyfWjYT4aOIv86fH4CIQLoVJ9
-=yWcp
------END PGP SIGNATURE-----
-
---=-ECW7EKH4kmdXvbOivg+Q--
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 5192666..3ca9868 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -378,6 +378,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
+ 		},
+ 	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
++		},
++	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
+-- 
+1.6.1.2.419.g0d87e
 
