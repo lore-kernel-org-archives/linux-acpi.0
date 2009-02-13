@@ -1,44 +1,34 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: X200: Brightness broken since 2.6.29-rc4-58-g4c098bc
-Date: Fri, 13 Feb 2009 13:05:28 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902131302240.3671@localhost.localdomain>
-References: <20090213093354.GA10175@denkbrett.schottelius.org>
- <20090213094200.GC17774@elte.hu>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
+Date: Fri, 13 Feb 2009 12:40:41 -0800
+Message-ID: <200902131240.42943.jbarnes@virtuousgeek.org>
+References: <1233766786.16414.26.camel@localhost.localdomain> <20090204181738.GA16174@elte.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:11723 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755440AbZBMSFs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Feb 2009 13:05:48 -0500
-In-reply-to: <20090213094200.GC17774@elte.hu>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090204181738.GA16174@elte.hu>
+Content-Disposition: inline
+Sender: linux-pci-owner@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>
-Cc: Nico Schottelius <nico-linux-20090213@schottelius.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
+Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-> > When using
-> >   - vmlinuz-2.6.29-rc4-ikn-00058-g4c098bc or
-> >   - vmlinuz-2.6.29-rc4-ikn-00211-g37bed90
-> > 
-> > the brightness of the LCD is almost off (lowest level),
-> > although kernel reports otherwise:
-> > 
-> > [10:31] ikn:~% cat /proc/acpi/video/VID/LCD0/brightness 
-> > levels:  20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 100
-> > current: 100
-> > 
-> > Changing the brightness via echo 20 > /proc/acpi/video/VID/LCD0/brightness
-> > only changes the value displayed, the display always keeps the same
-> > brightness.
-> > 
-> > The last time I saw it working was vmlinuz-2.6.29-rc4-ikn-00001-gd5b5623.
+On Wednesday, February 4, 2009 10:17 am Ingo Molnar wrote:
+> But again, nice patch and it would be nice to see this concept hit
+> mainline.
 
-Nico,
-there are not a lot of changes between rc4 and the breakage,
-(and none of them jump out at me) can you git-bisect?
+Yeah, concept seems fine, and the cleanups you suggested sound good (splitting 
+the files would make things clearer, and some of that stuff probably belongs 
+in the ACPI or PNP core anyway).
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+My only concern is that enabling mmconfig w/o a reservation (as might happen 
+if ACPI was disabled) may cause problems since it could overlap with other 
+space.  That was one of the issues we ran into when enabling it in the first 
+place...  But we've worked around it so far so I'm happy to give it a spin 
+for the next cycle.
 
-
+Thanks,
+-- 
+Jesse Barnes, Intel Open Source Technology Center
