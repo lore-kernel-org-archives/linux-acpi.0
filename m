@@ -1,33 +1,42 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] thermal: support forcing support for passive cooling
-Date: Fri, 13 Feb 2009 01:21:10 +0000
-Message-ID: <20090213012110.GA9221@srcf.ucam.org>
-References: <20081127174813.GA24258@srcf.ucam.org> <20081127174956.GB24258@srcf.ucam.org> <20081203175532.GA20770@srcf.ucam.org> <20081203180038.GB20770@srcf.ucam.org> <20081228152240.GB13424@srcf.ucam.org> <20090106224238.GA6023@srcf.ucam.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: ACPI: S4 disappeared [mmotm 2009-02-10-16-35]
+Date: Fri, 13 Feb 2009 10:37:49 +0100
+Message-ID: <20090213093749.GA29550@atrey.karlin.mff.cuni.cz>
+References: <200902110036.n1B0aBZs013975@imap1.linux-foundation.org> <499291A3.9070501@gmail.com> <4992A59F.5090502@gmail.com> <200902111643.10191.rjw@sisk.pl> <20090211162247.GA32301@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:45348 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbZBMBVR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Feb 2009 20:21:17 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42985 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbZBMJhu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Feb 2009 04:37:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20090106224238.GA6023@srcf.ucam.org>
+In-Reply-To: <20090211162247.GA32301@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, sujith.thomas@intel.com
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiri Slaby <jirislaby@gmail.com>, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 
-On Tue, Jan 06, 2009 at 10:42:38PM +0000, Matthew Garrett wrote:
-> On Sun, Dec 28, 2008 at 03:22:40PM +0000, Matthew Garrett wrote:
-> > Hi Len,
-> > 
-> > I'd be keen on getting these into .29. Is there any problem with them as 
-> > it stands?
+> ---------------->
+> From 17993b49b1f540aace8e9b4242530d0b3376eb2a Mon Sep 17 00:00:00 2001
+> From: Ingo Molnar <mingo@elte.hu>
+> Date: Wed, 11 Feb 2009 17:20:51 +0100
+> Subject: [PATCH] x86: make hibernation always-possible
 > 
-> Ping?
+> This commit:
+> 
+>   aced3ce: x86/Voyager: remove HIBERNATION Kconfig quirk
+> 
+> Made hibernation only available on UP - instead of making it available
+> on all of x86. Fix it.
+> 
+> Reported-by: Jiri Slaby <jirislaby@gmail.com>
+> Signed-off-by: Ingo Molnar <mingo@elte.hu>
 
-Len? Looks like we're too late for .29, but I'd like to get some 
-indication whether you're happy to push these for .30.
+ACK.
+
+									Pavel
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
