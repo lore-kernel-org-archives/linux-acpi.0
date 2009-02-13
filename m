@@ -1,34 +1,36 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
-Date: Fri, 13 Feb 2009 12:40:41 -0800
-Message-ID: <200902131240.42943.jbarnes@virtuousgeek.org>
-References: <1233766786.16414.26.camel@localhost.localdomain> <20090204181738.GA16174@elte.hu>
+Subject: Re: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
+Date: Fri, 13 Feb 2009 13:24:31 -0800
+Message-ID: <200902131324.32281.jbarnes@virtuousgeek.org>
+References: <498FD420.9000204@jp.fujitsu.com> <498FD451.9070205@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090204181738.GA16174@elte.hu>
+In-Reply-To: <498FD451.9070205@jp.fujitsu.com>
 Content-Disposition: inline
 Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Patterson <andrew.patterson@hp.com>, Alex Chiang <achiang@hp.com>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 4, 2009 10:17 am Ingo Molnar wrote:
-> But again, nice patch and it would be nice to see this concept hit
-> mainline.
+On Sunday, February 8, 2009 10:59 pm Kenji Kaneshige wrote:
+> Move PCI _OSC management code from drivers/pci/pci-acpi.c to
+> drivers/acpi/pci_root.c. The benefits are
+>
+> - We no longer need struct osc_data and its management code (contents
+>   are moved to struct acpi_pci_root). This simplify the code, and we
+>   no longer care about kmalloc() failure.
+>
+> - We can make pci_acpi_osc_support() be a static function, which is
+>   called only from drivers/acpi/pci_root.c.
+>
+> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> Reviewed-by: Andrew Patterson <andrew.patterson@hp.com>
+> Tested-by: Andrew Patterson <andrew.patterson@hp.com>
 
-Yeah, concept seems fine, and the cleanups you suggested sound good (splitting 
-the files would make things clearer, and some of that stuff probably belongs 
-in the ACPI or PNP core anyway).
+Applied this series, thanks Kenji-san, Andrew & Alex.
 
-My only concern is that enabling mmconfig w/o a reservation (as might happen 
-if ACPI was disabled) may cause problems since it could overlap with other 
-space.  That was one of the issues we ran into when enabling it in the first 
-place...  But we've worked around it so far so I'm happy to give it a spin 
-for the next cycle.
-
-Thanks,
 -- 
 Jesse Barnes, Intel Open Source Technology Center
