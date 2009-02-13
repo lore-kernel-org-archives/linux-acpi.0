@@ -1,42 +1,44 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: ACPI: S4 disappeared [mmotm 2009-02-10-16-35]
-Date: Fri, 13 Feb 2009 10:37:49 +0100
-Message-ID: <20090213093749.GA29550@atrey.karlin.mff.cuni.cz>
-References: <200902110036.n1B0aBZs013975@imap1.linux-foundation.org> <499291A3.9070501@gmail.com> <4992A59F.5090502@gmail.com> <200902111643.10191.rjw@sisk.pl> <20090211162247.GA32301@elte.hu>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: X200: Brightness broken since 2.6.29-rc4-58-g4c098bc
+Date: Fri, 13 Feb 2009 13:05:28 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902131302240.3671@localhost.localdomain>
+References: <20090213093354.GA10175@denkbrett.schottelius.org>
+ <20090213094200.GC17774@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42985 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760AbZBMJhu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Feb 2009 04:37:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20090211162247.GA32301@elte.hu>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:11723 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755440AbZBMSFs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Feb 2009 13:05:48 -0500
+In-reply-to: <20090213094200.GC17774@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiri Slaby <jirislaby@gmail.com>, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
+Cc: Nico Schottelius <nico-linux-20090213@schottelius.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-> ---------------->
-> From 17993b49b1f540aace8e9b4242530d0b3376eb2a Mon Sep 17 00:00:00 2001
-> From: Ingo Molnar <mingo@elte.hu>
-> Date: Wed, 11 Feb 2009 17:20:51 +0100
-> Subject: [PATCH] x86: make hibernation always-possible
-> 
-> This commit:
-> 
->   aced3ce: x86/Voyager: remove HIBERNATION Kconfig quirk
-> 
-> Made hibernation only available on UP - instead of making it available
-> on all of x86. Fix it.
-> 
-> Reported-by: Jiri Slaby <jirislaby@gmail.com>
-> Signed-off-by: Ingo Molnar <mingo@elte.hu>
+> > When using
+> >   - vmlinuz-2.6.29-rc4-ikn-00058-g4c098bc or
+> >   - vmlinuz-2.6.29-rc4-ikn-00211-g37bed90
+> > 
+> > the brightness of the LCD is almost off (lowest level),
+> > although kernel reports otherwise:
+> > 
+> > [10:31] ikn:~% cat /proc/acpi/video/VID/LCD0/brightness 
+> > levels:  20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 100
+> > current: 100
+> > 
+> > Changing the brightness via echo 20 > /proc/acpi/video/VID/LCD0/brightness
+> > only changes the value displayed, the display always keeps the same
+> > brightness.
+> > 
+> > The last time I saw it working was vmlinuz-2.6.29-rc4-ikn-00001-gd5b5623.
 
-ACK.
+Nico,
+there are not a lot of changes between rc4 and the breakage,
+(and none of them jump out at me) can you git-bisect?
 
-									Pavel
+thanks,
+Len Brown, Intel Open Source Technology Center
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
