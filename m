@@ -1,36 +1,37 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH 1/2] PCI/ACPI: move _OSC code to pci_root.c
-Date: Fri, 13 Feb 2009 13:24:31 -0800
-Message-ID: <200902131324.32281.jbarnes@virtuousgeek.org>
-References: <498FD420.9000204@jp.fujitsu.com> <498FD451.9070205@jp.fujitsu.com>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: ACPI hotplug panic with current git head
+Date: Fri, 13 Feb 2009 16:30:03 -0800
+Message-ID: <200902131630.04858.jesse.barnes@intel.com>
+References: <1231604250.3642.33.camel@localhost.localdomain> <497D1BD7.9000609@jp.fujitsu.com> <498045D1.60005@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <498FD451.9070205@jp.fujitsu.com>
+In-Reply-To: <498045D1.60005@jp.fujitsu.com>
 Content-Disposition: inline
 Sender: linux-pci-owner@vger.kernel.org
 To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Andrew Patterson <andrew.patterson@hp.com>, Alex Chiang <achiang@hp.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>, Grant Grundler <grundler@parisc-linux.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, February 8, 2009 10:59 pm Kenji Kaneshige wrote:
-> Move PCI _OSC management code from drivers/pci/pci-acpi.c to
-> drivers/acpi/pci_root.c. The benefits are
+On Wednesday, January 28, 2009 3:47 am Kenji Kaneshige wrote:
+> I made several patches to fix the wrong assumption described
+> above. It is very difficult for me to check all the code that
+> refers pci_bus->self. So I checked include/linux/pci-acpi.h and
+> the code under drivers/pci/ only. And I made patches for the code
+> like below:
 >
-> - We no longer need struct osc_data and its management code (contents
->   are moved to struct acpi_pci_root). This simplify the code, and we
->   no longer care about kmalloc() failure.
+>  - The code that clearly chooses host bridge operation or
+>    PCI-to-PCI bridge operation based on pci_bus->self.
 >
-> - We can make pci_acpi_osc_support() be a static function, which is
->   called only from drivers/acpi/pci_root.c.
->
-> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-> Reviewed-by: Andrew Patterson <andrew.patterson@hp.com>
-> Tested-by: Andrew Patterson <andrew.patterson@hp.com>
+>  - The code that might cause endless loop if pci_bus->self is
+>    not NULL on the PCI root bus.
 
-Applied this series, thanks Kenji-san, Andrew & Alex.
+Kenji-san, can you re-send these to my private mail so I can apply them?  
+(Outlook/Exchange can't let plain text through without molesting it for some 
+reason.)
 
+Thanks,
 -- 
 Jesse Barnes, Intel Open Source Technology Center
