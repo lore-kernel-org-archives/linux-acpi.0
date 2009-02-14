@@ -1,66 +1,44 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: linux-acpi@vger.kernel.org
-Date: Sat, 14 Feb 2009 08:52:35 +0000
-Message-ID: <200902140852.36282.carlos@strangeworlds.co.uk>
-References: <87r623cz5i.fsf@free.fr>
+Subject: [PATCH 0/4] WMI patches for 2.6.29-rc5
+Date: Sat, 14 Feb 2009 09:53:43 +0000
+Message-ID: <20090214095342.18550.24339.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:52017 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbZBNIwq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Feb 2009 03:52:46 -0500
-In-Reply-To: <87r623cz5i.fsf@free.fr>
-Content-Disposition: inline
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:33145 "EHLO
+	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
+	id S1750898AbZBNKNO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 14 Feb 2009 05:13:14 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by pegasus. (8.14.3/8.13.8) with ESMTP id n1E9rhr3018578
+	for <linux-acpi@vger.kernel.org>; Sat, 14 Feb 2009 09:53:43 GMT
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Jarzmik <robert.jarzmik@free.fr>, linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: linux-acpi@vger.kernel.org
 
-[CC'ing linux-acpi]
+Len,
 
-Len, can you pick this up please?
+The following are a set of trivial patches for 2.6.29-rc5 for ACPI-WMI and
+acer-wmi. The last patch in this series you may already have picked up,
+but is reposted here for completeness sake.
 
-On Thursday 12 February 2009 18:01:45 Robert Jarzmik wrote:
-> Would you please consider the following patch for the 2.6.29-rc trivial
-> fixes please ?
->
-> --
-> Robert
->
-> From f2bb541e2e0925d3dede3be5fd2fe618fb40a404 Mon Sep 17 00:00:00 2001
-> From: Robert Jarzmik <rjarzmik@free.fr>
-> Date: Thu, 12 Feb 2009 18:55:51 +0100
-> Subject: [PATCH] acer-wmi: Fix acpi video detection
->
-> Acer WMI video driver can be used if _no_ acpi video
-> driver is found, not the opposite.
->
-> Signed-off-by: Robert Jarzmik <rjarzmik@free.fr>
+-Carlos
+---
 
-Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Carlos Corbacho (2):
+      acer-wmi: Unmark as 'experimental'
+      ACPI: WMI: Unmark as 'experimental'
 
-> ---
->  drivers/platform/x86/acer-wmi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/platform/x86/acer-wmi.c
-> b/drivers/platform/x86/acer-wmi.c index 94c9f91..6bcca61 100644
-> --- a/drivers/platform/x86/acer-wmi.c
-> +++ b/drivers/platform/x86/acer-wmi.c
-> @@ -1297,7 +1297,7 @@ static int __init acer_wmi_init(void)
->
->  	set_quirks();
->
-> -	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
-> +	if (acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
->  		interface->capability &= ~ACER_CAP_BRIGHTNESS;
->  		printk(ACER_INFO "Brightness must be controlled by "
->  		       "generic video driver\n");
+Dan Carpenter (1):
+      acer-wmi: double free in acer_rfkill_exit()
 
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+Robert Jarzmik (1):
+      acer-wmi: Fix acpi video detection
+
+
+ drivers/platform/x86/Kconfig    |    6 ++----
+ drivers/platform/x86/acer-wmi.c |    2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
+
+
