@@ -1,48 +1,79 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 4/4] acer-wmi: Fix acpi video detection
-Date: Sat, 14 Feb 2009 09:54:04 +0000
-Message-ID: <20090214095404.18550.42478.stgit@localhost>
-References: <20090214095342.18550.24339.stgit@localhost>
+From: Klaus Lichtenwalder <k.lichtenwalder@computer.org>
+Subject: Re: Temperature ridicuously high
+Date: Sat, 14 Feb 2009 16:28:00 +0100
+Message-ID: <1234625280.3910.4.camel@nepomuk.localdomain>
+References: <1234370060.4341.9.camel@nepomuk.localdomain>
+	 <1234404608.3652.54.camel@localhost.localdomain>
+	 <1234464261.4341.14.camel@nepomuk.localdomain>
+	 <1234487001.3652.86.camel@localhost.localdomain>
+Reply-To: k.lichtenwalder@computer.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-2C+yEIPhX3mDeFvV22V+"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:33145 "EHLO
-	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1751328AbZBNKNS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Feb 2009 05:13:18 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by pegasus. (8.14.3/8.13.8) with ESMTP id n1E9s4M8018642
-	for <linux-acpi@vger.kernel.org>; Sat, 14 Feb 2009 09:54:04 GMT
-In-Reply-To: <20090214095342.18550.24339.stgit@localhost>
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:54085 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbZBNP2J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Feb 2009 10:28:09 -0500
+Received: by fxm13 with SMTP id 13so4437585fxm.13
+        for <linux-acpi@vger.kernel.org>; Sat, 14 Feb 2009 07:28:07 -0800 (PST)
+In-Reply-To: <1234487001.3652.86.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-From: Robert Jarzmik <rjarzmik@free.fr>
-
-Acer WMI video driver can be used if _no_ acpi video
-driver is found, not the opposite.
-
-Signed-off-by: Robert Jarzmik <rjarzmik@free.fr>
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
-
- drivers/platform/x86/acer-wmi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 94c9f91..6bcca61 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -1297,7 +1297,7 @@ static int __init acer_wmi_init(void)
- 
- 	set_quirks();
- 
--	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
-+	if (acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		printk(ACER_INFO "Brightness must be controlled by "
- 		       "generic video driver\n");
+--=-2C+yEIPhX3mDeFvV22V+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Am Freitag, den 13.02.2009, 09:03 +0800 schrieb yakui_zhao:
+>   =20
+>    From the /proc/acpi/thermal_zone/*/* we know that the temperature is
+> about 202. It is abnormal. But the _TMP object is related with BIOS.
+>    =20
+>    So this issue is caused by BIOS. And it had better be fixed by BIOS
+> upgrading. We can do nothing about it.
+
+>    Of course you can try the boot option of acpi=3D"!Windows 2006" and se=
+e
+> whether the temperature is still very high.
+
+This didn't help
+
+
+>    It will be great if you can confirm whether there exists this issue
+> on windows.
+
+I managed to get hold of an xp cdrom and an old hard drive. So I
+installed windows. It's giving me around 40=C2=B0... More or less what I
+would expect. So, this BIOS (still) is broken for non windows systems.
+There's no upgrade available (took the opportunity to check while
+running windows). Guess I'll write a nice (?) letter to the dealer as
+well as foxconn, just to not let this go unnoticed.
+Probably I'll give it a try overriding the dsdt ...
+
+Thanks
+Klaus
+
+
+--=20
+------------------------------------------------------------------------=20
+ Klaus Lichtenwalder, Dipl. Inform.,  http://lklaus.homelinux.org/Klaus/
+ PGP Key fingerprint: A5C0 F73A 2C83 96EE 766B  9C62 DB6D 1258 0E9B B6D1
+
+
+--=-2C+yEIPhX3mDeFvV22V+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkmW4voACgkQ220SWA6bttG9IwCfadX8GeqLk/P18tVachJ2CLZi
+yjcAn0mFWpzJ2i1AqW0WquSdmaXrWG9c
+=x0L4
+-----END PGP SIGNATURE-----
+
+--=-2C+yEIPhX3mDeFvV22V+--
 
