@@ -1,61 +1,53 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: [PATCH 1/1] ACPI: bus.c, fix error handling in acpi_bus_init
-Date: Sun, 15 Feb 2009 21:55:54 +0100
-Message-ID: <1234731354-7472-1-git-send-email-jirislaby@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 2/2] x86_64: Fix S3 fail path
+Date: Sun, 15 Feb 2009 22:46:45 +0100
+Message-ID: <200902152246.46583.rjw@sisk.pl>
+References: <200902152244.47326.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.wellnetcz.com ([212.24.148.102]:56663 "EHLO
-	smtp.wellnetcz.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738AbZBOU4G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Feb 2009 15:56:06 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:48276 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751834AbZBOVr0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Feb 2009 16:47:26 -0500
+In-Reply-To: <200902152244.47326.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jirislaby@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>, Cyrill Gorcunov <gorcunov@openvz.org>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-There was a misplaced status test. Move it to correct place and
-rollback appropriately.
+From: Jiri Slaby <jirislaby@gmail.com>
+
+As acpi_enter_sleep_state can fail, take this into account in
+do_suspend_lowlevel and don't return to the do_suspend_lowlevel's
+caller. This would break (currently) fpu status and preempt count.
+
+Technically, this means use `call' instead of `jmp' and `jmp' to
+the `resume_point' after the `call' (i.e. if
+acpi_enter_sleep_state returns=fails). `resume_point' will handle
+the restore of fpu and preempt count gracefully.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/bus.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/kernel/acpi/wakeup_64.S |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 765fd1c..79efef6 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -760,18 +760,17 @@ static int __init acpi_bus_init(void)
+Index: linux-2.6/arch/x86/kernel/acpi/wakeup_64.S
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/wakeup_64.S
++++ linux-2.6/arch/x86/kernel/acpi/wakeup_64.S
+@@ -73,7 +73,9 @@ ENTRY(do_suspend_lowlevel)
+ 	addq	$8, %rsp
+ 	movl	$3, %edi
+ 	xorl	%eax, %eax
+-	jmp	acpi_enter_sleep_state
++	call	acpi_enter_sleep_state
++	/* in case something went wrong, restore the machine status and go on */
++	jmp	resume_point
  
- 
- 	status = acpi_os_initialize1();
--
--	status =
--	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX
--		       "Unable to start the ACPI Interpreter\n");
--		goto error1;
-+		       "Unable to initialize ACPI OS objects\n");
-+		goto error0;
- 	}
- 
-+	status =
-+	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX
--		       "Unable to initialize ACPI OS objects\n");
-+		       "Unable to start the ACPI Interpreter\n");
- 		goto error1;
- 	}
- 
-@@ -832,6 +831,7 @@ static int __init acpi_bus_init(void)
- 	/* Mimic structured exception handling */
-       error1:
- 	acpi_terminate();
-+error0:
- 	return -ENODEV;
- }
- 
--- 
-1.6.1.3
-
+ 	.align 4
+ resume_point:
