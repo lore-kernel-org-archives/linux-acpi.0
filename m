@@ -1,57 +1,61 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 2/4] asus-laptop: restore acpi_generate_proc_event()
-Date: Sun, 15 Feb 2009 19:30:19 +0100
-Message-ID: <1234722621-14498-3-git-send-email-corentincj@iksaif.net>
-References: <1234722621-14498-1-git-send-email-corentincj@iksaif.net>
- <1234722621-14498-2-git-send-email-corentincj@iksaif.net>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: [PATCH 1/1] ACPI: bus.c, fix error handling in acpi_bus_init
+Date: Sun, 15 Feb 2009 21:55:54 +0100
+Message-ID: <1234731354-7472-1-git-send-email-jirislaby@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp21.services.sfr.fr ([93.17.128.1]:62695 "EHLO
-	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754287AbZBOSlN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Feb 2009 13:41:13 -0500
-Received: from smtp21.services.sfr.fr (msfrf2119 [10.18.25.33])
-	by msfrf2120.sfr.fr (SMTP Server) with ESMTP id 54D477000637
-	for <linux-acpi@vger.kernel.org>; Sun, 15 Feb 2009 19:33:23 +0100 (CET)
-In-Reply-To: <1234722621-14498-2-git-send-email-corentincj@iksaif.net>
+Received: from smtp.wellnetcz.com ([212.24.148.102]:56663 "EHLO
+	smtp.wellnetcz.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738AbZBOU4G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Feb 2009 15:56:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jirislaby@gmail.com>
 
-Restore acpi_generate_proc_event() for backward
-compatibility with old acpi scripts.
+There was a misplaced status test. Move it to correct place and
+rollback appropriately.
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 ---
- drivers/platform/x86/asus-laptop.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/acpi/bus.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 56af6cf..eeafc6c 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -815,6 +815,7 @@ static int asus_setkeycode(struct input_dev *dev, int scancode, int keycode)
- static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
- 	static struct key_entry *key;
-+	u16 count;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 765fd1c..79efef6 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -760,18 +760,17 @@ static int __init acpi_bus_init(void)
  
- 	/* TODO Find a better way to handle events count. */
- 	if (!hotk)
-@@ -832,9 +833,11 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
- 		lcd_blank(FB_BLANK_POWERDOWN);
+ 
+ 	status = acpi_os_initialize1();
+-
+-	status =
+-	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX
+-		       "Unable to start the ACPI Interpreter\n");
+-		goto error1;
++		       "Unable to initialize ACPI OS objects\n");
++		goto error0;
  	}
  
-+	count = hotk->event_count[event % 128]++;
-+	acpi_bus_generate_proc_event(hotk->device, event, count);
- 	acpi_bus_generate_netlink_event(hotk->device->pnp.device_class,
- 					dev_name(&hotk->device->dev), event,
--					hotk->event_count[event % 128]++);
-+					count);
++	status =
++	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX
+-		       "Unable to initialize ACPI OS objects\n");
++		       "Unable to start the ACPI Interpreter\n");
+ 		goto error1;
+ 	}
  
- 	if (hotk->inputdev) {
- 		key = asus_get_entry_by_scancode(event);
+@@ -832,6 +831,7 @@ static int __init acpi_bus_init(void)
+ 	/* Mimic structured exception handling */
+       error1:
+ 	acpi_terminate();
++error0:
+ 	return -ENODEV;
+ }
+ 
 -- 
-1.6.1.2
-
+1.6.1.3
 
