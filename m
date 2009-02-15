@@ -1,60 +1,35 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] thinkpad-acpi: fix module autoloading for older models
-Date: Sun, 15 Feb 2009 10:25:51 -0300
-Message-ID: <1234704351-24093-1-git-send-email-hmh@hmh.eng.br>
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH 0/4] asus-laptop and eeepc-laptop regressions
+Date: Sun, 15 Feb 2009 19:30:17 +0100
+Message-ID: <1234722621-14498-1-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:59605 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753828AbZBONZy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Feb 2009 08:25:54 -0500
+Received: from smtp21.services.sfr.fr ([93.17.128.3]:49354 "EHLO
+	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754230AbZBOSlH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Feb 2009 13:41:07 -0500
+Received: from smtp21.services.sfr.fr (msfrf2119 [10.18.25.33])
+	by msfrf2110.sfr.fr (SMTP Server) with ESMTP id 1F39E7000A57
+	for <linux-acpi@vger.kernel.org>; Sun, 15 Feb 2009 19:33:23 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Mathieu Chouquet-Stringer <mchouque@free.fr>, stable@kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, Corentin Chary <corentincj@iksaif.net>
 
-From: Mathieu Chouquet-Stringer <mchouque@free.fr>
+Hi Len,
+Patch 1:    fixes http://bugzilla.kernel.org/show_bug.cgi?id=12501
+Patch 2, 3: restore proc events for backward compatibility
+Patch 4:    may be merged later, but no big changes here
+Thanks
 
-Looking at the source, there seems to be a missing * to match my DMI
-string.  I mean for newer IBM and Lenovo's laptops you match either one
-of the following:
-MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
-MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
+Corentin Chary (4):
+  eeepc-laptop: Fix Kconfig
+  asus-laptop: restore acpi_generate_proc_event()
+  eeepc-laptop: restore acpi_generate_proc_event()
+  asus-laptop: use select instead of depends on
 
-While for older Thinkpads, you do this (for instance):
-IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
+ drivers/platform/x86/Kconfig        |    9 +++++----
+ drivers/platform/x86/asus-laptop.c  |    5 ++++-
+ drivers/platform/x86/eeepc-laptop.c |    6 +++++-
+ 3 files changed, 14 insertions(+), 6 deletions(-)
 
-with IBM_BIOS_MODULE_ALIAS being MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
-
-Note there's no * terminating the string.  As result, udev doesn't load
-anything because modprobe cannot find anything matching this (my
-machine actually):
-
-udevtest: run: '/sbin/modprobe dmi:bvnIBM:bvr1IET71WW(2.10):bd06/16/2006:svnIBM:pn236621U:pvrNotAvailable:rvnIBM:rn236621U:rvrNotAvailable:cvnIBM:ct10:cvrNotAvailable:'
-
-Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: stable@kernel.org
----
- drivers/platform/x86/thinkpad_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-
-Len, please consider this for 2.6.29.  It is an obvious one-liner.
-
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 91ae159..d218ecb 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -7524,7 +7524,7 @@ MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
-  * if it is not there yet.
-  */
- #define IBM_BIOS_MODULE_ALIAS(__type) \
--	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
-+	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW*")
- 
- /* Non-ancient thinkpads */
- MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
--- 
-1.5.6.5
 
