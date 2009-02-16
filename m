@@ -1,28 +1,37 @@
-From: Martin Atukunda <matlads@yahoo.co.uk>
-Subject: DMI info (Dell OptiPlex 210L)
-Date: Mon, 16 Feb 2009 04:12:39 +0000 (GMT)
-Message-ID: <391522.4016.qm@web23205.mail.ird.yahoo.com>
+From: Jarek Poplawski <jarkao2@gmail.com>
+Subject: Re: 2.6.29-rc5: Reported regressions from 2.6.28
+Date: Mon, 16 Feb 2009 07:29:10 +0000
+Message-ID: <20090216072910.GA4763@ff.dom.local>
+References: <juADNmcceYF.A.mdD.Mr0lJB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web23205.mail.ird.yahoo.com ([217.146.189.60]:20034 "HELO
-	web23205.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756676AbZBPETW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Feb 2009 23:19:22 -0500
+Received: from fk-out-0910.google.com ([209.85.128.185]:25377 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754168AbZBPH3U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Feb 2009 02:29:20 -0500
+Content-Disposition: inline
+In-Reply-To: <juADNmcceYF.A.mdD.Mr0lJB@chimera>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 
-[    0.216013] ACPI: BIOS _OSI(Linux) query ignored
-[    0.216013] ACPI: DMI System Vendor: Dell Inc.                
-[    0.216013] ACPI: DMI Product Name: OptiPlex 210L                
-[    0.216058] ACPI: DMI Product Version: 
-[    0.216097] ACPI: DMI Board Name: 0WJ772
-[    0.216134] ACPI: DMI BIOS Vendor: Dell Inc.                
-[    0.216175] ACPI: DMI BIOS Date: 03/29/2006
-[    0.216214] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+On 14-02-2009 21:35, Rafael J. Wysocki wrote:
+> This message contains a list of some regressions from 2.6.28, for which there
+> are no fixes in the mainline I know of.  If any of them have been fixed already,
+> please let me know.
+...
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12615
+> Subject		: boot hangs while bringing up gianfar ethernet
+> Submitter	: Ira Snyder <iws@ovro.caltech.edu>
+> Date		: 2009-01-29 19:41 (17 days old)
+> References	: http://marc.info/?l=linux-kernel&m=123325817201665&w=4
 
+Fixed by:
+commit	8707bdd48ab705a459ac1b12014075a139d1d4f9
+gianfar: Fix boot hangs while bringing up gianfar ethernet
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8707bdd48ab705a459ac1b12014075a139d1d4f9
 
-      
+Cheers,
+Jarek P.
