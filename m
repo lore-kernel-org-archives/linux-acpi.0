@@ -1,16 +1,55 @@
-From: christphen_dona@ecunet.org
-Subject: Hello Dear
-Date: Mon, 16 Feb 2009 07:35:11 -0500
-Message-ID: <200902161235.n1GCZBat026110@ecunet-web-1.ecunet.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] lenovo-sl-laptop : driver for review
+Date: Mon, 16 Feb 2009 15:18:09 +0000
+Message-ID: <20090216151809.GA4724@srcf.ucam.org>
+References: <20090216025918.66d7a466@leftboat.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.ecunet.org ([69.2.213.90]:53203 "EHLO ecunet.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754776AbZBPN0o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Feb 2009 08:26:44 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:42546 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbZBPPSN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Feb 2009 10:18:13 -0500
+Content-Disposition: inline
+In-Reply-To: <20090216025918.66d7a466@leftboat.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexandre Rostovtsev <tetromino@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-How are you ? I guess you are fine and living good. my name is christphen a beautiful young girl I find you and i'm interesting to know you and establish a serious relationship with you. I wanna be your friend for first friendship cannot be seen or even be touched, it must be felt within the heart.Hoping you feel just the way i do. Wow! friends are like clothes without them you feel naked!I  guess am right.I will tell you more about me, my family and all that maybe necessary in this relationship, If this is okay by you feel free to contact me as to enable us get to know each other better. Have a wonderful day with lot of happiness.
+On Mon, Feb 16, 2009 at 02:59:18AM -0500, Alexandre Rostovtsev wrote:
 
-best regards
-  christphen
+> +Fn F9 (eject):			KEY_EJECTCD (161)
+
+No - this is a dock eject key, not a CD eject key.
+
+> +Fn F12 (hibernate):		KEY_SUSPEND (205)
+
+> +/sys/devices/platform/lenovo-sl-laptop/rfkill/rfkill*/
+> + The bluetooth rfkill. state is the switch state (0 for bluetooth off,
+> + 1 for bluetooth on).
+> + Note that in case future versions of the driver add other rfkill switches,
+> + userspace programs should check that the rfkill name is lensl_bluetooth_sw
+
+Surely they should just be checking the rfkill type?
+
+> +control_backlight:
+> + If this parameter is set to 1, this driver will intercept brightness keys
+> + (Fn+Home and Fn+End) and control the backlight brightness. This feature is
+> + useful because the default ACPI video driver currently has poor support
+> + for the Lenovo SL series. If you enable this feature, you should add
+> + acpi_backlight=vendor
+
+Please don't do that - the kernel shouldn't be consuming the brightness 
+events itself, that should be left up to userspace. The ACPI video 
+driver is broken in this respect.
+
+> +static struct device_attribute dev_attr_bluetooth_enable =
+> +	__ATTR(bluetooth_enable, S_IWUSR | S_IRUGO,
+> +		bluetooth_enable_show, bluetooth_enable_store);
+
+You support rfkill, so I'm not sure there's a benefit in exposing the 
+same functionality via a custom sysfs node.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
