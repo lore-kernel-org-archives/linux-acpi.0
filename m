@@ -1,53 +1,38 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [2.6.29-rc5 ACPI] truncated dsobject list...
-Date: Tue, 17 Feb 2009 10:48:20 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D830858149BBB4F@orsmsx503.amr.corp.intel.com>
-References: <6278d2220902170831n3801a935x578b5dff64d00c62@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: PCI: use generic pci_swizzle_interrupt_pin()
+Date: Tue, 17 Feb 2009 13:49:10 -0700
+Message-ID: <20090217204910.4213.77580.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15060 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194AbZBQSsf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Feb 2009 13:48:35 -0500
-In-Reply-To: <6278d2220902170831n3801a935x578b5dff64d00c62@mail.gmail.com>
-Content-Language: en-US
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:28016 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbZBQUtN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Feb 2009 15:49:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel J Blueman <daniel.blueman@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
->ACPI Warning (dsobject-0502): Package List length (6) larger than
->NumElements count (4), truncated
+Use the generic pci_swizzle_interrupt_pin() instead of ACPI-specific code.
 
-This simply means that in one of the ACPI tables, a Package object was found that was declared to have 6 items. However, when parsing the package, the interpreter only found 4 items.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ drivers/acpi/pci_irq.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-It's a BIOS issue, but probably not serious unless there really is supposed to be 6 items.
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 891bdf6..be6b909 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -319,7 +319,7 @@ static struct acpi_prt_entry *acpi_pci_irq_lookup(struct pci_dev *dev, int pin)
+ 	 */
+ 	bridge = dev->bus->self;
+ 	while (bridge) {
+-		pin = (((pin - 1) + PCI_SLOT(dev->devfn)) % 4) + 1;
++		pin = pci_swizzle_interrupt_pin(dev, pin);
+ 
+ 		if ((bridge->class >> 8) == PCI_CLASS_BRIDGE_CARDBUS) {
+ 			/* PC card has the same IRQ as its cardbridge */
 
-
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Daniel J Blueman
->Sent: Tuesday, February 17, 2009 8:32 AM
->To: linux-acpi@vger.kernel.org; Linux Kernel
->Subject: [2.6.29-rc5 ACPI] truncated dsobject list...
->
->With 2.6.29-rc5 on an Intel S5000PAL server (BIOS
->S5000.86B.10.60.0091.100920081631), we see ACPI object list truncation
->[1]. Does it make sense to increase the default element allocation?
->
->Many thanks,
->  Daniel
->
->--- [1]
->
->ACPI: EC: Look up EC in DSDT
->ACPI Warning (dsobject-0502): Package List length (6) larger than
->NumElements count (4), truncated
->[20081204]
->--
->Daniel J Blueman
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
