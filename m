@@ -1,34 +1,31 @@
-From: Sarah <silvauto@bellnet.ca>
-Subject: Winner Of Compaq  Promo
-Date: Tue, 17 Feb 2009 6:56:25 -0500
-Message-ID: <20090217115625.PUTW1670.simmts8-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
-Reply-To: jerry.smith11@btinternet.com
+From: Daniel J Blueman <daniel.blueman@gmail.com>
+Subject: [2.6.29-rc5 ACPI] truncated dsobject list...
+Date: Tue, 17 Feb 2009 16:31:38 +0000
+Message-ID: <6278d2220902170831n3801a935x578b5dff64d00c62@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from simmts8-srv.bellnexxia.net ([206.47.199.166]:40938 "EHLO
-	simmts8-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751663AbZBQL41 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Feb 2009 06:56:27 -0500
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:40133 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460AbZBQQbk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Feb 2009 11:31:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: info@lotto.org
+To: linux-acpi@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>
 
-Your email ID has been awarded =A3950,000,00 GBP in the Compaq  PROMO,R=
-eply us with your info:(jerry.smith44@btinternet.com)
+With 2.6.29-rc5 on an Intel S5000PAL server (BIOS
+S5000.86B.10.60.0091.100920081631), we see ACPI object list truncation
+[1]. Does it make sense to increase the default element allocation?
 
-Name:.....
-Country:..
-Sex:......
-Addres:...
+Many thanks,
+  Daniel
 
-Regards
-Mrs Sarah Wood
+--- [1]
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ACPI: EC: Look up EC in DSDT
+ACPI Warning (dsobject-0502): Package List length (6) larger than
+NumElements count (4), truncated
+[20081204]
+-- 
+Daniel J Blueman
