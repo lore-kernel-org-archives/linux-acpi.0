@@ -1,37 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.29-rc5: Reported regressions from 2.6.28
-Date: Mon, 16 Feb 2009 22:11:29 +0100
-Message-ID: <200902162211.30830.rjw@sisk.pl>
-References: <20090216072910.GA4763@ff.dom.local>
+From: Sarah <silvauto@bellnet.ca>
+Subject: Winner Of Compaq  Promo
+Date: Tue, 17 Feb 2009 6:56:25 -0500
+Message-ID: <20090217115625.PUTW1670.simmts8-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+Reply-To: jerry.smith11@btinternet.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090216072910.GA4763@ff.dom.local>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Jarek Poplawski <jarkao2@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from simmts8-srv.bellnexxia.net ([206.47.199.166]:40938 "EHLO
+	simmts8-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751663AbZBQL41 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Feb 2009 06:56:27 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: info@lotto.org
 
-On Monday 16 February 2009, Jarek Poplawski wrote:
-> On 14-02-2009 21:35, Rafael J. Wysocki wrote:
-> > This message contains a list of some regressions from 2.6.28, for which there
-> > are no fixes in the mainline I know of.  If any of them have been fixed already,
-> > please let me know.
-> ...
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12615
-> > Subject		: boot hangs while bringing up gianfar ethernet
-> > Submitter	: Ira Snyder <iws@ovro.caltech.edu>
-> > Date		: 2009-01-29 19:41 (17 days old)
-> > References	: http://marc.info/?l=linux-kernel&m=123325817201665&w=4
-> 
-> Fixed by:
-> commit	8707bdd48ab705a459ac1b12014075a139d1d4f9
-> gianfar: Fix boot hangs while bringing up gianfar ethernet
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8707bdd48ab705a459ac1b12014075a139d1d4f9
+Your email ID has been awarded =A3950,000,00 GBP in the Compaq  PROMO,R=
+eply us with your info:(jerry.smith44@btinternet.com)
 
-Thanks, closed.
+Name:.....
+Country:..
+Sex:......
+Addres:...
 
-Rafael
+Regards
+Mrs Sarah Wood
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
