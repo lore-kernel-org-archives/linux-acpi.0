@@ -1,49 +1,57 @@
-From: Nico Schottelius <nico-kernel@schottelius.org>
-Subject: Re: X200: Brightness broken since 2.6.29-rc4-58-g4c098bc
-Date: Thu, 19 Feb 2009 10:01:43 +0100
-Message-ID: <20090219090143.GA5828@denkbrett.schottelius.org>
-References: <juADNmcceYF.A.mdD.Mr0lJB@chimera> <1234911925.9844.89.camel@gaiman> <20090217231313.GA2654@srcf.ucam.org> <200902171523.57612.jbarnes@virtuousgeek.org> <20090218093602.GA7722@denkbrett.schottelius.org> <20090213093354.GA10175@denkbrett.schottelius.org> <20090213094200.GC17774@elte.hu> <alpine.LFD.2.00.0902131302240.3671@localhost.localdomain> <20090216155434.GA5503@denkbrett.schottelius.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [BUG] >2.6.27 dies at cardbus init on laptop
+Date: Thu, 19 Feb 2009 01:22:00 -0800
+Message-ID: <20090219012200.7fe85912.akpm@linux-foundation.org>
+References: <499B0FD7.2050906@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.schottelius.org ([77.109.138.221]:42520 "EHLO
-	mx3.schottelius.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604AbZBSJEM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Feb 2009 04:04:12 -0500
-Content-Disposition: inline
-In-Reply-To: <20090218093602.GA7722@denkbrett.schottelius.org> <20090216155434.GA5503@denkbrett.schottelius.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45157 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753841AbZBSJWm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Feb 2009 04:22:42 -0500
+In-Reply-To: <499B0FD7.2050906@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nico Schottelius <nico-linux-20090213@schottelius.org>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
+To: David Pflug <dtpflug@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
+(cc linux-acpi)
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 17 Feb 2009 14:28:23 -0500 David Pflug <dtpflug@gmail.com> wrote:
 
-Issue persisting on 2.6.29-rc5-ikn-00168-gba95fd4
+> While trying to boot kernels greater than 2.6.27 on this Toshiba
+> Satellite 1135-S155, it freezes while initializing Texas Instruments
+> PCI1410 PC card Cardbus Controller [104c:ac50]. However, it boots with
+> pci=noacpi. The IRQ of the cardbus is shared by one of the USB
+> controllers and the IDE controller.
+> 
+> Identical symptoms on 2.6.29rc5.
+> 
+> Last few messages with default kernel line:
+> pci 0000:00:1e.0:   PREFETCH window: 0x00000040000000-0x0000004bffffff
+> pci 0000:02:02.0: enabling device (0000 -> 0003)
+> ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+> PCI: setting IRQ 11 as level-triggered
+> pci 0000:02:02.0: PCI INT A -> Link[LNKC] -> GSI 11 (level, low) -> IRQ 11
+> 
+> dmesg with acpi=off:
+> http://dpaste.com/hold/121766/
+> 
+> Kernel config:
+> http://dpaste.com/hold/121721/
+> 
+> lspci output:
+> http://dpaste.com/hold/121768/
 
-Nico
+presumably an acpi-related thing.
 
---=20
-Think about Free and Open Source Software (FOSS).
-http://nico.schottelius.org/documentations/foss/the-term-foss/
+> Is there anything else I can do to help debug?
 
-PGP: BFE4 C736 ABE5 406F 8F42  F7CF B8BE F92A 9885 188C
+Best to raise a report against acpi at bugzilla.kernel.org, please.
 
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Often it's better to report kernel bugs via email, but acpi is
+exceptional in that regard.  It's all a bit confusing.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkmdH/YACgkQuL75KpiFGIyylwCeIbzdr/n13AZGhdgUNIY3opDr
-oI4AoMSJ74A39koqs4WQKEOYrJvmo7+A
-=HXQ/
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
