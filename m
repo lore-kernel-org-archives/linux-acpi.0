@@ -1,57 +1,58 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [BUG] >2.6.27 dies at cardbus init on laptop
-Date: Thu, 19 Feb 2009 01:22:00 -0800
-Message-ID: <20090219012200.7fe85912.akpm@linux-foundation.org>
-References: <499B0FD7.2050906@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH 0/3] ACPI: trim acpi_drivers.h
+Date: Thu, 19 Feb 2009 12:51:38 -0700
+Message-ID: <20090219195009.20619.20334.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45157 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753841AbZBSJWm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Feb 2009 04:22:42 -0500
-In-Reply-To: <499B0FD7.2050906@gmail.com>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:46034 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751992AbZBSTvj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Feb 2009 14:51:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Pflug <dtpflug@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-(cc linux-acpi)
+The include/acpi/acpi_drivers.h file contains declarations
+for several unrelated ACPI drivers, as well as things needed
+only within the ACPI core (a.k.a. the "OSPM").
 
-On Tue, 17 Feb 2009 14:28:23 -0500 David Pflug <dtpflug@gmail.com> wrote:
+These patches move some of those declarations out into new
+driver-specific and OSPM-specific header files where they
+aren't visible to the world.
 
-> While trying to boot kernels greater than 2.6.27 on this Toshiba
-> Satellite 1135-S155, it freezes while initializing Texas Instruments
-> PCI1410 PC card Cardbus Controller [104c:ac50]. However, it boots with
-> pci=noacpi. The IRQ of the cardbus is shared by one of the USB
-> controllers and the IDE controller.
-> 
-> Identical symptoms on 2.6.29rc5.
-> 
-> Last few messages with default kernel line:
-> pci 0000:00:1e.0:   PREFETCH window: 0x00000040000000-0x0000004bffffff
-> pci 0000:02:02.0: enabling device (0000 -> 0003)
-> ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-> PCI: setting IRQ 11 as level-triggered
-> pci 0000:02:02.0: PCI INT A -> Link[LNKC] -> GSI 11 (level, low) -> IRQ 11
-> 
-> dmesg with acpi=off:
-> http://dpaste.com/hold/121766/
-> 
-> Kernel config:
-> http://dpaste.com/hold/121721/
-> 
-> lspci output:
-> http://dpaste.com/hold/121768/
+Comments welcome.
 
-presumably an acpi-related thing.
+Bjorn
 
-> Is there anything else I can do to help debug?
+---
 
-Best to raise a report against acpi at bugzilla.kernel.org, please.
+Bjorn Helgaas (3):
+      ACPI: move internal core declarations to private header
+      ACPI: processor: make new processor.h header local to driver
+      ACPI: pci: make new pci.h header local to driver
 
-Often it's better to report kernel bugs via email, but acpi is
-exceptional in that regard.  It's all a bit confusing.
 
+ drivers/acpi/bus.c               |    2 ++
+ drivers/acpi/ospm.h              |   23 +++++++++++++++++++
+ drivers/acpi/pci.h               |   18 +++++++++++++++
+ drivers/acpi/pci_bind.c          |    2 ++
+ drivers/acpi/pci_irq.c           |    2 ++
+ drivers/acpi/pci_root.c          |    2 ++
+ drivers/acpi/processor.h         |    5 ++++
+ drivers/acpi/processor_core.c    |    2 ++
+ drivers/acpi/processor_thermal.c |    2 ++
+ drivers/acpi/scan.c              |    2 ++
+ drivers/acpi/sleep.c             |    1 +
+ drivers/acpi/thermal.c           |    2 ++
+ drivers/acpi/wakeup.c            |    1 +
+ include/acpi/acpi_drivers.h      |   46 --------------------------------------
+ 14 files changed, 64 insertions(+), 46 deletions(-)
+ create mode 100644 drivers/acpi/ospm.h
+ create mode 100644 drivers/acpi/pci.h
+ create mode 100644 drivers/acpi/processor.h
+
+-- 
+Signature
