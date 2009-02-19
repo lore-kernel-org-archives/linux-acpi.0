@@ -1,125 +1,107 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 1/3] ACPI: pci: make new pci.h header local to driver
-Date: Thu, 19 Feb 2009 12:51:43 -0700
-Message-ID: <20090219195143.20619.18258.stgit@bob.kio>
+Subject: [PATCH 2/3] ACPI: processor: make new processor.h header local to
+	driver
+Date: Thu, 19 Feb 2009 12:51:48 -0700
+Message-ID: <20090219195148.20619.14362.stgit@bob.kio>
 References: <20090219195009.20619.20334.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:30516 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752368AbZBSTvo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Feb 2009 14:51:44 -0500
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:11623 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150AbZBSTvv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Feb 2009 14:51:51 -0500
 In-Reply-To: <20090219195009.20619.20334.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-The PCI-related declarations in acpi_drivers.h are used
-only by the PCI root and related drivers.  This patch moves
-those declarations to a new drivers/acpi/pci.h file.
+The processor-related declarations in acpi_drivers.h are used
+only by the processor driver, which happens to be split across
+several files.  This patch moves those declarations to a new
+drivers/acpi/processor.h file.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/pci.h          |   18 ++++++++++++++++++
- drivers/acpi/pci_bind.c     |    2 ++
- drivers/acpi/pci_irq.c      |    2 ++
- drivers/acpi/pci_root.c     |    2 ++
- include/acpi/acpi_drivers.h |   13 -------------
- 5 files changed, 24 insertions(+), 13 deletions(-)
- create mode 100644 drivers/acpi/pci.h
+ drivers/acpi/processor.h         |    5 +++++
+ drivers/acpi/processor_core.c    |    2 ++
+ drivers/acpi/processor_thermal.c |    2 ++
+ drivers/acpi/thermal.c           |    2 ++
+ include/acpi/acpi_drivers.h      |   10 ----------
+ 5 files changed, 11 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/acpi/processor.h
 
-diff --git a/drivers/acpi/pci.h b/drivers/acpi/pci.h
+diff --git a/drivers/acpi/processor.h b/drivers/acpi/processor.h
 new file mode 100644
-index 0000000..b3512cf
+index 0000000..51df8cb
 --- /dev/null
-+++ b/drivers/acpi/pci.h
-@@ -0,0 +1,18 @@
-+/* ACPI PCI Interrupt Link (pci_link.c) */
++++ b/drivers/acpi/processor.h
+@@ -0,0 +1,5 @@
++#define ACPI_PROCESSOR_LIMIT_NONE	0x00
++#define ACPI_PROCESSOR_LIMIT_INCREMENT	0x01
++#define ACPI_PROCESSOR_LIMIT_DECREMENT	0x02
 +
-+int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
-+			       int *polarity, char **name);
-+int acpi_pci_link_free_irq(acpi_handle handle);
-+
-+/* ACPI PCI Interrupt Routing (pci_irq.c) */
-+
-+int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
-+void acpi_pci_irq_del_prt(int segment, int bus);
-+
-+/* ACPI PCI Device Binding (pci_bind.c) */
-+
-+struct pci_bus;
-+
-+int acpi_pci_bind(struct acpi_device *device);
-+int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
-+		       struct pci_bus *bus);
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 95650f8..5504c9d 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -35,6 +35,8 @@
- #include <acpi/acpi_bus.h>
++int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 0cc2fd3..a744ad4 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -59,6 +59,8 @@
  #include <acpi/acpi_drivers.h>
+ #include <acpi/processor.h>
  
-+#include "pci.h"
++#include "processor.h"
 +
- #define _COMPONENT		ACPI_PCI_COMPONENT
- ACPI_MODULE_NAME("pci_bind");
- 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index be6b909..c20c848 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
+ #define ACPI_PROCESSOR_FILE_INFO	"info"
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index b1eb376..a778ac2 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
 @@ -40,6 +40,8 @@
+ #include <acpi/processor.h>
+ #include <acpi/acpi_drivers.h>
+ 
++#include "processor.h"
++
+ #define ACPI_PROCESSOR_CLASS            "processor"
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_thermal");
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 99e6f1f..23c5bc9 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -47,6 +47,8 @@
  #include <acpi/acpi_bus.h>
  #include <acpi/acpi_drivers.h>
  
-+#include "pci.h"
++#include "processor.h"
 +
- #define _COMPONENT		ACPI_PCI_COMPONENT
- ACPI_MODULE_NAME("pci_irq");
- 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 5b38a02..61e8979 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -36,6 +36,8 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
-+#include "pci.h"
-+
- #define _COMPONENT		ACPI_PCI_COMPONENT
- ACPI_MODULE_NAME("pci_root");
- #define ACPI_PCI_ROOT_CLASS		"pci_bridge"
+ #define ACPI_THERMAL_CLASS		"thermal_zone"
+ #define ACPI_THERMAL_DEVICE_NAME	"Thermal Zone"
+ #define ACPI_THERMAL_FILE_STATE		"state"
 diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 5fc1bb0..9ea2684 100644
+index 9ea2684..4358917 100644
 --- a/include/acpi/acpi_drivers.h
 +++ b/include/acpi/acpi_drivers.h
-@@ -75,23 +75,10 @@
- /* ACPI PCI Interrupt Link (pci_link.c) */
+@@ -103,16 +103,6 @@ extern int acpi_power_nocheck;
+ int acpi_ec_ecdt_probe(void);
+ int acpi_boot_ec_enable(void);
  
- int acpi_irq_penalty_init(void);
--int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
--			       int *polarity, char **name);
--int acpi_pci_link_free_irq(acpi_handle handle);
+-/* --------------------------------------------------------------------------
+-                                    Processor
+-   -------------------------------------------------------------------------- */
 -
--/* ACPI PCI Interrupt Routing (pci_irq.c) */
+-#define ACPI_PROCESSOR_LIMIT_NONE	0x00
+-#define ACPI_PROCESSOR_LIMIT_INCREMENT	0x01
+-#define ACPI_PROCESSOR_LIMIT_DECREMENT	0x02
 -
--int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
--void acpi_pci_irq_del_prt(int segment, int bus);
- 
- /* ACPI PCI Device Binding (pci_bind.c) */
- 
--struct pci_bus;
+-int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
 -
- acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
--int acpi_pci_bind(struct acpi_device *device);
--int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
--		       struct pci_bus *bus);
- 
- /* Arch-defined function to add a bus to the system */
- 
+ /*--------------------------------------------------------------------------
+                                   Dock Station
+   -------------------------------------------------------------------------- */
 
