@@ -1,30 +1,36 @@
-From: Tobacco Award 2009 <222@bezeqint.net>
-Subject: **Winning Notification**
-Date: Sat, 21 Feb 2009 02:12:39 +0200 (IST)
-Message-ID: <20090221021239.FQU36427__28258.899288676$1235175371$gmane$org@mas26.bezeqint.net>
-Reply-To: agtpauladams09@gmail.com
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/2] PM: x86-64 suspend-resume fix
+Date: Fri, 20 Feb 2009 23:46:31 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902202345550.19156@localhost.localdomain>
+References: <200902152244.47326.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omr2.bezeqint.net ([192.115.104.10]:39512 "EHLO
-	omr2.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752769AbZBUAOi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Feb 2009 19:14:38 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:59235 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbZBUEqm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Feb 2009 23:46:42 -0500
+In-reply-to: <200902152244.47326.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiri Slaby <jirislaby@gmail.com>, Cyrill Gorcunov <gorcunov@openvz.org>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Your email ID has been awarded =A31,000,000,00 GBP in our=20
-TOBACCO AWARD,Reply us with your info:
-(agtpauladams09@gmail.com)  =20
 
-Name:....................
-Country:.................  =20
-Sex:.....................
-Age: .....................  =20
-Addres:...................
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sun, 15 Feb 2009, Rafael J. Wysocki wrote:
+
+> Hi,
+> 
+> The following two patches clean-up and fix the x86-64 resume code.
+> 
+> 1/2 is a cleanup, but it is simple enough to be applied now IMO.
+> 
+> 2/2 is a bug fix based on 1/2, which is 2.6.29 material.
+> 
+> Please apply them to the suspend branch and push to Linus for 2.6.29 (Ingo
+> says he doesn't mind if they go through your tree).
+
+1 & 2 applied to suspend branch.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
