@@ -1,74 +1,71 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
-Date: Sat, 21 Feb 2009 00:55:15 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902210046030.19156@localhost.localdomain>
-References: <1233766786.16414.26.camel@localhost.localdomain>
- <20090204181738.GA16174@elte.hu>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
+Date: Sat, 21 Feb 2009 13:48:21 +0100
+Message-ID: <20090221134821.7540c39d@mjolnir.ossman.eu>
+References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
+	<20081108213414.579e178d@mjolnir.drzeus.cx>
+	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
+	<20081114222557.04025d36@mjolnir.drzeus.cx>
+	<20081025214602.GB27030@gamma.logic.tuwien.ac.at>
+	<20081108213414.579e178d@mjolnir.drzeus.cx>
+	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
+	<20090127004840.GA7246@gamma.logic.tuwien.ac.at>
+	<20090202204027.006bb2e2@mjolnir.drzeus.cx>
+	<20090202235754.GA13222@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:45605 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbZBUFzd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 00:55:33 -0500
-In-reply-to: <20090204181738.GA16174@elte.hu>
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:60099 "EHLO
+	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751084AbZBUMsY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Feb 2009 07:48:24 -0500
+In-Reply-To: <20090202235754.GA13222@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: linux-acpi@vger.kernel.org
 
+On Tue, 3 Feb 2009 00:57:54 +0100
+Norbert Preining <preining@logic.at> wrote:
 
-> > +#ifdef CONFIG_PCI_MMCONFIG
-> > +
-> > +struct acpi_mcfg_allocation {
-> > +	u64 address;		/* Base address, processor-relative */
-> > +	u16 pci_segment;	/* PCI segment group number */
-> > +	u8 start_bus_number;	/* Starting PCI Bus number */
-> > +	u8 end_bus_number;	/* Final PCI Bus number */
-> > +	u32 reserved;
-> > +};
 > 
-> Please rename this to "struct pci_mcfg_allocation" - there's nothing ACPI 
-> about it anymore - mmcfg is a PCI feature and ACPI is an enumeration method.
+> Ok, here are my test. I was wrong in the previous email. The card does
+> not have to be in the slot:
 > 
-> Also, while touching it, please also use the opportunity to align structure 
-> fields vertically:
+> Tests, all with kernel 2.6.29-rc3
 > 
->  struct pci_mcfg_allocation {
-> 	u64	address;		/* Base address, processor-relative */
-> 	u16	pci_segment;		/* PCI segment group number */
-> 	u8	start_bus_number;	/* Starting PCI Bus number */
-> 	u8	end_bus_number;		/* Final PCI Bus number */
-> 	u32	__reserved;
->  };
+> - normal boot without card in the slot -> not detected
+>   . suspending with OR without card in the slot makes it work!!!!
+>     (that is new, I thought that the card has to be in the slot!)
+>   . re-ejecting and re-inserting always make the card show up
+>     One sequence of eject/re-insert's syslog output is attached.
 > 
-> The whole layout of this structure becomes easier to read and nicer to look 
-> at as well.
+> - normal boot WITH card in the slot -> detected!!!
 > 
-> Another small detail: note how i renamed reserved to __reserved - that is a 
-> standard way to de-emphasise the signficance of a structure field.
+> All tests were made with and without ricoh_mmc built into the kernel. It
+> does not change anything, so ricoh_mmc does not do anything at all here,
+> can be disabled.
 > 
-> The reserved field there is for future expansion and to pad the structure to 
-> 16 bytes - it doesnt really mean much and the underscores move it a bit out 
-> of the default line of sight.
-> 
-> With a 'reserved' field people end up wondering whether it's perhaps some 
-> _semantic_ 'reserved area' kind of thing (like for e820 maps, etc.) - so 
-> it's never bad to make that distinction explicit via the double underscores.
 
-struct acpi_mcfg_allocation is the structure that maps onto the MCFG
-ACPI table as defined in the PCI firmware spec and provided by the ACPI 
-BIOS.
+This is extremely odd. I'd normally guess that this is because of a
+race with ricoh_mmc, but since you've removed that from the equation...
 
-I'd like it to stay in actbl1.h -- as that is part of ACPICA, which
-tracks the standard tables.  (and I see you did this with your updated 
-patch, thanks.)
+> Hmm, isn't there a way to read the pci settings and see the difference?
+> Could it make *the* difference?
 
-FWIW, "reserved" here really does have a specific definition.
-On read-only tables, such as this one, reserved fields are defined
-to return 0 on reads for this version of the table, but may
-return non-zero on future revisions.
+Most likely. You can dump the PCI config using lspci -xxx. Compare the
+data for everything on the Ricoh device (not just the MMC interface)
+and see if you can see a difference before and after suspend.
 
-thanks,
--Len
+Rgds
+-- 
+     -- Pierre Ossman
 
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
