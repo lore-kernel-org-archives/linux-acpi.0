@@ -1,25 +1,30 @@
-From: "Stephanie" <alessandro@arcelor.com>
-Subject: E-Card from Stephanie
-Date: Fri, 20 Feb 2009 15:35:32 -0800
-Message-ID: <20090220153532.4060009@arcelor.com>
+From: Tobacco Award 2009 <222@bezeqint.net>
+Subject: **Winning Notification**
+Date: Sat, 21 Feb 2009 02:12:39 +0200 (IST)
+Message-ID: <20090221021239.FQU36427__28258.899288676$1235175371$gmane$org@mas26.bezeqint.net>
+Reply-To: agtpauladams09@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from c-67-188-125-94.hsd1.ca.comcast.net ([67.188.125.94]:61865 "HELO
-	c-67-188-125-94.hsd1.ca.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751412AbZBTXts (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Feb 2009 18:49:48 -0500
+Received: from omr2.bezeqint.net ([192.115.104.10]:39512 "EHLO
+	omr2.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769AbZBUAOi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Feb 2009 19:14:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Stephanie wants to show you a greeting e-card and wrote for you:
-"My love for you will always be the same"
+Your email ID has been awarded =A31,000,000,00 GBP in our=20
+TOBACCO AWARD,Reply us with your info:
+(agtpauladams09@gmail.com)  =20
 
-To pick up your greeting card, click on the following link at anytime within 
-the next 20 days:
-http://hl.adoresongs.com/?id=7e605b59b01457255132
-Webmaster, eCardica.com.
-
+Name:....................
+Country:.................  =20
+Sex:.....................
+Age: .....................  =20
+Addres:...................
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
