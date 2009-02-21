@@ -1,71 +1,45 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
-Date: Sat, 21 Feb 2009 13:48:21 +0100
-Message-ID: <20090221134821.7540c39d@mjolnir.ossman.eu>
-References: <20081025214602.GB27030@gamma.logic.tuwien.ac.at>
-	<20081108213414.579e178d@mjolnir.drzeus.cx>
-	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
-	<20081114222557.04025d36@mjolnir.drzeus.cx>
-	<20081025214602.GB27030@gamma.logic.tuwien.ac.at>
-	<20081108213414.579e178d@mjolnir.drzeus.cx>
-	<20081108233337.GA21200@gamma.logic.tuwien.ac.at>
-	<20090127004840.GA7246@gamma.logic.tuwien.ac.at>
-	<20090202204027.006bb2e2@mjolnir.drzeus.cx>
-	<20090202235754.GA13222@gamma.logic.tuwien.ac.at>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Re: [PATCH 1/1] ACPI: bus.c, fix error handling in acpi_bus_init
+Date: Sat, 21 Feb 2009 14:05:30 +0100
+Message-ID: <499FFC1A.7010906@gmail.com>
+References: <1234731354-7472-1-git-send-email-jirislaby@gmail.com> <alpine.LFD.2.00.0902202352551.19156@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:60099 "EHLO
-	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751084AbZBUMsY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Feb 2009 07:48:24 -0500
-In-Reply-To: <20090202235754.GA13222@gamma.logic.tuwien.ac.at>
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:35970 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753196AbZBUNFk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 08:05:40 -0500
+In-Reply-To: <alpine.LFD.2.00.0902202352551.19156@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 3 Feb 2009 00:57:54 +0100
-Norbert Preining <preining@logic.at> wrote:
+On 21.2.2009 05:58, Len Brown wrote:
+> On Sun, 15 Feb 2009, Jiri Slaby wrote:
+>
+>> There was a misplaced status test. Move it to correct place and
+>> rollback appropriately.
+>
+> hmm, looks like this has been broken since the day
+> acpi_os_initialize1() was invented in 2004.
 
-> 
-> Ok, here are my test. I was wrong in the previous email. The card does
-> not have to be in the slot:
-> 
-> Tests, all with kernel 2.6.29-rc3
-> 
-> - normal boot without card in the slot -> not detected
->   . suspending with OR without card in the slot makes it work!!!!
->     (that is new, I thought that the card has to be in the slot!)
->   . re-ejecting and re-inserting always make the card show up
->     One sequence of eject/re-insert's syslog output is attached.
-> 
-> - normal boot WITH card in the slot -> detected!!!
-> 
-> All tests were made with and without ricoh_mmc built into the kernel. It
-> does not change anything, so ricoh_mmc does not do anything at all here,
-> can be disabled.
-> 
+It comes from bitkeeper times, I checked, it looked like a typo.
 
-This is extremely odd. I'd normally guess that this is because of a
-race with ricoh_mmc, but since you've removed that from the equation...
+> Turns out that the bug and its fix are moot, however,
+> as acpi_os_initialize1() is hard-coded to return success,
+> opting for BUG_ON() if it sees a failure...
 
-> Hmm, isn't there a way to read the pci settings and see the difference?
-> Could it make *the* difference?
+BUG_ON is not noreturn e.g. on embedded, anyway it would crash later in 
+this case. I was thinking about returning a failure when one of them is 
+NULL, but fell back to not do so and check only retval in the caller.
 
-Most likely. You can dump the PCI config using lspci -xxx. Compare the
-data for everything on the Ricoh device (not just the MMC interface)
-and see if you can see a difference before and after suspend.
+> So unless that changes, I'd prefer to keep the code
+> simple and just not check its status -- which is effectively
+> what we're doing right now.
 
-Rgds
--- 
-     -- Pierre Ossman
+Ok, no problem. Will repost.
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+Thanks.
