@@ -1,81 +1,74 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] ACPI: bus.c, fix error handling in acpi_bus_init
-Date: Fri, 20 Feb 2009 23:58:42 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902202352551.19156@localhost.localdomain>
-References: <1234731354-7472-1-git-send-email-jirislaby@gmail.com>
+Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
+Date: Sat, 21 Feb 2009 00:55:15 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902210046030.19156@localhost.localdomain>
+References: <1233766786.16414.26.camel@localhost.localdomain>
+ <20090204181738.GA16174@elte.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:63091 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176AbZBUE6x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Feb 2009 23:58:53 -0500
-In-reply-to: <1234731354-7472-1-git-send-email-jirislaby@gmail.com>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:45605 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191AbZBUFzd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 00:55:33 -0500
+In-reply-to: <20090204181738.GA16174@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
 
-On Sun, 15 Feb 2009, Jiri Slaby wrote:
 
-> There was a misplaced status test. Move it to correct place and
-> rollback appropriately.
+> > +#ifdef CONFIG_PCI_MMCONFIG
+> > +
+> > +struct acpi_mcfg_allocation {
+> > +	u64 address;		/* Base address, processor-relative */
+> > +	u16 pci_segment;	/* PCI segment group number */
+> > +	u8 start_bus_number;	/* Starting PCI Bus number */
+> > +	u8 end_bus_number;	/* Final PCI Bus number */
+> > +	u32 reserved;
+> > +};
+> 
+> Please rename this to "struct pci_mcfg_allocation" - there's nothing ACPI 
+> about it anymore - mmcfg is a PCI feature and ACPI is an enumeration method.
+> 
+> Also, while touching it, please also use the opportunity to align structure 
+> fields vertically:
+> 
+>  struct pci_mcfg_allocation {
+> 	u64	address;		/* Base address, processor-relative */
+> 	u16	pci_segment;		/* PCI segment group number */
+> 	u8	start_bus_number;	/* Starting PCI Bus number */
+> 	u8	end_bus_number;		/* Final PCI Bus number */
+> 	u32	__reserved;
+>  };
+> 
+> The whole layout of this structure becomes easier to read and nicer to look 
+> at as well.
+> 
+> Another small detail: note how i renamed reserved to __reserved - that is a 
+> standard way to de-emphasise the signficance of a structure field.
+> 
+> The reserved field there is for future expansion and to pad the structure to 
+> 16 bytes - it doesnt really mean much and the underscores move it a bit out 
+> of the default line of sight.
+> 
+> With a 'reserved' field people end up wondering whether it's perhaps some 
+> _semantic_ 'reserved area' kind of thing (like for e820 maps, etc.) - so 
+> it's never bad to make that distinction explicit via the double underscores.
 
-hmm, looks like this has been broken since the day
-acpi_os_initialize1() was invented in 2004.
+struct acpi_mcfg_allocation is the structure that maps onto the MCFG
+ACPI table as defined in the PCI firmware spec and provided by the ACPI 
+BIOS.
 
-Turns out that the bug and its fix are moot, however,
-as acpi_os_initialize1() is hard-coded to return success,
-opting for BUG_ON() if it sees a failure...
+I'd like it to stay in actbl1.h -- as that is part of ACPICA, which
+tracks the standard tables.  (and I see you did this with your updated 
+patch, thanks.)
 
-So unless that changes, I'd prefer to keep the code
-simple and just not check its status -- which is effectively
-what we're doing right now.
+FWIW, "reserved" here really does have a specific definition.
+On read-only tables, such as this one, reserved fields are defined
+to return 0 on reads for this version of the table, but may
+return non-zero on future revisions.
 
 thanks,
 -Len
 
-> Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-> ---
->  drivers/acpi/bus.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 765fd1c..79efef6 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -760,18 +760,17 @@ static int __init acpi_bus_init(void)
->  
->  
->  	status = acpi_os_initialize1();
-> -
-> -	status =
-> -	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
->  	if (ACPI_FAILURE(status)) {
->  		printk(KERN_ERR PREFIX
-> -		       "Unable to start the ACPI Interpreter\n");
-> -		goto error1;
-> +		       "Unable to initialize ACPI OS objects\n");
-> +		goto error0;
->  	}
->  
-> +	status =
-> +	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
->  	if (ACPI_FAILURE(status)) {
->  		printk(KERN_ERR PREFIX
-> -		       "Unable to initialize ACPI OS objects\n");
-> +		       "Unable to start the ACPI Interpreter\n");
->  		goto error1;
->  	}
->  
-> @@ -832,6 +831,7 @@ static int __init acpi_bus_init(void)
->  	/* Mimic structured exception handling */
->        error1:
->  	acpi_terminate();
-> +error0:
->  	return -ENODEV;
->  }
->  
-> -- 
-> 1.6.1.3
-> 
