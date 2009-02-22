@@ -1,221 +1,151 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 3/3] ACPI: move internal core declarations to private header
-Date: Sat, 21 Feb 2009 23:21:14 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902212259530.5009@localhost.localdomain>
+Subject: Re: [PATCH 1/3] ACPI: pci: make new pci.h header local to driver
+Date: Sat, 21 Feb 2009 23:28:31 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902212322310.5009@localhost.localdomain>
 References: <20090219195009.20619.20334.stgit@bob.kio>
- <20090219195153.20619.89309.stgit@bob.kio>
+ <20090219195143.20619.18258.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:9038 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234AbZBVEVR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 23:21:17 -0500
+Received: from vms173011pub.verizon.net ([206.46.173.11]:52113 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949AbZBVF2f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Feb 2009 00:28:35 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFG00INO9FGN0OH@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 21 Feb 2009 22:21:17 -0600 (CST)
-In-reply-to: <20090219195153.20619.89309.stgit@bob.kio>
+ with ESMTPA id <0KFG00CHY9RKVJ3N@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 21 Feb 2009 22:28:32 -0600 (CST)
+In-reply-to: <20090219195143.20619.18258.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: linux-acpi@vger.kernel.org
 
+I like this patch, but not wild about the name "pci.h"
+
+there are already about 20 pci.h files in the tree.
+sure, they are context specific, but still i don't like it.
+
+(and I don't like having 11 acpi.h files in the tree either...)
+
+how about acpi_pci.h?
+
+yeah, i know it would be redundant, as it lives in drivers/acpi/ 
+but as basically everything it the file starts with "acpi_pci..."
+maybe a little redundancy can be seen as consistent?
+
+thanks,
+--
+Len Brown, Intel Open Source Technology Center
 
 On Thu, 19 Feb 2009, Bjorn Helgaas wrote:
 
-> A number of things that shouldn't be exposed outside the ACPI core
-> were declared in include/acpi/acpi_drivers.h, where anybody can
-> see them.  This patch moves those declarations to a new "ospm.h"
-> inside drivers/acpi.
-
-I'm not sure that we're using the same terminology.
-
-In ACPI I usually use the word "core" to refer to everything
-that is now under drivers/acpi/acpica/
-eg. the ACPI interpreter and the OS agnostic code in ACPICA.
-
-That is why dmesg prints this:
-
-ACPI: Core revision 20090123
-
-I use the word "Linux/ACPI" to refer to everything in
-drivers/acpi/* and the ACPI stuff under arch/ etc.
-
-OSPM is supposed to be a generic concept of the OS
-controlling power management, and ACPI is supposed to
-be a component that allows OSPM to work
-on (ACPI-compliant) systems.
-
-I think that the ACPI guys probably invented the term OSPM.
-I have heard it used outside an ACPI context only once,
-and that was mostly to describe what a non-ACPI system
-does to deal with its lack of ACPI...
-
-Sometimes in the context of ACPICA, the OS code is called
-the "host OS" (and I generally cringe when this term is used
-rather than just saying "Linux") and sometimes it is called OSPM --
-ie where the OS policy etc are.
-
-We havn't used the term OSPM in the Linux context much.
-We do use the term PM, as in CONFIG_PM though...
-I'm not immediately wild about the name ospm.h for some reason.
-
-Anyway, to the content of the patch...
-
-We are sort of in transition WRT hiding private information.
-
-We just finished re-factoring all the ACPICA-specific header
-files, resulting in 21 private headers under drivers/acpi/acpica/
-and out of include/acpi/
-
-I'm not fond of include/acpi/
-
-Currently it is a bucket for include/acpi/acpi.h
-to pick up files, and that is in-turn included
-by linux/acpi.h -- which is the file that most of
-the kernel should include to talk to ACPI.
-
-I do want things that are private to drivers/acpi/ files
-to be in drivers/acpi/, and not in include/acpi/
-
-so i guess I like what you're doing here,
-but for some reason i'm not excited about the name "ospm.h",
-maybe I"ll sleep on it and it will sound excellent tomorrow...
-
-Len Brown, Intel Open Source Technology Center
-
-
+> The PCI-related declarations in acpi_drivers.h are used
+> only by the PCI root and related drivers.  This patch moves
+> those declarations to a new drivers/acpi/pci.h file.
+> 
 > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 > ---
->  drivers/acpi/bus.c          |    2 ++
->  drivers/acpi/ospm.h         |   23 +++++++++++++++++++++++
->  drivers/acpi/scan.c         |    2 ++
->  drivers/acpi/sleep.c        |    1 +
->  drivers/acpi/wakeup.c       |    1 +
->  include/acpi/acpi_drivers.h |   23 -----------------------
->  6 files changed, 29 insertions(+), 23 deletions(-)
->  create mode 100644 drivers/acpi/ospm.h
+>  drivers/acpi/pci.h          |   18 ++++++++++++++++++
+>  drivers/acpi/pci_bind.c     |    2 ++
+>  drivers/acpi/pci_irq.c      |    2 ++
+>  drivers/acpi/pci_root.c     |    2 ++
+>  include/acpi/acpi_drivers.h |   13 -------------
+>  5 files changed, 24 insertions(+), 13 deletions(-)
+>  create mode 100644 drivers/acpi/pci.h
 > 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 765fd1c..0286607 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -39,6 +39,8 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> +#include "ospm.h"
-> +
->  #define _COMPONENT		ACPI_BUS_COMPONENT
->  ACPI_MODULE_NAME("bus");
->  
-> diff --git a/drivers/acpi/ospm.h b/drivers/acpi/ospm.h
+> diff --git a/drivers/acpi/pci.h b/drivers/acpi/pci.h
 > new file mode 100644
-> index 0000000..8e54c90
+> index 0000000..b3512cf
 > --- /dev/null
-> +++ b/drivers/acpi/ospm.h
-> @@ -0,0 +1,23 @@
+> +++ b/drivers/acpi/pci.h
+> @@ -0,0 +1,18 @@
+> +/* ACPI PCI Interrupt Link (pci_link.c) */
 > +
-> +/* --------------------------------------------------------------------------
-> +                                  Power Resource
-> +   -------------------------------------------------------------------------- */
+> +int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
+> +			       int *polarity, char **name);
+> +int acpi_pci_link_free_irq(acpi_handle handle);
 > +
-> +int acpi_device_sleep_wake(struct acpi_device *dev,
-> +                           int enable, int sleep_state, int dev_state);
-> +int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
-> +int acpi_disable_wakeup_device_power(struct acpi_device *dev);
-> +int acpi_power_get_inferred_state(struct acpi_device *device);
-> +int acpi_power_transition(struct acpi_device *device, int state);
-> +extern int acpi_power_nocheck;
+> +/* ACPI PCI Interrupt Routing (pci_irq.c) */
 > +
-> +/* --------------------------------------------------------------------------
-> +                                  Embedded Controller
-> +   -------------------------------------------------------------------------- */
-> +int acpi_ec_ecdt_probe(void);
-> +int acpi_boot_ec_enable(void);
+> +int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
+> +void acpi_pci_irq_del_prt(int segment, int bus);
 > +
-> +/*--------------------------------------------------------------------------
-> +                                  Suspend/Resume
-> +  -------------------------------------------------------------------------- */
-> +extern int acpi_sleep_init(void);
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index c54d7b6..2e00298 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -11,6 +11,8 @@
->  
->  #include <acpi/acpi_drivers.h>
->  
-> +#include "ospm.h"
+> +/* ACPI PCI Device Binding (pci_bind.c) */
 > +
->  #define _COMPONENT		ACPI_BUS_COMPONENT
->  ACPI_MODULE_NAME("scan");
->  #define STRUCT_TO_INT(s)	(*((int*)&s))
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 5192666..e841938 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -21,6 +21,7 @@
->  
+> +struct pci_bus;
+> +
+> +int acpi_pci_bind(struct acpi_device *device);
+> +int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
+> +		       struct pci_bus *bus);
+> diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
+> index 95650f8..5504c9d 100644
+> --- a/drivers/acpi/pci_bind.c
+> +++ b/drivers/acpi/pci_bind.c
+> @@ -35,6 +35,8 @@
 >  #include <acpi/acpi_bus.h>
 >  #include <acpi/acpi_drivers.h>
-> +#include "ospm.h"
->  #include "sleep.h"
 >  
->  u8 sleep_states[ACPI_S_STATE_COUNT];
-> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-> index 2d34806..58c1f91 100644
-> --- a/drivers/acpi/wakeup.c
-> +++ b/drivers/acpi/wakeup.c
-> @@ -8,6 +8,7 @@
+> +#include "pci.h"
+> +
+>  #define _COMPONENT		ACPI_PCI_COMPONENT
+>  ACPI_MODULE_NAME("pci_bind");
+>  
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index be6b909..c20c848 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -40,6 +40,8 @@
+>  #include <acpi/acpi_bus.h>
 >  #include <acpi/acpi_drivers.h>
->  #include <linux/kernel.h>
->  #include <linux/types.h>
-> +#include "ospm.h"
->  #include "sleep.h"
 >  
->  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+> +#include "pci.h"
+> +
+>  #define _COMPONENT		ACPI_PCI_COMPONENT
+>  ACPI_MODULE_NAME("pci_irq");
+>  
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 5b38a02..61e8979 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -36,6 +36,8 @@
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  
+> +#include "pci.h"
+> +
+>  #define _COMPONENT		ACPI_PCI_COMPONENT
+>  ACPI_MODULE_NAME("pci_root");
+>  #define ACPI_PCI_ROOT_CLASS		"pci_bridge"
 > diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index 4358917..f237ec2 100644
+> index 5fc1bb0..9ea2684 100644
 > --- a/include/acpi/acpi_drivers.h
 > +++ b/include/acpi/acpi_drivers.h
-> @@ -85,24 +85,6 @@ acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
->  struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
->  				   int bus);
+> @@ -75,23 +75,10 @@
+>  /* ACPI PCI Interrupt Link (pci_link.c) */
 >  
-> -/* --------------------------------------------------------------------------
-> -                                  Power Resource
-> -   -------------------------------------------------------------------------- */
+>  int acpi_irq_penalty_init(void);
+> -int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
+> -			       int *polarity, char **name);
+> -int acpi_pci_link_free_irq(acpi_handle handle);
 > -
-> -int acpi_device_sleep_wake(struct acpi_device *dev,
-> -                           int enable, int sleep_state, int dev_state);
-> -int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
-> -int acpi_disable_wakeup_device_power(struct acpi_device *dev);
-> -int acpi_power_get_inferred_state(struct acpi_device *device);
-> -int acpi_power_transition(struct acpi_device *device, int state);
-> -extern int acpi_power_nocheck;
+> -/* ACPI PCI Interrupt Routing (pci_irq.c) */
 > -
-> -/* --------------------------------------------------------------------------
-> -                                  Embedded Controller
-> -   -------------------------------------------------------------------------- */
-> -int acpi_ec_ecdt_probe(void);
-> -int acpi_boot_ec_enable(void);
-> -
->  /*--------------------------------------------------------------------------
->                                    Dock Station
->    -------------------------------------------------------------------------- */
-> @@ -142,9 +124,4 @@ static inline void unregister_hotplug_dock_device(acpi_handle handle)
->  }
->  #endif
+> -int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
+> -void acpi_pci_irq_del_prt(int segment, int bus);
 >  
-> -/*--------------------------------------------------------------------------
-> -                                  Suspend/Resume
-> -  -------------------------------------------------------------------------- */
-> -extern int acpi_sleep_init(void);
+>  /* ACPI PCI Device Binding (pci_bind.c) */
+>  
+> -struct pci_bus;
 > -
->  #endif /*__ACPI_DRIVERS_H__*/
+>  acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
+> -int acpi_pci_bind(struct acpi_device *device);
+> -int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
+> -		       struct pci_bus *bus);
+>  
+>  /* Arch-defined function to add a bus to the system */
+>  
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
