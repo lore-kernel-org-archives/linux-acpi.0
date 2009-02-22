@@ -1,154 +1,80 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/3] ACPI: pci: make new pci.h header local to driver
-Date: Sat, 21 Feb 2009 23:28:31 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902212322310.5009@localhost.localdomain>
-References: <20090219195009.20619.20334.stgit@bob.kio>
- <20090219195143.20619.18258.stgit@bob.kio>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
+Date: Sun, 22 Feb 2009 10:22:56 +0100
+Message-ID: <20090222092256.GC6964@elte.hu>
+References: <1233766786.16414.26.camel@localhost.localdomain> <20090204181738.GA16174@elte.hu> <alpine.LFD.2.00.0902210046030.19156@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:52113 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949AbZBVF2f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Feb 2009 00:28:35 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFG00CHY9RKVJ3N@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 21 Feb 2009 22:28:32 -0600 (CST)
-In-reply-to: <20090219195143.20619.18258.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0902210046030.19156@localhost.localdomain>
+Sender: linux-pci-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org
 
-I like this patch, but not wild about the name "pci.h"
 
-there are already about 20 pci.h files in the tree.
-sure, they are context specific, but still i don't like it.
+* Len Brown <lenb@kernel.org> wrote:
 
-(and I don't like having 11 acpi.h files in the tree either...)
-
-how about acpi_pci.h?
-
-yeah, i know it would be redundant, as it lives in drivers/acpi/ 
-but as basically everything it the file starts with "acpi_pci..."
-maybe a little redundancy can be seen as consistent?
-
-thanks,
---
-Len Brown, Intel Open Source Technology Center
-
-On Thu, 19 Feb 2009, Bjorn Helgaas wrote:
-
-> The PCI-related declarations in acpi_drivers.h are used
-> only by the PCI root and related drivers.  This patch moves
-> those declarations to a new drivers/acpi/pci.h file.
 > 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> ---
->  drivers/acpi/pci.h          |   18 ++++++++++++++++++
->  drivers/acpi/pci_bind.c     |    2 ++
->  drivers/acpi/pci_irq.c      |    2 ++
->  drivers/acpi/pci_root.c     |    2 ++
->  include/acpi/acpi_drivers.h |   13 -------------
->  5 files changed, 24 insertions(+), 13 deletions(-)
->  create mode 100644 drivers/acpi/pci.h
+> > > +#ifdef CONFIG_PCI_MMCONFIG
+> > > +
+> > > +struct acpi_mcfg_allocation {
+> > > +	u64 address;		/* Base address, processor-relative */
+> > > +	u16 pci_segment;	/* PCI segment group number */
+> > > +	u8 start_bus_number;	/* Starting PCI Bus number */
+> > > +	u8 end_bus_number;	/* Final PCI Bus number */
+> > > +	u32 reserved;
+> > > +};
+> > 
+> > Please rename this to "struct pci_mcfg_allocation" - there's nothing ACPI 
+> > about it anymore - mmcfg is a PCI feature and ACPI is an enumeration method.
+> > 
+> > Also, while touching it, please also use the opportunity to align structure 
+> > fields vertically:
+> > 
+> >  struct pci_mcfg_allocation {
+> > 	u64	address;		/* Base address, processor-relative */
+> > 	u16	pci_segment;		/* PCI segment group number */
+> > 	u8	start_bus_number;	/* Starting PCI Bus number */
+> > 	u8	end_bus_number;		/* Final PCI Bus number */
+> > 	u32	__reserved;
+> >  };
+> > 
+> > The whole layout of this structure becomes easier to read and nicer to look 
+> > at as well.
+> > 
+> > Another small detail: note how i renamed reserved to __reserved - that is a 
+> > standard way to de-emphasise the signficance of a structure field.
+> > 
+> > The reserved field there is for future expansion and to pad the structure to 
+> > 16 bytes - it doesnt really mean much and the underscores move it a bit out 
+> > of the default line of sight.
+> > 
+> > With a 'reserved' field people end up wondering whether it's perhaps some 
+> > _semantic_ 'reserved area' kind of thing (like for e820 maps, etc.) - so 
+> > it's never bad to make that distinction explicit via the double underscores.
 > 
-> diff --git a/drivers/acpi/pci.h b/drivers/acpi/pci.h
-> new file mode 100644
-> index 0000000..b3512cf
-> --- /dev/null
-> +++ b/drivers/acpi/pci.h
-> @@ -0,0 +1,18 @@
-> +/* ACPI PCI Interrupt Link (pci_link.c) */
-> +
-> +int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
-> +			       int *polarity, char **name);
-> +int acpi_pci_link_free_irq(acpi_handle handle);
-> +
-> +/* ACPI PCI Interrupt Routing (pci_irq.c) */
-> +
-> +int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
-> +void acpi_pci_irq_del_prt(int segment, int bus);
-> +
-> +/* ACPI PCI Device Binding (pci_bind.c) */
-> +
-> +struct pci_bus;
-> +
-> +int acpi_pci_bind(struct acpi_device *device);
-> +int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
-> +		       struct pci_bus *bus);
-> diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-> index 95650f8..5504c9d 100644
-> --- a/drivers/acpi/pci_bind.c
-> +++ b/drivers/acpi/pci_bind.c
-> @@ -35,6 +35,8 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> +#include "pci.h"
-> +
->  #define _COMPONENT		ACPI_PCI_COMPONENT
->  ACPI_MODULE_NAME("pci_bind");
->  
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index be6b909..c20c848 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -40,6 +40,8 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> +#include "pci.h"
-> +
->  #define _COMPONENT		ACPI_PCI_COMPONENT
->  ACPI_MODULE_NAME("pci_irq");
->  
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 5b38a02..61e8979 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -36,6 +36,8 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> +#include "pci.h"
-> +
->  #define _COMPONENT		ACPI_PCI_COMPONENT
->  ACPI_MODULE_NAME("pci_root");
->  #define ACPI_PCI_ROOT_CLASS		"pci_bridge"
-> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index 5fc1bb0..9ea2684 100644
-> --- a/include/acpi/acpi_drivers.h
-> +++ b/include/acpi/acpi_drivers.h
-> @@ -75,23 +75,10 @@
->  /* ACPI PCI Interrupt Link (pci_link.c) */
->  
->  int acpi_irq_penalty_init(void);
-> -int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
-> -			       int *polarity, char **name);
-> -int acpi_pci_link_free_irq(acpi_handle handle);
-> -
-> -/* ACPI PCI Interrupt Routing (pci_irq.c) */
-> -
-> -int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
-> -void acpi_pci_irq_del_prt(int segment, int bus);
->  
->  /* ACPI PCI Device Binding (pci_bind.c) */
->  
-> -struct pci_bus;
-> -
->  acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
-> -int acpi_pci_bind(struct acpi_device *device);
-> -int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
-> -		       struct pci_bus *bus);
->  
->  /* Arch-defined function to add a bus to the system */
->  
+> struct acpi_mcfg_allocation is the structure that maps onto the MCFG
+> ACPI table as defined in the PCI firmware spec and provided by the ACPI 
+> BIOS.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'd like it to stay in actbl1.h -- as that is part of ACPICA, which
+> tracks the standard tables.  (and I see you did this with your updated 
+> patch, thanks.)
 > 
+> FWIW, "reserved" here really does have a specific definition. 
+> On read-only tables, such as this one, reserved fields are 
+> defined to return 0 on reads for this version of the table, 
+> but may return non-zero on future revisions.
+
+of course - i did not want to suggest anything else.
+
+Anything that the hardware accesses/provides is special and 
+reserved in that sense.
+
+My suggestion to rename to __reserved was to document this fact 
+better and to make sure there's no higher-level 'reserved' 
+concept controlled here.
+
+	Ingo
