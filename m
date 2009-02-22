@@ -1,179 +1,69 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [git pull] ACPI & PM patches for 2.6.29-rc5
-Date: Sat, 21 Feb 2009 22:07:01 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902212205330.5009@localhost.localdomain>
+Subject: Re: [PATCH 1/1] switch the Asus Pundit P1-AH2 to old acpi sleep
+ ordering
+Date: Sat, 21 Feb 2009 22:28:33 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902212228280.5009@localhost.localdomain>
+References: <1234375882-5193-1-git-send-email-apw@canonical.com>
+ <1234377014.6932.2.camel@t61p>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:34107 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbZBVDHU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 22:07:20 -0500
+Received: from vms173001pub.verizon.net ([206.46.173.1]:58285 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbZBVD3K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 22:29:10 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KFG0072O6ZMBB20@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 21 Feb 2009 21:28:40 -0600 (CST)
+In-reply-to: <1234377014.6932.2.camel@t61p>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Dustin Kirkland <kirkland@canonical.com>
+Cc: Andy Whitcroft <apw@canonical.com>, linux-acpi@vger.kernel.org
 
-Hi Linus,
+applied
 
-please pull from: 
-
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-This will update the files shown below.
-
-thanks!
-
+thanks,
 --
-Len Brown
-Intel Open Source Technology Center
+Len Brown, Intel Open Source Technology Center
 
+On Wed, 11 Feb 2009, Dustin Kirkland wrote:
 
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.29/acpi-release-20081204-2.6.29-rc5.diff.gz
-
- arch/x86/kernel/acpi/wakeup_64.S      |   30 ++++++++++--------------------
- drivers/acpi/Kconfig                  |    7 -------
- drivers/acpi/Makefile                 |    2 +-
- drivers/acpi/battery.c                |   25 ++++++++++++++++++++++++-
- drivers/acpi/ec.c                     |    9 +++++++++
- drivers/platform/x86/fujitsu-laptop.c |   25 ++++++++++++++++++-------
- 6 files changed, 62 insertions(+), 36 deletions(-)
-
-through these commits:
-
-Alexey Starikovskiy (1):
-      ACPI: EC: Add delay for slow MSI controller
-
-Bjorn Helgaas (1):
-      ACPI: remove CONFIG_ACPI_SYSTEM
-
-Jiri Slaby (2):
-      x86_64: acpi/wakeup_64 cleanup
-      x86_64: Fix S3 fail path
-
-Richard Hughes (1):
-      battery: don't assume we are fully charged when not charging or discharging
-
-Tony Vroon (1):
-      fujitsu-laptop: Use RFKILL support bitmask from firmware
-
-with this log:
-
-commit 5acfac5a6473b459ed38c0edf515be030f3b5874
-Merge: 5423a0c 56f382a ba193d6 6defa2f
-Author: Len Brown <len.brown@intel.com>
-Date:   Sat Feb 21 22:01:43 2009 -0500
-
-    Merge branches 'release', 'bugzilla-12011', 'bugzilla-12632', 'misc' and 'suspend' into release
-
-commit ba193d64abfe644e8752affa310a368eda01f46e
-Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Date:   Thu Feb 19 12:56:16 2009 -0700
-
-    ACPI: remove CONFIG_ACPI_SYSTEM
-    
-    Remove CONFIG_ACPI_SYSTEM.  It was always set the same as CONFIG_ACPI,
-    and it had no menu label, so there was no way to set it to anything
-    other than "y".
-    
-    Some things under CONFIG_ACPI_SYSTEM (acpi_irq_handled, acpi_os_gpe_count(),
-    event_is_open, register_acpi_notifier(), etc.) are used unconditionally
-    by the CA, the OSPM, and drivers, so we depend on them always being
-    present.
-    
-    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 4898c2b2f04051e19f4230683c0f0b15f71af887
-Author: Tony Vroon <tony@linx.net>
-Date:   Mon Feb 2 11:11:10 2009 +0000
-
-    fujitsu-laptop: Use RFKILL support bitmask from firmware
-    
-    Up until now, we polled the rfkill status for every incoming FUJ02E3 ACPI event.
-    It turns out that the firmware has a bitmask which indicates what rfkill-related
-    state it can report.
-    The rfkill_supported bitmask is now used to avoid polling for rfkill at all in
-    the notification handler if there is no support. Also, it is used in the platform
-    device callbacks. As before we register all callbacks and report "unknown" if the
-    firmware does not give us status updates for that particular bit.
-    
-    This was fed through checkpatch.pl and tested on the S6420, S7020 and P8010
-    platforms.
-    
-    Signed-off-by: Tony Vroon <tony@linx.net>
-    Tested-by: Stephen Gildea <stepheng+linux@gildea.com>
-    Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 6defa2fe2019f3729933516fba5cfd75eecd07de
-Author: Jiri Slaby <jirislaby@gmail.com>
-Date:   Sun Feb 15 22:46:45 2009 +0100
-
-    x86_64: Fix S3 fail path
-    
-    As acpi_enter_sleep_state can fail, take this into account in
-    do_suspend_lowlevel and don't return to the do_suspend_lowlevel's
-    caller. This would break (currently) fpu status and preempt count.
-    
-    Technically, this means use `call' instead of `jmp' and `jmp' to
-    the `resume_point' after the `call' (i.e. if
-    acpi_enter_sleep_state returns=fails). `resume_point' will handle
-    the restore of fpu and preempt count gracefully.
-    
-    Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit e6bd6760c92dc8475c79c4c4a8a16ac313c0b93d
-Author: Jiri Slaby <jirislaby@gmail.com>
-Date:   Sun Feb 15 22:45:49 2009 +0100
-
-    x86_64: acpi/wakeup_64 cleanup
-    
-    - remove %ds re-set, it's already set in wakeup_long64
-    - remove double labels and alignment (ENTRY already adds both)
-    - use meaningful resume point labelname
-    - skip alignment while jumping from wakeup_long64 to the resume point
-    - remove .size, .type and unused labels
-    [v2]
-    - added ENDPROCs
-    
-    Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-    Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-    Acked-by: Pavel Machek <pavel@suse.cz>
-    Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 56f382a08722186623400180adbb9d1be1721cee
-Author: Richard Hughes <hughsient@gmail.com>
-Date:   Sun Jan 25 15:05:50 2009 +0000
-
-    battery: don't assume we are fully charged when not charging or discharging
-    
-    On hardware like the T61 it can take a couple of seconds for the battery
-    to start charging after the power is connected, and we incorrectly tell
-    userspace that we are fully charged, and then go back to charging.
-    
-    Only mark a battery as fully charged when the preset charge matches either
-    the last full charge, or the design charge.
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=12632
-    
-    Signed-off-by: Richard Hughes <hughsient@gmail.com>
-    Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 5423a0cb3f74c16e90683f8ee1cec6c240a9556e
-Author: Alexey Starikovskiy <astarikovskiy@suse.de>
-Date:   Sat Feb 21 12:18:13 2009 -0500
-
-    ACPI: EC: Add delay for slow MSI controller
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=12011
-    
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+> On Wed, 2009-02-11 at 18:11 +0000, Andy Whitcroft wrote:
+> > Switch the Asus Pundit P1-AH2 (M2N8L motherboard) to the old ACPI 1.0
+> > sleep ordering by default.  Without this it will not suspend/resume
+> > correctly.
+> > 
+> > Signed-off-by: Andy Whitcroft <apw@canonical.com>
+> > Tested-by: Dustin Kirkland <kirkland@canonical.com>
+> 
+> Ack.  I've tested this and it solves this problem on this hardware.
+> 
+> Thanks, Andy.
+> 
+> > ---
+> >  drivers/acpi/sleep.c |    8 ++++++++
+> >  1 files changed, 8 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> > index 5192666..3ca9868 100644
+> > --- a/drivers/acpi/sleep.c
+> > +++ b/drivers/acpi/sleep.c
+> > @@ -378,6 +378,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+> >  		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
+> >  		},
+> >  	},
+> > +	{
+> > +	.callback = init_old_suspend_ordering,
+> > +	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
+> > +	.matches = {
+> > +		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
+> > +		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
+> > +		},
+> > +	},
+> >  	{},
+> >  };
+> >  #endif /* CONFIG_SUSPEND */
+> 
