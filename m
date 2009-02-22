@@ -1,80 +1,58 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
-Date: Sun, 22 Feb 2009 10:22:56 +0100
-Message-ID: <20090222092256.GC6964@elte.hu>
-References: <1233766786.16414.26.camel@localhost.localdomain> <20090204181738.GA16174@elte.hu> <alpine.LFD.2.00.0902210046030.19156@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0902210046030.19156@localhost.localdomain>
-Sender: linux-pci-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ed Swierk <eswierk@aristanetworks.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: [PATCH 1/1] ACPI: bus.c, remove doubled status checking
+Date: Sun, 22 Feb 2009 21:46:55 +0100
+Message-ID: <1235335615-910-1-git-send-email-jirislaby@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.wellnetcz.com ([212.24.148.102]:50421 "EHLO
+	smtp.wellnetcz.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462AbZBVUrK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Feb 2009 15:47:10 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jirislaby@gmail.com>
 
+There was a misplaced status test (two consequent tests without
+a statement in between) in acpi_bus_init for ages. Remove it,
+since the function which should be checked (acpi_os_initialize1)
+has BUG_ONs on failure paths.
 
-* Len Brown <lenb@kernel.org> wrote:
+On platforms with BUG_ON not being "noreturn", we panics elsewhere
+since the function ever returns 0 anyway.
 
-> 
-> > > +#ifdef CONFIG_PCI_MMCONFIG
-> > > +
-> > > +struct acpi_mcfg_allocation {
-> > > +	u64 address;		/* Base address, processor-relative */
-> > > +	u16 pci_segment;	/* PCI segment group number */
-> > > +	u8 start_bus_number;	/* Starting PCI Bus number */
-> > > +	u8 end_bus_number;	/* Final PCI Bus number */
-> > > +	u32 reserved;
-> > > +};
-> > 
-> > Please rename this to "struct pci_mcfg_allocation" - there's nothing ACPI 
-> > about it anymore - mmcfg is a PCI feature and ACPI is an enumeration method.
-> > 
-> > Also, while touching it, please also use the opportunity to align structure 
-> > fields vertically:
-> > 
-> >  struct pci_mcfg_allocation {
-> > 	u64	address;		/* Base address, processor-relative */
-> > 	u16	pci_segment;		/* PCI segment group number */
-> > 	u8	start_bus_number;	/* Starting PCI Bus number */
-> > 	u8	end_bus_number;		/* Final PCI Bus number */
-> > 	u32	__reserved;
-> >  };
-> > 
-> > The whole layout of this structure becomes easier to read and nicer to look 
-> > at as well.
-> > 
-> > Another small detail: note how i renamed reserved to __reserved - that is a 
-> > standard way to de-emphasise the signficance of a structure field.
-> > 
-> > The reserved field there is for future expansion and to pad the structure to 
-> > 16 bytes - it doesnt really mean much and the underscores move it a bit out 
-> > of the default line of sight.
-> > 
-> > With a 'reserved' field people end up wondering whether it's perhaps some 
-> > _semantic_ 'reserved area' kind of thing (like for e820 maps, etc.) - so 
-> > it's never bad to make that distinction explicit via the double underscores.
-> 
-> struct acpi_mcfg_allocation is the structure that maps onto the MCFG
-> ACPI table as defined in the PCI firmware spec and provided by the ACPI 
-> BIOS.
-> 
-> I'd like it to stay in actbl1.h -- as that is part of ACPICA, which
-> tracks the standard tables.  (and I see you did this with your updated 
-> patch, thanks.)
-> 
-> FWIW, "reserved" here really does have a specific definition. 
-> On read-only tables, such as this one, reserved fields are 
-> defined to return 0 on reads for this version of the table, 
-> but may return non-zero on future revisions.
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/acpi/bus.c |    9 +--------
+ 1 files changed, 1 insertions(+), 8 deletions(-)
 
-of course - i did not want to suggest anything else.
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 765fd1c..bee64b7 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -758,8 +758,7 @@ static int __init acpi_bus_init(void)
+ 	acpi_status status = AE_OK;
+ 	extern acpi_status acpi_os_initialize1(void);
+ 
+-
+-	status = acpi_os_initialize1();
++	acpi_os_initialize1();
+ 
+ 	status =
+ 	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
+@@ -769,12 +768,6 @@ static int __init acpi_bus_init(void)
+ 		goto error1;
+ 	}
+ 
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR PREFIX
+-		       "Unable to initialize ACPI OS objects\n");
+-		goto error1;
+-	}
+-
+ 	/*
+ 	 * ACPI 2.0 requires the EC driver to be loaded and work before
+ 	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
+-- 
+1.6.1.3
 
-Anything that the hardware accesses/provides is special and 
-reserved in that sense.
-
-My suggestion to rename to __reserved was to document this fact 
-better and to make sure there's no higher-level 'reserved' 
-concept controlled here.
-
-	Ingo
