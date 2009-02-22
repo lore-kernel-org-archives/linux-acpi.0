@@ -1,45 +1,38 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [PATCH 1/1] ACPI: bus.c, fix error handling in acpi_bus_init
-Date: Sat, 21 Feb 2009 14:05:30 +0100
-Message-ID: <499FFC1A.7010906@gmail.com>
-References: <1234731354-7472-1-git-send-email-jirislaby@gmail.com> <alpine.LFD.2.00.0902202352551.19156@localhost.localdomain>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] ACPI: index off by one?
+Date: Sun, 22 Feb 2009 02:54:29 +0100
+Message-ID: <49A0B055.5060600@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:35970 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753196AbZBUNFk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 08:05:40 -0500
-In-Reply-To: <alpine.LFD.2.00.0902202352551.19156@localhost.localdomain>
+Received: from nf-out-0910.google.com ([64.233.182.184]:44303 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842AbZBVBya (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Feb 2009 20:54:30 -0500
+Received: by nf-out-0910.google.com with SMTP id d21so217497nfb.21
+        for <linux-acpi@vger.kernel.org>; Sat, 21 Feb 2009 17:54:27 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On 21.2.2009 05:58, Len Brown wrote:
-> On Sun, 15 Feb 2009, Jiri Slaby wrote:
->
->> There was a misplaced status test. Move it to correct place and
->> rollback appropriately.
->
-> hmm, looks like this has been broken since the day
-> acpi_os_initialize1() was invented in 2004.
+Should maybe this be applied? please review.
+--------------------------->8-------------8<------------------------------
+When index equals ACPI_NAME_SIZE, that is still one too large.
 
-It comes from bitkeeper times, I checked, it looked like a typo.
-
-> Turns out that the bug and its fix are moot, however,
-> as acpi_os_initialize1() is hard-coded to return success,
-> opting for BUG_ON() if it sees a failure...
-
-BUG_ON is not noreturn e.g. on embedded, anyway it would crash later in 
-this case. I was thinking about returning a failure when one of them is 
-NULL, but fell back to not do so and check only retval in the caller.
-
-> So unless that changes, I'd prefer to keep the code
-> simple and just not check its status -- which is effectively
-> what we're doing right now.
-
-Ok, no problem. Will repost.
-
-Thanks.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+index ae3dc10..232c80c 100644
+--- a/drivers/acpi/acpica/nsnames.c
++++ b/drivers/acpi/acpica/nsnames.c
+@@ -87,7 +87,7 @@ acpi_ns_build_external_path(struct acpi_namespace_node *node,
+ 	parent_node = node;
+ 	name_buffer[index] = 0;
+ 
+-	while ((index > ACPI_NAME_SIZE) && (parent_node != acpi_gbl_root_node)) {
++	while ((index >= ACPI_NAME_SIZE) && (parent_node != acpi_gbl_root_node)) {
+ 		index -= ACPI_NAME_SIZE;
+ 
+ 		/* Put the name into the buffer */
