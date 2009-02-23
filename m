@@ -1,66 +1,61 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: incorrect battery design capacity
-Date: Mon, 23 Feb 2009 16:58:02 +0800
-Message-ID: <1235379482.5789.1.camel@localhost.localdomain>
-References: <1235377098.7046.20.camel@kocour>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI: index off by one?
+Date: Mon, 23 Feb 2009 07:36:56 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D83085814B540DD@orsmsx503.amr.corp.intel.com>
+References: <49A0B055.5060600@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31714 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:59930 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971AbZBWIqb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Feb 2009 03:46:31 -0500
-In-Reply-To: <1235377098.7046.20.camel@kocour>
+	id S1753430AbZBWPg7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Feb 2009 10:36:59 -0500
+In-Reply-To: <49A0B055.5060600@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jachym Cepicky <jachym.cepicky@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Roel Kluin <roel.kluin@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Mon, 2009-02-23 at 16:18 +0800, Jachym Cepicky wrote:
-> Hi, 
-> if I'm in wrong mailing list, my apologizes, plese point me to the right
-> one.
->  
-> It is truth, that my laptop is about 3 years old, and so, I can not
-> expect  miracles from my battery, however, I would call this an bug:
-> 
-> I have HP Compaq nx6125 and on the battery it is written, that it is
-> 10.8V - 4.8 Ahr, which I understand, that capacity of my battery is 4800
-> mAh. 
-> 
-> However,  cat /proc/acpi/battery/C179/info 
-> present:                 yes
-> design capacity:         638 mAh
-It seems that the design capacity is not very correct.
-Will you please try the latest kernel and see whether the battery design
-capacity can be reported correctly?
-Of course please also attach the output of acpidump.
-Thanks.
-> last full capacity:      638 mAh
-> battery technology:      rechargeable
-> design voltage:          11100 mV
-> design capacity warning: 32 mAh
-> design capacity low:     7 mAh
-> capacity granularity 1:  100 mAh
-> capacity granularity 2:  100 mAh
-> model number:            Primary
-> serial number:           03740 2006/01/12
-> battery type:            LIon
-> OEM info:                Hewlett-Packard
-> 
-> The last full/design capacity ratio is (after 3 years) impressive. But I
-> would expect the design capacity little bit (about 7.5x?) higher. 
-> 
-> Is it the bug of acpi? Kernel? Do I have to buy me a new battery?  Can I
-> set somehow design capacity by hand?
-> 
-> Linux kocour 2.6.27-11-generic #1 SMP Thu Jan 29 19:24:39 UTC 2009 i686
-> GNU/Linux
-> Ubuntu 8.10
-> acpi 1.1
-> 
-> Thanks
-> 
-> Jachym
+No, the original code is correct.
 
+Index must be at least as long as (ACPI_NAME_SIZE + 1) in order to account for the path separator. In other words, each segment in the pathname is not of length ACPI_NAME_SIZE, it is of length (ACPI_NAME_SIZE + 1).
+
+Bob
+
+
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Roel Kluin
+>Sent: Saturday, February 21, 2009 5:54 PM
+>To: lenb@kernel.org
+>Cc: linux-acpi@vger.kernel.org; Andrew Morton
+>Subject: [PATCH] ACPI: index off by one?
+>
+>Should maybe this be applied? please review.
+>--------------------------->8-------------8<------------------------------
+>When index equals ACPI_NAME_SIZE, that is still one too large.
+>
+>Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+>---
+>diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+>index ae3dc10..232c80c 100644
+>--- a/drivers/acpi/acpica/nsnames.c
+>+++ b/drivers/acpi/acpica/nsnames.c
+>@@ -87,7 +87,7 @@ acpi_ns_build_external_path(struct acpi_namespace_node
+>*node,
+> 	parent_node = node;
+> 	name_buffer[index] = 0;
+>
+>-	while ((index > ACPI_NAME_SIZE) && (parent_node !=
+>acpi_gbl_root_node)) {
+>+	while ((index >= ACPI_NAME_SIZE) && (parent_node !=
+>acpi_gbl_root_node)) {
+> 		index -= ACPI_NAME_SIZE;
+>
+> 		/* Put the name into the buffer */
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
