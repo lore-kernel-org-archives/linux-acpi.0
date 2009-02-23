@@ -1,33 +1,64 @@
-From: Len Brown <lenb@kernel.org>
-Subject: ACPI bugzilla status
-Date: Sun, 22 Feb 2009 20:50:47 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902222048480.7843@localhost.localdomain>
+From: Jachym Cepicky <jachym.cepicky@gmail.com>
+Subject: incorrect battery design capacity
+Date: Mon, 23 Feb 2009 09:18:18 +0100
+Message-ID: <1235377098.7046.20.camel@kocour>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:28894 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbZBWBvI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Feb 2009 20:51:08 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFH00FNTX4P87VA@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 22 Feb 2009 19:50:50 -0600 (CST)
-Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
-	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id n1N1omF6008811	for
- <linux-acpi@vger.kernel.org>; Sun, 22 Feb 2009 20:50:49 -0500
-Received: from localhost (lenb@localhost)
-	by localhost.localdomain (8.14.2/8.14.2/Submit) with ESMTP id n1N1oll4008807
-	for <linux-acpi@vger.kernel.org>; Sun, 22 Feb 2009 20:50:48 -0500
+Received: from mail-fx0-f167.google.com ([209.85.220.167]:49542 "EHLO
+	mail-fx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752889AbZBWISX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Feb 2009 03:18:23 -0500
+Received: by mail-fx0-f167.google.com with SMTP id 11so1456055fxm.13
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Feb 2009 00:18:22 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-FYI
+Hi, 
+if I'm in wrong mailing list, my apologizes, plese point me to the right
+one.
+ 
+It is truth, that my laptop is about 3 years old, and so, I can not
+expect  miracles from my battery, however, I would call this an bug:
 
-We are down to 0 resolved bugs waiting to go upstream,
-but we have 70 unresolved bugs (up from 49 at the start of the year).
+I have HP Compaq nx6125 and on the battery it is written, that it is
+10.8V - 4.8 Ahr, which I understand, that capacity of my battery is 4800
+mAh. 
 
---
-Len Brown, Intel Open Source Technology Center
+However,  cat /proc/acpi/battery/C179/info 
+present:                 yes
+design capacity:         638 mAh
+last full capacity:      638 mAh
+battery technology:      rechargeable
+design voltage:          11100 mV
+design capacity warning: 32 mAh
+design capacity low:     7 mAh
+capacity granularity 1:  100 mAh
+capacity granularity 2:  100 mAh
+model number:            Primary
+serial number:           03740 2006/01/12
+battery type:            LIon
+OEM info:                Hewlett-Packard
+
+The last full/design capacity ratio is (after 3 years) impressive. But I
+would expect the design capacity little bit (about 7.5x?) higher. 
+
+Is it the bug of acpi? Kernel? Do I have to buy me a new battery?  Can I
+set somehow design capacity by hand?
+
+Linux kocour 2.6.27-11-generic #1 SMP Thu Jan 29 19:24:39 UTC 2009 i686
+GNU/Linux
+Ubuntu 8.10
+acpi 1.1
+
+Thanks
+
+Jachym
+-- 
+Jachym Cepicky
+e-mail: jachym.cepicky gmail com
+URL: http://les-ejk.cz
+GPG: http://les-ejk.cz/pgp/JachymCepicky.pgp
+
