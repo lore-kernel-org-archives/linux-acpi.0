@@ -1,38 +1,33 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] acpi/doc: add missing param value
-Date: Sun, 22 Feb 2009 17:05:22 -0800
-Message-ID: <20090222170522.02db8b69.randy.dunlap@oracle.com>
+From: Len Brown <lenb@kernel.org>
+Subject: ACPI bugzilla status
+Date: Sun, 22 Feb 2009 20:50:47 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902222048480.7843@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:18619 "EHLO
-	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbZBWBEl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Feb 2009 20:04:41 -0500
+Received: from vms173005pub.verizon.net ([206.46.173.5]:28894 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbZBWBvI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Feb 2009 20:51:08 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KFH00FNTX4P87VA@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 22 Feb 2009 19:50:50 -0600 (CST)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id n1N1omF6008811	for
+ <linux-acpi@vger.kernel.org>; Sun, 22 Feb 2009 20:50:49 -0500
+Received: from localhost (lenb@localhost)
+	by localhost.localdomain (8.14.2/8.14.2/Submit) with ESMTP id n1N1oll4008807
+	for <linux-acpi@vger.kernel.org>; Sun, 22 Feb 2009 20:50:48 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, akpm <akpm@linux-foundation.org>, torvalds <torvalds@linux-foundation.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+FYI
 
-Add missing parameter value to list of available values
-for acpi=<value>.
+We are down to 0 resolved bugs waiting to go upstream,
+but we have 70 unresolved bugs (up from 49 at the start of the year).
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-next-20090220.orig/Documentation/kernel-parameters.txt
-+++ linux-next-20090220/Documentation/kernel-parameters.txt
-@@ -136,7 +136,7 @@ and is between 256 and 4096 characters. 
- 
- 	acpi=		[HW,ACPI,X86-64,i386]
- 			Advanced Configuration and Power Interface
--			Format: { force | off | ht | strict | noirq }
-+			Format: { force | off | ht | strict | noirq | rsdt }
- 			force -- enable ACPI if default was off
- 			off -- disable ACPI if default was on
- 			noirq -- do not use ACPI for IRQ routing
+--
+Len Brown, Intel Open Source Technology Center
