@@ -1,35 +1,71 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: 2.6.29-rc6: Reported regressions from 2.6.28
-Date: Tue, 24 Feb 2009 08:15:50 +0100
-Message-ID: <20090224071550.GA10436@elte.hu>
-References: <GVhknozYwrL.A.hiC.rozoJB@chimera>
+From: "Carlos Corbacho" <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] acer-wmi: Fix regression in backlight detection
+Date: Tue, 24 Feb 2009 09:25:09 -0000 (UTC)
+Message-ID: <7959.194.201.210.214.1235467509.squirrel@phoenix.slamd64.com>
+References: <1235454078-3069-1-git-send-email-mspang@csclub.uwaterloo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <GVhknozYwrL.A.hiC.rozoJB@chimera>
-Sender: linux-scsi-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, "Adam J. Richter" <adam@yggdrasil.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:57321 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754124AbZBXJZk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Feb 2009 04:25:40 -0500
+In-Reply-To: <1235454078-3069-1-git-send-email-mspang@csclub.uwaterloo.ca>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michael Spang <mspang@csclub.uwaterloo.ca>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+
+[Adding Len Brown & linux-acpi to CC]
+
+> Currently we disable the Acer WMI backlight device if there is no ACPI
+> backlight device. As a result, we end up with no backlight device at
+> all. We should instead disable it if there is an ACPI device, as the
+> other laptop drivers do. This regression was introduced in febf2d9.
+
+An identical patch has already been submitted, I'm just waiting on Len to
+apply it:
+
+http://patchwork.kernel.org/patch/7223/
+
+> Signed-off-by: Michael Spang <mspang@csclub.uwaterloo.ca>
+> ---
+>  drivers/platform/x86/acer-wmi.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> Each laptop driver with backlight support got a similar change around
+> febf2d9. The changes to the other drivers look correct; see e.g. a598c82f
+> for a similar but correct change. The regression is also in 2.6.28.
+
+This won't apply cleanly to 2.6.28 due to the move of acer-wmi from
+drivers/misc to drivers/platform/x86, so we'd probably need another patch
+for stable. However, that can't happen until the original patch gets
+merged upstream.
+
+-Carlos
+
+> diff --git a/drivers/platform/x86/acer-wmi.c
+> b/drivers/platform/x86/acer-wmi.c
+> index 94c9f91..6bcca61 100644
+> --- a/drivers/platform/x86/acer-wmi.c
+> +++ b/drivers/platform/x86/acer-wmi.c
+> @@ -1297,7 +1297,7 @@ static int __init acer_wmi_init(void)
+>
+>  	set_quirks();
+>
+> -	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
+> +	if (acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
+>  		interface->capability &= ~ACER_CAP_BRIGHTNESS;
+>  		printk(ACER_INFO "Brightness must be controlled by "
+>  		       "generic video driver\n");
+> --
+> 1.6.0.6
+>
+>
 
 
-(note, the standalone mail of this bug entry did not make it out 
-for some reason.)
-
-* Rafael J. Wysocki <rjw@sisk.pl> wrote:
-
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12760
-> Subject		: 2.6.29-rc5 hanging at boot when CONFIG_LOCK_STAT=y
-> Submitter	: Adam J. Richter <adam@yggdrasil.com>
-> Date		: 2009-02-16 6:50 (8 days old)
-> References	: http://marc.info/?l=linux-kernel&m=123476768023893&w=4
-> Handled-By	: Ingo Molnar <mingo@elte.hu>
-
-Here we came to the conclusion that this is some LILO bug with a 
-too large BSS section - that's one thing that CONFIG_LOCK_STAT 
-causes. Under Grub the same kernel image boots fine. So unless 
-Adam has new data that contradicts this i think we can close 
-this bug.
-
-	Ingo
+-- 
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
