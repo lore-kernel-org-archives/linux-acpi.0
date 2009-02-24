@@ -1,40 +1,48 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: Re: [PATCH 2.6.29-rc4] Restore ACPI reporting via /proc/acpi/events for EeePC & other Asus laptops.
-Date: Tue, 24 Feb 2009 12:31:02 +0100
-Message-ID: <200902241231.02809.corentincj@iksaif.net>
-References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain> <5030E21460%linux@youmustbejoking.demon.co.uk> <5030E5F170%ds@youmustbejoking.demon.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 2/2] ACPI: fix broken usage of acpi_ut_get_node_name()
+Date: Tue, 24 Feb 2009 11:48:18 -0300
+Message-ID: <1235486898-27756-2-git-send-email-hmh@hmh.eng.br>
+References: <1235486898-27756-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:65346 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752803AbZBXLbH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Feb 2009 06:31:07 -0500
-In-Reply-To: <5030E5F170%ds@youmustbejoking.demon.co.uk>
-Content-Disposition: inline
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:38653 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755330AbZBXOsX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Feb 2009 09:48:23 -0500
+In-Reply-To: <1235486898-27756-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Salt <ds@youmustbejoking.demon.co.uk>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Garrett <mjg@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lin Ming <ming.m.lin@intel.com>
 
-On Tuesday 10 February 2009 15:54:56 Darren Salt wrote:
-> The descriptions for the following two commits
->   2a7dc0d8c60325e9bf820900bf919430e5a419ab (asus-laptop)
->   2b25c9f01aa58d48129b2f93748dfb5d1f7ab0a2 (eeepc-laptop)
-> say that events should ALSO be exported via netlink, but the effect is that
-> they are INSTEAD exported via netlink. The latter commit breaks use of
-> acpid on my EeePC 901.
+acpi_ut_get_node_name() returns a four char fixed-size array, not
+NULL-terminated.
 
-Hi,
-There was already two patch for that on the ml
+This issue was fixed indirectly in mainline by commit
+60a4ce7f4148155d3f28eea4a213f7ee47cd57b7.
 
-http://patchwork.kernel.org/patch/7356/
-http://patchwork.kernel.org/patch/7357/
+This is the minimal fix for stable 2.6.28.
 
-Thanks
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: stable@kernel.org
+Cc: Lin Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/power.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index bb7d50d..ad55db1 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -151,7 +151,7 @@ static int acpi_power_get_state(acpi_handle handle, int *state)
+ 	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
+ 			      ACPI_POWER_RESOURCE_STATE_OFF;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%4.4s] is %s\n",
+ 			  acpi_ut_get_node_name(handle),
+ 				*state ? "on" : "off"));
+ 
 -- 
-Corentin Chary
-http://xf.iksaif.net
+1.5.6.5
+
