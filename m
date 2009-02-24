@@ -1,48 +1,77 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 1/4] eeepc-laptop: Fix Kconfig
-Date: Tue, 24 Feb 2009 14:44:39 -0800
-Message-ID: <20090224144439.63c9b9f7.akpm@linux-foundation.org>
-References: <1234722621-14498-1-git-send-email-corentincj@iksaif.net>
-	<1234722621-14498-2-git-send-email-corentincj@iksaif.net>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: [RFH,Status] Sony Vaio VGN-Z11 support
+Date: Wed, 25 Feb 2009 00:44:14 +0100
+Message-ID: <20090224234414.GC19062@gamma.logic.tuwien.ac.at>
+References: <20081108213414.579e178d@mjolnir.drzeus.cx> <20081108233337.GA21200@gamma.logic.tuwien.ac.at> <20081114222557.04025d36@mjolnir.drzeus.cx> <20081025214602.GB27030@gamma.logic.tuwien.ac.at> <20081108213414.579e178d@mjolnir.drzeus.cx> <20081108233337.GA21200@gamma.logic.tuwien.ac.at> <20090127004840.GA7246@gamma.logic.tuwien.ac.at> <20090202204027.006bb2e2@mjolnir.drzeus.cx> <20090202235754.GA13222@gamma.logic.tuwien.ac.at> <20090221134821.7540c39d@mjolnir.ossman.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50352 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758376AbZBXWpX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Feb 2009 17:45:23 -0500
-In-Reply-To: <1234722621-14498-2-git-send-email-corentincj@iksaif.net>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:56552 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754016AbZBXXo1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Feb 2009 18:44:27 -0500
+Content-Disposition: inline
+In-Reply-To: <20090221134821.7540c39d@mjolnir.ossman.eu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org, corentincj@iksaif.net
+To: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, 15 Feb 2009 19:30:18 +0100
-Corentin Chary <corentincj@iksaif.net> wrote:
+On Sa, 21 Feb 2009, Pierre Ossman wrote:
+> > Tests, all with kernel 2.6.29-rc3
 
-> Add a "select INPUT" to Kconfig now that eeepc-laptop
-> is using the input layer.
+and -rc5
+
+> > - normal boot without card in the slot -> not detected
+> >   . suspending with OR without card in the slot makes it work!!!!
+> >     (that is new, I thought that the card has to be in the slot!)
+> >   . re-ejecting and re-inserting always make the card show up
+> >     One sequence of eject/re-insert's syslog output is attached.
+> > 
+> > - normal boot WITH card in the slot -> detected!!!
+> > 
+> > All tests were made with and without ricoh_mmc built into the kernel. It
+> > does not change anything, so ricoh_mmc does not do anything at all here,
+> > can be disabled.
+> > 
 > 
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> ---
->  drivers/platform/x86/Kconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+> This is extremely odd. I'd normally guess that this is because of a
+> race with ricoh_mmc, but since you've removed that from the equation...
 > 
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 9436311..6f46bc6 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -305,6 +305,7 @@ config EEEPC_LAPTOP
->  	select BACKLIGHT_CLASS_DEVICE
->  	select HWMON
->  	select RFKILL
-> +	select INPUT
->  	---help---
->  	  This driver supports the Fn-Fx keys on Eee PC laptops.
->  	  It also adds the ability to switch camera/wlan on/off.
+> > Hmm, isn't there a way to read the pci settings and see the difference?
+> > Could it make *the* difference?
+> 
+> Most likely. You can dump the PCI config using lspci -xxx. Compare the
+> data for everything on the Ricoh device (not just the MMC interface)
+> and see if you can see a difference before and after suspend.
 
-I'm getting
+No difference, unfortunately. Absolutely no difference. The normal lspci
+shows me:
+...
+0b:04.0 CardBus bridge: Ricoh Co Ltd RL5c476 II (rev ba)
+0b:04.1 FireWire (IEEE 1394): Ricoh Co Ltd R5C832 IEEE 1394 Controller (rev 04)
+0b:04.2 SD Host controller: Ricoh Co Ltd R5C822 SD/SDIO/MMC/MS/MSPro Host Adapter (rev 21)
+0b:04.4 System peripheral: Ricoh Co Ltd R5C592 Memory Stick Bus Host Adapter (rev 11)
 
-drivers/input/Kconfig:9:error: found recursive dependency: INPUT -> EEEPC_LAPTOP -> INPUT
-make[1]: *** [oldconfig] Error 1
+So I called
+	lspci -xxx -s 0b:04
+before and after suspend (before and after working state) and there is
+no difference at all.
+
+Anything else one can dump/do?
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+CURRY MALLET (n.)
+A large wooden or rubber cub which poachers use to despatch cats or
+other game which they can only sell to Indian resturants. For
+particulary small cats the price obtainable is not worth the cost of
+expending ammunition.
+			--- Douglas Adams, The Meaning of Liff
