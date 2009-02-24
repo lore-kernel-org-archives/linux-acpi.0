@@ -1,51 +1,54 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 1/2] ACPI: fix broken usage of name.ascii
-Date: Tue, 24 Feb 2009 11:48:17 -0300
-Message-ID: <1235486898-27756-1-git-send-email-hmh@hmh.eng.br>
+From: Heinz Diehl <htd@fancy-poultry.org>
+Subject: Re: ACPI exception with 2.6.29-rc6
+Date: Tue, 24 Feb 2009 16:01:52 +0100
+Message-ID: <20090224150152.GA4885@fancy-poultry.org>
+References: <871vtpqex0.wl%htd@fancy-poultry.org> <20090223150749.0b284ba2.akpm@linux-foundation.org> <alpine.LFD.2.00.0902232128340.16923@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:43180 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756392AbZBXOsX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Feb 2009 09:48:23 -0500
+Received: from moutng.kundenserver.de ([212.227.126.188]:63037 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753695AbZBXO5P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Feb 2009 09:57:15 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0902232128340.16923@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lin Ming <ming.m.lin@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger-kernel.org, linux-acpi@vger.kernel.org
 
-acpi_namespace_node's name.ascii field is four chars, and not NULL-
-terminated except by pure luck.  So, it cannot be used by sscanf() without
-a length restriction.
+On 24.02.2009, Len Brown wrote: 
 
-This issue was fixed indirectly in mainline by commit
-0175d562a29ad052c510782c7e76bc63d5155b9b.
+> Please attach the output of acpidump here:
+> http://bugzilla.kernel.org/show_bug.cgi?id=12758
 
-This is the minimal fix for both stable 2.6.27 and 2.6.28.
+Did just upload the attachment.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: stable@kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>
----
- drivers/acpi/ec.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+> Also, if this system has both pic and IOAPIC mode,
+> it would be interesting to try booting it in both,
+> eg with "noapic".
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 30f3ef2..4aa9477 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -759,9 +759,10 @@ acpi_ec_register_query_methods(acpi_handle handle, u32 level,
- 	struct acpi_namespace_node *node = handle;
- 	struct acpi_ec *ec = context;
- 	int value = 0;
--	if (sscanf(node->name.ascii, "_Q%x", &value) == 1) {
-+
-+	if (sscanf(node->name.ascii, "_Q%2x", &value) == 1)
- 		acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
--	}
-+
- 	return AE_OK;
- }
- 
--- 
-1.5.6.5
+Booting with the "noapic" option, the logfile shows:
 
+[....]
+<7>bus: 00 index 3 mmio: [d0000000, efffffff]
+<7>bus: 00 index 4 mmio: [230000000, fcffffffff]
+<6>ACPI: bus type pci registered
+<5>PCI: MCFG configuration 0: base f0000000 segment 0 buses 0 - 127
+<5>PCI: MCFG area at f0000000 reserved in E820
+<6>PCI: Using MMCONFIG at f0000000 - f7ffffff
+<6>PCI: Using configuration type 1 for base access
+<4>bio: create slab <bio-0> at 0
+<7>ACPI: EC: Look up EC in DSDT
+<3>ACPI: Denied BIOS AML access to invalid port 0x4d0+0x2 (ELCR)
+<4>ACPI Exception (dsopcode-0419): AE_AML_ILLEGAL_ADDRESS, During address validation of OpRegion [ELCR] [20081204]
+<6>ACPI: Interpreter enabled
+<6>ACPI: (supports S0 S1 S5)
+<6>ACPI: Using PIC for interrupt routing
+<6>ACPI: No dock devices found.
+<6>ACPI: PCI Root Bridge [PCI0] (0000:00)
+<7>pci 0000:00:01.1: reg 10 io port: [0xe800-0xe83f]
+[....]
+
+Greetings, 
+Heinz.
