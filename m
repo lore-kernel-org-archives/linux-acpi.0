@@ -1,42 +1,35 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI exception with 2.6.29-rc6
-Date: Mon, 23 Feb 2009 21:30:44 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902232128340.16923@localhost.localdomain>
-References: <871vtpqex0.wl%htd@fancy-poultry.org>
- <20090223150749.0b284ba2.akpm@linux-foundation.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: 2.6.29-rc6: Reported regressions from 2.6.28
+Date: Tue, 24 Feb 2009 08:15:50 +0100
+Message-ID: <20090224071550.GA10436@elte.hu>
+References: <GVhknozYwrL.A.hiC.rozoJB@chimera>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:45386 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753791AbZBXCbW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Feb 2009 21:31:22 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFJ007U4TNHAKSS@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 23 Feb 2009 20:30:58 -0600 (CST)
-In-reply-to: <20090223150749.0b284ba2.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <GVhknozYwrL.A.hiC.rozoJB@chimera>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, "Adam J. Richter" <adam@yggdrasil.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Heinz Diehl <htd@fancy-poultry.org>, linux-kernel@vger-kernel.org, linux-acpi@vger.kernel.org
 
 
+(note, the standalone mail of this bug entry did not make it out 
+for some reason.)
 
-> > --> <3>ACPI: Denied BIOS AML access to invalid port 0x4d0+0x2 (ELCR)
-> > --> <4>ACPI Exception (dsopcode-0419): AE_AML_ILLEGAL_ADDRESS, During address validation of OpRegion [ELCR] [20081204]
+* Rafael J. Wysocki <rjw@sisk.pl> wrote:
 
-Heinz,
-Thanks for the note.
-Please attach the output of acpidump here:
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12760
+> Subject		: 2.6.29-rc5 hanging at boot when CONFIG_LOCK_STAT=y
+> Submitter	: Adam J. Richter <adam@yggdrasil.com>
+> Date		: 2009-02-16 6:50 (8 days old)
+> References	: http://marc.info/?l=linux-kernel&m=123476768023893&w=4
+> Handled-By	: Ingo Molnar <mingo@elte.hu>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=12758
+Here we came to the conclusion that this is some LILO bug with a 
+too large BSS section - that's one thing that CONFIG_LOCK_STAT 
+causes. Under Grub the same kernel image boots fine. So unless 
+Adam has new data that contradicts this i think we can close 
+this bug.
 
-Also, if this system has both pic and IOAPIC mode,
-it would be interesting to try booting it in both,
-eg with "noapic".
-
-thanks,
--Len
-
+	Ingo
