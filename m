@@ -1,28 +1,59 @@
-From: Heinz Diehl <htd@fancy-poultry.org>
-Subject: Re: ACPI exception with 2.6.29-rc6
-Date: Tue, 24 Feb 2009 16:03:35 +0100
-Message-ID: <20090224150335.GB4885@fancy-poultry.org>
-References: <871vtpqex0.wl%htd@fancy-poultry.org> <20090223150749.0b284ba2.akpm@linux-foundation.org>
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Subject: Re: Oopses and ACPI problems (Linus 2.6.29-rc4)
+Date: Tue, 24 Feb 2009 15:29:36 +0000
+Message-ID: <50381ED1F0%linux@youmustbejoking.demon.co.uk>
+References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain>
+ <gemini.ket9w800w44dc0hvg.linux@youmustbejoking.demon.co.uk>
+ <20090209234911.GB862@elte.hu> <5030E21460%linux@youmustbejoking.demon.co.uk>
+ <20090210150431.GA26798@srcf.ucam.org>
+ <5030E7CFF4%linux@youmustbejoking.demon.co.uk>
+ <20090210154533.GA27596@srcf.ucam.org>
+ <5030EC39A4%linux@youmustbejoking.demon.co.uk>
+ <20090223163934.GA20041@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.188]:55810 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739AbZBXO7A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Feb 2009 09:59:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20090223150749.0b284ba2.akpm@linux-foundation.org>
+Received: from lon1-post-3.mail.demon.net ([195.173.77.150]:50737 "EHLO
+	lon1-post-3.mail.demon.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755477AbZBXPqe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Feb 2009 10:46:34 -0500
+In-Reply-To: <20090223163934.GA20041@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger-kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Corentin Chary <corentincj@iksaif.net>
 
-On 24.02.2009, Andrew Morton wrote: 
+I demand that Matthew Garrett may or may not have written...
 
-> Are there any observeable effects from this apart from the scary
-> message?
+> Can you try this (entirely untested - I don't have access to the hardware
+> right now) patch? It should register the eee code with the PCI hotplug
+> core. With luck that'll avoid the oops.
 
-The machine is up for 1.5 hours now, did not see any problems so far.
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index b3866ad..75a560b 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -307,6 +307,7 @@ config EEEPC_LAPTOP
+>  	select BACKLIGHT_CLASS_DEVICE
+>  	select HWMON
+>  	select RFKILL
+> +	select HOTPLUG_PCI
 
-Greetings,
-Heinz.
+Not HOTPLUG_PCI_PCIE?
+
+With that selected (I see no point in testing this otherwise) *and*
+pciehp_force=1, I get -EBUSY when the hotplug slot registration is attempted
+and no wireless, bluetooth or hot key reporting; wireless & bluetooth are
+switched off at that point (I made sure that they were enabled via BIOS
+setup). Without that option, all is fine.
+
+(As usual with my kernel builds, these are built in.)
+
+[snip]
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + Travel less. Share transport more.           PRODUCE LESS CARBON DIOXIDE.
+
+The man who raises a fist has run out of ideas.
