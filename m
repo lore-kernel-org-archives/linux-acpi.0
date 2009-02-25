@@ -1,42 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.29-rc6: Reported regressions from 2.6.28
-Date: Thu, 26 Feb 2009 00:12:17 +0100
-Message-ID: <200902260012.19083.rjw@sisk.pl>
-References: <GVhknozYwrL.A.hiC.rozoJB@chimera> <20090224071550.GA10436@elte.hu>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/4] eeepc-laptop: Fix Kconfig
+Date: Wed, 25 Feb 2009 18:14:04 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902251813460.19092@localhost.localdomain>
+References: <1234722621-14498-1-git-send-email-corentincj@iksaif.net>
+ <1234722621-14498-2-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090224071550.GA10436@elte.hu>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "Adam J. Richter" <adam@yggdrasil.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:37160 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759735AbZBYXOX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2009 18:14:23 -0500
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KFN000389VL48W5@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 25 Feb 2009 17:14:10 -0600 (CST)
+In-reply-to: <1234722621-14498-2-git-send-email-corentincj@iksaif.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
 
-On Tuesday 24 February 2009, Ingo Molnar wrote:
+dropped, b/c the "depends on" version is already merged
+
+--
+Len Brown, Intel Open Source Technology Center
+
+On Sun, 15 Feb 2009, Corentin Chary wrote:
+
+> Add a "select INPUT" to Kconfig now that eeepc-laptop
+> is using the input layer.
 > 
-> (note, the standalone mail of this bug entry did not make it out 
-> for some reason.)
-
-Hm, strange.  I certainly received it from one of the lists.
-
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> ---
+>  drivers/platform/x86/Kconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12760
-> > Subject		: 2.6.29-rc5 hanging at boot when CONFIG_LOCK_STAT=y
-> > Submitter	: Adam J. Richter <adam@yggdrasil.com>
-> > Date		: 2009-02-16 6:50 (8 days old)
-> > References	: http://marc.info/?l=linux-kernel&m=123476768023893&w=4
-> > Handled-By	: Ingo Molnar <mingo@elte.hu>
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 9436311..6f46bc6 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -305,6 +305,7 @@ config EEEPC_LAPTOP
+>  	select BACKLIGHT_CLASS_DEVICE
+>  	select HWMON
+>  	select RFKILL
+> +	select INPUT
+>  	---help---
+>  	  This driver supports the Fn-Fx keys on Eee PC laptops.
+>  	  It also adds the ability to switch camera/wlan on/off.
+> -- 
+> 1.6.1.2
 > 
-> Here we came to the conclusion that this is some LILO bug with a 
-> too large BSS section - that's one thing that CONFIG_LOCK_STAT 
-> causes. Under Grub the same kernel image boots fine. So unless 
-> Adam has new data that contradicts this i think we can close 
-> this bug.
-
-Thanks, closed.
-
-Rafael
+> 
