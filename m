@@ -1,48 +1,42 @@
-From: Charles@schwieters.org
-Subject: Re: experimental patch for toshiba_acpi
-Date: Wed, 25 Feb 2009 15:18:30 -0500
-Message-ID: <E1LcQD8-0005G4-JZ@tan.cit.nih.gov>
-References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov> <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <1235581978.4770.77.camel@penguin.lifesci.dundee.ac.uk> <20090225172835.GA7152@srcf.ucam.org> <1235584419.4770.86.camel@penguin.lifesci.dundee.ac.uk> <20090225175923.GB7836@srcf.ucam.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailfwd.nih.gov ([128.231.90.107]:6860 "EHLO
-	nihrelayxway2.hub.nih.gov" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757442AbZBYUSf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2009 15:18:35 -0500
-In-reply-to: <20090225175923.GB7836@srcf.ucam.org> 
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.29-rc6: Reported regressions from 2.6.28
+Date: Thu, 26 Feb 2009 00:12:17 +0100
+Message-ID: <200902260012.19083.rjw@sisk.pl>
+References: <GVhknozYwrL.A.hiC.rozoJB@chimera> <20090224071550.GA10436@elte.hu>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090224071550.GA10436@elte.hu>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "Adam J. Richter" <adam@yggdrasil.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jonathan Buzzard <jonathan@buzzard.me.uk>, Charles@schwieters.org, linux-acpi@vger.kernel.org, john@neggie.net
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-
-Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-
+On Tuesday 24 February 2009, Ingo Molnar wrote:
 > 
-> > A "proper" kernel driver as you put it is is completely inappropriate.
-> > You want to unnecessarily pollute the kernel with hundreds of lines of
-> > code for no actual gain in functionality.
+> (note, the standalone mail of this bug entry did not make it out 
+> for some reason.)
+
+Hm, strange.  I certainly received it from one of the lists.
+
+> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > 
-> Yes. I want a proper kernel driver.
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12760
+> > Subject		: 2.6.29-rc5 hanging at boot when CONFIG_LOCK_STAT=y
+> > Submitter	: Adam J. Richter <adam@yggdrasil.com>
+> > Date		: 2009-02-16 6:50 (8 days old)
+> > References	: http://marc.info/?l=linux-kernel&m=123476768023893&w=4
+> > Handled-By	: Ingo Molnar <mingo@elte.hu>
 > 
+> Here we came to the conclusion that this is some LILO bug with a 
+> too large BSS section - that's one thing that CONFIG_LOCK_STAT 
+> causes. Under Grub the same kernel image boots fine. So unless 
+> Adam has new data that contradicts this i think we can close 
+> this bug.
 
-I can definitely see reasons for putting it in the kernel, and I welcome
-anyone who implements this solution. However, I don't think it will
-happen. I no longer have time for this sort of work, and no one else has
-stepped up in the past five years. I am willing to live with the
-half-ass out-of-tree solution, so it sounds like that will be the way
-things stay.
+Thanks, closed.
 
-bummer--
-
-Charles
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8+ <http://mailcrypt.sourceforge.net/>
-
-iD8DBQFJpaeWPK2zrJwS/lYRAnhDAJ9yb8ecbgm8LcvQF6oEBPR4fEZ1jgCfYb3U
-0QOkmdwb/NRoM5niqNOBJlA=
-=wd7q
------END PGP SIGNATURE-----
+Rafael
