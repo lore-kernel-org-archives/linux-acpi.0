@@ -1,302 +1,35 @@
-From: Charles@schwieters.org
-Subject: experimental patch for toshiba_acpi
-Date: Wed, 25 Feb 2009 09:54:43 -0500
-Message-ID: <E1LcL9o-0003qC-4s@tan.cit.nih.gov>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: experimental patch for toshiba_acpi
+Date: Wed, 25 Feb 2009 15:24:09 +0000
+Message-ID: <20090225152409.GA4015@srcf.ucam.org>
+References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nihrelayxway2.hub.nih.gov ([128.231.90.107]:43254 "EHLO
-	nihrelayxway2.hub.nih.gov" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754775AbZBYPEe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2009 10:04:34 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:45907 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932226AbZBYPYR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2009 10:24:17 -0500
+Content-Disposition: inline
+In-Reply-To: <E1LcL9o-0003qC-4s@tan.cit.nih.gov>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: charles@schwieters.org, jonathan@buzzard.me.uk, john@neggie.net
+To: Charles@schwieters.org
+Cc: linux-acpi@vger.kernel.org, jonathan@buzzard.me.uk, john@neggie.net
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, Feb 25, 2009 at 09:54:43AM -0500, Charles@schwieters.org wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> 
+> Hello--
+> 
+>   Please apply the following patch to toshiba_acpi.c. This patch has
+> existed for about five years and is necessary for proper operation of
+> some tools on toshiba laptops with toshiba BIOSes (such as toshset
+> http://www.schwieters.org/toshset/). 
 
+Why are the toshset features not being added to the toshiba_acpi driver?
 
-Hello--
-
-  Please apply the following patch to toshiba_acpi.c. This patch has
-existed for about five years and is necessary for proper operation of
-some tools on toshiba laptops with toshiba BIOSes (such as toshset
-http://www.schwieters.org/toshset/). 
-
-This patch comes from http://memebeam.org/free-software/toshiba_acpi/.
-With this patch, the module conflicts with the toshiba module (which
-works only on non-acpi-enabled kernels). Optimally, some sort of check
-should be made to allow only one (toshiba or toshiba_acpi) to load. In
-practice, this conflict has not proven to be a problem.
-
-thank you--
-Charles
-
-- --- toshiba_acpi.c.orig	2008-08-30 22:12:50.000000000 -0700
-+++ toshiba_acpi.c	2008-08-31 12:03:07.000000000 -0700
-@@ -28,12 +28,26 @@
-  *	Yasushi Nagato - changes for linux kernel 2.4 -> 2.5
-  *	Rob Miller - TV out and hotkeys help
-  *
-+ *  PLEASE NOTE
-+ *
-+ *  This is an experimental version of toshiba_acpi which includes emulation
-+ *  of the original toshiba driver's /proc/toshiba and /dev/toshiba,
-+ *  allowing Toshiba userspace utilities to work.  The relevant code was
-+ *  based on toshiba.c (copyright 1996-2001 Jonathan A. Buzzard) and
-+ *  incorporated into this driver with help from Gintautas Miliauskas,
-+ *  Charles Schwieters, and Christoph Burger-Scheidlin.
-+ *
-+ *  Caveats:
-+ *      * hotkey status in /proc/toshiba is not implemented
-+ *      * to make accesses to /dev/toshiba load this driver instead of
-+ *          the original driver, you will have to modify your module
-+ *          auto-loading configuration
-  *
-  *  TODO
-  *
-  */
- 
-- -#define TOSHIBA_ACPI_VERSION	"0.18"
-+#define TOSHIBA_ACPI_VERSION	"experimental-dev-toshiba-test-5"
- #define PROC_INTERFACE_VERSION	1
- 
- #include <linux/kernel.h>
-@@ -41,6 +55,10 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <linux/miscdevice.h>
-+#include <linux/toshiba.h>
-+#include <asm/io.h>
- #include <linux/backlight.h>
- 
- #include <asm/uaccess.h>
-@@ -497,6 +515,191 @@
- 	return p;
- }
- 
-+/* /dev/toshiba and /proc/toshiba handlers {{{
-+ *
-+ * ISSUE: lots of magic numbers and mysterious code
-+ */
-+
-+#define TOSH_MINOR_DEV		181
-+#define OLD_PROC_TOSHIBA	"toshiba"
-+
-+static int
-+tosh_acpi_bridge(SMMRegisters* regs)
-+{
-+	acpi_status status;
-+
-+	/* assert(sizeof(SMMRegisters) == sizeof(u32)*HCI_WORDS); */
-+	status = hci_raw((u32*)regs, (u32*)regs);
-+	if (status == AE_OK && (regs->eax & 0xff00) == HCI_SUCCESS)
-+		return 0;
-+
-+	return -EINVAL;
-+}
-+
-+static int
-+tosh_ioctl(struct inode* ip, struct file* fp, unsigned int cmd,
-+	unsigned long arg)
-+{
-+	SMMRegisters regs;
-+	unsigned short ax,bx;
-+	int err;
-+
-+	if ((!arg) || (cmd != TOSH_SMM))
-+		return -EINVAL;
-+
-+	if (copy_from_user(&regs, (SMMRegisters*)arg, sizeof(SMMRegisters)))
-+		return -EFAULT;
-+
-+	ax = regs.eax & 0xff00;
-+	bx = regs.ebx & 0xffff;
-+
-+	/* block HCI calls to read/write memory & PCI devices */
-+	if (((ax==HCI_SET) || (ax==HCI_GET)) && (bx>0x0069))
-+		return -EINVAL;
-+
-+	err = tosh_acpi_bridge(&regs);
-+
-+	if (copy_to_user((SMMRegisters*)arg, &regs, sizeof(SMMRegisters)))
-+		return -EFAULT;
-+
-+	return err;
-+}
-+
-+static int
-+tosh_get_machine_id(void __iomem *bios)
-+{
-+	int id;
-+	unsigned short bx,cx;
-+	unsigned long address;
-+
-+	id = (0x100*(int) readb(bios+0xfffe))+((int) readb(bios+0xfffa));
-+
-+	/* do we have a SCTTable machine identication number on our hands */
-+	if (id==0xfc2f) {
-+		bx = 0xe6f5; /* cheat */
-+		/* now twiddle with our pointer a bit */
-+		address = 0x00000000 + bx;
-+		cx = readw(bios + address);
-+		address = 0x00000009 + bx + cx;
-+		cx = readw(bios + address);
-+		address = 0x0000000a + cx;
-+		cx = readw(bios + address);
-+		/* now construct our machine identification number */
-+		id = ((cx & 0xff)<<8)+((cx & 0xff00)>>8);
-+	}
-+
-+	return id;
-+}
-+
-+static int tosh_id;
-+static int tosh_bios;
-+static int tosh_date;
-+static int tosh_sci;
-+
-+static struct file_operations tosh_fops = {
-+	.owner = THIS_MODULE,
-+	.ioctl = tosh_ioctl
-+};
-+
-+static struct miscdevice tosh_device = {
-+	TOSH_MINOR_DEV,
-+	"toshiba",
-+	&tosh_fops
-+};
-+
-+static void
-+setup_tosh_info(void __iomem *bios)
-+{
-+	int major, minor;
-+	int day, month, year;
-+
-+	tosh_id = tosh_get_machine_id(bios);
-+
-+	/* get the BIOS version */
-+	major = readb(bios + 0xe009)-'0';
-+	minor = ((readb(bios + 0xe00b)-'0')*10)+(readb(bios + 0xe00c)-'0');
-+	tosh_bios = (major*0x100)+minor;
-+
-+	/* get the BIOS date */
-+	day = ((readb(bios + 0xfff5)-'0')*10)+(readb(bios + 0xfff6)-'0');
-+	month = ((readb(bios + 0xfff8)-'0')*10)+(readb(bios + 0xfff9)-'0');
-+	year = ((readb(bios + 0xfffb)-'0')*10)+(readb(bios + 0xfffc)-'0');
-+	tosh_date = (((year-90) & 0x1f)<<10) | ((month & 0xf)<<6)
-+		| ((day & 0x1f)<<1);
-+}
-+
-+/* /proc/toshiba read handler */
-+static int
-+tosh_proc_show(struct seq_file *m, void *v)
-+{
-+	/* TODO: tosh_fn_status() */
-+	int key = 0;
-+
-+	/* Format:
-+	 *    0) Linux driver version (this will change if format changes)
-+	 *    1) Machine ID
-+	 *    2) SCI version
-+	 *    3) BIOS version (major, minor)
-+	 *    4) BIOS date (in SCI date format)
-+	 *    5) Fn Key status
-+	 */
-+
-+	seq_printf(m, "1.1 0x%04x %d.%d %d.%d 0x%04x 0x%02x\n",
-+		tosh_id,
-+		(tosh_sci & 0xff00)>>8,
-+		tosh_sci & 0xff,
-+		(tosh_bios & 0xff00)>>8,
-+		tosh_bios & 0xff,
-+		tosh_date,
-+		key);
-+
-+	return 0;
-+}
-+
-+static int tosh_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, tosh_proc_show, NULL);
-+}
-+
-+static const struct file_operations tosh_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= tosh_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+static int __init
-+old_driver_emulation_init(void)
-+{
-+	int status;
-+	void __iomem *bios = ioremap(0xf0000, 0x10000);
-+	if (!bios)
-+		return -ENOMEM;
-+
-+	if ((status = misc_register(&tosh_device))) {
-+		printk(MY_ERR "failed to register misc device %d (\"%s\")\n",
-+			tosh_device.minor, tosh_device.name);
-+		return status;
-+	}
-+
-+	setup_tosh_info(bios);
-+	proc_create(OLD_PROC_TOSHIBA, 0, NULL, &tosh_proc_fops);
-+
-+	iounmap(bios);
-+
-+	return 0;
-+}
-+
-+static void __exit
-+old_driver_emulation_exit(void)
-+{
-+	remove_proc_entry(OLD_PROC_TOSHIBA, NULL);
-+	misc_deregister(&tosh_device);
-+}
-+
-+/* }}} end of /dev/toshiba and /proc/toshiba handlers */
-+
- /* proc and module init
-  */
- 
-@@ -555,6 +758,8 @@
- 	if (toshiba_proc_dir)
- 		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
- 
-+	old_driver_emulation_exit();
-+
- 	return;
- }
- 
-@@ -562,6 +767,7 @@
- {
- 	acpi_status status = AE_OK;
- 	u32 hci_result;
-+	int status2;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -578,6 +784,9 @@
- 	       TOSHIBA_ACPI_VERSION);
- 	printk(MY_INFO "    HCI method: %s\n", method_hci);
- 
-+	if ((status2 = old_driver_emulation_init()))
-+		return status2;
-+
- 	force_fan = 0;
- 	key_event_valid = 0;
- 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8+ <http://mailcrypt.sourceforge.net/>
-
-iD8DBQFJpVuzPK2zrJwS/lYRAsY9AJ0Uo1MSALzL2uvkFl8wdj3mh5xf2wCfZ7nA
-3IJnQ9OKwIM1WFtlyP0iSX4=
-=aW4m
------END PGP SIGNATURE-----
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
