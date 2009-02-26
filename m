@@ -1,100 +1,125 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: boot hang when using kexec
-Date: Thu, 26 Feb 2009 15:37:43 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902261534230.6492@localhost.localdomain>
-References: <49A6F3B0.2010805@oracle.com>
+Subject: Re: [PATCH 3/3] ACPI: move internal core declarations to private header
+Date: Thu, 26 Feb 2009 16:00:01 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0902261548580.6492@localhost.localdomain>
+References: <20090219195009.20619.20334.stgit@bob.kio>
+ <20090219195153.20619.89309.stgit@bob.kio>
+ <alpine.LFD.2.00.0902212259530.5009@localhost.localdomain>
+ <200902241151.35935.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:20372 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618AbZBZUhu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Feb 2009 15:37:50 -0500
+Received: from vms173019pub.verizon.net ([206.46.173.19]:51273 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753816AbZBZVAQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Feb 2009 16:00:16 -0500
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFO009GAXAX4FIH@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 26 Feb 2009 14:37:46 -0600 (CST)
-In-reply-to: <49A6F3B0.2010805@oracle.com>
+ with ESMTPA id <0KFO00466YC2MXV8@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 26 Feb 2009 15:00:08 -0600 (CST)
+In-reply-to: <200902241151.35935.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 26 Feb 2009, Randy Dunlap wrote:
+On Tue, 24 Feb 2009, Bjorn Helgaas wrote:
 
-> For daily kernel testing, I (try to) use kexec to boot each new kernel.
-> This hasn't been working for several weeks now.
-> A "git bisect" only pointed me at one of Arjan's async boot (fastboot)
-> patches, but he and I think that's a git bisect anomaly.
+> On Saturday 21 February 2009 09:21:14 pm Len Brown wrote:
+> > On Thu, 19 Feb 2009, Bjorn Helgaas wrote:
+> > 
+> > > A number of things that shouldn't be exposed outside the ACPI core
+> > > were declared in include/acpi/acpi_drivers.h, where anybody can
+> > > see them.  This patch moves those declarations to a new "ospm.h"
+> > > inside drivers/acpi.
+> > 
+> > I'm not sure that we're using the same terminology.
 > 
-> The test system is an HP BladeCenter 4-proc with 8 GB of RAM
-> (HP BladeCenter BL c-class: ProLiant BL685c G1).
-> It boots from an HP/Compaq CCISS drive (using an initramfs).
+> I'm sure we're not :-)
 > 
+> > In ACPI I usually use the word "core" to refer to everything
+> > that is now under drivers/acpi/acpica/
+> > eg. the ACPI interpreter and the OS agnostic code in ACPICA.
+> > 
+> > That is why dmesg prints this:
+> > 
+> > ACPI: Core revision 20090123
+> > 
+> > I use the word "Linux/ACPI" to refer to everything in
+> > drivers/acpi/* and the ACPI stuff under arch/ etc.
 > 
-> I capture the kernel log via netconsole, so sometimes the last few
-> lines of the kernel log are lost.  This is what the end of the
-> netconsole capture looks like:
-> (using acpi.debug_layer=0x03412f3b acpi.debug_level=0xffffffff)
+> I think the common Linux usage of "core" is more along the lines
+> of "bus infrastructure and implementation of stuff in the driver/
+> kernel interface," e.g., 
+>     PCI core -> drivers/pci/*
+>     PNP core -> drivers/pnp/*
+> So by analogy, I think the "ACPI core" should refer to the stuff
+> in drivers/acpi.  The stuff in drivers/acpi/acpica is something
+> else that doesn't really appear in other subsystems, so using "core"
+> to refer to the ACPICA makes ACPI unnecessarily different.
 > 
-> Execute Method: [\_SB_.PCI0.IP2P.ASMD._STA] (Node ffff88027f813ba0)
->   nseval-0164 [FFFF88027F840000] [00] ns_evaluate           : Method at AML address ffffc2000000c68a Length 2
->  utmutex-0249 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 attempting to acquire Mutex [ACPI_MTX_Interpreter]
->      osl-0852 [FFFF88027F840000] [00] os_wait_semaphore     : Waiting for semaphore[ffff88027f806140|1|65535]
->      osl-0871 [FFFF88027F840000] [00] os_wait_semaphore     : Acquired semaphore[ffff88027f806140|1|65535] utmutex-0257 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 acquired Mutex [ACPI_MTX_Interpreter]
->  utmutex-0249 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 attempting to acquire Mutex [ACPI_MTX_Caches]
->      osl-0852 [FFFF88027F840000] [00] os_wait_semaphore     : Waiting for semaphore[ffff88027f8061c0|1|65535]
->      osl-0871 [FFFF88027F840000] [00] os_wait_semaphore     : Acquired semaphore[ffff88027f8061c0|1|65535] utmutex-0257 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 acquired Mutex [ACPI_MTX_Caches]
->   utmisc-0228 [FFFF88027F840000] [00] ut_allocate_owner_id  : Allocated OwnerId: 9D
->  utmutex-0292 [FFFF88027F840000] [00] ut_release_mutex      : Thread FFFF88027F840000 releasing Mutex [ACPI_MTX_Caches]
->      osl-0891 [FFFF88027F840000] [00] os_signal_semaphore   : Signaling semaphore[ffff88027f8061c0|1]
->  utmutex-0249 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 attempting to acquire Mutex [ACPI_MTX_Namespace]
->      osl-0852 [FFFF88027F840000] [00] os_wait_semaphore     : Waiting for semaphore[ffff88027f806160|1|65535]
->      osl-0871 [FFFF88027F840000] [00] os_wait_semaphore     : Acquired semaphore[ffff88027f806160|1|65535] utmutex-0257 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 acquired Mutex [ACPI_MTX_Namespace]
->  utmutex-0292 [FFFF88027F840000] [00] ut_release_mutex      : Thread FFFF88027F840000 releasing Mutex [ACPI_MTX_Namespace]
-> 
-> 
-> [more of the kernel log including above is available at
-> http://oss.oracle.com/kerneltest/logs/netcon-5975.log, but it does not include
-> the beginning of the kernel boot for some reason -- it was truncated]
-> 
-> 
-> 
-> and this is what is on the serial console output (which I don't know how
-> to capture in its entirety):
-> 
-> nssearch-0110 [FFFF88027F840000] [00] ns_search_one_scope   : Searching \_SB_.PCI0.IP2P (ffff88027f806ee0) For [_S2D] (Untyped)
-> nssearch-0174 [FFFF88027F840000] [00] ns_search_one_scope   : Name [_S2D] (Untyped) not found in search in scope [IP2P] ffff88027f806ee0 first child ffff88027f806f00
-> nssearch-0386 [FFFF88027F840000] [00] ns_search_and_enter   : _S2D Not found in ffff88027f806ee0 [Not adding]
-> nsaccess-0575 [FFFF88027F840000] [00] ns_lookup             : Name [_S2D] not found in scope [IP2P] ffff88027f806ee0
->  nsutils-0876 [FFFF88027F840000] [00] ns_get_node           : _S2D, AE_NOT_FOUND
->  utmutex-0292 [FFFF88027F840000] [00] ut_release_mutex      : Thread FFFF88027F840000 releasing Mutex [ACPI_MTX_Namespace]
->      osl-0891 [FFFF88027F840000] [00] os_signal_semaphore   : Signaling semaphore[ffff88027f806160|1]
->   uteval-0227 [FFFF88027F840000] [00] ut_evaluate_object    : [IP2P._S2D] was not found
->  nsutils-0461 [FFFF88027F840000] [00] ns_build_internal_name: Returning [ffff88027ed28be0] (rel) "_S3D"
->  utmutex-0249 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 attempting to acquire Mutex [ACPI_MTX_Namespace]
->      osl-0852 [FFFF88027F840000] [00] os_wait_semaphore     : Waiting for semaphore[ffff88027f806160|1|65535]
->      osl-0871 [FFFF88027F840000] [00] os_wait_semaphore     : Acquired semaphore[ffff88027f806160|1|65535] utmutex-0257 [FFFF88027F840000] [00] ut_acquire_mutex      : Thread FFFF88027F840000 acquired Mutex [ACPI_MTX_Namespace]
-> nsaccess-0404 [FFFF88027F840000] [00] ns_lookup             : Searching relative to prefix scope [IP2P] (ffff88027f806ee0)
-> nsaccess-0514 [FFFF88027F840000] [00] ns_lookup             : Simple Pathname (1 segment, Flags=2)
->   nsdump-0087 [FFFF88027F840000] [00] ns_print_pathname     : [_S3D]
-> nssearch-0110 [FFFF88027F840000] [00] ns_search_one_scope   : Searching \_SB_.PCI0.IP2P (ffff88027f806ee0) For [_S3D] (Untyped)
-> nssearch-0174 [FFFF88027F840000] [00] ns_search_one_scope   : Name [_S3D] (Untyped) not found in search in scope [IP2P] ffff88027f806ee0 first child ffff88027f806f00
-> nssearch-0386 [FFFF88027F840000] [00] ns_search_and_enter   : _S3D Not found in ffff88027f
+> But this is tangential, and I'll gladly remove "core" from the
+> changelog!
 
-mutexes being acquired and released,
-optional objects not being found.
+Okay, lets stay away from the word core,
+since it has two common conflicting uses.
 
-Nothing jumps out at me as wrong above.
+> > I do want things that are private to drivers/acpi/ files
+> > to be in drivers/acpi/, and not in include/acpi/
+> > 
+> > so i guess I like what you're doing here,
+> > but for some reason i'm not excited about the name "ospm.h",
+> > maybe I"ll sleep on it and it will sound excellent tomorrow...
+> 
+> I'm not married to "ospm.h", and you're right that it's not very
+> descriptive and doesn't have much history in Linux.  I tried "acpi.h"
+> and "acpi_core.h" earlier, but those were duds as well.  Here
+> are some similar files in other parts of Linux:
+> 
+>     block/blk.h
+>     crypto/internal.h
+>     drivers/base/base.h
+>     drivers/pci/pci.h
+>     drivers/pnp/base.h
+>     drivers/scsi/scsi_priv.h
+>     fs/internal.h
+>     mm/internal.h
+> 
+> What would you think of "drivers/acpi/internal.h"?
 
-How does the boot fail, and why are you looking at ACPI --
-is this the last thing seen on the console?
-What is the last thing printed when acpi_debug is not enabled?
+better.
 
-not having any idea what is wrong here, try irqpoll,
-in case some interrupts are screwed up.
-you might also enable the watchdog.
+I do like internal.h better than ospm.h because internal.h
+sounds like something that drivers should not include,
+while ospm.h sounds like something they should include.
 
-cheers,
+The murkyness right now I think is because we still have two
+different types of code in drivers/acpi/
+
+acpi/ seems to be where we have some infrastructre code,
+plus some "acpi drivers", such as battery.c that use the
+infrastructure to implement OS policy.  Maybe we should
+have the infrastructure and the drivers in two different
+directories?
+
+acpi/acpica/ is a single place for the ACPICA C-code
+	and has its own private headers down there, finally.
+
+include/linux/acpi.h
+	this is what other parts of the kernel use to talk
+	to the acpi sub-system
+
+include/acpi/
+	this is here so that the above can include <acpi/acpi.h>
+	which bundles various public ACPICA headers
+	there is probably a more elegant way to do this.
+
+drivers/platform/x86/
+	platform specific drivers that use acpi
+	rather than implement acpi, finally moved out
+	of the drivers/acpi/ directory
+
+thanks,
 -Len
+
