@@ -1,99 +1,84 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] platform/x86: depends instead of select for laptop
- platform drivers
-Date: Wed, 25 Feb 2009 18:25:35 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0902251823580.19092@localhost.localdomain>
-References: <20090225000317.82c3c3a7.akpm@linux-foundation.org>
- <1235551029-28504-1-git-send-email-corentincj@iksaif.net>
+From: Jonathan Buzzard <jonathan@buzzard.me.uk>
+Subject: Re: experimental patch for toshiba_acpi
+Date: Thu, 26 Feb 2009 00:22:29 +0000
+Message-ID: <49A5E0C5.8090700@buzzard.me.uk>
+References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov> <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <1235581978.4770.77.camel@penguin.lifesci.dundee.ac.uk> <20090225172835.GA7152@srcf.ucam.org> <1235584419.4770.86.camel@penguin.lifesci.dundee.ac.uk> <20090225175923.GB7836@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:54240 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558AbZBYXZy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2009 18:25:54 -0500
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFN00231AEPP1TW@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 25 Feb 2009 17:25:37 -0600 (CST)
-In-reply-to: <1235551029-28504-1-git-send-email-corentincj@iksaif.net>
+Received: from relay.ptn-ipout02.plus.net ([212.159.7.36]:45750 "EHLO
+	relay.ptn-ipout02.plus.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752071AbZBZAc3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Feb 2009 19:32:29 -0500
+In-Reply-To: <20090225175923.GB7836@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, mjg59@srcf.ucam.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Charles@schwieters.org, linux-acpi@vger.kernel.org, john@neggie.net
 
-
-
---
-Len Brown, Intel Open Source Technology Center
-
-On Wed, 25 Feb 2009, Corentin Chary wrote:
-
-> "I hate `select' and will gleefully leap on any s/select/depends/ patch,
-> whether it works or not :)"
->   Andrew Morton
+Matthew Garrett wrote:
+> On Wed, Feb 25, 2009 at 05:53:39PM +0000, Jonathan Buzzard wrote:
+>> On Wed, 2009-02-25 at 17:28 +0000, Matthew Garrett wrote:
+>>> The same argument encourages us to put rfkill and brightness control 
+>>> support in a userland tool, despite the existing kernel interfaces for 
+>>> controlling them. We could replace almost every driver in platform/x86 
+>>> with a generic driver that allowed arbitrary ACPI methods to be called 
+>>> and gave access to EC bits. The reason we haven't done this is because 
+>>> that's what the kernel is there for.
+>> Quite correct they should be removed. The first step of which is to
+>> provide a generic interface to the HCI.
 > 
-> select INPUT is not needed here, because if someone doesn't want INPUT,
-> he won't want these drivers either.
-> 
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> ---
->  drivers/platform/x86/Kconfig |    5 ++---
->  1 files changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 7a46ed8..8cd903c 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -39,10 +39,10 @@ config ASUS_LAPTOP
->  	tristate "Asus Laptop Extras (EXPERIMENTAL)"
->  	depends on ACPI
->  	depends on EXPERIMENTAL && !ACPI_ASUS
-> +	depends on INPUT
->  	select LEDS_CLASS
->  	select NEW_LEDS
->  	select BACKLIGHT_CLASS_DEVICE
-> -	select INPUT
->  	---help---
->  	  This is the new Linux driver for Asus laptops. It may also support some
->  	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
-> @@ -185,11 +185,11 @@ config SONYPI_COMPAT
->  config THINKPAD_ACPI
->  	tristate "ThinkPad ACPI Laptop Extras"
->  	depends on ACPI
-> +	depends on INPUT
->  	select BACKLIGHT_LCD_SUPPORT
->  	select BACKLIGHT_CLASS_DEVICE
->  	select HWMON
->  	select NVRAM
-> -	select INPUT
->  	select NEW_LEDS
->  	select LEDS_CLASS
->  	select NET
+> Yeah. No.
 
-applied the thinkpad hunk above.
-the other two were already handled previously.
+Yeah, yes
 
-all the drivers in that Kconfig now depend on INPUT, rather than selecting 
-it
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-> @@ -307,7 +307,6 @@ config EEEPC_LAPTOP
->  	select BACKLIGHT_CLASS_DEVICE
->  	select HWMON
->  	select RFKILL
-> -	select INPUT
->  	---help---
->  	  This driver supports the Fn-Fx keys on Eee PC laptops.
->  	  It also adds the ability to switch camera/wlan on/off.
-> -- 
-> 1.6.1.3
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> You do it, test it then maintain it then. To claim that maintaining this
+>> in kernel space is as easy as users space is patently ludicrous.
 > 
+> How so? C is C. Whether you do it in userspace or kernel space, all you 
+> have to do is make a function call with the appropriate arguments.
+>
+
+No it is not. C that is running in kernel space is not the same as C 
+that is runing in user space. The potential for a bug to have security 
+implications is *far* higher. If you start pushing hundreds of lines of 
+string parsing into the kernel that just got a whole lot more likely.
+
+Then one has to go through the whole rigmarole of submitting patches to 
+various kernel developers and hoping that it gets in the next kernel. As 
+opposed to releasing your own user land code, that might not even be in 
+C, it could be C++, Perl, Python whatever takes your fancy when ever it 
+takes your fancy.
+
+Finally I speak from actual experience on this matter. The very early 
+versions of the toshiba drive did everything via a proc interface. It 
+sucked, was buggy and hundreds of lines long. I then stripped it down 
+wrote a wrapper to the HCI, reduced the amount of kernel code by an 
+order of magnitude.
+
+>> A "proper" kernel driver as you put it is is completely inappropriate.
+>> You want to unnecessarily pollute the kernel with hundreds of lines of
+>> code for no actual gain in functionality.
+> 
+> Yes. I want a proper kernel driver.
+> 
+
+Well write it yourself, because I certainly am not. In the meantime 
+there is perfectly good method that allows lots of existing code to just 
+work. The only thing I am likely to do is update the toshiba driver so 
+it detects whether ACPI is enabled and uses ACPI methods if that is the 
+case.
+
+I would be interested in what on earth makes you thing putting hundreds 
+of lines of code into a "proper" kernel driver as you put it is better 
+as it is simply not the Unix way.
+
+
+JAB.
+
+-- 
+Jonathan A. Buzzard                 Email: jonathan (at) buzzard.me.uk
+Fife, United Kingdom.
