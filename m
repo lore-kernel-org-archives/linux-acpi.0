@@ -1,40 +1,51 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Fri, 27 Feb 2009 14:27:40 +0100
-Message-ID: <20090227132740.GF1482@ucw.cz>
-References: <alpine.LFD.2.00.0902040042570.9833@localhost.localdomain> <20090204060513.GA28321@srcf.ucam.org> <498953DF.5050306@redhat.com> <20090204131708.GA2739@srcf.ucam.org> <20090204142606.1823661b@hyperion.delvare> <20090204142015.GB3923@srcf.ucam.org> <20090210145716.105ab58b@hyperion.delvare> <20090210140829.GA25397@srcf.ucam.org> <49919E08.5050002@redhat.com> <20090210172408.400cacee@hyperion.delvare>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: experimental patch for toshiba_acpi
+Date: Fri, 27 Feb 2009 16:49:09 +0000
+Message-ID: <1235753349.5444.53.camel@localhost.localdomain>
+References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov>
+	 <20090225152409.GA4015@srcf.ucam.org>
+	 <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk>
+	 <20090225165152.GA5981@srcf.ucam.org>
+	 <a0c408570902260512t702b2575w417ef96dfa74a5bf@mail.gmail.com>
+	 <1235657022.3802.86.camel@hughsie-work.lan>
+	 <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44536 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757341AbZB0N1s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Feb 2009 08:27:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20090210172408.400cacee@hyperion.delvare>
+Received: from mail-bw0-f178.google.com ([209.85.218.178]:54890 "EHLO
+	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754653AbZB0QuE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Feb 2009 11:50:04 -0500
+Received: by bwz26 with SMTP id 26so1110516bwz.37
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Feb 2009 08:50:00 -0800 (PST)
+In-Reply-To: <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Luca Tettamanti <kronos.it@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jonathan Buzzard <jonathan@buzzard.me.uk>
+Cc: John Belmonte <john@neggie.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Charles@schwieters.org, linux-acpi@vger.kernel.org
 
-Hi!
+On Thu, 2009-02-26 at 15:51 +0000, Jonathan Buzzard wrote:
+> Now if Toshiba who in part wrote the ACPI specification think this is
+> the way to go, and the people who know the most about the HCI in the
+> free software world also think this is the way to go, what are your
+> qualifications to argue with them, given you have virtually no
+> knowledge of the Toshiba HCI and would not appear to even own a
+> Toshiba designed and manufactured laptop anyway.
 
-> > For the record we have changed the default to strict in Fedora's 
-> > development branch, for 2 weeks or so now, including in the recently 
-> > released Fedora 11 release and we've had 0 complaints so far.
-> 
-> Well, if the number of affected systems is small, this is good news.
-> But this is only 2 weeks and one distribution, coverage isn't
-> sufficient to claim anything yet IMHO.
-> 
-> That being said... if there's a common consensus that switching to
-> strict and dealing with fallouts is the best thing to do, and I'm the
-> only one objecting to this, then I am ready to admit that I was wrong
-> and let you proceed.
+I still own a Satellite Pro A10, model number PSA15E-03U7V-EN. I no
+longer use it day-to-day, as it's so very slow compared to my T61.
 
-I believe that 'enable strict, deal with fallout' is the best
-long-term strategy...
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+I know exactly what HCI is, how it works, and have a good idea of what
+it can do. I've written patches for the toshiba_acpi driver before for
+the key mapping functionality.
+
+In the meantime, you've insulted me enough for one email thread.
+
+Len, I would agree with Matthew that the patch should not be merged, and
+that any missing functionality should be added to the existing ACPI
+driver.
+
+Richard.
+
+
