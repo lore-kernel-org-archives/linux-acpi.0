@@ -1,51 +1,61 @@
-From: Charles@schwieters.org
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 Subject: Re: experimental patch for toshiba_acpi
-Date: Fri, 27 Feb 2009 16:31:59 -0500
-Message-ID: <E1LdAJL-0003Jk-EQ@tan.cit.nih.gov>
-References: <200902280015.17286.arvidjaar@mail.ru>
+Date: Sat, 28 Feb 2009 00:15:05 +0300
+Message-ID: <200902280015.17286.arvidjaar@mail.ru>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart1400534.HSn46hnskz";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailfwd.nih.gov ([128.231.90.107]:11162 "EHLO
-	nihrelayxway2.hub.nih.gov" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756519AbZB0VcE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Feb 2009 16:32:04 -0500
-In-reply-to: <200902280015.17286.arvidjaar@mail.ru> 
+Received: from mx28.mail.ru ([94.100.176.42]:30664 "EHLO mx28.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752323AbZB0XLK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Feb 2009 18:11:10 -0500
+Received: from mx40.mail.ru (mx40.mail.ru [94.100.176.54])
+	by mx28.mail.ru (mPOP.Fallback_MX) with ESMTP id 1E96C796CF4
+	for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2009 00:15:55 +0300 (MSK)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Charles@schwieters.org, linux-acpi@vger.kernel.org
+To: Charles@schwieters.org, linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--nextPart1400534.HSn46hnskz
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
+>This patch comes from http://memebeam.org/free-software/toshiba_acpi/.
+>With this patch, the module conflicts with the toshiba module (which
+>works only on non-acpi-enabled kernels).
 
-Hello Andrey--
+Could you please elaborate? Because (Portege 4000):
 
-> >This patch comes from http://memebeam.org/free-software/toshiba_acpi/.
-> >With this patch, the module conflicts with the toshiba module (which
-> >works only on non-acpi-enabled kernels).
-> 
-> Could you please elaborate? Because (Portege 4000):
-> 
-> {pts/2}% lsmod | grep tosh
-> toshiba                 4012  0
-> toshiba_acpi            7540  0
-> rfkill                 10480  1 toshiba_acpi
-> backlight               4560  2 toshiba_acpi,video
-> input_polldev           4012  1 toshiba_acpi
-> {pts/2}% sudo fan
-> Fan is on.
-> 
+{pts/2}% lsmod | grep tosh
+toshiba                 4012  0
+toshiba_acpi            7540  0
+rfkill                 10480  1 toshiba_acpi
+backlight               4560  2 toshiba_acpi,video
+input_polldev           4012  1 toshiba_acpi
+{pts/2}% sudo fan
+=46an is on.
 
-My understanding is that with the experimental patch, both toshiba and
-toshiba_acpi use /dev/toshiba. Do you have the experimental patch
-applied? Does fan work if you remove the toshiba module?
+So I have ACPI enabled kernel and toshiba seems to work in parallel with=20
+toshiba_acpi.
 
-Charles
+Are there specific models for which this does not work?
+
+--nextPart1400534.HSn46hnskz
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8+ <http://mailcrypt.sourceforge.net/>
 
-iD8DBQFJqFvPPK2zrJwS/lYRApaPAJwK7jbkxT070MBKm+TyWI9/gEO89wCfS4sy
-iukYMH2E2g9UiQ2EB+YIaAE=
-=AFBQ
+iEYEABECAAYFAkmoV9wACgkQR6LMutpd94xDYACfXQQy6COhNLs2LOmJV7EAv3+l
+++4AoJdehI5xLiyxgP1X7QQ8lEwh7ca1
+=QoMw
 -----END PGP SIGNATURE-----
+
+--nextPart1400534.HSn46hnskz--
