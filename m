@@ -1,56 +1,66 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] lenovo-sl-laptop : driver for review
-Date: Sat, 28 Feb 2009 11:37:11 -0300
-Message-ID: <20090228143711.GB17541@khazad-dum.debian.net>
-References: <20090216025918.66d7a466@leftboat.lan> <20090227132752.GG1482@ucw.cz>
+Subject: Re: experimental patch for toshiba_acpi
+Date: Sat, 28 Feb 2009 12:19:33 -0300
+Message-ID: <20090228151933.GC17541@khazad-dum.debian.net>
+References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov> <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <a0c408570902260512t702b2575w417ef96dfa74a5bf@mail.gmail.com> <1235657022.3802.86.camel@hughsie-work.lan> <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk> <1235753349.5444.53.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50121 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:49155 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751828AbZB1Oi0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750966AbZB1PU3 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Feb 2009 09:38:26 -0500
+	Sat, 28 Feb 2009 10:20:29 -0500
 Content-Disposition: inline
-In-Reply-To: <20090227132752.GG1482@ucw.cz>
+In-Reply-To: <1235753349.5444.53.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Alexandre Rostovtsev <tetromino@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>
+Cc: Jonathan Buzzard <jonathan@buzzard.me.uk>, John Belmonte <john@neggie.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Charles@schwieters.org, linux-acpi@vger.kernel.org
 
-On Fri, 27 Feb 2009, Pavel Machek wrote:
-> > +module_param(debug_ec, bool, S_IRUGO);
-> > +MODULE_PARM_DESC(debug_ec,
-> > +	"Present EC debugging interface in procfs. WARNING: writing to the "
-> > +	"EC can hang your system and possibly damage your hardware.");
+On Fri, 27 Feb 2009, Richard Hughes wrote:
+> In the meantime, you've insulted me enough for one email thread.
 > 
-> Sounds dangerous and clearly does not belong to /proc. Please drop it.
+> Len, I would agree with Matthew that the patch should not be merged, and
+> that any missing functionality should be added to the existing ACPI
+> driver.
 
-ThinkPad ACPI also has one.  OTOH, we are fairly sure one cannot damage the
-standard ThinkPad hardware through the "IBM thinkpad-style" EC firmware, the
-EC sanity-checks things.  I suppose you could cause the box to go away for
-lunch and don't come back until a complete hardware reset, or hit one of the
-crash-the-EC-firmware bugs by accident, though.
+FWIW, I also think the patch, as it stands, is NOT a good idea.
 
-It has been invaluable for debugging. I can well guess why the thinkpad-sl
-driver would want to add it as well.
+I will ignore the human interaction protocol screwups that happened in
+the thread even if they left me with a bad taste in the mouth just
+from watching from the outside.
 
-What I am heavily considering is to taint the kernel when it is used (plus
-it is not enabled by default, requires a module parameter to enable, etc),
-plus output a big warning to syslog.  That is probably enough to keep the
-users from abusing it.
+There are strong technical reasons to not accept the patch IMHO:
 
-> > +/*************************************************************************
-> > +    bluetooth sysfs - copied nearly verbatim from thinkpad_acpi.c
-> > + *************************************************************************/
-> 
-> That's quite a lot of code for verbatim copy; create shared helper?
+1. If something can brick a box, access to it must not be provided
+   unfiltered, not even kernel-side (through exported functions,
+   active virtual memory regions that a bug could overwrite, etc),
+   let alone to userland.  At least not as the normal operational mode
+   of a driver (might-brick-something functionality hidden behind a
+   developer mode accessed through a Kconfig option would be OK).
 
-Yeah, I am game.  But let's do it later on and not delay anything because of
-it, please.  I will start breaking thinkpad-acpi into multiple source files,
-and after that is done (should take a while, thinkpad-acpi is a big module
-with a LOT of subdriver interdependencies) we can look for the best way to
-reduce code duplication.
+   If there isn't a safe group of functions for all models the driver
+   will load at, filtering must be done by whitelisting.  It really
+   doesn't matter if the table will be big, it can live in __initdata,
+   in fact, if it were not for the can-brick stuff, it could be done
+   through the firmware interface (easy upgrading for new models).
+
+   If filtering is implemented, giving userspace access through
+   /dev/toshiba for selected HCI functions would not be a problem.
+   However, see (2) below.
+
+2. Standard kernel functionality is to be made accessible through
+   standard kernel interfaces.  This means brightness control and
+   rfkill control, power supplies, thermal and fan control, hotkeys
+   and generic event reporting, among others.
+
+   Userspace could use /dev/toshiba for anything else there isn't a
+   generic interface for, though.
+
+   Access to such functionality also through /dev/toshiba should be
+   provided only for backwards compatibility, with a set date for
+   removal (say, one year).
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
