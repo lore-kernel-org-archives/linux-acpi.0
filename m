@@ -1,166 +1,40 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: [PATCH] ACPI: Adjust Kelvin offset to match local implementation
-Date: Sun, 1 Mar 2009 14:03:18 +0100
-Message-ID: <20090301140318.5cf56287@hyperion.delvare>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] ACPI: unsigned cannot be less than 0.
+Date: Sun, 01 Mar 2009 23:22:25 +0100
+Message-ID: <49AB0AA1.1090207@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:7545 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827AbZCANDa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Mar 2009 08:03:30 -0500
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:52562 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956AbZCAWW1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Mar 2009 17:22:27 -0500
+Received: by ewy25 with SMTP id 25so1881467ewy.37
+        for <linux-acpi@vger.kernel.org>; Sun, 01 Mar 2009 14:22:24 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: carlos@strangeworlds.co.uk
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-The exact offset between Kelvin and degree Celsius is 273.15. However
-ACPI handles temperature values with a single decimal place. As a
-consequence, some implementations use an offset of 273.1 and others
-use an offset of 273.2. Try to find out which one is being used, to
-present the most accurate and visually appealing number.
+include/linux/pci-acpi.h:74:
+typedef u32                 acpi_status;
+------------------------------>8-------------8<---------------------------------
+result is unsigned, so an error returned by acpi_bus_register_driver() will not
+be noticed.
 
-Tested on a Sony Vaio PGC-GR214EP (which uses 273.1) and a Lenovo
-Thinkpad T60p (which uses 273.2).
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Zhang Rui<rui.zhang@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 ---
-Blame the mess on whoever decided that ACPI temperature would be
-expressed in the least adapted unit in the world :(
-
-Without this patch, I have the following sensors output:
-
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +44.9 C  (crit = +89.9 C)
-
-With the patch I instead have:
-
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +45.0 C  (crit = +90.0 C)
-
-Which I think is much easier to read.
-
- drivers/acpi/thermal.c |   42 +++++++++++++++++++++++++++++++++++-------
- 1 file changed, 35 insertions(+), 7 deletions(-)
-
---- linux-2.6.29-rc6.orig/drivers/acpi/thermal.c	2009-01-17 09:06:19.000000000 +0100
-+++ linux-2.6.29-rc6/drivers/acpi/thermal.c	2009-03-01 13:51:45.000000000 +0100
-@@ -193,6 +193,7 @@ struct acpi_thermal {
- 	struct timer_list timer;
- 	struct thermal_zone_device *thermal_zone;
- 	int tz_enabled;
-+	int kelvin_offset;
- 	struct mutex lock;
- };
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index 8a8b377..2f269e1 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -708,7 +708,7 @@ static int __init acpi_wmi_add(struct acpi_device *device)
  
-@@ -952,7 +953,7 @@ static void acpi_thermal_check(void *dat
- }
- 
- /* sys I/F for generic thermal sysfs support */
--#define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
-+#define KELVIN_TO_MILLICELSIUS(t, off) (((t) - (off)) * 100)
- 
- static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
+ static int __init acpi_wmi_init(void)
  {
-@@ -966,7 +967,8 @@ static int thermal_get_temp(struct therm
- 	if (result)
- 		return result;
+-	acpi_status result;
++	int result;
  
--	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
-+	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature,
-+							    tz->kelvin_offset));
- }
+ 	INIT_LIST_HEAD(&wmi_blocks.list);
  
- static const char enabled[] = "kernel";
-@@ -1061,21 +1063,24 @@ static int thermal_get_trip_temp(struct
- 	if (tz->trips.critical.flags.valid) {
- 		if (!trip)
- 			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--				tz->trips.critical.temperature));
-+				tz->trips.critical.temperature,
-+				tz->kelvin_offset));
- 		trip--;
- 	}
- 
- 	if (tz->trips.hot.flags.valid) {
- 		if (!trip)
- 			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.hot.temperature));
-+					tz->trips.hot.temperature,
-+					tz->kelvin_offset));
- 		trip--;
- 	}
- 
- 	if (tz->trips.passive.flags.valid) {
- 		if (!trip)
- 			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.passive.temperature));
-+					tz->trips.passive.temperature,
-+					tz->kelvin_offset));
- 		trip--;
- 	}
- 
-@@ -1083,7 +1088,8 @@ static int thermal_get_trip_temp(struct
- 		tz->trips.active[i].flags.valid; i++) {
- 		if (!trip)
- 			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.active[i].temperature));
-+					tz->trips.active[i].temperature,
-+					tz->kelvin_offset));
- 		trip--;
- 	}
- 
-@@ -1096,7 +1102,8 @@ static int thermal_get_crit_temp(struct
- 
- 	if (tz->trips.critical.flags.valid) {
- 		*temperature = KELVIN_TO_MILLICELSIUS(
--				tz->trips.critical.temperature);
-+				tz->trips.critical.temperature,
-+				tz->kelvin_offset);
- 		return 0;
- 	} else
- 		return -EINVAL;
-@@ -1649,6 +1656,25 @@ static int acpi_thermal_get_info(struct
- 	return 0;
- }
- 
-+/*
-+ * The exact offset between Kelvin and degree Celsius is 273.15. However ACPI
-+ * handles temperature values with a single decimal place. As a consequence,
-+ * some implementations use an offset of 273.1 and others use an offset of
-+ * 273.2. Try to find out which one is being used, to present the most
-+ * accurate and visually appealing number.
-+ *
-+ * The heuristic below should work for all ACPI thermal zones which have a
-+ * critical trip point with a value being a multiple of 0.5 degree Celsius.
-+ */
-+static void acpi_thermal_guess_offset(struct acpi_thermal *tz)
-+{
-+	if (tz->trips.critical.flags.valid &&
-+	    (tz->trips.critical.temperature % 5) == 1)
-+		tz->kelvin_offset = 2731;
-+	else
-+		tz->kelvin_offset = 2732;
-+}
-+
- static int acpi_thermal_add(struct acpi_device *device)
- {
- 	int result = 0;
-@@ -1675,6 +1701,8 @@ static int acpi_thermal_add(struct acpi_
- 	if (result)
- 		goto free_memory;
- 
-+	acpi_thermal_guess_offset(tz);
-+
- 	result = acpi_thermal_register_thermal_zone(tz);
- 	if (result)
- 		goto free_memory;
-
-
--- 
-Jean Delvare
