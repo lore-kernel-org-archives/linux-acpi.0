@@ -1,32 +1,34 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Lourival Neto <lourival.neto@gmail.com>
 Subject: Re: how to get acpi info inside the kernel?
-Date: Mon, 2 Mar 2009 02:23:09 +0000
-Message-ID: <20090302022309.GA20075@srcf.ucam.org>
+Date: Mon, 2 Mar 2009 01:20:09 -0300
+Message-ID: <4a33b1190903012020t7dadc4bcr41a4d8d6bc6991d0@mail.gmail.com>
 References: <4a33b1190903011741l3698db9cg70bf9bf2108fc868@mail.gmail.com>
+	 <20090302022309.GA20075@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:59467 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbZCBCXN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Mar 2009 21:23:13 -0500
-Content-Disposition: inline
-In-Reply-To: <4a33b1190903011741l3698db9cg70bf9bf2108fc868@mail.gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:40099 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757AbZCBEUM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Mar 2009 23:20:12 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so886656fgg.17
+        for <linux-acpi@vger.kernel.org>; Sun, 01 Mar 2009 20:20:09 -0800 (PST)
+In-Reply-To: <20090302022309.GA20075@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lourival Neto <lourival.neto@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, Mar 01, 2009 at 10:41:48PM -0300, Lourival Neto wrote:
+> There isn't one, as such. You can either evaluate the ACPI methods
+> yourself or in the case of thermal-related values you can use the
+> generic thermal code.
 
-> I'm writing a cpufreq governor and I want to use some acpi info, like
-> temperature, to make decisions. Is there a way to get this info inside
-> the kernel without use sysfs? Where can I find linux-acpi interface
-> documentation?
+How? Is there a how-to or some documentation?
 
-There isn't one, as such. You can either evaluate the ACPI methods 
-yourself or in the case of thermal-related values you can use the 
-generic thermal code.
+Sorry, but I'm very newbie in ACPI. I've downloaded a few papers, but
+I can't find how to evaluate ACPI methods nor how to access generic
+thermal code (I only saw static functions on thermal code). I really
+dont know where look for..
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--
+Lourival Vieira Neto
