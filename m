@@ -1,42 +1,31 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: 2.6.29-rc6: Reported regressions from 2.6.28
-Date: Tue, 3 Mar 2009 14:45:13 -0500
-Message-ID: <20090303194513.GA10548@infradead.org>
-References: <GVhknozYwrL.A.hiC.rozoJB@chimera> <20090303193609.GE27178@atrey.karlin.mff.cuni.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch] add KEY_HIBERNATE and clarify the uses of KEY_SUSPEND and KEY_SLEEP
+Date: Tue, 3 Mar 2009 20:53:04 +0100
+Message-ID: <200903032053.04931.rjw@sisk.pl>
+References: <1235992429.3858.58.camel@hughsie-work.lan> <1235995903.3858.83.camel@localhost.localdomain> <1236100818.3900.36.camel@hughsie-work.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49538 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998AbZCCTpU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Mar 2009 14:45:20 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:38790 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752017AbZCCTxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Mar 2009 14:53:23 -0500
+In-Reply-To: <1236100818.3900.36.camel@hughsie-work.lan>
 Content-Disposition: inline
-In-Reply-To: <20090303193609.GE27178@atrey.karlin.mff.cuni.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+To: Richard Hughes <hughsient@gmail.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 
-On Tue, Mar 03, 2009 at 08:36:10PM +0100, Jan Kara wrote:
->   Hi,
+On Tuesday 03 March 2009, Richard Hughes wrote:
+> I've attached a patch that adds KEY_HIBERNATE and clarifies the uses of
+> KEY_SUSPEND and KEY_SLEEP.
 > 
-> > Unresolved regressions
-> > ----------------------
-> > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12551
-> > Subject		: end_request: I/O error, dev cciss/c0d0, sector 87435720
-> > Submitter	: Ralf Hildebrandt <ralf.hildebrandt@charite.de>
-> > Date		: 2009-01-27 06:51 (28 days old)
-> > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12497
-> > Subject		: new barrier warnings in 2.6.29-rc1
-> > Submitter	: Christoph Hellwig <hch@lst.de>
-> > Date		: 2009-01-12 15:46 (43 days old)
-> > References	: http://marc.info/?l=linux-kernel&m=123177528217154&w=4
-> > Handled-By	: Jens Axboe <jens.axboe@oracle.com>
->   I've just noticed that the above two reports are probably the same bug...
-> Just that we don't duplicate the effort.
+> Please consider. Thanks.
 
-At least on the XFS side it's fixed now.  The block layer gets the
-initial detection right without warning, and a patch to fix the
-unconditional cache flush on unmount is on it's way.
+FWIW, I agree with the naming.
+
+Thanks,
+Rafael
