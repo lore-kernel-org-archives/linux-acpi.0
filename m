@@ -1,31 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch] add KEY_HIBERNATE and clarify the uses of KEY_SUSPEND and KEY_SLEEP
-Date: Tue, 3 Mar 2009 20:53:04 +0100
-Message-ID: <200903032053.04931.rjw@sisk.pl>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <1235995903.3858.83.camel@localhost.localdomain> <1236100818.3900.36.camel@hughsie-work.lan>
+Subject: Re: 2.6.29-rc6: Reported regressions from 2.6.28
+Date: Tue, 3 Mar 2009 20:56:19 +0100
+Message-ID: <200903032056.20437.rjw@sisk.pl>
+References: <GVhknozYwrL.A.hiC.rozoJB@chimera> <20090303193609.GE27178@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38790 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752017AbZCCTxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Mar 2009 14:53:23 -0500
-In-Reply-To: <1236100818.3900.36.camel@hughsie-work.lan>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20090303193609.GE27178@atrey.karlin.mff.cuni.cz>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-scsi-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 
-On Tuesday 03 March 2009, Richard Hughes wrote:
-> I've attached a patch that adds KEY_HIBERNATE and clarifies the uses of
-> KEY_SUSPEND and KEY_SLEEP.
+On Tuesday 03 March 2009, Jan Kara wrote:
+>   Hi,
 > 
-> Please consider. Thanks.
+> > Unresolved regressions
+> > ----------------------
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12551
+> > Subject		: end_request: I/O error, dev cciss/c0d0, sector 87435720
+> > Submitter	: Ralf Hildebrandt <ralf.hildebrandt@charite.de>
+> > Date		: 2009-01-27 06:51 (28 days old)
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12497
+> > Subject		: new barrier warnings in 2.6.29-rc1
+> > Submitter	: Christoph Hellwig <hch@lst.de>
+> > Date		: 2009-01-12 15:46 (43 days old)
+> > References	: http://marc.info/?l=linux-kernel&m=123177528217154&w=4
+> > Handled-By	: Jens Axboe <jens.axboe@oracle.com>
+>   I've just noticed that the above two reports are probably the same bug...
+> Just that we don't duplicate the effort.
 
-FWIW, I agree with the naming.
+Thanks, I closed 12551 as a duplicate of 12497 .
 
-Thanks,
+Best,
 Rafael
