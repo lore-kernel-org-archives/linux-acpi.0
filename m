@@ -1,80 +1,22 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
-	in driver
-Date: Wed, 4 Mar 2009 09:04:40 -0300
-Message-ID: <20090304120439.GA31850@khazad-dum.debian.net>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan>
+From: Donnie Whitten <work@allianceabroad.com>
+Subject: =?windows-1251?B?QSBCdXNpbmVzcyBPcHBvcnR1bml0eSBmb3IgQW55b25l?=
+Date: Wed, 4 Mar 2009 23:58:03 +0700
+Message-ID: <9352.81382776356$1236191444@news.gmane.org>
+Reply-To: Donnie Whitten <beezley.balder13259@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="windows-1251"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:43887 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751305AbZCDMF3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 07:05:29 -0500
-Content-Disposition: inline
-In-Reply-To: <1236164049.3936.17.camel@hughsie-work.lan>
+Received: from [58.137.222.2] ([58.137.222.2]:37010 "HELO
+	your.mail.server.name.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1753654AbZCDS2z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 13:28:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+To: linux-acpi@vger.kernel.org
 
-On Wed, 04 Mar 2009, Richard Hughes wrote:
-> >From d3ce499f80ba7526e83e7b16f85124ccf77ac1f4 Mon Sep 17 00:00:00 2001
-> From: Richard Hughes <richard@hughsie.com>
-> Date: Wed, 4 Mar 2009 10:51:52 +0000
-> Subject: thinkpad-acpi: use correct key names for sleep keys in driver
-> 
-> Use the new key KEY_HIBERNATE and correct the use of KEY_SUSPEND.
-> 
-> KEY_HIBERNATE is used when the decal on the key indicates sleep to disk,
-> KEY_SUSPEND is used when the decal indicates sleep to memory, and
-> KEY_SLEEP is used when the sleep type is unknown or unspecified
-> 
-> We've already converted Xorg, HAL, and most of userspace to use the same names.
-> 
-> With this patch, the sleep keys can be labeled consistently all the way
-> through the stack. More patches to other device drivers are to follow.
-> 
-> Signed-off-by: Richard Hughes <hughsient@gmail.com>
-
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-
-> ---
->  drivers/platform/x86/thinkpad_acpi.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-> index bcbc051..d89015d 100644
-> --- a/drivers/platform/x86/thinkpad_acpi.c
-> +++ b/drivers/platform/x86/thinkpad_acpi.c
-> @@ -2241,9 +2241,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
->  	 */
->  	static u16 ibm_keycode_map[] __initdata = {
->  		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
-> -		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SLEEP,
-> +		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SUSPEND,
->  		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
-> -		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
-> +		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_HIBERNATE,
->  
->  		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
->  		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
-> @@ -2277,9 +2277,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
->  	};
->  	static u16 lenovo_keycode_map[] __initdata = {
->  		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
-> -		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SLEEP,
-> +		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SUSPEND,
->  		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
-> -		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
-> +		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_HIBERNATE,
->  
->  		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
->  		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
-
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+QXJlIHlvdSB1c2VkIHRvIHRoaW5rIHRoYXQgYWxsIHdvcmsgYXQgaG9tZSBvcHBvcnR1bml0aWVzIG9uIHRoZSBJbnRlcm5ldCBhcmUganVzdCBzY2FtIGFydGlzdHMgdHJ5aW5nIHRvIHN0ZWFsIHlvdXIgbW9uZXkuIFdpdGggeW91ciBsYXN0IGJpdCBvZiBob3BlLCB5b3UgY2FuIHRyeSBvdXIgb2ZmZXIsIHdlIGFyZSBoZXJlIHRvIHByZXNlbnQgdG8geW91ciBhdHRlbnRpb24gdG9kYXksIGFuZCB5b3Ugd2lsbCBiZSBnbGFkIHlvdSBkaWQhIEl0IG1heSB0b29rIGEgY291cGxlIG9mIGRheXMgdG8gcmVhbGx5IGdldCB0aGUgaGFuZyBvZiB0aGUgc3lzdGVtLCBidXQgdGhlbiB5b3Ugd2lsbCBiZSB1cCB0byAkMTAwIHBlciBkYXkgaW4gZWFybmluZ3MsIGFuZCBjbGltYmluZyENCg0KV2UgYXJlIHJlY2VpdmluZyBodW5kcmVkcyBvZiBlbWFpbHMgZWFjaCBkYXkgZnJvbSBvdXIgbWVtYmVycywgdGhhbmtpbmcgdXMgZm9yIHByb3ZpZGluZyBzdWNoIGEgZ3JlYXQgcmVzb3VyY2UgdG8gYWN0dWFsbHkgZWFybiBhIHJlYWwgaW5jb21lIG9ubGluZS4NCg0KSWYgeW91IGFyZSBpbnRlcmVzdGVkIGluIHJlY2VpdmluZyBtb3JlIGluZm9ybWF0aW9uIGFib3V0
+ IG91ciB3b3JrIGZyb20gaG9tZSBvZmZlcnMsIGFuZCBwcm9iYWJseSBqb2luIHdpdGggdXMsIHBsZWFzZSBzZW5kIGFuIGVtYWlsIGJhY2sgdG8gMTk0NTlodWRkZS5kb25uYWxsZXlAZ21haWwuY29tIGFuZCB3ZSB3aWxsIGdldCBpbiB0b3VjaCB3aXRoIHlvdSBhZ2Fpbi4NCg0KVGhhbmtzIGZvciB5b3VyIHRpbWUhDQoNCkxlZ2l0IEpvYnMgT25saW5lCgoKCgoKCgoKCgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoaXMgZW1haWwgaGFzIGJlZW4gd3JpdHRlbiBhbmQgcHJvdmVkIHRvIGJlIGluIGNvbXBsaWFuY2Ugd2l0aCB0aGUgcmVjZW50bHkgZXN0YWJsaXNoZWQgY2FuLXNwYW0gYWN0IGxhdyBpbiBVUy4gV2UgYXJlIG5vdCBwcm92b2tpbmcgb3IgZm9yY2luZyBhbnkgcGVyc29uIGluIGFueSB3YXkgdG8gcGFydGljaXBhdGUgaW4gb3VyIHByb2dyYW1zLiBUbyBwYXJ0aWNpcGF0ZSBpcyB5b3VyIG93biBkZWNpc2lvbiBhbmQgeW91IGNhcnJ5IHRoZSByZXNwb25zaWJpbGl0eSBvZiB0YWtpbmcgZnVydGhlciBwYXJ0IGluIHRoaXMgcHJvbW90aW9uLiBBbnl3YXksIG
+ lmIHlvdSBkb24ndCB3YW50IHRvIHJlY2VpdmUgbW9yZSBnb29kIG9mZmVycyBmcm9tIHVzLCB5b3UgY2FuIHNpbXBseSBVbnN1YnNjcmliZSBieSBzZW5kaW5nIHVzIGEgbm90aWZpY2F0aW9uIGVtYWlsIHRvIGdldC5vdXRfb2ZfdGhlX2xpc3RAeWFob28uY29tIHdpdGggYSBtYWlsLXN1YmplY3QgYW5kIHRleHQgIlVuc3Vic2NyaWJlIG1lIiwgYW5kIHdlIHdpbGwgZ2V0IHlvdXIgZW1haWwgb3V0IG9mIG91ciBsaXN0IHdpdGhpbiAxMCBkYXlzLgoKVGhpcyBtZXNzYWdlIGlzIFNUUklDVExZIENPTkZJREVOVElBTCBhbmQgaXMgc29sZWx5IGZvciB0aGUgaW5kaXZpZHVhbCBvciBvcmdhbmlzYXRpb24gdG8gd2hvbSBpdCBpcyBhZGRyZXNzZWQuIEl0IG1heSBjb250YWluIFBSSVZJTEVHRUQgYW5kIENPTkZJREVOVElBTCBpbmZvcm1hdGlvbi4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgeW91IGFyZSBoZXJlYnkgbm90aWZpZWQgdGhhdCBhbnkgZGlzc2VtaW5hdGlvbiwgZGlzdHJpYnV0aW9uIG9yIGNvcHlpbmcgb2YgdGhpcyBjb21tdW5pY2F0aW9uIGFuZCBpdHMgY29udGVudHMgaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4g
+ SWYgeW91IGFyZSBub3QgaW50ZXJlc3RlZCBpbiB0aGUgb2ZmZXJlZCBwcm9tb3Rpb25zLCBwbGVhc2UganVzdCBkb24ndCBhbnN3ZXIuIElmIHlvdSB0aGluayB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIG1lc3NhZ2UgYW5kIGl0cyBjb250ZW50cyBpbiBlcnJvciwgcGxlYXNlIGRlbGV0ZSBpdCBmcm9tIHlvdXIgY29tcHV0ZXIsIG9yIGZvbGxvdyB0aGUgdW5zdWJzY3JpYmluZyBwcm9jZWR1cmUgc2hvd24gYWJvdmUuCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoJCQ==
