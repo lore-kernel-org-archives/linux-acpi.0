@@ -1,238 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/8] acpi: fix of pmtimer overflow that make Cx states time incorrect
-Date: Wed, 04 Mar 2009 11:55:26 -0800
-Message-ID: <200903041955.n24JtQOd027994@imap1.linux-foundation.org>
+Subject: [patch 5/8] acpi: bus.c, remove doubled status checking
+Date: Wed, 04 Mar 2009 11:55:27 -0800
+Message-ID: <200903041955.n24JtSHW028000@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756092AbZCDT4I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 14:56:08 -0500
+	by vger.kernel.org with ESMTP id S1756178AbZCDT4K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 14:56:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, alex.shi@intel.com, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jirislaby@gmail.com
 
-From: "alex.shi" <alex.shi@intel.com>
+From: Jiri Slaby <jirislaby@gmail.com>
 
-We found Cx states time abnormal in our some of machines which have 16
-LCPUs, the C0 take too many time while system is really idle when kernel
-enabled tickless and highres.  powertop output is below:
+There was a misplaced status test (two consequent tests without a
+statement in between) in acpi_bus_init for ages.  Remove it, since the
+function which should be checked (acpi_os_initialize1) has BUG_ONs on
+failure paths.
 
-     PowerTOP version 1.9       (C) 2007 Intel Corporation
-
-Cn                Avg residency       P-states (frequencies)
-C0 (cpu running)        (40.5%)         2.53 Ghz     0.0%
-C1                0.0ms ( 0.0%)         2.53 Ghz     0.0%
-C2              128.8ms (59.5%)         2.40 Ghz     0.0%
-                                        1.60 Ghz   100.0%
-
-Wakeups-from-idle per second :  4.7     interval: 20.0s
-no ACPI power usage estimate available
-
-Top causes for wakeups:
-  41.4% ( 24.9)       <interrupt> : extra timer interrupt
-  20.2% ( 12.2)     <kernel core> : usb_hcd_poll_rh_status
-(rh_timer_func)
-
-After tacking detailed for this issue, Yakui and I find it is due to 24
-bit PM timer overflows when some of cpu sleep more than 4 seconds.  With
-tickless kernel, the CPU want to sleep as much as possible when system
-idle.  But the Cx sleep time are recorded by pmtimer which length is
-determined by BIOS.  The current Cx time was gotten in the following
-function from driver/acpi/processor_idle.c:
-
-static inline u32 ticks_elapsed(u32 t1, u32 t2)
-{
-       if (t2 >= t1)
-               return (t2 - t1);
-       else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
-               return (((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
-       else
-               return ((0xFFFFFFFF - t1) + t2);
-}
-
-If pmtimer is 24 bits and it take 5 seconds from t1 to t2, in above
-function, just about 1 seconds ticks was recorded.  So the Cx time will be
-reduced about 4 seconds.  and this is why we see above powertop output.
-
-To resolve this problem, Yakui and I use ktime_get() to record the Cx
-states time instead of PM timer as the following patch.  the patch was
-tested with i386/x86_64 modes on several platforms.
-
-Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Tested-by: Alex Shi <alex.shi@intel.com>
-Signed-off-by: Alex Shi <alex.shi@intel.com>
-Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   63 +++++++++++++-------------------
- 1 file changed, 27 insertions(+), 36 deletions(-)
+ drivers/acpi/bus.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-fix-of-pmtimer-overflow-that-make-cx-states-time-incorrect
-+++ a/drivers/acpi/processor_idle.c
-@@ -64,7 +64,6 @@
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_idle");
- #define ACPI_PROCESSOR_FILE_POWER	"power"
--#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
- #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
- #define C2_OVERHEAD			1	/* 1us */
- #define C3_OVERHEAD			1	/* 1us */
-@@ -78,6 +77,10 @@ module_param(nocst, uint, 0000);
- static unsigned int latency_factor __read_mostly = 2;
- module_param(latency_factor, uint, 0644);
+diff -puN drivers/acpi/bus.c~acpi-busc-remove-doubled-status-checking drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~acpi-busc-remove-doubled-status-checking
++++ a/drivers/acpi/bus.c
+@@ -758,8 +758,7 @@ static int __init acpi_bus_init(void)
+ 	acpi_status status = AE_OK;
+ 	extern acpi_status acpi_os_initialize1(void);
  
-+static s64 us_to_pm_timer_ticks(s64 t)
-+{
-+	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
-+}
- /*
-  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
-  * For now disable this. Probably a bug somewhere else.
-@@ -159,25 +162,6 @@ static struct dmi_system_id __cpuinitdat
- 	{},
- };
- 
--static inline u32 ticks_elapsed(u32 t1, u32 t2)
--{
--	if (t2 >= t1)
--		return (t2 - t1);
--	else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
--		return (((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
--	else
--		return ((0xFFFFFFFF - t1) + t2);
--}
 -
--static inline u32 ticks_elapsed_in_us(u32 t1, u32 t2)
--{
--	if (t2 >= t1)
--		return PM_TIMER_TICKS_TO_US(t2 - t1);
--	else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
--		return PM_TIMER_TICKS_TO_US(((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
--	else
--		return PM_TIMER_TICKS_TO_US((0xFFFFFFFF - t1) + t2);
--}
+-	status = acpi_os_initialize1();
++	acpi_os_initialize1();
  
- /*
-  * Callers should disable interrupts before the call and enable
-@@ -853,7 +837,8 @@ static inline void acpi_idle_do_entry(st
- static int acpi_idle_enter_c1(struct cpuidle_device *dev,
- 			      struct cpuidle_state *state)
- {
--	u32 t1, t2;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
- 
-@@ -871,14 +856,15 @@ static int acpi_idle_enter_c1(struct cpu
- 		return 0;
+ 	status =
+ 	    acpi_enable_subsystem(ACPI_NO_HARDWARE_INIT | ACPI_NO_ACPI_ENABLE);
+@@ -769,12 +768,6 @@ static int __init acpi_bus_init(void)
+ 		goto error1;
  	}
  
--	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt1 = ktime_get_real();
- 	acpi_idle_do_entry(cx);
--	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt2 = ktime_get_real();
-+	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
- 	local_irq_enable();
- 	cx->usage++;
- 
--	return ticks_elapsed_in_us(t1, t2);
-+	return idle_time;
- }
- 
- /**
-@@ -891,8 +877,9 @@ static int acpi_idle_enter_simple(struct
- {
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
--	u32 t1, t2;
--	int sleep_ticks = 0;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
-+	s64 sleep_ticks = 0;
- 
- 	pr = __get_cpu_var(processors);
- 
-@@ -925,18 +912,19 @@ static int acpi_idle_enter_simple(struct
- 	if (cx->type == ACPI_STATE_C3)
- 		ACPI_FLUSH_CPU_CACHE();
- 
--	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt1 = ktime_get_real();
- 	/* Tell the scheduler that we are going deep-idle: */
- 	sched_clock_idle_sleep_event();
- 	acpi_idle_do_entry(cx);
--	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt2 = ktime_get_real();
-+	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
- #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
- 	/* TSC could halt in idle, so notify users */
- 	if (tsc_halts_in_c(cx->type))
- 		mark_tsc_unstable("TSC halts in idle");;
- #endif
--	sleep_ticks = ticks_elapsed(t1, t2);
-+	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-@@ -948,7 +936,7 @@ static int acpi_idle_enter_simple(struct
- 
- 	acpi_state_timer_broadcast(pr, cx, 0);
- 	cx->time += sleep_ticks;
--	return ticks_elapsed_in_us(t1, t2);
-+	return idle_time;
- }
- 
- static int c3_cpu_count;
-@@ -966,8 +954,10 @@ static int acpi_idle_enter_bm(struct cpu
- {
- 	struct acpi_processor *pr;
- 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
--	u32 t1, t2;
--	int sleep_ticks = 0;
-+	ktime_t  kt1, kt2;
-+	s64 idle_time;
-+	s64 sleep_ticks = 0;
-+
- 
- 	pr = __get_cpu_var(processors);
- 
-@@ -1034,9 +1024,10 @@ static int acpi_idle_enter_bm(struct cpu
- 		ACPI_FLUSH_CPU_CACHE();
- 	}
- 
--	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt1 = ktime_get_real();
- 	acpi_idle_do_entry(cx);
--	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-+	kt2 = ktime_get_real();
-+	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
- 
- 	/* Re-enable bus master arbitration */
- 	if (pr->flags.bm_check && pr->flags.bm_control) {
-@@ -1051,7 +1042,7 @@ static int acpi_idle_enter_bm(struct cpu
- 	if (tsc_halts_in_c(ACPI_STATE_C3))
- 		mark_tsc_unstable("TSC halts in idle");
- #endif
--	sleep_ticks = ticks_elapsed(t1, t2);
-+	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
- 
-@@ -1062,7 +1053,7 @@ static int acpi_idle_enter_bm(struct cpu
- 
- 	acpi_state_timer_broadcast(pr, cx, 0);
- 	cx->time += sleep_ticks;
--	return ticks_elapsed_in_us(t1, t2);
-+	return idle_time;
- }
- 
- struct cpuidle_driver acpi_idle_driver = {
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR PREFIX
+-		       "Unable to initialize ACPI OS objects\n");
+-		goto error1;
+-	}
+-
+ 	/*
+ 	 * ACPI 2.0 requires the EC driver to be loaded and work before
+ 	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
 _
