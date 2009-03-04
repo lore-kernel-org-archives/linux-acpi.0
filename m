@@ -1,31 +1,37 @@
-From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: 2.6.29-rc6-git7: Reported regressions from 2.6.28
-Date: Wed, 04 Mar 2009 09:21:28 +0800
-Message-ID: <1236129688.32297.264.camel@rzhang-dt>
-References: <KiHv0irKPzE.A.l3.hUarJB@chimera>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: sony-laptop: Which models need snc_enable?
+Date: Wed, 4 Mar 2009 15:36:48 +0900
+Message-ID: <20090304063647.GB28090@kamineko.org>
+References: <gojfb4$j3a$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <KiHv0irKPzE.A.l3.hUarJB@chimera>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:36119
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751786AbZCDGgw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 01:36:52 -0500
+Content-Disposition: inline
+In-Reply-To: <gojfb4$j3a$1@ger.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michael Wallner <mike@iworks.at>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2009-03-04 at 03:22 +0800, Rafael J. Wysocki wrote:
-
-> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12758
-> Subject         : ACPI exception with 2.6.29-rc6
-> Submitter       : Heinz Diehl <htd-HjJ2MNWy62to6+H+lsi3Gti2O/JbrIOy@public.gmane.org>
-> Date            : 2009-02-23 16:46 (9 days old)
-> References      : http://marc.info/?l=linux-kernel&m=123540758700861&w=4
+On Tue, Mar 03, 2009 at 03:37:25PM +0100, Michael Wallner wrote:
+> Hi,
 > 
-Handled by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Patch-available:
-http://bugzilla.kernel.org/attachment.cgi?id=20368&action=view
+> I wonder if the special snc_enable routines are only needed
+> for models with the SNY5001 device?
 
-not sure if this patch is in len's tree or not.
+yes
 
-thanks,
-rui
+> Mine has SNY6001 and SNY9001, so I wonder if I'd need
+> the snc_enable specific stuff too?
+
+nope, you don't need it.
+SNY6001 is the SPIC device which is handled differently and SNY9001 is
+PS2 controller.
+
+-- 
+mattia
+:wq!
