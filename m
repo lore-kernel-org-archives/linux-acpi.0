@@ -1,81 +1,80 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: [PATCH] DVB-USB: correct the comment about KEY_SLEEP
-Date: Wed, 04 Mar 2009 11:09:37 +0000
-Message-ID: <1236164977.3936.30.camel@hughsie-work.lan>
-References: <1235992429.3858.58.camel@hughsie-work.lan>
-	 <20090302112400.GA2356@khazad-dum.debian.net>
-	 <1236164049.3936.17.camel@hughsie-work.lan>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
+	in driver
+Date: Wed, 4 Mar 2009 09:04:40 -0300
+Message-ID: <20090304120439.GA31850@khazad-dum.debian.net>
+References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-eg88bVTcU++du7cL5R28"
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:43887 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751305AbZCDMF3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 07:05:29 -0500
+Content-Disposition: inline
 In-Reply-To: <1236164049.3936.17.camel@hughsie-work.lan>
-Sender: linux-input-owner@vger.kernel.org
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 
-
---=-eg88bVTcU++du7cL5R28
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-On Wed, 2009-03-04 at 10:54 +0000, Richard Hughes wrote:
-> On Mon, 2009-03-02 at 08:24 -0300, Henrique de Moraes Holschuh wrote:
-> > FWIW, I think it is a good idea, and I'd take patches for
-> > thinkpad-acpi.
+On Wed, 04 Mar 2009, Richard Hughes wrote:
+> >From d3ce499f80ba7526e83e7b16f85124ccf77ac1f4 Mon Sep 17 00:00:00 2001
+> From: Richard Hughes <richard@hughsie.com>
+> Date: Wed, 4 Mar 2009 10:51:52 +0000
+> Subject: thinkpad-acpi: use correct key names for sleep keys in driver
 > 
-> Patch attached for thinkpad-acpi. KEY_HIBERNATE is already in
-> linux-next, but has not yet been pushed to master. Please review,
-> thanks.
+> Use the new key KEY_HIBERNATE and correct the use of KEY_SUSPEND.
+> 
+> KEY_HIBERNATE is used when the decal on the key indicates sleep to disk,
+> KEY_SUSPEND is used when the decal indicates sleep to memory, and
+> KEY_SLEEP is used when the sleep type is unknown or unspecified
+> 
+> We've already converted Xorg, HAL, and most of userspace to use the same names.
+> 
+> With this patch, the sleep keys can be labeled consistently all the way
+> through the stack. More patches to other device drivers are to follow.
+> 
+> Signed-off-by: Richard Hughes <hughsient@gmail.com>
 
-Antti, I've included a fix to the Afatech AF9015 DVB-T USB2.0 receiver
-header file. It corrects the comment about KEY_SLEEP. Please review.
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Thanks,
+> ---
+>  drivers/platform/x86/thinkpad_acpi.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+> index bcbc051..d89015d 100644
+> --- a/drivers/platform/x86/thinkpad_acpi.c
+> +++ b/drivers/platform/x86/thinkpad_acpi.c
+> @@ -2241,9 +2241,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+>  	 */
+>  	static u16 ibm_keycode_map[] __initdata = {
+>  		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+> -		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SLEEP,
+> +		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SUSPEND,
+>  		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
+> -		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
+> +		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_HIBERNATE,
+>  
+>  		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
+>  		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+> @@ -2277,9 +2277,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+>  	};
+>  	static u16 lenovo_keycode_map[] __initdata = {
+>  		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+> -		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SLEEP,
+> +		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SUSPEND,
+>  		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
+> -		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
+> +		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_HIBERNATE,
+>  
+>  		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
+>  		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
 
-Richard.
 
-
---=-eg88bVTcU++du7cL5R28
-Content-Disposition: attachment; filename*0=0004-DVB-USB-use-correct-key-names-for-sleep-keys-in-dri.patc; filename*1=h
-Content-Type: text/x-patch; name="0004-DVB-USB-use-correct-key-names-for-sleep-keys-in-dri.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From 839a18f6663f416b484d496824beb7ad9cfe9215 Mon Sep 17 00:00:00 2001
-From: Richard Hughes <richard@hughsie.com>
-Date: Wed, 4 Mar 2009 11:01:31 +0000
-Subject: DVB-USB: correct the comment about KEY_SLEEP
-
-KEY_HIBERNATE is used when the decal on the key indicates sleep to disk,
-KEY_SUSPEND is used when the decal indicates sleep to memory, and
-KEY_SLEEP is used when the sleep type is unknown or unspecified
-
-We've already converted Xorg, HAL, and most of userspace to use the same names.
-
-With this patch, the sleep keys can be labeled consistently all the way
-through the stack. More patches to other device drivers are to follow.
-
-Signed-off-by: Richard Hughes <hughsient@gmail.com>
----
- drivers/media/dvb/dvb-usb/af9015.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/af9015.h b/drivers/media/dvb/dvb-usb/af9015.h
-index 21c7782..e01587c 100644
---- a/drivers/media/dvb/dvb-usb/af9015.h
-+++ b/drivers/media/dvb/dvb-usb/af9015.h
-@@ -244,7 +244,7 @@ static struct dvb_usb_rc_key af9015_rc_keys_twinhan[] = {
- 	{ 0x01, 0x17, KEY_SUBTITLE },     /* Subtitle / CC */
- 	{ 0x00, 0x10, KEY_MUTE },
- 	{ 0x01, 0x19, KEY_AUDIO },        /* L/R */ /* TODO better event */
--	{ 0x01, 0x16, KEY_SLEEP },        /* Hibernate */
-+	{ 0x01, 0x16, KEY_SLEEP },        /* Sleep */
- 	{ 0x01, 0x16, KEY_SWITCHVIDEOMODE },
- 					  /* A/V */ /* TODO does not work */
- 	{ 0x00, 0x06, KEY_AGAIN },        /* Recall */
 -- 
-1.6.1.3
-
-
---=-eg88bVTcU++du7cL5R28--
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
