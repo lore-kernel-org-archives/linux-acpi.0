@@ -1,37 +1,30 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: sony-laptop: Which models need snc_enable?
-Date: Wed, 4 Mar 2009 15:36:48 +0900
-Message-ID: <20090304063647.GB28090@kamineko.org>
-References: <gojfb4$j3a$1@ger.gmane.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [patch] add KEY_HIBERNATE and clarify the uses of KEY_SUSPEND
+	and KEY_SLEEP
+Date: Wed, 4 Mar 2009 00:42:15 -0800
+Message-ID: <20090304084214.GA7394@dtor-d630.eng.vmware.com>
+References: <1235992429.3858.58.camel@hughsie-work.lan> <1235995903.3858.83.camel@localhost.localdomain> <1236100818.3900.36.camel@hughsie-work.lan> <200903032053.04931.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:36119
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751786AbZCDGgw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 01:36:52 -0500
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <gojfb4$j3a$1@ger.gmane.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200903032053.04931.rjw@sisk.pl>
+Sender: linux-input-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Richard Hughes <hughsient@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Wallner <mike@iworks.at>
-Cc: linux-acpi@vger.kernel.org
 
-On Tue, Mar 03, 2009 at 03:37:25PM +0100, Michael Wallner wrote:
-> Hi,
+On Tue, Mar 03, 2009 at 08:53:04PM +0100, Rafael J. Wysocki wrote:
+> On Tuesday 03 March 2009, Richard Hughes wrote:
+> > I've attached a patch that adds KEY_HIBERNATE and clarifies the uses of
+> > KEY_SUSPEND and KEY_SLEEP.
+> > 
+> > Please consider. Thanks.
 > 
-> I wonder if the special snc_enable routines are only needed
-> for models with the SNY5001 device?
+> FWIW, I agree with the naming.
+> 
 
-yes
-
-> Mine has SNY6001 and SNY9001, so I wonder if I'd need
-> the snc_enable specific stuff too?
-
-nope, you don't need it.
-SNY6001 is the SPIC device which is handled differently and SNY9001 is
-PS2 controller.
+Applied to next, thank you Richard.
 
 -- 
-mattia
-:wq!
+Dmitry
