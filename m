@@ -1,22 +1,36 @@
-From: Donnie Whitten <work@allianceabroad.com>
-Subject: =?windows-1251?B?QSBCdXNpbmVzcyBPcHBvcnR1bml0eSBmb3IgQW55b25l?=
-Date: Wed, 4 Mar 2009 23:58:03 +0700
-Message-ID: <9352.81382776356$1236191444@news.gmane.org>
-Reply-To: Donnie Whitten <beezley.balder13259@gmail.com>
+From: Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.29-rc6-git7: Reported regressions from 2.6.28
+Date: Wed, 4 Mar 2009 20:14:21 +0100
+Message-ID: <8db1092f0903041114o767d0079s4c1626dae5335d70@mail.gmail.com>
+References: <KiHv0irKPzE.A.l3.hUarJB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="windows-1251"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [58.137.222.2] ([58.137.222.2]:37010 "HELO
-	your.mail.server.name.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1753654AbZCDS2z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 13:28:55 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <KiHv0irKPzE.A.l3.hUarJB@chimera>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-QXJlIHlvdSB1c2VkIHRvIHRoaW5rIHRoYXQgYWxsIHdvcmsgYXQgaG9tZSBvcHBvcnR1bml0aWVzIG9uIHRoZSBJbnRlcm5ldCBhcmUganVzdCBzY2FtIGFydGlzdHMgdHJ5aW5nIHRvIHN0ZWFsIHlvdXIgbW9uZXkuIFdpdGggeW91ciBsYXN0IGJpdCBvZiBob3BlLCB5b3UgY2FuIHRyeSBvdXIgb2ZmZXIsIHdlIGFyZSBoZXJlIHRvIHByZXNlbnQgdG8geW91ciBhdHRlbnRpb24gdG9kYXksIGFuZCB5b3Ugd2lsbCBiZSBnbGFkIHlvdSBkaWQhIEl0IG1heSB0b29rIGEgY291cGxlIG9mIGRheXMgdG8gcmVhbGx5IGdldCB0aGUgaGFuZyBvZiB0aGUgc3lzdGVtLCBidXQgdGhlbiB5b3Ugd2lsbCBiZSB1cCB0byAkMTAwIHBlciBkYXkgaW4gZWFybmluZ3MsIGFuZCBjbGltYmluZyENCg0KV2UgYXJlIHJlY2VpdmluZyBodW5kcmVkcyBvZiBlbWFpbHMgZWFjaCBkYXkgZnJvbSBvdXIgbWVtYmVycywgdGhhbmtpbmcgdXMgZm9yIHByb3ZpZGluZyBzdWNoIGEgZ3JlYXQgcmVzb3VyY2UgdG8gYWN0dWFsbHkgZWFybiBhIHJlYWwgaW5jb21lIG9ubGluZS4NCg0KSWYgeW91IGFyZSBpbnRlcmVzdGVkIGluIHJlY2VpdmluZyBtb3JlIGluZm9ybWF0aW9uIGFib3V0
- IG91ciB3b3JrIGZyb20gaG9tZSBvZmZlcnMsIGFuZCBwcm9iYWJseSBqb2luIHdpdGggdXMsIHBsZWFzZSBzZW5kIGFuIGVtYWlsIGJhY2sgdG8gMTk0NTlodWRkZS5kb25uYWxsZXlAZ21haWwuY29tIGFuZCB3ZSB3aWxsIGdldCBpbiB0b3VjaCB3aXRoIHlvdSBhZ2Fpbi4NCg0KVGhhbmtzIGZvciB5b3VyIHRpbWUhDQoNCkxlZ2l0IEpvYnMgT25saW5lCgoKCgoKCgoKCgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoaXMgZW1haWwgaGFzIGJlZW4gd3JpdHRlbiBhbmQgcHJvdmVkIHRvIGJlIGluIGNvbXBsaWFuY2Ugd2l0aCB0aGUgcmVjZW50bHkgZXN0YWJsaXNoZWQgY2FuLXNwYW0gYWN0IGxhdyBpbiBVUy4gV2UgYXJlIG5vdCBwcm92b2tpbmcgb3IgZm9yY2luZyBhbnkgcGVyc29uIGluIGFueSB3YXkgdG8gcGFydGljaXBhdGUgaW4gb3VyIHByb2dyYW1zLiBUbyBwYXJ0aWNpcGF0ZSBpcyB5b3VyIG93biBkZWNpc2lvbiBhbmQgeW91IGNhcnJ5IHRoZSByZXNwb25zaWJpbGl0eSBvZiB0YWtpbmcgZnVydGhlciBwYXJ0IGluIHRoaXMgcHJvbW90aW9uLiBBbnl3YXksIG
- lmIHlvdSBkb24ndCB3YW50IHRvIHJlY2VpdmUgbW9yZSBnb29kIG9mZmVycyBmcm9tIHVzLCB5b3UgY2FuIHNpbXBseSBVbnN1YnNjcmliZSBieSBzZW5kaW5nIHVzIGEgbm90aWZpY2F0aW9uIGVtYWlsIHRvIGdldC5vdXRfb2ZfdGhlX2xpc3RAeWFob28uY29tIHdpdGggYSBtYWlsLXN1YmplY3QgYW5kIHRleHQgIlVuc3Vic2NyaWJlIG1lIiwgYW5kIHdlIHdpbGwgZ2V0IHlvdXIgZW1haWwgb3V0IG9mIG91ciBsaXN0IHdpdGhpbiAxMCBkYXlzLgoKVGhpcyBtZXNzYWdlIGlzIFNUUklDVExZIENPTkZJREVOVElBTCBhbmQgaXMgc29sZWx5IGZvciB0aGUgaW5kaXZpZHVhbCBvciBvcmdhbmlzYXRpb24gdG8gd2hvbSBpdCBpcyBhZGRyZXNzZWQuIEl0IG1heSBjb250YWluIFBSSVZJTEVHRUQgYW5kIENPTkZJREVOVElBTCBpbmZvcm1hdGlvbi4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgeW91IGFyZSBoZXJlYnkgbm90aWZpZWQgdGhhdCBhbnkgZGlzc2VtaW5hdGlvbiwgZGlzdHJpYnV0aW9uIG9yIGNvcHlpbmcgb2YgdGhpcyBjb21tdW5pY2F0aW9uIGFuZCBpdHMgY29udGVudHMgaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4g
- SWYgeW91IGFyZSBub3QgaW50ZXJlc3RlZCBpbiB0aGUgb2ZmZXJlZCBwcm9tb3Rpb25zLCBwbGVhc2UganVzdCBkb24ndCBhbnN3ZXIuIElmIHlvdSB0aGluayB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIG1lc3NhZ2UgYW5kIGl0cyBjb250ZW50cyBpbiBlcnJvciwgcGxlYXNlIGRlbGV0ZSBpdCBmcm9tIHlvdXIgY29tcHV0ZXIsIG9yIGZvbGxvdyB0aGUgdW5zdWJzY3JpYmluZyBwcm9jZWR1cmUgc2hvd24gYWJvdmUuCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoJCQ==
+2009/3/3 Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>:
+
+>
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D12764
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : Can not ioremap virtual address=
+ for G33 hw status page
+> Submitter =C2=A0 =C2=A0 =C2=A0 : Maciej Rutecki <maciej.rutecki@gmail=
+=2Ecom>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-02-23 14:46 (9 d=
+ays old)
+> First-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
+s/linux-2.6.git;a=3Dcommit;h=3D6fb88588555a18792a27f483887fe1f2af5f9c9b
+> References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel&m=
+=3D123540053219505&w=3D4
+
+Problem seems by solved in 2.6.29-rc7
+
+--=20
+Maciej Rutecki
+http://www.maciek.unixy.pl
