@@ -1,59 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/8] acpi: check _PSS invalidation when BIOS report _PSS with 0x80000000
-Date: Wed, 04 Mar 2009 11:55:25 -0800
-Message-ID: <200903041955.n24JtPSM027990@imap1.linux-foundation.org>
+Subject: [patch 4/8] acpi: get_throttling_state() cannot be larger than state_count
+Date: Wed, 04 Mar 2009 11:55:27 -0800
+Message-ID: <200903041955.n24JtRIO027997@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756205AbZCDT4K (ORCPT
+	by vger.kernel.org with ESMTP id S1756194AbZCDT4K (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 14:56:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, roel.kluin@gmail.com, yakui.zhao@intel.com
 
-From: Youquan, Song <youquan.song@intel.com>
+From: Roel Kluin <roel.kluin@gmail.com>
 
-When cpu frequencey scaling is disabled, some BIOSes report _PSS with all
-0x80000000.  If the kernel treats this case as valid, the kernel will boot
-crash when load cpufreq govenors.
+With for(i = 0; i < n; i++) { ... } i reaches n.
 
-So in order to cover more buggy BIOSs, the patch just check _PSS core
-frequency invalidation.
-
-Signed-off-by: Youquan, Song <youquan.song@intel.com>
-Signed-off-by: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Acked-by: <yakui.zhao@intel.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_perflib.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/processor_throttling.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000 drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~acpi-check-_pss-invalidation-when-bios-report-_pss-with-all-0x80000000
-+++ a/drivers/acpi/processor_perflib.c
-@@ -42,6 +42,7 @@
- #define ACPI_PROCESSOR_CLASS		"processor"
- #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
-+#define ACPI_PROCESSOR_PSS_INVALID	0x80000000
- ACPI_MODULE_NAME("processor_perflib");
- 
- static DEFINE_MUTEX(performance_mutex);
-@@ -316,6 +317,14 @@ static int acpi_processor_get_performanc
- 			kfree(pr->performance->states);
- 			goto end;
- 		}
-+
-+		if (px->core_frequency == ACPI_PROCESSOR_PSS_INVALID) {
-+			printk(KERN_ERR PREFIX
-+				    "P-states disabled in the BIOS\n");
-+			result = -EFAULT;
-+			kfree(pr->performance->states);
-+			goto end;
-+		}
+diff -puN drivers/acpi/processor_throttling.c~acpi-get_throttling_state-cannot-be-larger-state_count drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-get_throttling_state-cannot-be-larger-state_count
++++ a/drivers/acpi/processor_throttling.c
+@@ -785,7 +785,7 @@ static int acpi_get_throttling_state(str
+ 		if (tx->control == value)
+ 			break;
  	}
- 
-       end:
+-	if (i > pr->throttling.state_count)
++	if (i >= pr->throttling.state_count)
+ 		i = -1;
+ 	return i;
+ }
 _
