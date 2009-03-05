@@ -1,65 +1,76 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] panasonic-laptop: use correct key names for sleep
-	states in driver
-Date: Thu, 5 Mar 2009 00:58:30 +0100
-Message-ID: <20090304235830.GE3974@prithivi.gnumonks.org>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan> <1236164306.3936.20.camel@hughsie-work.lan>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: linux-next acpi changes make vmware server unusable
+Date: Thu, 05 Mar 2009 08:44:31 +0800
+Message-ID: <1236213871.28145.1.camel@minggr.sh.intel.com>
+References: <1236203700.3569.11.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WIyZ46R2i8wDzkSu"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1236164306.3936.20.camel@hughsie-work.lan>
-Sender: linux-input-owner@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:24881 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754624AbZCEAuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Mar 2009 19:50:05 -0500
+In-Reply-To: <1236203700.3569.11.camel@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Eric Paris <eparis@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>
+
+On Thu, 2009-03-05 at 05:55 +0800, Eric Paris wrote:
+> I built a linux-next kernel yesterday and discovered that the free
+> vmware server 2 would start to boot the kernel and very quickly just
+> power off.  vmware gave some crap message about the MBR being wrong,
+> which obviously wasn't the case since grub started and the kernel
+> started booting.  Looking at the last line on the serial console for the
+> new kernel and the next line in a working kernel I knew the next output
+> was supposed to be in the ACPI code.  I bisected drivers/acpi and found
+> that d6c349993fc7c9dabf873796c4e82bb94544b3ce is first bad commit.
+
+Would you please try below patch?
 
 
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+    ACPICA: Check for non-zero address before being converted to GAS
+    
+    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/acpica/tbfadt.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
-On Wed, Mar 04, 2009 at 10:58:26AM +0000, Richard Hughes wrote:
-> On Wed, 2009-03-04 at 10:54 +0000, Richard Hughes wrote:
-> > On Mon, 2009-03-02 at 08:24 -0300, Henrique de Moraes Holschuh wrote:
-> > > FWIW, I think it is a good idea, and I'd take patches for
-> > > thinkpad-acpi.
-> >=20
-> > Patch attached for thinkpad-acpi. KEY_HIBERNATE is already in
-> > linux-next, but has not yet been pushed to master. Please review,
-> > thanks.
->=20
-> Patch also attached for panasonic-laptop. Harald, can you please review
-> this. Thanks.
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 042d239..af8fbe1 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -625,12 +625,14 @@ static void acpi_tb_setup_fadt_registers(void)
+ 		    ACPI_ADD_PTR(struct acpi_generic_address, &acpi_gbl_FADT,
+ 				 fadt_pm_info_table[i].source);
+ 
+-		acpi_tb_init_generic_address(fadt_pm_info_table[i].target,
+-					     source64->space_id,
+-					     pm1_register_byte_width,
+-					     source64->address +
+-					     (fadt_pm_info_table[i].
+-					      register_num *
+-					      pm1_register_byte_width));
++		if (source64->address) {
++			acpi_tb_init_generic_address(fadt_pm_info_table[i].
++						     target, source64->space_id,
++						     pm1_register_byte_width,
++						     source64->address +
++						     (fadt_pm_info_table[i].
++						      register_num *
++						      pm1_register_byte_width));
++		}
+ 	}
+ }
 
-Acked-by: Harald Welte <laforge@gnumonks.org>
 
-(I've just started three weeks vacation and won't be able to respond to mai=
-ls
-until March 26th)
+> 
+> I have no idea what vmware is doing, or what we are doing, but before
+> that patch I was able to boot and after it, vmware just shuts itself
+> off.
+> 
+> -Eric
+> 
+> 
 
---=20
-- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
-
---WIyZ46R2i8wDzkSu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQFJrxWmXaXGVTD0i/8RAuNdAJ9LIYvsxGoKMbv8iCmZpjoPTtNWaACfVolG
-8R95UwzkUfkzyPaocV1b0Po=
-=trLt
------END PGP SIGNATURE-----
-
---WIyZ46R2i8wDzkSu--
