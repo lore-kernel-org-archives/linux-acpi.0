@@ -1,62 +1,85 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 2/2] ACPI: fix broken usage of acpi_ut_get_node_name()
-Date: Wed, 4 Mar 2009 22:40:58 -0300
-Message-ID: <20090305014058.GC12234@khazad-dum.debian.net>
-References: <1235486898-27756-1-git-send-email-hmh@hmh.eng.br> <1235486898-27756-2-git-send-email-hmh@hmh.eng.br>
+From: Eric Paris <eparis@redhat.com>
+Subject: Re: linux-next acpi changes make vmware server unusable
+Date: Wed, 04 Mar 2009 20:51:03 -0500
+Message-ID: <1236217863.3569.18.camel@localhost.localdomain>
+References: <1236203700.3569.11.camel@localhost.localdomain>
+	 <1236213871.28145.1.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:59358 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754477AbZCEBlD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2009 20:41:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1235486898-27756-2-git-send-email-hmh@hmh.eng.br>
+Received: from mx2.redhat.com ([66.187.237.31]:43121 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750761AbZCEBuG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Mar 2009 20:50:06 -0500
+In-Reply-To: <1236213871.28145.1.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: stable@kernel.org, linux-acpi@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>
 
-PING...
-
-This is a cosmetic fix, but it still avoids random binary crap leaking
-into debug messages, for the price of an obvious 3-char change.
-
-Can I get an ACK for it, please?  I'd like to see this go into
-2.6.28.y...
-
-On Tue, 24 Feb 2009, Henrique de Moraes Holschuh wrote:
-> acpi_ut_get_node_name() returns a four char fixed-size array, not
-> NULL-terminated.
+On Thu, 2009-03-05 at 08:44 +0800, Lin Ming wrote:
+> On Thu, 2009-03-05 at 05:55 +0800, Eric Paris wrote:
+> > I built a linux-next kernel yesterday and discovered that the free
+> > vmware server 2 would start to boot the kernel and very quickly just
+> > power off.  vmware gave some crap message about the MBR being wrong,
+> > which obviously wasn't the case since grub started and the kernel
+> > started booting.  Looking at the last line on the serial console for the
+> > new kernel and the next line in a working kernel I knew the next output
+> > was supposed to be in the ACPI code.  I bisected drivers/acpi and found
+> > that d6c349993fc7c9dabf873796c4e82bb94544b3ce is first bad commit.
 > 
-> This issue was fixed indirectly in mainline by commit
-> 60a4ce7f4148155d3f28eea4a213f7ee47cd57b7.
-> 
-> This is the minimal fix for stable 2.6.28.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Cc: stable@kernel.org
-> Cc: Lin Ming <ming.m.lin@intel.com>
+> Would you please try below patch?
+
+linux-next + this patch boots just fine.
+
+Thanks!!
+
+-Eric
+
+
+>     ACPICA: Check for non-zero address before being converted to GAS
+>     
+>     Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 > ---
->  drivers/acpi/power.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/acpi/acpica/tbfadt.c |   16 +++++++++-------
+>  1 files changed, 9 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index bb7d50d..ad55db1 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -151,7 +151,7 @@ static int acpi_power_get_state(acpi_handle handle, int *state)
->  	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
->  			      ACPI_POWER_RESOURCE_STATE_OFF;
+> diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+> index 042d239..af8fbe1 100644
+> --- a/drivers/acpi/acpica/tbfadt.c
+> +++ b/drivers/acpi/acpica/tbfadt.c
+> @@ -625,12 +625,14 @@ static void acpi_tb_setup_fadt_registers(void)
+>  		    ACPI_ADD_PTR(struct acpi_generic_address, &acpi_gbl_FADT,
+>  				 fadt_pm_info_table[i].source);
 >  
-> -	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
-> +	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%4.4s] is %s\n",
->  			  acpi_ut_get_node_name(handle),
->  				*state ? "on" : "off"));
->  
+> -		acpi_tb_init_generic_address(fadt_pm_info_table[i].target,
+> -					     source64->space_id,
+> -					     pm1_register_byte_width,
+> -					     source64->address +
+> -					     (fadt_pm_info_table[i].
+> -					      register_num *
+> -					      pm1_register_byte_width));
+> +		if (source64->address) {
+> +			acpi_tb_init_generic_address(fadt_pm_info_table[i].
+> +						     target, source64->space_id,
+> +						     pm1_register_byte_width,
+> +						     source64->address +
+> +						     (fadt_pm_info_table[i].
+> +						      register_num *
+> +						      pm1_register_byte_width));
+> +		}
+>  	}
+>  }
+> 
+> 
+> > 
+> > I have no idea what vmware is doing, or what we are doing, but before
+> > that patch I was able to boot and after it, vmware just shuts itself
+> > off.
+> > 
+> > -Eric
+> > 
+> > 
+> 
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
