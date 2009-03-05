@@ -1,42 +1,53 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: [PATCH] panasonic-laptop: use correct key names for sleep
- states in driver
-Date: Thu, 05 Mar 2009 09:09:41 +0000
-Message-ID: <1236244181.5432.1.camel@hughsie-work.lan>
-References: <1235992429.3858.58.camel@hughsie-work.lan>
-	 <20090302112400.GA2356@khazad-dum.debian.net>
-	 <1236164049.3936.17.camel@hughsie-work.lan>
-	 <1236164306.3936.20.camel@hughsie-work.lan>
-	 <20090304235830.GE3974@prithivi.gnumonks.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch for 2.6.29? 1/1] acer-wmi: fix regression in backlight detection
+Date: Thu, 5 Mar 2009 11:25:40 +0100
+Message-ID: <200903051125.42313.trenn@suse.de>
+References: <200903042007.n24K7Yc7029496@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20090304235830.GE3974@prithivi.gnumonks.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.suse.de ([195.135.220.2]:41655 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755120AbZCEKZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Mar 2009 05:25:48 -0500
+In-Reply-To: <200903042007.n24K7Yc7029496@imap1.linux-foundation.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, mspang@csclub.uwaterloo.ca, ak@linux.intel.com, carlos@strangeworlds.co.uk, len.brown@intel.com, rjw@sisk.pl, rui.zhang@intel.com, stable@kernel.org
 
-On Thu, 2009-03-05 at 00:58 +0100, Harald Welte wrote:
-> On Wed, Mar 04, 2009 at 10:58:26AM +0000, Richard Hughes wrote:
-> > On Wed, 2009-03-04 at 10:54 +0000, Richard Hughes wrote:
-> > > On Mon, 2009-03-02 at 08:24 -0300, Henrique de Moraes Holschuh wrote:
-> > > > FWIW, I think it is a good idea, and I'd take patches for
-> > > > thinkpad-acpi.
-> > > 
-> > > Patch attached for thinkpad-acpi. KEY_HIBERNATE is already in
-> > > linux-next, but has not yet been pushed to master. Please review,
-> > > thanks.
-> > 
-> > Patch also attached for panasonic-laptop. Harald, can you please review
-> > this. Thanks.
-> 
-> Acked-by: Harald Welte <laforge@gnumonks.org>
-
-Dmitry, could you pull this and the thinkpad acpi patch into linux-next
-please. Thanks.
-
-Richard.
-
-
+SGksCgpPbiBXZWRuZXNkYXkgMDQgTWFyY2ggMjAwOSAyMTowNzozNCBha3BtQGxpbnV4LWZvdW5k
+YXRpb24ub3JnIHdyb3RlOgo+IEZyb206IE1pY2hhZWwgU3BhbmcgPG1zcGFuZ0Bjc2NsdWIudXdh
+dGVybG9vLmNhPgo+IAo+IEN1cnJlbnRseSB3ZSBkaXNhYmxlIHRoZSBBY2VyIFdNSSBiYWNrbGln
+aHQgZGV2aWNlIGlmIHRoZXJlIGlzIG5vIEFDUEkKPiBiYWNrbGlnaHQgZGV2aWNlLiAgQXMgYSBy
+ZXN1bHQsIHdlIGVuZCB1cCB3aXRoIG5vIGJhY2tsaWdodCBkZXZpY2UgYXQgYWxsLgo+ICBXZSBz
+aG91bGQgaW5zdGVhZCBkaXNhYmxlIGl0IGlmIHRoZXJlIGlzIGFuIEFDUEkgZGV2aWNlLCBhcyB0
+aGUgb3RoZXIKPiBsYXB0b3AgZHJpdmVycyBkby4gIFRoaXMgcmVncmVzc2lvbiB3YXMgaW50cm9k
+dWNlZCBpbiBmZWJmMmQ5ICgiQWNlci1XTUk6Cj4gZmluZ2VycyBvZmYgYmFja2xpZ2h0IGlmIHZp
+ZGVvLmtvIGlzIHNlcnZpbmcgdGhpcyBmdW5jdGlvbmFsaXR5IikuCj4gCj4gRWFjaCBsYXB0b3Ag
+ZHJpdmVyIHdpdGggYmFja2xpZ2h0IHN1cHBvcnQgZ290IGEgc2ltaWxhciBjaGFuZ2UgYXJvdW5k
+Cj4gZmViZjJkOS4gIFRoZSBjaGFuZ2VzIHRvIHRoZSBvdGhlciBkcml2ZXJzIGxvb2sgY29ycmVj
+dDsgc2VlIGUuZy4gCj4gYTU5OGM4MmYgZm9yIGEgc2ltaWxhciBidXQgY29ycmVjdCBjaGFuZ2Uu
+ICBUaGUgcmVncmVzc2lvbiBpcyBhbHNvIGluCj4gMi42LjI4LgpMZW4sIGNhbiB5b3UgYXBwbHkg
+dGhpcyBvbmUsIHBsZWFzZS4KCj4gU2lnbmVkLW9mZi1ieTogTWljaGFlbCBTcGFuZyA8bXNwYW5n
+QGNzY2x1Yi51d2F0ZXJsb28uY2E+Cj4gQ2M6IFRob21hcyBSZW5uaW5nZXIgPHRyZW5uQHN1c2Uu
+ZGU+ClNpZ25lZC1vZmYtYnk6IFRob21hcyBSZW5uaW5nZXIgPHRyZW5uQHN1c2UuZGU+CgpObyBp
+ZGVhIGFib3V0IHN0YWJsZSBwb2xpY3ksIHdoZXRoZXIgeW91IGhhdmUgdG8gd2FpdCBmb3IgYSBt
+YWlubGluZSBjb21taXQKZmlyc3Qgb3IgaWYgeW91IGp1c3QgcHVzaCBzdWNoIHR5cG9zLiBIZXJl
+IGlzIHRoZSBwYXRjaCBhZ2FpbnN0IDIuNi4yOCwKdGhlcmUgdGhlIGJ1ZyBnb3QgaW50cm9kdWNl
+ZCAoZmlsZSBtb3ZlZCkuCgpUaGFua3MsCgogICAgIFRob21hcwoKLS0tCiBkcml2ZXJzL21pc2Mv
+YWNlci13bWkuYyB8ICAgIDIgKy0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBk
+ZWxldGlvbigtKQoKSW5kZXg6IGxpbnV4LTIuNi9kcml2ZXJzL21pc2MvYWNlci13bWkuYwo9PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9kcml2ZXJzL21pc2MvYWNlci13bWkuYworKysgbGlu
+dXgtMi42L2RyaXZlcnMvbWlzYy9hY2VyLXdtaS5jCkBAIC0xMjk3LDcgKzEyOTcsNyBAQCBzdGF0
+aWMgaW50IF9faW5pdCBhY2VyX3dtaV9pbml0KHZvaWQpCiAKIAlzZXRfcXVpcmtzKCk7CiAKLQlp
+ZiAoIWFjcGlfdmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQoKSAmJiBoYXNfY2FwKEFDRVJfQ0FQX0JS
+SUdIVE5FU1MpKSB7CisJaWYgKGFjcGlfdmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQoKSAmJiBoYXNf
+Y2FwKEFDRVJfQ0FQX0JSSUdIVE5FU1MpKSB7CiAJCWludGVyZmFjZS0+Y2FwYWJpbGl0eSAmPSB+
+QUNFUl9DQVBfQlJJR0hUTkVTUzsKIAkJcHJpbnRrKEFDRVJfSU5GTyAiQnJpZ2h0bmVzcyBtdXN0
+IGJlIGNvbnRyb2xsZWQgYnkgIgogCQkgICAgICAgImdlbmVyaWMgdmlkZW8gZHJpdmVyXG4iKTsK
+AAo=
