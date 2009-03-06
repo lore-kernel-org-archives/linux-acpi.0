@@ -1,19 +1,21 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: [PATCH] toshiba_acpi: Add full hotkey support
-Date: Fri, 6 Mar 2009 00:39:41 +0000
-Message-ID: <20090306003941.GA32403@srcf.ucam.org>
+Date: Fri, 6 Mar 2009 00:52:34 +0000
+Message-ID: <20090306005234.GA32539@srcf.ucam.org>
+References: <20090306003941.GA32403@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42337 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:49207 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405AbZCFAjt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2009 19:39:49 -0500
+	with ESMTP id S1750898AbZCFAwk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2009 19:52:40 -0500
 Content-Disposition: inline
+In-Reply-To: <20090306003941.GA32403@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org, lenb@intel.com
+Cc: dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org, len.brown@intel.com
 
 Calling the ENAB method on Toshiba laptops results in notifications 
 being sent when laptop hotkeys are pressed. This patch simply calls that 
@@ -23,22 +25,9 @@ Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
 ---
 
-Partially based on polling code written by Daniel Silverstone, but I've 
-turned it into a full input device rather than just sending ACPI 
-notifications.
+Oops - previous version included a broken Kconfig hunk and I messed up 
+Len's address. This one should be good.
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index b3866ad..cd9d697 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -372,6 +372,7 @@ config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
- 	depends on ACPI
- 	depends on INPUT
-+	select INPUT
- 	select INPUT_POLLDEV
- 	select NET
- 	select RFKILL
 diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
 index 40e60fc..604f9fa 100644
 --- a/drivers/platform/x86/toshiba_acpi.c
