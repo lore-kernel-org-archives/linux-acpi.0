@@ -1,106 +1,41 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] acpi: simplify module_param namespace
-Date: Sat, 7 Mar 2009 13:28:27 +1030
-Message-ID: <200903071328.28113.rusty@rustcorp.com.au>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
+Date: Sat, 07 Mar 2009 10:27:09 +0300
+Message-ID: <E1LfqwF-000B1G-00.arvidjaar-mail-ru@mx3.mail.ru>
+References: <20090306003941.GA32403@srcf.ucam.org> <20090306005234.GA32539@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:43519 "EHLO ozlabs.org"
+Received: from mx3.mail.ru ([94.100.176.17]:32005 "EHLO mx3.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756122AbZCGC6d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Mar 2009 21:58:33 -0500
-Content-Disposition: inline
+	id S1751243AbZCGH1T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 7 Mar 2009 02:27:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-(I've been holding this for a while: if you really hate it I'll delete it)
+Matthew Garrett wrote:
 
-Rather than overriding MODULE_PARAM_PREFIX, build via acpi.o so
-KBUILD_MODNAME is set to "acpi".
+> +	{KE_KEY, 0x13d, KEY_SLEEP},
+> +	{KE_KEY, 0x13e, KEY_SUSPEND},
 
-This is the logical way to do it, even though acpi cannot be a module
-due to these config options being bool.
+I have two buttons marked with memory and disk pictures. When I press the 
+first one HAL emits "sleep" button event, for the the second one HAL emits 
+"hibernate" event. I am using KDE4 and neither works :) According to KDE4 
+developer, they implement "suspend" button as suspend to RAM. Just trying to 
+clarify which key this should be and whether HAL should be fixed.  (I opened 
+bug report for KDE4)
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
----
- drivers/acpi/Makefile |   10 ++++++----
- drivers/acpi/debug.c  |    5 -----
- drivers/acpi/power.c  |    4 ----
- drivers/acpi/system.c |    4 ----
- 4 files changed, 6 insertions(+), 17 deletions(-)
+> +	{KE_KEY, 0x13f, KEY_SWITCHVIDEOMODE},
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -14,8 +14,13 @@ obj-$(CONFIG_X86)		+= blacklist.o
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= osl.o utils.o reboot.o\
-+obj-y				+= acpi.o \
- 					acpica/
-+
-+# "acpi." module_param namespace.
-+acpi-y				+= osl.o utils.o reboot.o power.o \
-+					system.o event.o
-+acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
- 
- # sleep related files
- obj-y				+= wakeup.o
-@@ -51,9 +56,6 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processo
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-y				+= power.o
--obj-y				+= system.o event.o
--obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -12,11 +12,6 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debug");
--
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- 
- struct acpi_dlayer {
- 	const char *name;
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -54,10 +54,6 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
- 
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- int acpi_power_nocheck;
- module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
- 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -33,10 +33,6 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("system");
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- 
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
+I wonder, who is supposed to act upon it? Is there any generic user space 
+agent who implements video output switching?
+
+> +	{KE_KEY, 0x140, KEY_BRIGHTNESSDOWN},
+> +	{KE_KEY, 0x141, KEY_BRIGHTNESSUP},
+> +	{KE_KEY, 0x142, KEY_WLAN},
+
+Ditto. Theoretically Toshiba even supports turning off radio via HCI, but it 
+is again not clear who should actually initiate it.
+
