@@ -1,56 +1,106 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
-Date: Fri, 6 Mar 2009 21:57:10 +0300
-Message-ID: <200903062157.21021.arvidjaar@mail.ru>
-References: <20090306003941.GA32403@srcf.ucam.org> <E1Lfevu-000MzF-00.arvidjaar-mail-ru@mx48.mail.ru> <20090306184452.GA14375@srcf.ucam.org>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] acpi: simplify module_param namespace
+Date: Sat, 7 Mar 2009 13:28:27 +1030
+Message-ID: <200903071328.28113.rusty@rustcorp.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2995761.LTQeWR7Xtf";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx33.mail.ru ([94.100.176.47]:26111 "EHLO mx33.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752260AbZCFS5d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Mar 2009 13:57:33 -0500
-In-Reply-To: <20090306184452.GA14375@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
---nextPart2995761.LTQeWR7Xtf
 Content-Type: text/plain;
   charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ozlabs.org ([203.10.76.45]:43519 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756122AbZCGC6d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Mar 2009 21:58:33 -0500
 Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 6 =D0=BC=D0=B0=D1=80=D1=82=D0=B0 2009 21:44:52 Matthew Garrett wrote:
-> On Fri, Mar 06, 2009 at 09:37:50PM +0300, Andrey Borzenkov wrote:
-> > Trivial cleanup below. Also the patch should remove
-> > /proc/acpi/toshiba/keys. It will consume hot keys as soon as they
-> > are pressed, so user space watching this file has very little
-> > chances to ever see them.
->
-> Mm. Actually, thinking about it, the cleanest thing to do would
-> probably be to disable the input device when the proc file is opened.
+(I've been holding this for a while: if you really hate it I'll delete it)
 
-C'mon, really. Let's make it depend on _DEPRECATED and obsolete in=20
-2.6.31. Who needs this now?
+Rather than overriding MODULE_PARAM_PREFIX, build via acpi.o so
+KBUILD_MODNAME is set to "acpi".
 
+This is the logical way to do it, even though acpi cannot be a module
+due to these config options being bool.
 
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+---
+ drivers/acpi/Makefile |   10 ++++++----
+ drivers/acpi/debug.c  |    5 -----
+ drivers/acpi/power.c  |    4 ----
+ drivers/acpi/system.c |    4 ----
+ 4 files changed, 6 insertions(+), 17 deletions(-)
 
---nextPart2995761.LTQeWR7Xtf
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkmxcggACgkQR6LMutpd94worQCeLEpm8KLvaG42yK1y6++J+227
-eq4Anibtqj1G0YwB/eauNOfBQS1gmUv7
-=KJwI
------END PGP SIGNATURE-----
-
---nextPart2995761.LTQeWR7Xtf--
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -14,8 +14,13 @@ obj-$(CONFIG_X86)		+= blacklist.o
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= osl.o utils.o reboot.o\
++obj-y				+= acpi.o \
+ 					acpica/
++
++# "acpi." module_param namespace.
++acpi-y				+= osl.o utils.o reboot.o power.o \
++					system.o event.o
++acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ 
+ # sleep related files
+ obj-y				+= wakeup.o
+@@ -51,9 +56,6 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processo
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+ obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+-obj-y				+= power.o
+-obj-y				+= system.o event.o
+-obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
+diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+--- a/drivers/acpi/debug.c
++++ b/drivers/acpi/debug.c
+@@ -12,11 +12,6 @@
+ 
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("debug");
+-
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ 
+ struct acpi_dlayer {
+ 	const char *name;
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -54,10 +54,6 @@ ACPI_MODULE_NAME("power");
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+ 
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ int acpi_power_nocheck;
+ module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+ 
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -33,10 +33,6 @@
+ 
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("system");
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ 
+ #define ACPI_SYSTEM_CLASS		"system"
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
