@@ -1,37 +1,32 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
-Date: Sat, 7 Mar 2009 15:44:24 +0000
-Message-ID: <20090307154424.GA3909@srcf.ucam.org>
-References: <20090306003941.GA32403@srcf.ucam.org> <E1LfqwF-000B1G-00.arvidjaar-mail-ru@mx3.mail.ru> <20090307150640.GA3516@srcf.ucam.org> <200903071839.16508.arvidjaar@mail.ru>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: suspend / hibernate nomenclature
+Date: Sat, 7 Mar 2009 15:48:42 +0000
+Message-ID: <20090307154842.GA3947@srcf.ucam.org>
+References: <1235992429.3858.58.camel@hughsie-work.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38969 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbZCGPo3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Mar 2009 10:44:29 -0500
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200903071839.16508.arvidjaar@mail.ru>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1235992429.3858.58.camel@hughsie-work.lan>
+Sender: linux-input-owner@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hal@lists.freedesktop.org, Richard Hughes <hughsient@gmail.com>
 
-On Sat, Mar 07, 2009 at 06:38:53PM +0300, Andrey Borzenkov wrote:
+On Mon, Mar 02, 2009 at 11:13:49AM +0000, Richard Hughes wrote:
 
-> - patch toshiba_acpi to return KEY_SUSPEND/KEY_HIBERNATE instead of 
-> KEY_SLEEP/KEY_SUSPEND. This depends on commit 
-> 6932b918e05b06165ed3457a9f3aa279099a7cbd in linux-next.
-> 
-> - patch HAL to recognize KEY_HIBERNATE and return "suspend" for 
-> KEY_SUSPEND; right now it is:
-> 
->         [KEY_SLEEP] = "sleep",
->         [KEY_SUSPEND] = "hibernate",
+> After reviewing the platform drivers in ACPI, it appears few of them
+> know whether KEY_SLEEP corresponds to suspend or hibernate, and
+> KEY_SUSPEND seems to be used for hibernate. Basically, it's a mess.
 
-Ugh. Why are we changing this? The semantics were pretty clear before. 
-The KEY_SUSPEND to hibernate mapping was decided years ago, and it's 
-clearly an incompatible change as far as userspace goes.
+KEY_SUSPEND has always been pretty clearly used for hibernate for, well, 
+forever. I don't think the distinction is a useful one. How many 
+machines are going to have both a sleep and a suspend key?
+
+This is a user-visible change in behaviour. I think we're too entrenched 
+for it to make much of a difference now. Adding a #define KEY_HIBERNATE 
+KEY_SUSPEND sounds fine to me, but I really don't think we need anything 
+more.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
