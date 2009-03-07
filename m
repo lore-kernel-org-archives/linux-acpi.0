@@ -1,41 +1,83 @@
 From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
-Date: Sat, 07 Mar 2009 10:27:09 +0300
-Message-ID: <E1LfqwF-000B1G-00.arvidjaar-mail-ru@mx3.mail.ru>
-References: <20090306003941.GA32403@srcf.ucam.org> <20090306005234.GA32539@srcf.ucam.org>
+Subject: Re: suspend / hibernate nomenclature
+Date: Sat, 07 Mar 2009 11:37:24 +0300
+Message-ID: <E1Lfs2C-0005Eu-00.arvidjaar-mail-ru@mx33.mail.ru>
+References: <1235992429.3858.58.camel@hughsie-work.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.ru ([94.100.176.17]:32005 "EHLO mx3.mail.ru"
+Received: from mx33.mail.ru ([94.100.176.47]:1580 "EHLO mx33.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243AbZCGH1T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 7 Mar 2009 02:27:19 -0500
+	id S1750907AbZCGIhc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 7 Mar 2009 03:37:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, hal@lists.freedesktop.org
 
-Matthew Garrett wrote:
+Richard Hughes wrote:
 
-> +	{KE_KEY, 0x13d, KEY_SLEEP},
-> +	{KE_KEY, 0x13e, KEY_SUSPEND},
+> In the last couple of years, I've been striving to make consistent the
+> mapping of sleep states consistent. I don't care what we call things in
+> a UI, but we need to make sure we're not arguing about whether:
+> 
+> KEY_SUSPEND should be mapped to XF86Standby, XF86Hibernate or XF86Sleep
+> KEY_SLEEP should be mapped to XF86Hibernate or XF86Standby
+> 
+> You see it's a mess.
+> 
+> In userspace we've agreed with the following nomenclature:
+> 
+> standby = sleep CPU and devices (not really used any more)
+> suspend = sleep to memory (quite fast)
+> hibernate = sleep to disk (slow)
+> hybrid = sleep to both (slow, but fast resume)
+> 
+> In X, and evdev we've also fixed the mapping, so that:
+> 
+> XF86Sleep : suspend _or_ hibernate (configured in session policy)
+> XF86Suspend: suspend
+> XF86Hibernate: hibernate
+> 
+> This means that if a key on a keyboard can be sleep (but the user can
+> choose which), the application handles XF86Sleep. If the button decal is
+> marked with a disk, or the ram symbol, then we choose XF86Hibernate or
+> XF86Suspend as appropriate.
+> 
+> We've changed this in HAL a few years ago, 
 
-I have two buttons marked with memory and disk pictures. When I press the 
-first one HAL emits "sleep" button event, for the the second one HAL emits 
-"hibernate" event. I am using KDE4 and neither works :) According to KDE4 
-developer, they implement "suspend" button as suspend to RAM. Just trying to 
-clarify which key this should be and whether HAL should be fixed.  (I opened 
-bug report for KDE4)
+As of "git pull" made five minutes ago, HAL emits "sleep" for KEY_SLEEP and 
+"hibernate" for KEY_SUSPEND. So changing kernel semantic of KEY_SUSPEND will 
+break any older HAL installation.
 
-> +	{KE_KEY, 0x13f, KEY_SWITCHVIDEOMODE},
+> xproto, libX11 and
+> xkeyboard-config last year, and nearly all of the session software in
+> use uses the same nomenclature for the last few years.
+> 
+> After reviewing the platform drivers in ACPI, it appears few of them
+> know whether KEY_SLEEP corresponds to suspend or hibernate, and
+> KEY_SUSPEND seems to be used for hibernate. Basically, it's a mess.
+> 
 
-I wonder, who is supposed to act upon it? Is there any generic user space 
-agent who implements video output switching?
+This is exactly what current HAL does :)
 
-> +	{KE_KEY, 0x140, KEY_BRIGHTNESSDOWN},
-> +	{KE_KEY, 0x141, KEY_BRIGHTNESSUP},
-> +	{KE_KEY, 0x142, KEY_WLAN},
+> I propose that we add a KEY_HIBERNATE (key 247), and then we can just
+> do:
+> 
+> KEY_HIBERNATE -> XF86Hibernate -> sleep to disk
+> KEY_SUSPEND   -> XF86Suspend   -> sleep to ram
+> KEY_SLEEP     -> XF86Sleep     -> sleep (configurable)
+> 
+> Then the drivers can be patched so everyone is doing the same thing. At
+> the moment I'm diagnosing bugs and trying to work around the brokenness
+> in userspace hal-info every few days, and it's getting tiresome.
+> 
+> Feedback welcome, although please don't comment on things like "suspend
+> sounds more like a suspend to disk" as we spent years talking with
+> userspace people working for a compromise, and this is what we've
+> settled on. It's not to everyones taste, but we _do_ need to agree on
+> something, even if its just an agreed bodge.
+> 
 
-Ditto. Theoretically Toshiba even supports turning off radio via HCI, but it 
-is again not clear who should actually initiate it.
-
+This all sounds very reasonable except it is not clear how HAL transition 
+should be handled.
