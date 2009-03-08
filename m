@@ -1,33 +1,57 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.29-rc6-git7: Reported regressions from 2.6.28
-Date: Sat, 7 Mar 2009 23:14:40 +0100
-Message-ID: <200903072314.41814.rjw@sisk.pl>
-References: <KiHv0irKPzE.A.l3.hUarJB@chimera> <8db1092f0903041114o767d0079s4c1626dae5335d70@mail.gmail.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
+Date: Sun, 8 Mar 2009 08:33:48 +0000
+Message-ID: <15e53e180903080033h5e990f08o3622afae018c38ca@mail.gmail.com>
+References: <20090306003941.GA32403@srcf.ucam.org>
+	 <E1LfqwF-000B1G-00.arvidjaar-mail-ru@mx3.mail.ru>
+	 <20090307150640.GA3516@srcf.ucam.org>
+	 <200903071839.16508.arvidjaar@mail.ru>
+	 <20090307154424.GA3909@srcf.ucam.org>
+	 <15e53e180903071219q4ed318edt2fa8f492426c0ab6@mail.gmail.com>
+	 <20090307202647.GA9776@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8db1092f0903041114o767d0079s4c1626dae5335d70-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Disposition: inline
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f178.google.com ([209.85.218.178]:39570 "EHLO
+	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200AbZCHIdw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Mar 2009 04:33:52 -0400
+In-Reply-To: <20090307202647.GA9776@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hal@lists.freedesktop.org
 
-On Wednesday 04 March 2009, Maciej Rutecki wrote:
-> 2009/3/3 Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>:
-> 
-> >
-> > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12764
-> > Subject         : Can not ioremap virtual address for G33 hw status page
-> > Submitter       : Maciej Rutecki <maciej.rutecki-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > Date            : 2009-02-23 14:46 (9 days old)
-> > First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=6fb88588555a18792a27f483887fe1f2af5f9c9b
-> > References      : http://marc.info/?l=linux-kernel&m=123540053219505&w=4
-> 
-> Problem seems by solved in 2.6.29-rc7
+On Sat, Mar 7, 2009 at 8:26 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Sat, Mar 07, 2009 at 08:19:51PM +0000, Richard Hughes wrote:
+>
+>> Mapping KEY_SUSPEND to hibernate is just insane. Can you please change
+>> the toshiba driver to use KEY_HIBERNATE and KEY_SUSPEND as thinkpad
+>> now does? Thanks.
+>
+> Mapping KEY_SUSPEND to hibernate is what we've been doing for years.
+> It's what hal *still does*.
 
-Thanks, closed.
+Sure, but how much userspace now listens to HAL for these events? Xorg
+and evdev has taken over that role for all the session. We can ship a
+trivial patch as an fdi file to HAL to remap this if required.
 
-Rafael
+> KEY_SLEEP has been the suspend to RAM key forever.
+
+Except if you're a USB keyboard. Grep through the kernel sources and
+see how many drivers get this wrong. We can't map three sleep states
+to two buttons in any sane way. For instance, is the sleep acpi button
+supposed to trigger a suspend of hibernate? Surely this is user policy
+as it is not specified on the the exterior of the machine.
+
+> How are we supposed to perform this transition? We've no idea
+> how much of userspace makes the same assumption.
+
+FWIW, I think emitting KEY_ events (not switch events) in HAL is crazy
+as now we can just use the fixed Xorg in the session. FWIW, HAL gets
+other keys wrong too, for instance KEY_BATTERY is mapped to
+display_off, but nobody has noticed as we've been using Xorg since
+ages.
+
+Richard.
