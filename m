@@ -1,57 +1,69 @@
 From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
-Date: Sun, 8 Mar 2009 08:33:48 +0000
-Message-ID: <15e53e180903080033h5e990f08o3622afae018c38ca@mail.gmail.com>
-References: <20090306003941.GA32403@srcf.ucam.org>
-	 <E1LfqwF-000B1G-00.arvidjaar-mail-ru@mx3.mail.ru>
-	 <20090307150640.GA3516@srcf.ucam.org>
-	 <200903071839.16508.arvidjaar@mail.ru>
-	 <20090307154424.GA3909@srcf.ucam.org>
-	 <15e53e180903071219q4ed318edt2fa8f492426c0ab6@mail.gmail.com>
-	 <20090307202647.GA9776@srcf.ucam.org>
+Subject: Re: suspend / hibernate nomenclature
+Date: Sun, 8 Mar 2009 08:45:59 +0000
+Message-ID: <15e53e180903080045x5874f05cv5ea836d73e3855b1@mail.gmail.com>
+References: <1235992429.3858.58.camel@hughsie-work.lan>
+	 <20090307154842.GA3947@srcf.ucam.org>
+	 <20090307164151.GB24668@khazad-dum.debian.net>
+	 <20090307164840.GA4800@srcf.ucam.org>
+	 <15e53e180903071225h47bcdbaj83986b50f06135c3@mail.gmail.com>
+	 <20090307203946.GA9942@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f178.google.com ([209.85.218.178]:39570 "EHLO
-	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751200AbZCHIdw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Mar 2009 04:33:52 -0400
-In-Reply-To: <20090307202647.GA9776@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20090307203946.GA9942@srcf.ucam.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hal@lists.freedesktop.org
 
-On Sat, Mar 7, 2009 at 8:26 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Sat, Mar 07, 2009 at 08:19:51PM +0000, Richard Hughes wrote:
->
->> Mapping KEY_SUSPEND to hibernate is just insane. Can you please change
->> the toshiba driver to use KEY_HIBERNATE and KEY_SUSPEND as thinkpad
->> now does? Thanks.
->
-> Mapping KEY_SUSPEND to hibernate is what we've been doing for years.
-> It's what hal *still does*.
+On Sat, Mar 7, 2009 at 8:39 PM, Matthew Garrett <mjg@redhat.com> wrote:
+> We don't have to at all - as far as I've been able to tell, the kerne=
+l
+> is utterly consistent in its current usage. The only drivers that emi=
+t
+> KEY_SLEEP are either embedded-specific (where it's clearly suspend to
+> RAM and not hibernate), the ACPI driver (where usage in other operati=
+ng
+> systems is consistent with it being suspent to RAM) and the panasonic
+> and thinkpad drivers which use it consistently. If there's any
+> confusion, it's over the fact that KEY_SUSPEND is is used for suspend=
+ to
+> RAM in a (smaller) number of places.
 
-Sure, but how much userspace now listens to HAL for these events? Xorg
-and evdev has taken over that role for all the session. We can ship a
-trivial patch as an fdi file to HAL to remap this if required.
+The fact that we're mapping x->y and y->x is the reason people keep
+getting it wrong.
 
-> KEY_SLEEP has been the suspend to RAM key forever.
+> I'd suggest reverting these current patches and doing something like =
+the
+> following and then changing any drivers where it's worth clarifying
+> things. This has exactly the same effect with the advantage that no
+> userspace needs to be changed.
 
-Except if you're a USB keyboard. Grep through the kernel sources and
-see how many drivers get this wrong. We can't map three sleep states
-to two buttons in any sane way. For instance, is the sleep acpi button
-supposed to trigger a suspend of hibernate? Surely this is user policy
-as it is not specified on the the exterior of the machine.
+So how do we specify a sleep button where policy is to be decided by
+userspace? For instance, the sleep button on a remote control? Do we
+hardcode policy in the kernel?
 
-> How are we supposed to perform this transition? We've no idea
-> how much of userspace makes the same assumption.
+> -#define KEY_SLEEP =A0 =A0 =A0 =A0 =A0 =A0 =A0142 =A0 =A0 /* SC Syste=
+m Sleep */
+> +#define KEY_SUSPEND_TO_RAM =A0 =A0 142 =A0 =A0 /* SC System Sleep */
 
-FWIW, I think emitting KEY_ events (not switch events) in HAL is crazy
-as now we can just use the fixed Xorg in the session. FWIW, HAL gets
-other keys wrong too, for instance KEY_BATTERY is mapped to
-display_off, but nobody has noticed as we've been using Xorg since
-ages.
+I deliberately avoided using the terms DISK and RAM in the key defines
+used in my patch.
+
+> +/* Deprecated - use KEY_SUSPEND_TO_RAM and KEY_HIBERNATE instead */
+> +#define KEY_SLEEP =A0 =A0 =A0 =A0 =A0 =A0 =A0KEY_SUSPEND_TO_RAM
+> +#define KEY_SUSPEND =A0 =A0 =A0 =A0 =A0 =A0KEY_HIBERNATE
+
+Yet more confusion. Can't we sort this mess out once and for all? If
+you're that bothered about userspace using the bodged mappings, I
+would suggest changing my patch so that KEY_SLEEP is 247,
+KEY_HIBERNATE is 205 and KEY_SUSPEND is 142.
 
 Richard.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
