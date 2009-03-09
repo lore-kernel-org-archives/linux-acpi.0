@@ -1,137 +1,76 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [help] strange fan problems, partially solved in DSDT
-Date: Mon, 09 Mar 2009 11:18:30 +0800
-Message-ID: <1236568710.2820.70.camel@rzhang-dt>
-References: <49B11032.1080706@costela.net>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: suspend / hibernate nomenclature
+Date: Mon, 09 Mar 2009 11:31:36 +0300
+Message-ID: <E1Lgatk-000Jyt-00.arvidjaar-mail-ru@mx5.mail.ru>
+References: <1235992429.3858.58.camel@hughsie-work.lan> <15e53e180903080045x5874f05cv5ea836d73e3855b1@mail.gmail.com> <20090308144145.GB26233@srcf.ucam.org> <200903082156.46219.rjw@sisk.pl> <20090308230741.GA5357@dtor-d630.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42814 "EHLO mga01.intel.com"
+Received: from mx5.mail.ru ([94.100.176.19]:24467 "EHLO mx5.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753268AbZCIDRo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 8 Mar 2009 23:17:44 -0400
-In-Reply-To: <49B11032.1080706@costela.net>
+	id S1752268AbZCIIbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Mar 2009 04:31:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Leo Antunes <leo@costela.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, rjw@sisk.pl, mjg@redhat.com, hughsient@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 2009-03-06 at 19:59 +0800, Leo Antunes wrote:
->=20
-> Linux booted OK, but had a non-working thermal zone which always repl=
-ied
-> a temperature of 0C (though the coretemp module worked ok) and an
-> apparently non-working fan interface which always seemed ON and didn'=
-t
-> respond to
-> 'echo 3 > /proc/acpi/fan/FAN/state' (kernel logged the usual "failed =
-to
-> transition to D3" message).
-> The fan also didn't seem to react to the processor temperature, sudde=
-nly
-> springing to full-power when it reached the 80C trip point (which was=
-n't
-> even reported in trip_points) and never switching off again.
->=20
-> These problems manifested with 2.6.2{6,8,9-rc7}.
-so the problem exists in all the kernels you have tried, right?
+Dmitry Torokhov wrote:
 
->=20
-> I suspected there could be some problems in the thermal zone definiti=
-on
-> so I tried the DSDT (both original and new version attached).
-> This was my first attempt at reading the ACPI spec and coding ASL, so
-> please bear with me if my assumptions are completely off-mark.
->=20
-> Opening the DSDT it became obvious that the FAN declaration was bogus=
-,
-> always returning ON and not implementing the _ON and _OFF methods.
-You are right that bogus ACPI fan implemented on this laptop.
-This means that the FAN are not controlled via ACPI, but via BIOS or
-something else, like EC in this case.
+> On Sun, Mar 08, 2009 at 09:56:45PM +0100, Rafael J. Wysocki wrote:
+>> On Sunday 08 March 2009, Matthew Garrett wrote:
+>> > On Sun, Mar 08, 2009 at 08:45:59AM +0000, Richard Hughes wrote:
+>> > > On Sat, Mar 7, 2009 at 8:39 PM, Matthew Garrett <mjg@redhat.com>
+>> > > wrote:
+>> > > > We don't have to at all - as far as I've been able to tell, the
+>> > > > kernel is utterly consistent in its current usage. The only drivers
+>> > > > that emit KEY_SLEEP are either embedded-specific (where it's
+>> > > > clearly suspend to RAM and not hibernate), the ACPI driver (where
+>> > > > usage in other operating systems is consistent with it being
+>> > > > suspent to RAM) and the panasonic and thinkpad drivers which use it
+>> > > > consistently. If there's any confusion, it's over the fact that
+>> > > > KEY_SUSPEND is is used for suspend to RAM in a (smaller) number of
+>> > > > places.
+>> > > 
+>> > > The fact that we're mapping x->y and y->x is the reason people keep
+>> > > getting it wrong.
+>> > 
+>> > Sure, doing things differently would have made sense several years ago
+>> > when nobody was relying on this behaviour. We don't have that option
+>> > now - making this change will break things, and we've got no idea how
+>> > much it'll break.
+>> 
+>> Which is a good enough reason to avoid it.
+>> 
+>> Alternatively, we can add completely new definitions _along_ _with_ the
+>> old ones, mark the old ones as obsolete (after some time) and try to make
+>> the user space start using the new ones only (that may be difficult,
+>> though).
+>> 
+>> I said I liked the names, but I didn't realize that changing them would
+>> break things.
+>> 
+> 
+> I don't think we want to break anything if we can help it. The problem
+> with Richard's patch is that it changes meaning of KEY_SUSPEND from STD
+> to STR. I would prefer if we could do the following:
+> 
+> - KEY_SLEEP - leave the keycode, the action should be the default
+> system state defined by either platform or user. I expect that the vast
+> majority of system have default state similar to S3 so there should not
+> be anysurprises.
+> 
+> - KEY_SUSPEND - provide better comment for its intended usage and maybe
+> add KEY_HIBERNATE alias.
+> 
+> - KEY_SUSPEND2RAM - add a new definition.
+> 
+> Do you think this would this work?
+> 
+> I intend to back out the patch in question for the time being.
+> 
 
-> The next step was debugging the temperature problem, since it seemed =
-to
-> be an awful big chunk of code to be simply useless, and the fan probl=
-em
-> seemed harder to find now that I didn't know where else to look.
-> While I was stumbling with the _TMP method and adding debugging outpu=
-t
-> all around the code, the fan suddenly became responsive during one of
-> the boot cycles.
-> I traced it back to reading from any field inside the EC
-> OperationRegion, through a "Store(\_SB.PCI0.LPC.EC0.FNST, Debug)" (I
-> started with FNST because it looked like it might mean "fan status", =
-but
-> reading from other fields also reliably triggered the same behavior).
-> FNST itself seems to return 0 in all situations I tried, so I still
-> don't know what it actually stands for.
->=20
-> At this point I also got the _TMP method working, albeit with an
-> apparent temperature skew of a few degrees in relation to the temps
-> reported by coretemp, but this wasn't so important as the fan problem=
-=2E
->=20
-> Debugging blindly a bit further I noticed whenever the fan crossed th=
-e
-> 35C/50C/60C/80C barriers (again: not the same as trip_points) the _Q1=
-1
-> method got called and this seemed to adjust the fan speed to whatever
-> speed was appropriate.
-> Changing just the "Store(\_SB.PCI0.LPC.EC0.FNST, Debug)" line to read
-> from some other value not inside the EC made this stop working.
->=20
-Interesting.
-Alexey may have some comments on this.
-
-> Another interesting characteristic: it stopped working after a full
-> suspend-resume cycle, but continued to work when put through all the
-> test levels in /sys/power/pm-test, only stopping when we actually cut
-> the power and entered S3 proper.
->=20
-> To "fix" this I made the fan's _PSC method call _Q11() and read from =
-the
-> EC, which seemed to keep things working through suspend-resume.
->=20
-> Right now everything seems to be working almost perfectly, though I h=
-ave
-> seen the fan control stop working and only jerk back into action afte=
-r a
-> suspend-resume cycle, without being able to reproduce the failure rel=
-iably.
-> I'm totally aware that this is far from a perfect solution and was - =
-in
-> fact - just a fluke.
->=20
-> My questions are:
-> - am I right in assuming the EC could be playing behind ACPI's back a=
-nd
-> controlling the fan speed by itself, only depending on ACPI to react
-> when issued the _Q11 event?
-I think so, EC needs a notification (ACPI interrupt) to change the fan
-speed when temperature changes.
-
->  Or did I completely misunderstand the way
-> the _Qxx methods are supposed to work?
->=20
-> - should this problem be understood as a failure in the DSDT for not
-> explicitly initializing something; a failure in ACPI for not implicit=
-ly
-> initializing something or a failure in the hardware/BIOS for dependin=
-g
-> on partially non-ACPI behavior to control fan speed?
-Not sure it's a hardware/software problem.
-=EF=BB=BFI don't know what difference "=EF=BB=BFStore(\_SB.PCI0.LPC.EC0=
-=2EFNST, Debug)"
-brings us.
-Alexey, can you have a look at this problem please?
-
-thanks,
-rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What about systems that have clear indication of STR and STD on respective 
+keys? Should they continue to return KEY_SLEEP for STR? I think this 
+conflicts with definition above. So in the long run those should be changed to 
+return KEY_SUSPEND2RAM it seems.
