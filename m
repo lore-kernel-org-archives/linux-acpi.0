@@ -1,63 +1,56 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
-Subject: Re: suspend / hibernate nomenclature
-Date: Mon, 9 Mar 2009 17:10:01 +0200
-Message-ID: <20090309151001.GI10127@sci.fi>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <15e53e180903080045x5874f05cv5ea836d73e3855b1@mail.gmail.com> <20090308144145.GB26233@srcf.ucam.org> <200903082156.46219.rjw@sisk.pl> <20090308230741.GA5357@dtor-d630.eng.vmware.com> <20090308231935.GA32624@srcf.ucam.org> <20090309135242.GH10127@sci.fi> <20090309140009.GA10360@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] toshiba_acpi: Add full hotkey support
+Date: Mon, 09 Mar 2009 13:11:56 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903091307200.16491@localhost.localdomain>
+References: <20090306003941.GA32403@srcf.ucam.org>
+ <E1LfqwF-000B1G-00.arvidjaar-mail-ru@mx3.mail.ru>
+ <20090307150640.GA3516@srcf.ucam.org>  <200903071839.16508.arvidjaar@mail.ru>
+ <20090307154424.GA3909@srcf.ucam.org>
+ <15e53e180903071219q4ed318edt2fa8f492426c0ab6@mail.gmail.com>
+ <20090307202647.GA9776@srcf.ucam.org>
+ <15e53e180903080033h5e990f08o3622afae018c38ca@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6.welho.com ([213.243.153.40]:34549 "EHLO smtp6.welho.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751365AbZCIPKG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Mar 2009 11:10:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20090309140009.GA10360@srcf.ucam.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:53068 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648AbZCIRMK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Mar 2009 13:12:10 -0400
+In-reply-to: <15e53e180903080033h5e990f08o3622afae018c38ca@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Richard Hughes <hughsient@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+To: Richard Hughes <hughsient@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hal@lists.freedesktop.org
 
-On Mon, Mar 09, 2009 at 02:00:09PM +0000, Matthew Garrett wrote:
-> On Mon, Mar 09, 2009 at 03:52:42PM +0200, Ville Syrj=E4l=E4 wrote:
->=20
-> > If you think this using common sense I think the following would be=
- the
-> > most obvious mapping:
-> > sleep =3D STR, hibernate =3D STD, suspend =3D preferred suspend mod=
-e
->=20
-> I agree, but this isn't a discussion about user-visible nomenclature =
--=20
-> it's a discussion about using the keycodes we have in the kernel. The=
-=20
-> aim is to ensure that everyone in-kernel uses the correct codes, and =
-if=20
-> we can do that without breaking existing userspace (even if it means =
-the=20
-> nomenclature differs) then that's preferable.
+On Sun, 8 Mar 2009, Richard Hughes wrote:
 
-I don't think that invalidates my point. There's always the possibility
-of re-creating the same mess in the future if the definitions aren't
-crystal clear. The less room there is for personal interpretation of th=
-e
-definitions the better.
+> On Sat, Mar 7, 2009 at 8:26 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> > On Sat, Mar 07, 2009 at 08:19:51PM +0000, Richard Hughes wrote:
+> >
+> >> Mapping KEY_SUSPEND to hibernate is just insane. Can you please change
+> >> the toshiba driver to use KEY_HIBERNATE and KEY_SUSPEND as thinkpad
+> >> now does? Thanks.
+> >
+> > Mapping KEY_SUSPEND to hibernate is what we've been doing for years.
+> > It's what hal *still does*.
+> 
+> Sure, but how much userspace now listens to HAL for these events? Xorg
+> and evdev has taken over that role for all the session. We can ship a
+> trivial patch as an fdi file to HAL to remap this if required.
+> 
+> > KEY_SLEEP has been the suspend to RAM key forever.
+> 
+> Except if you're a USB keyboard. Grep through the kernel sources and
+> see how many drivers get this wrong. We can't map three sleep states
+> to two buttons in any sane way. For instance, is the sleep acpi button
+> supposed to trigger a suspend of hibernate? Surely this is user policy
+> as it is not specified on the the exterior of the machine.
 
-I understand that backwards compatibility is critical but perhaps that
-is reason enough to create a completely a new set of definitions and
-just map the old definitions in the best way possible.
+While hot-keys are totally platform dependent and non-standard,
+the ACPI spec does describe the power and sleep button.
 
-Something like this?
-KEY_SUSPEND_TO_RAM
-KEY_SUSPEND_TO_DISK
-KEY_SUSPEND_TO_PREFERRED
+Unfortunately, it doesn't answer this question for us --
+stating that the sleep button enters G1, which can be
+any of S1-S4.
 
---=20
-Ville Syrj=E4l=E4
-syrjala@sci.fi
-http://www.sci.fi/~syrjala/
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Len Brown, Intel Open Source Technology Center
