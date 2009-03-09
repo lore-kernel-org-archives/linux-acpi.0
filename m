@@ -1,76 +1,33 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+From: Matthew Garrett <mjg@redhat.com>
 Subject: Re: suspend / hibernate nomenclature
-Date: Mon, 09 Mar 2009 11:31:36 +0300
-Message-ID: <E1Lgatk-000Jyt-00.arvidjaar-mail-ru@mx5.mail.ru>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <15e53e180903080045x5874f05cv5ea836d73e3855b1@mail.gmail.com> <20090308144145.GB26233@srcf.ucam.org> <200903082156.46219.rjw@sisk.pl> <20090308230741.GA5357@dtor-d630.eng.vmware.com>
+Date: Mon, 9 Mar 2009 13:26:33 +0000
+Message-ID: <20090309132633.GB9797@srcf.ucam.org>
+References: <1235992429.3858.58.camel@hughsie-work.lan> <15e53e180903080045x5874f05cv5ea836d73e3855b1@mail.gmail.com> <20090308144145.GB26233@srcf.ucam.org> <200903082156.46219.rjw@sisk.pl> <20090308230741.GA5357@dtor-d630.eng.vmware.com> <E1Lgatk-000Jyt-00.arvidjaar-mail-ru@mx5.mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx5.mail.ru ([94.100.176.19]:24467 "EHLO mx5.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752268AbZCIIbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Mar 2009 04:31:47 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:47527 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751594AbZCIN0n (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Mar 2009 09:26:43 -0400
+Content-Disposition: inline
+In-Reply-To: <E1Lgatk-000Jyt-00.arvidjaar-mail-ru@mx5.mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, rjw@sisk.pl, mjg@redhat.com, hughsient@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, rjw@sisk.pl, hughsient@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Dmitry Torokhov wrote:
+On Mon, Mar 09, 2009 at 11:31:36AM +0300, Andrey Borzenkov wrote:
 
-> On Sun, Mar 08, 2009 at 09:56:45PM +0100, Rafael J. Wysocki wrote:
->> On Sunday 08 March 2009, Matthew Garrett wrote:
->> > On Sun, Mar 08, 2009 at 08:45:59AM +0000, Richard Hughes wrote:
->> > > On Sat, Mar 7, 2009 at 8:39 PM, Matthew Garrett <mjg@redhat.com>
->> > > wrote:
->> > > > We don't have to at all - as far as I've been able to tell, the
->> > > > kernel is utterly consistent in its current usage. The only drivers
->> > > > that emit KEY_SLEEP are either embedded-specific (where it's
->> > > > clearly suspend to RAM and not hibernate), the ACPI driver (where
->> > > > usage in other operating systems is consistent with it being
->> > > > suspent to RAM) and the panasonic and thinkpad drivers which use it
->> > > > consistently. If there's any confusion, it's over the fact that
->> > > > KEY_SUSPEND is is used for suspend to RAM in a (smaller) number of
->> > > > places.
->> > > 
->> > > The fact that we're mapping x->y and y->x is the reason people keep
->> > > getting it wrong.
->> > 
->> > Sure, doing things differently would have made sense several years ago
->> > when nobody was relying on this behaviour. We don't have that option
->> > now - making this change will break things, and we've got no idea how
->> > much it'll break.
->> 
->> Which is a good enough reason to avoid it.
->> 
->> Alternatively, we can add completely new definitions _along_ _with_ the
->> old ones, mark the old ones as obsolete (after some time) and try to make
->> the user space start using the new ones only (that may be difficult,
->> though).
->> 
->> I said I liked the names, but I didn't realize that changing them would
->> break things.
->> 
-> 
-> I don't think we want to break anything if we can help it. The problem
-> with Richard's patch is that it changes meaning of KEY_SUSPEND from STD
-> to STR. I would prefer if we could do the following:
-> 
-> - KEY_SLEEP - leave the keycode, the action should be the default
-> system state defined by either platform or user. I expect that the vast
-> majority of system have default state similar to S3 so there should not
-> be anysurprises.
-> 
-> - KEY_SUSPEND - provide better comment for its intended usage and maybe
-> add KEY_HIBERNATE alias.
-> 
-> - KEY_SUSPEND2RAM - add a new definition.
-> 
-> Do you think this would this work?
-> 
-> I intend to back out the patch in question for the time being.
-> 
+> What about systems that have clear indication of STR and STD on respective 
+> keys? Should they continue to return KEY_SLEEP for STR? I think this 
+> conflicts with definition above. So in the long run those should be changed to 
+> return KEY_SUSPEND2RAM it seems.
 
-What about systems that have clear indication of STR and STD on respective 
-keys? Should they continue to return KEY_SLEEP for STR? I think this 
-conflicts with definition above. So in the long run those should be changed to 
-return KEY_SUSPEND2RAM it seems.
+Perhaps, but at present they KEY_SLEEP is probably adequate. KEY_SLEEP 
+is always going to default to suspend to RAM, so really the only 
+distinction between it and a dedicated suspend to RAM key is whether a 
+UI element affects its behaviour or not.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
