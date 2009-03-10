@@ -1,36 +1,127 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH]: ACPI: Add the dmi check to make acpi_enforce_resources strict
-Date: Tue, 10 Mar 2009 12:39:50 +0000
-Message-ID: <20090310123950.GA30016@srcf.ucam.org>
-References: <1236687873.7060.31.camel@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC PATCH 3/5] ACPI video: support _BCL packages that don't
+	export brightness levels when machine is on AC/Battery
+Date: Tue, 10 Mar 2009 16:03:29 +0800
+Message-ID: <1236672209.2820.121.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46270 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754652AbZCJMj6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Mar 2009 08:39:58 -0400
-Content-Disposition: inline
-In-Reply-To: <1236687873.7060.31.camel@localhost.localdomain>
+Received: from mga02.intel.com ([134.134.136.20]:52911 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752985AbZCJICi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2009 04:02:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Tue, Mar 10, 2009 at 08:24:33PM +0800, yakui_zhao wrote:
-> Subject: ACPI: Add the dmi check to make acpi_enforce_resources strict
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
->    On some boxes the SMBus PCI controller is not hidden. The SMbus I/O port
-> will be accessed in AML code. If the i2c driver is still loaded for the SMbus
-> PCI device, there is no synchronization between OS and BIOS. And the conflict
-> will happen.
->    So the dmi check is added so that the acpi_enforce_resources is strict when
-> the box falls into the dmi check table. In such case the i2c driver won't be
-> loaded for the SMbus pci device.
+Subject: support _BCL packages that don't export brightness levels when machine is on AC/Battery
+From: Zhang Rui <rui.zhang@intel.com>
 
-I think the only safe behaviour here is to default to strict on all 
-hardware.
+Many buggy BIOSes don't export the brightness levels when machine
+is on AC/Battery in the _BCL method.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Reformat the _BCL package for these laptops:
+now the elements in device->brightness->levels[] are like:
+levels[0]: brightness level when on AC power.
+levels[1]: brightness level when on Battery power.
+levels[2]: supported brightness level 1.
+levels[3]: supported brightness level 2.
+...
+levels[n]: supported brightness level n-1.
+levels[n + 1]: supported brightness level n.
+So if there are n supported brightness levels on this laptop,
+we will have n+2 entries in device->brightnes->levels[].
+
+level[0] and level[1] are invalid on the laptops that don't
+export the brightness levels on AC/Battery.
+Fortunately, we never use these two values at all, even for the
+valid ones.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c |   37 +++++++++++++++++++++++++++++++------
+ 1 file changed, 31 insertions(+), 6 deletions(-)
+
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -168,10 +168,15 @@ struct acpi_video_device_cap {
+ 	u8 _DSS:1;		/*Device state set */
+ };
+ 
++struct acpi_video_brightness_flags {
++	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
++};
++
+ struct acpi_video_device_brightness {
+ 	int curr;
+ 	int count;
+ 	int *levels;
++	struct acpi_video_brightness_flags flags;
+ };
+ 
+ struct acpi_video_device {
+@@ -682,7 +687,7 @@ static int
+ acpi_video_init_brightness(struct acpi_video_device *device)
+ {
+ 	union acpi_object *obj = NULL;
+-	int i, max_level = 0, count = 0;
++	int i, max_level = 0, count = 0, level_ac_battery = 0;
+ 	union acpi_object *o;
+ 	struct acpi_video_device_brightness *br = NULL;
+ 
+@@ -701,7 +706,7 @@ acpi_video_init_brightness(struct acpi_v
+ 		goto out;
+ 	}
+ 
+-	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
++	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
+ 				GFP_KERNEL);
+ 	if (!br->levels)
+ 		goto out_free;
+@@ -719,16 +724,36 @@ acpi_video_init_brightness(struct acpi_v
+ 		count++;
+ 	}
+ 
++	/*
++	 * some buggy BIOS don't export the levels
++	 * when machine is on AC/Battery in _BCL package.
++	 * In this case, the first two elements in _BCL packages
++	 * are also supported brightness levels that OS should take care of.
++	 */
++	for (i = 2; i < count; i++)
++		if (br->levels[i] == br->levels[0] ||
++		    br->levels[i] == br->levels[1])
++			level_ac_battery++;
++
++	if (level_ac_battery > 2) {
++		ACPI_ERROR((AE_INFO, "Two many duplicates in _BCL package\n"));
++		goto out_free_levels;
++	} else if (level_ac_battery < 2) {
++		level_ac_battery = 2 - level_ac_battery;
++		br->flags._BCL_no_ac_battery_levels = 1;
++		for (i = (count - 1 + level_ac_battery); i >= 2; i--)
++			br->levels[i] = br->levels[i - level_ac_battery];
++		count += level_ac_battery;
++	}
++
+ 	/* don't sort the first two brightness levels */
+ 	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
+ 		acpi_video_cmp_level, NULL);
+ 
+-	if (count < 2)
+-		goto out_free_levels;
+-
+ 	br->count = count;
+ 	device->brightness = br;
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "found %d brightness levels\n", count - 2));
+ 	kfree(obj);
+ 	return max_level;
+ 
+
+
