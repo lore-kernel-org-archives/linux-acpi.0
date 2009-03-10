@@ -1,152 +1,122 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RFC PATCH 1/5] ACPI video: check the return value of
-	acpi_video_device_lcd_get_level_current
-Date: Tue, 10 Mar 2009 16:03:25 +0800
-Message-ID: <1236672205.2820.119.camel@rzhang-dt>
+Subject: [RFC PATCH 5/5] ACPI video: support _BQC/_BCL/_BCM methods that
+	use index values
+Date: Tue, 10 Mar 2009 16:03:34 +0800
+Message-ID: <1236672214.2820.123.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31222 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:62525 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165AbZCJICe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Mar 2009 04:02:34 -0400
+	id S1753047AbZCJICn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2009 04:02:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, trenn@suse.de, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-Subject: check the return value of acpi_video_device_lcd_get_level_current
+Subject: support _BQC/_BCL/_BCM methods that use index values
 From: Zhang Rui <rui.zhang@intel.com>
 
-check the return value of acpi_video_device_lcd_get_level_current
+The input/output of _BQC/_BCL/_BCM control methods should be represented
+by a number between 0 and 100, and can be thought of as a percentage.
+But some buggy _BQC/_BCL/_BCM methods use the index values instead.
+http://bugzilla.kernel.org/show_bug.cgi?id=12302
+http://bugzilla.kernel.org/show_bug.cgi?id=12249
+http://bugzilla.kernel.org/show_bug.cgi?id=12037
+
+Add the functionality to support such kind of BIOSes in ACPI video driver.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/video.c |   69 ++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 47 insertions(+), 22 deletions(-)
+ drivers/acpi/video.c |   46 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 45 insertions(+), 1 deletion(-)
 
 Index: linux-2.6/drivers/acpi/video.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/video.c
 +++ linux-2.6/drivers/acpi/video.c
-@@ -294,7 +294,7 @@ static int acpi_video_device_lcd_get_lev
- 			unsigned long long *level);
- static int acpi_video_get_next_level(struct acpi_video_device *device,
- 				     u32 level_current, u32 event);
--static void acpi_video_switch_brightness(struct acpi_video_device *device,
-+static int acpi_video_switch_brightness(struct acpi_video_device *device,
- 					 int event);
- static int acpi_video_device_get_state(struct acpi_video_device *device,
- 			    unsigned long long *state);
-@@ -308,7 +308,9 @@ static int acpi_video_get_brightness(str
- 	int i;
- 	struct acpi_video_device *vd =
- 		(struct acpi_video_device *)bl_get_data(bd);
--	acpi_video_device_lcd_get_level_current(vd, &cur_level);
-+
-+	if (acpi_video_device_lcd_get_level_current(vd, &cur_level))
-+		return -EINVAL;
- 	for (i = 2; i < vd->brightness->count; i++) {
- 		if (vd->brightness->levels[i] == cur_level)
- 			/* The first two entries are special - see page 575
-@@ -373,7 +375,8 @@ static int video_get_cur_state(struct th
- 	unsigned long long level;
- 	int state;
+@@ -171,6 +171,9 @@ struct acpi_video_device_cap {
+ struct acpi_video_brightness_flags {
+ 	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
+ 	u8 _BCL_reversed:1;		/* _BCL package is in a reversed order*/
++	u8 _BCL_use_index:1;		/* levels in _BCL are index values */
++	u8 _BCM_use_index:1;		/* input of _BCM is an index value */
++	u8 _BQC_use_index:1;		/* _BQC returns an index value */
+ };
  
--	acpi_video_device_lcd_get_level_current(video, &level);
-+	if (acpi_video_device_lcd_get_level_current(video, &level))
-+		return -EINVAL;
- 	for (state = 2; state < video->brightness->count; state++)
- 		if (level == video->brightness->levels[state])
- 			return sprintf(buf, "%d\n",
-@@ -502,11 +505,29 @@ static int
- acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
- 					unsigned long long *level)
- {
--	if (device->cap._BQC)
--		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
--					     level);
-+	acpi_status status = AE_OK;
+ struct acpi_video_device_brightness {
+@@ -505,7 +508,8 @@ acpi_video_device_lcd_set_level(struct a
+ 	device->brightness->curr = level;
+ 	for (state = 2; state < device->brightness->count; state++)
+ 		if (level == device->brightness->levels[state]) {
+-			device->backlight->props.brightness = state - 2;
++			if (device->backlight)
++				device->backlight->props.brightness = state - 2;
+ 			return 0;
+ 		}
+ 
+@@ -523,6 +527,13 @@ acpi_video_device_lcd_get_level_current(
+ 		status = acpi_evaluate_integer(device->dev->handle, "_BQC",
+ 						NULL, level);
+ 		if (ACPI_SUCCESS(status)) {
++			if (device->brightness->flags._BQC_use_index) {
++				if (device->brightness->flags._BCL_reversed)
++					*level = device->brightness->count
++								 - 3 - (*level);
++				*level = device->brightness->levels[*level + 2];
 +
-+	if (device->cap._BQC) {
-+		status = acpi_evaluate_integer(device->dev->handle, "_BQC",
-+						NULL, level);
-+		if (ACPI_SUCCESS(status)) {
-+			device->brightness->curr = *level;
-+			return 0;
-+		} else {
-+			/* Fixme:
-+			 * should we return an error or ignore this failure?
-+			 * dev->brightness->curr is a cached value which stores
-+			 * the correct current backlight level in most cases.
-+			 * ACPI video backlight still works w/ buggy _BQC.
-+			 * http://bugzilla.kernel.org/show_bug.cgi?id=12233
++			}
+ 			device->brightness->curr = *level;
+ 			return 0;
+ 		} else {
+@@ -689,6 +700,7 @@ acpi_video_init_brightness(struct acpi_v
+ {
+ 	union acpi_object *obj = NULL;
+ 	int i, max_level = 0, count = 0, level_ac_battery = 0;
++	unsigned long long level;
+ 	union acpi_object *o;
+ 	struct acpi_video_device_brightness *br = NULL;
+ 
+@@ -760,6 +772,38 @@ acpi_video_init_brightness(struct acpi_v
+ 
+ 	br->count = count;
+ 	device->brightness = br;
++
++	/* Check the input/output of _BQC/_BCL/_BCM */
++	if ((max_level < 100) && (max_level <= (count - 2)))
++		br->flags._BCL_use_index = 1;
++
++	/*
++	 * _BCM is always consistent with _BCL,
++	 * at least for all the laptops we have ever seen.
++	 */
++	br->flags._BCM_use_index = br->flags._BCL_use_index;
++
++	/* _BQC uses INDEX while _BCL uses VALUE in some laptops */
++	if (acpi_video_device_lcd_set_level(device, max_level))
++		goto out_free_levels;
++
++	if (acpi_video_device_lcd_get_level_current(device, &level))
++		goto out_free_levels;
++
++	if ((level != max_level) && !br->flags._BCM_use_index) {
++		if (level_ac_battery != 2) {
++			/*
++			 * For now, we don't support the _BCL like this:
++			 * 16, 15, 0, 1, 2, 3, ..., 14, 15, 16
++			 * because we may mess up the index returned by _BQC.
++			 * Plus: we have not got a box like this.
 +			 */
-+			ACPI_WARNING((AE_INFO, "Evaluating _BQC failed"));
-+			device->cap._BQC = 0;
++			ACPI_ERROR((AE_INFO, "_BCL not supported\n"));
++			goto out_free_levels;
 +		}
++		br->flags._BQC_use_index = 1;
 +	}
 +
- 	*level = device->brightness->curr;
--	return AE_OK;
-+	return 0;
- }
- 
- static int
-@@ -773,18 +794,8 @@ static void acpi_video_device_find_cap(s
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
- 		device->backlight->props.max_brightness = device->brightness->count-3;
--		/*
--		 * If there exists the _BQC object, the _BQC object will be
--		 * called to get the current backlight brightness. Otherwise
--		 * the brightness will be set to the maximum.
--		 */
--		if (device->cap._BQC)
--			device->backlight->props.brightness =
--				acpi_video_get_brightness(device->backlight);
--		else
--			device->backlight->props.brightness =
--				device->backlight->props.max_brightness;
--		backlight_update_status(device->backlight);
-+		device->backlight->props.brightness =
-+			acpi_video_get_brightness(device->backlight);
- 		kfree(name);
- 
- 		device->cdev = thermal_cooling_device_register("LCD",
-@@ -1749,15 +1760,29 @@ acpi_video_get_next_level(struct acpi_vi
- 	}
- }
- 
--static void
-+static int
- acpi_video_switch_brightness(struct acpi_video_device *device, int event)
- {
- 	unsigned long long level_current, level_next;
-+	int result = -EINVAL;
-+
- 	if (!device->brightness)
--		return;
--	acpi_video_device_lcd_get_level_current(device, &level_current);
-+		goto out;
-+
-+	result = acpi_video_device_lcd_get_level_current(device,
-+							 &level_current);
-+	if (result)
-+		goto out;
-+
- 	level_next = acpi_video_get_next_level(device, level_current, event);
-+
- 	acpi_video_device_lcd_set_level(device, level_next);
-+
-+out:
-+	if (result)
-+		printk(KERN_ERR PREFIX "Failed to switch the brightness\n");
-+
-+	return result;
- }
- 
- static int
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "found %d brightness levels\n", count - 2));
+ 	kfree(obj);
 
 
