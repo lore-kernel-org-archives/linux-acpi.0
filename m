@@ -1,47 +1,42 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] lenovo-sl-laptop : driver for review
-Date: Tue, 10 Mar 2009 15:12:38 +0100
-Message-ID: <20090310141238.GC1374@ucw.cz>
-References: <20090216025918.66d7a466@leftboat.lan> <20090227132752.GG1482@ucw.cz> <20090228143711.GB17541@khazad-dum.debian.net> <20090310112209.GB1337@ucw.cz> <20090310113419.GC371@khazad-dum.debian.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC PATCH 3/5] ACPI video: support _BCL packages that don't export brightness levels when machine is on AC/Battery
+Date: Tue, 10 Mar 2009 17:06:39 +0000
+Message-ID: <20090310170639.GA2527@srcf.ucam.org>
+References: <1236672209.2820.121.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40352 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbZCJOMr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Mar 2009 10:12:47 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:54078 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757463AbZCJRGr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Mar 2009 13:06:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20090310113419.GC371@khazad-dum.debian.net>
+In-Reply-To: <1236672209.2820.121.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alexandre Rostovtsev <tetromino@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>
 
-Hi!
+On Tue, Mar 10, 2009 at 04:03:29PM +0800, Zhang Rui wrote:
 
-> > > > That's quite a lot of code for verbatim copy; create shared helper?
-> > > 
-> > > Yeah, I am game.  But let's do it later on and not delay anything because of
-> > > it, please.  I will start breaking thinkpad-acpi into multiple source files,
-> > > and after that is done (should take a while, thinkpad-acpi is a big module
-> > > with a LOT of subdriver interdependencies) we can look for the best way to
-> > > reduce code duplication.
-> > 
-> > Well,  this monolith is quite long/hard to review. IMO it should be
-> > split to make review easy. 
-> 
-> thinkpad-sl could be split, yes.  But if you guys are going to wait for
-> thinkpad-acpi to be split _as well_ to do some common-path merging, THAT is
-> going to take quite a while...
+> +	if (level_ac_battery > 2) {
+> +		ACPI_ERROR((AE_INFO, "Two many duplicates in _BCL package\n"));
+> +		goto out_free_levels;
 
-I guess waiting is not neccessary; plus having split thinkpad-sl
-driver should make common-path merging easier for you later...
+Exiting here seems a little excessive? I'd just go with a warning and 
+carry on. In future maybe we could strip duplicates. Also, s/two/too/.
 
-> An alternative is to submit a minimal thinkpad-sl, then add features to it
-> patch-by-patch.  That makes reviewing it easier.
+>  	/* don't sort the first two brightness levels */
+>  	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
+>  		acpi_video_cmp_level, NULL);
 
-Yeah but as we are moving away from mega-driver, anyway, ...
-									Pavel
+I think the comment here needs to be clarified - it sounds like you'll 
+ignore the first two in the package, even if they're actual values 
+rather than the ac and battery ones.
+
+Otherwise:
+
+Acked-by: Matthew Garrett <mjg@redhat.com>
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
