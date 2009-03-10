@@ -1,36 +1,55 @@
-From: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] DVB-USB: correct the comment about KEY_SLEEP
-Date: Tue, 10 Mar 2009 12:31:52 +0200
-Message-ID: <49B64198.6050201@iki.fi>
-References: <1235992429.3858.58.camel@hughsie-work.lan>	 <20090302112400.GA2356@khazad-dum.debian.net>	 <1236164049.3936.17.camel@hughsie-work.lan> <1236164977.3936.30.camel@hughsie-work.lan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] lenovo-sl-laptop : driver for review
+Date: Tue, 10 Mar 2009 12:22:09 +0100
+Message-ID: <20090310112209.GB1337@ucw.cz>
+References: <20090216025918.66d7a466@leftboat.lan> <20090227132752.GG1482@ucw.cz> <20090228143711.GB17541@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1236164977.3936.30.camel@hughsie-work.lan>
-Sender: linux-media-owner@vger.kernel.org
-To: Richard Hughes <hughsient@gmail.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39445 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754946AbZCJLWW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Mar 2009 07:22:22 -0400
+Content-Disposition: inline
+In-Reply-To: <20090228143711.GB17541@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Alexandre Rostovtsev <tetromino@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Richard Hughes wrote:
-> On Wed, 2009-03-04 at 10:54 +0000, Richard Hughes wrote:
->> On Mon, 2009-03-02 at 08:24 -0300, Henrique de Moraes Holschuh wrote:
->>> FWIW, I think it is a good idea, and I'd take patches for
->>> thinkpad-acpi.
->> Patch attached for thinkpad-acpi. KEY_HIBERNATE is already in
->> linux-next, but has not yet been pushed to master. Please review,
->> thanks.
+On Sat 2009-02-28 11:37:11, Henrique de Moraes Holschuh wrote:
+> On Fri, 27 Feb 2009, Pavel Machek wrote:
+> > > +module_param(debug_ec, bool, S_IRUGO);
+> > > +MODULE_PARM_DESC(debug_ec,
+> > > +	"Present EC debugging interface in procfs. WARNING: writing to the "
+> > > +	"EC can hang your system and possibly damage your hardware.");
+> > 
+> > Sounds dangerous and clearly does not belong to /proc. Please drop it.
 > 
-> Antti, I've included a fix to the Afatech AF9015 DVB-T USB2.0 receiver
-> header file. It corrects the comment about KEY_SLEEP. Please review.
+> ThinkPad ACPI also has one.  OTOH, we are fairly sure one cannot damage the
+> standard ThinkPad hardware through the "IBM thinkpad-style" EC firmware, the
+> EC sanity-checks things.  I suppose you could cause the box to go away for
+> lunch and don't come back until a complete hardware reset, or hit one of the
+> crash-the-EC-firmware bugs by accident, though.
 
-It is not correct. Comment "Hibernate" for that button comes from the 
-remote controller, where "Z^z" is printed to the top of the button and 
-"Hibernate" below the button. Replacing KEY_SLEEP with KEY_HIBERNATE 
-seems to be correct solution for me.
+Yeah but that interface still does not belong to /proc. Please drop it
+from merge version at least. 
 
-regards
-Antti
+> > > +/*************************************************************************
+> > > +    bluetooth sysfs - copied nearly verbatim from thinkpad_acpi.c
+> > > + *************************************************************************/
+> > 
+> > That's quite a lot of code for verbatim copy; create shared helper?
+> 
+> Yeah, I am game.  But let's do it later on and not delay anything because of
+> it, please.  I will start breaking thinkpad-acpi into multiple source files,
+> and after that is done (should take a while, thinkpad-acpi is a big module
+> with a LOT of subdriver interdependencies) we can look for the best way to
+> reduce code duplication.
+
+Well,  this monolith is quite long/hard to review. IMO it should be
+split to make review easy. 
+
 -- 
-http://palosaari.fi/
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
