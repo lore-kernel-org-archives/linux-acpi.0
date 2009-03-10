@@ -1,28 +1,174 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC PATCH 4/5] ACPI video: support reversed _BCL method
-Date: Tue, 10 Mar 2009 17:11:36 +0000
-Message-ID: <20090310171136.GD2527@srcf.ucam.org>
-References: <1236672211.2820.122.camel@rzhang-dt>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] acpi: simplify module_param namespace
+Date: Wed, 11 Mar 2009 09:27:12 +1030
+Message-ID: <200903110927.12792.rusty@rustcorp.com.au>
+References: <200903071328.28113.rusty@rustcorp.com.au> <1236565244.7060.7.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:49593 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756342AbZCJRLk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Mar 2009 13:11:40 -0400
+Received: from ozlabs.org ([203.10.76.45]:40778 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756604AbZCJW5S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2009 18:57:18 -0400
+In-Reply-To: <1236565244.7060.7.camel@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <1236672211.2820.122.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Mar 10, 2009 at 04:03:31PM +0800, Zhang Rui wrote:
-> sort the _BCL packge in case it's reversed.
+On Monday 09 March 2009 12:50:44 yakui_zhao wrote:
+> On Sat, 2009-03-07 at 10:58 +0800, Rusty Russell wrote:
+> > -obj-y				+= osl.o utils.o reboot.o\
+> > +obj-y				+= acpi.o \
+> >  					acpica/
+> 
+> If so, it can't be guaranteed that the EC driver is initialized before
+> the power resource driver.
 
-What code actually uses this? A later patch seems to check it in the 
-indexed case, but I can't find a reference to using it in the 
-non-indexed case.
+Ah, thankyou, I had not read that comment.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+This version is bigger, but simpler, and doesn't change link order.  It just
+moves everything into the acpi module.
+
+Subject: acpi: simplify module_param namespace
+
+Impact: cleanup
+
+Rather than overriding MODULE_PARAM_PREFIX, build via acpi.o so
+KBUILD_MODNAME is set to "acpi".
+
+This is the logical way to do it, even though acpi cannot be a module
+due to these config options being bool.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+---
+ drivers/acpi/Makefile |   57 ++++++++++++++++++++++++++------------------------
+ drivers/acpi/debug.c  |    5 ----
+ drivers/acpi/power.c  |    4 ---
+ drivers/acpi/system.c |    4 ---
+ 4 files changed, 30 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -14,13 +14,16 @@ obj-$(CONFIG_X86)		+= blacklist.o
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= osl.o utils.o reboot.o\
++obj-y				+= acpi.o \
+ 					acpica/
+ 
++# Everything below is in the "acpi." module_param namespace.
++acpi-y				+= osl.o utils.o reboot.o
++
+ # sleep related files
+-obj-y				+= wakeup.o
+-obj-y				+= sleep.o
+-obj-$(CONFIG_ACPI_SLEEP)	+= proc.o
++acpi-y				+= wakeup.o
++acpi-y				+= sleep.o
++acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+ 
+ 
+ #
+@@ -32,30 +35,30 @@ processor-objs	+= processor_perflib.o
+ processor-objs	+= processor_perflib.o
+ endif
+ 
+-obj-y				+= bus.o glue.o
+-obj-y				+= scan.o
++acpi-y				+= bus.o glue.o
++acpi-y				+= scan.o
+ # Keep EC driver first. Initialization of others depend on it.
+-obj-y				+= ec.o
+-obj-$(CONFIG_ACPI_AC) 		+= ac.o
+-obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+-obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+-obj-$(CONFIG_ACPI_FAN)		+= fan.o
+-obj-$(CONFIG_ACPI_DOCK)		+= dock.o
+-obj-$(CONFIG_ACPI_VIDEO)	+= video.o
++acpi-y				+= ec.o
++acpi-$(CONFIG_ACPI_AC) 		+= ac.o
++acpi-$(CONFIG_ACPI_BATTERY)	+= battery.o
++acpi-$(CONFIG_ACPI_BUTTON)	+= button.o
++acpi-$(CONFIG_ACPI_FAN)		+= fan.o
++acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
++acpi-$(CONFIG_ACPI_VIDEO)	+= video.o
+ ifdef CONFIG_ACPI_VIDEO
+-obj-y				+= video_detect.o
++acpi-y				+= video_detect.o
+ endif
+ 
+-obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
+-obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+-obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+-obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
+-obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+-obj-y				+= power.o
+-obj-y				+= system.o event.o
+-obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+-obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+-obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+-obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
+-obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+-obj-$(CONFIG_ACPI_SBS)		+= sbs.o
++acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
++acpi-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
++acpi-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
++acpi-$(CONFIG_ACPI_CONTAINER)	+= container.o
++acpi-$(CONFIG_ACPI_THERMAL)	+= thermal.o
++acpi-y				+= power.o
++acpi-y				+= system.o event.o
++acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
++acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
++acpi-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
++acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
++acpi-$(CONFIG_ACPI_SBS)		+= sbshc.o
++acpi-$(CONFIG_ACPI_SBS)		+= sbs.o
+diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+--- a/drivers/acpi/debug.c
++++ b/drivers/acpi/debug.c
+@@ -12,11 +12,6 @@
+ 
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("debug");
+-
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ 
+ struct acpi_dlayer {
+ 	const char *name;
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -54,10 +54,6 @@ ACPI_MODULE_NAME("power");
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+ 
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ int acpi_power_nocheck;
+ module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+ 
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -33,10 +33,6 @@
+ 
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("system");
+-#ifdef MODULE_PARAM_PREFIX
+-#undef MODULE_PARAM_PREFIX
+-#endif
+-#define MODULE_PARAM_PREFIX "acpi."
+ 
+ #define ACPI_SYSTEM_CLASS		"system"
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
