@@ -1,174 +1,155 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] acpi: simplify module_param namespace
-Date: Wed, 11 Mar 2009 09:27:12 +1030
-Message-ID: <200903110927.12792.rusty@rustcorp.com.au>
-References: <200903071328.28113.rusty@rustcorp.com.au> <1236565244.7060.7.camel@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC PATCH 3/5] ACPI video: support _BCL packages that don't
+	export brightness levels when machine is on AC/Battery
+Date: Wed, 11 Mar 2009 09:09:26 +0800
+Message-ID: <1236733766.2820.129.camel@rzhang-dt>
+References: <1236672209.2820.121.camel@rzhang-dt>
+	 <20090310170639.GA2527@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:40778 "EHLO ozlabs.org"
+Received: from mga11.intel.com ([192.55.52.93]:47244 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756604AbZCJW5S (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Mar 2009 18:57:18 -0400
-In-Reply-To: <1236565244.7060.7.camel@localhost.localdomain>
-Content-Disposition: inline
+	id S1753085AbZCKBIb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2009 21:08:31 -0400
+In-Reply-To: <20090310170639.GA2527@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>
 
-On Monday 09 March 2009 12:50:44 yakui_zhao wrote:
-> On Sat, 2009-03-07 at 10:58 +0800, Rusty Russell wrote:
-> > -obj-y				+= osl.o utils.o reboot.o\
-> > +obj-y				+= acpi.o \
-> >  					acpica/
+On Wed, 2009-03-11 at 01:06 +0800, Matthew Garrett wrote:
+> On Tue, Mar 10, 2009 at 04:03:29PM +0800, Zhang Rui wrote:
 > 
-> If so, it can't be guaranteed that the EC driver is initialized before
-> the power resource driver.
+> > +	if (level_ac_battery > 2) {
+> > +		ACPI_ERROR((AE_INFO, "Two many duplicates in _BCL package\n"));
+> > +		goto out_free_levels;
+> 
+> Exiting here seems a little excessive? I'd just go with a warning and 
+> carry on. In future maybe we could strip duplicates. Also, s/two/too/.
+> 
+Agree.
 
-Ah, thankyou, I had not read that comment.
+> >  	/* don't sort the first two brightness levels */
+> >  	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
+> >  		acpi_video_cmp_level, NULL);
+> 
+> I think the comment here needs to be clarified - it sounds like you'll 
+> ignore the first two in the package, even if they're actual values 
+> rather than the ac and battery ones.
+> 
+Agree.
 
-This version is bigger, but simpler, and doesn't change link order.  It just
-moves everything into the acpi module.
+Refreshed patch attached.
 
-Subject: acpi: simplify module_param namespace
+Subject: support _BCL packages that don't export brightness levels when machine is on AC/Battery
+From: Zhang Rui <rui.zhang@intel.com>
 
-Impact: cleanup
+Many buggy BIOSes don't export the brightness levels when machine
+is on AC/Battery in the _BCL method.
 
-Rather than overriding MODULE_PARAM_PREFIX, build via acpi.o so
-KBUILD_MODNAME is set to "acpi".
+Reformat the _BCL package for these laptops:
+now the elements in device->brightness->levels[] are like:
+levels[0]: brightness level when on AC power.
+levels[1]: brightness level when on Battery power.
+levels[2]: supported brightness level 1.
+levels[3]: supported brightness level 2.
+...
+levels[n]: supported brightness level n-1.
+levels[n + 1]: supported brightness level n.
+So if there are n supported brightness levels on this laptop,
+we will have n+2 entries in device->brightnes->levels[].
 
-This is the logical way to do it, even though acpi cannot be a module
-due to these config options being bool.
+level[0] and level[1] are invalid on the laptops that don't
+export the brightness levels on AC/Battery.
+Fortunately, we never use these two values at all, even for the
+valid ones.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/acpi/Makefile |   57 ++++++++++++++++++++++++++------------------------
- drivers/acpi/debug.c  |    5 ----
- drivers/acpi/power.c  |    4 ---
- drivers/acpi/system.c |    4 ---
- 4 files changed, 30 insertions(+), 40 deletions(-)
+ drivers/acpi/video.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -14,13 +14,16 @@ obj-$(CONFIG_X86)		+= blacklist.o
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= osl.o utils.o reboot.o\
-+obj-y				+= acpi.o \
- 					acpica/
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -168,10 +168,15 @@ struct acpi_video_device_cap {
+ 	u8 _DSS:1;		/*Device state set */
+ };
  
-+# Everything below is in the "acpi." module_param namespace.
-+acpi-y				+= osl.o utils.o reboot.o
++struct acpi_video_brightness_flags {
++	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
++};
 +
- # sleep related files
--obj-y				+= wakeup.o
--obj-y				+= sleep.o
--obj-$(CONFIG_ACPI_SLEEP)	+= proc.o
-+acpi-y				+= wakeup.o
-+acpi-y				+= sleep.o
-+acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+ struct acpi_video_device_brightness {
+ 	int curr;
+ 	int count;
+ 	int *levels;
++	struct acpi_video_brightness_flags flags;
+ };
  
+ struct acpi_video_device {
+@@ -682,7 +687,7 @@ static int
+ acpi_video_init_brightness(struct acpi_video_device *device)
+ {
+ 	union acpi_object *obj = NULL;
+-	int i, max_level = 0, count = 0;
++	int i, max_level = 0, count = 0, level_ac_battery = 0;
+ 	union acpi_object *o;
+ 	struct acpi_video_device_brightness *br = NULL;
  
- #
-@@ -32,30 +35,30 @@ processor-objs	+= processor_perflib.o
- processor-objs	+= processor_perflib.o
- endif
+@@ -701,7 +706,7 @@ acpi_video_init_brightness(struct acpi_v
+ 		goto out;
+ 	}
  
--obj-y				+= bus.o glue.o
--obj-y				+= scan.o
-+acpi-y				+= bus.o glue.o
-+acpi-y				+= scan.o
- # Keep EC driver first. Initialization of others depend on it.
--obj-y				+= ec.o
--obj-$(CONFIG_ACPI_AC) 		+= ac.o
--obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
--obj-$(CONFIG_ACPI_BUTTON)	+= button.o
--obj-$(CONFIG_ACPI_FAN)		+= fan.o
--obj-$(CONFIG_ACPI_DOCK)		+= dock.o
--obj-$(CONFIG_ACPI_VIDEO)	+= video.o
-+acpi-y				+= ec.o
-+acpi-$(CONFIG_ACPI_AC) 		+= ac.o
-+acpi-$(CONFIG_ACPI_BATTERY)	+= battery.o
-+acpi-$(CONFIG_ACPI_BUTTON)	+= button.o
-+acpi-$(CONFIG_ACPI_FAN)		+= fan.o
-+acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
-+acpi-$(CONFIG_ACPI_VIDEO)	+= video.o
- ifdef CONFIG_ACPI_VIDEO
--obj-y				+= video_detect.o
-+acpi-y				+= video_detect.o
- endif
+-	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
++	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
+ 				GFP_KERNEL);
+ 	if (!br->levels)
+ 		goto out_free;
+@@ -719,16 +724,35 @@ acpi_video_init_brightness(struct acpi_v
+ 		count++;
+ 	}
  
--obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
--obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
--obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
--obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
--obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-y				+= power.o
--obj-y				+= system.o event.o
--obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
--obj-$(CONFIG_ACPI_NUMA)		+= numa.o
--obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
--obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
--obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
--obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-+acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-+acpi-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
-+acpi-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
-+acpi-$(CONFIG_ACPI_CONTAINER)	+= container.o
-+acpi-$(CONFIG_ACPI_THERMAL)	+= thermal.o
-+acpi-y				+= power.o
-+acpi-y				+= system.o event.o
-+acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
-+acpi-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
-+acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
-+acpi-$(CONFIG_ACPI_SBS)		+= sbshc.o
-+acpi-$(CONFIG_ACPI_SBS)		+= sbs.o
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -12,11 +12,6 @@
+-	/* don't sort the first two brightness levels */
++	/*
++	 * some buggy BIOS don't export the levels
++	 * when machine is on AC/Battery in _BCL package.
++	 * In this case, the first two elements in _BCL packages
++	 * are also supported brightness levels that OS should take care of.
++	 */
++	for (i = 2; i < count; i++)
++		if (br->levels[i] == br->levels[0] ||
++		    br->levels[i] == br->levels[1])
++			level_ac_battery++;
++
++	if (level_ac_battery > 2) {
++		ACPI_ERROR((AE_INFO, "Two many duplicates in _BCL package\n"));
++	} else if (level_ac_battery < 2) {
++		level_ac_battery = 2 - level_ac_battery;
++		br->flags._BCL_no_ac_battery_levels = 1;
++		for (i = (count - 1 + level_ac_battery); i >= 2; i--)
++			br->levels[i] = br->levels[i - level_ac_battery];
++		count += level_ac_battery;
++	}
++
++	/* sort all the supported brightness levels */
+ 	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
+ 		acpi_video_cmp_level, NULL);
  
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debug");
+-	if (count < 2)
+-		goto out_free_levels;
 -
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
+ 	br->count = count;
+ 	device->brightness = br;
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "found %d brightness levels\n", count - 2));
+ 	kfree(obj);
+ 	return max_level;
  
- struct acpi_dlayer {
- 	const char *name;
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -54,10 +54,6 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
- 
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- int acpi_power_nocheck;
- module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
- 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -33,10 +33,6 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("system");
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- 
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
+
+
