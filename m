@@ -1,19 +1,53 @@
-From: "Dave Forrest" <jayantapothal@jhu.edu>
-Subject: Casanova Love Secret.
-Date: Wed, 11 Mar 2009 19:50:12 +0800
-Message-ID: <20090311195012.1050300@jhu.edu>
+From: Robert Szalai <krumpirluk@gmail.com>
+Subject: [Help] I can't get Intel Speedstep working
+Date: Wed, 11 Mar 2009 13:40:04 +0100
+Message-ID: <cd5c26b90903110540l19a721d1k1b7102f6f5c71d29@mail.gmail.com>
+References: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 212.225.57.59.board.xm.fj.dynamic.163data.com.cn ([59.57.225.212]:1062
-	"HELO 212.225.57.59.board.xm.fj.dynamic.163data.com.cn"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753040AbZCKLyB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Mar 2009 07:54:01 -0400
+Received: from fg-out-1718.google.com ([72.14.220.158]:28100 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753756AbZCKMkI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2009 08:40:08 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so1054321fgg.17
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2009 05:40:04 -0700 (PDT)
+In-Reply-To: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Wiping good off the shelves http://ut.itbaphuivjo.net/
+Hello everybody,
 
+I have a Shuttle K48 Barebone PC (Intel 945GC + ICH7 chipset) and a
+Core 2 Duo E7300 CPU. I'm using Ubuntu 8.04 with 2.6.24-23-generic
+kernel on my box. Everything works fine except Speedstep. When I try
+to load acpi_cpufreq module, I get the following error:
+
+$ sudo modprobe acpi_cpufreq
+FATAL: Error inserting acpi_cpufreq
+(/lib/modules/2.6.24-23-generic/kernel/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.ko):
+No such device
+
+I've tried everything (other kernel versions, various patches) but the
+result is the same.
+I don't know if it is related to EIST or not but I've found these two
+Exceptions in my dmesg:
+
+[   20.675593] ACPI Exception (processor_core-0822): AE_NOT_FOUND,
+Processor Device is not present [20070126]
+[   20.675599] ACPI Exception (processor_core-0822): AE_NOT_FOUND,
+Processor Device is not present [20070126]
+
+After some research I've found that maybe a broken DSDT table is the
+couse of my problem. I'm not an ACPI expert and I dont't know how to
+locate and fix the problem in my DSDT. I've uploaded my dsdt.dsl to
+
+http://www.easy-share.com/1903982677/dsdt.dsl
+
+Any suggestions? I'd really like to use Speedstep on my Box.
+You are my last hope Guys.
+
+Thanks so much
+Robert Szalai
