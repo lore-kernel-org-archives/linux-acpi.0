@@ -1,61 +1,48 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: The Garbled screen issue on Sony laptops with two graphics
-	(Intel and Nvidia)
-Date: Wed, 11 Mar 2009 22:08:47 +0900
-Message-ID: <20090311130847.GC13101@kamineko.org>
-References: <1236739527.2820.178.camel@rzhang-dt> <20090311024652.GA14493@srcf.ucam.org> <1236756550.2820.218.camel@rzhang-dt>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [RFC PATCH 1/5] ACPI video: check the return value of acpi_video_device_lcd_get_level_current
+Date: Wed, 11 Mar 2009 14:15:27 +0100
+Message-ID: <200903111415.28681.trenn@suse.de>
+References: <1236672205.2820.119.camel@rzhang-dt> <200903111356.01710.trenn@suse.de> <20090311130432.GA21313@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:55746
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbZCKNIw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2009 09:08:52 -0400
+Received: from ns.suse.de ([195.135.220.2]:52736 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752195AbZCKNPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Mar 2009 09:15:32 -0400
+In-Reply-To: <20090311130432.GA21313@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <1236756550.2820.218.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "Wang, Zhenyu Z" <zhenyu.z.wang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, Mar 11, 2009 at 03:29:10PM +0800, Zhang Rui wrote:
-> On Wed, 2009-03-11 at 10:46 +0800, Matthew Garrett wrote:
-> > On Wed, Mar 11, 2009 at 10:45:27AM +0800, Zhang Rui wrote:
-> > 
-> > > The problem can be fixed by disabling Nvidia card via ACPI _DSM method.
-> > > And it seems that there are some works already done for this issue.
-> > > http://archive.netbsd.se/?ml=xorg&a=2009-02&t=9908058
-> > 
-> > This method is specific to Sony. What would be most helpful here would 
-> > be for Intel to tell us how this is actually meant to work. 
-> > 
-> Well, the change in sony-laptop driver is a new feature rather than a
-> bug fix.
-> the new sony-laptop driver introduces a new sysfs I/F:
-> /sys/devices/platform/sony-laptop/speed_stamina
-> and users can echo {speed, stamina} to this file to switch between
-> Intel and Nvidia graphics card.
+On Wednesday 11 March 2009 14:04:32 Matthew Garrett wrote:
+> On Wed, Mar 11, 2009 at 01:56:00PM +0100, Thomas Renninger wrote:
+> 
+> > (BTW, I recently saw a BIOS with _BCQ function. They said they are going to 
+> > fix it, but it may be more widespread, e.g. this also is often the case 
+> > (missing _BQC) on Samsung). I found it by luck disassembling and 
+> > recompiling the DSDT, a runtime warning would be nice (if it does not 
+> > already exist).
+> 
+> It's not that uncommon - there's a few machines with _BCQ. I actually 
+> thought we handled it already, but it seems not. Just adding a cap._BCQ 
+> and using it if there's no _BQC sounds like a safe idea.
+As said, the current brightness must be initialized if there is
+no _BQC and Rui seem to have been removed that.
 
-and see their Xorg miserably die. ;)
+Also a:
+printk (KERN_WARN FW_BUG PREFIX "ACPI brightness control misses _BQC function\n");
+should be added.
+Rui, if you are there already, do you mind to add such test.
+I found by pure luck that a vendor mixed up
+_BQC and _BCQ by getting one single warning recompiling the DSDT:
+"_BCQ not a predefined function" (or similar). They are now adding it,
+but a warning is appropriate IMO in _BQC missing case.
+Not adding _BQC and doing brightness switching through ACPI brightness
+functions is a really bad idea in general.
 
-Jokes aside, I have no big problem incorporating the differences in the
-driver, just that:
-- I can't test it
-- some models have different magic numbers for the _DSM invocation, from
-  the DSDT I have available:
-	DSDT.sz.xxx.dsl (some uknown model)
-	DSDT.sz61mn-forXP.dsl
-	DSDT.tt11lnb.dsl
-	DSDT.z11vn.dsl
-	DSDT.z90s.dsl
-	VGN-SZ4XWNC-R0111N0.dsl
-  and for what I can see, z and tt have the same magic numbers while the
-  sz has different ones. So the code that calls _DSM will need to have
-  some DMI switch to make sure we are calling it with the right
-  parameters (for now supporting z and tt might be enough)
-
-I'll see what I can do (I accept patches in case someone feels like
-doing it)
--- 
-mattia
-:wq!
+    Thomas
