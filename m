@@ -1,53 +1,34 @@
-From: Robert Szalai <krumpirluk@gmail.com>
-Subject: [Help] I can't get Intel Speedstep working
-Date: Wed, 11 Mar 2009 13:40:04 +0100
-Message-ID: <cd5c26b90903110540l19a721d1k1b7102f6f5c71d29@mail.gmail.com>
-References: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com>
+From: Ferenc Wagner <wferi@niif.hu>
+Subject: Re: 2.6.29-rc7 does not power off on halt
+Date: Wed, 11 Mar 2009 13:44:43 +0100
+Message-ID: <87k56wteis.fsf@tac.ki.iif.hu>
+References: <87vdqishgp.fsf@tac.ki.iif.hu> <200903092222.18562.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:28100 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753756AbZCKMkI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2009 08:40:08 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so1054321fgg.17
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2009 05:40:04 -0700 (PDT)
-In-Reply-To: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com>
+Received: from tac.ki.iif.hu ([193.6.222.43]:53330 "EHLO tac.ki.iif.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751992AbZCKMov (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Mar 2009 08:44:51 -0400
+In-Reply-To: <200903092222.18562.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Mon, 9 Mar 2009 22:22:18 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-Hello everybody,
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-I have a Shuttle K48 Barebone PC (Intel 945GC + ICH7 chipset) and a
-Core 2 Duo E7300 CPU. I'm using Ubuntu 8.04 with 2.6.24-23-generic
-kernel on my box. Everything works fine except Speedstep. When I try
-to load acpi_cpufreq module, I get the following error:
+> On Monday 09 March 2009, Ferenc Wagner wrote:
+> 
+>> The current git kernel doesn't switch off power as the last step of
+>> system halt (-p) on our Atom systems.  Everything seems to be all
+>> right, just the power remains on.  Is this a known issue perhaps?
+>
+> Not really.  Does it happen with 2.6.28 too?
 
-$ sudo modprobe acpi_cpufreq
-FATAL: Error inserting acpi_cpufreq
-(/lib/modules/2.6.24-23-generic/kernel/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.ko):
-No such device
-
-I've tried everything (other kernel versions, various patches) but the
-result is the same.
-I don't know if it is related to EIST or not but I've found these two
-Exceptions in my dmesg:
-
-[   20.675593] ACPI Exception (processor_core-0822): AE_NOT_FOUND,
-Processor Device is not present [20070126]
-[   20.675599] ACPI Exception (processor_core-0822): AE_NOT_FOUND,
-Processor Device is not present [20070126]
-
-After some research I've found that maybe a broken DSDT table is the
-couse of my problem. I'm not an ACPI expert and I dont't know how to
-locate and fix the problem in my DSDT. I've uploaded my dsdt.dsl to
-
-http://www.easy-share.com/1903982677/dsdt.dsl
-
-Any suggestions? I'd really like to use Speedstep on my Box.
-You are my last hope Guys.
-
-Thanks so much
-Robert Szalai
+Yes.  They don't power off under 2.6.24, 2.6.28.7 nor 2.6.29-rc7.
+So this isn't a new issue.
+-- 
+Regards,
+Feri.
