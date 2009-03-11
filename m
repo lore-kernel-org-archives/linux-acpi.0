@@ -1,49 +1,49 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC PATCH 4/5] ACPI video: support reversed _BCL method
-Date: Wed, 11 Mar 2009 01:45:10 +0000
-Message-ID: <20090311014510.GA13760@srcf.ucam.org>
-References: <1236672211.2820.122.camel@rzhang-dt> <20090310171136.GD2527@srcf.ucam.org> <1236735775.2820.160.camel@rzhang-dt>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH]: ACPI: Add the dmi check to make
+	acpi_enforce_resources strict
+Date: Wed, 11 Mar 2009 10:34:45 +0800
+Message-ID: <1236738885.2820.168.camel@rzhang-dt>
+References: <1236687873.7060.31.camel@localhost.localdomain>
+	 <20090310123950.GA30016@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35156 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014AbZCKBpP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Mar 2009 21:45:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1236735775.2820.160.camel@rzhang-dt>
+Received: from mga14.intel.com ([143.182.124.37]:5333 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755728AbZCKCdu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2009 22:33:50 -0400
+In-Reply-To: <20090310123950.GA30016@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Mar 11, 2009 at 09:42:55AM +0800, Zhang Rui wrote:
+On Tue, 2009-03-10 at 20:39 +0800, Matthew Garrett wrote:
+> On Tue, Mar 10, 2009 at 08:24:33PM +0800, yakui_zhao wrote:
+> > Subject: ACPI: Add the dmi check to make acpi_enforce_resources strict
+> > From: Zhao Yakui <yakui.zhao@intel.com>
+> > 
+> >    On some boxes the SMBus PCI controller is not hidden. The SMbus I/O port
+> > will be accessed in AML code. If the i2c driver is still loaded for the SMbus
+> > PCI device, there is no synchronization between OS and BIOS. And the conflict
+> > will happen.
+> >    So the dmi check is added so that the acpi_enforce_resources is strict when
+> > the box falls into the dmi check table. In such case the i2c driver won't be
+> > loaded for the SMbus pci device.
+> 
+> I think the only safe behaviour here is to default to strict on all 
+> hardware.
+> 
+we've discussed this with Len,
+he thinks that we should first generate a DMI patch to fix the eeepc901
+regression, which can be shipped upstream soon.
+then we'll cook up another patch, to set acpi_enforce_resources=strict
+by default, which should be shipped to len's test tree first, and see if
+there are any objections from the SMBus driver side.
 
-> The index value returned by _BQC is the index in the PCTG package.
-> if the _BCL package is in a reversed order, we can not use this index=
- to
-> get the value in =EF=BB=BFdevice->brightness->levels[].
-> For example, if the current brightness is 0x64, _BQC returns 0 in thi=
-s
-> case, but we can not translate this to value 0x14, we need a flag to
-> tell us that _BCL is reversed.
->=20
-> But in the non-indexed case, _BQC always returns a percentage that ca=
-n
-> be used directly by ACPI video driver, i.e. we don't need to parse
-> device->brightness->levels to get the real value. so we don't need to
-> check the =EF=BB=BFdevice->brightness->flags._BCL_reversed bit.
+Yakui will send the second patch out soon.
 
-Ah, of course. Sorry, I should have got that. Thanks for the=20
-explanation!
+thanks,
+rui.
 
-Acked-by: Matthew Garrett <mjg@redhat.com>
-
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
