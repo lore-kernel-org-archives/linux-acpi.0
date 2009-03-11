@@ -1,34 +1,30 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: 2.6.29-rc7 does not power off on halt
-Date: Wed, 11 Mar 2009 13:44:43 +0100
-Message-ID: <87k56wteis.fsf@tac.ki.iif.hu>
-References: <87vdqishgp.fsf@tac.ki.iif.hu> <200903092222.18562.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: The Garbled screen issue on Sony laptops with two graphics (Intel and Nvidia)
+Date: Wed, 11 Mar 2009 12:47:48 +0000
+Message-ID: <20090311124748.GA21017@srcf.ucam.org>
+References: <1236739527.2820.178.camel@rzhang-dt> <20090311024652.GA14493@srcf.ucam.org> <1236756550.2820.218.camel@rzhang-dt> <1236756625.2820.219.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:53330 "EHLO tac.ki.iif.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751992AbZCKMov (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Mar 2009 08:44:51 -0400
-In-Reply-To: <200903092222.18562.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Mon, 9 Mar 2009 22:22:18 +0100")
+Received: from cavan.codon.org.uk ([93.93.128.6]:56854 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383AbZCKMr5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2009 08:47:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1236756625.2820.219.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, "Wang, Zhenyu Z" <zhenyu.z.wang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+On Wed, Mar 11, 2009 at 03:30:25PM +0800, Zhang Rui wrote:
+> Anyway, switching between the two graphics cards is a good feature for
+> users, isn't it?
 
-> On Monday 09 March 2009, Ferenc Wagner wrote:
-> 
->> The current git kernel doesn't switch off power as the last step of
->> system halt (-p) on our Atom systems.  Everything seems to be all
->> right, just the power remains on.  Is this a known issue perhaps?
->
-> Not really.  Does it happen with 2.6.28 too?
+Yes, but the same functionality is present on other machines which don't 
+have the _DSM method that the Sonys have. Intel haven't provided any 
+information about how this is supposed to work, despite the handover 
+being a feature of the GM45 chipset.
 
-Yes.  They don't power off under 2.6.24, 2.6.28.7 nor 2.6.29-rc7.
-So this isn't a new issue.
 -- 
-Regards,
-Feri.
+Matthew Garrett | mjg59@srcf.ucam.org
