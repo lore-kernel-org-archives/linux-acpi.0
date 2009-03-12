@@ -1,192 +1,254 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] acpi: simplify module_param namespace
-Date: Thu, 12 Mar 2009 09:07:19 +1030
-Message-ID: <200903120907.20055.rusty@rustcorp.com.au>
-References: <200903071328.28113.rusty@rustcorp.com.au> <200903110927.12792.rusty@rustcorp.com.au> <20090311145124.696b2448.sfr@canb.auug.org.au>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH] acpi: Populate DIDL before registering ACPI video
+	device on Intel
+Date: Thu, 12 Mar 2009 09:06:59 +0800
+Message-ID: <1236820019.3640.13.camel@localhost.localdomain>
+References: <20090311215517.GA32400@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:40617 "EHLO ozlabs.org"
+Received: from mga02.intel.com ([134.134.136.20]:56436 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751417AbZCKWh0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Mar 2009 18:37:26 -0400
-In-Reply-To: <20090311145124.696b2448.sfr@canb.auug.org.au>
-Content-Disposition: inline
+	id S1753574AbZCLBGF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Mar 2009 21:06:05 -0400
+In-Reply-To: <20090311215517.GA32400@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: yakui_zhao <yakui.zhao@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, intel-gfx@lists.freedesktop.org
 
-On Wednesday 11 March 2009 14:21:24 Stephen Rothwell wrote:
-> Hi Rusty,
+On Thu, 2009-03-12 at 05:55 +0800, Matthew Garrett wrote:
+cc: intel-gfx@lists.freedesktop.org
+
+     On some HP boxes the acpi video driver depends on the ACPI IGD
+Opregion. If the ACPI IGD opregion is not initialized, the _DOD object
+will return the incorrect supported devices. In such case when LID is
+closed, the SMI will be called and crash will happen. (The DIDL field of
+ACPI IGD opregion is filled with the supported devices, which is
+enumerated by graphics driver).
+If the ACPI IGD opregion is initialized correctly, the ACPI video driver
+can be loaded correctly and there is no crash.
+
+IMO the idea in this patch is very reasonable. 
+
+The ACPI video driver will be deferred if the ACPI IGD opregion is
+detected. Only when ACPI IGD opregion is initialized, the acpi video
+driver will be bound with the ACPI video device. 
+    The supported device list is enumerated by graphics driver, which
+depends on the KMS.
+
+Hi, Len/Jesse
+    Any comments about this patch?
+   
+     
+> Intel graphics hardware that implements the ACPI IGD OpRegion spec 
+> requires that the list of display devices be populated before any ACPI 
+> video methods are called. Detect when this is the case and defer 
+> registration until the opregion code calls it. Fixes crashes on HP 
+> laptops as seen in kernel bugzilla #11259.
+>     
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 > 
-> On Wed, 11 Mar 2009 09:27:12 +1030 Rusty Russell <rusty@rustcorp.com.au> wrote:
-> >
-> > This version is bigger, but simpler, and doesn't change link order.  It just
-> > moves everything into the acpi module.
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index bb5ed05..64e987c 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -37,6 +37,8 @@
+>  #include <linux/thermal.h>
+>  #include <linux/video_output.h>
+>  #include <linux/sort.h>
+> +#include <linux/pci.h>
+> +#include <linux/pci_ids.h>
+>  #include <asm/uaccess.h>
+>  
+>  #include <acpi/acpi_bus.h>
+> @@ -2124,7 +2126,27 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
+>  	return 0;
+>  }
+>  
+> -static int __init acpi_video_init(void)
+> +static int __init intel_opregion_present(void)
+> +{
+> +#if defined(CONFIG_DRM_I915) || defined(CONFIG_DRM_I915_MODULE)
+> +	struct pci_dev *dev = NULL;
+> +	u32 address;
+> +
+> +	for_each_pci_dev(dev) {
+> +		if ((dev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
+> +			continue;
+> +		if (dev->vendor != PCI_VENDOR_ID_INTEL)
+> +			continue;
+> +		pci_read_config_dword(dev, 0xfc, &address);
+> +		if (!address)
+> +			continue;
+> +		return 1;
+> +	}
+> +#endif
+> +	return 0;
+> +}
+> +
+> +int acpi_video_register(void)
+>  {
+>  	int result = 0;
+>  
+> @@ -2141,6 +2163,22 @@ static int __init acpi_video_init(void)
+>  
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(acpi_video_register);
+> +
+> +/*
+> + * This is kind of nasty. Hardware using Intel chipsets may require
+> + * the video opregion code to be run first in order to initialise
+> + * state before any ACPI video calls are made. To handle this we defer
+> + * registration of the video class until the opregion code has run.
+> + */
+> +
+> +static int __init acpi_video_init(void)
+> +{
+> +	if (intel_opregion_present())
+> +		return 0;
+> +
+> +	return acpi_video_register();
+> +}
+>  
+>  static void __exit acpi_video_exit(void)
+>  {
+> diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+> index 6dab63b..70a9904 100644
+> --- a/drivers/gpu/drm/i915/i915_dma.c
+> +++ b/drivers/gpu/drm/i915/i915_dma.c
+> @@ -1144,8 +1144,6 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+>  	if (!IS_I945G(dev) && !IS_I945GM(dev))
+>  		pci_enable_msi(dev->pdev);
+>  
+> -	intel_opregion_init(dev);
+> -
+>  	spin_lock_init(&dev_priv->user_irq_lock);
+>  	dev_priv->user_irq_refcount = 0;
+>  
+> @@ -1164,6 +1162,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+>  		}
+>  	}
+>  
+> +	/* Must be done after probing outputs */
+> +	intel_opregion_init(dev);
+> +
+>  	return 0;
+>  
+>  out_iomapfree:
+> diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
+> index ff01283..60b746f 100644
+> --- a/drivers/gpu/drm/i915/i915_opregion.c
+> +++ b/drivers/gpu/drm/i915/i915_opregion.c
+> @@ -26,6 +26,7 @@
+>   */
+>  
+>  #include <linux/acpi.h>
+> +#include <acpi/video.h>
+>  
+>  #include "drmP.h"
+>  #include "i915_drm.h"
+> @@ -136,6 +137,12 @@ struct opregion_asle {
+>  
+>  #define ASLE_CBLV_VALID         (1<<31)
+>  
+> +#define ACPI_OTHER_OUTPUT (0<<8)
+> +#define ACPI_VGA_OUTPUT (1<<8)
+> +#define ACPI_TV_OUTPUT (2<<8)
+> +#define ACPI_DIGITAL_OUTPUT (3<<8)
+> +#define ACPI_LVDS_OUTPUT (4<<8)
+> +
+>  static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>  {
+>  	struct drm_i915_private *dev_priv = dev->dev_private;
+> @@ -282,6 +289,57 @@ static struct notifier_block intel_opregion_notifier = {
+>  	.notifier_call = intel_opregion_video_event,
+>  };
+>  
+> +/*
+> + * Initialise the DIDL field in opregion. This passes a list of devices to
+> + * the firmware. Values are defined by section B.4.2 of the ACPI specification
+> + * (version 3)
+> + */
+> +
+> +static void intel_didl_outputs(struct drm_device *dev)
+> +{
+> +	struct drm_i915_private *dev_priv = dev->dev_private;
+> +	struct intel_opregion *opregion = &dev_priv->opregion;
+> +	struct drm_connector *connector;
+> +	int i = 0;
+> +
+> +	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
+> +		int output_type = ACPI_OTHER_OUTPUT;
+> +		if (i >= 8) {
+> +			dev_printk (KERN_ERR, &dev->pdev->dev,
+> +				    "More than 8 outputs detected\n");
+> +			return;
+> +		}
+> +		switch (connector->connector_type) {
+> +		case DRM_MODE_CONNECTOR_VGA:
+> +		case DRM_MODE_CONNECTOR_DVIA:
+> +			output_type = ACPI_VGA_OUTPUT;
+> +			break;
+> +		case DRM_MODE_CONNECTOR_Composite:
+> +		case DRM_MODE_CONNECTOR_SVIDEO:
+> +		case DRM_MODE_CONNECTOR_Component:
+> +		case DRM_MODE_CONNECTOR_9PinDIN:
+> +			output_type = ACPI_TV_OUTPUT;
+> +			break;
+> +		case DRM_MODE_CONNECTOR_DVII:
+> +		case DRM_MODE_CONNECTOR_DVID:
+> +		case DRM_MODE_CONNECTOR_DisplayPort:
+> +		case DRM_MODE_CONNECTOR_HDMIA:
+> +		case DRM_MODE_CONNECTOR_HDMIB:
+> +			output_type = ACPI_DIGITAL_OUTPUT;
+> +			break;
+> +		case DRM_MODE_CONNECTOR_LVDS:
+> +			output_type = ACPI_LVDS_OUTPUT;
+> +			break;
+> +		}
+> +		opregion->acpi->didl[i] |= (1<<31) | output_type | i;
+> +		i++;
+> +	}
+> +
+> +	/* If fewer than 8 outputs, the list must be null terminated */
+> +	if (i < 8)
+> +		opregion->acpi->didl[i] = 0;
+> +}
+> +
+>  int intel_opregion_init(struct drm_device *dev)
+>  {
+>  	struct drm_i915_private *dev_priv = dev->dev_private;
+> @@ -312,6 +370,10 @@ int intel_opregion_init(struct drm_device *dev)
+>  	if (mboxes & MBOX_ACPI) {
+>  		DRM_DEBUG("Public ACPI methods supported\n");
+>  		opregion->acpi = base + OPREGION_ACPI_OFFSET;
+> +		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+> +			intel_didl_outputs(dev);
+> +			acpi_video_register();
+> +		}
+>  	} else {
+>  		DRM_DEBUG("Public ACPI methods not supported\n");
+>  		err = -ENOTSUPP;
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> new file mode 100644
+> index 0000000..f0275bb
+> --- /dev/null
+> +++ b/include/acpi/video.h
+> @@ -0,0 +1,11 @@
+> +#ifndef __ACPI_VIDEO_H
+> +#define __ACPI_VIDEO_H
+> +
+> +#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+> +extern int acpi_video_register(void);
+> +#else
+> +static inline int acpi_video_register(void) { return 0; }
+> +#endif
+> +
+> +#endif
+> +
 > 
-> So we end up with one big acpi.ko module instead of separate modules
-> (like battery.ko, dock.ko) some of which we may not have needed to
-> load?  Just clarifying.
-
-Oops.  Good point.
-
-The built-in only parts of ACPI should all be one "module".  The rest should
-still be separate modules.
-
-Third time for sure!
-
-Subject: acpi: simplify module_param namespace
-
-Impact: cleanup
-
-Rather than overriding MODULE_PARAM_PREFIX, build via acpi.o so
-KBUILD_MODNAME is set to "acpi".
-
-This is the logical way to do it, even though acpi cannot be a module
-due to these config options being bool.  Those parts of ACPI which can
-be modular are not built into the acpi "module".
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
----
- drivers/acpi/Makefile |   68 ++++++++++++++++++++++++++------------------------
- drivers/acpi/debug.c  |    5 ---
- drivers/acpi/power.c  |    4 --
- drivers/acpi/system.c |    4 --
- 4 files changed, 36 insertions(+), 45 deletions(-)
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -14,48 +14,52 @@ obj-$(CONFIG_X86)		+= blacklist.o
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= osl.o utils.o reboot.o\
-+obj-y				+= acpi.o \
- 					acpica/
- 
-+# All the builtin files are in the "acpi." module_param namespace.
-+acpi-y				+= osl.o utils.o reboot.o
-+
- # sleep related files
--obj-y				+= wakeup.o
--obj-y				+= sleep.o
--obj-$(CONFIG_ACPI_SLEEP)	+= proc.o
-+acpi-y				+= wakeup.o
-+acpi-y				+= sleep.o
-+acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- 
- 
- #
- # ACPI Bus and Device Drivers
- #
-+acpi-y				+= bus.o glue.o
-+acpi-y				+= scan.o
-+# Keep EC driver first. Initialization of others depend on it.
-+acpi-y				+= ec.o
-+acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
-+acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-+acpi-y				+= power.o
-+acpi-y				+= system.o event.o
-+acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
-+acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
-+ifdef CONFIG_ACPI_VIDEO
-+acpi-y				+= video_detect.o
-+endif
-+
-+# These are (potentially) separate modules
-+obj-$(CONFIG_ACPI_AC) 		+= ac.o
-+obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-+obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-+obj-$(CONFIG_ACPI_FAN)		+= fan.o
-+obj-$(CONFIG_ACPI_VIDEO)	+= video.o
-+obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
-+obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
-+obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
-+obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
-+obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
-+obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
-+obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-+
- processor-objs	+= processor_core.o processor_throttling.o \
- 				processor_idle.o processor_thermal.o
- ifdef CONFIG_CPU_FREQ
- processor-objs	+= processor_perflib.o
- endif
--
--obj-y				+= bus.o glue.o
--obj-y				+= scan.o
--# Keep EC driver first. Initialization of others depend on it.
--obj-y				+= ec.o
--obj-$(CONFIG_ACPI_AC) 		+= ac.o
--obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
--obj-$(CONFIG_ACPI_BUTTON)	+= button.o
--obj-$(CONFIG_ACPI_FAN)		+= fan.o
--obj-$(CONFIG_ACPI_DOCK)		+= dock.o
--obj-$(CONFIG_ACPI_VIDEO)	+= video.o
--ifdef CONFIG_ACPI_VIDEO
--obj-y				+= video_detect.o
--endif
--
--obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
--obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
--obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
--obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
--obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-y				+= power.o
--obj-y				+= system.o event.o
--obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
--obj-$(CONFIG_ACPI_NUMA)		+= numa.o
--obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
--obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
--obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
--obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -12,11 +12,6 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debug");
--
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- 
- struct acpi_dlayer {
- 	const char *name;
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -54,10 +54,6 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
- 
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- int acpi_power_nocheck;
- module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
- 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -33,10 +33,6 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("system");
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- 
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
-
+> 
 
