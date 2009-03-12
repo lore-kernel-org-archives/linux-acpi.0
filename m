@@ -1,168 +1,35 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 1/5] ACPI video: check the return value of
-	acpi_video_device_lcd_get_level_current
-Date: Thu, 12 Mar 2009 14:28:32 +0800
-Message-ID: <1236839312.2807.12.camel@rzhang-dt>
-References: <1236672205.2820.119.camel@rzhang-dt>
-	 <200903111356.01710.trenn@suse.de>
+From: Wu Fengguang <fengguang.wu@intel.com>
+Subject: [PATCH] ACPI: pass correct parameter to
+	acpi_processor_ffh_cstate_probe_cpu()
+Date: Thu, 12 Mar 2009 15:45:24 +0800
+Message-ID: <20090312074524.GA15992@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:22526 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:62413 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750949AbZCLG1f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Mar 2009 02:27:35 -0400
-In-Reply-To: <200903111356.01710.trenn@suse.de>
+	id S1751497AbZCLHqs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Mar 2009 03:46:48 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Ingo Molnar <mingo@elte.hu>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
 
-On Wed, 2009-03-11 at 20:56 +0800, Thomas Renninger wrote:
-> On Tuesday 10 March 2009 09:03:25 Zhang Rui wrote:
-> > Subject: check the return value of=20
-> acpi_video_device_lcd_get_level_current
-> > From: Zhang Rui <rui.zhang@intel.com>
-> >=20
-> > check the return value of acpi_video_device_lcd_get_level_current
-> >=20
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/video.c |   69=20
-> ++++++++++++++++++++++++++++++++++-----------------
-> >  1 file changed, 47 insertions(+), 22 deletions(-)
-> >=20
-> > Index: linux-2.6/drivers/acpi/video.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-2.6.orig/drivers/acpi/video.c
-> > +++ linux-2.6/drivers/acpi/video.c
-> > @@ -502,11 +505,29 @@ static int
-> >  acpi_video_device_lcd_get_level_current(struct acpi_video_device=20
-> *device,
-> >  					unsigned long long *level)
-> >  {
-> > -	if (device->cap._BQC)
-> > -		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
-> > -					     level);
-> > +	acpi_status status =3D AE_OK;
-> > +
-> > +	if (device->cap._BQC) {
-> > +		status =3D acpi_evaluate_integer(device->dev->handle, "_BQC",
-> > +						NULL, level);
-> > +		if (ACPI_SUCCESS(status)) {
-> > +			device->brightness->curr =3D *level;
-> > +			return 0;
-> > +		} else {
-> > +			/* Fixme:
-> > +			 * should we return an error or ignore this failure?
-> > +			 * dev->brightness->curr is a cached value which stores
-> > +			 * the correct current backlight level in most cases.
-> > +			 * ACPI video backlight still works w/ buggy _BQC.
-> > +			 * http://bugzilla.kernel.org/show_bug.cgi?id=3D12233
-> > +			 */
-> I wonder what should go wrong there at all.
-> We should add a warning (using printk(.. FW_BUG...)) if we do ACPI vi=
-deo=20
-> brightness switching without _BQC. This should be supported, but is a=
-=20
-> firmware bug and likely fails.
-I think we should do it in video_detect.c
-a simple patch like this:
+This fixes a NULL pointer dereference bug introduced by 6e911954cac.
 
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
 ---
- drivers/acpi/video_detect.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-Index: linux-2.6/drivers/acpi/video_detect.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.orig/drivers/acpi/video_detect.c
-+++ linux-2.6/drivers/acpi/video_detect.c
-@@ -55,6 +55,8 @@ acpi_backlight_cap_match(acpi_handle han
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
- 				  "support\n"));
- 		*cap |=3D ACPI_VIDEO_BACKLIGHT;
-+		if (ACPI_FAILURE(acpi_get_handle(handle, "_BQC", &h_dummy)))
-+			printk(KERN_WARNING FW_BUG "No _BQC available\n");
- 		/* We have backlight support, no need to scan further */
- 		return AE_CTRL_TERMINATE;
- 	}
-
-But the ACPI warning here is still needed, because the _BQC method is
-implemented but there are some errors when evaluating it.
-
-> (BTW, I recently saw a BIOS with _BCQ function. They said they are go=
-ing to=20
-> fix it, but it may be more widespread, e.g. this also is often the ca=
-se=20
-> (missing _BQC) on Samsung). I found it by luck disassembling and=20
-> recompiling the DSDT, a runtime warning would be nice (if it does not=
-=20
-> already exist).
-Interesting, if this is tree, we can add the support for _BCQ in a
-separate patch.
-BTW: could you please attach the acpidump of that box please because I
-never noticed this problem before. :)
-
-> Anyway, if we have _BQC (cap._BQC), evaluation should not fail?
-> Ok, double checking is always a good idea...
->=20
-No, evaluating _BQC may return fail, like the one in bug 12233,
-        Method (_BQC, 0, NotSerialized)
-        {
-            And (\_SB.PCI0.LPCB.FJEX.GBLS, 0xFF, Local0)
-            Return (DerefOf (Index (BCLP, Add (Local0, 0x02))))
-        }
-but =EF=BB=BF\_SB.PCI0.LPCB.FJEX.GBLS doesn't exist at all...
-
-> > +			ACPI_WARNING((AE_INFO, "Evaluating _BQC failed"));
-> > +			device->cap._BQC =3D 0;
-> > +		}
-> > +	}
-> > +
-> >  	*level =3D device->brightness->curr;
-> > -	return AE_OK;
-> > +	return 0;
-> >  }
-> > =20
-> >  static int
-> > @@ -773,18 +794,8 @@ static void acpi_video_device_find_cap(s
-> >  		device->backlight =3D backlight_device_register(name,
-> >  			NULL, device, &acpi_backlight_ops);
-> >  		device->backlight->props.max_brightness =3D device->brightness->=
-count-3;
-> > -		/*
-> > -		 * If there exists the _BQC object, the _BQC object will be
-> > -		 * called to get the current backlight brightness. Otherwise
-> > -		 * the brightness will be set to the maximum.
-> > -		 */
-> > -		if (device->cap._BQC)
-> > -			device->backlight->props.brightness =3D
-> > -				acpi_video_get_brightness(device->backlight);
-> > -		else
-> > -			device->backlight->props.brightness =3D
-> > -				device->backlight->props.max_brightness;
-> > -		backlight_update_status(device->backlight);
-> > +		device->backlight->props.brightness =3D
-> > +			acpi_video_get_brightness(device->backlight);
-> I could imagine this introduces a regression on machines without _BQC=
-=2E
-> IIRC the value which brightness is currently active must be initializ=
-ed if=20
-> there is no _BQC function and that seems to happen here.
->=20
-right, this should probably be done in patch 5.
-where we have set the backlight in acpi_video_init_brightness already.
-
-thanks,
-rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index 6626e8c..b866b87 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -137,7 +137,7 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+ 	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
+ 
+ 	retval = smp_call_function_single(cpu,
+-				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
++				acpi_processor_ffh_cstate_probe_cpu, &cxcc, 1);
+ 	if (retval == 0) {
+ 		retval = cxcc.retval;
+ 		if (retval == 0) {
