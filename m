@@ -1,42 +1,58 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RESEND PATCH 7/7] ACPI : add a warning message if _BQC is not
-	found
-Date: Thu, 12 Mar 2009 16:57:11 +0800
-Message-ID: <1236848231.2807.76.camel@rzhang-dt>
+From: Robert Szalai <krumpirluk@gmail.com>
+Subject: Re: [Help] I can't get Intel Speedstep working
+Date: Thu, 12 Mar 2009 10:43:28 +0100
+Message-ID: <cd5c26b90903120243sc8707efj54b621f4067cb6ce@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:63602 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754193AbZCLI4P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Mar 2009 04:56:15 -0400
+Received: from fg-out-1718.google.com ([72.14.220.153]:60103 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594AbZCLJnb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2009 05:43:31 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so90252fgg.17
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Mar 2009 02:43:28 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
+To: linux-acpi@vger.kernel.org
 
-ACPI backlight control w/o _BQC support is kinda firmware bug.
-Add a warning if _BQC is not implemented.
+Could somebody check what's wrong with my DSDT table please?
+CPU throttling works on Windows, but I can't get it work on Linux :(((
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video_detect.c |    3 +++
- 1 file changed, 3 insertions(+)
+Here is my dsdt.dsl:
+http://www.easy-share.com/1903982677/dsdt.dsl
 
-Index: linux-2.6/drivers/acpi/video_detect.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video_detect.c
-+++ linux-2.6/drivers/acpi/video_detect.c
-@@ -55,6 +55,9 @@ acpi_backlight_cap_match(acpi_handle han
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
- 				  "support\n"));
- 		*cap |= ACPI_VIDEO_BACKLIGHT;
-+		if (ACPI_FAILURE(acpi_get_handle(handle, "_BQC", &h_dummy)))
-+			printk(KERN_WARNING FW_BUG PREFIX "ACPI brightness "
-+					"control misses _BQC function\n");
- 		/* We have backlight support, no need to scan further */
- 		return AE_CTRL_TERMINATE;
- 	}
-
-
+> Hello everybody,
+>
+> I have a Shuttle K48 Barebone PC (Intel 945GC + ICH7 chipset) and a
+> Core 2 Duo E7300 CPU. I'm using Ubuntu 8.04 with 2.6.24-23-generic
+> kernel on my box. Everything works fine except Speedstep. When I try
+> to load acpi_cpufreq module, I get the following error:
+>
+> $ sudo modprobe acpi_cpufreq
+> FATAL: Error inserting acpi_cpufreq
+> (/lib/modules/2.6.24-23-generic/kernel/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.ko):
+> No such device
+>
+> I've tried everything (other kernel versions, various patches) but the
+> result is the same.
+> I don't know if it is related to EIST or not but I've found these two
+> Exceptions in my dmesg:
+>
+> [   20.675593] ACPI Exception (processor_core-0822): AE_NOT_FOUND,
+> Processor Device is not present [20070126]
+> [   20.675599] ACPI Exception (processor_core-0822): AE_NOT_FOUND,
+> Processor Device is not present [20070126]
+>
+> After some research I've found that maybe a broken DSDT table is the
+> couse of my problem. I'm not an ACPI expert and I dont't know how to
+> locate and fix the problem in my DSDT. I've uploaded my dsdt.dsl to
+>
+> http://www.easy-share.com/1903982677/dsdt.dsl
+>
+> Any suggestions? I'd really like to use Speedstep on my Box.
+> You are my last hope Guys.
+>
+> Thanks so much
+> Robert Szalai
+>
