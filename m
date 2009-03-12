@@ -1,125 +1,76 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RESEND PATCH 3/7] ACPI video: support _BCL packages that don't
-	export brightness levels when machine is on AC/Battery
-Date: Thu, 12 Mar 2009 16:57:03 +0800
-Message-ID: <1236848223.2807.72.camel@rzhang-dt>
+Subject: [RESEND PATCH 6/7] ACPI video: support buggy BIOSes with _BCQ
+	implemented
+Date: Thu, 12 Mar 2009 16:57:10 +0800
+Message-ID: <1236848230.2807.75.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:22690 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:51451 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754013AbZCLI4H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Mar 2009 04:56:07 -0400
+	id S1753997AbZCLI4N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Mar 2009 04:56:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
 
-Many buggy BIOSes don't export the brightness levels when machine
-is on AC/Battery in the _BCL method.
-
-Reformat the _BCL package for these laptops:
-now the elements in device->brightness->levels[] are like:
-levels[0]: brightness level when on AC power.
-levels[1]: brightness level when on Battery power.
-levels[2]: supported brightness level 1.
-levels[3]: supported brightness level 2.
-...
-levels[n]: supported brightness level n-1.
-levels[n + 1]: supported brightness level n.
-So if there are n supported brightness levels on this laptop,
-we will have n+2 entries in device->brightnes->levels[].
-
-level[0] and level[1] are invalid on the laptops that don't
-export the brightness levels on AC/Battery.
-Fortunately, we never use these two values at all, even for the
-valid ones.
+Some buggy BIOSes implements _BCQ instead of _BQC.
+Support these buggy BIOSes in ACPI video driver.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Acked-by: Thomas Renninger <trenn@suse.de>
 ---
- drivers/acpi/video.c |   37 ++++++++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ drivers/acpi/video.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
 Index: linux-2.6/drivers/acpi/video.c
 ===================================================================
 --- linux-2.6.orig/drivers/acpi/video.c
 +++ linux-2.6/drivers/acpi/video.c
-@@ -168,10 +168,15 @@ struct acpi_video_device_cap {
- 	u8 _DSS:1;		/*Device state set */
- };
- 
-+struct acpi_video_brightness_flags {
-+	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
-+};
-+
- struct acpi_video_device_brightness {
- 	int curr;
- 	int count;
- 	int *levels;
-+	struct acpi_video_brightness_flags flags;
- };
- 
- struct acpi_video_device {
-@@ -682,7 +687,7 @@ static int
- acpi_video_init_brightness(struct acpi_video_device *device)
+@@ -162,6 +162,7 @@ struct acpi_video_device_cap {
+ 	u8 _BCL:1;		/*Query list of brightness control levels supported */
+ 	u8 _BCM:1;		/*Set the brightness level */
+ 	u8 _BQC:1;		/* Get current brightness level */
++	u8 _BCQ:1;		/* Some buggy BIOS uses _BCQ instead of _BQC */
+ 	u8 _DDC:1;		/*Return the EDID for this device */
+ 	u8 _DCS:1;		/*Return status of output device */
+ 	u8 _DGS:1;		/*Query graphics state */
+@@ -523,8 +524,10 @@ acpi_video_device_lcd_get_level_current(
  {
- 	union acpi_object *obj = NULL;
--	int i, max_level = 0, count = 0;
-+	int i, max_level = 0, count = 0, level_ac_battery = 0;
- 	union acpi_object *o;
- 	struct acpi_video_device_brightness *br = NULL;
+ 	acpi_status status = AE_OK;
  
-@@ -701,7 +706,7 @@ acpi_video_init_brightness(struct acpi_v
- 		goto out;
+-	if (device->cap._BQC) {
+-		status = acpi_evaluate_integer(device->dev->handle, "_BQC",
++	if (device->cap._BQC || device->cap._BCQ) {
++		char *buf = device->cap._BQC ? "_BQC" : "_BCQ";
++
++		status = acpi_evaluate_integer(device->dev->handle, buf,
+ 						NULL, level);
+ 		if (ACPI_SUCCESS(status)) {
+ 			if (device->brightness->flags._BQC_use_index) {
+@@ -544,8 +547,8 @@ acpi_video_device_lcd_get_level_current(
+ 			 * ACPI video backlight still works w/ buggy _BQC.
+ 			 * http://bugzilla.kernel.org/show_bug.cgi?id=12233
+ 			 */
+-			ACPI_WARNING((AE_INFO, "Evaluating _BQC failed"));
+-			device->cap._BQC = 0;
++			ACPI_WARNING((AE_INFO, "Evaluating %s failed", buf));
++			device->cap._BQC = device->cap._BCQ = 0;
+ 		}
  	}
  
--	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
-+	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
- 				GFP_KERNEL);
- 	if (!br->levels)
- 		goto out_free;
-@@ -719,16 +724,34 @@ acpi_video_init_brightness(struct acpi_v
- 		count++;
+@@ -861,6 +864,11 @@ static void acpi_video_device_find_cap(s
  	}
- 
--	/* don't sort the first two brightness levels */
-+	/*
-+	 * some buggy BIOS don't export the levels
-+	 * when machine is on AC/Battery in _BCL package.
-+	 * In this case, the first two elements in _BCL packages
-+	 * are also supported brightness levels that OS should take care of.
-+	 */
-+	for (i = 2; i < count; i++)
-+		if (br->levels[i] == br->levels[0] ||
-+		    br->levels[i] == br->levels[1])
-+			level_ac_battery++;
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle,"_BQC",&h_dummy1)))
+ 		device->cap._BQC = 1;
++	else if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle,"_BCQ",&h_dummy1))) {
++		printk(KERN_WARNING FW_BUG "_BCQ is used instead of _BQC\n");
++		device->cap._BCQ = 1;
++	}
 +
-+	if (level_ac_battery < 2) {
-+		level_ac_battery = 2 - level_ac_battery;
-+		br->flags._BCL_no_ac_battery_levels = 1;
-+		for (i = (count - 1 + level_ac_battery); i >= 2; i--)
-+			br->levels[i] = br->levels[i - level_ac_battery];
-+		count += level_ac_battery;
-+	} else if (level_ac_battery > 2)
-+		ACPI_ERROR((AE_INFO, "Too many duplicates in _BCL package\n"));
-+
-+	/* sort all the supported brightness levels */
- 	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
- 		acpi_video_cmp_level, NULL);
- 
--	if (count < 2)
--		goto out_free_levels;
--
- 	br->count = count;
- 	device->brightness = br;
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			  "found %d brightness levels\n", count - 2));
- 	kfree(obj);
- 	return max_level;
- 
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_DDC", &h_dummy1))) {
+ 		device->cap._DDC = 1;
+ 	}
 
 
