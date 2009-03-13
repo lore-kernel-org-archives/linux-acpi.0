@@ -1,155 +1,76 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] ACPI: move private declarations to internal.h
-Date: Fri, 13 Mar 2009 12:08:26 -0600
-Message-ID: <20090313180826.2492.1367.stgit@bob.kio>
+From: Terence Ripperda <tripperda@nvidia.com>
+Subject: Re: patch for video.c driver
+Date: Fri, 13 Mar 2009 15:45:44 -0500
+Message-ID: <20090313204544.GR16754@hygelac>
+References: <20090312154741.GA1055@hygelac> <1236910092.2807.103.camel@rzhang-dt> <20090313030030.GA23571@srcf.ucam.org> <20090313173604.GB13342@hygelac> <20090313174726.GA2888@srcf.ucam.org> <20090313175812.GE13342@hygelac> <20090313180646.GA3171@srcf.ucam.org>
+Reply-To: Terence Ripperda <tripperda@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:18844 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142AbZCMSI2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Mar 2009 14:08:28 -0400
+Received: from hqemgate04.nvidia.com ([216.228.112.152]:2653 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758979AbZCMUpr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Mar 2009 16:45:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20090313180646.GA3171@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Terence Ripperda <TRipperda@nvidia.com>, Zhang Rui <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-A number of things that shouldn't be exposed outside the ACPI core
-were declared in include/acpi/acpi_drivers.h, where anybody can
-see them.  This patch moves those declarations to a new "internal.h"
-inside drivers/acpi.
+On Fri, Mar 13, 2009 at 11:06:46AM -0700, mjg59@srcf.ucam.org wrote:
+> On Fri, Mar 13, 2009 at 12:58:12PM -0500, Terence Ripperda wrote:
+> > On Fri, Mar 13, 2009 at 10:47:26AM -0700, mjg59@srcf.ucam.org wrote:
+> > > Yeah, this is the bit I don't understand. The design we've adopted for 
+> > > output switching ignores any BIOS provided information, and instead just 
+> > > enables outputs based on the user preferences. The X driver then has 
+> > > responsibility for performing the actual switch. Nouveau appears to be 
+> > > able to handle this on nvidia platforms without any problem. So, really, 
+> > > I guess I'm not clear on what functionality NVIF is intended to provide 
+> > > here. Is it impossible to enable outputs on some systems without it?
+> > 
+> > yes, this is what I mean by platform customizations. some notebook platforms
+> > will rely on the DCS/DGS methods to perform hotkeys, others will rely on other
+> > mechanisms, such as NVIF methods. I suspect you'll find that nouveau's mechanism
+> > will work on a lot of notebooks, but not work at all on other notebooks.
+> 
+> Can we make sure we're clear on terminology here? I'm using hotkey 
+> events to refer purely to the process by which the user hits a key, the 
+> firmware generates a notification, the kernel catches this notification 
+> and generates a KEY_SWITCHVIDEOMODE which we then catch in the user 
+> session.
+> 
+> There's then the issue of actually performing a display output change in 
+> response to this. This is curently handled by generating an xrandr 
+> request. The X driver (potentially in combination with the kernel 
+> driver, in a kernel modesetting world) then enables or disables outputs 
+> as appropriate.
+> 
+> The actual output changing is related to but not dependent upon the 
+> hotkey press, as the user may want to change output configuration via 
+> the graphical UI rather than by hitting the hotkey. So is the NVIF 
+> functionality required for generating the event in the first place, 
+> performing the actual output switch or simply providing the firmware's 
+> preferred set of enabled outputs?
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- drivers/acpi/bus.c          |    2 ++
- drivers/acpi/internal.h     |   24 ++++++++++++++++++++++++
- drivers/acpi/scan.c         |    2 ++
- drivers/acpi/sleep.c        |    2 ++
- drivers/acpi/wakeup.c       |    2 ++
- include/acpi/acpi_drivers.h |   23 -----------------------
- 6 files changed, 32 insertions(+), 23 deletions(-)
- create mode 100644 drivers/acpi/internal.h
+sure, I sometimes use the wrong terminology; I mean a display change hotkey,
+where a keypress generates a display change event via the sbios/acpi subsystem.
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 765fd1c..2e90410 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -39,6 +39,8 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
-+#include "internal.h"
-+
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("bus");
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-new file mode 100644
-index 0000000..4aee4a2
---- /dev/null
-+++ b/drivers/acpi/internal.h
-@@ -0,0 +1,24 @@
-+/* For use by Linux/ACPI infrastructure, not drivers */
-+
-+/* --------------------------------------------------------------------------
-+                                  Power Resource
-+   -------------------------------------------------------------------------- */
-+
-+int acpi_device_sleep_wake(struct acpi_device *dev,
-+                           int enable, int sleep_state, int dev_state);
-+int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
-+int acpi_disable_wakeup_device_power(struct acpi_device *dev);
-+int acpi_power_get_inferred_state(struct acpi_device *device);
-+int acpi_power_transition(struct acpi_device *device, int state);
-+extern int acpi_power_nocheck;
-+
-+/* --------------------------------------------------------------------------
-+                                  Embedded Controller
-+   -------------------------------------------------------------------------- */
-+int acpi_ec_ecdt_probe(void);
-+int acpi_boot_ec_enable(void);
-+
-+/*--------------------------------------------------------------------------
-+                                  Suspend/Resume
-+  -------------------------------------------------------------------------- */
-+extern int acpi_sleep_init(void);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c54d7b6..2f04cd1 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -11,6 +11,8 @@
- 
- #include <acpi/acpi_drivers.h>
- 
-+#include "internal.h"
-+
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("scan");
- #define STRUCT_TO_INT(s)	(*((int*)&s))
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 5192666..0f86cf7 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -21,6 +21,8 @@
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-+
-+#include "internal.h"
- #include "sleep.h"
- 
- u8 sleep_states[ACPI_S_STATE_COUNT];
-diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-index 2d34806..3f29fd5 100644
---- a/drivers/acpi/wakeup.c
-+++ b/drivers/acpi/wakeup.c
-@@ -8,6 +8,8 @@
- #include <acpi/acpi_drivers.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
-+
-+#include "internal.h"
- #include "sleep.h"
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 5fc1bb0..241d227 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -99,24 +99,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
- 				   int bus);
- 
- /* --------------------------------------------------------------------------
--                                  Power Resource
--   -------------------------------------------------------------------------- */
--
--int acpi_device_sleep_wake(struct acpi_device *dev,
--                           int enable, int sleep_state, int dev_state);
--int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
--int acpi_disable_wakeup_device_power(struct acpi_device *dev);
--int acpi_power_get_inferred_state(struct acpi_device *device);
--int acpi_power_transition(struct acpi_device *device, int state);
--extern int acpi_power_nocheck;
--
--/* --------------------------------------------------------------------------
--                                  Embedded Controller
--   -------------------------------------------------------------------------- */
--int acpi_ec_ecdt_probe(void);
--int acpi_boot_ec_enable(void);
--
--/* --------------------------------------------------------------------------
-                                     Processor
-    -------------------------------------------------------------------------- */
- 
-@@ -165,9 +147,4 @@ static inline void unregister_hotplug_dock_device(acpi_handle handle)
- }
- #endif
- 
--/*--------------------------------------------------------------------------
--                                  Suspend/Resume
--  -------------------------------------------------------------------------- */
--extern int acpi_sleep_init(void);
--
- #endif /*__ACPI_DRIVERS_H__*/
+I do not mean a case where a userspace daemon detects keypresses independent of
+the sbios/acpi/kernel. I was trying to clarify whether nouveau was using such a 
+mechanism.
 
+NVIF methods implement both notification and query commands. so it's required
+for generating the event and querying the firmware's preferred set of enabled
+outputs.
+
+> 
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
+
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
