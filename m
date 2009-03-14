@@ -1,81 +1,59 @@
-From: Mathieu Chouquet-Stringer <mchouque@free.fr>
-Subject: [PATCH] thinkpad-acpi: fix module autoloading for older models
-Date: Sat, 14 Mar 2009 11:42:04 +0100
-Message-ID: <20090314104204.GA11226@mobydick>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: experimental patch for toshiba_acpi
+Date: Sat, 14 Mar 2009 12:05:40 +0000
+Message-ID: <20090314120540.GA16151@srcf.ucam.org>
+References: <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <a0c408570902260512t702b2575w417ef96dfa74a5bf@mail.gmail.com> <1235657022.3802.86.camel@hughsie-work.lan> <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk> <1235753349.5444.53.camel@localhost.localdomain> <20090228151933.GC17541@khazad-dum.debian.net> <alpine.LFD.2.00.0903122102490.24376@localhost.localdomain> <E1LiNsv-000CIz-00.arvidjaar-mail-ru@mx38.mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754131AbZCNKmX@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:39081 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750844AbZCNMFr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2009 08:05:47 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org
-Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, stable@kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+In-Reply-To: <E1LiNsv-000CIz-00.arvidjaar-mail-ru@mx38.mail.ru>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-	Hello Linus,
+On Sat, Mar 14, 2009 at 10:02:09AM +0300, Andrey Borzenkov wrote:
 
-Looks like this one liner patch never made it...  Hopefully, it'll go in
-before you release rc9 or 2.6.29.
+> /usr/bin/alarm
 
-Best,
-Mathieu
+Should be hooked into the rtc interface, but I'd be surprised if it 
+doesn't just work with the existing alarm infrastructure.
 
------ Forwarded message from Henrique de Moraes Holschuh <hmh@hmh.eng.br> -----
+> /usr/bin/dispswitch
 
-Delivered-To: online.fr-mchouque@free.fr
-X-Sasl-enc: J0pR0vt90JACc2icrP/7acPg7Vn8fC4jw2hSyELrb8PJ 1234704353
-X-Virus-Scanned: Debian amavisd-new at khazad-dum.debian.net
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org,
-	Mathieu Chouquet-Stringer <mchouque@free.fr>, stable@kernel.org
-Subject: [PATCH] thinkpad-acpi: fix module autoloading for older models
-Date: Sun, 15 Feb 2009 10:25:51 -0300
-X-Mailer: git-send-email 1.5.6.5
-X-CRM114-Version: 20070301-BlameBaltar ( TRE 0.7.5 (LGPL) ) MF-F8A122EB [pR: -2.3502]
-X-CRM114-CacheID: sfid-20090215_142656_606015_D7CAAB9F 
-X-CRM114-Status: UNSURE (-2.3502) This message is 'unsure'; please train it! 
+Should be hooked into the video output class.
 
-From: Mathieu Chouquet-Stringer <mchouque@free.fr>
+> /usr/bin/fan
 
-Looking at the source, there seems to be a missing * to match my DMI
-string.  I mean for newer IBM and Lenovo's laptops you match either one
-of the following:
-MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
-MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
+Should be an hwmon or thermal device.
 
-While for older Thinkpads, you do this (for instance):
-IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
+> /usr/bin/hotkey
 
-with IBM_BIOS_MODULE_ALIAS being MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
+Unneeded now.
 
-Note there's no * terminating the string.  As result, udev doesn't load
-anything because modprobe cannot find anything matching this (my
-machine actually):
+> /usr/bin/tbacklight
 
-udevtest: run: '/sbin/modprobe dmi:bvnIBM:bvr1IET71WW(2.10):bd06/16/2006:svnIBM:pn236621U:pvrNotAvailable:rvnIBM:rn236621U:rvrNotAvailable:cvnIBM:ct10:cvrNotAvailable:'
+There's already a backlight class device.
 
-Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: stable@kernel.org
----
- drivers/platform/x86/thinkpad_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> /usr/bin/tdocked
 
+Should be a platform device emitting dock events.
 
-Len, please consider this for 2.6.29.  It is an obvious one-liner.
+> /usr/bin/thotswap
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 91ae159..d218ecb 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -7524,7 +7524,7 @@ MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
-  * if it is not there yet.
-  */
- #define IBM_BIOS_MODULE_ALIAS(__type) \
--	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
-+	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW*")
- 
- /* Non-ancient thinkpads */
- MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
+Should already be unnecessary on any ACPI system - impossible to make 
+work properly without being in the kernel.
+
+> /usr/bin/ownerstring
+> /usr/bin/svpw
+> /usr/bin/tpasswd
+
+These are the ones of interest.
+
 -- 
-1.5.6.5
+Matthew Garrett | mjg59@srcf.ucam.org
