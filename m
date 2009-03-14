@@ -1,59 +1,29 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: experimental patch for toshiba_acpi
-Date: Sat, 14 Mar 2009 12:05:40 +0000
-Message-ID: <20090314120540.GA16151@srcf.ucam.org>
-References: <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <a0c408570902260512t702b2575w417ef96dfa74a5bf@mail.gmail.com> <1235657022.3802.86.camel@hughsie-work.lan> <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk> <1235753349.5444.53.camel@localhost.localdomain> <20090228151933.GC17541@khazad-dum.debian.net> <alpine.LFD.2.00.0903122102490.24376@localhost.localdomain> <E1LiNsv-000CIz-00.arvidjaar-mail-ru@mx38.mail.ru>
+From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: Re: [PATCH] thinkpad-acpi: fix module autoloading for older models
+Date: Sat, 14 Mar 2009 16:14:19 +0100
+Message-ID: <ac3eb2510903140814t26954869m4f07623c25b5948f@mail.gmail.com>
+References: <20090314104204.GA11226@mobydick>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39081 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750844AbZCNMFr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2009 08:05:47 -0400
-Content-Disposition: inline
-In-Reply-To: <E1LiNsv-000CIz-00.arvidjaar-mail-ru@mx38.mail.ru>
+Received: from ey-out-2122.google.com ([74.125.78.25]:38907 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472AbZCNPOW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2009 11:14:22 -0400
+In-Reply-To: <20090314104204.GA11226@mobydick>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Mathieu Chouquet-Stringer <mchouque@free.fr>, linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acp
 
-On Sat, Mar 14, 2009 at 10:02:09AM +0300, Andrey Borzenkov wrote:
+On Sat, Mar 14, 2009 at 11:42, Mathieu Chouquet-Stringer
+<mchouque@free.fr> wrote:
 
-> /usr/bin/alarm
+> While for older Thinkpads, you do this (for instance):
+> IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
 
-Should be hooked into the rtc interface, but I'd be surprised if it 
-doesn't just work with the existing alarm infrastructure.
+Aliases are shell-style globs. Any idea what the ',' are doing in a
+character class? Confused ...
 
-> /usr/bin/dispswitch
-
-Should be hooked into the video output class.
-
-> /usr/bin/fan
-
-Should be an hwmon or thermal device.
-
-> /usr/bin/hotkey
-
-Unneeded now.
-
-> /usr/bin/tbacklight
-
-There's already a backlight class device.
-
-> /usr/bin/tdocked
-
-Should be a platform device emitting dock events.
-
-> /usr/bin/thotswap
-
-Should already be unnecessary on any ACPI system - impossible to make 
-work properly without being in the kernel.
-
-> /usr/bin/ownerstring
-> /usr/bin/svpw
-> /usr/bin/tpasswd
-
-These are the ones of interest.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks,
+Kay
