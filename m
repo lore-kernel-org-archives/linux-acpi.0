@@ -1,14 +1,14 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 108/114] ACPI: fix broken usage of name.ascii
-Date: Fri, 13 Mar 2009 18:11:25 -0700
-Message-ID: <20090314011047.425424026@mini.kroah.org>
+Subject: [patch 109/114] ACPI: fix broken usage of acpi_ut_get_node_name()
+Date: Fri, 13 Mar 2009 18:11:26 -0700
+Message-ID: <20090314011047.577830206@mini.kroah.org>
 References: <20090314010937.416083662@mini.kroah.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:35832 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:35870 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755201AbZCNBVc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Mar 2009 21:21:32 -0400
-Content-Disposition: inline; filename=acpi-fix-broken-usage-of-name.ascii.patch
+	id S1754403AbZCNBVd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Mar 2009 21:21:33 -0400
+Content-Disposition: inline; filename=acpi-fix-broken-usage-of-acpi_ut_get_node_name.patch
 In-Reply-To: <20090314011649.GA26170@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,37 +22,33 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.u
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
 This issue was fixed indirectly in mainline by commit
-0175d562a29ad052c510782c7e76bc63d5155b9b.
+60a4ce7f4148155d3f28eea4a213f7ee47cd57b7.
 
-acpi_namespace_node's name.ascii field is four chars, and not NULL-
-terminated except by pure luck.  So, it cannot be used by sscanf() without
-a length restriction.
+acpi_ut_get_node_name() returns a four char fixed-size array, not
+NULL-terminated.
 
-This is the minimal fix for both stable 2.6.27 and 2.6.28.
+This is the minimal fix for stable 2.6.28.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: stable@kernel.org
+Acked-by: Lin Ming <ming.m.lin@intel.com>
+Acked-by: Len Brown <lenb@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- drivers/acpi/ec.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/acpi/power.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -759,9 +759,10 @@ acpi_ec_register_query_methods(acpi_hand
- 	struct acpi_namespace_node *node = handle;
- 	struct acpi_ec *ec = context;
- 	int value = 0;
--	if (sscanf(node->name.ascii, "_Q%x", &value) == 1) {
-+
-+	if (sscanf(node->name.ascii, "_Q%2x", &value) == 1)
- 		acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
--	}
-+
- 	return AE_OK;
- }
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -151,7 +151,7 @@ static int acpi_power_get_state(acpi_han
+ 	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
+ 			      ACPI_POWER_RESOURCE_STATE_OFF;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%4.4s] is %s\n",
+ 			  acpi_ut_get_node_name(handle),
+ 				*state ? "on" : "off"));
  
 
 
