@@ -1,38 +1,58 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: patch for video.c driver
-Date: Fri, 13 Mar 2009 20:52:56 +0000
-Message-ID: <20090313205256.GA5854@srcf.ucam.org>
-References: <20090312154741.GA1055@hygelac> <1236910092.2807.103.camel@rzhang-dt> <20090313030030.GA23571@srcf.ucam.org> <20090313173604.GB13342@hygelac> <20090313174726.GA2888@srcf.ucam.org> <20090313175812.GE13342@hygelac> <20090313180646.GA3171@srcf.ucam.org> <20090313204544.GR16754@hygelac>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 79/96] ACPI: fix broken usage of name.ascii
+Date: Fri, 13 Mar 2009 17:06:27 -0700
+Message-ID: <20090314000751.065212331@mini.kroah.org>
+References: <20090314000508.803142980@mini.kroah.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46137 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777AbZCMUxG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Mar 2009 16:53:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20090313204544.GR16754@hygelac>
+Received: from kroah.org ([198.145.64.141]:34991 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753642AbZCNATk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Mar 2009 20:19:40 -0400
+Content-Disposition: inline; filename=acpi-fix-broken-usage-of-name.ascii.patch
+In-Reply-To: <20090314001449.GA4485@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Terence Ripperda <tripperda@nvidia.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, stable@kernel.org, Len Brown <lenb@kernel.org>
+Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Fri, Mar 13, 2009 at 03:45:44PM -0500, Terence Ripperda wrote:
+2.6.27-stable review patch.  If anyone has any objections, please let us know.
 
-> NVIF methods implement both notification and query commands. so it's required
-> for generating the event and querying the firmware's preferred set of enabled
-> outputs.
+------------------
 
-Ok, got you. In that case the best approach would be for you to add an 
-input device to the kernel component of your driver which listens for 
-the notification and then generates KEY_SWITCHVIDEOMODE. The right level 
-of integration for the preferred set of screens would be to extend the 
-video output class to support listing the outputs as well as just 
-performing the switches, then register with that if the platform doesn't 
-support DGS and co. We're trying to deprecate the proc interfaces, and 
-in general platform-specific drivers should hook into generic interfaces 
-rather than overloading the functionality of the existing ACPI drivers.
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Do you have any examples of machines that have this requirement?
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+This issue was fixed indirectly in mainline by commit
+0175d562a29ad052c510782c7e76bc63d5155b9b.
+
+acpi_namespace_node's name.ascii field is four chars, and not NULL-
+terminated except by pure luck.  So, it cannot be used by sscanf() without
+a length restriction.
+
+This is the minimal fix for both stable 2.6.27 and 2.6.28.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/acpi/ec.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -759,9 +759,10 @@ acpi_ec_register_query_methods(acpi_hand
+ 	struct acpi_namespace_node *node = handle;
+ 	struct acpi_ec *ec = context;
+ 	int value = 0;
+-	if (sscanf(node->name.ascii, "_Q%x", &value) == 1) {
++
++	if (sscanf(node->name.ascii, "_Q%2x", &value) == 1)
+ 		acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
+-	}
++
+ 	return AE_OK;
+ }
+ 
+
+
