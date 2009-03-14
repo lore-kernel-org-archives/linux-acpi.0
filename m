@@ -1,55 +1,81 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: patch for video.c driver
-Date: Sat, 14 Mar 2009 03:55:06 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903140314200.23716@localhost.localdomain>
-References: <20090312154741.GA1055@hygelac>
- <1236910092.2807.103.camel@rzhang-dt>
+From: Mathieu Chouquet-Stringer <mchouque@free.fr>
+Subject: [PATCH] thinkpad-acpi: fix module autoloading for older models
+Date: Sat, 14 Mar 2009 11:42:04 +0100
+Message-ID: <20090314104204.GA11226@mobydick>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:43464 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025AbZCNHzS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2009 03:55:18 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KGH00M1QKNXQTP6@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 14 Mar 2009 02:55:11 -0500 (CDT)
-In-reply-to: <1236910092.2807.103.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754131AbZCNKmX@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org
+Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, stable@kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 List-Id: linux-acpi@vger.kernel.org
-To: Terence Ripperda <tripperda@nvidia.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Terence,
+	Hello Linus,
 
-First, I'm delighted to hear from nvidia -- thanks
-for reaching out to the Linux community.
+Looks like this one liner patch never made it...  Hopefully, it'll go in
+before you release rc9 or 2.6.29.
 
-a couple of observations...
+Best,
+Mathieu
 
-drivers/acpi/*.c in general, and video.c in particular,
-are meant to implement what is documented in the ACPI specification.
+----- Forwarded message from Henrique de Moraes Holschuh <hmh@hmh.eng.br> -----
 
-Linux has moved the vendor specific drivers (that may use ACPI,
-or use vendor-specific ACPI extensions)
-to drivers/platform/x86/*.c
+Delivered-To: online.fr-mchouque@free.fr
+X-Sasl-enc: J0pR0vt90JACc2icrP/7acPg7Vn8fC4jw2hSyELrb8PJ 1234704353
+X-Virus-Scanned: Debian amavisd-new at khazad-dum.debian.net
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org,
+	Mathieu Chouquet-Stringer <mchouque@free.fr>, stable@kernel.org
+Subject: [PATCH] thinkpad-acpi: fix module autoloading for older models
+Date: Sun, 15 Feb 2009 10:25:51 -0300
+X-Mailer: git-send-email 1.5.6.5
+X-CRM114-Version: 20070301-BlameBaltar ( TRE 0.7.5 (LGPL) ) MF-F8A122EB [pR: -2.3502]
+X-CRM114-CacheID: sfid-20090215_142656_606015_D7CAAB9F 
+X-CRM114-Status: UNSURE (-2.3502) This message is 'unsure'; please train it! 
 
-That is where I'd generally expect an nvidia-specific ACPI extension to 
-live.
+From: Mathieu Chouquet-Stringer <mchouque@free.fr>
 
-Is there any public documentationon how NVIF is supposed to operate?
+Looking at the source, there seems to be a missing * to match my DMI
+string.  I mean for newer IBM and Lenovo's laptops you match either one
+of the following:
+MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
+MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
 
-I have a new snappy Sony laptop that has both nvidia and intel graphics,
-and it has an NVIF.  I'm certain that Linux has no idea how to
-switch between "Stamina" and "Speed" modes...
+While for older Thinkpads, you do this (for instance):
+IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
 
-But I also have a Lenovo T61 with only Intel graphics,
-and it still has an NVIF.  (presumably Lenovo ships one
-BIOS for both their Intel and Nvidia based T61's...)
-What happens with NVIF in this case?
+with IBM_BIOS_MODULE_ALIAS being MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
 
-thanks,
--Len
+Note there's no * terminating the string.  As result, udev doesn't load
+anything because modprobe cannot find anything matching this (my
+machine actually):
 
+udevtest: run: '/sbin/modprobe dmi:bvnIBM:bvr1IET71WW(2.10):bd06/16/2006:svnIBM:pn236621U:pvrNotAvailable:rvnIBM:rn236621U:rvrNotAvailable:cvnIBM:ct10:cvrNotAvailable:'
+
+Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: stable@kernel.org
+---
+ drivers/platform/x86/thinkpad_acpi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+Len, please consider this for 2.6.29.  It is an obvious one-liner.
+
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 91ae159..d218ecb 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -7524,7 +7524,7 @@ MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
+  * if it is not there yet.
+  */
+ #define IBM_BIOS_MODULE_ALIAS(__type) \
+-	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
++	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW*")
+ 
+ /* Non-ancient thinkpads */
+ MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
+-- 
+1.5.6.5
