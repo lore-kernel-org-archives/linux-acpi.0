@@ -1,58 +1,59 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 79/96] ACPI: fix broken usage of name.ascii
-Date: Fri, 13 Mar 2009 17:06:27 -0700
-Message-ID: <20090314000751.065212331@mini.kroah.org>
-References: <20090314000508.803142980@mini.kroah.org>
+From: Charles@Schwieters.org
+Subject: Re: experimental patch for toshiba_acpi
+Date: Fri, 13 Mar 2009 20:37:57 -0400
+Message-ID: <E1LiHt0-0002m2-2l@oaf.wireless>
+References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov> <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <a0c408570902260512t702b2575w417ef96dfa74a5bf@mail.gmail.com> <1235657022.3802.86.camel@hughsie-work.lan> <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk> <1235753349.5444.53.camel@localhost.localdomain> <20090228151933.GC17541@khazad-dum.debian.net> <alpine.LFD.2.00.0903122102490.24376@localhost.localdomain>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:34991 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753642AbZCNATk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Mar 2009 20:19:40 -0400
-Content-Disposition: inline; filename=acpi-fix-broken-usage-of-name.ascii.patch
-In-Reply-To: <20090314001449.GA4485@kroah.com>
+Received: from elasmtp-kukur.atl.sa.earthlink.net ([209.86.89.65]:38330 "EHLO
+	elasmtp-kukur.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761605AbZCNAjx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Mar 2009 20:39:53 -0400
+In-reply-to: <alpine.LFD.2.00.0903122102490.24376@localhost.localdomain> 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org, Len Brown <lenb@kernel.org>
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Len Brown <lenb@kernel.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Jonathan Buzzard <jonathan@buzzard.me.uk>, John Belmonte <john@neggie.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Charles@schwieters.org, linux-acpi@vger.kernel.org
 
-2.6.27-stable review patch.  If anyone has any objections, please let us know.
-
-------------------
-
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-
-This issue was fixed indirectly in mainline by commit
-0175d562a29ad052c510782c7e76bc63d5155b9b.
-
-acpi_namespace_node's name.ascii field is four chars, and not NULL-
-terminated except by pure luck.  So, it cannot be used by sscanf() without
-a length restriction.
-
-This is the minimal fix for both stable 2.6.27 and 2.6.28.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/acpi/ec.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -759,9 +759,10 @@ acpi_ec_register_query_methods(acpi_hand
- 	struct acpi_namespace_node *node = handle;
- 	struct acpi_ec *ec = context;
- 	int value = 0;
--	if (sscanf(node->name.ascii, "_Q%x", &value) == 1) {
-+
-+	if (sscanf(node->name.ascii, "_Q%2x", &value) == 1)
- 		acpi_ec_add_query_handler(ec, value, handle, NULL, NULL);
--	}
-+
- 	return AE_OK;
- }
- 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
+Len Brown <lenb@kernel.org> wrote:
+
+> However, I'm not excited about extending toshiba_acpi to
+> include /dev/toshiba SMM interface that is already
+> provided by the toshiba driver.
+> 
+> I'd rather see the 'toshiba' driver (perhaps renamed to be toshiba_smm)
+> extended so that it is the only driver to provide this interface.
+> 
+
+no objection here. I'd just like to have a working solution.
+
+> BTW. I notice that both toshiba_acpi and toshiba ship in Fedora
+> and can load on my satellite pro.  However, fedora doesn't ship
+> toshset -- is toshiba and /dev/toshiba useful without it?
+
+toshiba_acpi does provide support for a few of the bios settings through
+entries in /proc/acpi/toshiba.
+
+> 
+> Are new machines still using this interface, or it is going away over 
+> time?
+> 
+
+It seems that most laptops in the Tecra and Portege lines have this
+interface. Many (most?) of the recent Satellites have a Phoenix
+Bios which do not support this interface. Most recently, it seems that
+some toshiba machines have Insyde BIOS.
+
+Charles
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8+ <http://mailcrypt.sourceforge.net/>
+
+iD8DBQFJuvxlPK2zrJwS/lYRAtEGAJsEMSCMZvVe6FiFUF7QW2Zc2Y3I1ACfV3c0
+bjBVX77ycCHz0qC6SF4wwhU=
+=cx50
+-----END PGP SIGNATURE-----
