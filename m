@@ -1,54 +1,40 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 109/114] ACPI: fix broken usage of acpi_ut_get_node_name()
-Date: Fri, 13 Mar 2009 18:11:26 -0700
-Message-ID: <20090314011047.577830206@mini.kroah.org>
-References: <20090314010937.416083662@mini.kroah.org>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: experimental patch for toshiba_acpi
+Date: Sat, 14 Mar 2009 10:02:09 +0300
+Message-ID: <E1LiNsv-000CIz-00.arvidjaar-mail-ru@mx38.mail.ru>
+References: <E1LcL9o-0003qC-4s@tan.cit.nih.gov> <20090225152409.GA4015@srcf.ucam.org> <1235578705.4770.57.camel@penguin.lifesci.dundee.ac.uk> <20090225165152.GA5981@srcf.ucam.org> <a0c408570902260512t702b2575w417ef96dfa74a5bf@mail.gmail.com> <1235657022.3802.86.camel@hughsie-work.lan> <1235663518.4770.197.camel@penguin.lifesci.dundee.ac.uk> <1235753349.5444.53.camel@localhost.localdomain> <20090228151933.GC17541@khazad-dum.debian.net> <alpine.LFD.2.00.0903122102490.24376@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:35870 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754403AbZCNBVd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Mar 2009 21:21:33 -0400
-Content-Disposition: inline; filename=acpi-fix-broken-usage-of-acpi_ut_get_node_name.patch
-In-Reply-To: <20090314011649.GA26170@kroah.com>
+Received: from mx38.mail.ru ([94.100.176.52]:53557 "EHLO mx38.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752328AbZCNHCU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 14 Mar 2009 03:02:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org, Len Brown <lenb@kernel.org>
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-2.6.28-stable review patch.  If anyone has any objections, please let us know.
+Len Brown wrote:
 
-------------------
+> 
+> BTW. I notice that both toshiba_acpi and toshiba ship in Fedora
+> and can load on my satellite pro.  However, fedora doesn't ship
+> toshset -- is toshiba and /dev/toshiba useful without it?
+> 
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Yes,  there are other utils using this interface; e.g. Mandriva ships 
+toshutils with
 
-This issue was fixed indirectly in mainline by commit
-60a4ce7f4148155d3f28eea4a213f7ee47cd57b7.
-
-acpi_ut_get_node_name() returns a four char fixed-size array, not
-NULL-terminated.
-
-This is the minimal fix for stable 2.6.28.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: stable@kernel.org
-Acked-by: Lin Ming <ming.m.lin@intel.com>
-Acked-by: Len Brown <lenb@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/acpi/power.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -151,7 +151,7 @@ static int acpi_power_get_state(acpi_han
- 	*state = (sta & 0x01)?ACPI_POWER_RESOURCE_STATE_ON:
- 			      ACPI_POWER_RESOURCE_STATE_OFF;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%s] is %s\n",
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Resource [%4.4s] is %s\n",
- 			  acpi_ut_get_node_name(handle),
- 				*state ? "on" : "off"));
- 
+/usr/bin/alarm
+/usr/bin/dispswitch
+/usr/bin/fan
+/usr/bin/hotkey
+/usr/bin/ownerstring
+/usr/bin/svpw
+/usr/bin/tbacklight
+/usr/bin/tdocked
+/usr/bin/thotswap
+/usr/bin/tpasswd
 
 
