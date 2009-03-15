@@ -1,38 +1,63 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: FSB scaling for ASUS EeePC 1000H
-Date: Sun, 15 Mar 2009 19:05:59 +0000
-Message-ID: <20090315190557.GA4324@srcf.ucam.org>
-References: <49BD1843.7050502@gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by
+ zero
+Date: Sun, 15 Mar 2009 12:08:10 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D83085814F8A39D@orsmsx503.amr.corp.intel.com>
+References: <49BCDCAA.8040309@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52248 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754171AbZCOTGG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 15:06:06 -0400
-Content-Disposition: inline
-In-Reply-To: <49BD1843.7050502@gmail.com>
+Received: from mga14.intel.com ([143.182.124.37]:27406 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754450AbZCOTIO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 15:08:14 -0400
+In-Reply-To: <49BCDCAA.8040309@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Francesco Lattanzio <franz.lattanzio@gmail.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>
+To: Jiri Slaby <jirislaby@gmail.com>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 
-On Sun, Mar 15, 2009 at 04:01:23PM +0100, Francesco Lattanzio wrote:
-> The following patch (against the current "linux-acpi-2.6" source tree) 
-> adds the capability of the ASUS EeePC 1000H (and maybe other models as 
-> well) to scale the FSB frequency and core voltage. Do not confuse this 
-> with cpufreq (SpeedStep and other similar mechanisms): cpufreq changes 
-> the internal CPU clock multiplier (and eventually the core voltage too) 
-> leaving the FSB frequency untouched.
+Can you please send or post the acpidump for the machine? Thanks.
 
-No, there's no requirement that cpufreq be limited to clock-multiplier 
-based methods. It's the right interfae to use for CPU speed control.
-
-(snip patch)
-
-Is this different to the cpufreq driver suggested at 
-http://lkml.org/lkml/2008/11/23/115 , other than the latter having 
-hardcoded speed values?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Jiri Slaby
+>Sent: Sunday, March 15, 2009 3:47 AM
+>To: Len Brown
+>Cc: linux-acpi@vger.kernel.org; rjw@sisk.pl; Linux kernel mailing list;
+>torvalds@linux-foundation.org
+>Subject: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by zero
+>
+>Hi,
+>
+>sometimes, when booting up/resuming from disk, I get an oops[1].
+>
+>obj_desc->common_field.access_bit_width is zero, but even after the
+>loop. Division before the loop is apparently OK.
+>
+>This is the case:
+>         /* Mask off any extra bits in the last datum */
+>
+>         buffer_tail_bits = obj_desc->common_field.bit_length %
+>             obj_desc->common_field.access_bit_width;
+>
+>.L39:
+>         xorl    %edx, %edx      #
+>         movzbl  37(%rbx), %esi  #
+><variable>.common_field.access_bit_width,
+><variable>.common_field.access_bit_width
+>         movl    24(%rbx), %eax  # <variable>.common_field.bit_length,
+><variable>.common_field.bit_length
+>--------------- here:
+>         divl    %esi    # <variable>.common_field.access_bit_width
+>         movl    %edx, %ecx      #, tmp121
+>         testl   %edx, %edx      # tmp121
+>         je      .L41    #,
+>
+>[1] http://www.fi.muni.cz/~xslaby/sklad/panics/acpi_oops.png
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
