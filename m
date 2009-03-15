@@ -1,43 +1,44 @@
-From: Jeff Chua <jeff.chua.linux@gmail.com>
-Subject: Re: 2.6.29-rc8: Reported regressions from 2.6.28
-Date: Sun, 15 Mar 2009 10:58:16 +0800
-Message-ID: <b6a2187b0903141958u9dae0fdk1f44b387108b99e4@mail.gmail.com>
-References: <MiincthRUSI.A.eKC.F4BvJB@chimera>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by zero
+Date: Sun, 15 Mar 2009 11:47:06 +0100
+Message-ID: <49BCDCAA.8040309@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <MiincthRUSI.A.eKC.F4BvJB@chimera>
-Sender: linux-scsi-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:59478 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400AbZCOKrN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 06:47:13 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, Linux kernel mailing list <linux-kernel@vger.kernel.org>, torvalds@linux-foundation.org
 
-On Sun, Mar 15, 2009 at 3:01 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> Bug-Entry =A0 =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D=
-12414
-> Subject =A0 =A0 =A0 =A0 : iwl4965 cannot use "ap auto" on latest 2.6.=
-28/29?
-> Submitter =A0 =A0 =A0 : Jeff Chua <jeff.chua.linux@gmail.com>
-> Date =A0 =A0 =A0 =A0 =A0 =A0: 2009-01-05 4:13 (69 days old)
-> References =A0 =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D123112=
-882127823&w=3D4
+Hi,
 
-Still not working in linux-2.6.29-rc8. Broken after the commit below.
-There were many changes to wireless after this commit, and simply
-reverting this commit will break compiling.
+sometimes, when booting up/resuming from disk, I get an oops[1].
 
-Jeff.
+obj_desc->common_field.access_bit_width is zero, but even after the 
+loop. Division before the loop is apparently OK.
 
+This is the case:
+         /* Mask off any extra bits in the last datum */
 
+         buffer_tail_bits = obj_desc->common_field.bit_length %
+             obj_desc->common_field.access_bit_width;
 
-commit 41bb73eeac5ff5fb217257ba33b654747b3abf11
-Author: Johannes Berg <johannes@sipsolutions.net>
-Date:   Wed Oct 29 01:09:37 2008 +0100
+.L39:
+         xorl    %edx, %edx      #
+         movzbl  37(%rbx), %esi  # 
+<variable>.common_field.access_bit_width, 
+<variable>.common_field.access_bit_width
+         movl    24(%rbx), %eax  # <variable>.common_field.bit_length, 
+<variable>.common_field.bit_length
+--------------- here:
+         divl    %esi    # <variable>.common_field.access_bit_width
+         movl    %edx, %ecx      #, tmp121
+         testl   %edx, %edx      # tmp121
+         je      .L41    #,
 
-    mac80211: remove SSID driver code
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] http://www.fi.muni.cz/~xslaby/sklad/panics/acpi_oops.png
