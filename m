@@ -1,61 +1,51 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: 2.6.29-rc8: Reported regressions from 2.6.28
-Date: Mon, 16 Mar 2009 09:02:53 +0800
-Message-ID: <1237165373.2807.140.camel@rzhang-dt>
-References: <MiincthRUSI.A.eKC.F4BvJB@chimera>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/4] WMI patches for 2.6.29-rc5
+Date: Sun, 15 Mar 2009 22:32:46 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903152232200.29667@localhost.localdomain>
+References: <20090214095342.18550.24339.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:1030 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751861AbZCPBCM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Mar 2009 21:02:12 -0400
-In-Reply-To: <MiincthRUSI.A.eKC.F4BvJB@chimera>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:43521 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754611AbZCPCdG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 22:33:06 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KGK005BGV2O4BL7@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 15 Mar 2009 21:32:54 -0500 (CDT)
+In-reply-to: <20090214095342.18550.24339.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, 2009-03-15 at 03:01 +0800, Rafael J. Wysocki wrote:
-> This message contains a list of some regressions from 2.6.28, for which there
-> are no fixes in the mainline I know of.  If any of them have been fixed already,
-> please let me know.
-> 
-> If you know of any other unresolved regressions from 2.6.28, please let me know
-> either and I'll add them to the list.  Also, please let me know if any of the
-> entries below are invalid.
-> 
-> Each entry from the list will be sent additionally in an automatic reply to
-> this message with CCs to the people involved in reporting and handling the
-> issue.
-> 
-> 
-> Listed regressions statistics:
-> 
->   Date          Total  Pending  Unresolved
->   ----------------------------------------
->   2009-03-14      124       36          32
->   2009-03-03      108       33          28
->   2009-02-24       95       32          24
->   2009-02-14       85       33          27
->   2009-02-08       82       45          36
->   2009-02-04       66       51          39
->   2009-01-20       38       35          27
->   2009-01-11       13       13          10
-> 
-> 
-> Unresolved regressions
-> ----------------------
 
-> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12831
-> Subject         : Hot/Fn Keys do not work EEEPC 1000HE (eeepc_laptop)
-> Submitter       : Matthew <pyther@pyther.net>
-> Date            : 2009-03-07 10:05 (8 days old)
+> The following are a set of trivial patches for 2.6.29-rc5 for ACPI-WMI and
+> acer-wmi. The last patch in this series you may already have picked up,
+> but is reposted here for completeness sake.
+> 
+> -Carlos
+> ---
+> 
+> Carlos Corbacho (2):
+>       acer-wmi: Unmark as 'experimental'
+>       ACPI: WMI: Unmark as 'experimental'
+> 
+> Dan Carpenter (1):
+>       acer-wmi: double free in acer_rfkill_exit()
+> 
+> Robert Jarzmik (1):
+>       acer-wmi: Fix acpi video detection
+> 
+> 
+>  drivers/platform/x86/Kconfig    |    6 ++----
+>  drivers/platform/x86/acer-wmi.c |    2 +-
+>  2 files changed, 3 insertions(+), 5 deletions(-)
 
-patch is available at
-http://bugzilla.kernel.org/show_bug.cgi?id=12831#c11
+1-4 applied.
 
 thanks,
-rui
+Len Brown, Intel Open Source Technology Center
 
