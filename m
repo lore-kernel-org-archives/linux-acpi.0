@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/14] acpi: check for pxm_to_node_map overflow
-Date: Mon, 16 Mar 2009 01:23:51 -0400
-Message-ID: <27ce34198345886854643b9572f9a06d2e7500d2.1237181013.git.len.brown@intel.com>
+Subject: [PATCH 06/14] asus-laptop: restore acpi_generate_proc_event()
+Date: Mon, 16 Mar 2009 01:23:52 -0400
+Message-ID: <6050c8dd70b21a9d927983aeb6357fecffa7fb23.1237181013.git.len.brown@intel.com>
 References: <1237181040-24165-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:45332 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112AbZCPFYH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 01:24:07 -0400
+	with ESMTP id S1751435AbZCPFYI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 01:24:08 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KGL005Y0305JSNN@vms173011.mailsrvcs.net> for
+ with ESMTPA id <0KGL00CZT306VJBO@vms173011.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Mon, 16 Mar 2009 00:24:06 -0500 (CDT)
 In-reply-to: <1237181040-24165-1-git-send-email-lenb@kernel.org>
 In-reply-to: <a140449584522c3eea1bb381f746d40939e6f62a.1237181013.git.len.brown@intel.com>
@@ -19,33 +19,44 @@ References: <a140449584522c3eea1bb381f746d40939e6f62a.1237181013.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>, Cyrill Gorcunov <gorcunov@openvz.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+From: Corentin Chary <corentincj@iksaif.net>
 
-It is hardly (if ever) possible but in case of broken _PXM entry we could
-reach out of pxm_to_node_map array bounds in acpi_map_pxm_to_node() call.
+Restore acpi_generate_proc_event() for backward
+compatibility with old acpi scripts.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/numa.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/platform/x86/asus-laptop.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index c5e292a..3a0d8ef 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -277,7 +277,7 @@ int acpi_get_node(acpi_handle *handle)
- 	int pxm, node = -1;
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 56af6cf..eeafc6c 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -815,6 +815,7 @@ static int asus_setkeycode(struct input_dev *dev, int scancode, int keycode)
+ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	static struct key_entry *key;
++	u16 count;
  
- 	pxm = acpi_get_pxm(handle);
--	if (pxm >= 0)
-+	if (pxm >= 0 && pxm < MAX_PXM_DOMAINS)
- 		node = acpi_map_pxm_to_node(pxm);
+ 	/* TODO Find a better way to handle events count. */
+ 	if (!hotk)
+@@ -832,9 +833,11 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ 		lcd_blank(FB_BLANK_POWERDOWN);
+ 	}
  
- 	return node;
++	count = hotk->event_count[event % 128]++;
++	acpi_bus_generate_proc_event(hotk->device, event, count);
+ 	acpi_bus_generate_netlink_event(hotk->device->pnp.device_class,
+ 					dev_name(&hotk->device->dev), event,
+-					hotk->event_count[event % 128]++);
++					count);
+ 
+ 	if (hotk->inputdev) {
+ 		key = asus_get_entry_by_scancode(event);
 -- 
 1.5.6.6
 
