@@ -1,57 +1,51 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/14] suspend: switch the Asus Pundit P1-AH2 to old ACPI sleep
- ordering
-Date: Mon, 16 Mar 2009 01:23:47 -0400
-Message-ID: <a140449584522c3eea1bb381f746d40939e6f62a.1237181013.git.len.brown@intel.com>
+Subject: [PATCH 12/14] acer-wmi: Unmark as 'experimental'
+Date: Mon, 16 Mar 2009 01:23:58 -0400
+Message-ID: <54b1ec893e869c815d390afa42aacf1499858112.1237181013.git.len.brown@intel.com>
 References: <1237181040-24165-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:65445 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677AbZCPFYK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 01:24:10 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:54297 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbZCPFYP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 01:24:15 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KGL00FUM303E81M@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 16 Mar 2009 00:24:04 -0500 (CDT)
+ with ESMTPA id <0KGL004TZ308MXJO@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 16 Mar 2009 00:24:08 -0500 (CDT)
 In-reply-to: <1237181040-24165-1-git-send-email-lenb@kernel.org>
+In-reply-to: <a140449584522c3eea1bb381f746d40939e6f62a.1237181013.git.len.brown@intel.com>
+References: <a140449584522c3eea1bb381f746d40939e6f62a.1237181013.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Andy Whitcroft <apw@canonical.com>, Len Brown <len.brown@intel.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Andy Whitcroft <apw@canonical.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Switch the Asus Pundit P1-AH2 (M2N8L motherboard) to the old ACPI 1.0
-sleep ordering by default.  Without this it will not suspend/resume
-correctly.
+This driver has been around and used long enough that we can drop the
+'experimental'.
 
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Tested-by: Dustin Kirkland <kirkland@canonical.com>
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/platform/x86/Kconfig |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 5192666..3ca9868 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -378,6 +378,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
- 		},
- 	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index c2319d9..3608081 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -15,8 +15,7 @@ menuconfig X86_PLATFORM_DEVICES
+ if X86_PLATFORM_DEVICES
+ 
+ config ACER_WMI
+-	tristate "Acer WMI Laptop Extras (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL
++	tristate "Acer WMI Laptop Extras"
+ 	depends on ACPI
+ 	depends on LEDS_CLASS
+ 	depends on NEW_LEDS
 -- 
 1.5.6.6
 
