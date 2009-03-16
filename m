@@ -1,298 +1,400 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [git PATCH] ACPI & driver patches for 2.6.29-rc8
-Date: Mon, 16 Mar 2009 01:31:16 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903160124320.6195@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: The Garbled screen issue on Sony laptops with two graphics
+	(Intel and Nvidia)
+Date: Mon, 16 Mar 2009 13:46:17 +0800
+Message-ID: <1237182377.2807.157.camel@rzhang-dt>
+References: <1236739527.2820.178.camel@rzhang-dt>
+	 <20090311024652.GA14493@srcf.ucam.org>
+	 <1236756550.2820.218.camel@rzhang-dt> <20090311130847.GC13101@kamineko.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="=-/SJXcgEuri/FLP7A3LH+"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:18409 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660AbZCPFbT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 01:31:19 -0400
+Received: from mga02.intel.com ([134.134.136.20]:8407 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751271AbZCPFpf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Mar 2009 01:45:35 -0400
+In-Reply-To: <20090311130847.GC13101@kamineko.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-
-Hi Linus,
-
-please pull from: 
-
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-A couple of regression fixes and smattering of small driver-specific 
-fixes.  This will update the files shown below.
-
-thanks!
-
-Len Brown
-Intel Open Source Technology Center
+To: Mattia Dongili <malattia@linux.it>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, "Wang, Zhenyu Z" <zhenyu.z.wang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
 
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.29/acpi-release-20081204-2.6.29-rc8.diff.gz
+--=-/SJXcgEuri/FLP7A3LH+
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
- drivers/acpi/bus.c                   |    9 +-----
- drivers/acpi/numa.c                  |    2 +-
- drivers/acpi/osl.c                   |   50 ----------------------------------
- drivers/acpi/sleep.c                 |   16 +++++++++++
- drivers/platform/x86/Kconfig         |   14 ++++-----
- drivers/platform/x86/acer-wmi.c      |    2 +-
- drivers/platform/x86/asus-laptop.c   |    5 +++-
- drivers/platform/x86/eeepc-laptop.c  |    6 +++-
- drivers/platform/x86/thinkpad_acpi.c |    8 +++---
- drivers/platform/x86/wmi.c           |    2 +-
- 10 files changed, 39 insertions(+), 75 deletions(-)
+On Wed, 2009-03-11 at 21:08 +0800, Mattia Dongili wrote:
+> On Wed, Mar 11, 2009 at 03:29:10PM +0800, Zhang Rui wrote:
+> > On Wed, 2009-03-11 at 10:46 +0800, Matthew Garrett wrote:
+> > > On Wed, Mar 11, 2009 at 10:45:27AM +0800, Zhang Rui wrote:
+> > > 
+> > > > The problem can be fixed by disabling Nvidia card via ACPI _DSM method.
+> > > > And it seems that there are some works already done for this issue.
+> > > > http://archive.netbsd.se/?ml=xorg&a=2009-02&t=9908058
+> > > 
+> > > This method is specific to Sony. What would be most helpful here would 
+> > > be for Intel to tell us how this is actually meant to work. 
+> > > 
+> > Well, the change in sony-laptop driver is a new feature rather than a
+> > bug fix.
+> > the new sony-laptop driver introduces a new sysfs I/F:
+> > /sys/devices/platform/sony-laptop/speed_stamina
+> > and users can echo {speed, stamina} to this file to switch between
+> > Intel and Nvidia graphics card.
+> 
+> and see their Xorg miserably die. ;)
+> 
+> Jokes aside, I have no big problem incorporating the differences in the
+> driver, just that:
+> - I can't test it
+> - some models have different magic numbers for the _DSM invocation, from
+>   the DSDT I have available:
+> 	DSDT.sz.xxx.dsl (some uknown model)
+> 	DSDT.sz61mn-forXP.dsl
+> 	DSDT.tt11lnb.dsl
+> 	DSDT.z11vn.dsl
+> 	DSDT.z90s.dsl
+> 	VGN-SZ4XWNC-R0111N0.dsl
+>   and for what I can see, z and tt have the same magic numbers while the
+>   sz has different ones. So the code that calls _DSM will need to have
+>   some DMI switch to make sure we are calling it with the right
+>   parameters (for now supporting z and tt might be enough)
+> 
+> I'll see what I can do (I accept patches in case someone feels like
+> doing it)
+I made a diff between the sony-laptop-zseries driver v0.5 and the
+upstream kernel sony-laptop driver, it seems that we don't need to
+change the current code a lot, only some code to play with _DSM method
+is needed. the diff file is attached.
 
-through these commits:
+the sony-laptop-zseries driver can be found at
+http://www.basyskom.org/~eva/log_installation_vaio_z21vnx.html
 
-Andy Whitcroft (1):
-      suspend: switch the Asus Pundit P1-AH2 to old ACPI sleep ordering
+thanks,
+rui
 
-Carlos Corbacho (2):
-      acpi-wmi: Unmark as 'experimental'
-      acer-wmi: Unmark as 'experimental'
+--=-/SJXcgEuri/FLP7A3LH+
+Content-Disposition: attachment; filename=diff-sony-laptop
+Content-Type: text/x-patch; name=diff-sony-laptop; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-Corentin Chary (4):
-      asus-laptop: restore acpi_generate_proc_event()
-      eeepc-laptop: restore acpi_generate_proc_event()
-      asus-laptop: use select instead of depends on
-      platform/x86: depends instead of select for laptop platform drivers
+--- drivers/platform/x86/sony-laptop.c	2009-01-12 09:40:55.000000000 +0800
++++ sony-laptop-zseries-0.5/sony-laptop.c	2009-02-15 18:56:26.000000000 +0800
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2004-2005 Stelian Pop <stelian@popies.net>
+  * Copyright (C) 2007 Mattia Dongili <malattia@linux.it>
++ * Copyright (C) 2009 Matthias Welwarsky <matze@welwarsky.de>
+  *
+  * Parts of this driver inspired from asus_acpi.c and ibm_acpi.c
+  * which are copyrighted by their respective authors.
+@@ -84,6 +85,8 @@
+ #define SONY_PIC_HID		"SNY6001"
+ #define SONY_PIC_DRIVER_NAME	"Sony Programmable IO Control Driver"
+ 
++#define SONY_WMMX_GUID "F6CB5C3C-9CAE-4EBD-B577-931EA32A2CC0"
++
+ MODULE_AUTHOR("Stelian Pop, Mattia Dongili");
+ MODULE_DESCRIPTION("Sony laptop extras driver (SPIC and SNC ACPI device)");
+ MODULE_LICENSE("GPL");
+@@ -115,6 +118,11 @@ MODULE_PARM_DESC(camera,
+ 		 "set this to 1 to enable Motion Eye camera controls "
+ 		 "(only use it if you have a C1VE or C1VN model)");
+ 
++static int speed_stamina;
++module_param(speed_stamina, int, 0444);
++MODULE_PARM_DESC(speed_stamina,
++		"Set this to 1 to enable SPEED mode on module load (EXPERIMENTAL)");
++
+ #ifdef CONFIG_SONYPI_COMPAT
+ static int minor = -1;
+ module_param(minor, int, 0);
+@@ -475,9 +483,158 @@ static void sony_laptop_remove_input(voi
+ }
+ 
+ /*********** Platform Device ***********/
++static int sony_ovga_dsm(int func, int arg)
++{
++	static const char *path = "\\_SB.PCI0.OVGA._DSM";
++	static const char muid[] = {
++		/*00*/	0xA0, 0xA0, 0x95, 0x9D, 0x60, 0x00, 0x48, 0x4D,		/* MUID */
++		/*08*/	0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4,
++	};
++
++	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_object_list input;
++	union acpi_object params[4];
++	union acpi_object *obj;
++	int result;
++
++	input.count = 4;
++	input.pointer = params;
++	params[0].type = ACPI_TYPE_BUFFER;
++	params[0].buffer.length = sizeof(muid);
++	params[0].buffer.pointer = muid;
++	params[1].type = ACPI_TYPE_INTEGER;
++	params[1].integer.value = 0x00000102;
++	params[2].type = ACPI_TYPE_INTEGER;
++	params[2].integer.value = func;
++	params[3].type = ACPI_TYPE_INTEGER;
++	params[3].integer.value = arg;
++
++	result = acpi_evaluate_object(NULL, path, &input, &output);
++	if (result) {
++		printk("%s failed: %d\n", path, result);
++		return -1;
++	}
++
++	obj = (union acpi_object*)output.pointer;
++	printk("result type %d\n", obj->type);
++	if (obj->type == ACPI_TYPE_PACKAGE) {
++		int i;
++		printk("returned package sized %d\n", obj->package.count);
++		for (i = 0; i < obj->package.count; i++)
++			printk("%d %08x\n", i, obj->package.elements[i].integer.value);
++	} else
++	if (obj->type == ACPI_TYPE_INTEGER) {
++		printk("returned integer %08X\n", obj->integer.value);
++	} else
++	if (obj->type == ACPI_TYPE_BUFFER) {
++		int i;
++		printk("returned buffer sized %d\n", obj->buffer.length);
++		for (i = 0; i < obj->buffer.length; i++)
++			printk("%d %02x\n", i, obj->buffer.pointer[i]);
++	}
++	kfree(output.pointer);
++
++	return 0;
++}
++
++static int sony_led_stamina(void)
++{
++	return sony_ovga_dsm(2, 0x11);
++}
++
++static int sony_led_speed(void)
++{
++	return sony_ovga_dsm(2, 0x12);
++}
++
++static int sony_led_off(void)
++{
++	return sony_ovga_dsm(2, 0x13);
++}
++
++static int sony_dgpu_sta(void)
++{
++	return sony_ovga_dsm(3, 0x00);
++}
++
++static int sony_dgpu_off(void)
++{
++	return sony_ovga_dsm(3, 0x02);
++}
++
++static int sony_dgpu_on(void)
++{
++	return sony_ovga_dsm(3, 0x01);
++}
++
++static ssize_t sony_pf_store_speed_stamina(struct device *dev,
++			       struct device_attribute *attr,
++			       const char *buffer, size_t count)
++{
++	if (!strncmp(buffer, "speed", strlen("speed"))) {
++		sony_dgpu_on();
++		sony_led_speed();
++		speed_stamina = 1;
++	} else
++	if (!strncmp(buffer, "stamina", strlen("stamina"))) {
++		sony_dgpu_off();
++		sony_led_stamina();
++		speed_stamina = 0;
++	} else
++		return -EINVAL;
++
++	return count;
++}
++
++static ssize_t sony_pf_show_speed_stamina(struct device *dev,
++		struct device_attribute *attr, char *buffer)
++{
++	return snprintf(buffer, PAGE_SIZE, "%s\n", speed_stamina ? "speed":"stamina");
++}
++
++static struct device_attribute sony_pf_speed_stamina_attr =
++	__ATTR(speed_stamina, S_IWUSR|S_IRUGO,
++		sony_pf_show_speed_stamina, sony_pf_store_speed_stamina);
++
++static int sony_pf_probe(struct platform_device *pdev)
++{
++	int result;
++
++	result = device_create_file(&pdev->dev, &sony_pf_speed_stamina_attr);
++	if (result)
++		printk(KERN_DEBUG "sony_pf_probe: failed to add speed/stamina switch\n");
++
++	/* initialize default, look at module param speed_stamina */
++	if (speed_stamina == 1) {
++		sony_dgpu_on();
++		sony_led_speed();
++	} else {
++		sony_dgpu_off();
++		sony_led_stamina();
++	}
++
++	return 0;
++}
++
++static int sony_pf_resume(struct platform_device *pdev)
++{
++	/* on resume, restore previous state */
++	if (speed_stamina == 1) {
++		sony_dgpu_on();
++		sony_led_speed();
++	} else {
++		sony_dgpu_off();
++		sony_led_stamina();
++	}
++	return 0;
++}
+ 
+ static atomic_t sony_pf_users = ATOMIC_INIT(0);
+ static struct platform_driver sony_pf_driver = {
++	.probe  = sony_pf_probe,
++#ifdef CONFIG_PM
++	.resume_early = sony_pf_resume,
++#endif
+ 	.driver = {
+ 		   .name = "sony-laptop",
+ 		   .owner = THIS_MODULE,
+@@ -775,6 +932,36 @@ static ssize_t sony_nc_sysfs_store(struc
+ 	return count;
+ }
+ 
++/* WWAN power */
++static ssize_t sony_wwanpower_show(struct device *dev, struct device_attribute *attr,
++			      char *buffer)
++{
++	return 0;
++}
++
++static ssize_t sony_wwanpower_store(struct device *dev,
++			       struct device_attribute *attr,
++			       const char *buffer, size_t count)
++{
++	int value;
++
++	value = strtoul(buffer, NULL, 10);
++	if ( (value < 0) || (value > 1) )
++		return -EINVAL;
++
++	if (value) {
++		if (acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x9f070803, NULL) < 0)
++			return -EIO;
++	} else {
++		if (acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x00000803, NULL) < 0)
++			return -EIO;
++	}
++
++	return count;
++}
++
++static struct device_attribute wwanpower_attr =
++	__ATTR(snc_wwanpower, S_IRUGO|S_IWUSR, sony_wwanpower_show, sony_wwanpower_store);
+ 
+ /*
+  * Backlight device
+@@ -889,6 +1076,15 @@ static const struct dmi_system_id sony_n
+ 				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-N"),
+ 			},
+ 		},
++		{
++			.ident = "Sony Vaio Z Series",
++			.callback = sony_nc_C_enable,
++			.driver_data = sony_C_events,
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z"),
++			},
++		},
+ 		{ }
+ };
+ 
+@@ -935,17 +1131,14 @@ static void sony_acpi_notify(acpi_handle
+ static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
+ 				      void *context, void **return_value)
+ {
+-	struct acpi_device_info *info;
+-	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
++	struct acpi_namespace_node *node;
++	union acpi_operand_object *operand;
+ 
+-	if (ACPI_SUCCESS(acpi_get_object_info(handle, &buffer))) {
+-		info = buffer.pointer;
++	node = (struct acpi_namespace_node *)handle;
++	operand = (union acpi_operand_object *)node->object;
+ 
+-		printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n",
+-			(char *)&info->name, info->param_count);
+-
+-		kfree(buffer.pointer);
+-	}
++	printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
++	       (u32) operand->method.param_count);
+ 
+ 	return AE_OK;
+ }
+@@ -973,7 +1166,7 @@ static int sony_nc_resume(struct acpi_de
+ 	/* set the last requested brightness level */
+ 	if (sony_backlight_device &&
+ 			!sony_backlight_update_status(sony_backlight_device))
+-		printk(KERN_WARNING DRV_PFX "unable to restore brightness level\n");
++		printk(KERN_WARNING DRV_PFX "unable to restore brightness level");
+ 
+ 	/* re-initialize models with specific requirements */
+ 	dmi_check_system(sony_nc_ids);
+@@ -1023,6 +1216,11 @@ static int sony_nc_add(struct acpi_devic
+ 						NULL, NULL)))
+ 			dprintk("_INI Method failed\n");
+ 	}
++#if 0
++	/* try to _INI the ECON variable */
++	if (acpi_callsetfunc(sony_nc_acpi_handle, "ECON", 1, &result))
++			dprintk("ECON Method failed\n");
++#endif
+ 
+ 	/* setup input devices and helper fifo */
+ 	result = sony_laptop_setup_input(device);
+@@ -1042,7 +1240,7 @@ static int sony_nc_add(struct acpi_devic
+ 	}
+ 
+ 	if (acpi_video_backlight_support()) {
+-		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
++		printk(KERN_INFO DRV_PFX "Sony: Brightness ignored, must be "
+ 		       "controlled by ACPI video driver\n");
+ 	} else if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT",
+ 						&handle))) {
+@@ -1109,6 +1307,10 @@ static int sony_nc_add(struct acpi_devic
+ 		}
+ 	}
+ 
++	result = device_create_file(&sony_pf_device->dev, &wwanpower_attr);
++	if (result)
++		goto out_sysfs;
++
+ 	return 0;
+ 
+       out_sysfs:
+@@ -1927,6 +2129,7 @@ static int sonypi_misc_fasync(int fd, st
+ 
+ static int sonypi_misc_release(struct inode *inode, struct file *file)
+ {
++	sonypi_misc_fasync(-1, file, 0);
+ 	atomic_dec(&sonypi_compat.open_count);
+ 	return 0;
+ }
 
-Cyrill Gorcunov (1):
-      acpi: check for pxm_to_node_map overflow
+--=-/SJXcgEuri/FLP7A3LH+--
 
-Dan Carpenter (1):
-      acer-wmi: double free in acer_rfkill_exit()
-
-Jiri Slaby (1):
-      ACPI: remove doubled status checking
-
-Len Brown (1):
-      Revert "ACPI: make some IO ports off-limits to AML"
-
-Mathieu Chouquet-Stringer (1):
-      thinkpad-acpi: fix module autoloading for older models
-
-Roel Kluin (1):
-      acpi-wmi: unsigned cannot be less than 0
-
-Zhang Rui (1):
-      ACPI suspend: Blacklist Toshiba Satellite L300 that requires to set SCI_EN directly on resume
-
-with this log:
-
-commit 1b958a3e5353c2995f3550a20010bdb403f33831
-Merge: 27ce341 da51199
-Author: Len Brown <len.brown@intel.com>
-Date:   Mon Mar 16 00:38:52 2009 -0400
-
-    Merge branches 'misc-up-now' and 'platform-drivers' into release
-
-commit da511997d2bbc09f5e39385e0ed209578db07c91
-Author: Roel Kluin <roel.kluin@gmail.com>
-Date:   Wed Mar 4 11:55:30 2009 -0800
-
-    acpi-wmi: unsigned cannot be less than 0
-    
-    include/linux/pci-acpi.h:74:
-    
-    typedef u32                 acpi_status;
-    
-    result is unsigned, so an error returned by acpi_bus_register_driver()
-    will not be noticed.
-    
-    Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit b36a50f92d1c4300a88f606b4d2bbdc4f442a2d7
-Author: Mathieu Chouquet-Stringer <mchouque@free.fr>
-Date:   Sat Mar 14 16:35:26 2009 +0100
-
-    thinkpad-acpi: fix module autoloading for older models
-    
-    Looking at the source, there seems to be a missing * to match my DMI
-    string.  I mean for newer IBM and Lenovo's laptops you match either one
-    of the following:
-    MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
-    MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
-    
-    While for older Thinkpads, you do this (for instance):
-    IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
-    
-    with IBM_BIOS_MODULE_ALIAS being MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
-    
-    Note there's no * terminating the string.  As result, udev doesn't load
-    anything because modprobe cannot find anything matching this (my
-    machine actually):
-    
-    udevtest: run: '/sbin/modprobe dmi:bvnIBM:bvr1IET71WW(2.10):bd06/16/2006:svnIBM:pn236621U:pvrNotAv
-    
-    Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
-    Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 54b1ec893e869c815d390afa42aacf1499858112
-Author: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Date:   Sat Feb 14 09:53:59 2009 +0000
-
-    acer-wmi: Unmark as 'experimental'
-    
-    This driver has been around and used long enough that we can drop the
-    'experimental'.
-    
-    Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 5fcdd177d063f1d8d569d746ab1bf206b0dfb2e8
-Author: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Date:   Sat Feb 14 09:53:53 2009 +0000
-
-    acpi-wmi: Unmark as 'experimental'
-    
-    ACPI-WMI isn't experimental anymore, and there are other drivers that now
-    depend on it that aren't either.
-    
-    Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 013d67fd4f0da8f6af60a376f1a254266ab658ef
-Author: Dan Carpenter <error27@gmail.com>
-Date:   Sat Feb 14 09:53:48 2009 +0000
-
-    acer-wmi: double free in acer_rfkill_exit()
-    
-    This is acer_rfkill_exit() from drivers/platform/x86/acer-wmi.c.
-    
-    The code frees wireless_rfkill->data again instead of
-    bluetooth_rfkill->data.
-    
-    This was found using a code checker (http://repo.or.cz/w/smatch.git/).
-    
-    Signed-off-by: Dan Carpenter <error27@gmail.com>
-    Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit d263da311ab403e3a84fa24920edc826147a550c
-Author: Corentin Chary <corentincj@iksaif.net>
-Date:   Wed Feb 25 09:37:09 2009 +0100
-
-    platform/x86: depends instead of select for laptop platform drivers
-    
-    "I hate `select' and will gleefully leap on any s/select/depends/ patch,
-    whether it works or not :)"
-      Andrew Morton
-    
-    select INPUT is not needed here, because if someone doesn't want INPUT,
-    he won't want these drivers either.
-    
-    Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit e73e2c62f7646d54e30ef8863ac0be0b8e4ef0eb
-Author: Corentin Chary <corentincj@iksaif.net>
-Date:   Sun Feb 15 19:30:21 2009 +0100
-
-    asus-laptop: use select instead of depends on
-    
-    Like thinkpad_acpi or eeepc-laptop, asus-laptop will
-    now use "select" instead of "depends on"
-    for LEDS_CLASS, NEW_LEDS and BACKLIGHT_CLASS_DEVICE
-    
-    Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 7950b71c3bd7b27b2874088a6c4efe3e13579f8b
-Author: Corentin Chary <corentincj@iksaif.net>
-Date:   Sun Feb 15 19:30:20 2009 +0100
-
-    eeepc-laptop: restore acpi_generate_proc_event()
-    
-    Restore acpi_generate_proc_event() for backward
-    compatibility with old acpi scripts.
-    
-    Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 6050c8dd70b21a9d927983aeb6357fecffa7fb23
-Author: Corentin Chary <corentincj@iksaif.net>
-Date:   Sun Feb 15 19:30:19 2009 +0100
-
-    asus-laptop: restore acpi_generate_proc_event()
-    
-    Restore acpi_generate_proc_event() for backward
-    compatibility with old acpi scripts.
-    
-    Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 27ce34198345886854643b9572f9a06d2e7500d2
-Author: Cyrill Gorcunov <gorcunov@gmail.com>
-Date:   Wed Mar 4 11:55:29 2009 -0800
-
-    acpi: check for pxm_to_node_map overflow
-    
-    It is hardly (if ever) possible but in case of broken _PXM entry we could
-    reach out of pxm_to_node_map array bounds in acpi_map_pxm_to_node() call.
-    
-    Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 176f9c1804df09f3e9b998c0642e212592ac6283
-Author: Jiri Slaby <jirislaby@gmail.com>
-Date:   Wed Mar 4 11:55:27 2009 -0800
-
-    ACPI: remove doubled status checking
-    
-    There was a misplaced status test (two consequent tests without a
-    statement in between) in acpi_bus_init for ages.  Remove it, since the
-    function which should be checked (acpi_os_initialize1) has BUG_ONs on
-    failure paths.
-    
-    Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 45e7798886af101c4a908a896bbba5a84ee5cc32
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Sun Mar 15 22:13:44 2009 -0400
-
-    ACPI suspend: Blacklist Toshiba Satellite L300 that requires to set SCI_EN directly on resume
-    
-    This is a supplement of commit 65df78473ffbf3bff5e2034df1638acc4f3ddd50.
-    http://bugzilla.kernel.org/show_bug.cgi?id=12798
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 7b46ecd5fcebf381a7bde966db352d8fb1b8e944
-Author: Len Brown <len.brown@intel.com>
-Date:   Wed Feb 25 18:00:18 2009 -0500
-
-    Revert "ACPI: make some IO ports off-limits to AML"
-    
-    This reverts commit 5ec5d38a1c8af255ffc481c81eef13e9155524b3.
-    because it caused spurious dmesg warmings.
-    We'll implement the check for off-limit ports
-    in a more clever way in the future.
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=12758
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit a140449584522c3eea1bb381f746d40939e6f62a
-Author: Andy Whitcroft <apw@canonical.com>
-Date:   Wed Feb 11 18:11:22 2009 +0000
-
-    suspend: switch the Asus Pundit P1-AH2 to old ACPI sleep ordering
-    
-    Switch the Asus Pundit P1-AH2 (M2N8L motherboard) to the old ACPI 1.0
-    sleep ordering by default.  Without this it will not suspend/resume
-    correctly.
-    
-    Signed-off-by: Andy Whitcroft <apw@canonical.com>
-    Tested-by: Dustin Kirkland <kirkland@canonical.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
