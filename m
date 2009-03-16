@@ -1,41 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: The Garbled screen issue on Sony laptops with two graphics (Intel and Nvidia)
-Date: Mon, 16 Mar 2009 10:24:23 +0000
-Message-ID: <20090316102423.GA16889@srcf.ucam.org>
-References: <1236739527.2820.178.camel@rzhang-dt> <20090311024652.GA14493@srcf.ucam.org> <1236756550.2820.218.camel@rzhang-dt> <20090311130847.GC13101@kamineko.org>
+From: Zoltan Menyhart <Zoltan.Menyhart@bull.net>
+Subject: Backward compatibility to ACPI 2
+Date: Mon, 16 Mar 2009 10:58:15 +0100
+Message-ID: <49BE22B7.6020700@bull.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38303 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610AbZCPKYa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 06:24:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20090311130847.GC13101@kamineko.org>
+Received: from ecfrec.frec.bull.fr ([129.183.4.8]:44831 "EHLO
+	ecfrec.frec.bull.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753214AbZCPK26 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 06:28:58 -0400
+Received: from cyclope.frec.bull.fr (cyclope.frec.bull.fr [129.183.4.9])
+	by ecfrec.frec.bull.fr (Postfix) with ESMTP id 6DD8E6F5CE
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2009 10:58:15 +0100 (CET)
+Received: from openx1.frec.bull.fr (openx1.frec.bull.fr [129.183.160.2])
+	by cyclope.frec.bull.fr (Postfix) with ESMTP id 0507E2728D
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2009 10:58:14 +0100 (CET)
+Received: from openx1.frec.bull.fr (localhost [127.0.0.1])
+	by openx1.frec.bull.fr (Postfix) with ESMTP id 51E8C13A01
+	for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2009 10:58:15 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, "Wang, Zhenyu Z" <zhenyu.z.wang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed, Mar 11, 2009 at 10:08:47PM +0900, Mattia Dongili wrote:
+Recent kernels, e.g. 2.6.29-rc7, assume ACPI 3 data structures
+without verifying the revision of e.g. the SRAT.
+Therefore machines with "old" SRAT cannot be configured correctly.
+E.g. the Proximity Domain in the Memory Affinity Structure has got
+different field length (1 vs. 4 bytes).
 
-> - some models have different magic numbers for the _DSM invocation, from
->   the DSDT I have available:
-> 	DSDT.sz.xxx.dsl (some uknown model)
-> 	DSDT.sz61mn-forXP.dsl
-> 	DSDT.tt11lnb.dsl
-> 	DSDT.z11vn.dsl
-> 	DSDT.z90s.dsl
-> 	VGN-SZ4XWNC-R0111N0.dsl
->   and for what I can see, z and tt have the same magic numbers while the
->   sz has different ones. So the code that calls _DSM will need to have
->   some DMI switch to make sure we are calling it with the right
->   parameters (for now supporting z and tt might be enough)
+Have you got a plan to determine at run time the ACPI version?
 
-_DSM is "Device Specific Method". The magic numbers it requires are 
-interface descriptions. How many of these machines have nvidia-based 
-dual GPU architectures? Are the _DSM methods always attached to the 
-nvidia device?
+Which was the last kernel supporting the ACPI 2?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks,
+
+Zoltan Menyhart
+
+
+
