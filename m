@@ -1,55 +1,74 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: unsigned cannot be less than 0.
-Date: Sun, 15 Mar 2009 22:42:59 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903152242530.30317@localhost.localdomain>
-References: <49AB0AA1.1090207@gmail.com>
+Subject: Re: [PATCH] thinkpad-acpi: fix module autoloading for older models
+Date: Sun, 15 Mar 2009 22:45:20 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903152245120.30317@localhost.localdomain>
+References: <1234704351-24093-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:53946 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751845AbZCPCnS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 22:43:18 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:60271 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027AbZCPCp2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 22:45:28 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173009.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KGK00I3CVJOP229@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sun, 15 Mar 2009 21:43:06 -0500 (CDT)
-In-reply-to: <49AB0AA1.1090207@gmail.com>
+ with ESMTPA id <0KGK000LPVNLLIB8@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 15 Mar 2009 21:45:22 -0500 (CDT)
+In-reply-to: <1234704351-24093-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Roel Kluin <roel.kluin@gmail.com>
-Cc: carlos@strangeworlds.co.uk, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Mathieu Chouquet-Stringer <mchouque@free.fr>, stable@kernel.org
 
 applied
 thanks,
 Len Brown, Intel Open Source Technology Center
 
-On Sun, 1 Mar 2009, Roel Kluin wrote:
+On Sun, 15 Feb 2009, Henrique de Moraes Holschuh wrote:
 
-> include/linux/pci-acpi.h:74:
-> typedef u32                 acpi_status;
-> ------------------------------>8-------------8<---------------------------------
-> result is unsigned, so an error returned by acpi_bus_register_driver() will not
-> be noticed.
+> From: Mathieu Chouquet-Stringer <mchouque@free.fr>
 > 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> Looking at the source, there seems to be a missing * to match my DMI
+> string.  I mean for newer IBM and Lenovo's laptops you match either one
+> of the following:
+> MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
+> MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO:*:pvrThinkPad*:rvnLENOVO:*");
+> 
+> While for older Thinkpads, you do this (for instance):
+> IBM_BIOS_MODULE_ALIAS("1[0,3,6,8,A-G,I,K,M-P,S,T]");
+> 
+> with IBM_BIOS_MODULE_ALIAS being MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
+> 
+> Note there's no * terminating the string.  As result, udev doesn't load
+> anything because modprobe cannot find anything matching this (my
+> machine actually):
+> 
+> udevtest: run: '/sbin/modprobe dmi:bvnIBM:bvr1IET71WW(2.10):bd06/16/2006:svnIBM:pn236621U:pvrNotAvailable:rvnIBM:rn236621U:rvrNotAvailable:cvnIBM:ct10:cvrNotAvailable:'
+> 
+> Signed-off-by: Mathieu Chouquet-Stringer <mchouque@free.fr>
+> Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Cc: stable@kernel.org
 > ---
-> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-> index 8a8b377..2f269e1 100644
-> --- a/drivers/platform/x86/wmi.c
-> +++ b/drivers/platform/x86/wmi.c
-> @@ -708,7 +708,7 @@ static int __init acpi_wmi_add(struct acpi_device *device)
+>  drivers/platform/x86/thinkpad_acpi.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> 
+> Len, please consider this for 2.6.29.  It is an obvious one-liner.
+> 
+> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+> index 91ae159..d218ecb 100644
+> --- a/drivers/platform/x86/thinkpad_acpi.c
+> +++ b/drivers/platform/x86/thinkpad_acpi.c
+> @@ -7524,7 +7524,7 @@ MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
+>   * if it is not there yet.
+>   */
+>  #define IBM_BIOS_MODULE_ALIAS(__type) \
+> -	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW")
+> +	MODULE_ALIAS("dmi:bvnIBM:bvr" __type "ET??WW*")
 >  
->  static int __init acpi_wmi_init(void)
->  {
-> -	acpi_status result;
-> +	int result;
->  
->  	INIT_LIST_HEAD(&wmi_blocks.list);
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  /* Non-ancient thinkpads */
+>  MODULE_ALIAS("dmi:bvnIBM:*:svnIBM:*:pvrThinkPad*:rvnIBM:*");
+> -- 
+> 1.5.6.5
 > 
