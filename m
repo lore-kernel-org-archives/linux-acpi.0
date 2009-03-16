@@ -1,56 +1,43 @@
-From: Wu Fengguang <fengguang.wu@intel.com>
-Subject: Re: [PATCH] ACPI: pass correct parameter to
-	acpi_processor_ffh_cstate_probe_cpu()
-Date: Mon, 16 Mar 2009 12:43:37 +0800
-Message-ID: <20090316044337.GD7903@localhost>
-References: <20090312074524.GA15992@localhost> <alpine.LFD.2.00.0903152257260.30317@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/9] sony-laptop for 2.6.30
+Date: Mon, 16 Mar 2009 01:10:43 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903160106440.6195@localhost.localdomain>
+References: <1235882445-2404-1-git-send-email-malattia@linux.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:36643 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbZCPEoN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Mar 2009 00:44:13 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0903152257260.30317@localhost.localdomain>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:53767 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956AbZCPFLN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 01:11:13 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KGL00C4N2DXVB71@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 16 Mar 2009 00:10:46 -0500 (CDT)
+In-reply-to: <1235882445-2404-1-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Ingo Molnar <mingo@elte.hu>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "Brown, Len" <len.brown@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Mar 16, 2009 at 10:59:19AM +0800, Len Brown wrote:
-> On Thu, 12 Mar 2009, Wu Fengguang wrote:
-> 
-> > This fixes a NULL pointer dereference bug introduced by 6e911954cac.
-> 
-> What tree is this patch on top of?
+I snapped these up when i was traveling -- I think
+I didn't get a chance to reply.
 
-It's for 2.6.29-rc7-next-20090311. Already fixed in other trees?
+a couple of nits for next time...
 
-Thanks,
-Fengguang
+Subject: [PATCH a/b] [sony-laptop] bla bla bla
+should be:
+Subject: [PATCH a/b] sony-laptop: bla bla bla
 
-> thanks,
-> -Len Brown
-> Intel Open Source Technology Center
-> 
-> > Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-> > ---
-> > diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-> > index 6626e8c..b866b87 100644
-> > --- a/arch/x86/kernel/acpi/cstate.c
-> > +++ b/arch/x86/kernel/acpi/cstate.c
-> > @@ -137,7 +137,7 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-> >  	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
-> >  
-> >  	retval = smp_call_function_single(cpu,
-> > -				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
-> > +				acpi_processor_ffh_cstate_probe_cpu, &cxcc, 1);
-> >  	if (retval == 0) {
-> >  		retval = cxcc.retval;
-> >  		if (retval == 0) {
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
+because everything between []'s get deleted by git-am
+
+Also, some of the From: and Signed-off-by's were not quite right.
+If you're not the original author, then the From: for the author
+should be the first line in the body.  It doesn't again go down
+by the Signed-off-by:.  Also, the orignal author should have
+the 1st signed-off-by line, as they're generally intended to
+show the path that the patch took to the kernel...
+
+thanks,
+Len Brown, Intel Open Source Technology Center
