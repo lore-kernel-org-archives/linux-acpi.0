@@ -1,45 +1,69 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: pass correct parameter to
- acpi_processor_ffh_cstate_probe_cpu()
-Date: Sun, 15 Mar 2009 22:59:19 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903152257260.30317@localhost.localdomain>
-References: <20090312074524.GA15992@localhost>
+Subject: Re: [patch 1/8] x86: oqo: depends on INPUT_POLLDEV
+Date: Sun, 15 Mar 2009 23:05:04 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903152304290.30317@localhost.localdomain>
+References: <200903041955.n24JtOKb027987@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754800AbZCPC7v@vger.kernel.org>
-In-reply-to: <20090312074524.GA15992@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Ingo Molnar <mingo@elte.hu>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>, Zhao Yakui <yakui.zhao@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:15353 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082AbZCPDFU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Mar 2009 23:05:20 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KGK00AYFWKJCR47@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 15 Mar 2009 22:05:07 -0500 (CDT)
+In-reply-to: <200903041955.n24JtOKb027987@imap1.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, randy.dunlap@oracle.com, hpa@zytor.com, mingo@elte.hu, mjg59@srcf.ucam.org, tglx@linutronix.de
 
-On Thu, 12 Mar 2009, Wu Fengguang wrote:
+applied to oqo-wmi-EXPECT-REFRESH branch
 
-> This fixes a NULL pointer dereference bug introduced by 6e911954cac.
+expecting a revised patch from Matthew at some point...
 
-What tree is this patch on top of?
+thanks
+--
+Len Brown, Intel Open Source Technology Center
 
-thanks,
--Len Brown
-Intel Open Source Technology Center
+On Wed, 4 Mar 2009, akpm@linux-foundation.org wrote:
 
-> Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> oqo driver uses polled input functions, so make it depend
+> on INPUT_POLLDEV.
+> 
+> ERROR: "input_register_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+> ERROR: "input_allocate_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+> ERROR: "input_free_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+> ERROR: "input_unregister_polled_device" [drivers/platform/x86/oqo-wmi.ko] undefined!
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+> Cc: Ingo Molnar <mingo@elte.hu>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
-> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-> index 6626e8c..b866b87 100644
-> --- a/arch/x86/kernel/acpi/cstate.c
-> +++ b/arch/x86/kernel/acpi/cstate.c
-> @@ -137,7 +137,7 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
->  	/* Run acpi_processor_ffh_cstate_probe_cpu() on the target CPU */
->  
->  	retval = smp_call_function_single(cpu,
-> -				acpi_processor_ffh_cstate_probe_cpu, cx, 1);
-> +				acpi_processor_ffh_cstate_probe_cpu, &cxcc, 1);
->  	if (retval == 0) {
->  		retval = cxcc.retval;
->  		if (retval == 0) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>  drivers/platform/x86/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -puN drivers/platform/x86/Kconfig~x86-oqo-depends-on-input_polldev drivers/platform/x86/Kconfig
+> --- a/drivers/platform/x86/Kconfig~x86-oqo-depends-on-input_polldev
+> +++ a/drivers/platform/x86/Kconfig
+> @@ -137,7 +137,7 @@ config MSI_LAPTOP
+>  config OQO_WMI
+>         tristate "OQO WMI extras"
+>         depends on ACPI_WMI
+> -       depends on INPUT
+> +       depends on INPUT && INPUT_POLLDEV
+>         depends on RFKILL
+>         depends on BACKLIGHT_CLASS_DEVICE
+>         help
+> _
 > 
