@@ -1,37 +1,35 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by
- zero
-Date: Mon, 16 Mar 2009 17:31:34 +0100
-Message-ID: <49BE7EE6.3070107@gmail.com>
-References: <49BCDCAA.8040309@gmail.com>	 <d3f22a0903152046m891dc0aq6ca01eed32a9eb32@mail.gmail.com> <1237174943.4193.37.camel@minggr.sh.intel.com>
+From: THE CAMELOT GROUP <bedrette@cox.net>
+Subject: =?utf-8?Q?File_For_Claim_(=C3=82=C2=A3891,934.00)?=
+Date: Mon, 16 Mar 2009 17:50:57 -0400
+Message-ID: <20090316175057.TGFYE.91905.imail@fed1rmwml37>
+Reply-To: processingdepth01@googlemail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f175.google.com ([209.85.218.175]:54813 "EHLO
-	mail-bw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752014AbZCPQbj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 12:31:39 -0400
-In-Reply-To: <1237174943.4193.37.camel@minggr.sh.intel.com>
+Received: from fed1rmpop109.cox.net ([68.230.241.13]:34120 "EHLO
+	fed1rmpop109.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759130AbZCPWLw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2009 18:11:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: robert.moore@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel <linux-kernel@vger.kernel.org>, torvalds@linux-foundation.org
 
-On 16.3.2009 04:42, Lin Ming wrote:
->> sometimes, when booting up/resuming from disk, I get an oops[1].
->>
->> obj_desc->common_field.access_bit_width is zero, but even after the
->> loop. Division before the loop is apparently OK.
->
-> Would please try below debug patch to see which region filed is
-> accessed?
+You are a proud winner of =C3=82=C2=A3 891, 934 .0
 
-Yes, except the fact, we wouldn't see anything :) -- I'll add inside the 
-if a return statement or something to disallow the oops to flood screen.
+Acknowledge the receipt of this mail with the details below to Mr. Terr=
+y Wise,
+processingdepth01@googlemail.com
+Tel: +447035973413
 
-Also, it doesn't happen regularly. Mostly several first tries after cold 
-start. I hope this is a regression and not a HW problem, but it emerged 
-after switching to 2.6.29-*, I will keep you informed.
-
-Thanks.
+Names
+Address
+Occupation
+Age
+Sex
+Tel
+Country
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
