@@ -1,76 +1,50 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] acpi: remove the wrong warning about xpm1a_event_block.bit_width
-Date: Tue, 17 Mar 2009 14:36:16 -0700
-Message-ID: <49C017D0.6030502@kernel.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: acpi tree build failure
+Date: Wed, 18 Mar 2009 11:57:13 +1100
+Message-ID: <20090318115713.bafedc37.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:33295 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754317AbZCQViM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Mar 2009 17:38:12 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__18_Mar_2009_11_57_13_+1100_vO7hP2zt9d6y4KSt"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-next@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Jan Beulich <jbeulich@novell.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+--Signature=_Wed__18_Mar_2009_11_57_13_+1100_vO7hP2zt9d6y4KSt
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Impact: fix warning
+Hi Len,
 
-it seems there are some merging problems.
+Today's (and several previous day's) linux-next build (i386 allmodconfig)
+failed like this:
 
-that bit_width is already divided by 2. so I got warning from all servers.
+arch/x86/kernel/cpu/cpufreq/longhaul.c: In function 'longhaul_setstate':
+arch/x86/kernel/cpu/cpufreq/longhaul.c:308: error: implicit declaration of =
+function 'acpi_set_register'
 
-also in that case do try to the fallback like comments saying.
+(http://kisskb.ellerman.id.au/kisskb/target/421/)
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Caused by commit e2f34512879026beb26827c14b1d1e67c07f2858 ("ACPICA:
+Rename ACPI bit register access functions").
 
----
- drivers/acpi/acpica/tbfadt.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Index: linux-2.6/drivers/acpi/acpica/tbfadt.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpica/tbfadt.c
-+++ linux-2.6/drivers/acpi/acpica/tbfadt.c
-@@ -447,13 +447,16 @@ static void acpi_tb_convert_fadt(void)
- 	 * cannot be relied upon, though. Hence resort to using the v1 length
- 	 * here (and warn about the inconsistency).
- 	 */
--	if (acpi_gbl_FADT.xpm1a_event_block.bit_width
--	    != acpi_gbl_FADT.pm1_event_length * 8)
-+	if (acpi_gbl_FADT.xpm1a_event_block.bit_width * 2
-+	    != acpi_gbl_FADT.pm1_event_length * 8) {
- 		printk(KERN_WARNING "FADT: "
- 		       "X_PM1a_EVT_BLK.bit_width (%u) does not match"
- 		       " PM1_EVT_LEN (%u)\n",
--		       acpi_gbl_FADT.xpm1a_event_block.bit_width,
-+		       acpi_gbl_FADT.xpm1a_event_block.bit_width * 2,
- 		       acpi_gbl_FADT.pm1_event_length);
-+		pm1_register_byte_width = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
-+		acpi_gbl_FADT.xpm1a_event_block.bit_width = pm1_register_byte_width * 8;
-+	}
- 
- 	/* The PM1A register block is required */
- 
-@@ -469,13 +472,16 @@ static void acpi_tb_convert_fadt(void)
- 	/* The PM1B register block is optional, ignore if not present */
- 
- 	if (acpi_gbl_FADT.xpm1b_event_block.address) {
--		if (acpi_gbl_FADT.xpm1b_event_block.bit_width
--		    != acpi_gbl_FADT.pm1_event_length * 8)
-+		if (acpi_gbl_FADT.xpm1b_event_block.bit_width * 2
-+		    != acpi_gbl_FADT.pm1_event_length * 8) {
- 			printk(KERN_WARNING "FADT: "
- 			       "X_PM1b_EVT_BLK.bit_width (%u) does not match"
- 			       " PM1_EVT_LEN (%u)\n",
--			       acpi_gbl_FADT.xpm1b_event_block.bit_width,
-+			       acpi_gbl_FADT.xpm1b_event_block.bit_width * 2,
- 			       acpi_gbl_FADT.pm1_event_length);
-+			pm1_register_byte_width = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
-+			acpi_gbl_FADT.xpm1b_event_block.bit_width = pm1_register_byte_width * 8;
-+		}
- 		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
- 					     acpi_gbl_FADT.xpm1b_event_block.space_id,
- 					     pm1_register_byte_width,
+--Signature=_Wed__18_Mar_2009_11_57_13_+1100_vO7hP2zt9d6y4KSt
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAknARukACgkQjjKRsyhoI8z28gCfTi0EsT3DCFtpmxhN8p5ZeWJ/
+aNgAoK9TRgWOE2bMjlQOyQUs45oupT1O
+=BNZb
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__18_Mar_2009_11_57_13_+1100_vO7hP2zt9d6y4KSt--
