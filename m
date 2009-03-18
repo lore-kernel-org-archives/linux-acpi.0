@@ -1,116 +1,55 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RESEND PATCH 2/6] ACPI video: check the return value of
-	acpi_video_device_lcd_set_level
-Date: Wed, 18 Mar 2009 16:27:10 +0800
-Message-ID: <1237364830.3826.58.camel@rzhang-dt>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [patch]: ACPI: Add the Pansonic CF51 box to the dmi check table
+Date: Wed, 18 Mar 2009 16:36:25 +0800
+Message-ID: <1237365385.3640.43.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:39078 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:56412 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751779AbZCRI1B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Mar 2009 04:27:01 -0400
+	id S1752462AbZCRIfZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Mar 2009 04:35:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Subject: check the return value of acpi_video_device_lcd_set_level
-From: Zhang Rui <rui.zhang@intel.com>
+Subject: ACPI: Add the Pansonic CF51 box to the dmi check table
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-check the return value of acpi_video_device_lcd_set_level.
+The Pansonic CF51-2L box can't be resumed if the boot option of
+"acpi_sleep=old_ordering" is not added.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Acked-by: Thomas Renninger <trenn@suse.de>
+Add the Pansonic CF51-2L to the dmi check table so that the old suspend
+order is used.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=12561
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 ---
- drivers/acpi/video.c |   37 +++++++++++++++++++++----------------
- 1 file changed, 21 insertions(+), 16 deletions(-)
+ drivers/acpi/sleep.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Index: linux-2.6/drivers/acpi/video.c
+Index: linux-2.6/drivers/acpi/sleep.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -322,12 +322,12 @@ static int acpi_video_get_brightness(str
- 
- static int acpi_video_set_brightness(struct backlight_device *bd)
- {
--	int request_level = bd->props.brightness+2;
-+	int request_level = bd->props.brightness + 2;
- 	struct acpi_video_device *vd =
- 		(struct acpi_video_device *)bl_get_data(bd);
--	acpi_video_device_lcd_set_level(vd,
--					vd->brightness->levels[request_level]);
--	return 0;
-+
-+	return acpi_video_device_lcd_set_level(vd,
-+				vd->brightness->levels[request_level]);
- }
- 
- static struct backlight_ops acpi_backlight_ops = {
-@@ -482,23 +482,29 @@ acpi_video_device_lcd_query_levels(struc
- static int
- acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
- {
--	int status = AE_OK;
-+	int status;
- 	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
- 	struct acpi_object_list args = { 1, &arg0 };
- 	int state;
- 
--
- 	arg0.integer.value = level;
- 
--	if (device->cap._BCM)
--		status = acpi_evaluate_object(device->dev->handle, "_BCM",
--					      &args, NULL);
-+	status = acpi_evaluate_object(device->dev->handle, "_BCM",
-+				      &args, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_ERROR((AE_INFO, "Evaluating _BCM failed"));
-+		return -EIO;
-+	}
-+
- 	device->brightness->curr = level;
- 	for (state = 2; state < device->brightness->count; state++)
--		if (level == device->brightness->levels[state])
-+		if (level == device->brightness->levels[state]) {
- 			device->backlight->props.brightness = state - 2;
-+			return 0;
-+		}
- 
--	return status;
-+	ACPI_ERROR((AE_INFO, "Current brightness invalid"));
-+	return -EINVAL;
- }
- 
- static int
-@@ -1082,13 +1088,12 @@ acpi_video_device_write_brightness(struc
- 	/* validate through the list of available levels */
- 	for (i = 2; i < dev->brightness->count; i++)
- 		if (level == dev->brightness->levels[i]) {
--			if (ACPI_SUCCESS
--			    (acpi_video_device_lcd_set_level(dev, level)))
--				dev->brightness->curr = level;
-+			if (!acpi_video_device_lcd_set_level(dev, level))
-+				return count;
- 			break;
- 		}
- 
--	return count;
-+	return -EINVAL;
- }
- 
- static int acpi_video_device_EDID_seq_show(struct seq_file *seq, void *offset)
-@@ -1786,7 +1791,7 @@ acpi_video_switch_brightness(struct acpi
- 
- 	level_next = acpi_video_get_next_level(device, level_current, event);
- 
--	acpi_video_device_lcd_set_level(device, level_next);
-+	result = acpi_video_device_lcd_set_level(device, level_next);
- 
- out:
- 	if (result)
+--- linux-2.6.orig/drivers/acpi/sleep.c	2009-03-10 10:54:41.000000000 +0800
++++ linux-2.6/drivers/acpi/sleep.c	2009-03-10 11:39:42.000000000 +0800
+@@ -378,6 +378,15 @@
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
+ 		},
+ 	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Pansonic CF51-2L",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR,
++				"Matsushita Electric Industrial Co.,Ltd."),
++		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
++		},
++	},
+ 	{},
+ };
+ #endif /* CONFIG_SUSPEND */
 
 
