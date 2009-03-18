@@ -1,55 +1,32 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [patch]: ACPI: Add the Pansonic CF51 box to the dmi check table
-Date: Wed, 18 Mar 2009 16:36:25 +0800
-Message-ID: <1237365385.3640.43.camel@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [patch]: ACPI: Add the Pansonic CF51 box to the dmi check table
+Date: Wed, 18 Mar 2009 13:41:53 +0000
+Message-ID: <20090318134153.GA28461@srcf.ucam.org>
+References: <1237365385.3640.43.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:56412 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752462AbZCRIfZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Mar 2009 04:35:25 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:47105 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128AbZCRNmE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Mar 2009 09:42:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1237365385.3640.43.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Subject: ACPI: Add the Pansonic CF51 box to the dmi check table
-From: Zhao Yakui <yakui.zhao@intel.com>
+On Wed, Mar 18, 2009 at 04:36:25PM +0800, yakui_zhao wrote:
+> Subject: ACPI: Add the Pansonic CF51 box to the dmi check table
+> From: Zhao Yakui <yakui.zhao@intel.com>
+> 
+> The Pansonic CF51-2L box can't be resumed if the boot option of
+> "acpi_sleep=old_ordering" is not added.
 
-The Pansonic CF51-2L box can't be resumed if the boot option of
-"acpi_sleep=old_ordering" is not added.
+Do we have any idea what's going on here, yet? Several of the machines 
+on this blacklist are modern, so it's not a workaround for ancient 
+hardware.
 
-Add the Pansonic CF51-2L to the dmi check table so that the old suspend
-order is used.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=12561
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/sleep.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
-
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c	2009-03-10 10:54:41.000000000 +0800
-+++ linux-2.6/drivers/acpi/sleep.c	2009-03-10 11:39:42.000000000 +0800
-@@ -378,6 +378,15 @@
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Macmini1,1"),
- 		},
- 	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Pansonic CF51-2L",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR,
-+				"Matsushita Electric Industrial Co.,Ltd."),
-+		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
-+		},
-+	},
- 	{},
- };
- #endif /* CONFIG_SUSPEND */
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
