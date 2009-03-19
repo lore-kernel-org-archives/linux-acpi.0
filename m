@@ -1,57 +1,265 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Thu, 19 Mar 2009 22:34:28 +0100
-Message-ID: <20090319213428.GK29624@gamma.logic.tuwien.ac.at>
-References: <20090319212123.GA24700@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH v2] acpi: Populate DIDL before registering ACPI video device on Intel
+Date: Thu, 19 Mar 2009 21:35:39 +0000
+Message-ID: <20090319213539.GA24898@srcf.ucam.org>
+References: <20090311215517.GA32400@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:38599 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750722AbZCSVen (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:34:43 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:57307 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099AbZCSVfs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:35:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20090319212123.GA24700@srcf.ucam.org>
+In-Reply-To: <20090311215517.GA32400@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: malattia@linux.it, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-HI Matthew,
+[ACPI] Populate DIDL before registering ACPI video device on Intel
 
-On Do, 19 M=E4r 2009, Matthew Garrett wrote:
-> Enable events on all Vaio's with the new-style ACPI interface, and us=
-e
-> it to support rfkill where available.
+Intel graphics hardware that implements the ACPI IGD OpRegion spec 
+requires that the list of display devices be populated before any ACPI 
+video methods are called. Detect when this is the case and defer 
+registration until the opregion code calls it. Fixes crashes on HP 
+laptops as seen in kernel bugzilla #11259.
+    
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Thanks for these patches, do they enable wwan activation on Vaio Z
-series, too?
+---
 
-Currently the stock kernel sony-laptop with all patches floating around
-on lkml did not make the wwan interface show up from the turned off
-state. The only way to do that is using the 0.6 version for Vaio Z from
-http://www.basyskom.org/~eva/log_installation_vaio_z21vnx.html
+This version fixes an attempted re-registration of the video device on 
+resume.
 
-Thanks and all the best
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index bb5ed05..64e987c 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -37,6 +37,8 @@
+ #include <linux/thermal.h>
+ #include <linux/video_output.h>
+ #include <linux/sort.h>
++#include <linux/pci.h>
++#include <linux/pci_ids.h>
+ #include <asm/uaccess.h>
+ 
+ #include <acpi/acpi_bus.h>
+@@ -2124,7 +2126,27 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
+-static int __init acpi_video_init(void)
++static int __init intel_opregion_present(void)
++{
++#if defined(CONFIG_DRM_I915) || defined(CONFIG_DRM_I915_MODULE)
++	struct pci_dev *dev = NULL;
++	u32 address;
++
++	for_each_pci_dev(dev) {
++		if ((dev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
++			continue;
++		if (dev->vendor != PCI_VENDOR_ID_INTEL)
++			continue;
++		pci_read_config_dword(dev, 0xfc, &address);
++		if (!address)
++			continue;
++		return 1;
++	}
++#endif
++	return 0;
++}
++
++int acpi_video_register(void)
+ {
+ 	int result = 0;
+ 
+@@ -2141,6 +2163,22 @@ static int __init acpi_video_init(void)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(acpi_video_register);
++
++/*
++ * This is kind of nasty. Hardware using Intel chipsets may require
++ * the video opregion code to be run first in order to initialise
++ * state before any ACPI video calls are made. To handle this we defer
++ * registration of the video class until the opregion code has run.
++ */
++
++static int __init acpi_video_init(void)
++{
++	if (intel_opregion_present())
++		return 0;
++
++	return acpi_video_register();
++}
+ 
+ static void __exit acpi_video_exit(void)
+ {
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 6dab63b..5881b6a 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -1144,8 +1144,6 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+ 	if (!IS_I945G(dev) && !IS_I945GM(dev))
+ 		pci_enable_msi(dev->pdev);
+ 
+-	intel_opregion_init(dev);
+-
+ 	spin_lock_init(&dev_priv->user_irq_lock);
+ 	dev_priv->user_irq_refcount = 0;
+ 
+@@ -1164,6 +1162,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+ 		}
+ 	}
+ 
++	/* Must be done after probing outputs */
++	intel_opregion_init(dev, 0);
++
+ 	return 0;
+ 
+ out_iomapfree:
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index b293ef0..209592f 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -99,7 +99,7 @@ static int i915_resume(struct drm_device *dev)
+ 
+ 	i915_restore_state(dev);
+ 
+-	intel_opregion_init(dev);
++	intel_opregion_init(dev, 1);
+ 
+ 	/* KMS EnterVT equivalent */
+ 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 17fa408..aee6f9e 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -654,7 +654,7 @@ extern int i915_restore_state(struct drm_device *dev);
+ 
+ #ifdef CONFIG_ACPI
+ /* i915_opregion.c */
+-extern int intel_opregion_init(struct drm_device *dev);
++extern int intel_opregion_init(struct drm_device *dev, int resume);
+ extern void intel_opregion_free(struct drm_device *dev);
+ extern void opregion_asle_intr(struct drm_device *dev);
+ extern void opregion_enable_asle(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
+index ff01283..6942772 100644
+--- a/drivers/gpu/drm/i915/i915_opregion.c
++++ b/drivers/gpu/drm/i915/i915_opregion.c
+@@ -26,6 +26,7 @@
+  */
+ 
+ #include <linux/acpi.h>
++#include <acpi/video.h>
+ 
+ #include "drmP.h"
+ #include "i915_drm.h"
+@@ -136,6 +137,12 @@ struct opregion_asle {
+ 
+ #define ASLE_CBLV_VALID         (1<<31)
+ 
++#define ACPI_OTHER_OUTPUT (0<<8)
++#define ACPI_VGA_OUTPUT (1<<8)
++#define ACPI_TV_OUTPUT (2<<8)
++#define ACPI_DIGITAL_OUTPUT (3<<8)
++#define ACPI_LVDS_OUTPUT (4<<8)
++
+ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -282,7 +289,58 @@ static struct notifier_block intel_opregion_notifier = {
+ 	.notifier_call = intel_opregion_video_event,
+ };
+ 
+-int intel_opregion_init(struct drm_device *dev)
++/*
++ * Initialise the DIDL field in opregion. This passes a list of devices to
++ * the firmware. Values are defined by section B.4.2 of the ACPI specification
++ * (version 3)
++ */
++
++static void intel_didl_outputs(struct drm_device *dev)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	struct intel_opregion *opregion = &dev_priv->opregion;
++	struct drm_connector *connector;
++	int i = 0;
++
++	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
++		int output_type = ACPI_OTHER_OUTPUT;
++		if (i >= 8) {
++			dev_printk (KERN_ERR, &dev->pdev->dev,
++				    "More than 8 outputs detected\n");
++			return;
++		}
++		switch (connector->connector_type) {
++		case DRM_MODE_CONNECTOR_VGA:
++		case DRM_MODE_CONNECTOR_DVIA:
++			output_type = ACPI_VGA_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_Composite:
++		case DRM_MODE_CONNECTOR_SVIDEO:
++		case DRM_MODE_CONNECTOR_Component:
++		case DRM_MODE_CONNECTOR_9PinDIN:
++			output_type = ACPI_TV_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_DVII:
++		case DRM_MODE_CONNECTOR_DVID:
++		case DRM_MODE_CONNECTOR_DisplayPort:
++		case DRM_MODE_CONNECTOR_HDMIA:
++		case DRM_MODE_CONNECTOR_HDMIB:
++			output_type = ACPI_DIGITAL_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_LVDS:
++			output_type = ACPI_LVDS_OUTPUT;
++			break;
++		}
++		opregion->acpi->didl[i] |= (1<<31) | output_type | i;
++		i++;
++	}
++
++	/* If fewer than 8 outputs, the list must be null terminated */
++	if (i < 8)
++		opregion->acpi->didl[i] = 0;
++}
++
++int intel_opregion_init(struct drm_device *dev, int resume)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct intel_opregion *opregion = &dev_priv->opregion;
+@@ -312,6 +370,11 @@ int intel_opregion_init(struct drm_device *dev)
+ 	if (mboxes & MBOX_ACPI) {
+ 		DRM_DEBUG("Public ACPI methods supported\n");
+ 		opregion->acpi = base + OPREGION_ACPI_OFFSET;
++		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
++			intel_didl_outputs(dev);
++			if (!resume)
++				acpi_video_register();
++		}
+ 	} else {
+ 		DRM_DEBUG("Public ACPI methods not supported\n");
+ 		err = -ENOTSUPP;
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+new file mode 100644
+index 0000000..f0275bb
+--- /dev/null
++++ b/include/acpi/video.h
+@@ -0,0 +1,11 @@
++#ifndef __ACPI_VIDEO_H
++#define __ACPI_VIDEO_H
++
++#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
++extern int acpi_video_register(void);
++#else
++static inline int acpi_video_register(void) { return 0; }
++#endif
++
++#endif
++
 
-Norbert
-
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Te=
-chnology
-Debian Developer <preining@debian.org>                         Debian T=
-eX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-BAUGHURST
-That kind of large fierce ugly woman who owns a small fierce ugly dog.
-			--- Douglas Adams, The Meaning of Liff
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
