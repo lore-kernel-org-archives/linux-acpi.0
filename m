@@ -1,62 +1,54 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: [PATCH] ACPI: cap off P-state transition latency from buggy BIOSes
-Date: Thu, 19 Mar 2009 14:41:40 -0700
-Message-ID: <20090319214140.GA28868@linux-os.sc.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
+Date: Thu, 19 Mar 2009 21:44:37 +0000
+Message-ID: <20090319214437.GB24898@srcf.ucam.org>
+References: <20090319212123.GA24700@srcf.ucam.org> <20090319213428.GK29624@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19570 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753274AbZCSVls (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Mar 2009 17:41:48 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:33104 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757681AbZCSVon (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:44:43 -0400
 Content-Disposition: inline
+In-Reply-To: <20090319213428.GK29624@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, mjg59@srcf.ucam.org
+To: Norbert Preining <preining@logic.at>
+Cc: malattia@linux.it, linux-acpi@vger.kernel.org
 
+On Thu, Mar 19, 2009 at 10:34:28PM +0100, Norbert Preining wrote:
+> HI Matthew,
+>=20
+> On Do, 19 M=E4r 2009, Matthew Garrett wrote:
+> > Enable events on all Vaio's with the new-style ACPI interface, and =
+use
+> > it to support rfkill where available.
+>=20
+> Thanks for these patches, do they enable wwan activation on Vaio Z
+> series, too?
 
-Some BIOSes report very high frequency transition latency which are plainly
-wrong on CPus that can change frequency using native MSR interface.
+I expect so.
 
-One such system is IBM T42 (2327-8ZU) as reported by Owen Taylor and
-Rik van Riel.
+> Currently the stock kernel sony-laptop with all patches floating arou=
+nd
+> on lkml did not make the wwan interface show up from the turned off
+> state. The only way to do that is using the 0.6 version for Vaio Z fr=
+om
+> http://www.basyskom.org/~eva/log_installation_vaio_z21vnx.html
 
-cpufreq_ondemand driver uses this transition latency to come up with a
-reasonable sampling interval to sample CPU usage and with such high
-latency value, ondemand sampling interval ends up being very high
-(0.5 sec, in this particular case), resulting in performance impact due to
-slow response to increasing frequency.
+Sigh. I could have saved some amount of time if these patches had=20
+actually been sent to the mailing list. They're functionally equivalent=
+,=20
+except mine integrate with the rfkill class correctly and check whether=
+=20
+the hardware is present before creating the rfkill device.
 
-Fix it by capping-off the transition latency to 20uS for native MSR based
-frequency transitions.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-
----
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-Index: linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-05-02 09:45:23.000000000 -0700
-+++ linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-06-30 12:08:32.000000000 -0700
-@@ -659,6 +659,18 @@ static int acpi_cpufreq_cpu_init(struct 
- 			    perf->states[i].transition_latency * 1000;
- 	}
- 
-+	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
-+	if (perf->control_register.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
-+	    policy->cpuinfo.transition_latency > 20 * 1000) {
-+		static int print_once;
-+		policy->cpuinfo.transition_latency = 20 * 1000;
-+		if (!print_once) {
-+			print_once = 1;
-+			printk(KERN_INFO "Capping off P-state tranision latency"
-+				" at 20 uS\n");
-+		}
-+	}
-+
- 	data->max_freq = perf->states[0].core_frequency * 1000;
- 	/* table init */
- 	for (i=0; i<perf->state_count; i++) {
+--=20
+Matthew Garrett | mjg59@srcf.ucam.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
