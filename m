@@ -1,32 +1,64 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: cap off P-state transition latency from buggy BIOSes
-Date: Thu, 19 Mar 2009 21:47:46 +0000
-Message-ID: <20090319214746.GC24898@srcf.ucam.org>
-References: <20090319214140.GA28868@linux-os.sc.intel.com>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
+Date: Thu, 19 Mar 2009 22:49:14 +0100
+Message-ID: <20090319214914.GN29624@gamma.logic.tuwien.ac.at>
+References: <20090319212123.GA24700@srcf.ucam.org> <20090319213428.GK29624@gamma.logic.tuwien.ac.at> <20090319214437.GB24898@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:47782 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757193AbZCSVrx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:47:53 -0400
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:49718 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757207AbZCSVtT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:49:19 -0400
 Content-Disposition: inline
-In-Reply-To: <20090319214140.GA28868@linux-os.sc.intel.com>
+In-Reply-To: <20090319214437.GB24898@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: malattia@linux.it, linux-acpi@vger.kernel.org
 
-On Thu, Mar 19, 2009 at 02:41:40PM -0700, Pallipadi, Venkatesh wrote:
+On Do, 19 M=E4r 2009, Matthew Garrett wrote:
+> Sigh. I could have saved some amount of time if these patches had=20
+> actually been sent to the mailing list. They're functionally equivale=
+nt,=20
 
-> Fix it by capping-off the transition latency to 20uS for native MSR based
-> frequency transitions.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Umpf, bad.
 
-We've confirmed that this also helps on the X31.
+> except mine integrate with the rfkill class correctly and check wheth=
+er=20
+> the hardware is present before creating the rfkill device.
 
-Acked-by: Matthew Garrett <mjg@redhat.com>
+I found that out only recently that there is this module floating
+around.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Ok, I will give your patches a testing spin on my Vaio Z11.
+
+One question: Should I apply the patches Mattia posted some time ago=20
+(9 of them if I remember correctly) and your patch on top of them, or
+apply your patch to current -rc8?
+
+Best wishes
+
+Norbert
+
+-----------------------------------------------------------------------=
+--------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Te=
+chnology
+Debian Developer <preining@debian.org>                         Debian T=
+eX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+DITHERINGTON (n)
+Sudden access to panic experienced by one who realises that he is
+being drawn inexorably into a clabby (q.v.) conversation, i.e. one he
+has no hope of enjoying, benefiting from or understanding.
+			--- Douglas Adams, The Meaning of Liff
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
