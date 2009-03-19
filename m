@@ -1,33 +1,31 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Thu, 19 Mar 2009 21:21:23 +0000
-Message-ID: <20090319212123.GA24700@srcf.ucam.org>
+Date: Thu, 19 Mar 2009 21:28:03 +0000
+Message-ID: <20090319212803.GA24782@srcf.ucam.org>
+References: <20090319212123.GA24700@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51338 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:60916 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882AbZCSVV3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:21:29 -0400
+	with ESMTP id S1755641AbZCSV2H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 17:28:07 -0400
 Content-Disposition: inline
+In-Reply-To: <20090319212123.GA24700@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: malattia@linux.it
 Cc: linux-acpi@vger.kernel.org
 
-Enable events on all Vaio's with the new-style ACPI interface, and use
+Enable events on all Vaios with the new-style ACPI interface, and use
 it to support rfkill where available.
     
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
 ---
 
-Mattia, I didn't want to mess with the DMI stuff, but I suspect we can 
-probably drop the setup callbacks there and just enable them on all 
-hardware that supports these methods. We possibly also want to be 
-calling the ECON method on the SNC since some codepaths in the tables 
-seem to depend on them - but I'm also worried to a certain extent on how 
-much that might change driver interactions with some machines.
+This one has less apostrophe abuse in the commit log. No content 
+changes.
 
 diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
 index 537959d..c57f54c 100644
@@ -228,6 +226,7 @@ index 537959d..c57f54c 100644
  	dprintk(SONY_NC_DRIVER_NAME " removed.\n");
  
  	return 0;
+
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
