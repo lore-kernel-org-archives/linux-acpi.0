@@ -1,48 +1,47 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: FAN Processor and Thermap
-Date: Fri, 20 Mar 2009 08:47:09 +0800
-Message-ID: <1237510029.3640.125.camel@localhost.localdomain>
-References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by
+ zero
+Date: Fri, 20 Mar 2009 08:48:37 +0800
+Message-ID: <1237510117.879.4.camel@minggr.sh.intel.com>
+References: <49BCDCAA.8040309@gmail.com>
+	 <d3f22a0903152046m891dc0aq6ca01eed32a9eb32@mail.gmail.com>
+	 <1237174943.4193.37.camel@minggr.sh.intel.com> <49BE7EE6.3070107@gmail.com>
+	 <49C0AC13.7040107@gmail.com>  <49C26D91.3010904@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1423 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:46540 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757532AbZCTAqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Mar 2009 20:46:07 -0400
-In-Reply-To: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
+	id S1752487AbZCTA6t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Mar 2009 20:58:49 -0400
+In-Reply-To: <49C26D91.3010904@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ken Perl <kenperl@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 
-On Thu, 2009-03-19 at 16:18 +0800, Ken Perl wrote:
-> After I replaced my mainboard, then I can see errors related to ACPI
-> during the Linux booting, I can also reproduce it with command below,
->=20
-> moproble fan processor thermap
->=20
-> I got error "no such device",  I ever tried to append following lines
-> to the /etc/modprobe.d/blacklist but can not succeed, I can still see
-> same error during boot, another error is "ACPI unable to load system
-> description tables",
-Maybe the issue is related with the following complains:
-   >=EF=BB=BFACPI unable to load system description tables",
-   If so, the ACPI SSDT table is not loaded correctly.
- =20
-Will you please attach the output of acpidump ?
-Thanks.
->=20
-> blacklist fan
-> blacklist processor
-> blacklist thermap
->=20
-> Do these a big problem? Can anyone tell how I can fix the issue?
->=20
+On Fri, 2009-03-20 at 00:06 +0800, Jiri Slaby wrote:
+> On 18.3.2009 09:08, Jiri Slaby wrote:
+> > On 16.3.2009 17:31, Jiri Slaby wrote:
+> >> On 16.3.2009 04:42, Lin Ming wrote:
+> >>>> sometimes, when booting up/resuming from disk, I get an oops[1].
+> >>>>
+> >>>> obj_desc->common_field.access_bit_width is zero, but even after the
+> >>>> loop. Division before the loop is apparently OK.
+> >>>
+> >>> Would please try below debug patch to see which region filed is
+> >>> accessed?
+> >
+> > I'm confused, but keep trying.
+> 
+> Got it again. obj_desc->common_field.node is martian too (0x4000000), so 
+> the added acpi_get_name dies:
+> http://www.fi.muni.cz/~xslaby/sklad/panics/acpi_oops1.png
+> 
+> Whole common_field seems to be mangled. Ideas?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the info. We are looking at this.
+
+Lin Ming
+
