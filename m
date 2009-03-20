@@ -1,69 +1,41 @@
-From: Ken Perl <kenperl@gmail.com>
-Subject: Re: FAN Processor and Thermap
-Date: Fri, 20 Mar 2009 09:48:37 +0800
-Message-ID: <335b7d740903191848i1addc5fcyf02610ee20003c91@mail.gmail.com>
-References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
-	 <1237510029.3640.125.camel@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] ACPI: cap off P-state transition latency from buggy
+	BIOSes
+Date: Fri, 20 Mar 2009 00:50:16 -0300
+Message-ID: <20090320035016.GA28010@khazad-dum.debian.net>
+References: <20090319214140.GA28868@linux-os.sc.intel.com> <20090319214746.GC24898@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:25822 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759900AbZCTBsi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 21:48:38 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so844421rvb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Mar 2009 18:48:37 -0700 (PDT)
-In-Reply-To: <1237510029.3640.125.camel@localhost.localdomain>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:40442 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752271AbZCTDuV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Mar 2009 23:50:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20090319214746.GC24898@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-# acpidump
-ACPI tables were not found. If you know location of RSD PTR table
-(from dmesg, etc), supply it with either --addr or -a option
+On Thu, 19 Mar 2009, Matthew Garrett wrote:
+> On Thu, Mar 19, 2009 at 02:41:40PM -0700, Pallipadi, Venkatesh wrote:
+> > Fix it by capping-off the transition latency to 20uS for native MSR based
+> > frequency transitions.
+> > 
+> > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> We've confirmed that this also helps on the X31.
+> 
+> Acked-by: Matthew Garrett <mjg@redhat.com>
 
-I have no idea from the dmesg output where the ACPI tables are.
+Any chance of sending this to -stable after it hits mainline?  It is the
+sort of stuff a huge number of thinkpad users will want in their kernels
+ASAP...
 
-On Fri, Mar 20, 2009 at 8:47 AM, yakui_zhao <yakui.zhao@intel.com> wrot=
-e:
-> On Thu, 2009-03-19 at 16:18 +0800, Ken Perl wrote:
->> After I replaced my mainboard, then I can see errors related to ACPI
->> during the Linux booting, I can also reproduce it with command below=
-,
->>
->> moproble fan processor thermap
->>
->> I got error "no such device", =C2=A0I ever tried to append following=
- lines
->> to the /etc/modprobe.d/blacklist but can not succeed, I can still se=
-e
->> same error during boot, another error is "ACPI unable to load system
->> description tables",
-> Maybe the issue is related with the following complains:
-> =C2=A0 >=EF=BB=BFACPI unable to load system description tables",
-> =C2=A0 If so, the ACPI SSDT table is not loaded correctly.
->
-> Will you please attach the output of acpidump ?
-> Thanks.
->>
->> blacklist fan
->> blacklist processor
->> blacklist thermap
->>
->> Do these a big problem? Can anyone tell how I can fix the issue?
->>
->
->
-
-
-
---=20
-perl -e 'print unpack(u,"62V5N\"FME;G\!E<FQ`9VUA:6PN8V]M\"\@``
-")'
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
