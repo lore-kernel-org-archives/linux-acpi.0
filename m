@@ -1,141 +1,79 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by
- zero
-Date: Fri, 20 Mar 2009 12:53:30 +0800
-Message-ID: <1237524810.879.19.camel@minggr>
-References: <49BCDCAA.8040309@gmail.com>
-	 <d3f22a0903152046m891dc0aq6ca01eed32a9eb32@mail.gmail.com>
-	 <1237174943.4193.37.camel@minggr.sh.intel.com> <49BE7EE6.3070107@gmail.com>
-	 <49C0AC13.7040107@gmail.com>  <49C26D91.3010904@gmail.com>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: FAN Processor and Thermap
+Date: Fri, 20 Mar 2009 14:49:41 +0800
+Message-ID: <1237531781.3640.161.camel@localhost.localdomain>
+References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
+	 <1237510029.3640.125.camel@localhost.localdomain>
+	 <335b7d740903191848i1addc5fcyf02610ee20003c91@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754423AbZCTFEA@vger.kernel.org>
-In-Reply-To: <49C26D91.3010904@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:3085 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751315AbZCTGsk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Mar 2009 02:48:40 -0400
+In-Reply-To: <335b7d740903191848i1addc5fcyf02610ee20003c91@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ken Perl <kenperl@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 2009-03-20 at 00:06 +0800, Jiri Slaby wrote:
-> On 18.3.2009 09:08, Jiri Slaby wrote:
-> > On 16.3.2009 17:31, Jiri Slaby wrote:
-> >> On 16.3.2009 04:42, Lin Ming wrote:
-> >>>> sometimes, when booting up/resuming from disk, I get an oops[1].
-> >>>>
-> >>>> obj_desc->common_field.access_bit_width is zero, but even after the
-> >>>> loop. Division before the loop is apparently OK.
-> >>>
-> >>> Would please try below debug patch to see which region filed is
-> >>> accessed?
-> >
-> > I'm confused, but keep trying.
-> 
-> Got it again. obj_desc->common_field.node is martian too (0x4000000), so 
-> the added acpi_get_name dies:
-> http://www.fi.muni.cz/~xslaby/sklad/panics/acpi_oops1.png
-> 
-> Whole common_field seems to be mangled. Ideas?
-
-I should save the field object and node path name at the entry of
-acpi_ex_extract_from_field.
-Would you please try below debug patch?
-I also add a return statement before the fault to disallow the oops to
-flood screen.
-
+On Fri, 2009-03-20 at 09:48 +0800, Ken Perl wrote:
+> # acpidump
+> ACPI tables were not found. If you know location of RSD PTR table
+> (from dmesg, etc), supply it with either --addr or -a option
+It seems that the RSDP can't be found between the 0xE0000 and 0xFFFFF
+memory region.
+If so, the ACPI can't be initialized correctly.
+  =20
+Will you please enable CONFIG_ACPI_DEBUG in kernel configuration and ad=
+d
+the boot option of "acpi=3Dht"?
+    After the system is booted, please attach the output of dmesg.
 Thanks.
 
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index ef58ac4..5109f5b 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -670,6 +670,34 @@ acpi_ex_write_with_update_rule(union acpi_operand_object *obj_desc,
-  *
-  ******************************************************************************/
- 
-+void debug_dump_field(union acpi_operand_object *obj_desc)
-+{
-+	struct acpi_object_field_common *obj_field;
-+
-+	if (!obj_desc) {
-+		printk(KERN_DEBUG "ACPI Debug: NULL field object\n");
-+		return;
-+	}
-+
-+	printk(KERN_DEBUG "next_object: %p\n", obj_desc->common.next_object);
-+	printk(KERN_DEBUG "descriptor_type: %x\n", obj_desc->common.descriptor_type);
-+	printk(KERN_DEBUG "type: %x\n", obj_desc->common.type);
-+	printk(KERN_DEBUG "reference_count: %x\n", obj_desc->common.reference_count);
-+	printk(KERN_DEBUG "flags: %x\n", obj_desc->common.flags);
-+
-+	obj_field = &obj_desc->common_field;
-+
-+	printk(KERN_DEBUG "field_flags: %x\n", obj_field->field_flags);
-+	printk(KERN_DEBUG "attribute: %x\n", obj_field->attribute);
-+	printk(KERN_DEBUG "access_byte_width: %x\n", obj_field->access_byte_width);
-+	printk(KERN_DEBUG "node: %p\n", obj_field->node);
-+	printk(KERN_DEBUG "bit_length: %x\n", obj_field->bit_length);
-+	printk(KERN_DEBUG "base_byte_offset: %x\n", obj_field->base_byte_offset);
-+	printk(KERN_DEBUG "value: %x\n", obj_field->value);
-+	printk(KERN_DEBUG "start_field_bit_offset: %x\n", obj_field->start_field_bit_offset);
-+	printk(KERN_DEBUG "access_bit_width: %x\n", obj_field->access_bit_width);
-+}
-+
- acpi_status
- acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
- 			   void *buffer, u32 buffer_length)
-@@ -683,9 +711,24 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
- 	u32 datum_count;
- 	u32 field_datum_count;
- 	u32 i;
-+	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_operand_object backup_obj;
- 
- 	ACPI_FUNCTION_TRACE(ex_extract_from_field);
- 
-+	/* backup the object */
-+	memcpy(&backup_obj, obj_desc, sizeof(*obj_desc));
-+
-+	name_buffer.pointer = NULL;
-+	if (obj_desc->common_field.node) {
-+		status = acpi_get_name(obj_desc->common_field.node,
-+				ACPI_FULL_PATHNAME, &name_buffer);
-+		if (ACPI_FAILURE(status)) {
-+			printk(KERN_DEBUG "ACPI Debug: %s\n",
-+				acpi_format_exception(status));
-+		}
-+	}
-+
- 	/* Validate target buffer and clear it */
- 
- 	if (buffer_length <
-@@ -765,6 +808,29 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
- 		    raw_datum >> obj_desc->common_field.start_field_bit_offset;
- 	}
- 
-+	if (obj_desc->common_field.bit_length == 0 ||
-+	    obj_desc->common_field.access_bit_width == 0) {
-+
-+		/* oops, dump the object */
-+		if (name_buffer.pointer) {
-+			printk(KERN_DEBUG "ACPI Debug: field node path: %s\n",
-+				(char *) name_buffer.pointer);
-+		}
-+
-+		printk(KERN_DEBUG "ACPI Debug: The original object:\n");
-+		debug_dump_field(&backup_obj);
-+
-+		printk(KERN_DEBUG "ACPI Debug: The bad object:\n");
-+		debug_dump_field(obj_desc);
-+
-+		kfree(name_buffer.pointer);
-+
-+		/* we return here to disallow the oops to flood screen */
-+		return_ACPI_STATUS(AE_ERROR);
-+	}
-+
-+	kfree(name_buffer.pointer);
-+
- 	/* Mask off any extra bits in the last datum */
- 
- 	buffer_tail_bits = obj_desc->common_field.bit_length %
+>=20
+> I have no idea from the dmesg output where the ACPI tables are.
+>=20
+> On Fri, Mar 20, 2009 at 8:47 AM, yakui_zhao <yakui.zhao@intel.com> wr=
+ote:
+> > On Thu, 2009-03-19 at 16:18 +0800, Ken Perl wrote:
+> >> After I replaced my mainboard, then I can see errors related to AC=
+PI
+> >> during the Linux booting, I can also reproduce it with command bel=
+ow,
+> >>
+> >> moproble fan processor thermap
+> >>
+> >> I got error "no such device",  I ever tried to append following li=
+nes
+> >> to the /etc/modprobe.d/blacklist but can not succeed, I can still =
+see
+> >> same error during boot, another error is "ACPI unable to load syst=
+em
+> >> description tables",
+> > Maybe the issue is related with the following complains:
+> >   >=EF=BB=BFACPI unable to load system description tables",
+> >   If so, the ACPI SSDT table is not loaded correctly.
+> >
+> > Will you please attach the output of acpidump ?
+> > Thanks.
+> >>
+> >> blacklist fan
+> >> blacklist processor
+> >> blacklist thermap
+> >>
+> >> Do these a big problem? Can anyone tell how I can fix the issue?
+> >>
+> >
+> >
+>=20
+>=20
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
