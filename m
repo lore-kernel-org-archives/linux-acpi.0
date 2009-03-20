@@ -1,102 +1,80 @@
-From: Ken Perl <kenperl@gmail.com>
-Subject: Re: FAN Processor and Thermap
-Date: Fri, 20 Mar 2009 16:06:27 +0800
-Message-ID: <335b7d740903200106x468ead4bj4f3efed25248a0e4@mail.gmail.com>
-References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
-	 <1237510029.3640.125.camel@localhost.localdomain>
-	 <335b7d740903191848i1addc5fcyf02610ee20003c91@mail.gmail.com>
-	 <1237531781.3640.161.camel@localhost.localdomain>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] ACPI: cap off P-state transition latency from buggy
+	BIOSes
+Date: Fri, 20 Mar 2009 09:17:45 +0100
+Message-ID: <20090320081745.GA31137@elte.hu>
+References: <20090319214140.GA28868@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:60036 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753418AbZCTIG3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Mar 2009 04:06:29 -0400
-Received: by rv-out-0506.google.com with SMTP id g37so250518rvb.5
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Mar 2009 01:06:28 -0700 (PDT)
-In-Reply-To: <1237531781.3640.161.camel@localhost.localdomain>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:33290 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751868AbZCTISE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Mar 2009 04:18:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20090319214140.GA28868@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-What I'm using is the Debian 5.0 lenny pre-complied kernel
-linux-image-2.6.26-1-686, unfortunately, the CONFIG_ACPI_DEBUG is not
-set.
-
-Is this the only way to detect the problem and then fix it? is it
-possible to recreate the System.map file and module.dep or something
-else? I guess there is no bug in ACPI code, but I don't know how to
-make it work whenever my mainboard is changed then maybe some
-addresses are different in this case.
-
-On Fri, Mar 20, 2009 at 2:49 PM, yakui_zhao <yakui.zhao@intel.com> wrot=
-e:
-> On Fri, 2009-03-20 at 09:48 +0800, Ken Perl wrote:
->> # acpidump
->> ACPI tables were not found. If you know location of RSD PTR table
->> (from dmesg, etc), supply it with either --addr or -a option
-> It seems that the RSDP can't be found between the 0xE0000 and 0xFFFFF
-> memory region.
-> If so, the ACPI can't be initialized correctly.
->
-> Will you please enable CONFIG_ACPI_DEBUG in kernel configuration and =
-add
-> the boot option of "acpi=3Dht"?
-> =C2=A0 =C2=A0After the system is booted, please attach the output of =
-dmesg.
-> Thanks.
->
->>
->> I have no idea from the dmesg output where the ACPI tables are.
->>
->> On Fri, Mar 20, 2009 at 8:47 AM, yakui_zhao <yakui.zhao@intel.com> w=
-rote:
->> > On Thu, 2009-03-19 at 16:18 +0800, Ken Perl wrote:
->> >> After I replaced my mainboard, then I can see errors related to A=
-CPI
->> >> during the Linux booting, I can also reproduce it with command be=
-low,
->> >>
->> >> moproble fan processor thermap
->> >>
->> >> I got error "no such device", =C2=A0I ever tried to append follow=
-ing lines
->> >> to the /etc/modprobe.d/blacklist but can not succeed, I can still=
- see
->> >> same error during boot, another error is "ACPI unable to load sys=
-tem
->> >> description tables",
->> > Maybe the issue is related with the following complains:
->> > =C2=A0 >=EF=BB=BFACPI unable to load system description tables",
->> > =C2=A0 If so, the ACPI SSDT table is not loaded correctly.
->> >
->> > Will you please attach the output of acpidump ?
->> > Thanks.
->> >>
->> >> blacklist fan
->> >> blacklist processor
->> >> blacklist thermap
->> >>
->> >> Do these a big problem? Can anyone tell how I can fix the issue?
->> >>
->> >
->> >
->>
->>
->>
->
->
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, mjg59@srcf.ucam.org
 
 
+* Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com> wrote:
 
---=20
-perl -e 'print unpack(u,"62V5N\"FME;G\!E<FQ`9VUA:6PN8V]M\"\@``
-")'
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Some BIOSes report very high frequency transition latency which 
+> are plainly wrong on CPus that can change frequency using native 
+> MSR interface.
+> 
+> One such system is IBM T42 (2327-8ZU) as reported by Owen Taylor 
+> and Rik van Riel.
+> 
+> cpufreq_ondemand driver uses this transition latency to come up 
+> with a reasonable sampling interval to sample CPU usage and with 
+> such high latency value, ondemand sampling interval ends up being 
+> very high (0.5 sec, in this particular case), resulting in 
+> performance impact due to slow response to increasing frequency.
+> 
+> Fix it by capping-off the transition latency to 20uS for native 
+> MSR based frequency transitions.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
+> ---
+>  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> Index: linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-05-02 09:45:23.000000000 -0700
+> +++ linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-06-30 12:08:32.000000000 -0700
+> @@ -659,6 +659,18 @@ static int acpi_cpufreq_cpu_init(struct 
+>  			    perf->states[i].transition_latency * 1000;
+>  	}
+>  
+> +	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
+> +	if (perf->control_register.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
+> +	    policy->cpuinfo.transition_latency > 20 * 1000) {
+> +		static int print_once;
+> +		policy->cpuinfo.transition_latency = 20 * 1000;
+> +		if (!print_once) {
+> +			print_once = 1;
+> +			printk(KERN_INFO "Capping off P-state tranision latency"
+> +				" at 20 uS\n");
+> +		}
+
+btw.., in the next merge window we'll have printk_once():
+
+   f036be9: printk: introduce printk_once()
+
+so then the above can be cleaned up to:
+
+> +	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
+> +	if (perf->control_register.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
+> +	    policy->cpuinfo.transition_latency > 20 * 1000) {
+> +
+> +		policy->cpuinfo.transition_latency = 20 * 1000;
+> +		printk_once(KERN_INFO
+> +		    "Capping off P-state tranision latency at 20 uS\n");
+> +	}
+
+	Ingo
