@@ -1,57 +1,46 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Fri, 20 Mar 2009 01:40:43 +0100
-Message-ID: <20090320004043.GF19755@gamma.logic.tuwien.ac.at>
-References: <20090319212123.GA24700@srcf.ucam.org> <20090319213428.GK29624@gamma.logic.tuwien.ac.at> <20090319214437.GB24898@srcf.ucam.org> <20090319221527.GA11001@gamma.logic.tuwien.ac.at> <20090320002827.GB19755@gamma.logic.tuwien.ac.at> <20090320003823.GA27600@srcf.ucam.org>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: FAN Processor and Thermap
+Date: Fri, 20 Mar 2009 08:47:09 +0800
+Message-ID: <1237510029.3640.125.camel@localhost.localdomain>
+References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:56726 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838AbZCTAkq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2009 20:40:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20090320003823.GA27600@srcf.ucam.org>
+Received: from mga01.intel.com ([192.55.52.88]:1423 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757532AbZCTAqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Mar 2009 20:46:07 -0400
+In-Reply-To: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: malattia@linux.it, linux-acpi@vger.kernel.org
+To: Ken Perl <kenperl@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fr, 20 M=E4r 2009, Matthew Garrett wrote:
-> As far as we can tell, the handling of the handover is consistent acr=
-oss=20
-> all dual-GPU nvidia laptops[1]. The right place for support to end up=
- is=20
-> in the kernel component of the nouveau drivers.
+On Thu, 2009-03-19 at 16:18 +0800, Ken Perl wrote:
+> After I replaced my mainboard, then I can see errors related to ACPI
+> during the Linux booting, I can also reproduce it with command below,
+>=20
+> moproble fan processor thermap
+>=20
+> I got error "no such device",  I ever tried to append following lines
+> to the /etc/modprobe.d/blacklist but can not succeed, I can still see
+> same error during boot, another error is "ACPI unable to load system
+> description tables",
+Maybe the issue is related with the following complains:
+   >=EF=BB=BFACPI unable to load system description tables",
+   If so, the ACPI SSDT table is not loaded correctly.
+ =20
+Will you please attach the output of acpidump ?
+Thanks.
+>=20
+> blacklist fan
+> blacklist processor
+> blacklist thermap
+>=20
+> Do these a big problem? Can anyone tell how I can fix the issue?
+>=20
 
-Whatever the nouveau drivers are? You mean those based on the kernel
-mode swching? Unfortunately that is far from prime time, and we need
-power saving now.
-
-I will take a look over the weekend maybe I can add a patch ontop of
-yours that only does that, taken from the code in the special vaio-Z
-sony-laptop module.
-
-Best wishes
-
-Norbert
-
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Te=
-chnology
-Debian Developer <preining@debian.org>                         Debian T=
-eX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-BODMIN
-The irrational and inevitable discrepancy between the amount pooled
-and the amount needed when a large group of people try to pay a bill
-together after a meal.
-			--- Douglas Adams, The Meaning of Liff
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
