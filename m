@@ -1,39 +1,141 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: cap off P-state transition latency from buggy BIOSes
-Date: Fri, 20 Mar 2009 04:02:00 +0000
-Message-ID: <20090320040200.GA29829@srcf.ucam.org>
-References: <20090319214140.GA28868@linux-os.sc.intel.com> <20090319214746.GC24898@srcf.ucam.org> <20090320035016.GA28010@khazad-dum.debian.net>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: 2.6.29 acpi regression: acpi_ex_extract_from_field -- div by
+ zero
+Date: Fri, 20 Mar 2009 12:53:30 +0800
+Message-ID: <1237524810.879.19.camel@minggr>
+References: <49BCDCAA.8040309@gmail.com>
+	 <d3f22a0903152046m891dc0aq6ca01eed32a9eb32@mail.gmail.com>
+	 <1237174943.4193.37.camel@minggr.sh.intel.com> <49BE7EE6.3070107@gmail.com>
+	 <49C0AC13.7040107@gmail.com>  <49C26D91.3010904@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:37985 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699AbZCTECJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Mar 2009 00:02:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20090320035016.GA28010@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754423AbZCTFEA@vger.kernel.org>
+In-Reply-To: <49C26D91.3010904@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, Mar 20, 2009 at 12:50:16AM -0300, Henrique de Moraes Holschuh wrote:
-> On Thu, 19 Mar 2009, Matthew Garrett wrote:
-> > On Thu, Mar 19, 2009 at 02:41:40PM -0700, Pallipadi, Venkatesh wrote:
-> > > Fix it by capping-off the transition latency to 20uS for native MSR based
-> > > frequency transitions.
-> > > 
-> > > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> > 
-> > We've confirmed that this also helps on the X31.
-> > 
-> > Acked-by: Matthew Garrett <mjg@redhat.com>
+On Fri, 2009-03-20 at 00:06 +0800, Jiri Slaby wrote:
+> On 18.3.2009 09:08, Jiri Slaby wrote:
+> > On 16.3.2009 17:31, Jiri Slaby wrote:
+> >> On 16.3.2009 04:42, Lin Ming wrote:
+> >>>> sometimes, when booting up/resuming from disk, I get an oops[1].
+> >>>>
+> >>>> obj_desc->common_field.access_bit_width is zero, but even after the
+> >>>> loop. Division before the loop is apparently OK.
+> >>>
+> >>> Would please try below debug patch to see which region filed is
+> >>> accessed?
+> >
+> > I'm confused, but keep trying.
 > 
-> Any chance of sending this to -stable after it hits mainline?  It is the
-> sort of stuff a huge number of thinkpad users will want in their kernels
-> ASAP...
+> Got it again. obj_desc->common_field.node is martian too (0x4000000), so 
+> the added acpi_get_name dies:
+> http://www.fi.muni.cz/~xslaby/sklad/panics/acpi_oops1.png
+> 
+> Whole common_field seems to be mangled. Ideas?
 
-I don't see why not.
+I should save the field object and node path name at the entry of
+acpi_ex_extract_from_field.
+Would you please try below debug patch?
+I also add a return statement before the fault to disallow the oops to
+flood screen.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks.
+
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index ef58ac4..5109f5b 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -670,6 +670,34 @@ acpi_ex_write_with_update_rule(union acpi_operand_object *obj_desc,
+  *
+  ******************************************************************************/
+ 
++void debug_dump_field(union acpi_operand_object *obj_desc)
++{
++	struct acpi_object_field_common *obj_field;
++
++	if (!obj_desc) {
++		printk(KERN_DEBUG "ACPI Debug: NULL field object\n");
++		return;
++	}
++
++	printk(KERN_DEBUG "next_object: %p\n", obj_desc->common.next_object);
++	printk(KERN_DEBUG "descriptor_type: %x\n", obj_desc->common.descriptor_type);
++	printk(KERN_DEBUG "type: %x\n", obj_desc->common.type);
++	printk(KERN_DEBUG "reference_count: %x\n", obj_desc->common.reference_count);
++	printk(KERN_DEBUG "flags: %x\n", obj_desc->common.flags);
++
++	obj_field = &obj_desc->common_field;
++
++	printk(KERN_DEBUG "field_flags: %x\n", obj_field->field_flags);
++	printk(KERN_DEBUG "attribute: %x\n", obj_field->attribute);
++	printk(KERN_DEBUG "access_byte_width: %x\n", obj_field->access_byte_width);
++	printk(KERN_DEBUG "node: %p\n", obj_field->node);
++	printk(KERN_DEBUG "bit_length: %x\n", obj_field->bit_length);
++	printk(KERN_DEBUG "base_byte_offset: %x\n", obj_field->base_byte_offset);
++	printk(KERN_DEBUG "value: %x\n", obj_field->value);
++	printk(KERN_DEBUG "start_field_bit_offset: %x\n", obj_field->start_field_bit_offset);
++	printk(KERN_DEBUG "access_bit_width: %x\n", obj_field->access_bit_width);
++}
++
+ acpi_status
+ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 			   void *buffer, u32 buffer_length)
+@@ -683,9 +711,24 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 	u32 datum_count;
+ 	u32 field_datum_count;
+ 	u32 i;
++	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_operand_object backup_obj;
+ 
+ 	ACPI_FUNCTION_TRACE(ex_extract_from_field);
+ 
++	/* backup the object */
++	memcpy(&backup_obj, obj_desc, sizeof(*obj_desc));
++
++	name_buffer.pointer = NULL;
++	if (obj_desc->common_field.node) {
++		status = acpi_get_name(obj_desc->common_field.node,
++				ACPI_FULL_PATHNAME, &name_buffer);
++		if (ACPI_FAILURE(status)) {
++			printk(KERN_DEBUG "ACPI Debug: %s\n",
++				acpi_format_exception(status));
++		}
++	}
++
+ 	/* Validate target buffer and clear it */
+ 
+ 	if (buffer_length <
+@@ -765,6 +808,29 @@ acpi_ex_extract_from_field(union acpi_operand_object *obj_desc,
+ 		    raw_datum >> obj_desc->common_field.start_field_bit_offset;
+ 	}
+ 
++	if (obj_desc->common_field.bit_length == 0 ||
++	    obj_desc->common_field.access_bit_width == 0) {
++
++		/* oops, dump the object */
++		if (name_buffer.pointer) {
++			printk(KERN_DEBUG "ACPI Debug: field node path: %s\n",
++				(char *) name_buffer.pointer);
++		}
++
++		printk(KERN_DEBUG "ACPI Debug: The original object:\n");
++		debug_dump_field(&backup_obj);
++
++		printk(KERN_DEBUG "ACPI Debug: The bad object:\n");
++		debug_dump_field(obj_desc);
++
++		kfree(name_buffer.pointer);
++
++		/* we return here to disallow the oops to flood screen */
++		return_ACPI_STATUS(AE_ERROR);
++	}
++
++	kfree(name_buffer.pointer);
++
+ 	/* Mask off any extra bits in the last datum */
+ 
+ 	buffer_tail_bits = obj_desc->common_field.bit_length %
