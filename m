@@ -1,53 +1,38 @@
 From: Mattia Dongili <malattia@linux.it>
 Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Sat, 21 Mar 2009 23:37:18 +0900
-Message-ID: <20090321143717.GA21091@kamineko.org>
-References: <20090319212123.GA24700@srcf.ucam.org> <20090320085213.GC4743@kamineko.org> <20090320140004.GA4882@srcf.ucam.org> <20090321040010.GD3834@kamineko.org> <20090321043513.GA20519@srcf.ucam.org> <20090321063229.GE3834@kamineko.org> <20090321140654.GA28039@srcf.ucam.org>
+Date: Sat, 21 Mar 2009 23:45:21 +0900
+Message-ID: <20090321144521.GA21615@kamineko.org>
+References: <20090320003208.GC19755@gamma.logic.tuwien.ac.at> <20090320011837.GA23183@gamma.logic.tuwien.ac.at> <200903211222.36642.matze@welwarsky.de> <200903211453.49039.matze@welwarsky.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:46626
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:44844
 	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbZCUOhV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2009 10:37:21 -0400
+	with ESMTP id S1754947AbZCUOpX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2009 10:45:23 -0400
 Content-Disposition: inline
-In-Reply-To: <20090321140654.GA28039@srcf.ucam.org>
+In-Reply-To: <200903211453.49039.matze@welwarsky.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Matthias Welwarsky <matze@welwarsky.de>
 Cc: linux-acpi@vger.kernel.org
 
-On Sat, Mar 21, 2009 at 02:06:54PM +0000, Matthew Garrett wrote:
-> On Sat, Mar 21, 2009 at 03:32:30PM +0900, Mattia Dongili wrote:
+On Sat, Mar 21, 2009 at 02:53:48PM +0100, Matthias Welwarsky wrote:
+> On Saturday 21 March 2009 12:22:35 Matthias Welwarsky wrote:
+> > I've also backported Matthews patch to the standard Suse 11.1 kernel so
+> > that we can test it more easily.
 > 
-> > sure, that DMI whitelist is already annoying in its current shape.
-> > Getting the ACPI tables to tell us what SNC version we are looking at
-> > would be so much better.
-> > I just grepped the DSDTs I have here and this is what I got:
-> > DSDT.c1s.dsl:                    Name (SNI4, 0x344A0001)
-> > DSDT.c71bw.dsl:                    Name (SNI4, 0x344A0001)
+> Done, looks quite promising. The "wireless" switch on the Z21 works now, and 
+> apparently there is some script magic in opensuse that operates all rfkill 
+> switches, so it kills all wireless devices at once. Not bad.
 > 
-> (snip)
-> 
-> The second byte seems to be the most consistent here - 0x4a for the 
-> models currently handled by the nc code, 0x4d for the tt and z, 0x55 for 
-> the p. I've no idea whether this is a monotonically increasing version 
-> string or a bitmask of supported functionality, but it ought to be 
-> enough to key off to begin with.
+> The new init sequence for SN07 also enables all the special keys, even the 
+> speed/stamina switch now generates an ACPI event, as well as S1, S2 and Eject. 
+> But you cannot distinguish them, they all report the same event.
 
-Oh, do you have a vaio type P DSDT to share?
+You mey need the additional SN07 call to get the actual key press, see
+the code in sony_acpi_notify.
 
-> > want to try to push your patch to mainline or would you prefer to wait?
-> > IMO pushing it and eventually fixing support for 0x344a000[10] models is
-> > fine. After all your snc_setup code could be easily plugged into the DMI
-> > list for the time being and Z and TT users would be happy.
-> 
-> Might as well push it and see what happens?
-
-Sure, if you're ok I'll apply the patch you sent just changing the
-rfkill_free and send the whole patch-set to Len tomorrow morning (JST).
-
-cheers
 -- 
 mattia
 :wq!
