@@ -1,111 +1,172 @@
-From: Mattia Dongili <malattia@linux.it>
+From: Matthias Welwarsky <matze@welwarsky.de>
 Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Sat, 21 Mar 2009 15:32:30 +0900
-Message-ID: <20090321063229.GE3834@kamineko.org>
-References: <20090319212123.GA24700@srcf.ucam.org> <20090320085213.GC4743@kamineko.org> <20090320140004.GA4882@srcf.ucam.org> <20090321040010.GD3834@kamineko.org> <20090321043513.GA20519@srcf.ucam.org>
+Date: Sat, 21 Mar 2009 12:22:35 +0100
+Message-ID: <200903211222.36642.matze@welwarsky.de>
+References: <20090320003208.GC19755@gamma.logic.tuwien.ac.at> <20090320004043.GF19755@gamma.logic.tuwien.ac.at> <20090320011837.GA23183@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_83MxJePfsNpssvL"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:55223
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867AbZCUGch (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2009 02:32:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20090321043513.GA20519@srcf.ucam.org>
+Received: from static.88-198-22-168.clients.your-server.de ([88.198.22.168]:26600
+	"EHLO basyskom.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752821AbZCULWo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2009 07:22:44 -0400
+In-Reply-To: <20090320011837.GA23183@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, sony-vaio-z-series@lists.launchpad.net, malattia@linux.it, linux-acpi@vger.kernel.org
 
-On Sat, Mar 21, 2009 at 04:35:13AM +0000, Matthew Garrett wrote:
-> On Sat, Mar 21, 2009 at 01:00:10PM +0900, Mattia Dongili wrote:
-> > On Fri, Mar 20, 2009 at 02:00:04PM +0000, Matthew Garrett wrote:
-> > > I had one machine where ECON seemed to need to be called explicitly, but 
-> > > I can't remember the details now. Calling it probably wouldn't hurt 
-> > > anything.
-> > 
-> > seems to be a TT and Z specific thing though. The DSDT on other models
-> > doesn't provide the ECON method.
-> 
-> Yeah. As I said, I don't think there's any harm in causing it - I think 
-> I was getting more promising results from hotkey events in the Z when I 
-> called ECON, but I don't have access to that machine right now and never 
-> got it finished off.
+--Boundary-00=_83MxJePfsNpssvL
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Sounds reasonable.
+On Friday 20 March 2009 02:18:37 Norbert Preining wrote:
+> Ok, here is the code.
+>
+> For those interested I Cc the  sony-vaio-z-series@lists.launchpad.net
+> group where I first found that modules.
+>
+> You need:
+> 	kernel 2.6.29-rc8	(maybe it works with all from .28 on)
+> 	the patch Matthew sent
+> 	the attached patch
+>
+> Together you get full rfkill support for bluetooth/wwan/wifi, plus afais
+> stamina-speed mode setting.
+>
+> Maybe Matthias the creator of the sony-laptop for vaio-zseries modules
+> can take a look at the patch and see if I missed something.
 
-> > > The numbers correspond to enabling all events. I couldn't think of any 
-> > > reason why we'd only want to enable a subset. The current nc setup code 
-> > > seems to enable some events and then disable them again, which I don't 
-> > > really understand.
-> > 
-> > Well, the current sequence was taken from a trace in windows on a Vaio C
-> > Type, then it demonstrated to be helpful on other models as well.
-> > The SN07[1] method is very different from the Z and TT type to the AR, C,
-> > FE, FZ and N so I'm starting to suspect that we're just seeing a new
-> > generation of SNC based models. I'll see if some users with older models
-> > can give the new sequence a go.
-> 
-> Looking through, the implementation seems quite different but the 
-> functionality seems the same - the newer machines seem to return values 
-> directly, whereas older ones tended to trap into SMM. The wireless 
-> control (at least, the enumeration call I make) seems to be a noop on 
-> these older machines. It /looks/ like we can probably get some sort of 
-> versioning information about the interface by calling SN00. I think that 
-> would probably be a better approach than using DMI for this.
+I checked the code and I think you didn't miss anything. Looks good.
 
-sure, that DMI whitelist is already annoying in its current shape.
-Getting the ACPI tables to tell us what SNC version we are looking at
-would be so much better.
-I just grepped the DSDTs I have here and this is what I got:
-DSDT.c1s.dsl:                    Name (SNI4, 0x344A0001)
-DSDT.c71bw.dsl:                    Name (SNI4, 0x344A0001)
-DSDT.fe21b.dsl:                    Name (SNI4, 0x334A0000)
-DSDT.fe31m.dsl:                    Name (SNI4, 0x334A0000)
-DSDT.fe41z.dsl:                    Name (SNI4, 0x334A0000)
-DSDT.fe830fe.dsl:                    Name (SNI4, 0x334A0000)
-DSDT.fz15.dsl:                    Name (SNI4, 0x374A0000)
-DSDT.fz180e.dsl:                    Name (SNI4, 0x374A0000)
-DSDT.n370e.dsl:                    Name (SNI4, 0x344A0001)
-DSDT.tt11lnb.dsl:                        Store (0x344D0000, Index (CFGI, 0x04))
-DSDT.z11awn.dsl:                        Store (0x334D0000, Index (CFGI, 0x04))
-DSDT.z11vn.dsl:                        Store (0x334D0000, Index (CFGI, 0x04))
-DSDT.z26gn.dsl:                        Store (0x334D0000, Index (CFGI, 0x04))
-DSDT.z90s.dsl:                        Store (0x334D0000, Index (CFGI, 0x04))
-VGN-AR31S-R0200J6.dsl:                    Name (SNI4, 0x364A0000)
-VGN-AR370E-R0200J6.dsl:                    Name (SNI4, 0x364A0000)
-VGN-C1S.dsl:                    Name (SNI4, 0x344A0001)
-VGN-C1ZB-R0034J4.dsl:                    Name (SNI4, 0x344A0001)
-VGN-C240E-R0080J4.dsl:                    Name (SNI4, 0x344A0001)
-VGN-C2S-R0080J4.dsl:                    Name (SNI4, 0x344A0001)
-VGN-C2Z-R0080J4.dsl:                    Name (SNI4, 0x344A0001)
-VGN-FE11H-R0072J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE11H-R0074J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE11M-R0172J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE21M-R0130J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE31M.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE41E-R0190J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE41M-R0190J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE41Z-R0200J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE550G-R0074J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE590P-R0072J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE660G-R0133J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE770G-R0173J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE830.dsl:                    Name (SNI4, 0x334A0000)
-VGN-FE880EH-R0200J3.dsl:                    Name (SNI4, 0x334A0000)
-VGN-N130G-R0020J4.dsl:                    Name (SNI4, 0x344A0001)
-VGN-N230E-R0070J4.dsl:                    Name (SNI4, 0x344A0001)
+> Matthias: sony_led_off and sony_dgpu_sta is never used, is that
+> intentional? And also the #define SONY_WMMX_GUID I couldn't find being
+> used anywhere.
 
-SNI4 or CFGI+0x04 is the only differing number and is returned with
-SN00(4).
+You can safely get rid of this, its the GUID of the only valid (but broken)=
+=20
+WMMX function in the DSDT code. It was a dead end.
 
-> I've put this into rawhide, so I suspect we'll hear complaints if it 
-> breaks things for anybody.
+> Maybe Matthew can take a look and fix the compile warnings in function
+> =E2=80=98sony_ovga_dsm=E2=80=99 (there are some!).
 
-want to try to push your patch to mainline or would you prefer to wait?
-IMO pushing it and eventually fixing support for 0x344a000[10] models is
-fine. After all your snc_setup code could be easily plugged into the DMI
-list for the time being and Z and TT users would be happy.
--- 
-mattia
-:wq!
+Check the attached patch, it does away with the compile warnings. I've remo=
+ved=20
+the warnings in functional code and put ifdefs (ugh!) around debug only cod=
+e.=20
+You can just remove it if you don't like it, I'm only keeping it around for=
+=20
+reference.
+
+I've also backported Matthews patch to the standard Suse 11.1 kernel so tha=
+t=20
+we can test it more easily.
+
+
+--Boundary-00=_83MxJePfsNpssvL
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="sony-laptop-zseries-cleanup.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="sony-laptop-zseries-cleanup.patch"
+
+--- sony-laptop.c.orig	2009-03-21 12:11:31.000000000 +0100
++++ sony-laptop.c	2009-03-21 12:17:32.000000000 +0100
+@@ -85,8 +85,6 @@
+ #define SONY_PIC_HID		"SNY6001"
+ #define SONY_PIC_DRIVER_NAME	"Sony Programmable IO Control Driver"
+ 
+-#define SONY_WMMX_GUID "F6CB5C3C-9CAE-4EBD-B577-931EA32A2CC0"
+-
+ MODULE_AUTHOR("Stelian Pop, Mattia Dongili");
+ MODULE_DESCRIPTION("Sony laptop extras driver (SPIC and SNC ACPI device)");
+ MODULE_LICENSE("GPL");
+@@ -485,8 +483,8 @@
+ /*********** Platform Device ***********/
+ static int sony_ovga_dsm(int func, int arg)
+ {
+-	static const char *path = "\\_SB.PCI0.OVGA._DSM";
+-	static const char muid[] = {
++	static char *path = "\\_SB.PCI0.OVGA._DSM";
++	static char muid[] = {
+ 		/*00*/	0xA0, 0xA0, 0x95, 0x9D, 0x60, 0x00, 0x48, 0x4D,		/* MUID */
+ 		/*08*/	0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4,
+ 	};
+@@ -494,7 +492,6 @@
+ 	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_object_list input;
+ 	union acpi_object params[4];
+-	union acpi_object *obj;
+ 	int result;
+ 
+ 	input.count = 4;
+@@ -515,25 +512,30 @@
+ 		return -1;
+ 	}
+ 
+-	obj = (union acpi_object*)output.pointer;
+-	printk("result type %d\n", obj->type);
+-	if (obj->type == ACPI_TYPE_PACKAGE) {
+-		int i;
+-		printk("returned package sized %d\n", obj->package.count);
+-		for (i = 0; i < obj->package.count; i++)
+-			printk("%d %08x\n", i, obj->package.elements[i].integer.value);
+-	} else
+-	if (obj->type == ACPI_TYPE_INTEGER) {
+-		printk("returned integer %08X\n", obj->integer.value);
+-	} else
+-	if (obj->type == ACPI_TYPE_BUFFER) {
+-		int i;
+-		printk("returned buffer sized %d\n", obj->buffer.length);
+-		for (i = 0; i < obj->buffer.length; i++)
+-			printk("%d %02x\n", i, obj->buffer.pointer[i]);
++#ifdef DEBUG
++	{
++		union acpi_object *obj;
++		obj = (union acpi_object*)output.pointer;
++		printk("result type %d\n", obj->type);
++		if (obj->type == ACPI_TYPE_PACKAGE) {
++			int i;
++			printk("returned package sized %d\n", obj->package.count);
++			for (i = 0; i < obj->package.count; i++)
++				printk("%d %08x\n", i, obj->package.elements[i].integer.value);
++		} else
++		if (obj->type == ACPI_TYPE_INTEGER) {
++			printk("returned integer %08X\n", obj->integer.value);
++		} else
++		if (obj->type == ACPI_TYPE_BUFFER) {
++			int i;
++			printk("returned buffer sized %d\n", obj->buffer.length);
++			for (i = 0; i < obj->buffer.length; i++)
++				printk("%d %02x\n", i, obj->buffer.pointer[i]);
++		}
+ 	}
+-	kfree(output.pointer);
++#endif
+ 
++	kfree(output.pointer);
+ 	return 0;
+ }
+ 
+@@ -547,6 +549,7 @@
+ 	return sony_ovga_dsm(2, 0x12);
+ }
+ 
++#ifdef DEBUG
+ static int sony_led_off(void)
+ {
+ 	return sony_ovga_dsm(2, 0x13);
+@@ -556,6 +559,7 @@
+ {
+ 	return sony_ovga_dsm(3, 0x00);
+ }
++#endif
+ 
+ static int sony_dgpu_off(void)
+ {
+
+--Boundary-00=_83MxJePfsNpssvL--
