@@ -1,54 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Paravirtualizing bits of acpi access
-Date: Sun, 22 Mar 2009 14:17:44 +0100
-Message-ID: <200903221417.45418.rjw@sisk.pl>
-References: <49C484B7.20100@goop.org> <200903221228.40181.rjw@sisk.pl> <20090322131436.GB22848@elte.hu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
+Date: Sun, 22 Mar 2009 13:33:27 +0000
+Message-ID: <20090322133327.GB7932@srcf.ucam.org>
+References: <20090319212123.GA24700@srcf.ucam.org> <20090321145502.GA28452@srcf.ucam.org> <20090321151037.GA28846@srcf.ucam.org> <200903212015.00581.matze@welwarsky.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53601 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752332AbZCVNRw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Mar 2009 09:17:52 -0400
-In-Reply-To: <20090322131436.GB22848@elte.hu>
+Received: from cavan.codon.org.uk ([93.93.128.6]:50424 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751752AbZCVNdb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Mar 2009 09:33:31 -0400
 Content-Disposition: inline
+In-Reply-To: <200903212015.00581.matze@welwarsky.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Xen-devel <xen-devel@lists.xensource.com>, the arch/x86 maintainers <x86@kernel.org>
+To: Matthias Welwarsky <matze@welwarsky.de>
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday 22 March 2009, Ingo Molnar wrote:
+On Sat, Mar 21, 2009 at 08:15:00PM +0100, Matthias Welwarsky wrote:
+> On Saturday 21 March 2009 16:10:37 Matthew Garrett wrote:
+> > The way that 0x113 moves around leaves me pretty sure that calling SN07
+> > without checking what the function signature is is not a good idea. I'll
+> > rewrite my patch.
 > 
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> 
-> > On Sunday 22 March 2009, Jeremy Fitzhardinge wrote:
-> > > Rafael J. Wysocki wrote:
-> > > > Well, why don't you implement the platform suspend operations for Xen?
-> > > > I guess you don't want ACPI _PTS to be executed during suspend as well.
-> > > >   
-> > > 
-> > > I don't know.  What's _PTS?
-> > 
-> > It's an ACPI method called to prepare the platform to enter the sleep state
-> > (the name stands for "prepare to sleep").  Executing it may affect the
-> > hardware.
-> > 
-> > > I think for the most part we want Linux to do most of the acpi 
-> > > work of bringing the machine into an idle state.  Its just that 
-> > > Xen is responsible for the very low level cpu context 
-> > > save/restore, because the Linux kernel is still running on vcpus 
-> > > rather than the physical cpus.
-> > 
-> > I think you really should not execute any global ACPI methods to 
-> > suspend a guest, because that may affect the host.  That's why I 
-> > think it's better to regard Xen as a platform and implement a 
-> > separate set of suspend operations for it.
-> 
-> I'd agree with that. That also allows the reuse of existing 
-> callbacks, right?
+> If that's really a function signature, why are some of the slots empty? If 
+> you're supposed to read the CFGI first via SN00, that would not make much 
+> sense. However, it makes sense if the function is encoded by the slot and a 
+> hole (i.e. Zero) means that the function is not supported or disabled.
 
-Yes, it does.
+I thought that at first, but 0x113 is the same code on the machines I 
+checked even though it moves around. 0x100 appears to be "Get hotkey 
+event" on the newer hardware even though it's not in slot 2.
 
-Rafael
+> If you're right though, it means that "0x124" on all new-style models (those 
+> with SN07 method) must always operate the killswitch. I might be able to find 
+> that out from the decompiled DSDT. Right now I only checked the Z series DSDTs 
+> (Z11 and Z21) and of course they are very similar. But I would be very 
+> interested to see the code of  functions called for the other "slot 3" 
+> methods, like 0x0104 and 0x0113. If you had some DSDTs to share...
+
+The P, TT and Z all seem to have 0x124 as killswitch - the 0x113 and 
+0x104 methods don't seem to be killswitch related, as far as I can tell. 
+Mattia linked to a set of DSDTs earlier in the thread.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
