@@ -1,56 +1,100 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Mon, 23 Mar 2009 18:48:34 +0100
-Message-ID: <20090323174834.GA13341@gamma.logic.tuwien.ac.at>
-References: <20090323153259.GA31191@gamma.logic.tuwien.ac.at> <20090323154332.GA24872@srcf.ucam.org> <20090323160052.GA2525@gamma.logic.tuwien.ac.at> <20090323160944.GA25882@srcf.ucam.org> <20090323162749.GA5463@gamma.logic.tuwien.ac.at> <20090323163056.GA26715@srcf.ucam.org> <20090323163752.GC5463@gamma.logic.tuwien.ac.at> <20090323164007.GA27023@srcf.ucam.org> <20090323164104.GE5463@gamma.logic.tuwien.ac.at> <20090323165157.GA27223@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Xen-devel] Re: Paravirtualizing bits of acpi access
+Date: Mon, 23 Mar 2009 19:20:12 +0100
+Message-ID: <200903231920.12991.rjw@sisk.pl>
+References: <49C484B7.20100@goop.org> <49C67054.7020603@goop.org> <0A882F4D99BBF6449D58E61AAFD7EDD60E5E8766@pdsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:37272 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779AbZCWRsv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2009 13:48:51 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:60644 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757557AbZCWST5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Mar 2009 14:19:57 -0400
+In-Reply-To: <0A882F4D99BBF6449D58E61AAFD7EDD60E5E8766@pdsmsx502.ccr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20090323165157.GA27223@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
+To: "Tian, Kevin" <kevin.tian@intel.com>
+Cc: 'Jeremy Fitzhardinge' <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>, Xen-devel <xen-devel@lists.xensource.com>, the arch/x86 maintainers <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Cihula, Joseph" <joseph.cihula@intel.com>
 
-On Mo, 23 M=E4r 2009, Matthew Garrett wrote:
-> Ok, here you go.
+On Monday 23 March 2009, Tian, Kevin wrote:
+> >From: Jeremy Fitzhardinge
+> >Sent: Monday, March 23, 2009 1:08 AM
+> >
+> >Rafael J. Wysocki wrote:
+> >> On Sunday 22 March 2009, Jeremy Fitzhardinge wrote:
+> >>   
+> >>> Rafael J. Wysocki wrote:
+> >>>     
+> >>>> Well, why don't you implement the platform suspend 
+> >operations for Xen?
+> >>>> I guess you don't want ACPI _PTS to be executed during 
+> >suspend as well.
+> >>>>   
+> >>>>       
+> >>> I don't know.  What's _PTS?
+> >>>     
+> >>
+> >> It's an ACPI method called to prepare the platform to enter 
+> >the sleep state
+> >> (the name stands for "prepare to sleep").  Executing it may 
+> >affect the
+> >> hardware.
+> >>   
+> >
+> >OK, that's what we want.  Dom0 is the control domain which is 
+> >responsible for the bulk of the hardware; Xen itself has very little 
+> >hardware knowledge.
+> 
+> yes, Xen only takes care of several core system devices (pic, 
+> ioapic, serial, timer sources) and cpus, and let dom0 control all
+> the rest. _PTS, imo, will not affect Xen controlled devices as 
+> even on native those devices are suspended after _PTS. Also
+> Xen doesn't incorporate ACPI parser and thus can't evaluate any
+> ACPI method on its own.
+> 
+> >
+> >> I think you really should not execute any global ACPI 
+> >methods to suspend a
+> >> guest, because that may affect the host.  That's why I think 
+> >it's better to
+> >> regard Xen as a platform and implement a separate set of 
+> >suspend operations for
+> >> it.
+> >>   
+> >
+> >In this case we're talking about the special privileged domain 
+> >which can 
+> >be considered to be on the "host" side of the line. 
+> >
+> >That said, I'd be interested in looking at a suspend operations-based 
+> >approach if you think its the right way to go.  But I'm concerned that 
+> >we'd end up with a big set of very similar-looking parallel functions 
+> >just to deal with some difference in detail near the bottom.  Can you 
+> >give me a pointer to where this gets put together for acpi?
+> >
+> 
+> As Jeremy pointed out, dom0 is a special domain which cooperate
+> with Xen to fulfill the whole S3 sequence, i.e. dom0 still carries 99%
+> existing ACPI S3 flow, with several exceptions as below:
+> 
+> a) No need to prepare wakeup stub (since it's Xen to be first waken
+> up after resume), and no expectation that execution flow will be 
+> resumed from its wakeup stub (context is resumed at hypercall
+> return)
+> 
+> b) No need to save/restore bsp context and gear to Xen by hypercall
+> at last step where originally hardware reg bits are written
+> 
+> And then Xen jumps in to finish remaining steps. From this angle,
+> Xen is not a completely new platform and, well, S3 is more like a
+> 'S1' type from dom0's p.o.v with a different trigger method. Then is
+> it overkilled to introduce a new set of ops with 99% content 
+> duplicated?
 
-Thanks, worked perfectly. And my gnome desktop opened the CD drive
-without even thinking.
+IMO, no, it isn't.
 
-Great.
-
-What remains for me for the moment is some decent rfkill switching
-utility GUI. Something that shows the names and one can press the butto=
-n
-next to the name to turn off and on ...
-
-Best wishes
-
-Norbert
-
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Te=
-chnology
-Debian Developer <preining@debian.org>                         Debian T=
-eX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-WHASSET (n.)
-A business card in you wallet belonging to someone whom you have no
-recollection of meeting.
-			--- Douglas Adams, The Meaning of Liff
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
