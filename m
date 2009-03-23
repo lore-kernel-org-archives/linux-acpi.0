@@ -1,64 +1,56 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] sony-laptop: support rfkill via ACPI interfaces
-Date: Mon, 23 Mar 2009 22:04:57 +0900
-Message-ID: <20090323130457.GA2767@kamineko.org>
-References: <200903211222.36642.matze@welwarsky.de> <200903211453.49039.matze@welwarsky.de> <20090322175609.GA10304@srcf.ucam.org> <20090322180321.GA10401@srcf.ucam.org> <20090322203603.GA6877@gamma.logic.tuwien.ac.at> <20090322203740.GA12285@srcf.ucam.org> <20090322220655.GA13887@gamma.logic.tuwien.ac.at> <20090322224652.GA13814@srcf.ucam.org> <20090322231029.GC17905@kamineko.org> <20090323123030.GC11430@gamma.logic.tuwien.ac.at>
+From: Oisin Feeley <oisin.feeley@gmail.com>
+Subject: Panasonic CF-Y5 Toughbook ACPI info
+Date: Mon, 23 Mar 2009 10:43:07 -0400
+Message-ID: <e5f157b0903230743x42ffbc4v6fba8df23235511b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:37051
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898AbZCWNFA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2009 09:05:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20090323123030.GC11430@gamma.logic.tuwien.ac.at>
+Received: from yx-out-2324.google.com ([74.125.44.30]:44639 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755559AbZCWOnK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2009 10:43:10 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so2116034yxl.1
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2009 07:43:07 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, Mar 23, 2009 at 01:30:30PM +0100, Norbert Preining wrote:
-> On Mo, 23 M=E4r 2009, Mattia Dongili wrote:
-> > A vaio SR user sent me this list for 0x9c that after a call to SN07=
-(202)
-> > becomes:
-> >=20
-> > +       { 0x81, SONYPI_EVENT_MODEKEY_PRESSED },
-> > +       { 0x01, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0x82, SONYPI_EVENT_PKEY_P1 },
-> > +       { 0x02, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0x83, SONYPI_EVENT_PKEY_P2 },
-> > +       { 0x03, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0x84, SONYPI_EVENT_PKEY_P3 },
-> > +       { 0x04, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0x85, SONYPI_EVENT_PKEY_P4 },
-> > +       { 0x05, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0x86, SONYPI_EVENT_PKEY_P5 },
-> > +       { 0x06, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0x87, SONYPI_EVENT_SETTINGKEY_PRESSED },
-> > +       { 0x07, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> > +       { 0, 0 },
->=20
-> Couldn't test that since several SONYPI_EVENT* are not defined in
-> current -rc8 plus Matthew patch. And I didn't want to try it out.=20
-
-the above code was not meant to be tested. What you should do instead i=
-s
-changing the line (after Matthew's patch):
-	if (ev =3D=3D 0x92 || ev =3D=3D 0x93) {
-in sony_acpi_notify to
-	if (ev =3D=3D 0x92 || ev =3D=3D 0x93 || ev =3D=3D 0x90) {
-load the driver with debug=3D1 and press the unrecognized Fn keys.
-You *should* get a bunch of "unknown input event XX" in the kernel log,
-with those we can build the necessary mappings for your specific model
-(hopefully not just yours).
-
---=20
-mattia
-:wq!
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mar 23 09:40:04 localhost kernel: ACPI: DMI System Vendor: Matsushita
+Electric Industrial Co.,Ltd.
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Product Name: CF-Y5LWEZDBM
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Product Version: 002
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Board Name: CFY5W-2
+Mar 23 09:40:04 localhost kernel: ACPI: DMI BIOS Vendor: Phoenix
+Technologies Ltd.
+Mar 23 09:40:04 localhost kernel: ACPI: DMI BIOS Date: 12/08/2006
+Mar 23 09:40:04 localhost kernel: ACPI: Please send DMI info above to
+linux-acpi@vger.kernel.org
+Mar 23 09:40:04 localhost kernel: ACPI: If "acpi_osi=Linux" works
+better, please notify linux-acpi@vger.kernel.org
+Mar 23 09:40:04 localhost kernel: ACPI: BIOS _OSI(Linux) query ignored
+Mar 23 09:40:04 localhost kernel: ACPI: DMI System Vendor: Matsushita
+Electric Industrial Co.,Ltd.
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Product Name: CF-Y5LWEZDBM
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Product Version: 002
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Board Name: CFY5W-2
+Mar 23 09:40:04 localhost kernel: ACPI: DMI BIOS Vendor: Phoenix
+Technologies Ltd.
+Mar 23 09:40:04 localhost kernel: ACPI: DMI BIOS Date: 12/08/2006
+Mar 23 09:40:04 localhost kernel: ACPI: Please send DMI info above to
+linux-acpi@vger.kernel.org
+Mar 23 09:40:04 localhost kernel: ACPI: If "acpi_osi=Linux" works
+better, please notify linux-acpi@vger.kernel.org
+Mar 23 09:40:04 localhost kernel: ACPI: BIOS _OSI(Linux) query ignored
+Mar 23 09:40:04 localhost kernel: ACPI: DMI System Vendor: Matsushita
+Electric Industrial Co.,Ltd.
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Product Name: CF-Y5LWEZDBM
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Product Version: 002
+Mar 23 09:40:04 localhost kernel: ACPI: DMI Board Name: CFY5W-2
+Mar 23 09:40:04 localhost kernel: ACPI: DMI BIOS Vendor: Phoenix
+Technologies Ltd.
+Mar 23 09:40:04 localhost kernel: ACPI: DMI BIOS Date: 12/08/2006
+Mar 23 09:40:04 localhost kernel: ACPI: Please send DMI info above to
+linux-acpi@vger.kernel.org
+Mar 23 09:40:04 localhost kernel: ACPI: If "acpi_osi=Linux" works
+better, please notify linux-acpi@vger.kernel.org
