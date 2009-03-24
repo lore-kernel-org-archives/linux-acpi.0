@@ -1,166 +1,381 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH 5/5] sony-laptop: Add support for extended hotkeys
-Date: Tue, 24 Mar 2009 00:50:54 +0000
-Message-ID: <20090324005054.GE2252@srcf.ucam.org>
-References: <20090324004741.GA2252@srcf.ucam.org> <20090324004817.GB2252@srcf.ucam.org> <20090324004846.GC2252@srcf.ucam.org> <20090324004914.GD2252@srcf.ucam.org>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: [Xen-devel] Re: Paravirtualizing bits of acpi access
+Date: Mon, 23 Mar 2009 22:14:41 -0700
+Message-ID: <49C86C41.1060803@goop.org>
+References: <49C484B7.20100@goop.org> <200903231920.12991.rjw@sisk.pl> <49C7DDDC.2050103@goop.org> <200903232127.40683.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:49670 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603AbZCXAvC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2009 20:51:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20090324004914.GD2252@srcf.ucam.org>
+Received: from gw.goop.org ([64.81.55.164]:56744 "EHLO mail.goop.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750797AbZCXFOo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Mar 2009 01:14:44 -0400
+In-Reply-To: <200903232127.40683.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Norbert Preining <preining@logic.at>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Tian, Kevin" <kevin.tian@intel.com>, "Brown, Len" <len.brown@intel.com>, Xen-devel <xen-devel@lists.xensource.com>, the arch/x86 maintainers <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Cihula, Joseph" <joseph.cihula@intel.com>
 
-Recent Sony SR-series machines have an additional set of buttons accessed
-via the 0x127 method rather than the 0x100 method. Add support for these.
+Rafael J. Wysocki wrote:
+> Yes, that may be better.
+>   
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
+How does this look now?  I had a second look at the Xen-hooks, and found 
+that they were mostly unnecessary (they were preventing useless code 
+from running, but there's no harm in letting it run).
 
-Mattia, I don't have access to an SR so have no idea what these keys do 
-- pictures suggest they might be media control buttons? The mapping 
-probably wants to be more sensible than I have here.
+The result is below.  Does this look reasonable?
 
- drivers/platform/x86/sony-laptop.c |   65 +++++++++++++++++++++++++++++-------
- include/linux/sonypi.h             |    4 ++
- 2 files changed, 57 insertions(+), 12 deletions(-)
+Thanks,
+    J
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 2d142d3..96f5fb5 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -226,6 +226,10 @@ static int sony_laptop_input_index[] = {
- 	49,	/* 62 SONYPI_EVENT_ZOOM_IN_PRESSED */
- 	50,	/* 63 SONYPI_EVENT_ZOOM_OUT_PRESSED */
- 	51,	/* 64 SONYPI_EVENT_CD_EJECT_PRESSED */
-+	52,	/* 65 SONYPI_EVENT_MODEKEY_PRESSED */
-+	53,	/* SONYPI_EVENT_PKEY_P4 */
-+	54,	/* SONYPI_EVENT_PKEY_P5 */
-+	55,	/* SONYPI_EVENT_SETTINGKEY_PRESSED */
- };
+diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+index 7c243a2..8ebda00 100644
+--- a/arch/x86/kernel/acpi/sleep.c
++++ b/arch/x86/kernel/acpi/sleep.c
+@@ -12,6 +12,9 @@
+ #include <asm/segment.h>
+ #include <asm/desc.h>
  
- static int sony_laptop_input_keycode_map[] = {
-@@ -280,7 +284,11 @@ static int sony_laptop_input_keycode_map[] = {
- 	KEY_WLAN,	/* 48 SONYPI_EVENT_WIRELESS_OFF */
- 	KEY_ZOOMIN,	/* 49 SONYPI_EVENT_ZOOM_IN_PRESSED */
- 	KEY_ZOOMOUT,	/* 50 SONYPI_EVENT_ZOOM_OUT_PRESSED */
--	KEY_EJECTCD	/* 51 SONYPI_EVENT_CD_EJECT_PRESSED */
-+	KEY_EJECTCD,	/* 51 SONYPI_EVENT_CD_EJECT_PRESSED */
-+	KEY_F13,	/* 52 SONYPI_EVENT_MODEKEY_PRESSED */
-+	KEY_PROG4,	/* SONYPI_EVENT_PKEY_P4 */
-+	KEY_F14,	/* SONYPI_EVENT_PKEY_P5 */
-+	KEY_F15,	/* SONYPI_EVENT_SETTINGKEY_PRESSED */
- };
- 
- /* release buttons after a short delay if pressed */
-@@ -850,7 +858,7 @@ struct sony_nc_event {
- 	u8	event;
- };
- 
--static struct sony_nc_event sony_nc_events[] = {
-+static struct sony_nc_event sony_100_events[] = {
- 	{ 0x90, SONYPI_EVENT_PKEY_P1 },
- 	{ 0x10, SONYPI_EVENT_ANYBUTTON_RELEASED },
- 	{ 0x91, SONYPI_EVENT_PKEY_P1 },
-@@ -874,6 +882,25 @@ static struct sony_nc_event sony_nc_events[] = {
- 	{ 0, 0 },
- };
- 
-+static struct sony_nc_event sony_127_events[] = {
-+	{ 0x81, SONYPI_EVENT_MODEKEY_PRESSED },
-+	{ 0x01, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x82, SONYPI_EVENT_PKEY_P1 },
-+	{ 0x02, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x83, SONYPI_EVENT_PKEY_P2 },
-+	{ 0x03, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x84, SONYPI_EVENT_PKEY_P3 },
-+	{ 0x04, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x85, SONYPI_EVENT_PKEY_P4 },
-+	{ 0x05, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x86, SONYPI_EVENT_PKEY_P5 },
-+	{ 0x06, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x06, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0x87, SONYPI_EVENT_SETTINGKEY_PRESSED },
-+	{ 0x07, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0, 0 },
-+};
++#include <xen/acpi.h>
++#include <asm/xen/hypervisor.h>
 +
- /*
-  * ACPI callbacks
-  */
-@@ -884,27 +911,41 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ #include "realmode/wakeup.h"
+ #include "sleep.h"
  
- 	if (ev >= 0x90) {
- 		/* New-style event */
--		int origev = ev;
-+		int key_handle = 0;
- 		ev -= 0x90;
+@@ -25,6 +28,34 @@ static unsigned long acpi_realmode;
+ static char temp_stack[4096];
+ #endif
  
--		if (sony_find_snc_handle(0x100) == ev) {
--			int i;
-+		if (sony_find_snc_handle(0x100) == ev)
-+			key_handle = 0x100;
-+		if (sony_find_snc_handle(0x127) == ev)
-+			key_handle = 0x127;
++/* 
++ * Override final register write when entering sleep state so we can
++ * direct it to a hypercall in the Xen case.
++ */
++acpi_status arch_acpi_enter_sleep_state(u8 sleep_state, u32
++					PM1Acontrol, u32 PM1Bcontrol)
++{
++	acpi_status ret;
 +
-+		if (handle) {
-+			struct sony_nc_event *key_event;
- 
--			if (sony_call_snc_handle(0x100, 0x200, &result))
--				dprintk("sony_acpi_notify, unable to decode event 0x%.2x\n", ev);
-+			if (sony_call_snc_handle(key_handle, 0x200, &result))
-+				dprintk("sony_acpi_notify, unable to decode"
-+					" event 0x%.2x 0x%.2x\n", key_handle,
-+					ev);
- 			else
- 				ev = result & 0xFF;
- 
--			for (i=0; sony_nc_events[i].event; i++) {
--				if (sony_nc_events[i].data == ev) {
--					ev = sony_nc_events[i].event;
-+			if (key_handle == 0x100)
-+				key_event = sony_100_events;
-+			else
-+				key_event = sony_127_events;
++	if (xen_pv_acpi()) {
++		int err;
 +
-+			for (; key_event->data; key_event++) {
-+				if (key_event->data == ev) {
-+					ev = key_event->event;
- 					break;
- 				}
- 			}
++		err = acpi_notify_hypervisor_state(sleep_state,
++						   PM1Acontrol, PM1Bcontrol);
++
++		ret = AE_OK;
++		if (err) {
++			ACPI_DEBUG_PRINT((ACPI_DB_INIT,
++					  "Hypervisor failure [%d]\n", err));
++			ret = AE_ERROR;
++		}
++	} else
++		ret = default_acpi_enter_sleep_state(sleep_state,
++						     PM1Acontrol, PM1Bcontrol);
++
++	return ret;
++}
++
+ /**
+  * acpi_save_state_mem - save kernel state
+  *
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index a2af2a4..6196a7e 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -209,6 +209,83 @@ acpi_status acpi_enter_sleep_state_prep(u8 sleep_state)
  
--			if (!sony_nc_events[i].data)
-+			if (!key_event->data) {
- 				printk(KERN_INFO DRV_PFX
--				       "Unknown event: %x %x\n", origev, ev);
-+				       "Unknown event: 0x%x 0x%x\n", key_handle,
-+				       ev);
-+			}
- 		} else if (sony_find_snc_handle(0x124) == ev) {
- 			sony_nc_rfkill_update();
- 			return;
-diff --git a/include/linux/sonypi.h b/include/linux/sonypi.h
-index 8458dbe..bb83501 100644
---- a/include/linux/sonypi.h
-+++ b/include/linux/sonypi.h
-@@ -104,6 +104,10 @@
- #define SONYPI_EVENT_ZOOM_IN_PRESSED		62
- #define SONYPI_EVENT_ZOOM_OUT_PRESSED		63
- #define SONYPI_EVENT_CD_EJECT_PRESSED		64
-+#define SONYPI_EVENT_MODEKEY_PRESSED		65
-+#define SONYPI_EVENT_PKEY_P4			66
-+#define SONYPI_EVENT_PKEY_P5			67
-+#define SONYPI_EVENT_SETTINGKEY_PRESSED		68
+ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
  
- /* get/set brightness */
- #define SONYPI_IOCGBRT		_IOR('v', 0, __u8)
++/*
++ * Default implementation of final register write to enter sleep
++ * state, available for architecture versions to call if necessary.
++ */
++acpi_status default_acpi_enter_sleep_state(u8 sleep_state, u32
++					   PM1Acontrol, u32 PM1Bcontrol)
++{
++	acpi_status status;
++	u32 in_value;
++
++	status = acpi_hw_register_write(ACPI_REGISTER_PM1A_CONTROL,
++					PM1Acontrol);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	status = acpi_hw_register_write(ACPI_REGISTER_PM1B_CONTROL,
++					PM1Bcontrol);
++
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	if (sleep_state > ACPI_STATE_S3) {
++		struct acpi_bit_register_info *sleep_enable_reg_info;
++
++		/*
++		 * We wanted to sleep > S3, but it didn't happen (by virtue of the
++		 * fact that we are still executing!)
++		 *
++		 * Wait ten seconds, then try again. This is to get S4/S5 to work on
++		 * all machines.
++		 *
++		 * We wait so long to allow chipsets that poll this reg very slowly to
++		 * still read the right value. Ideally, this block would go
++		 * away entirely.
++		 */
++		acpi_os_stall(10000000);
++
++		sleep_enable_reg_info =
++			acpi_hw_get_bit_register_info(ACPI_BITREG_SLEEP_ENABLE);
++
++		status = acpi_hw_register_write(ACPI_REGISTER_PM1_CONTROL,
++						sleep_enable_reg_info->
++						access_bit_mask);
++		if (ACPI_FAILURE(status)) {
++			return_ACPI_STATUS(status);
++		}
++	}
++
++	/* Wait until we enter sleep state */
++
++	do {
++		status = acpi_get_register_unlocked(ACPI_BITREG_WAKE_STATUS,
++						    &in_value);
++		if (ACPI_FAILURE(status)) {
++			return_ACPI_STATUS(status);
++		}
++
++		/* Spin until we wake */
++
++	} while (!in_value);
++
++	return_ACPI_STATUS(AE_OK);
++}
++
++/* 
++ * Weak version of final write to enter sleep state, so that
++ * architectures can override it.
++ */
++acpi_status __weak arch_acpi_enter_sleep_state(u8 sleep_state,
++					    u32 PM1Acontrol, u32 PM1Bcontrol)
++{
++	return default_acpi_enter_sleep_state(sleep_state,
++					      PM1Acontrol, PM1Bcontrol);
++}
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_enter_sleep_state
+@@ -227,7 +304,6 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 	u32 PM1Bcontrol;
+ 	struct acpi_bit_register_info *sleep_type_reg_info;
+ 	struct acpi_bit_register_info *sleep_enable_reg_info;
+-	u32 in_value;
+ 	struct acpi_object_list arg_list;
+ 	union acpi_object arg;
+ 	acpi_status status;
+@@ -337,54 +413,7 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 
+ 	ACPI_FLUSH_CPU_CACHE();
+ 
+-	status = acpi_hw_register_write(ACPI_REGISTER_PM1A_CONTROL,
+-					PM1Acontrol);
+-	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	status = acpi_hw_register_write(ACPI_REGISTER_PM1B_CONTROL,
+-					PM1Bcontrol);
+-	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	if (sleep_state > ACPI_STATE_S3) {
+-		/*
+-		 * We wanted to sleep > S3, but it didn't happen (by virtue of the
+-		 * fact that we are still executing!)
+-		 *
+-		 * Wait ten seconds, then try again. This is to get S4/S5 to work on
+-		 * all machines.
+-		 *
+-		 * We wait so long to allow chipsets that poll this reg very slowly to
+-		 * still read the right value. Ideally, this block would go
+-		 * away entirely.
+-		 */
+-		acpi_os_stall(10000000);
+-
+-		status = acpi_hw_register_write(ACPI_REGISTER_PM1_CONTROL,
+-						sleep_enable_reg_info->
+-						access_bit_mask);
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
+-	}
+-
+-	/* Wait until we enter sleep state */
+-
+-	do {
+-		status = acpi_get_register_unlocked(ACPI_BITREG_WAKE_STATUS,
+-						    &in_value);
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
+-
+-		/* Spin until we wake */
+-
+-	} while (!in_value);
+-
+-	return_ACPI_STATUS(AE_OK);
++	return arch_acpi_enter_sleep_state(sleep_state, PM1Acontrol, PM1Bcontrol);
+ }
+ 
+ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state)
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 5192666..bd1cc1a 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -19,6 +19,8 @@
+ 
+ #include <asm/io.h>
+ 
++#include <xen/acpi.h>
++
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include "sleep.h"
+@@ -209,6 +211,21 @@ static int acpi_suspend_begin(suspend_state_t pm_state)
+ 	return error;
+ }
+ 
++static void do_suspend(void)
++{
++	if (!xen_pv_acpi()) {
++		do_suspend_lowlevel();
++		return;
++	}
++
++	/*
++	 * Xen will save and restore CPU context, so
++	 * we can skip that and just go straight to
++	 * the suspend.
++	 */
++	acpi_enter_sleep_state(ACPI_STATE_S3);
++}
++
+ /**
+  *	acpi_suspend_enter - Actually enter a sleep state.
+  *	@pm_state: ignored
+@@ -242,7 +259,7 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 		break;
+ 
+ 	case ACPI_STATE_S3:
+-		do_suspend_lowlevel();
++		do_suspend();
+ 		break;
+ 	}
+ 
+diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+index 51cbaa5..0138113 100644
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@ -76,3 +76,7 @@ config XEN_COMPAT_XENFS
+ 
+ config XEN_XENBUS_FRONTEND
+        tristate
++
++config XEN_S3
++       def_bool y
++       depends on XEN_DOM0 && ACPI
+\ No newline at end of file
+diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+index bb88673..4b01fc8 100644
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
+@@ -7,4 +7,6 @@ obj-$(CONFIG_XEN_BALLOON)		+= balloon.o
+ obj-$(CONFIG_XEN_DEV_EVTCHN)	+= evtchn.o
+ obj-$(CONFIG_XEN_BLKDEV_BACKEND)	+= blkback/
+ obj-$(CONFIG_XEN_NETDEV_BACKEND)	+= netback/
+-obj-$(CONFIG_XENFS)			+= xenfs/
+\ No newline at end of file
++obj-$(CONFIG_XENFS)			+= xenfs/
++
++obj-$(CONFIG_XEN_S3)			+= acpi.o
+\ No newline at end of file
+diff --git a/drivers/xen/acpi.c b/drivers/xen/acpi.c
+new file mode 100644
+index 0000000..e6d3d0e
+--- /dev/null
++++ b/drivers/xen/acpi.c
+@@ -0,0 +1,23 @@
++#include <xen/acpi.h>
++
++#include <xen/interface/platform.h>
++#include <asm/xen/hypercall.h>
++#include <asm/xen/hypervisor.h>
++
++int acpi_notify_hypervisor_state(u8 sleep_state,
++				 u32 pm1a_cnt, u32 pm1b_cnt)
++{
++	struct xen_platform_op op = {
++		.cmd = XENPF_enter_acpi_sleep,
++		.interface_version = XENPF_INTERFACE_VERSION,
++		.u = {
++			.enter_acpi_sleep = {
++				.pm1a_cnt_val = (u16)pm1a_cnt,
++				.pm1b_cnt_val = (u16)pm1b_cnt,
++				.sleep_state = sleep_state,
++			},
++		},
++	};
++
++	return HYPERVISOR_dom0_op(&op);
++}
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index cc40102..f39f396 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -372,6 +372,12 @@ acpi_status acpi_enter_sleep_state_prep(u8 sleep_state);
+ 
+ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state);
+ 
++acpi_status __weak arch_acpi_enter_sleep_state(u8 sleep_state,
++					       u32 PM1Acontrol, u32 PM1Bcontrol);
++
++acpi_status default_acpi_enter_sleep_state(u8 sleep_state,
++					   u32 PM1Acontrol, u32 PM1Bcontrol);
++
+ acpi_status asmlinkage acpi_enter_sleep_state_s4bios(void);
+ 
+ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
+diff --git a/include/xen/acpi.h b/include/xen/acpi.h
+new file mode 100644
+index 0000000..fea4cfb
+--- /dev/null
++++ b/include/xen/acpi.h
+@@ -0,0 +1,23 @@
++#ifndef _XEN_ACPI_H
++#define _XEN_ACPI_H
++
++#include <linux/types.h>
++
++#ifdef CONFIG_XEN_S3
++#include <asm/xen/hypervisor.h>
++
++static inline bool xen_pv_acpi(void)
++{
++	return xen_pv_domain();
++}
++#else
++static inline bool xen_pv_acpi(void)
++{
++	return false;
++}
++#endif
++
++int acpi_notify_hypervisor_state(u8 sleep_state,
++				 u32 pm1a_cnt, u32 pm1b_cnd);
++
++#endif	/* _XEN_ACPI_H */
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
