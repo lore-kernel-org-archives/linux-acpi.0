@@ -1,41 +1,29 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Xen-devel] Re: Paravirtualizing bits of acpi access
-Date: Tue, 24 Mar 2009 10:45:18 -0600
-Message-ID: <200903241045.19194.bjorn.helgaas@hp.com>
-References: <49C484B7.20100@goop.org> <0A882F4D99BBF6449D58E61AAFD7EDD60E5E877B@pdsmsx502.ccr.corp.intel.com> <49C88647.8080404@goop.org>
+Subject: [PATCH 0/3] ACPI: remove unused driver ops and flags
+Date: Tue, 24 Mar 2009 10:55:17 -0600
+Message-ID: <20090324165420.25119.78955.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:26738 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761891AbZCXQpY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Mar 2009 12:45:24 -0400
-In-Reply-To: <49C88647.8080404@goop.org>
-Content-Disposition: inline
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:1293 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762656AbZCXQzV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Mar 2009 12:55:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: "Tian, Kevin" <kevin.tian@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Brown, Len" <len.brown@intel.com>, Xen-devel <xen-devel@lists.xensource.com>, the arch/x86 maintainers <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Cihula, Joseph" <joseph.cihula@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, Rajesh Shah <rajesh.shah@intel.com>
 
-On Tuesday 24 March 2009 01:05:43 am Jeremy Fitzhardinge wrote:
-> Tian, Kevin wrote:
-> > OK, then it's safe to avoid that change. I had thought that dom0's 0-1M
-> > is identity-mapped to machine 0-1M... :-)
-> 
-> No, only the ISA 640k-1M region.
+These patches remove a few unused driver ops and flags.
 
-I'm speaking out of turn here because I don't work on Xen or
-suspend/resume.  However, I do try to clean up random bits of
-ACPI, and I have to say this patch looks like a pain in the
-maintenance department.  Having tests for a specific hypervisor
-is unpleasant.  We don't want to end up with tests for a collection
-of hypervisors.  It looks like suspend becomes a weird hybrid of
-ACPI and Xen, which makes it harder to reason about future suspend
-changes.  And all this discussion about 640k-1M and dom0 identity
-mapping and "there's no special effort to remap it" and whether
-there are conflicts makes me nervous.  There's no way all those
-assumptions can be remembered or verified five years down the road.
+Comments welcome.
 
-Bjorn
+Bjorn Helgaas (3):
+      ACPI: remove unused acpi_bus_ops flags
+      ACPI: remove unused acpi_device_ops .shutdown method
+      ACPI: remove unused acpi_device_ops .lock and .scan methods
+
+ drivers/acpi/scan.c     |   12 ------------
+ include/acpi/acpi_bus.h |   16 ----------------
+ 2 files changed, 0 insertions(+), 28 deletions(-)
