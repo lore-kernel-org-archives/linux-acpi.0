@@ -1,98 +1,73 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch] x86, acpi: add support for x2apic ACPI extensions
-Date: Fri, 27 Mar 2009 18:24:07 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903271822190.26419@localhost.localdomain>
-References: <1238013838.27006.435.camel@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH] acpi: Use 32-bit FADT values on X86
+Date: Fri, 27 Mar 2009 22:52:25 +0000
+Message-ID: <20090327225225.GA1772@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:47239 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042AbZC0WY1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 18:24:27 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH6000JERKAGRGY@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 17:24:12 -0500 (CDT)
-In-reply-to: <1238013838.27006.435.camel@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761414AbZC0Wwp@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com, mingo@elte.hu, hpa@linux.intel.com, steiner@sgi.com
 
+The ACPI specification says that we should use the 64-bit address 
+offsets contained within the FADT if they exist. However, Windows uses 
+the legacy address. Various vendors have left incorrect values in the 
+64-bit field which then causes problems later. Since the vast majority 
+of machines have never been tested with an OS that uses the 64-bit value 
+by default, we should behave like Windows and ignore the spec by only 
+using the 64-bit address if it contains something that can't be 
+represented in the legacy field. Since system io space is only 16 bits 
+on x86, this should be entirely safe.
 
-scripts/checkpatch.pl
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#34: FILE: arch/x86/kernel/acpi/boot.c:233:
-+acpi_parse_x2apic(struct acpi_subtable_header * header, const unsigned 
-long end)
+---
 
-WARNING: line over 80 characters
-#70: FILE: arch/x86/kernel/acpi/boot.c:321:
-+acpi_parse_x2apic_nmi(struct acpi_subtable_header * header, const 
-unsigned long end)
+Some question remains as to whether we should be using the 32-bit values 
+from the FADT provided by the XSDT or whether we should just be using 
+the values from the FADT provided by the RSDT. So far every acpidump 
+I've looked at has contained the same values in both, even when the 
+64-bit values are broken. We know that there's a large number of 
+machines out there that are broken in this respect. We have no evidence 
+whatsoever to believe that there are any machines that this breaks. Can 
+we just apply it and worry about further corner cases later?
 
-ERROR: "foo * bar" should be "foo *bar"
-#70: FILE: arch/x86/kernel/acpi/boot.c:321:
-+acpi_parse_x2apic_nmi(struct acpi_subtable_header * header, const 
-unsigned long end)
-
-WARNING: line over 80 characters
-#109: FILE: arch/x86/kernel/acpi/boot.c:883:
-+	    acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC_NMI, 
-acpi_parse_x2apic_nmi, 0);
-
-WARNING: line over 80 characters
-#169: FILE: drivers/acpi/numa.c:140:
-+					  "SRAT Processor 
-(x2apicid[0x%08x]) in proximity domain %d %s\n",
-
-ERROR: spaces required around that '?' (ctx:VxE)
-#172: FILE: drivers/acpi/numa.c:143:
-+					  (p->flags & 
-ACPI_SRAT_CPU_ENABLED)?
- 					                                    
-^
-
-ERROR: "foo * bar" should be "foo *bar"
-#194: FILE: drivers/acpi/numa.c:207:
-+acpi_parse_x2apic_affinity(struct acpi_subtable_header * header,
-
-WARNING: usage of NR_CPUS is often wrong - consider using cpu_possible(), 
-num_possible_cpus(), for_each_possible_cpu(), etc
-#220: FILE: drivers/acpi/numa.c:287:
-+				      NR_CPUS);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#232: FILE: include/linux/acpi.h:100:
-+void acpi_numa_x2apic_affinity_init (struct acpi_srat_x2apic_cpu_affinity 
-*pa);
-
-WARNING: line over 80 characters
-#295: FILE: drivers/acpi/tables.c:72:
-+			       (p->lapic_flags & ACPI_MADT_ENABLED) ? 
-"enabled" : "disabled");
-
-WARNING: line over 80 characters
-#313: FILE: drivers/acpi/tables.c:137:
-+			       mps_inti_flags_polarity[p->inti_flags & 
-ACPI_MADT_POLARITY_MASK	],
-
-ERROR: space prohibited before that close square bracket ']'
-#313: FILE: drivers/acpi/tables.c:137:
-+			       mps_inti_flags_polarity[p->inti_flags & 
-ACPI_MADT_POLARITY_MASK	],
-
-WARNING: line over 80 characters
-#314: FILE: drivers/acpi/tables.c:138:
-+			       mps_inti_flags_trigger[(p->inti_flags & 
-ACPI_MADT_TRIGGER_MASK) >> 2],
-
-total: 5 errors, 8 warnings, 259 lines checked
-
-
---
-Len Brown, Intel Open Source Technology Center
-
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 3636e4f..ad0e858 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -361,9 +361,28 @@ static void acpi_tb_convert_fadt(void)
+ 		    ACPI_ADD_PTR(struct acpi_generic_address, &acpi_gbl_FADT,
+ 				 fadt_info_table[i].address64);
+ 
+-		/* Expand only if the 64-bit X target is null */
++		/*
++		 * The ACPI specification says that we should use the
++		 * 64-bit address offsets if they exists. However,
++		 * Windows uses the legacy address. Various vendors
++		 * have left incorrect values in the 64-bit field,
++		 * which then causes problems later. Since the vast
++		 * majority of machines have never been tested with an
++		 * OS that uses the 64-bit value by default, we should
++		 * behave like Windows and ignore the spec by only
++		 * using the 64-bit address if it contains something
++		 * that can't be represented in the legacy
++		 * field. Since system io space is only 16 bits on
++		 * x86, this should be entirely safe. We also extend
++		 * the 32-bit value into the 64-bit one if no 64-bit
++		 * address is provided.
++		 */
+ 
+-		if (!target64->address) {
++		if (!target64->address
++#ifdef CONFIG_X86
++		    || (target64->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++#endif
++			) {
+ 
+ 			/* The space_id is always I/O for the 32-bit legacy address fields */
+ 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
