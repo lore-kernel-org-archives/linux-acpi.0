@@ -1,41 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] ACPI: Adjust Kelvin offset to match local
- implementation
-Date: Fri, 27 Mar 2009 10:55:20 +0100
-Message-ID: <20090327105520.6fa31a13@hyperion.delvare>
-References: <20090301140318.5cf56287@hyperion.delvare>
-	<1236069854.32297.232.camel@rzhang-dt>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: "ACPI: EC: missing confirmations, switch off interrupt mode"
+	wastes time on startup
+Date: Fri, 27 Mar 2009 10:10:39 +0000
+Message-ID: <9b2b86520903270310x78193514l44b89ed6d3088cf8@mail.gmail.com>
+References: <4e5e476b0903260847m1de3e976ne20279df359176cf@mail.gmail.com>
+	 <9b2b86520903260958r790e5459r553308311522e88f@mail.gmail.com>
+	 <4e5e476b0903261454h1525c30chdc86dbcb1cf3cb5c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:29197 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754830AbZC0Jzd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 05:55:33 -0400
-In-Reply-To: <1236069854.32297.232.camel@rzhang-dt>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:47852 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751752AbZC0KKn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 06:10:43 -0400
+In-Reply-To: <4e5e476b0903261454h1525c30chdc86dbcb1cf3cb5c@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: Corrado Zoccolo <czoccolo@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>
 
-Hi Rui,
+On 3/26/09, Corrado Zoccolo <czoccolo@gmail.com> wrote:
+> On Thu, Mar 26, 2009 at 5:58 PM, Alan Jenkins
+> <sourcejedi.lkml@googlemail.com> wrote:
+>> On 3/26/09, Corrado Zoccolo <czoccolo@gmail.com> wrote:
+>>
+>> Currently there is no option to force polling, sorry.  I'm _guessing_
+>> this was a deliberate omission.  But I can sympathise that even 0.5s
+>> boot delay is bad on a netbook.
+>>
+> Yes. Do you think that changing olpc_ec_timeout kernel parameter may
+> help in getting the timeout sooner?
+>
 
-On Tue, 03 Mar 2009 16:44:14 +0800, Zhang Rui wrote:
-> On Sun, 2009-03-01 at 21:03 +0800, Jean Delvare wrote:
-> > The exact offset between Kelvin and degree Celsius is 273.15. However
-> > ACPI handles temperature values with a single decimal place. As a
-> > consequence, some implementations use an offset of 273.1 and others
-> > use an offset of 273.2. Try to find out which one is being used, to
-> > present the most accurate and visually appealing number.
-> > 
-> > Tested on a Sony Vaio PGC-GR214EP (which uses 273.1) and a Lenovo
-> > Thinkpad T60p (which uses 273.2).
-> Sounds reasonable.
-> 
-> Acked-by: Zhang Rui <rui.zhang@intel.com>
+No, that's something different.  There's no boot option to change the timeout.
 
-Thanks. Is this patch queued for 2.6.30 somewhere?
+>> Feel free to create a new bugzilla entry.  You can attach the full
+>> output of dmesg, but acpidump is probably not required.  What would be
+>> really helpful is if you could file on bugzilla, and attach a full
+>> debug trace.  I.e. as well as the normal dmesg, attach the dmesg
+>> output after recompiling with this change:
+>>
+>
+> bug: http://bugzilla.kernel.org/show_bug.cgi?id=12949
+> full debug dmesg: http://bugzilla.kernel.org/attachment.cgi?id=20695
 
--- 
-Jean Delvare
+Great.
