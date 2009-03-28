@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 56/98] sony-laptop: Enable EC on newer hardware
-Date: Sat, 28 Mar 2009 00:31:31 -0400
-Message-ID: <82734bfc8622f3e8f015a5783b739739f97f89f9.1238214619.git.len.brown@intel.com>
+Subject: [PATCH 55/98] sony-laptop: Add support for new Sony platform API
+Date: Sat, 28 Mar 2009 00:31:30 -0400
+Message-ID: <badf26f00f2ed80615206d07bcfc2e3b78af5441.1238214619.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:38236 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754531AbZC1EdU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:20 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:8294 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754520AbZC1EdV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:21 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH7001DR8ND3A9D@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:15 -0500 (CDT)
+ with ESMTPA id <0KH7004PB8NCKE2T@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:13 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
@@ -23,48 +23,249 @@ Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Mat
 
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-The latest Vaios can execute certain codepaths in two ways - either using
-system management mode or using pure ACPI methods. The latter is only used
-if the OS has called the ECON method. Ensure that this is done where the
-method is available.
+Newer Sony Vaios provide a new API for accessing platform functionality. It
+consists of a set of standardised methods for enabling events and performing
+queries. These are each identified by a unique handle. This patch adds
+support for calling functions based on their handle and ports the existing
+code for these machines over to it.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/platform/x86/sony-laptop.c |  146 ++++++++++++++++--------------------
+ 1 files changed, 65 insertions(+), 81 deletions(-)
 
 diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 3c52ec9..04deed8 100644
+index 537959d..3c52ec9 100644
 --- a/drivers/platform/x86/sony-laptop.c
 +++ b/drivers/platform/x86/sony-laptop.c
-@@ -948,6 +948,12 @@ static int sony_nc_resume(struct acpi_device *device)
+@@ -689,6 +689,31 @@ static int acpi_callsetfunc(acpi_handle handle, char *name, int value,
+ 	return -1;
+ }
+ 
++static int sony_find_snc_handle(int handle)
++{
++	int i;
++	int result;
++
++	for (i = 0x20; i < 0x30; i++) {
++		acpi_callsetfunc(sony_nc_acpi_handle, "SN00", i, &result);
++		if (result == handle)
++			return i-0x20;
++	}
++
++	return -1;
++}
++
++static int sony_call_snc_handle(int handle, int argument, int *result)
++{
++	int offset = sony_find_snc_handle(handle);
++
++	if (offset < 0)
++		return -1;
++
++	return acpi_callsetfunc(sony_nc_acpi_handle, "SN07", offset | argument,
++				result);
++}
++
+ /*
+  * sony_nc_values input/output validate functions
+  */
+@@ -809,32 +834,6 @@ struct sony_nc_event {
+ 	u8	event;
+ };
+ 
+-static struct sony_nc_event *sony_nc_events;
+-
+-/* Vaio C* --maybe also FE*, N* and AR* ?-- special init sequence
+- * for Fn keys
+- */
+-static int sony_nc_C_enable(const struct dmi_system_id *id)
+-{
+-	int result = 0;
+-
+-	printk(KERN_NOTICE DRV_PFX "detected %s\n", id->ident);
+-
+-	sony_nc_events = id->driver_data;
+-
+-	if (acpi_callsetfunc(sony_nc_acpi_handle, "SN02", 0x4, &result) < 0
+-			|| acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x2, &result) < 0
+-			|| acpi_callsetfunc(sony_nc_acpi_handle, "SN02", 0x10, &result) < 0
+-			|| acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x0, &result) < 0
+-			|| acpi_callsetfunc(sony_nc_acpi_handle, "SN03", 0x2, &result) < 0
+-			|| acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x101, &result) < 0) {
+-		printk(KERN_WARNING DRV_PFX "failed to initialize SNC, some "
+-				"functionalities may be missing\n");
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+ static struct sony_nc_event sony_C_events[] = {
+ 	{ 0x81, SONYPI_EVENT_FNKEY_F1 },
+ 	{ 0x01, SONYPI_EVENT_FNKEY_RELEASED },
+@@ -851,57 +850,17 @@ static struct sony_nc_event sony_C_events[] = {
+ 	{ 0, 0 },
+ };
+ 
+-/* SNC-only model map */
+-static const struct dmi_system_id sony_nc_ids[] = {
+-		{
+-			.ident = "Sony Vaio FE Series",
+-			.callback = sony_nc_C_enable,
+-			.driver_data = sony_C_events,
+-			.matches = {
+-				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FE"),
+-			},
+-		},
+-		{
+-			.ident = "Sony Vaio FZ Series",
+-			.callback = sony_nc_C_enable,
+-			.driver_data = sony_C_events,
+-			.matches = {
+-				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FZ"),
+-			},
+-		},
+-		{
+-			.ident = "Sony Vaio C Series",
+-			.callback = sony_nc_C_enable,
+-			.driver_data = sony_C_events,
+-			.matches = {
+-				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-C"),
+-			},
+-		},
+-		{
+-			.ident = "Sony Vaio N Series",
+-			.callback = sony_nc_C_enable,
+-			.driver_data = sony_C_events,
+-			.matches = {
+-				DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-				DMI_MATCH(DMI_PRODUCT_NAME, "VGN-N"),
+-			},
+-		},
+-		{ }
+-};
+-
+ /*
+  * ACPI callbacks
+  */
+ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct sony_nc_event *evmap;
++	int i;
+ 	u32 ev = event;
+ 	int result;
+ 
+-	if (ev == 0x92) {
++	if (ev == 0x92 || ev == 0x90) {
++		int origev = ev;
+ 		/* read the key pressed from EC.GECR
+ 		 * A call to SN07 with 0x0202 will do it as well respecting
+ 		 * the current protocol on different OSes
+@@ -913,20 +872,23 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 		 * TODO: we may want to do the same for the older GHKE -need
+ 		 *       dmi list- so this snippet may become one more callback.
+ 		 */
+-		if (acpi_callsetfunc(handle, "SN07", 0x0202, &result) < 0)
++		if (sony_call_snc_handle(0x100, 0x200, &result))
+ 			dprintk("sony_acpi_notify, unable to decode event 0x%.2x\n", ev);
+ 		else
+ 			ev = result & 0xFF;
+-	}
+ 
+-	if (sony_nc_events)
+-		for (evmap = sony_nc_events; evmap->event; evmap++) {
+-			if (evmap->data == ev) {
+-				ev = evmap->event;
++		for (i = 0; sony_C_events[i].data; i++) {
++			if (sony_C_events[i].data == ev) {
++				ev = sony_C_events[i].event;
+ 				break;
+ 			}
+ 		}
+ 
++		if (!sony_C_events[i].data)
++			printk(KERN_INFO DRV_PFX "Unknown event: %x %x\n",
++			       origev, ev);
++	}
++
+ 	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
+ 	sony_laptop_report_input_event(ev);
+ 	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
+@@ -953,9 +915,25 @@ static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
+ /*
+  * ACPI device
+  */
++static int sony_nc_function_setup(struct acpi_device *device)
++{
++	int result;
++
++	/* Enable all events */
++	acpi_callsetfunc(sony_nc_acpi_handle, "SN02", 0xffff, &result);
++
++	/* Setup hotkeys */
++	sony_call_snc_handle(0x0100, 0, &result);
++	sony_call_snc_handle(0x0101, 0, &result);
++	sony_call_snc_handle(0x0102, 0x100, &result);
++
++	return 0;
++}
++
+ static int sony_nc_resume(struct acpi_device *device)
+ {
+ 	struct sony_nc_value *item;
++	acpi_handle handle;
+ 
+ 	for (item = sony_nc_values; item->name; item++) {
+ 		int ret;
+@@ -970,14 +948,17 @@ static int sony_nc_resume(struct acpi_device *device)
  		}
  	}
  
-+	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "ECON",
++	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "SN00",
 +					 &handle))) {
-+		if (acpi_callsetfunc(sony_nc_acpi_handle, "ECON", 1, NULL))
-+			dprintk("ECON Method failed\n");
++		dprintk("Doing SNC setup\n");
++		sony_nc_function_setup(device);
 +	}
 +
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "SN00",
- 					 &handle))) {
- 		dprintk("Doing SNC setup\n");
-@@ -1005,6 +1011,12 @@ static int sony_nc_add(struct acpi_device *device)
+ 	/* set the last requested brightness level */
+ 	if (sony_backlight_device &&
+ 			!sony_backlight_update_status(sony_backlight_device))
+ 		printk(KERN_WARNING DRV_PFX "unable to restore brightness level\n");
+ 
+-	/* re-initialize models with specific requirements */
+-	dmi_check_system(sony_nc_ids);
+-
+ 	return 0;
+ }
+ 
+@@ -1024,6 +1005,12 @@ static int sony_nc_add(struct acpi_device *device)
  			dprintk("_INI Method failed\n");
  	}
  
-+	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "ECON",
++	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "SN00",
 +					 &handle))) {
-+		if (acpi_callsetfunc(sony_nc_acpi_handle, "ECON", 1, NULL))
-+			dprintk("ECON Method failed\n");
++		dprintk("Doing SNC setup\n");
++		sony_nc_function_setup(device);
 +	}
 +
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "SN00",
- 					 &handle))) {
- 		dprintk("Doing SNC setup\n");
+ 	/* setup input devices and helper fifo */
+ 	result = sony_laptop_setup_input(device);
+ 	if (result) {
+@@ -1063,9 +1050,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 
+ 	}
+ 
+-	/* initialize models with specific requirements */
+-	dmi_check_system(sony_nc_ids);
+-
+ 	result = sony_pf_add();
+ 	if (result)
+ 		goto outbacklight;
 -- 
 1.6.0.6
 
