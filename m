@@ -1,57 +1,33 @@
-From: Len Brown <lenb@kernel.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: new fixes for sony-acpi
-Date: Fri, 27 Mar 2009 21:34:23 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain>
-References: <20090323163459.GB5463@gamma.logic.tuwien.ac.at>
+Date: Sat, 28 Mar 2009 01:38:32 +0000
+Message-ID: <20090328013832.GA4778@srcf.ucam.org>
+References: <20090323163459.GB5463@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:23227 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbZC1Beb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 21:34:31 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH7003T20DFR9DH@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 20:34:29 -0500 (CDT)
-In-reply-to: <20090323163459.GB5463@gamma.logic.tuwien.ac.at>
+Received: from cavan.codon.org.uk ([93.93.128.6]:59831 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204AbZC1Bip (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 21:38:45 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: sony-vaio-z-series@lists.launchpad.net, Matthew Garrett <mjg59@srcf.ucam.org>, Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Norbert Preining <preining@logic.at>, sony-vaio-z-series@lists.launchpad.net, Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
 
+On Fri, Mar 27, 2009 at 09:34:23PM -0400, Len Brown wrote:
 
+> I assume that Matthew's rfkill patch later sent to me via Mattia replaces
+> what was in this message.
 
---
-Len Brown, Intel Open Source Technology Center
+Yes.
 
-On Mon, 23 Mar 2009, Norbert Preining wrote:
+> What about the speed/stamina stuff -- is anybody testing it?
 
-> Hi Sony Vaio Z list,
-> 
-> after some discussion Matthew has provided a nice patch that makes the
-> Fn-F5 and Fn-F6 keys working, and also S1 and S2.
-> 
-> I have adapted the speed-stamina patch from Matthias.
-> 
-> The following patches are only interesting for people running 2.6.29-rc
-> kernels (afais)
-> 
-> So attached are two patches:
-> - sony-laptop-matthew-version5.patch
->   latest version from Matthew with some keys creating events
-> 
-> - sony-laptop.c-speed-stamina-latest.patch
->   patch to add speed-stamina switch based on the 0.7 module of Matthias
-> 
-> Thanks a lot to Matthew and Matthias for working on that.
+The speed/stamina stuff isn't Sony specific. I'm working on an external 
+module to handle that.
 
-I assume that Matthew's rfkill patch later sent to me via Mattia replaces
-what was in this message.
-
-What about the speed/stamina stuff -- is anybody testing it?
-
-thanks,
--Len
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
