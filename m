@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 18/98] ACPICA: Update FADT flag definitions
-Date: Sat, 28 Mar 2009 00:30:53 -0400
-Message-ID: <993958fecab6eabc6ee5b7ed65c56d716fd5cfe3.1238214618.git.len.brown@intel.com>
+Subject: [PATCH 42/98] ACPICA: Fix AcpiWalkNamespace race condition with table
+ unload
+Date: Sat, 28 Mar 2009 00:31:17 -0400
+Message-ID: <8a335a2331c72e60c6b3ef09b2dedd3ba00da1b1.1238214619.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:38046 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802AbZC1Ecq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:46 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:22330 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753210AbZC1Ect (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:49 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700HSD8M7KD8F@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:33 -0500 (CDT)
+ with ESMTPA id <0KH700JVK8MMEKQP@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:47 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
@@ -23,136 +24,542 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Add new flags in the Boot Architecture flags field. Update comments
-for all FADT flags. Add FADT version when each flag was defined.
+Added a reader/writer locking mechanism to allow multiple
+concurrent namespace walks (readers), but a dynamic table unload
+will have exclusive access to the namespace. This fixes a problem
+where a table unload could delete the portion of the namespace that
+is currently being examined by a walk.  Adds a new file, utlock.c
+that implements the reader/writer lock mechanism. ACPICA BZ 749.
+
+http://www.acpica.org/bugzilla/show_bug.cgi?id=749
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pci/pci-acpi.c |    4 +-
- include/acpi/actbl.h   |   69 +++++++++++++++++++++++------------------------
- 2 files changed, 36 insertions(+), 37 deletions(-)
+ drivers/acpi/acpica/Makefile   |    2 +-
+ drivers/acpi/acpica/acglobal.h |    4 +
+ drivers/acpi/acpica/aclocal.h  |    8 ++
+ drivers/acpi/acpica/actables.h |    2 +-
+ drivers/acpi/acpica/acutils.h  |   15 ++++
+ drivers/acpi/acpica/dsinit.c   |   16 +++-
+ drivers/acpi/acpica/exconfig.c |   13 ++--
+ drivers/acpi/acpica/nsxfeval.c |   33 ++++++--
+ drivers/acpi/acpica/tbinstal.c |   45 +++++++++--
+ drivers/acpi/acpica/utlock.c   |  175 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/utmutex.c  |   23 ++++--
+ 11 files changed, 303 insertions(+), 33 deletions(-)
+ create mode 100644 drivers/acpi/acpica/utlock.c
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index deea8a1..368ca72 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -386,12 +386,12 @@ static int __init acpi_pci_init(void)
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index 3f23298..290be74 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -41,4 +41,4 @@ obj-y += tbxface.o tbinstal.o tbutils.o tbfind.o tbfadt.o tbxfroot.o
+ 
+ obj-y += utalloc.o utdebug.o uteval.o utinit.o utmisc.o utxface.o \
+ 		utcopy.o utdelete.o utglobal.o utmath.o utobject.o \
+-		utstate.o utmutex.o utobject.o utresrc.o
++		utstate.o utmutex.o utobject.o utresrc.o utlock.o
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index f3e87ba..f431b99 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -165,6 +165,10 @@ ACPI_EXTERN u8 acpi_gbl_integer_bit_width;
+ ACPI_EXTERN u8 acpi_gbl_integer_byte_width;
+ ACPI_EXTERN u8 acpi_gbl_integer_nybble_width;
+ 
++/* Reader/Writer lock is used for namespace walk and dynamic table unload */
++
++ACPI_EXTERN struct acpi_rw_lock acpi_gbl_namespace_rw_lock;
++
+ /*****************************************************************************
+  *
+  * Mutual exlusion within ACPICA subsystem
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 6feebc8..18a8d96 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -108,6 +108,14 @@ static char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
+ #endif
+ #endif
+ 
++/* Lock structure for reader/writer interfaces */
++
++struct acpi_rw_lock {
++	acpi_mutex writer_mutex;
++	acpi_mutex reader_mutex;
++	u32 num_readers;
++};
++
+ /*
+  * Predefined handles for spinlocks used within the subsystem.
+  * These spinlocks are created by acpi_ut_mutex_initialize
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index d8f8c5d..01c76b8 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -79,7 +79,7 @@ void acpi_tb_delete_table(struct acpi_table_desc *table_desc);
+ 
+ void acpi_tb_terminate(void);
+ 
+-void acpi_tb_delete_namespace_by_owner(u32 table_index);
++acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index);
+ 
+ acpi_status acpi_tb_allocate_owner_id(u32 table_index);
+ 
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 80d8813..897810b 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -346,6 +346,21 @@ acpi_status
+ acpi_ut_execute_sxds(struct acpi_namespace_node *device_node, u8 * highest);
+ 
+ /*
++ * utlock - reader/writer locks
++ */
++acpi_status acpi_ut_create_rw_lock(struct acpi_rw_lock *lock);
++
++void acpi_ut_delete_rw_lock(struct acpi_rw_lock *lock);
++
++acpi_status acpi_ut_acquire_read_lock(struct acpi_rw_lock *lock);
++
++acpi_status acpi_ut_release_read_lock(struct acpi_rw_lock *lock);
++
++acpi_status acpi_ut_acquire_write_lock(struct acpi_rw_lock *lock);
++
++void acpi_ut_release_write_lock(struct acpi_rw_lock *lock);
++
++/*
+  * utobject - internal object create/delete/cache routines
+  */
+ union acpi_operand_object *acpi_ut_create_internal_object_dbg(const char
+diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
+index eb144b1..3aae13f 100644
+--- a/drivers/acpi/acpica/dsinit.c
++++ b/drivers/acpi/acpica/dsinit.c
+@@ -180,11 +180,23 @@ acpi_ds_initialize_objects(u32 table_index,
+ 
+ 	/* Walk entire namespace from the supplied root */
+ 
+-	status = acpi_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
+-				     acpi_ds_init_one_object, &info, NULL);
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/*
++	 * We don't use acpi_walk_namespace since we do not want to acquire
++	 * the namespace reader lock.
++	 */
++	status =
++	    acpi_ns_walk_namespace(ACPI_TYPE_ANY, start_node, ACPI_UINT32_MAX,
++				   ACPI_NS_WALK_UNLOCK, acpi_ds_init_one_object,
++				   &info, NULL);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During WalkNamespace"));
+ 	}
++	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+ 
+ 	status = acpi_get_table_by_index(table_index, &table);
+ 	if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 70b39c7..3deb20a 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -520,13 +520,14 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 		}
+ 	}
+ 
+-	/*
+-	 * Delete the entire namespace under this table Node
+-	 * (Offset contains the table_id)
+-	 */
+-	acpi_tb_delete_namespace_by_owner(table_index);
+-	(void)acpi_tb_release_owner_id(table_index);
++	/* Delete the portion of the namespace owned by this table */
++
++	status = acpi_tb_delete_namespace_by_owner(table_index);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
+ 
++	(void)acpi_tb_release_owner_id(table_index);
+ 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
+ 
+ 	/* Table unloaded, remove a reference to the ddb_handle object */
+diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
+index 2583a66..0450540 100644
+--- a/drivers/acpi/acpica/nsxfeval.c
++++ b/drivers/acpi/acpica/nsxfeval.c
+@@ -475,21 +475,40 @@ acpi_walk_namespace(acpi_object_type type,
+ 	}
+ 
+ 	/*
+-	 * Lock the namespace around the walk.
+-	 * The namespace will be unlocked/locked around each call
+-	 * to the user function - since this function
+-	 * must be allowed to make Acpi calls itself.
++	 * Need to acquire the namespace reader lock to prevent interference
++	 * with any concurrent table unloads (which causes the deletion of
++	 * namespace objects). We cannot allow the deletion of a namespace node
++	 * while the user function is using it. The exception to this are the
++	 * nodes created and deleted during control method execution -- these
++	 * nodes are marked as temporary nodes and are ignored by the namespace
++	 * walk. Thus, control methods can be executed while holding the
++	 * namespace deletion lock (and the user function can execute control
++	 * methods.)
++	 */
++	status = acpi_ut_acquire_read_lock(&acpi_gbl_namespace_rw_lock);
++	if (ACPI_FAILURE(status)) {
++		return status;
++	}
++
++	/*
++	 * Lock the namespace around the walk. The namespace will be
++	 * unlocked/locked around each call to the user function - since the user
++	 * function must be allowed to make ACPICA calls itself (for example, it
++	 * will typically execute control methods during device enumeration.)
+ 	 */
+ 	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+ 	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
++		goto unlock_and_exit;
+ 	}
+ 
+ 	status = acpi_ns_walk_namespace(type, start_object, max_depth,
+-					ACPI_NS_WALK_UNLOCK,
+-					user_function, context, return_value);
++					ACPI_NS_WALK_UNLOCK, user_function,
++					context, return_value);
+ 
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++
++      unlock_and_exit:
++	(void)acpi_ut_release_read_lock(&acpi_gbl_namespace_rw_lock);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
+index c379930..f865d5a 100644
+--- a/drivers/acpi/acpica/tbinstal.c
++++ b/drivers/acpi/acpica/tbinstal.c
+@@ -434,27 +434,56 @@ void acpi_tb_terminate(void)
+  *
+  * PARAMETERS:  table_index         - Table index
+  *
+- * RETURN:      None
++ * RETURN:      Status
+  *
+  * DESCRIPTION: Delete all namespace objects created when this table was loaded.
+  *
+  ******************************************************************************/
+ 
+-void acpi_tb_delete_namespace_by_owner(u32 table_index)
++acpi_status acpi_tb_delete_namespace_by_owner(u32 table_index)
  {
- 	int ret;
+ 	acpi_owner_id owner_id;
++	acpi_status status;
++
++	ACPI_FUNCTION_TRACE(tb_delete_namespace_by_owner);
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	if (table_index >= acpi_gbl_root_table_list.count) {
++
++		/* The table index does not exist */
  
--	if (acpi_gbl_FADT.boot_flags & BAF_MSI_NOT_SUPPORTED) {
-+	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_MSI) {
- 		printk(KERN_INFO"ACPI FADT declares the system doesn't support MSI, so disable it\n");
- 		pci_no_msi();
+-	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+-	if (table_index < acpi_gbl_root_table_list.count) {
+-		owner_id =
+-		    acpi_gbl_root_table_list.tables[table_index].owner_id;
+-	} else {
+ 		(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+-		return;
++		return_ACPI_STATUS(AE_NOT_EXIST);
  	}
  
--	if (acpi_gbl_FADT.boot_flags & BAF_PCIE_ASPM_CONTROL) {
-+	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM) {
- 		printk(KERN_INFO"ACPI FADT declares the system doesn't support PCIe ASPM, so disable it\n");
- 		pcie_no_aspm();
++	/* Get the owner ID for this table, used to delete namespace nodes */
++
++	owner_id = acpi_gbl_root_table_list.tables[table_index].owner_id;
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
++
++	/*
++	 * Need to acquire the namespace writer lock to prevent interference
++	 * with any concurrent namespace walks. The interpreter must be
++	 * released during the deletion since the acquisition of the deletion
++	 * lock may block, and also since the execution of a namespace walk
++	 * must be allowed to use the interpreter.
++	 */
++	acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
++	status = acpi_ut_acquire_write_lock(&acpi_gbl_namespace_rw_lock);
++
+ 	acpi_ns_delete_namespace_by_owner(owner_id);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	acpi_ut_release_write_lock(&acpi_gbl_namespace_rw_lock);
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
++	return_ACPI_STATUS(status);
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/utlock.c b/drivers/acpi/acpica/utlock.c
+new file mode 100644
+index 0000000..25e0312
+--- /dev/null
++++ b/drivers/acpi/acpica/utlock.c
+@@ -0,0 +1,175 @@
++/******************************************************************************
++ *
++ * Module Name: utlock - Reader/Writer lock interfaces
++ *
++ *****************************************************************************/
++
++/*
++ * Copyright (C) 2000 - 2009, Intel Corp.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ */
++
++#include <acpi/acpi.h>
++#include "accommon.h"
++
++#define _COMPONENT          ACPI_UTILITIES
++ACPI_MODULE_NAME("utlock")
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_create_rw_lock
++ *              acpi_ut_delete_rw_lock
++ *
++ * PARAMETERS:  Lock                - Pointer to a valid RW lock
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Reader/writer lock creation and deletion interfaces.
++ *
++ ******************************************************************************/
++acpi_status acpi_ut_create_rw_lock(struct acpi_rw_lock *lock)
++{
++	acpi_status status;
++
++	lock->num_readers = 0;
++	status = acpi_os_create_mutex(&lock->reader_mutex);
++	if (ACPI_FAILURE(status)) {
++		return status;
++	}
++
++	status = acpi_os_create_mutex(&lock->writer_mutex);
++	return status;
++}
++
++void acpi_ut_delete_rw_lock(struct acpi_rw_lock *lock)
++{
++
++	acpi_os_delete_mutex(lock->reader_mutex);
++	acpi_os_delete_mutex(lock->writer_mutex);
++
++	lock->num_readers = 0;
++	lock->reader_mutex = NULL;
++	lock->writer_mutex = NULL;
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_acquire_read_lock
++ *              acpi_ut_release_read_lock
++ *
++ * PARAMETERS:  Lock                - Pointer to a valid RW lock
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Reader interfaces for reader/writer locks. On acquisition,
++ *              only the first reader acquires the write mutex. On release,
++ *              only the last reader releases the write mutex. Although this
++ *              algorithm can in theory starve writers, this should not be a
++ *              problem with ACPICA since the subsystem is infrequently used
++ *              in comparison to (for example) an I/O system.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_ut_acquire_read_lock(struct acpi_rw_lock *lock)
++{
++	acpi_status status;
++
++	status = acpi_os_acquire_mutex(lock->reader_mutex, ACPI_WAIT_FOREVER);
++	if (ACPI_FAILURE(status)) {
++		return status;
++	}
++
++	/* Acquire the write lock only for the first reader */
++
++	lock->num_readers++;
++	if (lock->num_readers == 1) {
++		status =
++		    acpi_os_acquire_mutex(lock->writer_mutex,
++					  ACPI_WAIT_FOREVER);
++	}
++
++	acpi_os_release_mutex(lock->reader_mutex);
++	return status;
++}
++
++acpi_status acpi_ut_release_read_lock(struct acpi_rw_lock *lock)
++{
++	acpi_status status;
++
++	status = acpi_os_acquire_mutex(lock->reader_mutex, ACPI_WAIT_FOREVER);
++	if (ACPI_FAILURE(status)) {
++		return status;
++	}
++
++	/* Release the write lock only for the very last reader */
++
++	lock->num_readers--;
++	if (lock->num_readers == 0) {
++		acpi_os_release_mutex(lock->writer_mutex);
++	}
++
++	acpi_os_release_mutex(lock->reader_mutex);
++	return status;
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_acquire_write_lock
++ *              acpi_ut_release_write_lock
++ *
++ * PARAMETERS:  Lock                - Pointer to a valid RW lock
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Writer interfaces for reader/writer locks. Simply acquire or
++ *              release the writer mutex associated with the lock. Acquisition
++ *              of the lock is fully exclusive and will block all readers and
++ *              writers until it is released.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_ut_acquire_write_lock(struct acpi_rw_lock *lock)
++{
++	acpi_status status;
++
++	status = acpi_os_acquire_mutex(lock->writer_mutex, ACPI_WAIT_FOREVER);
++	return status;
++}
++
++void acpi_ut_release_write_lock(struct acpi_rw_lock *lock)
++{
++
++	acpi_os_release_mutex(lock->writer_mutex);
++}
+diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
+index 14eb52c..26c93a7 100644
+--- a/drivers/acpi/acpica/utmutex.c
++++ b/drivers/acpi/acpica/utmutex.c
+@@ -60,7 +60,8 @@ static acpi_status acpi_ut_delete_mutex(acpi_mutex_handle mutex_id);
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Create the system mutex objects.
++ * DESCRIPTION: Create the system mutex objects. This includes mutexes,
++ *              spin locks, and reader/writer locks.
+  *
+  ******************************************************************************/
+ 
+@@ -71,9 +72,8 @@ acpi_status acpi_ut_mutex_initialize(void)
+ 
+ 	ACPI_FUNCTION_TRACE(ut_mutex_initialize);
+ 
+-	/*
+-	 * Create each of the predefined mutex objects
+-	 */
++	/* Create each of the predefined mutex objects */
++
+ 	for (i = 0; i < ACPI_NUM_MUTEX; i++) {
+ 		status = acpi_ut_create_mutex(i);
+ 		if (ACPI_FAILURE(status)) {
+@@ -86,6 +86,9 @@ acpi_status acpi_ut_mutex_initialize(void)
+ 	spin_lock_init(acpi_gbl_gpe_lock);
+ 	spin_lock_init(acpi_gbl_hardware_lock);
+ 
++	/* Create the reader/writer lock for namespace access */
++
++	status = acpi_ut_create_rw_lock(&acpi_gbl_namespace_rw_lock);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -97,7 +100,8 @@ acpi_status acpi_ut_mutex_initialize(void)
+  *
+  * RETURN:      None.
+  *
+- * DESCRIPTION: Delete all of the system mutex objects.
++ * DESCRIPTION: Delete all of the system mutex objects. This includes mutexes,
++ *              spin locks, and reader/writer locks.
+  *
+  ******************************************************************************/
+ 
+@@ -107,9 +111,8 @@ void acpi_ut_mutex_terminate(void)
+ 
+ 	ACPI_FUNCTION_TRACE(ut_mutex_terminate);
+ 
+-	/*
+-	 * Delete each predefined mutex object
+-	 */
++	/* Delete each predefined mutex object */
++
+ 	for (i = 0; i < ACPI_NUM_MUTEX; i++) {
+ 		(void)acpi_ut_delete_mutex(i);
  	}
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index 1f3dfdb..222733d 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -214,11 +214,11 @@ struct acpi_table_fadt {
- 	u16 flush_size;		/* Processor's memory cache line width, in bytes */
- 	u16 flush_stride;	/* Number of flush strides that need to be read */
- 	u8 duty_offset;		/* Processor duty cycle index in processor's P_CNT reg */
--	u8 duty_width;		/* Processor duty cycle value bit width in P_CNT register. */
-+	u8 duty_width;		/* Processor duty cycle value bit width in P_CNT register */
- 	u8 day_alarm;		/* Index to day-of-month alarm in RTC CMOS RAM */
- 	u8 month_alarm;		/* Index to month-of-year alarm in RTC CMOS RAM */
- 	u8 century;		/* Index to century in RTC CMOS RAM */
--	u16 boot_flags;		/* IA-PC Boot Architecture Flags. See Table 5-10 for description */
-+	u16 boot_flags;		/* IA-PC Boot Architecture Flags (see below for individual flags) */
- 	u8 reserved;		/* Reserved, must be zero */
- 	u32 flags;		/* Miscellaneous flag bits (see below for individual flags) */
- 	struct acpi_generic_address reset_register;	/* 64-bit address of the Reset register */
-@@ -236,32 +236,41 @@ struct acpi_table_fadt {
- 	struct acpi_generic_address xgpe1_block;	/* 64-bit Extended General Purpose Event 1 Reg Blk address */
- };
+@@ -118,6 +121,10 @@ void acpi_ut_mutex_terminate(void)
  
-+/* FADT Boot Architecture Flags (boot_flags) */
+ 	acpi_os_delete_lock(acpi_gbl_gpe_lock);
+ 	acpi_os_delete_lock(acpi_gbl_hardware_lock);
 +
-+#define ACPI_FADT_LEGACY_DEVICES    (1)  	/* 00: [V2] System has LPC or ISA bus devices */
-+#define ACPI_FADT_8042              (1<<1)	/* 01: [V3] System has an 8042 controller on port 60/64 */
-+#define ACPI_FADT_NO_VGA            (1<<2)	/* 02: [V4] It is not safe to probe for VGA hardware */
-+#define ACPI_FADT_NO_MSI            (1<<3)	/* 03: [V4] Message Signaled Interrupts (MSI) must not be enabled */
-+#define ACPI_FADT_NO_ASPM           (1<<4)	/* 04: [V4] PCIe ASPM control must not be enabled */
++	/* Delete the reader/writer lock */
 +
-+#define FADT2_REVISION_ID               3
-+
- /* FADT flags */
++	acpi_ut_delete_rw_lock(&acpi_gbl_namespace_rw_lock);
+ 	return_VOID;
+ }
  
--#define ACPI_FADT_WBINVD            (1)	/* 00: The wbinvd instruction works properly */
--#define ACPI_FADT_WBINVD_FLUSH      (1<<1)	/* 01: The wbinvd flushes but does not invalidate */
--#define ACPI_FADT_C1_SUPPORTED      (1<<2)	/* 02: All processors support C1 state */
--#define ACPI_FADT_C2_MP_SUPPORTED   (1<<3)	/* 03: C2 state works on MP system */
--#define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: Power button is handled as a generic feature */
--#define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: Sleep button is handled as a generic feature, or  not present */
--#define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: RTC wakeup stat not in fixed register space */
--#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: RTC wakeup possible from S4 */
--#define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: tmr_val is 32 bits 0=24-bits */
--#define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: Docking supported */
--#define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: System reset via the FADT RESET_REG supported */
--#define ACPI_FADT_SEALED_CASE       (1<<11)	/* 11: No internal expansion capabilities and case is sealed */
--#define ACPI_FADT_HEADLESS          (1<<12)	/* 12: No local video capabilities or local input devices */
--#define ACPI_FADT_SLEEP_TYPE        (1<<13)	/* 13: Must execute native instruction after writing  SLP_TYPx register */
--#define ACPI_FADT_PCI_EXPRESS_WAKE  (1<<14)	/* 14: System supports PCIEXP_WAKE (STS/EN) bits (ACPI 3.0) */
--#define ACPI_FADT_PLATFORM_CLOCK    (1<<15)	/* 15: OSPM should use platform-provided timer (ACPI 3.0) */
--#define ACPI_FADT_S4_RTC_VALID      (1<<16)	/* 16: Contents of RTC_STS valid after S4 wake (ACPI 3.0) */
--#define ACPI_FADT_REMOTE_POWER_ON   (1<<17)	/* 17: System is compatible with remote power on (ACPI 3.0) */
--#define ACPI_FADT_APIC_CLUSTER      (1<<18)	/* 18: All local APICs must use cluster model (ACPI 3.0) */
--#define ACPI_FADT_APIC_PHYSICAL     (1<<19)	/* 19: All local x_aPICs must use physical dest mode (ACPI 3.0) */
-+#define ACPI_FADT_WBINVD            (1)	/* 00: [V1] The wbinvd instruction works properly */
-+#define ACPI_FADT_WBINVD_FLUSH      (1<<1)	/* 01: [V1] wbinvd flushes but does not invalidate caches */
-+#define ACPI_FADT_C1_SUPPORTED      (1<<2)	/* 02: [V1] All processors support C1 state */
-+#define ACPI_FADT_C2_MP_SUPPORTED   (1<<3)	/* 03: [V1] C2 state works on MP system */
-+#define ACPI_FADT_POWER_BUTTON      (1<<4)	/* 04: [V1] Power button is handled as a control method device */
-+#define ACPI_FADT_SLEEP_BUTTON      (1<<5)	/* 05: [V1] Sleep button is handled as a control method device */
-+#define ACPI_FADT_FIXED_RTC         (1<<6)	/* 06: [V1] RTC wakeup status not in fixed register space */
-+#define ACPI_FADT_S4_RTC_WAKE       (1<<7)	/* 07: [V1] RTC alarm can wake system from S4 */
-+#define ACPI_FADT_32BIT_TIMER       (1<<8)	/* 08: [V1] ACPI timer width is 32-bit (0=24-bit) */
-+#define ACPI_FADT_DOCKING_SUPPORTED (1<<9)	/* 09: [V1] Docking supported */
-+#define ACPI_FADT_RESET_REGISTER    (1<<10)	/* 10: [V2] System reset via the FADT RESET_REG supported */
-+#define ACPI_FADT_SEALED_CASE       (1<<11)	/* 11: [V3] No internal expansion capabilities and case is sealed */
-+#define ACPI_FADT_HEADLESS          (1<<12)	/* 12: [V3] No local video capabilities or local input devices */
-+#define ACPI_FADT_SLEEP_TYPE        (1<<13)	/* 13: [V3] Must execute native instruction after writing  SLP_TYPx register */
-+#define ACPI_FADT_PCI_EXPRESS_WAKE  (1<<14)	/* 14: [V4] System supports PCIEXP_WAKE (STS/EN) bits (ACPI 3.0) */
-+#define ACPI_FADT_PLATFORM_CLOCK    (1<<15)	/* 15: [V4] OSPM should use platform-provided timer (ACPI 3.0) */
-+#define ACPI_FADT_S4_RTC_VALID      (1<<16)	/* 16: [V4] Contents of RTC_STS valid after S4 wake (ACPI 3.0) */
-+#define ACPI_FADT_REMOTE_POWER_ON   (1<<17)	/* 17: [V4] System is compatible with remote power on (ACPI 3.0) */
-+#define ACPI_FADT_APIC_CLUSTER      (1<<18)	/* 18: [V4] All local APICs must use cluster model (ACPI 3.0) */
-+#define ACPI_FADT_APIC_PHYSICAL     (1<<19)	/* 19: [V4] All local x_aPICs must use physical dest mode (ACPI 3.0) */
-+
-+/* FADT Prefered Power Management Profiles */
- 
--/*
-- * FADT Prefered Power Management Profiles
-- */
- enum acpi_prefered_pm_profiles {
- 	PM_UNSPECIFIED = 0,
- 	PM_DESKTOP = 1,
-@@ -272,16 +281,6 @@ enum acpi_prefered_pm_profiles {
- 	PM_APPLIANCE_PC = 6
- };
- 
--/* FADT Boot Arch Flags */
--
--#define BAF_LEGACY_DEVICES              0x0001
--#define BAF_8042_KEYBOARD_CONTROLLER    0x0002
--#define BAF_MSI_NOT_SUPPORTED           0x0008
--#define BAF_PCIE_ASPM_CONTROL           0x0010
--
--#define FADT2_REVISION_ID               3
--#define FADT2_MINUS_REVISION_ID         2
--
- /* Reset to default packing */
- 
- #pragma pack()
 -- 
 1.6.0.6
 
