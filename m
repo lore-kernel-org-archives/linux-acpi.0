@@ -1,91 +1,94 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 87/98] Fix state reporting in tc1100-wmi
-Date: Sat, 28 Mar 2009 00:32:02 -0400
-Message-ID: <1a8522f6537bc71153d2d19fdf238d4ff7fba17e.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 72/98] ACPI: call acpi_power_init() explicitly rather than as
+ initcall
+Date: Sat, 28 Mar 2009 00:31:47 -0400
+Message-ID: <44515374cba9e46d5622256b43eb06b9c349cee1.1238214620.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:38349 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756284AbZC1Edr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:47 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:8461 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374AbZC1Edk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:40 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH7001GB8O93A9D@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:46 -0500 (CDT)
+ with ESMTPA id <0KH700BF18NWHWBK@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:33 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: =?utf-8?q?Krzysztof=20Kosi=C5=84ski?= <tweenk.pl@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
 
-=46rom: Krzysztof Kosi=C5=84ski <tweenk.pl@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The tc1100-wmi driver should print the current states of wireless LAN a=
-nd
-jogdial brightness control when "cat /sys/devices/platform/tc1100-wmi/w=
-ireless"
-and "cat /sys/devices/platform/tc1100-wmi/jogdial" are executed, respec=
-tively.
-What actually happens is that both of those commands print 0 regardless=
- of the
-hardware state. The cause is that wmi_query_block returns an ACPI_TYPE_=
-INTEGER
-rather than ACPI_TYPE_BUFFER as the driver assumes. Additionally, the d=
-river
-intends to return a jogdial state that is inverted with respect to the =
-commands
-required to set it (e.g. it intends to return 1 after the jogdial file =
-was
-written with 0).
+This patch makes acpi_init() call acpi_power_init() directly.
+Previously, both were subsys_initcalls.  acpi_power_init()
+must happen after acpi_init(), and it's better to call it
+explicitly rather than rely on link ordering.
 
-This patch fixes both of those issues - the commands to query the
-state now work, and should return the same state that was written.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=3D12286
-
-Signed-off-by: Krzysztof Kosi=C5=84ski <tweenk.pl@gmail.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/tc1100-wmi.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/acpi/bus.c      |    1 +
+ drivers/acpi/internal.h |    2 +-
+ drivers/acpi/power.c    |    8 +-------
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/platform/x86/tc1100-wmi.c b/drivers/platform/x86/t=
-c1100-wmi.c
-index b4a4aa9..4416600 100644
---- a/drivers/platform/x86/tc1100-wmi.c
-+++ b/drivers/platform/x86/tc1100-wmi.c
-@@ -94,9 +94,8 @@ static int get_state(u32 *out, u8 instance)
- 		return -ENODEV;
-=20
- 	obj =3D (union acpi_object *) result.pointer;
--	if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER &&
--		obj->buffer.length =3D=3D sizeof(u32)) {
--		tmp =3D *((u32 *) obj->buffer.pointer);
-+	if (obj && obj->type =3D=3D ACPI_TYPE_INTEGER) {
-+		tmp =3D obj->integer.value;
- 	} else {
- 		tmp =3D 0;
- 	}
-@@ -109,7 +108,7 @@ static int get_state(u32 *out, u8 instance)
- 		*out =3D (tmp =3D=3D 3) ? 1 : 0;
- 		return 0;
- 	case TC1100_INSTANCE_JOGDIAL:
--		*out =3D (tmp =3D=3D 1) ? 1 : 0;
-+		*out =3D (tmp =3D=3D 1) ? 0 : 1;
- 		return 0;
- 	default:
- 		return -ENODEV;
---=20
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 9ca6837..946610f 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -881,6 +881,7 @@ static int __init acpi_init(void)
+ 
+ 	acpi_scan_init();
+ 	acpi_ec_init();
++	acpi_power_init();
+ 	return result;
+ }
+ 
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index fad8e38..a8178ad 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -5,7 +5,7 @@ int acpi_scan_init(void);
+ /* --------------------------------------------------------------------------
+                                   Power Resource
+    -------------------------------------------------------------------------- */
+-
++int acpi_power_init(void);
+ int acpi_device_sleep_wake(struct acpi_device *dev,
+                            int enable, int sleep_state, int dev_state);
+ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index c926e7d..11968ba 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -773,14 +773,10 @@ static int acpi_power_resume(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-static int __init acpi_power_init(void)
++int __init acpi_power_init(void)
+ {
+ 	int result = 0;
+ 
+-
+-	if (acpi_disabled)
+-		return 0;
+-
+ 	INIT_LIST_HEAD(&acpi_power_resource_list);
+ 
+ 	acpi_power_dir = proc_mkdir(ACPI_POWER_CLASS, acpi_root_dir);
+@@ -795,5 +791,3 @@ static int __init acpi_power_init(void)
+ 
+ 	return 0;
+ }
+-
+-subsys_initcall(acpi_power_init);
+-- 
 1.6.0.6
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
