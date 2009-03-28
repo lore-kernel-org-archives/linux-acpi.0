@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 24/98] ACPICA: Remove extra write for acpi_hw_clear_acpi_status
-Date: Sat, 28 Mar 2009 00:30:59 -0400
-Message-ID: <227243a04d645377d09eda0dc8501e0d9c26ab89.1238214618.git.len.brown@intel.com>
+Subject: [PATCH 48/98] ACPICA: Remove unused code, no functional change
+Date: Sat, 28 Mar 2009 00:31:23 -0400
+Message-ID: <91a56e631fc837852304ee7bc2876d6e444b7fdb.1238214619.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:38046 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412AbZC1Ecv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:51 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:22353 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753906AbZC1Ecx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:53 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700LT88MBZ0PR@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:36 -0500 (CDT)
+ with ESMTPA id <0KH700JW78MPEKQP@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:50 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
@@ -23,66 +23,97 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-This function was writing an optional PM1B status register
-twice.  The existing call to the low-level acpi_hw_register_write
-automatically handles a possibly split PM1 A/B register.
-ACPICA BZ 751.
-
-http://www.acpica.org/bugzilla/show_bug.cgi?id=751
+Removed unused code for dump of args and locals. General cleanup
+and splitting of long lines.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/hwregs.c |   17 +++--------------
- 1 files changed, 3 insertions(+), 14 deletions(-)
+ drivers/acpi/acpica/exdump.c |   44 ++++++++---------------------------------
+ 1 files changed, 9 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-index 41f1173..9c81621 100644
---- a/drivers/acpi/acpica/hwregs.c
-+++ b/drivers/acpi/acpica/hwregs.c
-@@ -71,7 +71,6 @@ acpi_hw_write_multiple(u32 value,
-  * RETURN:      Status
-  *
-  * DESCRIPTION: Clears all fixed and general purpose status bits
-- *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
-  *
-  ******************************************************************************/
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 193d233..89d141f 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -350,6 +350,7 @@ acpi_ex_dump_object(union acpi_operand_object *obj_desc,
+ 			break;
  
-@@ -82,13 +81,13 @@ acpi_status acpi_hw_clear_acpi_status(void)
+ 		case ACPI_EXD_TYPE:
++
+ 			acpi_ex_out_string("Type",
+ 					   acpi_ut_get_object_type_name
+ 					   (obj_desc));
+@@ -422,6 +423,7 @@ acpi_ex_dump_object(union acpi_operand_object *obj_desc,
+ 			break;
  
- 	ACPI_FUNCTION_TRACE(hw_clear_acpi_status);
+ 		default:
++
+ 			acpi_os_printf("**** Invalid table opcode [%X] ****\n",
+ 				       info->opcode);
+ 			return;
+@@ -527,44 +529,16 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
+ 							     type));
+ 			break;
  
--	ACPI_DEBUG_PRINT((ACPI_DB_IO, "About to write %04X to %04X\n",
-+	ACPI_DEBUG_PRINT((ACPI_DB_IO, "About to write %04X to %0llX\n",
- 			  ACPI_BITMASK_ALL_FIXED_STATUS,
--			  (u16) acpi_gbl_xpm1a_status.address));
-+			  acpi_gbl_xpm1a_status.address));
- 
- 	lock_flags = acpi_os_acquire_lock(acpi_gbl_hardware_lock);
- 
--	/* Clear the fixed events */
-+	/* Clear the fixed events in PM1 A/B */
- 
- 	status = acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
- 					ACPI_BITMASK_ALL_FIXED_STATUS);
-@@ -96,16 +95,6 @@ acpi_status acpi_hw_clear_acpi_status(void)
- 		goto unlock_and_exit;
- 	}
- 
--	/* Write PM1B register if present */
+-		case ACPI_REFCLASS_ARG:
 -
--	if (acpi_gbl_xpm1b_status.address) {
--		status = acpi_write(ACPI_BITMASK_ALL_FIXED_STATUS,
--				    &acpi_gbl_xpm1b_status);
--		if (ACPI_FAILURE(status)) {
--			goto unlock_and_exit;
--		}
--	}
+-			acpi_os_printf("%X", obj_desc->reference.value);
 -
- 	/* Clear the GPE Bits in all GPE registers in all GPE blocks */
+-			if (obj_desc->common.type == ACPI_TYPE_INTEGER) {
+-
+-				/* Value is an Integer */
+-
+-				acpi_os_printf(" value is [%8.8X%8.8x]",
+-					       ACPI_FORMAT_UINT64(obj_desc->
+-								  integer.
+-								  value));
+-			}
++		case ACPI_REFCLASS_NAME:
  
- 	status = acpi_ev_walk_gpe_list(acpi_hw_clear_gpe_block, NULL);
+-			acpi_os_printf("\n");
++			acpi_os_printf("- [%4.4s]\n",
++				       obj_desc->reference.node->name.ascii);
+ 			break;
+ 
++		case ACPI_REFCLASS_ARG:
+ 		case ACPI_REFCLASS_LOCAL:
+ 
+-			acpi_os_printf("%X", obj_desc->reference.value);
+-
+-			if (obj_desc->common.type == ACPI_TYPE_INTEGER) {
+-
+-				/* Value is an Integer */
+-
+-				acpi_os_printf(" value is [%8.8X%8.8x]",
+-					       ACPI_FORMAT_UINT64(obj_desc->
+-								  integer.
+-								  value));
+-			}
+-
+-			acpi_os_printf("\n");
+-			break;
+-
+-		case ACPI_REFCLASS_NAME:
+-
+-			acpi_os_printf("- [%4.4s]\n",
+-				       obj_desc->reference.node->name.ascii);
++			acpi_os_printf("%X\n", obj_desc->reference.value);
+ 			break;
+ 
+ 		default:	/* Unknown reference class */
+@@ -661,8 +635,8 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
+ 	case ACPI_TYPE_LOCAL_REGION_FIELD:
+ 
+ 		acpi_os_printf
+-		    ("RegionField: Bits=%X AccWidth=%X Lock=%X Update=%X at byte=%X bit=%X of below:\n",
+-		     obj_desc->field.bit_length,
++		    ("RegionField: Bits=%X AccWidth=%X Lock=%X Update=%X at "
++		     "byte=%X bit=%X of below:\n", obj_desc->field.bit_length,
+ 		     obj_desc->field.access_byte_width,
+ 		     obj_desc->field.field_flags & AML_FIELD_LOCK_RULE_MASK,
+ 		     obj_desc->field.field_flags & AML_FIELD_UPDATE_RULE_MASK,
 -- 
 1.6.0.6
 
