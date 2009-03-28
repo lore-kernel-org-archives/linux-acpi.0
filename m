@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 46/98] ACPICA: Remove obsolete acpi_os_validate_address
- interface
-Date: Sat, 28 Mar 2009 00:31:21 -0400
-Message-ID: <f9ca058430333c9a24c5ca926aa445125f88df18.1238214619.git.len.brown@intel.com>
+Subject: [PATCH 24/98] ACPICA: Remove extra write for acpi_hw_clear_acpi_status
+Date: Sat, 28 Mar 2009 00:30:59 -0400
+Message-ID: <227243a04d645377d09eda0dc8501e0d9c26ab89.1238214618.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:34767 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753675AbZC1Ecv (ORCPT
+Received: from vms173005pub.verizon.net ([206.46.173.5]:38046 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752412AbZC1Ecv (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:51 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700E2T8MOCZRV@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:49 -0500 (CDT)
+ with ESMTPA id <0KH700LT88MBZ0PR@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:36 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
@@ -24,98 +23,66 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-This interface is no longer necessary. Requests should be validated
-on a per-field basis, not on the entire operation region.
+This function was writing an optional PM1B status register
+twice.  The existing call to the low-level acpi_hw_register_write
+automatically handles a possibly split PM1 A/B register.
+ACPICA BZ 751.
+
+http://www.acpica.org/bugzilla/show_bug.cgi?id=751
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acobject.h |    1 -
- drivers/acpi/acpica/dsopcode.c |   24 ------------------------
- drivers/acpi/acpica/exfldio.c  |    6 ------
- include/acpi/acpiosxf.h        |    4 ----
- 4 files changed, 0 insertions(+), 35 deletions(-)
+ drivers/acpi/acpica/hwregs.c |   17 +++--------------
+ 1 files changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index eb6f038..544dcf8 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -97,7 +97,6 @@
- #define AOPOBJ_OBJECT_INITIALIZED   0x08
- #define AOPOBJ_SETUP_COMPLETE       0x10
- #define AOPOBJ_SINGLE_DATUM         0x20
--#define AOPOBJ_INVALID              0x40	/* Used if host OS won't allow an op_region address */
- 
- /******************************************************************************
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index 41f1173..9c81621 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -71,7 +71,6 @@ acpi_hw_write_multiple(u32 value,
+  * RETURN:      Status
   *
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index 602ddaa..b4c87b5 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -397,30 +397,6 @@ acpi_status acpi_ds_get_region_arguments(union acpi_operand_object *obj_desc)
- 	status = acpi_ds_execute_arguments(node, acpi_ns_get_parent_node(node),
- 					   extra_desc->extra.aml_length,
- 					   extra_desc->extra.aml_start);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
--
--	/* Validate the region address/length via the host OS */
--
--	status = acpi_os_validate_address(obj_desc->region.space_id,
--					  obj_desc->region.address,
--					  (acpi_size) obj_desc->region.length,
--					  acpi_ut_get_node_name(node));
--
--	if (ACPI_FAILURE(status)) {
--		/*
--		 * Invalid address/length. We will emit an error message and mark
--		 * the region as invalid, so that it will cause an additional error if
--		 * it is ever used. Then return AE_OK.
--		 */
--		ACPI_EXCEPTION((AE_INFO, status,
--				"During address validation of OpRegion [%4.4s]",
--				node->name.ascii));
--		obj_desc->common.flags |= AOPOBJ_INVALID;
--		status = AE_OK;
--	}
--
- 	return_ACPI_STATUS(status);
- }
+  * DESCRIPTION: Clears all fixed and general purpose status bits
+- *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
+  *
+  ******************************************************************************/
  
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index 1053e7c..99cee61 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -113,12 +113,6 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
- 		}
+@@ -82,13 +81,13 @@ acpi_status acpi_hw_clear_acpi_status(void)
+ 
+ 	ACPI_FUNCTION_TRACE(hw_clear_acpi_status);
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_IO, "About to write %04X to %04X\n",
++	ACPI_DEBUG_PRINT((ACPI_DB_IO, "About to write %04X to %0llX\n",
+ 			  ACPI_BITMASK_ALL_FIXED_STATUS,
+-			  (u16) acpi_gbl_xpm1a_status.address));
++			  acpi_gbl_xpm1a_status.address));
+ 
+ 	lock_flags = acpi_os_acquire_lock(acpi_gbl_hardware_lock);
+ 
+-	/* Clear the fixed events */
++	/* Clear the fixed events in PM1 A/B */
+ 
+ 	status = acpi_hw_register_write(ACPI_REGISTER_PM1_STATUS,
+ 					ACPI_BITMASK_ALL_FIXED_STATUS);
+@@ -96,16 +95,6 @@ acpi_status acpi_hw_clear_acpi_status(void)
+ 		goto unlock_and_exit;
  	}
  
--	/* Exit if Address/Length have been disallowed by the host OS */
+-	/* Write PM1B register if present */
 -
--	if (rgn_desc->common.flags & AOPOBJ_INVALID) {
--		return_ACPI_STATUS(AE_AML_ILLEGAL_ADDRESS);
+-	if (acpi_gbl_xpm1b_status.address) {
+-		status = acpi_write(ACPI_BITMASK_ALL_FIXED_STATUS,
+-				    &acpi_gbl_xpm1b_status);
+-		if (ACPI_FAILURE(status)) {
+-			goto unlock_and_exit;
+-		}
 -	}
 -
- 	/*
- 	 * Exit now for SMBus address space, it has a non-linear address space
- 	 * and the request cannot be directly validated
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index a62720a..178adfb 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -241,10 +241,6 @@ acpi_os_derive_pci_id(acpi_handle rhandle,
- acpi_status acpi_os_validate_interface(char *interface);
- acpi_status acpi_osi_invalidate(char* interface);
+ 	/* Clear the GPE Bits in all GPE registers in all GPE blocks */
  
--acpi_status
--acpi_os_validate_address(u8 space_id, acpi_physical_address address,
--			 acpi_size length, char *name);
--
- u64 acpi_os_get_timer(void);
- 
- acpi_status acpi_os_signal(u32 function, void *info);
+ 	status = acpi_ev_walk_gpe_list(acpi_hw_clear_gpe_block, NULL);
 -- 
 1.6.0.6
 
