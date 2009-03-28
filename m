@@ -1,98 +1,84 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 77/98] ACPI: call acpi_wakeup_device_init() explicitly rather
- than as initcall
-Date: Sat, 28 Mar 2009 00:31:52 -0400
-Message-ID: <201b8c655f7a48563f6a0b66f9e388460a1ea611.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 83/98] ACPI: remove unused acpi_device_ops .shutdown method
+Date: Sat, 28 Mar 2009 00:31:58 -0400
+Message-ID: <c0ce093f5b8bc3262c51bd0b5900424a67909831.1238214620.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:65009 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755267AbZC1Edi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:38 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:38339 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755509AbZC1Edp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:45 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173019.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700HGG8O02O21@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:37 -0500 (CDT)
+ with ESMTPA id <0KH7008OJ8O66IQG@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:43 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Li Shaohua <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This patch makes acpi_init() call acpi_wakeup_device_init() directly.
-Previously, acpi_wakeup_device_init() was a late_initcall (sequence 7).
-
-acpi_wakeup_device_init() depends on acpi_wakeup_device_list, which
-is populated when ACPI devices are enumerated by acpi_init() ->
-acpi_scan_init().  Using late_initcall is certainly enough to make
-sure acpi_wakeup_device_list is populated, but it is more than
-necessary.  We can just as easily call acpi_wakeup_device_init()
-directly from acpi_init(), which avoids the initcall magic.
+No drivers use the .shutdown method, so remove it.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Li Shaohua <shaohua.li@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |    1 +
- drivers/acpi/internal.h |    2 ++
- drivers/acpi/wakeup.c   |    7 +------
- 3 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/acpi/scan.c     |   12 ------------
+ include/acpi/acpi_bus.h |    2 --
+ 2 files changed, 0 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index a812e84..7fe0945 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -886,6 +886,7 @@ static int __init acpi_init(void)
- 	acpi_system_init();
- 	acpi_debug_init();
- 	acpi_sleep_proc_init();
-+	acpi_wakeup_device_init();
- 	return result;
- }
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 8870e5f..11a69b5 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -22,6 +22,8 @@ int acpi_power_get_inferred_state(struct acpi_device *device);
- int acpi_power_transition(struct acpi_device *device, int state);
- extern int acpi_power_nocheck;
- 
-+int acpi_wakeup_device_init(void);
-+
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-    -------------------------------------------------------------------------- */
-diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-index 3f29fd5..5aee8c2 100644
---- a/drivers/acpi/wakeup.c
-+++ b/drivers/acpi/wakeup.c
-@@ -138,13 +138,10 @@ void acpi_disable_wakeup_device(u8 sleep_state)
- 	spin_unlock(&acpi_device_lock);
- }
- 
--static int __init acpi_wakeup_device_init(void)
-+int __init acpi_wakeup_device_init(void)
- {
- 	struct list_head *node, *next;
- 
--	if (acpi_disabled)
--		return 0;
--
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev = container_of(node,
-@@ -165,5 +162,3 @@ static int __init acpi_wakeup_device_init(void)
- 	spin_unlock(&acpi_device_lock);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index c54d7b6..4a6c7ee 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -395,22 +395,10 @@ static int acpi_device_remove(struct device * dev)
  	return 0;
  }
+ 
+-static void acpi_device_shutdown(struct device *dev)
+-{
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	struct acpi_driver *acpi_drv = acpi_dev->driver;
 -
--late_initcall(acpi_wakeup_device_init);
+-	if (acpi_drv && acpi_drv->ops.shutdown)
+-		acpi_drv->ops.shutdown(acpi_dev);
+-
+-	return ;
+-}
+-
+ struct bus_type acpi_bus_type = {
+ 	.name		= "acpi",
+ 	.suspend	= acpi_device_suspend,
+ 	.resume		= acpi_device_resume,
+-	.shutdown	= acpi_device_shutdown,
+ 	.match		= acpi_bus_match,
+ 	.probe		= acpi_device_probe,
+ 	.remove		= acpi_device_remove,
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index e3c5a4e..fb91bc2 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -95,7 +95,6 @@ typedef int (*acpi_op_suspend) (struct acpi_device * device,
+ typedef int (*acpi_op_resume) (struct acpi_device * device);
+ typedef int (*acpi_op_bind) (struct acpi_device * device);
+ typedef int (*acpi_op_unbind) (struct acpi_device * device);
+-typedef int (*acpi_op_shutdown) (struct acpi_device * device);
+ 
+ struct acpi_bus_ops {
+ 	u32 acpi_op_add:1;
+@@ -121,7 +120,6 @@ struct acpi_device_ops {
+ 	acpi_op_resume resume;
+ 	acpi_op_bind bind;
+ 	acpi_op_unbind unbind;
+-	acpi_op_shutdown shutdown;
+ };
+ 
+ struct acpi_driver {
 -- 
 1.6.0.6
 
