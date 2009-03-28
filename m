@@ -1,43 +1,80 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH]  Avoid wiping out pr->performance during preregistering
-Date: Fri, 27 Mar 2009 21:15:23 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903272113550.26419@localhost.localdomain>
-References: <20090324134159.4c83b445@dhcp-lab-109.englab.brq.redhat.com>
+Subject: Re: [PATCH] ACPI: cap off P-state transition latency from buggy BIOSes
+Date: Fri, 27 Mar 2009 21:23:32 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903272122110.26419@localhost.localdomain>
+References: <20090319214140.GA28868@linux-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:36649 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310AbZC1BPn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 21:15:43 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:16040 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204AbZC1BX6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 21:23:58 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH600E46ZHP9XG1@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 20:15:26 -0500 (CDT)
-In-reply-to: <20090324134159.4c83b445@dhcp-lab-109.englab.brq.redhat.com>
+ with ESMTPA id <0KH600F0ZZVA73DO@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 20:23:35 -0500 (CDT)
+In-reply-to: <20090319214140.GA28868@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, mjg59@srcf.ucam.org
 
 
-On Tue, 24 Mar 2009, Stanislaw Gruszka wrote:
+On Thu, 19 Mar 2009, Pallipadi, Venkatesh wrote:
 
-> When cpufreq driver call acpi_processor_preregister_performance() , function
-> will clean up pr->performance even if there is possibly already registered
-> other cpufreq driver. The patch fix this potential problem. It also remove 
-> double checks in P domain basic validity code and move these checks to function
-> where _PSD data is captured.
 > 
-> Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+> Some BIOSes report very high frequency transition latency which are plainly
+> wrong on CPus that can change frequency using native MSR interface.
+> 
+> One such system is IBM T42 (2327-8ZU) as reported by Owen Taylor and
+> Rik van Riel.
+> 
+> cpufreq_ondemand driver uses this transition latency to come up with a
+> reasonable sampling interval to sample CPU usage and with such high
+> latency value, ondemand sampling interval ends up being very high
+> (0.5 sec, in this particular case), resulting in performance impact due to
+> slow response to increasing frequency.
+> 
+> Fix it by capping-off the transition latency to 20uS for native MSR based
+> frequency transitions.
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> 
 > ---
->  drivers/acpi/processor_perflib.c |   46 +++++++++++++++++--------------------
->  1 files changed, 21 insertions(+), 25 deletions(-)
+>  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 > 
+> Index: linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-05-02 09:45:23.000000000 -0700
+> +++ linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-06-30 12:08:32.000000000 -0700
+> @@ -659,6 +659,18 @@ static int acpi_cpufreq_cpu_init(struct 
+>  			    perf->states[i].transition_latency * 1000;
+>  	}
+>  
+> +	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
+> +	if (perf->control_register.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
+> +	    policy->cpuinfo.transition_latency > 20 * 1000) {
+> +		static int print_once;
+> +		policy->cpuinfo.transition_latency = 20 * 1000;
+> +		if (!print_once) {
+> +			print_once = 1;
+> +			printk(KERN_INFO "Capping off P-state tranision latency"
+> +				" at 20 uS\n");
+> +		}
+> +	}
+> +
+>  	data->max_freq = perf->states[0].core_frequency * 1000;
+>  	/* table init */
+>  	for (i=0; i<perf->state_count; i++) {
+> --
 
-What failure symptom does the user see before this patch is applied?
-Does it merit backporting to .stable?
+Sort of makes you wonder if Windows is using this bogus info, or 
+ignoring it...
+
+applied.
 
 thanks,
 Len Brown, Intel Open Source Technology Center
