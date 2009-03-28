@@ -1,286 +1,296 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 58/98] sony-laptop: Add rfkill support on new models
-Date: Sat, 28 Mar 2009 00:31:33 -0400
-Message-ID: <6cc056bc31ea9910afb01adc0848bb6ae68e0205.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 07/98] ACPI: pci_link: clean up whitespace
+Date: Sat, 28 Mar 2009 00:30:42 -0400
+Message-ID: <1c9ca3a7d41b5db884033900b539b9aeb61a399e.1238214617.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:8294 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754684AbZC1EdW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:22 -0400
+	with ESMTP id S1753675AbZC1EdM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:12 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700EGL8NIS1ME@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:19 -0500 (CDT)
+ with ESMTPA id <0KH7006RX8M1DDIJ@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:26 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Newer Vaios provide a full featured rfkill implementation via their
-platform methods. Add support for enumerating the available devices and
-providing rfkill access to them. Support for the physical kill switch is
-added, with the devices moving into the HARD_BLOCKED state when toggled.
+This patch makes whitespace and indentation more consistent.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c |  186 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 186 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_link.c |   73 +++++++++++++++++-----------------------------
+ 1 files changed, 27 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index f6cdc89..f458870 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -64,6 +64,7 @@
- #include <asm/uaccess.h>
- #include <linux/sonypi.h>
- #include <linux/sony-laptop.h>
-+#include <linux/rfkill.h>
- #ifdef CONFIG_SONYPI_COMPAT
- #include <linux/poll.h>
- #include <linux/miscdevice.h>
-@@ -123,6 +124,18 @@ MODULE_PARM_DESC(minor,
- 		 "default is -1 (automatic)");
- #endif
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 6c772ca..19bc3bc 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -43,13 +43,14 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
-+enum sony_nc_rfkill {
-+	SONY_WIFI,
-+	SONY_BLUETOOTH,
-+	SONY_WWAN,
-+	SONY_WIMAX,
-+	SONY_RFKILL_MAX,
-+};
+-#define _COMPONENT		ACPI_PCI_COMPONENT
++#define _COMPONENT			ACPI_PCI_COMPONENT
+ ACPI_MODULE_NAME("pci_link");
+ #define ACPI_PCI_LINK_CLASS		"pci_irq_routing"
+ #define ACPI_PCI_LINK_DEVICE_NAME	"PCI Interrupt Link"
+ #define ACPI_PCI_LINK_FILE_INFO		"info"
+ #define ACPI_PCI_LINK_FILE_STATUS	"state"
+-#define ACPI_PCI_LINK_MAX_POSSIBLE 16
++#define ACPI_PCI_LINK_MAX_POSSIBLE	16
 +
-+static struct rfkill *sony_rfkill_devices[SONY_RFKILL_MAX];
-+static int sony_rfkill_address[SONY_RFKILL_MAX] = {0x300, 0x500, 0x700, 0x900};
-+static void sony_nc_rfkill_update(void);
-+
- /*********** Input Devices ***********/
+ static int acpi_pci_link_add(struct acpi_device *device);
+ static int acpi_pci_link_remove(struct acpi_device *device, int type);
  
- #define SONY_LAPTOP_BUF_SIZE	128
-@@ -134,6 +147,7 @@ struct sony_laptop_input_s {
- 	spinlock_t		fifo_lock;
- 	struct workqueue_struct	*wq;
+@@ -66,7 +67,7 @@ static struct acpi_driver acpi_pci_link_driver = {
+ 	.ops = {
+ 		.add = acpi_pci_link_add,
+ 		.remove = acpi_pci_link_remove,
+-		},
++	},
  };
-+
- static struct sony_laptop_input_s sony_laptop_input = {
- 	.users = ATOMIC_INIT(0),
+ 
+ /*
+@@ -76,7 +77,7 @@ static struct acpi_driver acpi_pci_link_driver = {
+ struct acpi_pci_link_irq {
+ 	u8 active;		/* Current IRQ */
+ 	u8 triggering;		/* All IRQs */
+-	u8 polarity;	/* All IRQs */
++	u8 polarity;		/* All IRQs */
+ 	u8 resource_type;
+ 	u8 possible_count;
+ 	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+@@ -85,15 +86,15 @@ struct acpi_pci_link_irq {
  };
-@@ -891,6 +905,9 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
- 			if (!sony_nc_events[i].data)
- 				printk(KERN_INFO DRV_PFX
- 				       "Unknown event: %x %x\n", origev, ev);
-+		} else if (sony_find_snc_handle(0x124) == ev) {
-+			sony_nc_rfkill_update();
-+			return;
- 		}
- 	}
  
-@@ -973,6 +990,172 @@ static int sony_nc_resume(struct acpi_device *device)
- 	return 0;
- }
+ struct acpi_pci_link {
+-	struct list_head node;
+-	struct acpi_device *device;
+-	struct acpi_pci_link_irq irq;
+-	int refcnt;
++	struct list_head		node;
++	struct acpi_device		*device;
++	struct acpi_pci_link_irq	irq;
++	int				refcnt;
+ };
  
-+static void sony_nc_rfkill_cleanup(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < SONY_RFKILL_MAX; i++) {
-+		if (sony_rfkill_devices[i])
-+			rfkill_unregister(sony_rfkill_devices[i]);
-+	}
-+}
-+
-+static int sony_nc_rfkill_get(void *data, enum rfkill_state *state)
-+{
-+	int result;
-+	int argument = sony_rfkill_address[(long) data];
-+
-+	sony_call_snc_handle(0x124, 0x200, &result);
-+	if (result & 0x1) {
-+		sony_call_snc_handle(0x124, argument, &result);
-+		if (result & 0xf)
-+			*state = RFKILL_STATE_UNBLOCKED;
-+		else
-+			*state = RFKILL_STATE_SOFT_BLOCKED;
-+	} else {
-+		*state = RFKILL_STATE_HARD_BLOCKED;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sony_nc_rfkill_set(void *data, enum rfkill_state state)
-+{
-+	int result;
-+	int argument = sony_rfkill_address[(long) data] + 0x100;
-+
-+	if (state == RFKILL_STATE_UNBLOCKED)
-+		argument |= 0xff0000;
-+
-+	return sony_call_snc_handle(0x124, argument, &result);
-+}
-+
-+static int sony_nc_setup_wifi_rfkill(struct acpi_device *device)
-+{
-+	int err = 0;
-+	struct rfkill *sony_wifi_rfkill;
-+
-+	sony_wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
-+	if (!sony_wifi_rfkill)
-+		return -1;
-+	sony_wifi_rfkill->name = "sony-wifi";
-+	sony_wifi_rfkill->toggle_radio = sony_nc_rfkill_set;
-+	sony_wifi_rfkill->get_state = sony_nc_rfkill_get;
-+	sony_wifi_rfkill->user_claim_unsupported = 1;
-+	sony_wifi_rfkill->data = (void *)SONY_WIFI;
-+	err = rfkill_register(sony_wifi_rfkill);
-+	if (err)
-+		rfkill_free(sony_wifi_rfkill);
-+	else
-+		sony_rfkill_devices[SONY_WIFI] = sony_wifi_rfkill;
-+	return err;
-+}
-+
-+static int sony_nc_setup_bluetooth_rfkill(struct acpi_device *device)
-+{
-+	int err = 0;
-+	struct rfkill *sony_bluetooth_rfkill;
-+
-+	sony_bluetooth_rfkill = rfkill_allocate(&device->dev,
-+						RFKILL_TYPE_BLUETOOTH);
-+	if (!sony_bluetooth_rfkill)
-+		return -1;
-+	sony_bluetooth_rfkill->name = "sony-bluetooth";
-+	sony_bluetooth_rfkill->toggle_radio = sony_nc_rfkill_set;
-+	sony_bluetooth_rfkill->get_state = sony_nc_rfkill_get;
-+	sony_bluetooth_rfkill->user_claim_unsupported = 1;
-+	sony_bluetooth_rfkill->data = (void *)SONY_BLUETOOTH;
-+	err = rfkill_register(sony_bluetooth_rfkill);
-+	if (err)
-+		rfkill_free(sony_bluetooth_rfkill);
-+	else
-+		sony_rfkill_devices[SONY_BLUETOOTH] = sony_bluetooth_rfkill;
-+	return err;
-+}
-+
-+static int sony_nc_setup_wwan_rfkill(struct acpi_device *device)
-+{
-+	int err = 0;
-+	struct rfkill *sony_wwan_rfkill;
-+
-+	sony_wwan_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WWAN);
-+	if (!sony_wwan_rfkill)
-+		return -1;
-+	sony_wwan_rfkill->name = "sony-wwan";
-+	sony_wwan_rfkill->toggle_radio = sony_nc_rfkill_set;
-+	sony_wwan_rfkill->get_state = sony_nc_rfkill_get;
-+	sony_wwan_rfkill->user_claim_unsupported = 1;
-+	sony_wwan_rfkill->data = (void *)SONY_WWAN;
-+	err = rfkill_register(sony_wwan_rfkill);
-+	if (err)
-+		rfkill_free(sony_wwan_rfkill);
-+	else
-+		sony_rfkill_devices[SONY_WWAN] = sony_wwan_rfkill;
-+	return err;
-+}
-+
-+static int sony_nc_setup_wimax_rfkill(struct acpi_device *device)
-+{
-+	int err = 0;
-+	struct rfkill *sony_wimax_rfkill;
-+
-+	sony_wimax_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WIMAX);
-+	if (!sony_wimax_rfkill)
-+		return -1;
-+	sony_wimax_rfkill->name = "sony-wimax";
-+	sony_wimax_rfkill->toggle_radio = sony_nc_rfkill_set;
-+	sony_wimax_rfkill->get_state = sony_nc_rfkill_get;
-+	sony_wimax_rfkill->user_claim_unsupported = 1;
-+	sony_wimax_rfkill->data = (void *)SONY_WIMAX;
-+	err = rfkill_register(sony_wimax_rfkill);
-+	if (err)
-+		rfkill_free(sony_wimax_rfkill);
-+	else
-+		sony_rfkill_devices[SONY_WIMAX] = sony_wimax_rfkill;
-+	return err;
-+}
-+
-+static void sony_nc_rfkill_update()
-+{
-+	int i;
-+	enum rfkill_state state;
-+
-+	for (i = 0; i < SONY_RFKILL_MAX; i++) {
-+		if (sony_rfkill_devices[i]) {
-+			sony_rfkill_devices[i]->
-+				get_state(sony_rfkill_devices[i]->data,
-+					  &state);
-+			rfkill_force_state(sony_rfkill_devices[i], state);
-+		}
-+	}
-+}
-+
-+static int sony_nc_rfkill_setup(struct acpi_device *device)
-+{
-+	int result, ret;
-+
-+	if (sony_find_snc_handle(0x124) == -1)
-+		return -1;
-+
-+	ret = sony_call_snc_handle(0x124, 0xb00, &result);
-+	if (ret) {
-+		printk(KERN_INFO DRV_PFX
-+		       "Unable to enumerate rfkill devices: %x\n", ret);
-+		return ret;
-+	}
-+
-+	if (result & 0x1)
-+		sony_nc_setup_wifi_rfkill(device);
-+	if (result & 0x2)
-+		sony_nc_setup_bluetooth_rfkill(device);
-+	if (result & 0x1c)
-+		sony_nc_setup_wwan_rfkill(device);
-+	if (result & 0x20)
-+		sony_nc_setup_wimax_rfkill(device);
-+
-+	return 0;
-+}
-+
- static int sony_nc_add(struct acpi_device *device)
+ static struct {
+-	int count;
+-	struct list_head entries;
++	int			count;
++	struct list_head	entries;
+ } acpi_link;
+ static DEFINE_MUTEX(acpi_link_lock);
+ 
+@@ -104,13 +105,12 @@ static DEFINE_MUTEX(acpi_link_lock);
+ /*
+  * set context (link) possible list from resource list
+  */
+-static acpi_status
+-acpi_pci_link_check_possible(struct acpi_resource *resource, void *context)
++static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
++						void *context)
+ {
+ 	struct acpi_pci_link *link = context;
+ 	u32 i = 0;
+ 
+-
+ 	switch (resource->type) {
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+ 	case ACPI_RESOURCE_TYPE_END_TAG:
+@@ -179,7 +179,6 @@ static int acpi_pci_link_get_possible(struct acpi_pci_link *link)
  {
  	acpi_status status;
-@@ -1026,6 +1209,7 @@ static int sony_nc_add(struct acpi_device *device)
- 					 &handle))) {
- 		dprintk("Doing SNC setup\n");
- 		sony_nc_function_setup(device);
-+		sony_nc_rfkill_setup(device);
- 	}
  
- 	/* setup input devices and helper fifo */
-@@ -1132,6 +1316,7 @@ static int sony_nc_add(struct acpi_device *device)
- 	sony_laptop_remove_input();
+-
+ 	if (!link)
+ 		return -EINVAL;
  
-       outwalk:
-+	sony_nc_rfkill_cleanup();
- 	return result;
+@@ -197,12 +196,11 @@ static int acpi_pci_link_get_possible(struct acpi_pci_link *link)
+ 	return 0;
  }
  
-@@ -1157,6 +1342,7 @@ static int sony_nc_remove(struct acpi_device *device, int type)
+-static acpi_status
+-acpi_pci_link_check_current(struct acpi_resource *resource, void *context)
++static acpi_status acpi_pci_link_check_current(struct acpi_resource *resource,
++					       void *context)
+ {
+ 	int *irq = (int *)context;
  
- 	sony_pf_remove();
- 	sony_laptop_remove_input();
-+	sony_nc_rfkill_cleanup();
- 	dprintk(SONY_NC_DRIVER_NAME " removed.\n");
+-
+ 	switch (resource->type) {
+ 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+ 	case ACPI_RESOURCE_TYPE_END_TAG:
+@@ -316,7 +314,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+ 	} *resource;
+ 	struct acpi_buffer buffer = { 0, NULL };
  
+-
+ 	if (!link || !irq)
+ 		return -EINVAL;
+ 
+@@ -479,10 +476,10 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+ 	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ9  PCI, often acpi */
+ 	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ10 PCI */
+ 	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ11 PCI */
+-	PIRQ_PENALTY_ISA_USED,	/* IRQ12 mouse */
+-	PIRQ_PENALTY_ISA_USED,	/* IRQ13 fpe, sometimes */
+-	PIRQ_PENALTY_ISA_USED,	/* IRQ14 ide0 */
+-	PIRQ_PENALTY_ISA_USED,	/* IRQ15 ide1 */
++	PIRQ_PENALTY_ISA_USED,		/* IRQ12 mouse */
++	PIRQ_PENALTY_ISA_USED,		/* IRQ13 fpe, sometimes */
++	PIRQ_PENALTY_ISA_USED,		/* IRQ14 ide0 */
++	PIRQ_PENALTY_ISA_USED,		/* IRQ15 ide1 */
+ 	/* >IRQ15 */
+ };
+ 
+@@ -492,12 +489,10 @@ int __init acpi_irq_penalty_init(void)
+ 	struct acpi_pci_link *link = NULL;
+ 	int i = 0;
+ 
+-
+ 	/*
+ 	 * Update penalties to facilitate IRQ balancing.
+ 	 */
+ 	list_for_each(node, &acpi_link.entries) {
+-
+ 		link = list_entry(node, struct acpi_pci_link, node);
+ 		if (!link) {
+ 			printk(KERN_ERR PREFIX "Invalid link context\n");
+@@ -527,7 +522,6 @@ int __init acpi_irq_penalty_init(void)
+ 	}
+ 	/* Add a penalty for the SCI */
+ 	acpi_irq_penalty[acpi_gbl_FADT.sci_interrupt] += PIRQ_PENALTY_PCI_USING;
+-
  	return 0;
+ }
+ 
+@@ -538,7 +532,6 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	int irq;
+ 	int i;
+ 
+-
+ 	if (link->irq.initialized) {
+ 		if (link->refcnt == 0)
+ 			/* This means the link is disabled but initialized */
+@@ -566,11 +559,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	/*
+ 	 * if active found, use it; else pick entry from end of possible list.
+ 	 */
+-	if (link->irq.active) {
++	if (link->irq.active)
+ 		irq = link->irq.active;
+-	} else {
++	else
+ 		irq = link->irq.possible[link->irq.possible_count - 1];
+-	}
+ 
+ 	if (acpi_irq_balance || !link->irq.active) {
+ 		/*
+@@ -599,7 +591,6 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	}
+ 
+ 	link->irq.initialized = 1;
+-
+ 	return 0;
+ }
+ 
+@@ -608,17 +599,13 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+  * success: return IRQ >= 0
+  * failure: return -1
+  */
+-
+-int
+-acpi_pci_link_allocate_irq(acpi_handle handle,
+-			   int index,
+-			   int *triggering, int *polarity, char **name)
++int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
++			       int *polarity, char **name)
+ {
+ 	int result = 0;
+ 	struct acpi_device *device = NULL;
+ 	struct acpi_pci_link *link = NULL;
+ 
+-
+ 	result = acpi_bus_get_device(handle, &device);
+ 	if (result) {
+ 		printk(KERN_ERR PREFIX "Invalid link device\n");
+@@ -673,7 +660,6 @@ int acpi_pci_link_free_irq(acpi_handle handle)
+ 	struct acpi_pci_link *link = NULL;
+ 	acpi_status result;
+ 
+-
+ 	result = acpi_bus_get_device(handle, &device);
+ 	if (result) {
+ 		printk(KERN_ERR PREFIX "Invalid link device\n");
+@@ -708,9 +694,9 @@ int acpi_pci_link_free_irq(acpi_handle handle)
+ 			  "Link %s is dereferenced\n",
+ 			  acpi_device_bid(link->device)));
+ 
+-	if (link->refcnt == 0) {
++	if (link->refcnt == 0)
+ 		acpi_evaluate_object(link->device->handle, "_DIS", NULL, NULL);
+-	}
++
+ 	mutex_unlock(&acpi_link_lock);
+ 	return (link->irq.active);
+ }
+@@ -726,7 +712,6 @@ static int acpi_pci_link_add(struct acpi_device *device)
+ 	int i = 0;
+ 	int found = 0;
+ 
+-
+ 	if (!device)
+ 		return -EINVAL;
+ 
+@@ -784,11 +769,10 @@ static int acpi_pci_link_add(struct acpi_device *device)
+ 
+ static int acpi_pci_link_resume(struct acpi_pci_link *link)
+ {
+-
+ 	if (link->refcnt && link->irq.active && link->irq.initialized)
+ 		return (acpi_pci_link_set(link, link->irq.active));
+-	else
+-		return 0;
++
++	return 0;
+ }
+ 
+ static int irqrouter_resume(struct sys_device *dev)
+@@ -811,7 +795,6 @@ static int acpi_pci_link_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_pci_link *link = NULL;
+ 
+-
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+@@ -822,7 +805,6 @@ static int acpi_pci_link_remove(struct acpi_device *device, int type)
+ 	mutex_unlock(&acpi_link_lock);
+ 
+ 	kfree(link);
+-
+ 	return 0;
+ }
+ 
+@@ -931,7 +913,6 @@ static int __init irqrouter_init_sysfs(void)
+ {
+ 	int error;
+ 
+-
+ 	if (acpi_disabled || acpi_noirq)
+ 		return 0;
+ 
 -- 
 1.6.0.6
 
