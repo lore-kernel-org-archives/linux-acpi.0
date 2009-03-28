@@ -1,137 +1,131 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 90/98] ACPI video: support _BCL packages that don't export
- brightness levels when machine is on AC/Battery
-Date: Sat, 28 Mar 2009 00:32:05 -0400
-Message-ID: <d32f69470c2081ffdfd82740ac19f940790f9e93.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 85/98] ACPI: Avoid wiping out pr->performance during
+ preregistering
+Date: Sat, 28 Mar 2009 00:32:00 -0400
+Message-ID: <e1eb47797ac0773cb3efe7495e14fc26e18a23c2.1238214620.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:50107 "EHLO
+Received: from vms173003pub.verizon.net ([206.46.173.3]:50093 "EHLO
 	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565AbZC1Edt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:49 -0400
+	with ESMTP id S1755774AbZC1Edr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:47 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH7006AW8OAWMPA@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:47 -0500 (CDT)
+ with ESMTPA id <0KH700BGE8O79AXN@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:45 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Stanislaw Gruszka <sgruszka@redhat.com>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-Many buggy BIOSes don't export the brightness levels when machine
-is on AC/Battery in the _BCL method.
+When cpufreq driver call acpi_processor_preregister_performance() , function
+will clean up pr->performance even if there is possibly already registered
+other cpufreq driver. The patch fix this potential problem. It also remove
+double checks in P domain basic validity code and move these checks to function
+where _PSD data is captured.
 
-Reformat the _BCL package for these laptops:
-now the elements in device->brightness->levels[] are like:
-levels[0]: brightness level when on AC power.
-levels[1]: brightness level when on Battery power.
-levels[2]: supported brightness level 1.
-levels[3]: supported brightness level 2.
-...
-levels[n]: supported brightness level n-1.
-levels[n + 1]: supported brightness level n.
-So if there are n supported brightness levels on this laptop,
-we will have n+2 entries in device->brightnes->levels[].
-
-level[0] and level[1] are invalid on the laptops that don't
-export the brightness levels on AC/Battery.
-Fortunately, we never use these two values at all, even for the
-valid ones.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=12249
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Acked-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/video.c |   37 ++++++++++++++++++++++++++++++-------
- 1 files changed, 30 insertions(+), 7 deletions(-)
+ drivers/acpi/processor_perflib.c |   46 +++++++++++++++++--------------------
+ 1 files changed, 21 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 52f52b3..398b3ee 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -168,10 +168,15 @@ struct acpi_video_device_cap {
- 	u8 _DSS:1;		/*Device state set */
- };
- 
-+struct acpi_video_brightness_flags {
-+	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
-+};
-+
- struct acpi_video_device_brightness {
- 	int curr;
- 	int count;
- 	int *levels;
-+	struct acpi_video_brightness_flags flags;
- };
- 
- struct acpi_video_device {
-@@ -682,7 +687,7 @@ static int
- acpi_video_init_brightness(struct acpi_video_device *device)
- {
- 	union acpi_object *obj = NULL;
--	int i, max_level = 0, count = 0;
-+	int i, max_level = 0, count = 0, level_ac_battery = 0;
- 	union acpi_object *o;
- 	struct acpi_video_device_brightness *br = NULL;
- 
-@@ -701,7 +706,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 		goto out;
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 9cc769b..215f1bf 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -479,6 +479,13 @@ static int acpi_processor_get_psd(struct acpi_processor	*pr)
+ 		goto end;
  	}
  
--	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
-+	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
- 				GFP_KERNEL);
- 	if (!br->levels)
- 		goto out_free;
-@@ -719,16 +724,34 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 		count++;
- 	}
++	if (pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ALL &&
++	    pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ANY &&
++	    pdomain->coord_type != DOMAIN_COORD_TYPE_HW_ALL) {
++		printk(KERN_ERR PREFIX "Invalid _PSD:coord_type\n");
++		result = -EFAULT;
++		goto end;
++	}
+ end:
+ 	kfree(buffer.pointer);
+ 	return result;
+@@ -501,9 +508,10 @@ int acpi_processor_preregister_performance(
  
--	/* don't sort the first two brightness levels */
-+	/*
-+	 * some buggy BIOS don't export the levels
-+	 * when machine is on AC/Battery in _BCL package.
-+	 * In this case, the first two elements in _BCL packages
-+	 * are also supported brightness levels that OS should take care of.
-+	 */
-+	for (i = 2; i < count; i++)
-+		if (br->levels[i] == br->levels[0] ||
-+		    br->levels[i] == br->levels[1])
-+			level_ac_battery++;
-+
-+	if (level_ac_battery < 2) {
-+		level_ac_battery = 2 - level_ac_battery;
-+		br->flags._BCL_no_ac_battery_levels = 1;
-+		for (i = (count - 1 + level_ac_battery); i >= 2; i--)
-+			br->levels[i] = br->levels[i - level_ac_battery];
-+		count += level_ac_battery;
-+	} else if (level_ac_battery > 2)
-+		ACPI_ERROR((AE_INFO, "Too many duplicates in _BCL package\n"));
-+
-+	/* sort all the supported brightness levels */
- 	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
- 		acpi_video_cmp_level, NULL);
+ 	mutex_lock(&performance_mutex);
  
--	if (count < 2)
--		goto out_free_levels;
+-	retval = 0;
 -
- 	br->count = count;
- 	device->brightness = br;
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			  "found %d brightness levels\n", count - 2));
- 	kfree(obj);
- 	return max_level;
+-	/* Call _PSD for all CPUs */
++	/*
++	 * Check if another driver has already registered, and abort before
++	 * changing pr->performance if it has. Check input data as well.
++	 */
+ 	for_each_possible_cpu(i) {
+ 		pr = per_cpu(processors, i);
+ 		if (!pr) {
+@@ -513,13 +521,20 @@ int acpi_processor_preregister_performance(
  
+ 		if (pr->performance) {
+ 			retval = -EBUSY;
+-			continue;
++			goto err_out;
+ 		}
+ 
+ 		if (!performance || !percpu_ptr(performance, i)) {
+ 			retval = -EINVAL;
+-			continue;
++			goto err_out;
+ 		}
++	}
++
++	/* Call _PSD for all CPUs */
++	for_each_possible_cpu(i) {
++		pr = per_cpu(processors, i);
++		if (!pr)
++			continue;
+ 
+ 		pr->performance = percpu_ptr(performance, i);
+ 		cpumask_set_cpu(i, pr->performance->shared_cpu_map);
+@@ -535,26 +550,6 @@ int acpi_processor_preregister_performance(
+ 	 * Now that we have _PSD data from all CPUs, lets setup P-state 
+ 	 * domain info.
+ 	 */
+-	for_each_possible_cpu(i) {
+-		pr = per_cpu(processors, i);
+-		if (!pr)
+-			continue;
+-
+-		/* Basic validity check for domain info */
+-		pdomain = &(pr->performance->domain_info);
+-		if ((pdomain->revision != ACPI_PSD_REV0_REVISION) ||
+-		    (pdomain->num_entries != ACPI_PSD_REV0_ENTRIES)) {
+-			retval = -EINVAL;
+-			goto err_ret;
+-		}
+-		if (pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ALL &&
+-		    pdomain->coord_type != DOMAIN_COORD_TYPE_SW_ANY &&
+-		    pdomain->coord_type != DOMAIN_COORD_TYPE_HW_ALL) {
+-			retval = -EINVAL;
+-			goto err_ret;
+-		}
+-	}
+-
+ 	cpumask_clear(covered_cpus);
+ 	for_each_possible_cpu(i) {
+ 		pr = per_cpu(processors, i);
+@@ -643,6 +638,7 @@ err_ret:
+ 		pr->performance = NULL; /* Will be set for real in register */
+ 	}
+ 
++err_out:
+ 	mutex_unlock(&performance_mutex);
+ 	free_cpumask_var(covered_cpus);
+ 	return retval;
 -- 
 1.6.0.6
 
