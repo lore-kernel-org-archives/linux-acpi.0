@@ -1,100 +1,138 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 76/98] ACPI: call acpi_sleep_proc_init() explicitly rather than
- as initcall
-Date: Sat, 28 Mar 2009 00:31:51 -0400
-Message-ID: <9cee43e07940bee13462e63bd75ce4430b155886.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 88/98] ACPI video: check the return value of
+ acpi_video_device_lcd_get_level_current
+Date: Sat, 28 Mar 2009 00:32:03 -0400
+Message-ID: <c8890f903a6fdf5711726e8e8d65cb13423f8833.1238214620.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:35043 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755592AbZC1Edp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:45 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:22704 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756323AbZC1Eds (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:48 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700DZ18NZRTDW@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:36 -0500 (CDT)
+ with ESMTPA id <0KH7008VW8O9Y36K@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:46 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-This patch makes acpi_init() call acpi_sleep_proc_init() directly.
-Previously, acpi_sleep_proc_init() was a late_initcall (sequence 7),
-apparently to make sure that the /proc hierarchy already exists:
-
-    2003/02/13 12:38:03-06:00 mochel
-    acpi sleep: demote sleep proc file creation.
-
-    - Make acpi_sleep_proc_init() a late_initcall(), and not called from
-      acpi_sleep_init(). This guarantees that the acpi proc hierarchy is at
-      least there when we create the dang file.
-
-This should no longer be an issue because acpi_bus_init() (called early
-in acpi_init()) creates acpi_root_dir (/proc/acpi).
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Acked-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |    1 +
- drivers/acpi/internal.h |    6 ++++++
- drivers/acpi/proc.c     |    7 +------
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/acpi/video.c |   55 ++++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 45 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index db9eca8..a812e84 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -885,6 +885,7 @@ static int __init acpi_init(void)
- 	acpi_power_init();
- 	acpi_system_init();
- 	acpi_debug_init();
-+	acpi_sleep_proc_init();
- 	return result;
- }
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 8a45dd8..8870e5f 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -33,3 +33,9 @@ int acpi_boot_ec_enable(void);
-                                   Suspend/Resume
-   -------------------------------------------------------------------------- */
- extern int acpi_sleep_init(void);
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index bb5ed05..f0e6eb5 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -294,7 +294,7 @@ static int acpi_video_device_lcd_get_level_current(
+ 			unsigned long long *level);
+ static int acpi_video_get_next_level(struct acpi_video_device *device,
+ 				     u32 level_current, u32 event);
+-static void acpi_video_switch_brightness(struct acpi_video_device *device,
++static int acpi_video_switch_brightness(struct acpi_video_device *device,
+ 					 int event);
+ static int acpi_video_device_get_state(struct acpi_video_device *device,
+ 			    unsigned long long *state);
+@@ -308,7 +308,9 @@ static int acpi_video_get_brightness(struct backlight_device *bd)
+ 	int i;
+ 	struct acpi_video_device *vd =
+ 		(struct acpi_video_device *)bl_get_data(bd);
+-	acpi_video_device_lcd_get_level_current(vd, &cur_level);
 +
-+#ifdef CONFIG_ACPI_SLEEP
-+int acpi_sleep_proc_init(void);
-+#else
-+static inline int acpi_sleep_proc_init(void) { return 0; }
-+#endif
-diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
-index 428c911..05dfdc9 100644
---- a/drivers/acpi/proc.c
-+++ b/drivers/acpi/proc.c
-@@ -496,11 +496,8 @@ static u32 rtc_handler(void *context)
- }
- #endif				/* HAVE_ACPI_LEGACY_ALARM */
++	if (acpi_video_device_lcd_get_level_current(vd, &cur_level))
++		return -EINVAL;
+ 	for (i = 2; i < vd->brightness->count; i++) {
+ 		if (vd->brightness->levels[i] == cur_level)
+ 			/* The first two entries are special - see page 575
+@@ -373,7 +375,8 @@ static int video_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
+ 	unsigned long long level;
+ 	int state;
  
--static int __init acpi_sleep_proc_init(void)
-+int __init acpi_sleep_proc_init(void)
+-	acpi_video_device_lcd_get_level_current(video, &level);
++	if (acpi_video_device_lcd_get_level_current(video, &level))
++		return -EINVAL;
+ 	for (state = 2; state < video->brightness->count; state++)
+ 		if (level == video->brightness->levels[state])
+ 			return sprintf(buf, "%d\n",
+@@ -502,11 +505,29 @@ static int
+ acpi_video_device_lcd_get_level_current(struct acpi_video_device *device,
+ 					unsigned long long *level)
  {
--	if (acpi_disabled)
--		return 0;
--
- #ifdef	CONFIG_ACPI_PROCFS
- 	/* 'sleep' [R/W] */
- 	proc_create("sleep", S_IFREG | S_IRUGO | S_IWUSR,
-@@ -527,5 +524,3 @@ static int __init acpi_sleep_proc_init(void)
- 
- 	return 0;
+-	if (device->cap._BQC)
+-		return acpi_evaluate_integer(device->dev->handle, "_BQC", NULL,
+-					     level);
++	acpi_status status = AE_OK;
++
++	if (device->cap._BQC) {
++		status = acpi_evaluate_integer(device->dev->handle, "_BQC",
++						NULL, level);
++		if (ACPI_SUCCESS(status)) {
++			device->brightness->curr = *level;
++			return 0;
++		} else {
++			/* Fixme:
++			 * should we return an error or ignore this failure?
++			 * dev->brightness->curr is a cached value which stores
++			 * the correct current backlight level in most cases.
++			 * ACPI video backlight still works w/ buggy _BQC.
++			 * http://bugzilla.kernel.org/show_bug.cgi?id=12233
++			 */
++			ACPI_WARNING((AE_INFO, "Evaluating _BQC failed"));
++			device->cap._BQC = 0;
++		}
++	}
++
+ 	*level = device->brightness->curr;
+-	return AE_OK;
++	return 0;
  }
--
--late_initcall(acpi_sleep_proc_init);
+ 
+ static int
+@@ -1749,15 +1770,29 @@ acpi_video_get_next_level(struct acpi_video_device *device,
+ 	}
+ }
+ 
+-static void
++static int
+ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
+ {
+ 	unsigned long long level_current, level_next;
++	int result = -EINVAL;
++
+ 	if (!device->brightness)
+-		return;
+-	acpi_video_device_lcd_get_level_current(device, &level_current);
++		goto out;
++
++	result = acpi_video_device_lcd_get_level_current(device,
++							 &level_current);
++	if (result)
++		goto out;
++
+ 	level_next = acpi_video_get_next_level(device, level_current, event);
++
+ 	acpi_video_device_lcd_set_level(device, level_next);
++
++out:
++	if (result)
++		printk(KERN_ERR PREFIX "Failed to switch the brightness\n");
++
++	return result;
+ }
+ 
+ static int
 -- 
 1.6.0.6
 
