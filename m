@@ -1,82 +1,41 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: cap off P-state transition latency from buggy BIOSes
-Date: Fri, 27 Mar 2009 21:23:32 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903272122110.26419@localhost.localdomain>
-References: <20090319214140.GA28868@linux-os.sc.intel.com>
+Subject: Re: [PATCH] ACPI: make some IO ports off-limits to AML
+Date: Fri, 27 Mar 2009 21:30:53 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0903272127350.26419@localhost.localdomain>
+References: <alpine.LFD.2.00.0902032258080.5607@localhost.localdomain>
+ <20090204061505.GD28321@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:16040 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204AbZC1BX6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 21:23:58 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH600F0ZZVA73DO@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 20:23:35 -0500 (CDT)
-In-reply-to: <20090319214140.GA28868@linux-os.sc.intel.com>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:26677 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757500AbZC1BbA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2009 21:31:00 -0400
+In-reply-to: <20090204061505.GD28321@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, mjg59@srcf.ucam.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On Wed, 4 Feb 2009, Matthew Garrett wrote:
 
-On Thu, 19 Mar 2009, Pallipadi, Venkatesh wrote:
+> On Tue, Feb 03, 2009 at 10:59:43PM -0500, Len Brown wrote:
+> 
+> > Start using this interface to prevent AML from accessing
+> > some well known IO addresses that the OS "owns".
+> 
+> It might be nice to extend this to cover the other ports listed at 
+> http://www.microsoft.com/whdc/archive/BIOSAML.mspx if (and only if) the 
+> firmware requested _OSI("Windows 2001") or later.
 
-> 
-> Some BIOSes report very high frequency transition latency which are plainly
-> wrong on CPus that can change frequency using native MSR interface.
-> 
-> One such system is IBM T42 (2327-8ZU) as reported by Owen Taylor and
-> Rik van Riel.
-> 
-> cpufreq_ondemand driver uses this transition latency to come up with a
-> reasonable sampling interval to sample CPU usage and with such high
-> latency value, ondemand sampling interval ends up being very high
-> (0.5 sec, in this particular case), resulting in performance impact due to
-> slow response to increasing frequency.
-> 
-> Fix it by capping-off the transition latency to 20uS for native MSR based
-> frequency transitions.
-> 
-> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> 
-> ---
->  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> Index: linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-05-02 09:45:23.000000000 -0700
-> +++ linux-2.6/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c	2008-06-30 12:08:32.000000000 -0700
-> @@ -659,6 +659,18 @@ static int acpi_cpufreq_cpu_init(struct 
->  			    perf->states[i].transition_latency * 1000;
->  	}
->  
-> +	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
-> +	if (perf->control_register.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
-> +	    policy->cpuinfo.transition_latency > 20 * 1000) {
-> +		static int print_once;
-> +		policy->cpuinfo.transition_latency = 20 * 1000;
-> +		if (!print_once) {
-> +			print_once = 1;
-> +			printk(KERN_INFO "Capping off P-state tranision latency"
-> +				" at 20 uS\n");
-> +		}
-> +	}
-> +
->  	data->max_freq = perf->states[0].core_frequency * 1000;
->  	/* table init */
->  	for (i=0; i<perf->state_count; i++) {
-> --
+Right.  We reverted this initialization-time check for 2.6.29
+b/c it had false positives of opregions that were never used.
 
-Sort of makes you wonder if Windows is using this bogus info, or 
-ignoring it...
+For 2.6.30 we replaced it with a run-time check, and the check
+follows the compatibility rules referenced above.
 
-applied.
+http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=7f0719039085cc40114abce84cf29fe57da226f4
 
-thanks,
+cheers,
 Len Brown, Intel Open Source Technology Center
-
 
