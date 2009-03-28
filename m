@@ -1,207 +1,278 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 96/98] ACPI: battery: add power_{now,avg} properties to
- power_class
-Date: Sat, 28 Mar 2009 00:32:11 -0400
-Message-ID: <7faa144a518c456e2057918f030f50100144ccc6.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 94/98] ACPI: Populate DIDL before registering ACPI video device
+ on Intel
+Date: Sat, 28 Mar 2009 00:32:09 -0400
+Message-ID: <74a365b3f354fafc537efa5867deb7a9fadbfe27.1238214620.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:38357 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912AbZC1Ed7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:59 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:22704 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756849AbZC1Ed6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:58 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH7008PS8OD6IQG@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:50 -0500 (CDT)
+ with ESMTPA id <0KH7002XI8OCC3PS@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:49 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-ACPI has smart batteries, which work in units of energy and measure
-rate of (dis)charge as power, thus it is not appropriate to export it
-as a current_now. Current_now will still be exported to allow
-for userland applications to match.
+Intel graphics hardware that implements the ACPI IGD OpRegion spec
+requires that the list of display devices be populated before any ACPI
+video methods are called. Detect when this is the case and defer
+registration until the opregion code calls it. Fixes crashes on HP
+laptops.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+http://bugzilla.kernel.org/show_bug.cgi?id=11259
+
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Eric Anholt <eric@anholt.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c             |   12 +++++++-----
- drivers/acpi/sbs.c                 |   27 ++++++++++++++++-----------
- drivers/power/power_supply_sysfs.c |    2 ++
- include/linux/power_supply.h       |    2 ++
- 4 files changed, 27 insertions(+), 16 deletions(-)
+ drivers/acpi/video.c                 |   40 ++++++++++++++++++++-
+ drivers/gpu/drm/i915/i915_dma.c      |    5 ++-
+ drivers/gpu/drm/i915/i915_drv.c      |    2 +-
+ drivers/gpu/drm/i915/i915_drv.h      |    2 +-
+ drivers/gpu/drm/i915/i915_opregion.c |   65 +++++++++++++++++++++++++++++++++-
+ include/acpi/video.h                 |   11 ++++++
+ 6 files changed, 119 insertions(+), 6 deletions(-)
+ create mode 100644 include/acpi/video.h
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 69cbc57..09a2240 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -92,7 +92,7 @@ struct acpi_battery {
- #endif
- 	struct acpi_device *device;
- 	unsigned long update_time;
--	int current_now;
-+	int rate_now;
- 	int capacity_now;
- 	int voltage_now;
- 	int design_capacity;
-@@ -196,7 +196,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 		val->intval = battery->voltage_now * 1000;
- 		break;
- 	case POWER_SUPPLY_PROP_CURRENT_NOW:
--		val->intval = battery->current_now * 1000;
-+	case POWER_SUPPLY_PROP_POWER_NOW:
-+		val->intval = battery->rate_now * 1000;
- 		break;
- 	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
- 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
-@@ -247,6 +248,7 @@ static enum power_supply_property energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
- 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
- 	POWER_SUPPLY_PROP_CURRENT_NOW,
-+	POWER_SUPPLY_PROP_POWER_NOW,
- 	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
- 	POWER_SUPPLY_PROP_ENERGY_FULL,
- 	POWER_SUPPLY_PROP_ENERGY_NOW,
-@@ -273,7 +275,7 @@ struct acpi_offsets {
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 9730ec1..ae42710 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -37,6 +37,8 @@
+ #include <linux/thermal.h>
+ #include <linux/video_output.h>
+ #include <linux/sort.h>
++#include <linux/pci.h>
++#include <linux/pci_ids.h>
+ #include <asm/uaccess.h>
  
- static struct acpi_offsets state_offsets[] = {
- 	{offsetof(struct acpi_battery, state), 0},
--	{offsetof(struct acpi_battery, current_now), 0},
-+	{offsetof(struct acpi_battery, rate_now), 0},
- 	{offsetof(struct acpi_battery, capacity_now), 0},
- 	{offsetof(struct acpi_battery, voltage_now), 0},
- };
-@@ -605,11 +607,11 @@ static int acpi_battery_print_state(struct seq_file *seq, int result)
- 	else
- 		seq_printf(seq, "charging state:          charged\n");
+ #include <acpi/acpi_bus.h>
+@@ -2251,7 +2253,27 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
  
--	if (battery->current_now == ACPI_BATTERY_VALUE_UNKNOWN)
-+	if (battery->rate_now == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "present rate:            unknown\n");
- 	else
- 		seq_printf(seq, "present rate:            %d %s\n",
--			   battery->current_now, acpi_battery_units(battery));
-+			   battery->rate_now, acpi_battery_units(battery));
- 
- 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN)
- 		seq_printf(seq, "remaining capacity:      unknown\n");
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 6050ce4..3963cb6 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -102,8 +102,8 @@ struct acpi_battery {
- 	u16 cycle_count;
- 	u16 temp_now;
- 	u16 voltage_now;
--	s16 current_now;
--	s16 current_avg;
-+	s16 rate_now;
-+	s16 rate_avg;
- 	u16 capacity_now;
- 	u16 state_of_charge;
- 	u16 state;
-@@ -202,9 +202,9 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
- 		return -ENODEV;
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
--		if (battery->current_now < 0)
-+		if (battery->rate_now < 0)
- 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
--		else if (battery->current_now > 0)
-+		else if (battery->rate_now > 0)
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
- 		else
- 			val->intval = POWER_SUPPLY_STATUS_FULL;
-@@ -224,11 +224,13 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
- 				acpi_battery_vscale(battery) * 1000;
- 		break;
- 	case POWER_SUPPLY_PROP_CURRENT_NOW:
--		val->intval = abs(battery->current_now) *
-+	case POWER_SUPPLY_PROP_POWER_NOW:
-+		val->intval = abs(battery->rate_now) *
- 				acpi_battery_ipscale(battery) * 1000;
- 		break;
- 	case POWER_SUPPLY_PROP_CURRENT_AVG:
--		val->intval = abs(battery->current_avg) *
-+	case POWER_SUPPLY_PROP_POWER_AVG:
-+		val->intval = abs(battery->rate_avg) *
- 				acpi_battery_ipscale(battery) * 1000;
- 		break;
- 	case POWER_SUPPLY_PROP_CAPACITY:
-@@ -293,6 +295,8 @@ static enum power_supply_property sbs_energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
- 	POWER_SUPPLY_PROP_CURRENT_NOW,
- 	POWER_SUPPLY_PROP_CURRENT_AVG,
-+	POWER_SUPPLY_PROP_POWER_NOW,
-+	POWER_SUPPLY_PROP_POWER_AVG,
- 	POWER_SUPPLY_PROP_CAPACITY,
- 	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
- 	POWER_SUPPLY_PROP_ENERGY_FULL,
-@@ -301,6 +305,7 @@ static enum power_supply_property sbs_energy_battery_props[] = {
- 	POWER_SUPPLY_PROP_MODEL_NAME,
- 	POWER_SUPPLY_PROP_MANUFACTURER,
- };
+-static int __init acpi_video_init(void)
++static int __init intel_opregion_present(void)
++{
++#if defined(CONFIG_DRM_I915) || defined(CONFIG_DRM_I915_MODULE)
++	struct pci_dev *dev = NULL;
++	u32 address;
 +
- #endif
++	for_each_pci_dev(dev) {
++		if ((dev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
++			continue;
++		if (dev->vendor != PCI_VENDOR_ID_INTEL)
++			continue;
++		pci_read_config_dword(dev, 0xfc, &address);
++		if (!address)
++			continue;
++		return 1;
++	}
++#endif
++	return 0;
++}
++
++int acpi_video_register(void)
+ {
+ 	int result = 0;
  
- /* --------------------------------------------------------------------------
-@@ -330,8 +335,8 @@ static struct acpi_battery_reader info_readers[] = {
- static struct acpi_battery_reader state_readers[] = {
- 	{0x08, SMBUS_READ_WORD, offsetof(struct acpi_battery, temp_now)},
- 	{0x09, SMBUS_READ_WORD, offsetof(struct acpi_battery, voltage_now)},
--	{0x0a, SMBUS_READ_WORD, offsetof(struct acpi_battery, current_now)},
--	{0x0b, SMBUS_READ_WORD, offsetof(struct acpi_battery, current_avg)},
-+	{0x0a, SMBUS_READ_WORD, offsetof(struct acpi_battery, rate_now)},
-+	{0x0b, SMBUS_READ_WORD, offsetof(struct acpi_battery, rate_avg)},
- 	{0x0f, SMBUS_READ_WORD, offsetof(struct acpi_battery, capacity_now)},
- 	{0x0e, SMBUS_READ_WORD, offsetof(struct acpi_battery, state_of_charge)},
- 	{0x16, SMBUS_READ_WORD, offsetof(struct acpi_battery, state)},
-@@ -589,9 +594,9 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
- 	seq_printf(seq, "capacity state:          %s\n",
- 		   (battery->state & 0x0010) ? "critical" : "ok");
- 	seq_printf(seq, "charging state:          %s\n",
--		   (battery->current_now < 0) ? "discharging" :
--		   ((battery->current_now > 0) ? "charging" : "charged"));
--	rate = abs(battery->current_now) * acpi_battery_ipscale(battery);
-+		   (battery->rate_now < 0) ? "discharging" :
-+		   ((battery->rate_now > 0) ? "charging" : "charged"));
-+	rate = abs(battery->rate_now) * acpi_battery_ipscale(battery);
- 	rate *= (acpi_battery_mode(battery))?(battery->voltage_now *
- 			acpi_battery_vscale(battery)/1000):1;
- 	seq_printf(seq, "present rate:            %d%s\n", rate,
-diff --git a/drivers/power/power_supply_sysfs.c b/drivers/power/power_supply_sysfs.c
-index ac01e06..da73591 100644
---- a/drivers/power/power_supply_sysfs.c
-+++ b/drivers/power/power_supply_sysfs.c
-@@ -93,6 +93,8 @@ static struct device_attribute power_supply_attrs[] = {
- 	POWER_SUPPLY_ATTR(voltage_avg),
- 	POWER_SUPPLY_ATTR(current_now),
- 	POWER_SUPPLY_ATTR(current_avg),
-+	POWER_SUPPLY_ATTR(power_now),
-+	POWER_SUPPLY_ATTR(power_avg),
- 	POWER_SUPPLY_ATTR(charge_full_design),
- 	POWER_SUPPLY_ATTR(charge_empty_design),
- 	POWER_SUPPLY_ATTR(charge_full),
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 8ff25e0..594c494 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -73,6 +73,8 @@ enum power_supply_property {
- 	POWER_SUPPLY_PROP_VOLTAGE_AVG,
- 	POWER_SUPPLY_PROP_CURRENT_NOW,
- 	POWER_SUPPLY_PROP_CURRENT_AVG,
-+	POWER_SUPPLY_PROP_POWER_NOW,
-+	POWER_SUPPLY_PROP_POWER_AVG,
- 	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
- 	POWER_SUPPLY_PROP_CHARGE_EMPTY_DESIGN,
- 	POWER_SUPPLY_PROP_CHARGE_FULL,
+@@ -2268,6 +2290,22 @@ static int __init acpi_video_init(void)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(acpi_video_register);
++
++/*
++ * This is kind of nasty. Hardware using Intel chipsets may require
++ * the video opregion code to be run first in order to initialise
++ * state before any ACPI video calls are made. To handle this we defer
++ * registration of the video class until the opregion code has run.
++ */
++
++static int __init acpi_video_init(void)
++{
++	if (intel_opregion_present())
++		return 0;
++
++	return acpi_video_register();
++}
+ 
+ static void __exit acpi_video_exit(void)
+ {
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 6d21b9e..6386869 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -1144,8 +1144,6 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+ 	if (!IS_I945G(dev) && !IS_I945GM(dev))
+ 		pci_enable_msi(dev->pdev);
+ 
+-	intel_opregion_init(dev);
+-
+ 	spin_lock_init(&dev_priv->user_irq_lock);
+ 	dev_priv->user_irq_refcount = 0;
+ 
+@@ -1164,6 +1162,9 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
+ 		}
+ 	}
+ 
++	/* Must be done after probing outputs */
++	intel_opregion_init(dev, 0);
++
+ 	return 0;
+ 
+ out_iomapfree:
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index b293ef0..209592f 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -99,7 +99,7 @@ static int i915_resume(struct drm_device *dev)
+ 
+ 	i915_restore_state(dev);
+ 
+-	intel_opregion_init(dev);
++	intel_opregion_init(dev, 1);
+ 
+ 	/* KMS EnterVT equivalent */
+ 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index d6cc986..1679a95 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -659,7 +659,7 @@ extern int i915_restore_state(struct drm_device *dev);
+ 
+ #ifdef CONFIG_ACPI
+ /* i915_opregion.c */
+-extern int intel_opregion_init(struct drm_device *dev);
++extern int intel_opregion_init(struct drm_device *dev, int resume);
+ extern void intel_opregion_free(struct drm_device *dev);
+ extern void opregion_asle_intr(struct drm_device *dev);
+ extern void opregion_enable_asle(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
+index ff01283..6942772 100644
+--- a/drivers/gpu/drm/i915/i915_opregion.c
++++ b/drivers/gpu/drm/i915/i915_opregion.c
+@@ -26,6 +26,7 @@
+  */
+ 
+ #include <linux/acpi.h>
++#include <acpi/video.h>
+ 
+ #include "drmP.h"
+ #include "i915_drm.h"
+@@ -136,6 +137,12 @@ struct opregion_asle {
+ 
+ #define ASLE_CBLV_VALID         (1<<31)
+ 
++#define ACPI_OTHER_OUTPUT (0<<8)
++#define ACPI_VGA_OUTPUT (1<<8)
++#define ACPI_TV_OUTPUT (2<<8)
++#define ACPI_DIGITAL_OUTPUT (3<<8)
++#define ACPI_LVDS_OUTPUT (4<<8)
++
+ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -282,7 +289,58 @@ static struct notifier_block intel_opregion_notifier = {
+ 	.notifier_call = intel_opregion_video_event,
+ };
+ 
+-int intel_opregion_init(struct drm_device *dev)
++/*
++ * Initialise the DIDL field in opregion. This passes a list of devices to
++ * the firmware. Values are defined by section B.4.2 of the ACPI specification
++ * (version 3)
++ */
++
++static void intel_didl_outputs(struct drm_device *dev)
++{
++	struct drm_i915_private *dev_priv = dev->dev_private;
++	struct intel_opregion *opregion = &dev_priv->opregion;
++	struct drm_connector *connector;
++	int i = 0;
++
++	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
++		int output_type = ACPI_OTHER_OUTPUT;
++		if (i >= 8) {
++			dev_printk (KERN_ERR, &dev->pdev->dev,
++				    "More than 8 outputs detected\n");
++			return;
++		}
++		switch (connector->connector_type) {
++		case DRM_MODE_CONNECTOR_VGA:
++		case DRM_MODE_CONNECTOR_DVIA:
++			output_type = ACPI_VGA_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_Composite:
++		case DRM_MODE_CONNECTOR_SVIDEO:
++		case DRM_MODE_CONNECTOR_Component:
++		case DRM_MODE_CONNECTOR_9PinDIN:
++			output_type = ACPI_TV_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_DVII:
++		case DRM_MODE_CONNECTOR_DVID:
++		case DRM_MODE_CONNECTOR_DisplayPort:
++		case DRM_MODE_CONNECTOR_HDMIA:
++		case DRM_MODE_CONNECTOR_HDMIB:
++			output_type = ACPI_DIGITAL_OUTPUT;
++			break;
++		case DRM_MODE_CONNECTOR_LVDS:
++			output_type = ACPI_LVDS_OUTPUT;
++			break;
++		}
++		opregion->acpi->didl[i] |= (1<<31) | output_type | i;
++		i++;
++	}
++
++	/* If fewer than 8 outputs, the list must be null terminated */
++	if (i < 8)
++		opregion->acpi->didl[i] = 0;
++}
++
++int intel_opregion_init(struct drm_device *dev, int resume)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct intel_opregion *opregion = &dev_priv->opregion;
+@@ -312,6 +370,11 @@ int intel_opregion_init(struct drm_device *dev)
+ 	if (mboxes & MBOX_ACPI) {
+ 		DRM_DEBUG("Public ACPI methods supported\n");
+ 		opregion->acpi = base + OPREGION_ACPI_OFFSET;
++		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
++			intel_didl_outputs(dev);
++			if (!resume)
++				acpi_video_register();
++		}
+ 	} else {
+ 		DRM_DEBUG("Public ACPI methods not supported\n");
+ 		err = -ENOTSUPP;
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+new file mode 100644
+index 0000000..f0275bb
+--- /dev/null
++++ b/include/acpi/video.h
+@@ -0,0 +1,11 @@
++#ifndef __ACPI_VIDEO_H
++#define __ACPI_VIDEO_H
++
++#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
++extern int acpi_video_register(void);
++#else
++static inline int acpi_video_register(void) { return 0; }
++#endif
++
++#endif
++
 -- 
 1.6.0.6
 
