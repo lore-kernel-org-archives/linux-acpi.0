@@ -1,94 +1,137 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 72/98] ACPI: call acpi_power_init() explicitly rather than as
- initcall
-Date: Sat, 28 Mar 2009 00:31:47 -0400
-Message-ID: <44515374cba9e46d5622256b43eb06b9c349cee1.1238214620.git.len.brown@intel.com>
+Subject: [PATCH 90/98] ACPI video: support _BCL packages that don't export
+ brightness levels when machine is on AC/Battery
+Date: Sat, 28 Mar 2009 00:32:05 -0400
+Message-ID: <d32f69470c2081ffdfd82740ac19f940790f9e93.1238214620.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:8461 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374AbZC1Edk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:40 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:50107 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754565AbZC1Edt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:33:49 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH700BF18NWHWBK@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:33 -0500 (CDT)
+ with ESMTPA id <0KH7006AW8OAWMPA@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:33:47 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-This patch makes acpi_init() call acpi_power_init() directly.
-Previously, both were subsys_initcalls.  acpi_power_init()
-must happen after acpi_init(), and it's better to call it
-explicitly rather than rely on link ordering.
+Many buggy BIOSes don't export the brightness levels when machine
+is on AC/Battery in the _BCL method.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Zhao Yakui <yakui.zhao@intel.com>
+Reformat the _BCL package for these laptops:
+now the elements in device->brightness->levels[] are like:
+levels[0]: brightness level when on AC power.
+levels[1]: brightness level when on Battery power.
+levels[2]: supported brightness level 1.
+levels[3]: supported brightness level 2.
+...
+levels[n]: supported brightness level n-1.
+levels[n + 1]: supported brightness level n.
+So if there are n supported brightness levels on this laptop,
+we will have n+2 entries in device->brightnes->levels[].
+
+level[0] and level[1] are invalid on the laptops that don't
+export the brightness levels on AC/Battery.
+Fortunately, we never use these two values at all, even for the
+valid ones.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=12249
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Acked-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c      |    1 +
- drivers/acpi/internal.h |    2 +-
- drivers/acpi/power.c    |    8 +-------
- 3 files changed, 3 insertions(+), 8 deletions(-)
+ drivers/acpi/video.c |   37 ++++++++++++++++++++++++++++++-------
+ 1 files changed, 30 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 9ca6837..946610f 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -881,6 +881,7 @@ static int __init acpi_init(void)
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 52f52b3..398b3ee 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -168,10 +168,15 @@ struct acpi_video_device_cap {
+ 	u8 _DSS:1;		/*Device state set */
+ };
  
- 	acpi_scan_init();
- 	acpi_ec_init();
-+	acpi_power_init();
- 	return result;
- }
++struct acpi_video_brightness_flags {
++	u8 _BCL_no_ac_battery_levels:1;	/* no AC/Battery levels in _BCL */
++};
++
+ struct acpi_video_device_brightness {
+ 	int curr;
+ 	int count;
+ 	int *levels;
++	struct acpi_video_brightness_flags flags;
+ };
  
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index fad8e38..a8178ad 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -5,7 +5,7 @@ int acpi_scan_init(void);
- /* --------------------------------------------------------------------------
-                                   Power Resource
-    -------------------------------------------------------------------------- */
--
-+int acpi_power_init(void);
- int acpi_device_sleep_wake(struct acpi_device *dev,
-                            int enable, int sleep_state, int dev_state);
- int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state);
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index c926e7d..11968ba 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -773,14 +773,10 @@ static int acpi_power_resume(struct acpi_device *device)
- 	return 0;
- }
- 
--static int __init acpi_power_init(void)
-+int __init acpi_power_init(void)
+ struct acpi_video_device {
+@@ -682,7 +687,7 @@ static int
+ acpi_video_init_brightness(struct acpi_video_device *device)
  {
- 	int result = 0;
+ 	union acpi_object *obj = NULL;
+-	int i, max_level = 0, count = 0;
++	int i, max_level = 0, count = 0, level_ac_battery = 0;
+ 	union acpi_object *o;
+ 	struct acpi_video_device_brightness *br = NULL;
  
--
--	if (acpi_disabled)
--		return 0;
--
- 	INIT_LIST_HEAD(&acpi_power_resource_list);
+@@ -701,7 +706,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 		goto out;
+ 	}
  
- 	acpi_power_dir = proc_mkdir(ACPI_POWER_CLASS, acpi_root_dir);
-@@ -795,5 +791,3 @@ static int __init acpi_power_init(void)
+-	br->levels = kmalloc(obj->package.count * sizeof *(br->levels),
++	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
+ 				GFP_KERNEL);
+ 	if (!br->levels)
+ 		goto out_free;
+@@ -719,16 +724,34 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 		count++;
+ 	}
  
- 	return 0;
- }
+-	/* don't sort the first two brightness levels */
++	/*
++	 * some buggy BIOS don't export the levels
++	 * when machine is on AC/Battery in _BCL package.
++	 * In this case, the first two elements in _BCL packages
++	 * are also supported brightness levels that OS should take care of.
++	 */
++	for (i = 2; i < count; i++)
++		if (br->levels[i] == br->levels[0] ||
++		    br->levels[i] == br->levels[1])
++			level_ac_battery++;
++
++	if (level_ac_battery < 2) {
++		level_ac_battery = 2 - level_ac_battery;
++		br->flags._BCL_no_ac_battery_levels = 1;
++		for (i = (count - 1 + level_ac_battery); i >= 2; i--)
++			br->levels[i] = br->levels[i - level_ac_battery];
++		count += level_ac_battery;
++	} else if (level_ac_battery > 2)
++		ACPI_ERROR((AE_INFO, "Too many duplicates in _BCL package\n"));
++
++	/* sort all the supported brightness levels */
+ 	sort(&br->levels[2], count - 2, sizeof(br->levels[2]),
+ 		acpi_video_cmp_level, NULL);
+ 
+-	if (count < 2)
+-		goto out_free_levels;
 -
--subsys_initcall(acpi_power_init);
+ 	br->count = count;
+ 	device->brightness = br;
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "found %d brightness levels\n", count));
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			  "found %d brightness levels\n", count - 2));
+ 	kfree(obj);
+ 	return max_level;
+ 
 -- 
 1.6.0.6
 
