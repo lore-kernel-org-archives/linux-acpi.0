@@ -1,56 +1,67 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v2] acpi: Populate DIDL before registering ACPI video
- device on Intel
-Date: Sat, 28 Mar 2009 01:46:14 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0903280143510.26419@localhost.localdomain>
-References: <20090311215517.GA32400@srcf.ucam.org>
- <20090319213539.GA24898@srcf.ucam.org>
- <alpine.LFD.2.00.0903272212390.26419@localhost.localdomain>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: new fixes for sony-acpi
+Date: Sat, 28 Mar 2009 09:33:15 +0100
+Message-ID: <20090328083315.GF9057@gamma.logic.tuwien.ac.at>
+References: <20090323163459.GB5463@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain> <20090328013832.GA4778@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_HnZfWCUzDLINkj7Hz/yfYA)"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:13916 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392AbZC1FqZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 01:46:25 -0400
-In-reply-to: <alpine.LFD.2.00.0903272212390.26419@localhost.localdomain>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:58093 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756114AbZC1Idi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 04:33:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20090328013832.GA4778@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Eric Anholt <eric@anholt.net>
+Cc: Len Brown <lenb@kernel.org>, sony-vaio-z-series@lists.launchpad.net, Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Sa, 28 M=E4r 2009, Matthew Garrett wrote:
+> > What about the speed/stamina stuff -- is anybody testing it?
+>=20
+> The speed/stamina stuff isn't Sony specific. I'm working on an extern=
+al=20
+> module to handle that.
 
---Boundary_(ID_HnZfWCUzDLINkj7Hz/yfYA)
-Content-type: TEXT/PLAIN; charset=ISO-8859-7
-Content-transfer-encoding: 8BIT
+I am testing that, but we are far from having a working thingy,
+currently on the sony z11 the nvidia (the second, the speed card) is no=
+t
+working without acpi/dsdt tricks (but Matthias might correct me).
 
-From: Len Brown <len.brown@intel.com>
-Subject: [PATCH] ACPI: fix CONFIG_ACPI=n build
+Matthew, if you have something to test I am, as usual open for any
+tests, but I am aways 2 weeks. In these 2 weeks I hope I get back my
+z11, it broke the SECOND time in 6 months, harddisc bad sector errors.
+I am wondering if SATA link management, laptop tools, etc etc could
+interfere with that.
 
-drivers/gpu/drm/i915/i915_drv.c:102: error: too many arguments to
-function ¡intel_opregion_init¢
+Just a warning for all the Sony guys with Z11, make decent backups,
+waiting for ddrescue is a pain. 2 times in 6 month sudden death of hard
+disk.
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/gpu/drm/i915/i915_drv.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Best wishes
 
-diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-index 1679a95..b9a92c2 100644
---- a/drivers/gpu/drm/i915/i915_drv.h
-+++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -664,7 +664,7 @@ extern void intel_opregion_free(struct drm_device *dev);
- extern void opregion_asle_intr(struct drm_device *dev);
- extern void opregion_enable_asle(struct drm_device *dev);
- #else
--static inline int intel_opregion_init(struct drm_device *dev) { return 0; }
-+static inline int intel_opregion_init(struct drm_device *dev, int resume) { return 0; }
- static inline void intel_opregion_free(struct drm_device *dev) { return; }
- static inline void opregion_asle_intr(struct drm_device *dev) { return; }
- static inline void opregion_enable_asle(struct drm_device *dev) { return; }
--- 
-1.6.2.1.389.geed1
+Norbert
 
---Boundary_(ID_HnZfWCUzDLINkj7Hz/yfYA)--
+-----------------------------------------------------------------------=
+--------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Te=
+chnology
+Debian Developer <preining@debian.org>                         Debian T=
+eX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+The main reception foyer was almost empty but Ford
+nevertheless weaved his way through it.
+                 --- Ford making his way out of Milliways whilst under =
+the
+                 --- influence of enough alchol to make a rhino sing.
+                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
