@@ -1,696 +1,186 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/98] thermal: use integers rather than strings for thermal
- values
-Date: Sat, 28 Mar 2009 00:30:36 -0400
-Message-ID: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
+Subject: [PATCH 16/98] ACPICA: Remove extraneous parameter in table manager
+Date: Sat, 28 Mar 2009 00:30:51 -0400
+Message-ID: <97cbb7d196845ec9a6c0e3cc33ec20503f8c4e73.1238214618.git.len.brown@intel.com>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:64533 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722AbZC1Ecj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:39 -0400
+Received: from vms173009pub.verizon.net ([206.46.173.9]:27023 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575AbZC1Ecd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2009 00:32:33 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173019.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KH7002Q98LUGQTC@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:20 -0500 (CDT)
+ with ESMTPA id <0KH700APD8M6MKO8@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 27 Mar 2009 23:32:31 -0500 (CDT)
 In-reply-to: <1238214733-8285-1-git-send-email-lenb@kernel.org>
+In-reply-to: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
+References: <6503e5df08008b9a47022b5e9ebba658c8fa69af.1238214617.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Bob Moore <robert.moore@intel.com>
 
-The thermal API currently uses strings to pass values to userspace. This
-makes it difficult to use from within the kernel. Change the interface
-to use integers and fix up the consumers.
+Removed the Flags parameter from several internal functions since
+it was not being used.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Acked-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/fan.c                  |   20 +++++---
- drivers/acpi/processor_thermal.c    |   20 ++++----
- drivers/acpi/thermal.c              |   80 +++++++++++++++++++-----------
- drivers/acpi/video.c                |   22 +++++----
- drivers/platform/x86/intel_menlow.c |   29 ++++-------
- drivers/thermal/thermal_sys.c       |   91 ++++++++++++++++++++++++++++++-----
- include/linux/thermal.h             |   32 +++++++++---
- 7 files changed, 198 insertions(+), 96 deletions(-)
+ drivers/acpi/acpica/actables.h |    7 +++----
+ drivers/acpi/acpica/tbfadt.c   |    7 +++----
+ drivers/acpi/acpica/tbutils.c  |   14 +++++++-------
+ drivers/acpi/acpica/tbxface.c  |    3 +--
+ 4 files changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index eaaee16..ae41cf3 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -68,31 +68,35 @@ static struct acpi_driver acpi_fan_driver = {
- };
- 
- /* thermal cooling device callbacks */
--static int fan_get_max_state(struct thermal_cooling_device *cdev, char *buf)
-+static int fan_get_max_state(struct thermal_cooling_device *cdev, unsigned long
-+			     *state)
- {
- 	/* ACPI fan device only support two states: ON/OFF */
--	return sprintf(buf, "1\n");
-+	*state = 1;
-+	return 0;
- }
- 
--static int fan_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
-+static int fan_get_cur_state(struct thermal_cooling_device *cdev, unsigned long
-+			     *state)
- {
- 	struct acpi_device *device = cdev->devdata;
--	int state;
- 	int result;
-+	int acpi_state;
- 
- 	if (!device)
- 		return -EINVAL;
- 
--	result = acpi_bus_get_power(device->handle, &state);
-+	result = acpi_bus_get_power(device->handle, &acpi_state);
- 	if (result)
- 		return result;
- 
--	return sprintf(buf, "%s\n", state == ACPI_STATE_D3 ? "0" :
--			 (state == ACPI_STATE_D0 ? "1" : "unknown"));
-+	*state = (acpi_state == ACPI_STATE_D3 ? 0 :
-+		 (acpi_state == ACPI_STATE_D0 ? 1 : -1));
-+	return 0;
- }
- 
- static int
--fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
-+fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	int result;
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index b1eb376..0e47e29 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -373,7 +373,8 @@ static int acpi_processor_max_state(struct acpi_processor *pr)
- 	return max_state;
- }
- static int
--processor_get_max_state(struct thermal_cooling_device *cdev, char *buf)
-+processor_get_max_state(struct thermal_cooling_device *cdev,
-+			unsigned long *state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_processor *pr = acpi_driver_data(device);
-@@ -381,28 +382,29 @@ processor_get_max_state(struct thermal_cooling_device *cdev, char *buf)
- 	if (!device || !pr)
- 		return -EINVAL;
- 
--	return sprintf(buf, "%d\n", acpi_processor_max_state(pr));
-+	*state = acpi_processor_max_state(pr);
-+	return 0;
- }
- 
- static int
--processor_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
-+processor_get_cur_state(struct thermal_cooling_device *cdev,
-+			unsigned long *cur_state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_processor *pr = acpi_driver_data(device);
--	int cur_state;
- 
- 	if (!device || !pr)
- 		return -EINVAL;
- 
--	cur_state = cpufreq_get_cur_state(pr->id);
-+	*cur_state = cpufreq_get_cur_state(pr->id);
- 	if (pr->flags.throttling)
--		cur_state += pr->throttling.state;
--
--	return sprintf(buf, "%d\n", cur_state);
-+		*cur_state += pr->throttling.state;
-+	return 0;
- }
- 
- static int
--processor_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
-+processor_set_cur_state(struct thermal_cooling_device *cdev,
-+			unsigned long state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_processor *pr = acpi_driver_data(device);
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 99e6f1f..1c410ef 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -954,7 +954,8 @@ static void acpi_thermal_check(void *data)
- /* sys I/F for generic thermal sysfs support */
- #define KELVIN_TO_MILLICELSIUS(t) (t * 100 - 273200)
- 
--static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
-+static int thermal_get_temp(struct thermal_zone_device *thermal,
-+			    unsigned long *temp)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int result;
-@@ -966,25 +967,28 @@ static int thermal_get_temp(struct thermal_zone_device *thermal, char *buf)
- 	if (result)
- 		return result;
- 
--	return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(tz->temperature));
-+	*temp = KELVIN_TO_MILLICELSIUS(tz->temperature);
-+	return 0;
- }
- 
- static const char enabled[] = "kernel";
- static const char disabled[] = "user";
- static int thermal_get_mode(struct thermal_zone_device *thermal,
--				char *buf)
-+				enum thermal_device_mode *mode)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 
- 	if (!tz)
- 		return -EINVAL;
- 
--	return sprintf(buf, "%s\n", tz->tz_enabled ?
--			enabled : disabled);
-+	*mode = tz->tz_enabled ? THERMAL_DEVICE_ENABLED :
-+		THERMAL_DEVICE_DISABLED;
-+
-+	return 0;
- }
- 
- static int thermal_set_mode(struct thermal_zone_device *thermal,
--				const char *buf)
-+				enum thermal_device_mode mode)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int enable;
-@@ -995,9 +999,9 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
- 	/*
- 	 * enable/disable thermal management from ACPI thermal driver
- 	 */
--	if (!strncmp(buf, enabled, sizeof enabled - 1))
-+	if (mode == THERMAL_DEVICE_ENABLED)
- 		enable = 1;
--	else if (!strncmp(buf, disabled, sizeof disabled - 1))
-+	else if (mode == THERMAL_DEVICE_DISABLED)
- 		enable = 0;
- 	else
- 		return -EINVAL;
-@@ -1013,7 +1017,7 @@ static int thermal_set_mode(struct thermal_zone_device *thermal,
- }
- 
- static int thermal_get_trip_type(struct thermal_zone_device *thermal,
--				 int trip, char *buf)
-+				 int trip, enum thermal_trip_type *type)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int i;
-@@ -1022,27 +1026,35 @@ static int thermal_get_trip_type(struct thermal_zone_device *thermal,
- 		return -EINVAL;
- 
- 	if (tz->trips.critical.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "critical\n");
-+		if (!trip) {
-+			*type = THERMAL_TRIP_CRITICAL;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	if (tz->trips.hot.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "hot\n");
-+		if (!trip) {
-+			*type = THERMAL_TRIP_HOT;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	if (tz->trips.passive.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "passive\n");
-+		if (!trip) {
-+			*type = THERMAL_TRIP_PASSIVE;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 		tz->trips.active[i].flags.valid; i++) {
--		if (!trip)
--			return sprintf(buf, "active%d\n", i);
-+		if (!trip) {
-+			*type = THERMAL_TRIP_ACTIVE;
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
-@@ -1050,7 +1062,7 @@ static int thermal_get_trip_type(struct thermal_zone_device *thermal,
- }
- 
- static int thermal_get_trip_temp(struct thermal_zone_device *thermal,
--				 int trip, char *buf)
-+				 int trip, unsigned long *temp)
- {
- 	struct acpi_thermal *tz = thermal->devdata;
- 	int i;
-@@ -1059,31 +1071,39 @@ static int thermal_get_trip_temp(struct thermal_zone_device *thermal,
- 		return -EINVAL;
- 
- 	if (tz->trips.critical.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--				tz->trips.critical.temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.critical.temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	if (tz->trips.hot.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.hot.temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.hot.temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	if (tz->trips.passive.flags.valid) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.passive.temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.passive.temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE &&
- 		tz->trips.active[i].flags.valid; i++) {
--		if (!trip)
--			return sprintf(buf, "%ld\n", KELVIN_TO_MILLICELSIUS(
--					tz->trips.active[i].temperature));
-+		if (!trip) {
-+			*temp = KELVIN_TO_MILLICELSIUS(
-+				tz->trips.active[i].temperature);
-+			return 0;
-+		}
- 		trip--;
- 	}
- 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index bb5ed05..5259d50 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -358,32 +358,36 @@ static struct output_properties acpi_output_properties = {
- 
- 
- /* thermal cooling device callbacks */
--static int video_get_max_state(struct thermal_cooling_device *cdev, char *buf)
-+static int video_get_max_state(struct thermal_cooling_device *cdev, unsigned
-+			       long *state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_video_device *video = acpi_driver_data(device);
- 
--	return sprintf(buf, "%d\n", video->brightness->count - 3);
-+	*state = video->brightness->count - 3;
-+	return 0;
- }
- 
--static int video_get_cur_state(struct thermal_cooling_device *cdev, char *buf)
-+static int video_get_cur_state(struct thermal_cooling_device *cdev, unsigned
-+			       long *state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_video_device *video = acpi_driver_data(device);
- 	unsigned long long level;
--	int state;
-+	int offset;
- 
- 	acpi_video_device_lcd_get_level_current(video, &level);
--	for (state = 2; state < video->brightness->count; state++)
--		if (level == video->brightness->levels[state])
--			return sprintf(buf, "%d\n",
--				       video->brightness->count - state - 1);
-+	for (offset = 2; offset < video->brightness->count; offset++)
-+		if (level == video->brightness->levels[offset]) {
-+			*state = video->brightness->count - offset - 1;
-+			return 0;
-+		}
- 
- 	return -EINVAL;
- }
- 
- static int
--video_set_cur_state(struct thermal_cooling_device *cdev, unsigned int state)
-+video_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	struct acpi_video_device *video = acpi_driver_data(device);
-diff --git a/drivers/platform/x86/intel_menlow.c b/drivers/platform/x86/intel_menlow.c
-index 27b7662..29432a5 100644
---- a/drivers/platform/x86/intel_menlow.c
-+++ b/drivers/platform/x86/intel_menlow.c
-@@ -57,8 +57,8 @@ MODULE_LICENSE("GPL");
-  * In that case max_cstate would be n-1
-  * GTHS returning '0' would mean that no bandwidth control states are supported
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index 7ce6e33..d8f8c5d 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -49,7 +49,7 @@ acpi_status acpi_allocate_root_table(u32 initial_table_count);
+ /*
+  * tbfadt - FADT parse/convert/validate
   */
--static int memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
--					unsigned long *max_state)
-+static int memory_get_max_bandwidth(struct thermal_cooling_device *cdev,
-+				    unsigned long *max_state)
+-void acpi_tb_parse_fadt(u32 table_index, u8 flags);
++void acpi_tb_parse_fadt(u32 table_index);
+ 
+ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
+ 
+@@ -109,9 +109,8 @@ acpi_tb_verify_checksum(struct acpi_table_header *table, u32 length);
+ 
+ void
+ acpi_tb_install_table(acpi_physical_address address,
+-		      u8 flags, char *signature, u32 table_index);
++		      char *signature, u32 table_index);
+ 
+-acpi_status
+-acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags);
++acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
+ 
+ #endif				/* __ACTABLES_H__ */
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 3636e4f..4b683cc 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -172,7 +172,6 @@ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+  * FUNCTION:    acpi_tb_parse_fadt
+  *
+  * PARAMETERS:  table_index         - Index for the FADT
+- *              Flags               - Flags
+  *
+  * RETURN:      None
+  *
+@@ -181,7 +180,7 @@ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+  *
+  ******************************************************************************/
+ 
+-void acpi_tb_parse_fadt(u32 table_index, u8 flags)
++void acpi_tb_parse_fadt(u32 table_index)
  {
- 	struct acpi_device *device = cdev->devdata;
- 	acpi_handle handle = device->handle;
-@@ -83,22 +83,12 @@ static int memory_get_int_max_bandwidth(struct thermal_cooling_device *cdev,
- 	return 0;
+ 	u32 length;
+ 	struct acpi_table_header *table;
+@@ -219,10 +218,10 @@ void acpi_tb_parse_fadt(u32 table_index, u8 flags)
+ 	/* Obtain the DSDT and FACS tables via their addresses within the FADT */
+ 
+ 	acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.Xdsdt,
+-			      flags, ACPI_SIG_DSDT, ACPI_TABLE_INDEX_DSDT);
++			      ACPI_SIG_DSDT, ACPI_TABLE_INDEX_DSDT);
+ 
+ 	acpi_tb_install_table((acpi_physical_address) acpi_gbl_FADT.Xfacs,
+-			      flags, ACPI_SIG_FACS, ACPI_TABLE_INDEX_FACS);
++			      ACPI_SIG_FACS, ACPI_TABLE_INDEX_FACS);
  }
  
--static int memory_get_max_bandwidth(struct thermal_cooling_device *cdev,
--				    char *buf)
--{
--	unsigned long value;
--	if (memory_get_int_max_bandwidth(cdev, &value))
--		return -EINVAL;
--
--	return sprintf(buf, "%ld\n", value);
--}
--
- static int memory_get_cur_bandwidth(struct thermal_cooling_device *cdev,
--				    char *buf)
-+				    unsigned long *value)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	acpi_handle handle = device->handle;
--	unsigned long long value;
-+	unsigned long long result;
- 	struct acpi_object_list arg_list;
- 	union acpi_object arg;
- 	acpi_status status = AE_OK;
-@@ -108,15 +98,16 @@ static int memory_get_cur_bandwidth(struct thermal_cooling_device *cdev,
- 	arg.type = ACPI_TYPE_INTEGER;
- 	arg.integer.value = MEMORY_ARG_CUR_BANDWIDTH;
- 	status = acpi_evaluate_integer(handle, MEMORY_GET_BANDWIDTH,
--				       &arg_list, &value);
-+				       &arg_list, &result);
- 	if (ACPI_FAILURE(status))
- 		return -EFAULT;
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index e285bed..a0b4243 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -280,7 +280,6 @@ u8 acpi_tb_checksum(u8 *buffer, u32 length)
+  * FUNCTION:    acpi_tb_install_table
+  *
+  * PARAMETERS:  Address                 - Physical address of DSDT or FACS
+- *              Flags                   - Flags
+  *              Signature               - Table signature, NULL if no need to
+  *                                        match
+  *              table_index             - Index into root table array
+@@ -296,8 +295,9 @@ u8 acpi_tb_checksum(u8 *buffer, u32 length)
  
--	return sprintf(buf, "%llu\n", value);
-+	*value = result;
-+	return 0;
+ void
+ acpi_tb_install_table(acpi_physical_address address,
+-		      u8 flags, char *signature, u32 table_index)
++		      char *signature, u32 table_index)
+ {
++	u8 flags;
+ 	acpi_status status;
+ 	struct acpi_table_header *table_to_install;
+ 	struct acpi_table_header *mapped_table;
+@@ -344,12 +344,13 @@ acpi_tb_install_table(acpi_physical_address address,
+ 
+ 		acpi_gbl_root_table_list.tables[table_index].pointer =
+ 		    override_table;
+-		flags = ACPI_TABLE_ORIGIN_OVERRIDE;
+ 		address = ACPI_PTR_TO_PHYSADDR(override_table);
+ 
+ 		table_to_install = override_table;
++		flags = ACPI_TABLE_ORIGIN_OVERRIDE;
+ 	} else {
+ 		table_to_install = mapped_table;
++		flags = ACPI_TABLE_ORIGIN_MAPPED;
+ 	}
+ 
+ 	/* Initialize the table entry */
+@@ -435,7 +436,6 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
+  * FUNCTION:    acpi_tb_parse_root_table
+  *
+  * PARAMETERS:  Rsdp                    - Pointer to the RSDP
+- *              Flags                   - Flags
+  *
+  * RETURN:      Status
+  *
+@@ -449,7 +449,7 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size)
+  ******************************************************************************/
+ 
+ acpi_status __init
+-acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
++acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ {
+ 	struct acpi_table_rsdp *rsdp;
+ 	u32 table_entry_size;
+@@ -600,14 +600,14 @@ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags)
+ 	 */
+ 	for (i = 2; i < acpi_gbl_root_table_list.count; i++) {
+ 		acpi_tb_install_table(acpi_gbl_root_table_list.tables[i].
+-				      address, flags, NULL, i);
++				      address, NULL, i);
+ 
+ 		/* Special case for FADT - get the DSDT and FACS */
+ 
+ 		if (ACPI_COMPARE_NAME
+ 		    (&acpi_gbl_root_table_list.tables[i].signature,
+ 		     ACPI_SIG_FADT)) {
+-			acpi_tb_parse_fadt(i, flags);
++			acpi_tb_parse_fadt(i);
+ 		}
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index f3f95e3..416d01d 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -150,8 +150,7 @@ acpi_initialize_tables(struct acpi_table_desc * initial_table_array,
+ 	 * Root Table Array. This array contains the information of the RSDT/XSDT
+ 	 * in a common, more useable format.
+ 	 */
+-	status =
+-	    acpi_tb_parse_root_table(rsdp_address, ACPI_TABLE_ORIGIN_MAPPED);
++	status = acpi_tb_parse_root_table(rsdp_address);
+ 	return_ACPI_STATUS(status);
  }
  
- static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
--				    unsigned int state)
-+				    unsigned long state)
- {
- 	struct acpi_device *device = cdev->devdata;
- 	acpi_handle handle = device->handle;
-@@ -126,7 +117,7 @@ static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
- 	unsigned long long temp;
- 	unsigned long max_state;
- 
--	if (memory_get_int_max_bandwidth(cdev, &max_state))
-+	if (memory_get_max_bandwidth(cdev, &max_state))
- 		return -EFAULT;
- 
- 	if (state > max_state)
-@@ -142,7 +133,7 @@ static int memory_set_cur_bandwidth(struct thermal_cooling_device *cdev,
- 				  &temp);
- 
- 	printk(KERN_INFO
--	       "Bandwidth value was %d: status is %d\n", state, status);
-+	       "Bandwidth value was %ld: status is %d\n", state, status);
- 	if (ACPI_FAILURE(status))
- 		return -EFAULT;
- 
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 8171ca1..bd139ad 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -104,22 +104,36 @@ static ssize_t
- temp_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
-+	long temperature;
-+	int ret;
- 
- 	if (!tz->ops->get_temp)
- 		return -EPERM;
- 
--	return tz->ops->get_temp(tz, buf);
-+	ret = tz->ops->get_temp(tz, &temperature);
-+
-+	if (ret)
-+		return ret;
-+
-+	return sprintf(buf, "%ld\n", temperature);
- }
- 
- static ssize_t
- mode_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
-+	enum thermal_device_mode mode;
-+	int result;
- 
- 	if (!tz->ops->get_mode)
- 		return -EPERM;
- 
--	return tz->ops->get_mode(tz, buf);
-+	result = tz->ops->get_mode(tz, &mode);
-+	if (result)
-+		return result;
-+
-+	return sprintf(buf, "%s\n", mode == THERMAL_DEVICE_ENABLED ? "enabled"
-+		       : "disabled");
- }
- 
- static ssize_t
-@@ -132,7 +146,13 @@ mode_store(struct device *dev, struct device_attribute *attr,
- 	if (!tz->ops->set_mode)
- 		return -EPERM;
- 
--	result = tz->ops->set_mode(tz, buf);
-+	if (!strncmp(buf, "enabled", sizeof("enabled")))
-+		result = tz->ops->set_mode(tz, THERMAL_DEVICE_ENABLED);
-+	else if (!strncmp(buf, "disabled", sizeof("disabled")))
-+		result = tz->ops->set_mode(tz, THERMAL_DEVICE_DISABLED);
-+	else
-+		result = -EINVAL;
-+
- 	if (result)
- 		return result;
- 
-@@ -144,7 +164,8 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
- 		     char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
--	int trip;
-+	enum thermal_trip_type type;
-+	int trip, result;
- 
- 	if (!tz->ops->get_trip_type)
- 		return -EPERM;
-@@ -152,7 +173,22 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
- 	if (!sscanf(attr->attr.name, "trip_point_%d_type", &trip))
- 		return -EINVAL;
- 
--	return tz->ops->get_trip_type(tz, trip, buf);
-+	result = tz->ops->get_trip_type(tz, trip, &type);
-+	if (result)
-+		return result;
-+
-+	switch (type) {
-+	case THERMAL_TRIP_CRITICAL:
-+		return sprintf(buf, "critical");
-+	case THERMAL_TRIP_HOT:
-+		return sprintf(buf, "hot");
-+	case THERMAL_TRIP_PASSIVE:
-+		return sprintf(buf, "passive");
-+	case THERMAL_TRIP_ACTIVE:
-+		return sprintf(buf, "active");
-+	default:
-+		return sprintf(buf, "unknown");
-+	}
- }
- 
- static ssize_t
-@@ -160,7 +196,8 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
- 		     char *buf)
- {
- 	struct thermal_zone_device *tz = to_thermal_zone(dev);
--	int trip;
-+	int trip, ret;
-+	long temperature;
- 
- 	if (!tz->ops->get_trip_temp)
- 		return -EPERM;
-@@ -168,7 +205,12 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
- 	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
- 		return -EINVAL;
- 
--	return tz->ops->get_trip_temp(tz, trip, buf);
-+	ret = tz->ops->get_trip_temp(tz, trip, &temperature);
-+
-+	if (ret)
-+		return ret;
-+
-+	return sprintf(buf, "%ld\n", temperature);
- }
- 
- static DEVICE_ATTR(type, 0444, type_show, NULL);
-@@ -236,8 +278,13 @@ thermal_cooling_device_max_state_show(struct device *dev,
- 				      struct device_attribute *attr, char *buf)
- {
- 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
-+	unsigned long state;
-+	int ret;
- 
--	return cdev->ops->get_max_state(cdev, buf);
-+	ret = cdev->ops->get_max_state(cdev, &state);
-+	if (ret)
-+		return ret;
-+	return sprintf(buf, "%ld\n", state);
- }
- 
- static ssize_t
-@@ -245,8 +292,13 @@ thermal_cooling_device_cur_state_show(struct device *dev,
- 				      struct device_attribute *attr, char *buf)
- {
- 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
-+	unsigned long state;
-+	int ret;
- 
--	return cdev->ops->get_cur_state(cdev, buf);
-+	ret = cdev->ops->get_cur_state(cdev, &state);
-+	if (ret)
-+		return ret;
-+	return sprintf(buf, "%ld\n", state);
- }
- 
- static ssize_t
-@@ -255,10 +307,10 @@ thermal_cooling_device_cur_state_store(struct device *dev,
- 				       const char *buf, size_t count)
- {
- 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
--	int state;
-+	unsigned long state;
- 	int result;
- 
--	if (!sscanf(buf, "%d\n", &state))
-+	if (!sscanf(buf, "%ld\n", &state))
- 		return -EINVAL;
- 
- 	if (state < 0)
-@@ -312,13 +364,20 @@ static DEVICE_ATTR(name, 0444, name_show, NULL);
- static ssize_t
- temp_input_show(struct device *dev, struct device_attribute *attr, char *buf)
- {
-+	long temperature;
-+	int ret;
- 	struct thermal_hwmon_attr *hwmon_attr
- 			= container_of(attr, struct thermal_hwmon_attr, attr);
- 	struct thermal_zone_device *tz
- 			= container_of(hwmon_attr, struct thermal_zone_device,
- 				       temp_input);
- 
--	return tz->ops->get_temp(tz, buf);
-+	ret = tz->ops->get_temp(tz, &temperature);
-+
-+	if (ret)
-+		return ret;
-+
-+	return sprintf(buf, "%ld\n", temperature);
- }
- 
- static ssize_t
-@@ -330,8 +389,14 @@ temp_crit_show(struct device *dev, struct device_attribute *attr,
- 	struct thermal_zone_device *tz
- 			= container_of(hwmon_attr, struct thermal_zone_device,
- 				       temp_crit);
-+	long temperature;
-+	int ret;
-+
-+	ret = tz->ops->get_trip_temp(tz, 0, &temperature);
-+	if (ret)
-+		return ret;
- 
--	return tz->ops->get_trip_temp(tz, 0, buf);
-+	return sprintf(buf, "%ld\n", temperature);
- }
- 
- 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 917707e..4cb3292 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -31,23 +31,39 @@
- struct thermal_zone_device;
- struct thermal_cooling_device;
- 
-+enum thermal_device_mode {
-+	THERMAL_DEVICE_DISABLED = 0,
-+	THERMAL_DEVICE_ENABLED,
-+};
-+
-+enum thermal_trip_type {
-+	THERMAL_TRIP_ACTIVE = 0,
-+	THERMAL_TRIP_PASSIVE,
-+	THERMAL_TRIP_HOT,
-+	THERMAL_TRIP_CRITICAL,
-+};
-+
- struct thermal_zone_device_ops {
- 	int (*bind) (struct thermal_zone_device *,
- 		     struct thermal_cooling_device *);
- 	int (*unbind) (struct thermal_zone_device *,
- 		       struct thermal_cooling_device *);
--	int (*get_temp) (struct thermal_zone_device *, char *);
--	int (*get_mode) (struct thermal_zone_device *, char *);
--	int (*set_mode) (struct thermal_zone_device *, const char *);
--	int (*get_trip_type) (struct thermal_zone_device *, int, char *);
--	int (*get_trip_temp) (struct thermal_zone_device *, int, char *);
-+	int (*get_temp) (struct thermal_zone_device *, unsigned long *);
-+	int (*get_mode) (struct thermal_zone_device *,
-+			 enum thermal_device_mode *);
-+	int (*set_mode) (struct thermal_zone_device *,
-+		enum thermal_device_mode);
-+	int (*get_trip_type) (struct thermal_zone_device *, int,
-+		enum thermal_trip_type *);
-+	int (*get_trip_temp) (struct thermal_zone_device *, int,
-+			      unsigned long *);
- 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
- };
- 
- struct thermal_cooling_device_ops {
--	int (*get_max_state) (struct thermal_cooling_device *, char *);
--	int (*get_cur_state) (struct thermal_cooling_device *, char *);
--	int (*set_cur_state) (struct thermal_cooling_device *, unsigned int);
-+	int (*get_max_state) (struct thermal_cooling_device *, unsigned long *);
-+	int (*get_cur_state) (struct thermal_cooling_device *, unsigned long *);
-+	int (*set_cur_state) (struct thermal_cooling_device *, unsigned long);
- };
- 
- #define THERMAL_TRIPS_NONE -1
 -- 
 1.6.0.6
 
