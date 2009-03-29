@@ -1,98 +1,162 @@
-From: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] eeepc-laptop: fix wlan rfkill state
-	change during init
-Date: Sun, 29 Mar 2009 22:55:11 +0100
-Message-ID: <20090329215511.GE13446@srcf.ucam.org>
-References: <49CFADDF.4040007@tuffmail.co.uk>
-	<71cd59b00903291416o4e8d6013n8a061098bb4fabef@mail.gmail.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Mon, 30 Mar 2009 00:01:27 +0200
+Message-ID: <20090329220127.GA12822@dreamland.darkstar.lan>
+References: <20090204142015.GB3923@srcf.ucam.org> <20090210145716.105ab58b@hyperion.delvare> <20090210140829.GA25397@srcf.ucam.org> <49919E08.5050002@redhat.com> <20090210172408.400cacee@hyperion.delvare> <20090227132740.GF1482@ucw.cz> <68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com> <49C8DE51.2010103@redhat.com> <20090329201617.GA10303@dreamland.darkstar.lan> <20090329225501.0c1771f1@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:36841 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857AbZC2WBn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Mar 2009 18:01:43 -0400
 Content-Disposition: inline
-In-Reply-To: <71cd59b00903291416o4e8d6013n8a061098bb4fabef-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+In-Reply-To: <20090329225501.0c1771f1@hyperion.delvare>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-On Sun, Mar 29, 2009 at 11:16:25PM +0200, Corentin Chary wrote:
-> On Sun, Mar 29, 2009 at 7:20 PM, Alan Jenkins
-> <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org> wrote:
-> > When an rfkill device is registered, the rfkill core will change its
-> > state to the system default. So we need to prepare for state changes
-> > *before* we register it. That means installing the eeepc-specific ACPI
-> > callback which handles the hotplug of the wireless network adaptor.
-> >
-> > This problem doesn't occur during normal operation. =A0You have to
-> >
-> > 1) Boot with wireless enabled. eeepc-laptop should load automatically.
-> > 2) modprobe -r eeepc-laptop
-> > 3) modprobe eeepc-laptop
-> >
-> > On boot, the default rfkill state will be set to enabled.
-> > With the current core code, step 2) will disable the wireless.
-> > Therefore in step 3), the wireless will change state during registratio=
-n,
-> > from disabled to enabled. =A0But without this fix, the PCI device for t=
-he
-> > wireless adaptor will not appear.
-> >
-> > Signed-off-by: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-> >
-> > diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86=
-/eeepc-laptop.c
-> > index 786ed86..b8951b9 100644
-> > --- a/drivers/platform/x86/eeepc-laptop.c
-> > +++ b/drivers/platform/x86/eeepc-laptop.c
-> > @@ -645,6 +645,9 @@ static int eeepc_hotk_add(struct acpi_device *devic=
-e)
-> > =A0 =A0 =A0 =A0if (ACPI_FAILURE(status))
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printk(EEEPC_ERR "Error installing notif=
-y handler\n");
-> >
-> > + =A0 =A0 =A0 eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
-> > + =A0 =A0 =A0 eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
-> > +
-> > =A0 =A0 =A0 =A0if (get_acpi(CM_ASL_WLAN) !=3D -1) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ehotk->eeepc_wlan_rfkill =3D rfkill_allo=
-cate(&device->dev,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RFKILL_TYPE_WLAN);
-> > @@ -700,9 +703,6 @@ static int eeepc_hotk_add(struct acpi_device *devic=
-e)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto bluetooth_fail;
-> > =A0 =A0 =A0 =A0}
-> >
-> > - =A0 =A0 =A0 eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
-> > - =A0 =A0 =A0 eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
-> > -
-> > =A0 =A0 =A0 =A0return 0;
-> >
-> > =A0bluetooth_fail:
-> >
-> >
-> >
-> =
+Il Sun, Mar 29, 2009 at 10:55:01PM +0200, Jean Delvare ha scritto: 
+> Hi Luca,
+> 
+> On Sun, 29 Mar 2009 22:16:17 +0200, Luca Tettamanti wrote:
+> > Il Tue, Mar 24, 2009 at 02:21:21PM +0100, Hans de Goede ha scritto: 
+> > > On 03/24/2009 01:39 PM, Luca Tettamanti wrote:
+> > >> On Fri, Feb 27, 2009 at 2:27 PM, Pavel Machek<pavel@ucw.cz>  wrote:
+> > >>> Hi!
+> > >>>
+> > >>>>> For the record we have changed the default to strict in Fedora's
+> > >>>>> development branch, for 2 weeks or so now, including in the recently
+> > >>>>> released Fedora 11 release and we've had 0 complaints so far.
+> > >>>> Well, if the number of affected systems is small, this is good news.
+> > >>>> But this is only 2 weeks and one distribution, coverage isn't
+> > >>>> sufficient to claim anything yet IMHO.
+> > >>>>
+> > >>>> That being said... if there's a common consensus that switching to
+> > >>>> strict and dealing with fallouts is the best thing to do, and I'm the
+> > >>>> only one objecting to this, then I am ready to admit that I was wrong
+> > >>>> and let you proceed.
+> > >>> I believe that 'enable strict, deal with fallout' is the best
+> > >>> long-term strategy...
+> > >>
+> > >> Hello,
+> > >> the merge window for .30 is now open, what are we going to do with this issue?
+> > >>
+> > >
+> > > I think the consensus was to make the default strict and to merge the atk0110
+> > > driver, right?
+> > 
+> > Ok,
+> > here's a patch:
+> > ---
+> > The following patch changes the default value for option "acpi_enforce_resource"
+> > to strict. It enforces strict resource checking - disallowing access by native
+> > drivers to IO ports and memory regions claimed by ACPI firmware.
+> > 
+> > The patch is mainly aimed to block native hwmon drivers from touching
+> > monitoring chips that ACPI thinks it own.
+> > 
+> > Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+> > ---
+> >  Documentation/kernel-parameters.txt |   16 ++++++++++++++++
+> >  drivers/acpi/osl.c                  |    6 +++---
+> >  2 files changed, 19 insertions(+), 3 deletions(-)
+> > 
+> > Index: b/Documentation/kernel-parameters.txt
+> > ===================================================================
+> > --- a/Documentation/kernel-parameters.txt	2009-03-29 15:47:28.000000000 +0200
+> > +++ b/Documentation/kernel-parameters.txt	2009-03-29 15:51:30.000000000 +0200
+> > @@ -259,6 +259,22 @@
+> >  			to assume that this machine's pmtimer latches its value
+> >  			and always returns good values.
+> >  
+> > +	acpi_enforce_resources=	[ACPI]
+> > +			{ strict,  lax, no }
+> 
+> Other options use | as a delimited between allowed values.
+[...]
+> The driver will fail to _bind_ to the device, this doesn't mean that the
+> module will fail to load. In practice, PCI modules will still load
+> while "fake" platform modules will indeed fail to load. Many hwmon
+> drivers fall into the second category.
+[...]
+> Other that these minor details:
+> 
+> Acked-by: Jean Delvare <khali@linux-fr.org>
 
-> Hi,
-> Cc'd linux-acpi to get more review about that.
-> I'm not very familiar with rfkill interface.
-
-Looks fine to me.
-
-Acked-by: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
--- =
-
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
----------------------------------------------------------------------------=
+Hi Jean,
+here's a revised patch:
 ---
+
+The following patch changes the default value for option "acpi_enforce_resource"
+to strict. It enforces strict resource checking - disallowing access by native
+drivers to IO ports and memory regions claimed by ACPI firmware.
+
+The patch is mainly aimed to block native hwmon drivers from touching
+monitoring chips that ACPI thinks it own.
+
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+---
+ Documentation/kernel-parameters.txt |   16 ++++++++++++++++
+ drivers/acpi/osl.c                  |    6 +++---
+ 2 files changed, 19 insertions(+), 3 deletions(-)
+
+Index: b/Documentation/kernel-parameters.txt
+===================================================================
+--- a/Documentation/kernel-parameters.txt	2009-03-29 23:58:11.574893074 +0200
++++ b/Documentation/kernel-parameters.txt	2009-03-29 23:58:31.582894852 +0200
+@@ -259,6 +259,22 @@
+ 			to assume that this machine's pmtimer latches its value
+ 			and always returns good values.
+ 
++	acpi_enforce_resources=	[ACPI]
++			{ strict | lax | no }
++			Check for resource conflicts between native drivers
++			and ACPI OperationRegions (SystemIO and SystemMemory
++			only). IO ports and memory declared in ACPI might be
++			used by the ACPI subsystem in arbitrary AML code and
++			can interfere with legacy drivers.
++			strict (default): access to resources claimed by ACPI
++			is denied; legacy drivers trying to access reserved
++			resources will fail to bind to device using them.
++			lax: access to resources claimed by ACPI is allowed;
++			legacy drivers trying to access reserved resources
++			will bind successfully but a warning message is logged.
++			no: ACPI OperationRegions are not marked as reserved,
++			no further checks are performed.
++
+ 	agp=		[AGP]
+ 			{ off | try_unsupported }
+ 			off: disable AGP support
+Index: b/drivers/acpi/osl.c
+===================================================================
+--- a/drivers/acpi/osl.c	2009-03-29 23:58:11.942913535 +0200
++++ b/drivers/acpi/osl.c	2009-03-29 23:58:31.586892815 +0200
+@@ -1070,9 +1070,9 @@
+  * in arbitrary AML code and can interfere with legacy drivers.
+  * acpi_enforce_resources= can be set to:
+  *
+- *   - strict           (2)
++ *   - strict (default) (2)
+  *     -> further driver trying to access the resources will not load
+- *   - lax (default)    (1)
++ *   - lax              (1)
+  *     -> further driver trying to access the resources will load, but you
+  *     get a system message that something might go wrong...
+  *
+@@ -1084,7 +1084,7 @@
+ #define ENFORCE_RESOURCES_LAX    1
+ #define ENFORCE_RESOURCES_NO     0
+ 
+-static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+ 
+ static int __init acpi_enforce_resources_setup(char *str)
+ {
+
+
+Luca
+-- 
+La somma dell'intelligenza sulla terra e` una costante.
+La popolazione e` in aumento.
