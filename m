@@ -1,23 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Jean Delvare <khali@linux-fr.org>
 Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Sun, 29 Mar 2009 22:33:21 +0200
-Message-ID: <20090329203321.GA31857@elf.ucw.cz>
-References: <20090204142606.1823661b@hyperion.delvare> <20090204142015.GB3923@srcf.ucam.org> <20090210145716.105ab58b@hyperion.delvare> <20090210140829.GA25397@srcf.ucam.org> <49919E08.5050002@redhat.com> <20090210172408.400cacee@hyperion.delvare> <20090227132740.GF1482@ucw.cz> <68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com> <49C8DE51.2010103@redhat.com> <20090329201617.GA10303@dreamland.darkstar.lan>
+Date: Sun, 29 Mar 2009 22:55:01 +0200
+Message-ID: <20090329225501.0c1771f1@hyperion.delvare>
+References: <20090204131708.GA2739@srcf.ucam.org>
+	<20090204142606.1823661b@hyperion.delvare>
+	<20090204142015.GB3923@srcf.ucam.org>
+	<20090210145716.105ab58b@hyperion.delvare>
+	<20090210140829.GA25397@srcf.ucam.org>
+	<49919E08.5050002@redhat.com>
+	<20090210172408.400cacee@hyperion.delvare>
+	<20090227132740.GF1482@ucw.cz>
+	<68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com>
+	<49C8DE51.2010103@redhat.com>
+	<20090329201617.GA10303@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55204 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753711AbZC2Uda (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Mar 2009 16:33:30 -0400
-Content-Disposition: inline
+Received: from zone0.gcu-squad.org ([212.85.147.21]:19438 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756874AbZC2Uz0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Mar 2009 16:55:26 -0400
 In-Reply-To: <20090329201617.GA10303@dreamland.darkstar.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-On Sun 2009-03-29 22:16:17, Luca Tettamanti wrote:
+Hi Luca,
+
+On Sun, 29 Mar 2009 22:16:17 +0200, Luca Tettamanti wrote:
 > Il Tue, Mar 24, 2009 at 02:21:21PM +0100, Hans de Goede ha scritto: 
 > > On 03/24/2009 01:39 PM, Luca Tettamanti wrote:
 > >> On Fri, Feb 27, 2009 at 2:27 PM, Pavel Machek<pavel@ucw.cz>  wrote:
@@ -55,9 +67,11 @@ On Sun 2009-03-29 22:16:17, Luca Tettamanti wrote:
 > monitoring chips that ACPI thinks it own.
 > 
 > Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-
-Acked-by: Pavel Machek <pavel@suse.cz>
-
+> ---
+>  Documentation/kernel-parameters.txt |   16 ++++++++++++++++
+>  drivers/acpi/osl.c                  |    6 +++---
+>  2 files changed, 19 insertions(+), 3 deletions(-)
+> 
 > Index: b/Documentation/kernel-parameters.txt
 > ===================================================================
 > --- a/Documentation/kernel-parameters.txt	2009-03-29 15:47:28.000000000 +0200
@@ -68,10 +82,64 @@ Acked-by: Pavel Machek <pavel@suse.cz>
 >  
 > +	acpi_enforce_resources=	[ACPI]
 > +			{ strict,  lax, no }
-			          ~ extra space here... probably not
-worth fixing.
-									Pavel
+
+Other options use | as a delimited between allowed values.
+
+> +			Check for resource conflicts between native drivers
+> +			and ACPI OperationRegions (SystemIO and SystemMemory
+> +			only). IO ports and memory declared in ACPI might be
+> +			used by the ACPI subsystem in arbitrary AML code and
+> +			can interfere with legacy drivers.
+> +			strict (default): access to resources claimed by ACPI
+> +			is denied; legacy drivers trying to access reserved
+> +			resources will fail to load.
+
+The driver will fail to _bind_ to the device, this doesn't mean that the
+module will fail to load. In practice, PCI modules will still load
+while "fake" platform modules will indeed fail to load. Many hwmon
+drivers fall into the second category.
+
+> +			lax: access to resources claimed by ACPI is allowed;
+> +			legacy drivers trying to access reserved resources
+> +			will load and a warning message is logged.
+
+Ditto.
+
+> +			no: ACPI OperationRegions are not marked as reserved,
+> +			no further checks are performed.
+> +
+>  	agp=		[AGP]
+>  			{ off | try_unsupported }
+>  			off: disable AGP support
+> Index: b/drivers/acpi/osl.c
+> ===================================================================
+> --- a/drivers/acpi/osl.c	2009-03-29 15:47:29.000000000 +0200
+> +++ b/drivers/acpi/osl.c	2009-03-29 15:51:30.000000000 +0200
+> @@ -1070,9 +1070,9 @@
+>   * in arbitrary AML code and can interfere with legacy drivers.
+>   * acpi_enforce_resources= can be set to:
+>   *
+> - *   - strict           (2)
+> + *   - strict (default) (2)
+>   *     -> further driver trying to access the resources will not load
+> - *   - lax (default)    (1)
+> + *   - lax              (1)
+>   *     -> further driver trying to access the resources will load, but you
+>   *     get a system message that something might go wrong...
+>   *
+> @@ -1084,7 +1084,7 @@
+>  #define ENFORCE_RESOURCES_LAX    1
+>  #define ENFORCE_RESOURCES_NO     0
+>  
+> -static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
+> +static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+>  
+>  static int __init acpi_enforce_resources_setup(char *str)
+>  {
+
+Other that these minor details:
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Jean Delvare
