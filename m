@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 05/10] ACPI: video: use .notify method instead of installing
-	handler directly
-Date: Mon, 30 Mar 2009 11:48:34 -0600
-Message-ID: <20090330174834.20905.78458.stgit@bob.kio>
+Subject: [PATCH 08/10] panasonic-laptop: use .notify method instead of
+	installing handler directly
+Date: Mon, 30 Mar 2009 11:48:49 -0600
+Message-ID: <20090330174849.20905.70883.stgit@bob.kio>
 References: <20090330174646.20905.18465.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:2893 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776AbZC3Rsk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:40 -0400
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:41885 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754956AbZC3Rsv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:51 -0400
 In-Reply-To: <20090330174646.20905.18465.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -23,109 +23,93 @@ Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Zhang Rui <rui.zhang@intel.com>
+CC: Harald Welte <laforge@gnumonks.org>
 ---
- drivers/acpi/video.c |   30 +++++-------------------------
- 1 files changed, 5 insertions(+), 25 deletions(-)
+ drivers/platform/x86/panasonic-laptop.c |   26 +++++---------------------
+ 1 files changed, 5 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index bb5ed05..1bea502 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -77,6 +77,7 @@ module_param(brightness_switch_enabled, bool, 0644);
- static int acpi_video_bus_add(struct acpi_device *device);
- static int acpi_video_bus_remove(struct acpi_device *device, int type);
- static int acpi_video_resume(struct acpi_device *device);
-+static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
+diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
+index c47a44d..6356031 100644
+--- a/drivers/platform/x86/panasonic-laptop.c
++++ b/drivers/platform/x86/panasonic-laptop.c
+@@ -176,6 +176,7 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
+ static int acpi_pcc_hotkey_add(struct acpi_device *device);
+ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type);
+ static int acpi_pcc_hotkey_resume(struct acpi_device *device);
++static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event);
  
- static const struct acpi_device_id video_device_ids[] = {
- 	{ACPI_VIDEO_HID, 0},
-@@ -92,6 +93,7 @@ static struct acpi_driver acpi_video_bus = {
- 		.add = acpi_video_bus_add,
- 		.remove = acpi_video_bus_remove,
- 		.resume = acpi_video_resume,
-+		.notify = acpi_video_bus_notify,
- 		},
+ static const struct acpi_device_id pcc_device_ids[] = {
+ 	{ "MAT0012", 0},
+@@ -193,6 +194,7 @@ static struct acpi_driver acpi_pcc_driver = {
+ 				.add =		acpi_pcc_hotkey_add,
+ 				.remove =	acpi_pcc_hotkey_remove,
+ 				.resume =       acpi_pcc_hotkey_resume,
++				.notify =	acpi_pcc_hotkey_notify,
+ 			},
  };
  
-@@ -1850,17 +1852,15 @@ static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
- 	return acpi_video_bus_DOS(video, 0, 1);
+@@ -526,9 +528,9 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
+ 	return;
  }
  
--static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
+-static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event)
  {
--	struct acpi_video_bus *video = data;
--	struct acpi_device *device = NULL;
-+	struct acpi_video_bus *video = acpi_driver_data(device);
- 	struct input_dev *input;
- 	int keycode;
- 
- 	if (!video)
- 		return;
- 
--	device = video->device;
- 	input = video->input;
+-	struct pcc_acpi *pcc = (struct pcc_acpi *) data;
++	struct pcc_acpi *pcc = acpi_driver_data(device);
  
  	switch (event) {
-@@ -1991,7 +1991,6 @@ static int acpi_video_resume(struct acpi_device *device)
+ 	case HKEY_NOTIFY:
+@@ -598,7 +600,6 @@ static int acpi_pcc_hotkey_resume(struct acpi_device *device)
  
- static int acpi_video_bus_add(struct acpi_device *device)
+ static int acpi_pcc_hotkey_add(struct acpi_device *device)
  {
 -	acpi_status status;
- 	struct acpi_video_bus *video;
- 	struct input_dev *input;
- 	int error;
-@@ -2033,20 +2032,10 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 	acpi_video_bus_get_devices(video, device);
- 	acpi_video_bus_start_devices(video);
+ 	struct pcc_acpi *pcc;
+ 	int num_sifr, result;
  
--	status = acpi_install_notify_handler(device->handle,
--					     ACPI_DEVICE_NOTIFY,
--					     acpi_video_bus_notify, video);
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX
--				  "Error installing notify handler\n");
--		error = -ENODEV;
--		goto err_stop_video;
--	}
--
- 	video->input = input = input_allocate_device();
- 	if (!input) {
- 		error = -ENOMEM;
--		goto err_uninstall_notify;
-+		goto err_stop_video;
+@@ -639,22 +640,11 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 		goto out_sinf;
  	}
  
- 	snprintf(video->phys, sizeof(video->phys),
-@@ -2082,9 +2071,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
-  err_free_input_dev:
- 	input_free_device(input);
-- err_uninstall_notify:
--	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_video_bus_notify);
-  err_stop_video:
- 	acpi_video_bus_stop_devices(video);
- 	acpi_video_bus_put_devices(video);
-@@ -2099,7 +2085,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- static int acpi_video_bus_remove(struct acpi_device *device, int type)
- {
--	acpi_status status = 0;
- 	struct acpi_video_bus *video = NULL;
- 
- 
-@@ -2109,11 +2094,6 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
- 	video = acpi_driver_data(device);
- 
- 	acpi_video_bus_stop_devices(video);
+-	/* initialize hotkey input device */
+-	status = acpi_install_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
+-					     acpi_pcc_hotkey_notify, pcc);
 -
--	status = acpi_remove_notify_handler(video->device->handle,
--					    ACPI_DEVICE_NOTIFY,
--					    acpi_video_bus_notify);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-				  "Error installing notify handler\n"));
+-		result = -ENODEV;
+-		goto out_input;
+-	}
 -
- 	acpi_video_bus_put_devices(video);
- 	acpi_video_bus_remove_fs(device);
+ 	/* initialize backlight */
+ 	pcc->backlight = backlight_device_register("panasonic", NULL, pcc,
+ 						   &pcc_backlight_ops);
+ 	if (IS_ERR(pcc->backlight))
+-		goto out_notify;
++		goto out_input;
  
+ 	if (!acpi_pcc_retrieve_biosdata(pcc, pcc->sinf)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+@@ -679,9 +669,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 
+ out_backlight:
+ 	backlight_device_unregister(pcc->backlight);
+-out_notify:
+-	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
+-				   acpi_pcc_hotkey_notify);
+ out_input:
+ 	input_unregister_device(pcc->input_dev);
+ 	/* no need to input_free_device() since core input API refcount and
+@@ -722,9 +709,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
+ 
+ 	backlight_device_unregister(pcc->backlight);
+ 
+-	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
+-				   acpi_pcc_hotkey_notify);
+-
+ 	input_unregister_device(pcc->input_dev);
+ 	/* no need to input_free_device() since core input API refcount and
+ 	 * free()s the device */
 
