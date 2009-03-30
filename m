@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 04/10] ACPI: thermal: use .notify method instead of installing
+Subject: [PATCH 05/10] ACPI: video: use .notify method instead of installing
 	handler directly
-Date: Mon, 30 Mar 2009 11:48:29 -0600
-Message-ID: <20090330174829.20905.39529.stgit@bob.kio>
+Date: Mon, 30 Mar 2009 11:48:34 -0600
+Message-ID: <20090330174834.20905.78458.stgit@bob.kio>
 References: <20090330174646.20905.18465.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:2770 "EHLO
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:2893 "EHLO
 	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752147AbZC3Rsa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:30 -0400
+	with ESMTP id S1753776AbZC3Rsk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:40 -0400
 In-Reply-To: <20090330174646.20905.18465.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -25,105 +25,107 @@ so we don't have to install and remove them ourselves.
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 CC: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/thermal.c |   27 ++++-----------------------
- 1 files changed, 4 insertions(+), 23 deletions(-)
+ drivers/acpi/video.c |   30 +++++-------------------------
+ 1 files changed, 5 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 99e6f1f..3a7b0c7 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -98,6 +98,7 @@ MODULE_PARM_DESC(psv, "Disable or override all passive trip points.");
- static int acpi_thermal_add(struct acpi_device *device);
- static int acpi_thermal_remove(struct acpi_device *device, int type);
- static int acpi_thermal_resume(struct acpi_device *device);
-+static void acpi_thermal_notify(struct acpi_device *device, u32 event);
- static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
-@@ -123,6 +124,7 @@ static struct acpi_driver acpi_thermal_driver = {
- 		.add = acpi_thermal_add,
- 		.remove = acpi_thermal_remove,
- 		.resume = acpi_thermal_resume,
-+		.notify = acpi_thermal_notify,
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index bb5ed05..1bea502 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -77,6 +77,7 @@ module_param(brightness_switch_enabled, bool, 0644);
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+ static int acpi_video_resume(struct acpi_device *device);
++static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id video_device_ids[] = {
+ 	{ACPI_VIDEO_HID, 0},
+@@ -92,6 +93,7 @@ static struct acpi_driver acpi_video_bus = {
+ 		.add = acpi_video_bus_add,
+ 		.remove = acpi_video_bus_remove,
+ 		.resume = acpi_video_resume,
++		.notify = acpi_video_bus_notify,
  		},
  };
  
-@@ -1579,17 +1581,14 @@ static int acpi_thermal_remove_fs(struct acpi_device *device)
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
- 
--static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_thermal_notify(struct acpi_device *device, u32 event)
- {
--	struct acpi_thermal *tz = data;
--	struct acpi_device *device = NULL;
-+	struct acpi_thermal *tz = acpi_driver_data(device);
- 
- 
- 	if (!tz)
- 		return;
- 
--	device = tz->device;
--
- 	switch (event) {
- 	case ACPI_THERMAL_NOTIFY_TEMPERATURE:
- 		acpi_thermal_check(tz);
-@@ -1613,8 +1612,6 @@ static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
- 				  "Unsupported event [0x%x]\n", event));
- 		break;
- 	}
--
--	return;
+@@ -1850,17 +1852,15 @@ static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
+ 	return acpi_video_bus_DOS(video, 0, 1);
  }
  
- static int acpi_thermal_get_info(struct acpi_thermal *tz)
-@@ -1652,7 +1649,6 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
- static int acpi_thermal_add(struct acpi_device *device)
+-static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
  {
- 	int result = 0;
--	acpi_status status = AE_OK;
- 	struct acpi_thermal *tz = NULL;
+-	struct acpi_video_bus *video = data;
+-	struct acpi_device *device = NULL;
++	struct acpi_video_bus *video = acpi_driver_data(device);
+ 	struct input_dev *input;
+ 	int keycode;
  
+ 	if (!video)
+ 		return;
  
-@@ -1689,21 +1685,11 @@ static int acpi_thermal_add(struct acpi_device *device)
+-	device = video->device;
+ 	input = video->input;
  
- 	acpi_thermal_check(tz);
+ 	switch (event) {
+@@ -1991,7 +1991,6 @@ static int acpi_video_resume(struct acpi_device *device)
+ 
+ static int acpi_video_bus_add(struct acpi_device *device)
+ {
+-	acpi_status status;
+ 	struct acpi_video_bus *video;
+ 	struct input_dev *input;
+ 	int error;
+@@ -2033,20 +2032,10 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	acpi_video_bus_get_devices(video, device);
+ 	acpi_video_bus_start_devices(video);
  
 -	status = acpi_install_notify_handler(device->handle,
 -					     ACPI_DEVICE_NOTIFY,
--					     acpi_thermal_notify, tz);
+-					     acpi_video_bus_notify, video);
 -	if (ACPI_FAILURE(status)) {
--		result = -ENODEV;
--		goto remove_fs;
+-		printk(KERN_ERR PREFIX
+-				  "Error installing notify handler\n");
+-		error = -ENODEV;
+-		goto err_stop_video;
 -	}
 -
- 	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       KELVIN_TO_CELSIUS(tz->temperature));
- 	goto end;
+ 	video->input = input = input_allocate_device();
+ 	if (!input) {
+ 		error = -ENOMEM;
+-		goto err_uninstall_notify;
++		goto err_stop_video;
+ 	}
  
--remove_fs:
--	acpi_thermal_remove_fs(device);
- unregister_thermal_zone:
- 	thermal_zone_device_unregister(tz->thermal_zone);
- free_memory:
-@@ -1714,7 +1700,6 @@ end:
+ 	snprintf(video->phys, sizeof(video->phys),
+@@ -2082,9 +2071,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
  
- static int acpi_thermal_remove(struct acpi_device *device, int type)
+  err_free_input_dev:
+ 	input_free_device(input);
+- err_uninstall_notify:
+-	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+-				   acpi_video_bus_notify);
+  err_stop_video:
+ 	acpi_video_bus_stop_devices(video);
+ 	acpi_video_bus_put_devices(video);
+@@ -2099,7 +2085,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 
+ static int acpi_video_bus_remove(struct acpi_device *device, int type)
  {
--	acpi_status status = AE_OK;
- 	struct acpi_thermal *tz = NULL;
+-	acpi_status status = 0;
+ 	struct acpi_video_bus *video = NULL;
  
  
-@@ -1732,10 +1717,6 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
- 	/* deferred task may reinsert timer */
- 	del_timer_sync(&(tz->timer));
+@@ -2109,11 +2094,6 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
+ 	video = acpi_driver_data(device);
  
--	status = acpi_remove_notify_handler(device->handle,
--					    ACPI_DEVICE_NOTIFY,
--					    acpi_thermal_notify);
+ 	acpi_video_bus_stop_devices(video);
 -
- 	/* Terminate policy */
- 	if (tz->trips.passive.flags.valid && tz->trips.passive.flags.enabled) {
- 		tz->trips.passive.flags.enabled = 0;
+-	status = acpi_remove_notify_handler(video->device->handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    acpi_video_bus_notify);
+-
+ 	acpi_video_bus_put_devices(video);
+ 	acpi_video_bus_remove_fs(device);
+ 
 
