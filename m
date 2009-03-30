@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 07/10] fujitsu-laptop: use .notify method instead of
-	installing hotkey handler directly
-Date: Mon, 30 Mar 2009 11:48:44 -0600
-Message-ID: <20090330174844.20905.18635.stgit@bob.kio>
+Subject: [PATCH 09/10] sony-laptop: use .notify method instead of installing
+	handler directly
+Date: Mon, 30 Mar 2009 11:48:54 -0600
+Message-ID: <20090330174854.20905.68935.stgit@bob.kio>
 References: <20090330174646.20905.18465.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:2966 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755591AbZC3Rsq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:46 -0400
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:28865 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314AbZC3Rs4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:56 -0400
 In-Reply-To: <20090330174646.20905.18465.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -23,115 +23,100 @@ Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-CC: Tony Vroon <tony@linx.net>
+CC: Mattia Dongili <malattia@linux.it>
 ---
- drivers/platform/x86/fujitsu-laptop.c |   32 +++++---------------------------
+ drivers/platform/x86/sony-laptop.c |   32 +++++---------------------------
  1 files changed, 5 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index 10f8796..218b9a1 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -174,8 +174,7 @@ struct fujitsu_hotkey_t {
- 
- static struct fujitsu_hotkey_t *fujitsu_hotkey;
- 
--static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
--				       void *data);
-+static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event);
- 
- #ifdef CONFIG_LEDS_CLASS
- static enum led_brightness logolamp_get(struct led_classdev *cdev);
-@@ -816,7 +815,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
- 
- static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index bc8996c..be98b1f 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -895,7 +895,7 @@ static const struct dmi_system_id sony_nc_ids[] = {
+ /*
+  * ACPI callbacks
+  */
+-static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
++static void sony_nc_notify(struct acpi_device *device, u32 event)
  {
--	acpi_status status;
- 	acpi_handle handle;
- 	int result = 0;
- 	int state = 0;
-@@ -833,17 +831,6 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
- 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
- 	device->driver_data = fujitsu_hotkey;
+ 	struct sony_nc_event *evmap;
+ 	u32 ev = event;
+@@ -913,8 +913,8 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 		 * TODO: we may want to do the same for the older GHKE -need
+ 		 *       dmi list- so this snippet may become one more callback.
+ 		 */
+-		if (acpi_callsetfunc(handle, "SN07", 0x0202, &result) < 0)
+-			dprintk("sony_acpi_notify, unable to decode event 0x%.2x\n", ev);
++		if (acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x0202, &result) < 0)
++			dprintk("sony_nc_notify, unable to decode event 0x%.2x\n", ev);
+ 		else
+ 			ev = result & 0xFF;
+ 	}
+@@ -927,7 +927,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 			}
+ 		}
  
--	status = acpi_install_notify_handler(device->handle,
+-	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
++	dprintk("sony_nc_notify, event: 0x%.2x\n", ev);
+ 	sony_laptop_report_input_event(ev);
+ 	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
+ }
+@@ -1032,15 +1032,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 		goto outwalk;
+ 	}
+ 
+-	status = acpi_install_notify_handler(sony_nc_acpi_handle,
 -					     ACPI_DEVICE_NOTIFY,
--					     acpi_fujitsu_hotkey_notify,
--					     fujitsu_hotkey);
--
+-					     sony_acpi_notify, NULL);
 -	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR "Error installing notify handler\n");
--		error = -ENODEV;
--		goto err_stop;
+-		printk(KERN_WARNING DRV_PFX "unable to install notify handler (%u)\n", status);
+-		result = -ENODEV;
+-		goto outinput;
 -	}
 -
- 	/* kfifo */
- 	spin_lock_init(&fujitsu_hotkey->fifo_lock);
- 	fujitsu_hotkey->fifo =
-@@ -858,7 +845,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
- 	fujitsu_hotkey->input = input = input_allocate_device();
- 	if (!input) {
- 		error = -ENOMEM;
--		goto err_uninstall_notify;
-+		goto err_free_fifo;
- 	}
+ 	if (acpi_video_backlight_support()) {
+ 		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
+ 		       "controlled by ACPI video driver\n");
+@@ -1121,13 +1112,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
  
- 	snprintf(fujitsu_hotkey->phys, sizeof(fujitsu_hotkey->phys),
-@@ -954,9 +941,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
- end:
- err_free_input_dev:
- 	input_free_device(input);
--err_uninstall_notify:
--	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_fujitsu_hotkey_notify);
-+err_free_fifo:
- 	kfifo_free(fujitsu_hotkey->fifo);
- err_stop:
+-	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    sony_acpi_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
+-
+-      outinput:
+ 	sony_laptop_remove_input();
  
-@@ -965,7 +950,6 @@ err_stop:
+       outwalk:
+@@ -1136,7 +1120,6 @@ static int sony_nc_add(struct acpi_device *device)
  
- static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+ static int sony_nc_remove(struct acpi_device *device, int type)
  {
 -	acpi_status status;
- 	struct fujitsu_hotkey_t *fujitsu_hotkey = NULL;
+ 	struct sony_nc_value *item;
  
- 	if (!device || !acpi_driver_data(device))
-@@ -973,10 +957,6 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+ 	if (sony_backlight_device)
+@@ -1144,12 +1127,6 @@ static int sony_nc_remove(struct acpi_device *device, int type)
  
- 	fujitsu_hotkey = acpi_driver_data(device);
+ 	sony_nc_acpi_device = NULL;
  
--	status = acpi_remove_notify_handler(fujitsu_hotkey->acpi_handle,
+-	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
 -					    ACPI_DEVICE_NOTIFY,
--					    acpi_fujitsu_hotkey_notify);
+-					    sony_acpi_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
 -
- 	fujitsu_hotkey->acpi_handle = NULL;
- 
- 	kfifo_free(fujitsu_hotkey->fifo);
-@@ -984,8 +964,7 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
- 	return 0;
- }
- 
--static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
--				       void *data)
-+static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event)
- {
- 	struct input_dev *input;
- 	int keycode, keycode_r;
-@@ -1068,8 +1047,6 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
- 		input_sync(input);
- 		break;
+ 	for (item = sony_nc_values; item->name; ++item) {
+ 		device_remove_file(&sony_pf_device->dev, &item->devattr);
  	}
--
--	return;
- }
- 
- /* Initialization */
-@@ -1102,6 +1079,7 @@ static struct acpi_driver acpi_fujitsu_hotkey_driver = {
- 	.ops = {
- 		.add = acpi_fujitsu_hotkey_add,
- 		.remove = acpi_fujitsu_hotkey_remove,
-+		.notify = acpi_fujitsu_hotkey_notify,
+@@ -1182,6 +1159,7 @@ static struct acpi_driver sony_nc_driver = {
+ 		.add = sony_nc_add,
+ 		.remove = sony_nc_remove,
+ 		.resume = sony_nc_resume,
++		.notify = sony_nc_notify,
  		},
  };
  
