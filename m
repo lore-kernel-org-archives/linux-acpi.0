@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 08/10] panasonic-laptop: use .notify method instead of
-	installing handler directly
-Date: Mon, 30 Mar 2009 11:48:49 -0600
-Message-ID: <20090330174849.20905.70883.stgit@bob.kio>
+Subject: [PATCH 07/10] fujitsu-laptop: use .notify method instead of
+	installing hotkey handler directly
+Date: Mon, 30 Mar 2009 11:48:44 -0600
+Message-ID: <20090330174844.20905.18635.stgit@bob.kio>
 References: <20090330174646.20905.18465.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:41885 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754956AbZC3Rsv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:51 -0400
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:2966 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755591AbZC3Rsq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:48:46 -0400
 In-Reply-To: <20090330174646.20905.18465.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -23,93 +23,116 @@ Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Harald Welte <laforge@gnumonks.org>
+CC: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+CC: Tony Vroon <tony@linx.net>
 ---
- drivers/platform/x86/panasonic-laptop.c |   26 +++++---------------------
- 1 files changed, 5 insertions(+), 21 deletions(-)
+ drivers/platform/x86/fujitsu-laptop.c |   32 +++++---------------------------
+ 1 files changed, 5 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index c47a44d..6356031 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -176,6 +176,7 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
- static int acpi_pcc_hotkey_add(struct acpi_device *device);
- static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type);
- static int acpi_pcc_hotkey_resume(struct acpi_device *device);
-+static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event);
+diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+index 10f8796..218b9a1 100644
+--- a/drivers/platform/x86/fujitsu-laptop.c
++++ b/drivers/platform/x86/fujitsu-laptop.c
+@@ -174,8 +174,7 @@ struct fujitsu_hotkey_t {
  
- static const struct acpi_device_id pcc_device_ids[] = {
- 	{ "MAT0012", 0},
-@@ -193,6 +194,7 @@ static struct acpi_driver acpi_pcc_driver = {
- 				.add =		acpi_pcc_hotkey_add,
- 				.remove =	acpi_pcc_hotkey_remove,
- 				.resume =       acpi_pcc_hotkey_resume,
-+				.notify =	acpi_pcc_hotkey_notify,
- 			},
- };
+ static struct fujitsu_hotkey_t *fujitsu_hotkey;
  
-@@ -526,9 +528,9 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 	return;
- }
+-static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+-				       void *data);
++static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event);
  
--static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event)
- {
--	struct pcc_acpi *pcc = (struct pcc_acpi *) data;
-+	struct pcc_acpi *pcc = acpi_driver_data(device);
+ #ifdef CONFIG_LEDS_CLASS
+ static enum led_brightness logolamp_get(struct led_classdev *cdev);
+@@ -816,7 +815,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
  
- 	switch (event) {
- 	case HKEY_NOTIFY:
-@@ -598,7 +600,6 @@ static int acpi_pcc_hotkey_resume(struct acpi_device *device)
- 
- static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
  {
 -	acpi_status status;
- 	struct pcc_acpi *pcc;
- 	int num_sifr, result;
+ 	acpi_handle handle;
+ 	int result = 0;
+ 	int state = 0;
+@@ -833,17 +831,6 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+ 	device->driver_data = fujitsu_hotkey;
  
-@@ -639,22 +640,11 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 		goto out_sinf;
- 	}
- 
--	/* initialize hotkey input device */
--	status = acpi_install_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--					     acpi_pcc_hotkey_notify, pcc);
+-	status = acpi_install_notify_handler(device->handle,
+-					     ACPI_DEVICE_NOTIFY,
+-					     acpi_fujitsu_hotkey_notify,
+-					     fujitsu_hotkey);
 -
 -	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--				  "Error installing notify handler\n"));
--		result = -ENODEV;
--		goto out_input;
+-		printk(KERN_ERR "Error installing notify handler\n");
+-		error = -ENODEV;
+-		goto err_stop;
 -	}
 -
- 	/* initialize backlight */
- 	pcc->backlight = backlight_device_register("panasonic", NULL, pcc,
- 						   &pcc_backlight_ops);
- 	if (IS_ERR(pcc->backlight))
--		goto out_notify;
-+		goto out_input;
+ 	/* kfifo */
+ 	spin_lock_init(&fujitsu_hotkey->fifo_lock);
+ 	fujitsu_hotkey->fifo =
+@@ -858,7 +845,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ 	fujitsu_hotkey->input = input = input_allocate_device();
+ 	if (!input) {
+ 		error = -ENOMEM;
+-		goto err_uninstall_notify;
++		goto err_free_fifo;
+ 	}
  
- 	if (!acpi_pcc_retrieve_biosdata(pcc, pcc->sinf)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-@@ -679,9 +669,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
+ 	snprintf(fujitsu_hotkey->phys, sizeof(fujitsu_hotkey->phys),
+@@ -954,9 +941,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ end:
+ err_free_input_dev:
+ 	input_free_device(input);
+-err_uninstall_notify:
+-	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+-				   acpi_fujitsu_hotkey_notify);
++err_free_fifo:
+ 	kfifo_free(fujitsu_hotkey->fifo);
+ err_stop:
  
- out_backlight:
- 	backlight_device_unregister(pcc->backlight);
--out_notify:
--	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_pcc_hotkey_notify);
- out_input:
- 	input_unregister_device(pcc->input_dev);
- 	/* no need to input_free_device() since core input API refcount and
-@@ -722,9 +709,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
+@@ -965,7 +950,6 @@ err_stop:
  
- 	backlight_device_unregister(pcc->backlight);
+ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+ {
+-	acpi_status status;
+ 	struct fujitsu_hotkey_t *fujitsu_hotkey = NULL;
  
--	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_pcc_hotkey_notify);
+ 	if (!device || !acpi_driver_data(device))
+@@ -973,10 +957,6 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+ 
+ 	fujitsu_hotkey = acpi_driver_data(device);
+ 
+-	status = acpi_remove_notify_handler(fujitsu_hotkey->acpi_handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    acpi_fujitsu_hotkey_notify);
 -
- 	input_unregister_device(pcc->input_dev);
- 	/* no need to input_free_device() since core input API refcount and
- 	 * free()s the device */
+ 	fujitsu_hotkey->acpi_handle = NULL;
+ 
+ 	kfifo_free(fujitsu_hotkey->fifo);
+@@ -984,8 +964,7 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
+-static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+-				       void *data)
++static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event)
+ {
+ 	struct input_dev *input;
+ 	int keycode, keycode_r;
+@@ -1068,8 +1047,6 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+ 		input_sync(input);
+ 		break;
+ 	}
+-
+-	return;
+ }
+ 
+ /* Initialization */
+@@ -1102,6 +1079,7 @@ static struct acpi_driver acpi_fujitsu_hotkey_driver = {
+ 	.ops = {
+ 		.add = acpi_fujitsu_hotkey_add,
+ 		.remove = acpi_fujitsu_hotkey_remove,
++		.notify = acpi_fujitsu_hotkey_notify,
+ 		},
+ };
+ 
 
