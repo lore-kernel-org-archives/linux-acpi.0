@@ -1,89 +1,35 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 10/10] ACPI: WMI: use .notify method instead of installing
-	handler directly
-Date: Mon, 30 Mar 2009 11:48:59 -0600
-Message-ID: <20090330174859.20905.85111.stgit@bob.kio>
-References: <20090330174646.20905.18465.stgit@bob.kio>
+Subject: platform for testing ACPI CPU hotplug?
+Date: Mon, 30 Mar 2009 13:44:04 -0600
+Message-ID: <200903301344.04851.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:41951 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754223AbZC3RtB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 13:49:01 -0400
-In-Reply-To: <20090330174646.20905.18465.stgit@bob.kio>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:19837 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755660AbZC3Tpq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2009 15:45:46 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Ashok Raj <ashok.raj@intel.com>, Andi Kleen <ak@linux.intel.com>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-This patch adds a .notify() method.  The presence of .notify() causes
-Linux/ACPI to manage event handlers and notify handlers on our behalf,
-so we don't have to install and remove them ourselves.
+Hi guys,
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
- drivers/platform/x86/wmi.c |   15 +++------------
- 1 files changed, 3 insertions(+), 12 deletions(-)
+I don't think I have any platforms where I can exercise the ACPI
+processor hotplug code, e.g., acpi_processor_hotplug_notify().
+Can you point me to any?
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 2f269e1..043b208 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -81,6 +81,7 @@ static struct wmi_block wmi_blocks;
- 
- static int acpi_wmi_remove(struct acpi_device *device, int type);
- static int acpi_wmi_add(struct acpi_device *device);
-+static void acpi_wmi_notify(struct acpi_device *device, u32 event);
- 
- static const struct acpi_device_id wmi_device_ids[] = {
- 	{"PNP0C14", 0},
-@@ -96,6 +97,7 @@ static struct acpi_driver acpi_wmi_driver = {
- 	.ops = {
- 		.add = acpi_wmi_add,
- 		.remove = acpi_wmi_remove,
-+		.notify = acpi_wmi_notify,
- 		},
- };
- 
-@@ -643,12 +645,11 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
- 	}
- }
- 
--static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_wmi_notify(struct acpi_device *device, u32 event)
- {
- 	struct guid_block *block;
- 	struct wmi_block *wblock;
- 	struct list_head *p;
--	struct acpi_device *device = data;
- 
- 	list_for_each(p, &wmi_blocks.list) {
- 		wblock = list_entry(p, struct wmi_block, list);
-@@ -669,9 +670,6 @@ static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
- 
- static int acpi_wmi_remove(struct acpi_device *device, int type)
- {
--	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--		acpi_wmi_notify);
--
- 	acpi_remove_address_space_handler(device->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
- 
-@@ -683,13 +681,6 @@ static int __init acpi_wmi_add(struct acpi_device *device)
- 	acpi_status status;
- 	int result = 0;
- 
--	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--		acpi_wmi_notify, device);
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX "Error installing notify handler\n");
--		return -ENODEV;
--	}
--
- 	status = acpi_install_address_space_handler(device->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_wmi_ec_space_handler,
+I'm looking at drivers/acpi/processor_core.c with a view to removing
+its use of the .start() method.  As far as I can tell, most of what's
+currently in acpi_processor_start() could be folded into acpi_processor_add().
 
+If you know of any big reasons why this couldn't be done, I'd like
+to hear them, but mostly I'm just looking for a way to test any
+changes I make in this area.
+
+Thanks,
+  Bjorn
