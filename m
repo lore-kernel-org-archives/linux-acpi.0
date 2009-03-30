@@ -1,162 +1,80 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Mon, 30 Mar 2009 00:01:27 +0200
-Message-ID: <20090329220127.GA12822@dreamland.darkstar.lan>
-References: <20090204142015.GB3923@srcf.ucam.org> <20090210145716.105ab58b@hyperion.delvare> <20090210140829.GA25397@srcf.ucam.org> <49919E08.5050002@redhat.com> <20090210172408.400cacee@hyperion.delvare> <20090227132740.GF1482@ucw.cz> <68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com> <49C8DE51.2010103@redhat.com> <20090329201617.GA10303@dreamland.darkstar.lan> <20090329225501.0c1771f1@hyperion.delvare>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: warning at powernowk8_cpu_init()
+Date: Mon, 30 Mar 2009 10:38:20 +0800
+Message-ID: <1238380700.3625.17.camel@localhost.localdomain>
+References: <49CF4DDB.8050607@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:36841 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753857AbZC2WBn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Mar 2009 18:01:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20090329225501.0c1771f1@hyperion.delvare>
+Received: from mga11.intel.com ([192.55.52.93]:48399 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755753AbZC3Ch0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Mar 2009 22:37:26 -0400
+In-Reply-To: <49CF4DDB.8050607@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+To: Roel Kluin <roel.kluin@gmail.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Il Sun, Mar 29, 2009 at 10:55:01PM +0200, Jean Delvare ha scritto: 
-> Hi Luca,
+On Sun, 2009-03-29 at 18:30 +0800, Roel Kluin wrote:
+> Hi,
 > 
-> On Sun, 29 Mar 2009 22:16:17 +0200, Luca Tettamanti wrote:
-> > Il Tue, Mar 24, 2009 at 02:21:21PM +0100, Hans de Goede ha scritto: 
-> > > On 03/24/2009 01:39 PM, Luca Tettamanti wrote:
-> > >> On Fri, Feb 27, 2009 at 2:27 PM, Pavel Machek<pavel@ucw.cz>  wrote:
-> > >>> Hi!
-> > >>>
-> > >>>>> For the record we have changed the default to strict in Fedora's
-> > >>>>> development branch, for 2 weeks or so now, including in the recently
-> > >>>>> released Fedora 11 release and we've had 0 complaints so far.
-> > >>>> Well, if the number of affected systems is small, this is good news.
-> > >>>> But this is only 2 weeks and one distribution, coverage isn't
-> > >>>> sufficient to claim anything yet IMHO.
-> > >>>>
-> > >>>> That being said... if there's a common consensus that switching to
-> > >>>> strict and dealing with fallouts is the best thing to do, and I'm the
-> > >>>> only one objecting to this, then I am ready to admit that I was wrong
-> > >>>> and let you proceed.
-> > >>> I believe that 'enable strict, deal with fallout' is the best
-> > >>> long-term strategy...
-> > >>
-> > >> Hello,
-> > >> the merge window for .30 is now open, what are we going to do with this issue?
-> > >>
-> > >
-> > > I think the consensus was to make the default strict and to merge the atk0110
-> > > driver, right?
-> > 
-> > Ok,
-> > here's a patch:
-> > ---
-> > The following patch changes the default value for option "acpi_enforce_resource"
-> > to strict. It enforces strict resource checking - disallowing access by native
-> > drivers to IO ports and memory regions claimed by ACPI firmware.
-> > 
-> > The patch is mainly aimed to block native hwmon drivers from touching
-> > monitoring chips that ACPI thinks it own.
-> > 
-> > Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> > ---
-> >  Documentation/kernel-parameters.txt |   16 ++++++++++++++++
-> >  drivers/acpi/osl.c                  |    6 +++---
-> >  2 files changed, 19 insertions(+), 3 deletions(-)
-> > 
-> > Index: b/Documentation/kernel-parameters.txt
-> > ===================================================================
-> > --- a/Documentation/kernel-parameters.txt	2009-03-29 15:47:28.000000000 +0200
-> > +++ b/Documentation/kernel-parameters.txt	2009-03-29 15:51:30.000000000 +0200
-> > @@ -259,6 +259,22 @@
-> >  			to assume that this machine's pmtimer latches its value
-> >  			and always returns good values.
-> >  
-> > +	acpi_enforce_resources=	[ACPI]
-> > +			{ strict,  lax, no }
+> I got this warning during boot:
 > 
-> Other options use | as a delimited between allowed values.
-[...]
-> The driver will fail to _bind_ to the device, this doesn't mean that the
-> module will fail to load. In practice, PCI modules will still load
-> while "fake" platform modules will indeed fail to load. Many hwmon
-> drivers fall into the second category.
-[...]
-> Other that these minor details:
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
+> powernow-k8: Found 1 AMD Athlon(tm) 64 X2 Dual Core Processor 5000+ processors (2 cpu cores) (version 2.20.00)
+> ------------[ cut here ]------------
+> WARNING: at /home/roel/dnld/src/kernel/git/linux-2.6/arch/x86/kernel/cpu/cpufreq/powernow-k8.c:1254 powernowk8_cpu_init+0x500/0xad0()
+> Hardware name: MS-7369
+> [Firmware Bug]: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor.
+Hi, 
+   From the log it seems that there is no _PSS object , which is
+required by the powernow-k8 cpufreq. IMO the warning message is
+reasonable. 
+   We have seen this issue on a lot of machines based on AMD platforms.
+And this issue had better be fixed by BIOS upgrading.
 
-Hi Jean,
-here's a revised patch:
----
+> Modules linked in:
+> Pid: 1, comm: swapper Not tainted 2.6.29-smp #1
+Is the following dump stack message reported on vanilla kernel ? Or is
+it reported by adding the function of dump_stack?
+Thanks.
+> Call Trace:
+>  [<c012c466>] warn_slowpath+0x86/0xa0
+>  [<c0300ae5>] ? acpi_ns_get_node+0x7a/0x84
+>  [<c0300ae5>] ? acpi_ns_get_node+0x7a/0x84
+>  [<c0124870>] ? default_wake_function+0x0/0x10
+>  [<c0120f56>] ? task_rq_lock+0x66/0x90
+>  [<c0300d54>] ? acpi_get_handle+0x6c/0x8e
+>  [<c03125ad>] ? acpi_processor_register_performance+0x397/0x3b2
+>  [<c047f2c2>] ? _cond_resched+0x22/0x50
+>  [<c018f48b>] ? kmem_cache_alloc+0x8b/0xd0
+>  [<c047a59e>] ? powernowk8_cpu_init+0x4e/0xad0
+>  [<c047aa50>] powernowk8_cpu_init+0x500/0xad0
+>  [<c012677f>] ? finish_task_switch+0xaf/0xf0
+>  [<c047f2c2>] ? _cond_resched+0x22/0x50
+>  [<c047f2c2>] ? _cond_resched+0x22/0x50
+>  [<c047ff0b>] ? down_write+0xb/0x30
+>  [<c03cd970>] ? lock_policy_rwsem_write+0x70/0xa0
+>  [<c03cdcf9>] cpufreq_add_dev+0x1c9/0x5f0
+>  [<c032dc80>] ? vt_console_print+0x0/0x2a0
+>  [<c0144176>] ? up+0x46/0x60
+>  [<c012cc29>] ? release_console_sem+0x209/0x210
+>  [<c0120f56>] ? task_rq_lock+0x66/0x90
+>  [<c02c3f87>] ? kref_get+0x37/0x60
+>  [<c01273ee>] ? set_cpus_allowed_ptr+0xae/0x120
+>  [<c033c025>] sysdev_driver_register+0x75/0x120
+>  [<c047a550>] ? powernowk8_cpu_init+0x0/0xad0
+>  [<c03ce5a6>] cpufreq_register_driver+0x86/0x140
+>  [<c047a537>] powernowk8_init+0x87/0xa0
+>  [<c047a4b0>] ? powernowk8_init+0x0/0xa0
+>  [<c0101114>] do_one_initcall+0x24/0x150
+>  [<c01d46c4>] ? create_proc_entry+0x54/0xa0
+>  [<c015c5e2>] ? register_irq_proc+0xa2/0xc0
+>  [<c015c665>] ? init_irq_proc+0x65/0x80
+>  [<c0618662>] kernel_init+0x122/0x180
+>  [<c0618540>] ? kernel_init+0x0/0x180
+>  [<c0103cdb>] kernel_thread_helper+0x7/0x1c
+> ---[ end trace f7b2fa9171ecaaac ]---
+> dmesg and .config are attached
 
-The following patch changes the default value for option "acpi_enforce_resource"
-to strict. It enforces strict resource checking - disallowing access by native
-drivers to IO ports and memory regions claimed by ACPI firmware.
-
-The patch is mainly aimed to block native hwmon drivers from touching
-monitoring chips that ACPI thinks it own.
-
-Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
----
- Documentation/kernel-parameters.txt |   16 ++++++++++++++++
- drivers/acpi/osl.c                  |    6 +++---
- 2 files changed, 19 insertions(+), 3 deletions(-)
-
-Index: b/Documentation/kernel-parameters.txt
-===================================================================
---- a/Documentation/kernel-parameters.txt	2009-03-29 23:58:11.574893074 +0200
-+++ b/Documentation/kernel-parameters.txt	2009-03-29 23:58:31.582894852 +0200
-@@ -259,6 +259,22 @@
- 			to assume that this machine's pmtimer latches its value
- 			and always returns good values.
- 
-+	acpi_enforce_resources=	[ACPI]
-+			{ strict | lax | no }
-+			Check for resource conflicts between native drivers
-+			and ACPI OperationRegions (SystemIO and SystemMemory
-+			only). IO ports and memory declared in ACPI might be
-+			used by the ACPI subsystem in arbitrary AML code and
-+			can interfere with legacy drivers.
-+			strict (default): access to resources claimed by ACPI
-+			is denied; legacy drivers trying to access reserved
-+			resources will fail to bind to device using them.
-+			lax: access to resources claimed by ACPI is allowed;
-+			legacy drivers trying to access reserved resources
-+			will bind successfully but a warning message is logged.
-+			no: ACPI OperationRegions are not marked as reserved,
-+			no further checks are performed.
-+
- 	agp=		[AGP]
- 			{ off | try_unsupported }
- 			off: disable AGP support
-Index: b/drivers/acpi/osl.c
-===================================================================
---- a/drivers/acpi/osl.c	2009-03-29 23:58:11.942913535 +0200
-+++ b/drivers/acpi/osl.c	2009-03-29 23:58:31.586892815 +0200
-@@ -1070,9 +1070,9 @@
-  * in arbitrary AML code and can interfere with legacy drivers.
-  * acpi_enforce_resources= can be set to:
-  *
-- *   - strict           (2)
-+ *   - strict (default) (2)
-  *     -> further driver trying to access the resources will not load
-- *   - lax (default)    (1)
-+ *   - lax              (1)
-  *     -> further driver trying to access the resources will load, but you
-  *     get a system message that something might go wrong...
-  *
-@@ -1084,7 +1084,7 @@
- #define ENFORCE_RESOURCES_LAX    1
- #define ENFORCE_RESOURCES_NO     0
- 
--static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
- 
- static int __init acpi_enforce_resources_setup(char *str)
- {
-
-
-Luca
--- 
-La somma dell'intelligenza sulla terra e` una costante.
-La popolazione e` in aumento.
