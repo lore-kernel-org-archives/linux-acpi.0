@@ -1,80 +1,92 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: warning at powernowk8_cpu_init()
-Date: Mon, 30 Mar 2009 10:38:20 +0800
-Message-ID: <1238380700.3625.17.camel@localhost.localdomain>
-References: <49CF4DDB.8050607@gmail.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 57/98] sony-laptop: Add support for extra keyboard
+	events
+Date: Mon, 30 Mar 2009 12:52:39 +0900
+Message-ID: <20090330035238.GA3317@kamineko.org>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <200903291751.45455.matze@welwarsky.de> <20090329160212.GA9129@srcf.ucam.org> <200903291838.14723.matze@welwarsky.de> <20090329164107.GA9566@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:48399 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755753AbZC3Ch0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Mar 2009 22:37:26 -0400
-In-Reply-To: <49CF4DDB.8050607@gmail.com>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:52276
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754425AbZC3Dwm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Mar 2009 23:52:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20090329164107.GA9566@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Roel Kluin <roel.kluin@gmail.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Matthias Welwarsky <matze@welwarsky.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Sun, 2009-03-29 at 18:30 +0800, Roel Kluin wrote:
-> Hi,
+On Sun, Mar 29, 2009 at 05:41:07PM +0100, Matthew Garrett wrote:
+> On Sun, Mar 29, 2009 at 06:38:14PM +0200, Matthias Welwarsky wrote:
 > 
-> I got this warning during boot:
+> > Whoops, just noticed that there was a bug in my patch. No wonder it confused 
+> > you.  Should untranslated events >= 0x90 still generate ACPI events? In that 
+> > case, the following patch would fix it. If not, the acpi event reporting must 
+> > be moved into the else path, too.
 > 
-> powernow-k8: Found 1 AMD Athlon(tm) 64 X2 Dual Core Processor 5000+ processors (2 cpu cores) (version 2.20.00)
-> ------------[ cut here ]------------
-> WARNING: at /home/roel/dnld/src/kernel/git/linux-2.6/arch/x86/kernel/cpu/cpufreq/powernow-k8.c:1254 powernowk8_cpu_init+0x500/0xad0()
-> Hardware name: MS-7369
-> [Firmware Bug]: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a way that Linux understands. Please report this to the Linux ACPI maintainers and complain to your BIOS vendor.
-Hi, 
-   From the log it seems that there is no _PSS object , which is
-required by the powernow-k8 cpufreq. IMO the warning message is
-reasonable. 
-   We have seen this issue on a lot of machines based on AMD platforms.
-And this issue had better be fixed by BIOS upgrading.
+> I don't think it's likely to be useful - if we ever implement support 
+> for them then we'll generate different events and generate user 
+> confusion.
 
-> Modules linked in:
-> Pid: 1, comm: swapper Not tainted 2.6.29-smp #1
-Is the following dump stack message reported on vanilla kernel ? Or is
-it reported by adding the function of dump_stack?
-Thanks.
-> Call Trace:
->  [<c012c466>] warn_slowpath+0x86/0xa0
->  [<c0300ae5>] ? acpi_ns_get_node+0x7a/0x84
->  [<c0300ae5>] ? acpi_ns_get_node+0x7a/0x84
->  [<c0124870>] ? default_wake_function+0x0/0x10
->  [<c0120f56>] ? task_rq_lock+0x66/0x90
->  [<c0300d54>] ? acpi_get_handle+0x6c/0x8e
->  [<c03125ad>] ? acpi_processor_register_performance+0x397/0x3b2
->  [<c047f2c2>] ? _cond_resched+0x22/0x50
->  [<c018f48b>] ? kmem_cache_alloc+0x8b/0xd0
->  [<c047a59e>] ? powernowk8_cpu_init+0x4e/0xad0
->  [<c047aa50>] powernowk8_cpu_init+0x500/0xad0
->  [<c012677f>] ? finish_task_switch+0xaf/0xf0
->  [<c047f2c2>] ? _cond_resched+0x22/0x50
->  [<c047f2c2>] ? _cond_resched+0x22/0x50
->  [<c047ff0b>] ? down_write+0xb/0x30
->  [<c03cd970>] ? lock_policy_rwsem_write+0x70/0xa0
->  [<c03cdcf9>] cpufreq_add_dev+0x1c9/0x5f0
->  [<c032dc80>] ? vt_console_print+0x0/0x2a0
->  [<c0144176>] ? up+0x46/0x60
->  [<c012cc29>] ? release_console_sem+0x209/0x210
->  [<c0120f56>] ? task_rq_lock+0x66/0x90
->  [<c02c3f87>] ? kref_get+0x37/0x60
->  [<c01273ee>] ? set_cpus_allowed_ptr+0xae/0x120
->  [<c033c025>] sysdev_driver_register+0x75/0x120
->  [<c047a550>] ? powernowk8_cpu_init+0x0/0xad0
->  [<c03ce5a6>] cpufreq_register_driver+0x86/0x140
->  [<c047a537>] powernowk8_init+0x87/0xa0
->  [<c047a4b0>] ? powernowk8_init+0x0/0xa0
->  [<c0101114>] do_one_initcall+0x24/0x150
->  [<c01d46c4>] ? create_proc_entry+0x54/0xa0
->  [<c015c5e2>] ? register_irq_proc+0xa2/0xc0
->  [<c015c665>] ? init_irq_proc+0x65/0x80
->  [<c0618662>] kernel_init+0x122/0x180
->  [<c0618540>] ? kernel_init+0x0/0x180
->  [<c0103cdb>] kernel_thread_helper+0x7/0x1c
-> ---[ end trace f7b2fa9171ecaaac ]---
-> dmesg and .config are attached
+yes, but up to 2.6.29 they are being reported for all the models
+supported by the former SNC initialization code. I'd rather keep them
+until /proc/acpi/event goes away.
 
+> > --- sony-laptop.c.orig	2009-03-29 12:41:44.000000000 +0200
+> > +++ sony-laptop.c	2009-03-29 18:36:31.000000000 +0200
+> > @@ -865,7 +865,7 @@
+> >  static struct sony_nc_event sony_100_events[] = {
+> >  	{ 0x90, SONYPI_EVENT_PKEY_P1 },
+> >  	{ 0x10, SONYPI_EVENT_ANYBUTTON_RELEASED },
+> > -	{ 0x91, SONYPI_EVENT_PKEY_P1 },
+> > +	{ 0x91, SONYPI_EVENT_PKEY_P2 },
+> >  	{ 0x11, SONYPI_EVENT_ANYBUTTON_RELEASED },
+> >  	{ 0x81, SONYPI_EVENT_FNKEY_F1 },
+> >  	{ 0x01, SONYPI_EVENT_FNKEY_RELEASED },
+> > @@ -929,7 +929,7 @@
+> >  		if (sony_find_snc_handle(0x127) == ev)
+> >  			key_handle = 0x127;
+> >  
+> > -		if (handle) {
+> > +		if (key_handle) {
+> >  			struct sony_nc_event *key_event;
+> >  
+> >  			if (sony_call_snc_handle(key_handle, 0x200, &result))
+> > @@ -955,15 +955,16 @@
+> >  				printk(KERN_INFO DRV_PFX
+> >  				       "Unknown event: 0x%x 0x%x\n", key_handle,
+> >  				       ev);
+> > -			}
+> > +			} else
+> > +				sony_laptop_report_input_event(ev);
+> >  		} else if (sony_find_snc_handle(0x124) == ev) {
+> >  			sony_nc_rfkill_update();
+> >  			return;
+> >  		}
+> > -	}
+> > +	} else
+> > +		sony_laptop_report_input_event(ev);
+> >  
+> >  	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
+> > -	sony_laptop_report_input_event(ev);
+> >  	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
+> >  }
+> 
+> Yes, that looks good, just move the acpi_bus_generate_proc_event into 
+> the same blocks as sony_laptop_report_input_event.
+> 
+> Acked-by: Matthew Garrett <mjg@redhat.com>
+
+I'll take this version of the patch.
+
+Len, this patch isn't upstream yet, would you prefer me to resend
+only this one with the fixes from Matthias merged in or do you want it
+as a separate fix?
+
+Also, Matthias can we have your signoff line?
+Thanks
+-- 
+mattia
+:wq!
