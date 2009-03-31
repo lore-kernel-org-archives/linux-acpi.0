@@ -1,18 +1,18 @@
 From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH 06/10] fujitsu-laptop: use .notify method instead of installing handler directly
-Date: Wed, 1 Apr 2009 07:59:09 +0930 (CST)
-Message-ID: <200903312229.n2VMT9jY014577@turbo.physics.adelaide.edu.au>
-References: <20090330174839.20905.63966.stgit@bob.kio>
+Subject: Re: [PATCH 07/10] fujitsu-laptop: use .notify method instead of installing handler directly
+Date: Wed, 1 Apr 2009 08:00:45 +0930 (CST)
+Message-ID: <200903312230.n2VMUjM1014758@turbo.physics.adelaide.edu.au>
+References: <20090330174844.20905.18635.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:37346 "EHLO
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:37396 "EHLO
 	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751957AbZCaWbh (ORCPT
+	by vger.kernel.org with ESMTP id S1755032AbZCaWdE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:31:37 -0400
-In-Reply-To: <20090330174839.20905.63966.stgit@bob.kio> from "Bjorn Helgaas" at Mar 30, 2009 11:48:39 AM
+	Tue, 31 Mar 2009 18:33:04 -0400
+In-Reply-To: <20090330174844.20905.18635.stgit@bob.kio> from "Bjorn Helgaas" at Mar 30, 2009 11:48:44 AM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
@@ -26,7 +26,7 @@ Cc: Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achian
 > CC: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 > CC: Tony Vroon <tony@linx.net>
 
-This patch looks fine to me for a Fujitsu S7020 laptop.  Thanks Bjorn.
+This patch also looks to be fine (machine is S7020).  Thanks again Bjorn.
 
 Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
@@ -34,37 +34,39 @@ Regards
   jonathan
 
 > ---
->  drivers/platform/x86/fujitsu-laptop.c |   28 ++++------------------------
->  1 files changed, 4 insertions(+), 24 deletions(-)
+>  drivers/platform/x86/fujitsu-laptop.c |   32 +++++---------------------------
+>  1 files changed, 5 insertions(+), 27 deletions(-)
 > 
 > diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-> index 45940f3..10f8796 100644
+> index 10f8796..218b9a1 100644
 > --- a/drivers/platform/x86/fujitsu-laptop.c
 > +++ b/drivers/platform/x86/fujitsu-laptop.c
-> @@ -203,7 +203,7 @@ struct led_classdev kblamps_led = {
->  static u32 dbg_level = 0x03;
->  #endif
+> @@ -174,8 +174,7 @@ struct fujitsu_hotkey_t {
 >  
-> -static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data);
-> +static void acpi_fujitsu_notify(struct acpi_device *device, u32 event);
+>  static struct fujitsu_hotkey_t *fujitsu_hotkey;
 >  
->  /* Fujitsu ACPI interface function */
+> -static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+> -				       void *data);
+> +static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event);
 >  
-> @@ -658,7 +658,6 @@ static struct dmi_system_id fujitsu_dmi_table[] = {
+>  #ifdef CONFIG_LEDS_CLASS
+>  static enum led_brightness logolamp_get(struct led_classdev *cdev);
+> @@ -816,7 +815,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
 >  
->  static int acpi_fujitsu_add(struct acpi_device *device)
+>  static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
 >  {
 > -	acpi_status status;
 >  	acpi_handle handle;
 >  	int result = 0;
 >  	int state = 0;
-> @@ -673,20 +672,10 @@ static int acpi_fujitsu_add(struct acpi_device *device)
+> @@ -833,17 +831,6 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
 >  	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
->  	device->driver_data = fujitsu;
+>  	device->driver_data = fujitsu_hotkey;
 >  
 > -	status = acpi_install_notify_handler(device->handle,
 > -					     ACPI_DEVICE_NOTIFY,
-> -					     acpi_fujitsu_notify, fujitsu);
+> -					     acpi_fujitsu_hotkey_notify,
+> -					     fujitsu_hotkey);
 > -
 > -	if (ACPI_FAILURE(status)) {
 > -		printk(KERN_ERR "Error installing notify handler\n");
@@ -72,66 +74,72 @@ Regards
 > -		goto err_stop;
 > -	}
 > -
->  	fujitsu->input = input = input_allocate_device();
+>  	/* kfifo */
+>  	spin_lock_init(&fujitsu_hotkey->fifo_lock);
+>  	fujitsu_hotkey->fifo =
+> @@ -858,7 +845,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+>  	fujitsu_hotkey->input = input = input_allocate_device();
 >  	if (!input) {
 >  		error = -ENOMEM;
 > -		goto err_uninstall_notify;
-> +		goto err_stop;
+> +		goto err_free_fifo;
 >  	}
 >  
->  	snprintf(fujitsu->phys, sizeof(fujitsu->phys),
-> @@ -743,9 +732,6 @@ static int acpi_fujitsu_add(struct acpi_device *device)
+>  	snprintf(fujitsu_hotkey->phys, sizeof(fujitsu_hotkey->phys),
+> @@ -954,9 +941,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
 >  end:
 >  err_free_input_dev:
 >  	input_free_device(input);
 > -err_uninstall_notify:
 > -	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-> -				   acpi_fujitsu_notify);
+> -				   acpi_fujitsu_hotkey_notify);
+> +err_free_fifo:
+>  	kfifo_free(fujitsu_hotkey->fifo);
 >  err_stop:
 >  
->  	return result;
-> @@ -753,7 +739,6 @@ err_stop:
+> @@ -965,7 +950,6 @@ err_stop:
 >  
->  static int acpi_fujitsu_remove(struct acpi_device *device, int type)
+>  static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
 >  {
 > -	acpi_status status;
->  	struct fujitsu_t *fujitsu = NULL;
+>  	struct fujitsu_hotkey_t *fujitsu_hotkey = NULL;
 >  
 >  	if (!device || !acpi_driver_data(device))
-> @@ -761,10 +746,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
+> @@ -973,10 +957,6 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
 >  
->  	fujitsu = acpi_driver_data(device);
+>  	fujitsu_hotkey = acpi_driver_data(device);
 >  
-> -	status = acpi_remove_notify_handler(fujitsu->acpi_handle,
+> -	status = acpi_remove_notify_handler(fujitsu_hotkey->acpi_handle,
 > -					    ACPI_DEVICE_NOTIFY,
-> -					    acpi_fujitsu_notify);
+> -					    acpi_fujitsu_hotkey_notify);
 > -
->  	if (!device || !acpi_driver_data(device))
->  		return -EINVAL;
+>  	fujitsu_hotkey->acpi_handle = NULL;
 >  
-> @@ -775,7 +756,7 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
+>  	kfifo_free(fujitsu_hotkey->fifo);
+> @@ -984,8 +964,7 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+>  	return 0;
+>  }
 >  
->  /* Brightness notify */
->  
-> -static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
-> +static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
+> -static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+> -				       void *data)
+> +static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event)
 >  {
 >  	struct input_dev *input;
->  	int keycode;
-> @@ -829,8 +810,6 @@ static void acpi_fujitsu_notify(acpi_handle handle, u32 event, void *data)
->  		input_report_key(input, keycode, 0);
+>  	int keycode, keycode_r;
+> @@ -1068,8 +1047,6 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
 >  		input_sync(input);
+>  		break;
 >  	}
 > -
 > -	return;
 >  }
 >  
->  /* ACPI device for hotkey handling */
-> @@ -1107,6 +1086,7 @@ static struct acpi_driver acpi_fujitsu_driver = {
+>  /* Initialization */
+> @@ -1102,6 +1079,7 @@ static struct acpi_driver acpi_fujitsu_hotkey_driver = {
 >  	.ops = {
->  		.add = acpi_fujitsu_add,
->  		.remove = acpi_fujitsu_remove,
-> +		.notify = acpi_fujitsu_notify,
+>  		.add = acpi_fujitsu_hotkey_add,
+>  		.remove = acpi_fujitsu_hotkey_remove,
+> +		.notify = acpi_fujitsu_hotkey_notify,
 >  		},
 >  };
 >  
