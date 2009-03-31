@@ -1,140 +1,179 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 09/10] sony-laptop: use .notify method instead of
-	installing handler directly
-Date: Tue, 31 Mar 2009 22:46:13 +0900
-Message-ID: <20090331134613.GC21985@kamineko.org>
-References: <20090330174646.20905.18465.stgit@bob.kio> <20090330174854.20905.68935.stgit@bob.kio>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: new fixes for sony-acpi
+Date: Tue, 31 Mar 2009 16:20:35 +0100
+Message-ID: <20090331152035.GA20946@srcf.ucam.org>
+References: <20090323163459.GB5463@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain> <20090328013832.GA4778@srcf.ucam.org> <20090328083315.GF9057@gamma.logic.tuwien.ac.at> <20090328120008.GA22470@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="huq684BweRXVnRxX"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:47347
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757444AbZCaNqP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2009 09:46:15 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:57316 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761133AbZCaPU5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2009 11:20:57 -0400
 Content-Disposition: inline
-In-Reply-To: <20090330174854.20905.68935.stgit@bob.kio>
+In-Reply-To: <20090328120008.GA22470@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Norbert Preining <preining@logic.at>
+Cc: Len Brown <lenb@kernel.org>, sony-vaio-z-series@lists.launchpad.net, Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
 
-On Mon, Mar 30, 2009 at 11:48:54AM -0600, Bjorn Helgaas wrote:
-> This patch adds a .notify() method.  The presence of .notify() causes
-> Linux/ACPI to manage event handlers and notify handlers on our behalf,
-> so we don't have to install and remove them ourselves.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> CC: Mattia Dongili <malattia@linux.it>
 
-looks fine to me, the only thing is that the first 3 hunks may not apply
-(cleanly?) due to a few recent changes not yet in Linus tree (but in
-Len's).
+--huq684BweRXVnRxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Feel free to add my
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+I've done some more work on this and here's the current state of things. 
+It's a module that loads, checks what state the firmware thinks the 
+hardware is in and then ensures that the hardware is actually in that 
+state. I believe that it gets the choice between internal and discrete 
+GPUs correct. It doesn't support runtime switching right now since 
+there's no way to do anything useful with it, but it's a trivial sysfs 
+attribute.
 
-> ---
->  drivers/platform/x86/sony-laptop.c |   32 +++++---------------------------
->  1 files changed, 5 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-> index bc8996c..be98b1f 100644
-> --- a/drivers/platform/x86/sony-laptop.c
-> +++ b/drivers/platform/x86/sony-laptop.c
-> @@ -895,7 +895,7 @@ static const struct dmi_system_id sony_nc_ids[] = {
->  /*
->   * ACPI callbacks
->   */
-> -static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
-> +static void sony_nc_notify(struct acpi_device *device, u32 event)
->  {
->  	struct sony_nc_event *evmap;
->  	u32 ev = event;
-> @@ -913,8 +913,8 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
->  		 * TODO: we may want to do the same for the older GHKE -need
->  		 *       dmi list- so this snippet may become one more callback.
->  		 */
-> -		if (acpi_callsetfunc(handle, "SN07", 0x0202, &result) < 0)
-> -			dprintk("sony_acpi_notify, unable to decode event 0x%.2x\n", ev);
-> +		if (acpi_callsetfunc(sony_nc_acpi_handle, "SN07", 0x0202, &result) < 0)
-> +			dprintk("sony_nc_notify, unable to decode event 0x%.2x\n", ev);
->  		else
->  			ev = result & 0xFF;
->  	}
-> @@ -927,7 +927,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
->  			}
->  		}
->  
-> -	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
-> +	dprintk("sony_nc_notify, event: 0x%.2x\n", ev);
->  	sony_laptop_report_input_event(ev);
->  	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
->  }
-> @@ -1032,15 +1032,6 @@ static int sony_nc_add(struct acpi_device *device)
->  		goto outwalk;
->  	}
->  
-> -	status = acpi_install_notify_handler(sony_nc_acpi_handle,
-> -					     ACPI_DEVICE_NOTIFY,
-> -					     sony_acpi_notify, NULL);
-> -	if (ACPI_FAILURE(status)) {
-> -		printk(KERN_WARNING DRV_PFX "unable to install notify handler (%u)\n", status);
-> -		result = -ENODEV;
-> -		goto outinput;
-> -	}
-> -
->  	if (acpi_video_backlight_support()) {
->  		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
->  		       "controlled by ACPI video driver\n");
-> @@ -1121,13 +1112,6 @@ static int sony_nc_add(struct acpi_device *device)
->  	if (sony_backlight_device)
->  		backlight_device_unregister(sony_backlight_device);
->  
-> -	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
-> -					    ACPI_DEVICE_NOTIFY,
-> -					    sony_acpi_notify);
-> -	if (ACPI_FAILURE(status))
-> -		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
-> -
-> -      outinput:
->  	sony_laptop_remove_input();
->  
->        outwalk:
-> @@ -1136,7 +1120,6 @@ static int sony_nc_add(struct acpi_device *device)
->  
->  static int sony_nc_remove(struct acpi_device *device, int type)
->  {
-> -	acpi_status status;
->  	struct sony_nc_value *item;
->  
->  	if (sony_backlight_device)
-> @@ -1144,12 +1127,6 @@ static int sony_nc_remove(struct acpi_device *device, int type)
->  
->  	sony_nc_acpi_device = NULL;
->  
-> -	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
-> -					    ACPI_DEVICE_NOTIFY,
-> -					    sony_acpi_notify);
-> -	if (ACPI_FAILURE(status))
-> -		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
-> -
->  	for (item = sony_nc_values; item->name; ++item) {
->  		device_remove_file(&sony_pf_device->dev, &item->devattr);
->  	}
-> @@ -1182,6 +1159,7 @@ static struct acpi_driver sony_nc_driver = {
->  		.add = sony_nc_add,
->  		.remove = sony_nc_remove,
->  		.resume = sony_nc_resume,
-> +		.notify = sony_nc_notify,
->  		},
->  };
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I've done this outside sony-laptop since it's not specific to Sonys in 
+any way. It would be wonderful if anyone with any of the other hybrid 
+nvidias (except the Apples, which seem to be entirely different) could 
+give it a go.
+
 -- 
-mattia
-:wq!
+Matthew Garrett | mjg59@srcf.ucam.org
+
+--huq684BweRXVnRxX
+Content-Type: text/x-csrc; charset=us-ascii
+Content-Disposition: attachment; filename="nvidia-control.c"
+
+#include <linux/acpi.h>
+#include <acpi/acpi_drivers.h>
+#include <acpi/acpi_bus.h>
+#include <linux/pci.h>
+
+static int nvidia_dsm(struct pci_dev *dev, int func, int arg, int *result)
+{
+	static char muid[] = {
+		0xA0, 0xA0, 0x95, 0x9D, 0x60, 0x00, 0x48, 0x4D,
+		0xB3, 0x4D, 0x7E, 0x5F, 0xEA, 0x12, 0x9F, 0xD4,
+	};
+
+	struct acpi_handle *handle;
+	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
+	struct acpi_object_list input;
+	union acpi_object params[4];
+	union acpi_object *obj;
+	int err;
+
+	handle = DEVICE_ACPI_HANDLE(&dev->dev);
+
+	if (!handle)
+		return -ENODEV;
+
+	input.count = 4;
+	input.pointer = params;
+	params[0].type = ACPI_TYPE_BUFFER;
+	params[0].buffer.length = sizeof(muid);
+	params[0].buffer.pointer = (char *)muid;
+	params[1].type = ACPI_TYPE_INTEGER;
+	params[1].integer.value = 0x00000102;
+	params[2].type = ACPI_TYPE_INTEGER;
+	params[2].integer.value = func;
+	params[3].type = ACPI_TYPE_INTEGER;
+	params[3].integer.value = arg;
+
+	err = acpi_evaluate_object(handle, "_DSM", &input, &output);
+	if (err) {
+		printk(KERN_ERR "nvidia-control: failed to evaluate _DSM: %d\n",
+		       err);
+		return err;
+	}
+
+	obj = (union acpi_object *)output.pointer;
+
+	if (obj->type == ACPI_TYPE_INTEGER)
+		if (obj->integer.value == 0x80000002)
+			return -ENODEV;
+
+	if (obj->type == ACPI_TYPE_BUFFER) {
+		if (obj->buffer.length == 4 && result) {
+			*result = 0;
+			*result |= obj->buffer.pointer[0];
+			*result |= (obj->buffer.pointer[1] << 8);
+			*result |= (obj->buffer.pointer[2] << 16);
+			*result |= (obj->buffer.pointer[3] << 24);
+		}
+	}
+
+	kfree(output.pointer);
+	return 0;
+}
+
+int nvidia_control_setup(struct pci_dev *dev)
+{
+	int result;
+
+	if (nvidia_dsm(dev, 1, 0, &result))
+		return -ENODEV;
+
+	printk(KERN_INFO "nvidia-control: hardware status gave 0x%x\n", result);
+
+	if (result &= 0x1) {	/* Stamina mode - disable the external GPU */
+		nvidia_dsm(dev, 0x2, 0x11, NULL);
+		nvidia_dsm(dev, 0x3, 0x02, NULL);
+	} else {		/* Ensure that the external GPU is enabled */
+		nvidia_dsm(dev, 0x2, 0x12, NULL);
+		nvidia_dsm(dev, 0x3, 0x01, NULL);
+	}
+
+	return 0;
+}
+
+int nvidia_control_probe(struct pci_dev *dev)
+{
+	int support = 0;
+	
+	if (nvidia_dsm(dev, 0, 0, &support))
+		 return -ENODEV;
+
+	if (!support)
+		return -ENODEV;
+
+	return 0;
+}
+
+static int __init nvidia_control_init(void)
+{
+	struct pci_dev *dev = NULL;
+	while ((dev = pci_get_device(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, dev))) {
+		if (dev->class == 0x30000)
+			if (!nvidia_control_probe(dev))
+				nvidia_control_setup(dev);
+	}
+	return 0;
+}
+
+static void __exit nvidia_control_exit(void)
+{
+	return;
+}
+
+static const struct pci_device_id pci_ids [] = {
+	{ PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+	  (PCI_CLASS_DISPLAY_VGA << 8), 0xffff00},
+	{ },
+};
+
+MODULE_DEVICE_TABLE(pci, pci_ids);
+
+module_init(nvidia_control_init);
+module_exit(nvidia_control_exit);
+
+MODULE_LICENSE("GPL");
+
+--huq684BweRXVnRxX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=Makefile
+
+obj-m += nvidia-control.o
+
+all:
+	make -C /lib/modules/`uname -r`/build M=`pwd`
+
+--huq684BweRXVnRxX--
