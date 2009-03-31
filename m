@@ -1,47 +1,309 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH] PNPACPI: Enable PNPACPI _PSx Support, v3
-Date: Tue, 31 Mar 2009 22:37:23 +0200
-Message-ID: <49D27F03.2070302@gmx.net>
-References: <49D101DA.50201@gmx.net> <1238463939.3625.99.camel@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH 1/2] toshiba-acpi: Add support for hotkey notifications
+Date: Tue, 31 Mar 2009 22:42:16 +0100
+Message-ID: <20090331214216.GA29489@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45364 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751366AbZCaUhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Mar 2009 16:37:33 -0400
-In-Reply-To: <1238463939.3625.99.camel@localhost.localdomain>
+Received: from cavan.codon.org.uk ([93.93.128.6]:50887 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762029AbZCaVmX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2009 17:42:23 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>, "abelay@mit.edu" <abelay@mit.edu>, "rjw@sisk.pl" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
+Cc: dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org, lenb@intel.com
 
-yakui_zhao wrote:
+Calling the ENAB method on Toshiba laptops results in notifications being
+sent when laptop hotkeys are pressed. This patch simply calls that method
+and sets up an input device if it's successful.
 
->     Very good patch.
->     Do you have the hardware on which the dedicated power source is
-> required by the serial port(PnP device) in your hand?
-> 
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/platform/x86/Kconfig        |    1 +
+ drivers/platform/x86/toshiba_acpi.c |  207 +++++++++++++++++++++++++++++++++-
+ 2 files changed, 201 insertions(+), 7 deletions(-)
 
-Yes, I have an IBM ThinkPad 600E. I need this patch in order to
-be able receive accurate time using a DCF77 receiver attached
-to the serial port.
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 3608081..3186701 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -370,6 +370,7 @@ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on ACPI
+ 	depends on INPUT
++	select INPUT
+ 	select INPUT_POLLDEV
+ 	select NET
+ 	select RFKILL
+diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+index 40e60fc..fb87b57 100644
+--- a/drivers/platform/x86/toshiba_acpi.c
++++ b/drivers/platform/x86/toshiba_acpi.c
+@@ -46,6 +46,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/rfkill.h>
+ #include <linux/input-polldev.h>
++#include <linux/input.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -62,9 +63,10 @@ MODULE_LICENSE("GPL");
+ 
+ /* Toshiba ACPI method paths */
+ #define METHOD_LCD_BRIGHTNESS	"\\_SB_.PCI0.VGA_.LCD_._BCM"
+-#define METHOD_HCI_1		"\\_SB_.VALD.GHCI"
+-#define METHOD_HCI_2		"\\_SB_.VALZ.GHCI"
++#define TOSH_INTERFACE_1	"\\_SB_.VALD"
++#define TOSH_INTERFACE_2	"\\_SB_.VALZ"
+ #define METHOD_VIDEO_OUT	"\\_SB_.VALX.DSSX"
++#define GHCI_METHOD		".GHCI"
+ 
+ /* Toshiba HCI interface definitions
+  *
+@@ -116,6 +118,37 @@ static const struct acpi_device_id toshiba_device_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(acpi, toshiba_device_ids);
+ 
++struct key_entry {
++	char type;
++	u16 code;
++	u16 keycode;
++};
++
++enum {KE_KEY, KE_END};
++
++static struct key_entry toshiba_acpi_keymap[]  = {
++	{KE_KEY, 0x101, KEY_MUTE},
++	{KE_KEY, 0x13b, KEY_COFFEE},
++	{KE_KEY, 0x13c, KEY_BATTERY},
++	{KE_KEY, 0x13d, KEY_SLEEP},
++	{KE_KEY, 0x13e, KEY_SUSPEND},
++	{KE_KEY, 0x13f, KEY_SWITCHVIDEOMODE},
++	{KE_KEY, 0x140, KEY_BRIGHTNESSDOWN},
++	{KE_KEY, 0x141, KEY_BRIGHTNESSUP},
++	{KE_KEY, 0x142, KEY_WLAN},
++	{KE_KEY, 0x143, KEY_PROG1},
++	{KE_KEY, 0x17f, KEY_BRIGHTNESSDOWN},
++	{KE_KEY, 0xb05, KEY_PROG2},
++	{KE_KEY, 0xb06, KEY_WWW},
++	{KE_KEY, 0xb07, KEY_MAIL},
++	{KE_KEY, 0xb30, KEY_STOP},
++	{KE_KEY, 0xb31, KEY_PREVIOUSSONG},
++	{KE_KEY, 0xb32, KEY_NEXTSONG},
++	{KE_KEY, 0xb33, KEY_PLAYPAUSE},
++	{KE_KEY, 0xb5a, KEY_MEDIA},
++	{KE_END, 0, 0},
++};
++
+ /* utility
+  */
+ 
+@@ -252,6 +285,8 @@ struct toshiba_acpi_dev {
+ 	struct platform_device *p_dev;
+ 	struct rfkill *rfk_dev;
+ 	struct input_polled_dev *poll_dev;
++	struct input_dev *hotkey_dev;
++	acpi_handle handle;
+ 
+ 	const char *bt_name;
+ 	const char *rfk_name;
+@@ -702,6 +737,154 @@ static struct backlight_ops toshiba_backlight_data = {
+         .update_status  = set_lcd_status,
+ };
+ 
++static struct key_entry *toshiba_acpi_get_entry_by_scancode(int code)
++{
++	struct key_entry *key;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
++		if (code == key->code)
++			return key;
++
++	return NULL;
++}
++
++static struct key_entry *toshiba_acpi_get_entry_by_keycode(int code)
++{
++	struct key_entry *key;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++)
++		if (code == key->keycode && key->type == KE_KEY)
++			return key;
++
++	return NULL;
++}
++
++static int toshiba_acpi_getkeycode(struct input_dev *dev, int scancode,
++				   int *keycode)
++{
++	struct key_entry *key = toshiba_acpi_get_entry_by_scancode(scancode);
++
++	if (key && key->type == KE_KEY) {
++		*keycode = key->keycode;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static int toshiba_acpi_setkeycode(struct input_dev *dev, int scancode,
++				   int keycode)
++{
++	struct key_entry *key;
++	int old_keycode;
++
++	if (keycode < 0 || keycode > KEY_MAX)
++		return -EINVAL;
++
++	key = toshiba_acpi_get_entry_by_scancode(scancode);
++	if (key && key->type == KE_KEY) {
++		old_keycode = key->keycode;
++		key->keycode = keycode;
++		set_bit(keycode, dev->keybit);
++		if (!toshiba_acpi_get_entry_by_keycode(old_keycode))
++			clear_bit(old_keycode, dev->keybit);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
++{
++	u32 hci_result, value;
++	struct key_entry *key;
++
++	if (event != 0x80)
++		return;
++	do {
++		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
++		if (hci_result == HCI_SUCCESS) {
++			if (value == 0x100)
++				continue;
++			else if (value & 0x80) {
++				key = toshiba_acpi_get_entry_by_scancode
++					(value & ~0x80);
++				if (!key) {
++					printk(MY_INFO "Unknown key %x\n",
++					       value & ~0x80);
++					continue;
++				}
++				input_report_key(toshiba_acpi.hotkey_dev,
++						 key->keycode, 1);
++				input_sync(toshiba_acpi.hotkey_dev);
++				input_report_key(toshiba_acpi.hotkey_dev,
++						 key->keycode, 0);
++				input_sync(toshiba_acpi.hotkey_dev);
++			}
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an unresolved issue on
++			 * some machines where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
++			printk(MY_NOTICE "Re-enabled hotkeys\n");
++		}
++	} while (hci_result != HCI_EMPTY);
++}
++
++static int toshiba_acpi_setup_keyboard(char *device)
++{
++	acpi_status status;
++	acpi_handle handle;
++	int result;
++	const struct key_entry *key;
++
++	status = acpi_get_handle(NULL, device, &handle);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to get notification device\n");
++		return -ENODEV;
++	}
++
++	toshiba_acpi.handle = handle;
++
++	status = acpi_evaluate_object(handle, "ENAB", NULL, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to enable hotkeys\n");
++		return -ENODEV;
++	}
++
++	status = acpi_install_notify_handler (handle, ACPI_DEVICE_NOTIFY,
++					      toshiba_acpi_notify, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(MY_INFO "Unable to install hotkey notification\n");
++		return -ENODEV;
++	}
++
++	toshiba_acpi.hotkey_dev = input_allocate_device();
++	if (!toshiba_acpi.hotkey_dev) {
++		printk(MY_INFO "Unable to register input device\n");
++		return -ENOMEM;
++	}
++
++	toshiba_acpi.hotkey_dev->name = "Toshiba input device";
++	toshiba_acpi.hotkey_dev->phys = device;
++	toshiba_acpi.hotkey_dev->id.bustype = BUS_HOST;
++	toshiba_acpi.hotkey_dev->getkeycode = toshiba_acpi_getkeycode;
++	toshiba_acpi.hotkey_dev->setkeycode = toshiba_acpi_setkeycode;
++
++	for (key = toshiba_acpi_keymap; key->type != KE_END; key++) {
++		set_bit(EV_KEY, toshiba_acpi.hotkey_dev->evbit);
++		set_bit(key->keycode, toshiba_acpi.hotkey_dev->keybit);
++	}
++
++	result = input_register_device(toshiba_acpi.hotkey_dev);
++	if (result) {
++		printk(MY_INFO "Unable to register input device\n");
++		return result;
++	}
++
++	return 0;
++}
++
+ static void toshiba_acpi_exit(void)
+ {
+ 	if (toshiba_acpi.poll_dev) {
+@@ -709,12 +892,18 @@ static void toshiba_acpi_exit(void)
+ 		input_free_polled_device(toshiba_acpi.poll_dev);
+ 	}
+ 
++	if (toshiba_acpi.hotkey_dev)
++		input_unregister_device(toshiba_acpi.hotkey_dev);
++
+ 	if (toshiba_acpi.rfk_dev)
+ 		rfkill_unregister(toshiba_acpi.rfk_dev);
+ 
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
+ 
++	acpi_remove_notify_handler(toshiba_acpi.handle, ACPI_DEVICE_NOTIFY,
++				   toshiba_acpi_notify);
++
+ 	remove_device();
+ 
+ 	if (toshiba_proc_dir)
+@@ -738,11 +927,15 @@ static int __init toshiba_acpi_init(void)
+ 		return -ENODEV;
+ 
+ 	/* simple device detection: look for HCI method */
+-	if (is_valid_acpi_path(METHOD_HCI_1))
+-		method_hci = METHOD_HCI_1;
+-	else if (is_valid_acpi_path(METHOD_HCI_2))
+-		method_hci = METHOD_HCI_2;
+-	else
++	if (is_valid_acpi_path(TOSH_INTERFACE_1 GHCI_METHOD)) {
++		method_hci = TOSH_INTERFACE_1 GHCI_METHOD;
++		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_1))
++			printk(MY_INFO "Unable to activate hotkeys\n");
++	} else if (is_valid_acpi_path(TOSH_INTERFACE_2 GHCI_METHOD)) {
++		method_hci = TOSH_INTERFACE_2 GHCI_METHOD;
++		if (toshiba_acpi_setup_keyboard(TOSH_INTERFACE_2))
++			printk(MY_INFO "Unable to activate hotkeys\n");
++	} else
+ 		return -ENODEV;
+ 
+ 	printk(MY_INFO "Toshiba Laptop ACPI Extras version %s\n",
 
-[snip]
-
->> -	if (ACPI_FAILURE(status))
->> +	if (ACPI_FAILURE(acpi_set_current_resources(handle, &buffer)))
->>   		ret = -EINVAL;
->> +	else if (acpi_bus_power_manageable(handle))
->> +		ret = acpi_bus_set_power(handle, ACPI_STATE_D0);
-> How about changing the power state before calling _SRS object?
-
-I recall reading something in the ACPI spec that says that the power
-needs to be set after the device was enabled.  But the main driver
-for this order (_SRS followed by _PS0) is the symmetry to the required
-_PS3 followed by _DIS (according to the spec).
-
-[snip]
-
---- Witold
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
