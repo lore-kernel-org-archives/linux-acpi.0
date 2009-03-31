@@ -1,133 +1,32 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 57/98] sony-laptop: Add support for extra keyboard
-	events
-Date: Tue, 31 Mar 2009 13:28:47 +0900
-Message-ID: <20090331042847.GA23526@kamineko.org>
-References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <20090330035238.GA3317@kamineko.org> <200903300820.23868.matze@welwarsky.de> <200903310018.24553.matze@welwarsky.de>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH 06/10] fujitsu-laptop: use .notify method instead of
+Date: Tue, 31 Mar 2009 16:15:20 +0930 (CST)
+Message-ID: <200903310645.n2V6jKu8014279@turbo.physics.adelaide.edu.au>
+References: <20090330174839.20905.63966.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:41539
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753282AbZCaE2v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2009 00:28:51 -0400
-Content-Disposition: inline
-In-Reply-To: <200903310018.24553.matze@welwarsky.de>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:42324 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753468AbZCaHCz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Mar 2009 03:02:55 -0400
+In-Reply-To: <20090330174839.20905.63966.stgit@bob.kio> from "Bjorn Helgaas" at Mar 30, 2009 11:48:39 AM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthias Welwarsky <matze@welwarsky.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Tue, Mar 31, 2009 at 12:18:24AM +0200, Matthias Welwarsky wrote:
-> On Monday 30 March 2009 08:20:23 Matthias Welwarsky wrote:
-> > On Monday 30 March 2009 05:52:39 Mattia Dongili wrote:
-> > > On Sun, Mar 29, 2009 at 05:41:07PM +0100, Matthew Garrett wrote:
-> > > > On Sun, Mar 29, 2009 at 06:38:14PM +0200, Matthias Welwarsky wrote:
-> > > > > Whoops, just noticed that there was a bug in my patch. No wonder it
-> > > > > confused you.  Should untranslated events >= 0x90 still generate ACPI
-> > > > > events? In that case, the following patch would fix it. If not, the
-> > > > > acpi event reporting must be moved into the else path, too.
-> > > >
-> > > > I don't think it's likely to be useful - if we ever implement support
-> > > > for them then we'll generate different events and generate user
-> > > > confusion.
-> > >
-> > > yes, but up to 2.6.29 they are being reported for all the models
-> > > supported by the former SNC initialization code. I'd rather keep them
-> > > until /proc/acpi/event goes away.
-> >
-> > Hm, but if you keep them, there would be the possibility of ambiguous
-> > events. Events >= 0x90 are being translated and possibly (mostly) become <
-> > 0x90, so there's something like a namespace clash here. I think there
-> > should be a marker for translated events.
+> This patch adds a .notify() method.  The presence of .notify() causes
+> Linux/ACPI to manage event handlers and notify handlers on our behalf,
+> so we don't have to install and remove them ourselves.
 > 
-> [snip]
-> 
-> > > Also, Matthias can we have your signoff line?
-> >
-> > I'll resend the patch with a proper sign-off once we're clear about these
-> > questions, ok?
-> 
-> And here's an updated patch, it fixes bogus input events reported for 
-> untranslateable "new-style" hotkey events, reports unique events for Vaio Z21 
-> S1 and S2 buttons and restores the previous behavior of reporting ACPI events 
-> even for translated "new-style" hotkeys. To disambiguate them, those events 
-> start at 0x8000, maybe not quite deliberate - any other 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> CC: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+> CC: Tony Vroon <tony@linx.net>
 
-Actually I thought the problem was the event ambiguity for vaios
-having both the sony_100_events and sony_127_events (like the SR).
-Not really concerned about the the other events as we are not changing
-their behaviour here.
-The 0x8000 marker is not going to help much here since we are still
-generating the same acpi event for i.e. SONYPI_EVENT_FNKEY_F1 and
-SONYPI_EVENT_MODEKEY_PRESSED.
-Honestly, rather than trying to fix an already likely broken interface
-with more kludges I would just throw the event through /proc/acpi/event
-untouched, those having ambiguous events should just use the input
-layer.
-The only way I can think of actually fixing the sony_100/127 ambiguity
-without breaking compatibility with older kernels would be to send 2
-events, first the untranslated event, then the translated one. Not sure
-how usable it would be in the SR case though.
+I will check this out overnight and comment tomorrow.
 
-> suggestions? Also, ACPI events are generated for rf killswitch status changes. 
-> That's probably of limited use, because the state of the killswitch is not 
-> reported, but one can still iterate all switches in a script to find out about 
-> the status.
-> 
-> Signed-off-by: Matthias Welwarsky <matze@welwarsky.de>
-> 
-> --- sony-laptop.c.orig	2009-03-29 12:41:44.000000000 +0200
-> +++ sony-laptop.c	2009-03-31 00:04:23.000000000 +0200
-> @@ -865,7 +865,7 @@
->  static struct sony_nc_event sony_100_events[] = {
->  	{ 0x90, SONYPI_EVENT_PKEY_P1 },
->  	{ 0x10, SONYPI_EVENT_ANYBUTTON_RELEASED },
-> -	{ 0x91, SONYPI_EVENT_PKEY_P1 },
-> +	{ 0x91, SONYPI_EVENT_PKEY_P2 },
->  	{ 0x11, SONYPI_EVENT_ANYBUTTON_RELEASED },
->  	{ 0x81, SONYPI_EVENT_FNKEY_F1 },
->  	{ 0x01, SONYPI_EVENT_FNKEY_RELEASED },
-> @@ -929,7 +929,7 @@
->  		if (sony_find_snc_handle(0x127) == ev)
->  			key_handle = 0x127;
->  
-> -		if (handle) {
-> +		if (key_handle) {
->  			struct sony_nc_event *key_event;
->  
->  			if (sony_call_snc_handle(key_handle, 0x200, &result))
-> @@ -955,15 +955,22 @@
->  				printk(KERN_INFO DRV_PFX
->  				       "Unknown event: 0x%x 0x%x\n", key_handle,
->  				       ev);
-> +				/* restore original event number */
-> +				ev = event;
-
-good catch.
-
-> +			} else {
-> +				sony_laptop_report_input_event(ev);
-> +				/* mark event as translated */
-> +				ev |= 0x8000;
->  			}
->  		} else if (sony_find_snc_handle(0x124) == ev) {
->  			sony_nc_rfkill_update();
-> -			return;
-> -		}
-> -	}
-> -
-> +			/* restore original event number */
-> +			ev = event;
-> +		} 
-> +	} else
-> +		sony_laptop_report_input_event(ev);
-> +	
->  	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
-> -	sony_laptop_report_input_event(ev);
->  	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
->  }
->  
--- 
-mattia
-:wq!
+Regards
+  jonathan
