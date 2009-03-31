@@ -1,40 +1,55 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 09/10] sony-laptop: use .notify method instead of
-	installing handler directly
-Date: Wed, 1 Apr 2009 07:58:04 +0900
-Message-ID: <20090331225804.GA3919@kamineko.org>
-References: <20090330174646.20905.18465.stgit@bob.kio> <20090330174854.20905.68935.stgit@bob.kio> <20090331134613.GC21985@kamineko.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2/2] toshiba-acpi: Support TOS1900-type devices
+Date: Wed, 1 Apr 2009 00:02:17 +0100
+Message-ID: <20090331230217.GA31599@srcf.ucam.org>
+References: <20090331214501.GC29489@srcf.ucam.org> <20090331214749.GD29489@srcf.ucam.org> <74962ea30903311506m41306659td0cd70c5736f6660@mail.gmail.com> <20090331221107.GA30383@srcf.ucam.org> <74962ea30903311519s2fb6087fxfe8859e3c570ac99@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:42198
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755704AbZCaXAJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2009 19:00:09 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1764327AbZCaXCw@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090331134613.GC21985@kamineko.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <74962ea30903311519s2fb6087fxfe8859e3c570ac99@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Azael Avalos <coproscefalo@gmail.com>
+Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Tue, Mar 31, 2009 at 10:46:13PM +0900, Mattia Dongili wrote:
-> On Mon, Mar 30, 2009 at 11:48:54AM -0600, Bjorn Helgaas wrote:
-> > This patch adds a .notify() method.  The presence of .notify() causes
-> > Linux/ACPI to manage event handlers and notify handlers on our behalf,
-> > so we don't have to install and remove them ourselves.
-> > 
-> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > CC: Mattia Dongili <malattia@linux.it>
-> 
-> looks fine to me, the only thing is that the first 3 hunks may not apply
-> (cleanly?) due to a few recent changes not yet in Linus tree (but in
-> Len's).
-> 
-> Feel free to add my
-> Signed-off-by: Mattia Dongili <malattia@linux.it>
-yeah well, should be
-Acked-by: Mattia Dongili <malattia@linux.it>
+Ok, can you try this and let me know what codes it generates (if it 
+generates any)? It should go on top of the previous patches.
+
+diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+index 9fb4873..8552e1a 100644
+--- a/drivers/platform/x86/toshiba_acpi.c
++++ b/drivers/platform/x86/toshiba_acpi.c
+@@ -185,7 +185,6 @@ static int write_acpi_int(const char *methodName, int val)
+ 	return (status == AE_OK);
+ }
+ 
+-#if 0
+ static int read_acpi_int(const char *methodName, int *pVal)
+ {
+ 	struct acpi_buffer results;
+@@ -200,7 +199,6 @@ static int read_acpi_int(const char *methodName, int *pVal)
+ 
+ 	return (status == AE_OK) && (out_objs[0].type == ACPI_TYPE_INTEGER);
+ }
+-#endif
+ 
+ static const char *method_hci /*= 0*/ ;
+ 
+@@ -802,6 +800,13 @@ static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
+ 
+ 	if (event != 0x80)
+ 		return;
++
++	if (is_valid_acpi_path(TOSH_INTERFACE_2 SPFC_METHOD)) {
++		read_acpi_int(TOSH_INTERFACE_2 SPFC_METHOD, &value);
++		printk("Received 0x%x\n", value);
++		return;
++	}
++
+ 	do {
+ 		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
+ 		if (hci_result == HCI_SUCCESS) {
+
 -- 
-mattia
-:wq!
+Matthew Garrett | mjg59@srcf.ucam.org
