@@ -1,30 +1,19 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] PNPACPI: Enable PNPACPI _PSx Support, v3
-Date: Tue, 31 Mar 2009 07:19:58 -0300
-Message-ID: <20090331101958.GA8090@khazad-dum.debian.net>
-References: <49D101DA.50201@gmx.net>
+From: "Christopher" <rel@arquired.es>
+Subject: Is it everything fine?
+Date: Tue, 31 Mar 2009 15:08:39 +0200
+Message-ID: <20090331150839.9020203@arquired.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39842 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751637AbZCaKUE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Mar 2009 06:20:04 -0400
-Content-Disposition: inline
-In-Reply-To: <49D101DA.50201@gmx.net>
+Received: from host.213.240.200.13.customers.net-surf.net ([213.240.200.13]:4114
+	"HELO host.213.240.200.13.customers.net-surf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751636AbZCaMyr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Mar 2009 08:54:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bjorn.helgaas@hp.com, abelay@mit.edu, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
 
-This issue is also related to
-http://bugzilla.kernel.org/show_bug.cgi?id=12748
+Damned terrorists!!! http://wvkolm.reportradio.com/contact.php
 
-Thanks for fixing the PNPACPI side of things :-)
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
