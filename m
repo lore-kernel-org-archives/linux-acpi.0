@@ -1,49 +1,32 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/2] toshiba-acpi: Support TOS1900-type devices
-Date: Tue, 31 Mar 2009 23:11:07 +0100
-Message-ID: <20090331221107.GA30383@srcf.ucam.org>
-References: <20090331214501.GC29489@srcf.ucam.org> <20090331214749.GD29489@srcf.ucam.org> <74962ea30903311506m41306659td0cd70c5736f6660@mail.gmail.com>
+From: Tony Vroon <tony@linx.net>
+Subject: Re: [PATCH 06/10] fujitsu-laptop: use .notify method instead of
+ installing handler directly
+Date: Tue, 31 Mar 2009 23:09:13 +0100
+Message-ID: <20090331230913.18c9e039@linx.net>
+References: <20090330174646.20905.18465.stgit@bob.kio>
+	<20090330174839.20905.63966.stgit@bob.kio>
+	<20090331223805.5356a323@linx.net>
+	<200903311609.12829.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932152AbZCaWLc@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <74962ea30903311506m41306659td0cd70c5736f6660@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Azael Avalos <coproscefalo@gmail.com>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org, lenb@intel.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gold.linx.net ([195.66.232.40]:49255 "EHLO gold.linx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757901AbZCaWL7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Mar 2009 18:11:59 -0400
+In-Reply-To: <200903311609.12829.bjorn.helgaas@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Wed, Apr 01, 2009 at 03:06:12PM +1700, Azael Avalos wrote:
-
-> Indeed, my Satellite X205-9800 uses that method, however, it only provides
-> HCI call 0x001E (Hotkey Events) and no System Event FIFO (0x0016),
-> instead, hotkeys are entered on a variable called TOHK (TOshiba HotKeys?).
-> Located in my model in
-> 
-> PCI0.LPCB.EC0.TOHK
-
-Ok, interesting. Looking at the DSDTs I have here, TOHK isn't always 
-present on TOS1900 devices. However:
-
-> and it appears that it can be _polled_ tru' method INFO
-> (TOSH_INTERFACE_2 ".INFO"),
-> perhaps a small change in the polling to reflect to that method for
-> TOS1900 devices would be necessary.
-
-The INFO method is, so this looks like a good call.
-
-> 
-> On my model the complete call would be:
-> 
-> \\_SB.VALZ.SPFC
-> \\_SB.VALZ.INFO
-> 
-> Is it different from \\_SB_.VALZ.SPFC or it simply doesn't matter?
-
-Yeah, that shouldn't matter. So it simply looks like in the notification 
-function on these systems we should call the INFO method and that'll 
-give us the key back? I'll send a test patch later (don't have any 
-hardware to test right now).
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUdWUs
+IDMxIE1hciAyMDA5IDE2OjA5OjExIC0wNjAwDQpCam9ybiBIZWxnYWFzIDxiam9ybi5oZWxnYWFz
+QGhwLmNvbT4gd3JvdGU6DQo+IElmIHlvdSBkb24ndCBvYmplY3QsIEknbGwgYWxzbyBhZGQgYSAi
+VGVzdGVkLUJ5OiBUb255IFZyb29uIDx0b255QGxpbngubmV0PiIgYW5kIHRoZSBjb25maWcgdG8g
+dGhlc2UNCj4gdHdvIHBhdGNoZXMuDQoNCkdvIGZvciBpdC4NCg0KPiBCam9ybg0KDQpSZWdhcmRz
+LA0KVG9ueSBWLg0KLS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0NClZlcnNpb246IEdudVBH
+IHYyLjAuMTEgKEdOVS9MaW51eCkNCg0KaUVZRUFSRUNBQVlGQWtuU2xJMEFDZ2tRcDV2VzRyVUZq
+NXB0R0FDZ2gyN2Y0dXhMOWJCeHJJQWJYWS9pYXV1eA0KNUxVQW5BOEF4a2pnNnpoNXhjNjVka0JM
+QTNBK2xRME8NCj1ZL1RpDQotLS0tLUVORCBQR1AgU0lHTkFUVVJFLS0tLS0NCg==
