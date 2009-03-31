@@ -1,131 +1,133 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH] PNPACPI: Enable PNPACPI _PSx Support, v3
-Date: Tue, 31 Mar 2009 09:45:39 +0800
-Message-ID: <1238463939.3625.99.camel@localhost.localdomain>
-References: <49D101DA.50201@gmx.net>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 57/98] sony-laptop: Add support for extra keyboard
+	events
+Date: Tue, 31 Mar 2009 13:28:47 +0900
+Message-ID: <20090331042847.GA23526@kamineko.org>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <20090330035238.GA3317@kamineko.org> <200903300820.23868.matze@welwarsky.de> <200903310018.24553.matze@welwarsky.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:45151 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754559AbZCaBpD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Mar 2009 21:45:03 -0400
-In-Reply-To: <49D101DA.50201@gmx.net>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:41539
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753282AbZCaE2v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2009 00:28:51 -0400
+Content-Disposition: inline
+In-Reply-To: <200903310018.24553.matze@welwarsky.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bjorn.helgaas@hp.com" <bjorn.helgaas@hp.com>, "abelay@mit.edu" <abelay@mit.edu>, "rjw@sisk.pl" <rjw@sisk.pl>
+To: Matthias Welwarsky <matze@welwarsky.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Tue, 2009-03-31 at 01:31 +0800, Witold Szczeponik wrote:
-> Subject: Enable PNPACPI _PSx Support, v3
+On Tue, Mar 31, 2009 at 12:18:24AM +0200, Matthias Welwarsky wrote:
+> On Monday 30 March 2009 08:20:23 Matthias Welwarsky wrote:
+> > On Monday 30 March 2009 05:52:39 Mattia Dongili wrote:
+> > > On Sun, Mar 29, 2009 at 05:41:07PM +0100, Matthew Garrett wrote:
+> > > > On Sun, Mar 29, 2009 at 06:38:14PM +0200, Matthias Welwarsky wrote:
+> > > > > Whoops, just noticed that there was a bug in my patch. No wonder it
+> > > > > confused you.  Should untranslated events >= 0x90 still generate ACPI
+> > > > > events? In that case, the following patch would fix it. If not, the
+> > > > > acpi event reporting must be moved into the else path, too.
+> > > >
+> > > > I don't think it's likely to be useful - if we ever implement support
+> > > > for them then we'll generate different events and generate user
+> > > > confusion.
+> > >
+> > > yes, but up to 2.6.29 they are being reported for all the models
+> > > supported by the former SNC initialization code. I'd rather keep them
+> > > until /proc/acpi/event goes away.
+> >
+> > Hm, but if you keep them, there would be the possibility of ambiguous
+> > events. Events >= 0x90 are being translated and possibly (mostly) become <
+> > 0x90, so there's something like a namespace clash here. I think there
+> > should be a marker for translated events.
 > 
-    Very good patch.
-    Do you have the hardware on which the dedicated power source is
-required by the serial port(PnP device) in your hand?
+> [snip]
+> 
+> > > Also, Matthias can we have your signoff line?
+> >
+> > I'll resend the patch with a proper sign-off once we're clear about these
+> > questions, ok?
+> 
+> And here's an updated patch, it fixes bogus input events reported for 
+> untranslateable "new-style" hotkey events, reports unique events for Vaio Z21 
+> S1 and S2 buttons and restores the previous behavior of reporting ACPI events 
+> even for translated "new-style" hotkeys. To disambiguate them, those events 
+> start at 0x8000, maybe not quite deliberate - any other 
 
-When the Pnp ACPI device is started, it should be changed to D0 state if
-there exists the _PSX object or the power resource is required. 
-When it is disabled, it should be changed to D3 state.
+Actually I thought the problem was the event ambiguity for vaios
+having both the sony_100_events and sony_127_events (like the SR).
+Not really concerned about the the other events as we are not changing
+their behaviour here.
+The 0x8000 marker is not going to help much here since we are still
+generating the same acpi event for i.e. SONYPI_EVENT_FNKEY_F1 and
+SONYPI_EVENT_MODEKEY_PRESSED.
+Honestly, rather than trying to fix an already likely broken interface
+with more kludges I would just throw the event through /proc/acpi/event
+untouched, those having ambiguous events should just use the input
+layer.
+The only way I can think of actually fixing the sony_100/127 ambiguity
+without breaking compatibility with older kernels would be to send 2
+events, first the untranslated event, then the translated one. Not sure
+how usable it would be in the SR case though.
 
-   acked-by: Zhao Yakui <yakui.zhao@intel.com>
+> suggestions? Also, ACPI events are generated for rf killswitch status changes. 
+> That's probably of limited use, because the state of the killswitch is not 
+> reported, but one can still iterate all switches in a script to find out about 
+> the status.
+> 
+> Signed-off-by: Matthias Welwarsky <matze@welwarsky.de>
+> 
+> --- sony-laptop.c.orig	2009-03-29 12:41:44.000000000 +0200
+> +++ sony-laptop.c	2009-03-31 00:04:23.000000000 +0200
+> @@ -865,7 +865,7 @@
+>  static struct sony_nc_event sony_100_events[] = {
+>  	{ 0x90, SONYPI_EVENT_PKEY_P1 },
+>  	{ 0x10, SONYPI_EVENT_ANYBUTTON_RELEASED },
+> -	{ 0x91, SONYPI_EVENT_PKEY_P1 },
+> +	{ 0x91, SONYPI_EVENT_PKEY_P2 },
+>  	{ 0x11, SONYPI_EVENT_ANYBUTTON_RELEASED },
+>  	{ 0x81, SONYPI_EVENT_FNKEY_F1 },
+>  	{ 0x01, SONYPI_EVENT_FNKEY_RELEASED },
+> @@ -929,7 +929,7 @@
+>  		if (sony_find_snc_handle(0x127) == ev)
+>  			key_handle = 0x127;
+>  
+> -		if (handle) {
+> +		if (key_handle) {
+>  			struct sony_nc_event *key_event;
+>  
+>  			if (sony_call_snc_handle(key_handle, 0x200, &result))
+> @@ -955,15 +955,22 @@
+>  				printk(KERN_INFO DRV_PFX
+>  				       "Unknown event: 0x%x 0x%x\n", key_handle,
+>  				       ev);
+> +				/* restore original event number */
+> +				ev = event;
 
-Thanks.
-> 
-> (This is an update to the patch presented earlier in
-> http://lkml.org/lkml/2008/12/8/284, with new error handling.)
-> 
-> This patch sets the power of PnP ACPI devices to D0 when they
-> are activated and to D3 when they are disabled.  The latter is
-> in correspondence with the ACPI 3.0 specification, whereas the
-> former is added in order to be able to power up a device after
-> it has been previously disabled (or when booting up a system).
-> (As a consequence, the patch makes the PnP ACPI code more ACPI
-> compliant.)
-> 
-> Section 6.2.2 of the ACPI Specification (at least versions 1.0b
-> and 3.0a) states: "Prior to running this control method [_DIS],
-> the OS[PM] will have already put the device in the D3 state."
-> Unfortunately, there is no clear statement as to when to put
-> a device in the D0 state. :-( Therefore, the patch executes the
-> method calls as _PS3/_DIS and _SRS/_PS0. What is clear: "If the
-> device is disabled, _SRS enables the device at the specified
-> resources." (From the ACPI 3.0a Specification.)
-> 
-> The patch fixes a problem with some IBM ThinkPads (at least the
-> 600E and the 600X) where the serial ports have a dedicated
-> power source that needs to be brought up before the serial port
-> can be used.  Without this patch, the serial port is enabled
-> but has no power. (In the past, the tpctl utility had to be
-> utilized to turn on the power, but support for this feature
-> stopped with version 5.9 as it did not support the more recent
-> kernel versions.)
-> 
-> The error handlers that handle any errors that can occur during
-> the power up/power down phases return the error codes to the
-> caller directly.  Comments welcome! :-)
-> 
-> No regressions were observed on hardware that does not require
-> this patch.
-> 
-> The patch is applied against 2.6.27.x.
-> 
-> 
-> Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-> 
-> 
-> Index: linux/drivers/pnp/pnpacpi/core.c
-> ===================================================================
-> --- linux.orig/drivers/pnp/pnpacpi/core.c
-> +++ linux/drivers/pnp/pnpacpi/core.c
-> @@ -84,7 +84,6 @@ static int pnpacpi_set_resources(struct
->   	acpi_handle handle = dev->data;
->   	struct acpi_buffer buffer;
->   	int ret;
-> -	acpi_status status;
-> 
->   	dev_dbg(&dev->dev, "set resources\n");
->   	ret = pnpacpi_build_resource_template(dev, &buffer);
-> @@ -95,21 +94,30 @@ static int pnpacpi_set_resources(struct
->   		kfree(buffer.pointer);
->   		return ret;
->   	}
-> -	status = acpi_set_current_resources(handle, &buffer);
-> -	if (ACPI_FAILURE(status))
-> +	if (ACPI_FAILURE(acpi_set_current_resources(handle, &buffer)))
->   		ret = -EINVAL;
-> +	else if (acpi_bus_power_manageable(handle))
-> +		ret = acpi_bus_set_power(handle, ACPI_STATE_D0);
-How about changing the power state before calling _SRS object?
->   	kfree(buffer.pointer);
->   	return ret;
->   }
-> 
->   static int pnpacpi_disable_resources(struct pnp_dev *dev)
->   {
-> -	acpi_status status;
-> +	acpi_handle handle = dev->data;
-> +	int ret;
-> 
-> +	dev_dbg(&dev->dev, "disable resources\n");
->   	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
-> -	status = acpi_evaluate_object((acpi_handle) dev->data,
-> -				      "_DIS", NULL, NULL);
-> -	return ACPI_FAILURE(status) ? -ENODEV : 0;
-> +	ret = 0;
-> +	if (acpi_bus_power_manageable(handle)) {
-> +		ret = acpi_bus_set_power(handle, ACPI_STATE_D3);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_DIS", NULL, NULL)))
-> +		ret = -ENODEV;
-> +	return ret;
->   }
-> 
->   #ifdef CONFIG_ACPI_SLEEP
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+good catch.
 
+> +			} else {
+> +				sony_laptop_report_input_event(ev);
+> +				/* mark event as translated */
+> +				ev |= 0x8000;
+>  			}
+>  		} else if (sony_find_snc_handle(0x124) == ev) {
+>  			sony_nc_rfkill_update();
+> -			return;
+> -		}
+> -	}
+> -
+> +			/* restore original event number */
+> +			ev = event;
+> +		} 
+> +	} else
+> +		sony_laptop_report_input_event(ev);
+> +	
+>  	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
+> -	sony_laptop_report_input_event(ev);
+>  	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
+>  }
+>  
+-- 
+mattia
+:wq!
