@@ -1,55 +1,43 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/2] toshiba-acpi: Support TOS1900-type devices
-Date: Wed, 1 Apr 2009 00:02:17 +0100
-Message-ID: <20090331230217.GA31599@srcf.ucam.org>
-References: <20090331214501.GC29489@srcf.ucam.org> <20090331214749.GD29489@srcf.ucam.org> <74962ea30903311506m41306659td0cd70c5736f6660@mail.gmail.com> <20090331221107.GA30383@srcf.ucam.org> <74962ea30903311519s2fb6087fxfe8859e3c570ac99@mail.gmail.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 58/98] sony-laptop: Add rfkill support on new models
+Date: Wed, 1 Apr 2009 22:00:39 +0900
+Message-ID: <20090401130039.GD9650@kamineko.org>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <6cc056bc31ea9910afb01adc0848bb6ae68e0205.1238214620.git.len.brown@intel.com> <200903291352.43125.matze@welwarsky.de> <20090329150640.GB8500@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1764327AbZCaXCw@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:36927
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764128AbZDANAl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 09:00:41 -0400
 Content-Disposition: inline
-In-Reply-To: <74962ea30903311519s2fb6087fxfe8859e3c570ac99@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Azael Avalos <coproscefalo@gmail.com>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20090329150640.GB8500@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Matthias Welwarsky <matze@welwarsky.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Ok, can you try this and let me know what codes it generates (if it 
-generates any)? It should go on top of the previous patches.
+On Sun, Mar 29, 2009 at 04:06:40PM +0100, Matthew Garrett wrote:
+> On Sun, Mar 29, 2009 at 01:52:42PM +0200, Matthias Welwarsky wrote:
+> > On Saturday 28 March 2009 05:31:33 you wrote:
+> > > From: Matthew Garrett <mjg59@srcf.ucam.org>
+> > >
+> > > Newer Vaios provide a full featured rfkill implementation via their
+> > > platform methods. Add support for enumerating the available devices and
+> > > providing rfkill access to them. Support for the physical kill switch is
+> > > added, with the devices moving into the HARD_BLOCKED state when toggled.
+> > 
+> > Bug: If you insert the module with hardware kill switch enabled, it cannot be 
+> > disabled any more, i.e. despite operating the hardware kill switch, devices 
+> > will not become enabled.
+> > 
+> > Any hint how I could debug this?
+> 
+> Put debug prints through the rfkill_update and rfkill_get functions? I 
+> don't see anything especially obvious that would prevent this from 
+> working.
 
-diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-index 9fb4873..8552e1a 100644
---- a/drivers/platform/x86/toshiba_acpi.c
-+++ b/drivers/platform/x86/toshiba_acpi.c
-@@ -185,7 +185,6 @@ static int write_acpi_int(const char *methodName, int val)
- 	return (status == AE_OK);
- }
- 
--#if 0
- static int read_acpi_int(const char *methodName, int *pVal)
- {
- 	struct acpi_buffer results;
-@@ -200,7 +199,6 @@ static int read_acpi_int(const char *methodName, int *pVal)
- 
- 	return (status == AE_OK) && (out_objs[0].type == ACPI_TYPE_INTEGER);
- }
--#endif
- 
- static const char *method_hci /*= 0*/ ;
- 
-@@ -802,6 +800,13 @@ static void toshiba_acpi_notify(acpi_handle handle, u32 event, void **data)
- 
- 	if (event != 0x80)
- 		return;
-+
-+	if (is_valid_acpi_path(TOSH_INTERFACE_2 SPFC_METHOD)) {
-+		read_acpi_int(TOSH_INTERFACE_2 SPFC_METHOD, &value);
-+		printk("Received 0x%x\n", value);
-+		return;
-+	}
-+
- 	do {
- 		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
- 		if (hci_result == HCI_SUCCESS) {
-
+Matthias, any progress in debugging this?
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+mattia
+:wq!
