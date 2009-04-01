@@ -1,81 +1,138 @@
-From: Azael Avalos <coproscefalo@gmail.com>
-Subject: Re: [PATCH 2/2] toshiba-acpi: Support TOS1900-type devices
-Date: Thu, 2 Apr 2009 10:13:23 +1700
-Message-ID: <74962ea30904011013v5ffa0620y1f1aefa2c84e1ce@mail.gmail.com>
-References: <20090331214501.GC29489@srcf.ucam.org>
-	 <20090331214749.GD29489@srcf.ucam.org>
-	 <74962ea30903311506m41306659td0cd70c5736f6660@mail.gmail.com>
-	 <20090331221107.GA30383@srcf.ucam.org>
-	 <74962ea30903311519s2fb6087fxfe8859e3c570ac99@mail.gmail.com>
-	 <20090331230217.GA31599@srcf.ucam.org>
-	 <74962ea30904010950u31fbdca3w51eafb9b7ec1ca73@mail.gmail.com>
-	 <20090401165345.GA13939@srcf.ucam.org>
-	 <74962ea30904011003o354e8780ya5e9ac1a6a579084@mail.gmail.com>
-	 <20090401170708.GA14167@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [PATCH 1/2] i915: Unregister ACPI video driver when exiting
+Date: Wed, 1 Apr 2009 19:52:29 +0100
+Message-ID: <20090401185229.GA16067@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:29263 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758391AbZDARN0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 13:13:26 -0400
-In-Reply-To: <20090401170708.GA14167@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:58072 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758219AbZDASwe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 14:52:34 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org
+To: intel-gfx@lists.freedesktop.org
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Thu, Apr 2, 2009 at 10:07 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Thu, Apr 02, 2009 at 10:03:05AM +1700, Azael Avalos wrote:
->> On Thu, Apr 2, 2009 at 9:53 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> > Yes, you shouldn't be reading directly from TOHK at any point. It seems
->> > to be a purely internal variable - I'm fairly sure that the INFO method
->> > is the only one that should be called on event generation.
->>
->> Well, on the patches sent to the omnibook module I was polling TOHK directly,
->> it is until now that I realized that I can poll the events via INFO
->> method, that is,
->> if I enable TECF first via method \\_SB.PCI0.LPCB.EC0.NTFY
->
-> Mm. None of the TOS1900 DSDTs I have here have TECF or NTFY methods, so
-> again that doesn't sound like the right way of driving them. Does the
-> ENAB method not do this?
+The i915 DRM triggers registration of the ACPI video driver on load. It
+should unregister it at unload in order to avoid generating backtraces on
+being reloaded.
 
-At least not in my model, the ENAB method is empty, heres a snippet of the DSDT:
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/video.c                 |    3 ++-
+ drivers/gpu/drm/i915/i915_dma.c      |    2 +-
+ drivers/gpu/drm/i915/i915_drv.c      |    2 +-
+ drivers/gpu/drm/i915/i915_drv.h      |    4 ++--
+ drivers/gpu/drm/i915/i915_opregion.c |    5 ++++-
+ include/acpi/video.h                 |    2 ++
+ 6 files changed, 12 insertions(+), 6 deletions(-)
 
-                            Method (ENAB, 0, NotSerialized)
-                            {
-                            }
-
-                            Method (INFO, 0, NotSerialized)
-                            {
-                                If (TECF)
-                                {
-                                    Store (Zero, TECF)
-                                    Store (^^PCI0.LPCB.EC0.TOHK, Local0)
-                                    Store (Zero, ^^PCI0.LPCB.EC0.TOHK)
-                                }
-                                Else
-                                {
-                                    Store (Zero, Local0)
-                                }
-
-                                Return (Local0)
-                            }
-
-And above scope _SB you can find
-
-                    Method (NTFY, 0, NotSerialized)
-                    {
-                        Store (One, ^^^^VALZ.TECF)
-                        Notify (VALZ, 0x80)
-                        Return (0xAA)
-                    }
-
-Saludos
-Azael
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index bcde886..d0bcf71 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -2306,7 +2306,7 @@ static int __init acpi_video_init(void)
+ 	return acpi_video_register();
+ }
+ 
+-static void __exit acpi_video_exit(void)
++void __exit acpi_video_exit(void)
+ {
+ 
+ 	acpi_bus_unregister_driver(&acpi_video_bus);
+@@ -2315,6 +2315,7 @@ static void __exit acpi_video_exit(void)
+ 
+ 	return;
+ }
++EXPORT_SYMBOL(acpi_video_exit);
+ 
+ module_init(acpi_video_init);
+ module_exit(acpi_video_exit);
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 67d600e..4f60c5b 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -1239,7 +1239,7 @@ int i915_driver_unload(struct drm_device *dev)
+ 	if (dev_priv->regs != NULL)
+ 		iounmap(dev_priv->regs);
+ 
+-	intel_opregion_free(dev);
++	intel_opregion_free(dev, 0);
+ 
+ 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+ 		intel_modeset_cleanup(dev);
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index 6503e22..98560e1 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -77,7 +77,7 @@ static int i915_suspend(struct drm_device *dev, pm_message_t state)
+ 		drm_irq_uninstall(dev);
+ 	}
+ 
+-	intel_opregion_free(dev);
++	intel_opregion_free(dev, 1);
+ 
+ 	if (state.event == PM_EVENT_SUSPEND) {
+ 		/* Shut down the device */
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 7c5995f..6768bee 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -663,12 +663,12 @@ extern int i915_restore_state(struct drm_device *dev);
+ #ifdef CONFIG_ACPI
+ /* i915_opregion.c */
+ extern int intel_opregion_init(struct drm_device *dev, int resume);
+-extern void intel_opregion_free(struct drm_device *dev);
++extern void intel_opregion_free(struct drm_device *dev, int suspend);
+ extern void opregion_asle_intr(struct drm_device *dev);
+ extern void opregion_enable_asle(struct drm_device *dev);
+ #else
+ static inline int intel_opregion_init(struct drm_device *dev, int resume) { return 0; }
+-static inline void intel_opregion_free(struct drm_device *dev) { return; }
++static inline void intel_opregion_free(struct drm_device *dev, int suspend) { return; }
+ static inline void opregion_asle_intr(struct drm_device *dev) { return; }
+ static inline void opregion_enable_asle(struct drm_device *dev) { return; }
+ #endif
+diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
+index 6942772..c63256b 100644
+--- a/drivers/gpu/drm/i915/i915_opregion.c
++++ b/drivers/gpu/drm/i915/i915_opregion.c
+@@ -408,7 +408,7 @@ err_out:
+ 	return err;
+ }
+ 
+-void intel_opregion_free(struct drm_device *dev)
++void intel_opregion_free(struct drm_device *dev, int suspend)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct intel_opregion *opregion = &dev_priv->opregion;
+@@ -416,6 +416,9 @@ void intel_opregion_free(struct drm_device *dev)
+ 	if (!opregion->enabled)
+ 		return;
+ 
++	if (!suspend)
++		acpi_video_exit();
++
+ 	opregion->acpi->drdy = 0;
+ 
+ 	system_opregion = NULL;
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index f0275bb..af6fe95 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -3,8 +3,10 @@
+ 
+ #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+ extern int acpi_video_register(void);
++extern int acpi_video_exit(void);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
++static inline void acpi_video_exit(void) { return; }
+ #endif
+ 
+ #endif
 
 -- 
--- El mundo apesta y vosotros apestais tambien --
+Matthew Garrett | mjg59@srcf.ucam.org
