@@ -1,67 +1,51 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 1/4] sony-laptop: Fix some typos in log messages (Unabe/Unable)
-Date: Wed,  1 Apr 2009 22:10:44 +0900
-Message-ID: <1238591447-13338-2-git-send-email-malattia@linux.it>
-References: <1238591447-13338-1-git-send-email-malattia@linux.it>
+From: Matthias Welwarsky <matze@welwarsky.de>
+Subject: Re: [PATCH 58/98] sony-laptop: Add rfkill support on new models
+Date: Wed, 1 Apr 2009 15:15:13 +0200
+Message-ID: <200904011515.14605.matze@welwarsky.de>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <20090329150640.GB8500@srcf.ucam.org> <20090401130039.GD9650@kamineko.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:56572
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754828AbZDANKt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 09:10:49 -0400
-In-Reply-To: <1238591447-13338-1-git-send-email-malattia@linux.it>
+Received: from static.88-198-22-168.clients.your-server.de ([88.198.22.168]:11584
+	"EHLO basyskom.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755363AbZDANPW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 09:15:22 -0400
+In-Reply-To: <20090401130039.GD9650@kamineko.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Alessio Igor Bogani <abogani@texware.it>, Mattia Dongili <malattia@linux.it>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-From: Alessio Igor Bogani <abogani@texware.it>
+On Wednesday 01 April 2009 15:00:39 Mattia Dongili wrote:
+> On Sun, Mar 29, 2009 at 04:06:40PM +0100, Matthew Garrett wrote:
+> > On Sun, Mar 29, 2009 at 01:52:42PM +0200, Matthias Welwarsky wrote:
+> > > On Saturday 28 March 2009 05:31:33 you wrote:
+> > > > From: Matthew Garrett <mjg59@srcf.ucam.org>
+> > > >
+> > > > Newer Vaios provide a full featured rfkill implementation via their
+> > > > platform methods. Add support for enumerating the available devices
+> > > > and providing rfkill access to them. Support for the physical kill
+> > > > switch is added, with the devices moving into the HARD_BLOCKED state
+> > > > when toggled.
+> > >
+> > > Bug: If you insert the module with hardware kill switch enabled, it
+> > > cannot be disabled any more, i.e. despite operating the hardware kill
+> > > switch, devices will not become enabled.
+> > >
+> > > Any hint how I could debug this?
+> >
+> > Put debug prints through the rfkill_update and rfkill_get functions? I
+> > don't see anything especially obvious that would prevent this from
+> > working.
+>
+> Matthias, any progress in debugging this?
 
-Signed-off-by: Alessio Igor Bogani <abogani@texware.it>
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- drivers/platform/x86/sony-laptop.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Not yet. Not sure I'll have time to work on it for the next few days (upcoming 
+easter holidays).
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 0f71031..5837156 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -397,7 +397,7 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
- 	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
- 	if (!sony_laptop_input.wq) {
- 		printk(KERN_ERR DRV_PFX
--				"Unabe to create workqueue.\n");
-+				"Unable to create workqueue.\n");
- 		error = -ENXIO;
- 		goto err_free_kfifo;
- 	}
-@@ -1267,7 +1267,7 @@ static int sony_nc_add(struct acpi_device *device)
- 	result = sony_laptop_setup_input(device);
- 	if (result) {
- 		printk(KERN_ERR DRV_PFX
--				"Unabe to create input devices.\n");
-+				"Unable to create input devices.\n");
- 		goto outwalk;
- 	}
- 
-@@ -2816,7 +2816,7 @@ static int sony_pic_add(struct acpi_device *device)
- 	result = sony_pic_possible_resources(device);
- 	if (result) {
- 		printk(KERN_ERR DRV_PFX
--				"Unabe to read possible resources.\n");
-+				"Unable to read possible resources.\n");
- 		goto err_free_resources;
- 	}
- 
-@@ -2824,7 +2824,7 @@ static int sony_pic_add(struct acpi_device *device)
- 	result = sony_laptop_setup_input(device);
- 	if (result) {
- 		printk(KERN_ERR DRV_PFX
--				"Unabe to create input devices.\n");
-+				"Unable to create input devices.\n");
- 		goto err_free_resources;
- 	}
- 
--- 
-1.6.2.1
+regards,
+	matthias
 
