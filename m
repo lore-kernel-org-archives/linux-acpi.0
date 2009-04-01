@@ -1,51 +1,48 @@
-From: Matthias Welwarsky <matze@welwarsky.de>
-Subject: Re: [PATCH 58/98] sony-laptop: Add rfkill support on new models
-Date: Wed, 1 Apr 2009 15:15:13 +0200
-Message-ID: <200904011515.14605.matze@welwarsky.de>
-References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <20090329150640.GB8500@srcf.ucam.org> <20090401130039.GD9650@kamineko.org>
+From: Azael Avalos <coproscefalo@gmail.com>
+Subject: Re: [PATCH 2/2] toshiba-acpi: Support TOS1900-type devices
+Date: Thu, 2 Apr 2009 09:50:59 +1700
+Message-ID: <74962ea30904010950u31fbdca3w51eafb9b7ec1ca73@mail.gmail.com>
+References: <20090331214501.GC29489@srcf.ucam.org>
+	 <20090331214749.GD29489@srcf.ucam.org>
+	 <74962ea30903311506m41306659td0cd70c5736f6660@mail.gmail.com>
+	 <20090331221107.GA30383@srcf.ucam.org>
+	 <74962ea30903311519s2fb6087fxfe8859e3c570ac99@mail.gmail.com>
+	 <20090331230217.GA31599@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static.88-198-22-168.clients.your-server.de ([88.198.22.168]:11584
-	"EHLO basyskom.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755363AbZDANPW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 09:15:22 -0400
-In-Reply-To: <20090401130039.GD9650@kamineko.org>
-Content-Disposition: inline
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:60978 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753170AbZDAQvC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2009 12:51:02 -0400
+In-Reply-To: <20090331230217.GA31599@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org
 
-On Wednesday 01 April 2009 15:00:39 Mattia Dongili wrote:
-> On Sun, Mar 29, 2009 at 04:06:40PM +0100, Matthew Garrett wrote:
-> > On Sun, Mar 29, 2009 at 01:52:42PM +0200, Matthias Welwarsky wrote:
-> > > On Saturday 28 March 2009 05:31:33 you wrote:
-> > > > From: Matthew Garrett <mjg59@srcf.ucam.org>
-> > > >
-> > > > Newer Vaios provide a full featured rfkill implementation via their
-> > > > platform methods. Add support for enumerating the available devices
-> > > > and providing rfkill access to them. Support for the physical kill
-> > > > switch is added, with the devices moving into the HARD_BLOCKED state
-> > > > when toggled.
-> > >
-> > > Bug: If you insert the module with hardware kill switch enabled, it
-> > > cannot be disabled any more, i.e. despite operating the hardware kill
-> > > switch, devices will not become enabled.
-> > >
-> > > Any hint how I could debug this?
-> >
-> > Put debug prints through the rfkill_update and rfkill_get functions? I
-> > don't see anything especially obvious that would prevent this from
-> > working.
->
-> Matthias, any progress in debugging this?
+On Wed, Apr 1, 2009 at 4:02 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> Ok, can you try this and let me know what codes it generates (if it
+> generates any)? It should go on top of the previous patches.
 
-Not yet. Not sure I'll have time to work on it for the next few days (upcoming 
-easter holidays).
+Nothing gets generated, even if I change the method to ".INFO" and hotkey
+events enabled with hci_write2(HCI_HOTKEY_EVENT, 1, 1, &hci_result) and
+TECF set to 1 (see my DSDT).
 
-regards,
-	matthias
+I was playing with the code yesterday trying to get some events reported, but no
+luck so far.
 
+It appears that TOHK variable is _volatile_ and it just stores hotkey events
+temporarily and they don't get _stored_ like in the System Event FIFO.
+
+On the patches I sent to the omnibook module I'm able to get events but they
+seem to get repeated 3 times, or perhaps I'm polling to often.
+
+
+Saludos
+Azael
+
+
+-- 
+-- El mundo apesta y vosotros apestais tambien --
