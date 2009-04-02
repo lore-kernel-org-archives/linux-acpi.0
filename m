@@ -1,255 +1,188 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 06/98] acpi: fix of pmtimer overflow that make Cx states time incorrect
-Date: Thu, 2 Apr 2009 14:26:40 +0200
-Message-ID: <200904021426.41828.trenn@suse.de>
-References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <ff69f2bba67bd45514923aaedbf40fe351787c59.1238214617.git.len.brown@intel.com>
+Subject: Re: [PATCH 81/98] thermal: support forcing support for passive cooling
+Date: Thu, 2 Apr 2009 14:35:37 +0200
+Message-ID: <200904021435.38561.trenn@suse.de>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <03a971a2899886006f19f3495973bbd646d8bdae.1238214620.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58297 "EHLO mx2.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:45498 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758714AbZDBM0s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Apr 2009 08:26:48 -0400
-In-Reply-To: <ff69f2bba67bd45514923aaedbf40fe351787c59.1238214617.git.len.brown@intel.com>
+	id S1751454AbZDBMfm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Apr 2009 08:35:42 -0400
+In-Reply-To: <03a971a2899886006f19f3495973bbd646d8bdae.1238214620.git.len.brown@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, stable@kernel.org
-Cc: linux-acpi@vger.kernel.org, "alex.shi" <alex.shi@intel.com>, "Yakui.zhao" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
 
-On Saturday 28 March 2009 05:30:41 Len Brown wrote:
-> From: alex.shi <alex.shi@intel.com>
+On Saturday 28 March 2009 05:31:56 Len Brown wrote:
+> From: Matthew Garrett <mjg59@srcf.ucam.org>
 > 
-> We found Cx states time abnormal in our some of machines which have 16
-> LCPUs, the C0 take too many time while system is really idle when kernel
-> enabled tickless and highres.  powertop output is below:
+> Due to poor thermal design or Linux driving hardware outside its thermal
+> envelope, some systems will reach critical temperature and shut down
+> under high load. This patch adds support for forcing a polling-based
+> passive trip point if the firmware doesn't provide one. The assumption
+> is made that the processor is the most practical means to reduce the
+> dynamic heat generation, so hitting the passive thermal limit will cause
+> the CPU to be throttled until the temperature stabalises around the
+> defined value.
 > 
->      PowerTOP version 1.9       (C) 2007 Intel Corporation
-> 
-> Cn                Avg residency       P-states (frequencies)
-> C0 (cpu running)        (40.5%)         2.53 Ghz     0.0%
-> C1                0.0ms ( 0.0%)         2.53 Ghz     0.0%
-> C2              128.8ms (59.5%)         2.40 Ghz     0.0%
->                                         1.60 Ghz   100.0%
-> 
-> Wakeups-from-idle per second :  4.7     interval: 20.0s
-> no ACPI power usage estimate available
-> 
-> Top causes for wakeups:
->   41.4% ( 24.9)       <interrupt> : extra timer interrupt
->   20.2% ( 12.2)     <kernel core> : usb_hcd_poll_rh_status
-> (rh_timer_func)
-> 
-> After tacking detailed for this issue, Yakui and I find it is due to 24
-> bit PM timer overflows when some of cpu sleep more than 4 seconds.  With
-> tickless kernel, the CPU want to sleep as much as possible when system
-> idle.  But the Cx sleep time are recorded by pmtimer which length is
-> determined by BIOS.  The current Cx time was gotten in the following
-> function from driver/acpi/processor_idle.c:
-> 
-> static inline u32 ticks_elapsed(u32 t1, u32 t2)
-> {
->        if (t2 >= t1)
->                return (t2 - t1);
->        else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
->                return (((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
->        else
->                return ((0xFFFFFFFF - t1) + t2);
-> }
-> 
-> If pmtimer is 24 bits and it take 5 seconds from t1 to t2, in above
-> function, just about 1 seconds ticks was recorded.  So the Cx time will be
-> reduced about 4 seconds.  and this is why we see above powertop output.
-> 
-> To resolve this problem, Yakui and I use ktime_get() to record the Cx
-> states time instead of PM timer as the following patch.  the patch was
-> tested with i386/x86_64 modes on several platforms.
-
-Is this worth adding:
-CC: stable@kernel.org
-but wait until 2.6.30 is finished and no regressions have been reported?
-Then backport things to .29/.28 and eventually others?
+> UI is provided via a "passive" sysfs entry in the thermal zone
+> directory. It accepts a decimal value in millidegrees celsius, or "0" to
+> disable the functionality. Default behaviour is for this functionality
+> to be disabled.
+Isn't the last paragraph worth adding to:
+Documentation/thermal/sysfs-api.txt
+or have I missed this part?
 
     Thomas
-
-> Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> Tested-by: Alex Shi <alex.shi@intel.com>
-> Signed-off-by: Alex Shi <alex.shi@intel.com>
-> Signed-off-by: Yakui.zhao <yakui.zhao@intel.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 > Signed-off-by: Len Brown <len.brown@intel.com>
 > ---
->  drivers/acpi/processor_idle.c |   63 +++++++++++++++++-----------------------
->  1 files changed, 27 insertions(+), 36 deletions(-)
+>  drivers/thermal/thermal_sys.c |   77 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/thermal.h       |    1 +
+>  2 files changed, 78 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 7bc22a4..879af87 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -64,7 +64,6 @@
->  #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
->  ACPI_MODULE_NAME("processor_idle");
->  #define ACPI_PROCESSOR_FILE_POWER	"power"
-> -#define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
->  #define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
->  #define C2_OVERHEAD			1	/* 1us */
->  #define C3_OVERHEAD			1	/* 1us */
-> @@ -78,6 +77,10 @@ module_param(nocst, uint, 0000);
->  static unsigned int latency_factor __read_mostly = 2;
->  module_param(latency_factor, uint, 0644);
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 6378741..d0b093b 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -214,9 +214,69 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
+>  	return sprintf(buf, "%ld\n", temperature);
+>  }
 >  
-> +static s64 us_to_pm_timer_ticks(s64 t)
+> +static ssize_t
+> +passive_store(struct device *dev, struct device_attribute *attr,
+> +		    const char *buf, size_t count)
 > +{
-> +	return div64_u64(t * PM_TIMER_FREQUENCY, 1000000);
-> +}
->  /*
->   * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
->   * For now disable this. Probably a bug somewhere else.
-> @@ -159,25 +162,6 @@ static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
->  	{},
->  };
->  
-> -static inline u32 ticks_elapsed(u32 t1, u32 t2)
-> -{
-> -	if (t2 >= t1)
-> -		return (t2 - t1);
-> -	else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
-> -		return (((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
-> -	else
-> -		return ((0xFFFFFFFF - t1) + t2);
-> -}
-> -
-> -static inline u32 ticks_elapsed_in_us(u32 t1, u32 t2)
-> -{
-> -	if (t2 >= t1)
-> -		return PM_TIMER_TICKS_TO_US(t2 - t1);
-> -	else if (!(acpi_gbl_FADT.flags & ACPI_FADT_32BIT_TIMER))
-> -		return PM_TIMER_TICKS_TO_US(((0x00FFFFFF - t1) + t2) & 0x00FFFFFF);
-> -	else
-> -		return PM_TIMER_TICKS_TO_US((0xFFFFFFFF - t1) + t2);
-> -}
->  
->  /*
->   * Callers should disable interrupts before the call and enable
-> @@ -853,7 +837,8 @@ static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx)
->  static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->  			      struct cpuidle_state *state)
->  {
-> -	u32 t1, t2;
-> +	ktime_t  kt1, kt2;
-> +	s64 idle_time;
->  	struct acpi_processor *pr;
->  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
->  
-> @@ -871,14 +856,15 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->  		return 0;
->  	}
->  
-> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +	kt1 = ktime_get_real();
->  	acpi_idle_do_entry(cx);
-> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +	kt2 = ktime_get_real();
-> +	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
->  
->  	local_irq_enable();
->  	cx->usage++;
->  
-> -	return ticks_elapsed_in_us(t1, t2);
-> +	return idle_time;
->  }
->  
->  /**
-> @@ -891,8 +877,9 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  {
->  	struct acpi_processor *pr;
->  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
-> -	u32 t1, t2;
-> -	int sleep_ticks = 0;
-> +	ktime_t  kt1, kt2;
-> +	s64 idle_time;
-> +	s64 sleep_ticks = 0;
->  
->  	pr = __get_cpu_var(processors);
->  
-> @@ -925,18 +912,19 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  	if (cx->type == ACPI_STATE_C3)
->  		ACPI_FLUSH_CPU_CACHE();
->  
-> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +	kt1 = ktime_get_real();
->  	/* Tell the scheduler that we are going deep-idle: */
->  	sched_clock_idle_sleep_event();
->  	acpi_idle_do_entry(cx);
-> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +	kt2 = ktime_get_real();
-> +	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
->  
->  #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
->  	/* TSC could halt in idle, so notify users */
->  	if (tsc_halts_in_c(cx->type))
->  		mark_tsc_unstable("TSC halts in idle");;
->  #endif
-> -	sleep_ticks = ticks_elapsed(t1, t2);
-> +	sleep_ticks = us_to_pm_timer_ticks(idle_time);
->  
->  	/* Tell the scheduler how much we idled: */
->  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
-> @@ -948,7 +936,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  
->  	acpi_state_timer_broadcast(pr, cx, 0);
->  	cx->time += sleep_ticks;
-> -	return ticks_elapsed_in_us(t1, t2);
-> +	return idle_time;
->  }
->  
->  static int c3_cpu_count;
-> @@ -966,8 +954,10 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  {
->  	struct acpi_processor *pr;
->  	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
-> -	u32 t1, t2;
-> -	int sleep_ticks = 0;
-> +	ktime_t  kt1, kt2;
-> +	s64 idle_time;
-> +	s64 sleep_ticks = 0;
+> +	struct thermal_zone_device *tz = to_thermal_zone(dev);
+> +	struct thermal_cooling_device *cdev = NULL;
+> +	int state;
 > +
+> +	if (!sscanf(buf, "%d\n", &state))
+> +		return -EINVAL;
+> +
+> +	if (state && !tz->forced_passive) {
+> +		mutex_lock(&thermal_list_lock);
+> +		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+> +			if (!strncmp("Processor", cdev->type,
+> +				     sizeof("Processor")))
+> +				thermal_zone_bind_cooling_device(tz,
+> +								 THERMAL_TRIPS_NONE,
+> +								 cdev);
+> +		}
+> +		mutex_unlock(&thermal_list_lock);
+> +	} else if (!state && tz->forced_passive) {
+> +		mutex_lock(&thermal_list_lock);
+> +		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+> +			if (!strncmp("Processor", cdev->type,
+> +				     sizeof("Processor")))
+> +				thermal_zone_unbind_cooling_device(tz,
+> +								   THERMAL_TRIPS_NONE,
+> +								   cdev);
+> +		}
+> +		mutex_unlock(&thermal_list_lock);
+> +	}
+> +
+> +	tz->tc1 = 1;
+> +	tz->tc2 = 1;
+> +
+> +	if (!tz->passive_delay)
+> +		tz->passive_delay = 1000;
+> +
+> +	if (!tz->polling_delay)
+> +		tz->polling_delay = 10000;
+> +
+> +	tz->forced_passive = state;
+> +
+> +	thermal_zone_device_update(tz);
+> +
+> +	return count;
+> +}
+> +
+> +static ssize_t
+> +passive_show(struct device *dev, struct device_attribute *attr,
+> +		   char *buf)
+> +{
+> +	struct thermal_zone_device *tz = to_thermal_zone(dev);
+> +
+> +	return sprintf(buf, "%d\n", tz->forced_passive);
+> +}
+> +
+>  static DEVICE_ATTR(type, 0444, type_show, NULL);
+>  static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+>  static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+> +static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, \
+> +		   passive_store);
 >  
->  	pr = __get_cpu_var(processors);
+>  static struct device_attribute trip_point_attrs[] = {
+>  	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+> @@ -939,6 +999,11 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>  			break;
+>  		}
+>  	}
+> +
+> +	if (tz->forced_passive)
+> +		thermal_zone_device_passive(tz, temp, tz->forced_passive,
+> +					    THERMAL_TRIPS_NONE);
+> +
+>  	tz->last_temperature = temp;
+>  	if (tz->passive)
+>  		thermal_zone_device_set_polling(tz, tz->passive_delay);
+> @@ -977,8 +1042,10 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+>  {
+>  	struct thermal_zone_device *tz;
+>  	struct thermal_cooling_device *pos;
+> +	enum thermal_trip_type trip_type;
+>  	int result;
+>  	int count;
+> +	int passive = 0;
 >  
-> @@ -1034,9 +1024,10 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  		ACPI_FLUSH_CPU_CACHE();
+>  	if (strlen(type) >= THERMAL_NAME_LENGTH)
+>  		return ERR_PTR(-EINVAL);
+> @@ -1041,8 +1108,18 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+>  		TRIP_POINT_ATTR_ADD(&tz->device, count, result);
+>  		if (result)
+>  			goto unregister;
+> +		tz->ops->get_trip_type(tz, count, &trip_type);
+> +		if (trip_type == THERMAL_TRIP_PASSIVE)
+> +			passive = 1;
 >  	}
 >  
-> -	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +	kt1 = ktime_get_real();
->  	acpi_idle_do_entry(cx);
-> -	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +	kt2 = ktime_get_real();
-> +	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
->  
->  	/* Re-enable bus master arbitration */
->  	if (pr->flags.bm_check && pr->flags.bm_control) {
-> @@ -1051,7 +1042,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  	if (tsc_halts_in_c(ACPI_STATE_C3))
->  		mark_tsc_unstable("TSC halts in idle");
->  #endif
-> -	sleep_ticks = ticks_elapsed(t1, t2);
-> +	sleep_ticks = us_to_pm_timer_ticks(idle_time);
->  	/* Tell the scheduler how much we idled: */
->  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
->  
-> @@ -1062,7 +1053,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  
->  	acpi_state_timer_broadcast(pr, cx, 0);
->  	cx->time += sleep_ticks;
-> -	return ticks_elapsed_in_us(t1, t2);
-> +	return idle_time;
->  }
->  
->  struct cpuidle_driver acpi_idle_driver = {
+> +	if (!passive)
+> +		result = device_create_file(&tz->device,
+> +					    &dev_attr_passive);
+> +
+> +	if (result)
+> +		goto unregister;
+> +
+>  	result = thermal_add_hwmon_sysfs(tz);
+>  	if (result)
+>  		goto unregister;
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index a81c615..1de8b9e 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -113,6 +113,7 @@ struct thermal_zone_device {
+>  	int polling_delay;
+>  	int last_temperature;
+>  	bool passive;
+> +	unsigned int forced_passive;
+>  	struct thermal_zone_device_ops *ops;
+>  	struct list_head cooling_devices;
+>  	struct idr idr;
 > -- 
+> 1.6.0.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
