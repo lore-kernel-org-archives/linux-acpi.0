@@ -1,62 +1,114 @@
 From: Len Brown <lenb@kernel.org>
-Subject: polling (Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources)
-Date: Thu, 02 Apr 2009 18:45:59 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904021828110.9182@localhost.localdomain>
-References: <20090125210520.GA12963@dreamland.darkstar.lan>
- <200901291130.35434.trenn@suse.de>
- <68676e00901290716g1aabd6c0p1e5202fbdbc659a4@mail.gmail.com>
- <alpine.LFD.2.00.0902040042570.9833@localhost.localdomain>
- <20090204060513.GA28321@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Thu, 02 Apr 2009 18:59:11 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904021858460.9182@localhost.localdomain>
+References: <20090204142015.GB3923@srcf.ucam.org>
+ <20090210145716.105ab58b@hyperion.delvare>
+ <20090210140829.GA25397@srcf.ucam.org> <49919E08.5050002@redhat.com>
+ <20090210172408.400cacee@hyperion.delvare> <20090227132740.GF1482@ucw.cz>
+ <68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com>
+ <49C8DE51.2010103@redhat.com> <20090329201617.GA10303@dreamland.darkstar.lan>
+ <20090329225501.0c1771f1@hyperion.delvare>
+ <20090329220127.GA12822@dreamland.darkstar.lan>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:63623 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760098AbZDBWqI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 18:46:08 -0400
-In-reply-to: <20090204060513.GA28321@srcf.ucam.org>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:61106 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750926AbZDBW7a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 18:59:30 -0400
+In-reply-to: <20090329220127.GA12822@dreamland.darkstar.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, khali@linux-fr.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
+>From 7e90560c50f754d65884e251e94c1efa2a4b5784 Mon Sep 17 00:00:00 2001
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Mon, 30 Mar 2009 00:01:27 +0200
+Subject: [PATCH] ACPI: acpi_enforce_resource=strict by default
+X-Patchwork-Hint: ignore
 
-On Wed, 4 Feb 2009, Matthew Garrett wrote:
+Enforce strict resource checking - disallowing access by native
+drivers to IO ports and memory regions claimed by ACPI firmware.
 
-> On Wed, Feb 04, 2009 at 12:52:06AM -0500, Len Brown wrote:
-> 
-> > While it is slightly off-topic of the (I agree, real)
-> > technical issue here, note that polling is not "normal" on ACPI systems.
-> > [1] was on  SuSE Linux 10.0, which on their own decided to
-> > over-ride the kernel and enable thermal zone polling by default.
-> 
-> Checking the DSDTs I have to hand, it seems that polling is expected on 
-> about 5% of systems via an explicit _TZP and on almost all machines via 
-> _TSP. Even on systems where thermal notifications are provided, it's 
-> still up to the OS to poll the zone to find the current temperature and 
-> take appropriate action. There's still a window for native smbus drivers 
-> to screw everything up.
+The patch is mainly aimed to block native hwmon drivers from touching
+monitoring chips that ACPI thinks it own.
 
-FWIW
+If this causes a regression, boot with "acpi_enforce_resources=lax"
+which was the previous default.
 
-In the last 6 years, I've seen exactly 3 systems with a non-zero _TZP.
-An old Averatec laptop asked for 1 second, and two recent EEE-PC's ask for 
-30 seconds.  Dunno why Asus has made this leap backwards.
+http://bugzilla.kernel.org/show_bug.cgi?id=12376
+http://bugzilla.kernel.org/show_bug.cgi?id=12541
 
-_TSP is a different beast.  It only exists in the context of _PSV and 
-_PSL.
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
 
+as applied.
+
+thanks,
 -Len
 
-ps. I just noticed something in the spec under _PSL...
-"If a linear performance control register is not defined(..) for a 
-processor defined in _PSL or for a processor device in the zone as 
-indicated
-by _TZM, then the processor must support processor performance states
-(in other words, the processor's processor object must include _PCT, _PSS, 
-and _PPC).
 
-Interesting, here is an official tie in of P-states and passive trip 
-points that I'd not noticed before....
+ Documentation/kernel-parameters.txt |   16 ++++++++++++++++
+ drivers/acpi/osl.c                  |    6 +++---
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 54f21a5..7068d0b 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -258,6 +258,22 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			to assume that this machine's pmtimer latches its value
+ 			and always returns good values.
+ 
++	acpi_enforce_resources=	[ACPI]
++			{ strict | lax | no }
++			Check for resource conflicts between native drivers
++			and ACPI OperationRegions (SystemIO and SystemMemory
++			only). IO ports and memory declared in ACPI might be
++			used by the ACPI subsystem in arbitrary AML code and
++			can interfere with legacy drivers.
++			strict (default): access to resources claimed by ACPI
++			is denied; legacy drivers trying to access reserved
++			resources will fail to bind to device using them.
++			lax: access to resources claimed by ACPI is allowed;
++			legacy drivers trying to access reserved resources
++			will bind successfully but a warning message is logged.
++			no: ACPI OperationRegions are not marked as reserved,
++			no further checks are performed.
++
+ 	agp=		[AGP]
+ 			{ off | try_unsupported }
+ 			off: disable AGP support
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 1e35f34..f50ca1e 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1063,9 +1063,9 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+  * in arbitrary AML code and can interfere with legacy drivers.
+  * acpi_enforce_resources= can be set to:
+  *
+- *   - strict           (2)
++ *   - strict (default) (2)
+  *     -> further driver trying to access the resources will not load
+- *   - lax (default)    (1)
++ *   - lax              (1)
+  *     -> further driver trying to access the resources will load, but you
+  *     get a system message that something might go wrong...
+  *
+@@ -1077,7 +1077,7 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+ #define ENFORCE_RESOURCES_LAX    1
+ #define ENFORCE_RESOURCES_NO     0
+ 
+-static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+ 
+ static int __init acpi_enforce_resources_setup(char *str)
+ {
+-- 
+1.6.0.6
 
