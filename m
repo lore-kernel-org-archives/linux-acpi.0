@@ -1,34 +1,62 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH] acpi: simplify module_param namespace
-Date: Thu, 2 Apr 2009 23:26:25 +0200
-Message-ID: <20090402212625.GA8502@uranus.ravnborg.org>
-References: <200903071328.28113.rusty@rustcorp.com.au> <200903110927.12792.rusty@rustcorp.com.au> <20090311145124.696b2448.sfr@canb.auug.org.au> <200903120907.20055.rusty@rustcorp.com.au> <alpine.LFD.2.00.0904021659190.4660@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: polling (Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources)
+Date: Thu, 02 Apr 2009 18:45:59 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904021828110.9182@localhost.localdomain>
+References: <20090125210520.GA12963@dreamland.darkstar.lan>
+ <200901291130.35434.trenn@suse.de>
+ <68676e00901290716g1aabd6c0p1e5202fbdbc659a4@mail.gmail.com>
+ <alpine.LFD.2.00.0902040042570.9833@localhost.localdomain>
+ <20090204060513.GA28321@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pfepa.post.tele.dk ([195.41.46.235]:40934 "EHLO
-	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756189AbZDBVY0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 17:24:26 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904021659190.4660@localhost.localdomain>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:63623 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760098AbZDBWqI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 18:46:08 -0400
+In-reply-to: <20090204060513.GA28321@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, yakui_zhao <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, khali@linux-fr.org
 
-> +
-> +processor-objs	+= processor_core.o processor_throttling.o \
-> +				processor_idle.o processor_thermal.o
-> +ifdef CONFIG_CPU_FREQ
-> +processor-objs	+= processor_perflib.o
-> +endif
 
-It would be nicer to do:
-processor-y := processor_core.o processor_throttling.o
-processor-y += processor_idle.o processor_thermal.o
-processor-$(CONFIG_CPU_FREQ) += processor_perflib.o
+On Wed, 4 Feb 2009, Matthew Garrett wrote:
 
-Assuming processor-objs was not assinged before in this file.
+> On Wed, Feb 04, 2009 at 12:52:06AM -0500, Len Brown wrote:
+> 
+> > While it is slightly off-topic of the (I agree, real)
+> > technical issue here, note that polling is not "normal" on ACPI systems.
+> > [1] was on  SuSE Linux 10.0, which on their own decided to
+> > over-ride the kernel and enable thermal zone polling by default.
+> 
+> Checking the DSDTs I have to hand, it seems that polling is expected on 
+> about 5% of systems via an explicit _TZP and on almost all machines via 
+> _TSP. Even on systems where thermal notifications are provided, it's 
+> still up to the OS to poll the zone to find the current temperature and 
+> take appropriate action. There's still a window for native smbus drivers 
+> to screw everything up.
 
-	Sam
+FWIW
+
+In the last 6 years, I've seen exactly 3 systems with a non-zero _TZP.
+An old Averatec laptop asked for 1 second, and two recent EEE-PC's ask for 
+30 seconds.  Dunno why Asus has made this leap backwards.
+
+_TSP is a different beast.  It only exists in the context of _PSV and 
+_PSL.
+
+-Len
+
+ps. I just noticed something in the spec under _PSL...
+"If a linear performance control register is not defined(..) for a 
+processor defined in _PSL or for a processor device in the zone as 
+indicated
+by _TZM, then the processor must support processor performance states
+(in other words, the processor's processor object must include _PCT, _PSS, 
+and _PPC).
+
+Interesting, here is an official tie in of P-states and passive trip 
+points that I'd not noticed before....
+
+
