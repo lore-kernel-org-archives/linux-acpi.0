@@ -1,51 +1,47 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: [GIT PULL] x86 setup BIOS workarounds
-Date: Thu, 2 Apr 2009 12:31:15 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.0904021227060.4130@localhost.localdomain>
-References: <200904011640.n31GeD0m008691@voreg.hos.anvin.org> <alpine.LFD.2.00.0904011115210.4130@localhost.localdomain> <alpine.LFD.2.00.0904020017480.4657@localhost.localdomain>
+Date: Thu, 02 Apr 2009 13:07:40 -0700
+Message-ID: <49D51B0C.3040307@zytor.com>
+References: <200904011640.n31GeD0m008691@voreg.hos.anvin.org> <alpine.LFD.2.00.0904012357050.4657@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48608 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759666AbZDBTj3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 15:39:29 -0400
-In-Reply-To: <alpine.LFD.2.00.0904020017480.4657@localhost.localdomain>
+Received: from terminus.zytor.com ([198.137.202.10]:43817 "EHLO
+	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751147AbZDBUXg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 16:23:36 -0400
+In-Reply-To: <alpine.LFD.2.00.0904012357050.4657@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, "Michael K. Johnson" <johnsonm@rpath.com>, Justin Forbes <jmforbes@linuxtx.org>, Jordan Hargrave <Jordan_Hargrave@dell.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Michael K. Johnson" <johnsonm@rpath.com>, Justin Forbes <jmforbes@linuxtx.org>, Jordan Hargrave <Jordan_Hargrave@dell.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-
-
-On Thu, 2 Apr 2009, Len Brown wrote:
+Len Brown wrote:
 > 
-> Yes, this expects old BIOS to always return 20.
+> At the risk of rushing to the defense of the ACPI spec...
+> 
+> This does not look like a backwards incompatible change to me.
+> 
+> In ACPI 2.0, size of 20 is always returned, and it would
+> be a Linux bug if we examined the undefined values after byte 19.
+> 
+> In ACPI 3.0, byte 20 is now defined.  So if the BIOS returns
+> a size >= 21, we are permitted to examine byte 20.
+> 
+> So I agree with the test above, but I do not agree with the comment.
+> 
 
-Do you have any reason to expect that all BIOS'es are bug-free in this 
-area? 
+If you look at the details of the ACPI spec, this flag is explicitly 
+specified so that the BIOS can always return a fixed number of entries. 
+  Now, a clever BIOS could of course skip these entries if the OS only 
+requests 20 bytes -- but if it can do that, it could just equally well 
+have *always* skipped those entries!  So the flag is useless.
 
-That would be a first.
+However, the ACPI 3 spec is written so to actively lead people into 
+implement things this way, and given BIOS developer track records, they 
+would simply truncate the result to 20 bytes if the size passed in is 
+20.  This, of course, means that it is now reporting an invalid entry, 
+without retaining the information that it is invalid...
 
-We already check for other error cases where the BIOS didn't do the right 
-thing in other ways in its e820 routine, or clobbered the wrogn registers 
-or whatever. Why would you expect that the return value would always be 
-ok?
-
-> No, it does not expect old BIOS to have any particular value
-> in buf.ext_flags -- since that is examined only for size > 20.
-
-The point is, that expectation that the BIOS returns 20 seems very 
-unreasonable. BIOS writers tend to have been on pain medication for so 
-long that they can hardly remember their own name, much less actually make 
-sure they follow all the documentation.
-
-Now, if Windows has actually _depended_ on the right return value since 
-Win95, that would be a good, strong argument.
-
-Because that's the only case where we can pretty much depend on BIOS 
-writers get things right - if Windows doesn't boot when they get it wrong. 
-As far as I can tell, that has always been the only real quality assurance 
-for most BIOS'es.
-
-			Linus
+	-hpa
