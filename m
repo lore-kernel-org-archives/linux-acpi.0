@@ -1,157 +1,73 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: simplify module_param namespace
-Date: Thu, 02 Apr 2009 17:03:13 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904021659190.4660@localhost.localdomain>
-References: <200903071328.28113.rusty@rustcorp.com.au>
- <200903110927.12792.rusty@rustcorp.com.au>
- <20090311145124.696b2448.sfr@canb.auug.org.au>
- <200903120907.20055.rusty@rustcorp.com.au>
+Subject: Re: [PATCH]: ACPI: Add the dmi check to make acpi_enforce_resources
+ strict
+Date: Thu, 02 Apr 2009 17:18:58 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904021706520.4660@localhost.localdomain>
+References: <1236687873.7060.31.camel@localhost.localdomain>
+ <20090310123950.GA30016@srcf.ucam.org> <1236738885.2820.168.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763171AbZDBVD4@vger.kernel.org>
-In-reply-to: <200903120907.20055.rusty@rustcorp.com.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, yakui_zhao <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:22515 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093AbZDBVTS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 17:19:18 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KHH0012VSJOLSC8@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 02 Apr 2009 16:19:05 -0500 (CDT)
+In-reply-to: <1236738885.2820.168.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg@redhat.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Subject: ACPI: simplify module_param namespace
-From: Rusty Russell <rusty@rustcorp.com.au>
-    
-Impact: cleanup
-    
-Rather than overriding MODULE_PARAM_PREFIX, build via acpi.o so
-KBUILD_MODNAME is set to "acpi".
 
-This is the logical way to do it, even though acpi cannot be a module
-due to these config options being bool.  Those parts of ACPI which can
-be modular are not built into the acpi "module".
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-Rusty, thanks for the patch.
-Here is the version i checked in, after merging on top of the acpi tree
-(ec no longer depends on link order)
+On Wed, 11 Mar 2009, Zhang Rui wrote:
 
+> On Tue, 2009-03-10 at 20:39 +0800, Matthew Garrett wrote:
+> > On Tue, Mar 10, 2009 at 08:24:33PM +0800, yakui_zhao wrote:
+> > > Subject: ACPI: Add the dmi check to make acpi_enforce_resources strict
+> > > From: Zhao Yakui <yakui.zhao@intel.com>
+> > > 
+> > >    On some boxes the SMBus PCI controller is not hidden. The SMbus I/O port
+> > > will be accessed in AML code. If the i2c driver is still loaded for the SMbus
+> > > PCI device, there is no synchronization between OS and BIOS. And the conflict
+> > > will happen.
+> > >    So the dmi check is added so that the acpi_enforce_resources is strict when
+> > > the box falls into the dmi check table. In such case the i2c driver won't be
+> > > loaded for the SMbus pci device.
+> > 
+> > I think the only safe behaviour here is to default to strict on all 
+> > hardware.
+> > 
+> we've discussed this with Len,
+> he thinks that we should first generate a DMI patch to fix the eeepc901
+> regression, which can be shipped upstream soon.
+> then we'll cook up another patch, to set acpi_enforce_resources=strict
+> by default, which should be shipped to len's test tree first, and see if
+> there are any objections from the SMBus driver side.
+> 
+> Yakui will send the second patch out soon.
+
+I agree with Matthew.
+
+What I asked for what the DMI patch first -- something we could
+send to .29 and .stable w/ minimum risk.
+
+Then (later) on top of that...
+a patch to make the DMI unnecessary and switch the 
+default -- something we can revert upstream if it turns into a disaster.
+
+at this point, "later" is "now":-)
+
+So I'm going to dump the DMI patch and apply Luca's patch for 2.6.30.
+
+for 2.6.29 we can either go low risk (dmi patch) or change the default
+after it cooks in 2.6.30 for a bit.
+
+thanks,
 -Len
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 61675e2..e3ca48f 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -14,44 +14,48 @@ obj-$(CONFIG_X86)		+= blacklist.o
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= osl.o utils.o reboot.o\
-+obj-y				+= acpi.o \
- 					acpica/
- 
-+# All the builtin files are in the "acpi." module_param namespace.
-+acpi-y				+= osl.o utils.o reboot.o
-+
- # sleep related files
--obj-y				+= wakeup.o
--obj-y				+= sleep.o
--obj-$(CONFIG_ACPI_SLEEP)	+= proc.o
-+acpi-y				+= wakeup.o
-+acpi-y				+= sleep.o
-+acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- 
- 
- #
- # ACPI Bus and Device Drivers
- #
--processor-objs	+= processor_core.o processor_throttling.o \
--				processor_idle.o processor_thermal.o
--ifdef CONFIG_CPU_FREQ
--processor-objs	+= processor_perflib.o
-+acpi-y				+= bus.o glue.o scan.o ec.o \
-+					power.o system.o event.o
-+acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
-+acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-+acpi-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
-+acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
-+ifdef CONFIG_ACPI_VIDEO
-+acpi-y				+= video_detect.o
- endif
- 
--obj-y				+= bus.o glue.o scan.o ec.o \
--					power.o system.o event.o
-+# These are (potentially) separate modules
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
--obj-$(CONFIG_ACPI_DOCK)		+= dock.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
--ifdef CONFIG_ACPI_VIDEO
--obj-y				+= video_detect.o
--endif
--
--obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
- obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
--obj-$(CONFIG_ACPI_NUMA)		+= numa.o
--obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
--obj-$(CONFIG_ACPI_PROCFS_POWER)	+= cm_sbs.o
-+obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
-+
-+processor-objs	+= processor_core.o processor_throttling.o \
-+				processor_idle.o processor_thermal.o
-+ifdef CONFIG_CPU_FREQ
-+processor-objs	+= processor_perflib.o
-+endif
-diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
-index 9cb189f..a8287be 100644
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -13,11 +13,6 @@
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debug");
- 
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
--
- struct acpi_dlayer {
- 	const char *name;
- 	unsigned long value;
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 11968ba..56665a6 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -54,10 +54,6 @@ ACPI_MODULE_NAME("power");
- #define ACPI_POWER_RESOURCE_STATE_ON	0x01
- #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
- 
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- int acpi_power_nocheck;
- module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
- 
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index 44be75e..da51f05 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -33,10 +33,6 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("system");
--#ifdef MODULE_PARAM_PREFIX
--#undef MODULE_PARAM_PREFIX
--#endif
--#define MODULE_PARAM_PREFIX "acpi."
- 
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
