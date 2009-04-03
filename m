@@ -1,42 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/4] sony-laptop fixes for 2.6.30
-Date: Fri, 03 Apr 2009 13:09:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904031306550.4655@localhost.localdomain>
-References: <1238591447-13338-1-git-send-email-malattia@linux.it>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 58/98] sony-laptop: Add rfkill support on new models
+Date: Fri, 3 Apr 2009 18:30:50 +0100
+Message-ID: <20090403173050.GA24214@srcf.ucam.org>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <6cc056bc31ea9910afb01adc0848bb6ae68e0205.1238214620.git.len.brown@intel.com> <200903291317.48139.matze@welwarsky.de> <alpine.LFD.2.00.0904031250010.4655@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:58824 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761636AbZDCRJU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2009 13:09:20 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHJ00DM9BNDH1G1@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 03 Apr 2009 12:09:14 -0500 (CDT)
-In-reply-to: <1238591447-13338-1-git-send-email-malattia@linux.it>
+Received: from cavan.codon.org.uk ([93.93.128.6]:35322 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759234AbZDCRaz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2009 13:30:55 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0904031250010.4655@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
 
-1-4 applied
+On Fri, Apr 03, 2009 at 12:52:36PM -0400, Len Brown wrote:
+> On Sun, 29 Mar 2009, Matthias Welwarsky wrote:
+> > Bug: If you insert the module with hardware kill switch enabled, it cannot be 
+> > disabled any more, i.e. despite operating the hardware kill switch, devices 
+> > will not become enabled.
+> > 
+> > Any hint how I could debug this?
+> > 
+> > regards,
+> > 	matthias
+> 
+> Matthew,
+> Should we proceed with patch 58 and fix later, or scrap patch 58?
 
-Though, Mattia, you will not get this message, as every message
-I send you from this account recently is bounced with:
+That could have been triggered before the bugfixes to the notify handler 
+- is it still a problem?
 
-Original-recipient: rfc822;malattia@linux.it
-Final-recipient: rfc822;malattia@linux.it
-Action: failed
-Status: 5.7.1 (Remote SMTP server has rejected address)
-Remote-MTA: dns;picard.linux.it (TCP|206.46.173.7|30552|213.254.12.146|25)
- (picard.linux.it ESMTP Postfix [Debian/GNU])
-Diagnostic-code: smtp;554 5.7.1 Service unavailable; Client host 
-[206.46.173.7]
- blocked using ip.mybl.bofh.it; see http://bl.bofh.it/bl?ip=206.46.173.
-
-
---
-Len Brown, Intel Open Source Technology Center
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
