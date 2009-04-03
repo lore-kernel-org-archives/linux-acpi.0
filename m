@@ -1,76 +1,62 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 01/10] ACPI: support acpi_device_ops .notify methods
-Date: Fri, 3 Apr 2009 11:08:06 +0200
-Message-ID: <200904031108.09572.trenn@suse.de>
-References: <200904021556.32810.trenn@suse.de> <200904020903.21140.bjorn.helgaas@hp.com> <20090403090717.B9BE.E1E9C6FF@jp.fujitsu.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
+Date: Fri, 3 Apr 2009 11:40:11 +0200
+Message-ID: <20090403114011.2ab21051@hyperion.delvare>
+References: <20090204142015.GB3923@srcf.ucam.org>
+	<20090210145716.105ab58b@hyperion.delvare>
+	<20090210140829.GA25397@srcf.ucam.org>
+	<49919E08.5050002@redhat.com>
+	<20090210172408.400cacee@hyperion.delvare>
+	<20090227132740.GF1482@ucw.cz>
+	<68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com>
+	<49C8DE51.2010103@redhat.com>
+	<20090329201617.GA10303@dreamland.darkstar.lan>
+	<20090329225501.0c1771f1@hyperion.delvare>
+	<20090329220127.GA12822@dreamland.darkstar.lan>
+	<alpine.LFD.2.00.0904021858460.9182@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:33645 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751964AbZDCJIT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Apr 2009 05:08:19 -0400
-In-Reply-To: <20090403090717.B9BE.E1E9C6FF@jp.fujitsu.com>
-Content-Disposition: inline
+Received: from zone0.gcu-squad.org ([212.85.147.21]:12362 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753441AbZDCJkl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2009 05:40:41 -0400
+In-Reply-To: <alpine.LFD.2.00.0904021858460.9182@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, kamezawa.hiroyu@jp.fujitsu.com, Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
-On Friday 03 April 2009 02:23:16 Yasunori Goto wrote:
-> > On Thursday 02 April 2009 07:56:28 am Thomas Renninger wrote:
-> > > On Monday 30 March 2009 19:48:13 Bjorn Helgaas wrote:
-> > > > This patch adds support for ACPI device driver .notify() methods.  If
-> > > > such a method is present, Linux/ACPI installs a handler for device
-> > > > notifications (but not for system notifications such as Bus Check,
-> > > > Device Check, etc).  When a device notification occurs, Linux/ACPI
-> > > > passes it on to the driver's .notify() method.
-> > > I sent more or less the same some years ago.
-> > > Thanks a lot for finally cleaning this up!
-> > 
-> > Hi Thomas,
-> > 
-> > Oh, sorry, I didn't know that, or I would have given you some credit :-)
-> > In fact, if you have a URL, I'll add a pointer to the changelog.  I
-> > always like to leave breadcrumbs to help future research.
-> > 
-> > > > Several drivers install their own handlers for system Bus Check and
-> > > > Device Check notifications so they can support hot-plug.  This patch
-> > > > doesn't affect that usage.
-> > > Getting rid of these will be the tricky part.
-> > > When I looked at it start/stop already was defined, but nobody used it.
-> > > IMO start/stop is not needed and hotplug capable device drivers can
-> > > handle things themselves in the relevant notify case.
-> > 
-> > I'd really like to get rid of the bus/device check notification stuff
-> > in the drivers eventually.  IMHO, the core Linux/ACPI code should
-> > field those notifications and just call the driver .add() and .remove()
-> > methods as necessary.
-> > 
-> > But you're right, it's going to be quite tricky.  I'm looking at getting
-> > rid of .start() right now, because that's a major complication.  The
-> > biggest user looks like acpiphp, and that is going to be a mess to
-> > straighten out.
-> > 
-> > > I remember these two guys helped me testing on memory hotplug.
-> > > They only had a simulator, but might want to give the latest kernel a try if
-> > > you come to clean up acpi_memhotplug.c:
-> > > kamezawa.hiroyu@jp.fujitsu.com
-> > > Yasunori Goto <y-goto@jp.fujitsu.com>
+On Thu, 02 Apr 2009 18:59:11 -0400 (EDT), Len Brown wrote:
+> From 7e90560c50f754d65884e251e94c1efa2a4b5784 Mon Sep 17 00:00:00 2001
+> From: Luca Tettamanti <kronos.it@gmail.com>
+> Date: Mon, 30 Mar 2009 00:01:27 +0200
+> Subject: [PATCH] ACPI: acpi_enforce_resource=strict by default
+> X-Patchwork-Hint: ignore
 > 
-> I can use real machine which can memory hotplug.
-> In our case, notify method is called for container device (NUMA node),
-> and memory and processor devices are added under acpi_bus_scan().
+> Enforce strict resource checking - disallowing access by native
+> drivers to IO ports and memory regions claimed by ACPI firmware.
 > 
-> I'll book it to test this patch in next week.
-> It must be good test. :-)
+> The patch is mainly aimed to block native hwmon drivers from touching
+> monitoring chips that ACPI thinks it own.
+> 
+> If this causes a regression, boot with "acpi_enforce_resources=lax"
+> which was the previous default.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=12376
+> http://bugzilla.kernel.org/show_bug.cgi?id=12541
+> 
+> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+> Acked-by: Pavel Machek <pavel@suse.cz>
+> Acked-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+> 
+> as applied.
 
-Better wait a bit or ask Bjorn.
-I expect this is only the beginning of his cleanups and the tricky
-parts will still come.
+Thanks Len! I'll look into pushing Luca's atk0110 driver upstream later
+today (but it's a busy day at work...)
 
-Thanks,
-
-      Thomas
+-- 
+Jean Delvare
