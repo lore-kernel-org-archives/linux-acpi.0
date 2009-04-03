@@ -1,71 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 86/98] ACPI: cap off P-state transition latency from buggy
- BIOSes
-Date: Fri, 03 Apr 2009 12:35:20 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904031226350.4655@localhost.localdomain>
+Subject: Re: [PATCH 21/98] ACPICA: Check for non-zero address before being
+ converted to GAS
+Date: Fri, 03 Apr 2009 12:41:39 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904031239540.4655@localhost.localdomain>
 References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
- <a59d1637eb0e0a37ee0e5c92800c60abe3624e24.1238214620.git.len.brown@intel.com>
- <200904021450.26935.trenn@suse.de>
+ <5e053e77f233342b56fda419d347fd2c958b9849.1238214618.git.len.brown@intel.com>
+ <200904021359.01408.trenn@suse.de>
+ <1238720972.25165.2.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:49283 "EHLO
+Received: from vms173009pub.verizon.net ([206.46.173.9]:54778 "EHLO
 	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194AbZDCQfk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2009 12:35:40 -0400
+	with ESMTP id S1757108AbZDCQlu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2009 12:41:50 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHJ003S3A2XETQZ@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 03 Apr 2009 11:35:27 -0500 (CDT)
-In-reply-to: <200904021450.26935.trenn@suse.de>
+ with ESMTPA id <0KHJ00551ADHI95K@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 03 Apr 2009 11:41:41 -0500 (CDT)
+In-reply-to: <1238720972.25165.2.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-> Whatabout:
-> 
-> CC: stable@kernel.org
+On Fri, 3 Apr 2009, Lin Ming wrote:
 
-I've added this to my .stable list, thanks for pointing it out.
-Note that I don't send patches to stable until after they are upstream.
+> On Thu, 2009-04-02 at 19:59 +0800, Thomas Renninger wrote:
+> > On Saturday 28 March 2009 05:30:56 Len Brown wrote:
+> > > From: Lin Ming <ming.m.lin@intel.com>
+> > > 
+> > > Reported-by: FreeBSD community
+> > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> > > Signed-off-by: Len Brown <len.brown@intel.com>
+> > Does this fix something for real?
+> 
+> It's a regression fix.
+> see "linux-next acpi changes make vmware server unusable"
+> http://marc.info/?l=linux-acpi&m=123620365021296&w=2
 
-thanks,
--Len
-
-> This is a bug fix also existing in older kernels.
-> 
-> I remember even much newer HW (Intel and AMD) based have higher values
-> 
-> exported through ACPI _PSS tables as latency.
-> 
-> I remember values around (50-70us Core 2 Duo?) and 37us on K10.
-> 
-> I doubt this patch will cause much pain, but being close to values exported
-> 
-> via ACPI tables on similar HW sounds like a good idea.
-> 
-> In 2.6.30 (as soon as cpufreq branch is merged) you get that easily from here:
-> 
-> cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_transition_latency
-> 
-> 109000
-> 
-> I expect my machine's (K8 Dual core) ACPI exported value will be cut down to:
-> 
-> 20000
-> 
-> now?
-
-Does your AMD box run acpi-cpufreq and use native MSR access to change 
-P-states?
-
-> I don't want to veto this one, but IMO the 20us second value
-> 
-> should get 100us...
-
-Where does 100us come from?
+To clarify...
+this fix is in response to a regression caused by the previous patch
+in this series.  That is why it doesn't need to go to .stable.
 
 thanks,
 -Len Brown, Intel Open Source Technology Center
