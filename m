@@ -1,114 +1,74 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: add "auto" to acpi_enforce_resources
-Date: Thu, 02 Apr 2009 18:59:11 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904021858460.9182@localhost.localdomain>
-References: <20090204142015.GB3923@srcf.ucam.org>
- <20090210145716.105ab58b@hyperion.delvare>
- <20090210140829.GA25397@srcf.ucam.org> <49919E08.5050002@redhat.com>
- <20090210172408.400cacee@hyperion.delvare> <20090227132740.GF1482@ucw.cz>
- <68676e00903240539i119b6d26j516ee131d4cd6781@mail.gmail.com>
- <49C8DE51.2010103@redhat.com> <20090329201617.GA10303@dreamland.darkstar.lan>
- <20090329225501.0c1771f1@hyperion.delvare>
- <20090329220127.GA12822@dreamland.darkstar.lan>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [PATCH 01/10] ACPI: support acpi_device_ops .notify methods
+Date: Fri, 03 Apr 2009 09:23:16 +0900
+Message-ID: <20090403090717.B9BE.E1E9C6FF@jp.fujitsu.com>
+References: <200904021556.32810.trenn@suse.de> <200904020903.21140.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:61106 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926AbZDBW7a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 18:59:30 -0400
-In-reply-to: <20090329220127.GA12822@dreamland.darkstar.lan>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:50958 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753365AbZDCA2J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 20:28:09 -0400
+In-Reply-To: <200904020903.21140.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Thomas Renninger <trenn@suse.de>, kamezawa.hiroyu@jp.fujitsu.com, Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
->From 7e90560c50f754d65884e251e94c1efa2a4b5784 Mon Sep 17 00:00:00 2001
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 30 Mar 2009 00:01:27 +0200
-Subject: [PATCH] ACPI: acpi_enforce_resource=strict by default
-X-Patchwork-Hint: ignore
+> On Thursday 02 April 2009 07:56:28 am Thomas Renninger wrote:
+> > On Monday 30 March 2009 19:48:13 Bjorn Helgaas wrote:
+> > > This patch adds support for ACPI device driver .notify() methods.  If
+> > > such a method is present, Linux/ACPI installs a handler for device
+> > > notifications (but not for system notifications such as Bus Check,
+> > > Device Check, etc).  When a device notification occurs, Linux/ACPI
+> > > passes it on to the driver's .notify() method.
+> > I sent more or less the same some years ago.
+> > Thanks a lot for finally cleaning this up!
+> 
+> Hi Thomas,
+> 
+> Oh, sorry, I didn't know that, or I would have given you some credit :-)
+> In fact, if you have a URL, I'll add a pointer to the changelog.  I
+> always like to leave breadcrumbs to help future research.
+> 
+> > > Several drivers install their own handlers for system Bus Check and
+> > > Device Check notifications so they can support hot-plug.  This patch
+> > > doesn't affect that usage.
+> > Getting rid of these will be the tricky part.
+> > When I looked at it start/stop already was defined, but nobody used it.
+> > IMO start/stop is not needed and hotplug capable device drivers can
+> > handle things themselves in the relevant notify case.
+> 
+> I'd really like to get rid of the bus/device check notification stuff
+> in the drivers eventually.  IMHO, the core Linux/ACPI code should
+> field those notifications and just call the driver .add() and .remove()
+> methods as necessary.
+> 
+> But you're right, it's going to be quite tricky.  I'm looking at getting
+> rid of .start() right now, because that's a major complication.  The
+> biggest user looks like acpiphp, and that is going to be a mess to
+> straighten out.
+> 
+> > I remember these two guys helped me testing on memory hotplug.
+> > They only had a simulator, but might want to give the latest kernel a try if
+> > you come to clean up acpi_memhotplug.c:
+> > kamezawa.hiroyu@jp.fujitsu.com
+> > Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Enforce strict resource checking - disallowing access by native
-drivers to IO ports and memory regions claimed by ACPI firmware.
+I can use real machine which can memory hotplug.
+In our case, notify method is called for container device (NUMA node),
+and memory and processor devices are added under acpi_bus_scan().
 
-The patch is mainly aimed to block native hwmon drivers from touching
-monitoring chips that ACPI thinks it own.
+I'll book it to test this patch in next week.
+It must be good test. :-)
 
-If this causes a regression, boot with "acpi_enforce_resources=lax"
-which was the previous default.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=12376
-http://bugzilla.kernel.org/show_bug.cgi?id=12541
-
-Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-
-as applied.
-
-thanks,
--Len
+Bye.
 
 
- Documentation/kernel-parameters.txt |   16 ++++++++++++++++
- drivers/acpi/osl.c                  |    6 +++---
- 2 files changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 54f21a5..7068d0b 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -258,6 +258,22 @@ and is between 256 and 4096 characters. It is defined in the file
- 			to assume that this machine's pmtimer latches its value
- 			and always returns good values.
- 
-+	acpi_enforce_resources=	[ACPI]
-+			{ strict | lax | no }
-+			Check for resource conflicts between native drivers
-+			and ACPI OperationRegions (SystemIO and SystemMemory
-+			only). IO ports and memory declared in ACPI might be
-+			used by the ACPI subsystem in arbitrary AML code and
-+			can interfere with legacy drivers.
-+			strict (default): access to resources claimed by ACPI
-+			is denied; legacy drivers trying to access reserved
-+			resources will fail to bind to device using them.
-+			lax: access to resources claimed by ACPI is allowed;
-+			legacy drivers trying to access reserved resources
-+			will bind successfully but a warning message is logged.
-+			no: ACPI OperationRegions are not marked as reserved,
-+			no further checks are performed.
-+
- 	agp=		[AGP]
- 			{ off | try_unsupported }
- 			off: disable AGP support
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 1e35f34..f50ca1e 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1063,9 +1063,9 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
-  * in arbitrary AML code and can interfere with legacy drivers.
-  * acpi_enforce_resources= can be set to:
-  *
-- *   - strict           (2)
-+ *   - strict (default) (2)
-  *     -> further driver trying to access the resources will not load
-- *   - lax (default)    (1)
-+ *   - lax              (1)
-  *     -> further driver trying to access the resources will load, but you
-  *     get a system message that something might go wrong...
-  *
-@@ -1077,7 +1077,7 @@ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
- #define ENFORCE_RESOURCES_LAX    1
- #define ENFORCE_RESOURCES_NO     0
- 
--static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
- 
- static int __init acpi_enforce_resources_setup(char *str)
- {
 -- 
-1.6.0.6
+Yasunori Goto 
+
 
