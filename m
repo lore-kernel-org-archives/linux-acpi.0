@@ -1,74 +1,78 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [PATCH 01/10] ACPI: support acpi_device_ops .notify methods
-Date: Fri, 03 Apr 2009 09:23:16 +0900
-Message-ID: <20090403090717.B9BE.E1E9C6FF@jp.fujitsu.com>
-References: <200904021556.32810.trenn@suse.de> <200904020903.21140.bjorn.helgaas@hp.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH 21/98] ACPICA: Check for non-zero address before being
+ converted to GAS
+Date: Fri, 03 Apr 2009 09:09:32 +0800
+Message-ID: <1238720972.25165.2.camel@minggr.sh.intel.com>
+References: <1238214733-8285-1-git-send-email-lenb@kernel.org>
+	 <5e053e77f233342b56fda419d347fd2c958b9849.1238214618.git.len.brown@intel.com>
+	 <200904021359.01408.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:50958 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365AbZDCA2J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 20:28:09 -0400
-In-Reply-To: <200904020903.21140.bjorn.helgaas@hp.com>
+Received: from mga11.intel.com ([192.55.52.93]:38311 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751345AbZDCBYI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Apr 2009 21:24:08 -0400
+In-Reply-To: <200904021359.01408.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Thomas Renninger <trenn@suse.de>, kamezawa.hiroyu@jp.fujitsu.com, Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-> On Thursday 02 April 2009 07:56:28 am Thomas Renninger wrote:
-> > On Monday 30 March 2009 19:48:13 Bjorn Helgaas wrote:
-> > > This patch adds support for ACPI device driver .notify() methods.  If
-> > > such a method is present, Linux/ACPI installs a handler for device
-> > > notifications (but not for system notifications such as Bus Check,
-> > > Device Check, etc).  When a device notification occurs, Linux/ACPI
-> > > passes it on to the driver's .notify() method.
-> > I sent more or less the same some years ago.
-> > Thanks a lot for finally cleaning this up!
+On Thu, 2009-04-02 at 19:59 +0800, Thomas Renninger wrote:
+> On Saturday 28 March 2009 05:30:56 Len Brown wrote:
+> > From: Lin Ming <ming.m.lin@intel.com>
+> > 
+> > Reported-by: FreeBSD community
+> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> > Signed-off-by: Len Brown <len.brown@intel.com>
+> Does this fix something for real?
+
+It's a regression fix.
+see "linux-next acpi changes make vmware server unusable"
+http://marc.info/?l=linux-acpi&m=123620365021296&w=2
+
+Lin Ming
+
+> If yes, please add:
+> CC: stable@kernel.org
+> not sure if not.
+> > ---
+> >  drivers/acpi/acpica/tbfadt.c |   16 +++++++++-------
+> >  1 files changed, 9 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/acpica/tbfadt.c 
+> b/drivers/acpi/acpica/tbfadt.c
+> > index a8191ef..43fe886 100644
+> > --- a/drivers/acpi/acpica/tbfadt.c
+> > +++ b/drivers/acpi/acpica/tbfadt.c
+> > @@ -618,12 +618,14 @@ static void acpi_tb_setup_fadt_registers(void)
+> >  		    ACPI_ADD_PTR(struct acpi_generic_address, &acpi_gbl_FADT,
+> >  				 fadt_pm_info_table[i].source);
+> >  
+> > -		acpi_tb_init_generic_address(fadt_pm_info_table[i].target,
+> > -					     source64->space_id,
+> > -					     pm1_register_byte_width,
+> > -					     source64->address +
+> > -					     (fadt_pm_info_table[i].
+> > -					      register_num *
+> > -					      pm1_register_byte_width));
+> > +		if (source64->address) {
+> > +			acpi_tb_init_generic_address(fadt_pm_info_table[i].
+> > +						     target, source64->space_id,
+> > +						     pm1_register_byte_width,
+> > +						     source64->address +
+> > +						     (fadt_pm_info_table[i].
+> > +						      register_num *
+> > +						      pm1_register_byte_width));
+> > +		}
+> >  	}
+> >  }
+> > -- 
 > 
-> Hi Thomas,
-> 
-> Oh, sorry, I didn't know that, or I would have given you some credit :-)
-> In fact, if you have a URL, I'll add a pointer to the changelog.  I
-> always like to leave breadcrumbs to help future research.
-> 
-> > > Several drivers install their own handlers for system Bus Check and
-> > > Device Check notifications so they can support hot-plug.  This patch
-> > > doesn't affect that usage.
-> > Getting rid of these will be the tricky part.
-> > When I looked at it start/stop already was defined, but nobody used it.
-> > IMO start/stop is not needed and hotplug capable device drivers can
-> > handle things themselves in the relevant notify case.
-> 
-> I'd really like to get rid of the bus/device check notification stuff
-> in the drivers eventually.  IMHO, the core Linux/ACPI code should
-> field those notifications and just call the driver .add() and .remove()
-> methods as necessary.
-> 
-> But you're right, it's going to be quite tricky.  I'm looking at getting
-> rid of .start() right now, because that's a major complication.  The
-> biggest user looks like acpiphp, and that is going to be a mess to
-> straighten out.
-> 
-> > I remember these two guys helped me testing on memory hotplug.
-> > They only had a simulator, but might want to give the latest kernel a try if
-> > you come to clean up acpi_memhotplug.c:
-> > kamezawa.hiroyu@jp.fujitsu.com
-> > Yasunori Goto <y-goto@jp.fujitsu.com>
-
-I can use real machine which can memory hotplug.
-In our case, notify method is called for container device (NUMA node),
-and memory and processor devices are added under acpi_bus_scan().
-
-I'll book it to test this patch in next week.
-It must be good test. :-)
-
-Bye.
-
-
-
--- 
-Yasunori Goto 
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
