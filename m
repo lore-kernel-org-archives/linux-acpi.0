@@ -1,48 +1,76 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: simplify module_param namespace
-Date: Thu, 02 Apr 2009 22:44:57 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904022243420.9182@localhost.localdomain>
-References: <200903071328.28113.rusty@rustcorp.com.au>
- <200903110927.12792.rusty@rustcorp.com.au>
- <20090311145124.696b2448.sfr@canb.auug.org.au>
- <200903120907.20055.rusty@rustcorp.com.au>
- <alpine.LFD.2.00.0904021659190.4660@localhost.localdomain>
- <20090402212625.GA8502@uranus.ravnborg.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 01/10] ACPI: support acpi_device_ops .notify methods
+Date: Fri, 3 Apr 2009 11:08:06 +0200
+Message-ID: <200904031108.09572.trenn@suse.de>
+References: <200904021556.32810.trenn@suse.de> <200904020903.21140.bjorn.helgaas@hp.com> <20090403090717.B9BE.E1E9C6FF@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:43253 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752069AbZDCCpK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2009 22:45:10 -0400
-In-reply-to: <20090402212625.GA8502@uranus.ravnborg.org>
+Received: from cantor2.suse.de ([195.135.220.15]:33645 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751964AbZDCJIT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Apr 2009 05:08:19 -0400
+In-Reply-To: <20090403090717.B9BE.E1E9C6FF@jp.fujitsu.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, yakui_zhao <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, kamezawa.hiroyu@jp.fujitsu.com, Len Brown <lenb@kernel.org>, Tony Vroon <tony@linx.net>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Zhao Yakui <yakui.zhao@intel.com>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Thu, 2 Apr 2009, Sam Ravnborg wrote:
-
-> > +
-> > +processor-objs	+= processor_core.o processor_throttling.o \
-> > +				processor_idle.o processor_thermal.o
-> > +ifdef CONFIG_CPU_FREQ
-> > +processor-objs	+= processor_perflib.o
-> > +endif
+On Friday 03 April 2009 02:23:16 Yasunori Goto wrote:
+> > On Thursday 02 April 2009 07:56:28 am Thomas Renninger wrote:
+> > > On Monday 30 March 2009 19:48:13 Bjorn Helgaas wrote:
+> > > > This patch adds support for ACPI device driver .notify() methods.  If
+> > > > such a method is present, Linux/ACPI installs a handler for device
+> > > > notifications (but not for system notifications such as Bus Check,
+> > > > Device Check, etc).  When a device notification occurs, Linux/ACPI
+> > > > passes it on to the driver's .notify() method.
+> > > I sent more or less the same some years ago.
+> > > Thanks a lot for finally cleaning this up!
+> > 
+> > Hi Thomas,
+> > 
+> > Oh, sorry, I didn't know that, or I would have given you some credit :-)
+> > In fact, if you have a URL, I'll add a pointer to the changelog.  I
+> > always like to leave breadcrumbs to help future research.
+> > 
+> > > > Several drivers install their own handlers for system Bus Check and
+> > > > Device Check notifications so they can support hot-plug.  This patch
+> > > > doesn't affect that usage.
+> > > Getting rid of these will be the tricky part.
+> > > When I looked at it start/stop already was defined, but nobody used it.
+> > > IMO start/stop is not needed and hotplug capable device drivers can
+> > > handle things themselves in the relevant notify case.
+> > 
+> > I'd really like to get rid of the bus/device check notification stuff
+> > in the drivers eventually.  IMHO, the core Linux/ACPI code should
+> > field those notifications and just call the driver .add() and .remove()
+> > methods as necessary.
+> > 
+> > But you're right, it's going to be quite tricky.  I'm looking at getting
+> > rid of .start() right now, because that's a major complication.  The
+> > biggest user looks like acpiphp, and that is going to be a mess to
+> > straighten out.
+> > 
+> > > I remember these two guys helped me testing on memory hotplug.
+> > > They only had a simulator, but might want to give the latest kernel a try if
+> > > you come to clean up acpi_memhotplug.c:
+> > > kamezawa.hiroyu@jp.fujitsu.com
+> > > Yasunori Goto <y-goto@jp.fujitsu.com>
 > 
-> It would be nicer to do:
-> processor-y := processor_core.o processor_throttling.o
-> processor-y += processor_idle.o processor_thermal.o
-> processor-$(CONFIG_CPU_FREQ) += processor_perflib.o
+> I can use real machine which can memory hotplug.
+> In our case, notify method is called for container device (NUMA node),
+> and memory and processor devices are added under acpi_bus_scan().
 > 
-> Assuming processor-objs was not assinged before in this file.
-> 
-> 	Sam
+> I'll book it to test this patch in next week.
+> It must be good test. :-)
 
-Can-do.
-In Rusty's defense, these lines were in his patch simply because he moved 
-them.
+Better wait a bit or ask Bjorn.
+I expect this is only the beginning of his cleanups and the tricky
+parts will still come.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Thanks,
 
+      Thomas
