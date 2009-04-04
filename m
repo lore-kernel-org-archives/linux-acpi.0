@@ -1,72 +1,58 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 3/3] acer-wmi: Update copyright notice & documentation
-Date: Sat, 04 Apr 2009 09:33:39 +0100
-Message-ID: <20090404083339.14302.79226.stgit@localhost>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 0/3] acer-wmi patches for 2.6.30 (take 2)
+Date: Sat, 04 Apr 2009 12:43:00 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904041242490.4821@localhost.localdomain>
 References: <20090404083323.14302.40102.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41931 "EHLO
-	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1759231AbZDDIds (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Apr 2009 04:33:48 -0400
-In-Reply-To: <20090404083323.14302.40102.stgit@localhost>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:46151 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728AbZDDQoX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 12:44:23 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KHL00C1J55WZHX4@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 04 Apr 2009 11:44:21 -0500 (CDT)
+In-reply-to: <20090404083323.14302.40102.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-Explicitly note in the documentation that the Acer Aspire One is not
-supported.
+applied
 
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
+thanks,
+Len Brown, Intel Open Source Technology Center
 
- Documentation/laptops/acer-wmi.txt |   10 +++++++---
- drivers/platform/x86/acer-wmi.c    |    2 +-
- 2 files changed, 8 insertions(+), 4 deletions(-)
+On Sat, 4 Apr 2009, Carlos Corbacho wrote:
 
-
-diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
-index 2b3a6b5..5ee2a02 100644
---- a/Documentation/laptops/acer-wmi.txt
-+++ b/Documentation/laptops/acer-wmi.txt
-@@ -1,9 +1,9 @@
- Acer Laptop WMI Extras Driver
- http://code.google.com/p/aceracpi
--Version 0.2
--18th August 2008
-+Version 0.3
-+4th April 2009
- 
--Copyright 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
-+Copyright 2007-2009 Carlos Corbacho <carlos@strangeworlds.co.uk>
- 
- acer-wmi is a driver to allow you to control various parts of your Acer laptop
- hardware under Linux which are exposed via ACPI-WMI.
-@@ -36,6 +36,10 @@ not possible in kernel space from a 64 bit OS.
- Supported Hardware
- ******************
- 
-+NOTE: The Acer Aspire One is not supported hardware. It cannot work with
-+acer-wmi until Acer fix their ACPI-WMI implementation on them, so has been
-+blacklisted until that happens.
-+
- Please see the website for the current list of known working hardare:
- 
- http://code.google.com/p/aceracpi/wiki/SupportedHardware
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 27837e8..0f6e43b 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -1,7 +1,7 @@
- /*
-  *  Acer WMI Laptop Extras
-  *
-- *  Copyright (C) 2007-2008	Carlos Corbacho <carlos@strangeworlds.co.uk>
-+ *  Copyright (C) 2007-2009	Carlos Corbacho <carlos@strangeworlds.co.uk>
-  *
-  *  Based on acer_acpi:
-  *    Copyright (C) 2005-2007	E.M. Smith
-
+> Len,
+> 
+> The following are the patches that really are for 2.6.30-rc0 for acer-wmi.
+> 
+> The first one is quite a nasty one, as it appears the Aspire One's
+> non-functional ACPI-WMI interface is now causing problems for userspace.
+> 
+> -Carlos
+> ---
+> 
+> Andy Whitcroft (1):
+>       acer-wmi: Cleanup the failure cleanup handling
+> 
+> Carlos Corbacho (2):
+>       acer-wmi: Update copyright notice & documentation
+>       acer-wmi: Blacklist Acer Aspire One
+> 
+> 
+>  Documentation/laptops/acer-wmi.txt |   10 +++++++---
+>  drivers/platform/x86/acer-wmi.c    |   35 +++++++++++++++++++++++++++++++++--
+>  2 files changed, 40 insertions(+), 5 deletions(-)
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
