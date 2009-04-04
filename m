@@ -1,39 +1,44 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 01/12] thinkpad-acpi: update copyright notices
-Date: Sat,  4 Apr 2009 01:25:42 -0300
-Message-ID: <1238819153-16004-2-git-send-email-hmh@hmh.eng.br>
-References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
+Subject: [GIT PATCH] thinkpad-acpi queue for 2.6.30
+Date: Sat,  4 Apr 2009 01:25:41 -0300
+Message-ID: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:41627 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:54086 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805AbZDDEZ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750865AbZDDEZ6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:25:58 -0400
-In-Reply-To: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-It is that time of the year again...
+Len,
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
----
- drivers/platform/x86/thinkpad_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This patchset has the changes for thinkpad-acpi that I would like to
+see merged for 2.6.30 (while the window is still open).
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index d99f1cd..fd6985b 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3,7 +3,7 @@
-  *
-  *
-  *  Copyright (C) 2004-2005 Borislav Deianov <borislav@users.sf.net>
-- *  Copyright (C) 2006-2008 Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-+ *  Copyright (C) 2006-2009 Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
+It contains the patch for
+http://bugzilla.kernel.org/show_bug.cgi?id=11750, and a few
+enhancements.
+
+Shortlog:
+
+Henrique de Moraes Holschuh (12):
+      thinkpad-acpi: update copyright notices
+      thinkpad-acpi: drop ibm-acpi alias
+      thinkpad-acpi: documentation cleanup
+      thinkpad-acpi: cleanup debug helpers
+      thinkpad-acpi: add missing log levels
+      thinkpad-acpi: add new debug helpers and warn of deprecated atts
+      thinkpad-acpi: remove HKEY disable functionality
+      thinkpad-acpi: restrict access to some firmware LEDs
+      thinkpad-acpi: enhanced debugging messages for rfkill subdrivers
+      thinkpad-acpi: enhanced debugging messages for the hotkey subdriver
+      thinkpad-acpi: enhanced debugging messages for the fan subdriver
+      thinkpad-acpi: rework brightness support
+
 -- 
-1.6.2.1
-
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
