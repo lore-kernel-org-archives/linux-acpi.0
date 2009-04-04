@@ -1,311 +1,532 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 03/12] thinkpad-acpi: documentation cleanup
-Date: Sat,  4 Apr 2009 01:25:44 -0300
-Message-ID: <1238819153-16004-4-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 12/12] thinkpad-acpi: rework brightness
+	support
+Date: Sat,  4 Apr 2009 01:25:53 -0300
+Message-ID: <1238819153-16004-13-git-send-email-hmh@hmh.eng.br>
 References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:43284 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbZDDE0D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:26:03 -0400
-In-Reply-To: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1238819153-16004-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Some cleanups to the documentation of the driver.
+Refactor and redesign the brightness control backend...
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+In order to fix bugzilla #11750...
+
+Add a new brightness control mode: support direct NVRAM checkpointing
+of the backlight level (i.e. store directly to NVRAM without the need
+for UCMS calls), and use that together with the EC-based control.
+Disallow UCMS+EC, thus avoiding races with the SMM firmware.
+
+Switch the models that define HBRV (EC Brightness Value) in the DSDT
+to the new mode.  These are: T40-T43, R50-R52, R50e, R51e, X31-X41.
+
+Change the default for all other IBM ThinkPads to UCMS-only.  The
+Lenovo models already default to UCMS-only.
+
+Reported-by: Alexey Fisher <bug-track-M18mAb7Tlt0yCq4wW13eYl6hYfS7NtTn@public.gmane.org>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   76 +++++++++++++++++++++----------
- 1 files changed, 52 insertions(+), 24 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   12 +-
+ drivers/platform/x86/thinkpad_acpi.c    |  317 +++++++++++++++++++++----------
+ 2 files changed, 227 insertions(+), 102 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 41bc99f..f6e6bc6 100644
+index 25ed43d..3d76507 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -20,7 +20,8 @@ moved to the drivers/misc tree and renamed to thinkpad-acpi for kernel
- kernel 2.6.29 and release 0.22.
+@@ -1157,10 +1157,15 @@ display backlight brightness control methods have 16 levels, ranging
+ from 0 to 15.
  
- The driver is named "thinkpad-acpi".  In some places, like module
--names, "thinkpad_acpi" is used because of userspace issues.
-+names and log messages, "thinkpad_acpi" is used because of userspace
-+issues.
- 
- "tpacpi" is used as a shorthand where "thinkpad-acpi" would be too
- long due to length limitations on some Linux kernel versions.
-@@ -37,7 +38,7 @@ detailed description):
- 	- ThinkLight on and off
- 	- limited docking and undocking
- 	- UltraBay eject
--	- CMOS control
-+	- CMOS/UCMS control
- 	- LED control
- 	- ACPI sounds
- 	- temperature sensors
-@@ -46,6 +47,7 @@ detailed description):
- 	- Volume control
- 	- Fan control and monitoring: fan speed, fan enable/disable
- 	- WAN enable and disable
-+	- UWB enable and disable
- 
- A compatibility table by model and feature is maintained on the web
- site, http://ibm-acpi.sf.net/. I appreciate any success or failure
-@@ -53,7 +55,7 @@ reports, especially if they add to or correct the compatibility table.
- Please include the following information in your report:
- 
- 	- ThinkPad model name
--	- a copy of your DSDT, from /proc/acpi/dsdt
-+	- a copy of your ACPI tables, using the "acpidump" utility
- 	- a copy of the output of dmidecode, with serial numbers
- 	  and UUIDs masked off
- 	- which driver features work and which don't
-@@ -66,17 +68,18 @@ Installation
- ------------
- 
- If you are compiling this driver as included in the Linux kernel
--sources, simply enable the CONFIG_THINKPAD_ACPI option, and optionally
--enable the CONFIG_THINKPAD_ACPI_BAY option if you want the
--thinkpad-specific bay functionality.
-+sources, look for the CONFIG_THINKPAD_ACPI Kconfig option.
-+It is located on the menu path: "Device Drivers" -> "X86 Platform
-+Specific Device Drivers" -> "ThinkPad ACPI Laptop Extras".
+ There are two interfaces to the firmware for direct brightness control,
+-EC and CMOS.  To select which one should be used, use the
++EC and UCMS (or CMOS).  To select which one should be used, use the
+ brightness_mode module parameter: brightness_mode=1 selects EC mode,
+-brightness_mode=2 selects CMOS mode, brightness_mode=3 selects both EC
+-and CMOS.  The driver tries to auto-detect which interface to use.
++brightness_mode=2 selects UCMS mode, brightness_mode=3 selects EC
++mode with NVRAM backing (so that brightness changes are remembered
++across shutdown/reboot).
 +
++The driver tries to select which interface to use from a table of
++defaults for each ThinkPad model.  If it makes a wrong choice, please
++report this as a bug, so that we can fix it.
  
- Features
- --------
+ When display backlight brightness controls are available through the
+ standard ACPI interface, it is best to use it instead of this direct
+@@ -1498,6 +1503,7 @@ to enable more than one output class, just add their values.
+ 				(bluetooth, WWAN, UWB...)
+ 	0x0008			HKEY event interface, hotkeys
+ 	0x0010			Fan control
++	0x0020			Backlight brightness
  
- The driver exports two different interfaces to userspace, which can be
- used to access the features it provides.  One is a legacy procfs-based
--interface, which will be removed at some time in the distant future.
--The other is a new sysfs-based interface which is not complete yet.
-+interface, which will be removed at some time in the future.  The other
-+is a new sysfs-based interface which is not complete yet.
+ There is also a kernel build option to enable more debugging
+ information, which may be necessary to debug driver problems.
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 27c9480..a40b075 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -192,6 +192,7 @@ enum {
+ #define TPACPI_DBG_RFKILL	0x0004
+ #define TPACPI_DBG_HKEY		0x0008
+ #define TPACPI_DBG_FAN		0x0010
++#define TPACPI_DBG_BRGHT	0x0020
  
- The procfs interface creates the /proc/acpi/ibm directory.  There is a
- file under that directory for each feature it supports.  The procfs
-@@ -111,15 +114,17 @@ The version of thinkpad-acpi's sysfs interface is exported by the driver
- as a driver attribute (see below).
+ #define onoff(status, bit) ((status) & (1 << (bit)) ? "on" : "off")
+ #define enabled(status, bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
+@@ -274,7 +275,6 @@ static struct {
  
- Sysfs driver attributes are on the driver's sysfs attribute space,
--for 2.6.23 this is /sys/bus/platform/drivers/thinkpad_acpi/ and
-+for 2.6.23+ this is /sys/bus/platform/drivers/thinkpad_acpi/ and
- /sys/bus/platform/drivers/thinkpad_hwmon/
+ static struct {
+ 	u16 hotkey_mask_ff:1;
+-	u16 bright_cmos_ec_unsync:1;
+ } tp_warned;
  
- Sysfs device attributes are on the thinkpad_acpi device sysfs attribute
--space, for 2.6.23 this is /sys/devices/platform/thinkpad_acpi/.
-+space, for 2.6.23+ this is /sys/devices/platform/thinkpad_acpi/.
+ struct thinkpad_id_data {
+@@ -5526,6 +5526,20 @@ static struct ibm_struct ecdump_driver_data = {
  
- Sysfs device attributes for the sensors and fan are on the
- thinkpad_hwmon device's sysfs attribute space, but you should locate it
--looking for a hwmon device with the name attribute of "thinkpad".
-+looking for a hwmon device with the name attribute of "thinkpad", or
-+better yet, through libsensors.
+ #define TPACPI_BACKLIGHT_DEV_NAME "thinkpad_screen"
+ 
++/*
++ * ThinkPads can read brightness from two places: EC HBRV (0x31), or
++ * CMOS NVRAM byte 0x5E, bits 0-3.
++ *
++ * EC HBRV (0x31) has the following layout
++ *   Bit 7: unknown function
++ *   Bit 6: unknown function
++ *   Bit 5: Z: honour scale changes, NZ: ignore scale changes
++ *   Bit 4: must be set to zero to avoid problems
++ *   Bit 3-0: backlight brightness level
++ *
++ * brightness_get_raw returns status data in the HBRV layout
++ */
 +
+ enum {
+ 	TP_EC_BACKLIGHT = 0x31,
  
- Driver version
- --------------
-@@ -129,6 +134,7 @@ sysfs driver attribute: version
+@@ -5535,108 +5549,164 @@ enum {
+ 	TP_EC_BACKLIGHT_MAPSW = 0x20,
+ };
  
- The driver name and version. No commands can be written to this file.
- 
++enum tpacpi_brightness_access_mode {
++	TPACPI_BRGHT_MODE_AUTO = 0,	/* Not implemented yet */
++	TPACPI_BRGHT_MODE_EC,		/* EC control */
++	TPACPI_BRGHT_MODE_UCMS_STEP,	/* UCMS step-based control */
++	TPACPI_BRGHT_MODE_ECNVRAM,	/* EC control w/ NVRAM store */
++	TPACPI_BRGHT_MODE_MAX
++};
 +
- Sysfs interface version
- -----------------------
- 
-@@ -160,6 +166,7 @@ expect that an attribute might not be there, and deal with it properly
- (an attribute not being there *is* a valid way to make it clear that a
- feature is not available in sysfs).
- 
+ static struct backlight_device *ibm_backlight_device;
+-static int brightness_mode;
 +
- Hot keys
- --------
- 
-@@ -618,6 +625,7 @@ For Lenovo models *with* ACPI backlight control:
-    and map them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN.  Process
-    these keys on userspace somehow (e.g. by calling xbacklight).
- 
++static enum tpacpi_brightness_access_mode brightness_mode =
++		TPACPI_BRGHT_MODE_MAX;
 +
- Bluetooth
- ---------
+ static unsigned int brightness_enable = 2; /* 2 = auto, 0 = no, 1 = yes */
  
-@@ -628,6 +636,9 @@ sysfs rfkill class: switch "tpacpi_bluetooth_sw"
- This feature shows the presence and current state of a ThinkPad
- Bluetooth device in the internal ThinkPad CDC slot.
+ static struct mutex brightness_mutex;
  
-+If the ThinkPad supports it, the Bluetooth state is stored in NVRAM,
-+so it is kept across reboots and power-off.
+-/*
+- * ThinkPads can read brightness from two places: EC 0x31, or
+- * CMOS NVRAM byte 0x5E, bits 0-3.
+- *
+- * EC 0x31 has the following layout
+- *   Bit 7: unknown function
+- *   Bit 6: unknown function
+- *   Bit 5: Z: honour scale changes, NZ: ignore scale changes
+- *   Bit 4: must be set to zero to avoid problems
+- *   Bit 3-0: backlight brightness level
+- *
+- * brightness_get_raw returns status data in the EC 0x31 layout
+- */
+-static int brightness_get_raw(int *status)
++/* NVRAM brightness access,
++ * call with brightness_mutex held! */
++static unsigned int tpacpi_brightness_nvram_get(void)
+ {
+-	u8 lec = 0, lcmos = 0, level = 0;
++	u8 lnvram;
+ 
+-	if (brightness_mode & 1) {
+-		if (!acpi_ec_read(TP_EC_BACKLIGHT, &lec))
+-			return -EIO;
+-		level = lec & TP_EC_BACKLIGHT_LVLMSK;
+-	};
+-	if (brightness_mode & 2) {
+-		lcmos = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
+-			 & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
+-			>> TP_NVRAM_POS_LEVEL_BRIGHTNESS;
+-		lcmos &= (tp_features.bright_16levels)? 0x0f : 0x07;
+-		level = lcmos;
+-	}
+-
+-	if (brightness_mode == 3) {
+-		*status = lec;	/* Prefer EC, CMOS is just a backing store */
+-		lec &= TP_EC_BACKLIGHT_LVLMSK;
+-		if (lec == lcmos)
+-			tp_warned.bright_cmos_ec_unsync = 0;
+-		else {
+-			if (!tp_warned.bright_cmos_ec_unsync) {
+-				printk(TPACPI_ERR
+-					"CMOS NVRAM (%u) and EC (%u) do not "
+-					"agree on display brightness level\n",
+-					(unsigned int) lcmos,
+-					(unsigned int) lec);
+-				tp_warned.bright_cmos_ec_unsync = 1;
+-			}
++	lnvram = (nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS)
++		  & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
++		  >> TP_NVRAM_POS_LEVEL_BRIGHTNESS;
++	lnvram &= (tp_features.bright_16levels) ? 0x0f : 0x07;
 +
- Procfs notes:
- 
- If Bluetooth is installed, the following commands can be used:
-@@ -652,6 +663,7 @@ Sysfs notes:
- 	rfkill controller switch "tpacpi_bluetooth_sw": refer to
- 	Documentation/rfkill.txt for details.
- 
++	return lnvram;
++}
 +
- Video output control -- /proc/acpi/ibm/video
- --------------------------------------------
- 
-@@ -693,11 +705,8 @@ Fn-F7 from working. This also disables the video output switching
- features of this driver, as it uses the same ACPI methods as
- Fn-F7. Video switching on the console should still work.
- 
--UPDATE: There's now a patch for the X.org Radeon driver which
--addresses this issue. Some people are reporting success with the patch
--while others are still having problems. For more information:
-+UPDATE: refer to https://bugs.freedesktop.org/show_bug.cgi?id=2000
- 
--https://bugs.freedesktop.org/show_bug.cgi?id=2000
- 
- ThinkLight control
- ------------------
-@@ -720,10 +729,11 @@ The ThinkLight sysfs interface is documented by the LED class
- documentation, in Documentation/leds-class.txt.  The ThinkLight LED name
- is "tpacpi::thinklight".
- 
--Due to limitations in the sysfs LED class, if the status of the thinklight
-+Due to limitations in the sysfs LED class, if the status of the ThinkLight
- cannot be read or if it is unknown, thinkpad-acpi will report it as "off".
- It is impossible to know if the status returned through sysfs is valid.
- 
++static void tpacpi_brightness_checkpoint_nvram(void)
++{
++	u8 lec = 0;
++	u8 b_nvram;
 +
- Docking / undocking -- /proc/acpi/ibm/dock
- ------------------------------------------
- 
-@@ -784,6 +794,7 @@ the only docking stations currently supported are the X-series
- UltraBase docks and "dumb" port replicators like the Mini Dock (the
- latter don't need any ACPI support, actually).
- 
++	if (brightness_mode != TPACPI_BRGHT_MODE_ECNVRAM)
++		return;
 +
- UltraBay eject -- /proc/acpi/ibm/bay
- ------------------------------------
- 
-@@ -847,8 +858,9 @@ supported. Use "eject2" instead of "eject" for the second bay.
- Note: the UltraBay eject support on the 600e/x, A22p and A3x is
- EXPERIMENTAL and may not work as expected. USE WITH CAUTION!
- 
--CMOS control
--------------
++	vdbg_printk(TPACPI_DBG_BRGHT,
++		"trying to checkpoint backlight level to NVRAM...\n");
 +
-+CMOS/UCMS control
-+-----------------
- 
- procfs: /proc/acpi/ibm/cmos
- sysfs device attribute: cmos_command
-@@ -882,6 +894,7 @@ The cmos command interface is prone to firmware split-brain problems, as
- in newer ThinkPads it is just a compatibility layer.  Do not use it, it is
- exported just as a debug tool.
- 
++	if (mutex_lock_killable(&brightness_mutex) < 0)
++		return;
 +
- LED control
- -----------
- 
-@@ -939,6 +952,7 @@ ThinkPad indicator LED should blink in hardware accelerated mode, use the
- "timer" trigger, and leave the delay_on and delay_off parameters set to
- zero (to request hardware acceleration autodetection).
- 
++	if (unlikely(!acpi_ec_read(TP_EC_BACKLIGHT, &lec)))
++		goto unlock;
++	lec &= TP_EC_BACKLIGHT_LVLMSK;
++	b_nvram = nvram_read_byte(TP_NVRAM_ADDR_BRIGHTNESS);
 +
- ACPI sounds -- /proc/acpi/ibm/beep
- ----------------------------------
- 
-@@ -968,6 +982,7 @@ X40:
- 	16 - one medium-pitched beep repeating constantly, stop with 17
- 	17 - stop 16
- 
++	if (lec != ((b_nvram & TP_NVRAM_MASK_LEVEL_BRIGHTNESS)
++			     >> TP_NVRAM_POS_LEVEL_BRIGHTNESS)) {
++		/* NVRAM needs update */
++		b_nvram &= ~(TP_NVRAM_MASK_LEVEL_BRIGHTNESS <<
++				TP_NVRAM_POS_LEVEL_BRIGHTNESS);
++		b_nvram |= lec;
++		nvram_write_byte(b_nvram, TP_NVRAM_ADDR_BRIGHTNESS);
++		dbg_printk(TPACPI_DBG_BRGHT,
++			   "updated NVRAM backlight level to %u (0x%02x)\n",
++			   (unsigned int) lec, (unsigned int) b_nvram);
++	} else
++		vdbg_printk(TPACPI_DBG_BRGHT,
++			   "NVRAM backlight level already is %u (0x%02x)\n",
++			   (unsigned int) lec, (unsigned int) b_nvram);
 +
- Temperature sensors
- -------------------
- 
-@@ -1115,6 +1130,7 @@ registers contain the current battery capacity, etc. If you experiment
- with this, do send me your results (including some complete dumps with
- a description of the conditions when they were taken.)
- 
-+
- LCD brightness control
- ----------------------
- 
-@@ -1124,10 +1140,9 @@ sysfs backlight device "thinkpad_screen"
- This feature allows software control of the LCD brightness on ThinkPad
- models which don't have a hardware brightness slider.
- 
--It has some limitations: the LCD backlight cannot be actually turned on or
--off by this interface, and in many ThinkPad models, the "dim while on
--battery" functionality will be enabled by the BIOS when this interface is
--used, and cannot be controlled.
-+It has some limitations: the LCD backlight cannot be actually turned
-+on or off by this interface, it just controls the backlight brightness
-+level.
- 
- On IBM (and some of the earlier Lenovo) ThinkPads, the backlight control
- has eight brightness levels, ranging from 0 to 7.  Some of the levels
-@@ -1201,6 +1216,7 @@ WARNING:
-     and maybe reduce the life of the backlight lamps by needlessly kicking
-     its level up and down at every change.
- 
-+
- Volume control -- /proc/acpi/ibm/volume
- ---------------------------------------
- 
-@@ -1217,6 +1233,11 @@ distinct. The unmute the volume after the mute command, use either the
- up or down command (the level command will not unmute the volume).
- The current volume level and mute state is shown in the file.
- 
-+The ALSA mixer interface to this feature is still missing, but patches
-+to add it exist.  That problem should be addressed in the not so
-+distant future.
++unlock:
++	mutex_unlock(&brightness_mutex);
++}
 +
 +
- Fan control and monitoring: fan speed, fan enable/disable
- ---------------------------------------------------------
- 
-@@ -1383,8 +1404,11 @@ procfs: /proc/acpi/ibm/wan
- sysfs device attribute: wwan_enable (deprecated)
- sysfs rfkill class: switch "tpacpi_wwan_sw"
- 
--This feature shows the presence and current state of a W-WAN (Sierra
--Wireless EV-DO) device.
-+This feature shows the presence and current state of the built-in
-+Wireless WAN device.
++/* call with brightness_mutex held! */
++static int tpacpi_brightness_get_raw(int *status)
++{
++	u8 lec = 0;
 +
-+If the ThinkPad supports it, the WWAN state is stored in NVRAM,
-+so it is kept across reboots and power-off.
- 
- It was tested on a Lenovo ThinkPad X60. It should probably work on other
- ThinkPad models which come with this module installed.
-@@ -1413,6 +1437,7 @@ Sysfs notes:
- 	rfkill controller switch "tpacpi_wwan_sw": refer to
- 	Documentation/rfkill.txt for details.
- 
++	switch (brightness_mode) {
++	case TPACPI_BRGHT_MODE_UCMS_STEP:
++		*status = tpacpi_brightness_nvram_get();
++		return 0;
++	case TPACPI_BRGHT_MODE_EC:
++	case TPACPI_BRGHT_MODE_ECNVRAM:
++		if (unlikely(!acpi_ec_read(TP_EC_BACKLIGHT, &lec)))
+ 			return -EIO;
+-		}
+-	} else {
+-		*status = level;
++		*status = lec;
++		return 0;
++	default:
++		return -ENXIO;
+ 	}
++}
 +
- EXPERIMENTAL: UWB
- -----------------
- 
-@@ -1431,6 +1456,7 @@ Sysfs notes:
- 	rfkill controller switch "tpacpi_uwb_sw": refer to
- 	Documentation/rfkill.txt for details.
- 
++/* call with brightness_mutex held! */
++/* do NOT call with illegal backlight level value */
++static int tpacpi_brightness_set_ec(unsigned int value)
++{
++	u8 lec = 0;
 +
- Multiple Commands, Module Parameters
- ------------------------------------
- 
-@@ -1445,6 +1471,7 @@ for example:
- 
- 	modprobe thinkpad_acpi hotkey=enable,0xffff video=auto_disable
- 
++	if (unlikely(!acpi_ec_read(TP_EC_BACKLIGHT, &lec)))
++		return -EIO;
 +
- Enabling debugging output
- -------------------------
- 
-@@ -1467,6 +1494,7 @@ The level of debugging information output by the driver can be changed
- at runtime through sysfs, using the driver attribute debug_level.  The
- attribute takes the same bitmask as the debug module parameter above.
- 
++	if (unlikely(!acpi_ec_write(TP_EC_BACKLIGHT,
++				(lec & TP_EC_BACKLIGHT_CMDMSK) |
++				(value & TP_EC_BACKLIGHT_LVLMSK))))
++		return -EIO;
 +
- Force loading of module
- -----------------------
++	return 0;
++}
++
++/* call with brightness_mutex held! */
++static int tpacpi_brightness_set_ucmsstep(unsigned int value)
++{
++	int cmos_cmd, inc;
++	unsigned int current_value, i;
++
++	current_value = tpacpi_brightness_nvram_get();
++
++	if (value == current_value)
++		return 0;
++
++	cmos_cmd = (value > current_value) ?
++			TP_CMOS_BRIGHTNESS_UP :
++			TP_CMOS_BRIGHTNESS_DOWN;
++	inc = (value > current_value) ? 1 : -1;
++
++	for (i = current_value; i != value; i += inc)
++		if (issue_thinkpad_cmos_command(cmos_cmd))
++			return -EIO;
  
+ 	return 0;
+ }
+ 
+ /* May return EINTR which can always be mapped to ERESTARTSYS */
+-static int brightness_set(int value)
++static int brightness_set(unsigned int value)
+ {
+-	int cmos_cmd, inc, i, res;
+-	int current_value;
+-	int command_bits;
++	int res;
+ 
+ 	if (value > ((tp_features.bright_16levels)? 15 : 7) ||
+ 	    value < 0)
+ 		return -EINVAL;
+ 
++	vdbg_printk(TPACPI_DBG_BRGHT,
++			"set backlight level to %d\n", value);
++
+ 	res = mutex_lock_killable(&brightness_mutex);
+ 	if (res < 0)
+ 		return res;
+ 
+-	res = brightness_get_raw(&current_value);
+-	if (res < 0)
+-		goto errout;
+-
+-	command_bits = current_value & TP_EC_BACKLIGHT_CMDMSK;
+-	current_value &= TP_EC_BACKLIGHT_LVLMSK;
+-
+-	cmos_cmd = value > current_value ?
+-			TP_CMOS_BRIGHTNESS_UP :
+-			TP_CMOS_BRIGHTNESS_DOWN;
+-	inc = (value > current_value)? 1 : -1;
+-
+-	res = 0;
+-	for (i = current_value; i != value; i += inc) {
+-		if ((brightness_mode & 2) &&
+-		    issue_thinkpad_cmos_command(cmos_cmd)) {
+-			res = -EIO;
+-			goto errout;
+-		}
+-		if ((brightness_mode & 1) &&
+-		    !acpi_ec_write(TP_EC_BACKLIGHT,
+-				   (i + inc) | command_bits)) {
+-			res = -EIO;
+-			goto errout;;
+-		}
++	switch (brightness_mode) {
++	case TPACPI_BRGHT_MODE_EC:
++	case TPACPI_BRGHT_MODE_ECNVRAM:
++		res = tpacpi_brightness_set_ec(value);
++		break;
++	case TPACPI_BRGHT_MODE_UCMS_STEP:
++		res = tpacpi_brightness_set_ucmsstep(value);
++		break;
++	default:
++		res = -ENXIO;
+ 	}
+ 
+-errout:
+ 	mutex_unlock(&brightness_mutex);
+ 	return res;
+ }
+@@ -5645,21 +5715,34 @@ errout:
+ 
+ static int brightness_update_status(struct backlight_device *bd)
+ {
+-	/* it is the backlight class's job (caller) to handle
+-	 * EINTR and other errors properly */
+-	return brightness_set(
++	unsigned int level =
+ 		(bd->props.fb_blank == FB_BLANK_UNBLANK &&
+ 		 bd->props.power == FB_BLANK_UNBLANK) ?
+-				bd->props.brightness : 0);
++				bd->props.brightness : 0;
++
++	dbg_printk(TPACPI_DBG_BRGHT,
++			"backlight: attempt to set level to %d\n",
++			level);
++
++	/* it is the backlight class's job (caller) to handle
++	 * EINTR and other errors properly */
++	return brightness_set(level);
+ }
+ 
+ static int brightness_get(struct backlight_device *bd)
+ {
+ 	int status, res;
+ 
+-	res = brightness_get_raw(&status);
++	res = mutex_lock_killable(&brightness_mutex);
+ 	if (res < 0)
+-		return 0; /* FIXME: teach backlight about error handling */
++		return 0;
++
++	res = tpacpi_brightness_get_raw(&status);
++
++	mutex_unlock(&brightness_mutex);
++
++	if (res < 0)
++		return 0;
+ 
+ 	return status & TP_EC_BACKLIGHT_LVLMSK;
+ }
+@@ -5709,7 +5792,7 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	}
+ 
+ 	if (!brightness_enable) {
+-		dbg_printk(TPACPI_DBG_INIT,
++		dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_BRGHT,
+ 			   "brightness support disabled by "
+ 			   "module parameter\n");
+ 		return 1;
+@@ -5724,20 +5807,38 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	if (b == 16)
+ 		tp_features.bright_16levels = 1;
+ 
+-	if (!brightness_mode) {
+-		if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO)
+-			brightness_mode = 2;
+-		else
+-			brightness_mode = 3;
++	/*
++	 * Check for module parameter bogosity, note that we
++	 * init brightness_mode to TPACPI_BRGHT_MODE_MAX in order to be
++	 * able to detect "unspecified"
++	 */
++	if (brightness_mode > TPACPI_BRGHT_MODE_MAX)
++		return -EINVAL;
+ 
+-		dbg_printk(TPACPI_DBG_INIT, "selected brightness_mode=%d\n",
+-			brightness_mode);
+-	}
++	/* TPACPI_BRGHT_MODE_AUTO not implemented yet, just use default */
++	if (brightness_mode == TPACPI_BRGHT_MODE_AUTO ||
++	    brightness_mode == TPACPI_BRGHT_MODE_MAX) {
++		if (thinkpad_id.vendor == PCI_VENDOR_ID_IBM) {
++			/*
++			 * IBM models that define HBRV probably have
++			 * EC-based backlight level control
++			 */
++			if (acpi_evalf(ec_handle, NULL, "HBRV", "qd"))
++				/* T40-T43, R50-R52, R50e, R51e, X31-X41 */
++				brightness_mode = TPACPI_BRGHT_MODE_ECNVRAM;
++			else
++				/* all other IBM ThinkPads */
++				brightness_mode = TPACPI_BRGHT_MODE_UCMS_STEP;
++		} else
++			/* All Lenovo ThinkPads */
++			brightness_mode = TPACPI_BRGHT_MODE_UCMS_STEP;
+ 
+-	if (brightness_mode > 3)
+-		return -EINVAL;
++		dbg_printk(TPACPI_DBG_BRGHT,
++			   "selected brightness_mode=%d\n",
++			   brightness_mode);
++	}
+ 
+-	if (brightness_get_raw(&b) < 0)
++	if (tpacpi_brightness_get_raw(&b) < 0)
+ 		return 1;
+ 
+ 	if (tp_features.bright_16levels)
+@@ -5751,7 +5852,8 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 		printk(TPACPI_ERR "Could not register backlight device\n");
+ 		return PTR_ERR(ibm_backlight_device);
+ 	}
+-	vdbg_printk(TPACPI_DBG_INIT, "brightness is supported\n");
++	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_BRGHT,
++			"brightness is supported\n");
+ 
+ 	ibm_backlight_device->props.max_brightness =
+ 				(tp_features.bright_16levels)? 15 : 7;
+@@ -5761,13 +5863,25 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	return 0;
+ }
+ 
++static void brightness_suspend(pm_message_t state)
++{
++	tpacpi_brightness_checkpoint_nvram();
++}
++
++static void brightness_shutdown(void)
++{
++	tpacpi_brightness_checkpoint_nvram();
++}
++
+ static void brightness_exit(void)
+ {
+ 	if (ibm_backlight_device) {
+-		vdbg_printk(TPACPI_DBG_EXIT,
++		vdbg_printk(TPACPI_DBG_EXIT | TPACPI_DBG_BRGHT,
+ 			    "calling backlight_device_unregister()\n");
+ 		backlight_device_unregister(ibm_backlight_device);
+ 	}
++
++	tpacpi_brightness_checkpoint_nvram();
+ }
+ 
+ static int brightness_read(char *p)
+@@ -5814,6 +5928,9 @@ static int brightness_write(char *buf)
+ 			return -EINVAL;
+ 	}
+ 
++	tpacpi_disclose_usertask("procfs brightness",
++			"set level to %d\n", level);
++
+ 	/*
+ 	 * Now we know what the final level should be, so we try to set it.
+ 	 * Doing it this way makes the syscall restartable in case of EINTR
+@@ -5827,6 +5944,8 @@ static struct ibm_struct brightness_driver_data = {
+ 	.read = brightness_read,
+ 	.write = brightness_write,
+ 	.exit = brightness_exit,
++	.suspend = brightness_suspend,
++	.shutdown = brightness_shutdown,
+ };
+ 
+ /*************************************************************************
+@@ -7464,10 +7583,10 @@ module_param_named(fan_control, fan_control_allowed, bool, 0);
+ MODULE_PARM_DESC(fan_control,
+ 		 "Enables setting fan parameters features when true");
+ 
+-module_param_named(brightness_mode, brightness_mode, int, 0);
++module_param_named(brightness_mode, brightness_mode, uint, 0);
+ MODULE_PARM_DESC(brightness_mode,
+ 		 "Selects brightness control strategy: "
+-		 "0=auto, 1=EC, 2=CMOS, 3=both");
++		 "0=auto, 1=EC, 2=UCMS, 3=EC+NVRAM");
+ 
+ module_param(brightness_enable, uint, 0);
+ MODULE_PARM_DESC(brightness_enable,
 -- 
 1.6.2.1
 
+
+------------------------------------------------------------------------------
