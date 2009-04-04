@@ -1,81 +1,72 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 1/3] acer-wmi: Blacklist Acer Aspire One
-Date: Sat, 04 Apr 2009 09:33:29 +0100
-Message-ID: <20090404083328.14302.32665.stgit@localhost>
+Subject: [PATCH 3/3] acer-wmi: Update copyright notice & documentation
+Date: Sat, 04 Apr 2009 09:33:39 +0100
+Message-ID: <20090404083339.14302.79226.stgit@localhost>
 References: <20090404083323.14302.40102.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41925 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41931 "EHLO
 	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1758939AbZDDIdh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Apr 2009 04:33:37 -0400
+	id S1759231AbZDDIds (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Apr 2009 04:33:48 -0400
 In-Reply-To: <20090404083323.14302.40102.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
-The Aspire One's ACPI-WMI interface is a placeholder that does nothing,
-and the invalid results that we get from it are now causing userspace
-problems as acer-wmi always returns that the rfkill is enabled (i.e. the
-radio is off, when it isn't). As it's hardware controlled, acer-wmi
-isn't needed on the Aspire One either.
-
-Thanks to Andy Whitcroft at Canonical for tracking down Ubuntu's userspace
-issues to this.
+Explicitly note in the documentation that the Acer Aspire One is not
+supported.
 
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Reported-by: Andy Whitcroft <apw@canonical.com>
-Cc: stable@kernel.org
 ---
 
- drivers/platform/x86/acer-wmi.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+ Documentation/laptops/acer-wmi.txt |   10 +++++++---
+ drivers/platform/x86/acer-wmi.c    |    2 +-
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
 
+diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
+index 2b3a6b5..5ee2a02 100644
+--- a/Documentation/laptops/acer-wmi.txt
++++ b/Documentation/laptops/acer-wmi.txt
+@@ -1,9 +1,9 @@
+ Acer Laptop WMI Extras Driver
+ http://code.google.com/p/aceracpi
+-Version 0.2
+-18th August 2008
++Version 0.3
++4th April 2009
+ 
+-Copyright 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
++Copyright 2007-2009 Carlos Corbacho <carlos@strangeworlds.co.uk>
+ 
+ acer-wmi is a driver to allow you to control various parts of your Acer laptop
+ hardware under Linux which are exposed via ACPI-WMI.
+@@ -36,6 +36,10 @@ not possible in kernel space from a 64 bit OS.
+ Supported Hardware
+ ******************
+ 
++NOTE: The Acer Aspire One is not supported hardware. It cannot work with
++acer-wmi until Acer fix their ACPI-WMI implementation on them, so has been
++blacklisted until that happens.
++
+ Please see the website for the current list of known working hardare:
+ 
+ http://code.google.com/p/aceracpi/wiki/SupportedHardware
 diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index a6a42e8..60fbef2 100644
+index 27837e8..0f6e43b 100644
 --- a/drivers/platform/x86/acer-wmi.c
 +++ b/drivers/platform/x86/acer-wmi.c
-@@ -225,6 +225,25 @@ static struct quirk_entry quirk_fujitsu_amilo_li_1718 = {
- 	.wireless = 2,
- };
- 
-+/* The Aspire One has a dummy ACPI-WMI interface - disable it */
-+static struct dmi_system_id __devinitdata acer_blacklist[] = {
-+	{
-+		.ident = "Acer Aspire One (SSD)",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "AOA110"),
-+		},
-+	},
-+	{
-+		.ident = "Acer Aspire One (HDD)",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "AOA150"),
-+		},
-+	},
-+	{}
-+};
-+
- static struct dmi_system_id acer_quirks[] = {
- 	{
- 		.callback = dmi_matched,
-@@ -1254,6 +1273,12 @@ static int __init acer_wmi_init(void)
- 
- 	printk(ACER_INFO "Acer Laptop ACPI-WMI Extras\n");
- 
-+	if (dmi_check_system(acer_blacklist)) {
-+		printk(ACER_INFO "Blacklisted hardware detected - "
-+				"not loading\n");
-+		return -ENODEV;
-+	}
-+
- 	find_quirks();
- 
- 	/*
+@@ -1,7 +1,7 @@
+ /*
+  *  Acer WMI Laptop Extras
+  *
+- *  Copyright (C) 2007-2008	Carlos Corbacho <carlos@strangeworlds.co.uk>
++ *  Copyright (C) 2007-2009	Carlos Corbacho <carlos@strangeworlds.co.uk>
+  *
+  *  Based on acer_acpi:
+  *    Copyright (C) 2005-2007	E.M. Smith
 
