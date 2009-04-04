@@ -1,42 +1,72 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: 2.6.29-rc6-git7: Reported regressions from 2.6.28
-Date: Sat, 04 Apr 2009 03:40:45 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904040339470.16220@localhost.localdomain>
-References: <KiHv0irKPzE.A.l3.hUarJB@chimera>
- <1236129688.32297.264.camel@rzhang-dt> <200903072312.30158.rjw@sisk.pl>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: [PATCH 3/3] acer-wmi: Update copyright notice & documentation
+Date: Sat, 04 Apr 2009 09:12:59 +0100
+Message-ID: <20090404081259.9812.30954.stgit@localhost>
+References: <20090404081243.9812.3769.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <200903072312.30158.rjw-KKrjLPT3xs0@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:37592 "EHLO
+	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
+	id S1754243AbZDDIUn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Apr 2009 04:20:43 -0400
+In-Reply-To: <20090404081243.9812.3769.stgit@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-On Sat, 7 Mar 2009, Rafael J. Wysocki wrote:
+Explicitly note in the documentation that the Acer Aspire One is not
+supported.
 
-> On Wednesday 04 March 2009, Zhang Rui wrote:
-> > On Wed, 2009-03-04 at 03:22 +0800, Rafael J. Wysocki wrote:
-> > 
-> > > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12758
-> > > Subject         : ACPI exception with 2.6.29-rc6
-> > > Submitter       : Heinz Diehl <htd-HjJ2MNWy62to6+H+lsi3Gti2O/JbrIOy@public.gmane.org>
-> > > Date            : 2009-02-23 16:46 (9 days old)
-> > > References      : http://marc.info/?l=linux-kernel&m=123540758700861&w=4
-> > > 
-> > Handled by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Patch-available:
-> > http://bugzilla.kernel.org/attachment.cgi?id=20368&action=view
-> > 
-> > not sure if this patch is in len's tree or not.
-> 
-> Thanks, updated.
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+---
+
+ Documentation/laptops/acer-wmi.txt |   10 +++++++---
+ drivers/platform/x86/acer-wmi.c    |    2 +-
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
 
-per the bug report, this shipped in 2.6.29-rc8:
+diff --git a/Documentation/laptops/acer-wmi.txt b/Documentation/laptops/acer-wmi.txt
+index 2b3a6b5..5ee2a02 100644
+--- a/Documentation/laptops/acer-wmi.txt
++++ b/Documentation/laptops/acer-wmi.txt
+@@ -1,9 +1,9 @@
+ Acer Laptop WMI Extras Driver
+ http://code.google.com/p/aceracpi
+-Version 0.2
+-18th August 2008
++Version 0.3
++4th April 2009
+ 
+-Copyright 2007-2008 Carlos Corbacho <carlos@strangeworlds.co.uk>
++Copyright 2007-2009 Carlos Corbacho <carlos@strangeworlds.co.uk>
+ 
+ acer-wmi is a driver to allow you to control various parts of your Acer laptop
+ hardware under Linux which are exposed via ACPI-WMI.
+@@ -36,6 +36,10 @@ not possible in kernel space from a 64 bit OS.
+ Supported Hardware
+ ******************
+ 
++NOTE: The Acer Aspire One is not supported hardware. It cannot work with
++acer-wmi until Acer fix their ACPI-WMI implementation on them, so has been
++blacklisted until that happens.
++
+ Please see the website for the current list of known working hardare:
+ 
+ http://code.google.com/p/aceracpi/wiki/SupportedHardware
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index bfba6f7..ab03fec 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -1,7 +1,7 @@
+ /*
+  *  Acer WMI Laptop Extras
+  *
+- *  Copyright (C) 2007-2008	Carlos Corbacho <carlos@strangeworlds.co.uk>
++ *  Copyright (C) 2007-2009	Carlos Corbacho <carlos@strangeworlds.co.uk>
+  *
+  *  Based on acer_acpi:
+  *    Copyright (C) 2005-2007	E.M. Smith
 
-commit 7b46ecd5fcebf381a7bde966db352d8fb1b8e944
-Author: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Wed Feb 25 18:00:18 2009 -0500
-
-    Revert "ACPI: make some IO ports off-limits to AML"
