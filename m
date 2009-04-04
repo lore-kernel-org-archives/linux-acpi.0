@@ -1,29 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] panasonic: use snprintf with PAGE_SIZE in sysfs
- attributes
-Date: Fri, 03 Apr 2009 23:43:41 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904032343340.4655@localhost.localdomain>
-References: <20090114060117.GM4791@prithivi.gnumonks.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 02/12] thinkpad-acpi: drop ibm-acpi alias
+Date: Sat,  4 Apr 2009 01:25:43 -0300
+Message-ID: <1238819153-16004-3-git-send-email-hmh@hmh.eng.br>
+References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:30345 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759132AbZDDDoR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2009 23:44:17 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHK00HB950UJSHY@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 03 Apr 2009 22:43:45 -0500 (CDT)
-In-reply-to: <20090114060117.GM4791@prithivi.gnumonks.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:57433 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750751AbZDDEZ6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:25:58 -0400
+In-Reply-To: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-applied
+The driver was renamed two years ago, on 2.6.21.  Drop the old
+compatibility alias, we have given everybody quite enough time
+to update their configs to the new name.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/platform/x86/thinkpad_acpi.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index fd6985b..5fd5549 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -7515,9 +7515,6 @@ static int __init thinkpad_acpi_module_init(void)
+ 	return 0;
+ }
+ 
+-/* Please remove this in year 2009 */
+-MODULE_ALIAS("ibm_acpi");
+-
+ MODULE_ALIAS(TPACPI_DRVR_SHORTNAME);
+ 
+ /*
+-- 
+1.6.2.1
 
