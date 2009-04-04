@@ -1,180 +1,202 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 10/12] thinkpad-acpi: enhanced debugging messages for the hotkey subdriver
-Date: Sat,  4 Apr 2009 01:25:51 -0300
-Message-ID: <1238819153-16004-11-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 11/12] thinkpad-acpi: enhanced debugging messages for the fan subdriver
+Date: Sat,  4 Apr 2009 01:25:52 -0300
+Message-ID: <1238819153-16004-12-git-send-email-hmh@hmh.eng.br>
 References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:34008 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:52481 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751456AbZDDE0D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:26:03 -0400
+	by vger.kernel.org with ESMTP id S1751461AbZDDE0E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:26:04 -0400
 In-Reply-To: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Enhance debugging messages for the hotkey subdriver.
+Enhance debugging messages for the fan subdriver.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
  Documentation/laptops/thinkpad-acpi.txt |    1 +
- drivers/platform/x86/thinkpad_acpi.c    |   39 +++++++++++++++++++++++--------
- 2 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c    |   46 +++++++++++++++++++++++++++---
+ 2 files changed, 42 insertions(+), 5 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index 7daca05..abbbe78 100644
+index abbbe78..25ed43d 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1496,6 +1496,7 @@ to enable more than one output class, just add their values.
- 	0x0002			Removal
+@@ -1497,6 +1497,7 @@ to enable more than one output class, just add their values.
  	0x0004			RF Transmitter control (RFKILL)
  				(bluetooth, WWAN, UWB...)
-+	0x0008			HKEY event interface, hotkeys
+ 	0x0008			HKEY event interface, hotkeys
++	0x0010			Fan control
  
  There is also a kernel build option to enable more debugging
  information, which may be necessary to debug driver problems.
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 92fff8d..c8bd563 100644
+index c8bd563..27c9480 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -190,6 +190,7 @@ enum {
- #define TPACPI_DBG_INIT		0x0001
+@@ -191,6 +191,7 @@ enum {
  #define TPACPI_DBG_EXIT		0x0002
  #define TPACPI_DBG_RFKILL	0x0004
-+#define TPACPI_DBG_HKEY		0x0008
+ #define TPACPI_DBG_HKEY		0x0008
++#define TPACPI_DBG_FAN		0x0010
  
  #define onoff(status, bit) ((status) & (1 << (bit)) ? "on" : "off")
  #define enabled(status, bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
-@@ -1961,6 +1962,8 @@ static ssize_t hotkey_mask_store(struct device *dev,
- 
- 	mutex_unlock(&hotkey_mutex);
- 
-+	tpacpi_disclose_usertask("hotkey_mask", "set to 0x%08lx\n", t);
+@@ -6271,6 +6272,9 @@ static int fan_set_level(int level)
+ 	default:
+ 		return -ENXIO;
+ 	}
 +
- 	return (res) ? res : count;
++	vdbg_printk(TPACPI_DBG_FAN,
++		"fan control: set fan control register to 0x%02x\n", level);
+ 	return 0;
  }
  
-@@ -2047,6 +2050,8 @@ static ssize_t hotkey_source_mask_store(struct device *dev,
+@@ -6348,6 +6352,11 @@ static int fan_set_enable(void)
+ 	}
  
- 	mutex_unlock(&hotkey_mutex);
+ 	mutex_unlock(&fan_mutex);
++
++	if (!rc)
++		vdbg_printk(TPACPI_DBG_FAN,
++			"fan control: set fan control register to 0x%02x\n",
++			s);
+ 	return rc;
+ }
  
-+	tpacpi_disclose_usertask("hotkey_source_mask", "set to 0x%08lx\n", t);
+@@ -6384,6 +6393,9 @@ static int fan_set_disable(void)
+ 		rc = -ENXIO;
+ 	}
+ 
++	if (!rc)
++		vdbg_printk(TPACPI_DBG_FAN,
++			"fan control: set fan control register to 0\n");
+ 
+ 	mutex_unlock(&fan_mutex);
+ 	return rc;
+@@ -6512,6 +6524,9 @@ static ssize_t fan_pwm1_enable_store(struct device *dev,
+ 	if (parse_strtoul(buf, 2, &t))
+ 		return -EINVAL;
+ 
++	tpacpi_disclose_usertask("hwmon pwm1_enable",
++			"set fan mode to %lu\n", t);
++
+ 	switch (t) {
+ 	case 0:
+ 		level = TP_EC_FAN_FULLSPEED;
+@@ -6577,6 +6592,9 @@ static ssize_t fan_pwm1_store(struct device *dev,
+ 	if (parse_strtoul(buf, 255, &s))
+ 		return -EINVAL;
+ 
++	tpacpi_disclose_usertask("hwmon pwm1",
++			"set fan speed to %lu\n", s);
++
+ 	/* scale down from 0-255 to 0-7 */
+ 	newlevel = (s >> 5) & 0x07;
+ 
+@@ -6643,6 +6661,8 @@ static ssize_t fan_fan_watchdog_store(struct device_driver *drv,
+ 	fan_watchdog_maxinterval = t;
+ 	fan_watchdog_reset();
+ 
++	tpacpi_disclose_usertask("fan_watchdog", "set to %lu\n", t);
 +
  	return count;
  }
  
-@@ -2079,6 +2084,8 @@ static ssize_t hotkey_poll_freq_store(struct device *dev,
- 	hotkey_poll_setup(1);
- 	mutex_unlock(&hotkey_mutex);
+@@ -6664,7 +6684,8 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ {
+ 	int rc;
  
-+	tpacpi_disclose_usertask("hotkey_poll_freq", "set to %lu\n", t);
-+
- 	return count;
+-	vdbg_printk(TPACPI_DBG_INIT, "initializing fan subdriver\n");
++	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_FAN,
++			"initializing fan subdriver\n");
+ 
+ 	mutex_init(&fan_mutex);
+ 	fan_status_access_mode = TPACPI_FAN_NONE;
+@@ -6723,7 +6744,8 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ 		}
+ 	}
+ 
+-	vdbg_printk(TPACPI_DBG_INIT, "fan is %s, modes %d, %d\n",
++	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_FAN,
++		"fan is %s, modes %d, %d\n",
+ 		str_supported(fan_status_access_mode != TPACPI_FAN_NONE ||
+ 		  fan_control_access_mode != TPACPI_FAN_WR_NONE),
+ 		fan_status_access_mode, fan_control_access_mode);
+@@ -6732,7 +6754,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ 	if (!fan_control_allowed) {
+ 		fan_control_access_mode = TPACPI_FAN_WR_NONE;
+ 		fan_control_commands = 0;
+-		dbg_printk(TPACPI_DBG_INIT,
++		dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_FAN,
+ 			   "fan control features disabled by parameter\n");
+ 	}
+ 
+@@ -6761,7 +6783,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ 
+ static void fan_exit(void)
+ {
+-	vdbg_printk(TPACPI_DBG_EXIT,
++	vdbg_printk(TPACPI_DBG_EXIT | TPACPI_DBG_FAN,
+ 		    "cancelling any pending fan watchdog tasks\n");
+ 
+ 	/* FIXME: can we really do this unconditionally? */
+@@ -6942,6 +6964,9 @@ static int fan_write_cmd_level(const char *cmd, int *rc)
+ 	if (*rc == -ENXIO)
+ 		printk(TPACPI_ERR "level command accepted for unsupported "
+ 		       "access mode %d", fan_control_access_mode);
++	else if (!*rc)
++		tpacpi_disclose_usertask("procfs fan",
++			"set level to %d\n", level);
+ 
+ 	return 1;
  }
+@@ -6955,6 +6980,8 @@ static int fan_write_cmd_enable(const char *cmd, int *rc)
+ 	if (*rc == -ENXIO)
+ 		printk(TPACPI_ERR "enable command accepted for unsupported "
+ 		       "access mode %d", fan_control_access_mode);
++	else if (!*rc)
++		tpacpi_disclose_usertask("procfs fan", "enable\n");
  
-@@ -2248,7 +2255,7 @@ static void hotkey_exit(void)
- 	kfree(hotkey_keycode_map);
+ 	return 1;
+ }
+@@ -6968,6 +6995,8 @@ static int fan_write_cmd_disable(const char *cmd, int *rc)
+ 	if (*rc == -ENXIO)
+ 		printk(TPACPI_ERR "disable command accepted for unsupported "
+ 		       "access mode %d", fan_control_access_mode);
++	else if (!*rc)
++		tpacpi_disclose_usertask("procfs fan", "disable\n");
  
- 	if (tp_features.hotkey) {
--		dbg_printk(TPACPI_DBG_EXIT,
-+		dbg_printk(TPACPI_DBG_EXIT | TPACPI_DBG_HKEY,
- 			   "restoring original hot key mask\n");
- 		/* no short-circuit boolean operator below! */
- 		if ((hotkey_mask_set(hotkey_orig_mask) |
-@@ -2378,7 +2385,8 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	int status;
- 	int hkeyv;
+ 	return 1;
+ }
+@@ -6986,6 +7015,9 @@ static int fan_write_cmd_speed(const char *cmd, int *rc)
+ 	if (*rc == -ENXIO)
+ 		printk(TPACPI_ERR "speed command accepted for unsupported "
+ 		       "access mode %d", fan_control_access_mode);
++	else if (!*rc)
++		tpacpi_disclose_usertask("procfs fan",
++			"set speed to %d\n", speed);
  
--	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
-+			"initializing hotkey subdriver\n");
+ 	return 1;
+ }
+@@ -6999,8 +7031,12 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc)
  
- 	BUG_ON(!tpacpi_inputdev);
- 	BUG_ON(tpacpi_inputdev->open != NULL ||
-@@ -2395,7 +2403,8 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	/* hotkey not supported on 570 */
- 	tp_features.hotkey = hkey_handle != NULL;
+ 	if (interval < 0 || interval > 120)
+ 		*rc = -EINVAL;
+-	else
++	else {
+ 		fan_watchdog_maxinterval = interval;
++		tpacpi_disclose_usertask("procfs fan",
++			"set watchdog timer to %d\n",
++			interval);
++	}
  
--	vdbg_printk(TPACPI_DBG_INIT, "hotkeys are %s\n",
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
-+		"hotkeys are %s\n",
- 		str_supported(tp_features.hotkey));
- 
- 	if (!tp_features.hotkey)
-@@ -2427,10 +2436,14 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 			 * T4x, X31, and later
- 			 */
- 			tp_features.hotkey_mask = 1;
-+			vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
-+				"firmware HKEY interface version: 0x%x\n",
-+				hkeyv);
- 		}
- 	}
- 
--	vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
-+		"hotkey masks are %s\n",
- 		str_supported(tp_features.hotkey_mask));
- 
- 	if (tp_features.hotkey_mask) {
-@@ -2469,7 +2482,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		hotkey_source_mask = TPACPI_HKEY_NVRAM_GOOD_MASK;
- 	}
- 
--	vdbg_printk(TPACPI_DBG_INIT,
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
- 		    "hotkey source mask 0x%08x, polling freq %d\n",
- 		    hotkey_source_mask, hotkey_poll_freq);
- #endif
-@@ -2523,12 +2536,12 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	}
- 
- 	if (thinkpad_id.vendor == PCI_VENDOR_ID_LENOVO) {
--		dbg_printk(TPACPI_DBG_INIT,
-+		dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
- 			   "using Lenovo default hot key map\n");
- 		memcpy(hotkey_keycode_map, &lenovo_keycode_map,
- 			TPACPI_HOTKEY_MAP_SIZE);
- 	} else {
--		dbg_printk(TPACPI_DBG_INIT,
-+		dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
- 			   "using IBM default hot key map\n");
- 		memcpy(hotkey_keycode_map, &ibm_keycode_map,
- 			TPACPI_HOTKEY_MAP_SIZE);
-@@ -2585,7 +2598,8 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 			| (1 << TP_ACPI_HOTKEYSCAN_FNEND);
- 	}
- 
--	dbg_printk(TPACPI_DBG_INIT, "enabling hot key handling\n");
-+	dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
-+			"enabling firmware HKEY event interface...\n");
- 	res = hotkey_status_set(true);
- 	if (res) {
- 		hotkey_exit();
-@@ -2599,8 +2613,8 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		return res;
- 	}
- 
--	dbg_printk(TPACPI_DBG_INIT,
--			"legacy hot key reporting over procfs %s\n",
-+	dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_HKEY,
-+			"legacy ibm/hotkey event reporting over procfs %s\n",
- 			(hotkey_report_mode < 2) ?
- 				"enabled" : "disabled");
- 
-@@ -2971,6 +2985,11 @@ static int hotkey_write(char *buf)
- 			goto errexit;
- 		}
- 	}
-+
-+	if (!res)
-+		tpacpi_disclose_usertask("procfs hotkey",
-+			"set mask to 0x%08x\n", mask);
-+
- 	if (!res && mask != hotkey_mask)
- 		res = hotkey_mask_set(mask);
- 
+ 	return 1;
+ }
 -- 
 1.6.2.1
 
