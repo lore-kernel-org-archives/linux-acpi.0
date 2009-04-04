@@ -1,40 +1,57 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 0/3] acer-wmi patches for 2.6.30 (take 2)
-Date: Sat, 04 Apr 2009 09:33:23 +0100
-Message-ID: <20090404083323.14302.40102.stgit@localhost>
+Subject: [PATCH 2/3] acer-wmi: Cleanup the failure cleanup handling
+Date: Sat, 04 Apr 2009 09:33:34 +0100
+Message-ID: <20090404083334.14302.61730.stgit@localhost>
+References: <20090404083323.14302.40102.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41921 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41929 "EHLO
 	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1758939AbZDDIdc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Apr 2009 04:33:32 -0400
+	id S1759201AbZDDIdm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Apr 2009 04:33:42 -0400
+In-Reply-To: <20090404083323.14302.40102.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
-Len,
+From: Andy Whitcroft <apw@canonical.com>
 
-The following are the patches that really are for 2.6.30-rc0 for acer-wmi.
+Cleanup the failure cleanup handling for brightness and email led.
 
-The first one is quite a nasty one, as it appears the Aspire One's
-non-functional ACPI-WMI interface is now causing problems for userspace.
+[cc: Split out from another patch]
 
--Carlos
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
 
-Andy Whitcroft (1):
-      acer-wmi: Cleanup the failure cleanup handling
-
-Carlos Corbacho (2):
-      acer-wmi: Update copyright notice & documentation
-      acer-wmi: Blacklist Acer Aspire One
+ drivers/platform/x86/acer-wmi.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
 
- Documentation/laptops/acer-wmi.txt |   10 +++++++---
- drivers/platform/x86/acer-wmi.c    |   35 +++++++++++++++++++++++++++++++++--
- 2 files changed, 40 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index 60fbef2..27837e8 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -1136,11 +1136,17 @@ static int __devinit acer_platform_probe(struct platform_device *device)
+ 	}
+ 
+ 	err = acer_rfkill_init(&device->dev);
++	if (err)
++		goto error_rfkill;
+ 
+ 	return err;
+ 
++error_rfkill:
++	if (has_cap(ACER_CAP_BRIGHTNESS))
++		acer_backlight_exit();
+ error_brightness:
+-	acer_led_exit();
++	if (has_cap(ACER_CAP_MAILLED))
++		acer_led_exit();
+ error_mailled:
+ 	return err;
+ }
 
