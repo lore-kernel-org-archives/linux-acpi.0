@@ -1,57 +1,81 @@
 From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH 2/3] acer-wmi: Cleanup the failure cleanup handling
-Date: Sat, 04 Apr 2009 09:33:34 +0100
-Message-ID: <20090404083334.14302.61730.stgit@localhost>
+Subject: [PATCH 1/3] acer-wmi: Blacklist Acer Aspire One
+Date: Sat, 04 Apr 2009 09:33:29 +0100
+Message-ID: <20090404083328.14302.32665.stgit@localhost>
 References: <20090404083323.14302.40102.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41929 "EHLO
+Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:41925 "EHLO
 	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1759201AbZDDIdm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Apr 2009 04:33:42 -0400
+	id S1758939AbZDDIdh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Apr 2009 04:33:37 -0400
 In-Reply-To: <20090404083323.14302.40102.stgit@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: lenb@kernel.org
 
-From: Andy Whitcroft <apw@canonical.com>
+The Aspire One's ACPI-WMI interface is a placeholder that does nothing,
+and the invalid results that we get from it are now causing userspace
+problems as acer-wmi always returns that the rfkill is enabled (i.e. the
+radio is off, when it isn't). As it's hardware controlled, acer-wmi
+isn't needed on the Aspire One either.
 
-Cleanup the failure cleanup handling for brightness and email led.
+Thanks to Andy Whitcroft at Canonical for tracking down Ubuntu's userspace
+issues to this.
 
-[cc: Split out from another patch]
-
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Reported-by: Andy Whitcroft <apw@canonical.com>
+Cc: stable@kernel.org
 ---
 
- drivers/platform/x86/acer-wmi.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/platform/x86/acer-wmi.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
 
 diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 60fbef2..27837e8 100644
+index a6a42e8..60fbef2 100644
 --- a/drivers/platform/x86/acer-wmi.c
 +++ b/drivers/platform/x86/acer-wmi.c
-@@ -1136,11 +1136,17 @@ static int __devinit acer_platform_probe(struct platform_device *device)
- 	}
+@@ -225,6 +225,25 @@ static struct quirk_entry quirk_fujitsu_amilo_li_1718 = {
+ 	.wireless = 2,
+ };
  
- 	err = acer_rfkill_init(&device->dev);
-+	if (err)
-+		goto error_rfkill;
++/* The Aspire One has a dummy ACPI-WMI interface - disable it */
++static struct dmi_system_id __devinitdata acer_blacklist[] = {
++	{
++		.ident = "Acer Aspire One (SSD)",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "AOA110"),
++		},
++	},
++	{
++		.ident = "Acer Aspire One (HDD)",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "AOA150"),
++		},
++	},
++	{}
++};
++
+ static struct dmi_system_id acer_quirks[] = {
+ 	{
+ 		.callback = dmi_matched,
+@@ -1254,6 +1273,12 @@ static int __init acer_wmi_init(void)
  
- 	return err;
+ 	printk(ACER_INFO "Acer Laptop ACPI-WMI Extras\n");
  
-+error_rfkill:
-+	if (has_cap(ACER_CAP_BRIGHTNESS))
-+		acer_backlight_exit();
- error_brightness:
--	acer_led_exit();
-+	if (has_cap(ACER_CAP_MAILLED))
-+		acer_led_exit();
- error_mailled:
- 	return err;
- }
++	if (dmi_check_system(acer_blacklist)) {
++		printk(ACER_INFO "Blacklisted hardware detected - "
++				"not loading\n");
++		return -ENODEV;
++	}
++
+ 	find_quirks();
+ 
+ 	/*
 
