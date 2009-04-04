@@ -1,65 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH] thinkpad-acpi queue for 2.6.30
-Date: Sat, 04 Apr 2009 03:36:48 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904040336400.16220@localhost.localdomain>
-References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
+From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: 2.6.29-rc6-git7: Reported regressions from 2.6.28
+Date: Sat, 04 Apr 2009 03:40:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904040339470.16220@localhost.localdomain>
+References: <KiHv0irKPzE.A.l3.hUarJB@chimera>
+ <1236129688.32297.264.camel@rzhang-dt> <200903072312.30158.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:30601 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753384AbZDDHg4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 03:36:56 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHK00E7NFTEA2YI@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 04 Apr 2009 02:36:51 -0500 (CDT)
-In-reply-to: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <200903072312.30158.rjw-KKrjLPT3xs0@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-applied
+On Sat, 7 Mar 2009, Rafael J. Wysocki wrote:
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+> On Wednesday 04 March 2009, Zhang Rui wrote:
+> > On Wed, 2009-03-04 at 03:22 +0800, Rafael J. Wysocki wrote:
+> > 
+> > > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=12758
+> > > Subject         : ACPI exception with 2.6.29-rc6
+> > > Submitter       : Heinz Diehl <htd-HjJ2MNWy62to6+H+lsi3Gti2O/JbrIOy@public.gmane.org>
+> > > Date            : 2009-02-23 16:46 (9 days old)
+> > > References      : http://marc.info/?l=linux-kernel&m=123540758700861&w=4
+> > > 
+> > Handled by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Patch-available:
+> > http://bugzilla.kernel.org/attachment.cgi?id=20368&action=view
+> > 
+> > not sure if this patch is in len's tree or not.
+> 
+> Thanks, updated.
 
-On Sat, 4 Apr 2009, Henrique de Moraes Holschuh wrote:
 
-> Len,
-> 
-> This patchset has the changes for thinkpad-acpi that I would like to
-> see merged for 2.6.30 (while the window is still open).
-> 
-> It contains the patch for
-> http://bugzilla.kernel.org/show_bug.cgi?id=11750, and a few
-> enhancements.
-> 
-> Shortlog:
-> 
-> Henrique de Moraes Holschuh (12):
->       thinkpad-acpi: update copyright notices
->       thinkpad-acpi: drop ibm-acpi alias
->       thinkpad-acpi: documentation cleanup
->       thinkpad-acpi: cleanup debug helpers
->       thinkpad-acpi: add missing log levels
->       thinkpad-acpi: add new debug helpers and warn of deprecated atts
->       thinkpad-acpi: remove HKEY disable functionality
->       thinkpad-acpi: restrict access to some firmware LEDs
->       thinkpad-acpi: enhanced debugging messages for rfkill subdrivers
->       thinkpad-acpi: enhanced debugging messages for the hotkey subdriver
->       thinkpad-acpi: enhanced debugging messages for the fan subdriver
->       thinkpad-acpi: rework brightness support
-> 
-> -- 
->   "One disk to rule them all, One disk to find them. One disk to bring
->   them all and in the darkness grind them. In the Land of Redmond
->   where the shadows lie." -- The Silicon Valley Tarot
->   Henrique Holschuh
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+per the bug report, this shipped in 2.6.29-rc8:
+
+commit 7b46ecd5fcebf381a7bde966db352d8fb1b8e944
+Author: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Feb 25 18:00:18 2009 -0500
+
+    Revert "ACPI: make some IO ports off-limits to AML"
