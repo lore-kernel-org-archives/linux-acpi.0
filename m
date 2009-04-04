@@ -1,202 +1,226 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 11/12] thinkpad-acpi: enhanced debugging messages for the fan subdriver
-Date: Sat,  4 Apr 2009 01:25:52 -0300
-Message-ID: <1238819153-16004-12-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 08/12] thinkpad-acpi: restrict access to some firmware LEDs
+Date: Sat,  4 Apr 2009 01:25:49 -0300
+Message-ID: <1238819153-16004-9-git-send-email-hmh@hmh.eng.br>
 References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:52481 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:41924 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751461AbZDDE0E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:26:04 -0400
+	by vger.kernel.org with ESMTP id S1751363AbZDDE0C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Apr 2009 00:26:02 -0400
 In-Reply-To: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Enhance debugging messages for the fan subdriver.
+Some of the ThinkPad LEDs indicate critical conditions that can cause
+data loss or cause hardware damage when ignored (e.g. force-ejecting
+a powered up bay; ignoring a failing battery, or empty battery; force-
+undocking with the dock buses still active, etc).
+
+On almost all ThinkPads, LED access is write-only, and the firmware
+usually does fire-and-forget signaling on them, so you effectively
+lose whatever message the firmware was trying to convey to the user
+when you override the LED state, without any chance to restore it.
+
+Restrict access to all LEDs that can convey important alarms, or that
+could mislead the user into incorrectly operating the hardware.  This
+will make the Lenovo engineers less unhappy about the whole issue.
+
+Allow users that really want it to still control all LEDs, it is the
+unaware user that we have to worry about.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    1 +
- drivers/platform/x86/thinkpad_acpi.c    |   46 +++++++++++++++++++++++++++---
- 2 files changed, 42 insertions(+), 5 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   11 +++++
+ drivers/platform/x86/Kconfig            |   24 ++++++++++
+ drivers/platform/x86/thinkpad_acpi.c    |   76 +++++++++++++++++++++++--------
+ 3 files changed, 91 insertions(+), 20 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index abbbe78..25ed43d 100644
+index de6f14c..bce1d95 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1497,6 +1497,7 @@ to enable more than one output class, just add their values.
- 	0x0004			RF Transmitter control (RFKILL)
- 				(bluetooth, WWAN, UWB...)
- 	0x0008			HKEY event interface, hotkeys
-+	0x0010			Fan control
+@@ -901,6 +901,17 @@ some older ThinkPad models, it is possible to query the status of the
+ LED indicators as well.  Newer ThinkPads cannot query the real status
+ of the LED indicators.
  
- There is also a kernel build option to enable more debugging
- information, which may be necessary to debug driver problems.
++Because misuse of the LEDs could induce an unaware user to perform
++dangerous actions (like undocking or ejecting a bay device while the
++buses are still active), or mask an important alarm (such as a nearly
++empty battery, or a broken battery), access to most LEDs is
++restricted.
++
++Unrestricted access to all LEDs requires that thinkpad-acpi be
++compiled with the CONFIG_THINKPAD_ACPI_UNSAFE_LEDS option enabled.
++Distributions must never enable this option.  Individual users that
++are aware of the consequences are welcome to enabling it.
++
+ procfs notes:
+ 
+ The available commands are:
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 3608081..d45c6ab 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -226,6 +226,30 @@ config THINKPAD_ACPI_DEBUG
+ 
+ 	  If you are not sure, say N here.
+ 
++config THINKPAD_ACPI_UNSAFE_LEDS
++	bool "Allow control of important LEDs (unsafe)"
++	depends on THINKPAD_ACPI
++	default n
++	---help---
++	  Overriding LED state on ThinkPads can mask important
++	  firmware alerts (like critical battery condition), or misled
++	  the user into damaging the hardware (undocking or ejecting
++	  the bay while buses are still active), etc.
++
++	  LED control on the ThinkPad is write-only (with very few
++	  exceptions on very ancient models), which makes it
++	  impossible to know beforehand if important information will
++	  be lost when one changes LED state.
++
++	  Users that know what they are doing can enable this option
++	  and the driver will allow control of every LED, including
++	  the ones on the dock stations.
++
++	  Never enable this option on a distribution kernel.
++
++	  Say N here, unless you are building a kernel for your own
++	  use, and need to control the important firmware LEDs.
++
+ config THINKPAD_ACPI_DOCK
+ 	bool "Legacy Docking Station Support"
+ 	depends on THINKPAD_ACPI
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index c8bd563..27c9480 100644
+index ef6c963..d03b76a 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -191,6 +191,7 @@ enum {
- #define TPACPI_DBG_EXIT		0x0002
- #define TPACPI_DBG_RFKILL	0x0004
- #define TPACPI_DBG_HKEY		0x0008
-+#define TPACPI_DBG_FAN		0x0010
- 
- #define onoff(status, bit) ((status) & (1 << (bit)) ? "on" : "off")
- #define enabled(status, bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
-@@ -6271,6 +6272,9 @@ static int fan_set_level(int level)
- 	default:
- 		return -ENXIO;
- 	}
+@@ -4657,6 +4657,16 @@ static const char * const tpacpi_led_names[TPACPI_LED_NUMLEDS] = {
+ 	"tpacpi::unknown_led",
+ 	"tpacpi::standby",
+ };
++#define TPACPI_SAFE_LEDS	0x0081U
 +
-+	vdbg_printk(TPACPI_DBG_FAN,
-+		"fan control: set fan control register to 0x%02x\n", level);
- 	return 0;
- }
++static inline bool tpacpi_is_led_restricted(const unsigned int led)
++{
++#ifdef CONFIG_THINKPAD_ACPI_UNSAFE_LEDS
++	return false;
++#else
++	return (TPACPI_SAFE_LEDS & (1 << led)) == 0;
++#endif
++}
  
-@@ -6348,6 +6352,11 @@ static int fan_set_enable(void)
- 	}
- 
- 	mutex_unlock(&fan_mutex);
-+
-+	if (!rc)
-+		vdbg_printk(TPACPI_DBG_FAN,
-+			"fan control: set fan control register to 0x%02x\n",
-+			s);
- 	return rc;
- }
- 
-@@ -6384,6 +6393,9 @@ static int fan_set_disable(void)
- 		rc = -ENXIO;
- 	}
- 
-+	if (!rc)
-+		vdbg_printk(TPACPI_DBG_FAN,
-+			"fan control: set fan control register to 0\n");
- 
- 	mutex_unlock(&fan_mutex);
- 	return rc;
-@@ -6512,6 +6524,9 @@ static ssize_t fan_pwm1_enable_store(struct device *dev,
- 	if (parse_strtoul(buf, 2, &t))
- 		return -EINVAL;
- 
-+	tpacpi_disclose_usertask("hwmon pwm1_enable",
-+			"set fan mode to %lu\n", t);
-+
- 	switch (t) {
- 	case 0:
- 		level = TP_EC_FAN_FULLSPEED;
-@@ -6577,6 +6592,9 @@ static ssize_t fan_pwm1_store(struct device *dev,
- 	if (parse_strtoul(buf, 255, &s))
- 		return -EINVAL;
- 
-+	tpacpi_disclose_usertask("hwmon pwm1",
-+			"set fan speed to %lu\n", s);
-+
- 	/* scale down from 0-255 to 0-7 */
- 	newlevel = (s >> 5) & 0x07;
- 
-@@ -6643,6 +6661,8 @@ static ssize_t fan_fan_watchdog_store(struct device_driver *drv,
- 	fan_watchdog_maxinterval = t;
- 	fan_watchdog_reset();
- 
-+	tpacpi_disclose_usertask("fan_watchdog", "set to %lu\n", t);
-+
- 	return count;
- }
- 
-@@ -6664,7 +6684,8 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ static int led_get_status(const unsigned int led)
  {
- 	int rc;
+@@ -4694,16 +4704,20 @@ static int led_set_status(const unsigned int led,
+ 	switch (led_supported) {
+ 	case TPACPI_LED_570:
+ 		/* 570 */
+-		if (led > 7)
++		if (unlikely(led > 7))
+ 			return -EINVAL;
++		if (unlikely(tpacpi_is_led_restricted(led)))
++			return -EPERM;
+ 		if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
+ 				(1 << led), led_sled_arg1[ledstatus]))
+ 			rc = -EIO;
+ 		break;
+ 	case TPACPI_LED_OLD:
+ 		/* 600e/x, 770e, 770x, A21e, A2xm/p, T20-22, X20 */
+-		if (led > 7)
++		if (unlikely(led > 7))
+ 			return -EINVAL;
++		if (unlikely(tpacpi_is_led_restricted(led)))
++			return -EPERM;
+ 		rc = ec_write(TPACPI_LED_EC_HLMS, (1 << led));
+ 		if (rc >= 0)
+ 			rc = ec_write(TPACPI_LED_EC_HLBL,
+@@ -4714,6 +4728,10 @@ static int led_set_status(const unsigned int led,
+ 		break;
+ 	case TPACPI_LED_NEW:
+ 		/* all others */
++		if (unlikely(led >= TPACPI_LED_NUMLEDS))
++			return -EINVAL;
++		if (unlikely(tpacpi_is_led_restricted(led)))
++			return -EPERM;
+ 		if (!acpi_evalf(led_handle, NULL, NULL, "vdd",
+ 				led, led_led_arg1[ledstatus]))
+ 			rc = -EIO;
+@@ -4806,6 +4824,30 @@ static void led_exit(void)
+ 	kfree(tpacpi_leds);
+ }
  
--	vdbg_printk(TPACPI_DBG_INIT, "initializing fan subdriver\n");
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_FAN,
-+			"initializing fan subdriver\n");
++static int __init tpacpi_init_led(unsigned int led)
++{
++	int rc;
++
++	tpacpi_leds[led].led = led;
++
++	tpacpi_leds[led].led_classdev.brightness_set = &led_sysfs_set;
++	tpacpi_leds[led].led_classdev.blink_set = &led_sysfs_blink_set;
++	if (led_supported == TPACPI_LED_570)
++		tpacpi_leds[led].led_classdev.brightness_get =
++						&led_sysfs_get;
++
++	tpacpi_leds[led].led_classdev.name = tpacpi_led_names[led];
++
++	INIT_WORK(&tpacpi_leds[led].work, led_set_status_worker);
++
++	rc = led_classdev_register(&tpacpi_pdev->dev,
++				&tpacpi_leds[led].led_classdev);
++	if (rc < 0)
++		tpacpi_leds[led].led_classdev.name = NULL;
++
++	return rc;
++}
++
+ static int __init led_init(struct ibm_init_struct *iibm)
+ {
+ 	unsigned int i;
+@@ -4839,27 +4881,21 @@ static int __init led_init(struct ibm_init_struct *iibm)
+ 	}
  
- 	mutex_init(&fan_mutex);
- 	fan_status_access_mode = TPACPI_FAN_NONE;
-@@ -6723,7 +6744,8 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ 	for (i = 0; i < TPACPI_LED_NUMLEDS; i++) {
+-		tpacpi_leds[i].led = i;
+-
+-		tpacpi_leds[i].led_classdev.brightness_set = &led_sysfs_set;
+-		tpacpi_leds[i].led_classdev.blink_set = &led_sysfs_blink_set;
+-		if (led_supported == TPACPI_LED_570)
+-			tpacpi_leds[i].led_classdev.brightness_get =
+-							&led_sysfs_get;
+-
+-		tpacpi_leds[i].led_classdev.name = tpacpi_led_names[i];
+-
+-		INIT_WORK(&tpacpi_leds[i].work, led_set_status_worker);
+-
+-		rc = led_classdev_register(&tpacpi_pdev->dev,
+-					   &tpacpi_leds[i].led_classdev);
+-		if (rc < 0) {
+-			tpacpi_leds[i].led_classdev.name = NULL;
+-			led_exit();
+-			return rc;
++		if (!tpacpi_is_led_restricted(i)) {
++			rc = tpacpi_init_led(i);
++			if (rc < 0) {
++				led_exit();
++				return rc;
++			}
  		}
  	}
  
--	vdbg_printk(TPACPI_DBG_INIT, "fan is %s, modes %d, %d\n",
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_FAN,
-+		"fan is %s, modes %d, %d\n",
- 		str_supported(fan_status_access_mode != TPACPI_FAN_NONE ||
- 		  fan_control_access_mode != TPACPI_FAN_WR_NONE),
- 		fan_status_access_mode, fan_control_access_mode);
-@@ -6732,7 +6754,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
- 	if (!fan_control_allowed) {
- 		fan_control_access_mode = TPACPI_FAN_WR_NONE;
- 		fan_control_commands = 0;
--		dbg_printk(TPACPI_DBG_INIT,
-+		dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_FAN,
- 			   "fan control features disabled by parameter\n");
- 	}
- 
-@@ -6761,7 +6783,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
- 
- static void fan_exit(void)
- {
--	vdbg_printk(TPACPI_DBG_EXIT,
-+	vdbg_printk(TPACPI_DBG_EXIT | TPACPI_DBG_FAN,
- 		    "cancelling any pending fan watchdog tasks\n");
- 
- 	/* FIXME: can we really do this unconditionally? */
-@@ -6942,6 +6964,9 @@ static int fan_write_cmd_level(const char *cmd, int *rc)
- 	if (*rc == -ENXIO)
- 		printk(TPACPI_ERR "level command accepted for unsupported "
- 		       "access mode %d", fan_control_access_mode);
-+	else if (!*rc)
-+		tpacpi_disclose_usertask("procfs fan",
-+			"set level to %d\n", level);
- 
- 	return 1;
++#ifdef CONFIG_THINKPAD_ACPI_UNSAFE_LEDS
++	if (led_supported != TPACPI_LED_NONE)
++		printk(TPACPI_NOTICE
++			"warning: userspace override of important "
++			"firmware LEDs is enabled\n");
++#endif
+ 	return (led_supported != TPACPI_LED_NONE)? 0 : 1;
  }
-@@ -6955,6 +6980,8 @@ static int fan_write_cmd_enable(const char *cmd, int *rc)
- 	if (*rc == -ENXIO)
- 		printk(TPACPI_ERR "enable command accepted for unsupported "
- 		       "access mode %d", fan_control_access_mode);
-+	else if (!*rc)
-+		tpacpi_disclose_usertask("procfs fan", "enable\n");
  
- 	return 1;
- }
-@@ -6968,6 +6995,8 @@ static int fan_write_cmd_disable(const char *cmd, int *rc)
- 	if (*rc == -ENXIO)
- 		printk(TPACPI_ERR "disable command accepted for unsupported "
- 		       "access mode %d", fan_control_access_mode);
-+	else if (!*rc)
-+		tpacpi_disclose_usertask("procfs fan", "disable\n");
- 
- 	return 1;
- }
-@@ -6986,6 +7015,9 @@ static int fan_write_cmd_speed(const char *cmd, int *rc)
- 	if (*rc == -ENXIO)
- 		printk(TPACPI_ERR "speed command accepted for unsupported "
- 		       "access mode %d", fan_control_access_mode);
-+	else if (!*rc)
-+		tpacpi_disclose_usertask("procfs fan",
-+			"set speed to %d\n", speed);
- 
- 	return 1;
- }
-@@ -6999,8 +7031,12 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc)
- 
- 	if (interval < 0 || interval > 120)
- 		*rc = -EINVAL;
--	else
-+	else {
- 		fan_watchdog_maxinterval = interval;
-+		tpacpi_disclose_usertask("procfs fan",
-+			"set watchdog timer to %d\n",
-+			interval);
-+	}
- 
- 	return 1;
- }
 -- 
 1.6.2.1
 
