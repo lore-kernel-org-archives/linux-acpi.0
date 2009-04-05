@@ -1,36 +1,34 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] toshiba-acpi: remove MAINTAINERS entry
-Date: Sun, 05 Apr 2009 01:11:32 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904050110270.4821@localhost.localdomain>
-References: <1238407355.24972.29.camel@johannes.local>
- <1238407893.24972.30.camel@johannes.local>
- <a0c408570903301808k54a31f99m643b7197ee9557ba@mail.gmail.com>
+From: Silvio Sisto <sisto.silvio@gmail.com>
+Subject: Re: MacBook5,2 not supported
+Date: Sun, 5 Apr 2009 03:10:32 -0300
+Message-ID: <6b36610d0904042310u26027e56h88239c94707c2877@mail.gmail.com>
+References: <6b36610d0904041536m53cde1daje7667df5f71a9e97@mail.gmail.com>
+	 <49D7F040.6050109@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:23414 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751016AbZDEFLh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Apr 2009 01:11:37 -0400
-In-reply-to: <a0c408570903301808k54a31f99m643b7197ee9557ba@mail.gmail.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:42518 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754911AbZDEGKe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Apr 2009 02:10:34 -0400
+Received: by qyk16 with SMTP id 16so2996997qyk.33
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Apr 2009 23:10:32 -0700 (PDT)
+In-Reply-To: <49D7F040.6050109@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Belmonte <john@neggie.net>
-Cc: Johannes Berg <johannes@sipsolutions.net>, Philip Langdale <philipl@overt.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, 30 Mar 2009, John Belmonte wrote:
+> What exactly happens if you try to boot without acpi=off flag?
 
-> Hello,
-> 
-> Deliveries to toshiba_acpi@memebeam.org work fine as far as I can tell.
-> 
-> I'm not much opposed to marking this driver orphaned.  I haven't used
-> a Toshiba laptop in four years or so, and disagree with the recent
-> additions of bluetooth and wireless control to the driver.
-> 
-> --John
+It crashes with a blank screen just a few seconds after starting to boot.
 
-I'll take that as your Ack, John, and so I'll apply the patch.
+> Are you able to boot at least with acpi=ht flag?
 
-thanks,
--Len Brown, Intel Open Source Technology Center
+It crashes the same way as without acpi=off flag.
+
+Right now I have Linux 2.6.27-11. Should I try with latest one?
+
+Thanks for your reply.
+Best regards,
+Silvio Sisto
