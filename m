@@ -1,38 +1,70 @@
-From: Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH 2/8] ACPI: cpufreq: remove dupilcated #include
-Date: Mon,  6 Apr 2009 17:16:46 +0800
-Message-ID: <1239009406-3048-1-git-send-email-weiyi.huang@gmail.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: sony-laptop: ACPI Exception when a Fn-Key is pressed
+Date: Mon, 6 Apr 2009 20:01:55 +0900
+Message-ID: <20090406110154.GA25085@kamineko.org>
+References: <7a3045780904051727o3780c7d3hebb26028a1b4eba5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:45688 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753119AbZDFJT3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Apr 2009 05:19:29 -0400
-Received: by ti-out-0910.google.com with SMTP id i7so1900736tid.23
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Apr 2009 02:19:27 -0700 (PDT)
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:54630
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755329AbZDFLB6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Apr 2009 07:01:58 -0400
+Content-Disposition: inline
+In-Reply-To: <7a3045780904051727o3780c7d3hebb26028a1b4eba5@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
+To: Rodrigo Luiz <rodrigo@gus-mg.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Remove dupilicated #include in arch/x86/kernel/cpu/cpufreq/longhaul.c.
+On Sun, Apr 05, 2009 at 09:27:06PM -0300, Rodrigo Luiz wrote:
+> Hi.
+> 
+> I have a Vaio VGN-FW235J and I tried today the latest kernel version
+> in git to test the latest changes in sony-laptop.
+> 
+> When I press any Fn-keys, i.e. brightness control, I received these
+> messages in syslog:
+> 
+> ACPI Error (hwvalid-0186): Denied AML access to port 0x00000080/4
+> (DMA1 0x0081-0x0083) [20090320]
+> ACPI Exception (evregion-0422): AE_AML_ILLEGAL_ADDRESS, Returned by
+> Handler for [SystemIO] [20090320]
+> ACPI Error (psparse-0537): Method parse/execution failed [\P8XH] (Node
+> f7418c30), AE_AML_ILLEGAL_ADDRESS
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.LPCB.EC__._Q58] (Node f741bc00), AE_AML_ILLEGAL_ADDRESS
+> ACPI Error (hwvalid-0186): Denied AML access to port 0x00000080/4
+> (DMA1 0x0081-0x0083) [20090320]
+> ACPI Exception (evregion-0422): AE_AML_ILLEGAL_ADDRESS, Returned by
+> Handler for [SystemIO] [20090320]
+> ACPI Error (psparse-0537): Method parse/execution failed [\P8XH] (Node
+> f7418c30), AE_AML_ILLEGAL_ADDRESS
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.LPCB.EC__._Q59] (Node f741bc18), AE_AML_ILLEGAL_ADDRESS
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- arch/x86/kernel/cpu/cpufreq/longhaul.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Interesting. This is due to a change in current git it was not present
+in 2.6.29.
 
-diff --git a/arch/x86/kernel/cpu/cpufreq/longhaul.c b/arch/x86/kernel/cpu/cpufreq/longhaul.c
-index 0bd48e6..ce2ed3e 100644
---- a/arch/x86/kernel/cpu/cpufreq/longhaul.c
-+++ b/arch/x86/kernel/cpu/cpufreq/longhaul.c
-@@ -33,7 +33,6 @@
- #include <linux/timex.h>
- #include <linux/io.h>
- #include <linux/acpi.h>
--#include <linux/kernel.h>
- 
- #include <asm/msr.h>
- #include <acpi/processor.h>
+Does booting with acpi_osi=Linux makes things any worse? (it should fix
+the above error but might make some other functionality behave
+differently).
+Or eventually also see if there is a bios upgrade available for your
+laptop.
+
+Len,
+it looks like most of the vaios define this in global scope:
+
+    OperationRegion (PRT0, SystemIO, 0x80, 0x04)
+    Field (PRT0, DWordAcc, Lock, Preserve)
+    {   
+        P80H,   32
+    }
+
+which falls in the DMA1 reserved area in >WinXP.
+No idea how windows copes with it if the same restrictions area really
+in place.
+
 -- 
-1.6.1.3
-
+mattia
+:wq!
