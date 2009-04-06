@@ -1,29 +1,53 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: [Bug #12681] s2ram: fails to wake up on Acer Extensa 4220 (SMP disabled)
-Date: Mon,  6 Apr 2009 21:05:35 +0200 (CEST)
-Message-ID: <AsKNxFx2juN.A.SmB.pHn2JB@chimera>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
+Date: Mon, 6 Apr 2009 14:53:19 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
 References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
-Content-Disposition: inline
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Orivej Desh <smpuj-5URONGGNgjI@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Trenton Adams <trenton.d.adams@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This message has been generated automatically as a part of a report
-of recent regressions.
-
-The following bug entry is on the current list of known regressions
-from 2.6.28.  Please verify if it still should be listed and let me know
-(either way).
 
 
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12681
-Subject		: s2ram: fails to wake up on Acer Extensa 4220 (SMP disabled)
-Submitter	: Orivej Desh <smpuj-5URONGGNgjI@public.gmane.org>
-Date		: 2009-02-09 13:01 (57 days old)
-First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=1cfe62c8010ac56e1bd3827e30386a87cc2f3594
+On Mon, 6 Apr 2009, Rafael J. Wysocki wrote:
+> 
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13019
+> Subject		: /proc/<pid>/maps offset output broken in 2.6.29
+> Submitter	: "Chris Friesen" <cfriesen@nortel.com>
+> Date		: 2009-04-01 23:18 (6 days old)
+> References	: http://marc.info/?l=linuxppc-embedded&m=123862902916059&w=4
+> Handled-By	: Hugh Dickins <hugh@veritas.com>
+
+I don't think that's a regression, nor really a bug. It looks cosmetic, 
+and likely to be fixed, but not really worth worrying about.
+
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13018
+> Subject		: 2.6.29 on MacBook 2,1 fails to reboot
+> Submitter	: Trenton Adams <trenton.d.adams@gmail.com>
+> Date		: 2009-03-30 2:04 (8 days old)
+> References	: http://marc.info/?l=linux-kernel&m=123837870307249&w=4
+> Handled-By	: "Morten P.D. Stevens" <mstevens@win-professional.com>
+
+This went through bisection, but looking at the email log, I tend to 
+suspect that maybe Trenton marked some versions good even though they 
+weren't (because they got versions numbers from v2.6.27), and didn't 
+realize that that messes up bisection in a big way.
+
+The bug _sounds_ like some deadlock due to lock problems - the shutdown 
+path often triggers locks that no other path really cares about. And we 
+had some lock problems in the sound subsystem that got fixed post-2.6.28, 
+for example. 
+
+And it looks like the problem is somewhere in sound shutdown:
+
+12181 delete_module("snd_hda_codec", O_RDONLY|O_EXCL) = -1 EAGAIN (Resource temporarily unavailable) <0.000011>
+
+So commits like 91054598f794fb5d8a0b1e747ff8e2e8fc2115b3 ("ALSA: pcm_oss, 
+fix locking typo") might explain it.
+
+		Linus
