@@ -1,79 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [2.6.29.y PATCH]
-Date: Mon, 06 Apr 2009 23:53:45 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904062351580.5698@localhost.localdomain>
+From: "Trenton D. Adams" <trenton.d.adams@gmail.com>
+Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
+Date: Mon, 6 Apr 2009 21:56:27 -0600
+Message-ID: <9b1675090904062056v235af58ehc99cce8ff97fe501@mail.gmail.com>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
+	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:46427 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752521AbZDGDyI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Apr 2009 23:54:08 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHP00I54PHL240T@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 06 Apr 2009 22:53:46 -0500 (CDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org
 
-From: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
-Date: Thu, 19 Mar 2009 14:41:40 -0700
-Subject: [PATCH] ACPI: cap off P-state transition latency from buggy BIOSes
-X-Patchwork-Hint: ignore
+On Mon, Apr 6, 2009 at 3:53 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+>
+> On Mon, 6 Apr 2009, Rafael J. Wysocki wrote:
+>>
+>> Bug-Entry =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D130=
+18
+>> Subject =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 2.6.29 on MacBook 2,1 fails to=
+ reboot
+>> Submitter =A0 =A0 : Trenton Adams <trenton.d.adams@gmail.com>
+>> Date =A0 =A0 =A0 =A0 =A0: 2009-03-30 2:04 (8 days old)
+>> References =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D123837870=
+307249&w=3D4
+>> Handled-By =A0 =A0: "Morten P.D. Stevens" <mstevens@win-professional=
+=2Ecom>
+>
+> This went through bisection, but looking at the email log, I tend to
+> suspect that maybe Trenton marked some versions good even though they
+> weren't (because they got versions numbers from v2.6.27), and didn't
+> realize that that messes up bisection in a big way.
 
-upstream  a59d1637eb0e0a37ee0e5c92800c60abe3624e24
-Some BIOSes report very high frequency transition latency which are plainly
-wrong on CPus that can change frequency using native MSR interface.
+Is it appropriate for me to respond to these things?
 
-One such system is IBM T42 (2327-8ZU) as reported by Owen Taylor and
-Rik van Riel.
+I was wondering about that.  Someone had mentioned that I should trust
+the bisect, even when it takes me into "other versions", and it was
+taking me through 2.6.27, which I thought was just really weird.
+Would you like me to try the bisect again with a little more
+diligence, or do you think it can be found with the info given?  It
+may take a week or so, due to being a bit busy.
 
-cpufreq_ondemand driver uses this transition latency to come up with a
-reasonable sampling interval to sample CPU usage and with such high
-latency value, ondemand sampling interval ends up being very high
-(0.5 sec, in this particular case), resulting in performance impact due to
-slow response to increasing frequency.
-
-Fix it by capping-off the transition latency to 20uS for native MSR based
-frequency transitions.
-
-mjg: We've confirmed that this also helps on the X31
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Acked-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-
-
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
-
-diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-index 4b1c319..89c676d 100644
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-+++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -680,6 +680,18 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 			    perf->states[i].transition_latency * 1000;
- 	}
- 
-+	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
-+	if (perf->control_register.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE &&
-+	    policy->cpuinfo.transition_latency > 20 * 1000) {
-+		static int print_once;
-+		policy->cpuinfo.transition_latency = 20 * 1000;
-+		if (!print_once) {
-+			print_once = 1;
-+			printk(KERN_INFO "Capping off P-state tranision latency"
-+				" at 20 uS\n");
-+		}
-+	}
-+
- 	data->max_freq = perf->states[0].core_frequency * 1000;
- 	/* table init */
- 	for (i=0; i<perf->state_count; i++) {
--- 
-1.6.2.2.446.gfbdc
-
+Thanks
+--
+To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
