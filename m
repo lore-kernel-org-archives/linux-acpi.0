@@ -1,136 +1,90 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 1/2] acpi x86: Cleanup acpi_cpufreq structures related to
- aperf/mperf
-Date: Tue, 07 Apr 2009 01:34:43 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904070132040.5698@localhost.localdomain>
+Subject: Re: [patch 2/2] acpi x86: Make aperf/mperf MSR access in acpi_cpufreq
+ read_only
+Date: Tue, 07 Apr 2009 01:35:27 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904070135120.5698@localhost.localdomain>
 References: <20090406182606.706570000@intel.com>
- <20090406182723.927683000@intel.com>
+ <20090406182724.072503000@intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:51542 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754718AbZDGFeu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 01:34:50 -0400
-In-reply-to: <20090406182723.927683000@intel.com>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:55926 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756722AbZDGFfc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 01:35:32 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KHP00DR2U74LGEE@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 00:35:29 -0500 (CDT)
+In-reply-to: <20090406182724.072503000@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.orgt
 
 applied
 
-(and cpufreq@vger.kernel.org added to cc)
+(and cpufreq@vger.kernel.org cc'd)
 
 thanks,
 Len Brown, Intel Open Source Technology Center
 
 On Mon, 6 Apr 2009, venkatesh.pallipadi@intel.com wrote:
 
-> Change structure name to make the code cleaner and simpler. No
-> functionality change in this patch.
+> Not write zeroes to APERF and MPERF by ondemand governor. With this
+> change, other users can share these MSRs for reads.
 > 
 > Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 > ---
->  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   42 +++++++++++++--------------
->  1 files changed, 20 insertions(+), 22 deletions(-)
+>  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   15 ++++++++++-----
+>  1 files changed, 10 insertions(+), 5 deletions(-)
 > 
 > diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-> index 19f6b9d..340bdbe 100644
+> index 340bdbe..9d3af38 100644
 > --- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
 > +++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-> @@ -241,23 +241,23 @@ static u32 get_cur_val(const struct cpumask *mask)
->  	return cmd.val;
->  }
->  
-> -struct perf_cur {
-> +struct perf_pair {
->  	union {
->  		struct {
->  			u32 lo;
->  			u32 hi;
->  		} split;
->  		u64 whole;
-> -	} aperf_cur, mperf_cur;
-> +	} aperf, mperf;
+> @@ -68,6 +68,7 @@ struct acpi_cpufreq_data {
+>  	unsigned int max_freq;
+>  	unsigned int resume;
+>  	unsigned int cpu_feature;
+> +	u64 saved_aperf, saved_mperf;
 >  };
 >  
+>  static DEFINE_PER_CPU(struct acpi_cpufreq_data *, drv_data);
+> @@ -259,9 +260,6 @@ static long read_measured_perf_ctrs(void *_cur)
+>  	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
+>  	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
 >  
->  static long read_measured_perf_ctrs(void *_cur)
->  {
-> -	struct perf_cur *cur = _cur;
-> +	struct perf_pair *cur = _cur;
+> -	wrmsr(MSR_IA32_APERF, 0, 0);
+> -	wrmsr(MSR_IA32_MPERF, 0, 0);
+> -
+>  	return 0;
+>  }
 >  
-> -	rdmsr(MSR_IA32_APERF, cur->aperf_cur.split.lo, cur->aperf_cur.split.hi);
-> -	rdmsr(MSR_IA32_MPERF, cur->mperf_cur.split.lo, cur->mperf_cur.split.hi);
-> +	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
-> +	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
->  
->  	wrmsr(MSR_IA32_APERF, 0, 0);
->  	wrmsr(MSR_IA32_MPERF, 0, 0);
-> @@ -281,7 +281,7 @@ static long read_measured_perf_ctrs(void *_cur)
+> @@ -281,13 +279,20 @@ static long read_measured_perf_ctrs(void *_cur)
 >  static unsigned int get_measured_perf(struct cpufreq_policy *policy,
 >  				      unsigned int cpu)
 >  {
-> -	struct perf_cur cur;
-> +	struct perf_pair cur;
+> -	struct perf_pair cur;
+> +	struct perf_pair readin, cur;
 >  	unsigned int perf_percent;
 >  	unsigned int retval;
 >  
-> @@ -294,39 +294,37 @@ static unsigned int get_measured_perf(struct cpufreq_policy *policy,
->  	 * Get an approximate value. Return failure in case we cannot get
->  	 * an approximate value.
->  	 */
-> -	if (unlikely(cur.aperf_cur.split.hi || cur.mperf_cur.split.hi)) {
-> +	if (unlikely(cur.aperf.split.hi || cur.mperf.split.hi)) {
->  		int shift_count;
->  		u32 h;
+> -	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &cur))
+> +	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
+>  		return 0;
 >  
-> -		h = max_t(u32, cur.aperf_cur.split.hi, cur.mperf_cur.split.hi);
-> +		h = max_t(u32, cur.aperf.split.hi, cur.mperf.split.hi);
->  		shift_count = fls(h);
->  
-> -		cur.aperf_cur.whole >>= shift_count;
-> -		cur.mperf_cur.whole >>= shift_count;
-> +		cur.aperf.whole >>= shift_count;
-> +		cur.mperf.whole >>= shift_count;
->  	}
->  
-> -	if (((unsigned long)(-1) / 100) < cur.aperf_cur.split.lo) {
-> +	if (((unsigned long)(-1) / 100) < cur.aperf.split.lo) {
->  		int shift_count = 7;
-> -		cur.aperf_cur.split.lo >>= shift_count;
-> -		cur.mperf_cur.split.lo >>= shift_count;
-> +		cur.aperf.split.lo >>= shift_count;
-> +		cur.mperf.split.lo >>= shift_count;
->  	}
->  
-> -	if (cur.aperf_cur.split.lo && cur.mperf_cur.split.lo)
-> -		perf_percent = (cur.aperf_cur.split.lo * 100) /
-> -				cur.mperf_cur.split.lo;
-> +	if (cur.aperf.split.lo && cur.mperf.split.lo)
-> +		perf_percent = (cur.aperf.split.lo * 100) / cur.mperf.split.lo;
->  	else
->  		perf_percent = 0;
->  
->  #else
-> -	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf_cur.whole)) {
-> +	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf.whole)) {
->  		int shift_count = 7;
-> -		cur.aperf_cur.whole >>= shift_count;
-> -		cur.mperf_cur.whole >>= shift_count;
-> +		cur.aperf.whole >>= shift_count;
-> +		cur.mperf.whole >>= shift_count;
->  	}
->  
-> -	if (cur.aperf_cur.whole && cur.mperf_cur.whole)
-> -		perf_percent = (cur.aperf_cur.whole * 100) /
-> -				cur.mperf_cur.whole;
-> +	if (cur.aperf.whole && cur.mperf.whole)
-> +		perf_percent = (cur.aperf.whole * 100) / cur.mperf.whole;
->  	else
->  		perf_percent = 0;
->  
+> +	cur.aperf.whole = readin.aperf.whole -
+> +				per_cpu(drv_data, cpu)->saved_aperf;
+> +	cur.mperf.whole = readin.mperf.whole -
+> +				per_cpu(drv_data, cpu)->saved_mperf;
+> +	per_cpu(drv_data, cpu)->saved_aperf = readin.aperf.whole;
+> +	per_cpu(drv_data, cpu)->saved_mperf = readin.mperf.whole;
+> +
+>  #ifdef __i386__
+>  	/*
+>  	 * We dont want to do 64 bit divide with 32 bit kernel
 > -- 
 > 1.6.0.6
 > 
