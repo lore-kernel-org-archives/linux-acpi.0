@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 2/7] ACPI: video: use .notify method instead of installing
-	handler directly
-Date: Tue, 07 Apr 2009 09:37:11 -0600
-Message-ID: <20090407153711.21399.86268.stgit@bob.kio>
+Subject: [PATCH 4/7] fujitsu-laptop: use .notify method instead of installing
+	hotkey handler directly
+Date: Tue, 07 Apr 2009 09:37:22 -0600
+Message-ID: <20090407153722.21399.22689.stgit@bob.kio>
 References: <20090407153532.21399.92051.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:8696 "EHLO
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:8754 "EHLO
 	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754614AbZDGPhN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:13 -0400
+	with ESMTP id S1755401AbZDGPhW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:22 -0400
 In-Reply-To: <20090407153532.21399.92051.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,110 +22,122 @@ This patch adds a .notify() method.  The presence of .notify() causes
 Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video.c |   30 +++++-------------------------
- 1 files changed, 5 insertions(+), 25 deletions(-)
+Tested by Tony on Fujitsu-Siemens Lifebook S6420 [FJNB1E6] with
+BIOS 1.18 (01/09/2009).  Tested by Jonathan on Fujitsu S7020.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index ab06143..cd4fb75 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -79,6 +79,7 @@ module_param(brightness_switch_enabled, bool, 0644);
- static int acpi_video_bus_add(struct acpi_device *device);
- static int acpi_video_bus_remove(struct acpi_device *device, int type);
- static int acpi_video_resume(struct acpi_device *device);
-+static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-By: Tony Vroon <tony@linx.net>
+Tested-By: Tony Vroon <tony@linx.net>
+Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Tested-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+---
+ drivers/platform/x86/fujitsu-laptop.c |   32 +++++---------------------------
+ 1 files changed, 5 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+index 10f8796..218b9a1 100644
+--- a/drivers/platform/x86/fujitsu-laptop.c
++++ b/drivers/platform/x86/fujitsu-laptop.c
+@@ -174,8 +174,7 @@ struct fujitsu_hotkey_t {
  
- static const struct acpi_device_id video_device_ids[] = {
- 	{ACPI_VIDEO_HID, 0},
-@@ -94,6 +95,7 @@ static struct acpi_driver acpi_video_bus = {
- 		.add = acpi_video_bus_add,
- 		.remove = acpi_video_bus_remove,
- 		.resume = acpi_video_resume,
-+		.notify = acpi_video_bus_notify,
- 		},
- };
+ static struct fujitsu_hotkey_t *fujitsu_hotkey;
  
-@@ -1986,17 +1988,15 @@ static int acpi_video_bus_stop_devices(struct acpi_video_bus *video)
- 	return acpi_video_bus_DOS(video, 0, 1);
- }
+-static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+-				       void *data);
++static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event);
  
--static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
- {
--	struct acpi_video_bus *video = data;
--	struct acpi_device *device = NULL;
-+	struct acpi_video_bus *video = acpi_driver_data(device);
- 	struct input_dev *input;
- 	int keycode;
+ #ifdef CONFIG_LEDS_CLASS
+ static enum led_brightness logolamp_get(struct led_classdev *cdev);
+@@ -816,7 +815,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
  
- 	if (!video)
- 		return;
- 
--	device = video->device;
- 	input = video->input;
- 
- 	switch (event) {
-@@ -2127,7 +2127,6 @@ static int acpi_video_resume(struct acpi_device *device)
- 
- static int acpi_video_bus_add(struct acpi_device *device)
+ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
  {
 -	acpi_status status;
- 	struct acpi_video_bus *video;
- 	struct input_dev *input;
- 	int error;
-@@ -2169,20 +2168,10 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 	acpi_video_bus_get_devices(video, device);
- 	acpi_video_bus_start_devices(video);
+ 	acpi_handle handle;
+ 	int result = 0;
+ 	int state = 0;
+@@ -833,17 +831,6 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+ 	device->driver_data = fujitsu_hotkey;
  
 -	status = acpi_install_notify_handler(device->handle,
 -					     ACPI_DEVICE_NOTIFY,
--					     acpi_video_bus_notify, video);
+-					     acpi_fujitsu_hotkey_notify,
+-					     fujitsu_hotkey);
+-
 -	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX
--				  "Error installing notify handler\n");
+-		printk(KERN_ERR "Error installing notify handler\n");
 -		error = -ENODEV;
--		goto err_stop_video;
+-		goto err_stop;
 -	}
 -
- 	video->input = input = input_allocate_device();
+ 	/* kfifo */
+ 	spin_lock_init(&fujitsu_hotkey->fifo_lock);
+ 	fujitsu_hotkey->fifo =
+@@ -858,7 +845,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ 	fujitsu_hotkey->input = input = input_allocate_device();
  	if (!input) {
  		error = -ENOMEM;
 -		goto err_uninstall_notify;
-+		goto err_stop_video;
++		goto err_free_fifo;
  	}
  
- 	snprintf(video->phys, sizeof(video->phys),
-@@ -2218,9 +2207,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
-  err_free_input_dev:
+ 	snprintf(fujitsu_hotkey->phys, sizeof(fujitsu_hotkey->phys),
+@@ -954,9 +941,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device *device)
+ end:
+ err_free_input_dev:
  	input_free_device(input);
-- err_uninstall_notify:
+-err_uninstall_notify:
 -	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_video_bus_notify);
-  err_stop_video:
- 	acpi_video_bus_stop_devices(video);
- 	acpi_video_bus_put_devices(video);
-@@ -2235,7 +2221,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
+-				   acpi_fujitsu_hotkey_notify);
++err_free_fifo:
+ 	kfifo_free(fujitsu_hotkey->fifo);
+ err_stop:
  
- static int acpi_video_bus_remove(struct acpi_device *device, int type)
+@@ -965,7 +950,6 @@ err_stop:
+ 
+ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
  {
--	acpi_status status = 0;
- 	struct acpi_video_bus *video = NULL;
+-	acpi_status status;
+ 	struct fujitsu_hotkey_t *fujitsu_hotkey = NULL;
  
+ 	if (!device || !acpi_driver_data(device))
+@@ -973,10 +957,6 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
  
-@@ -2245,11 +2230,6 @@ static int acpi_video_bus_remove(struct acpi_device *device, int type)
- 	video = acpi_driver_data(device);
+ 	fujitsu_hotkey = acpi_driver_data(device);
  
- 	acpi_video_bus_stop_devices(video);
--
--	status = acpi_remove_notify_handler(video->device->handle,
+-	status = acpi_remove_notify_handler(fujitsu_hotkey->acpi_handle,
 -					    ACPI_DEVICE_NOTIFY,
--					    acpi_video_bus_notify);
+-					    acpi_fujitsu_hotkey_notify);
 -
- 	acpi_video_bus_put_devices(video);
- 	acpi_video_bus_remove_fs(device);
+ 	fujitsu_hotkey->acpi_handle = NULL;
+ 
+ 	kfifo_free(fujitsu_hotkey->fifo);
+@@ -984,8 +964,7 @@ static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
+-static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+-				       void *data)
++static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32 event)
+ {
+ 	struct input_dev *input;
+ 	int keycode, keycode_r;
+@@ -1068,8 +1047,6 @@ static void acpi_fujitsu_hotkey_notify(acpi_handle handle, u32 event,
+ 		input_sync(input);
+ 		break;
+ 	}
+-
+-	return;
+ }
+ 
+ /* Initialization */
+@@ -1102,6 +1079,7 @@ static struct acpi_driver acpi_fujitsu_hotkey_driver = {
+ 	.ops = {
+ 		.add = acpi_fujitsu_hotkey_add,
+ 		.remove = acpi_fujitsu_hotkey_remove,
++		.notify = acpi_fujitsu_hotkey_notify,
+ 		},
+ };
  
 
