@@ -1,61 +1,75 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 58/98] sony-laptop: Add rfkill support on new models
-Date: Wed, 8 Apr 2009 01:46:59 +0900
-Message-ID: <20090407164659.GA3655@kamineko.org>
-References: <1238214733-8285-1-git-send-email-lenb@kernel.org> <20090329150640.GB8500@srcf.ucam.org> <20090401130039.GD9650@kamineko.org> <200904011515.14605.matze@welwarsky.de>
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: 2.6.29 on MacBook 2,
+ 1 fails to reboot (was Re: 2.6.29-git13: Reported regressions from
+ 2.6.28)
+Date: Tue, 07 Apr 2009 19:10:33 +0200
+Message-ID: <49DB8909.3000905@s5r6.in-berlin.de>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>	
+	<alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>	
+	<49DB7C77.1000702@s5r6.in-berlin.de>
+	<9b1675090904070944m798ed608i1d9194ebd1ed3961@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:46740
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533AbZDGQrD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 12:47:03 -0400
-Content-Disposition: inline
-In-Reply-To: <200904011515.14605.matze@welwarsky.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <9b1675090904070944m798ed608i1d9194ebd1ed3961@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Trenton D. Adams" <trenton.d.adams@gmail.com>
+Cc: Adrian Bunk <bunk@kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Network Development <netdev@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Natalie Protasevich <protasnb@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthias Welwarsky <matze@welwarsky.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Wed, Apr 01, 2009 at 03:15:13PM +0200, Matthias Welwarsky wrote:
-> On Wednesday 01 April 2009 15:00:39 Mattia Dongili wrote:
-> > On Sun, Mar 29, 2009 at 04:06:40PM +0100, Matthew Garrett wrote:
-> > > On Sun, Mar 29, 2009 at 01:52:42PM +0200, Matthias Welwarsky wrote:
-> > > > On Saturday 28 March 2009 05:31:33 you wrote:
-> > > > > From: Matthew Garrett <mjg59@srcf.ucam.org>
-> > > > >
-> > > > > Newer Vaios provide a full featured rfkill implementation via their
-> > > > > platform methods. Add support for enumerating the available devices
-> > > > > and providing rfkill access to them. Support for the physical kill
-> > > > > switch is added, with the devices moving into the HARD_BLOCKED state
-> > > > > when toggled.
-> > > >
-> > > > Bug: If you insert the module with hardware kill switch enabled, it
-> > > > cannot be disabled any more, i.e. despite operating the hardware kill
-> > > > switch, devices will not become enabled.
-> > > >
-> > > > Any hint how I could debug this?
-> > >
-> > > Put debug prints through the rfkill_update and rfkill_get functions? I
-> > > don't see anything especially obvious that would prevent this from
-> > > working.
-> >
-> > Matthias, any progress in debugging this?
-> 
-> Not yet. Not sure I'll have time to work on it for the next few days (upcoming 
-> easter holidays).
+Trenton D. Adams wrote:
+> On Tue, Apr 7, 2009 at 10:16 AM, Stefan Richter
+> <stefanr@s5r6.in-berlin.de> wrote:
+>> Linus Torvalds wrote:
+>>> On Mon, 6 Apr 2009, Rafael J. Wysocki wrote:
+>>>> Bug-Entry    : http://bugzilla.kernel.org/show_bug.cgi?id=13018
+>>>> Subject              : 2.6.29 on MacBook 2,1 fails to reboot
+...
+>>> The bug _sounds_ like some deadlock due to lock problems - the shutdown 
+>>> path often triggers locks that no other path really cares about. And we 
+>>> had some lock problems in the sound subsystem that got fixed post-2.6.28, 
+>>> for example. 
+>>> 
+>>> And it looks like the problem is somewhere in sound shutdown:
+>>> 
+>>> 12181 delete_module("snd_hda_codec", O_RDONLY|O_EXCL) = -1 EAGAIN (Resource temporarily unavailable) <0.000011>
+>>> 
+>>> So commits like 91054598f794fb5d8a0b1e747ff8e2e8fc2115b3 ("ALSA: pcm_oss, 
+>>> fix locking typo") might explain it.
+...
+>> could it be the same as this one?
+>> http://bugzilla.kernel.org/show_bug.cgi?id=12321
+>> "System hangs when unloading alsa modules"
+>> http://bugs.gentoo.org/show_bug.cgi?id=253535
+>> "System hangs when unloading alsa modules on Kernel >2.6.28"
+...
+> The first one looks similar, if not identical.  The second one
+> doesn't, because my problem happens on 2.6.29 only, not 2.6.28.
 
-I got my hands on a "new style" vaio and reproduced the problem. What
-happens is that when loading the driver with the kill switch on and then
-turning it on the status reading call to the 0x124 handle returns a soft
-blocked state.
-Just echoing 1 into the appropriate sysfs rfkill files turns the devices
-on.
+The Gentoo bug entry too is about a regression _after_ 2.6.28. :-)
+I.e. 2.6.28.y. are unaffected.  It's actually just the downstream
+duplicate of the kernel.org bug entry.
 
-In short we should make sure that if the device was never turned on
-since loading, then the switch being turned off really means "turn it
-off!".
-I'll prepare a patch tomorrow.
+> Either way, the unload problem with the module didn't happen in
+> 2.6.28.
+
+Interdependencies between ALSA modules have changed.  The Gentoo init
+scripts attempted to unload them in an order which deadlocked modprobe
+due to dependencies.  The fix for Gentoo is to just not unload the
+modules on system shutdown.  My Gentoo/amd64 Mac mini was affected by
+this too; fixed by userland update.
+
+(Added Cc to tiwai@suse.de)
 -- 
-mattia
-:wq!
+Stefan Richter
+-=====-=-=== -=-= -==-=
+http://arcgraph.de/sr/
