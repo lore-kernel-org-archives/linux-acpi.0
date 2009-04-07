@@ -1,40 +1,81 @@
-From: "Trenton D. Adams" <trenton.d.adams@gmail.com>
-Subject: Re: 2.6.29 on MacBook 2,1 fails to reboot (was Re: 2.6.29-git13:
-	Reported regressions from 2.6.28)
-Date: Tue, 7 Apr 2009 12:22:01 -0600
-Message-ID: <9b1675090904071122k6a53295fwfffc336011edee8e@mail.gmail.com>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
-	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
-	 <49DB7C77.1000702@s5r6.in-berlin.de>
-	 <9b1675090904070944m798ed608i1d9194ebd1ed3961@mail.gmail.com>
-	 <49DB8909.3000905@s5r6.in-berlin.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi/battery: fix async boot oops
+Date: Tue, 7 Apr 2009 21:16:31 +0200
+Message-ID: <200904072116.32475.rjw@sisk.pl>
+References: <20090407091052.GA17822@damson.cased.tu-darmstadt.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49DB8909.3000905@s5r6.in-berlin.de>
-Sender: netdev-owner@vger.kernel.org
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55447 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751711AbZDGTQR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Apr 2009 15:16:17 -0400
+In-Reply-To: <20090407091052.GA17822@damson.cased.tu-darmstadt.de>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Len Brown <len.brown@intel.com>, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>, Arjan van de Ven <arjan@linux.intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Apr 7, 2009 at 11:10 AM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> Trenton D. Adams wrote:
-> Interdependencies between ALSA modules have changed. =A0The Gentoo in=
-it
-> scripts attempted to unload them in an order which deadlocked modprob=
-e
-> due to dependencies. =A0The fix for Gentoo is to just not unload the
-> modules on system shutdown. =A0My Gentoo/amd64 Mac mini was affected =
-by
-> this too; fixed by userland update.
->
+On Tuesday 07 April 2009, Vegard Nossum wrote:
+> From 85a2a4447ce6b206d9ad20719ed8ac7cc707931c Mon Sep 17 00:00:00 2001
+> From: Vegard Nossum <vegard.nossum@gmail.com>
+> Date: Tue, 7 Apr 2009 10:55:38 +0200
+> Subject: [PATCH] acpi/battery: fix async boot oops
+> 
+> 2009/4/6 Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>:
+> >
+> > Pulled Linus git few minutes ago and new oops at boot (happens on every boot).
+> > Yesterday git version was fine. Oopsed just while/after udev started.
+> 
+> [...]
+> 
+> > BUG: unable to handle kernel NULL pointer dereference at (null)
+> > IP: [<ffffffffa00fd040>] 0xffffffffa00fd040
+> > PGD 13998a067 PUD 139979067 PMD 0
+> > Oops: 0002 [#1] PREEMPT SMP
+> > last sysfs file: /sys/devices/platform/i8042/modalias
+> > CPU 0
+> > Modules linked in: evdev(+) cfg80211(+) battery ac button crc_itu_t xfs exportfs scsi_wait_scan sd_mod crc_t10dif ahci libata scsi_mod
+> > Pid: 3167, comm: async/0 Not tainted 2.6.29 #12 2764CTO
+> > RIP: 0010:[<ffffffffa00fd040>]  [<ffffffffa00fd040>] 0xffffffffa00fd040
+> 
+> What happens is that the battery module's init sections are being freed
+> before the async callback (which was marked __init) has run. This theory
+> is supported by the fact that the bad RIP value is a vmalloc address.
+> 
+> The immediate fix is to make this a non-init call.
+> 
+> (A better long-term fix is of course to wait with init-section unloading
+> until a module's async initcalls have been run, which would allow us to
+> discard this function which is still only run once, after all. Perhaps a
+> new async_initcall() function for the async/module API, if this is needed
+> for other modules in the future?)
+> 
+> Reported-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+> Cc: Arjan van de Ven <arjan@linux.intel.com>
+> Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
 
-While that is interesting, I am not seeing that problem on my Gentoo
-box (the macbook), which is completely up-to-date.  2.6.28 works, and
-2.6.29 doesn't.  Same init scripts, different kernels.
+This patch is necessary to fix a boot oops on my test box(es).
 
-And sure, I could put a comment on the rmmod, in the init script, but
-IMO that would be a hack around a _bug_.  Which is fine for me.  But,
-is it worth leaving the issue in the kernel?
+Tested-by: Rafael J. Wysocki <rjw@sisk.pl>
+
+> ---
+>  drivers/acpi/battery.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index b0de631..3c7d894 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -903,7 +903,7 @@ static struct acpi_driver acpi_battery_driver = {
+>  		},
+>  };
+>  
+> -static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+> +static void acpi_battery_init_async(void *unused, async_cookie_t cookie)
+>  {
+>  	if (acpi_disabled)
+>  		return;
