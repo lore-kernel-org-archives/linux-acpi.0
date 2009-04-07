@@ -1,124 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/17] panasonic-laptop: use .notify method instead of
- installing handler directly
-Date: Tue, 07 Apr 2009 19:04:19 -0400
-Message-ID: <cddd1f71d972a43c88f0ef91e1b71023539cd6e0.1239145401.git.len.brown@intel.com>
+Subject: [PATCH 14/17] ACPICA: delete check for AML access to port 0x81-83
+Date: Tue, 07 Apr 2009 19:04:22 -0400
+Message-ID: <fdbdc7fc79c02ae4ede869d514179a2c65633d28.1239145401.git.len.brown@intel.com>
 References: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:53691 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116AbZDGXEr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:04:47 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:26892 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754136AbZDGXFH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:05:07 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHR00CC96RUFDXW@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:04:47 -0500 (CDT)
+ with ESMTPA id <0KHR0021L6SGC583@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:05:05 -0500 (CDT)
 In-reply-to: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 References: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Harald Welte <laforge@gnumonks.org>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Len Brown <len.brown@intel.com>
 
-This patch adds a .notify() method.  The presence of .notify() causes
-Linux/ACPI to manage event handlers and notify handlers on our behalf,
-so we don't have to install and remove them ourselves.
+Sony laptops apparently write 4-bytes (rather than 1 byte)
+to debug port 0x80, which spews error messages:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Harald Welte <laforge@gnumonks.org>
+Denied AML access to port 0x00000080/4 (DMA1 0x0081-0x0083) [20090320]
+
+http://bugzilla.kernel.org/show_bug.cgi?id=13036
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/panasonic-laptop.c |   26 +++++---------------------
- 1 files changed, 5 insertions(+), 21 deletions(-)
+ drivers/acpi/acpica/hwvalid.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index a5ce4bc..1a11de0 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -176,6 +176,7 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
- static int acpi_pcc_hotkey_add(struct acpi_device *device);
- static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type);
- static int acpi_pcc_hotkey_resume(struct acpi_device *device);
-+static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event);
- 
- static const struct acpi_device_id pcc_device_ids[] = {
- 	{ "MAT0012", 0},
-@@ -194,6 +195,7 @@ static struct acpi_driver acpi_pcc_driver = {
- 				.add =		acpi_pcc_hotkey_add,
- 				.remove =	acpi_pcc_hotkey_remove,
- 				.resume =       acpi_pcc_hotkey_resume,
-+				.notify =	acpi_pcc_hotkey_notify,
- 			},
- };
- 
-@@ -527,9 +529,9 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 	return;
- }
- 
--static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event)
- {
--	struct pcc_acpi *pcc = (struct pcc_acpi *) data;
-+	struct pcc_acpi *pcc = acpi_driver_data(device);
- 
- 	switch (event) {
- 	case HKEY_NOTIFY:
-@@ -599,7 +601,6 @@ static int acpi_pcc_hotkey_resume(struct acpi_device *device)
- 
- static int acpi_pcc_hotkey_add(struct acpi_device *device)
- {
--	acpi_status status;
- 	struct pcc_acpi *pcc;
- 	int num_sifr, result;
- 
-@@ -640,22 +641,11 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 		goto out_sinf;
- 	}
- 
--	/* initialize hotkey input device */
--	status = acpi_install_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--					     acpi_pcc_hotkey_notify, pcc);
--
--	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--				  "Error installing notify handler\n"));
--		result = -ENODEV;
--		goto out_input;
--	}
--
- 	/* initialize backlight */
- 	pcc->backlight = backlight_device_register("panasonic", NULL, pcc,
- 						   &pcc_backlight_ops);
- 	if (IS_ERR(pcc->backlight))
--		goto out_notify;
-+		goto out_input;
- 
- 	if (!acpi_pcc_retrieve_biosdata(pcc, pcc->sinf)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-@@ -680,9 +670,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 
- out_backlight:
- 	backlight_device_unregister(pcc->backlight);
--out_notify:
--	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_pcc_hotkey_notify);
- out_input:
- 	input_unregister_device(pcc->input_dev);
- 	/* no need to input_free_device() since core input API refcount and
-@@ -723,9 +710,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
- 
- 	backlight_device_unregister(pcc->backlight);
- 
--	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_pcc_hotkey_notify);
--
- 	input_unregister_device(pcc->input_dev);
- 	/* no need to input_free_device() since core input API refcount and
- 	 * free()s the device */
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index bd3c937..7737afb 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -90,7 +90,6 @@ static const struct acpi_port_info acpi_protected_ports[] = {
+ 	{"PIT2", 0x0048, 0x004B, ACPI_OSI_WIN_XP},
+ 	{"RTC", 0x0070, 0x0071, ACPI_OSI_WIN_XP},
+ 	{"CMOS", 0x0074, 0x0076, ACPI_OSI_WIN_XP},
+-	{"DMA1", 0x0081, 0x0083, ACPI_OSI_WIN_XP},
+ 	{"DMA1L", 0x0087, 0x0087, ACPI_OSI_WIN_XP},
+ 	{"DMA2", 0x0089, 0x008B, ACPI_OSI_WIN_XP},
+ 	{"DMA2L", 0x008F, 0x008F, ACPI_OSI_WIN_XP},
 -- 
 1.6.0.6
 
