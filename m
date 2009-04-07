@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 5/7] panasonic-laptop: use .notify method instead of
-	installing handler directly
-Date: Tue, 07 Apr 2009 09:37:27 -0600
-Message-ID: <20090407153727.21399.90323.stgit@bob.kio>
+Subject: [PATCH 6/7] sony-laptop: use .notify method instead of installing
+	handler directly
+Date: Tue, 07 Apr 2009 09:37:32 -0600
+Message-ID: <20090407153732.21399.29566.stgit@bob.kio>
 References: <20090407153532.21399.92051.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:39562 "EHLO
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:39583 "EHLO
 	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755521AbZDGPh2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:28 -0400
+	with ESMTP id S1755593AbZDGPhc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:32 -0400
 In-Reply-To: <20090407153532.21399.92051.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -23,93 +23,99 @@ Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Harald Welte <laforge@gnumonks.org>
+CC: Mattia Dongili <malattia@linux.it>
 ---
- drivers/platform/x86/panasonic-laptop.c |   26 +++++---------------------
- 1 files changed, 5 insertions(+), 21 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   30 ++++--------------------------
+ 1 files changed, 4 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index a5ce4bc..1a11de0 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -176,6 +176,7 @@ enum SINF_BITS { SINF_NUM_BATTERIES = 0,
- static int acpi_pcc_hotkey_add(struct acpi_device *device);
- static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type);
- static int acpi_pcc_hotkey_resume(struct acpi_device *device);
-+static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event);
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index a90ec5c..d3c92d7 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -914,7 +914,7 @@ static struct sony_nc_event sony_127_events[] = {
+ /*
+  * ACPI callbacks
+  */
+-static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
++static void sony_nc_notify(struct acpi_device *device, u32 event)
+ {
+ 	u32 ev = event;
  
- static const struct acpi_device_id pcc_device_ids[] = {
- 	{ "MAT0012", 0},
-@@ -194,6 +195,7 @@ static struct acpi_driver acpi_pcc_driver = {
- 				.add =		acpi_pcc_hotkey_add,
- 				.remove =	acpi_pcc_hotkey_remove,
- 				.resume =       acpi_pcc_hotkey_resume,
-+				.notify =	acpi_pcc_hotkey_notify,
- 			},
- };
+@@ -933,7 +933,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 			struct sony_nc_event *key_event;
  
-@@ -527,9 +529,9 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 	return;
+ 			if (sony_call_snc_handle(key_handle, 0x200, &result)) {
+-				dprintk("sony_acpi_notify, unable to decode"
++				dprintk("sony_nc_notify, unable to decode"
+ 					" event 0x%.2x 0x%.2x\n", key_handle,
+ 					ev);
+ 				/* restore the original event */
+@@ -968,7 +968,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 	} else
+ 		sony_laptop_report_input_event(ev);
+ 
+-	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
++	dprintk("sony_nc_notify, event: 0x%.2x\n", ev);
+ 	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
  }
  
--static void acpi_pcc_hotkey_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event)
- {
--	struct pcc_acpi *pcc = (struct pcc_acpi *) data;
-+	struct pcc_acpi *pcc = acpi_driver_data(device);
- 
- 	switch (event) {
- 	case HKEY_NOTIFY:
-@@ -599,7 +601,6 @@ static int acpi_pcc_hotkey_resume(struct acpi_device *device)
- 
- static int acpi_pcc_hotkey_add(struct acpi_device *device)
- {
--	acpi_status status;
- 	struct pcc_acpi *pcc;
- 	int num_sifr, result;
- 
-@@ -640,22 +641,11 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 		goto out_sinf;
+@@ -1276,15 +1276,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 		goto outwalk;
  	}
  
--	/* initialize hotkey input device */
--	status = acpi_install_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--					     acpi_pcc_hotkey_notify, pcc);
--
+-	status = acpi_install_notify_handler(sony_nc_acpi_handle,
+-					     ACPI_DEVICE_NOTIFY,
+-					     sony_acpi_notify, NULL);
 -	if (ACPI_FAILURE(status)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--				  "Error installing notify handler\n"));
+-		printk(KERN_WARNING DRV_PFX "unable to install notify handler (%u)\n", status);
 -		result = -ENODEV;
--		goto out_input;
+-		goto outinput;
 -	}
 -
- 	/* initialize backlight */
- 	pcc->backlight = backlight_device_register("panasonic", NULL, pcc,
- 						   &pcc_backlight_ops);
- 	if (IS_ERR(pcc->backlight))
--		goto out_notify;
-+		goto out_input;
+ 	if (acpi_video_backlight_support()) {
+ 		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
+ 		       "controlled by ACPI video driver\n");
+@@ -1362,13 +1353,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
  
- 	if (!acpi_pcc_retrieve_biosdata(pcc, pcc->sinf)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-@@ -680,9 +670,6 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
- 
- out_backlight:
- 	backlight_device_unregister(pcc->backlight);
--out_notify:
--	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_pcc_hotkey_notify);
- out_input:
- 	input_unregister_device(pcc->input_dev);
- 	/* no need to input_free_device() since core input API refcount and
-@@ -723,9 +710,6 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
- 
- 	backlight_device_unregister(pcc->backlight);
- 
--	acpi_remove_notify_handler(pcc->handle, ACPI_DEVICE_NOTIFY,
--				   acpi_pcc_hotkey_notify);
+-	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    sony_acpi_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
 -
- 	input_unregister_device(pcc->input_dev);
- 	/* no need to input_free_device() since core input API refcount and
- 	 * free()s the device */
+-      outinput:
+ 	sony_laptop_remove_input();
+ 
+       outwalk:
+@@ -1378,7 +1362,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 
+ static int sony_nc_remove(struct acpi_device *device, int type)
+ {
+-	acpi_status status;
+ 	struct sony_nc_value *item;
+ 
+ 	if (sony_backlight_device)
+@@ -1386,12 +1369,6 @@ static int sony_nc_remove(struct acpi_device *device, int type)
+ 
+ 	sony_nc_acpi_device = NULL;
+ 
+-	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    sony_acpi_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
+-
+ 	for (item = sony_nc_values; item->name; ++item) {
+ 		device_remove_file(&sony_pf_device->dev, &item->devattr);
+ 	}
+@@ -1425,6 +1402,7 @@ static struct acpi_driver sony_nc_driver = {
+ 		.add = sony_nc_add,
+ 		.remove = sony_nc_remove,
+ 		.resume = sony_nc_resume,
++		.notify = sony_nc_notify,
+ 		},
+ };
+ 
 
