@@ -1,134 +1,98 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 15/17] ACPI x86: Cleanup acpi_cpufreq structures related to
- aperf/mperf
-Date: Tue, 07 Apr 2009 19:04:23 -0400
-Message-ID: <e4f6937222dbb61b8b8e62caca3d32e648b3b14b.1239145401.git.len.brown@intel.com>
+Subject: [PATCH 13/17] ACPI: WMI: use .notify method instead of installing
+ handler directly
+Date: Tue, 07 Apr 2009 19:04:21 -0400
+Message-ID: <f61bb93927fbc2933abe870813daba9d331aa121.1239145401.git.len.brown@intel.com>
 References: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:32642 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754195AbZDGXFQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:05:16 -0400
+Received: from vms173009pub.verizon.net ([206.46.173.9]:64252 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754130AbZDGXFF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:05:05 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173005.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHR003206SGB1NC@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:05:06 -0500 (CDT)
+ with ESMTPA id <0KHR009VF6SF5JO7@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:05:04 -0500 (CDT)
 In-reply-to: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 References: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Change structure name to make the code cleaner and simpler. No
-functionality change in this patch.
+This patch adds a .notify() method.  The presence of .notify() causes
+Linux/ACPI to manage event handlers and notify handlers on our behalf,
+so we don't have to install and remove them ourselves.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   42 +++++++++++++--------------
- 1 files changed, 20 insertions(+), 22 deletions(-)
+ drivers/platform/x86/wmi.c |   15 +++------------
+ 1 files changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-index 19f6b9d..340bdbe 100644
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-+++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -241,23 +241,23 @@ static u32 get_cur_val(const struct cpumask *mask)
- 	return cmd.val;
- }
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index 2f269e1..043b208 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -81,6 +81,7 @@ static struct wmi_block wmi_blocks;
  
--struct perf_cur {
-+struct perf_pair {
- 	union {
- 		struct {
- 			u32 lo;
- 			u32 hi;
- 		} split;
- 		u64 whole;
--	} aperf_cur, mperf_cur;
-+	} aperf, mperf;
+ static int acpi_wmi_remove(struct acpi_device *device, int type);
+ static int acpi_wmi_add(struct acpi_device *device);
++static void acpi_wmi_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id wmi_device_ids[] = {
+ 	{"PNP0C14", 0},
+@@ -96,6 +97,7 @@ static struct acpi_driver acpi_wmi_driver = {
+ 	.ops = {
+ 		.add = acpi_wmi_add,
+ 		.remove = acpi_wmi_remove,
++		.notify = acpi_wmi_notify,
+ 		},
  };
  
+@@ -643,12 +645,11 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+ 	}
+ }
  
- static long read_measured_perf_ctrs(void *_cur)
+-static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_wmi_notify(struct acpi_device *device, u32 event)
  {
--	struct perf_cur *cur = _cur;
-+	struct perf_pair *cur = _cur;
+ 	struct guid_block *block;
+ 	struct wmi_block *wblock;
+ 	struct list_head *p;
+-	struct acpi_device *device = data;
  
--	rdmsr(MSR_IA32_APERF, cur->aperf_cur.split.lo, cur->aperf_cur.split.hi);
--	rdmsr(MSR_IA32_MPERF, cur->mperf_cur.split.lo, cur->mperf_cur.split.hi);
-+	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
-+	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
+ 	list_for_each(p, &wmi_blocks.list) {
+ 		wblock = list_entry(p, struct wmi_block, list);
+@@ -669,9 +670,6 @@ static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
  
- 	wrmsr(MSR_IA32_APERF, 0, 0);
- 	wrmsr(MSR_IA32_MPERF, 0, 0);
-@@ -281,7 +281,7 @@ static long read_measured_perf_ctrs(void *_cur)
- static unsigned int get_measured_perf(struct cpufreq_policy *policy,
- 				      unsigned int cpu)
+ static int acpi_wmi_remove(struct acpi_device *device, int type)
  {
--	struct perf_cur cur;
-+	struct perf_pair cur;
- 	unsigned int perf_percent;
- 	unsigned int retval;
+-	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+-		acpi_wmi_notify);
+-
+ 	acpi_remove_address_space_handler(device->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
  
-@@ -294,39 +294,37 @@ static unsigned int get_measured_perf(struct cpufreq_policy *policy,
- 	 * Get an approximate value. Return failure in case we cannot get
- 	 * an approximate value.
- 	 */
--	if (unlikely(cur.aperf_cur.split.hi || cur.mperf_cur.split.hi)) {
-+	if (unlikely(cur.aperf.split.hi || cur.mperf.split.hi)) {
- 		int shift_count;
- 		u32 h;
+@@ -683,13 +681,6 @@ static int __init acpi_wmi_add(struct acpi_device *device)
+ 	acpi_status status;
+ 	int result = 0;
  
--		h = max_t(u32, cur.aperf_cur.split.hi, cur.mperf_cur.split.hi);
-+		h = max_t(u32, cur.aperf.split.hi, cur.mperf.split.hi);
- 		shift_count = fls(h);
- 
--		cur.aperf_cur.whole >>= shift_count;
--		cur.mperf_cur.whole >>= shift_count;
-+		cur.aperf.whole >>= shift_count;
-+		cur.mperf.whole >>= shift_count;
- 	}
- 
--	if (((unsigned long)(-1) / 100) < cur.aperf_cur.split.lo) {
-+	if (((unsigned long)(-1) / 100) < cur.aperf.split.lo) {
- 		int shift_count = 7;
--		cur.aperf_cur.split.lo >>= shift_count;
--		cur.mperf_cur.split.lo >>= shift_count;
-+		cur.aperf.split.lo >>= shift_count;
-+		cur.mperf.split.lo >>= shift_count;
- 	}
- 
--	if (cur.aperf_cur.split.lo && cur.mperf_cur.split.lo)
--		perf_percent = (cur.aperf_cur.split.lo * 100) /
--				cur.mperf_cur.split.lo;
-+	if (cur.aperf.split.lo && cur.mperf.split.lo)
-+		perf_percent = (cur.aperf.split.lo * 100) / cur.mperf.split.lo;
- 	else
- 		perf_percent = 0;
- 
- #else
--	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf_cur.whole)) {
-+	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf.whole)) {
- 		int shift_count = 7;
--		cur.aperf_cur.whole >>= shift_count;
--		cur.mperf_cur.whole >>= shift_count;
-+		cur.aperf.whole >>= shift_count;
-+		cur.mperf.whole >>= shift_count;
- 	}
- 
--	if (cur.aperf_cur.whole && cur.mperf_cur.whole)
--		perf_percent = (cur.aperf_cur.whole * 100) /
--				cur.mperf_cur.whole;
-+	if (cur.aperf.whole && cur.mperf.whole)
-+		perf_percent = (cur.aperf.whole * 100) / cur.mperf.whole;
- 	else
- 		perf_percent = 0;
- 
+-	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+-		acpi_wmi_notify, device);
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR PREFIX "Error installing notify handler\n");
+-		return -ENODEV;
+-	}
+-
+ 	status = acpi_install_address_space_handler(device->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_wmi_ec_space_handler,
 -- 
 1.6.0.6
 
