@@ -1,85 +1,84 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] panasonic-laptop.c: add support for optical drive
-	power control
-Date: Wed, 8 Apr 2009 01:07:21 +0200
-Message-ID: <20090407230721.GA14972@prithivi.gnumonks.org>
-References: <20090113163233.GA734@dezo.moloch.sk> <20090114060834.GN4791@prithivi.gnumonks.org> <20090114184227.GC3654@dezo.moloch.sk> <alpine.LFD.2.00.0904050051330.4821@localhost.localdomain>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFC] [intel-gfx] :The backlight issue when KMS is used
+Date: Tue, 7 Apr 2009 16:27:37 -0700
+Message-ID: <20090407162737.525b6900@hobbes>
+References: <1238737778.3582.163.camel@localhost.localdomain>
+	<20090403092408.66809996@hobbes>
+	<20090403162906.GB23243@srcf.ucam.org>
+	<1239075911.3582.206.camel@localhost.localdomain>
+	<20090407055717.GA14710@srcf.ucam.org>
+	<1239089123.3582.228.camel@localhost.localdomain>
+	<1239092434.7661.87.camel@rzhang-dt>
+	<20090407082256.GA17012@srcf.ucam.org>
+	<1239094102.7661.103.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:35102 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751802AbZDGXKI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:10:08 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904050051330.4821@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <1239094102.7661.103.camel@rzhang-dt>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
+List-Post: <mailto:dri-devel@lists.sourceforge.net>
+List-Help: <mailto:dri-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.sourceforge.net
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Len, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, "sonne@debian.org" <sonne@debian.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Martin Lucina <mato@kotelna.sk>, linux-acpi@vger.kernel.org
 
-
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Apr 05, 2009 at 12:53:31AM -0400, Len Brown wrote:
-> On Wed, 14 Jan 2009, Martin Lucina wrote:
->=20
-> > Add support for power control of the built in optical drive on models
-> > with the required ACPI methods present.  Tested on Panasonic CF-W4.
-> >=20
-> > Creates an interface in /sys/devices/platform/panasonic/cdpower, to
-> > which you can write "1" to switch the drive on, "0" to switch it off
-> > or read from to query the current state.
-> >=20
-> > Signed-off-by: Martin Lucina <mato@kotelna.sk>
-> >=20
-> > ---
-> >=20
-> > Harald, this should address all the comments in this thread.  I've
-> > removed the DMI table and enable the code if _SB.{STAT,FBAY,CDDI} are
-> > all present.
-> >=20
-> > I've not figured out how to return an actual error from the sysfs
-> > show/store functions so I've at least added ACPI_DEBUG_PRINT to print an
-> > error if the relevant methods fail.
-> >=20
-> > -mato
->=20
-> Harald,
-> It's your driver.  What do you what to do with this patch.
->=20
-> I'd delegate http://patchwork.kernel.org/patch/2372/
-> to you, but you don't seem to have a patchwork account yet.
-
-sorry, I was offline throughout last week and am now slowly catching up with
-mails.
-
-Will create a patchwork account and get back to you asap.
-
---=20
-- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
-
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQFJ29ypXaXGVTD0i/8RAsvQAJwMuahGmCWLi8QsFX0Ni1cXaVDCGQCcCNSt
-RDr+ZkpwjykU6ZiCgMsz3Nk=
-=0bcl
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
+T24gVHVlLCAwNyBBcHIgMjAwOSAxNjo0ODoyMiArMDgwMApaaGFuZyBSdWkgPHJ1aS56aGFuZ0Bp
+bnRlbC5jb20+IHdyb3RlOgoKPiDvu79DQyBUaG9tYXMsIExlbiBhbmQgbGludXgtYWNwaSBtYWls
+IGxpc3QuCj4gCj4gT24gVHVlLCAyMDA5LTA0LTA3IGF0IDE2OjIyICswODAwLCBNYXR0aGV3IEdh
+cnJldHQgd3JvdGU6Cj4gPiBPbiBUdWUsIEFwciAwNywgMjAwOSBhdCAwNDoyMDozNFBNICswODAw
+LCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiAKPiA+ID4gQWxsIHN1YnN5c3RlbXMgY2FuIHJlZ2lzdGVy
+IGEgc2V0IG9mIGNhbGxiYWNrcyBmb3IgYmFja2xpZ2h0Cj4gPiA+IGNvbnRyb2wgaW4gaXRzIG93
+biB3YXksIGUuZy4gQUNQSSwgcGxhdGZvcm0gZHJpdmVyLCBpOTE1Lgo+ID4gPiBBbmQgdGhlIGJh
+Y2tsaWdodCBtYW5hZ2VyIG9ubHkgZXhwb3J0cyBvbmUgc2luZ2xlIEkvRiB0byB1c2VycywKPiA+
+ID4gbGlrZTogLS0tLXwKPiA+ID4gICAgIHwtLS0tYnJpZ2h0bmVzcwo+ID4gPiAgICAgfC0tLS1h
+Y3R1YWxfYnJpZ2h0bmVzcwo+ID4gPiAgICAgfC0tLS1tYXhfYnJpZ2h0bmVzcwo+ID4gPiAgICAg
+fC0tLS0uLi4KPiA+ID4gICAgIHwtLS0tbW9kZQo+ID4gPiBhbmQgaXQgc3VwcG9ydHMgbXVsdGlw
+bGUgbW9kZXMsIGUuZy4KPiA+ID4gMS4gZ2VuZXJpYyAtLS1BQ1BJCj4gPiA+IDIuIHBsYXRmb3Jt
+LS0tcGxhdGZvcm0gZHJpdmVycwo+ID4gPiAzLiBsZWdhY3ktLS0tLWk5MTUKPiA+IAo+ID4gVGhp
+cyBzZWVtcyB0byBiZSBhIGxvdCBvZiBjb21wbGV4aXR5IGZvciBhbiB1bmNvbW1vbiBjYXNlLiBJ
+cyB0aGVyZQo+ID4gYW55IHJlYWwgbmVlZCB0byBtb2RpZnkgdGhlIG1vZGUgYXQgcnVudGltZT8K
+PiAKPiBpZiB0aGlzIGlzIGltcGxlbWVudGVkLCB0aGUgdmlkZW9fZGV0ZWN0LmMgY2FuIGJlIHJl
+bW92ZWQgYmVjYXVzZSB3ZQo+IGRvbid0IG5lZWQgdG8gZGV0ZWN0IHRoZSBBQ1BJIHZpZGVvIGV4
+dGVuc2lvbiB3aGVuIGxvYWRpbmcgcGxhdGZvcm0KPiBkcml2ZXJzLgo+IGV2ZXJ5IGRyaXZlciB0
+aGF0IGhhcyBpdHMgb3duIHdheXMgdG8gY29udHJvbCB0aGUgYmFja2xpZ2h0IGNhbgo+IHJlZ2lz
+dGVyIGEgc2V0IG9mIGNhbGxiYWNrcyBhbmQgdGhlbiBpdCdzIHRoZSBiYWNrbGlnaHQgbWFuYWdl
+cidzCj4gcmVzcG9uc2liaWxpdHkgdG8gY2hvb3NlIHdoaWNoIG9uZSB0byB1c2UuCj4gCj4gPiAg
+V2hhdCBoYXBwZW5zIGlmIHRoZSBwbGF0Zm9ybSAKPiA+IGRyaXZlciBnZXRzIGxvYWRlZCBiZWZv
+cmUgaTkxNT8KPiA+IAo+IHRoZSBiYWNrbGlnaHQgbWFuYWdlciBhbHdheXMgY2hvb3NlIHRoZSBv
+bmUgd2l0aCB0aGUgaGlnaGVzdCBwcmlvcml0eQo+IGlmIG11bHRpcGxlIGNhbGxiYWNrcyBhcmUg
+cmVnaXN0ZXJlZC4gaS5lCj4gaWYgKEFDUEkgY29udHJvbCBtZXRob2RzIGFyZSBhdmFpbGFibGUp
+Cj4gCWNoYW5nZXMgdG8gdGhlICJnZW5lcmljIiBtb2RlCj4gZWxzZSBpZiAocGxhdGZvcm0gc3Bl
+Y2lmaWMgY2FsbGJhY2tzIGFyZSBhdmFpbGFibGUpCj4gCWNoYW5nZXMgdG8gdGhlICJwbGF0Zm9y
+bSIgbW9kZQo+IGVsc2UgaWYgKGk5MTUgY2FsbGJhY2tzIGFyZSBhdmFpbGFibGUpCj4gCWNoYW5n
+ZXMgdG8gdGhlICJsZWdhY3kiIG1vZGUKPiAKPiB0aGUgYmFja2xpZ2h0IG1hbmFnZXIgYWx3YXlz
+IHJ1biB0aGlzIGxvZ2ljIHdoZW4gYSBuZXcgc2V0IG9mCj4gY2FsbGJhY2tzIGlzIHJlZ2lzdGVy
+ZWQvdW5yZWdpc3RlcmVkLgoKVGhlIG90aGVyIG9wdGlvbiBvZiBjb3Vyc2UgKGFzIGRpc2N1c3Nl
+ZCB0aGlzIG1vcm5pbmcgb24gSVJDCncvRHJfSmFja29iKSBpcyB0byBhdm9pZCB1c2luZyB0aGUg
+c3lzZnMgYmFja2xpZ2h0IEFQSSBpbiB0aGUgS01TIGNhc2UKKEtNUyBjbGllbnRzIHdvdWxkIGJl
+IGV4cGVjdGVkIHRvIGdvIHRocm91Z2ggb3V0cHV0IHByb3BlcnRpZXMKaW5zdGVhZCkuICBUaGlz
+IGhhcyB0aGUgZGlzYWR2YW50YWdlIG9mIGVzc2VudGlhbGx5IGRlcHJlY2F0aW5nIGEKY3VycmVu
+dGx5IHVzZWQgaW50ZXJmYWNlLCBidXQgT1RPSCBtYWtpbmcgZm9yIGEgbW9yZSBjb25zaXN0ZW50
+CmludGVyZmFjZSBhY3Jvc3MgbmV3IG91dHB1dCB0eXBlcyB3aXRoIGJyaWdodG5lc3MgY29udHJv
+bCAoRERDIGhhcyBiaXRzCmZvciB0aGlzLCBhcyBkb2VzIGRpc3BsYXlwb3J0IEkgdGhpbmspLgoK
+QnV0IHdlJ2QgZGVmaW5pdGVseSB3YW50IHRvIHByZXNlcnZlIHRoZSBjdXJyZW50IEFDUEkgaW50
+ZXJhY3Rpb24sIHNvCndlJ2QgaGF2ZSB0byBtYWtlIHRoZSBpOTE1IGFuZCBvdGhlciBEUk0gZHJp
+dmVycyBjbGllbnRzIG9mIHRoZQpBQ1BJIG9yIHBsYXRmb3JtIGJhY2tsaWdodCBkcml2ZXJzIChh
+dCBsZWFzdCBpbnRlcm5hbGx5IHRvIHRoZSBrZXJuZWwpCndoZXJlIGF2YWlsYWJsZS4KClRoaXMg
+bWlnaHQgYmUgYSBiaXQgc2ltcGxlciB0aGFuIHRoZSBkZS1yZWdpc3RyYXRpb24gc3R1ZmYgd2Ug
+dGFsa2VkCmFib3V0LCBhbmQgd291bGQgaW50dWl0aXZlbHkgZXh0ZW5kIHRvIG90aGVyIG91dHB1
+dCB0eXBlcyB0aGF0IGFkZApiYWNrbGlnaHQgc3VwcG9ydCBpbiB0aGUgZnV0dXJlLgoKQW55IHRo
+b3VnaHRzIGFib3V0IHRoYXQ/CgotLSAKSmVzc2UgQmFybmVzLCBJbnRlbCBPcGVuIFNvdXJjZSBU
+ZWNobm9sb2d5IENlbnRlcgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoaXMgU0YubmV0IGVtYWls
+IGlzIHNwb25zb3JlZCBieToKSGlnaCBRdWFsaXR5IFJlcXVpcmVtZW50cyBpbiBhIENvbGxhYm9y
+YXRpdmUgRW52aXJvbm1lbnQuCkRvd25sb2FkIGEgZnJlZSB0cmlhbCBvZiBSYXRpb25hbCBSZXF1
+aXJlbWVudHMgQ29tcG9zZXIgTm93IQpodHRwOi8vcC5zZi5uZXQvc2Z1L3d3dy1pYm0tY29tCi0t
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QKRHJpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xp
+c3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9kcmktZGV2ZWwK
