@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/17] ACPI x86: Make aperf/mperf MSR access in acpi_cpufreq
- read_only
-Date: Tue, 07 Apr 2009 19:04:24 -0400
-Message-ID: <18b2646fe3babeb40b34a0c1751e0bf5adfdc64c.1239145401.git.len.brown@intel.com>
+Subject: [PATCH 17/17] x86 ACPI: Add support for Always Running APIC timer
+Date: Tue, 07 Apr 2009 19:04:25 -0400
+Message-ID: <db954b5898dd3ef3ef93f4144158ea8f97deb058.1239145401.git.len.brown@intel.com>
 References: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:25848 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754130AbZDGXFH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:05:07 -0400
+Received: from vms173005pub.verizon.net ([206.46.173.5]:32642 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224AbZDGXFQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:05:16 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHR00M6W6SHPX77@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:05:06 -0500 (CDT)
+ with ESMTPA id <0KHR0033F6SITYCB@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:05:07 -0500 (CDT)
 In-reply-to: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 References: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
@@ -24,60 +23,80 @@ Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@in
 
 From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Do not write zeroes to APERF and MPERF by ondemand governor. With this
-change, other users can share these MSRs for reads.
+Add support for Always Running APIC timer, CPUID_0x6_EAX_Bit2.
+This bit means the APIC timer continues to run even when CPU is
+in deep C-states.
+
+The advantage is that we can use LAPIC timer on these CPUs
+always, and there is no need for "slow to read and program"
+external timers (HPET/PIT) and the timer broadcast logic
+and related code in C-state entry and exit.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+ arch/x86/include/asm/cpufeature.h          |    1 +
+ arch/x86/kernel/apic/apic.c                |    6 ++++++
+ arch/x86/kernel/cpu/addon_cpuid_features.c |    1 +
+ drivers/acpi/processor_idle.c              |    3 +++
+ 4 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-index 340bdbe..9d3af38 100644
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-+++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -68,6 +68,7 @@ struct acpi_cpufreq_data {
- 	unsigned int max_freq;
- 	unsigned int resume;
- 	unsigned int cpu_feature;
-+	u64 saved_aperf, saved_mperf;
- };
+diff --git a/arch/x86/include/asm/cpufeature.h b/arch/x86/include/asm/cpufeature.h
+index 0beba0d..bb83b1c 100644
+--- a/arch/x86/include/asm/cpufeature.h
++++ b/arch/x86/include/asm/cpufeature.h
+@@ -154,6 +154,7 @@
+  * CPUID levels like 0x6, 0xA etc
+  */
+ #define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
++#define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
  
- static DEFINE_PER_CPU(struct acpi_cpufreq_data *, drv_data);
-@@ -259,9 +260,6 @@ static long read_measured_perf_ctrs(void *_cur)
- 	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
- 	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
- 
--	wrmsr(MSR_IA32_APERF, 0, 0);
--	wrmsr(MSR_IA32_MPERF, 0, 0);
--
- 	return 0;
- }
- 
-@@ -281,13 +279,20 @@ static long read_measured_perf_ctrs(void *_cur)
- static unsigned int get_measured_perf(struct cpufreq_policy *policy,
- 				      unsigned int cpu)
+ /* Virtualization flags: Linux defined */
+ #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index 098ec84..f287092 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -431,6 +431,12 @@ static void __cpuinit setup_APIC_timer(void)
  {
--	struct perf_pair cur;
-+	struct perf_pair readin, cur;
- 	unsigned int perf_percent;
- 	unsigned int retval;
+ 	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
  
--	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &cur))
-+	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
- 		return 0;
- 
-+	cur.aperf.whole = readin.aperf.whole -
-+				per_cpu(drv_data, cpu)->saved_aperf;
-+	cur.mperf.whole = readin.mperf.whole -
-+				per_cpu(drv_data, cpu)->saved_mperf;
-+	per_cpu(drv_data, cpu)->saved_aperf = readin.aperf.whole;
-+	per_cpu(drv_data, cpu)->saved_mperf = readin.mperf.whole;
++	if (cpu_has(&current_cpu_data, X86_FEATURE_ARAT)) {
++		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_C3STOP;
++		/* Make LAPIC timer preferrable over percpu HPET */
++		lapic_clockevent.rating = 150;
++	}
 +
- #ifdef __i386__
+ 	memcpy(levt, &lapic_clockevent, sizeof(*levt));
+ 	levt->cpumask = cpumask_of(smp_processor_id());
+ 
+diff --git a/arch/x86/kernel/cpu/addon_cpuid_features.c b/arch/x86/kernel/cpu/addon_cpuid_features.c
+index 8220ae6..c965e52 100644
+--- a/arch/x86/kernel/cpu/addon_cpuid_features.c
++++ b/arch/x86/kernel/cpu/addon_cpuid_features.c
+@@ -31,6 +31,7 @@ void __cpuinit init_scattered_cpuid_features(struct cpuinfo_x86 *c)
+ 
+ 	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
+ 		{ X86_FEATURE_IDA, CR_EAX, 1, 0x00000006 },
++		{ X86_FEATURE_ARAT, CR_EAX, 2, 0x00000006 },
+ 		{ 0, 0, 0, 0 }
+ 	};
+ 
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 4e6e758..6fe1214 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -145,6 +145,9 @@ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
+ 	struct acpi_processor_power *pwr = &pr->power;
+ 	u8 type = local_apic_timer_c2_ok ? ACPI_STATE_C3 : ACPI_STATE_C2;
+ 
++	if (cpu_has(&cpu_data(pr->id), X86_FEATURE_ARAT))
++		return;
++
  	/*
- 	 * We dont want to do 64 bit divide with 32 bit kernel
+ 	 * Check, if one of the previous states already marked the lapic
+ 	 * unstable
 -- 
 1.6.0.6
 
