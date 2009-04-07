@@ -1,81 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi/battery: fix async boot oops
-Date: Tue, 7 Apr 2009 21:16:31 +0200
-Message-ID: <200904072116.32475.rjw@sisk.pl>
-References: <20090407091052.GA17822@damson.cased.tu-darmstadt.de>
+From: Stefan Richter <stefanr-MtYdepGKPcBMYopoZt5u/LNAH6kLmebB@public.gmane.org>
+Subject: Re: 2.6.29 on MacBook 2,1 fails to reboot (was Re: 2.6.29-git13:
+ 	Reported regressions from 2.6.28)
+Date: Tue, 07 Apr 2009 21:23:13 +0200
+Message-ID: <49DBA821.1070408@s5r6.in-berlin.de>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>	 <49DB7C77.1000702@s5r6.in-berlin.de>	 <9b1675090904070944m798ed608i1d9194ebd1ed3961@mail.gmail.com>	 <49DB8909.3000905@s5r6.in-berlin.de> <9b1675090904071122k6a53295fwfffc336011edee8e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55447 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751711AbZDGTQR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Apr 2009 15:16:17 -0400
-In-Reply-To: <20090407091052.GA17822@damson.cased.tu-darmstadt.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9b1675090904071122k6a53295fwfffc336011edee8e-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Trenton D. Adams" <trenton.d.adams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Stefan Richter <stefanr-MtYdepGKPcBMYopoZt5u/LNAH6kLmebB@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Len Brown <len.brown@intel.com>, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>, Arjan van de Ven <arjan@linux.intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tuesday 07 April 2009, Vegard Nossum wrote:
-> From 85a2a4447ce6b206d9ad20719ed8ac7cc707931c Mon Sep 17 00:00:00 2001
-> From: Vegard Nossum <vegard.nossum@gmail.com>
-> Date: Tue, 7 Apr 2009 10:55:38 +0200
-> Subject: [PATCH] acpi/battery: fix async boot oops
+Trenton D. Adams wrote:
+> On Tue, Apr 7, 2009 at 11:10 AM, Stefan Richter
+> <stefanr-MtYdepGKPcBMYopoZt5u/LNAH6kLmebB@public.gmane.org> wrote:
+>>>> http://bugs.gentoo.org/show_bug.cgi?id=253535
+>> Interdependencies between ALSA modules have changed.  The Gentoo init
+>> scripts attempted to unload them in an order which deadlocked modprobe
+>> due to dependencies.  The fix for Gentoo is to just not unload the
+>> modules on system shutdown.  My Gentoo/amd64 Mac mini was affected by
+>> this too; fixed by userland update.
+>>
 > 
-> 2009/4/6 Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>:
-> >
-> > Pulled Linus git few minutes ago and new oops at boot (happens on every boot).
-> > Yesterday git version was fine. Oopsed just while/after udev started.
-> 
-> [...]
-> 
-> > BUG: unable to handle kernel NULL pointer dereference at (null)
-> > IP: [<ffffffffa00fd040>] 0xffffffffa00fd040
-> > PGD 13998a067 PUD 139979067 PMD 0
-> > Oops: 0002 [#1] PREEMPT SMP
-> > last sysfs file: /sys/devices/platform/i8042/modalias
-> > CPU 0
-> > Modules linked in: evdev(+) cfg80211(+) battery ac button crc_itu_t xfs exportfs scsi_wait_scan sd_mod crc_t10dif ahci libata scsi_mod
-> > Pid: 3167, comm: async/0 Not tainted 2.6.29 #12 2764CTO
-> > RIP: 0010:[<ffffffffa00fd040>]  [<ffffffffa00fd040>] 0xffffffffa00fd040
-> 
-> What happens is that the battery module's init sections are being freed
-> before the async callback (which was marked __init) has run. This theory
-> is supported by the fact that the bad RIP value is a vmalloc address.
-> 
-> The immediate fix is to make this a non-init call.
-> 
-> (A better long-term fix is of course to wait with init-section unloading
-> until a module's async initcalls have been run, which would allow us to
-> discard this function which is still only run once, after all. Perhaps a
-> new async_initcall() function for the async/module API, if this is needed
-> for other modules in the future?)
-> 
-> Reported-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-> Cc: Arjan van de Ven <arjan@linux.intel.com>
-> Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+> While that is interesting, I am not seeing that problem on my Gentoo
+> box (the macbook), which is completely up-to-date.  2.6.28 works, and
+> 2.6.29 doesn't.  Same init scripts, different kernels.
 
-This patch is necessary to fix a boot oops on my test box(es).
+Note that the respective update changed /etc/conf.d/alsasound (a local
+configuration file) to include
+UNLOAD_ON_STOP="no"
+KILLPROC_ON_STOP="no"
+This change by update is not activated by a mere emerge; one needs to
+incorporate that change with dispatch-conf or an equivalent method.
+(Or simply edit the file to have these variables set to "no".)
 
-Tested-by: Rafael J. Wysocki <rjw@sisk.pl>
+> And sure, I could put a comment on the rmmod, in the init script, but
+> IMO that would be a hack around a _bug_.  Which is fine for me.  But,
+> is it worth leaving the issue in the kernel?
 
-> ---
->  drivers/acpi/battery.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index b0de631..3c7d894 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -903,7 +903,7 @@ static struct acpi_driver acpi_battery_driver = {
->  		},
->  };
->  
-> -static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
-> +static void acpi_battery_init_async(void *unused, async_cookie_t cookie)
->  {
->  	if (acpi_disabled)
->  		return;
+Is it a kernel issue if a script attempts to unload a busy module, then
+fails to proceed?  I wouldn't think so.
+
+But more importantly, is this init scripts related bug really what's
+happening at your system?  Or do you actually experience an entirely
+different bug?
+-- 
+Stefan Richter
+-=====-=-=== -=-= -==-=
+http://arcgraph.de/sr/
