@@ -1,39 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
-Date: Tue, 7 Apr 2009 00:34:59 +0200
-Message-ID: <200904070035.00784.rjw@sisk.pl>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera> <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: sony-laptop: ACPI Exception when a Fn-Key is pressed
+Date: Tue, 07 Apr 2009 10:13:17 +0800
+Message-ID: <1239070397.3582.171.camel@localhost.localdomain>
+References: <7a3045780904051727o3780c7d3hebb26028a1b4eba5@mail.gmail.com>
+	 <20090406110154.GA25085@kamineko.org>
+	 <7a3045780904060613x4ba373c6o7447e511d3841cfa@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50214 "EHLO ogre.sisk.pl"
+Received: from mga02.intel.com ([134.134.136.20]:59963 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754907AbZDFWei (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Apr 2009 18:34:38 -0400
-In-Reply-To: <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
-Content-Disposition: inline
+	id S1751437AbZDGCMO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 Apr 2009 22:12:14 -0400
+In-Reply-To: <7a3045780904060613x4ba373c6o7447e511d3841cfa@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Trenton Adams <trenton.d.adams@gmail.com>
+To: Rodrigo Luiz <rodrigo@gus-mg.org>
+Cc: Mattia Dongili <malattia@linux.it>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Monday 06 April 2009, Linus Torvalds wrote:
+On Mon, 2009-04-06 at 21:13 +0800, Rodrigo Luiz wrote:
+> On Mon, Apr 6, 2009 at 8:01 AM, Mattia Dongili <malattia@linux.it> wrote:
+> >
+> > Does booting with acpi_osi=Linux makes things any worse? (it should fix
+> > the above error but might make some other functionality behave
+> > differently).
+> > Or eventually also see if there is a bios upgrade available for your
+> > laptop.
+> >
 > 
-> On Mon, 6 Apr 2009, Rafael J. Wysocki wrote:
-> > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13019
-> > Subject		: /proc/<pid>/maps offset output broken in 2.6.29
-> > Submitter	: "Chris Friesen" <cfriesen@nortel.com>
-> > Date		: 2009-04-01 23:18 (6 days old)
-> > References	: http://marc.info/?l=linuxppc-embedded&m=123862902916059&w=4
-> > Handled-By	: Hugh Dickins <hugh@veritas.com>
+Does the warning message exist when booting the previous kernel? For
+example: 2.6.28 kernel.
+
+Will you please try the following commit patch and see whether this issue still exists?
+   >commit 7b46ecd5fcebf381a7bde966db352d8fb1b8e944
+   >Author: Len Brown <len.brown@intel.com>
+   >Date:   Wed Feb 25 18:00:18 2009 -0500
+     >Revert "ACPI: make some IO ports off-limits to AML"
+
+thanks.
+> Booting with acpi_osi=Linux does not make any changes. Kernel show the
+> same messages.
 > 
-> I don't think that's a regression, nor really a bug. It looks cosmetic, 
-> and likely to be fixed, but not really worth worrying about.
+> And there is no bios upgrade for my notebook :(
+> 
+> I forgot to say two things:
+> 
+> When I loaded the module, a new message appeared (booting with and
+> without acpi_osi=Linux):
+> 
+> sony-laptop: Sony Notebook Control Driver v0.6.
+> input: Sony Vaio Keys as /class/input/input9
+> input: Sony Vaio Jogdial as /class/input/input10
+> --> [Firmware Bug]: ACPI: ACPI brightness control misses _BQC function
+> sony-laptop: brightness ignored, must be controlled by ACPI video driver
+> 
+> 
+> And these errors show in any ACPI events (lid open/close, press power
+> button ...), not just in Fn-Keys.
+> 
 
-OK, I've dropped it from the list.
-
-Thanks,
-Rafael
