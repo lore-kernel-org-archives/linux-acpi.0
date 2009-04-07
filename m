@@ -1,26 +1,26 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/17] ACPI: thermal: use .notify method instead of installing
+Subject: [PATCH 12/17] sony-laptop: use .notify method instead of installing
  handler directly
-Date: Tue, 07 Apr 2009 19:04:15 -0400
-Message-ID: <342d550db1bc0b879007a8cdb38645558e839680.1239145401.git.len.brown@intel.com>
+Date: Tue, 07 Apr 2009 19:04:20 -0400
+Message-ID: <8037d6e67709cf497134bbabd77b07dfc7c31fd6.1239145401.git.len.brown@intel.com>
 References: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:49203 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754008AbZDGXEu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:04:50 -0400
+Received: from vms173015pub.verizon.net ([206.46.173.15]:42738 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbZDGXFD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 19:05:03 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173011.mailsrvcs.net
+ by vms173015.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHR007PM6RMUXSJ@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:04:43 -0500 (CDT)
+ with ESMTPA id <0KHR008XF6S4NOP6@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 07 Apr 2009 18:04:58 -0500 (CDT)
 In-reply-to: <1239145465-5486-1-git-send-email-lenb@kernel.org>
 In-reply-to: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 References: <9090589d87506c578ea1523ffd7ae7fd9424fb28.1239145401.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
@@ -29,110 +29,102 @@ Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Zhang Rui <rui.zhang@intel.com>
+CC: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/thermal.c |   27 ++++-----------------------
- 1 files changed, 4 insertions(+), 23 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   30 ++++--------------------------
+ 1 files changed, 4 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index e8c143c..0914eaa 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -98,6 +98,7 @@ MODULE_PARM_DESC(psv, "Disable or override all passive trip points.");
- static int acpi_thermal_add(struct acpi_device *device);
- static int acpi_thermal_remove(struct acpi_device *device, int type);
- static int acpi_thermal_resume(struct acpi_device *device);
-+static void acpi_thermal_notify(struct acpi_device *device, u32 event);
- static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
-@@ -123,6 +124,7 @@ static struct acpi_driver acpi_thermal_driver = {
- 		.add = acpi_thermal_add,
- 		.remove = acpi_thermal_remove,
- 		.resume = acpi_thermal_resume,
-+		.notify = acpi_thermal_notify,
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index a90ec5c..d3c92d7 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -914,7 +914,7 @@ static struct sony_nc_event sony_127_events[] = {
+ /*
+  * ACPI callbacks
+  */
+-static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
++static void sony_nc_notify(struct acpi_device *device, u32 event)
+ {
+ 	u32 ev = event;
+ 
+@@ -933,7 +933,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 			struct sony_nc_event *key_event;
+ 
+ 			if (sony_call_snc_handle(key_handle, 0x200, &result)) {
+-				dprintk("sony_acpi_notify, unable to decode"
++				dprintk("sony_nc_notify, unable to decode"
+ 					" event 0x%.2x 0x%.2x\n", key_handle,
+ 					ev);
+ 				/* restore the original event */
+@@ -968,7 +968,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ 	} else
+ 		sony_laptop_report_input_event(ev);
+ 
+-	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
++	dprintk("sony_nc_notify, event: 0x%.2x\n", ev);
+ 	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
+ }
+ 
+@@ -1276,15 +1276,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 		goto outwalk;
+ 	}
+ 
+-	status = acpi_install_notify_handler(sony_nc_acpi_handle,
+-					     ACPI_DEVICE_NOTIFY,
+-					     sony_acpi_notify, NULL);
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_WARNING DRV_PFX "unable to install notify handler (%u)\n", status);
+-		result = -ENODEV;
+-		goto outinput;
+-	}
+-
+ 	if (acpi_video_backlight_support()) {
+ 		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
+ 		       "controlled by ACPI video driver\n");
+@@ -1362,13 +1353,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
+ 
+-	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    sony_acpi_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
+-
+-      outinput:
+ 	sony_laptop_remove_input();
+ 
+       outwalk:
+@@ -1378,7 +1362,6 @@ static int sony_nc_add(struct acpi_device *device)
+ 
+ static int sony_nc_remove(struct acpi_device *device, int type)
+ {
+-	acpi_status status;
+ 	struct sony_nc_value *item;
+ 
+ 	if (sony_backlight_device)
+@@ -1386,12 +1369,6 @@ static int sony_nc_remove(struct acpi_device *device, int type)
+ 
+ 	sony_nc_acpi_device = NULL;
+ 
+-	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
+-					    ACPI_DEVICE_NOTIFY,
+-					    sony_acpi_notify);
+-	if (ACPI_FAILURE(status))
+-		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
+-
+ 	for (item = sony_nc_values; item->name; ++item) {
+ 		device_remove_file(&sony_pf_device->dev, &item->devattr);
+ 	}
+@@ -1425,6 +1402,7 @@ static struct acpi_driver sony_nc_driver = {
+ 		.add = sony_nc_add,
+ 		.remove = sony_nc_remove,
+ 		.resume = sony_nc_resume,
++		.notify = sony_nc_notify,
  		},
  };
  
-@@ -1264,17 +1266,14 @@ static int acpi_thermal_remove_fs(struct acpi_device *device)
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
- 
--static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_thermal_notify(struct acpi_device *device, u32 event)
- {
--	struct acpi_thermal *tz = data;
--	struct acpi_device *device = NULL;
-+	struct acpi_thermal *tz = acpi_driver_data(device);
- 
- 
- 	if (!tz)
- 		return;
- 
--	device = tz->device;
--
- 	switch (event) {
- 	case ACPI_THERMAL_NOTIFY_TEMPERATURE:
- 		acpi_thermal_check(tz);
-@@ -1298,8 +1297,6 @@ static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
- 				  "Unsupported event [0x%x]\n", event));
- 		break;
- 	}
--
--	return;
- }
- 
- static int acpi_thermal_get_info(struct acpi_thermal *tz)
-@@ -1337,7 +1334,6 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
- static int acpi_thermal_add(struct acpi_device *device)
- {
- 	int result = 0;
--	acpi_status status = AE_OK;
- 	struct acpi_thermal *tz = NULL;
- 
- 
-@@ -1368,21 +1364,11 @@ static int acpi_thermal_add(struct acpi_device *device)
- 	if (result)
- 		goto unregister_thermal_zone;
- 
--	status = acpi_install_notify_handler(device->handle,
--					     ACPI_DEVICE_NOTIFY,
--					     acpi_thermal_notify, tz);
--	if (ACPI_FAILURE(status)) {
--		result = -ENODEV;
--		goto remove_fs;
--	}
--
- 	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       KELVIN_TO_CELSIUS(tz->temperature));
- 	goto end;
- 
--remove_fs:
--	acpi_thermal_remove_fs(device);
- unregister_thermal_zone:
- 	thermal_zone_device_unregister(tz->thermal_zone);
- free_memory:
-@@ -1393,7 +1379,6 @@ end:
- 
- static int acpi_thermal_remove(struct acpi_device *device, int type)
- {
--	acpi_status status = AE_OK;
- 	struct acpi_thermal *tz = NULL;
- 
- 	if (!device || !acpi_driver_data(device))
-@@ -1401,10 +1386,6 @@ static int acpi_thermal_remove(struct acpi_device *device, int type)
- 
- 	tz = acpi_driver_data(device);
- 
--	status = acpi_remove_notify_handler(device->handle,
--					    ACPI_DEVICE_NOTIFY,
--					    acpi_thermal_notify);
--
- 	acpi_thermal_remove_fs(device);
- 	acpi_thermal_unregister_thermal_zone(tz);
- 	mutex_destroy(&tz->lock);
 -- 
 1.6.0.6
 
