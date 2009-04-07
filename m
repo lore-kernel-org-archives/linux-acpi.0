@@ -1,67 +1,60 @@
-From: "Trenton D. Adams" <trenton.d.adams@gmail.com>
-Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
-Date: Mon, 6 Apr 2009 22:23:29 -0600
-Message-ID: <9b1675090904062123u42a00a80y3a4385740ecc0121@mail.gmail.com>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
-	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
-	 <9b1675090904062056v235af58ehc99cce8ff97fe501@mail.gmail.com>
-	 <alpine.LFD.2.00.0904062103531.4010@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: sony-laptop: ACPI Exception when a Fn-Key is pressed
+Date: Tue, 07 Apr 2009 00:54:48 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904070052260.5698@localhost.localdomain>
+References: <7a3045780904051727o3780c7d3hebb26028a1b4eba5@mail.gmail.com>
+ <20090406110154.GA25085@kamineko.org>
+ <7a3045780904060613x4ba373c6o7447e511d3841cfa@mail.gmail.com>
+ <1239070397.3582.171.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0904062103531.4010@localhost.localdomain>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:52910 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945AbZDGEy5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 00:54:57 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KHP00ELTSBFA2Y6@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 06 Apr 2009 23:54:51 -0500 (CDT)
+In-reply-to: <1239070397.3582.171.camel@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: Rodrigo Luiz <rodrigo@gus-mg.org>, Mattia Dongili <malattia@linux.it>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Apr 6, 2009 at 10:07 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
->
-> On Mon, 6 Apr 2009, Trenton D. Adams wrote:
->> >
->> > This went through bisection, but looking at the email log, I tend to
->> > suspect that maybe Trenton marked some versions good even though they
->> > weren't (because they got versions numbers from v2.6.27), and didn't
->> > realize that that messes up bisection in a big way.
->>
->> Is it appropriate for me to respond to these things?
->
-> Yes. I added you to the cc exactly because it was hard for me to judge
-> from the email discussion that is linked to in the regression list whether
-> you actually _did_ mark some versions good because of confusion about the
-> version numbering.
 
-Oh, didn't know you CC'd me.  I have just been searching for my name
-to try and keep up to date on threads I participated in, because the
-list volume is just too much.
 
-> So you may well have done everything right, and I'm not trying to blame
-> you. I just was hoping that maybe that confusion would explain why the
-> bisection didn't seem to pinpoint anything sane..
 
-This gave me a bit of a chuckle. ROFL.  I didn't think you were
-_blaming_ me.  And even if you were, I'd just say "I'M HUMAN MAN". ;)
+On Tue, 7 Apr 2009, yakui_zhao wrote:
 
-It is very well possible that I simply booted the wrong kernel, seeing
-I had like 20 to choose from at the time, after doing all those
-bisects.  This time, I will make the new kernels the default so that
-it is impossible to happen again, assuming that is what happened.  I
-will also stop and start alsa 2 or 3 times, in case it is a deadlock
-timing issue as you mentioned.
+> On Mon, 2009-04-06 at 21:13 +0800, Rodrigo Luiz wrote:
+> > On Mon, Apr 6, 2009 at 8:01 AM, Mattia Dongili <malattia@linux.it> wrote:
+> > >
+> > > Does booting with acpi_osi=Linux makes things any worse? (it should fix
+> > > the above error but might make some other functionality behave
+> > > differently).
+> > > Or eventually also see if there is a bios upgrade available for your
+> > > laptop.
+> > >
+> > 
+> Does the warning message exist when booting the previous kernel? For
+> example: 2.6.28 kernel.
+> 
+> Will you please try the following commit patch and see whether this issue still exists?
+>    >commit 7b46ecd5fcebf381a7bde966db352d8fb1b8e944
+>    >Author: Len Brown <len.brown@intel.com>
+>    >Date:   Wed Feb 25 18:00:18 2009 -0500
+>      >Revert "ACPI: make some IO ports off-limits to AML"
 
-I'm glad to know that I shouldn't be switching kernel versions though.
- I thought that was really crazy.
+That commit shipped in 2.6.29, so Rodrigo should already have it.
 
->
->
-> It would be good, especially if this bug doesn't end up being solved some
-> other way... And slow results are better than no results at all ;)
->
->                        Linus
->
+ie. 2.6.29 should behave just like 2.6.28.
 
-Okay, I will try again.  Hopefully in a few days I'll have something
-for the bug.
+by "latest git", i assume Rodrigo means 2.6.29-git*, ie 2.6.30 merge 
+window.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
