@@ -1,57 +1,64 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [2.6.28.y, 2.6.29.y PATCH] dock: fix dereference after kfree()
-Date: Mon, 06 Apr 2009 23:56:46 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904062354360.5698@localhost.localdomain>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
+Date: Mon, 6 Apr 2009 21:07:24 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904062103531.4010@localhost.localdomain>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
+	<alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
+	<9b1675090904062056v235af58ehc99cce8ff97fe501@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:42596 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093AbZDGD4v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Apr 2009 23:56:51 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KHP00JE1PMNUAMA@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Mon, 06 Apr 2009 22:56:50 -0500 (CDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <9b1675090904062056v235af58ehc99cce8ff97fe501@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Trenton D. Adams" <trenton.d.adams@gmail.com>
+Cc: Adrian Bunk <bunk@kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Natalie Protasevich <protasnb@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org
 
-From: Dan Carpenter <error27@gmail.com>
-Date: Thu, 2 Apr 2009 08:29:56 +0300
-Subject: [PATCH] dock: fix dereference after kfree()
 
-upstream f240729832dff3785104d950dad2d3ced4387f6d
 
-dock_remove() calls kfree() on dock_station so we should use
-list_for_each_entry_safe() to avoid dereferencing freed memory.
+On Mon, 6 Apr 2009, Trenton D. Adams wrote:
+> >
+> > This went through bisection, but looking at the email log, I tend to
+> > suspect that maybe Trenton marked some versions good even though they
+> > weren't (because they got versions numbers from v2.6.27), and didn't
+> > realize that that messes up bisection in a big way.
+> 
+> Is it appropriate for me to respond to these things?
 
-Found by smatch (http://repo.or.cz/w/smatch.git/).  Compile tested.
+Yes. I added you to the cc exactly because it was hard for me to judge 
+from the email discussion that is linked to in the regression list whether 
+you actually _did_ mark some versions good because of confusion about the 
+version numbering.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/dock.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+That would certainly explain why bisection didn't seem to work.
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 35094f2..8f62fa0 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -1146,9 +1146,10 @@ static int __init dock_init(void)
- static void __exit dock_exit(void)
- {
- 	struct dock_station *dock_station;
-+	struct dock_station *tmp;
- 
- 	unregister_acpi_bus_notifier(&dock_acpi_notifier);
--	list_for_each_entry(dock_station, &dock_stations, sibiling)
-+	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibiling)
- 		dock_remove(dock_station);
- }
- 
--- 
-1.6.2.2.446.gfbdc
+But it's not the _only_ reason bisection doesn't work. Sometimes you can 
+be as careful as possible, but if it's a bug that is even _slightly_ flaky 
+(timing-dependencies etc), and the bisection marked something good that 
+shouldn't have been (or vice versa, but that's unusual), then the 
+bisection end result won't be right.
 
+So you may well have done everything right, and I'm not trying to blame 
+you. I just was hoping that maybe that confusion would explain why the 
+bisection didn't seem to pinpoint anything sane..
+
+> I was wondering about that.  Someone had mentioned that I should trust
+> the bisect, even when it takes me into "other versions", and it was
+> taking me through 2.6.27, which I thought was just really weird.
+> Would you like me to try the bisect again with a little more
+> diligence, or do you think it can be found with the info given?  It
+> may take a week or so, due to being a bit busy.
+
+It would be good, especially if this bug doesn't end up being solved some 
+other way... And slow results are better than no results at all ;)
+
+			Linus
