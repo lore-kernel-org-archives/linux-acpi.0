@@ -1,17 +1,17 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 6/7] sony-laptop: use .notify method instead of installing
+Subject: [PATCH 7/7] ACPI: WMI: use .notify method instead of installing
 	handler directly
-Date: Tue, 07 Apr 2009 09:37:32 -0600
-Message-ID: <20090407153732.21399.29566.stgit@bob.kio>
+Date: Tue, 07 Apr 2009 09:37:37 -0600
+Message-ID: <20090407153737.21399.57171.stgit@bob.kio>
 References: <20090407153532.21399.92051.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:39583 "EHLO
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:39636 "EHLO
 	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593AbZDGPhc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:32 -0400
+	with ESMTP id S1755739AbZDGPhi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:38 -0400
 In-Reply-To: <20090407153532.21399.92051.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -23,99 +23,67 @@ Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Mattia Dongili <malattia@linux.it>
+CC: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
- drivers/platform/x86/sony-laptop.c |   30 ++++--------------------------
- 1 files changed, 4 insertions(+), 26 deletions(-)
+ drivers/platform/x86/wmi.c |   15 +++------------
+ 1 files changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index a90ec5c..d3c92d7 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -914,7 +914,7 @@ static struct sony_nc_event sony_127_events[] = {
- /*
-  * ACPI callbacks
-  */
--static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
-+static void sony_nc_notify(struct acpi_device *device, u32 event)
- {
- 	u32 ev = event;
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index 2f269e1..043b208 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -81,6 +81,7 @@ static struct wmi_block wmi_blocks;
  
-@@ -933,7 +933,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
- 			struct sony_nc_event *key_event;
+ static int acpi_wmi_remove(struct acpi_device *device, int type);
+ static int acpi_wmi_add(struct acpi_device *device);
++static void acpi_wmi_notify(struct acpi_device *device, u32 event);
  
- 			if (sony_call_snc_handle(key_handle, 0x200, &result)) {
--				dprintk("sony_acpi_notify, unable to decode"
-+				dprintk("sony_nc_notify, unable to decode"
- 					" event 0x%.2x 0x%.2x\n", key_handle,
- 					ev);
- 				/* restore the original event */
-@@ -968,7 +968,7 @@ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
- 	} else
- 		sony_laptop_report_input_event(ev);
- 
--	dprintk("sony_acpi_notify, event: 0x%.2x\n", ev);
-+	dprintk("sony_nc_notify, event: 0x%.2x\n", ev);
- 	acpi_bus_generate_proc_event(sony_nc_acpi_device, 1, ev);
- }
- 
-@@ -1276,15 +1276,6 @@ static int sony_nc_add(struct acpi_device *device)
- 		goto outwalk;
- 	}
- 
--	status = acpi_install_notify_handler(sony_nc_acpi_handle,
--					     ACPI_DEVICE_NOTIFY,
--					     sony_acpi_notify, NULL);
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_WARNING DRV_PFX "unable to install notify handler (%u)\n", status);
--		result = -ENODEV;
--		goto outinput;
--	}
--
- 	if (acpi_video_backlight_support()) {
- 		printk(KERN_INFO DRV_PFX "brightness ignored, must be "
- 		       "controlled by ACPI video driver\n");
-@@ -1362,13 +1353,6 @@ static int sony_nc_add(struct acpi_device *device)
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
- 
--	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
--					    ACPI_DEVICE_NOTIFY,
--					    sony_acpi_notify);
--	if (ACPI_FAILURE(status))
--		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
--
--      outinput:
- 	sony_laptop_remove_input();
- 
-       outwalk:
-@@ -1378,7 +1362,6 @@ static int sony_nc_add(struct acpi_device *device)
- 
- static int sony_nc_remove(struct acpi_device *device, int type)
- {
--	acpi_status status;
- 	struct sony_nc_value *item;
- 
- 	if (sony_backlight_device)
-@@ -1386,12 +1369,6 @@ static int sony_nc_remove(struct acpi_device *device, int type)
- 
- 	sony_nc_acpi_device = NULL;
- 
--	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
--					    ACPI_DEVICE_NOTIFY,
--					    sony_acpi_notify);
--	if (ACPI_FAILURE(status))
--		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
--
- 	for (item = sony_nc_values; item->name; ++item) {
- 		device_remove_file(&sony_pf_device->dev, &item->devattr);
- 	}
-@@ -1425,6 +1402,7 @@ static struct acpi_driver sony_nc_driver = {
- 		.add = sony_nc_add,
- 		.remove = sony_nc_remove,
- 		.resume = sony_nc_resume,
-+		.notify = sony_nc_notify,
+ static const struct acpi_device_id wmi_device_ids[] = {
+ 	{"PNP0C14", 0},
+@@ -96,6 +97,7 @@ static struct acpi_driver acpi_wmi_driver = {
+ 	.ops = {
+ 		.add = acpi_wmi_add,
+ 		.remove = acpi_wmi_remove,
++		.notify = acpi_wmi_notify,
  		},
  };
  
+@@ -643,12 +645,11 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
+ 	}
+ }
+ 
+-static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_wmi_notify(struct acpi_device *device, u32 event)
+ {
+ 	struct guid_block *block;
+ 	struct wmi_block *wblock;
+ 	struct list_head *p;
+-	struct acpi_device *device = data;
+ 
+ 	list_for_each(p, &wmi_blocks.list) {
+ 		wblock = list_entry(p, struct wmi_block, list);
+@@ -669,9 +670,6 @@ static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
+ 
+ static int acpi_wmi_remove(struct acpi_device *device, int type)
+ {
+-	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+-		acpi_wmi_notify);
+-
+ 	acpi_remove_address_space_handler(device->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
+ 
+@@ -683,13 +681,6 @@ static int __init acpi_wmi_add(struct acpi_device *device)
+ 	acpi_status status;
+ 	int result = 0;
+ 
+-	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
+-		acpi_wmi_notify, device);
+-	if (ACPI_FAILURE(status)) {
+-		printk(KERN_ERR PREFIX "Error installing notify handler\n");
+-		return -ENODEV;
+-	}
+-
+ 	status = acpi_install_address_space_handler(device->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_wmi_ec_space_handler,
 
