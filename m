@@ -1,53 +1,57 @@
-From: "Trenton D. Adams" <trenton.d.adams@gmail.com>
-Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
-Date: Mon, 6 Apr 2009 21:56:27 -0600
-Message-ID: <9b1675090904062056v235af58ehc99cce8ff97fe501@mail.gmail.com>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
-	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: [2.6.28.y, 2.6.29.y PATCH] dock: fix dereference after kfree()
+Date: Mon, 06 Apr 2009 23:56:46 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904062354360.5698@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:42596 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093AbZDGD4v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Apr 2009 23:56:51 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KHP00JE1PMNUAMA@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 06 Apr 2009 22:56:50 -0500 (CDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Apr 6, 2009 at 3:53 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
->
-> On Mon, 6 Apr 2009, Rafael J. Wysocki wrote:
->>
->> Bug-Entry =A0 =A0 : http://bugzilla.kernel.org/show_bug.cgi?id=3D130=
-18
->> Subject =A0 =A0 =A0 =A0 =A0 =A0 =A0 : 2.6.29 on MacBook 2,1 fails to=
- reboot
->> Submitter =A0 =A0 : Trenton Adams <trenton.d.adams@gmail.com>
->> Date =A0 =A0 =A0 =A0 =A0: 2009-03-30 2:04 (8 days old)
->> References =A0 =A0: http://marc.info/?l=3Dlinux-kernel&m=3D123837870=
-307249&w=3D4
->> Handled-By =A0 =A0: "Morten P.D. Stevens" <mstevens@win-professional=
-=2Ecom>
->
-> This went through bisection, but looking at the email log, I tend to
-> suspect that maybe Trenton marked some versions good even though they
-> weren't (because they got versions numbers from v2.6.27), and didn't
-> realize that that messes up bisection in a big way.
+From: Dan Carpenter <error27@gmail.com>
+Date: Thu, 2 Apr 2009 08:29:56 +0300
+Subject: [PATCH] dock: fix dereference after kfree()
 
-Is it appropriate for me to respond to these things?
+upstream f240729832dff3785104d950dad2d3ced4387f6d
 
-I was wondering about that.  Someone had mentioned that I should trust
-the bisect, even when it takes me into "other versions", and it was
-taking me through 2.6.27, which I thought was just really weird.
-Would you like me to try the bisect again with a little more
-diligence, or do you think it can be found with the info given?  It
-may take a week or so, due to being a bit busy.
+dock_remove() calls kfree() on dock_station so we should use
+list_for_each_entry_safe() to avoid dereferencing freed memory.
 
-Thanks
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Found by smatch (http://repo.or.cz/w/smatch.git/).  Compile tested.
+
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/dock.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 35094f2..8f62fa0 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -1146,9 +1146,10 @@ static int __init dock_init(void)
+ static void __exit dock_exit(void)
+ {
+ 	struct dock_station *dock_station;
++	struct dock_station *tmp;
+ 
+ 	unregister_acpi_bus_notifier(&dock_acpi_notifier);
+-	list_for_each_entry(dock_station, &dock_stations, sibiling)
++	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibiling)
+ 		dock_remove(dock_station);
+ }
+ 
+-- 
+1.6.2.2.446.gfbdc
+
