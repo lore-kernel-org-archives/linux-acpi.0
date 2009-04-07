@@ -1,89 +1,51 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 7/7] ACPI: WMI: use .notify method instead of installing
-	handler directly
-Date: Tue, 07 Apr 2009 09:37:37 -0600
-Message-ID: <20090407153737.21399.57171.stgit@bob.kio>
-References: <20090407153532.21399.92051.stgit@bob.kio>
+From: Stefan Richter <stefanr-MtYdepGKPcBMYopoZt5u/LNAH6kLmebB@public.gmane.org>
+Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
+Date: Tue, 07 Apr 2009 18:16:55 +0200
+Message-ID: <49DB7C77.1000702@s5r6.in-berlin.de>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera> <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:39636 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755739AbZDGPhi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 11:37:38 -0400
-In-Reply-To: <20090407153532.21399.92051.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LFD.2.00.0904061443000.7443-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Trenton Adams <trenton.d.adams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Tony Vroon <tony@linx.net>, Mattia Dongili <malattia@linux.it>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Harald Welte <laforge@gnumonks.org>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 
-This patch adds a .notify() method.  The presence of .notify() causes
-Linux/ACPI to manage event handlers and notify handlers on our behalf,
-so we don't have to install and remove them ourselves.
+Linus Torvalds wrote:
+> On Mon, 6 Apr 2009, Rafael J. Wysocki wrote:
+>> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13018
+>> Subject		: 2.6.29 on MacBook 2,1 fails to reboot
+>> Submitter	: Trenton Adams <trenton.d.adams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Date		: 2009-03-30 2:04 (8 days old)
+>> References	: http://marc.info/?l=linux-kernel&m=123837870307249&w=4
+>> Handled-By	: "Morten P.D. Stevens" <mstevens-APqb+XXLJz/QQQFqJy/XgFaTQe2KTcn/@public.gmane.org>
+> 
+> This went through bisection, but looking at the email log, I tend to 
+> suspect that maybe Trenton marked some versions good even though they 
+> weren't (because they got versions numbers from v2.6.27), and didn't 
+> realize that that messes up bisection in a big way.
+> 
+> The bug _sounds_ like some deadlock due to lock problems - the shutdown 
+> path often triggers locks that no other path really cares about. And we 
+> had some lock problems in the sound subsystem that got fixed post-2.6.28, 
+> for example. 
+> 
+> And it looks like the problem is somewhere in sound shutdown:
+> 
+> 12181 delete_module("snd_hda_codec", O_RDONLY|O_EXCL) = -1 EAGAIN (Resource temporarily unavailable) <0.000011>
+> 
+> So commits like 91054598f794fb5d8a0b1e747ff8e2e8fc2115b3 ("ALSA: pcm_oss, 
+> fix locking typo") might explain it.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
- drivers/platform/x86/wmi.c |   15 +++------------
- 1 files changed, 3 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 2f269e1..043b208 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -81,6 +81,7 @@ static struct wmi_block wmi_blocks;
- 
- static int acpi_wmi_remove(struct acpi_device *device, int type);
- static int acpi_wmi_add(struct acpi_device *device);
-+static void acpi_wmi_notify(struct acpi_device *device, u32 event);
- 
- static const struct acpi_device_id wmi_device_ids[] = {
- 	{"PNP0C14", 0},
-@@ -96,6 +97,7 @@ static struct acpi_driver acpi_wmi_driver = {
- 	.ops = {
- 		.add = acpi_wmi_add,
- 		.remove = acpi_wmi_remove,
-+		.notify = acpi_wmi_notify,
- 		},
- };
- 
-@@ -643,12 +645,11 @@ acpi_wmi_ec_space_handler(u32 function, acpi_physical_address address,
- 	}
- }
- 
--static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
-+static void acpi_wmi_notify(struct acpi_device *device, u32 event)
- {
- 	struct guid_block *block;
- 	struct wmi_block *wblock;
- 	struct list_head *p;
--	struct acpi_device *device = data;
- 
- 	list_for_each(p, &wmi_blocks.list) {
- 		wblock = list_entry(p, struct wmi_block, list);
-@@ -669,9 +670,6 @@ static void acpi_wmi_notify(acpi_handle handle, u32 event, void *data)
- 
- static int acpi_wmi_remove(struct acpi_device *device, int type)
- {
--	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--		acpi_wmi_notify);
--
- 	acpi_remove_address_space_handler(device->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
- 
-@@ -683,13 +681,6 @@ static int __init acpi_wmi_add(struct acpi_device *device)
- 	acpi_status status;
- 	int result = 0;
- 
--	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
--		acpi_wmi_notify, device);
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX "Error installing notify handler\n");
--		return -ENODEV;
--	}
--
- 	status = acpi_install_address_space_handler(device->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_wmi_ec_space_handler,
-
+Trenton,
+could it be the same as this one?
+http://bugzilla.kernel.org/show_bug.cgi?id=12321
+"System hangs when unloading alsa modules"
+http://bugs.gentoo.org/show_bug.cgi?id=253535
+"System hangs when unloading alsa modules on Kernel >2.6.28"
+-- 
+Stefan Richter
+-=====-==--= -=-- --===
+http://arcgraph.de/sr/
