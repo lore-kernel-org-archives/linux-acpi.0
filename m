@@ -1,84 +1,81 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+From: yakui_zhao <yakui.zhao@intel.com>
 Subject: Re: [RFC] [intel-gfx] :The backlight issue when KMS is used
-Date: Tue, 7 Apr 2009 16:27:37 -0700
-Message-ID: <20090407162737.525b6900@hobbes>
+Date: Wed, 08 Apr 2009 08:56:19 +0800
+Message-ID: <1239152179.3635.8.camel@localhost.localdomain>
 References: <1238737778.3582.163.camel@localhost.localdomain>
-	<20090403092408.66809996@hobbes>
-	<20090403162906.GB23243@srcf.ucam.org>
-	<1239075911.3582.206.camel@localhost.localdomain>
-	<20090407055717.GA14710@srcf.ucam.org>
-	<1239089123.3582.228.camel@localhost.localdomain>
-	<1239092434.7661.87.camel@rzhang-dt>
-	<20090407082256.GA17012@srcf.ucam.org>
-	<1239094102.7661.103.camel@rzhang-dt>
+	 <20090403092408.66809996@hobbes> <20090403162906.GB23243@srcf.ucam.org>
+	 <1239075911.3582.206.camel@localhost.localdomain>
+	 <20090407055717.GA14710@srcf.ucam.org>
+	 <1239089123.3582.228.camel@localhost.localdomain>
+	 <20090407073845.GA15635@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1239094102.7661.103.camel@rzhang-dt>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
-List-Post: <mailto:dri-devel@lists.sourceforge.net>
-List-Help: <mailto:dri-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.sourceforge.net
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Len, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, "sonne@debian.org" <sonne@debian.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:31244 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752384AbZDHAzM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Apr 2009 20:55:12 -0400
+In-Reply-To: <20090407073845.GA15635@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, "sonne@debian.org" <sonne@debian.org>, "Zhang, Rui" <rui.zhang@intel.com>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-T24gVHVlLCAwNyBBcHIgMjAwOSAxNjo0ODoyMiArMDgwMApaaGFuZyBSdWkgPHJ1aS56aGFuZ0Bp
-bnRlbC5jb20+IHdyb3RlOgoKPiDvu79DQyBUaG9tYXMsIExlbiBhbmQgbGludXgtYWNwaSBtYWls
-IGxpc3QuCj4gCj4gT24gVHVlLCAyMDA5LTA0LTA3IGF0IDE2OjIyICswODAwLCBNYXR0aGV3IEdh
-cnJldHQgd3JvdGU6Cj4gPiBPbiBUdWUsIEFwciAwNywgMjAwOSBhdCAwNDoyMDozNFBNICswODAw
-LCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiAKPiA+ID4gQWxsIHN1YnN5c3RlbXMgY2FuIHJlZ2lzdGVy
-IGEgc2V0IG9mIGNhbGxiYWNrcyBmb3IgYmFja2xpZ2h0Cj4gPiA+IGNvbnRyb2wgaW4gaXRzIG93
-biB3YXksIGUuZy4gQUNQSSwgcGxhdGZvcm0gZHJpdmVyLCBpOTE1Lgo+ID4gPiBBbmQgdGhlIGJh
-Y2tsaWdodCBtYW5hZ2VyIG9ubHkgZXhwb3J0cyBvbmUgc2luZ2xlIEkvRiB0byB1c2VycywKPiA+
-ID4gbGlrZTogLS0tLXwKPiA+ID4gICAgIHwtLS0tYnJpZ2h0bmVzcwo+ID4gPiAgICAgfC0tLS1h
-Y3R1YWxfYnJpZ2h0bmVzcwo+ID4gPiAgICAgfC0tLS1tYXhfYnJpZ2h0bmVzcwo+ID4gPiAgICAg
-fC0tLS0uLi4KPiA+ID4gICAgIHwtLS0tbW9kZQo+ID4gPiBhbmQgaXQgc3VwcG9ydHMgbXVsdGlw
-bGUgbW9kZXMsIGUuZy4KPiA+ID4gMS4gZ2VuZXJpYyAtLS1BQ1BJCj4gPiA+IDIuIHBsYXRmb3Jt
-LS0tcGxhdGZvcm0gZHJpdmVycwo+ID4gPiAzLiBsZWdhY3ktLS0tLWk5MTUKPiA+IAo+ID4gVGhp
-cyBzZWVtcyB0byBiZSBhIGxvdCBvZiBjb21wbGV4aXR5IGZvciBhbiB1bmNvbW1vbiBjYXNlLiBJ
-cyB0aGVyZQo+ID4gYW55IHJlYWwgbmVlZCB0byBtb2RpZnkgdGhlIG1vZGUgYXQgcnVudGltZT8K
-PiAKPiBpZiB0aGlzIGlzIGltcGxlbWVudGVkLCB0aGUgdmlkZW9fZGV0ZWN0LmMgY2FuIGJlIHJl
-bW92ZWQgYmVjYXVzZSB3ZQo+IGRvbid0IG5lZWQgdG8gZGV0ZWN0IHRoZSBBQ1BJIHZpZGVvIGV4
-dGVuc2lvbiB3aGVuIGxvYWRpbmcgcGxhdGZvcm0KPiBkcml2ZXJzLgo+IGV2ZXJ5IGRyaXZlciB0
-aGF0IGhhcyBpdHMgb3duIHdheXMgdG8gY29udHJvbCB0aGUgYmFja2xpZ2h0IGNhbgo+IHJlZ2lz
-dGVyIGEgc2V0IG9mIGNhbGxiYWNrcyBhbmQgdGhlbiBpdCdzIHRoZSBiYWNrbGlnaHQgbWFuYWdl
-cidzCj4gcmVzcG9uc2liaWxpdHkgdG8gY2hvb3NlIHdoaWNoIG9uZSB0byB1c2UuCj4gCj4gPiAg
-V2hhdCBoYXBwZW5zIGlmIHRoZSBwbGF0Zm9ybSAKPiA+IGRyaXZlciBnZXRzIGxvYWRlZCBiZWZv
-cmUgaTkxNT8KPiA+IAo+IHRoZSBiYWNrbGlnaHQgbWFuYWdlciBhbHdheXMgY2hvb3NlIHRoZSBv
-bmUgd2l0aCB0aGUgaGlnaGVzdCBwcmlvcml0eQo+IGlmIG11bHRpcGxlIGNhbGxiYWNrcyBhcmUg
-cmVnaXN0ZXJlZC4gaS5lCj4gaWYgKEFDUEkgY29udHJvbCBtZXRob2RzIGFyZSBhdmFpbGFibGUp
-Cj4gCWNoYW5nZXMgdG8gdGhlICJnZW5lcmljIiBtb2RlCj4gZWxzZSBpZiAocGxhdGZvcm0gc3Bl
-Y2lmaWMgY2FsbGJhY2tzIGFyZSBhdmFpbGFibGUpCj4gCWNoYW5nZXMgdG8gdGhlICJwbGF0Zm9y
-bSIgbW9kZQo+IGVsc2UgaWYgKGk5MTUgY2FsbGJhY2tzIGFyZSBhdmFpbGFibGUpCj4gCWNoYW5n
-ZXMgdG8gdGhlICJsZWdhY3kiIG1vZGUKPiAKPiB0aGUgYmFja2xpZ2h0IG1hbmFnZXIgYWx3YXlz
-IHJ1biB0aGlzIGxvZ2ljIHdoZW4gYSBuZXcgc2V0IG9mCj4gY2FsbGJhY2tzIGlzIHJlZ2lzdGVy
-ZWQvdW5yZWdpc3RlcmVkLgoKVGhlIG90aGVyIG9wdGlvbiBvZiBjb3Vyc2UgKGFzIGRpc2N1c3Nl
-ZCB0aGlzIG1vcm5pbmcgb24gSVJDCncvRHJfSmFja29iKSBpcyB0byBhdm9pZCB1c2luZyB0aGUg
-c3lzZnMgYmFja2xpZ2h0IEFQSSBpbiB0aGUgS01TIGNhc2UKKEtNUyBjbGllbnRzIHdvdWxkIGJl
-IGV4cGVjdGVkIHRvIGdvIHRocm91Z2ggb3V0cHV0IHByb3BlcnRpZXMKaW5zdGVhZCkuICBUaGlz
-IGhhcyB0aGUgZGlzYWR2YW50YWdlIG9mIGVzc2VudGlhbGx5IGRlcHJlY2F0aW5nIGEKY3VycmVu
-dGx5IHVzZWQgaW50ZXJmYWNlLCBidXQgT1RPSCBtYWtpbmcgZm9yIGEgbW9yZSBjb25zaXN0ZW50
-CmludGVyZmFjZSBhY3Jvc3MgbmV3IG91dHB1dCB0eXBlcyB3aXRoIGJyaWdodG5lc3MgY29udHJv
-bCAoRERDIGhhcyBiaXRzCmZvciB0aGlzLCBhcyBkb2VzIGRpc3BsYXlwb3J0IEkgdGhpbmspLgoK
-QnV0IHdlJ2QgZGVmaW5pdGVseSB3YW50IHRvIHByZXNlcnZlIHRoZSBjdXJyZW50IEFDUEkgaW50
-ZXJhY3Rpb24sIHNvCndlJ2QgaGF2ZSB0byBtYWtlIHRoZSBpOTE1IGFuZCBvdGhlciBEUk0gZHJp
-dmVycyBjbGllbnRzIG9mIHRoZQpBQ1BJIG9yIHBsYXRmb3JtIGJhY2tsaWdodCBkcml2ZXJzIChh
-dCBsZWFzdCBpbnRlcm5hbGx5IHRvIHRoZSBrZXJuZWwpCndoZXJlIGF2YWlsYWJsZS4KClRoaXMg
-bWlnaHQgYmUgYSBiaXQgc2ltcGxlciB0aGFuIHRoZSBkZS1yZWdpc3RyYXRpb24gc3R1ZmYgd2Ug
-dGFsa2VkCmFib3V0LCBhbmQgd291bGQgaW50dWl0aXZlbHkgZXh0ZW5kIHRvIG90aGVyIG91dHB1
-dCB0eXBlcyB0aGF0IGFkZApiYWNrbGlnaHQgc3VwcG9ydCBpbiB0aGUgZnV0dXJlLgoKQW55IHRo
-b3VnaHRzIGFib3V0IHRoYXQ/CgotLSAKSmVzc2UgQmFybmVzLCBJbnRlbCBPcGVuIFNvdXJjZSBU
-ZWNobm9sb2d5IENlbnRlcgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRoaXMgU0YubmV0IGVtYWls
-IGlzIHNwb25zb3JlZCBieToKSGlnaCBRdWFsaXR5IFJlcXVpcmVtZW50cyBpbiBhIENvbGxhYm9y
-YXRpdmUgRW52aXJvbm1lbnQuCkRvd25sb2FkIGEgZnJlZSB0cmlhbCBvZiBSYXRpb25hbCBSZXF1
-aXJlbWVudHMgQ29tcG9zZXIgTm93IQpodHRwOi8vcC5zZi5uZXQvc2Z1L3d3dy1pYm0tY29tCi0t
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkRyaS1kZXZl
-bCBtYWlsaW5nIGxpc3QKRHJpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xp
-c3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9kcmktZGV2ZWwK
+On Tue, 2009-04-07 at 15:38 +0800, Matthew Garrett wrote:
+> On Tue, Apr 07, 2009 at 03:25:23PM +0800, yakui_zhao wrote:
+> > On Tue, 2009-04-07 at 13:57 +0800, Matthew Garrett wrote:
+> > > No, since in UMS mode the X server handles the backlight register=
+s.
+> > If so, there is no change about the backlight flowchart in UMS mode=
+=2E
+> >=20
+> > And only when the KMS mode is used, a new backlight I/F is register=
+ed.
+> > Right?
+>=20
+> Right.
+>=20
+> > > The acpi case is uninteresting - acpi_video_backlight_support() d=
+oesn't=20
+> > > require the acpi video driver. The platform driver case is more=20
+> > > interesting, but the easiest solution is probably to add a notifi=
+er=20
+> > > chain for backlight device add and have i915 unregister when a pl=
+atform=20
+> > > device registers.
+> > Yes. We will have to create the communication channel between backl=
+ight
+> > device and i915 driver. And when a backlight I/F is registered, we =
+will
+> > have to check whether the backlight I/F in 915 should be unregister=
+ed.=20
+> > Right?=20
+> > Does this make the problem complex?=20
+>=20
+> Not really. It's not a lot of code.
+=EF=BB=BFWhen a new backlight I/F is registered, it should unregister t=
+he
+backlight I/F registered in 915 driver if it exists. And before i915
+driver registers a backlight I/F, it will have to check whether the
+backlight I/F is already registered by other code. If it exists, it wil=
+l
+give up.
+And this code seems hack.=20
+
+If so, we will have to do so even for the boxes based on non-intel
+platforms.=20
+>=20
+> > > I'm not sure what you mean by arbiter order?
+> > What I said is which backlight I/F should be selected if there exis=
+t
+> > multiple backlight I/F?
+>=20
+> The platform-specific one.
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
