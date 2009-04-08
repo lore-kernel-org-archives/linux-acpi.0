@@ -1,81 +1,74 @@
 From: yakui_zhao <yakui.zhao@intel.com>
 Subject: Re: [RFC] [intel-gfx] :The backlight issue when KMS is used
-Date: Wed, 08 Apr 2009 08:56:19 +0800
-Message-ID: <1239152179.3635.8.camel@localhost.localdomain>
+Date: Wed, 08 Apr 2009 08:59:55 +0800
+Message-ID: <1239152395.3635.13.camel@localhost.localdomain>
 References: <1238737778.3582.163.camel@localhost.localdomain>
 	 <20090403092408.66809996@hobbes> <20090403162906.GB23243@srcf.ucam.org>
 	 <1239075911.3582.206.camel@localhost.localdomain>
 	 <20090407055717.GA14710@srcf.ucam.org>
 	 <1239089123.3582.228.camel@localhost.localdomain>
-	 <20090407073845.GA15635@srcf.ucam.org>
+	 <1239092434.7661.87.camel@rzhang-dt> <20090407082256.GA17012@srcf.ucam.org>
+	 <1239094102.7661.103.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:31244 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:55806 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752384AbZDHAzM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Apr 2009 20:55:12 -0400
-In-Reply-To: <20090407073845.GA15635@srcf.ucam.org>
+	id S1752438AbZDHA6r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Apr 2009 20:58:47 -0400
+In-Reply-To: <1239094102.7661.103.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, "sonne@debian.org" <sonne@debian.org>, "Zhang, Rui" <rui.zhang@intel.com>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, "sonne@debian.org" <sonne@debian.org>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, 2009-04-07 at 15:38 +0800, Matthew Garrett wrote:
-> On Tue, Apr 07, 2009 at 03:25:23PM +0800, yakui_zhao wrote:
-> > On Tue, 2009-04-07 at 13:57 +0800, Matthew Garrett wrote:
-> > > No, since in UMS mode the X server handles the backlight register=
-s.
-> > If so, there is no change about the backlight flowchart in UMS mode=
-=2E
-> >=20
-> > And only when the KMS mode is used, a new backlight I/F is register=
-ed.
-> > Right?
->=20
-> Right.
->=20
-> > > The acpi case is uninteresting - acpi_video_backlight_support() d=
-oesn't=20
-> > > require the acpi video driver. The platform driver case is more=20
-> > > interesting, but the easiest solution is probably to add a notifi=
-er=20
-> > > chain for backlight device add and have i915 unregister when a pl=
-atform=20
-> > > device registers.
-> > Yes. We will have to create the communication channel between backl=
-ight
-> > device and i915 driver. And when a backlight I/F is registered, we =
-will
-> > have to check whether the backlight I/F in 915 should be unregister=
-ed.=20
-> > Right?=20
-> > Does this make the problem complex?=20
->=20
-> Not really. It's not a lot of code.
-=EF=BB=BFWhen a new backlight I/F is registered, it should unregister t=
-he
-backlight I/F registered in 915 driver if it exists. And before i915
-driver registers a backlight I/F, it will have to check whether the
-backlight I/F is already registered by other code. If it exists, it wil=
-l
-give up.
-And this code seems hack.=20
+On Tue, 2009-04-07 at 16:48 +0800, Zhang, Rui wrote:
+> CC Thomas, Len and linux-acpi mail list.
+> 
+> On Tue, 2009-04-07 at 16:22 +0800, Matthew Garrett wrote:
+> > On Tue, Apr 07, 2009 at 04:20:34PM +0800, Zhang Rui wrote:
+> > 
+> > > All subsystems can register a set of callbacks for backlight control in
+> > > its own way, e.g. ACPI, platform driver, i915.
+> > > And the backlight manager only exports one single I/F to users, like:
+> > > ----|
+> > >     |----brightness
+> > >     |----actual_brightness
+> > >     |----max_brightness
+> > >     |----...
+> > >     |----mode
+> > > and it supports multiple modes, e.g.
+> > > 1. generic ---ACPI
+> > > 2. platform---platform drivers
+> > > 3. legacy-----i915
+> > 
+> > This seems to be a lot of complexity for an uncommon case. Is there any 
+> > real need to modify the mode at runtime?
+> 
+> if this is implemented, the video_detect.c can be removed because we
+> don't need to detect the ACPI video extension when loading platform
+> drivers.
+> every driver that has its own ways to control the backlight can register
+> a set of callbacks and then it's the backlight manager's responsibility
+> to choose which one to use.
+> 
+> >  What happens if the platform 
+> > driver gets loaded before i915?
+> > 
+> the backlight manager always choose the one with the highest priority if
+> multiple callbacks are registered. i.e
+> if (ACPI control methods are available)
+> 	changes to the "generic" mode
+> else if (platform specific callbacks are available)
+> 	changes to the "platform" mode
+> else if (i915 callbacks are available)
+> 	changes to the "legacy" mode
+> 
+> the backlight manager always run this logic when a new set of callbacks
+> is registered/unregistered.
+Is this manager realized in kernel space or user space?
+> 
+> thanks,
+> rui
 
-If so, we will have to do so even for the boxes based on non-intel
-platforms.=20
->=20
-> > > I'm not sure what you mean by arbiter order?
-> > What I said is which backlight I/F should be selected if there exis=
-t
-> > multiple backlight I/F?
->=20
-> The platform-specific one.
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
