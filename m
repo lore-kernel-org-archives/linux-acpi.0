@@ -1,52 +1,44 @@
-From: "Trenton D. Adams" <trenton.d.adams@gmail.com>
-Subject: Re: 2.6.29 on MacBook 2,1 fails to reboot (was Re: 2.6.29-git13:
-	Reported regressions from 2.6.28)
-Date: Tue, 7 Apr 2009 19:16:08 -0600
-Message-ID: <9b1675090904071816k59080f1fn39737767db4dc0c@mail.gmail.com>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
-	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
-	 <49DB7C77.1000702@s5r6.in-berlin.de>
-	 <9b1675090904070944m798ed608i1d9194ebd1ed3961@mail.gmail.com>
-	 <49DB8909.3000905@s5r6.in-berlin.de>
-	 <9b1675090904071122k6a53295fwfffc336011edee8e@mail.gmail.com>
-	 <49DBA821.1070408@s5r6.in-berlin.de>
-	 <9b1675090904071352x513510ecm8b2574859b088275@mail.gmail.com>
+From: Rodrigo Luiz <rodrigo@gus-mg.org>
+Subject: Re: [PATCH] ACPICA: delete check for AML access to port 0x81-83
+Date: Tue, 7 Apr 2009 22:20:18 -0300
+Message-ID: <7a3045780904071820n7b9206e2nfc88b32522b83d1f@mail.gmail.com>
+References: <7a3045780904051727o3780c7d3hebb26028a1b4eba5@mail.gmail.com>
+	 <alpine.LFD.2.00.0904071754230.4799@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:15788 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745AbZDHBQJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 21:16:09 -0400
-In-Reply-To: <9b1675090904071352x513510ecm8b2574859b088275@mail.gmail.com>
+Received: from yx-out-2324.google.com ([74.125.44.29]:25781 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755675AbZDHBUT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 21:20:19 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so2918613yxl.1
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Apr 2009 18:20:18 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.0904071754230.4799@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: malattia@linux.it, linux-acpi@vger.kernel.org
 
-On Tue, Apr 7, 2009 at 2:52 PM, Trenton D. Adams
-<trenton.d.adams@gmail.com> wrote:
-> On Tue, Apr 7, 2009 at 1:23 PM, Stefan Richter
-> <stefanr@s5r6.in-berlin.de> wrote:
->>
->> But more importantly, is this init scripts related bug really what's
->> happening at your system? =A0Or do you actually experience an entire=
-ly
->> different bug?
+On Tue, Apr 7, 2009 at 18:56, Len Brown <lenb@kernel.org> wrote:
+> From: Len Brown <len.brown@intel.com>
 >
-> It could be. =A0I will try it out when I get home from work, and get
-> back to you. =A0That would be cool if it was a simple init script
-> problem. =A0Cause then I don't have to do anymore git bisects. ;)
+> Sony laptops apparently write 4-bytes (rather than 1 byte)
+> to debug port 0x80, which spews error messages:
+>
+> Denied AML access to port 0x00000080/4 (DMA1 0x0081-0x0083) [20090320]
+>
+> http://bugzilla.kernel.org/show_bug.cgi?id=13036
+>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>
+> Rodrigo,
+> Please verify that this makes the warnings go away.
+>
 
-Yes, the order is what causes this, you can close the bug.
+Ok! There is no more warnings!
 
-Sorry for wasting everyone's time.  I thought it was a kernel bug
-because I had not needed to update my gentoo system to make it happen.
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+[]'s
+Rodrigo Luiz
