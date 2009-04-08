@@ -1,74 +1,52 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [RFC] [intel-gfx] :The backlight issue when KMS is used
-Date: Wed, 08 Apr 2009 08:59:55 +0800
-Message-ID: <1239152395.3635.13.camel@localhost.localdomain>
-References: <1238737778.3582.163.camel@localhost.localdomain>
-	 <20090403092408.66809996@hobbes> <20090403162906.GB23243@srcf.ucam.org>
-	 <1239075911.3582.206.camel@localhost.localdomain>
-	 <20090407055717.GA14710@srcf.ucam.org>
-	 <1239089123.3582.228.camel@localhost.localdomain>
-	 <1239092434.7661.87.camel@rzhang-dt> <20090407082256.GA17012@srcf.ucam.org>
-	 <1239094102.7661.103.camel@rzhang-dt>
+From: "Trenton D. Adams" <trenton.d.adams@gmail.com>
+Subject: Re: 2.6.29 on MacBook 2,1 fails to reboot (was Re: 2.6.29-git13:
+	Reported regressions from 2.6.28)
+Date: Tue, 7 Apr 2009 19:16:08 -0600
+Message-ID: <9b1675090904071816k59080f1fn39737767db4dc0c@mail.gmail.com>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera>
+	 <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain>
+	 <49DB7C77.1000702@s5r6.in-berlin.de>
+	 <9b1675090904070944m798ed608i1d9194ebd1ed3961@mail.gmail.com>
+	 <49DB8909.3000905@s5r6.in-berlin.de>
+	 <9b1675090904071122k6a53295fwfffc336011edee8e@mail.gmail.com>
+	 <49DBA821.1070408@s5r6.in-berlin.de>
+	 <9b1675090904071352x513510ecm8b2574859b088275@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:55806 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438AbZDHA6r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Apr 2009 20:58:47 -0400
-In-Reply-To: <1239094102.7661.103.camel@rzhang-dt>
+Received: from rv-out-0506.google.com ([209.85.198.239]:15788 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745AbZDHBQJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2009 21:16:09 -0400
+In-Reply-To: <9b1675090904071352x513510ecm8b2574859b088275@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, "sonne@debian.org" <sonne@debian.org>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>
 
-On Tue, 2009-04-07 at 16:48 +0800, Zhang, Rui wrote:
-> CC Thomas, Len and linux-acpi mail list.
-> 
-> On Tue, 2009-04-07 at 16:22 +0800, Matthew Garrett wrote:
-> > On Tue, Apr 07, 2009 at 04:20:34PM +0800, Zhang Rui wrote:
-> > 
-> > > All subsystems can register a set of callbacks for backlight control in
-> > > its own way, e.g. ACPI, platform driver, i915.
-> > > And the backlight manager only exports one single I/F to users, like:
-> > > ----|
-> > >     |----brightness
-> > >     |----actual_brightness
-> > >     |----max_brightness
-> > >     |----...
-> > >     |----mode
-> > > and it supports multiple modes, e.g.
-> > > 1. generic ---ACPI
-> > > 2. platform---platform drivers
-> > > 3. legacy-----i915
-> > 
-> > This seems to be a lot of complexity for an uncommon case. Is there any 
-> > real need to modify the mode at runtime?
-> 
-> if this is implemented, the video_detect.c can be removed because we
-> don't need to detect the ACPI video extension when loading platform
-> drivers.
-> every driver that has its own ways to control the backlight can register
-> a set of callbacks and then it's the backlight manager's responsibility
-> to choose which one to use.
-> 
-> >  What happens if the platform 
-> > driver gets loaded before i915?
-> > 
-> the backlight manager always choose the one with the highest priority if
-> multiple callbacks are registered. i.e
-> if (ACPI control methods are available)
-> 	changes to the "generic" mode
-> else if (platform specific callbacks are available)
-> 	changes to the "platform" mode
-> else if (i915 callbacks are available)
-> 	changes to the "legacy" mode
-> 
-> the backlight manager always run this logic when a new set of callbacks
-> is registered/unregistered.
-Is this manager realized in kernel space or user space?
-> 
-> thanks,
-> rui
+On Tue, Apr 7, 2009 at 2:52 PM, Trenton D. Adams
+<trenton.d.adams@gmail.com> wrote:
+> On Tue, Apr 7, 2009 at 1:23 PM, Stefan Richter
+> <stefanr@s5r6.in-berlin.de> wrote:
+>>
+>> But more importantly, is this init scripts related bug really what's
+>> happening at your system? =A0Or do you actually experience an entire=
+ly
+>> different bug?
+>
+> It could be. =A0I will try it out when I get home from work, and get
+> back to you. =A0That would be cool if it was a simple init script
+> problem. =A0Cause then I don't have to do anymore git bisects. ;)
 
+Yes, the order is what causes this, you can close the bug.
+
+Sorry for wasting everyone's time.  I thought it was a kernel bug
+because I had not needed to update my gentoo system to make it happen.
+
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
