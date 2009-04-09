@@ -1,49 +1,78 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [RFC] [intel-gfx] :The backlight issue when KMS is used
-Date: Thu, 9 Apr 2009 09:42:05 +0200
-Message-ID: <200904090942.06310.trenn@suse.de>
-References: <1238737778.3582.163.camel@localhost.localdomain> <200904081217.15667.trenn@suse.de> <1239239539.3635.46.camel@localhost.localdomain>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH] eeepc-laptop: Work around rfkill firmware bug
+Date: Thu, 9 Apr 2009 09:56:55 +0200
+Message-ID: <71cd59b00904090056k29311350r834ad8623d5d283a@mail.gmail.com>
+References: <49DCA63B.5050802@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:41526 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759698AbZDIHlb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Apr 2009 03:41:31 -0400
-In-Reply-To: <1239239539.3635.46.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:62976 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175AbZDIH47 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Apr 2009 03:56:59 -0400
+Received: by bwz17 with SMTP id 17so454753bwz.37
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Apr 2009 00:56:57 -0700 (PDT)
+In-Reply-To: <49DCA63B.5050802@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, "sonne@debian.org" <sonne@debian.org>, "Zhang, Rui" <rui.zhang@intel.com>, "rpurdie@linux.intel.com" <rpurdie@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 
-On Thursday 09 April 2009 03:12:19 am yakui_zhao wrote:
-> On Wed, 2009-04-08 at 18:17 +0800, Thomas Renninger wrote:
-> > Hi,
-> >
-> > We have these interfaces:
-> >   - vendor specific implementation
-> >     (mostly in drivers/platform/x86/vendor-laptop.c)
-> >   - ACPI generic backlight only
-> >   - Opregion (this is the KMS/i915 interface you are talking about
-> >     or is there another abstraction?)
+On Wed, Apr 8, 2009 at 3:27 PM, Alan Jenkins
+<alan-jenkins@tuffmail.co.uk> wrote:
+> 1) Buggy firmware can change the RFKILL state by itself. This is easi=
+ly
+> =A0 detected. =A0The RFKILL API states that in such cases, we should =
+call
+> =A0 rfkill_force_state() to notify the core.
 >
-> IMO it is unnecessary to consider the Opregion as the interface. In fact
-> it is only for the communication between the ACPI and graphics driver.
-> We can send the request by using ACPI generic backlight and then the
-> brightness is changed in the graphics driver.
+> =A0 I have reported the bug to Asus. I believe this is the right thin=
+g
+> =A0 to do for robustness, even if this particular firmware bug is fix=
+ed.
 >
-> What you said is also OK.
-> But I don't know whether this will make the problem complex.
-> This issue I raised is related with that no backlight can be controlled
-> by xrandr tool after using KMS.
->     For example: >http://bugs.freedesktop.org/show_bug.cgi?id=20963
-Why should this get a i915 and not a native samsung-laptop driver?
-Can someone come up with some example code how the backlight switching
-implementation for this one would look like.
-This is needed anyway and then it is much easier to think about how to make 
-sure backlight drivers do not get double registered.
+> 2) The same bug causes the wireless toggle key to be reported as 0x11
+> =A0 instead of 0x10. =A00x11 is otherwise unused, so it should be saf=
+e to
+> =A0 add this as a new keycode.
+>
+> The bug is triggered by removing the laptop battery while hibernated.
+>
+> On resume, the wireless toggle key causes the firmware to toggle the
+> wireless state itself. =A0(Also, the key is reported as 0x11 when the
+> current wireless state is OFF).
+>
+> This is very poor behaviour because the OS can't predict whether the
+> firmware is controlling the RFKILL state.
+>
+> Without this workaround, the bug means users have to press the wirele=
+ss
+> toggle key twice to enable, due to the OS/firmware conflict. =A0(Assu=
+ming
+> rfkill-input or equivalent is being used). =A0The workaround avoids t=
+his.
+>
+> I believe that acpid scripts which toggle the value of the sysfs stat=
+e file
+> when the toggle key is pressed will be rendered ineffective by the bu=
+g,
+> regardless of this workaround. =A0If they simply toggle the state, wh=
+en the
+> firmware has already toggled it, then you will never see a state chan=
+ge.
+>
+> Tested on "EEEPC 4G" only.
+Hi,
+Thanks for the patch, applied on acpi4asus tree.
+Could someone with EEEPC 900/1000 test this patch ?
+Thanks
 
-     Thomas
+--=20
+Corentin Chary
+http://xf.iksaif.net
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
