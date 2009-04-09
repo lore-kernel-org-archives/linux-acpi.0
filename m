@@ -1,78 +1,56 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] eeepc-laptop: Work around rfkill firmware bug
-Date: Thu, 9 Apr 2009 09:56:55 +0200
-Message-ID: <71cd59b00904090056k29311350r834ad8623d5d283a@mail.gmail.com>
-References: <49DCA63B.5050802@tuffmail.co.uk>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: delete check for AML access to port 0x81-83
+Date: Thu, 9 Apr 2009 07:56:46 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D8308581D26B32F@orsmsx503.amr.corp.intel.com>
+References: <7a3045780904051727o3780c7d3hebb26028a1b4eba5@mail.gmail.com>
+ <alpine.LFD.2.00.0904071754230.4799@localhost.localdomain>
+ <20090409062346.GA8101@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:62976 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754175AbZDIH47 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Apr 2009 03:56:59 -0400
-Received: by bwz17 with SMTP id 17so454753bwz.37
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Apr 2009 00:56:57 -0700 (PDT)
-In-Reply-To: <49DCA63B.5050802@tuffmail.co.uk>
+Received: from mga14.intel.com ([143.182.124.37]:17809 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758994AbZDIO4s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Apr 2009 10:56:48 -0400
+In-Reply-To: <20090409062346.GA8101@srcf.ucam.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>
+Cc: Rodrigo Luiz <rodrigo@gus-mg.org>, "malattia@linux.it" <malattia@linux.it>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, Apr 8, 2009 at 3:27 PM, Alan Jenkins
-<alan-jenkins@tuffmail.co.uk> wrote:
-> 1) Buggy firmware can change the RFKILL state by itself. This is easi=
-ly
-> =A0 detected. =A0The RFKILL API states that in such cases, we should =
-call
-> =A0 rfkill_force_state() to notify the core.
->
-> =A0 I have reported the bug to Asus. I believe this is the right thin=
-g
-> =A0 to do for robustness, even if this particular firmware bug is fix=
-ed.
->
-> 2) The same bug causes the wireless toggle key to be reported as 0x11
-> =A0 instead of 0x10. =A00x11 is otherwise unused, so it should be saf=
-e to
-> =A0 add this as a new keycode.
->
-> The bug is triggered by removing the laptop battery while hibernated.
->
-> On resume, the wireless toggle key causes the firmware to toggle the
-> wireless state itself. =A0(Also, the key is reported as 0x11 when the
-> current wireless state is OFF).
->
-> This is very poor behaviour because the OS can't predict whether the
-> firmware is controlling the RFKILL state.
->
-> Without this workaround, the bug means users have to press the wirele=
-ss
-> toggle key twice to enable, due to the OS/firmware conflict. =A0(Assu=
-ming
-> rfkill-input or equivalent is being used). =A0The workaround avoids t=
-his.
->
-> I believe that acpid scripts which toggle the value of the sysfs stat=
-e file
-> when the toggle key is pressed will be rendered ineffective by the bu=
-g,
-> regardless of this workaround. =A0If they simply toggle the state, wh=
-en the
-> firmware has already toggled it, then you will never see a state chan=
-ge.
->
-> Tested on "EEEPC 4G" only.
-Hi,
-Thanks for the patch, applied on acpi4asus tree.
-Could someone with EEEPC 900/1000 test this patch ?
-Thanks
+A 4-byte write to an I/O port means four one-byte writes to four consecutive I/O ports (although, this can be done in one machine instruction.)
 
---=20
-Corentin Chary
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>From our testing, Windows indeed is only allowing the single-byte write to the (legal) port 0x80. The rest of the request is simply ignored. In general, any part of an I/O request that overlaps the protected ports is ignored. No error is returned.
+
+We are updating ACPICA to match this behavior.
+
+Bob
+
+
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Matthew Garrett
+>Sent: Wednesday, April 08, 2009 11:24 PM
+>To: Len Brown
+>Cc: Rodrigo Luiz; malattia@linux.it; linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH] ACPICA: delete check for AML access to port 0x81-83
+>
+>On Tue, Apr 07, 2009 at 05:56:09PM -0400, Len Brown wrote:
+>> From: Len Brown <len.brown@intel.com>
+>>
+>> Sony laptops apparently write 4-bytes (rather than 1 byte)
+>> to debug port 0x80, which spews error messages:
+>
+>So admittedly I should just check the spec here instead, but: what does
+>a 4 byte write to an io port mean? It seems a bit odd that Sonys could
+>be scribbling over DMA1 without causing any problems. Is Windows turning
+>this into a single byte write to the defined io port instead?
+>
+>--
+>Matthew Garrett | mjg59@srcf.ucam.org
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
