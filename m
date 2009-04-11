@@ -1,53 +1,55 @@
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Subject: Re: [patch for 2.6.30 2/2]
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts
-Date: Sat, 11 Apr 2009 12:07:11 +0530
-Message-ID: <1239431831.4418.22.camel@localhost.localdomain>
-References: <200904110617.n3B6HJ7W026502@imap1.linux-foundation.org>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: Regression: 20 ACPI interrupts per second on EEEPC 4G
+Date: Sat, 11 Apr 2009 10:14:43 +0100
+Message-ID: <49E05F83.2090500@tuffmail.co.uk>
+References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755669AbZDKGi5@vger.kernel.org>
-In-Reply-To: <200904110617.n3B6HJ7W026502@imap1.linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, davej@redhat.com, efault@gmx.de, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.154]:12926 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754858AbZDKJKG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 05:10:06 -0400
+In-Reply-To: <49DFE345.3010109@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>
 
-On Fri, 2009-04-10 at 23:17 -0700, akpm@linux-foundation.org wrote:
-> From: Andrew Morton <akpm@linux-foundation.org>
-> 
-> In drv_read(), check to see whether we can run the rdmsr() on the current
-> CPU.  If so, do that.  So smp_call_function_single() can avoid the IPI.
-> 
-> Arguably, cpumask_any() should do this.
-> 
-> Cc: Rusty Russell <rusty@rustcorp.com.au>
-> Cc: Ingo Molnar <mingo@elte.hu>
-> Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: Zhao Yakui <yakui.zhao@intel.com>
-> Cc: Dave Jones <davej@redhat.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Tested-by: Mike Galbraith <efault@gmx.de>
-> Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   17 +++++++++++++++--
->  1 file changed, 15 insertions(+), 2 deletions(-)
-> 
-> diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-> --- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts
-> +++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-> @@ -197,9 +197,22 @@ static void do_drv_write(void *_cmd)
->  
->  static void drv_read(struct drv_cmd *cmd)
->  {
-> -	cmd->val = 0;
-> +	int target_cpu;		/* The CPU on which to perform thr rdmsr() */
+Alexey Starikovskiy wrote:
+> Alan Jenkins wrote:
+>> On latest git, powertop shows 20 ACPI interrupts per second.  
+>> Previously, this was closer to 1 per second.  See attached output (a 
+>> vs b, "a" is from 2.6.29-rc8).
+>>
+>> This is from a pretty sparse KDE desktop.  Normally I run 
+>> gnome-power-manager, but I killed it to make sure that wasn't causing 
+>> any problems.
+>>
 
-+ 	int target_cpu; 	/* The CPU on which to perform the rdmsr() */
+>> gpe18:   60975  enabled
+>> gpe_all:   60975
+>> sci:   60975
+>>
+>> which I presume means lots of EC interrupts.
+>>
+>> [    0.134068] ACPI: EC: GPE = 0x18, I/O: command/status = 0x66, data 
+>> = 0x62
+>>
 
---
-JSR
+> This patch looks to be a suspect: 
+> 34ff4dbccccce54c83b1234d39b7ad9e548a75dd,
+> Please check if reversing it helps
+
+No, I still get 20 ACPI interrupts per second.
+
+I tried without powertop, just in case that was provoking it, but it 
+still happens:
+
+alan@alan-eeepc:/sys/firmware/acpi/interrupts$ cat sci; sleep 5; cat sci
+    2583
+    2680
+
+Thanks
+Alan
