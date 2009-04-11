@@ -1,55 +1,41 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: Regression: 20 ACPI interrupts per second on EEEPC 4G
-Date: Sat, 11 Apr 2009 10:14:43 +0100
-Message-ID: <49E05F83.2090500@tuffmail.co.uk>
-References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com>
+From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Subject: Regression: EEE PC hangs when booting off battery
+Date: Sat, 11 Apr 2009 10:41:35 +0100
+Message-ID: <49E065CF.6040408@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:12926 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754858AbZDKJKG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 05:10:06 -0400
-In-Reply-To: <49DFE345.3010109@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>
 
-Alexey Starikovskiy wrote:
-> Alan Jenkins wrote:
->> On latest git, powertop shows 20 ACPI interrupts per second.  
->> Previously, this was closer to 1 per second.  See attached output (a 
->> vs b, "a" is from 2.6.29-rc8).
->>
->> This is from a pretty sparse KDE desktop.  Normally I run 
->> gnome-power-manager, but I killed it to make sure that wasn't causing 
->> any problems.
->>
+Regression #6 on latest git! (last known good is 2.6.29-rc8)
 
->> gpe18:   60975  enabled
->> gpe_all:   60975
->> sci:   60975
->>
->> which I presume means lots of EC interrupts.
->>
->> [    0.134068] ACPI: EC: GPE = 0x18, I/O: command/status = 0x66, data 
->> = 0x62
->>
+My EEE PC hangs on bootup if it is not connected to mains power.  The
+hang happens during udev coldplug.  I've left it for >60 seconds with
+nmi_watchdog=1, soft lockup and hung task detection are enabled, and I
+get no trace.  Key presses are not echoed to the screen.
 
-> This patch looks to be a suspect: 
-> 34ff4dbccccce54c83b1234d39b7ad9e548a75dd,
-> Please check if reversing it helps
+Magic SysRQ keys work though.  Unfortunately, SysRq-W / SysRq-T generate
+too much output, so the useful bits immediately scroll off the top of
+the screen.  I can't press SysRq-P (even if that would help), because
+the SysRQ key on my laptop is accessed using a Fn modifier key, which
+also turns the left hand side of the keyboard into a numeric pad.
 
-No, I still get 20 ACPI interrupts per second.
+Magic SysRQs on my USB keyboard generate no response.  (Sometimes the
+numlock key seems to work though.  I can't tell on the laptop keyboard
+because the laptop doesn't have a numlock led).
 
-I tried without powertop, just in case that was provoking it, but it 
-still happens:
+I also tried booting with vga=ask (anticipating nmi_watchdog output),
+and selecting the highest mode, 80x60.  It turns out that this doesn't
+really work, the screen flickers constantly until userspace changes the
+console font.  However, it avoided the hang in udev coldplug.  Instead,
+the hang occurred when X started, leaving me with a black screen and a
+non-responsive X cursor.
 
-alan@alan-eeepc:/sys/firmware/acpi/interrupts$ cat sci; sleep 5; cat sci
-    2583
-    2680
+Booting with acpi=off fixes this.
 
-Thanks
+Regards
 Alan
