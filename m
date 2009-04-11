@@ -1,22 +1,29 @@
 From: Robert Hancock <hancockrwd@gmail.com>
 Subject: Re: [Help] I can't get Intel Speedstep working
-Date: Fri, 10 Apr 2009 18:45:07 -0600
-Message-ID: <49DFE813.3020705@gmail.com>
+Date: Fri, 10 Apr 2009 18:43:12 -0600
+Message-ID: <49DFE7A0.6060409@gmail.com>
 References: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com> <cd5c26b90903110540l19a721d1k1b7102f6f5c71d29@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f160.google.com ([209.85.217.160]:53944 "EHLO
-	mail-gx0-f160.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705AbZDKArF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Apr 2009 20:47:05 -0400
-Received: by gxk4 with SMTP id 4so2975654gxk.13
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Apr 2009 17:47:03 -0700 (PDT)
+Received: from main.gmane.org ([80.91.229.2]:44943 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751872AbZDKAuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Apr 2009 20:50:05 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LsRQ2-00022j-G1
+	for linux-acpi@vger.kernel.org; Sat, 11 Apr 2009 00:50:02 +0000
+Received: from s0106000c41bb86e1.ss.shawcable.net ([70.76.47.20])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2009 00:50:02 +0000
+Received: from hancockrwd by s0106000c41bb86e1.ss.shawcable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 11 Apr 2009 00:50:02 +0000
 In-Reply-To: <cd5c26b90903110540l19a721d1k1b7102f6f5c71d29@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Szalai <krumpirluk@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
 Robert Szalai wrote:
