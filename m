@@ -1,40 +1,39 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: [linux-pm] [2.6.30-rc1-git2 regressions] Hibernation broken and
- (minor but annoying) audio problem
-Date: Sat, 11 Apr 2009 12:16:23 -0700
-Message-ID: <49E0EC87.9080808@linux.intel.com>
-References: <200904100057.43827.rjw@sisk.pl> <alpine.LFD.2.00.0904091605080.4583@localhost.localdomain> <200904101439.43480.rjw@sisk.pl> <alpine.LFD.2.00.0904102233330.8559@localhost.localdomain> <alpine.LFD.2.00.0904111109500.4583@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: High latency on /sys/class/thermal
+Date: Sat, 11 Apr 2009 12:14:16 -0700
+Message-ID: <20090411121416.91fe3c88.akpm@linux-foundation.org>
+References: <20090411155612.5808570c@ua.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:21736 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758377AbZDKTQ1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 15:16:27 -0400
-In-Reply-To: <alpine.LFD.2.00.0904111109500.4583@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759183AbZDKTRd@vger.kernel.org>
+In-Reply-To: <20090411155612.5808570c@ua.pt>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-1?Q? Tiago_Sim=F5es_Batista ?= <tiagosbatista@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-Linus Torvalds wrote:
+(cc linux-acpi)
+
+On Sat, 11 Apr 2009 15:56:12 +0100 "Tiago Sim__es Batista" <tiagosbatista@gmail.com> wrote:
+
+> Hi all
 > 
-> On Fri, 10 Apr 2009, Len Brown wrote:
->> fastboot also causes the S3 regression here:
->>
->> http://bugzilla.kernel.org/show_bug.cgi?id=12936
+> Yesterday, I recompiled my kernel (git + tuxonice)
+> v2.6.30-rc1-1002-gac91f91, there were a couple of issues, the main one
+> is ilustrated bellow.
 > 
-> Looks like the same issue. Does my one-liner fix that case too?
-Now that I've been able to scan most of my mail; it looks like the one-liner should just go in.
-Restricting module loading from async work to only non-blocking is not a big deal,
-and it seems that userspace in various distros is really broken (and breaks on scsi already today),
-but that is not something we can really fix quickly.
-The sad part is that the userland is unlikely get fixed unless it shows breakage, and we can't break it (obviously).
+> I am not familiar with the kernel code, but if you give me some
+> pointers, I will be glad to investigate this further
+> 
+> $time cat /sys/class/thermal/thermal_zone0/temp 
+> 34000
+> 
+> real	0m6.613s
+> user	0m0.000s
+> sys	0m0.001s
+> 
 
-I don't know of any good other solutions; right now it's mostly the partition scan (which is already mostly async on
-scsi since a really long time, just in practice fast enough unless you have a big server).
+Is this a regression?  Was 2.6.29 OK?
 
-(The __init thing in modules is separate and easy to fix, but without the other stuff being fixed there's no point)
-
-
+Thanks.
