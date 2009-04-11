@@ -1,44 +1,43 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: [linux-pm] [2.6.30-rc1-git2 regressions] Hibernation broken and
- (minor but annoying) audio problem
-Date: Sat, 11 Apr 2009 13:11:56 -0700
-Message-ID: <49E0F98C.1090202@linux.intel.com>
-References: <200904100057.43827.rjw@sisk.pl> <alpine.LFD.2.00.0904091605080.4583@localhost.localdomain> <200904101439.43480.rjw@sisk.pl> <alpine.LFD.2.00.0904102233330.8559@localhost.localdomain> <alpine.LFD.2.00.0904111109500.4583@localhost.localdomain> <49E0EC87.9080808@linux.intel.com> <alpine.LFD.2.00.0904111247320.4583@localhost.localdomain>
+From: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Subject: Re: [linux-pm] [2.6.30-rc1-git2 regressions] Hibernation broken and (minor but annoying) audio problem
+Date: Sat, 11 Apr 2009 22:18:01 +0200
+Message-ID: <200904112218.02159.a.miskiewicz@gmail.com>
+References: <200904100057.43827.rjw@sisk.pl> <49E0EC87.9080808@linux.intel.com> <alpine.LFD.2.00.0904111247320.4583@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:24207 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755067AbZDKUMA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 16:12:00 -0400
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:62742 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754087AbZDKUSI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 16:18:08 -0400
 In-Reply-To: <alpine.LFD.2.00.0904111247320.4583@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Heinz Diehl <htd@fancy-poultry.org>, Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>, Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Heinz Diehl <htd@fancy-poultry.org>, Vegard Nossum <vegard.nossum@gmail.com>
 
-Linus Torvalds wrote:
-> 
+On Saturday 11 of April 2009, Linus Torvalds wrote:
 > On Sat, 11 Apr 2009, Arjan van de Ven wrote:
->> Now that I've been able to scan most of my mail; it looks like the one-liner
->> should just go in.
-> 
-> Ok, I committed my one-liner, and then also reverted the ACPI battery 
-> workaround of removing __init, since the one-liner should fix that too.
-> 
-> Cc'ing the people involved with that commit, just so that they know to 
-> test to make sure the alternate fix really did fix it for them (I'm pretty 
-> sure it does, but still a good idea to verify or at least let people know 
-> that a previous fix got reverted)
+> > Now that I've been able to scan most of my mail; it looks like the
+> > one-liner should just go in.
+>
+> Ok, I committed my one-liner, and then also reverted the ACPI battery
+> workaround of removing __init, since the one-liner should fix that to=
+o.
 
-longer term I would like to work on two things
-1) Fix the __init thing by just only freeing when appropriate, but not having to wait for it
-2) Find a way for userland to trigger a sync
-    - for all storage probing
-    - for just async work
-    - "global sync", which includes all driver init
-    We can then have insmod/modprobe use this always, unless a flag is set
-    (so say, udev, can load a slew of modules, and then sync only on the last one)
+Tested - works here|.
 
-and then after a year or two we can maybe remove the sync from the module loader ;(
+> 			Linus
+
+
+--=20
+Arkadiusz Mi=C5=9Bkiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
