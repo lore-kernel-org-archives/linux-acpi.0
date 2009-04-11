@@ -1,48 +1,31 @@
-From: Tzy-Jye Daniel Lin <ephemient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Regression: EEE PC hangs when booting off battery
-Date: Sat, 11 Apr 2009 14:07:45 -0400
-Message-ID: <66dc75180904111107q645fbb77i3cf927ffab7a7ef0@mail.gmail.com>
-References: <49E065CF.6040408@tuffmail.co.uk>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [linux-pm] [2.6.30-rc1-git2 regressions] Hibernation broken and
+ (minor but annoying) audio problem
+Date: Sat, 11 Apr 2009 11:11:52 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904111109500.4583@localhost.localdomain>
+References: <200904100057.43827.rjw@sisk.pl> <alpine.LFD.2.00.0904091605080.4583@localhost.localdomain> <200904101439.43480.rjw@sisk.pl> <alpine.LFD.2.00.0904102233330.8559@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <49E065CF.6040408-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56592 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757426AbZDKSR7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Apr 2009 14:17:59 -0400
+In-Reply-To: <alpine.LFD.2.00.0904102233330.8559@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Takashi Iwai <tiwai@suse.de>, pm list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 
-On Sat, Apr 11, 2009 at 5:41 AM, Alan Jenkins
-<alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org> wrote:
-> Regression #6 on latest git! (last known good is 2.6.29-rc8)
+
+
+On Fri, 10 Apr 2009, Len Brown wrote:
 >
-> Magic SysRQ keys work though. =C2=A0Unfortunately, SysRq-W / SysRq-T =
-generate
-> too much output, so the useful bits immediately scroll off the top of
-> the screen. =C2=A0I can't press SysRq-P (even if that would help), be=
-cause
-> the SysRQ key on my laptop is accessed using a Fn modifier key, which
-> also turns the left hand side of the keyboard into a numeric pad.
+> fastboot also causes the S3 regression here:
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=12936
 
-I don't own an Eee, but having played with one, the key sequence
+Looks like the same issue. Does my one-liner fix that case too?
 
-    Alt down
-    Fn down
-    SysRq down, up
-    Fn up
-    P down, up
-    Alt up
-
-should work just fine.  As long as you keep holding Alt, you don't
-need to continue holding SysRq after the initial keypress.
-
-> Magic SysRQs on my USB keyboard generate no response. =C2=A0(Sometime=
-s the
-> numlock key seems to work though. =C2=A0I can't tell on the laptop ke=
-yboard
-> because the laptop doesn't have a numlock led).
-
-SysRq over USB has never worked.  On PC hardware, Magic SysRq depends
-on features of the built-in i8042 controller, which only handles PS/2
-input.
+		Linus
