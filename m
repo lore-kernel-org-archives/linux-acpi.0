@@ -1,41 +1,33 @@
-From: Niel Lambrechts <niel.lambrechts@gmail.com>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control brightness
- with hotkeys
-Date: Sun, 12 Apr 2009 01:10:48 +0200
-Message-ID: <49E12378.8070200@gmail.com>
-References: <49E10684.5090101@gmail.com> <20090411150555.8b13ed18.akpm@linux-foundation.org> <49E11FD0.9040403@gmail.com>
+From: Benoit Izac <benoit.izac@free.fr>
+Subject: Re: [PATCH 1/2] toshiba-acpi: Add support for hotkey notifications
+Date: Sun, 12 Apr 2009 01:06:31 +0200
+Message-ID: <w53zlem3i4o@message.id>
+References: <20090331214501.GC29489@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f165.google.com ([209.85.219.165]:54402 "EHLO
-	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758947AbZDKXKa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 19:10:30 -0400
-In-Reply-To: <49E11FD0.9040403@gmail.com>
+Received: from lns-bzn-51f-62-147-243-137.adsl.proxad.net ([62.147.243.137]:39043
+	"EHLO wok.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756502AbZDKXRj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 19:17:39 -0400
+In-Reply-To: <20090331214501.GC29489@srcf.ucam.org> (Matthew Garrett's message of "Tue\, 31 Mar 2009 22\:45\:01 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "linux.kernel" <linux-kernel@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
-On 04/12/2009 12:55 AM, Niel Lambrechts wrote:
-> Could it be related to this commit?
->
-> commit 0e501834f8c2ba7de2a56e332d346dcf4ac0b593
-> Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Date:   Sat Apr 4 04:25:53 2009 +0000
->
->     thinkpad-acpi: rework brightness support
->
->     Refactor and redesign the brightness control backend...
->   
-Okay, please bear with me (I'm a git novice) but when I did
+On 31/03/2009 at 23:45, Matthew Garrett wrote in message
+<20090331214501.GC29489@srcf.ucam.org>:
 
-'git revert 0e501834f8c2ba7de2a56e332d346dcf4ac0b593'
+> Calling the ENAB method on Toshiba laptops results in notifications being
+> sent when laptop hotkeys are pressed. This patch simply calls that method
+> and sets up an input device if it's successful.
 
-and recompiled I was still unable to control the brightness with the
-hotkeys...
+Hi,
 
-Niel
+On my Toshiba Tecra M9, when I press ``FN'' key (needed to access
+hotkeys), an event occurs with code 224 (decimal). How do you
+distinguish it from KEY_BRIGHTNESSDOWN?
 
-
+-- 
+Benoit Izac
