@@ -1,22 +1,25 @@
-From: "Tiago =?ISO-8859-1?B?U2lt9WVz?= Batista" <tiagosbatista@gmail.com>
+From: Tiago =?ISO-8859-1?B?U2lt9WVz?= Batista <tiagosbatista@gmail.com>
 Subject: Re: High latency on /sys/class/thermal
-Date: Sat, 11 Apr 2009 23:12:10 +0100
-Message-ID: <20090411231210.68a328c6@ua.pt>
+Date: Sat, 11 Apr 2009 23:16:11 +0100
+Message-ID: <20090411231611.7c5f9b69@ua.pt>
 References: <20090411155612.5808570c@ua.pt>
  <20090411121416.91fe3c88.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:33468 "EHLO
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:51000 "EHLO
 	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759384AbZDKWMS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 18:12:18 -0400
+	with ESMTP id S1754420AbZDKWQR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 18:16:17 -0400
 In-Reply-To: <20090411121416.91fe3c88.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Tiago =?ISO-8859-1?B?U2lt9WVz?= Batista <tiagosbatista@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>
+
+Sorry about the noise, by brain was stopped when I sent the last mail,
+please ignore the From address, it is wrong!
 
 On Sat, 11 Apr 2009 12:14:16 -0700
 Andrew Morton <akpm@linux-foundation.org> wrote:
