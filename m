@@ -1,73 +1,78 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
- brightness with hotkeys
-Date: Sat, 11 Apr 2009 15:05:55 -0700
-Message-ID: <20090411150555.8b13ed18.akpm@linux-foundation.org>
-References: <49E10684.5090101@gmail.com>
+From: "Tiago =?ISO-8859-1?B?U2lt9WVz?= Batista" <tiagosbatista@gmail.com>
+Subject: Re: High latency on /sys/class/thermal
+Date: Sat, 11 Apr 2009 23:12:10 +0100
+Message-ID: <20090411231210.68a328c6@ua.pt>
+References: <20090411155612.5808570c@ua.pt>
+ <20090411121416.91fe3c88.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53889 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751024AbZDKWIy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Apr 2009 18:08:54 -0400
-In-Reply-To: <49E10684.5090101@gmail.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:33468 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759384AbZDKWMS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2009 18:12:18 -0400
+In-Reply-To: <20090411121416.91fe3c88.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: "linux.kernel" <linux-kernel@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Tiago =?ISO-8859-1?B?U2lt9WVz?= Batista <tiagosbatista@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>
 
-(cc's added)
+On Sat, 11 Apr 2009 12:14:16 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-On Sat, 11 Apr 2009 23:07:16 +0200 Niel Lambrechts <niel.lambrechts@gmail.com> wrote:
+> (cc linux-acpi)
+> 
+> On Sat, 11 Apr 2009 15:56:12 +0100 "Tiago Sim__es Batista"
+> <tiagosbatista@gmail.com> wrote:
+> 
+> > Hi all
+> > 
+> > Yesterday, I recompiled my kernel (git + tuxonice)
+> > v2.6.30-rc1-1002-gac91f91, there were a couple of issues, the main
+> > one is ilustrated bellow.
+> > 
+> > I am not familiar with the kernel code, but if you give me some
+> > pointers, I will be glad to investigate this further
+> > 
+> > $time cat /sys/class/thermal/thermal_zone0/temp 
+> > 34000
+> > 
+> > real	0m6.613s
+> > user	0m0.000s
+> > sys	0m0.001s
+> > 
+> 
+> Is this a regression?  Was 2.6.29 OK?
+> 
+> Thanks.
 
-> Hi there,
-> 
-> With latest git kernel, I'm no longer able to control my Thinkpad (W500)
-> brightness, although I can still control the backlight, bluetooth etc.
+My last kernel was fine:
 
-So 2.6.29 was OK?
+$ time cat /sys/class/thermal/thermal_zone0/temp 
+48000
 
-> I originally got some errors (below), but I was able to get around them
-> by changing /etc/modprobe.d/thinkpad_acpi
-> from the (default OPENSUSE)
-> options thinkpad_acpi experimental=1 hotkey=enable,0xffffff
-> to
-> options thinkpad_acpi experimental=1
-> 
-> Any ideas on how I can regain control over the brightness gas-pedal?
-> 
-> Niel
-> 
-> dmesg:
-> thinkpad_acpi: ThinkPad ACPI Extras v0.22
-> thinkpad_acpi: http://ibm-acpi.sf.net/
-> thinkpad_acpi: ThinkPad BIOS 6FET50WW (1.20 ), EC 7VHT12WW-1.01
-> thinkpad_acpi: Lenovo ThinkPad W500, model 40622XG
-> thinkpad_acpi: radio switch found; radios are enabled
-> thinkpad_acpi: This ThinkPad has standard ACPI backlight brightness
-> control, supported by the ACPI video driver
-> thinkpad_acpi: Disabling thinkpad-acpi brightness events by default...
-> thinkpad_acpi: procfs hotkey enable/disable: access by process with PID 890
-> WARNING: at drivers/platform/x86/thinkpad_acpi.c:2954
-> hotkey_enabledisable_warn+0x3e/0x43 [thinkpad_acpi]()
-> thinkpad_acpi: hotkey enable/disable functionality has been removed from
-> the driver. Hotkeys are always enabled.
-> Modules linked in: thinkpad_acpi(+) snd_hda_intel(+) rfkill
-> snd_hda_codec rtc_cmos snd_hwdep mac80211 video i2c_i801 rtc_core
-> snd_pcm ohci1394 led_class battery ac output snd_timer snd soundcore
-> snd_page_alloc e1000e intel_agp button joydev wmi i2c_core sr_mod
-> rtc_lib cfg80211 sg ieee1394 iTCO_wdt agpgart cdrom nvram
-> iTCO_vendor_support sd_mod ehci_hcd uhci_hcd usbcore ext4 jbd2 crc16 edd
-> ext3 mbcache jbd fan ahci libata scsi_mod thermal processor
->  [<f81a3f7c>] hotkey_enabledisable_warn+0x3e/0x43 [thinkpad_acpi]
->  [<f81a5234>] hotkey_write+0x68/0x162 [thinkpad_acpi]
->  [<f7c63f62>] thinkpad_acpi_module_init+0x742/0x839 [thinkpad_acpi]
->  [<f7c63820>] ? thinkpad_acpi_module_init+0x0/0x839 [thinkpad_acpi]
-> Registered led device: tpacpi::thinklight
-> thinkpad_acpi: Standard ACPI backlight interface available, not loading
-> native one.
-> 
+real	0m0.007s
+user	0m0.001s
+sys	0m0.007s
+
+
+I also forgot to add some information about my kernels...
+
+The good one is 2.6.29 + tuxonice as it was the day after the 2.6.29
+kernel was released.
+
+The bad one is a pull from linus tree on april the 9th plus tuxonice on
+the same day
+
+from git (hope this helps):
+$ git describe v2.6.29-tiago2-ice
+v2.6.29-836-g00492ed
+$ git describe v2.6.30-rc1-tiago1-ice
+v2.6.30-rc1-1002-gac91f91
+
+
+If tuxonice is a suspect, I will be glad to remove it and recompile.
+If I have the time later this weekend, and nothing was found, I will
+try to bisect this.
 
