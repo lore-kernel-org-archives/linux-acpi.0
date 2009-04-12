@@ -1,46 +1,71 @@
-From: Dave Jones <davej@redhat.com>
+From: Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: [patch for 2.6.30 2/2]
-	arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU
-	interrupts
-Date: Sat, 11 Apr 2009 20:06:05 -0400
-Message-ID: <20090412000605.GA23869@redhat.com>
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts
+Date: Sat, 11 Apr 2009 17:46:44 -0700
+Message-ID: <20090411174644.ea6f63c6.akpm@linux-foundation.org>
 References: <200904110617.n3B6HJ7W026502@imap1.linux-foundation.org>
+	<20090412000605.GA23869@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:39734 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752869AbZDLAIp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Apr 2009 20:08:45 -0400
-Content-Disposition: inline
-In-Reply-To: <200904110617.n3B6HJ7W026502@imap1.linux-foundation.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41203 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759438AbZDLAzw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Apr 2009 20:55:52 -0400
+In-Reply-To: <20090412000605.GA23869@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
+To: Dave Jones <davej@redhat.com>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, efault@gmx.de, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
 
-On Fri, Apr 10, 2009 at 11:17:18PM -0700, Andrew Morton wrote:
- > From: Andrew Morton <akpm@linux-foundation.org>
- > 
- > In drv_read(), check to see whether we can run the rdmsr() on the current
- > CPU.  If so, do that.  So smp_call_function_single() can avoid the IPI.
+On Sat, 11 Apr 2009 20:06:05 -0400 Dave Jones <davej@redhat.com> wrote:
 
-Wouldn't it be a better to make smp_call_function_single do this check
-itself, so all callers benefit from this optimisation?
+> On Fri, Apr 10, 2009 at 11:17:18PM -0700, Andrew Morton wrote:
+>  > From: Andrew Morton <akpm@linux-foundation.org>
+>  > 
+>  > In drv_read(), check to see whether we can run the rdmsr() on the current
+>  > CPU.  If so, do that.  So smp_call_function_single() can avoid the IPI.
+> 
+> Wouldn't it be a better to make smp_call_function_single do this check
+> itself, so all callers benefit from this optimisation?
+> 
+> *looks*
+> 
+> Wait, won't this already be caught by this code in smp_call_function_single() ?
+> 
+> 286         this_cpu = get_cpu();
+> ...
+> 291         if (cpu == this_cpu) {
+> 292                 local_irq_save(flags);
+> 293                 func(info);
+> 294                 local_irq_restore(flags);
+> 295         } else {
+> 
+> 
+> 
 
-*looks*
+The problem is that the caller (acpi-cpufreq) is doing
 
-Wait, won't this already be caught by this code in smp_call_function_single() ?
+	cpu = cpumask_any(mask);
+	smp_call_function_single(cpu);
 
-286         this_cpu = get_cpu();
-...
-291         if (cpu == this_cpu) {
-292                 local_irq_save(flags);
-293                 func(info);
-294                 local_irq_restore(flags);
-295         } else {
+and cpumask_any(mask) does cpumask_first(mask).  Which might be a
+different CPU, even though this thread of control is running on a CPU
+which is present in `mask'.
 
+- We could fix this by making cpumask_any(mask) return this-cpu if
+  this-cpu is present `mask'.
 
+- We could fix this by changing smp_call_function_single() to take a
+  mask, rather than a particular CPU.  Then of course it preferentially
+  chooses this-cpu if possible.
 
-	Dave 
+  Or write a new smp_call_function_any(mask, ...);
+
+I suspect that changing cpumask_any() to preferentially return this-cpu
+will always give us the behaviour that we prefer, but I haven't looked
+into it.
+
 
