@@ -1,71 +1,56 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch for 2.6.30 2/2]
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts
-Date: Sat, 11 Apr 2009 17:46:44 -0700
-Message-ID: <20090411174644.ea6f63c6.akpm@linux-foundation.org>
-References: <200904110617.n3B6HJ7W026502@imap1.linux-foundation.org>
-	<20090412000605.GA23869@redhat.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
+	brightness with hotkeys
+Date: Sun, 12 Apr 2009 01:58:18 -0300
+Message-ID: <20090412045818.GA8211@khazad-dum.debian.net>
+References: <49E10684.5090101@gmail.com> <20090411150555.8b13ed18.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41203 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759438AbZDLAzw (ORCPT
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:40485 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752099AbZDLE6X (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Apr 2009 20:55:52 -0400
-In-Reply-To: <20090412000605.GA23869@redhat.com>
+	Sun, 12 Apr 2009 00:58:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20090411150555.8b13ed18.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, efault@gmx.de, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Niel Lambrechts <niel.lambrechts@gmail.com>, "linux.kernel" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Sat, 11 Apr 2009 20:06:05 -0400 Dave Jones <davej@redhat.com> wrote:
+On Sat, 11 Apr 2009, Andrew Morton wrote:
+> > options thinkpad_acpi experimental=1 hotkey=enable,0xffffff
 
-> On Fri, Apr 10, 2009 at 11:17:18PM -0700, Andrew Morton wrote:
->  > From: Andrew Morton <akpm@linux-foundation.org>
->  > 
->  > In drv_read(), check to see whether we can run the rdmsr() on the current
->  > CPU.  If so, do that.  So smp_call_function_single() can avoid the IPI.
-> 
-> Wouldn't it be a better to make smp_call_function_single do this check
-> itself, so all callers benefit from this optimisation?
-> 
-> *looks*
-> 
-> Wait, won't this already be caught by this code in smp_call_function_single() ?
-> 
-> 286         this_cpu = get_cpu();
-> ...
-> 291         if (cpu == this_cpu) {
-> 292                 local_irq_save(flags);
-> 293                 func(info);
-> 294                 local_irq_restore(flags);
-> 295         } else {
-> 
-> 
-> 
+Someday someone might be able to give me a good reason for why the hell
+distros like to do this sort of crap...  but I don't think it will be
+anytime soon.
 
-The problem is that the caller (acpi-cpufreq) is doing
+> > Any ideas on how I can regain control over the brightness gas-pedal?
 
-	cpu = cpumask_any(mask);
-	smp_call_function_single(cpu);
+I think what you're experiencing is some sort of breakage in ACPI video...
 
-and cpumask_any(mask) does cpumask_first(mask).  Which might be a
-different CPU, even though this thread of control is running on a CPU
-which is present in `mask'.
+> > WARNING: at drivers/platform/x86/thinkpad_acpi.c:2954
+> > hotkey_enabledisable_warn+0x3e/0x43 [thinkpad_acpi]()
+> > thinkpad_acpi: hotkey enable/disable functionality has been removed from
+> > the driver. Hotkeys are always enabled.
 
-- We could fix this by making cpumask_any(mask) return this-cpu if
-  this-cpu is present `mask'.
+I will silence the warning for module parameters, thanks for the head's up.
+That was indeed an oversight.
 
-- We could fix this by changing smp_call_function_single() to take a
-  mask, rather than a particular CPU.  Then of course it preferentially
-  chooses this-cpu if possible.
+But it is a red-herring, it doesn't change the driver behaviour at all in
+this case...
 
-  Or write a new smp_call_function_any(mask, ...);
+> > thinkpad_acpi: Standard ACPI backlight interface available, not loading
+> > native one.
 
-I suspect that changing cpumask_any() to preferentially return this-cpu
-will always give us the behaviour that we prefer, but I haven't looked
-into it.
+And this has always been true for any Lenovo Vista BIOS, it is not new.
 
+I really think we need to get the people dealing with ACPI video in the
+loop for this one.
 
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
