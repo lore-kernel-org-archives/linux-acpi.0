@@ -1,74 +1,130 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: FAN Processor and Thermap
-Date: Sun, 12 Apr 2009 10:37:48 -0600
-Message-ID: <51f3faa70904120937y262855b4k90f466b72ca4da9d@mail.gmail.com>
-References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com>
-	 <49DFE506.8040307@gmail.com>
-	 <335b7d740904120419x548018caqd7f41c5b24639bec@mail.gmail.com>
+From: Niel Lambrechts <niel.lambrechts@gmail.com>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control	brightness
+ with hotkeys
+Date: Sun, 12 Apr 2009 20:37:33 +0200
+Message-ID: <49E234ED.5010105@gmail.com>
+References: <49E10684.5090101@gmail.com> <20090411150555.8b13ed18.akpm@linux-foundation.org> <20090412161448.GC26502@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:24968 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745AbZDLQht convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Apr 2009 12:37:49 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1885932ywb.1
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Apr 2009 09:37:48 -0700 (PDT)
-In-Reply-To: <335b7d740904120419x548018caqd7f41c5b24639bec@mail.gmail.com>
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:34319 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745AbZDLShP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Apr 2009 14:37:15 -0400
+In-Reply-To: <20090412161448.GC26502@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Sun, Apr 12, 2009 at 5:19 AM, Ken Perl <kenperl@gmail.com> wrote:
-> I entered the bios but don't find a option to enable/disable ACPI. th=
-e
-> dmesg output is below,
+On 04/12/2009 06:14 PM, Henrique de Moraes Holschuh wrote:
+> On Sat, 11 Apr 2009, Andrew Morton wrote:
+>   
+>>> With latest git kernel, I'm no longer able to control my Thinkpad (W500)
+>>> brightness, although I can still control the backlight, bluetooth etc.
+>>>       
 >
-> [ =A0 =A00.000000] Initializing cgroup subsys cpuset
-> [ =A0 =A00.000000] Initializing cgroup subsys cpu
-> [ =A0 =A00.000000] Linux version 2.6.26-1-686 (Debian 2.6.26-13lenny2=
-)
-> (dannf@debian.org) (gcc version 4.1.3 20080704 (prerelease) (Debian
-> 4.1.2-25)) #1 SMP Fri Mar 13 18:08:45 UTC 2009
-> [ =A0 =A00.000000] BIOS-provided physical RAM map:
-> [ =A0 =A00.000000] =A0BIOS-e820: 0000000000000000 - 000000000009f800 =
-(usable)
-> [ =A0 =A00.000000] =A0BIOS-e820: 000000000009f800 - 00000000000a0000 =
-(reserved)
-> [ =A0 =A00.000000] =A0BIOS-e820: 00000000000f0c00 - 0000000000100000 =
-(reserved)
-> [ =A0 =A00.000000] =A0BIOS-e820: 0000000000100000 - 0000000008000000 =
-(usable)
-> [ =A0 =A00.000000] =A0BIOS-e820: 00000000ffff0c00 - 0000000100000000 =
-(reserved)
-> [ =A0 =A00.000000] 0MB HIGHMEM available.
-> [ =A0 =A00.000000] 128MB LOWMEM available.
-> [ =A0 =A00.000000] Entering add_active_range(0, 0, 32768) 0 entries o=
-f 256 used
-> [ =A0 =A00.000000] Zone PFN ranges:
-> [ =A0 =A00.000000] =A0 DMA =A0 =A0 =A0 =A0 =A0 =A0 0 -> =A0 =A0 4096
-> [ =A0 =A00.000000] =A0 Normal =A0 =A0 =A0 4096 -> =A0 =A032768
-> [ =A0 =A00.000000] =A0 HighMem =A0 =A0 32768 -> =A0 =A032768
-> [ =A0 =A00.000000] Movable zone start PFN for each node
-> [ =A0 =A00.000000] early_node_map[1] active PFN ranges
-> [ =A0 =A00.000000] =A0 =A0 0: =A0 =A0 =A0 =A00 -> =A0 =A032768
-> [ =A0 =A00.000000] On node 0 totalpages: 32768
-> [ =A0 =A00.000000] =A0 DMA zone: 32 pages used for memmap
-> [ =A0 =A00.000000] =A0 DMA zone: 0 pages reserved
-> [ =A0 =A00.000000] =A0 DMA zone: 4064 pages, LIFO batch:0
-> [ =A0 =A00.000000] =A0 Normal zone: 224 pages used for memmap
-> [ =A0 =A00.000000] =A0 Normal zone: 28448 pages, LIFO batch:7
-> [ =A0 =A00.000000] =A0 HighMem zone: 0 pages used for memmap
-> [ =A0 =A00.000000] =A0 Movable zone: 0 pages used for memmap
-> [ =A0 =A00.000000] DMI not present or invalid.
-> [ =A0 =A00.000000] ACPI Error (tbxfroot-0218): A valid RSDP was not f=
-ound [20080321]
+> Niels, something just occourred to me.  Is your problem the hotkeys, or the
+> brightness control itself?  Check /sys/class/backlight/*, please.  What do
+> you have in there?  Does it work?
+>   
+Hi Henrique,
 
-This looks like a 440LX chipset, that's pretty old. Are you sure this
-board supports ACPI at all?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The directory is empty - this is when I used 2.6.30-rc1 (latest git)
+from yesterday. I'll keep retrying with the latest git kernels though.
+
+The only additional observations I can provide is:
+1) pulling/plugging the power cord does actually have an effect on the
+brightness.
+2) resuming form hibernate - Xorg is blank, until I simultaneously press
+a keyboard key and touch the synaptics pad. But I have this problem in
+2.6.28/2.6.29 as well, and I guess it could either be vesafb or ACPI
+related, as it also happened when I used s2disk in a console session
+outside of X.
+
+In 2.6.29.1:
+lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
+-> ../../devices/virtual/backlight/acpi_video0
+
+which contains:
+drwxr-xr-x 3 root root    0 Apr 12 20:01 ./
+drwxr-xr-x 3 root root    0 Apr 12 20:01 ../
+-r--r--r-- 1 root root 4096 Apr 12 20:02 actual_brightness
+-rw-r--r-- 1 root root 4096 Apr 12 20:02 bl_power
+-rw-r--r-- 1 root root 4096 Apr 12 20:02 brightness
+-r--r--r-- 1 root root 4096 Apr 12 20:01 max_brightness
+drwxr-xr-x 2 root root    0 Apr 12 20:02 power/
+lrwxrwxrwx 1 root root    0 Apr 12 20:01 subsystem ->
+../../../../class/backlight/
+-rw-r--r-- 1 root root 4096 Apr 12 20:01 uevent
+
+max_brightness = 15 and echoing values [0-15] to brightness controls it
+as expected, or just using the standard thinkpad keys (Fn-Home to increase).
+> If it is the hotkeys, make sure you either have the legacy ACPI events
+> enabled in kconfig, or that you have something tied to the thinkpad-acpi
+> input device (no, HAL doesn't do it _yet_, it just forwards the events to
+> X.org)...
+>   
+I'm not sure what provides the "glue", other than "it works" in 2.6.29.1
+and 2.6.28.9 with OpenSUSE 11.1 with xorg-x11-server-7.4-41.8.
+
+Would it help if I send the ACPI parts of my .config? These are based on
+the default /proc/config.gz that comes with the distro.
+
+# Power management and ACPI
+options                                                               
+CONFIG_ACPI=y                                                                                     
+
+CONFIG_ACPI_SLEEP=y                                                                               
+
+CONFIG_ACPI_PROCFS=y                                                                              
+
+CONFIG_ACPI_PROCFS_POWER=y                                                                        
+
+CONFIG_ACPI_SYSFS_POWER=y                                                                         
+
+CONFIG_ACPI_PROC_EVENT=y                                                                          
+
+CONFIG_ACPI_AC=m                                                                                  
+
+CONFIG_ACPI_BATTERY=m                                                                             
+
+CONFIG_ACPI_BUTTON=m                                                                              
+
+CONFIG_ACPI_VIDEO=m                                                                               
+
+CONFIG_ACPI_FAN=m                                                                                 
+
+CONFIG_ACPI_DOCK=y
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_HOTPLUG_CPU=y
+CONFIG_ACPI_THERMAL=m
+CONFIG_ACPI_CUSTOM_DSDT_FILE=""
+# CONFIG_ACPI_CUSTOM_DSDT is not set
+CONFIG_ACPI_BLACKLIST_YEAR=2001
+# CONFIG_ACPI_DEBUG is not set
+# CONFIG_ACPI_PCI_SLOT is not set
+CONFIG_ACPI_CONTAINER=m
+CONFIG_ACPI_SBS=m
+CONFIG_X86_ACPI_CPUFREQ=m
+CONFIG_X86_POWERNOW_K7_ACPI=y
+CONFIG_X86_POWERNOW_K8_ACPI=y
+CONFIG_HOTPLUG_PCI_ACPI=m
+CONFIG_HOTPLUG_PCI_ACPI_IBM=m
+CONFIG_PNPACPI=y
+CONFIG_BLK_DEV_IDEACPI=y
+CONFIG_ATA_ACPI=y
+CONFIG_PATA_ACPI=m
+CONFIG_THINKPAD_ACPI=m
+# CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
+# CONFIG_THINKPAD_ACPI_DEBUG is not set
+CONFIG_THINKPAD_ACPI_BAY=y
+CONFIG_THINKPAD_ACPI_VIDEO=y
+CONFIG_THINKPAD_ACPI_HOTKEY_POLL=y
+CONFIG_ACPI_WMI=m
+# CONFIG_ACPI_ASUS is not set
+CONFIG_ACPI_TOSHIBA=m
+
+Regards,
+Niel
