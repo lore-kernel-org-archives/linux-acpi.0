@@ -1,36 +1,61 @@
-From: Andika Triwidada <andika@startrek.or.id>
-Subject: drivers for Lenovo 3000 series?
-Date: Sun, 12 Apr 2009 14:51:09 +0700
-Message-ID: <d0cc17060904120051h11e44079u5cf8174466b4e71e@mail.gmail.com>
+From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Subject: Re: Regression: EEE PC hangs when booting off battery
+Date: Sun, 12 Apr 2009 10:00:30 +0100
+Message-ID: <49E1ADAE.2030103@tuffmail.co.uk>
+References: <49E065CF.6040408@tuffmail.co.uk> <66dc75180904111107q645fbb77i3cf927ffab7a7ef0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.229]:31980 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756250AbZDLHvK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Apr 2009 03:51:10 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so1629086rvb.1
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Apr 2009 00:51:09 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <66dc75180904111107q645fbb77i3cf927ffab7a7ef0-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tzy-Jye Daniel Lin <ephemient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all,
+Tzy-Jye Daniel Lin wrote:
+> On Sat, Apr 11, 2009 at 5:41 AM, Alan Jenkins
+> <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org> wrote:
+>   
+>> Regression #6 on latest git! (last known good is 2.6.29-rc8)
+>>
+>> Magic SysRQ keys work though.  Unfortunately, SysRq-W / SysRq-T generate
+>> too much output, so the useful bits immediately scroll off the top of
+>> the screen.  I can't press SysRq-P (even if that would help), because
+>> the SysRQ key on my laptop is accessed using a Fn modifier key, which
+>> also turns the left hand side of the keyboard into a numeric pad.
+>>     
+>
+> I don't own an Eee, but having played with one, the key sequence
+>
+>     Alt down
+>     Fn down
+>     SysRq down, up
+>     Fn up
+>     P down, up
+>     Alt up
+>
+> should work just fine.  As long as you keep holding Alt, you don't
+> need to continue holding SysRq after the initial keypress.
+>
+>   
+>> Magic SysRQs on my USB keyboard generate no response.  (Sometimes the
+>> numlock key seems to work though.  I can't tell on the laptop keyboard
+>> because the laptop doesn't have a numlock led).
+>>     
+>
+> SysRq over USB has never worked.  On PC hardware, Magic SysRq depends
+> on features of the built-in i8042 controller, which only handles PS/2
+> input.
+>   
+Great, thanks a lot!
 
-I have a Lenovo 3000 G430 [1] which seems to work ok except for
-brightness control
+I was able to run SysRq-P, and found the following backtrace -
 
-but from [2]:
-"... The ACPI and EC firmware are completely incompatible with
-ThinkPads, and ibm-acpi/thinkpad-acpi will not support it. The Lenovo
-3000 are not ThinkPads."
-
-so, what do you suggest? create a new driver for Lenovo 3000 series?
-Can I use thinkpad_acpi.c as a start or should I start from scratch?
-
-Thanks
-Andika Triwidada
-
-[1] http://research.indocisc.com/~andika/g430/lenovo-g430.html
-[2] http://www.thinkwiki.org/wiki/Category:Lenovo_3000
+Pid: 0
+EIP is at acpi_idle_enter_bm+0x1df/0x208 [processor]
+cpud_idle_call
+cpu_idle
+rest_init
+start_kernel
+i386_start_kernel
