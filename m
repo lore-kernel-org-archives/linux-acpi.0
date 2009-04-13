@@ -1,37 +1,23 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] toshiba-acpi: Add support for hotkey notifications
-Date: Mon, 13 Apr 2009 15:50:15 +0100
-Message-ID: <20090413145015.GA10976@srcf.ucam.org>
-References: <20090331214501.GC29489@srcf.ucam.org> <200904112150.38010.elendil@planet.nl>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: [BISECTED] 20 ACPI interrupts per second on EEEPC 4G
+Date: Mon, 13 Apr 2009 15:53:34 +0100
+Message-ID: <20090413145334.GB10976@srcf.ucam.org>
+References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com> <49E05F83.2090500@tuffmail.co.uk> <49E20EBA.2090708@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44213 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbZDMOuW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 10:50:22 -0400
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200904112150.38010.elendil@planet.nl>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <49E20EBA.2090708-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Cc: Alexey Starikovskiy <aystarik-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org, lenb@intel.com
 
-On Sat, Apr 11, 2009 at 09:50:35PM +0200, Frans Pop wrote:
-> Matthew Garrett wrote:
-> > Calling the ENAB method on Toshiba laptops results in notifications
-> > being sent when laptop hotkeys are pressed. This patch simply calls that
-> > method and sets up an input device if it's successful.
-> 
-> Hi Matthew,
-> 
-> On my Satellite A40-241 the patch works fine for the Fn keys, but it does 
-> not work for the multimedia keys next to the power button. No event is 
-> generated (I tested this by directly reading the /dev/input/eventX file).
-> 
-> Any chance those could be made to work too?
+On Sun, Apr 12, 2009 at 04:54:34PM +0100, Alan Jenkins wrote:
 
-Can you send me the acpidump?
+> I did wonder whether this was due to thermal polling.  So look what I
+> found with bisection :-).
 
+Huh. Could you send me the acpidump output?
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
