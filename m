@@ -1,32 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Norbert Preining <preining@logic.at>
 Subject: Re: new fixes for sony-acpi
-Date: Mon, 13 Apr 2009 16:06:45 +0100
-Message-ID: <20090413150645.GA11445@srcf.ucam.org>
-References: <20090323163459.GB5463@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain> <20090328013832.GA4778@srcf.ucam.org> <20090328083315.GF9057@gamma.logic.tuwien.ac.at> <20090328120008.GA22470@srcf.ucam.org> <20090331152035.GA20946@srcf.ucam.org> <20090413150302.GC2332@gamma.logic.tuwien.ac.at>
+Date: Mon, 13 Apr 2009 17:11:36 +0200
+Message-ID: <20090413151136.GA6735@gamma.logic.tuwien.ac.at>
+References: <20090323163459.GB5463@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain> <20090328013832.GA4778@srcf.ucam.org> <20090328083315.GF9057@gamma.logic.tuwien.ac.at> <20090328120008.GA22470@srcf.ucam.org> <20090331152035.GA20946@srcf.ucam.org> <20090413150302.GC2332@gamma.logic.tuwien.ac.at> <20090413150645.GA11445@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:48122 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130AbZDMPHG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 11:07:06 -0400
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:48660 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751287AbZDMPLm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 11:11:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20090413150302.GC2332@gamma.logic.tuwien.ac.at>
+In-Reply-To: <20090413150645.GA11445@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: Len Brown <lenb@kernel.org>, sony-vaio-z-series@lists.launchpad.net, Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
 
-On Mon, Apr 13, 2009 at 05:03:02PM +0200, Norbert Preining wrote:
+On Mo, 13 Apr 2009, Matthew Garrett wrote:
+> Is the power consumption then what you expected?
 
-> Output:
-> [ 2120.435908] nvidia-control: hardware status gave 0x801f
-> and it seems that the Stamina LED did light up (I don't remeber whether
-> it was on before).
-> 
-> Anything else I can test?
+Hard to say, suddenly powertop tells me
+	no ACPI power usage estimate available
+anyone any idea what that could come from???
 
-Is the power consumption then what you expected?
+Best wishes
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+HEATON PUNCHARDON (n.) A violent argument which breaks out in the car
+on the way home from a party between a couple who have had to be
+polite to each other in company all evening.
+			--- Douglas Adams, The Meaning of Liff
