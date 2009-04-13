@@ -1,185 +1,145 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: High latency on /sys/class/thermal
-Date: Mon, 13 Apr 2009 09:43:42 +0800
-Message-ID: <1239587022.7661.202.camel@rzhang-dt>
-References: <20090411155612.5808570c@ua.pt>
-	 <20090411121416.91fe3c88.akpm@linux-foundation.org>
-	 <20090411231611.7c5f9b69@ua.pt>  <20090412170320.52e374df@gmail.com>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
+	brightness with hotkeys
+Date: Mon, 13 Apr 2009 09:53:42 +0800
+Message-ID: <1239587622.7661.205.camel@rzhang-dt>
+References: <49E10684.5090101@gmail.com>
+	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
+	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43749 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:3315 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752484AbZDMBnW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Apr 2009 21:43:22 -0400
-In-Reply-To: <20090412170320.52e374df@gmail.com>
+	id S1752993AbZDMBxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Apr 2009 21:53:23 -0400
+In-Reply-To: <49E234ED.5010105@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tiago =?ISO-8859-1?Q?Sim=F5es?= Batista <tiagosbatista@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Niel Lambrechts <niel.lambrechts@gmail.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-this sounds like an EC problem to me. please attach the acpidump output=
-=2E
-is there a long latency when you poke other ACPI devices, say battery?
+please attach the acpidump output.
+please apply this patch and see if it helps,
+http://patchwork.kernel.org/patch/17339/
 
 thanks,
 rui
 
-On Mon, 2009-04-13 at 00:03 +0800, Tiago Sim=C3=B5es Batista wrote:
-> On Sat, 11 Apr 2009 23:16:11 +0100
-> Tiago Sim=C3=B5es Batista <tiagosbatista@gmail.com> wrote:
->=20
-> > Sorry about the noise, by brain was stopped when I sent the last ma=
-il,
-> > please ignore the From address, it is wrong!
-> >=20
-> > On Sat, 11 Apr 2009 12:14:16 -0700
-> > Andrew Morton <akpm@linux-foundation.org> wrote:
-> >=20
-> > > (cc linux-acpi)
-> > >=20
-> > > On Sat, 11 Apr 2009 15:56:12 +0100 "Tiago Sim__es Batista"
-> > > <tiagosbatista@gmail.com> wrote:
-> > >=20
-> > > > Hi all
-> > > >=20
-> > > > Yesterday, I recompiled my kernel (git + tuxonice)
-> > > > v2.6.30-rc1-1002-gac91f91, there were a couple of issues, the m=
-ain
-> > > > one is ilustrated bellow.
-> > > >=20
-> > > > I am not familiar with the kernel code, but if you give me some
-> > > > pointers, I will be glad to investigate this further
-> > > >=20
-> > > > $time cat /sys/class/thermal/thermal_zone0/temp=20
-> > > > 34000
-> > > >=20
-> > > > real	0m6.613s
-> > > > user	0m0.000s
-> > > > sys	0m0.001s
-> > > >=20
-> > >=20
-> > > Is this a regression?  Was 2.6.29 OK?
-> > >=20
-> > > Thanks.
-> >=20
-> > My last kernel was fine:
-> >=20
-> > $ time cat /sys/class/thermal/thermal_zone0/temp=20
-> > 48000
-> >=20
-> > real	0m0.007s
-> > user	0m0.001s
-> > sys	0m0.007s
-> >=20
-> >=20
-> > I also forgot to add some information about my kernels...
-> >=20
-> > The good one is 2.6.29 + tuxonice as it was the day after the 2.6.2=
-9
-> > kernel was released.
-> >=20
-> > The bad one is a pull from linus tree on april the 9th plus tuxonic=
-e
-> > on the same day
-> >=20
-> > from git (hope this helps):
-> > $ git describe v2.6.29-tiago2-ice
-> > v2.6.29-836-g00492ed
-> > $ git describe v2.6.30-rc1-tiago1-ice
-> > v2.6.30-rc1-1002-gac91f91
-> >=20
-> >=20
-> > If tuxonice is a suspect, I will be glad to remove it and recompile=
-=2E
-> > If I have the time later this weekend, and nothing was found, I wil=
-l
-> > try to bisect this.
-> >=20
->=20
-> Here are some results from the bisect:
-> The metric I used to mark a revision as good/bad was
-> $ time for ((i =3D0; i < 100; i++)); do
->       cat /sys/class/thermal/thermal_zone0/temp > /dev/null;=20
->   done
->=20
-> The bad ones take forever, i never even finished one bad run. The goo=
-d
-> ones take about half a second.
->=20
-> When I checked out revisions v2.6.29-148-g33526a5 and
-> v2.6.29-159-g8a3f257, it took almost 2 secons to run the command, so =
-I
-> think some of the latency my have been introduced around these. Yet, =
-I
-> still marked them as good.
->=20
-> The resut was:
-> 478c6a43fcbc6c11609f8cee7c7b57223907754f is first bad commit
-> witch is a merge. I am out of ideas...
->=20
-> I forgot to ask, am I the only one experiencing this? I am using a
-> TravelMate 4000 with the intel graphics chip, can anyone reproduce th=
-is?
-> If no one can reproduce this, I can still test a vanilla kernel to
-> remove TOI from the equation!
->=20
-> Tiago
->=20
->=20
-> Below is the bisect log:
-> $ git bisect log
-> git bisect start
-> # bad: [ac91f917d7ed7d1ebe14532ee137fcd759b4406d] Merge branch 'all' =
-into all-tuxonice
-> git bisect bad ac91f917d7ed7d1ebe14532ee137fcd759b4406d
-> # good: [178a426510a901d9335f39d3391ae5e8628a36d1] Merge branch 'tuxo=
-nice' into all-tuxonice
-> git bisect good 178a426510a901d9335f39d3391ae5e8628a36d1
-> # good: [fdf9c9979a355916433262ea5e5e64bed5def86e] V4L/DVB (10465): d=
-sbr100: Add few lost mutex locks.
-> git bisect good fdf9c9979a355916433262ea5e5e64bed5def86e
-> # good: [edbd606c4671fcd439164c8d63e896044d706156] Staging: wlan-ng: =
-Replace WLAN_LOG_ERROR() with printk()
-> git bisect good edbd606c4671fcd439164c8d63e896044d706156
-> # good: [3516c6a8dc0b1153c611c4cf0dc4a51631f052bb] Merge git://git.ke=
-rnel.org/pub/scm/linux/kernel/git/gregkh/staging-2.6
-> git bisect good 3516c6a8dc0b1153c611c4cf0dc4a51631f052bb
-> # bad: [3989203290fba6fdf6bc4825fbf6526e1bf17977] Merge git://git.ker=
-nel.org/pub/scm/linux/kernel/git/davem/net-2.6
-> git bisect bad 3989203290fba6fdf6bc4825fbf6526e1bf17977
-> # bad: [d7ca6f8cdffa5765e486edb3dada9121fba8e6aa] Merge branch 'for-l=
-inus' of git://git.o-hand.com/linux-rpurdie-backlight
-> git bisect bad d7ca6f8cdffa5765e486edb3dada9121fba8e6aa
-> # good: [3b4dadf05d177289c279c50030c7c75e004952bb] Merge branch 'acpi=
-_enforce_resources' into release
-> git bisect good 3b4dadf05d177289c279c50030c7c75e004952bb
-> # bad: [32fb6c17566ec66de87324a834c7776f40e35e78] Merge branch 'relea=
-se' of git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.=
-6
-> git bisect bad 32fb6c17566ec66de87324a834c7776f40e35e78
-> # good: [45e36c1666aa6c8b0c538abcf984b336184d8c3f] Merge git://git.ke=
-rnel.org/pub/scm/linux/kernel/git/lethal/sh-2.6
-> git bisect good 45e36c1666aa6c8b0c538abcf984b336184d8c3f
-> # good: [33526a53600ac887d100e3c9b4be3637ac8ae3a5] Merge branch 'x2ap=
-ic' into release
-> git bisect good 33526a53600ac887d100e3c9b4be3637ac8ae3a5
-> # good: [c542aadeb4700bc316834d862d52ba3d2664f13a] panasonic-laptop: =
-=46ix autoloading
-> git bisect good c542aadeb4700bc316834d862d52ba3d2664f13a
-> # bad: [478c6a43fcbc6c11609f8cee7c7b57223907754f] Merge branch 'linus=
-' into release
-> git bisect bad 478c6a43fcbc6c11609f8cee7c7b57223907754f
-> # good: [15065531c1c5902775ae3ade24eb37d0e688353b] toshiba-acpi: remo=
-ve MAINTAINERS entry
-> git bisect good 15065531c1c5902775ae3ade24eb37d0e688353b
-> # good: [8a3f257c704e02aee9869decd069a806b45be3f1] Merge branch 'misc=
-' into release
-> git bisect good 8a3f257c704e02aee9869decd069a806b45be3f1
+On Mon, 2009-04-13 at 02:37 +0800, Niel Lambrechts wrote:
+> On 04/12/2009 06:14 PM, Henrique de Moraes Holschuh wrote:
+> > On Sat, 11 Apr 2009, Andrew Morton wrote:
+> >   
+> >>> With latest git kernel, I'm no longer able to control my Thinkpad (W500)
+> >>> brightness, although I can still control the backlight, bluetooth etc.
+> >>>       
+> >
+> > Niels, something just occourred to me.  Is your problem the hotkeys, or the
+> > brightness control itself?  Check /sys/class/backlight/*, please.  What do
+> > you have in there?  Does it work?
+> >   
+> Hi Henrique,
+> 
+> The directory is empty - this is when I used 2.6.30-rc1 (latest git)
+> from yesterday. I'll keep retrying with the latest git kernels though.
+> 
+> The only additional observations I can provide is:
+> 1) pulling/plugging the power cord does actually have an effect on the
+> brightness.
+> 2) resuming form hibernate - Xorg is blank, until I simultaneously press
+> a keyboard key and touch the synaptics pad. But I have this problem in
+> 2.6.28/2.6.29 as well, and I guess it could either be vesafb or ACPI
+> related, as it also happened when I used s2disk in a console session
+> outside of X.
+> 
+> In 2.6.29.1:
+> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
+> -> ../../devices/virtual/backlight/acpi_video0
+> 
+> which contains:
+> drwxr-xr-x 3 root root    0 Apr 12 20:01 ./
+> drwxr-xr-x 3 root root    0 Apr 12 20:01 ../
+> -r--r--r-- 1 root root 4096 Apr 12 20:02 actual_brightness
+> -rw-r--r-- 1 root root 4096 Apr 12 20:02 bl_power
+> -rw-r--r-- 1 root root 4096 Apr 12 20:02 brightness
+> -r--r--r-- 1 root root 4096 Apr 12 20:01 max_brightness
+> drwxr-xr-x 2 root root    0 Apr 12 20:02 power/
+> lrwxrwxrwx 1 root root    0 Apr 12 20:01 subsystem ->
+> ../../../../class/backlight/
+> -rw-r--r-- 1 root root 4096 Apr 12 20:01 uevent
+> 
+> max_brightness = 15 and echoing values [0-15] to brightness controls it
+> as expected, or just using the standard thinkpad keys (Fn-Home to increase).
+> > If it is the hotkeys, make sure you either have the legacy ACPI events
+> > enabled in kconfig, or that you have something tied to the thinkpad-acpi
+> > input device (no, HAL doesn't do it _yet_, it just forwards the events to
+> > X.org)...
+> >   
+> I'm not sure what provides the "glue", other than "it works" in 2.6.29.1
+> and 2.6.28.9 with OpenSUSE 11.1 with xorg-x11-server-7.4-41.8.
+> 
+> Would it help if I send the ACPI parts of my .config? These are based on
+> the default /proc/config.gz that comes with the distro.
+> 
+> # Power management and ACPI
+> options                                                               
+> CONFIG_ACPI=y                                                                                     
+> 
+> CONFIG_ACPI_SLEEP=y                                                                               
+> 
+> CONFIG_ACPI_PROCFS=y                                                                              
+> 
+> CONFIG_ACPI_PROCFS_POWER=y                                                                        
+> 
+> CONFIG_ACPI_SYSFS_POWER=y                                                                         
+> 
+> CONFIG_ACPI_PROC_EVENT=y                                                                          
+> 
+> CONFIG_ACPI_AC=m                                                                                  
+> 
+> CONFIG_ACPI_BATTERY=m                                                                             
+> 
+> CONFIG_ACPI_BUTTON=m                                                                              
+> 
+> CONFIG_ACPI_VIDEO=m                                                                               
+> 
+> CONFIG_ACPI_FAN=m                                                                                 
+> 
+> CONFIG_ACPI_DOCK=y
+> CONFIG_ACPI_PROCESSOR=m
+> CONFIG_ACPI_HOTPLUG_CPU=y
+> CONFIG_ACPI_THERMAL=m
+> CONFIG_ACPI_CUSTOM_DSDT_FILE=""
+> # CONFIG_ACPI_CUSTOM_DSDT is not set
+> CONFIG_ACPI_BLACKLIST_YEAR=2001
+> # CONFIG_ACPI_DEBUG is not set
+> # CONFIG_ACPI_PCI_SLOT is not set
+> CONFIG_ACPI_CONTAINER=m
+> CONFIG_ACPI_SBS=m
+> CONFIG_X86_ACPI_CPUFREQ=m
+> CONFIG_X86_POWERNOW_K7_ACPI=y
+> CONFIG_X86_POWERNOW_K8_ACPI=y
+> CONFIG_HOTPLUG_PCI_ACPI=m
+> CONFIG_HOTPLUG_PCI_ACPI_IBM=m
+> CONFIG_PNPACPI=y
+> CONFIG_BLK_DEV_IDEACPI=y
+> CONFIG_ATA_ACPI=y
+> CONFIG_PATA_ACPI=m
+> CONFIG_THINKPAD_ACPI=m
+> # CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
+> # CONFIG_THINKPAD_ACPI_DEBUG is not set
+> CONFIG_THINKPAD_ACPI_BAY=y
+> CONFIG_THINKPAD_ACPI_VIDEO=y
+> CONFIG_THINKPAD_ACPI_HOTKEY_POLL=y
+> CONFIG_ACPI_WMI=m
+> # CONFIG_ACPI_ASUS is not set
+> CONFIG_ACPI_TOSHIBA=m
+> 
+> Regards,
+> Niel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
