@@ -1,79 +1,200 @@
-From: Ed Tomlinson <edt@aei.ca>
-Subject: Re: 2.6.30-rc1 A few issues and a stall
-Date: Mon, 13 Apr 2009 18:22:06 -0400
-Message-ID: <200904131822.06815.edt@aei.ca>
-References: <200904121124.07193.edt@aei.ca> <1239588307.7661.209.camel@rzhang-dt> <1239591031.4445.4091.camel@minggr.sh.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [BISECTED] EEE PC hangs when booting off battery
+Date: Mon, 13 Apr 2009 16:28:34 -0600
+Message-ID: <200904131628.35407.bjorn.helgaas@hp.com>
+References: <49E065CF.6040408@tuffmail.co.uk> <200904131315.55519.bjorn.helgaas@hp.com> <49E3990C.6040303@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail001.aei.ca ([206.123.6.130]:54345 "EHLO mail001.aei.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751656AbZDMWWL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Apr 2009 18:22:11 -0400
-In-Reply-To: <1239591031.4445.4091.camel@minggr.sh.intel.com>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:33160 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750AbZDMW2j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 18:28:39 -0400
+In-Reply-To: <49E3990C.6040303@tuffmail.co.uk>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, Avi Kivity <avi@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Sunday 12 April 2009 22:50:31 Lin Ming wrote:
-> On Mon, 2009-04-13 at 10:05 +0800, Zhang Rui wrote:
-> > On Sun, 2009-04-12 at 23:24 +0800, Ed Tomlinson wrote:
-> > > Hi,
-> > > 
-> > > I got tired of building out of tree DRM drivers so decided to try 2.6.30-rc1.  For simple tasks
-> > > it works fine, for slightly more complex ones it is not quite as good...
-> > > 
-> > > Here is an example.  I normally start a kvm session with the commands below:
-> > > 
-> > > ed@grover ~/vm $ sudo modprobe tun
-> > > ed@grover ~/vm $ sudo brctl addbr br0
-> > > ed@grover ~/vm $ sudo ifconfig br0 192.168.100.254 netmask 255.255.255.0 up
-> > > ed@grover ~/vm $ sudo tunctl -b -u ed -t qtap0
-> > > qtap0
-> > > ed@grover ~/vm $ sudo brctl addif br0 qtap0
-> > > ed@grover ~/vm $ sudo ifconfig qtap0 up 0.0.0.0 promisc
-> > > ed@grover ~/vm $ sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-> > > iptables v1.4.2: can't initialize iptables table `nat': Table does not exist (do you need to insmod?)
-> > > Perhaps iptables or your kernel needs to be upgraded.
-> > > 
-> > > Issue 1 - I need to manually modprobe be get iptables to work.  This exact procedure worked in 2.6.29.
-> > > 
-> > > ed@grover ~/vm $ sudo modprobe nf_nat
-> > > ed@grover ~/vm $ sudo modprobe ipt_MASQUERADE
-> > > ed@grover ~/vm $ sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-> > > 
-> > > Once the above networking stuff is setup I start kvm with the command below
-> > > 
-> > > QEMU_AUDIO_DRV=alsa kvm -m 1024 -cdrom /mnt/sdc4/divx/archlinux-2009.02-ftp-i686.iso -boot c -smp 3 -usb -usbdevice tablet -vga std -drive file=arch.img -net nic,macaddr=52:54:00:12:34:23 -net tap,ifname=qtap0,script=no -soundhw all -mem-path /hugepages
-> > > 
-> > > which works and the kvm session boots just fine.  
-> > > 
-> > > Issue 2.  When I attempt to ping outside the kvm session the pc (not just the kvm session) hangs.
-> > > Its impossible to kill the kvm session and there are numerious info messages from RCU (tree RCU enabled)
-> > > about stalls.  
-> > > 
-> > > Issue 3.  ACPI is having fun during startup.  This does not seem to cause problems later but is 
-> > > noisy and probably should be fixed before .30's release.
-> > > 
-> > this is a duplicate of bug
-> > http://bugzilla.kernel.org/show_bug.cgi?id=13036
-> > please try the patch in comment #6 there and see if it helps.
+On Monday 13 April 2009 01:57:00 pm Alan Jenkins wrote:
+> Bjorn Helgaas wrote:
+> > On Sunday 12 April 2009 07:11:57 am Alan Jenkins wrote:
+> >   
+> > You mention that this occurs when booting off battery.  So I
+> > assume everything works fine when the EEE is plugged in to the
+> > wall socket?
 > 
-> please also have a try the patch in comment #10 (don't apply the patch
-> in comment #6).
+> When I tested it before, that was what I found.
+> 
+> However, I now find that's not quite right.  It only works (i.e. doesn't
+> hang) if I remove the battery as well as plugging it into the wall.  If
+> I have the battery in, it hangs.
+> 
+> >>>>> Magic SysRQ keys work though.  ...
+> >>>>>           
+> >>> I was able to run SysRq-P, and found the following backtrace -
+> >>>
+> >>> Pid: 0
+> >>> EIP is at acpi_idle_enter_bm+0x1df/0x208 [processor]
+> >
+> > Can you figure out where this is in acpi_idle_enter_bm() or
+> > maybe just email me your processor.ko module?
+> >
+> > Does it always happen at the same point?
+> 
+> Yes, it always happens at the same point.
+> 
+> It turns out I can read the runes, but I don't understand what they're
+> saying :-).
 
-The patch from   http://bugzilla.kernel.org/show_bug.cgi?id=13036 in comment 10 cleans up the console 
-acpi messages nicely.
+I'm not much good with x86 assembly either :-)
 
-<ACK> Ed  Tomlinson <edt@aei.ca>
+I think that in both cases below, you're right after enabling
+interrupts and about to exit the idle routine.  My guess is the
+system is not really hung; it just doesn't think it has anything
+to do and is spending all its time in the idle loop.
 
-Except for the following entry which, possibily, is valid:
+> 00001bd0 <acpi_idle_enter_bm>:
+> 
+> ...
+> 00001bd0 + 0x1df = 00001daf
+> ...
+>     1d70:       b8 03 00 00 00          mov    $0x3,%eax
+>     1d75:       e8 90 f3 ff ff          call   110a <tsc_halts_in_c>
+>     1d7a:       85 c0                   test   %eax,%eax
+>     1d7c:       74 0a                   je     1d88 <acpi_idle_enter_bm+0x1b8>
+>     1d7e:       b8 0e 09 00 00          mov    $0x90e,%eax
+>                         1d7f: R_386_32  .rodata.str1.1
+>     1d83:       e8 fc ff ff ff          call   1d84 <acpi_idle_enter_bm+0x1b4>
+>                         1d84: R_386_PC32        mark_tsc_unstable
+>     1d88:       8b 45 e8                mov    -0x18(%ebp),%eax
+>     1d8b:       8b 55 ec                mov    -0x14(%ebp),%edx
+>     1d8e:       e8 ab fd ff ff          call   1b3e <us_to_pm_timer_ticks>
+>     1d93:       89 c3                   mov    %eax,%ebx
+>     1d95:       b8 17 01 00 00          mov    $0x117,%eax
+>     1d9a:       69 ca 17 01 00 00       imul   $0x117,%edx,%ecx
+>     1da0:       89 d6                   mov    %edx,%esi
+>     1da2:       f7 e3                   mul    %ebx
+>     1da4:       8d 14 11                lea    (%ecx,%edx,1),%edx
+>     1da7:       e8 fc ff ff ff          call   1da8 <acpi_idle_enter_bm+0x1d8>
+>                         1da8: R_386_PC32        sched_clock_idle_wakeup_event
+>     1dac:       fb                      sti
+>     1dad:       89 e0                   mov    %esp,%eax
+> ->  1daf:       31 c9                   xor    %ecx,%ecx              <---------
+>     1db1:       25 00 e0 ff ff          and    $0xffffe000,%eax
+>     1db6:       89 fa                   mov    %edi,%edx
+>     1db8:       83 48 0c 04             orl    $0x4,0xc(%eax)
+>     1dbc:       ff 47 18                incl   0x18(%edi)
+>     1dbf:       8b 45 e4                mov    -0x1c(%ebp),%eax
+>     1dc2:       e8 a4 f5 ff ff          call   136b <acpi_state_timer_broadcast>
+>     1dc7:       01 5f 1c                add    %ebx,0x1c(%edi)
+>     1dca:       11 77 20                adc    %esi,0x20(%edi)
+>     1dcd:       8b 45 e8                mov    -0x18(%ebp),%eax
+>     1dd0:       83 c4 10                add    $0x10,%esp
+>     1dd3:       5b                      pop    %ebx
+>     1dd4:       5e                      pop    %esi
+>     1dd5:       5f                      pop    %edi
+>     1dd6:       5d                      pop    %ebp
+>     1dd7:       c3                      ret
+> 
+> > If you blacklist or rename the processor module to prevent it
+> > from loading, does that keep the hang from occurring?
+> 
+> No.  In that case I get the hang in default_idle+0x59/0x95
+> 
+> 0000007a <default_idle>:
+>   7a:   55                      push   %ebp
+>   7b:   89 e5                   mov    %esp,%ebp
+>   7d:   56                      push   %esi
+>   7e:   53                      push   %ebx
+>   7f:   83 ec 18                sub    $0x18,%esp
+>   82:   83 3d 18 00 00 00 00    cmpl   $0x0,0x18
+>                         84: R_386_32    .bss
+>   89:   75 7a                   jne    105 <default_idle+0x8b>
+>   8b:   80 3d 05 00 00 00 00    cmpb   $0x0,0x5
+>                         8d: R_386_32    boot_cpu_data
+>   92:   74 71                   je     105 <default_idle+0x8b>
+>   94:   83 3d 04 00 00 00 00    cmpl   $0x0,0x4
+>                         96: R_386_32    __tracepoint_power_start
+>   9b:   74 23                   je     c0 <default_idle+0x46>
+>   9d:   8b 1d 08 00 00 00       mov    0x8,%ebx
+>                         9f: R_386_32    __tracepoint_power_start
+>   a3:   85 db                   test   %ebx,%ebx
+>   a5:   74 19                   je     c0 <default_idle+0x46>
+>   a7:   8d 75 e0                lea    -0x20(%ebp),%esi
+>   aa:   b9 01 00 00 00          mov    $0x1,%ecx
+>   af:   ba 01 00 00 00          mov    $0x1,%edx
+>   b4:   89 f0                   mov    %esi,%eax
+>   b6:   ff 13                   call   *(%ebx)
+>   b8:   83 c3 04                add    $0x4,%ebx
+>   bb:   83 3b 00                cmpl   $0x0,(%ebx)
+>   be:   75 ea                   jne    aa <default_idle+0x30>
+>   c0:   89 e0                   mov    %esp,%eax
+>   c2:   25 00 e0 ff ff          and    $0xffffe000,%eax
+>   c7:   83 60 0c fb             andl   $0xfffffffb,0xc(%eax)
+>   cb:   f6 40 08 08             testb  $0x8,0x8(%eax)
+>   cf:   75 04                   jne    d5 <default_idle+0x5b>
+>   d1:   fb                      sti
+>   d2:   f4                      hlt
+> -->  d3:   eb 01                   jmp    d6 <default_idle+0x5c>    <--------
+>   d5:   fb                      sti
+>   d6:   89 e0                   mov    %esp,%eax
+>   d8:   25 00 e0 ff ff          and    $0xffffe000,%eax
+>   dd:   83 48 0c 04             orl    $0x4,0xc(%eax)
+>   e1:   83 3d 04 00 00 00 00    cmpl   $0x0,0x4
+>                         e3: R_386_32    __tracepoint_power_end
+>   e8:   74 1e                   je     108 <default_idle+0x8e>
+> 
+> 
+> >> 7ec0a7290797f57b780f792d12f4bcc19c83aa4f is first bad commit
+> >> commit 7ec0a7290797f57b780f792d12f4bcc19c83aa4f
+> >> Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> >> Date:   Mon Mar 30 17:48:24 2009 +0000
+> >
+> > Ouch, sorry about that.  Thanks for doing all the bisection work.
+> >   
+> >>     ACPI: processor: use .notify method instead of installing handler
+> >> directly
+> >>
+> >>     This patch adds a .notify() method.  The presence of .notify() causes
+> >>     Linux/ACPI to manage event handlers and notify handlers on our behalf,
+> >>     so we don't have to install and remove them ourselves.
+> >>
+> >>     Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> >>     CC: Zhang Rui <rui.zhang@intel.com>
+> >>     CC: Zhao Yakui <yakui.zhao@intel.com>
+> >>     CC: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+> >>     CC: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+> >>     Signed-off-by: Len Brown <len.brown@intel.com>
+> >>
+> >> However, reverting this commit from v2.6.30-rc1 doesn't solve the hang.
+> >
+> > I don't see the problem in that commit yet, and if there is a problem
+> > with it, I would think that reverting it from 2.6.30-rc1 would solve
+> > it.  But maybe it'd be useful to revert the whole .notify series to
+> > make sure.  From 2.6.30-rc1, you should be able to revert these:
+> >
+> >   7ec0a7290797f57b780f792d12f4bcc19c83aa4f processor
+> >   373cfc360ec773be2f7615e59a19f3313255db7c button
+> >   46ec8598fde74ba59703575c22a6fb0b6b151bb6 Linux/ACPI infrastructure
+> >
+> > What happens with those commits reverted?
+> 
+> I'll find out tomorrow.
 
-[    0.341115] ACPI Warning (tbutils-0246): Incorrect checksum in table [OEMB] - E8, should be DF [20090320]
+The fact that it still hangs even when you don't load the processor
+driver at all suggests that the 7ec0a729079 commit identified by the
+bisection is not the real problem.  That commit only touches
+drivers/acpi/processor_core.c.
 
-Thanks,
-Ed
+I think it's more likely some kind of race or missed wakeup.
+
+Since it seems to be sensitive to whether the battery is present,
+I guess you could try blacklisting the battery.ko driver.  There
+have been a few changes to it since 2.6.29-rc8.  If things work
+without battery.ko, we can look through those changes.
+
+Bjorn
