@@ -1,24 +1,186 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] toshiba-acpi: Add support for hotkey notifications
-Date: Mon, 13 Apr 2009 20:43:41 +0100
-Message-ID: <20090413194341.GA16579@srcf.ucam.org>
-References: <20090331214501.GC29489@srcf.ucam.org> <200904112150.38010.elendil@planet.nl> <20090413145015.GA10976@srcf.ucam.org> <200904132128.54769.elendil@planet.nl>
+From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Subject: Re: [BISECTED] EEE PC hangs when booting off battery
+Date: Mon, 13 Apr 2009 20:57:00 +0100
+Message-ID: <49E3990C.6040303@tuffmail.co.uk>
+References: <49E065CF.6040408@tuffmail.co.uk> <49E1ADAE.2030103@tuffmail.co.uk> <49E1E89D.7040502@tuffmail.co.uk> <200904131315.55519.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:59434 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847AbZDMTns (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 15:43:48 -0400
-Content-Disposition: inline
-In-Reply-To: <200904132128.54769.elendil@planet.nl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200904131315.55519.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Venkatesh Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org, lenb@intel.com
 
-Hm. Do you get events for the multimedia keys without this patch and 
-using the old interface?
+Bjorn Helgaas wrote:
+> On Sunday 12 April 2009 07:11:57 am Alan Jenkins wrote:
+>   
+> You mention that this occurs when booting off battery.  So I
+> assume everything works fine when the EEE is plugged in to the
+> wall socket?
+>   
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+When I tested it before, that was what I found.
+
+However, I now find that's not quite right.  It only works (i.e. doesn't
+hang) if I remove the battery as well as plugging it into the wall.  If
+I have the battery in, it hangs.
+
+>>>>> Magic SysRQ keys work though.  ...
+>>>>>           
+>>> I was able to run SysRq-P, and found the following backtrace -
+>>>
+>>> Pid: 0
+>>> EIP is at acpi_idle_enter_bm+0x1df/0x208 [processor]
+>>>       
+>
+> Can you figure out where this is in acpi_idle_enter_bm() or
+> maybe just email me your processor.ko module?
+>
+> Does it always happen at the same point?
+>   
+
+Yes, it always happens at the same point.
+
+It turns out I can read the runes, but I don't understand what they're
+saying :-).
+
+objdump -dr processor.o
+
+00001bd0 <acpi_idle_enter_bm>:
+
+...
+00001bd0 + 0x1df = 00001daf
+...
+    1d70:       b8 03 00 00 00          mov    $0x3,%eax
+    1d75:       e8 90 f3 ff ff          call   110a <tsc_halts_in_c>
+    1d7a:       85 c0                   test   %eax,%eax
+    1d7c:       74 0a                   je     1d88 <acpi_idle_enter_bm+0x1b8>
+    1d7e:       b8 0e 09 00 00          mov    $0x90e,%eax
+                        1d7f: R_386_32  .rodata.str1.1
+    1d83:       e8 fc ff ff ff          call   1d84 <acpi_idle_enter_bm+0x1b4>
+                        1d84: R_386_PC32        mark_tsc_unstable
+    1d88:       8b 45 e8                mov    -0x18(%ebp),%eax
+    1d8b:       8b 55 ec                mov    -0x14(%ebp),%edx
+    1d8e:       e8 ab fd ff ff          call   1b3e <us_to_pm_timer_ticks>
+    1d93:       89 c3                   mov    %eax,%ebx
+    1d95:       b8 17 01 00 00          mov    $0x117,%eax
+    1d9a:       69 ca 17 01 00 00       imul   $0x117,%edx,%ecx
+    1da0:       89 d6                   mov    %edx,%esi
+    1da2:       f7 e3                   mul    %ebx
+    1da4:       8d 14 11                lea    (%ecx,%edx,1),%edx
+    1da7:       e8 fc ff ff ff          call   1da8 <acpi_idle_enter_bm+0x1d8>
+                        1da8: R_386_PC32        sched_clock_idle_wakeup_event
+    1dac:       fb                      sti
+    1dad:       89 e0                   mov    %esp,%eax
+->  1daf:       31 c9                   xor    %ecx,%ecx              <---------
+    1db1:       25 00 e0 ff ff          and    $0xffffe000,%eax
+    1db6:       89 fa                   mov    %edi,%edx
+    1db8:       83 48 0c 04             orl    $0x4,0xc(%eax)
+    1dbc:       ff 47 18                incl   0x18(%edi)
+    1dbf:       8b 45 e4                mov    -0x1c(%ebp),%eax
+    1dc2:       e8 a4 f5 ff ff          call   136b <acpi_state_timer_broadcast>
+    1dc7:       01 5f 1c                add    %ebx,0x1c(%edi)
+    1dca:       11 77 20                adc    %esi,0x20(%edi)
+    1dcd:       8b 45 e8                mov    -0x18(%ebp),%eax
+    1dd0:       83 c4 10                add    $0x10,%esp
+    1dd3:       5b                      pop    %ebx
+    1dd4:       5e                      pop    %esi
+    1dd5:       5f                      pop    %edi
+    1dd6:       5d                      pop    %ebp
+    1dd7:       c3                      ret
+
+
+> If you blacklist or rename the processor module to prevent it
+> from loading, does that keep the hang from occurring?
+>   
+
+No.  In that case I get the hang in default_idle+0x59/0x95
+
+0000007a <default_idle>:
+  7a:   55                      push   %ebp
+  7b:   89 e5                   mov    %esp,%ebp
+  7d:   56                      push   %esi
+  7e:   53                      push   %ebx
+  7f:   83 ec 18                sub    $0x18,%esp
+  82:   83 3d 18 00 00 00 00    cmpl   $0x0,0x18
+                        84: R_386_32    .bss
+  89:   75 7a                   jne    105 <default_idle+0x8b>
+  8b:   80 3d 05 00 00 00 00    cmpb   $0x0,0x5
+                        8d: R_386_32    boot_cpu_data
+  92:   74 71                   je     105 <default_idle+0x8b>
+  94:   83 3d 04 00 00 00 00    cmpl   $0x0,0x4
+                        96: R_386_32    __tracepoint_power_start
+  9b:   74 23                   je     c0 <default_idle+0x46>
+  9d:   8b 1d 08 00 00 00       mov    0x8,%ebx
+                        9f: R_386_32    __tracepoint_power_start
+  a3:   85 db                   test   %ebx,%ebx
+  a5:   74 19                   je     c0 <default_idle+0x46>
+  a7:   8d 75 e0                lea    -0x20(%ebp),%esi
+  aa:   b9 01 00 00 00          mov    $0x1,%ecx
+  af:   ba 01 00 00 00          mov    $0x1,%edx
+  b4:   89 f0                   mov    %esi,%eax
+  b6:   ff 13                   call   *(%ebx)
+  b8:   83 c3 04                add    $0x4,%ebx
+  bb:   83 3b 00                cmpl   $0x0,(%ebx)
+  be:   75 ea                   jne    aa <default_idle+0x30>
+  c0:   89 e0                   mov    %esp,%eax
+  c2:   25 00 e0 ff ff          and    $0xffffe000,%eax
+  c7:   83 60 0c fb             andl   $0xfffffffb,0xc(%eax)
+  cb:   f6 40 08 08             testb  $0x8,0x8(%eax)
+  cf:   75 04                   jne    d5 <default_idle+0x5b>
+  d1:   fb                      sti
+  d2:   f4                      hlt
+-->  d3:   eb 01                   jmp    d6 <default_idle+0x5c>    <--------
+  d5:   fb                      sti
+  d6:   89 e0                   mov    %esp,%eax
+  d8:   25 00 e0 ff ff          and    $0xffffe000,%eax
+  dd:   83 48 0c 04             orl    $0x4,0xc(%eax)
+  e1:   83 3d 04 00 00 00 00    cmpl   $0x0,0x4
+                        e3: R_386_32    __tracepoint_power_end
+  e8:   74 1e                   je     108 <default_idle+0x8e>
+
+
+>> 7ec0a7290797f57b780f792d12f4bcc19c83aa4f is first bad commit
+>> commit 7ec0a7290797f57b780f792d12f4bcc19c83aa4f
+>> Author: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+>> Date:   Mon Mar 30 17:48:24 2009 +0000
+>>     
+>
+> Ouch, sorry about that.  Thanks for doing all the bisection work.
+>
+>   
+>>     ACPI: processor: use .notify method instead of installing handler
+>> directly
+>>
+>>     This patch adds a .notify() method.  The presence of .notify() causes
+>>     Linux/ACPI to manage event handlers and notify handlers on our behalf,
+>>     so we don't have to install and remove them ourselves.
+>>
+>>     Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+>>     CC: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>     CC: Zhao Yakui <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>     CC: Venki Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>     CC: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>     Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>> However, reverting this commit from v2.6.30-rc1 doesn't solve the hang.
+>>     
+>
+> I don't see the problem in that commit yet, and if there is a problem
+> with it, I would think that reverting it from 2.6.30-rc1 would solve
+> it.  But maybe it'd be useful to revert the whole .notify series to
+> make sure.  From 2.6.30-rc1, you should be able to revert these:
+>
+>   7ec0a7290797f57b780f792d12f4bcc19c83aa4f processor
+>   373cfc360ec773be2f7615e59a19f3313255db7c button
+>   46ec8598fde74ba59703575c22a6fb0b6b151bb6 Linux/ACPI infrastructure
+>
+> What happens with those commits reverted?
+>   
+
+I'll find out tomorrow.
+
+Thanks
+Alan
