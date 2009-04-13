@@ -1,145 +1,78 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
-	brightness with hotkeys
-Date: Mon, 13 Apr 2009 09:53:42 +0800
-Message-ID: <1239587622.7661.205.camel@rzhang-dt>
-References: <49E10684.5090101@gmail.com>
-	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
-	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
+From: yakui_zhao <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BISECTED] 20 ACPI interrupts per second on EEEPC 4G
+Date: Mon, 13 Apr 2009 10:04:08 +0800
+Message-ID: <1239588248.5564.19.camel@localhost.localdomain>
+References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com>
+	 <49E05F83.2090500@tuffmail.co.uk>  <49E20EBA.2090708@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:3315 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752993AbZDMBxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Apr 2009 21:53:23 -0400
-In-Reply-To: <49E234ED.5010105@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <49E20EBA.2090708-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Alexey Starikovskiy <aystarik-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-please attach the acpidump output.
-please apply this patch and see if it helps,
-http://patchwork.kernel.org/patch/17339/
-
-thanks,
-rui
-
-On Mon, 2009-04-13 at 02:37 +0800, Niel Lambrechts wrote:
-> On 04/12/2009 06:14 PM, Henrique de Moraes Holschuh wrote:
-> > On Sat, 11 Apr 2009, Andrew Morton wrote:
-> >   
-> >>> With latest git kernel, I'm no longer able to control my Thinkpad (W500)
-> >>> brightness, although I can still control the backlight, bluetooth etc.
-> >>>       
+On Sun, 2009-04-12 at 23:54 +0800, Alan Jenkins wrote:
+> Alan Jenkins wrote:
+> > Alexey Starikovskiy wrote:
+> >> Alan Jenkins wrote:
+> >>> On latest git, powertop shows 20 ACPI interrupts per second. 
+> >>> Previously, this was closer to 1 per second.  See attached output (a
+> >>> vs b, "a" is from 2.6.29-rc8).
+> >>>
+> >>> This is from a pretty sparse KDE desktop.  Normally I run
+> >>> gnome-power-manager, but I killed it to make sure that wasn't
+> >>> causing any problems.
+> >>>
 > >
-> > Niels, something just occourred to me.  Is your problem the hotkeys, or the
-> > brightness control itself?  Check /sys/class/backlight/*, please.  What do
-> > you have in there?  Does it work?
-> >   
-> Hi Henrique,
+> >>> gpe18:   60975  enabled
+> >>> gpe_all:   60975
+> >>> sci:   60975
+> >>>
+> >>> which I presume means lots of EC interrupts.
+> >>>
+> >>> [    0.134068] ACPI: EC: GPE = 0x18, I/O: command/status = 0x66,
+> >>> data = 0x62
+> >>>
+> >
+> >> This patch looks to be a suspect:
+> >> 34ff4dbccccce54c83b1234d39b7ad9e548a75dd,
+> >> Please check if reversing it helps
+> >
+> > No, I still get 20 ACPI interrupts per second.
+> >
+> > I tried without powertop, just in case that was provoking it, but it
+> > still happens:
+> >
+> > alan@alan-eeepc:/sys/firmware/acpi/interrupts$ cat sci; sleep 5; cat sci
+> >    2583
+> >    2680
 > 
-> The directory is empty - this is when I used 2.6.30-rc1 (latest git)
-> from yesterday. I'll keep retrying with the latest git kernels though.
+> I did wonder whether this was due to thermal polling.  So look what I
+> found with bisection :-).
+Does the issue still exist if the following commit is reverted?
+Thanks.
 > 
-> The only additional observations I can provide is:
-> 1) pulling/plugging the power cord does actually have an effect on the
-> brightness.
-> 2) resuming form hibernate - Xorg is blank, until I simultaneously press
-> a keyboard key and touch the synaptics pad. But I have this problem in
-> 2.6.28/2.6.29 as well, and I guess it could either be vesafb or ACPI
-> related, as it also happened when I used s2disk in a console session
-> outside of X.
 > 
-> In 2.6.29.1:
-> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
-> -> ../../devices/virtual/backlight/acpi_video0
+> b1569e99c795bf83b4ddf41c4f1c42761ab7f75e is first bad commit
+> commit b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
+> Author: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+> Date:   Wed Dec 3 17:55:32 2008 +0000
 > 
-> which contains:
-> drwxr-xr-x 3 root root    0 Apr 12 20:01 ./
-> drwxr-xr-x 3 root root    0 Apr 12 20:01 ../
-> -r--r--r-- 1 root root 4096 Apr 12 20:02 actual_brightness
-> -rw-r--r-- 1 root root 4096 Apr 12 20:02 bl_power
-> -rw-r--r-- 1 root root 4096 Apr 12 20:02 brightness
-> -r--r--r-- 1 root root 4096 Apr 12 20:01 max_brightness
-> drwxr-xr-x 2 root root    0 Apr 12 20:02 power/
-> lrwxrwxrwx 1 root root    0 Apr 12 20:01 subsystem ->
-> ../../../../class/backlight/
-> -rw-r--r-- 1 root root 4096 Apr 12 20:01 uevent
+>     ACPI: move thermal trip handling to generic thermal layer
 > 
-> max_brightness = 15 and echoing values [0-15] to brightness controls it
-> as expected, or just using the standard thinkpad keys (Fn-Home to increase).
-> > If it is the hotkeys, make sure you either have the legacy ACPI events
-> > enabled in kconfig, or that you have something tied to the thinkpad-acpi
-> > input device (no, HAL doesn't do it _yet_, it just forwards the events to
-> > X.org)...
-> >   
-> I'm not sure what provides the "glue", other than "it works" in 2.6.29.1
-> and 2.6.28.9 with OpenSUSE 11.1 with xorg-x11-server-7.4-41.8.
+>     The ACPI code currently carries its own thermal trip handling,
+> meaning that
+>     any other thermal implementation will need to reimplement it. Move
+> the code
+>     to the generic thermal layer.
 > 
-> Would it help if I send the ACPI parts of my .config? These are based on
-> the default /proc/config.gz that comes with the distro.
 > 
-> # Power management and ACPI
-> options                                                               
-> CONFIG_ACPI=y                                                                                     
-> 
-> CONFIG_ACPI_SLEEP=y                                                                               
-> 
-> CONFIG_ACPI_PROCFS=y                                                                              
-> 
-> CONFIG_ACPI_PROCFS_POWER=y                                                                        
-> 
-> CONFIG_ACPI_SYSFS_POWER=y                                                                         
-> 
-> CONFIG_ACPI_PROC_EVENT=y                                                                          
-> 
-> CONFIG_ACPI_AC=m                                                                                  
-> 
-> CONFIG_ACPI_BATTERY=m                                                                             
-> 
-> CONFIG_ACPI_BUTTON=m                                                                              
-> 
-> CONFIG_ACPI_VIDEO=m                                                                               
-> 
-> CONFIG_ACPI_FAN=m                                                                                 
-> 
-> CONFIG_ACPI_DOCK=y
-> CONFIG_ACPI_PROCESSOR=m
-> CONFIG_ACPI_HOTPLUG_CPU=y
-> CONFIG_ACPI_THERMAL=m
-> CONFIG_ACPI_CUSTOM_DSDT_FILE=""
-> # CONFIG_ACPI_CUSTOM_DSDT is not set
-> CONFIG_ACPI_BLACKLIST_YEAR=2001
-> # CONFIG_ACPI_DEBUG is not set
-> # CONFIG_ACPI_PCI_SLOT is not set
-> CONFIG_ACPI_CONTAINER=m
-> CONFIG_ACPI_SBS=m
-> CONFIG_X86_ACPI_CPUFREQ=m
-> CONFIG_X86_POWERNOW_K7_ACPI=y
-> CONFIG_X86_POWERNOW_K8_ACPI=y
-> CONFIG_HOTPLUG_PCI_ACPI=m
-> CONFIG_HOTPLUG_PCI_ACPI_IBM=m
-> CONFIG_PNPACPI=y
-> CONFIG_BLK_DEV_IDEACPI=y
-> CONFIG_ATA_ACPI=y
-> CONFIG_PATA_ACPI=m
-> CONFIG_THINKPAD_ACPI=m
-> # CONFIG_THINKPAD_ACPI_DEBUGFACILITIES is not set
-> # CONFIG_THINKPAD_ACPI_DEBUG is not set
-> CONFIG_THINKPAD_ACPI_BAY=y
-> CONFIG_THINKPAD_ACPI_VIDEO=y
-> CONFIG_THINKPAD_ACPI_HOTKEY_POLL=y
-> CONFIG_ACPI_WMI=m
-> # CONFIG_ACPI_ASUS is not set
-> CONFIG_ACPI_TOSHIBA=m
-> 
-> Regards,
-> Niel
+> Regards
+> Alan
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
