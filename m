@@ -1,28 +1,33 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: new fixes for sony-acpi
-Date: Mon, 13 Apr 2009 16:45:34 +0100
-Message-ID: <20090413154534.GB11971@srcf.ucam.org>
-References: <alpine.LFD.2.00.0903272132400.26419@localhost.localdomain> <20090328013832.GA4778@srcf.ucam.org> <20090328083315.GF9057@gamma.logic.tuwien.ac.at> <20090328120008.GA22470@srcf.ucam.org> <20090331152035.GA20946@srcf.ucam.org> <20090413150302.GC2332@gamma.logic.tuwien.ac.at> <20090413150645.GA11445@srcf.ucam.org> <20090413151136.GA6735@gamma.logic.tuwien.ac.at> <20090413152602.GA11772@srcf.ucam.org> <20090413154331.GF6735@gamma.logic.tuwien.ac.at>
+Subject: Re: [PATCH 6/6] sony-laptop: always try to unblock rfkill on load
+Date: Mon, 13 Apr 2009 16:46:12 +0100
+Message-ID: <20090413154612.GC11971@srcf.ucam.org>
+References: <1239535591-15514-1-git-send-email-malattia@linux.it> <1239535591-15514-2-git-send-email-malattia@linux.it> <1239535591-15514-3-git-send-email-malattia@linux.it> <1239535591-15514-4-git-send-email-malattia@linux.it> <1239535591-15514-5-git-send-email-malattia@linux.it> <1239535591-15514-6-git-send-email-malattia@linux.it> <1239535591-15514-7-git-send-email-malattia@linux.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46441 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:46448 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752429AbZDMPpq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 11:45:46 -0400
+	with ESMTP id S1752389AbZDMPqP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Apr 2009 11:46:15 -0400
 Content-Disposition: inline
-In-Reply-To: <20090413154331.GF6735@gamma.logic.tuwien.ac.at>
+In-Reply-To: <1239535591-15514-7-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Len Brown <lenb@kernel.org>, sony-vaio-z-series@lists.launchpad.net, Mattia Dongili <malattia@linux.it>, Matthias Welwarsky <matze@welwarsky.de>, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Matthias Welwarsky <matze@welwarsky.de>
 
-On Mon, Apr 13, 2009 at 05:43:31PM +0200, Norbert Preining wrote:
+On Sun, Apr 12, 2009 at 08:26:31PM +0900, Mattia Dongili wrote:
+> This fixes an inconsistent behaviour when loading the driver with the
+> switch on or off. In the former case you would also need to soft unblock
+> the switch via the sysfs file entries to really disable rfkill, in the
+> latter you wouldn't.
+> 
+> Signed-off-by: Mattia Dongili <malattia@linux.it>
+> Cc: Matthias Welwarsky <matze@welwarsky.de>
+> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 
-> So yes, it looks fine. Turning off all the devices but wifi, and
-> regulating down the brightness a bit, etc, I am back to around 13-14W. I
-> guess that is fine.
+Acked-by: Matthew Garrett <mjg@redhat.com>
 
-Ok, sounds good. I'll tidy this up and submit it.
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
