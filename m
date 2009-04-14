@@ -1,51 +1,49 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH -test] ACPI video: fix an error when the brightness levels
-	on AC and on Battery are same
-Date: Tue, 14 Apr 2009 11:02:18 +0800
-Message-ID: <1239678138.7661.255.camel@rzhang-dt>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH 0/2]: the patch set to weaken the dependency between ACPI
+	video driver and i915 driver
+Date: Tue, 14 Apr 2009 11:04:35 +0800
+Message-ID: <1239678275.5564.66.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12046 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:16804 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751463AbZDNDB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Apr 2009 23:01:58 -0400
+	id S1750721AbZDNDD0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Apr 2009 23:03:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
+
+Hi, All
+    the following is the patch set that can weaken the dependency between ACPI video and i915
+driver.
+    Patch 1/2:  Check whether the acpi video is deferrable only when KMS is enabled
+    When the KMS is enabled in kernel configuration, OS will check whether  the acpi video 
+driver is deferrable. Otherwise it will continue the current flowchart.
+
+    Patch 2/2:  weaken the tight dependency between the ACPI video driver and i915 driver
+    Now there exists the tight dependency between the ACPI video driver and i915 driver. 
+If the I915 driver is compiled as built-in module and the acpi video is compiled as module, 
+it will fail in the kernel compilation.
+    At the same time the acpi video driver must be loaded in order to load
+the I915 driver. It is very hack.
+
+    This patch is to weaken the dependency between the ACPI video driver and
+i915 driver. But it still can do what we expected.
+    a. the i915/acpi_video_register is defined in the video_detect.When the video is selected, 
+it will be complied as built-in functions. If the video is not selected, it is defined as 
+inline function.
+    b. i915_video_register is called by i915 driver. And i915 video flag is set.
+    c. acpi_video_register/unregister is called by acpi video driver. The acpi video bus driver
+is hooked and the ACPI video flag is set.
+    d. When the both flag bits are set, the acpi video bus driver will be registered.
 
 
-when the brightness level on AC and brightness level on Battery
-are same, the level_ac_battery is 1 in the current code,
-which is wrong.
-http://marc.info/?l=linux-acpi&m=123963513206858&w=2
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -768,10 +768,12 @@ acpi_video_init_brightness(struct acpi_v
- 	 * In this case, the first two elements in _BCL packages
- 	 * are also supported brightness levels that OS should take care of.
- 	 */
--	for (i = 2; i < count; i++)
--		if (br->levels[i] == br->levels[0] ||
--		    br->levels[i] == br->levels[1])
-+	for (i = 2; i < count; i++) {
-+		if (br->levels[i] == br->levels[0])
- 			level_ac_battery++;
-+		if (br->levels[i] == br->levels[1])
-+			level_ac_battery++;
-+	}
+Welcome the comments.
  
- 	if (level_ac_battery < 2) {
- 		level_ac_battery = 2 - level_ac_battery;
+Best regards
+   Yakui
 
 
