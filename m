@@ -1,49 +1,167 @@
-From: Ed Tomlinson <edt@aei.ca>
-Subject: Re: 2.6.30-rc1 A few issues and a stall
-Date: Tue, 14 Apr 2009 18:03:14 -0400
-Message-ID: <200904141803.14660.edt@aei.ca>
-References: <200904121124.07193.edt@aei.ca> <200904140832.25057.edt@aei.ca> <49E4840E.6010300@redhat.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] pnp: add PNP resource range checking function
+Date: Tue, 14 Apr 2009 16:53:11 -0600
+Message-ID: <200904141653.11884.bjorn.helgaas@hp.com>
+References: <20090414124618.0dd9f536@hobbes>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49E4840E.6010300@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:9646 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896AbZDNWxP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Apr 2009 18:53:15 -0400
+In-Reply-To: <20090414124618.0dd9f536@hobbes>
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Avi Kivity <avi@redhat.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-On Tuesday 14 April 2009 08:39:42 Avi Kivity wrote:
-> Ed Tomlinson wrote:
-> > On Tuesday 14 April 2009 06:03:58 Avi Kivity wrote:
-> >   
-> >> Ed Tomlinson wrote:
-> >>     
-> >>> Once the above networking stuff is setup I start kvm with the command below
-> >>>
-> >>> QEMU_AUDIO_DRV=alsa kvm -m 1024 -cdrom /mnt/sdc4/divx/archlinux-2009.02-ftp-i686.iso -boot c -smp 3 -usb -usbdevice tablet -vga std -drive file=arch.img -net nic,macaddr=52:54:00:12:34:23 -net tap,ifname=qtap0,script=no -soundhw all -mem-path /hugepages
-> >>>
-> >>> which works and the kvm session boots just fine.  
-> >>>
-> >>> Issue 2.  When I attempt to ping outside the kvm session the pc (not just the kvm session) hangs.
-> >>> Its impossible to kill the kvm session and there are numerious info messages from RCU (tree RCU enabled)
-> >>> about stalls.  
-> >>>   
-> >>>       
-> >> The rcu messages are likely because a processor has died.
-> >>
-> >> Do things work if you drop -mem-path?
-> >>     
-> >
-> > It makes no difference.  I did notice that one cpu is peged at 100% though.  I'll be trying
-> > CONFIG_PROVE_LOCKING tonight for another problem - might give interesting results.
-> >   
+On Tuesday 14 April 2009 01:46:18 pm Jesse Barnes wrote:
+> This patch adds a new export from the ACPI PNP core,
+> is_acpi_pnp_reserved, which is intended for use by drivers to check
+> whether a given range is already reserved (and therefore likely safe to
+> use) or not (indicating that new resource space should probably be
+> allocated).
+
+This doesn't really need to be ACPI-specific, does it?  And can't
+you use the pre-parsed resources in pnp_dev->resources?  And wouldn't
+you just look at all resources for all PNP devices, not just the PNP0C01/2
+ones?
+
+Sorry I don't have time to code up an example right now; maybe next
+week, though, if you remind me :-)
+
+Bjorn
+
+> If it looks reasonable, there's code in arch/x86/pci that could
+> probably be moved over to this as well.
 > 
-> Oh, so this goes away without CONFIG_PROVE_LOCKING?
+> Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+> 
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index 2834846..810feff 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -27,6 +27,94 @@
+>  #include "../base.h"
+>  #include "pnpacpi.h"
+>  
+> +/*
+> + * Check the given resource against our test range
+> + */
+> +static acpi_status check_pnp_resource(struct acpi_resource *res,
+> +				      void *data)
+> +{
+> +	struct resource *test_res = data;
+> +	struct acpi_resource_address64 address;
+> +	acpi_status status;
+> +
+> +	if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
+> +		struct acpi_resource_fixed_memory32 *fixmem32 =
+> +			&res->data.fixed_memory32;
+> +		if (!fixmem32)
+> +			return AE_OK;
+> +
+> +		if ((test_res->start >= fixmem32->address) &&
+> +		    (test_res->end < (fixmem32->address +
+> +				      fixmem32->address_length))) {
+> +			test_res->flags = 1;
+> +			return AE_CTRL_TERMINATE;
+> +		}
+> +	}
+> +	if ((res->type != ACPI_RESOURCE_TYPE_ADDRESS32) &&
+> +	    (res->type != ACPI_RESOURCE_TYPE_ADDRESS64))
+> +		return AE_OK;
+> +
+> +	status = acpi_resource_to_address64(res, &address);
+> +	if (ACPI_FAILURE(status) ||
+> +	   (address.address_length <= 0) ||
+> +	   (address.resource_type != ACPI_MEMORY_RANGE))
+> +		return AE_OK;
+> +
+> +	if ((test_res->start >= address.minimum) &&
+> +	    (test_res->end < (address.minimum +
+> address.address_length))) {
+> +		test_res->flags = 1;
+> +		return AE_CTRL_TERMINATE;
+> +	}
+> +	return AE_OK;
+> +}
+> +
+> +/*
+> + * Walk the current resource settings and check status
+> + */
+> +static acpi_status find_pnp_resource(acpi_handle handle, u32 lvl,
+> +				     void *context, void **rv)
+> +{
+> +	struct resource *res = context;
+> +
+> +	acpi_walk_resources(handle, METHOD_NAME__CRS,
+> +			    check_pnp_resource, context);
+> +
+> +	if (res->flags)
+> +		return AE_CTRL_TERMINATE;
+> +
+> +	return AE_OK;
+> +}
+> +
+> +/**
+> + * is_acpi_pnp_reserved - check whether a given range is reserved
+> + * @start: start of range
+> + * @end: end of range
+> + *
+> + * Check the given range (specified by @start and @end) against the
+> current
+> + * PNP resource settings.
+> + *
+> + * RETURNS:
+> + * Zero if the range is not currently reserved.
+> + * Nonzero if the range is reserved.
+> + */
+> +int is_acpi_pnp_reserved(u64 start, u64 end)
+> +{
+> +	struct resource res;
+> +
+> +	res.start = start;
+> +	res.end = end;
+> +	res.flags = 0;
+> +
+> +	acpi_get_devices("PNP0C01", find_pnp_resource, &res, NULL);
+> +
+> +	if (!res.flags)
+> +		acpi_get_devices("PNP0C02", find_pnp_resource, &res,
+> +				 NULL);
+> +
+> +	return res.flags;
+> +}
+> +EXPORT_SYMBOL(is_acpi_pnp_reserved);
+> +
+>  static int num = 0;
+>  
+>  /* We need only to blacklist devices that have already an acpi driver
+> that diff --git a/include/linux/pnp.h b/include/linux/pnp.h
+> index ca3c887..2bc9cfc 100644
+> --- a/include/linux/pnp.h
+> +++ b/include/linux/pnp.h
+> @@ -446,6 +446,7 @@ int pnp_start_dev(struct pnp_dev *dev);
+>  int pnp_stop_dev(struct pnp_dev *dev);
+>  int pnp_activate_dev(struct pnp_dev *dev);
+>  int pnp_disable_dev(struct pnp_dev *dev);
+> +int is_acpi_pnp_reserved(u64 start, u64 end);
+>  
+>  /* protocol helpers */
+>  int pnp_is_active(struct pnp_dev *dev);
+> @@ -476,6 +477,7 @@ static inline int pnp_start_dev(struct pnp_dev
+> *dev) { return -ENODEV; } static inline int pnp_stop_dev(struct pnp_dev
+> *dev) { return -ENODEV; } static inline int pnp_activate_dev(struct
+> pnp_dev *dev) { return -ENODEV; } static inline int
+> pnp_disable_dev(struct pnp_dev *dev) { return -ENODEV; } +static inline
+> int is_acpi_pnp_reserved(u64 start, u64 end) { return FALSE; } 
+>  /* protocol helpers */
+>  static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
+> 
 
-Nothing goes away.  This happens without CONFIG_PROVE_LOCKING active in the kernel.  Given 
-that one CPU is running at 100% I suspect that a spinlock is stuck...
 
-Ed
