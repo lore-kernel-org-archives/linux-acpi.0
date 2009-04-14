@@ -1,149 +1,225 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: [PATCH] pnp: add PNP resource range checking function
-Date: Tue, 14 Apr 2009 12:46:18 -0700
-Message-ID: <20090414124618.0dd9f536@hobbes>
+Subject: [PATCH] i915: enable MCHBAR if needed
+Date: Tue, 14 Apr 2009 12:48:00 -0700
+Message-ID: <20090414124800.6852821c@hobbes>
+References: <20090414124618.0dd9f536@hobbes>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-124.bluehost.com ([67.222.38.24]:46700 "HELO
-	outbound-mail-124.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752993AbZDNTxA (ORCPT
+Received: from outbound-mail-304.bluehost.com ([67.222.53.250]:48713 "HELO
+	outbound-mail-304.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754338AbZDNTyn (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:53:00 -0400
+	Tue, 14 Apr 2009 15:54:43 -0400
+In-Reply-To: <20090414124618.0dd9f536@hobbes>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, intel-gfx@lists.freedesktop.org
 
-This patch adds a new export from the ACPI PNP core,
-is_acpi_pnp_reserved, which is intended for use by drivers to check
-whether a given range is already reserved (and therefore likely safe to
-use) or not (indicating that new resource space should probably be
-allocated).
+Using the new PNP resource checking code, this patch allows the i915
+driver to allocate MCHBAR space if needed and use the BAR to determine
+current memory settings.
 
-If it looks reasonable, there's code in arch/x86/pci that could
-probably be moved over to this as well.
+Testing & feedback welcome.
 
 Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index 2834846..810feff 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -27,6 +27,94 @@
- #include "../base.h"
- #include "pnpacpi.h"
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index e9de2c2..d34fad9 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -143,6 +143,8 @@ typedef struct drm_i915_private {
+ 	drm_local_map_t hws_map;
+ 	struct drm_gem_object *hws_obj;
  
-+/*
-+ * Check the given resource against our test range
-+ */
-+static acpi_status check_pnp_resource(struct acpi_resource *res,
-+				      void *data)
++	struct resource mch_res;
++
+ 	unsigned int cpp;
+ 	int back_offset;
+ 	int front_offset;
+diff --git a/drivers/gpu/drm/i915/i915_gem_tiling.c b/drivers/gpu/drm/i915/i915_gem_tiling.c
+index 6be3f92..a8d2d67 100644
+--- a/drivers/gpu/drm/i915/i915_gem_tiling.c
++++ b/drivers/gpu/drm/i915/i915_gem_tiling.c
+@@ -24,6 +24,8 @@
+  *    Eric Anholt <eric@anholt.net>
+  *
+  */
++#include <linux/acpi.h>
++#include <linux/pnp.h>
+ 
+ #include "drmP.h"
+ #include "drm.h"
+@@ -79,6 +81,143 @@
+  * to match what the GPU expects.
+  */
+ 
++#define MCHBAR_I915 0x44
++#define MCHBAR_I965 0x48
++#define MCHBAR_SIZE (4*4096)
++
++#define DEVEN_REG 0x54
++#define   DEVEN_MCHBAR_EN (1 << 28)
++
++/* Allocate space for the MCH regs if needed, return nonzero on error */
++static int
++intel_alloc_mchbar_resource(struct drm_device *dev)
 +{
-+	struct resource *test_res = data;
-+	struct acpi_resource_address64 address;
-+	acpi_status status;
++	struct pci_dev *bridge_dev;
++	drm_i915_private_t *dev_priv = dev->dev_private;
++	int reg = IS_I965G(dev) ? MCHBAR_I965 : MCHBAR_I915;
++	u32 temp_lo, temp_hi = 0;
++	u64 mchbar_addr;
++	int ret = 0;
 +
-+	if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
-+		struct acpi_resource_fixed_memory32 *fixmem32 =
-+			&res->data.fixed_memory32;
-+		if (!fixmem32)
-+			return AE_OK;
++	bridge_dev = pci_get_bus_and_slot(0, PCI_DEVFN(0,0));
++	if (!bridge_dev) {
++		DRM_DEBUG("no bridge dev?!\n");
++		ret = -ENODEV;
++		goto out;
++	}
 +
-+		if ((test_res->start >= fixmem32->address) &&
-+		    (test_res->end < (fixmem32->address +
-+				      fixmem32->address_length))) {
-+			test_res->flags = 1;
-+			return AE_CTRL_TERMINATE;
++	if (IS_I965G(dev))
++		pci_read_config_dword(bridge_dev, reg + 4, &temp_hi);
++	pci_read_config_dword(bridge_dev, reg, &temp_lo);
++	mchbar_addr = ((u64)temp_hi << 32) | temp_lo;
++
++	/* If ACPI doesn't have it, assume we need to allocate it ourselves */
++	if (mchbar_addr &&
++	    is_acpi_pnp_reserved(mchbar_addr, mchbar_addr + MCHBAR_SIZE)) {
++		ret = 0;
++		goto out_put;
++	}
++
++	/* Get some space for it */
++	ret = pci_bus_alloc_resource(bridge_dev->bus, &dev_priv->mch_res,
++				     MCHBAR_SIZE, MCHBAR_SIZE,
++				     PCIBIOS_MIN_MEM,
++				     0,   pcibios_align_resource,
++				     bridge_dev);
++	if (ret) {
++		DRM_DEBUG("failed bus alloc: %d\n", ret);
++		dev_priv->mch_res.start = 0;
++		goto out_put;
++	}
++
++	if (IS_I965G(dev))
++		pci_write_config_dword(bridge_dev, reg + 4,
++				       upper_32_bits(dev_priv->mch_res.start));
++
++	pci_write_config_dword(bridge_dev, reg,
++			       lower_32_bits(dev_priv->mch_res.start));
++out_put:
++	pci_dev_put(bridge_dev);
++out:
++	return ret;
++}
++
++/* Setup MCHBAR if possible, return true if we should disable it again */
++static bool
++intel_setup_mchbar(struct drm_device *dev)
++{
++	struct pci_dev *bridge_dev;
++	int mchbar_reg = IS_I965G(dev) ? MCHBAR_I965 : MCHBAR_I915;
++	u32 temp;
++	bool need_disable = false, enabled;
++
++	bridge_dev = pci_get_bus_and_slot(0, PCI_DEVFN(0,0));
++	if (!bridge_dev) {
++		DRM_DEBUG("no bridge dev?!\n");
++		goto out;
++	}
++
++	if (IS_I915G(dev) || IS_I915GM(dev)) {
++		pci_read_config_dword(bridge_dev, DEVEN_REG, &temp);
++		enabled = !!(temp & DEVEN_MCHBAR_EN);
++	} else {
++		pci_read_config_dword(bridge_dev, mchbar_reg, &temp);
++		enabled = temp & 1;
++	}
++
++	/* If it's already enabled, don't have to do anything */
++	if (enabled)
++		goto out_put;
++
++	if (intel_alloc_mchbar_resource(dev))
++		goto out_put;
++
++	need_disable = true;
++
++	/* Space is allocated or reserved, so enable it. */
++	if (IS_I915G(dev) || IS_I915GM(dev)) {
++		pci_write_config_dword(bridge_dev, DEVEN_REG,
++				       temp | DEVEN_MCHBAR_EN);
++	} else {
++		pci_read_config_dword(bridge_dev, mchbar_reg, &temp);
++		pci_write_config_dword(bridge_dev, mchbar_reg, temp | 1);
++	}
++out_put:
++	pci_dev_put(bridge_dev);
++out:
++	return need_disable;
++}
++
++static void
++intel_teardown_mchbar(struct drm_device *dev, bool disable)
++{
++	drm_i915_private_t *dev_priv = dev->dev_private;
++	struct pci_dev *bridge_dev;
++	int mchbar_reg = IS_I965G(dev) ? MCHBAR_I965 : MCHBAR_I915;
++	u32 temp;
++
++	bridge_dev = pci_get_bus_and_slot(0, PCI_DEVFN(0,0));
++	if (!bridge_dev) {
++		DRM_DEBUG("no bridge dev?!\n");
++		return;
++	}
++
++	if (disable) {
++		if (IS_I915G(dev) || IS_I915GM(dev)) {
++			pci_read_config_dword(bridge_dev, DEVEN_REG, &temp);
++			temp &= ~DEVEN_MCHBAR_EN;
++			pci_write_config_dword(bridge_dev, DEVEN_REG, temp);
++		} else {
++			pci_read_config_dword(bridge_dev, mchbar_reg, &temp);
++			temp &= ~1;
++			pci_write_config_dword(bridge_dev, mchbar_reg, temp);
 +		}
 +	}
-+	if ((res->type != ACPI_RESOURCE_TYPE_ADDRESS32) &&
-+	    (res->type != ACPI_RESOURCE_TYPE_ADDRESS64))
-+		return AE_OK;
 +
-+	status = acpi_resource_to_address64(res, &address);
-+	if (ACPI_FAILURE(status) ||
-+	   (address.address_length <= 0) ||
-+	   (address.resource_type != ACPI_MEMORY_RANGE))
-+		return AE_OK;
-+
-+	if ((test_res->start >= address.minimum) &&
-+	    (test_res->end < (address.minimum +
-address.address_length))) {
-+		test_res->flags = 1;
-+		return AE_CTRL_TERMINATE;
-+	}
-+	return AE_OK;
++	if (dev_priv->mch_res.start)
++		release_resource(&dev_priv->mch_res);
 +}
 +
-+/*
-+ * Walk the current resource settings and check status
-+ */
-+static acpi_status find_pnp_resource(acpi_handle handle, u32 lvl,
-+				     void *context, void **rv)
-+{
-+	struct resource *res = context;
-+
-+	acpi_walk_resources(handle, METHOD_NAME__CRS,
-+			    check_pnp_resource, context);
-+
-+	if (res->flags)
-+		return AE_CTRL_TERMINATE;
-+
-+	return AE_OK;
-+}
-+
-+/**
-+ * is_acpi_pnp_reserved - check whether a given range is reserved
-+ * @start: start of range
-+ * @end: end of range
-+ *
-+ * Check the given range (specified by @start and @end) against the
-current
-+ * PNP resource settings.
-+ *
-+ * RETURNS:
-+ * Zero if the range is not currently reserved.
-+ * Nonzero if the range is reserved.
-+ */
-+int is_acpi_pnp_reserved(u64 start, u64 end)
-+{
-+	struct resource res;
-+
-+	res.start = start;
-+	res.end = end;
-+	res.flags = 0;
-+
-+	acpi_get_devices("PNP0C01", find_pnp_resource, &res, NULL);
-+
-+	if (!res.flags)
-+		acpi_get_devices("PNP0C02", find_pnp_resource, &res,
-+				 NULL);
-+
-+	return res.flags;
-+}
-+EXPORT_SYMBOL(is_acpi_pnp_reserved);
-+
- static int num = 0;
+ /**
+  * Detects bit 6 swizzling of address lookup between IGD access and CPU
+  * access through main memory.
+@@ -89,6 +228,7 @@ i915_gem_detect_bit_6_swizzle(struct drm_device *dev)
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+ 	uint32_t swizzle_x = I915_BIT_6_SWIZZLE_UNKNOWN;
+ 	uint32_t swizzle_y = I915_BIT_6_SWIZZLE_UNKNOWN;
++	bool need_disable;
  
- /* We need only to blacklist devices that have already an acpi driver
-that diff --git a/include/linux/pnp.h b/include/linux/pnp.h
-index ca3c887..2bc9cfc 100644
---- a/include/linux/pnp.h
-+++ b/include/linux/pnp.h
-@@ -446,6 +446,7 @@ int pnp_start_dev(struct pnp_dev *dev);
- int pnp_stop_dev(struct pnp_dev *dev);
- int pnp_activate_dev(struct pnp_dev *dev);
- int pnp_disable_dev(struct pnp_dev *dev);
-+int is_acpi_pnp_reserved(u64 start, u64 end);
+ 	if (!IS_I9XX(dev)) {
+ 		/* As far as we know, the 865 doesn't have these bit 6
+@@ -99,6 +239,9 @@ i915_gem_detect_bit_6_swizzle(struct drm_device *dev)
+ 	} else if (IS_MOBILE(dev)) {
+ 		uint32_t dcc;
  
- /* protocol helpers */
- int pnp_is_active(struct pnp_dev *dev);
-@@ -476,6 +477,7 @@ static inline int pnp_start_dev(struct pnp_dev
-*dev) { return -ENODEV; } static inline int pnp_stop_dev(struct pnp_dev
-*dev) { return -ENODEV; } static inline int pnp_activate_dev(struct
-pnp_dev *dev) { return -ENODEV; } static inline int
-pnp_disable_dev(struct pnp_dev *dev) { return -ENODEV; } +static inline
-int is_acpi_pnp_reserved(u64 start, u64 end) { return FALSE; } 
- /* protocol helpers */
- static inline int pnp_is_active(struct pnp_dev *dev) { return 0; }
++		/* Try to make sure MCHBAR is enabled before poking at it */
++		need_disable = intel_setup_mchbar(dev);
++
+ 		/* On mobile 9xx chipsets, channel interleave by the CPU is
+ 		 * determined by DCC.  For single-channel, neither the CPU
+ 		 * nor the GPU do swizzling.  For dual channel interleaved,
+@@ -138,6 +281,8 @@ i915_gem_detect_bit_6_swizzle(struct drm_device *dev)
+ 			swizzle_x = I915_BIT_6_SWIZZLE_UNKNOWN;
+ 			swizzle_y = I915_BIT_6_SWIZZLE_UNKNOWN;
+ 		}
++
++		intel_teardown_mchbar(dev, need_disable);
+ 	} else {
+ 		/* The 965, G33, and newer, have a very flexible memory
+ 		 * configuration.  It will enable dual-channel mode
