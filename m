@@ -1,49 +1,45 @@
 From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [PATCH 0/2]: the patch set to weaken the dependency between ACPI
-	video driver and i915 driver
-Date: Tue, 14 Apr 2009 11:04:35 +0800
-Message-ID: <1239678275.5564.66.camel@localhost.localdomain>
+Subject: [PATCH 1/2]: ACPI: Check whether the acpi video is deferrable only
+	when KMS is enabled
+Date: Tue, 14 Apr 2009 11:05:45 +0800
+Message-ID: <1239678345.5564.69.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16804 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:38979 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750721AbZDNDD0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Apr 2009 23:03:26 -0400
+	id S1752433AbZDNDEY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Apr 2009 23:04:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org
 
-Hi, All
-    the following is the patch set that can weaken the dependency between ACPI video and i915
-driver.
-    Patch 1/2:  Check whether the acpi video is deferrable only when KMS is enabled
-    When the KMS is enabled in kernel configuration, OS will check whether  the acpi video 
-driver is deferrable. Otherwise it will continue the current flowchart.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-    Patch 2/2:  weaken the tight dependency between the ACPI video driver and i915 driver
-    Now there exists the tight dependency between the ACPI video driver and i915 driver. 
-If the I915 driver is compiled as built-in module and the acpi video is compiled as module, 
-it will fail in the kernel compilation.
-    At the same time the acpi video driver must be loaded in order to load
-the I915 driver. It is very hack.
+weaken the dependency between the I915 driver and ACPI video driver.
+When the KMS is not enabled in kernel configuration, it will contine
+the current flowchart. 
 
-    This patch is to weaken the dependency between the ACPI video driver and
-i915 driver. But it still can do what we expected.
-    a. the i915/acpi_video_register is defined in the video_detect.When the video is selected, 
-it will be complied as built-in functions. If the video is not selected, it is defined as 
-inline function.
-    b. i915_video_register is called by i915 driver. And i915 video flag is set.
-    c. acpi_video_register/unregister is called by acpi video driver. The acpi video bus driver
-is hooked and the ACPI video flag is set.
-    d. When the both flag bits are set, the acpi video bus driver will be registered.
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+cc: Matthew Garrett <mjg59@srcf.ucam.org>
+---
+ drivers/acpi/video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-Welcome the comments.
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c	2009-04-14 10:26:30.000000000 +0800
++++ linux-2.6/drivers/acpi/video.c	2009-04-14 10:28:12.000000000 +0800
+@@ -2242,7 +2242,7 @@
  
-Best regards
-   Yakui
+ static int __init intel_opregion_present(void)
+ {
+-#if defined(CONFIG_DRM_I915) || defined(CONFIG_DRM_I915_MODULE)
++#if defined(CONFIG_DRM_I915_KMS)
+ 	struct pci_dev *dev = NULL;
+ 	u32 address;
+ 
 
 
