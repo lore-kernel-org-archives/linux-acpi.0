@@ -1,138 +1,90 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [patch for 2.6.30 2/2] arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts
-Date: Wed, 15 Apr 2009 16:05:05 +0930
-Message-ID: <200904151605.05989.rusty@rustcorp.com.au>
-References: <200904110617.n3B6HJ7W026502@imap1.linux-foundation.org> <200904141821.37413.rusty@rustcorp.com.au> <20090414101817.0c935261.akpm@linux-foundation.org>
+From: Niel Lambrechts <niel.lambrechts@gmail.com>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control	brightness
+ with hotkeys (BISECTED)
+Date: Wed, 15 Apr 2009 08:53:20 +0200
+Message-ID: <49E58460.1010402@gmail.com>
+References: <49E10684.5090101@gmail.com>	 <20090411150555.8b13ed18.akpm@linux-foundation.org>	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>	 <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com>	 <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com> <1239760242.7661.305.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:42694 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751408AbZDOGfK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Apr 2009 02:35:10 -0400
-In-Reply-To: <20090414101817.0c935261.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:41110 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750726AbZDOGxp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 02:53:45 -0400
+In-Reply-To: <1239760242.7661.305.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dave Jones <davej@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, efault@gmx.de, len.brown@intel.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 15 Apr 2009 02:48:17 am Andrew Morton wrote:
-> On Tue, 14 Apr 2009 18:21:36 +0930 Rusty Russell <rusty@rustcorp.com.au> wrote:
-> > Subject: cpumask: cpumask_closest()
-..
-> Should it be exported?
+On 04/15/2009 03:50 AM, Zhang Rui wrote:
+> On Wed, 2009-04-15 at 07:59 +0800, Niel Lambrechts wrote:
+>   
+>> On 04/13/2009 10:34 PM, Henrique de Moraes Holschuh wrote:
+>>     
+>>> On Mon, 13 Apr 2009, Niel Lambrechts wrote:
+>>>   
+>>>       
+>>>>>> In 2.6.29.1:
+>>>>>> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
+>>>>>> -> ../../devices/virtual/backlight/acpi_video0
+>>>>>>         
+>>>>>>             
+>>> Well, that at least confirms that thinkpad-acpi doesn't have anything to
+>>> do with your troubles, you were using acpi video.
+>>>   
+>>>       
+>> Okay, I've bisected it to:
+>>
+>> 74a365b3f354fafc537efa5867deb7a9fadbfe27 is first bad commit
+>> commit 74a365b3f354fafc537efa5867deb7a9fadbfe27
+>> Author: Matthew Garrett <mjg59@srcf.ucam.org>
+>> Date:   Thu Mar 19 21:35:39 2009 +0000
+>>
+>>     ACPI: Populate DIDL before registering ACPI video device on Intel
+>>
+>>     
+>
+> please set CONFIG_DRM_I915_KMS, reload the ACPI video driver after
+> loading i915 and see if it helps.
+>   
+In all the kernels I've tried (up to 2.6.30-rc2), I get issues with KMS:
 
-Ah yes.
+I boot with 'modeset=1 i915=1', console login is okay and 'modprobe i915
+modeset=1' seems to work - the console resolution changes (very small
+1920x1200).
 
-> It looks all racy against hotplug.  What are the caller's
-> responsibilities here?
+When I do 'init 5' kdm loads (and display the logon screen) but after
+entering my username/password it hangs at the KDE splash-screen (the
+last icon, so some progress must have been made). Caps lock then won't
+even work, but emergency sync seemed to do the trick.
 
-Kind of independent.  There's no implied internal reference to online_mask.
+/var/log/warnings:
+Apr 15 07:55:11 linux-7vph nm-dispatcher.action: Script
+'/etc/NetworkManager/dispatcher.d/autofs' exited with error status 1.
+Apr 15 07:55:12 linux-7vph kernel: allocated 1920x1200 fb: 0x02020000,
+bo f598acc0
+Apr 15 07:55:12 linux-7vph kernel: Console: switching to colour frame
+buffer device 240x75
+Apr 15 07:55:13 linux-7vph nm-dispatcher.action: Script
+'/etc/NetworkManager/dispatcher.d/nfs' exitedwith error status 6.
+Apr 15 07:55:19 linux-7vph kdm_config[3234]: Multiple occurrences of key
+'UseTheme' in section [X-*-Greeter] of /usr/share/kde4/config/kdm/kdmrc
+Apr 15 07:55:22 linux-7vph kernel: CE: hpet increasing min_delta_ns to
+15000 nsec
+Apr 15 07:56:10 linux-7vph kernel: Emergency Sync complete
+Apr 15 07:56:26 linux-7vph kernel: CE: hpet increasing min_delta_ns to
+22500 nsec
+Apr 15 07:56:27 linux-7vph kernel: Emergency Sync complete
+Apr 15 07:56:49 linux-7vph kernel: Emergency Sync complete
+Apr 15 07:56:55 linux-7vph kernel: CE: hpet increasing min_delta_ns to
+33750 nsec
+Apr 15 07:56:56 linux-7vph kernel: Emergency Sync complete
 
-> any_online_cpu() could use cpumask_closest(), against (*mask & cpu_online_map).
+So while I'd love to use KMS, I have never been able to get X up using it.
 
-Note that I've been killing any_online_cpu().  It passes a cpumask on stack, 
-and cpumask_any(cpu_online_mask) / cpumask_any_and(mask, cpu_online_mask) work
-just as well.
+Regards,
+Niel
 
-> I think all cpumask_any() call sites can be migrated to
-> cpumask_closest() with, at worst, no benefit.
-
-OK, here's the updated patch.
-
-Rusty.
-
-Subject: cpumask: cpumask_closest() and cpumask_closest_and()
-
-Impact: new functions
-
-Andrew points out that acpi-cpufreq uses cpumask_any, when it really
-would prefer to use the same CPU if possible (to avoid an IPI).  In
-general, this seems a good idea to offer.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-CC: Andrew Morton <akpm@linux-foundation.org>
----
- include/linux/cpumask.h |    4 +++
- lib/cpumask.c           |   54 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 58 insertions(+)
-
-diff --git a/include/linux/cpumask.h b/include/linux/cpumask.h
---- a/include/linux/cpumask.h
-+++ b/include/linux/cpumask.h
-@@ -931,6 +931,10 @@ static inline void cpumask_copy(struct c
-  */
- #define cpumask_of(cpu) (get_cpu_mask(cpu))
- 
-+unsigned int cpumask_closest(const struct cpumask *mask);
-+unsigned int cpumask_closest_and(const struct cpumask *mask1,
-+				 const struct cpumask *mask2);
-+
- /**
-  * cpumask_scnprintf - print a cpumask into a string as comma-separated hex
-  * @buf: the buffer to sprintf into
-diff --git a/lib/cpumask.c b/lib/cpumask.c
---- a/lib/cpumask.c
-+++ b/lib/cpumask.c
-@@ -170,3 +170,57 @@ void __init free_bootmem_cpumask_var(cpu
- 	free_bootmem((unsigned long)mask, cpumask_size());
- }
- #endif
-+
-+/**
-+ * cpumask_closest - return the closest cpu in mask.
-+ * @mask: the cpus to choose from.
-+ *
-+ * Returns >= nr_cpu_ids if no bits are set in @mask.
-+ */
-+unsigned int cpumask_closest(const struct cpumask *mask)
-+{
-+	unsigned int cpu = raw_smp_processor_id();
-+
-+	/* Try for same CPU. */
-+	if (cpumask_test_cpu(cpu, mask))
-+		return cpu;
-+
-+	/* Try for same node. */
-+	cpu = cpumask_any_and(cpumask_of_node(cpu), mask);
-+	if (cpu <= nr_cpu_ids)
-+		return cpu;
-+
-+	/* Anything will do. */
-+	return cpumask_any(mask);
-+}
-+EXPORT_SYMBOL(cpumask_closest);
-+
-+/**
-+ * cpumask_closest_and - return the closest cpu in both masks.
-+ * @mask1: one set of cpus to choose from.
-+ * @mask2: the other set of cpus to choose from.
-+ *
-+ * The same as cpumask_closest(@mask1 & @mask2).
-+ * Returns >= nr_cpu_ids if no bits are set in both..
-+ */
-+unsigned int cpumask_closest_and(const struct cpumask *mask1,
-+				 const struct cpumask *mask2)
-+{
-+	unsigned int cpu = raw_smp_processor_id();
-+	const struct cpumask *nodemask;
-+
-+	/* Try for same CPU. */
-+	if (cpumask_test_cpu(cpu, mask1) && cpumask_test_cpu(cpu, mask2))
-+		return cpu;
-+
-+	/* Try for same node. */
-+	nodemask = cpumask_of_node(cpu);
-+	for_each_cpu_and(cpu, nodemask, mask1) {
-+		if (cpumask_test_cpu(cpu, mask2))
-+			return cpu;
-+	}
-+
-+	/* Anything will do. */
-+	return cpumask_any_and(mask1, mask2);
-+}
-+EXPORT_SYMBOL(cpumask_closest_and);
 
