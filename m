@@ -1,67 +1,75 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [BISECTED] EEE PC hangs when booting off battery
-Date: Wed, 15 Apr 2009 11:38:32 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904151056390.5664@localhost.localdomain>
-References: <49E065CF.6040408@tuffmail.co.uk>
- <200904140948.37633.bjorn.helgaas@hp.com>
- <4911F71203A09E4D9981D27F9D8308581D3722EB@orsmsx503.amr.corp.intel.com>
- <200904141056.14159.bjorn.helgaas@hp.com>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: ACPI vs. hibernate on MacBook5,1
+Date: Wed, 15 Apr 2009 17:48:51 +0200
+Message-ID: <1239810531.6981.6.camel@johannes.local>
+References: <1239802480.9071.14.camel@johannes.local>
+	 <20090415135620.GB12481@kamineko.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <200904141056.14159.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arjan van de Ven <arjan-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-dWnRYbUgo3dFexGlPD35"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from xc.sipsolutions.net ([83.246.72.84]:37726 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685AbZDOPtZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 11:49:25 -0400
+In-Reply-To: <20090415135620.GB12481@kamineko.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
 
-> > In fact, ACPI methods can execute concurrently -- constrained by the ACPI specification itself. The "big lock" is released before anything that will block for a significant amount of time, allowing other methods to run.
-> 
-> We had a discussion about this a couple years ago:
->   http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg06976.html
-> 
-> Here's my understanding (please correct me if I'm wrong):
-> 
-> - The ACPI CA holds a mutex while executing an AML method (see
->   acpi_ex_enter_interpreter()).
-> 
-> - When an AML method blocks, the ACPI CA releases the mutex, which
->   allows another AML method to run while the first is blocked.
-> 
-> - Because of the mutex, at most one AML method can be executing at
->   any given time.  Others may have started, but they are blocked
->   until the current method completes or blocks itself.
-> 
-> - The undocumented "acpi_serialize" option makes the ACPI CA hold
->   the mutex for the entire duration of a method, even while a method
->   is blocked.
-> 
-> Based on that, my guess about the battery init being slow because of
-> a long-running AML method might be incorrect, although I suppose
-> it's still possible to write AML busy-loops that never block.
-> 
-> I'd really like to understand what's making it slow.  The only
-> thing that looks at all unusual in acpi_battery_add() is
-> acpi_battery_update(), and that evaluates _STA and _BIF and
-> not much else.
-> 
-> Arjan, do you have any more information?  Is the battery driver
-> slow on all laptops?  If not, where did you see the problem?  Do
-> you have a DSDT for them?
+--=-dWnRYbUgo3dFexGlPD35
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Before I added Arjan's async battery patch, I booted a couple of laptops
-with async disabled and enabled.  I saw about 40 usec battery init (T61, 
-nx6325).
+On Wed, 2009-04-15 at 22:56 +0900, Mattia Dongili wrote:
+> On Wed, Apr 15, 2009 at 03:34:39PM +0200, Johannes Berg wrote:
+> > Recently, since I upgraded to -rc1, I've been seeing this at hibernate:
+> >=20
+> > [13875.384603] ACPI: Preparing to enter system sleep state S4
+> > [13875.385232] ACPI Error (hwvalid-0186): Denied AML access to port 0x0=
+000000000000080/2 (DMA1 0x0081-0x0083) [20090320]
+> > [13875.385745] ACPI Exception (evregion-0422): AE_AML_ILLEGAL_ADDRESS, =
+Returned by Handler for [SystemIO] [20090320]
+> > [13875.386244] ACPI Error (psparse-0537): Method parse/execution failed=
+ [\P8XH] (Node ffff88007e44ef70), AE_AML_ILLEGAL_ADDRESS
+> > [13875.386896] ACPI Error (psparse-0537): Method parse/execution failed=
+ [\_PTS] (Node ffff88007e44edd0), AE_AML_ILLEGAL_ADDRESS
+> > [13875.387584] PM: Saving platform NVS memory
+>=20
+> there are patches for this here:
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D13036
+> This should be the final one:
+> http://bugzilla.kernel.org/attachment.cgi?id=3D20913
+> Does it help?
 
-Obviously, this was too fast for async battery to have any measurable
-benefit on these machines (though async disk probing, by comparison,
-was a big win).
+Thanks, I'll give it a try later, but it seems like it would help to get
+rid of the warnings, and the random delays I'm seeing are probably
+something else.
 
-But Arjan saw O(300) usec serial battery init on an EEE PC,
-which is why he optimized it.
+johannes
 
-Indeed, this thread was started b/c a failure was seen on an EEEPC,
-probably because of its unusually slow timing.
+--=-dWnRYbUgo3dFexGlPD35
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
--Len
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iQIcBAABAgAGBQJJ5gHgAAoJEKVg1VMiehFY33cQAIMNgCcLe9VVxF1l5VPUaYan
+XAs6NZiA1fu2QlBSD2v9snS6N6ksxBO8HXcrEfpD0zlVCi6fzwluCh36bBUdhur7
+LYckoyWyztv98Kf6jdwzTI7Jjk5DeatxbpbE9OeX2qbjpojX0OA5JeXa86P0TUps
+/IQ/HpskOT5LNq6zIvFllCOhZoUwtu9qZRIcdO2eEDBPM0ES3Vox1q6DGiPXcs5Z
+tt5uC0/xPN65l6Qr8j6eMQlEYFFqQy8jFwqe5IvrZLMUeioO0b7ItjV/NeGQJgfa
+0ZRV4joZz6AG95ZeqfYjtirOCReJjQCF4HQSbIs7iM/Rp7eirjbJTmiy4HwPIzzm
+JFFcHii6bub3tC6wJR/Ce8yeKNHgU2vOEjhtKpLFkT/2bXt8cR15GxMtSPbu7rWA
+00Oc1NM9fxqCbl7i27FFeyckzv6Aj/TSCd3Qg66OaKzt+sBJADV9Wk3b2crYLmR2
+Mme30o8BKSC3L4gOGdG5fzftxpKYwNkGUa0+HVK1xjKM1foza0YM68kH/qyOZVz8
+F4BECIjhYeI4jgWLz4yikTYGYAt6FI7GnmsNex5h71NCdxPjXNEu4aSC5/NsRm70
+l3QNNRRD0bXK/kOPpr0qGDNKT/oBex2UURrB8Td3X3Rd3x0j1IOX/9nokyD6DktW
+Lk3aY8ESYNriBD/UweAF
+=6H4C
+-----END PGP SIGNATURE-----
+
+--=-dWnRYbUgo3dFexGlPD35--
+
