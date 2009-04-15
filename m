@@ -1,51 +1,52 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: drivers for Lenovo 3000 series?
-Date: Wed, 15 Apr 2009 09:44:56 +0800
-Message-ID: <1239759896.7661.302.camel@rzhang-dt>
-References: <d0cc17060904120051h11e44079u5cf8174466b4e71e@mail.gmail.com>
-	 <1239586069.5564.9.camel@localhost.localdomain>
-	 <d0cc17060904141231k6613d79cldbb124162b3f57f7@mail.gmail.com>
-	 <20090414193340.GA8304@srcf.ucam.org>
-	 <d0cc17060904141252q721daf9cp1f3a6a6667394f9a@mail.gmail.com>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
+	brightness with hotkeys (BISECTED)
+Date: Wed, 15 Apr 2009 09:50:42 +0800
+Message-ID: <1239760242.7661.305.camel@rzhang-dt>
+References: <49E10684.5090101@gmail.com>
+	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
+	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
+	 <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com>
+	 <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23611 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:5332 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752260AbZDOBog (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Apr 2009 21:44:36 -0400
-In-Reply-To: <d0cc17060904141252q721daf9cp1f3a6a6667394f9a@mail.gmail.com>
+	id S1751972AbZDOBuW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Apr 2009 21:50:22 -0400
+In-Reply-To: <49E5234E.5070303@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andika Triwidada <andika@startrek.or.id>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Niel Lambrechts <niel.lambrechts@gmail.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-04-15 at 03:52 +0800, Andika Triwidada wrote:
-> On Wed, Apr 15, 2009 at 2:33 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > On Wed, Apr 15, 2009 at 02:31:35AM +0700, Andika Triwidada wrote:
+On Wed, 2009-04-15 at 07:59 +0800, Niel Lambrechts wrote:
+> On 04/13/2009 10:34 PM, Henrique de Moraes Holschuh wrote:
+> > On Mon, 13 Apr 2009, Niel Lambrechts wrote:
+> >   
+> >>>> In 2.6.29.1:
+> >>>> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
+> >>>> -> ../../devices/virtual/backlight/acpi_video0
+> >>>>         
 > >
-> >>  /sys/class/backlight/acpi_video0/brightness exist, I can write and
-> >> the value kept,
-> >> but no effect on display brightness.
-> >
-> > Is this an Intel graphics machine? Is the i915 driver loaded?
+> > Well, that at least confirms that thinkpad-acpi doesn't have anything to
+> > do with your troubles, you were using acpi video.
+> >   
 > 
-> yes and yes
+> Okay, I've bisected it to:
 > 
-> $ lspci -nn|egrep '(VGA|Disp)'
-> 00:02.0 VGA compatible controller [0300]: Intel Corporation Mobile 4
-> Series Chipset Integrated Graphics Controller [8086:2a42] (rev 07)
-> 00:02.1 Display controller [0380]: Intel Corporation Mobile 4 Series
-> Chipset Integrated Graphics Controller [8086:2a43] (rev 07)
+> 74a365b3f354fafc537efa5867deb7a9fadbfe27 is first bad commit
+> commit 74a365b3f354fafc537efa5867deb7a9fadbfe27
+> Author: Matthew Garrett <mjg59@srcf.ucam.org>
+> Date:   Thu Mar 19 21:35:39 2009 +0000
 > 
-> $ lsmod|grep 915
-> i915                   44928  2
-> drm                   110304  3 i915
-> intel_agp              39152  1
+>     ACPI: Populate DIDL before registering ACPI video device on Intel
 > 
-please attach the acpidump output.
-please try the latest git tree.
+
+please set CONFIG_DRM_I915_KMS, reload the ACPI video driver after
+loading i915 and see if it helps.
 
 thanks,
 rui
