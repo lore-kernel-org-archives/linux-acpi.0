@@ -1,94 +1,96 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: 2.6.30-rc2 hangs in get_measured_perf on tigerton
-Date: Wed, 15 Apr 2009 06:31:45 -0700
-Message-ID: <7E82351C108FA840AB1866AC776AEC465868CBF5@orsmsx505.amr.corp.intel.com>
-References: <1239775283.2567.846.camel@ymzhang>
- <200904152044.17658.rusty@rustcorp.com.au>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: ACPI vs. hibernate on MacBook5,1
+Date: Wed, 15 Apr 2009 15:34:39 +0200
+Message-ID: <1239802480.9071.14.camel@johannes.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-7ANVFGYe52NwZEk/HnQs"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17811 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752743AbZDON36 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Apr 2009 09:29:58 -0400
-In-Reply-To: <200904152044.17658.rusty@rustcorp.com.au>
-Content-Language: en-US
+Received: from xc.sipsolutions.net ([83.246.72.84]:59420 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754005AbZDONfP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 09:35:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>, "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Denis Sadykov <denis.m.sadykov@intel.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-IA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBjcHVmcmVxLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyANCj5bbWFpbHRvOmNwdWZyZXEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBP
-biBCZWhhbGYgT2YgUnVzdHkgUnVzc2VsbA0KPlNlbnQ6IFdlZG5lc2RheSwgQXByaWwgMTUsIDIw
-MDkgNDoxNCBBTQ0KPlRvOiBaaGFuZywgWWFubWluDQo+Q2M6IExLTUw7IFBhbGxpcGFkaSwgVmVu
-a2F0ZXNoOyBEZW5pcyBTYWR5a292OyANCj5jcHVmcmVxQHZnZXIua2VybmVsLm9yZzsgbGludXgt
-YWNwaUB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBSZTogMi42LjMwLXJjMiBoYW5ncyBpbiBn
-ZXRfbWVhc3VyZWRfcGVyZiBvbiB0aWdlcnRvbg0KPg0KPk9uIFdlZCwgMTUgQXByIDIwMDkgMDM6
-MzE6MjMgcG0gWmhhbmcsIFlhbm1pbiB3cm90ZToNCj4+IE15IG1hY2hpbmUgaGFuZ2VkIHdpdGgg
-a2VybmVsIDIuNi4zMC1yYzIgd2hlbiBzY3JpcHQgcmVhZA0KPj4gL3N5cy9kZXZpY2VzL3N5c3Rl
-bS9jcHUvY3B1MC9jcHVmcmVxL3NjYWxpbmdfZ292ZXJub3IuDQo+PiANCj4+IG9wcHMgaGFwcGVu
-cyBpbiBnZXRfbWVhc3VyZWRfcGVyZjoNCj4+IA0KPj4gICAgICAgICBjdXIuYXBlcmYud2hvbGUg
-PSByZWFkaW4uYXBlcmYud2hvbGUgLQ0KPj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBwZXJfY3B1KGRydl9kYXRhLCBjcHUpLT5zYXZlZF9hcGVyZjsNCj4+IA0KPj4gQmVjYXVzZSDv
-u79wZXJfY3B1KGRydl9kYXRhLCBjcHUpPU5VTEwuDQo+PiANCj4+IFNvIGZ1bmN0aW9uIGdldF9t
-ZWFzdXJlZF9wZXJmIHNob3VsZCBjaGVjayBpZiANCj4o77u/cGVyX2NwdShkcnZfZGF0YSwgY3B1
-KT09TlVMTCkNCj4+IGFuZCByZXR1cm4gMCBpZiBpdCdzIE5VTEwuDQo+PiANCj4+IE90aGVyIGZ1
-bmN0aW9ucyBoYXZlIHN1Y2ggY2hlY2tpbmcuDQo+DQo+UG9zc2libHkgdHJ1ZSwgYnV0IEkgY2Fu
-J3Qgc2VlIHRoYXQgZ2V0X21lYXN1cmVkX3BlcmYoKSBldmVyIGRpZC4NCj4NCj5Vbmxlc3MgdGhl
-cmUncyBzb21ldGhpbmcgc3VidGxlIHdpdGggcHJlZW1wdGlvbiBubyBsb25nZXIgDQo+YmVpbmcg
-ZGlzYWJsZWQNCj5pbnNpZGUgdGhhdCBmdW5jdGlvbi4uLg0KPg0KDQpDaGVja2luZyB0aGUgTlVM
-TCBhbmQgcmV0dXJuaW5nIGlzIG5vdCBhbiBvcHRpb24uIFdlIG5lZWQgdG8NCmxvb2sgYXQgYXZl
-cmFnZSBjdXJyZW50IGZyZXEgb24gYWxsIENQVXMgdG8gbWFrZSBjb3JyZWN0DQpuZXh0IGZyZXEg
-ZGVjaXNpb24uIEFsc28sIHBlcl9jcHUgZHJ2X2RhdGEgc2hvdWxkIGJlIHNldA0KZm9yIGFsbCBD
-UFVzLiBJIHdpbGwgcG9rZSBhIGJpdCBhdCB0aGlzIGFuZCBnZXQgYmFjay4uLg0KDQpUaGFua3Ms
-DQpWZW5raQ0KDQoNCj4+IA0KPj4gDQo+PiAtLS0tLS0tLS0tLS0tLXN5cyBsb2ctLS0tLS0tLS0t
-LS0tLS0tLS0NCj4+IA0KPj4gQlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50
-ZXIgZGVyZWZlcmVuY2UgYXQgDQo+MDAwMDAwMDAwMDAwMDAyMA0KPj4gSVA6IFs8ZmZmZmZmZmY4
-MDIxYWY3NT5dIGdldF9tZWFzdXJlZF9wZXJmKzB4NGEvMHhmOQ0KPj4gUEdEIGE3ZGQ4ODA2NyBQ
-VUQgYTdjY2Y1MDY3IFBNRCAwIA0KPj4gT29wczogMDAwMCBbIzFdIFNNUCANCj4+IGxhc3Qgc3lz
-ZnMgZmlsZTogDQo+L3N5cy9kZXZpY2VzL3N5c3RlbS9jcHUvY3B1MC9jcHVmcmVxL3NjYWxpbmdf
-Z292ZXJub3INCj4+IENQVSAwIA0KPj4gTW9kdWxlcyBsaW5rZWQgaW46IHZpZGVvIG91dHB1dA0K
-Pj4gUGlkOiAyMDkxLCBjb21tOiBrb25kZW1hbmQvMCBOb3QgdGFpbnRlZCAyLjYuMzAtcmMyICMx
-IE1QIFNlcnZlcg0KPj4gUklQOiAwMDEwOls8ZmZmZmZmZmY4MDIxYWY3NT5dICBbPGZmZmZmZmZm
-ODAyMWFmNzU+XSANCj5nZXRfbWVhc3VyZWRfcGVyZisweDRhLzB4ZjkNCj4+IFJTUDogMDAxODpm
-ZmZmODgwYTdkNTZkZTIwICBFRkxBR1M6IDAwMDEwMjQ2DQo+PiBSQVg6IDAwMDAwMDAwMDAwMDAw
-MDAgUkJYOiAwMDAwMDA0NjI0MWE0MmI2IFJDWDogZmZmZjg4MDA0ZDIxOTAwMA0KPj4gUkRYOiAw
-MDAwMDAwMDAwMDBiNjYwIFJTSTogMDAwMDAwMDAwMDAwMDAyMCBSREk6IDAwMDAwMDAwMDAwMDAw
-MDENCj4+IFJCUDogZmZmZjg4MGE3ZjA1MjAwMCBSMDg6IDAwMDAwMDQ2MjQxYTQyYjYgUjA5OiBm
-ZmZmZmZmZjgwNzYzOWYwDQo+PiBSMTA6IDAwMDAwMDAwZmZmZmZmZWEgUjExOiBmZmZmZmZmZjgw
-MjIwN2Y0IFIxMjogZmZmZjg4MGE3ZjA1MjAwMA0KPj4gUjEzOiBmZmZmODgwMDRkMjBlNDYwIFIx
-NDogMDAwMDAwMDAwMGRkZDVhNiBSMTU6IDAwMDAwMDAwMDAwMDAwMDENCj4+IEZTOiAgMDAwMDAw
-MDAwMDAwMDAwMCgwMDAwKSBHUzpmZmZmODgwMDRkMjAwMDAwKDAwMDApIA0KPmtubEdTOjAwMDAw
-MDAwMDAwMDAwMDANCj4+IENTOiAgMDAxMCBEUzogMDAxOCBFUzogMDAxOCBDUjA6IDAwMDAwMDAw
-ODAwNTAwM2INCj4+IENSMjogMDAwMDAwMDAwMDAwMDAyMCBDUjM6IDAwMDAwMDBhN2YxYmYwMDAg
-Q1I0OiAwMDAwMDAwMDAwMDAwNmUwDQo+PiBEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAw
-MDAwMDAwMDAwMDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMA0KPj4gRFIzOiAwMDAwMDAwMDAwMDAw
-MDAwIERSNjogMDAwMDAwMDBmZmZmMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDANCj4+IFByb2Nl
-c3Mga29uZGVtYW5kLzAgKHBpZDogMjA5MSwgdGhyZWFkaW5mbyBmZmZmODgwYTdkNTZjMDAwLCAN
-Cj50YXNrIGZmZmY4ODBhN2Q0ZDE4YzApDQo+PiBTdGFjazoNCj4+ICBmZmZmODgwYTdmMDUyMDc4
-IGZmZmZmZmZmODAzZWZkNTQgMDAwMDAwNDYyNDFhNDJiNiAwMDAwMDA0NjJmZmE5ZTk1DQo+PiAg
-MDAwMDAwMDAwMDAwMDAwMSAwMDAwMDAwMDAwMDAwMDAxIDAwMDAwMDAwZmZmZmZmZWEgZmZmZmZm
-ZmY4MDY0ZjQxYQ0KPj4gIDAwMDAwMDAwMDAwMDAwMTIgMDAwMDAwMDAwMDAwMDAxMiBmZmZmODgw
-YTdmMDUyMDAwIGZmZmZmZmZmODA2NTA1NDcNCj4+IENhbGwgVHJhY2U6DQo+PiAgWzxmZmZmZmZm
-ZjgwM2VmZDU0Pl0gPyBrb2JqZWN0X2dldCsweDEyLzB4MTcNCj4+ICBbPGZmZmZmZmZmODA2NGY0
-MWE+XSA/IF9fY3B1ZnJlcV9kcml2ZXJfZ2V0YXZnKzB4NDIvMHg1Nw0KPj4gIFs8ZmZmZmZmZmY4
-MDY1MDU0Nz5dID8gZG9fZGJzX3RpbWVyKzB4MTQ3LzB4MjcyDQo+PiAgWzxmZmZmZmZmZjgwNjUw
-NDAwPl0gPyBkb19kYnNfdGltZXIrMHgwLzB4MjcyDQo+PiAgWzxmZmZmZmZmZjgwMjQ3NGNhPl0g
-PyB3b3JrZXJfdGhyZWFkKzB4MTViLzB4MWY1DQo+PiAgWzxmZmZmZmZmZjgwMjRhMDJjPl0gPyBh
-dXRvcmVtb3ZlX3dha2VfZnVuY3Rpb24rMHgwLzB4MmUNCj4+ICBbPGZmZmZmZmZmODAyNDczNmY+
-XSA/IHdvcmtlcl90aHJlYWQrMHgwLzB4MWY1DQo+PiAgWzxmZmZmZmZmZjgwMjQ5ZjBkPl0gPyBr
-dGhyZWFkKzB4NTQvMHg4Mw0KPj4gIFs8ZmZmZmZmZmY4MDIwYzg3YT5dID8gY2hpbGRfcmlwKzB4
-YS8weDIwDQo+PiAgWzxmZmZmZmZmZjgwMjQ5ZWI5Pl0gPyBrdGhyZWFkKzB4MC8weDgzDQo+PiAg
-WzxmZmZmZmZmZjgwMjBjODcwPl0gPyBjaGlsZF9yaXArMHgwLzB4MjANCj4+IENvZGU6IDk5IGE2
-IDAzIDAwIDMxIGM5IDg1IGMwIDBmIDg1IGMzIDAwIDAwIDAwIDg5IGRmIDRjIDhiIA0KPjQ0IDI0
-IDEwIDQ4IGM3IGMyIDYwIGI2IDAwIDAwIDQ4IDhiIDBjIGZkIGUwIDMwIGE1IDgwIDRjIDg5IGMz
-IA0KPjQ4IDhiIDA0IDBhIDw0OD4gMmIgNTggMjAgNDggOGIgNDQgMjQgMTggNDggODkgMWMgMjQg
-NDggOGIgMzQgDQo+MGEgNDggMmIgNDYgMjggDQo+PiBSSVAgIFs8ZmZmZmZmZmY4MDIxYWY3NT5d
-IGdldF9tZWFzdXJlZF9wZXJmKzB4NGEvMHhmOQ0KPj4gIFJTUCA8ZmZmZjg4MGE3ZDU2ZGUyMD4N
-Cj4+IENSMjogMDAwMDAwMDAwMDAwMDAyMA0KPj4gLS0tWyBlbmQgdHJhY2UgMmI4ZmFjOWE0OWUx
-OWFkNCBdLS0tDQo+PiANCj4+IA0KPi0tDQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGNwdWZyZXEiIGluDQo+dGhlIGJvZHkgb2YgYSBt
-ZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj5Nb3JlIG1ham9yZG9tbyBpbmZv
-IGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4=
+
+--=-7ANVFGYe52NwZEk/HnQs
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+Recently, since I upgraded to -rc1, I've been seeing this at hibernate:
+
+[13875.384603] ACPI: Preparing to enter system sleep state S4
+[13875.385232] ACPI Error (hwvalid-0186): Denied AML access to port 0x00000=
+00000000080/2 (DMA1 0x0081-0x0083) [20090320]
+[13875.385745] ACPI Exception (evregion-0422): AE_AML_ILLEGAL_ADDRESS, Retu=
+rned by Handler for [SystemIO] [20090320]
+[13875.386244] ACPI Error (psparse-0537): Method parse/execution failed [\P=
+8XH] (Node ffff88007e44ef70), AE_AML_ILLEGAL_ADDRESS
+[13875.386896] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+PTS] (Node ffff88007e44edd0), AE_AML_ILLEGAL_ADDRESS
+[13875.387584] PM: Saving platform NVS memory
+
+[13875.960748] ACPI: Waking up from system sleep state S4
+[13875.969861] ACPI Error (hwvalid-0186): Denied AML access to port 0x00000=
+00000000080/2 (DMA1 0x0081-0x0083) [20090320]
+[13875.979217] ACPI Exception (evregion-0422): AE_AML_ILLEGAL_ADDRESS, Retu=
+rned by Handler for [SystemIO] [20090320]
+[13875.988885] ACPI Error (psparse-0537): Method parse/execution failed [\P=
+8XH] (Node ffff88007e44ef70), AE_AML_ILLEGAL_ADDRESS
+[13875.998930] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+WAK] (Node ffff88007e44ee38), AE_AML_ILLEGAL_ADDRESS
+[13876.008648] ACPI Exception (hwsleep-0589): AE_AML_ILLEGAL_ADDRESS, Durin=
+g Method _WAK [20090320]
+
+Sometimes it also delays hibernate and/or resume a long time. Or maybe
+that's unrelated:
+
+[55143.680741] ACPI: Waking up from system sleep state S4
+[55143.689834] ACPI Error (hwvalid-0186): Denied AML access to port 0x00000=
+00000000080/2 (DMA1 0x0081-0x0083) [20090320]
+[55143.699183] ACPI Exception (evregion-0422): AE_AML_ILLEGAL_ADDRESS, Retu=
+rned by Handler for [SystemIO] [20090320]
+[55143.708843] ACPI Error (psparse-0537): Method parse/execution failed [\P=
+8XH] (Node ffff88007e44ef70), AE_AML_ILLEGAL_ADDRESS
+[55143.718881] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+WAK] (Node ffff88007e44ee38), AE_AML_ILLEGAL_ADDRESS
+[55143.728585] ACPI Exception (hwsleep-0589): AE_AML_ILLEGAL_ADDRESS, Durin=
+g Method _WAK [20090320]
+[55143.738613] HDA Intel 0000:00:08.0: restoring config space at offset 0x1=
+ (was 0xb00006, writing 0xb00002)
+[55143.748157] forcedeth 0000:00:0a.0: restoring config space at offset 0x1=
+ (was 0xb00003, writing 0xb00007)
+[55143.757701] ahci 0000:00:0b.0: restoring config space at offset 0x1 (was=
+ 0xb00403, writing 0xb00407)
+[55164.200732] pci 0000:00:03.2: PME# disabled
+
+(look at the timing)
+
+johannes
+
+--=-7ANVFGYe52NwZEk/HnQs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iQIcBAABAgAGBQJJ5eJtAAoJEKVg1VMiehFYD5YP/RwdGWX3tKv74D6f3+JASBPV
+2gSjCzcnUmyITQNkva60nOAZRoW+0hgdBki6u9WAUJG6G3QIcEG5D9ULhYbpi79V
+D439JxIQpc9JWSOtG1ERimkWgas3e0na2omCl+olQ0/588mNyKTYg8ttpR+Oaog/
+Kng3c9SamT2A2GKtpwhQoln2ta8jiSdVCh7BFThBV0iNfrer+fgjR5tJQUUuKary
+W0thuigSXvmoHIROOq0Wu6mzSveO1hTkol4zYJmbr6g0peSYhkiCrrQR+4u9GZpl
+eo4YewfEmOVYnbGvwO7TqApwqA2w5rbswDRpZx8oHDVfLDGT41flyrTko8+ueTzi
+iMCwi65wgLV9++2ygsh4qSbE9v8hPxq4fv0X1kKzaRijpMpd+M/aAnr+x456fKWc
+eBtRYwdYjUAzjxPQDy5LoIkGjVynILxSmGpGQ/lVsY7L55o14qx3SJFX7odqUCb1
+6h0mxcjnpo/ARjlDbfR4Bq6DrF7BzZO0nBuJ24PZknoqPKH++rzLeERWx1C6Zd28
+1HuLPFCvA/ixgziHB+KbMPDIRA9xA9MbLIdZLYzBJ85iE0SA/aB/hrxldZHhHCZM
+XGA4peIWxRvNU7o6GauXRUk8DBeZVDjG9dpXyDcYsnVgpC+esq7etZcKqRRE3xJf
+yp+Vp91LTA01BIqoqe+r
+=O+Mn
+-----END PGP SIGNATURE-----
+
+--=-7ANVFGYe52NwZEk/HnQs--
+
