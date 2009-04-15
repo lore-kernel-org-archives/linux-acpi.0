@@ -1,111 +1,68 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: 2.6.30-rc2 hangs in get_measured_perf on tigerton
-Date: Wed, 15 Apr 2009 20:44:17 +0930
-Message-ID: <200904152044.17658.rusty@rustcorp.com.au>
-References: <1239775283.2567.846.camel@ymzhang>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
+ brightness with hotkeys (BISECTED)
+Date: Wed, 15 Apr 2009 14:35:15 +0200
+Message-ID: <1239798915.22720.2344.camel@laptop>
+References: <49E10684.5090101@gmail.com>
+	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
+	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
+	 <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com>
+	 <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com>
+	 <1239760242.7661.305.camel@rzhang-dt> <49E58460.1010402@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:33490 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751016AbZDOLOU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 07:14:20 -0400
-In-Reply-To: <1239775283.2567.846.camel@ymzhang>
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([18.85.46.34]:54120 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590AbZDOMf0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 08:35:26 -0400
+In-Reply-To: <49E58460.1010402@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Denis Sadykov <denis.m.sadykov@intel.com>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Niel Lambrechts <niel.lambrechts@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 15 Apr 2009 03:31:23 pm Zhang, Yanmin wrote:
-> My machine hanged with kernel 2.6.30-rc2 when script read
-> /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor.
->=20
-> opps happens in get_measured_perf:
->=20
->         cur.aperf.whole =3D readin.aperf.whole -
->                                 per_cpu(drv_data, cpu)->saved_aperf;
->=20
-> Because =EF=BB=BFper_cpu(drv_data, cpu)=3DNULL.
->=20
-> So function get_measured_perf should check if (=EF=BB=BFper_cpu(drv_d=
-ata, cpu)=3D=3DNULL)
-> and return 0 if it's NULL.
->=20
-> Other functions have such checking.
+On Wed, 2009-04-15 at 08:53 +0200, Niel Lambrechts wrote:
+> On 04/15/2009 03:50 AM, Zhang Rui wrote:
+> > On Wed, 2009-04-15 at 07:59 +0800, Niel Lambrechts wrote:
+> >   
+> >> On 04/13/2009 10:34 PM, Henrique de Moraes Holschuh wrote:
+> >>     
+> >>> On Mon, 13 Apr 2009, Niel Lambrechts wrote:
+> >>>   
+> >>>       
+> >>>>>> In 2.6.29.1:
+> >>>>>> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
+> >>>>>> -> ../../devices/virtual/backlight/acpi_video0
+> >>>>>>         
+> >>>>>>             
+> >>> Well, that at least confirms that thinkpad-acpi doesn't have anything to
+> >>> do with your troubles, you were using acpi video.
+> >>>   
+> >>>       
+> >> Okay, I've bisected it to:
+> >>
+> >> 74a365b3f354fafc537efa5867deb7a9fadbfe27 is first bad commit
+> >> commit 74a365b3f354fafc537efa5867deb7a9fadbfe27
+> >> Author: Matthew Garrett <mjg59@srcf.ucam.org>
+> >> Date:   Thu Mar 19 21:35:39 2009 +0000
+> >>
+> >>     ACPI: Populate DIDL before registering ACPI video device on Intel
+> >>
+> >>     
+> >
+> > please set CONFIG_DRM_I915_KMS, reload the ACPI video driver after
+> > loading i915 and see if it helps.
+> >   
+> In all the kernels I've tried (up to 2.6.30-rc2), I get issues with KMS:
+> 
+> I boot with 'modeset=1 i915=1', console login is okay and 'modprobe i915
+> modeset=1' seems to work - the console resolution changes (very small
+> 1920x1200).
 
-Possibly true, but I can't see that get_measured_perf() ever did.
+Hehe, at least you get something, I consistently get a black screen
+whenever KMS gets enabled in a config.
 
-Unless there's something subtle with preemption no longer being disable=
-d
-inside that function...
 
-Cc'd the experts.
 
-Thanks,
-Rusty.
-
->=20
-> yanmin
->=20
->=20
->=20
-> --------------sys log------------------
->=20
-> BUG: unable to handle kernel NULL pointer dereference at 000000000000=
-0020
-> IP: [<ffffffff8021af75>] get_measured_perf+0x4a/0xf9
-> PGD a7dd88067 PUD a7ccf5067 PMD 0=20
-> Oops: 0000 [#1] SMP=20
-> last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_governo=
-r
-> CPU 0=20
-> Modules linked in: video output
-> Pid: 2091, comm: kondemand/0 Not tainted 2.6.30-rc2 #1 MP Server
-> RIP: 0010:[<ffffffff8021af75>]  [<ffffffff8021af75>] get_measured_per=
-f+0x4a/0xf9
-> RSP: 0018:ffff880a7d56de20  EFLAGS: 00010246
-> RAX: 0000000000000000 RBX: 00000046241a42b6 RCX: ffff88004d219000
-> RDX: 000000000000b660 RSI: 0000000000000020 RDI: 0000000000000001
-> RBP: ffff880a7f052000 R08: 00000046241a42b6 R09: ffffffff807639f0
-> R10: 00000000ffffffea R11: ffffffff802207f4 R12: ffff880a7f052000
-> R13: ffff88004d20e460 R14: 0000000000ddd5a6 R15: 0000000000000001
-> FS:  0000000000000000(0000) GS:ffff88004d200000(0000) knlGS:000000000=
-0000000
-> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-> CR2: 0000000000000020 CR3: 0000000a7f1bf000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process kondemand/0 (pid: 2091, threadinfo ffff880a7d56c000, task fff=
-f880a7d4d18c0)
-> Stack:
->  ffff880a7f052078 ffffffff803efd54 00000046241a42b6 000000462ffa9e95
->  0000000000000001 0000000000000001 00000000ffffffea ffffffff8064f41a
->  0000000000000012 0000000000000012 ffff880a7f052000 ffffffff80650547
-> Call Trace:
->  [<ffffffff803efd54>] ? kobject_get+0x12/0x17
->  [<ffffffff8064f41a>] ? __cpufreq_driver_getavg+0x42/0x57
->  [<ffffffff80650547>] ? do_dbs_timer+0x147/0x272
->  [<ffffffff80650400>] ? do_dbs_timer+0x0/0x272
->  [<ffffffff802474ca>] ? worker_thread+0x15b/0x1f5
->  [<ffffffff8024a02c>] ? autoremove_wake_function+0x0/0x2e
->  [<ffffffff8024736f>] ? worker_thread+0x0/0x1f5
->  [<ffffffff80249f0d>] ? kthread+0x54/0x83
->  [<ffffffff8020c87a>] ? child_rip+0xa/0x20
->  [<ffffffff80249eb9>] ? kthread+0x0/0x83
->  [<ffffffff8020c870>] ? child_rip+0x0/0x20
-> Code: 99 a6 03 00 31 c9 85 c0 0f 85 c3 00 00 00 89 df 4c 8b 44 24 10 =
-48 c7 c2 60 b6 00 00 48 8b 0c fd e0 30 a5 80 4c 89 c3 48 8b 04 0a <48> =
-2b 58 20 48 8b 44 24 18 48 89 1c 24 48 8b 34 0a 48 2b 46 28=20
-> RIP  [<ffffffff8021af75>] get_measured_perf+0x4a/0xf9
->  RSP <ffff880a7d56de20>
-> CR2: 0000000000000020
-> ---[ end trace 2b8fac9a49e19ad4 ]---
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
