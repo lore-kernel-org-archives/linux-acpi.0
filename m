@@ -1,34 +1,83 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control brightness with hotkeys (BISECTED)
-Date: Wed, 15 Apr 2009 22:00:17 +0100
-Message-ID: <20090415210017.GA32594@srcf.ucam.org>
-References: <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com> <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com> <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com> <20090415164939.GA27807@srcf.ucam.org> <49E63BCB.9090801@gmail.com> <20090415200125.GA31483@srcf.ucam.org> <49E64A28.8070402@gmail.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: [PATCH] acpi: Fix regression where _PPC is not read at boot even
+	when ignore_ppc=0
+Date: Wed, 15 Apr 2009 15:53:49 -0700
+Message-ID: <20090415225348.GW8311@plum>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756666AbZDOVAj@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e8.ny.us.ibm.com ([32.97.182.138]:59066 "EHLO e8.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755980AbZDOWxw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Apr 2009 18:53:52 -0400
 Content-Disposition: inline
-In-Reply-To: <49E64A28.8070402@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, yakui_zhao <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Apr 15, 2009 at 10:57:12PM +0200, Niel Lambrechts wrote:
+Earlier, Ingo Molnar posted a patch to make it so that the kernel would avoid
+reading _PPC on his broken T60.  Unfortunately, it seems that with Thomas
+Renninger's patch last July to eliminate _PPC evaluations when the processor
+driver loads, the kernel never actually reads _PPC at all!  This is problematic
+if you happen to boot your non-T60 computer in a state where the BIOS _wants_
+_PPC to be something other than zero.
 
-> So is there any chance of getting this fix merged any time soon (at
-> least before 2.6.30 is out)?
+So, put the _PPC evaluation back into acpi_processor_get_performance_info if
+ignore_ppc isn't 1.
 
-Yeah, I'd hope it's merged before .30. I've sent it to the maintainers.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-> I'd love to use KMS, but I have no idea how to troubleshoot the freeze
-> I'm getting after the main gdm login screen. Or is there still a future
-> i915 milestone(s) to be reached before I can realistically do
-> i915.modeset=1, given the large amount of activity around this in recent
-> times?
+ drivers/acpi/processor_perflib.c |   19 ++++++++++++++-----
+ 1 files changed, 14 insertions(+), 5 deletions(-)
 
-There's still a lot of work being done in this area, and it can be a bit 
-sensitive to you using the correct X driver version with a given kernel 
-version.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index cafb410..0b50e8e 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -150,13 +150,10 @@ static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
+ 	return 0;
+ }
+ 
+-int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
++static int __acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+ {
+ 	int ret;
+ 
+-	if (ignore_ppc)
+-		return 0;
+-
+ 	ret = acpi_processor_get_platform_limit(pr);
+ 
+ 	if (ret < 0)
+@@ -165,6 +162,14 @@ int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+ 		return cpufreq_update_policy(pr->id);
+ }
+ 
++int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
++{
++	if (ignore_ppc)
++		return 0;
++
++	return __acpi_processor_ppc_has_changed(pr);
++}
++
+ void acpi_processor_ppc_init(void)
+ {
+ 	if (!cpufreq_register_notifier
+@@ -348,7 +353,11 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 	if (result)
+ 		goto update_bios;
+ 
+-	return 0;
++	/* We need to call _PPC once when cpufreq starts */
++	if (ignore_ppc != 1)
++		result = __acpi_processor_ppc_has_changed(pr);
++
++	return result;
+ 
+ 	/*
+ 	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
