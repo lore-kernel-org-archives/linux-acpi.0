@@ -1,68 +1,47 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
- brightness with hotkeys (BISECTED)
-Date: Wed, 15 Apr 2009 14:35:15 +0200
-Message-ID: <1239798915.22720.2344.camel@laptop>
-References: <49E10684.5090101@gmail.com>
-	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
-	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
-	 <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com>
-	 <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com>
-	 <1239760242.7661.305.camel@rzhang-dt> <49E58460.1010402@gmail.com>
+From: "Zhao, Yakui" <yakui.zhao@intel.com>
+Subject: RE: [PATCH 0/2]: the patch set to weaken the dependency between
+ ACPI video driver and i915 driver
+Date: Wed, 15 Apr 2009 21:21:16 +0800
+Message-ID: <9F0C1DB20AFA954FA1DA05309350433D5B2E7517@pdsmsx503.ccr.corp.intel.com>
+References: <1239678275.5564.66.camel@localhost.localdomain>
+ <20090414193538.GB8304@srcf.ucam.org>
+ <1239757961.5564.109.camel@localhost.localdomain>
+ <20090415045359.GA15437@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54120 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753590AbZDOMf0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 08:35:26 -0400
-In-Reply-To: <49E58460.1010402@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:14645 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752293AbZDONVV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Apr 2009 09:21:21 -0400
+In-Reply-To: <20090415045359.GA15437@srcf.ucam.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-04-15 at 08:53 +0200, Niel Lambrechts wrote:
-> On 04/15/2009 03:50 AM, Zhang Rui wrote:
-> > On Wed, 2009-04-15 at 07:59 +0800, Niel Lambrechts wrote:
-> >   
-> >> On 04/13/2009 10:34 PM, Henrique de Moraes Holschuh wrote:
-> >>     
-> >>> On Mon, 13 Apr 2009, Niel Lambrechts wrote:
-> >>>   
-> >>>       
-> >>>>>> In 2.6.29.1:
-> >>>>>> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
-> >>>>>> -> ../../devices/virtual/backlight/acpi_video0
-> >>>>>>         
-> >>>>>>             
-> >>> Well, that at least confirms that thinkpad-acpi doesn't have anything to
-> >>> do with your troubles, you were using acpi video.
-> >>>   
-> >>>       
-> >> Okay, I've bisected it to:
-> >>
-> >> 74a365b3f354fafc537efa5867deb7a9fadbfe27 is first bad commit
-> >> commit 74a365b3f354fafc537efa5867deb7a9fadbfe27
-> >> Author: Matthew Garrett <mjg59@srcf.ucam.org>
-> >> Date:   Thu Mar 19 21:35:39 2009 +0000
-> >>
-> >>     ACPI: Populate DIDL before registering ACPI video device on Intel
-> >>
-> >>     
-> >
-> > please set CONFIG_DRM_I915_KMS, reload the ACPI video driver after
-> > loading i915 and see if it helps.
-> >   
-> In all the kernels I've tried (up to 2.6.30-rc2), I get issues with KMS:
-> 
-> I boot with 'modeset=1 i915=1', console login is okay and 'modprobe i915
-> modeset=1' seems to work - the console resolution changes (very small
-> 1920x1200).
-
-Hehe, at least you get something, I consistently get a black screen
-whenever KMS gets enabled in a config.
-
-
-
+V2lsbCB5b3UgcGxlYXNlIGV4cGxhaW4gbW9yZSBjbGVhcmx5IHdoeSBBQ1BJIHZpZGVvIGRyaXZl
+ciBpcyByZXF1aXJlZCB3aGVuIEtNUyBpcyB1c2VkPw0KIA0KDQotLS0tLU9yaWdpbmFsIE1lc3Nh
+Z2UtLS0tLQ0KRnJvbTogTWF0dGhldyBHYXJyZXR0IFttYWlsdG86bWpnNTlAc3JjZi51Y2FtLm9y
+Z10gDQpTZW50OiAyMDA5xOo01MIxNcjVIDEyOjU0DQpUbzogWmhhbywgWWFrdWkNCkNjOiBsZW5i
+QGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogW1BB
+VENIIDAvMl06IHRoZSBwYXRjaCBzZXQgdG8gd2Vha2VuIHRoZSBkZXBlbmRlbmN5IGJldHdlZW4g
+QUNQSSB2aWRlbyBkcml2ZXIgYW5kIGk5MTUgZHJpdmVyDQoNCk9uIFdlZCwgQXByIDE1LCAyMDA5
+IGF0IDA5OjEyOjQxQU0gKzA4MDAsIHlha3VpX3poYW8gd3JvdGU6DQo+ID4gTm8sIGl0J3MgKmNv
+cnJlY3QqLiBJbiBhIG1vZGVzZXR0aW5nIHdvcmxkLCBpOTE1IHJlcXVpcmVzIEFDUEkuDQo+IFdo
+eSBpcyB0aGUgQUNQSSByZXF1aXJlZCBieSBpOTE1IHdoZW4gS01TIGlzIHVzZWQ/IA0KPiBJdCBz
+ZWVtcyB0aGF0IHdlIHN0aWxsIGNhbiB1c2UgdGhlIEtNUyB3aXRoIEFDUEkgZGlzYWJsZWQuIA0K
+PiAgICBJbiBzdWNoIGNhc2UgaXQgaXMgdW5uZWNlc3NhcnkgdG8gbG9hZCB0aGUgYWNwaSB2aWRl
+byBkcml2ZXIuIA0KDQpZb3UgY2FuLCBidXQgdGhpbmdzIHdpbGwgYnJlYWsuDQoNCj4gSW4gZmFj
+dCB3aGF0IEkgaGF2ZSBkb25lIGlzIHRvIHdlYWtlbiB0aGUgdGlnaHQgZGVwZW5kZW5jeS4gV2hl
+biB0aGUNCj4gaTkxNSBkcml2ZXIgaXMgY29tcGlsZWQgYXMgYnVpbHQtaW4gYW5kIHRoZSBhY3Bp
+IHZpZGVvIGlzIGNvbXBpbGVkIGFzDQo+IG1vZHVsZSwgdGhlIGtlcm5lbCBjb21waWxhdGlvbiB3
+aWxsIGJlIE9LLiAgDQo+ICAgICBCZWZvcmUgdGhlIGFjcGkgdmlkZW8gZHJpdmVyIGlzIGxvYWRl
+ZCwgdGhlIHN5c3RlbSBpcyBzdGlsbCBPSw0KPiBleGNlcHQgdGhhdCB0aGVyZSBpcyBubyBiYWNr
+bGlnaHQgY29udHJvbC4NCg0KSSBrbm93IHRoYXQgdGhhdCdzIHdoYXQgeW91J3ZlIGRvbmUuIEkg
+anVzdCBkb24ndCB0aGluayBpdCdzIHVzZWZ1bC4gDQpXZWFrZW5pbmcgdGhlIGRlcGVuZGVuY3kg
+bWVhbnMgdGhhdCB5b3UncmUgZHJpdmluZyB0aGUgaGFyZHdhcmUgb3V0c2lkZSANCm9mIGl0cyBk
+ZXNpZ24gcGFyYW1ldGVycywgYW5kIEkgcmVhbGx5IGRvbid0IHNlZSBhbnkgcmVhc29uIHRvIGRv
+IHRoYXQuDQoNCi0tIA0KTWF0dGhldyBHYXJyZXR0IHwgbWpnNTlAc3JjZi51Y2FtLm9yZw0K
