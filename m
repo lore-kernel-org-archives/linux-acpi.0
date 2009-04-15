@@ -1,54 +1,36 @@
-From: Niel Lambrechts <niel.lambrechts@gmail.com>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control brightness
- with hotkeys (BISECTED)
-Date: Wed, 15 Apr 2009 22:57:12 +0200
-Message-ID: <49E64A28.8070402@gmail.com>
-References: <49E10684.5090101@gmail.com> <20090411150555.8b13ed18.akpm@linux-foundation.org> <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com> <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com> <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com> <20090415164939.GA27807@srcf.ucam.org> <49E63BCB.9090801@gmail.com> <20090415200125.GA31483@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 0/2]: the patch set to weaken the dependency between ACPI video driver and i915 driver
+Date: Wed, 15 Apr 2009 21:56:56 +0100
+Message-ID: <20090415205656.GA32509@srcf.ucam.org>
+References: <1239678275.5564.66.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:38622 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753248AbZDOU5f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 16:57:35 -0400
-In-Reply-To: <20090415200125.GA31483@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:52468 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754253AbZDOU5D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 16:57:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1239678275.5564.66.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, yakui_zhao <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 04/15/2009 10:01 PM, Matthew Garrett wrote:
-> On Wed, Apr 15, 2009 at 09:55:55PM +0200, Niel Lambrechts wrote:
->
->   
->> The behaviour seems slightly different from before your 74a365b3f354
->> commit in that /sys/class/backlight remains empty until i915 gets loaded
->> for the first time, the contents then persist even if i915 is unloaded.
->> Perhaps the directory was populated by a different kernel module, since
->> when I did the bisect yesterday the directory would be there on boot
->> before I started X or loaded i915.
->>     
->
-> In the past the directory would be created when the acpi video driver 
-> was loaded, but probably wouldn't work. Doing it that way is a violation 
-> of the opregion spec and causes some machines to break in a horrible 
-> manner, so I'd prefer not to go back to that version...
->   
-Cool, I suspected it was intended behaviour... :)
+How about we just replace these with the following?
 
-So is there any chance of getting this fix merged any time soon (at
-least before 2.6.30 is out)?
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 3a22eb9..cf7e7c2 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -71,6 +71,7 @@ config DRM_I915
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB
++	select ACPI_VIDEO if ACPI
+ 	tristate "i915 driver"
+ 	help
+ 	  Choose this option if you have a system that has Intel 830M, 845G,
 
-> If you use modesetting then you shouldn't need to launch X to get 
-> working brightness control. The problem with the old-style world is that 
-> you won't get interrupts until X comes up.
-
-I'd love to use KMS, but I have no idea how to troubleshoot the freeze
-I'm getting after the main gdm login screen. Or is there still a future
-i915 milestone(s) to be reached before I can realistically do
-i915.modeset=1, given the large amount of activity around this in recent
-times?
-
-Thanks for the help!
-Niel
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
