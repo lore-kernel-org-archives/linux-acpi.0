@@ -1,62 +1,39 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
-	brightness with hotkeys (BISECTED)
-Date: Wed, 15 Apr 2009 09:51:31 +0800
-Message-ID: <1239760291.7661.307.camel@rzhang-dt>
-References: <49E10684.5090101@gmail.com>
-	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
-	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
-	 <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com>
-	 <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com>
-	 <1239760242.7661.305.camel@rzhang-dt>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 0/2]: the patch set to weaken the dependency between ACPI video driver and i915 driver
+Date: Wed, 15 Apr 2009 05:53:59 +0100
+Message-ID: <20090415045359.GA15437@srcf.ucam.org>
+References: <1239678275.5564.66.camel@localhost.localdomain> <20090414193538.GB8304@srcf.ucam.org> <1239757961.5564.109.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6457 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753549AbZDOBvL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Apr 2009 21:51:11 -0400
-In-Reply-To: <1239760242.7661.305.camel@rzhang-dt>
+Received: from cavan.codon.org.uk ([93.93.128.6]:49739 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750726AbZDOEyI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 00:54:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1239757961.5564.109.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-04-15 at 09:50 +0800, Zhang Rui wrote:
-> On Wed, 2009-04-15 at 07:59 +0800, Niel Lambrechts wrote:
-> > On 04/13/2009 10:34 PM, Henrique de Moraes Holschuh wrote:
-> > > On Mon, 13 Apr 2009, Niel Lambrechts wrote:
-> > >   
-> > >>>> In 2.6.29.1:
-> > >>>> lrwxrwxrwx 1 root root 0 Apr 12 20:01 /sys/class/backlight/acpi_video0
-> > >>>> -> ../../devices/virtual/backlight/acpi_video0
-> > >>>>         
-> > >
-> > > Well, that at least confirms that thinkpad-acpi doesn't have anything to
-> > > do with your troubles, you were using acpi video.
-> > >   
-> > 
-> > Okay, I've bisected it to:
-> > 
-> > 74a365b3f354fafc537efa5867deb7a9fadbfe27 is first bad commit
-> > commit 74a365b3f354fafc537efa5867deb7a9fadbfe27
-> > Author: Matthew Garrett <mjg59@srcf.ucam.org>
-> > Date:   Thu Mar 19 21:35:39 2009 +0000
-> > 
-> >     ACPI: Populate DIDL before registering ACPI video device on Intel
-> > 
-> 
-> please set CONFIG_DRM_I915_KMS, reload the ACPI video driver after
-> loading i915 and see if it helps.
-> 
-sorry, you don't need to reload the ACPI video driver...
+On Wed, Apr 15, 2009 at 09:12:41AM +0800, yakui_zhao wrote:
+> > No, it's *correct*. In a modesetting world, i915 requires ACPI.
+> Why is the ACPI required by i915 when KMS is used? 
+> It seems that we still can use the KMS with ACPI disabled. 
+>    In such case it is unnecessary to load the acpi video driver. 
 
-> thanks,
-> rui
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can, but things will break.
 
+> In fact what I have done is to weaken the tight dependency. When the
+> i915 driver is compiled as built-in and the acpi video is compiled as
+> module, the kernel compilation will be OK.  
+>     Before the acpi video driver is loaded, the system is still OK
+> except that there is no backlight control.
+
+I know that that's what you've done. I just don't think it's useful. 
+Weakening the dependency means that you're driving the hardware outside 
+of its design parameters, and I really don't see any reason to do that.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
