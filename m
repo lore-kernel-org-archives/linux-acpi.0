@@ -1,38 +1,57 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 0/2]: the patch set to weaken the dependency between
-	ACPI video driver and i915 driver
-Date: Wed, 15 Apr 2009 15:35:39 +0800
-Message-ID: <1239780939.7661.351.camel@rzhang-dt>
-References: <1239678275.5564.66.camel@localhost.localdomain>
-	 <20090414193538.GB8304@srcf.ucam.org>
+Subject: Re: Linux 2.6.30-rc2
+Date: Wed, 15 Apr 2009 15:41:56 +0800
+Message-ID: <1239781316.7661.356.camel@rzhang-dt>
+References: <alpine.LFD.2.00.0904141628570.4132@localhost.localdomain>
+	 <49E57CEA.1020401@ens-lyon.org>
+	 <1239780780.5564.130.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:27333 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:18910 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754323AbZDOHfT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Apr 2009 03:35:19 -0400
-In-Reply-To: <20090414193538.GB8304@srcf.ucam.org>
+	id S1750839AbZDOHlg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Apr 2009 03:41:36 -0400
+In-Reply-To: <1239780780.5564.130.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: Brice Goglin <Brice.Goglin@ens-lyon.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-04-15 at 03:35 +0800, Matthew Garrett wrote:
-> On Tue, Apr 14, 2009 at 11:04:35AM +0800, yakui_zhao wrote:
+On Wed, 2009-04-15 at 15:33 +0800, yakui_zhao wrote:
+> On Wed, 2009-04-15 at 14:21 +0800, Brice Goglin wrote:
+> > CC [M]  drivers/acpi/video.o
+> >   <no warning>
+> >   ...
+> >   LD      .tmp_vmlinux1
+> > drivers/built-in.o: In function `intel_opregion_init':
+> > (.text+0x813e2): undefined reference to `acpi_video_register'
+> > make: *** [.tmp_vmlinux1] Error 1
+> Will you please try the patch in the comment #16/#21 of 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13065 ?
 > 
-> >     Patch 2/2:  weaken the tight dependency between the ACPI video driver and i915 driver
-> >     Now there exists the tight dependency between the ACPI video driver and i915 driver. 
-> > If the I915 driver is compiled as built-in module and the acpi video is compiled as module, 
-> > it will fail in the kernel compilation.
-> >     At the same time the acpi video driver must be loaded in order to load
-> > the I915 driver. It is very hack.
-> 
-> No, it's *correct*. In a modesetting world, i915 requires ACPI.
+you must mean http://bugzilla.kernel.org/show_bug.cgi?id=13048 .
 
-then I think the i915 driver should select ACPI video driver.
+Brice,
+we already have two patches to fix this issue, but they're still under
+discussion http://marc.info/?l=linux-acpi&m=123967821529829&w=2
 
 thanks,
 rui
+
+> Thanks.
+> > 
+> > I think I had the same with -rc1.
+> > 
+> > .config is attached
+> > 
+> > Cheers,
+> > Brice
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
