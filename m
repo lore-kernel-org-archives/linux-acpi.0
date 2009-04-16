@@ -1,58 +1,63 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
-	even when ignore_ppc=0
-Date: Wed, 15 Apr 2009 17:27:12 -0700
-Message-ID: <20090416002712.GX8311@plum>
-References: <20090415225348.GW8311@plum>
-Reply-To: djwong@us.ibm.com
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: 2.6.30-rc1 (latest git): thinkpad-acpi: cannot control
+	brightness with hotkeys (BISECTED)
+Date: Thu, 16 Apr 2009 09:02:53 +0800
+Message-ID: <1239843773.3638.2.camel@localhost.localdomain>
+References: <49E10684.5090101@gmail.com>
+	 <20090411150555.8b13ed18.akpm@linux-foundation.org>
+	 <20090412161448.GC26502@khazad-dum.debian.net> <49E234ED.5010105@gmail.com>
+	 <1239585695.5564.5.camel@localhost.localdomain> <49E3575A.60204@gmail.com>
+	 <20090413203450.GC16152@khazad-dum.debian.net> <49E5234E.5070303@gmail.com>
+	 <20090415164939.GA27807@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e31.co.us.ibm.com ([32.97.110.149]:59066 "EHLO
-	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574AbZDPA1O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2009 20:27:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20090415225348.GW8311@plum>
+Received: from mga09.intel.com ([134.134.136.24]:46995 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750953AbZDPBBq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Apr 2009 21:01:46 -0400
+In-Reply-To: <20090415164939.GA27807@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Niel Lambrechts <niel.lambrechts@gmail.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Andrew Morton <akpm@linux-foundation.org>, "linux.kernel" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Earlier, Ingo Molnar posted a patch to make it so that the kernel would avoid
-reading _PPC on his broken T60.  Unfortunately, it seems that with Thomas
-Renninger's patch last July to eliminate _PPC evaluations when the processor
-driver loads, the kernel never actually reads _PPC at all!  This is problematic
-if you happen to boot your non-T60 computer in a state where the BIOS _wants_
-_PPC to be something other than zero.
-
-So, put the _PPC evaluation back into acpi_processor_get_performance_info if
-ignore_ppc isn't 1.
-
-This second version restores the correct function call, which simplifies
-the patch.  I apologize for the churn and the poor eyesight.
-
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
----
-
- drivers/acpi/processor_perflib.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+On Thu, 2009-04-16 at 00:49 +0800, Matthew Garrett wrote:
+> Does this help?
+If so, we don't need the following patch.
+   >http://marc.info/?l=linux-acpi&m=123967828429865&w=2
+   >check whether the ACPI video driver is deferrable only when KMS is
+set
 
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index cafb410..85af717 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -348,7 +348,11 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
- 	if (result)
- 		goto update_bios;
- 
--	return 0;
-+	/* We need to call _PPC once when cpufreq starts */
-+	if (ignore_ppc != 1)
-+		result = acpi_processor_get_platform_limit(pr);
-+
-+	return result;
- 
- 	/*
- 	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
+> diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
+> index 6942772..8dc1fd3 100644
+> --- a/drivers/gpu/drm/i915/i915_opregion.c
+> +++ b/drivers/gpu/drm/i915/i915_opregion.c
+> @@ -370,11 +370,8 @@ int intel_opregion_init(struct drm_device *dev, int resume)
+>  	if (mboxes & MBOX_ACPI) {
+>  		DRM_DEBUG("Public ACPI methods supported\n");
+>  		opregion->acpi = base + OPREGION_ACPI_OFFSET;
+> -		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+> +		if (drm_core_check_feature(dev, DRIVER_MODESET))
+>  			intel_didl_outputs(dev);
+> -			if (!resume)
+> -				acpi_video_register();
+> -		}
+>  	} else {
+>  		DRM_DEBUG("Public ACPI methods not supported\n");
+>  		err = -ENOTSUPP;
+> @@ -391,6 +388,10 @@ int intel_opregion_init(struct drm_device *dev, int resume)
+>  		opregion->asle = base + OPREGION_ASLE_OFFSET;
+>  	}
+>  
+> +	if (!resume)
+> +		acpi_video_register();
+> +
+> +
+>  	/* Notify BIOS we are ready to handle ACPI video ext notifs.
+>  	 * Right now, all the events are handled by the ACPI video module.
+>  	 * We don't actually need to do anything with them. */
+> 
+
