@@ -1,40 +1,34 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: How to use fujitsu-laptop for keyboard lights?
-Date: Thu, 16 Apr 2009 13:30:59 +0100
-Message-ID: <20090416133059.6cc1adce@linx.net>
-References: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: FAN Processor and Thermap
+Date: Thu, 16 Apr 2009 16:06:39 +0200
+Message-ID: <200904161606.40096.trenn@suse.de>
+References: <335b7d740903190118r32d6f4d4ia9146bf2f0d9f6f@mail.gmail.com> <335b7d740904122031i2d1aa7d8s141e81baf2bfb087@mail.gmail.com> <51f3faa70904122256wadabe78m190970794b3b9815@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:52139 "EHLO gold.linx.net"
+Received: from cantor2.suse.de ([195.135.220.15]:44895 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756373AbZDPMb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Apr 2009 08:31:29 -0400
-In-Reply-To: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
+	id S1752873AbZDPOGm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Apr 2009 10:06:42 -0400
+In-Reply-To: <51f3faa70904122256wadabe78m190970794b3b9815@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hannu Vuolasaho <vuokko@nukku.net>
-Cc: linux-acpi@vger.kernel.org
+To: Robert Hancock <hancockrwd@gmail.com>
+Cc: yakui_zhao <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUaHUs
-IDE2IEFwciAyMDA5IDEzOjUyOjUwICswMzAwIChFRVNUKQ0KSGFubnUgVnVvbGFzYWhvIDx2dW9r
-a29AbnVra3UubmV0PiB3cm90ZToNCj4gSSBoYXZlIGJlZW4gcnVubmluZyAyLjYuMjUgd2l0aCBK
-dWxlcycgcGF0Y2ggaW4gTG9veCB1NTB4L3YgYW5kIG5vdyBJDQo+IG5vdGljZWQgdGhhdCAyLjYu
-MjkuMSBoYWQgaXQgaW1wbGVtZW50ZWQgYW5kIHRoZSBhcmNoaXRlY2h0dXJlIGlzDQo+IGRpZmZl
-cmVudC4gTm93IGNvbWVzIHRoZSBzdHVwaWQgcGFydC4gSG93IGRvZXMgaXQgd29yaz8gSG93IHRv
-IHRvZ2xlDQo+IGxpZ2h0cz8gT3Igd2hlcmUgdGhpcyBpbmZvcm1hdGlvbiBpcyBoaWRkZW4/DQoN
-CllvdSBuZWVkIHRvIGVuYWJsZSBzdXBwb3J0IGZvciB0aGUgTEVEIGNsYXNzIGluIHRoZSBsaW51
-eCBrZXJuZWw6DQpDT05GSUdfTEVEU19DTEFTUz15DQoNCk9uY2UgeW91IGhhdmUgZG9uZSB0aGF0
-LCB0aGUgZnVqaXRzdS1sYXB0b3AgZHJpdmVyIHdpbGwgcmVnaXN0ZXIgYSBMRUQNCnRoYXQgeW91
-IGNhbiB0b2dnbGUgb24gJiBvZmYuIElmIHRoaXMgZG9lcyBub3Qgd29yaywgY291bGQgeW91IGxv
-YWQgdGhlDQpkcml2ZXIgd2l0aCBmdWxsIGRlYnVnZ2luZzoNCg0KbW9kcHJvYmUgZnVqaXRzdS1s
-YXB0b3AgZGVidWc9MHhmZmZmDQoNCkFsc28sIHBsZWFzZSBhdHRhY2ggdGhlIGZvbGxvd2luZyBm
-aWxlIHRvIHlvdXIgZS1tYWlsOg0KL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcy9EU0RUDQoNCihZ
-b3UgY2FuIGRlY29tcGlsZSBpdCB1c2luZyBpYXNsIC1kKQ0KDQpPYnZpb3VzbHkgSSBob3BlIGl0
-J2xsIEp1c3QgV29yayhUTSkgZm9yIHlvdSwgYnV0IGlmIG5vdCwgSSBjYW4NCnByb2JhYmx5IGhl
-bHAgOikNCg0KPiBIYW5udSBWdW9sYXNhaG8NCg0KUmVnYXJkcywNClRvbnkgVi4NCi0tLS0tQkVH
-SU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2Mi4wLjExIChHTlUvTGludXgp
-DQoNCmlFWUVBUkVDQUFZRkFrbm5KUVlBQ2drUXA1dlc0clVGajVwOFVnQ2VKMGdyRmRvUTQ1Y1lm
-MW1tamRJWjFYYngNClVuTUFuUnFBVVo1clZTbU50UC82b0xBMGN1ZWQ2RkFYDQo9YnZZYw0KLS0t
-LS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
+On Monday 13 April 2009 07:56:46 Robert Hancock wrote:
+> On Sun, Apr 12, 2009 at 9:31 PM, Ken Perl <kenperl@gmail.com> wrote:
+> > I have no idea if my board supports ACPI or not, what's the reason to
+> > try a older kernel? is it because older kernel supports older board?
+> 
+> Possibly there's been some regression causing ACPI to not be detected
+> on that board. But the board is old enough, I think it's quite likely
+> it doesn't support ACPI at all.
+Yep, I expect acpi=off is the parameter your searching for.
+I wonder whether it could be set automatically, but above parameter
+is well known for old machines.
+
+   Thomas
