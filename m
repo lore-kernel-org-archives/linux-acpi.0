@@ -1,46 +1,34 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
-Date: Thu, 16 Apr 2009 14:35:45 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.0904161432000.4042@localhost.localdomain>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera> <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain> <200904070035.00784.rjw@sisk.pl> <49E79E58.9000606@nortel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot even when ignore_ppc=0
+Date: Thu, 16 Apr 2009 23:45:07 +0100
+Message-ID: <20090416224507.GA31984@srcf.ucam.org>
+References: <20090415225348.GW8311@plum> <20090416002712.GX8311@plum> <200904161201.13409.trenn@suse.de> <20090416174217.GY8311@plum>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33676 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753037AbZDPVoE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Apr 2009 17:44:04 -0400
-In-Reply-To: <49E79E58.9000606@nortel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:59175 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754560AbZDPWpT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Apr 2009 18:45:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20090416174217.GY8311@plum>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Friesen <cfriesen@nortel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Trenton Adams <trenton.d.adams@gmail.com>
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-
-
-On Thu, 16 Apr 2009, Chris Friesen wrote:
+On Thu, Apr 16, 2009 at 10:42:18AM -0700, Darrick J. Wong wrote:
+> On Thu, Apr 16, 2009 at 12:01:11PM +0200, Thomas Renninger wrote:
+> > Hi,
+> > 
+> > be careful, this could break the T60 again.
 > 
-> I'm okay with that.  The problem causes some backwards compatibility problems
-> with existing apps that get confused by the large "offset" number.  The fix is
-> going to cause problems too, but in a different way.
-> 
-> We'll work around it.
+> So long as T60 owners boot with ignore_ppc=1, they should still be fine.
 
-If you have actual apps that care, that's a different issue.
+That's not really an option. It works with Windows. Please figure out 
+how to make it work on everything rather than us just repeatedly 
+toggling between different sets of broken machines or being forced to 
+have a static table of machines.
 
-We do try to bend over backwards on ABI issues if it really is noticeable 
-for applications. Now, in this case, if you can just fix your app to not 
-care (because it really was badly written in the first place to even 
-notice), then that is the _much_ superior solution.
-
-But if you actually have binary-only commercial apps that break, we'll do 
-a compatibility thing rather than the 0 that already got merged.
-
-Although I don't really even see what we can sanely do except for the 0 
-case. We could put the virtual address in there instead of zero (I forget 
-what old kernels used to do - whatever magic value the anonymous mappings 
-got, it wasn't really designed as an important value in its own right, it 
-was designed to trigger the "we can merge these vma's" logic.
-
-			Linus
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
