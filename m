@@ -1,68 +1,40 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: gnome-power-manager: adjusting brightness kills AltGr key behaviour
-Date: Thu, 16 Apr 2009 14:21:22 +0200
-Message-ID: <20090416122122.GC23107@gamma.logic.tuwien.ac.at>
-References: <20090416115641.GA15237@gandalf.dyndns.org>
+From: Tony Vroon <tony@linx.net>
+Subject: Re: How to use fujitsu-laptop for keyboard lights?
+Date: Thu, 16 Apr 2009 13:30:59 +0100
+Message-ID: <20090416133059.6cc1adce@linx.net>
+References: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:42533 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080AbZDPMVf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Apr 2009 08:21:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20090416115641.GA15237@gandalf.dyndns.org>
+Received: from gold.linx.net ([195.66.232.40]:52139 "EHLO gold.linx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756373AbZDPMb3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Apr 2009 08:31:29 -0400
+In-Reply-To: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 524344@bugs.debian.org, linux-acpi@vger.kernel.org
+To: Hannu Vuolasaho <vuokko@nukku.net>
+Cc: linux-acpi@vger.kernel.org
 
-I forgot to add that it is also nothing of the backlight setting itself,
-because calling
-	xbacklight -set NN
-does not make AltGr unusable.
-
-On Do, 16 Apr 2009, Norbert Preining wrote:
-> I am having the following strange phenomenon:
-> 
-> When I log into the gnome session the AltGr key is working, thus on my
-> German kbd I get
->    AltGr-q -> AT sign
->    AltGr-8 -> open square bracket
->    ...
-> As soon as I adjust the brightness with Fn-F5 or Fn-F6 the OSD with the
-> brightness level appears, the brightness is adjusted, but at the same
-> time the functionality of the AltGr key is lost. Pressing AltGr-q I get 
-> a q instead of the AT sign.
-> 
-> This is 100% repeatable, and happens only in Gnome. I tried the failsafe
-> terminal session and pressing the keys did not change anything, nor the
-> brightness, nor the AltGr behaviour.
-> 
-> So I guess that the culprit is one of those adjusting the brightness, and
-> not the hardware support for sending the kbd events.
-> 
-> Since a missing AltGr on a German kbd means there is no AT, no curly nor
-> square brackets, etc, that is very disturbing, and I need to restart X 
-> to get normal behaviour back.
-> 
-> Hard/Software:
-> - Sony Vaio VGN-Z11
-> - kernel 2.6.29 plus latest sony-acpi patches from Mattia/ACPI ML
-> - Debian/sid up2date
-> 
-> Hope that someone can help me there
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-KIRBY MISPERTON (n.)
-One who kindly attempts to wipe an apparent kirby (q.v.) off another's
-face with a napkin, and then discovers it to be a wart or other
-permanent fixture, is said to have committed a 'kirby misperton'.
-			--- Douglas Adams, The Meaning of Liff
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUaHUs
+IDE2IEFwciAyMDA5IDEzOjUyOjUwICswMzAwIChFRVNUKQ0KSGFubnUgVnVvbGFzYWhvIDx2dW9r
+a29AbnVra3UubmV0PiB3cm90ZToNCj4gSSBoYXZlIGJlZW4gcnVubmluZyAyLjYuMjUgd2l0aCBK
+dWxlcycgcGF0Y2ggaW4gTG9veCB1NTB4L3YgYW5kIG5vdyBJDQo+IG5vdGljZWQgdGhhdCAyLjYu
+MjkuMSBoYWQgaXQgaW1wbGVtZW50ZWQgYW5kIHRoZSBhcmNoaXRlY2h0dXJlIGlzDQo+IGRpZmZl
+cmVudC4gTm93IGNvbWVzIHRoZSBzdHVwaWQgcGFydC4gSG93IGRvZXMgaXQgd29yaz8gSG93IHRv
+IHRvZ2xlDQo+IGxpZ2h0cz8gT3Igd2hlcmUgdGhpcyBpbmZvcm1hdGlvbiBpcyBoaWRkZW4/DQoN
+CllvdSBuZWVkIHRvIGVuYWJsZSBzdXBwb3J0IGZvciB0aGUgTEVEIGNsYXNzIGluIHRoZSBsaW51
+eCBrZXJuZWw6DQpDT05GSUdfTEVEU19DTEFTUz15DQoNCk9uY2UgeW91IGhhdmUgZG9uZSB0aGF0
+LCB0aGUgZnVqaXRzdS1sYXB0b3AgZHJpdmVyIHdpbGwgcmVnaXN0ZXIgYSBMRUQNCnRoYXQgeW91
+IGNhbiB0b2dnbGUgb24gJiBvZmYuIElmIHRoaXMgZG9lcyBub3Qgd29yaywgY291bGQgeW91IGxv
+YWQgdGhlDQpkcml2ZXIgd2l0aCBmdWxsIGRlYnVnZ2luZzoNCg0KbW9kcHJvYmUgZnVqaXRzdS1s
+YXB0b3AgZGVidWc9MHhmZmZmDQoNCkFsc28sIHBsZWFzZSBhdHRhY2ggdGhlIGZvbGxvd2luZyBm
+aWxlIHRvIHlvdXIgZS1tYWlsOg0KL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcy9EU0RUDQoNCihZ
+b3UgY2FuIGRlY29tcGlsZSBpdCB1c2luZyBpYXNsIC1kKQ0KDQpPYnZpb3VzbHkgSSBob3BlIGl0
+J2xsIEp1c3QgV29yayhUTSkgZm9yIHlvdSwgYnV0IGlmIG5vdCwgSSBjYW4NCnByb2JhYmx5IGhl
+bHAgOikNCg0KPiBIYW5udSBWdW9sYXNhaG8NCg0KUmVnYXJkcywNClRvbnkgVi4NCi0tLS0tQkVH
+SU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2Mi4wLjExIChHTlUvTGludXgp
+DQoNCmlFWUVBUkVDQUFZRkFrbm5KUVlBQ2drUXA1dlc0clVGajVwOFVnQ2VKMGdyRmRvUTQ1Y1lm
+MW1tamRJWjFYYngNClVuTUFuUnFBVVo1clZTbU50UC82b0xBMGN1ZWQ2RkFYDQo9YnZZYw0KLS0t
+LS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
