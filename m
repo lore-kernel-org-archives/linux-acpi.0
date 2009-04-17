@@ -1,84 +1,51 @@
-From: Hannu Vuolasaho <vuokko@nukku.net>
-Subject: Re: How to use fujitsu-laptop for keyboard lights?
-Date: Fri, 17 Apr 2009 18:05:01 +0300 (EEST)
-Message-ID: <Pine.LNX.4.53.0904171631230.32703@hyvin.nukku.net>
-References: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
- <20090416133059.6cc1adce@linx.net> <Pine.LNX.4.53.0904170329110.32703@hyvin.nukku.net>
- <20090417133004.0e087bdf@linx.net>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: Re: [PATCH 3/8] acpi-cpufreq: First multiply then divide to avoid
+ zero results
+Date: Fri, 17 Apr 2009 10:10:27 -0700
+Message-ID: <1239988227.4529.8641.camel@localhost.localdomain>
+References: <1239978132-6261-1-git-send-email-trenn@suse.de>
+	 <1239978132-6261-4-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from x.venko.net ([212.246.29.154]:45063 "HELO nukku.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755890AbZDQPFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Apr 2009 11:05:06 -0400
-In-Reply-To: <20090417133004.0e087bdf@linx.net>
+Received: from mga03.intel.com ([143.182.124.21]:47402 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756815AbZDQRNI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Apr 2009 13:13:08 -0400
+In-Reply-To: <1239978132-6261-4-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Vroon <tony@linx.net>
-Cc: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>
 
 
+Why is this needed? Normal C precedence rules should take care of this.
+No?
 
-On Fri, 17 Apr 2009, Tony Vroon wrote:
+Thanks,
+Venki 
 
-> Provided you load it in the right order, yes. The led class will need
-> to be loaded *before* fujitsu-laptop.
+On Fri, 2009-04-17 at 07:22 -0700, Thomas Renninger wrote:
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+> Cc: <cpufreq@vger.kernel.org>
+> ---
+>  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> index 4475523..7948d88 100644
+> --- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> +++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> @@ -340,7 +340,7 @@ static unsigned int get_measured_perf(struct cpufreq_policy *policy,
+>  
+>  #endif
+>  
+> -	retval = per_cpu(drv_data, policy->cpu)->max_freq * perf_percent / 100;
+> +	retval = (per_cpu(drv_data, policy->cpu)->max_freq * perf_percent) / 100;
+>  
+>  	return retval;
+>  }
 
-No. That's not working. Since I first tried option index=2 as in alsa
-drivers to put /etc/modprobe.conf which make fujitsu-laptop to fail and
-after that I edited  modprobe.conf again and loaded fujitsu-laptop. Result
-was no kblamps anywhere.
-
-Also led_class wasn't used by fujitsu-laptop. Second try was put in
-/etc/rc.conf MODULES=(led_class fujitsu_laptop) same thing. No kblamps
-anywhere.
-
-I even blacklisted fujitsu-laptop and manually loaded it and even then
-lights didn't work. seems that I can't get fujitsu-laptop to work with
-led-class module.
-
-Stupid to ask but because led-class is used with ath5k and sdhci, can
-fujitsu-laptop still register its led? I believe it would be stupid if I
-couldn't plug my led blinker USB-dongle and get led device for it.
-
->
-> > Now I have /sys/devices/platform/leds/fujitsu\:\:kblamps/brightness
-> > which doesn't bring the lights on when I say echo 255 or anything
-> > else. I try to do it wrong I believe.
->
-> It is odd that you get duplicate LED devices. It does appear to be a
-> phantom device.
->
-> > Instead I can get them on saying
-> > echo 255>/sys/class/leds/fujitsu\:\:kblamps/brightness.
->
-> Especially as that one works.
-
-Well not any more. I wondered why I was'n able to put lights on. It
-appears that echo 255 > works echo 255>doesn't. So I knew it I was doing
-it wrong :) Both devices work. They are just duplicates.
-
-> So you get no log entries for the "wrong" platform device, but you do
-> get entries for the second, working device? (It wouldn't make sense to
-> me if the LED state changes without log entries being made, as it takes
-> a FUNC callback to do it)
-
-Now they both work and create log entries as I know how to say echo :)
-I propably messed with my echo dmesg echo commands. Sorry. I'm not
-perfect.
-
-Is it possible to put kblamp in heartbeat mode? Kind of cool idea if
-lights would go off-> HB-> on ->HB -> off by pressing / quickkey
-
->
-> > And this machine is F-S biblo loox u50x/v Small Japanese netbook. (My
-> > first portable computer. Fits in pocket.)
->
-> The DSDT looks good, the keyboard LED is presented as the driver
-> expects. Seems very similar to the U810.
-
-Yes. instead of having webcam I have Japanese digital TV receiver and
-weird keyboard.
-
-Hannu Vuolasaho
