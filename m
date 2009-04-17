@@ -1,35 +1,82 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [RFC][PATCH] ACPICA: Drop Operand cache
-Date: Sat, 18 Apr 2009 00:07:06 +0400
-Message-ID: <49E8E16A.1070006@suse.de>
-References: <49E8C9A8.5020201@suse.de> <4911F71203A09E4D9981D27F9D83085821F006A4@orsmsx503.amr.corp.intel.com> <49E8DEBC.8030307@suse.de>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [BISECTED] 20 ACPI interrupts per second on EEEPC 4G
+Date: Sat, 18 Apr 2009 00:54:09 +0400
+Message-ID: <49E8EC71.2010104@gmail.com>
+References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com> <49E05F83.2090500@tuffmail.co.uk> <49E20EBA.2090708@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:35832 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752370AbZDQUHH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Apr 2009 16:07:07 -0400
-In-Reply-To: <49E8DEBC.8030307@suse.de>
+Received: from mu-out-0910.google.com ([209.85.134.185]:52718 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752982AbZDQVBO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Apr 2009 17:01:14 -0400
+In-Reply-To: <49E20EBA.2090708@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>
 
-Alexey Starikovskiy wrote:
-> Moore, Robert wrote:
->> Please explain further what this accomplishes. This removes the use of 
->> any cache for the acpi operand object? What about performance? That 
->> was the major reason the cache was added in the first place.
-> Our cache implementation fights with memory debugger in Microsoft Visual 
-> C standard library. If you care about performance, the best way is to 
-> disable this memory debugger, as we don't use it anyway. You could 
-> accomplish it in two ways, one is to disable all DEBUG, the other is to 
-> only disable memory debugger.
-> 
-Here is the link to the offending MSVC flag description:
-http://msdn.microsoft.com/en-us/library/10t349zs(VS.71).aspx
+Alan Jenkins wrote:
+> Alan Jenkins wrote:
+>   
+>> Alexey Starikovskiy wrote:
+>>     
+>>> Alan Jenkins wrote:
+>>>       
+>>>> On latest git, powertop shows 20 ACPI interrupts per second. 
+>>>> Previously, this was closer to 1 per second.  See attached output (a
+>>>> vs b, "a" is from 2.6.29-rc8).
+>>>>
+>>>> This is from a pretty sparse KDE desktop.  Normally I run
+>>>> gnome-power-manager, but I killed it to make sure that wasn't
+>>>> causing any problems.
+>>>>
+>>>>         
+>>>> gpe18:   60975  enabled
+>>>> gpe_all:   60975
+>>>> sci:   60975
+>>>>
+>>>> which I presume means lots of EC interrupts.
+>>>>
+>>>> [    0.134068] ACPI: EC: GPE = 0x18, I/O: command/status = 0x66,
+>>>> data = 0x62
+>>>>
+>>>>         
+>>> This patch looks to be a suspect:
+>>> 34ff4dbccccce54c83b1234d39b7ad9e548a75dd,
+>>> Please check if reversing it helps
+>>>       
+>> No, I still get 20 ACPI interrupts per second.
+>>
+>> I tried without powertop, just in case that was provoking it, but it
+>> still happens:
+>>
+>> alan@alan-eeepc:/sys/firmware/acpi/interrupts$ cat sci; sleep 5; cat sci
+>>    2583
+>>    2680
+>>     
+>
+> I did wonder whether this was due to thermal polling.  So look what I
+> found with bisection :-).
+>   
+Great!
+>
+> b1569e99c795bf83b4ddf41c4f1c42761ab7f75e is first bad commit
+> commit b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
+> Author: Matthew Garrett <mjg59@srcf.ucam.org>
+> Date:   Wed Dec 3 17:55:32 2008 +0000
+>
+>     ACPI: move thermal trip handling to generic thermal layer
+>
+>     The ACPI code currently carries its own thermal trip handling,
+> meaning that
+>     any other thermal implementation will need to reimplement it. Move
+> the code
+>     to the generic thermal layer.
+>
+>
+> Regards
+> Alan
+>   
 
-Regards,
-Alex.
