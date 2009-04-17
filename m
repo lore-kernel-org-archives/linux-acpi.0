@@ -1,371 +1,84 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 5/8] acpi-cpufreq: Move average performance funtions into separate file and KConfig
-Date: Fri, 17 Apr 2009 16:22:09 +0200
-Message-ID: <1239978132-6261-6-git-send-email-trenn@suse.de>
-References: <1239978132-6261-1-git-send-email-trenn@suse.de>
+From: Hannu Vuolasaho <vuokko@nukku.net>
+Subject: Re: How to use fujitsu-laptop for keyboard lights?
+Date: Fri, 17 Apr 2009 18:05:01 +0300 (EEST)
+Message-ID: <Pine.LNX.4.53.0904171631230.32703@hyvin.nukku.net>
+References: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
+ <20090416133059.6cc1adce@linx.net> <Pine.LNX.4.53.0904170329110.32703@hyvin.nukku.net>
+ <20090417133004.0e087bdf@linx.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49975 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760456AbZDQOWO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Apr 2009 10:22:14 -0400
-In-Reply-To: <1239978132-6261-1-git-send-email-trenn@suse.de>
+Received: from x.venko.net ([212.246.29.154]:45063 "HELO nukku.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755890AbZDQPFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Apr 2009 11:05:06 -0400
+In-Reply-To: <20090417133004.0e087bdf@linx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, venkatesh.pallipadi@intel.com, Thomas Renninger <trenn@suse.de>
+To: Tony Vroon <tony@linx.net>
+Cc: linux-acpi@vger.kernel.org
 
-This makes the code available for cpufreq_stats to monitor the average
-frequency easily in userspace.
-exports:
-EXPORT_SYMBOL_GPL(get_average_perf)
-unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
-			      u64 *saved_aperf, u64 *saved_mperf)
 
-Additional modification:
-Use smp_call_function_single instead of work_on_cpu.
-The latter was broken anyway and 0 was always returned as the called function
-read_measured_perf_ctrs always returns zero which work_on_cpu's return value
-was checked for:
-if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
-		return 0;
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: <cpufreq@vger.kernel.org>
----
- arch/x86/kernel/cpu/cpufreq/Kconfig             |   15 +++
- arch/x86/kernel/cpu/cpufreq/Makefile            |    1 +
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c      |   96 +--------------
- arch/x86/kernel/cpu/cpufreq/average_frequency.c |  146 +++++++++++++++++++++++
- include/linux/cpufreq.h                         |   13 ++
- 5 files changed, 178 insertions(+), 93 deletions(-)
- create mode 100644 arch/x86/kernel/cpu/cpufreq/average_frequency.c
+On Fri, 17 Apr 2009, Tony Vroon wrote:
 
-diff --git a/arch/x86/kernel/cpu/cpufreq/Kconfig b/arch/x86/kernel/cpu/cpufreq/Kconfig
-index 52c8398..3ca1602 100644
---- a/arch/x86/kernel/cpu/cpufreq/Kconfig
-+++ b/arch/x86/kernel/cpu/cpufreq/Kconfig
-@@ -26,6 +26,21 @@ config X86_ACPI_CPUFREQ
- 
- 	  If in doubt, say N.
- 
-+config X86_AVERAGE_FREQUENCY
-+	bool "Calculate and consider average frequency over a time period"
-+	depends on CPU_FREQ_TABLE
-+	help
-+	  Latest X86 Intel processors can overclock a single core
-+	  behind the kernel's back (ida cpuinfo flag) if specific requirements
-+	  are met.
-+	  With this option, the kernel can evaluate the real frequency a core
-+	  was running on over a time period and kernel parts, for example
-+	  the cpufreq core and governor or later the scheduler can consider and
-+	  optimize for the "boost" frequency on such processors.
-+	  Currently the only driver which serves such processors is acpi-cpufreq.
-+	  This option should be enabled for this driver at least
-+	  on processors which show the "ida" flag in /proc/cpuinfo
-+
- config ELAN_CPUFREQ
- 	tristate "AMD Elan SC400 and SC410"
- 	select CPU_FREQ_TABLE
-diff --git a/arch/x86/kernel/cpu/cpufreq/Makefile b/arch/x86/kernel/cpu/cpufreq/Makefile
-index 509296d..3eb5a64 100644
---- a/arch/x86/kernel/cpu/cpufreq/Makefile
-+++ b/arch/x86/kernel/cpu/cpufreq/Makefile
-@@ -2,6 +2,7 @@
- # K8 systems. ACPI is preferred to all other hardware-specific drivers.
- # speedstep-* is preferred over p4-clockmod.
- 
-+obj-$(CONFIG_X86_AVERAGE_FREQUENCY)     += average_frequency.o
- obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o
- obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o
- obj-$(CONFIG_X86_POWERNOW_K6)		+= powernow-k6.o
-diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-index 7a9a161..148857a 100644
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-+++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -246,102 +246,12 @@ static u32 get_cur_val(const struct cpumask *mask)
- 	return cmd.val;
- }
- 
--struct perf_pair {
--	union {
--		struct {
--			u32 lo;
--			u32 hi;
--		} split;
--		u64 whole;
--	} aperf, mperf;
--};
--
--
--static long read_measured_perf_ctrs(void *_cur)
--{
--	struct perf_pair *cur = _cur;
--
--	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
--	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
--
--	return 0;
--}
--
--/*
-- * Return the measured active (C0) frequency on this CPU since last call
-- * to this function.
-- * Input: cpu number
-- * Return: Average CPU frequency in terms of max frequency (zero on error)
-- *
-- * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
-- * over a period of time, while CPU is in C0 state.
-- * IA32_MPERF counts at the rate of max advertised frequency
-- * IA32_APERF counts at the rate of actual CPU frequency
-- * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
-- * no meaning should be associated with absolute values of these MSRs.
-- */
- static unsigned int get_measured_perf(struct cpufreq_policy *policy,
- 				      unsigned int cpu)
- {
--	struct perf_pair readin, cur;
--	unsigned int perf_percent;
--	unsigned int retval;
--
--	if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
--		return 0;
--
--	cur.aperf.whole = readin.aperf.whole -
--				per_cpu(msr_data, cpu).saved_aperf;
--	cur.mperf.whole = readin.mperf.whole -
--				per_cpu(msr_data, cpu).saved_mperf;
--	per_cpu(msr_data, cpu).saved_aperf = readin.aperf.whole;
--	per_cpu(msr_data, cpu).saved_mperf = readin.mperf.whole;
--
--#ifdef __i386__
--	/*
--	 * We dont want to do 64 bit divide with 32 bit kernel
--	 * Get an approximate value. Return failure in case we cannot get
--	 * an approximate value.
--	 */
--	if (unlikely(cur.aperf.split.hi || cur.mperf.split.hi)) {
--		int shift_count;
--		u32 h;
--
--		h = max_t(u32, cur.aperf.split.hi, cur.mperf.split.hi);
--		shift_count = fls(h);
--
--		cur.aperf.whole >>= shift_count;
--		cur.mperf.whole >>= shift_count;
--	}
--
--	if (((unsigned long)(-1) / 100) < cur.aperf.split.lo) {
--		int shift_count = 7;
--		cur.aperf.split.lo >>= shift_count;
--		cur.mperf.split.lo >>= shift_count;
--	}
--
--	if (cur.aperf.split.lo && cur.mperf.split.lo)
--		perf_percent = (cur.aperf.split.lo * 100) / cur.mperf.split.lo;
--	else
--		perf_percent = 0;
--
--#else
--	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf.whole)) {
--		int shift_count = 7;
--		cur.aperf.whole >>= shift_count;
--		cur.mperf.whole >>= shift_count;
--	}
--
--	if (cur.aperf.whole && cur.mperf.whole)
--		perf_percent = (cur.aperf.whole * 100) / cur.mperf.whole;
--	else
--		perf_percent = 0;
--
--#endif
--
--	retval = (policy->cpuinfo.max_freq * perf_percent) / 100;
--
--	return retval;
-+	return get_average_perf(policy, cpu,
-+				&per_cpu(msr_data, cpu).saved_aperf,
-+				&per_cpu(msr_data, cpu).saved_mperf);
- }
- 
- static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
-diff --git a/arch/x86/kernel/cpu/cpufreq/average_frequency.c b/arch/x86/kernel/cpu/cpufreq/average_frequency.c
-new file mode 100644
-index 0000000..2b18a75
---- /dev/null
-+++ b/arch/x86/kernel/cpu/cpufreq/average_frequency.c
-@@ -0,0 +1,146 @@
-+/*
-+ *  average_frequency.c
-+ *
-+ *  Copyright (C) 2009       Thomas Renninger <trenn@suse.de> (Novell)
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ * Code taken from acpi-cpufreq which initially came from
-+ * Mike Travis <travis@sgi.com> and
-+ * Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/cpufreq.h>
-+#include <linux/workqueue.h>
-+
-+#include <asm/msr.h>
-+
-+struct perf_pair {
-+	union {
-+		struct {
-+			u32 lo;
-+			u32 hi;
-+		} split;
-+		s64 whole;
-+	} aperf, mperf;
-+};
-+
-+static void read_measured_perf_ctrs(void *_cur)
-+{
-+	struct perf_pair *cur = _cur;
-+
-+	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
-+	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
-+}
-+
-+/*
-+ * Return the measured active (C0) frequency on this CPU since last call
-+ * to this function.
-+ * Input: cpu number
-+ *        cpufreq policy -> must at least have cpuinfo.max_freq be set
-+ *        saved_mperf    -> register value of last call, will get updated
-+ *        saved_aperf    -> register value of last call, will get updated
-+ *
-+ * Return: Average CPU frequency in terms of max frequency (zero on error)
-+ *         since the function has been called the last time with saved
-+ *         aperf/mperf values.
-+ *
-+ * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
-+ * over a period of time, while CPU is in C0 state.
-+ * IA32_MPERF counts at the rate of max advertised frequency
-+ * IA32_APERF counts at the rate of actual CPU frequency
-+ * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
-+ * no meaning should be associated with absolute values of these MSRs.
-+ *
-+ * Callers must make sure that the X86_FEATURE_IDA bit is set.
-+ */
-+unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
-+			      u64 *saved_aperf, u64 *saved_mperf)
-+{
-+	struct perf_pair readin, cur;
-+	unsigned int perf_percent;
-+	unsigned int retval;
-+
-+	smp_call_function_single(cpu, read_measured_perf_ctrs, &readin, 1);
-+
-+	/* Called the first time */
-+	if ((*saved_aperf == 0) && (*saved_mperf == 0)) {
-+		*saved_aperf = readin.aperf.whole;
-+		*saved_mperf = readin.mperf.whole;
-+		return 0;
-+	}
-+
-+	cur.aperf.whole = readin.aperf.whole - *saved_aperf;
-+	cur.mperf.whole = readin.mperf.whole - *saved_mperf;
-+
-+	/* Handle overflow gracefully */
-+	if (unlikely(*saved_aperf > readin.aperf.whole))
-+		cur.aperf.whole = 0ULL - readin.aperf.whole;
-+	if (unlikely(*saved_mperf > readin.mperf.whole))
-+		cur.mperf.whole = 0ULL - readin.mperf.whole;
-+
-+	*saved_aperf = readin.aperf.whole;
-+	*saved_mperf = readin.mperf.whole;
-+
-+#ifdef __i386__
-+	/*
-+	 * We dont want to do 64 bit divide with 32 bit kernel
-+	 * Get an approximate value. Return failure in case we cannot get
-+	 * an approximate value.
-+	 */
-+	if (unlikely(cur.aperf.split.hi || cur.mperf.split.hi)) {
-+		int shift_count;
-+		u32 h;
-+
-+		h = max_t(u32, cur.aperf.split.hi, cur.mperf.split.hi);
-+		shift_count = fls(h);
-+
-+		cur.aperf.whole >>= shift_count;
-+		cur.mperf.whole >>= shift_count;
-+	}
-+
-+	if (((unsigned long)(-1) / 100) < cur.aperf.split.lo) {
-+		int shift_count = 7;
-+		cur.aperf.split.lo >>= shift_count;
-+		cur.mperf.split.lo >>= shift_count;
-+	}
-+
-+	if (cur.aperf.split.lo && cur.mperf.split.lo)
-+		perf_percent = (cur.aperf.split.lo * 100) / cur.mperf.split.lo;
-+	else
-+		perf_percent = 0;
-+
-+#else
-+	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf.whole)) {
-+		int shift_count = 7;
-+		cur.aperf.whole >>= shift_count;
-+		cur.mperf.whole >>= shift_count;
-+	}
-+
-+	if (cur.aperf.whole && cur.mperf.whole)
-+		perf_percent = (cur.aperf.whole * 100) / cur.mperf.whole;
-+	else
-+		perf_percent = 0;
-+
-+#endif
-+	retval = (policy->cpuinfo.max_freq * perf_percent) / 100;
-+	return retval;
-+}
-+EXPORT_SYMBOL_GPL(get_average_perf);
-diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index 1610427..0ab8bf7 100644
---- a/include/linux/cpufreq.h
-+++ b/include/linux/cpufreq.h
-@@ -362,6 +362,19 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
- 
- void cpufreq_frequency_table_put_attr(unsigned int cpu);
- 
-+/*
-+ * Get the average frequency since the last call of this function if the
-+ * needed MSRs are supported by the CPU
-+*/
-+#ifdef CONFIG_X86_AVERAGE_FREQUENCY
-+unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
-+			      u64 *saved_aperf, u64 *saved_mperf);
-+#else
-+unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
-+			      u64 *saved_aperf, u64 *saved_mperf)
-+{ return 0; }
-+#endif
-+
- 
- /*********************************************************************
-  *                     UNIFIED DEBUG HELPERS                         *
--- 
-1.6.0.2
+> Provided you load it in the right order, yes. The led class will need
+> to be loaded *before* fujitsu-laptop.
 
+No. That's not working. Since I first tried option index=2 as in alsa
+drivers to put /etc/modprobe.conf which make fujitsu-laptop to fail and
+after that I edited  modprobe.conf again and loaded fujitsu-laptop. Result
+was no kblamps anywhere.
+
+Also led_class wasn't used by fujitsu-laptop. Second try was put in
+/etc/rc.conf MODULES=(led_class fujitsu_laptop) same thing. No kblamps
+anywhere.
+
+I even blacklisted fujitsu-laptop and manually loaded it and even then
+lights didn't work. seems that I can't get fujitsu-laptop to work with
+led-class module.
+
+Stupid to ask but because led-class is used with ath5k and sdhci, can
+fujitsu-laptop still register its led? I believe it would be stupid if I
+couldn't plug my led blinker USB-dongle and get led device for it.
+
+>
+> > Now I have /sys/devices/platform/leds/fujitsu\:\:kblamps/brightness
+> > which doesn't bring the lights on when I say echo 255 or anything
+> > else. I try to do it wrong I believe.
+>
+> It is odd that you get duplicate LED devices. It does appear to be a
+> phantom device.
+>
+> > Instead I can get them on saying
+> > echo 255>/sys/class/leds/fujitsu\:\:kblamps/brightness.
+>
+> Especially as that one works.
+
+Well not any more. I wondered why I was'n able to put lights on. It
+appears that echo 255 > works echo 255>doesn't. So I knew it I was doing
+it wrong :) Both devices work. They are just duplicates.
+
+> So you get no log entries for the "wrong" platform device, but you do
+> get entries for the second, working device? (It wouldn't make sense to
+> me if the LED state changes without log entries being made, as it takes
+> a FUNC callback to do it)
+
+Now they both work and create log entries as I know how to say echo :)
+I propably messed with my echo dmesg echo commands. Sorry. I'm not
+perfect.
+
+Is it possible to put kblamp in heartbeat mode? Kind of cool idea if
+lights would go off-> HB-> on ->HB -> off by pressing / quickkey
+
+>
+> > And this machine is F-S biblo loox u50x/v Small Japanese netbook. (My
+> > first portable computer. Fits in pocket.)
+>
+> The DSDT looks good, the keyboard LED is presented as the driver
+> expects. Seems very similar to the U810.
+
+Yes. instead of having webcam I have Japanese digital TV receiver and
+weird keyboard.
+
+Hannu Vuolasaho
