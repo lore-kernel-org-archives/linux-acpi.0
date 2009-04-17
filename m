@@ -1,43 +1,52 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
-Date: Fri, 17 Apr 2009 09:30:13 +0800
-Message-ID: <1239931813.7661.394.camel@rzhang-dt>
-References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera>
+From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] thermal: Fix polling frequency for systems without
+	passive cooling
+Date: Fri, 17 Apr 2009 09:37:07 +0800
+Message-ID: <1239932227.7661.397.camel@rzhang-dt>
+References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com>
+	 <49E05F83.2090500@tuffmail.co.uk> <49E20EBA.2090708@tuffmail.co.uk>
+	 <1239588248.5564.19.camel@localhost.localdomain>
+	 <49E3085D.3060403@tuffmail.co.uk> <20090413170531.GA13188@srcf.ucam.org>
+	 <49E38779.9060705@tuffmail.co.uk>  <20090414191645.GB7940@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759399AbZDQBaV@vger.kernel.org>
-In-Reply-To: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090414191645.GB7940-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, "Zhao, Yakui" <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexey Starikovskiy <aystarik-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2009-04-17 at 05:42 +0800, Rafael J. Wysocki wrote:
-> 
-> 
-> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=13095
-> Subject         : thinkpad-acpi: cannot control brightness with hotkeys
-> Submitter       : Niel Lambrechts <niel.lambrechts@gmail.com>
-> Date            : 2009-04-11 23:07 (6 days old)
-> References      : http://lkml.org/lkml/2009/4/11/160
-> Handled-By      : Matthew Garrett <mjg59@srcf.ucam.org>
-> Patch           : http://lkml.org/lkml/2009/4/15/339
-> 
-> 
-> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=13048
-> Subject         : /sys/class/backlight/acpi_video0/* is gone on vaio laptop with Intel GM45.
-> Submitter       : Rodrigo L. Batista <rodrigo@gus-mg.org>
-> Date            : 2009-04-09 04:57 (8 days old)
-> Handled-By      : yakui_zhao <yakui.zhao@intel.com>
-> Patch           : http://bugzilla.kernel.org/attachment.cgi?id=20967
->                   http://bugzilla.kernel.org/attachment.cgi?id=20959
-> 
-> 
-bug 13095 is a duplicate of bug 13048.
-patches from Matthew and Yakui are for the same issue.
+On Wed, 2009-04-15 at 03:16 +0800, Matthew Garrett wrote:
+> The polling interval (in deciseconds) was accidently interpreted as=20
+> being in milliseconds in one codepath, resulting in excessively frequ=
+ent=20
+> polling. Ensure that the conversion is performed.
+>=20
+> Signed-off-by: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Yakui, could you verify which patch should be taken please?
+Acked-by: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+=EF=BB=BFLen,
+I think we can ship this patch in 2.6.30-rc3.
 
 thanks,
 rui
+>=20
+> ---
+>=20
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index 9cd15e8..564ea14 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -909,7 +909,7 @@ static int acpi_thermal_register_thermal_zone(str=
+uct acpi_thermal *tz)
+>  			thermal_zone_device_register("acpitz", trips, tz,
+>  						     &acpi_thermal_zone_ops,
+>  						     0, 0, 0,
+> -						     tz->polling_frequency);
+> +						     tz->polling_frequency*100);
+>  	if (IS_ERR(tz->thermal_zone))
+>  		return -ENODEV;
+>=20
