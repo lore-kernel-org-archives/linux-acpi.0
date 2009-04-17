@@ -1,52 +1,73 @@
-From: Tony Vroon <tony@linx.net>
-Subject: Re: How to use fujitsu-laptop for keyboard lights?
-Date: Fri, 17 Apr 2009 13:30:04 +0100
-Message-ID: <20090417133004.0e087bdf@linx.net>
-References: <Pine.LNX.4.53.0904161333241.32703@hyvin.nukku.net>
-	<20090416133059.6cc1adce@linx.net>
-	<Pine.LNX.4.53.0904170329110.32703@hyvin.nukku.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 4/8] acpi-cpufreq: Do not let get_measured perf depend on internal variable
+Date: Fri, 17 Apr 2009 16:22:08 +0200
+Message-ID: <1239978132-6261-5-git-send-email-trenn@suse.de>
+References: <1239978132-6261-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gold.linx.net ([195.66.232.40]:42739 "EHLO gold.linx.net"
+Received: from cantor.suse.de ([195.135.220.2]:43590 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760852AbZDQMaf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Apr 2009 08:30:35 -0400
-In-Reply-To: <Pine.LNX.4.53.0904170329110.32703@hyvin.nukku.net>
+	id S1760659AbZDQOWO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Apr 2009 10:22:14 -0400
+In-Reply-To: <1239978132-6261-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hannu Vuolasaho <vuokko@nukku.net>
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, venkatesh.pallipadi@intel.com, Thomas Renninger <trenn@suse.de>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBGcmks
-IDE3IEFwciAyMDA5IDE0OjU5OjM3ICswMzAwIChFRVNUKQ0KSGFubnUgVnVvbGFzYWhvIDx2dW9r
-a29AbnVra3UubmV0PiB3cm90ZToNCj4gV2VsbCBpdCB3YXMgYSBtb2R1bGUsIGJ1dCBpdCdzIHRo
-ZXJlLiAgbHNtb2Qgc2F5cw0KPiBpdCdzIG5lZWRlZCBzZGhjaSBhbmQgYXRoNWsgYnV0IG5vdCBm
-dWppdHN1LiBBcHBhcmVudGx5IGl0IG5lZWRzIHRvIGJlDQo+IGNvbXBpbGVkIGluLiBDYW4gZnVq
-aXRzdS1sYXB0b3Agc3VwcG9ydCBpdCBhcyBtb2R1bGU/DQoNClByb3ZpZGVkIHlvdSBsb2FkIGl0
-IGluIHRoZSByaWdodCBvcmRlciwgeWVzLiBUaGUgbGVkIGNsYXNzIHdpbGwgbmVlZA0KdG8gYmUg
-bG9hZGVkICpiZWZvcmUqIGZ1aml0c3UtbGFwdG9wLg0KDQo+IE5vdyBJIGhhdmUgL3N5cy9kZXZp
-Y2VzL3BsYXRmb3JtL2xlZHMvZnVqaXRzdVw6XDprYmxhbXBzL2JyaWdodG5lc3MNCj4gd2hpY2gg
-ZG9lc24ndCBicmluZyB0aGUgbGlnaHRzIG9uIHdoZW4gSSBzYXkgZWNobyAyNTUgb3IgYW55dGhp
-bmcNCj4gZWxzZS4gSSB0cnkgdG8gZG8gaXQgd3JvbmcgSSBiZWxpZXZlLg0KDQpJdCBpcyBvZGQg
-dGhhdCB5b3UgZ2V0IGR1cGxpY2F0ZSBMRUQgZGV2aWNlcy4gSXQgZG9lcyBhcHBlYXIgdG8gYmUg
-YQ0KcGhhbnRvbSBkZXZpY2UuDQoNCj4gSW5zdGVhZCBJIGNhbiBnZXQgdGhlbSBvbiBzYXlpbmcN
-Cj4gZWNobyAyNTU+L3N5cy9jbGFzcy9sZWRzL2Z1aml0c3VcOlw6a2JsYW1wcy9icmlnaHRuZXNz
-Lg0KDQpFc3BlY2lhbGx5IGFzIHRoYXQgb25lIHdvcmtzLg0KDQo+IHBhcnQgb2Yga2VybmVsLmxv
-ZyB3aGVyZSBJIHRyeSB0byB1c2UgcGxhdGZvcm0gYnJpZ2h0bmVzcyB3aXRoIG5vDQo+IHN1Y2Nl
-c3MgYW5kIGRzZHQuZHNsIGlmIGl0IGhlbHBzIHRvIG1ha2UgdGhpcyBkcml2ZXIgYmV0dGVyLiBJ
-IGRpZG4ndA0KPiBnZXQgYW55IGxvZyB3aGVuIHVzaW5nIGNsYXNzIGJyaWdodG5lc3MuDQoNClNv
-IHlvdSBnZXQgbm8gbG9nIGVudHJpZXMgZm9yIHRoZSAid3JvbmciIHBsYXRmb3JtIGRldmljZSwg
-YnV0IHlvdSBkbw0KZ2V0IGVudHJpZXMgZm9yIHRoZSBzZWNvbmQsIHdvcmtpbmcgZGV2aWNlPyAo
-SXQgd291bGRuJ3QgbWFrZSBzZW5zZSB0bw0KbWUgaWYgdGhlIExFRCBzdGF0ZSBjaGFuZ2VzIHdp
-dGhvdXQgbG9nIGVudHJpZXMgYmVpbmcgbWFkZSwgYXMgaXQgdGFrZXMNCmEgRlVOQyBjYWxsYmFj
-ayB0byBkbyBpdCkNCg0KPiBBbmQgdGhpcyBtYWNoaW5lIGlzIEYtUyBiaWJsbyBsb294IHU1MHgv
-diBTbWFsbCBKYXBhbmVzZSBuZXRib29rLiAoTXkNCj4gZmlyc3QgcG9ydGFibGUgY29tcHV0ZXIu
-IEZpdHMgaW4gcG9ja2V0LikNCg0KVGhlIERTRFQgbG9va3MgZ29vZCwgdGhlIGtleWJvYXJkIExF
-RCBpcyBwcmVzZW50ZWQgYXMgdGhlIGRyaXZlcg0KZXhwZWN0cy4gU2VlbXMgdmVyeSBzaW1pbGFy
-IHRvIHRoZSBVODEwLg0KDQpSZWdhcmRzLA0KVG9ueSBWLg0KLS0tLS1CRUdJTiBQR1AgU0lHTkFU
-VVJFLS0tLS0NClZlcnNpb246IEdudVBHIHYyLjAuMTEgKEdOVS9MaW51eCkNCg0KaUVZRUFSRUNB
-QVlGQWtub2RrOEFDZ2tRcDV2VzRyVUZqNXFycUFDZldxUGMyUGJpb2JJcHhTYStpMWhuK0FkQg0K
-WENJQW5SNVkxcTc2YWpoQkd1N1dJeWZmOW9WQlRNclUNCj12eWRnDQotLS0tLUVORCBQR1AgU0lH
-TkFUVVJFLS0tLS0NCg==
+Take already available policy->cpuinfo.max_freq and get rid of acpi-cpufreq
+specific max_freq variable.
+
+This implies that P0 is always the highest frequency which should always
+be true as ACPI spec says:
+As a result, the zeroth entry describes the highest performance state
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: <cpufreq@vger.kernel.org>
+---
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+index 7948d88..7a9a161 100644
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
++++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -65,7 +65,6 @@ enum {
+ struct acpi_cpufreq_data {
+ 	struct acpi_processor_performance *acpi_data;
+ 	struct cpufreq_frequency_table *freq_table;
+-	unsigned int max_freq;
+ 	unsigned int resume;
+ 	unsigned int cpu_feature;
+ };
+@@ -340,7 +339,7 @@ static unsigned int get_measured_perf(struct cpufreq_policy *policy,
+ 
+ #endif
+ 
+-	retval = (per_cpu(drv_data, policy->cpu)->max_freq * perf_percent) / 100;
++	retval = (policy->cpuinfo.max_freq * perf_percent) / 100;
+ 
+ 	return retval;
+ }
+@@ -698,7 +697,6 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 				    " latency at 20 uS\n");
+ 	}
+ 
+-	data->max_freq = perf->states[0].core_frequency * 1000;
+ 	/* table init */
+ 	for (i = 0; i < perf->state_count; i++) {
+ 		if (i > 0 && perf->states[i].core_frequency >=
+@@ -717,6 +715,9 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	if (result)
+ 		goto err_freqfree;
+ 
++	if (perf->states[0].core_frequency * 1000 != policy->cpuinfo.max_freq)
++		printk(KERN_WARNING FW_WARN "P-state 0 is not max freq\n");
++
+ 	switch (perf->control_register.space_id) {
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		/* Current speed is unknown and not detectable by IO port */
+-- 
+1.6.0.2
+
