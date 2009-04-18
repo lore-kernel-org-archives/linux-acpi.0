@@ -1,239 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Russell King <rmk+lkml@arm.linux.org.uk>
 Subject: Re: 900af0d breaks some embedded suspend/resume
-Date: Sat, 18 Apr 2009 15:23:35 +0200
-Message-ID: <200904181523.36010.rjw@sisk.pl>
-References: <20090417231009.GB6900@flint.arm.linux.org.uk>
+Date: Sat, 18 Apr 2009 14:53:23 +0100
+Message-ID: <20090418135323.GA7148@flint.arm.linux.org.uk>
+References: <20090417231009.GB6900@flint.arm.linux.org.uk> <200904181523.36010.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44774 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754599AbZDRNYI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Apr 2009 09:24:08 -0400
-In-Reply-To: <20090417231009.GB6900@flint.arm.linux.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757524AbZDRNzm@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200904181523.36010.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King <rmk@arm.linux.org.uk>, Len Brown <lenb@kernel.org>
-Cc: Linux Kernel List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Saturday 18 April 2009, Russell King wrote:
-> Some platforms need to talk via I2C to power control devices during
-> the suspend method.  Currently, they do this via the platform PM ops
-> prepare callback, relying on the I2C driver being hooked into the
-> 'late' suspend method, and hence being shut down _after_ the prepare
-> callback.
+On Sat, Apr 18, 2009 at 03:23:35PM +0200, Rafael J. Wysocki wrote:
+> The patchset in question had been discussed quite extensively before it was
+> merged and it's a pity none of the people caring for the affected platforms
+> took part in those discussions.  That would allow us to avoid the breakage.
 
-Well, I was not aware of this dependency and it seems quite unusual for a
-platform to depend on a driver like this.
+Maybe on some list, but not everyone is subscribed to a million and one
+mailing lists.  I don't have enough time to read those which I'm currently
+subscribed to, so I definitely don't want any more.
 
-> However, as of the above commit, the ordering is changed such that
-> platforms don't get notified of suspends until after all devices are
-> well and truely shut down.
+> > or provide alternative equivalent functionality where the platform code is
+> > notified of the PM event prior to the late suspend callback being issued.
 > 
-> This can't work, and actively breaks some platforms.
+> There is the .begin() callback that could be used, but if you need the
+> platform to be notified _just_ prior to the late suspend callback, then the
+> only thing I can think of at the moment is the appended patch.
+> 
+> It shouldn't break anything in theory, because the majority of drivers put
+> their devices into low power states in the "regular" suspend callbacks anyway.
 
-Sorry for that.
+Okay, my requirement is:
 
-The patchset in question had been discussed quite extensively before it was
-merged and it's a pity none of the people caring for the affected platforms
-took part in those discussions.  That would allow us to avoid the breakage.
- 
-> Please come up with another solution for your PCI problems,
+What I need to be able to do is to suspend most devices on the host side
+which may involve talking to a separate microcontroller via I2C to shut
+down power to peripherals.
 
-I don't think this is possible, sorry.
+Once that's complete, I then need to inform this microcontroller via I2C
+that we're going to be entering suspend mode, and wait for it to acknowledge
+that (after it's done its own suspend preparations).  At that point I can
+shutdown the I2C controller, and enter suspend mode.
 
-> or provide alternative equivalent functionality where the platform code is
-> notified of the PM event prior to the late suspend callback being issued.
+Upon resume (which is activated by this microcontroller, including jtagging
+the boot code across to the host CPU), we need to tell this microcontroller
+that we're going back to 'run' mode again via I2C, and then resume the
+devices.
 
-There is the .begin() callback that could be used, but if you need the
-platform to be notified _just_ prior to the late suspend callback, then the
-only thing I can think of at the moment is the appended patch.
+This is why we hooked the PXA I2C driver into the late suspend and
+early resume methods, so the I2C driver would be the last to suspend and
+the first to resume, thus allowing it to be used to talk to this micro-
+controller when required.  This worked out nicely because the late suspend
+used to before the platform prepare and platform finish used to happen
+after the early resume methods were called.
 
-It shouldn't break anything in theory, because the majority of drivers put
-their devices into low power states in the "regular" suspend callbacks anyway.
+So, it looks like your patch to kernel/power/main.c will allow me to
+continue to achieve this.  (Don't know about the disk.c bits, I've
+never used suspend-to-disk.)
 
-Len, what do you think?
-
-Thanks,
-Rafael
-
----
- kernel/power/disk.c |   43 +++++++++++++++++++++++--------------------
- kernel/power/main.c |   19 +++++++++----------
- 2 files changed, 32 insertions(+), 30 deletions(-)
-
-Index: linux-2.6/kernel/power/main.c
-===================================================================
---- linux-2.6.orig/kernel/power/main.c
-+++ linux-2.6/kernel/power/main.c
-@@ -291,21 +291,21 @@ static int suspend_enter(suspend_state_t
- 
- 	device_pm_lock();
- 
--	error = device_power_down(PMSG_SUSPEND);
--	if (error) {
--		printk(KERN_ERR "PM: Some devices failed to power down\n");
--		goto Done;
--	}
--
- 	if (suspend_ops->prepare) {
- 		error = suspend_ops->prepare();
- 		if (error)
--			goto Power_up_devices;
-+			goto Done;
- 	}
- 
- 	if (suspend_test(TEST_PLATFORM))
- 		goto Platfrom_finish;
- 
-+	error = device_power_down(PMSG_SUSPEND);
-+	if (error) {
-+		printk(KERN_ERR "PM: Some devices failed to power down\n");
-+		goto Platfrom_finish;
-+	}
-+
- 	error = disable_nonboot_cpus();
- 	if (error || suspend_test(TEST_CPUS))
- 		goto Enable_cpus;
-@@ -326,13 +326,12 @@ static int suspend_enter(suspend_state_t
-  Enable_cpus:
- 	enable_nonboot_cpus();
- 
-+	device_power_up(PMSG_RESUME);
-+
-  Platfrom_finish:
- 	if (suspend_ops->finish)
- 		suspend_ops->finish();
- 
-- Power_up_devices:
--	device_power_up(PMSG_RESUME);
--
-  Done:
- 	device_pm_unlock();
- 
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ linux-2.6/kernel/power/disk.c
-@@ -217,6 +217,13 @@ static int create_image(int platform_mod
- 
- 	device_pm_lock();
- 
-+	error = platform_pre_snapshot(platform_mode);
-+	if (error)
-+		goto Unlock;
-+
-+	if (hibernation_test(TEST_PLATFORM))
-+		goto Platform_finish;
-+
- 	/* At this point, device_suspend() has been called, but *not*
- 	 * device_power_down(). We *must* call device_power_down() now.
- 	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
-@@ -227,12 +234,8 @@ static int create_image(int platform_mod
- 	if (error) {
- 		printk(KERN_ERR "PM: Some devices failed to power down, "
- 			"aborting hibernation\n");
--		goto Unlock;
--	}
--
--	error = platform_pre_snapshot(platform_mode);
--	if (error || hibernation_test(TEST_PLATFORM))
- 		goto Platform_finish;
-+	}
- 
- 	error = disable_nonboot_cpus();
- 	if (error || hibernation_test(TEST_CPUS)
-@@ -274,12 +277,12 @@ static int create_image(int platform_mod
-  Enable_cpus:
- 	enable_nonboot_cpus();
- 
-- Platform_finish:
--	platform_finish(platform_mode);
--
- 	device_power_up(in_suspend ?
- 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
- 
-+ Platform_finish:
-+	platform_finish(platform_mode);
-+
-  Unlock:
- 	device_pm_unlock();
- 
-@@ -346,16 +349,16 @@ static int resume_target_kernel(bool pla
- 
- 	device_pm_lock();
- 
-+	error = platform_pre_restore(platform_mode);
-+	if (error)
-+		goto Unlock;
-+
- 	error = device_power_down(PMSG_QUIESCE);
- 	if (error) {
- 		printk(KERN_ERR "PM: Some devices failed to power down, "
- 			"aborting resume\n");
--		goto Unlock;
--	}
--
--	error = platform_pre_restore(platform_mode);
--	if (error)
- 		goto Cleanup;
-+	}
- 
- 	error = disable_nonboot_cpus();
- 	if (error)
-@@ -398,11 +401,11 @@ static int resume_target_kernel(bool pla
-  Enable_cpus:
- 	enable_nonboot_cpus();
- 
-+	device_power_up(PMSG_RECOVER);
-+
-  Cleanup:
- 	platform_restore_cleanup(platform_mode);
- 
--	device_power_up(PMSG_RECOVER);
--
-  Unlock:
- 	device_pm_unlock();
- 
-@@ -466,17 +469,17 @@ int hibernation_platform_enter(void)
- 
- 	device_pm_lock();
- 
--	error = device_power_down(PMSG_HIBERNATE);
-+	error = hibernation_ops->prepare();
- 	if (error)
- 		goto Unlock;
- 
--	error = hibernation_ops->prepare();
-+	error = device_power_down(PMSG_HIBERNATE);
- 	if (error)
- 		goto Platofrm_finish;
- 
- 	error = disable_nonboot_cpus();
- 	if (error)
--		goto Platofrm_finish;
-+		goto Power_up_devices;
- 
- 	local_irq_disable();
- 	sysdev_suspend(PMSG_HIBERNATE);
-@@ -484,6 +487,8 @@ int hibernation_platform_enter(void)
- 	/* We should never get here */
- 	while (1);
- 
-+ Power_up_devices:
-+	device_power_up(PMSG_RESTORE);
- 	/*
- 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
- 	 * the system is going to be halted anyway.
-@@ -491,8 +496,6 @@ int hibernation_platform_enter(void)
-  Platofrm_finish:
- 	hibernation_ops->finish();
- 
--	device_power_up(PMSG_RESTORE);
--
-  Unlock:
- 	device_pm_unlock();
- 
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:
