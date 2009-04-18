@@ -1,36 +1,34 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: [PATCH 1/2] toshiba-acpi: Add support for hotkey notifications
-Date: Sat, 18 Apr 2009 09:47:25 +0400
-Message-ID: <E1Lv3Or-000CHe-00.arvidjaar-mail-ru@mx38.mail.ru>
-References: <20090331214501.GC29489@srcf.ucam.org> <alpine.LFD.2.00.0904180000330.30751@localhost.localdomain>
+From: Lars Bjerregaard <lars@rubyglow.dk>
+Subject: Please send DMI info above to linux-acpi@vger.kernel.org
+Date: Sat, 18 Apr 2009 11:04:02 +0200
+Message-ID: <49E99782.8050401@rubyglow.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx38.mail.ru ([94.100.176.52]:64365 "EHLO mx38.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751114AbZDRFrk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Apr 2009 01:47:40 -0400
+Received: from hapkido.dreamhost.com ([66.33.216.122]:55919 "EHLO
+	hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621AbZDRJFR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2009 05:05:17 -0400
+Received: from homiemail-a4.g.dreamhost.com (caiajhbdcaid.dreamhost.com [208.97.132.83])
+	by hapkido.dreamhost.com (Postfix) with ESMTP id 4DA21184EF7
+	for <linux-acpi@vger.kernel.org>; Sat, 18 Apr 2009 02:05:17 -0700 (PDT)
+Received: from [10.0.0.2] (0x5552dc2b.adsl.cybercity.dk [85.82.220.43])
+	by homiemail-a4.g.dreamhost.com (Postfix) with ESMTP id 7F4144169C
+	for <linux-acpi@vger.kernel.org>; Sat, 18 Apr 2009 02:04:04 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, mjg59@srcf.ucam.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
+[    0.372592] ACPI: EC: Look up EC in DSDT
+[    0.402983] ACPI: BIOS _OSI(Linux) query ignored
+[    0.402986] ACPI: DMI System Vendor: Dell Inc.
+[    0.402989] ACPI: DMI Product Name: Dell DXP051
+[    0.402991] ACPI: DMI Product Version:
+[    0.402993] ACPI: DMI Board Name: 0YC523
+[    0.402995] ACPI: DMI BIOS Vendor: Dell Inc.
+[    0.402997] ACPI: DMI BIOS Date: 09/01/2005
+[    0.403000] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
 
-> drivers/platform/x86/toshiba_acpi.c:854: warning: passing argument 3 =
-of
-> =E2=80=98acpi_install_notify_handler=E2=80=99 from incompatible point=
-er type
-> drivers/platform/x86/toshiba_acpi.c:903: warning: passing argument 3 =
-of
-> =E2=80=98acpi_remove_notify_handler=E2=80=99 from incompatible pointe=
-r type
-
-Patch was here:
-
-http://marc.info/?l=3Dlinux-acpi&m=3D123636477425172&w=3D2
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for your work. :-)
+/Lars
