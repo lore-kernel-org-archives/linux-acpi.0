@@ -1,49 +1,64 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [RFC][PATCH] ACPICA: Drop Operand cache
-Date: Fri, 17 Apr 2009 20:46:43 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D83085821F00A94@orsmsx503.amr.corp.intel.com>
-References: <49E8C9A8.5020201@suse.de>
- <4911F71203A09E4D9981D27F9D83085821F006A4@orsmsx503.amr.corp.intel.com>
- <49E8DEBC.8030307@suse.de> <49E8E16A.1070006@suse.de>
+From: leiming <tom.leiming@gmail.com>
+Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
+Date: Sat, 18 Apr 2009 11:50:51 +0800
+Message-ID: <20090418115051.175f292f@linux-lm>
+References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera>
+	<d82e647a0904161837w6b6fb652la0da05f9061e95dc@mail.gmail.com>
+	<200904172336.12414.rjw@sisk.pl>
+	<20090418103226.54250420@linux-lm>
+	<alpine.LFD.2.00.0904171952260.4042@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:12237 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751168AbZDRDqq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Apr 2009 23:46:46 -0400
-In-Reply-To: <49E8E16A.1070006@suse.de>
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.189]:11807 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752284AbZDRDvB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Apr 2009 23:51:01 -0400
+In-Reply-To: <alpine.LFD.2.00.0904171952260.4042@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, video4linux-list@redhat.com, laurent.pinchart@skynet.be, mchehab@infradead.org
 
-I'll take a look at this sometime next week.
-Bob
+On Fri, 17 Apr 2009 19:55:29 -0700 (PDT)
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
+> @@ -742,7 +742,7 @@ static int uvc_alloc_urb_buffers(struct
+> > uvc_video_device *video, 
+> >  	/* Buffers are already allocated, bail out. */
+> >  	if (video->urb_size)
+> > -		return 0;
+> > +		return DIV_ROUND_UP(video->urb_size, psize);
+> 
+> I don't think this is right. It should round _down_.
+> 
+> It's supposed to return 'npackets', but if you pass it a different
+> packet size than it was passed originally, it can now return a
 
->-----Original Message-----
->From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
->Sent: Friday, April 17, 2009 1:07 PM
->To: Moore, Robert
->Cc: Len Brown; ACPI Devel Maling List
->Subject: Re: [RFC][PATCH] ACPICA: Drop Operand cache
->
->Alexey Starikovskiy wrote:
->> Moore, Robert wrote:
->>> Please explain further what this accomplishes. This removes the use of
->>> any cache for the acpi operand object? What about performance? That
->>> was the major reason the cache was added in the first place.
->> Our cache implementation fights with memory debugger in Microsoft Visual
->> C standard library. If you care about performance, the best way is to
->> disable this memory debugger, as we don't use it anyway. You could
->> accomplish it in two ways, one is to disable all DEBUG, the other is to
->> only disable memory debugger.
->>
->Here is the link to the offending MSVC flag description:
->http://msdn.microsoft.com/en-us/library/10t349zs(VS.71).aspx
->
->Regards,
->Alex.
+Now uvc only uses the previous allocated buffer in suspend/resume
+path, so the packet size doen't change in this path.
+
+> potentially bigger number than the already allocated buffer, no?
+
+If this case does exist, the URBs need to be updated and the patch is 
+not enough. 
+
+> 
+> So I think it should round down (ie use a regular divide). No?
+
+Because the following fact:
+
+	uvc_alloc_urb_buffers()
+	{
+		...
+		video->urb_size = psize * npackets; 
+		...
+	}
+
+so DIV_ROUND_UP still can work correctly.
+
+Thanks!
+
+-- 
+Lei Ming
