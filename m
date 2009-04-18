@@ -1,87 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
-Date: Sat, 18 Apr 2009 14:33:09 +0200
-Message-ID: <200904181433.11950.rjw@sisk.pl>
-References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera> <alpine.LFD.2.00.0904171952260.4042@localhost.localdomain> <20090418125111.6646e997@linux-lm>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi late queue
+Date: Sat, 18 Apr 2009 10:02:04 -0300
+Message-ID: <20090418130204.GB15376@khazad-dum.debian.net>
+References: <1239677054-3221-1-git-send-email-hmh@hmh.eng.br>
+	<alpine.LFD.2.00.0904180122090.30751@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44646 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754055AbZDRMdV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Apr 2009 08:33:21 -0400
-In-Reply-To: <20090418125111.6646e997@linux-lm>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <alpine.LFD.2.00.0904180122090.30751-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: leiming <tom.leiming@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, video4linux-list@redhat.com, laurent.pinchart@skynet.be, mchehab@infradead.org
 
-On Saturday 18 April 2009, leiming wrote:
-> On Fri, 17 Apr 2009 19:55:29 -0700 (PDT)
-> Linus Torvalds <torvalds@linux-foundation.org> wrote:
-> 
-> > > @@ -742,7 +742,7 @@ static int uvc_alloc_urb_buffers(struct
-> > > uvc_video_device *video, 
-> > >  	/* Buffers are already allocated, bail out. */
-> > >  	if (video->urb_size)
-> > > -		return 0;
-> > > +		return DIV_ROUND_UP(video->urb_size, psize);
-> > 
-> > I don't think this is right. It should round _down_.
-> > 
-> > It's supposed to return 'npackets', but if you pass it a different
-> > packet size than it was passed originally, it can now return a
-> > potentially bigger number than the already allocated buffer, no?
-> > 
-> > So I think it should round down (ie use a regular divide). No?
-> 
-> Yes,you are correct, please ignore my last reply, and following is
-> the fixed patch.
-> 
-> Thanks.
+On Sat, 18 Apr 2009, Len Brown wrote:
+> applied
 
-Thanks for the patch, I've updated the bug entry to point to it.
+Thank you :)
 
-Best,
-Rafael
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
-
-> From a3b3d72cdd57a0699fb643b41b78eb7beb211ff5 Mon Sep 17 00:00:00 2001
-> From: Ming Lei <tom.leiming@gmail.com>
-> Date: Wed, 15 Apr 2009 22:32:51 +0800
-> Subject: [PATCH] V4L/DVB:usbvideo:fix uvc resume failed(v2)
-> 
-> Now urb buffers is not freed before suspend, so uvc_alloc_urb_buffers
-> should return packet counts allocated originally during uvc resume
-> , instead of zero.
-> 
-> This version uses round down to return packet counts on Linus's
-> suggestions, or else may lead to buffer destructed if packet size
-> is changed before calling uvc_alloc_urb_buffers() in this kind of
-> case.
-> 
-> This patch is against v2.6.30-rc2.
-> 
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-> ---
->  drivers/media/video/uvc/uvc_video.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-> index a95e173..6ce974d 100644
-> --- a/drivers/media/video/uvc/uvc_video.c
-> +++ b/drivers/media/video/uvc/uvc_video.c
-> @@ -742,7 +742,7 @@ static int uvc_alloc_urb_buffers(struct uvc_video_device *video,
->  
->  	/* Buffers are already allocated, bail out. */
->  	if (video->urb_size)
-> -		return 0;
-> +		return video->urb_size / psize;
->  
->  	/* Compute the number of packets. Bulk endpoints might transfer UVC
->  	 * payloads accross multiple URBs.
-> -- 
-> 1.6.0.GIT
+------------------------------------------------------------------------------
+Stay on top of everything new and different, both inside and 
+around Java (TM) technology - register by April 22, and save
+$200 on the JavaOne (SM) conference, June 2-5, 2009, San Francisco.
+300 plus technical and hands-on sessions. Register today. 
+Use priority code J9JMT32. http://p.sf.net/sfu/p
