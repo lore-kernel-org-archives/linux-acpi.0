@@ -1,41 +1,239 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [GIT PATCH] thinkpad-acpi late queue
-Date: Sat, 18 Apr 2009 10:02:04 -0300
-Message-ID: <20090418130204.GB15376@khazad-dum.debian.net>
-References: <1239677054-3221-1-git-send-email-hmh@hmh.eng.br>
-	<alpine.LFD.2.00.0904180122090.30751@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 900af0d breaks some embedded suspend/resume
+Date: Sat, 18 Apr 2009 15:23:35 +0200
+Message-ID: <200904181523.36010.rjw@sisk.pl>
+References: <20090417231009.GB6900@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:44774 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754599AbZDRNYI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Apr 2009 09:24:08 -0400
+In-Reply-To: <20090417231009.GB6900@flint.arm.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904180122090.30751-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Russell King <rmk@arm.linux.org.uk>, Len Brown <lenb@kernel.org>
+Cc: Linux Kernel List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, 18 Apr 2009, Len Brown wrote:
-> applied
+On Saturday 18 April 2009, Russell King wrote:
+> Some platforms need to talk via I2C to power control devices during
+> the suspend method.  Currently, they do this via the platform PM ops
+> prepare callback, relying on the I2C driver being hooked into the
+> 'late' suspend method, and hence being shut down _after_ the prepare
+> callback.
 
-Thank you :)
+Well, I was not aware of this dependency and it seems quite unusual for a
+platform to depend on a driver like this.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+> However, as of the above commit, the ordering is changed such that
+> platforms don't get notified of suspends until after all devices are
+> well and truely shut down.
+> 
+> This can't work, and actively breaks some platforms.
 
-------------------------------------------------------------------------------
-Stay on top of everything new and different, both inside and 
-around Java (TM) technology - register by April 22, and save
-$200 on the JavaOne (SM) conference, June 2-5, 2009, San Francisco.
-300 plus technical and hands-on sessions. Register today. 
-Use priority code J9JMT32. http://p.sf.net/sfu/p
+Sorry for that.
+
+The patchset in question had been discussed quite extensively before it was
+merged and it's a pity none of the people caring for the affected platforms
+took part in those discussions.  That would allow us to avoid the breakage.
+ 
+> Please come up with another solution for your PCI problems,
+
+I don't think this is possible, sorry.
+
+> or provide alternative equivalent functionality where the platform code is
+> notified of the PM event prior to the late suspend callback being issued.
+
+There is the .begin() callback that could be used, but if you need the
+platform to be notified _just_ prior to the late suspend callback, then the
+only thing I can think of at the moment is the appended patch.
+
+It shouldn't break anything in theory, because the majority of drivers put
+their devices into low power states in the "regular" suspend callbacks anyway.
+
+Len, what do you think?
+
+Thanks,
+Rafael
+
+---
+ kernel/power/disk.c |   43 +++++++++++++++++++++++--------------------
+ kernel/power/main.c |   19 +++++++++----------
+ 2 files changed, 32 insertions(+), 30 deletions(-)
+
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -291,21 +291,21 @@ static int suspend_enter(suspend_state_t
+ 
+ 	device_pm_lock();
+ 
+-	error = device_power_down(PMSG_SUSPEND);
+-	if (error) {
+-		printk(KERN_ERR "PM: Some devices failed to power down\n");
+-		goto Done;
+-	}
+-
+ 	if (suspend_ops->prepare) {
+ 		error = suspend_ops->prepare();
+ 		if (error)
+-			goto Power_up_devices;
++			goto Done;
+ 	}
+ 
+ 	if (suspend_test(TEST_PLATFORM))
+ 		goto Platfrom_finish;
+ 
++	error = device_power_down(PMSG_SUSPEND);
++	if (error) {
++		printk(KERN_ERR "PM: Some devices failed to power down\n");
++		goto Platfrom_finish;
++	}
++
+ 	error = disable_nonboot_cpus();
+ 	if (error || suspend_test(TEST_CPUS))
+ 		goto Enable_cpus;
+@@ -326,13 +326,12 @@ static int suspend_enter(suspend_state_t
+  Enable_cpus:
+ 	enable_nonboot_cpus();
+ 
++	device_power_up(PMSG_RESUME);
++
+  Platfrom_finish:
+ 	if (suspend_ops->finish)
+ 		suspend_ops->finish();
+ 
+- Power_up_devices:
+-	device_power_up(PMSG_RESUME);
+-
+  Done:
+ 	device_pm_unlock();
+ 
+Index: linux-2.6/kernel/power/disk.c
+===================================================================
+--- linux-2.6.orig/kernel/power/disk.c
++++ linux-2.6/kernel/power/disk.c
+@@ -217,6 +217,13 @@ static int create_image(int platform_mod
+ 
+ 	device_pm_lock();
+ 
++	error = platform_pre_snapshot(platform_mode);
++	if (error)
++		goto Unlock;
++
++	if (hibernation_test(TEST_PLATFORM))
++		goto Platform_finish;
++
+ 	/* At this point, device_suspend() has been called, but *not*
+ 	 * device_power_down(). We *must* call device_power_down() now.
+ 	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
+@@ -227,12 +234,8 @@ static int create_image(int platform_mod
+ 	if (error) {
+ 		printk(KERN_ERR "PM: Some devices failed to power down, "
+ 			"aborting hibernation\n");
+-		goto Unlock;
+-	}
+-
+-	error = platform_pre_snapshot(platform_mode);
+-	if (error || hibernation_test(TEST_PLATFORM))
+ 		goto Platform_finish;
++	}
+ 
+ 	error = disable_nonboot_cpus();
+ 	if (error || hibernation_test(TEST_CPUS)
+@@ -274,12 +277,12 @@ static int create_image(int platform_mod
+  Enable_cpus:
+ 	enable_nonboot_cpus();
+ 
+- Platform_finish:
+-	platform_finish(platform_mode);
+-
+ 	device_power_up(in_suspend ?
+ 		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
+ 
++ Platform_finish:
++	platform_finish(platform_mode);
++
+  Unlock:
+ 	device_pm_unlock();
+ 
+@@ -346,16 +349,16 @@ static int resume_target_kernel(bool pla
+ 
+ 	device_pm_lock();
+ 
++	error = platform_pre_restore(platform_mode);
++	if (error)
++		goto Unlock;
++
+ 	error = device_power_down(PMSG_QUIESCE);
+ 	if (error) {
+ 		printk(KERN_ERR "PM: Some devices failed to power down, "
+ 			"aborting resume\n");
+-		goto Unlock;
+-	}
+-
+-	error = platform_pre_restore(platform_mode);
+-	if (error)
+ 		goto Cleanup;
++	}
+ 
+ 	error = disable_nonboot_cpus();
+ 	if (error)
+@@ -398,11 +401,11 @@ static int resume_target_kernel(bool pla
+  Enable_cpus:
+ 	enable_nonboot_cpus();
+ 
++	device_power_up(PMSG_RECOVER);
++
+  Cleanup:
+ 	platform_restore_cleanup(platform_mode);
+ 
+-	device_power_up(PMSG_RECOVER);
+-
+  Unlock:
+ 	device_pm_unlock();
+ 
+@@ -466,17 +469,17 @@ int hibernation_platform_enter(void)
+ 
+ 	device_pm_lock();
+ 
+-	error = device_power_down(PMSG_HIBERNATE);
++	error = hibernation_ops->prepare();
+ 	if (error)
+ 		goto Unlock;
+ 
+-	error = hibernation_ops->prepare();
++	error = device_power_down(PMSG_HIBERNATE);
+ 	if (error)
+ 		goto Platofrm_finish;
+ 
+ 	error = disable_nonboot_cpus();
+ 	if (error)
+-		goto Platofrm_finish;
++		goto Power_up_devices;
+ 
+ 	local_irq_disable();
+ 	sysdev_suspend(PMSG_HIBERNATE);
+@@ -484,6 +487,8 @@ int hibernation_platform_enter(void)
+ 	/* We should never get here */
+ 	while (1);
+ 
++ Power_up_devices:
++	device_power_up(PMSG_RESTORE);
+ 	/*
+ 	 * We don't need to reenable the nonboot CPUs or resume consoles, since
+ 	 * the system is going to be halted anyway.
+@@ -491,8 +496,6 @@ int hibernation_platform_enter(void)
+  Platofrm_finish:
+ 	hibernation_ops->finish();
+ 
+-	device_power_up(PMSG_RESTORE);
+-
+  Unlock:
+ 	device_pm_unlock();
+ 
