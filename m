@@ -1,31 +1,27 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] toshiba-acpi: Add support for hotkey notifications
-Date: Sat, 18 Apr 2009 00:01:30 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904180000330.30751@localhost.localdomain>
-References: <20090331214501.GC29489@srcf.ucam.org>
+Subject: Re: [PATCH] x86, acpi_cpufreq: Fix the NULL pointer dereference in
+ get_measured_perf
+Date: Sat, 18 Apr 2009 00:11:44 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904180011400.30751@localhost.localdomain>
+References: <1239775283.2567.846.camel@ymzhang>
+ <200904152044.17658.rusty@rustcorp.com.au>
+ <B5B0CFF685D7DF46A05CF1678CFB42ED20E09E32@orsmsx505.amr.corp.intel.com>
+ <20090415173733.GA26685@linux-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_IoEjqsCKiwZSSr7lsZweqw)"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:40401 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755AbZDREBp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2009 00:01:45 -0400
-In-reply-to: <20090331214501.GC29489@srcf.ucam.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:56607 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750755AbZDREL7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2009 00:11:59 -0400
+In-reply-to: <20090415173733.GA26685@linux-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, LKML <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+applied.
 
---Boundary_(ID_IoEjqsCKiwZSSr7lsZweqw)
-Content-type: TEXT/PLAIN; charset=ISO-8859-7
-Content-transfer-encoding: 8BIT
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-drivers/platform/x86/toshiba_acpi.c:854: warning: passing argument 3 of 
-¡acpi_install_notify_handler¢ from incompatible pointer type
-drivers/platform/x86/toshiba_acpi.c:903: warning: passing argument 3 of 
-¡acpi_remove_notify_handler¢ from incompatible pointer type
-
---Boundary_(ID_IoEjqsCKiwZSSr7lsZweqw)--
