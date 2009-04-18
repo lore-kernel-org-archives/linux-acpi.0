@@ -1,89 +1,29 @@
-From: leiming <tom.leiming@gmail.com>
-Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
-Date: Sat, 18 Apr 2009 12:51:11 +0800
-Message-ID: <20090418125111.6646e997@linux-lm>
-References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera>
-	<d82e647a0904161837w6b6fb652la0da05f9061e95dc@mail.gmail.com>
-	<200904172336.12414.rjw@sisk.pl>
-	<20090418103226.54250420@linux-lm>
-	<alpine.LFD.2.00.0904171952260.4042@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] thermal: Fix polling frequency for systems without passive
+ cooling
+Date: Sat, 18 Apr 2009 01:05:32 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904180105270.30751@localhost.localdomain>
+References: <49DF6835.9040501@tuffmail.co.uk> <49DFE345.3010109@gmail.com>
+ <49E05F83.2090500@tuffmail.co.uk> <49E20EBA.2090708@tuffmail.co.uk>
+ <1239588248.5564.19.camel@localhost.localdomain>
+ <49E3085D.3060403@tuffmail.co.uk> <20090413170531.GA13188@srcf.ucam.org>
+ <49E38779.9060705@tuffmail.co.uk>  <20090414191645.GB7940@srcf.ucam.org>
+ <1239932227.7661.397.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.186]:11360 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755AbZDREv2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2009 00:51:28 -0400
-In-Reply-To: <alpine.LFD.2.00.0904171952260.4042@localhost.localdomain>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:43645 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbZDRFFi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2009 01:05:38 -0400
+In-reply-to: <1239932227.7661.397.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, video4linux-list@redhat.com, laurent.pinchart@skynet.be, mchehab@infradead.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, "Zhao, Yakui" <yakui.zhao@intel.com>, Alexey Starikovskiy <aystarik@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>
 
-On Fri, 17 Apr 2009 19:55:29 -0700 (PDT)
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+applied
 
-> > @@ -742,7 +742,7 @@ static int uvc_alloc_urb_buffers(struct
-> > uvc_video_device *video, 
-> >  	/* Buffers are already allocated, bail out. */
-> >  	if (video->urb_size)
-> > -		return 0;
-> > +		return DIV_ROUND_UP(video->urb_size, psize);
-> 
-> I don't think this is right. It should round _down_.
-> 
-> It's supposed to return 'npackets', but if you pass it a different
-> packet size than it was passed originally, it can now return a
-> potentially bigger number than the already allocated buffer, no?
-> 
-> So I think it should round down (ie use a regular divide). No?
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Yes,you are correct, please ignore my last reply, and following is
-the fixed patch.
-
-Thanks.
-
->From a3b3d72cdd57a0699fb643b41b78eb7beb211ff5 Mon Sep 17 00:00:00 2001
-From: Ming Lei <tom.leiming@gmail.com>
-Date: Wed, 15 Apr 2009 22:32:51 +0800
-Subject: [PATCH] V4L/DVB:usbvideo:fix uvc resume failed(v2)
-
-Now urb buffers is not freed before suspend, so uvc_alloc_urb_buffers
-should return packet counts allocated originally during uvc resume
-, instead of zero.
-
-This version uses round down to return packet counts on Linus's
-suggestions, or else may lead to buffer destructed if packet size
-is changed before calling uvc_alloc_urb_buffers() in this kind of
-case.
-
-This patch is against v2.6.30-rc2.
-
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
----
- drivers/media/video/uvc/uvc_video.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index a95e173..6ce974d 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -742,7 +742,7 @@ static int uvc_alloc_urb_buffers(struct uvc_video_device *video,
- 
- 	/* Buffers are already allocated, bail out. */
- 	if (video->urb_size)
--		return 0;
-+		return video->urb_size / psize;
- 
- 	/* Compute the number of packets. Bulk endpoints might transfer UVC
- 	 * payloads accross multiple URBs.
--- 
-1.6.0.GIT
-
-
-
-
-
--- 
-Lei Ming
