@@ -1,69 +1,62 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: 900af0d breaks some embedded suspend/resume
-Date: Sat, 18 Apr 2009 19:09:07 +0100
-Message-ID: <20090418180907.GD7148@flint.arm.linux.org.uk>
-References: <20090417231009.GB6900@flint.arm.linux.org.uk> <200904181626.10388.rjw@sisk.pl> <20090418144132.GC7148@flint.arm.linux.org.uk> <200904181709.47480.rjw@sisk.pl>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH] eee-laptop: Register as a pci-hotplug device
+Date: Sun, 19 Apr 2009 09:20:07 +0200
+Message-ID: <71cd59b00904190020x7d946c29w736d89fc27d39594@mail.gmail.com>
+References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain>
+	 <gemini.ket9w800w44dc0hvg.linux@youmustbejoking.demon.co.uk>
+	 <20090209234911.GB862@elte.hu>
+	 <5030E21460%linux@youmustbejoking.demon.co.uk>
+	 <20090210150431.GA26798@srcf.ucam.org>
+	 <5030E7CFF4%linux@youmustbejoking.demon.co.uk>
+	 <20090419015614.GA6926@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41814 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870AbZDSCnf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2009 22:43:35 -0400
-Content-Disposition: inline
-In-Reply-To: <200904181709.47480.rjw@sisk.pl>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:55419 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbZDSHUK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Apr 2009 03:20:10 -0400
+In-Reply-To: <20090419015614.GA6926@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Darren Salt <linux@youmustbejoking.demon.co.uk>
 
-On Sat, Apr 18, 2009 at 05:09:46PM +0200, Rafael J. Wysocki wrote:
-> On Saturday 18 April 2009, Russell King wrote:
-> > No, sysdevs are shut down after IRQs are turned off and the I2C driver
-> > has been shut down.  The I2C driver needs IRQs to work in slave mode,
-> > and we need slave mode to work.
-> 
-> Hm, but up to and including 2.6.29 we called the late suspend callbacks with
-> interrupts off.
+> +       result = eeepc_setup_pci_hotplug();
+> +
+> +       /*
+> +        * If we get -EBUSY then something else is handling the PCI hotplug -
+> +        * don't fail in this case
+> +        */
+> +
+> +       if (result == -EBUSY)
+> +               return 0;
+> +       else if (result)
+> +               goto pci_fail;
+> +
+>        eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
+>        eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
+>
 
-That's not related to the problem - since all that the I2C drivers
-late suspend callback does is shut the I2C driver down.
+> -       eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+> -       eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+> +       if (ehotk->hotplug_slot) {
+> +               eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+> +               eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+> +               pci_hp_deregister(ehotk->hotplug_slot);
+> +       }
 
-It's what happens between the normal suspend callback (which occurs
-with IRQs on) and the late suspend callback which I'm interested in,
-which is when the platform's 'prepare' method is called.
+Hi,
+This patch conflict with
+http://git.iksaif.net/?p=acpi4asus.git;a=commitdiff;h=8082f39bb3d4a27c7bb03a76e72c70c86d55117b;hp=7ec0a7290797f57b780f792d12f4bcc19c83aa4f
+A quick fix is to do :
 
-> Hmm, what about redefining platform_suspend_ops in the following way:
-> 
-> struct platform_suspend_ops {
-> 	int (*valid)(suspend_state_t state);
-> 	int (*begin)(suspend_state_t state);
-> 	int (*devices_suspended)(void);
-> 	int (*prepare)(void);
-> 	int (*enter)(suspend_state_t state);
-> 	void (*wake)(void);
-> 	int (*resume_devices)(void);
-> 	void (*end)(void);
-> 	void (*recover)(void);
-> };
-> 
-> where:
-> 
-> * begin() will be called before suspending devices (no change)
-> * devices_suspended() will be called after suspending devices (before
->   suspend_device_irqs())
-> * prepare() will be callled after the late suspend callbacks
-> * enter() will be called to enter the sleep state (no change)
-> * wake() will be called before the early resume callbacks
-> * resume_devices() will be called before resuming devices (after
->   resume_device_irqs()
-> * end() will be called after resuming devices (no change)
-> 
-> I don't think we'll need more platform hooks than that.
+eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+if (ehotk->hotplug_slot)
+      pci_hp_deregister(ehotk->hotplug_slot);
 
-I'd be happy with that.
-
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:
+but I'm not sure it's correct.
+I should have sent a series sooner to avoid that :/
+Thanks
