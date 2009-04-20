@@ -1,45 +1,64 @@
-From: "Chris Friesen" <cfriesen-ZIRUuHA3oDzQT0dZR+AlfA@public.gmane.org>
-Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
-Date: Mon, 20 Apr 2009 15:22:11 -0600
-Message-ID: <49ECE783.5050704@nortel.com>
-References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera> <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain> <200904070035.00784.rjw@sisk.pl> <49E79E58.9000606@nortel.com> <alpine.LFD.2.00.0904161432000.4042@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
+	even when ignore_ppc=0
+Date: Mon, 20 Apr 2009 19:18:36 -0300
+Message-ID: <20090420221836.GF25823@khazad-dum.debian.net>
+References: <20090415225348.GW8311@plum> <20090416224507.GA31984@srcf.ucam.org> <alpine.LFD.2.00.0904200112290.10996@localhost.localdomain> <200904201113.31371.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LFD.2.00.0904161432000.4042-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trenton Adams <trenton.d.adams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51005 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756075AbZDTWSk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Apr 2009 18:18:40 -0400
+Content-Disposition: inline
+In-Reply-To: <200904201113.31371.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Darrick J. Wong" <djwong@us.ibm.com>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Linus Torvalds wrote:
+On Mon, 20 Apr 2009, Thomas Renninger wrote:
+> On Monday 20 April 2009 07:13:51 Len Brown wrote:
+> > FYI,
+> > Thanks to Ebay, I now have a T60:-)
+> Hmm, Lenovo sold a lot different machines as T60.
+
+There are only two types as far as the firmware is concerned: widescreen and
+non-widescreen.
+
+However, the older BIOS (non-widescreen) had a major version bump, so
+machines with outdated firmware can have quite a different BIOS.
+
+> I found an acpidump of a T60 here without any _PPC function
+> at all.
 > 
-> On Thu, 16 Apr 2009, Chris Friesen wrote:
->> I'm okay with that.  The problem causes some backwards compatibility problems
->> with existing apps that get confused by the large "offset" number.  The fix is
->> going to cause problems too, but in a different way.
->>
->> We'll work around it.
-> 
-> If you have actual apps that care, that's a different issue.
-> 
-> We do try to bend over backwards on ABI issues if it really is noticeable 
-> for applications. Now, in this case, if you can just fix your app to not 
-> care (because it really was badly written in the first place to even 
-> notice), then that is the _much_ superior solution.
+> > and so i put the DSDT here:
+> > http://bugzilla.kernel.org/show_bug.cgi?id=13139
+> > 
+> > I'll poke at this in more detail soon...
+> Ingo, can you place yours somewhere too, please.
+> This one should be taken into account for _PPC code changes
+> as it seem to implement some corner case.
 
-Yep, we can fix the app to ignore that field for anonymous mappings.
+It is probably worth upgrading the T60 after you got all the relevant
+information (dmidecode, full acpidump), and check again with the latest
+firmware.
 
-> Although I don't really even see what we can sanely do except for the 0 
-> case. We could put the virtual address in there instead of zero (I forget 
-> what old kernels used to do - whatever magic value the anonymous mappings 
-> got, it wasn't really designed as an important value in its own right, it 
-> was designed to trigger the "we can merge these vma's" logic.
+Here are the links with instructions:
+http://www.thinkwiki.org/wiki/BIOS_Upgrade
 
-For anonymous mappings, the older kernels put the starting address of 
-the VMA (from the point of view of the app) as the offset.  Until the 
-recent change, new kernels still did this for most VMAs, but the stack 
-offset was a 64-bit value with no obvious relation to the VMA start address.
+and a table of links for the firmware itself (get the CD versions to flash
+without Windows):
+http://www.thinkwiki.org/wiki/BIOS_Upgrade_Downloads#T_Series
 
-Chris
+Also, if you guys do collect that info (dmidecode, full acpidump), I'd
+appreciate if you could send them my way in private.  They often prove
+useful for thinkpad-acpi work...
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
