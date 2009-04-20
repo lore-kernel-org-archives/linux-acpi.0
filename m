@@ -1,50 +1,53 @@
 From: Mario Limonciello <mario_limonciello@dell.com>
 Subject: Re: Add support for Eject hotkey in dell-wmi
-Date: Mon, 20 Apr 2009 13:25:57 -0500
-Message-ID: <49ECBE35.9040003@dell.com>
-References: <49ECBAE2.2080308@dell.com> <20090420182312.GA2910@srcf.ucam.org>
+Date: Mon, 20 Apr 2009 13:45:56 -0500
+Message-ID: <49ECC2E4.6070105@dell.com>
+References: <49ECBAE2.2080308@dell.com> <20090420182312.GA2910@srcf.ucam.org> <49ECBE35.9040003@dell.com> <20090420182848.GA3105@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="------------enigB5DDA09E2861DC2C03BDF855"
+ boundary="------------enig534C8EFDB8E1454D946A0E4B"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60pc101.us.dell.com ([143.166.85.206]:25743 "EHLO
-	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbZDTSfZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Apr 2009 14:35:25 -0400
-In-Reply-To: <20090420182312.GA2910@srcf.ucam.org>
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:15169 "EHLO
+	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785AbZDTSpt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Apr 2009 14:45:49 -0400
+In-Reply-To: <20090420182848.GA3105@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigB5DDA09E2861DC2C03BDF855
+--------------enig534C8EFDB8E1454D946A0E4B
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi Matthew:
+Hi Matthew
 
 Matthew Garrett wrote:
-> On Mon, Apr 20, 2009 at 01:11:46PM -0500, Mario Limonciello wrote:
+> On Mon, Apr 20, 2009 at 01:25:57PM -0500, Mario Limonciello wrote:
 >  =20
 >
-> Looks good - can you confirm that it'll be removed from the normal=20
-> keyboard interface at the same time?
->  =20
-No it won't be removed at the same time on all machines during the
-transition period.  I've however requested to add a BIOS option for the
-machines that support this to try to enable or disable WMI support in
-the interim.
+> Ok. How can we determine whether we're on a machine with this support? =
 
-Regards
+> Applying this patch right now will result in systems receiving the even=
+t=20
+> twice.
+>  =20
+I've checked with the BIOS teams further, and they indicated at the time
+that this is enabled on those consumer systems, the hotkey should be
+switched over to a mechanical key rather than a software key, so the
+keyboard interface would not see this key.  The support in the BIOS to
+turn on and off WMI would actually enable SMI hot key events instead
+(which could then be serviced by dell-laptop).
+
 --=20
 Mario Limonciello
 *Dell | Linux Engineering*
 mario_limonciello@dell.com
 
 
---------------enigB5DDA09E2861DC2C03BDF855
+--------------enig534C8EFDB8E1454D946A0E4B
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -53,9 +56,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.9 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEARECAAYFAknsvjUACgkQ2CrZjkA73YsKVwCfb6DQjjzXamCCbweVbWEQMOPb
-mIIAoJvKx1TipzEPgyvb01MI3IZYAJ84
-=4uUp
+iEYEARECAAYFAknswuQACgkQ2CrZjkA73YuG5ACfcs0gyOdSgN/7hxGpJmzat4I/
+qtcAoINxvS8LYlFiyXqGPhvVZ91Y4Qo7
+=Uzgv
 -----END PGP SIGNATURE-----
 
---------------enigB5DDA09E2861DC2C03BDF855--
+--------------enig534C8EFDB8E1454D946A0E4B--
