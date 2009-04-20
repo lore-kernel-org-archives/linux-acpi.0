@@ -1,78 +1,55 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Add support for Eject hotkey in dell-wmi
-Date: Mon, 20 Apr 2009 13:11:46 -0500
-Message-ID: <49ECBAE2.2080308@dell.com>
+From: Andika Triwidada <andika@startrek.or.id>
+Subject: Re: drivers for Lenovo 3000 series?
+Date: Tue, 21 Apr 2009 01:21:56 +0700
+Message-ID: <d0cc17060904201121q5dbeb92g90d168ae1e93ef7a@mail.gmail.com>
+References: <d0cc17060904120051h11e44079u5cf8174466b4e71e@mail.gmail.com>
+	 <1239586069.5564.9.camel@localhost.localdomain>
+	 <d0cc17060904141231k6613d79cldbb124162b3f57f7@mail.gmail.com>
+	 <20090414193340.GA8304@srcf.ucam.org>
+	 <d0cc17060904141252q721daf9cp1f3a6a6667394f9a@mail.gmail.com>
+	 <1239759896.7661.302.camel@rzhang-dt>
+	 <d0cc17060904180417i2cec7ebckddf31bed36606cde@mail.gmail.com>
+	 <1240205713.7661.416.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigC03E03A2E1CC52A978F4E278"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausxipps301.us.dell.com ([143.166.148.223]:57325 "EHLO
-	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754118AbZDTSVP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Apr 2009 14:21:15 -0400
+Received: from rv-out-0506.google.com ([209.85.198.238]:45897 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755656AbZDTSV5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Apr 2009 14:21:57 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so2017994rvb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Apr 2009 11:21:56 -0700 (PDT)
+In-Reply-To: <1240205713.7661.416.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg59@srcf.ucam.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigC03E03A2E1CC52A978F4E278
-Content-Type: multipart/mixed;
- boundary="------------090107030500060303050807"
+On Mon, Apr 20, 2009 at 12:35 PM, Zhang Rui <rui.zhang@intel.com> wrote:
+> On Sat, 2009-04-18 at 19:17 +0800, Andika Triwidada wrote:
+>> using latest (?) git tree (my network link is quite slow, latest I
+>> have is v2.6.30-rc1)
+>> is worst, no /sys/class/backlight
+>>
+>> furthermore,
+>
+> please apply this patch
+> http://marc.info/?l=linux-kernel&m=123982845406021&w=2
+> on top of 2.6.30-rc1 and see if /sys/class/backlight/acpi_video0/ comes
+> back again.
 
-This is a multi-part message in MIME format.
---------------090107030500060303050807
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Yes, it does come back
 
-Hi:
+>
+> If it doesn't help, please file a new bug report at
+> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+> so that we can track this bug better.
+>
+> thanks,
+> rui
 
-I've gotten word that future Dell consumer laptops are transitioning
-several hotkeys to WMI instead.  Here's a patch to enable the first to
-enable the Eject hotkey.  I'm attaching it since my mail server
-(exchange) would mangle it otherwise.
+No need to file bug report then?
 
-Thanks,
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
-
---------------090107030500060303050807
-Content-Type: text/x-patch;
- name="dell-wmi-eject.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
- filename="dell-wmi-eject.patch"
-
---- a/drivers/platform/x86/dell-wmi.c~	2009-04-20 07:41:12.000000000 -050=
-0
-+++ b/drivers/platform/x86/dell-wmi.c	2009-04-20 07:42:04.000000000 -0500=
-
-@@ -50,6 +50,7 @@
-=20
- static struct key_entry dell_wmi_keymap[] =3D {
- 	{KE_KEY, 0xe045, KEY_PROG1},
-+	{KE_KEY, 0xe009, KEY_EJECTCD},
- 	{KE_END, 0}
- };
-=20
-
---------------090107030500060303050807--
-
---------------enigC03E03A2E1CC52A978F4E278
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAknsuuIACgkQ2CrZjkA73Ys68wCgkfPAGhrzgnC46qSIZdfMtnzS
-r18AniwOe4LrV1Bt4/W4jMe37nn5iXm6
-=zAnW
------END PGP SIGNATURE-----
-
---------------enigC03E03A2E1CC52A978F4E278--
+--
+andika
