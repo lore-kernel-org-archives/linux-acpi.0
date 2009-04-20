@@ -1,68 +1,68 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: drivers for Lenovo 3000 series?
-Date: Tue, 21 Apr 2009 03:12:36 +0800
-Message-ID: <037F493892196B458CD3E193E8EBAD4F13C826BA@pdsmsx502.ccr.corp.intel.com>
-References: <d0cc17060904120051h11e44079u5cf8174466b4e71e@mail.gmail.com>
-	 <1239586069.5564.9.camel@localhost.localdomain>
-	 <d0cc17060904141231k6613d79cldbb124162b3f57f7@mail.gmail.com>
-	 <20090414193340.GA8304@srcf.ucam.org>
-	 <d0cc17060904141252q721daf9cp1f3a6a6667394f9a@mail.gmail.com>
-	 <1239759896.7661.302.camel@rzhang-dt>
-	 <d0cc17060904180417i2cec7ebckddf31bed36606cde@mail.gmail.com>
-	 <1240205713.7661.416.camel@rzhang-dt>
- <d0cc17060904201121q5dbeb92g90d168ae1e93ef7a@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
+Date: Mon, 20 Apr 2009 22:08:22 +0200
+Message-ID: <200904202208.23899.laurent.pinchart@skynet.be>
+References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera> <alpine.LFD.2.00.0904171952260.4042@localhost.localdomain> <20090418125111.6646e997@linux-lm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56337 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753602AbZDTTMw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Apr 2009 15:12:52 -0400
-In-Reply-To: <d0cc17060904201121q5dbeb92g90d168ae1e93ef7a@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756448AbZDTUGR@vger.kernel.org>
+In-Reply-To: <20090418125111.6646e997@linux-lm>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: leiming <tom.leiming@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, video4linux-list@redhat.com, mchehab@infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andika Triwidada <andika@startrek.or.id>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This is a duplicate of bug http://bugzilla.kernel.org/show_bug.cgi?id=13048
-So, no need to create a new bug report.
+On Saturday 18 April 2009 06:51:11 leiming wrote:
+> On Fri, 17 Apr 2009 19:55:29 -0700 (PDT)
+>
+> Linus Torvalds <torvalds@linux-foundation.org> wrote:
+> > > @@ -742,7 +742,7 @@ static int uvc_alloc_urb_buffers(struct
+> > > uvc_video_device *video,
+> > >  	/* Buffers are already allocated, bail out. */
+> > >  	if (video->urb_size)
+> > > -		return 0;
+> > > +		return DIV_ROUND_UP(video->urb_size, psize);
+> >
+> > I don't think this is right. It should round _down_.
+> >
+> > It's supposed to return 'npackets', but if you pass it a different
+> > packet size than it was passed originally, it can now return a
+> > potentially bigger number than the already allocated buffer, no?
+> >
+> > So I think it should round down (ie use a regular divide). No?
+>
+> Yes,you are correct, please ignore my last reply, and following is
+> the fixed patch.
 
-Thanks,
-rui
+psize and video->urb_size shouldn't have changed before and after resume, 
+otherwise we'll get into trouble anyway. A regular divide and a round-up 
+divide should then return the same result. I'll take the regular divide, as it 
+will be more efficient.
 
->-----Original Message-----
->From: Andika Triwidada [mailto:andika@startrek.or.id]
->Sent: Tuesday, April 21, 2009 2:22 AM
->To: Zhang, Rui
->Cc: Matthew Garrett; Zhao, Yakui; linux-acpi@vger.kernel.org
->Subject: Re: drivers for Lenovo 3000 series?
+> Thanks.
 >
->On Mon, Apr 20, 2009 at 12:35 PM, Zhang Rui <rui.zhang@intel.com> wrote:
->> On Sat, 2009-04-18 at 19:17 +0800, Andika Triwidada wrote:
->>> using latest (?) git tree (my network link is quite slow, latest I
->>> have is v2.6.30-rc1)
->>> is worst, no /sys/class/backlight
->>>
->>> furthermore,
->>
->> please apply this patch
->> http://marc.info/?l=linux-kernel&m=123982845406021&w=2
->> on top of 2.6.30-rc1 and see if /sys/class/backlight/acpi_video0/ comes
->> back again.
+> From a3b3d72cdd57a0699fb643b41b78eb7beb211ff5 Mon Sep 17 00:00:00 2001
+> From: Ming Lei <tom.leiming@gmail.com>
+> Date: Wed, 15 Apr 2009 22:32:51 +0800
+> Subject: [PATCH] V4L/DVB:usbvideo:fix uvc resume failed(v2)
 >
->Yes, it does come back
+> Now urb buffers is not freed before suspend, so uvc_alloc_urb_buffers
+> should return packet counts allocated originally during uvc resume
+> , instead of zero.
 >
->>
->> If it doesn't help, please file a new bug report at
->> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
->> so that we can track this bug better.
->>
->> thanks,
->> rui
->
->No need to file bug report then?
->
->--
->andika
+> This version uses round down to return packet counts on Linus's
+> suggestions, or else may lead to buffer destructed if packet size
+> is changed before calling uvc_alloc_urb_buffers() in this kind of
+> case.
+
+The comment is misleading. If the packet size changes we need to reallocate 
+the buffers anyway. Have you checked if the packet size (which depends on the 
+endpoint being selected) can be changed between suspend and resume, either by 
+the uvcvideo driver (I don't think it can) or the USB core ?
+
+Best regards,
+
+Laurent Pinchart
