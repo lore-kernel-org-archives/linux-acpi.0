@@ -1,13 +1,13 @@
 From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: [PATCH 1/3] Add support for more dell-wmi hotkeys
-Date: Tue, 21 Apr 2009 13:00:57 -0500
-Message-ID: <49EE09D9.2060209@dell.com>
+Subject: [PATCH 3/3] Mark OSD type scancodes
+Date: Tue, 21 Apr 2009 13:03:16 -0500
+Message-ID: <49EE0A64.9000506@dell.com>
 References: <49ECBAE2.2080308@dell.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="------------enigF7EA5C0855333F77F934E727"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756981AbZDUSBF@vger.kernel.org>
+ boundary="------------enigE834FA3340A35640224A1ED2"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757525AbZDUSDn@vger.kernel.org>
 In-Reply-To: <49ECBAE2.2080308@dell.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: mjg59@srcf.ucam.org
@@ -15,21 +15,21 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigF7EA5C0855333F77F934E727
+--------------enigE834FA3340A35640224A1ED2
 Content-Type: multipart/mixed;
- boundary="------------080906000100010301080404"
+ boundary="------------040400020306010702010406"
 
 This is a multi-part message in MIME format.
---------------080906000100010301080404
+--------------040400020306010702010406
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
 Hi:
 
-I've got another patch to stack on top of yesterday's patch for Eject.=20
-These are more scancode/keycode combinations that will be supported via
-WMI.  Many of them are commented out with an explanation of what their
-true functionality is.
+This patch introduces a new scan code type for the purpose of events
+that shouldn't send a keycode but the WMI event is still relevant.=20
+Eventually, these will need to be hooked up to the proper sysfs and
+procfs interfaces for those types of events.
 
 Regards
 --=20
@@ -37,97 +37,111 @@ Mario Limonciello
 *Dell | Linux Engineering*
 mario_limonciello@dell.com
 
---------------080906000100010301080404
+--------------040400020306010702010406
 Content-Type: text/x-patch;
- name="dell-wmi-additional-keys.patch"
+ name="dell-wmi-osd-events.patch"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline;
- filename="dell-wmi-additional-keys.patch"
+ filename="dell-wmi-osd-events.patch"
 
---- a/drivers/platform/x86/dell-wmi.c~	2009-04-21 11:19:04.000000000 -050=
+--- a/drivers/platform/x86/dell-wmi.c~	2009-04-21 12:56:26.000000000 -050=
 0
-+++ a/drivers/platform/x86/dell-wmi.c	2009-04-21 11:51:39.000000000 -0500=
++++ b/drivers/platform/x86/dell-wmi.c	2009-04-21 12:54:41.000000000 -0500=
 
-@@ -49,8 +49,70 @@
- enum { KE_KEY, KE_SW, KE_END };
-=20
- static struct key_entry dell_wmi_keymap[] =3D {
--	{KE_KEY, 0xe045, KEY_PROG1},
- 	{KE_KEY, 0xe009, KEY_EJECTCD},
-+   =20
-+    /* Inside the structure for a brightness keycode, a new brightness
-+     * level will be reported after the scancode (at offset 6)
-+     */
-+    {KE_KEY, 0xe006, KEY_BRIGHTNESSUP},
-+    {KE_KEY, 0xe005, KEY_BRIGHTNESSDOWN},
-+   =20
-+    /* The volume hotkeys are here so that the the OS
-+     * can be notified and show an OSD. The keys will still
-+     * send out a scan code via the EC.
-+    {KE_KEY, 0xe030, KEY_VOLUMEUP},
-+    {KE_KEY, 0xe02e, KEY_VOLUMEDOWN},
-+    {KE_KEY, 0xe020, KEY_MUTE},
-+    */
-+   =20
-+    /* A majority of platforms support a simple toggle event, but
-+     * some actually have support to raise or lower the backlit keyboard=
-
-+     * brightness with different keys.
-+     * The brightness is changed by the EC, these are here just to repor=
-t
-+     * that information to the OS to show an OSD.
-+    {KE_KEY, 0xe00c, KEY_KBDILLUMTOGGLE},
-+    {KE_KEY, 0xe033, KEY_KBDILLUMUP},
-+    {KE_KEY, 0xe034, KEY_KBDILLUMDOWN},
-+    */
-+   =20
-+    /* Inside the structure for a display switch, the next device is
-+     * reported at offset 6, the active devices at offset 8, and the
-+     * attached devices at offset 10
-+     */
-+    {KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
-+
-+    /* This is actually for all radios on one button */
-+    {KE_SW, 0xe008, KEY_WLAN},
-+
-+    /* Wifi Catcher */
-+    {KE_KEY, 0xe011, KEY_PROG1},
-+
-+    /* Battery health status button */
-+    {KE_KEY, 0xe007, KEY_BATTERY},
-+   =20
-+    /* This is the scan code sent when there is a BIOS error detected.
-+     * What happens in these situations will need to be further elaborat=
-ed
-+     * upon
-+    {KE_KEY, 0xe00d, error scan code},
-+    */
-+
-+    /* Ambient light sensor is actually toggled by the BIOS and/or EC.
-+     * This is for informative purposes of notifying the OS via an OSD.
-+     * The new status will be at offset 6, the current limit at offset 8=
-
-+     * and the absolute limit at offset 10
-+    {KE_KEY, 0xe013, ambient light sensor code},
-+    */
-+
-+    /* The *lock keys are here so that the the OS
-+     * can be notified and show an OSD. The keys will still
-+     * send out a scan code via the EC.
-+     * If the system contains LEDs for these buttons, the WMI
-+     * events will not be sent out
-+    {KE_KEY, 0x003a, KEY_CAPSLOCK},
-+    {KE_KEY, 0xe045, KEY_NUMLOCK},
-+    {KE_KEY, 0xe046, KEY_SCROLLLOCK},
-+    */
-+   =20
- 	{KE_END, 0}
+@@ -46,7 +46,7 @@
+ 	u16 keycode;
  };
 =20
+-enum { KE_KEY, KE_SW, KE_END };
++enum { KE_KEY, KE_SW, KE_OSD, KE_END };
+=20
+ static struct key_entry dell_wmi_keymap[] =3D {
+ 	{KE_KEY, 0xe009, KEY_EJECTCD},
+@@ -59,21 +59,20 @@
+    =20
+     /* The volume hotkeys are here so that the the OS
+      * can be notified and show an OSD. The keys will still
+-     * send out a scan code via the EC.
+-    {KE_KEY, 0xe030, KEY_VOLUMEUP},
+-    {KE_KEY, 0xe02e, KEY_VOLUMEDOWN},
+-    {KE_KEY, 0xe020, KEY_MUTE},
+-    */
++     * send out a scan code via the EC. */
++    {KE_OSD, 0xe030, KEY_VOLUMEUP},
++    {KE_OSD, 0xe02e, KEY_VOLUMEDOWN},
++    {KE_OSD, 0xe020, KEY_MUTE},
++   =20
+    =20
+     /* A majority of platforms support a simple toggle event, but
+      * some actually have support to raise or lower the backlit keyboard=
 
---------------080906000100010301080404--
+      * brightness with different keys.
+      * The brightness is changed by the EC, these are here just to repor=
+t
+-     * that information to the OS to show an OSD.
+-    {KE_KEY, 0xe00c, KEY_KBDILLUMTOGGLE},
+-    {KE_KEY, 0xe033, KEY_KBDILLUMUP},
+-    {KE_KEY, 0xe034, KEY_KBDILLUMDOWN},
+-    */
++     * that information to the OS to show an OSD. */
++    {KE_OSD, 0xe00c, KEY_KBDILLUMTOGGLE},
++    {KE_OSD, 0xe033, KEY_KBDILLUMUP},
++    {KE_OSD, 0xe034, KEY_KBDILLUMDOWN},
+    =20
+     /* Inside the structure for a display switch, the next device is
+      * reported at offset 6, the active devices at offset 8, and the
+@@ -82,7 +81,7 @@
+     {KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
+=20
+     /* This is actually for all radios on one button */
+-    {KE_KEY, 0xe008, KEY_WLAN},
++    {KE_SW, 0xe008, SW_RFKILL_ALL},
+=20
+     /* Wifi Catcher */
+     {KE_KEY, 0xe011, KEY_PROG1},
+@@ -99,19 +98,17 @@
+     /* Ambient light sensor is actually toggled by the BIOS and/or EC.
+      * This is for informative purposes of notifying the OS via an OSD.
+      * The new status will be at offset 6, the current limit at offset 8=
 
---------------enigF7EA5C0855333F77F934E727
+-     * and the absolute limit at offset 10
+-    {KE_KEY, 0xe013, ambient light sensor code},
+-    */
++     * and the absolute limit at offset 10 */
++    {KE_OSD, 0xe013, LED_MISC},
+=20
+     /* The *lock keys are here so that the the OS
+      * can be notified and show an OSD. The keys will still
+      * send out a scan code via the EC.
+      * If the system contains LEDs for these buttons, the WMI
+-     * events will not be sent out
+-    {KE_KEY, 0x003a, KEY_CAPSLOCK},
+-    {KE_KEY, 0xe045, KEY_NUMLOCK},
+-    {KE_KEY, 0xe046, KEY_SCROLLLOCK},
+-    */
++     * events will not be sent out */
++    {KE_OSD, 0x003a, LED_CAPSL},
++    {KE_OSD, 0xe045, LED_NUML},
++    {KE_OSD, 0xe046, LED_SCROLLL},
+    =20
+ 	{KE_END, 0}
+ };
+@@ -223,6 +220,10 @@
+ 			set_bit(EV_SW, dell_wmi_input_dev->evbit);
+ 			set_bit(key->keycode, dell_wmi_input_dev->swbit);
+ 			break;
++        case KE_OSD:
++            /* TODO, hook up to the right proc or sysfs interface for sh=
+owing
++             * these status bits */
++            break;
+ 		}
+ 	}
+=20
+
+--------------040400020306010702010406--
+
+--------------enigE834FA3340A35640224A1ED2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -136,9 +150,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.9 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEARECAAYFAknuCdkACgkQ2CrZjkA73YuvLgCfdCWtJz5cmonQFDrD4tgisMjE
-m/0An3md+fHfjlcgmQAbE3fu656yDvSg
-=AKA6
+iEYEARECAAYFAknuCmQACgkQ2CrZjkA73YuchACfYsu0RpXU0TJCvv/gYBvfsvQI
+hukAoICOE+RsczlbyAUJ+PP1IAmcl6aH
+=3WFJ
 -----END PGP SIGNATURE-----
 
---------------enigF7EA5C0855333F77F934E727--
+--------------enigE834FA3340A35640224A1ED2--
