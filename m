@@ -1,85 +1,47 @@
-From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+From: Arjan van de Ven <arjan@infradead.org>
 Subject: Re: [Bugme-new] [Bug 13145] New: Processor does not go below C2 if
  mouse (uhci) is plugged in.
-Date: Tue, 21 Apr 2009 14:27:51 -0700
-Message-ID: <20090421142751.b030cba7.akpm@linux-foundation.org>
+Date: Tue, 21 Apr 2009 14:40:06 -0700
+Message-ID: <20090421144006.195f2b52@infradead.org>
 References: <bug-13145-10286@http.bugzilla.kernel.org/>
+	<20090421142751.b030cba7.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bug-13145-10286-V0hAGp6uBxO456/isadD/XN4h3HLQggn@public.gmane.org/>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arjan van de Ven <arjan-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel.smoczyk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, imrehg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:60595 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032AbZDUViN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Apr 2009 17:38:13 -0400
+In-Reply-To: <20090421142751.b030cba7.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: rui.zhang@intel.com, shaohua.li@intel.com, yakui.zhao@intel.com, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, daniel.smoczyk@gmail.com, imrehg@gmail.com
 
+On Tue, 21 Apr 2009 14:27:51 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
-
-It looks like we need to revisit this - 2.6.26 worked OK, so why can't
-2.6.28?
-
-Thanks.
-
-
-On Tue, 21 Apr 2009 19:53:13 GMT
-bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
-
-> http://bugzilla.kernel.org/show_bug.cgi?id=13145
 > 
->            Summary: Processor does not go below C2 if mouse (uhci) is
->                     plugged in.
->            Product: Drivers
->            Version: 2.5
->     Kernel Version: 2.6.29
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: high
->           Priority: P1
->          Component: USB
->         AssignedTo: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
->         ReportedBy: daniel.smoczyk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
->         Regression: Yes
+> (switched to email.  Please respond via emailed reply-to-all, not via
+> the bugzilla web interface).
 > 
-> 
-> Created an attachment (id=21071)
->  --> (http://bugzilla.kernel.org/attachment.cgi?id=21071)
-> lsusb -v
-> 
-> Latest working kernel version:
-> 2.6.26-13
-> 
-> Earliest failing kernel version:
-> 2.6.28
-> 
-> Distribution:
-> Debian Sid
-> 
-> Hardware Environment:
-> IBM Thinkpad T41 Pentium M
-> 
-> Problem Description:
-> In 2.6.28(29) kernel, when I plug in usb logitech mouse, regression in uhci (I
-> assume it's usb uhci driver) forces processor to operate in C2 state (reported
-> by powertop 1.11). When I plug it off, everything back to normal - 100% C3 in
-> idle. In 2.6.26 kernel processor normally goes down to C3 when mouse is plugged
-> in.
-> 
-> I think this problem was already reported in this bug [1] and closed without
-> proper investigation. Arjan van de Ven stated that "When USB is used C3 cannot
-> be entered" argument isn't correct [2].
-> 
-> I'll provide any additional debug data if needed.
-> 
-> [1] http://bugzilla.kernel.org/show_bug.cgi?id=12391
-> [2] http://www.bughost.org/pipermail/power/2009-March/001617.html
+> It looks like we need to revisit this - 2.6.26 worked OK, so why can't
+> 2.6.28?
 > 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.6.28 ought to be able to work;
+
+the one caveat is that powertop is reporting more accurate data in
+newer kernels (the newer kernels expose more details specifically for
+powertop) so it needs to be investigated to make sure this is not just
+some cosmetic issue.
+
+(note that C3 might not be the right idea per se with such USB device
+in, but that is a different story)
+
+
+-- 
+Arjan van de Ven 	Intel Open Source Technology Centre
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
