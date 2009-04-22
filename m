@@ -1,43 +1,73 @@
-From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Bugme-new] [Bug 13145] New: Processor does not go below C2 if
-	mouse (uhci) is plugged in.
-Date: Wed, 22 Apr 2009 17:12:47 +0800
-Message-ID: <20090422091247.GA28309@sli10-desk.sh.intel.com>
-References: <bug-13145-10286@http.bugzilla.kernel.org/> <200904220022.18232.oliver@neukum.org> <20090421164910.43d94457@infradead.org> <200904221048.35180.oliver@neukum.org>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [FIXED] EEE PC hangs when booting off battery
+Date: Wed, 22 Apr 2009 13:17:01 +0100
+Message-ID: <49EF0ABD.2080801@tuffmail.co.uk>
+References: <49E065CF.6040408@tuffmail.co.uk> <200904140859.02188.bjorn.helgaas@hp.com> <20090414081728.10de978a@infradead.org> <200904140948.37633.bjorn.helgaas@hp.com> <49E5F01B.2060201@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200904221048.35180.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Cc: Arjan van de Ven <arjan-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Zhang, Rui" <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zhao, Yakui" <yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org" <bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org>, "bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org" <bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "daniel.smoczyk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <daniel.smoczyk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "imrehg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <imrehg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from an-out-0708.google.com ([209.85.132.243]:64219 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830AbZDVMRJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2009 08:17:09 -0400
+In-Reply-To: <49E5F01B.2060201@tuffmail.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Wed, Apr 22, 2009 at 04:48:30PM +0800, Oliver Neukum wrote:
-> Am Mittwoch 22 April 2009 01:49:10 schrieb Arjan van de Ven:
-> > On Wed, 22 Apr 2009 00:22:14 +0200
-> >
-> > Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org> wrote:
-> > > Am Dienstag 21 April 2009 23:27:51 schrieb Andrew Morton:
-> > > > (switched to email.  Please respond via emailed reply-to-all, not
-> > > > via the bugzilla web interface).
-> > > >
-> > > > It looks like we need to revisit this - 2.6.26 worked OK, so why
-> > > > can't 2.6.28?
-> > >
-> > > Not going into C3 without autosuspend is really expected.
-> >
-> > this is not correct; if the CPU supports "C2-popup", going to C3 is
-> > expected.
-> 
-> Yes, that's possible. Does the system in question?
-IIRC, C2-popup is supported since core architecture. The system (a T41)
-is unlikely support this.
+Alan Jenkins wrote:
+> Bjorn Helgaas wrote:
+>   
+>> On Tuesday 14 April 2009 09:17:28 am Arjan van de Ven wrote:
+>>   
+>>     
+>>> On Tue, 14 Apr 2009 08:59:01 -0600
+>>> Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+>>>
+>>>     
+>>>       
+>>>> I can't help with the real problem of why the asynchronous battery
+>>>> init causes the hang.
+>>>>       
+>>>>         
+>>> that got fixed already for the module case.
+>>>     
+>>>       
+>> But apparently still broken for the builtin case?  I think Alan is
+>> running pretty new bits -- he said "latest git" on April 11.
+>>   
+>>     
+>
+> It's now fixed, in 2.6.30-rc2.  My battery is modular btw.  I suspect
+>
+> 5d38258ec026921a7b266f4047ebeaa75db358e5 "ACPI battery: fix async boot
+> oops" [removal of __init]
+>
+> was not sufficient to fix my problem, but it was solved by the "real" fix,
+>
+> d6de2c80e9d758d2e36c21699117db6178c0f517 "async: Fix module loading
+> async-work regression" [module loading waits on async work]
+>
+>
+> I would argue there's still a question over why the asynchronous battery
+> init (_with_ the oops fix) should cause a hang in the idle routine.  But
+> since the regression is fixed, it's not exactly an urgent question.
+>   
 
-Thanks,
-Shaohua
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ugh.  Recently I tried building the battery driver into the kernel, to
+benefit from the async work.  Later, I tried booting from the battery
+and it hung again.
+
+This time, the kernel did not even respond to SysRq.  I tried
+nmi_watchdog=1 and waiting 2 minutes, but the watchdog didn't trigger
+either.  As before, it doesn't happen with acpi=off.
+
+I checked that this still happened in todays rc3, and it doesn't happen
+if I revert
+
+0f66af530116e9f4dd97f328d91718b56a6fc5a4 "ACPI: battery: asynchronous init"
+
+Regards
+Alan
