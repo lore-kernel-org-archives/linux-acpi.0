@@ -1,32 +1,46 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Sony laptop: Some Sony Vaia laptops do not enable wwan power by default.
-Date: Wed, 22 Apr 2009 21:11:15 +0100
-Message-ID: <20090422201115.GA783@srcf.ucam.org>
-References: <20090422185351.AB41AF88CE@sepang.rtg.net> <20090422195034.GA32375@srcf.ucam.org> <49EF78F2.7040203@tpi.com>
+From: fanderay <fanderay4@googlemail.com>
+Subject: Re: [Regression] sony-laptop breaks resume from S2RAM (was: Re:
+	[linux-pm] Resume after suspend-to-ram broken for Vaio SR19VN in 30rc2)
+Date: Wed, 22 Apr 2009 21:35:13 +0100
+Message-ID: <31c940650904221335v21fbffc2y2e9598b564d65659@mail.gmail.com>
+References: <31c940650904201152y5f440237rb9c49f1aedfef5a6@mail.gmail.com>
+	 <200904212050.25531.rjw@sisk.pl>
+	 <31c940650904220555v1c1a6046ifa40b9c81b390731@mail.gmail.com>
+	 <200904222202.24271.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:56543 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751096AbZDVULU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2009 16:11:20 -0400
-Content-Disposition: inline
-In-Reply-To: <49EF78F2.7040203@tpi.com>
+Received: from rv-out-0506.google.com ([209.85.198.239]:34592 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754977AbZDVUfN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2009 16:35:13 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so142893rvb.1
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Apr 2009 13:35:13 -0700 (PDT)
+In-Reply-To: <200904222202.24271.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Gardner <timg@tpi.com>
-Cc: malattia@linux.it, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>
 
-On Wed, Apr 22, 2009 at 02:07:14PM -0600, Tim Gardner wrote:
+On Wed, Apr 22, 2009 at 9:02 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> Hi Rafael,
+>>
+>> I found the problem: it's the Sony laptop driver. =A0With
+>> CONFIG_SONY_LAPTOP=3Dy, the hard freeze on resume occurs. =A0Without=
+ this
+>> driver in the kernel, resume after s2ram -f -p appears to work
+>> correctly.
+>
+> It seems to be an ACPI problem, then. =A0Added some CCs.
 
-> The laptop model that doesn't power up wwan on cold boot contains a
-> "Sony Programmable IO Control Driver" ("VGN-" according to the DMI
-> info). It appears that only laptops with a "Sony Notebook Control
-> Driver" enjoy rfkill goodness. I don't know for sure if those models
-> fail to power up wwan when rfkill is disabled.
+Thanks, I raised bug <http://bugzilla.kernel.org/show_bug.cgi?id=3D1314=
+8>.
 
-Right. It'd need porting to the rfkill infrastructure, rather than just 
-being a sysfs attribute.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> Thanks,
+> Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
