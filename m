@@ -1,69 +1,78 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [Bugme-new] [Bug 13145] New: Processor does not go below C2 if
-  mouse (uhci) is plugged in.
-Date: Wed, 22 Apr 2009 12:39:52 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0904221202090.3405-100000@iolanthe.rowland.org>
-References: <d7131a800904220809ha96c0e5rd366abfcbae4d1c2@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI Exception (AE_ERROR, ACPI thermal trip point state changed)
+Date: Wed, 22 Apr 2009 13:19:54 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904221313170.6187@localhost.localdomain>
+References: <fab5b76e0904220858x71bf226dn19071ddc5692e7ec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <d7131a800904220809ha96c0e5rd366abfcbae4d1c2-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Smoczyk <daniel.smoczyk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Arjan van de Ven <arjan-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, imrehg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: multipart/mixed; boundary="Boundary_(ID_WnGURnKyaNeic0CBjL5Irw)"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:40367 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754838AbZDVRUZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2009 13:20:25 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KII003PUIT82UBM@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 22 Apr 2009 12:20:01 -0500 (CDT)
+In-reply-to: <fab5b76e0904220858x71bf226dn19071ddc5692e7ec@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marcin Gozdalik <gozdal@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 22 Apr 2009, Daniel Smoczyk wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Wed, Apr 22, 2009 at 4:51 PM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLsd9G2dDO2Ms@public.gmane.org=
-u> wrote:
->=20
-> > In fact the bug report says that 2.6.27 worked okay.
->=20
-> Not true, didn't tested 2.6.27 - there wasn't such one in debian repo=
-s.
+--Boundary_(ID_WnGURnKyaNeic0CBjL5Irw)
+Content-type: TEXT/PLAIN; charset=UTF-8
+Content-transfer-encoding: 8BIT
 
-I'm going by the data in
 
-	http://bugzilla.kernel.org/attachment.cgi?id=3D19780
 
-which is attached to bug #12391.
+On Wed, 22 Apr 2009, Marcin Gozdalik wrote:
 
-> > However the changes to uhci-hcd between 2.6.27 and 2.6.28 are quite
-> > minimal. =A0I can't see how any of them could have had this effect.=
- =A0It
-> > must be due to a change somewhere else in the kernel.
->=20
-> Could You please check 26 <-> 27? In my opinion uhci-hcd was able to
-> autosuspend while mouse wasn't used in 2.6.26 and it isn't able to do
-> autosuspend now ( C3 works ok after "rmmod uhci-hcd")
+> Hi
+> 
+> I am seeing the following in logs:
+> 
+> Apr 22 16:00:07 myth kernel: [   39.354031] ACPI Exception
+> (thermal-0479): AE_ERROR, ACPI thermal trip point state changed
+> Apr 22 16:00:07 myth kernel: [   39.354040] Please send acpidump to
+> linux-acpi@vger.kernel.org
+> Apr 22 16:00:07 myth kernel: [   39.354045]  [20080926]
+> 
+> I am using Ubuntu 9.04:
+> 
+> root@myth:/home/gozdal# uname -a
+> Linux myth 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17 01:58:03 UTC
+> 2009 x86_64 GNU/Linux
+> 
+> Motherboard is Abit AN-M2HD(MCP68) flashed with the latest BIOS.
+> 
+> The machine powers down sometimes because of an ACPI trip point:
+> 
+> Apr 22 17:27:19 myth kernel: [ 5272.004934] ACPI: Critical trip point
+> Apr 22 17:27:19 myth kernel: [ 5272.004952] Critical temperature
+> reached (121 C), shutting down.
+> Apr 22 17:27:19 myth kernel: [ 5272.004973] ACPI: Unable to turn
+> cooling device [ffff88006f841800] 'on'
+> Apr 22 17:27:26 myth kernel: [ 5278.204238] Critical temperature
+> reached (34 C), shutting down.
+> 
+> although I believe this is an error in measurement, as the temperature
+> probably wouldn't cool in 7 seconds from 121 to 34 Celsius.
 
-There was essentially no change to uhci-hcd between 2.6.26 and 2.6.27
-(a static array definition got an added "const", that's all).
+did this happen with earlier kernels, or did it start in 2.6.28?
 
-uhci-hcd has been able to autosuspend all along, provided no active
-devices (like a mouse) are attached.  If you unplug the mouse and any
-other USB devices attached to the UHCI controller under 2.6.28, it=20
-should autosuspend.
+please try 2.6.29.
+please try it with CONFIG_HWMON=n
 
-But that's not what you were concerned about.  Your original bug=20
-description said that the CPU wasn't going into C3 when the mouse _was_=
-=20
-attached.
+If it still fails, please file a bugzilla
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and attach the acpidump there.
 
-> This situation is very similar to using usb memory stick non-stop,
-> when watching move for eg. then processor also never goes below C2.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Whenever a USB device is attached and not suspended, the host=20
-controller has to do DMA.  Older processors are not able to enter C3=20
-while DMA is active.  So it would be good to verify whether your CPU is=
-=20
-actually capable of doing it.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Boundary_(ID_WnGURnKyaNeic0CBjL5Irw)--
