@@ -1,46 +1,45 @@
-From: fanderay <fanderay4@googlemail.com>
-Subject: Re: [Regression] sony-laptop breaks resume from S2RAM (was: Re:
-	[linux-pm] Resume after suspend-to-ram broken for Vaio SR19VN in 30rc2)
-Date: Wed, 22 Apr 2009 21:35:13 +0100
-Message-ID: <31c940650904221335v21fbffc2y2e9598b564d65659@mail.gmail.com>
-References: <31c940650904201152y5f440237rb9c49f1aedfef5a6@mail.gmail.com>
-	 <200904212050.25531.rjw@sisk.pl>
-	 <31c940650904220555v1c1a6046ifa40b9c81b390731@mail.gmail.com>
-	 <200904222202.24271.rjw@sisk.pl>
+From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Bugme-new] [Bug 13145] New: Processor does not go below C2 if
+ mouse (uhci) is plugged in.
+Date: Wed, 22 Apr 2009 18:54:06 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904221848380.21119@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0904221050110.3405-100000@iolanthe.rowland.org>
+ <200904221936.38942.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:34592 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754977AbZDVUfN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2009 16:35:13 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so142893rvb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Apr 2009 13:35:13 -0700 (PDT)
-In-Reply-To: <200904222202.24271.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <200904221936.38942.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Arjan van de Ven <arjan-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yakui.zhao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel.smoczyk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, imrehg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>
 
-On Wed, Apr 22, 2009 at 9:02 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> Hi Rafael,
->>
->> I found the problem: it's the Sony laptop driver. =A0With
->> CONFIG_SONY_LAPTOP=3Dy, the hard freeze on resume occurs. =A0Without=
- this
->> driver in the kernel, resume after s2ram -f -p appears to work
->> correctly.
->
-> It seems to be an ACPI problem, then. =A0Added some CCs.
+This is not a re-gression, it is a pro-gression:-)
 
-Thanks, I raised bug <http://bugzilla.kernel.org/show_bug.cgi?id=3D1314=
-8>.
+In the CONFIG_CPU_IDLE=y case, there was a bug where we
+would enter C3 even in the presence of bus master activity.
+That bug was fixed by commit fc2e4009300088813c3be2de80b01ddc2399999e
+"cpuidle: update the last_state acpi cpuidle reflecting actual state entered"
 
-> Thanks,
-> Rafael
+which shipped in 2.6.27
+
+I've reproduced this issue on my t41, and when i revert the the
+patch above from 2.6.27, we erroneously attempt to enter C3
+in the face of bus master activity, just like we did in 2.6.25 and 2.6.26.
+
+Note that the CONFIG_CPU_IDLE=n case never had this bug,
+so you'd not see C3 with USB in that case even in older kernels.
+
+Note also that /proc/acpi/processor/CPU/power does not
+display any bus master activity for the CONFIG_CPU_IDLE=y
+case, even when such activity is present.  Now that
+CONFIG_CPU_IDLE=y for ACPI always, I think we should
+simply delete that misleading field.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
