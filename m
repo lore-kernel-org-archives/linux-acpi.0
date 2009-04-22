@@ -1,99 +1,49 @@
-From: timg@tpi.com (Tim Gardner)
-Subject: [PATCH v2] Sony laptop: Sony Vaio laptops do not enable wwan power by default.
-Date: Wed, 22 Apr 2009 13:23:27 -0600 (MDT)
-Message-ID: <20090422192327.22438F88CE@sepang.rtg.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757341AbZDVTXl@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: malattia@linux.it
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Chris Friesen" <cfriesen-ZIRUuHA3oDzQT0dZR+AlfA@public.gmane.org>
+Subject: Re: 2.6.29-git13: Reported regressions from 2.6.28
+Date: Wed, 22 Apr 2009 13:32:49 -0600
+Message-ID: <49EF70E1.9030904@nortel.com>
+References: <n4io5wq70ZO.A.gzG.rFn2JB@chimera> <alpine.LFD.2.00.0904061443000.7443@localhost.localdomain> <200904070035.00784.rjw@sisk.pl> <49E79E58.9000606@nortel.com> <alpine.LFD.2.00.0904161432000.4042@localhost.localdomain> <49ECE783.5050704@nortel.com> <Pine.LNX.4.64.0904202352520.2924@blonde.anvils>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.64.0904202352520.2924-XZxpfvf5U/bbmfIwyoSfiQ@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Trenton Adams <trenton.d.adams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Mattia,
+Hugh Dickins wrote:
+> On Mon, 20 Apr 2009, Chris Friesen wrote:
 
-Ok, it would help if I sent a patch against the right kernel (2.6.30-rc3).
+>> For anonymous mappings, the older kernels put the starting address of the VMA
+>> (from the point of view of the app) as the offset.  Until the recent change,
+>> new kernels still did this for most VMAs, but the stack offset was a 64-bit
+>> value with no obvious relation to the VMA start address.
+> 
+> No, what they put there was something that in most cases matched the
+> starting address of the VMA; but try moving that VMA with mremap (and
+> an old /proc/<pid>/maps!) and you'll see that the "offset" remained
+> unchanged even when the starting address of the VMA was changed.
+> 
+> (The offset remaining constant so that rmap can locate the VMA's pages
+> and unmap them, despite their being mapped at different virtual
+> addresses in parent and child after a move in one of them.)
+> 
+> ... so I think your app was indeed already broken, wasn't it?
+> 
+> It's also unclear why you'd want to use the offset field for the
+> starting address of the VMA, when /proc/<pid>/maps already shows
+> the starting address of the VMA.  I think you've more to tell us!
 
-rtg
---------------------
->From f24d04392307d990fcc9a46721c8494effee58c9 Mon Sep 17 00:00:00 2001
-From: Tim Gardner <tim.gardner@canonical.com>
-Date: Tue, 21 Apr 2009 11:09:10 -0600
-Subject: [PATCH v2] UBUNTU: Sony laptop: Sony Vaio laptops do not enable wwan power by default.
+Yeah, given the above the app was broken.  We just didn't run into any 
+cases where the assumption caused any problems.
 
-Bug: https://bugs.launchpad.net/bugs/364678
+Also, it's not so much that we were relying on the offset value for 
+anything, so much as we were parsing the file and had made some 
+assumptions about valid offsets for anonymous memory.
 
-Added quirk to enable wwan power based on DMI information already present in the module.
-It appears that Vaio's do not enable power to wwan from a cold boot.
+Anyways, we'll fix it going forward to simply ignore the offset for 
+anonymous memory.
 
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- drivers/platform/x86/sony-laptop.c |   24 +++++++++++++++++++++++-
- 1 files changed, 23 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index d3c92d7..74ab174 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -1440,10 +1440,13 @@ struct device_ctrl {
- 	u16				evport_offset;
- 	u8				has_camera;
- 	u8				has_bluetooth;
--	u8				has_wwan;
- 	struct sonypi_eventtypes	*event_types;
- };
- 
-+struct sony_pic_quirk_entry {
-+	u8				set_wwan_power;
-+};
-+
- struct sony_pic_dev {
- 	struct device_ctrl	*control;
- 	struct acpi_device	*acpi_dev;
-@@ -1452,6 +1455,7 @@ struct sony_pic_dev {
- 	struct list_head	interrupts;
- 	struct list_head	ioports;
- 	struct mutex		lock;
-+	struct sony_pic_quirk_entry *quirks;
- 	u8			camera_power;
- 	u8			bluetooth_power;
- 	u8			wwan_power;
-@@ -2885,6 +2889,12 @@ static int sony_pic_add(struct acpi_device *device)
- 	if (result)
- 		goto err_remove_pf;
- 
-+	if (spic_dev.quirks && spic_dev.quirks->set_wwan_power) {
-+		/*
-+		 * Power isn't enabled by default.
-+		 */
-+		__sony_pic_set_wwanpower(1);
-+	}
- 	return 0;
- 
- err_remove_pf:
-@@ -2955,6 +2965,16 @@ static struct acpi_driver sony_pic_driver = {
- 		},
- };
- 
-+static struct sony_pic_quirk_entry sony_pic_vaio_vgn = {
-+	.set_wwan_power = 1,
-+};
-+
-+static int dmi_matched(const struct dmi_system_id *dmi)
-+{
-+	spic_dev.quirks = dmi->driver_data;
-+	return 0;
-+}
-+
- static struct dmi_system_id __initdata sonypi_dmi_table[] = {
- 	{
- 		.ident = "Sony Vaio",
-@@ -2969,6 +2989,8 @@ static struct dmi_system_id __initdata sonypi_dmi_table[] = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
- 			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-"),
- 		},
-+		.callback = dmi_matched,
-+		.driver_data = &sony_pic_vaio_vgn,
- 	},
- 	{ }
- };
--- 
-1.5.6.3
+Chris
