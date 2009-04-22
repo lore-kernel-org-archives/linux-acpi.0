@@ -1,44 +1,39 @@
 From: timg@tpi.com (Tim Gardner)
-Subject: [PATCH] Sony laptop: Some Sony Vaia laptops do not enable wwan power by default.
-Date: Wed, 22 Apr 2009 12:53:51 -0600 (MDT)
-Message-ID: <20090422185351.AB41AF88CE@sepang.rtg.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:2807 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753279AbZDVTNl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Apr 2009 15:13:41 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2] Sony laptop: Sony Vaio laptops do not enable wwan power by default.
+Date: Wed, 22 Apr 2009 13:23:27 -0600 (MDT)
+Message-ID: <20090422192327.22438F88CE@sepang.rtg.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757341AbZDVTXl@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: malattia@linux.it
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 Mattia,
 
-Does this patch makes sense for just the Vaio? I've had positive feedback from
-the tester in the bug report.
+Ok, it would help if I sent a patch against the right kernel (2.6.30-rc3).
 
 rtg
------------------
->From 083972abb1d5e84845927b3925f077953c207b82 Mon Sep 17 00:00:00 2001
+--------------------
+>From f24d04392307d990fcc9a46721c8494effee58c9 Mon Sep 17 00:00:00 2001
 From: Tim Gardner <tim.gardner@canonical.com>
 Date: Tue, 21 Apr 2009 11:09:10 -0600
-Subject: [PATCH] Sony laptop: Some Sony Vaio laptops do not enable wwan power by default.
+Subject: [PATCH v2] UBUNTU: Sony laptop: Sony Vaio laptops do not enable wwan power by default.
 
 Bug: https://bugs.launchpad.net/bugs/364678
 
 Added quirk to enable wwan power based on DMI information already present in the module.
-It appears that wwan is not powered up from a cold boot.
+It appears that Vaio's do not enable power to wwan from a cold boot.
 
 Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 ---
- drivers/misc/sony-laptop.c |   24 +++++++++++++++++++++++-
+ drivers/platform/x86/sony-laptop.c |   24 +++++++++++++++++++++++-
  1 files changed, 23 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
-index 7e73acc..eab7011 100644
---- a/drivers/misc/sony-laptop.c
-+++ b/drivers/misc/sony-laptop.c
-@@ -1248,10 +1248,13 @@ struct device_ctrl {
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index d3c92d7..74ab174 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -1440,10 +1440,13 @@ struct device_ctrl {
  	u16				evport_offset;
  	u8				has_camera;
  	u8				has_bluetooth;
@@ -53,7 +48,7 @@ index 7e73acc..eab7011 100644
  struct sony_pic_dev {
  	struct device_ctrl	*control;
  	struct acpi_device	*acpi_dev;
-@@ -1260,6 +1263,7 @@ struct sony_pic_dev {
+@@ -1452,6 +1455,7 @@ struct sony_pic_dev {
  	struct list_head	interrupts;
  	struct list_head	ioports;
  	struct mutex		lock;
@@ -61,7 +56,7 @@ index 7e73acc..eab7011 100644
  	u8			camera_power;
  	u8			bluetooth_power;
  	u8			wwan_power;
-@@ -2685,6 +2689,12 @@ static int sony_pic_add(struct acpi_device *device)
+@@ -2885,6 +2889,12 @@ static int sony_pic_add(struct acpi_device *device)
  	if (result)
  		goto err_remove_pf;
  
@@ -69,12 +64,12 @@ index 7e73acc..eab7011 100644
 +		/*
 +		 * Power isn't enabled by default.
 +		 */
-+		sony_pic_set_wwanpower(1);
++		__sony_pic_set_wwanpower(1);
 +	}
  	return 0;
  
  err_remove_pf:
-@@ -2755,6 +2765,16 @@ static struct acpi_driver sony_pic_driver = {
+@@ -2955,6 +2965,16 @@ static struct acpi_driver sony_pic_driver = {
  		},
  };
  
@@ -91,7 +86,7 @@ index 7e73acc..eab7011 100644
  static struct dmi_system_id __initdata sonypi_dmi_table[] = {
  	{
  		.ident = "Sony Vaio",
-@@ -2769,6 +2789,8 @@ static struct dmi_system_id __initdata sonypi_dmi_table[] = {
+@@ -2969,6 +2989,8 @@ static struct dmi_system_id __initdata sonypi_dmi_table[] = {
  			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
  			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-"),
  		},
@@ -102,4 +97,3 @@ index 7e73acc..eab7011 100644
  };
 -- 
 1.5.6.3
-
