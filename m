@@ -1,42 +1,34 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [Bugme-new] [Bug 13145] New: Processor does not go below C2 if
- mouse (uhci) is plugged in.
-Date: Tue, 21 Apr 2009 16:49:10 -0700
-Message-ID: <20090421164910.43d94457@infradead.org>
-References: <bug-13145-10286@http.bugzilla.kernel.org/>
-	<20090421142751.b030cba7.akpm@linux-foundation.org>
-	<200904220022.18232.oliver@neukum.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [stable] [PATCH 2/5] thinkpad-acpi: fix LED blinking through
+	timer trigger
+Date: Wed, 22 Apr 2009 00:11:02 -0300
+Message-ID: <20090422031102.GB19642@khazad-dum.debian.net>
+References: <1239677054-3221-1-git-send-email-hmh@hmh.eng.br> <1239677054-3221-3-git-send-email-hmh@hmh.eng.br> <20090421194426.GD30916@hera.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33597 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbZDUXrQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Apr 2009 19:47:16 -0400
-In-Reply-To: <200904220022.18232.oliver@neukum.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:39784 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753271AbZDVDLH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Apr 2009 23:11:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20090421194426.GD30916@hera.kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, rui.zhang@intel.com, shaohua.li@intel.com, yakui.zhao@intel.com, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, daniel.smoczyk@gmail.com, imrehg@gmail.com
+To: Chris Wright <chrisw@sous-sol.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Wed, 22 Apr 2009 00:22:14 +0200
-Oliver Neukum <oliver@neukum.org> wrote:
+On Tue, 21 Apr 2009, Chris Wright wrote:
+> This is still not upstream.
 
-> Am Dienstag 21 April 2009 23:27:51 schrieb Andrew Morton:
-> > (switched to email.  Please respond via emailed reply-to-all, not
-> > via the bugzilla web interface).
-> >
-> > It looks like we need to revisit this - 2.6.26 worked OK, so why
-> > can't 2.6.28?
-> 
-> Not going into C3 without autosuspend is really expected.
+Len has merged it in acpi-test. I don't know when he plans to send
+the patchset to Linus.
 
-this is not correct; if the CPU supports "C2-popup", going to C3 is
-expected.
-
+Len?
 
 -- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
