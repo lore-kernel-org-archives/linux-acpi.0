@@ -1,57 +1,402 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 2/3] X86: Introduce mperf_aperf X86_FEATURE
-Date: Thu, 23 Apr 2009 15:03:03 +0200
-Message-ID: <1240491784-29933-3-git-send-email-trenn@suse.de>
+Subject: [PATCH 1/3] acpi-cpufreq: Move average performance funtions into separate file and KConfig
+Date: Thu, 23 Apr 2009 15:03:02 +0200
+Message-ID: <1240491784-29933-2-git-send-email-trenn@suse.de>
 References: <1240491784-29933-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43703 "EHLO mx2.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:47620 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756042AbZDWNDH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Apr 2009 09:03:07 -0400
+	id S1757005AbZDWNDL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Apr 2009 09:03:11 -0400
 In-Reply-To: <1240491784-29933-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+Cc: venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Thomas Renninger <trenn@suse.de>, svaidy@linux.vnet.ibm.com, suresh.b.siddha@intel.com
 
-Users of the newly introduced:
-EXPORT_SYMBOL_GPL(get_average_perf);
-function must check for this feature to make sure it can be used.
+exports:
+EXPORT_SYMBOL_GPL(get_average_perf)
+unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
+			      u64 *saved_aperf, u64 *saved_mperf)
+
+This function will read the
+APERF (0x000000E8) MSR:
+Incremented by hardware at the P0 frequency
+
+and
+and MPERF (0x000000E7) MSR:
+Incremented by hardware at the actual number of core clocks cycles
+
+and will calculate the average frequency the CPU core has run, based on the
+saved_aperf/saved_mperf values from a previous call.
+
+Example (untested, evaluates the average freq of the last ms on core 0):
+===============
+#ifdef(X86_AVERAGE_FREQUENCY) /* also make
+u64 saved_aperf, saved_mperf;
+struct cpufreq_policy;
+struct cpuinfo_x86 *cpu = &cpu_data(cpu);
+int cpu = 0;
+unsigned int average_freq;
+
+if (!cpu_has(cpu, X86_FEATURE_APERF_MPERF)) /* Introduced in next patch */
+    return;
+cpufreq_get_policy(policy, cpu);
+get_average_perf(policy, cpu, &saved_aperf, &saved_mperf);
+msleep(1);
+average_freq = get_average_perf(policy, cpu, &saved_aperf, &saved_mperf);
+#endif
+===============
+
+One could now easily add a debug monitor of the average freq of a process'
+life cycle, there are probably other use-cases, I could imagine sched_mc
+developers may find this interface convenient for debugging/optimizing.
+
+Additional modification:
+Use smp_call_function_single instead of work_on_cpu.
+The latter was broken anyway: 0 was always returned as the called function
+read_measured_perf_ctrs always returns zero which work_on_cpu's return value
+was wrongly checked for:
+if (!work_on_cpu(cpu, read_measured_perf_ctrs, &readin))
+		return 0;
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Pallipadi Venkatesh <venkatesh.pallipadi@intel.com>
+Cc: <cpufreq@vger.kernel.org>
+Cc: <svaidy@linux.vnet.ibm.com>
+Cc: <suresh.b.siddha@intel.com>
 ---
- arch/x86/include/asm/cpufeature.h          |    1 +
- arch/x86/kernel/cpu/addon_cpuid_features.c |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
- mode change 100644 => 100755 arch/x86/kernel/cpu/mkcapflags.pl
+ arch/x86/kernel/cpu/cpufreq/Kconfig             |   15 +++
+ arch/x86/kernel/cpu/cpufreq/Makefile            |    1 +
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c      |   94 +--------------
+ arch/x86/kernel/cpu/cpufreq/average_frequency.c |  146 +++++++++++++++++++++++
+ include/linux/cpufreq.h                         |   13 ++
+ 5 files changed, 178 insertions(+), 91 deletions(-)
+ create mode 100644 arch/x86/kernel/cpu/cpufreq/average_frequency.c
 
-diff --git a/arch/x86/include/asm/cpufeature.h b/arch/x86/include/asm/cpufeature.h
-index bb83b1c..b1c4bd8 100644
---- a/arch/x86/include/asm/cpufeature.h
-+++ b/arch/x86/include/asm/cpufeature.h
-@@ -155,6 +155,7 @@
-  */
- #define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
- #define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
-+#define X86_FEATURE_APERF_MPERF	(7*32+ 3) /* APERF/MPERF average freq MSRs */
+diff --git a/arch/x86/kernel/cpu/cpufreq/Kconfig b/arch/x86/kernel/cpu/cpufreq/Kconfig
+index 52c8398..3ca1602 100644
+--- a/arch/x86/kernel/cpu/cpufreq/Kconfig
++++ b/arch/x86/kernel/cpu/cpufreq/Kconfig
+@@ -26,6 +26,21 @@ config X86_ACPI_CPUFREQ
  
- /* Virtualization flags: Linux defined */
- #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
-diff --git a/arch/x86/kernel/cpu/addon_cpuid_features.c b/arch/x86/kernel/cpu/addon_cpuid_features.c
-index c965e52..e91c357 100644
---- a/arch/x86/kernel/cpu/addon_cpuid_features.c
-+++ b/arch/x86/kernel/cpu/addon_cpuid_features.c
-@@ -32,6 +32,7 @@ void __cpuinit init_scattered_cpuid_features(struct cpuinfo_x86 *c)
- 	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
- 		{ X86_FEATURE_IDA, CR_EAX, 1, 0x00000006 },
- 		{ X86_FEATURE_ARAT, CR_EAX, 2, 0x00000006 },
-+		{ X86_FEATURE_APERF_MPERF, CR_ECX, 0, 0x00000006 },
- 		{ 0, 0, 0, 0 }
- 	};
+ 	  If in doubt, say N.
  
-diff --git a/arch/x86/kernel/cpu/mkcapflags.pl b/arch/x86/kernel/cpu/mkcapflags.pl
-old mode 100644
-new mode 100755
++config X86_AVERAGE_FREQUENCY
++	bool "Calculate and consider average frequency over a time period"
++	depends on CPU_FREQ_TABLE
++	help
++	  Latest X86 Intel processors can overclock a single core
++	  behind the kernel's back (ida cpuinfo flag) if specific requirements
++	  are met.
++	  With this option, the kernel can evaluate the real frequency a core
++	  was running on over a time period and kernel parts, for example
++	  the cpufreq core and governor or later the scheduler can consider and
++	  optimize for the "boost" frequency on such processors.
++	  Currently the only driver which serves such processors is acpi-cpufreq.
++	  This option should be enabled for this driver at least
++	  on processors which show the "ida" flag in /proc/cpuinfo
++
+ config ELAN_CPUFREQ
+ 	tristate "AMD Elan SC400 and SC410"
+ 	select CPU_FREQ_TABLE
+diff --git a/arch/x86/kernel/cpu/cpufreq/Makefile b/arch/x86/kernel/cpu/cpufreq/Makefile
+index 509296d..3eb5a64 100644
+--- a/arch/x86/kernel/cpu/cpufreq/Makefile
++++ b/arch/x86/kernel/cpu/cpufreq/Makefile
+@@ -2,6 +2,7 @@
+ # K8 systems. ACPI is preferred to all other hardware-specific drivers.
+ # speedstep-* is preferred over p4-clockmod.
+ 
++obj-$(CONFIG_X86_AVERAGE_FREQUENCY)     += average_frequency.o
+ obj-$(CONFIG_X86_POWERNOW_K8)		+= powernow-k8.o
+ obj-$(CONFIG_X86_ACPI_CPUFREQ)		+= acpi-cpufreq.o
+ obj-$(CONFIG_X86_POWERNOW_K6)		+= powernow-k6.o
+diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+index 208ecf6..bf9b6b1 100644
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
++++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -248,100 +248,12 @@ static u32 get_cur_val(const struct cpumask *mask)
+ 	return cmd.val;
+ }
+ 
+-struct perf_pair {
+-	union {
+-		struct {
+-			u32 lo;
+-			u32 hi;
+-		} split;
+-		u64 whole;
+-	} aperf, mperf;
+-};
+-
+-/* Called via smp_call_function_single(), on the target CPU */
+-static void read_measured_perf_ctrs(void *_cur)
+-{
+-	struct perf_pair *cur = _cur;
+-
+-	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
+-	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
+-}
+-
+-/*
+- * Return the measured active (C0) frequency on this CPU since last call
+- * to this function.
+- * Input: cpu number
+- * Return: Average CPU frequency in terms of max frequency (zero on error)
+- *
+- * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
+- * over a period of time, while CPU is in C0 state.
+- * IA32_MPERF counts at the rate of max advertised frequency
+- * IA32_APERF counts at the rate of actual CPU frequency
+- * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
+- * no meaning should be associated with absolute values of these MSRs.
+- */
+ static unsigned int get_measured_perf(struct cpufreq_policy *policy,
+ 				      unsigned int cpu)
+ {
+-	struct perf_pair readin, cur;
+-	unsigned int perf_percent;
+-	unsigned int retval;
+-
+-	if (smp_call_function_single(cpu, read_measured_perf_ctrs, &readin, 1))
+-		return 0;
+-
+-	cur.aperf.whole = readin.aperf.whole -
+-				per_cpu(msr_data, cpu).saved_aperf;
+-	cur.mperf.whole = readin.mperf.whole -
+-				per_cpu(msr_data, cpu).saved_mperf;
+-	per_cpu(msr_data, cpu).saved_aperf = readin.aperf.whole;
+-	per_cpu(msr_data, cpu).saved_mperf = readin.mperf.whole;
+-
+-#ifdef __i386__
+-	/*
+-	 * We dont want to do 64 bit divide with 32 bit kernel
+-	 * Get an approximate value. Return failure in case we cannot get
+-	 * an approximate value.
+-	 */
+-	if (unlikely(cur.aperf.split.hi || cur.mperf.split.hi)) {
+-		int shift_count;
+-		u32 h;
+-
+-		h = max_t(u32, cur.aperf.split.hi, cur.mperf.split.hi);
+-		shift_count = fls(h);
+-
+-		cur.aperf.whole >>= shift_count;
+-		cur.mperf.whole >>= shift_count;
+-	}
+-
+-	if (((unsigned long)(-1) / 100) < cur.aperf.split.lo) {
+-		int shift_count = 7;
+-		cur.aperf.split.lo >>= shift_count;
+-		cur.mperf.split.lo >>= shift_count;
+-	}
+-
+-	if (cur.aperf.split.lo && cur.mperf.split.lo)
+-		perf_percent = (cur.aperf.split.lo * 100) / cur.mperf.split.lo;
+-	else
+-		perf_percent = 0;
+-
+-#else
+-	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf.whole)) {
+-		int shift_count = 7;
+-		cur.aperf.whole >>= shift_count;
+-		cur.mperf.whole >>= shift_count;
+-	}
+-
+-	if (cur.aperf.whole && cur.mperf.whole)
+-		perf_percent = (cur.aperf.whole * 100) / cur.mperf.whole;
+-	else
+-		perf_percent = 0;
+-
+-#endif
+-
+-	retval = (policy->cpuinfo.max_freq * perf_percent) / 100;
+-
+-	return retval;
++	return get_average_perf(policy, cpu,
++				&per_cpu(msr_data, cpu).saved_aperf,
++				&per_cpu(msr_data, cpu).saved_mperf);
+ }
+ 
+ static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
+diff --git a/arch/x86/kernel/cpu/cpufreq/average_frequency.c b/arch/x86/kernel/cpu/cpufreq/average_frequency.c
+new file mode 100644
+index 0000000..2b18a75
+--- /dev/null
++++ b/arch/x86/kernel/cpu/cpufreq/average_frequency.c
+@@ -0,0 +1,146 @@
++/*
++ *  average_frequency.c
++ *
++ *  Copyright (C) 2009       Thomas Renninger <trenn@suse.de> (Novell)
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ * Code taken from acpi-cpufreq which initially came from
++ * Mike Travis <travis@sgi.com> and
++ * Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
++ */
++
++#include <linux/kernel.h>
++#include <linux/cpufreq.h>
++#include <linux/workqueue.h>
++
++#include <asm/msr.h>
++
++struct perf_pair {
++	union {
++		struct {
++			u32 lo;
++			u32 hi;
++		} split;
++		s64 whole;
++	} aperf, mperf;
++};
++
++static void read_measured_perf_ctrs(void *_cur)
++{
++	struct perf_pair *cur = _cur;
++
++	rdmsr(MSR_IA32_APERF, cur->aperf.split.lo, cur->aperf.split.hi);
++	rdmsr(MSR_IA32_MPERF, cur->mperf.split.lo, cur->mperf.split.hi);
++}
++
++/*
++ * Return the measured active (C0) frequency on this CPU since last call
++ * to this function.
++ * Input: cpu number
++ *        cpufreq policy -> must at least have cpuinfo.max_freq be set
++ *        saved_mperf    -> register value of last call, will get updated
++ *        saved_aperf    -> register value of last call, will get updated
++ *
++ * Return: Average CPU frequency in terms of max frequency (zero on error)
++ *         since the function has been called the last time with saved
++ *         aperf/mperf values.
++ *
++ * We use IA32_MPERF and IA32_APERF MSRs to get the measured performance
++ * over a period of time, while CPU is in C0 state.
++ * IA32_MPERF counts at the rate of max advertised frequency
++ * IA32_APERF counts at the rate of actual CPU frequency
++ * Only IA32_APERF/IA32_MPERF ratio is architecturally defined and
++ * no meaning should be associated with absolute values of these MSRs.
++ *
++ * Callers must make sure that the X86_FEATURE_IDA bit is set.
++ */
++unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
++			      u64 *saved_aperf, u64 *saved_mperf)
++{
++	struct perf_pair readin, cur;
++	unsigned int perf_percent;
++	unsigned int retval;
++
++	smp_call_function_single(cpu, read_measured_perf_ctrs, &readin, 1);
++
++	/* Called the first time */
++	if ((*saved_aperf == 0) && (*saved_mperf == 0)) {
++		*saved_aperf = readin.aperf.whole;
++		*saved_mperf = readin.mperf.whole;
++		return 0;
++	}
++
++	cur.aperf.whole = readin.aperf.whole - *saved_aperf;
++	cur.mperf.whole = readin.mperf.whole - *saved_mperf;
++
++	/* Handle overflow gracefully */
++	if (unlikely(*saved_aperf > readin.aperf.whole))
++		cur.aperf.whole = 0ULL - readin.aperf.whole;
++	if (unlikely(*saved_mperf > readin.mperf.whole))
++		cur.mperf.whole = 0ULL - readin.mperf.whole;
++
++	*saved_aperf = readin.aperf.whole;
++	*saved_mperf = readin.mperf.whole;
++
++#ifdef __i386__
++	/*
++	 * We dont want to do 64 bit divide with 32 bit kernel
++	 * Get an approximate value. Return failure in case we cannot get
++	 * an approximate value.
++	 */
++	if (unlikely(cur.aperf.split.hi || cur.mperf.split.hi)) {
++		int shift_count;
++		u32 h;
++
++		h = max_t(u32, cur.aperf.split.hi, cur.mperf.split.hi);
++		shift_count = fls(h);
++
++		cur.aperf.whole >>= shift_count;
++		cur.mperf.whole >>= shift_count;
++	}
++
++	if (((unsigned long)(-1) / 100) < cur.aperf.split.lo) {
++		int shift_count = 7;
++		cur.aperf.split.lo >>= shift_count;
++		cur.mperf.split.lo >>= shift_count;
++	}
++
++	if (cur.aperf.split.lo && cur.mperf.split.lo)
++		perf_percent = (cur.aperf.split.lo * 100) / cur.mperf.split.lo;
++	else
++		perf_percent = 0;
++
++#else
++	if (unlikely(((unsigned long)(-1) / 100) < cur.aperf.whole)) {
++		int shift_count = 7;
++		cur.aperf.whole >>= shift_count;
++		cur.mperf.whole >>= shift_count;
++	}
++
++	if (cur.aperf.whole && cur.mperf.whole)
++		perf_percent = (cur.aperf.whole * 100) / cur.mperf.whole;
++	else
++		perf_percent = 0;
++
++#endif
++	retval = (policy->cpuinfo.max_freq * perf_percent) / 100;
++	return retval;
++}
++EXPORT_SYMBOL_GPL(get_average_perf);
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index 1610427..0ab8bf7 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -362,6 +362,19 @@ void cpufreq_frequency_table_get_attr(struct cpufreq_frequency_table *table,
+ 
+ void cpufreq_frequency_table_put_attr(unsigned int cpu);
+ 
++/*
++ * Get the average frequency since the last call of this function if the
++ * needed MSRs are supported by the CPU
++*/
++#ifdef CONFIG_X86_AVERAGE_FREQUENCY
++unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
++			      u64 *saved_aperf, u64 *saved_mperf);
++#else
++unsigned int get_average_perf(struct cpufreq_policy *policy, unsigned int cpu,
++			      u64 *saved_aperf, u64 *saved_mperf)
++{ return 0; }
++#endif
++
+ 
+ /*********************************************************************
+  *                     UNIFIED DEBUG HELPERS                         *
 -- 
 1.6.0.2
 
