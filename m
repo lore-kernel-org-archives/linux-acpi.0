@@ -1,32 +1,78 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] x86/hpet: prevent boot hang when hpet=force used on old ICH
-Date: Thu, 23 Apr 2009 19:05:09 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904231901570.15843@localhost.localdomain>
+Subject: [PATCH] ACPI/hpet: prevent boot hang when hpet=force used on ICH-4M
+Date: Thu, 23 Apr 2009 19:18:32 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904231917030.15843@localhost.localdomain>
 References: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain>
- <20090423060936.GA1917@elte.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:42134 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755316AbZDWXFY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 19:05:24 -0400
-In-reply-to: <20090423060936.GA1917@elte.hu>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:48819 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286AbZDWXSe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 19:18:34 -0400
+In-reply-to: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org
 
-Ingo,
-Thanks for the reply.
+From: Len Brown <len.brown@intel.com>
 
-But please disregard that patch -- we've cooked up a better one
-that allows ICH4M to continue to use hpet=force, even for clocksource.
-(and it is an ACPI patch rather than an x86 patch:-)
+Linux tells ICH4 users that they can (manually) invoke
+"hpet=force" to enable the undocumented ICH-4M HPET.
+The HPET becomes available for both clocksource and clockevents.
 
-However, I'll also send a 2nd patch to stop soliciting more hpet=force
-users, since technically we shouldn't be encouraging the use of
-this un-documented and lightly-validated hardware.
+But as of ff69f2bba67bd45514923aaedbf40fe351787c59
+(acpi: fix of pmtimer overflow that make Cx states time incorrect)
+the HPET may be used via clocksource for idle accounting, and
+hpet=force on an ICH4 box hangs boot.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+It turns out that touching the MMIO HPET withing
+the ARB_DIS part of C3 will hang the hardware.
+
+The fix is to simply move the timer access outside
+the ARB_DIS region.  This is a no-op on modern hardware
+because ARB_DIS is no longer used.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=13087
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_idle.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 6fe1214..ea23c64 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -955,6 +955,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	 */
+ 	acpi_state_timer_broadcast(pr, cx, 1);
+ 
++	kt1 = ktime_get_real();
+ 	/*
+ 	 * disable bus master
+ 	 * bm_check implies we need ARB_DIS
+@@ -976,10 +977,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		ACPI_FLUSH_CPU_CACHE();
+ 	}
+ 
+-	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+-	kt2 = ktime_get_real();
+-	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ 	/* Re-enable bus master arbitration */
+ 	if (pr->flags.bm_check && pr->flags.bm_control) {
+@@ -988,6 +986,8 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		c3_cpu_count--;
+ 		spin_unlock(&c3_lock);
+ 	}
++	kt2 = ktime_get_real();
++	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ 
+ #if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+ 	/* TSC could halt in idle, so notify users */
+-- 
+1.6.3.rc1.34.g0be9b
+
