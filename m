@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/29] ACPI: Disable _GTS and _BFS support by default
-Date: Thu, 23 Apr 2009 02:23:31 -0400
-Message-ID: <96f15efcea94545987715f453a8c2b8ea592d000.1240467664.git.len.brown@intel.com>
+Subject: [PATCH 27/29] ACPI: add /sys/firmware/acpi/interrupts/sci_not counter
+Date: Thu, 23 Apr 2009 02:23:49 -0400
+Message-ID: <88bea188b85f9cefefbbd56b8a48d0f798409177.1240467665.git.len.brown@intel.com>
 References: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:54737 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754144AbZDWGYN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 02:24:13 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:23393 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753754AbZDWGYK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 02:24:10 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173017.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KIJ00EF4J3XK60J@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:24:03 -0500 (CDT)
+ with ESMTPA id <0KIJ00HNWJ495VV5@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:24:10 -0500 (CDT)
 In-reply-to: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 In-reply-to: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
 References: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
@@ -23,137 +23,115 @@ Cc: Len Brown <len.brown@intel.com>
 
 From: Len Brown <len.brown@intel.com>
 
-Executing BIOS code paths not exercised by Windows
-tends to get Linux into trouble.
-
-However, if a system does benefit from _GTS or _BFS,
-acpi.gts=1 an acpi.bfs=1 are now available to enable them.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=13041
+This counter may prove useful in debugging some
+spurious interrupt issues seen in the field.
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/hwsleep.c |   43 ++++++++++++++++++++++++----------------
- drivers/acpi/sleep.c          |   27 +++++++++++++++++++++++++
- 2 files changed, 53 insertions(+), 17 deletions(-)
+ Documentation/ABI/testing/sysfs-firmware-acpi |    8 ++++++--
+ drivers/acpi/osl.c                            |    4 +++-
+ drivers/acpi/system.c                         |   11 +++++++++--
+ include/linux/acpi.h                          |    1 +
+ 4 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index baa5fc0..db307a3 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -211,6 +211,12 @@ acpi_status acpi_enter_sleep_state_prep(u8 sleep_state)
+diff --git a/Documentation/ABI/testing/sysfs-firmware-acpi b/Documentation/ABI/testing/sysfs-firmware-acpi
+index e8ffc70..4f9ba3c 100644
+--- a/Documentation/ABI/testing/sysfs-firmware-acpi
++++ b/Documentation/ABI/testing/sysfs-firmware-acpi
+@@ -69,9 +69,13 @@ Description:
+ 		gpe1F:	     0	invalid
+ 		gpe_all:    1192
+ 		sci:	1194
++		sci_not:     0	
  
- ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
- 
-+static unsigned int gts, bfs;
-+module_param(gts, uint, 0644);
-+module_param(bfs, uint, 0644);
-+MODULE_PARM_DESC(gts, "Enable evaluation of _GTS on suspend.");
-+MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
+-		sci - The total number of times the ACPI SCI
+-		has claimed an interrupt.
++		sci - The number of times the ACPI SCI
++		has been called and claimed an interrupt.
 +
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_enter_sleep_state
-@@ -278,16 +284,18 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
- 		return_ACPI_STATUS(status);
- 	}
++		sci_not - The number of times the ACPI SCI
++		has been called and NOT claimed an interrupt.
  
--	/* Execute the _GTS method */
-+	if (gts) {
-+		/* Execute the _GTS method */
+ 		gpe_all - count of SCI caused by GPEs.
  
--	arg_list.count = 1;
--	arg_list.pointer = &arg;
--	arg.type = ACPI_TYPE_INTEGER;
--	arg.integer.value = sleep_state;
-+		arg_list.count = 1;
-+		arg_list.pointer = &arg;
-+		arg.type = ACPI_TYPE_INTEGER;
-+		arg.integer.value = sleep_state;
- 
--	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		return_ACPI_STATUS(status);
-+		status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
-+		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+			return_ACPI_STATUS(status);
-+		}
- 	}
- 
- 	/* Get current value of PM1A control */
-@@ -513,18 +521,19 @@ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
- 		}
- 	}
- 
--	/* Execute the _BFS method */
-+	if (bfs) {
-+		/* Execute the _BFS method */
- 
--	arg_list.count = 1;
--	arg_list.pointer = &arg;
--	arg.type = ACPI_TYPE_INTEGER;
--	arg.integer.value = sleep_state;
-+		arg_list.count = 1;
-+		arg_list.pointer = &arg;
-+		arg.type = ACPI_TYPE_INTEGER;
-+		arg.integer.value = sleep_state;
- 
--	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
-+		status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
-+		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+			ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
-+		}
- 	}
--
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 779e4e5..9042875 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -713,6 +713,32 @@ static void acpi_power_off(void)
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
- }
- 
-+/*
-+ * ACPI 2.0 created the optional _GTS and _BFS,
-+ * but industry adoption has been neither rapid nor broad.
-+ *
-+ * Linux gets into trouble when it executes poorly validated
-+ * paths through the BIOS, so disable _GTS and _BFS by default,
-+ * but do speak up and offer the option to enable them.
-+ */
-+void __init acpi_gts_bfs_check(void)
-+{
-+	acpi_handle dummy;
-+
-+	if (ACPI_SUCCESS(acpi_get_handle(ACPI_ROOT_OBJECT, METHOD_NAME__GTS, &dummy)))
-+	{
-+		printk(KERN_NOTICE PREFIX "BIOS offers _GTS\n");
-+		printk(KERN_NOTICE PREFIX "If \"acpi.gts=1\" improves suspend, "
-+			"please notify linux-acpi@vger.kernel.org\n");
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index d59f08e..d916bea 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -353,8 +353,10 @@ static irqreturn_t acpi_irq(int irq, void *dev_id)
+ 	if (handled) {
+ 		acpi_irq_handled++;
+ 		return IRQ_HANDLED;
+-	} else
++	} else {
++		acpi_irq_not_handled++;
+ 		return IRQ_NONE;
 +	}
-+	if (ACPI_SUCCESS(acpi_get_handle(ACPI_ROOT_OBJECT, METHOD_NAME__BFS, &dummy)))
-+	{
-+		printk(KERN_NOTICE PREFIX "BIOS offers _BFS\n");
-+		printk(KERN_NOTICE PREFIX "If \"acpi.bfs=1\" improves resume, "
-+			"please notify linux-acpi@vger.kernel.org\n");
-+	}
-+}
-+
- int __init acpi_sleep_init(void)
- {
- 	acpi_status status;
-@@ -771,5 +797,6 @@ int __init acpi_sleep_init(void)
- 	 * object can also be evaluated when the system enters S5.
- 	 */
- 	register_reboot_notifier(&tts_notifier);
-+	acpi_gts_bfs_check();
- 	return 0;
  }
+ 
+ acpi_status
+diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
+index da51f05..0944dae 100644
+--- a/drivers/acpi/system.c
++++ b/drivers/acpi/system.c
+@@ -38,6 +38,7 @@ ACPI_MODULE_NAME("system");
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
+ 
+ u32 acpi_irq_handled;
++u32 acpi_irq_not_handled;
+ 
+ /*
+  * Make ACPICA version work as module param
+@@ -214,8 +215,9 @@ err:
+ 
+ #define COUNT_GPE 0
+ #define COUNT_SCI 1	/* acpi_irq_handled */
+-#define COUNT_ERROR 2	/* other */
+-#define NUM_COUNTERS_EXTRA 3
++#define COUNT_SCI_NOT 2	/* acpi_irq_not_handled */
++#define COUNT_ERROR 3	/* other */
++#define NUM_COUNTERS_EXTRA 4
+ 
+ struct event_counter {
+ 	u32 count;
+@@ -317,6 +319,8 @@ static ssize_t counter_show(struct kobject *kobj,
+ 
+ 	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI].count =
+ 		acpi_irq_handled;
++	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI_NOT].count =
++		acpi_irq_not_handled;
+ 	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_GPE].count =
+ 		acpi_gpe_count;
+ 
+@@ -363,6 +367,7 @@ static ssize_t counter_set(struct kobject *kobj,
+ 			all_counters[i].count = 0;
+ 		acpi_gpe_count = 0;
+ 		acpi_irq_handled = 0;
++		acpi_irq_not_handled = 0;
+ 		goto end;
+ 	}
+ 
+@@ -456,6 +461,8 @@ void acpi_irq_stats_init(void)
+ 			sprintf(buffer, "gpe_all");
+ 		else if (i == num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI)
+ 			sprintf(buffer, "sci");
++		else if (i == num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_SCI_NOT)
++			sprintf(buffer, "sci_not");
+ 		else if (i == num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_ERROR)
+ 			sprintf(buffer, "error");
+ 		else
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 6586cbd..88be890 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -111,6 +111,7 @@ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
+ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
+ void acpi_irq_stats_init(void);
+ extern u32 acpi_irq_handled;
++extern u32 acpi_irq_not_handled;
+ 
+ extern struct acpi_mcfg_allocation *pci_mmcfg_config;
+ extern int pci_mmcfg_config_num;
 -- 
 1.6.0.6
 
