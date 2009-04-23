@@ -1,41 +1,119 @@
 From: Mattia Dongili <malattia@linux.it>
 Subject: Re: [PATCH] Sony laptop: Some Sony Vaia laptops do not enable wwan
 	power by default.
-Date: Thu, 23 Apr 2009 17:50:21 +0900
-Message-ID: <20090423085021.GA24761@kamineko.org>
-References: <20090422185351.AB41AF88CE@sepang.rtg.net> <20090422195034.GA32375@srcf.ucam.org> <49EF78F2.7040203@tpi.com> <20090422201115.GA783@srcf.ucam.org>
+Date: Thu, 23 Apr 2009 18:04:54 +0900
+Message-ID: <20090423090454.GB24761@kamineko.org>
+References: <20090422185351.AB41AF88CE@sepang.rtg.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:43019
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:37861
 	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607AbZDWIuX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 04:50:23 -0400
+	with ESMTP id S1750765AbZDWJE4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 05:04:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20090422201115.GA783@srcf.ucam.org>
+In-Reply-To: <20090422185351.AB41AF88CE@sepang.rtg.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Tim Gardner <timg@tpi.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tim Gardner <timg@tpi.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Apr 22, 2009 at 09:11:15PM +0100, Matthew Garrett wrote:
-> On Wed, Apr 22, 2009 at 02:07:14PM -0600, Tim Gardner wrote:
+On Wed, Apr 22, 2009 at 12:53:51PM -0600, Tim Gardner wrote:
+> Mattia,
 > 
-> > The laptop model that doesn't power up wwan on cold boot contains a
-> > "Sony Programmable IO Control Driver" ("VGN-" according to the DMI
-> > info). It appears that only laptops with a "Sony Notebook Control
-> > Driver" enjoy rfkill goodness. I don't know for sure if those models
-> > fail to power up wwan when rfkill is disabled.
+> Does this patch makes sense for just the Vaio? I've had positive feedback from
+> the tester in the bug report.
 > 
-> Right. It'd need porting to the rfkill infrastructure, rather than just 
-> being a sysfs attribute.
+> rtg
+> -----------------
+> From 083972abb1d5e84845927b3925f077953c207b82 Mon Sep 17 00:00:00 2001
+> From: Tim Gardner <tim.gardner@canonical.com>
+> Date: Tue, 21 Apr 2009 11:09:10 -0600
+> Subject: [PATCH] Sony laptop: Some Sony Vaio laptops do not enable wwan power by default.
+> 
+> Bug: https://bugs.launchpad.net/bugs/364678
+> 
+> Added quirk to enable wwan power based on DMI information already present in the module.
+> It appears that wwan is not powered up from a cold boot.
 
-Agreed, the only thing I'm missing is how to read the initial device
-state (same for bluetooth and wifi).
-I've been throwing some values at the SPIC device with much success for
-now. Tracing in windows is a big no-no as it dies on me as soon as I
-start any tracing utility.
-I'm open for suggestions.
+The bug reporter says that this happens when booting from windows to
+linux, is it still true when manually enabling the device in linux and
+then rebooting (into linux again)?
+
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+> ---
+>  drivers/misc/sony-laptop.c |   24 +++++++++++++++++++++++-
+>  1 files changed, 23 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
+> index 7e73acc..eab7011 100644
+> --- a/drivers/misc/sony-laptop.c
+> +++ b/drivers/misc/sony-laptop.c
+> @@ -1248,10 +1248,13 @@ struct device_ctrl {
+>  	u16				evport_offset;
+>  	u8				has_camera;
+>  	u8				has_bluetooth;
+> -	u8				has_wwan;
+>  	struct sonypi_eventtypes	*event_types;
+>  };
+>  
+> +struct sony_pic_quirk_entry {
+> +	u8				set_wwan_power;
+> +};
+> +
+>  struct sony_pic_dev {
+>  	struct device_ctrl	*control;
+>  	struct acpi_device	*acpi_dev;
+> @@ -1260,6 +1263,7 @@ struct sony_pic_dev {
+>  	struct list_head	interrupts;
+>  	struct list_head	ioports;
+>  	struct mutex		lock;
+> +	struct sony_pic_quirk_entry *quirks;
+>  	u8			camera_power;
+>  	u8			bluetooth_power;
+>  	u8			wwan_power;
+> @@ -2685,6 +2689,12 @@ static int sony_pic_add(struct acpi_device *device)
+>  	if (result)
+>  		goto err_remove_pf;
+>  
+> +	if (spic_dev.quirks && spic_dev.quirks->set_wwan_power) {
+> +		/*
+> +		 * Power isn't enabled by default.
+> +		 */
+> +		sony_pic_set_wwanpower(1);
+> +	}
+>  	return 0;
+>  
+>  err_remove_pf:
+> @@ -2755,6 +2765,16 @@ static struct acpi_driver sony_pic_driver = {
+>  		},
+>  };
+>  
+> +static struct sony_pic_quirk_entry sony_pic_vaio_vgn = {
+> +	.set_wwan_power = 1,
+> +};
+> +
+> +static int dmi_matched(const struct dmi_system_id *dmi)
+> +{
+> +	spic_dev.quirks = dmi->driver_data;
+> +	return 0;
+> +}
+> +
+>  static struct dmi_system_id __initdata sonypi_dmi_table[] = {
+>  	{
+>  		.ident = "Sony Vaio",
+> @@ -2769,6 +2789,8 @@ static struct dmi_system_id __initdata sonypi_dmi_table[] = {
+>  			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+>  			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-"),
+>  		},
+> +		.callback = dmi_matched,
+> +		.driver_data = &sony_pic_vaio_vgn,
+
+This is like just enabling it on all type3 (and some type2) vaios.
+Might as well call your quirk unconditionally for all models.
+
+Honestly I'd rather work towards the rfkill implementation as Matthew
+suggests.
 -- 
 mattia
 :wq!
