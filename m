@@ -1,55 +1,43 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [Regression] sony-laptop breaks resume from S2RAM (was: Re:
-	[linux-pm] Resume after suspend-to-ram broken for Vaio SR19VN in
-	30rc2)
-Date: Thu, 23 Apr 2009 21:50:25 +0900
-Message-ID: <20090423125025.GA6195@kamineko.org>
-References: <31c940650904201152y5f440237rb9c49f1aedfef5a6@mail.gmail.com> <200904212050.25531.rjw@sisk.pl> <31c940650904220555v1c1a6046ifa40b9c81b390731@mail.gmail.com> <200904222202.24271.rjw@sisk.pl> <31c940650904221335v21fbffc2y2e9598b564d65659@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 3/3] acpi-cpufreq: Use X86_FEATURE_APERF_MPERF to check for average freq capability
+Date: Thu, 23 Apr 2009 15:03:04 +0200
+Message-ID: <1240491784-29933-4-git-send-email-trenn@suse.de>
+References: <1240491784-29933-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:34560
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264AbZDWMuX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 08:50:23 -0400
-Content-Disposition: inline
-In-Reply-To: <31c940650904221335v21fbffc2y2e9598b564d65659@mail.gmail.com>
+Received: from cantor.suse.de ([195.135.220.2]:47617 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755588AbZDWNDH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Apr 2009 09:03:07 -0400
+In-Reply-To: <1240491784-29933-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fanderay <fanderay4@googlemail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Almer S. Tigelaar" <almer@gnome.org>
+To: lenb@kernel.org
+Cc: venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org, cpufreq@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Wed, Apr 22, 2009 at 09:35:13PM +0100, fanderay wrote:
-> On Wed, Apr 22, 2009 at 9:02 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
-e:
-> >> Hi Rafael,
-> >>
-> >> I found the problem: it's the Sony laptop driver. =A0With
-> >> CONFIG_SONY_LAPTOP=3Dy, the hard freeze on resume occurs. =A0Witho=
-ut this
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-what happens if you configure it as a module instead?
+diff --git a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+index bf9b6b1..b75ca28 100644
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
++++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -647,12 +647,8 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	acpi_processor_notify_smm(THIS_MODULE);
+ 
+ 	/* Check for APERF/MPERF support in hardware */
+-	if (c->x86_vendor == X86_VENDOR_INTEL && c->cpuid_level >= 6) {
+-		unsigned int ecx;
+-		ecx = cpuid_ecx(6);
+-		if (ecx & CPUID_6_ECX_APERFMPERF_CAPABILITY)
+-			acpi_cpufreq_driver.getavg = get_measured_perf;
+-	}
++	if (cpu_has(c, X86_FEATURE_APERF_MPERF))
++		acpi_cpufreq_driver.getavg = get_measured_perf;
+ 
+ 	dprintk("CPU%u - ACPI performance management activated.\n", cpu);
+ 	for (i = 0; i < perf->state_count; i++)
+-- 
+1.6.0.2
 
-> >> driver in the kernel, resume after s2ram -f -p appears to work
-> >> correctly.
-> >
-> > It seems to be an ACPI problem, then. =A0Added some CCs.
->=20
-> Thanks, I raised bug <http://bugzilla.kernel.org/show_bug.cgi?id=3D13=
-148>.
-
-I'll try to reproduce it.
-
-Almer,
-you have an SR too, do you see the same problem as fanderay?
-
-Thanks
---=20
-mattia
-:wq!
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
