@@ -1,79 +1,32 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [RFC][PATCH] ACPICA: Drop Operand cache
-Date: Thu, 23 Apr 2009 13:47:20 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D830858224A6B01@orsmsx503.amr.corp.intel.com>
-References: <49E8C9A8.5020201@suse.de>
- <4911F71203A09E4D9981D27F9D83085821F006A4@orsmsx503.amr.corp.intel.com>
- <49E8DEBC.8030307@suse.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] x86/hpet: prevent boot hang when hpet=force used on old ICH
+Date: Thu, 23 Apr 2009 19:05:09 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904231901570.15843@localhost.localdomain>
+References: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain>
+ <20090423060936.GA1917@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:13456 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754759AbZDWUrX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 16:47:23 -0400
-In-Reply-To: <49E8DEBC.8030307@suse.de>
-Content-Language: en-US
+Received: from vms173007pub.verizon.net ([206.46.173.7]:42134 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755316AbZDWXFY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 19:05:24 -0400
+In-reply-to: <20090423060936.GA1917@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-I've had a bit of time to start looking at this again.
+Ingo,
+Thanks for the reply.
 
-I'm still a bit confused about what this is trying to accomplish. Is it a performance gain? Is it to reduce memory use or memory fragmentation? I know there has been discussion on and off concerning the use of caches, object sizes, the big union, etc., but please refresh me.
+But please disregard that patch -- we've cooked up a better one
+that allows ICH4M to continue to use hpet=force, even for clocksource.
+(and it is an ACPI patch rather than an x86 patch:-)
 
-As far as the operand objects, once the tables are loaded and the namespace is initialized, these are all dynamic with a lifetime of at most the duration of an executing control method -- so I'm not clear as to what is to be gained by splitting a single-sized object into a bunch of differently-sized objects. One would *think* that it would be more efficient to just allocate the single-sized objects from a single fast cache.
+However, I'll also send a 2nd patch to stop soliciting more hpet=force
+users, since technically we shouldn't be encouraging the use of
+this un-documented and lightly-validated hardware.
 
-
-
->-----Original Message-----
->From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
->Sent: Friday, April 17, 2009 12:56 PM
->To: Moore, Robert
->Cc: Len Brown; ACPI Devel Maling List
->Subject: Re: [RFC][PATCH] ACPICA: Drop Operand cache
->
->Moore, Robert wrote:
->> Please explain further what this accomplishes. This removes the use of
->any cache for the acpi operand object? What about performance? That was the
->major reason the cache was added in the first place.
->Our cache implementation fights with memory debugger in Microsoft Visual C
->standard library. If you care about performance, the best way is to disable
->this memory debugger, as we don't use it anyway. You could accomplish it in
->two ways, one is to disable all DEBUG, the other is to only disable memory
->debugger.
->
->With this patch, every object type is allowed to have it's own size, thus
->allowing separate optimization. For example, "extra" object, tied to region
->and field objects could be folded in to save both space and code, this
->optimization was implemented by Kuzmich some time ago, but was lost during
->layoffs.
->
->Regards,
->Alex.
->
->>
->>
->>> -----Original Message-----
->>> From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
->>> Sent: Friday, April 17, 2009 11:26 AM
->>> To: Moore, Robert; Len Brown
->>> Cc: ACPI Devel Maling List
->>> Subject: [RFC][PATCH] ACPICA: Drop Operand cache
->>>
->>> Hi,
->>>
->>> I've played with AcpiOperandObject union and corresponding cache.
->Removing
->>> the union does not seem to be viable -- patch easily overcomes .5 meg
->>> barrier, without any visible change. Dropping only the cache and making
->all
->>> individual objects allocated from heap requires smaller number  of
->changes
->>> and chould make SLAB/SLUB developers happy.
->>>
->>> Regards,
->>> Alex.
-
+thanks,
+Len Brown, Intel Open Source Technology Center
