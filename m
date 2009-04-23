@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 04/29] ACPI: button: cache hid/name/class pointers
-Date: Thu, 23 Apr 2009 02:23:26 -0400
-Message-ID: <bf04a77227db76f163bc2355ef4e176794987be2.1240467664.git.len.brown@intel.com>
+Subject: [PATCH 02/29] ACPI: button: remove unnecessary null pointer checks
+Date: Thu, 23 Apr 2009 02:23:24 -0400
+Message-ID: <e2fb9754d27513918a4936e8cbaad50ff56cfd3d.1240467664.git.len.brown@intel.com>
 References: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:45053 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753637AbZDWGX6 (ORCPT
+	with ESMTP id S1753521AbZDWGX6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 02:23:58 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KIJ005PPJ3WR5R2@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:23:57 -0500 (CDT)
+ with ESMTPA id <0KIJ00DB9J3VSDA4@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:23:56 -0500 (CDT)
 In-reply-to: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 In-reply-to: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
 References: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
@@ -23,113 +23,90 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This patch adds temporaries to cache the acpi_device_hid(),
-acpi_device_name(), and acpi_device_class() pointers so we
-don't have to clutter the code with so many uses of those
-interfaces.
+Better to oops and learn about a bug than to silently cover it up.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/button.c |   48 ++++++++++++++++++++++++------------------------
- 1 files changed, 24 insertions(+), 24 deletions(-)
+ drivers/acpi/button.c |   22 +---------------------
+ 1 files changed, 1 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 8ef8f44..9f6d2e6 100644
+index 52eb06e..c463236 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -300,6 +300,7 @@ static int acpi_button_add(struct acpi_device *device)
+@@ -128,9 +128,6 @@ static int acpi_button_info_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	struct acpi_button *button = seq->private;
+ 
+-	if (!button || !button->device)
+-		return 0;
+-
+ 	seq_printf(seq, "type:                    %s\n",
+ 		   acpi_device_name(button->device));
+ 	return 0;
+@@ -147,9 +144,6 @@ static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
+ 	acpi_status status;
+ 	unsigned long long state;
+ 
+-	if (!button || !button->device)
+-		return 0;
+-
+ 	status = acpi_evaluate_integer(button->device->handle, "_LID", NULL, &state);
+ 	seq_printf(seq, "state:      %s\n",
+ 		   ACPI_FAILURE(status) ? "unsupported" :
+@@ -171,9 +165,6 @@ static int acpi_button_add_fs(struct acpi_device *device)
+ 	struct proc_dir_entry *entry = NULL;
+ 	struct acpi_button *button;
+ 
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+ 	button = acpi_driver_data(device);
+ 
+ 	switch (button->type) {
+@@ -270,9 +261,6 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 	struct input_dev *input;
+ 
+-	if (!button || !button->device)
+-		return;
+-
+ 	switch (event) {
+ 	case ACPI_FIXED_HARDWARE_EVENT:
+ 		event = ACPI_BUTTON_NOTIFY_STATUS;
+@@ -305,10 +293,8 @@ static int acpi_button_resume(struct acpi_device *device)
  {
  	struct acpi_button *button;
- 	struct input_dev *input;
-+	char *hid, *name, *class;
- 	int error;
  
- 	button = kzalloc(sizeof(struct acpi_button), GFP_KERNEL);
-@@ -315,40 +316,41 @@ static int acpi_button_add(struct acpi_device *device)
- 		goto err_free_button;
- 	}
- 
-+	hid = acpi_device_hid(device);
-+	name = acpi_device_name(device);
-+	class = acpi_device_class(device);
-+
- 	/*
- 	 * Determine the button type (via hid), as fixed-feature buttons
- 	 * need to be handled a bit differently than generic-space.
- 	 */
--	if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_POWER)) {
-+	if (!strcmp(hid, ACPI_BUTTON_HID_POWER)) {
- 		button->type = ACPI_BUTTON_TYPE_POWER;
--		strcpy(acpi_device_name(device), ACPI_BUTTON_DEVICE_NAME_POWER);
--		sprintf(acpi_device_class(device), "%s/%s",
-+		strcpy(name, ACPI_BUTTON_DEVICE_NAME_POWER);
-+		sprintf(class, "%s/%s",
- 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_POWER);
--	} else if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_POWERF)) {
-+	} else if (!strcmp(hid, ACPI_BUTTON_HID_POWERF)) {
- 		button->type = ACPI_BUTTON_TYPE_POWERF;
--		strcpy(acpi_device_name(device),
--		       ACPI_BUTTON_DEVICE_NAME_POWERF);
--		sprintf(acpi_device_class(device), "%s/%s",
-+		strcpy(name, ACPI_BUTTON_DEVICE_NAME_POWERF);
-+		sprintf(class, "%s/%s",
- 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_POWER);
--	} else if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_SLEEP)) {
-+	} else if (!strcmp(hid, ACPI_BUTTON_HID_SLEEP)) {
- 		button->type = ACPI_BUTTON_TYPE_SLEEP;
--		strcpy(acpi_device_name(device), ACPI_BUTTON_DEVICE_NAME_SLEEP);
--		sprintf(acpi_device_class(device), "%s/%s",
-+		strcpy(name, ACPI_BUTTON_DEVICE_NAME_SLEEP);
-+		sprintf(class, "%s/%s",
- 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_SLEEP);
--	} else if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_SLEEPF)) {
-+	} else if (!strcmp(hid, ACPI_BUTTON_HID_SLEEPF)) {
- 		button->type = ACPI_BUTTON_TYPE_SLEEPF;
--		strcpy(acpi_device_name(device),
--		       ACPI_BUTTON_DEVICE_NAME_SLEEPF);
--		sprintf(acpi_device_class(device), "%s/%s",
-+		strcpy(name, ACPI_BUTTON_DEVICE_NAME_SLEEPF);
-+		sprintf(class, "%s/%s",
- 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_SLEEP);
--	} else if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_LID)) {
-+	} else if (!strcmp(hid, ACPI_BUTTON_HID_LID)) {
- 		button->type = ACPI_BUTTON_TYPE_LID;
--		strcpy(acpi_device_name(device), ACPI_BUTTON_DEVICE_NAME_LID);
--		sprintf(acpi_device_class(device), "%s/%s",
-+		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
-+		sprintf(class, "%s/%s",
- 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
- 	} else {
--		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n",
--			    acpi_device_hid(device));
-+		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
- 		error = -ENODEV;
- 		goto err_free_input;
- 	}
-@@ -357,10 +359,9 @@ static int acpi_button_add(struct acpi_device *device)
- 	if (error)
- 		goto err_free_input;
- 
--	snprintf(button->phys, sizeof(button->phys),
--		 "%s/button/input0", acpi_device_hid(device));
-+	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", hid);
- 
--	input->name = acpi_device_name(device);
-+	input->name = name;
- 	input->phys = button->phys;
- 	input->id.bustype = BUS_HOST;
- 	input->id.product = button->type;
-@@ -401,8 +402,7 @@ static int acpi_button_add(struct acpi_device *device)
- 		device->wakeup.state.enabled = 1;
- 	}
- 
--	printk(KERN_INFO PREFIX "%s [%s]\n",
--	       acpi_device_name(device), acpi_device_bid(device));
-+	printk(KERN_INFO PREFIX "%s [%s]\n", name, acpi_device_bid(device));
+-	if (!device)
+-		return -EINVAL;
+ 	button = acpi_driver_data(device);
+-	if (button && button->type == ACPI_BUTTON_TYPE_LID)
++	if (button->type == ACPI_BUTTON_TYPE_LID)
+ 		return acpi_lid_send_state(button);
  	return 0;
+ }
+@@ -319,9 +305,6 @@ static int acpi_button_add(struct acpi_device *device)
+ 	struct acpi_button *button;
+ 	struct input_dev *input;
  
-  err_remove_fs:
+-	if (!device)
+-		return -EINVAL;
+-
+ 	button = kzalloc(sizeof(struct acpi_button), GFP_KERNEL);
+ 	if (!button)
+ 		return -ENOMEM;
+@@ -438,9 +421,6 @@ static int acpi_button_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_button *button;
+ 
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+ 	button = acpi_driver_data(device);
+ 
+ 	acpi_button_remove_fs(device);
 -- 
 1.6.0.6
 
