@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 28/29] ACPI: idle: mark_tsc_unstable() at init-time,
- not run-time
-Date: Thu, 23 Apr 2009 02:23:50 -0400
-Message-ID: <a71e4917dc0ebbcb5a0ecb7ca3486643c1c9a6e2.1240467665.git.len.brown@intel.com>
+Subject: [PATCH 09/29] ACPI: Disable _GTS and _BFS support by default
+Date: Thu, 23 Apr 2009 02:23:31 -0400
+Message-ID: <96f15efcea94545987715f453a8c2b8ea592d000.1240467664.git.len.brown@intel.com>
 References: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:58836 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754047AbZDWGYK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 02:24:10 -0400
+Received: from vms173017pub.verizon.net ([206.46.173.17]:54737 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754144AbZDWGYN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 02:24:13 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173007.mailsrvcs.net
+ by vms173017.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KIJ003FGJ49EQ73@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:24:10 -0500 (CDT)
+ with ESMTPA id <0KIJ00EF4J3XK60J@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:24:03 -0500 (CDT)
 In-reply-to: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 In-reply-to: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
 References: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
@@ -24,67 +23,137 @@ Cc: Len Brown <len.brown@intel.com>
 
 From: Len Brown <len.brown@intel.com>
 
-The c2 and c3 idle handlers check tsc_halts_in_c()
-after every time they return from idle.  Um, when?:-)
+Executing BIOS code paths not exercised by Windows
+tends to get Linux into trouble.
 
-Move this check to init-time to remove the unnecessary
-run-time overhead, and also to have the check complete before
-the first entry into the idle handler.
+However, if a system does benefit from _GTS or _BFS,
+acpi.gts=1 an acpi.bfs=1 are now available to enable them.
 
-ff69f2bba67bd45514923aaedbf40fe351787c59
-(acpi: fix of pmtimer overflow that make Cx states time incorrect)
-replaced the hard-coded use of the PM-timer inside idle,
-with ktime_get_readl(), which possibly uses the TSC --
-so it is now especially prudent to detect a broken TSC
-before entering idle.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=13087
+http://bugzilla.kernel.org/show_bug.cgi?id=13041
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+ drivers/acpi/acpica/hwsleep.c |   43 ++++++++++++++++++++++++----------------
+ drivers/acpi/sleep.c          |   27 +++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 6fe1214..9d1f01e 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -581,6 +581,11 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index baa5fc0..db307a3 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -211,6 +211,12 @@ acpi_status acpi_enter_sleep_state_prep(u8 sleep_state)
  
-+#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
-+		/* TSC could halt in idle, so notify users */
-+		if (tsc_halts_in_c(cx->type))
-+			mark_tsc_unstable("TSC halts in idle");;
-+#endif
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
-@@ -871,11 +876,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	kt2 = ktime_get_real();
- 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
  
--#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
--	/* TSC could halt in idle, so notify users */
--	if (tsc_halts_in_c(cx->type))
--		mark_tsc_unstable("TSC halts in idle");;
--#endif
- 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 
- 	/* Tell the scheduler how much we idled: */
-@@ -989,11 +989,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 		spin_unlock(&c3_lock);
++static unsigned int gts, bfs;
++module_param(gts, uint, 0644);
++module_param(bfs, uint, 0644);
++MODULE_PARM_DESC(gts, "Enable evaluation of _GTS on suspend.");
++MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_enter_sleep_state
+@@ -278,16 +284,18 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
+ 		return_ACPI_STATUS(status);
  	}
  
--#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
--	/* TSC could halt in idle, so notify users */
--	if (tsc_halts_in_c(ACPI_STATE_C3))
--		mark_tsc_unstable("TSC halts in idle");
--#endif
- 	sleep_ticks = us_to_pm_timer_ticks(idle_time);
- 	/* Tell the scheduler how much we idled: */
- 	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+-	/* Execute the _GTS method */
++	if (gts) {
++		/* Execute the _GTS method */
+ 
+-	arg_list.count = 1;
+-	arg_list.pointer = &arg;
+-	arg.type = ACPI_TYPE_INTEGER;
+-	arg.integer.value = sleep_state;
++		arg_list.count = 1;
++		arg_list.pointer = &arg;
++		arg.type = ACPI_TYPE_INTEGER;
++		arg.integer.value = sleep_state;
+ 
+-	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		return_ACPI_STATUS(status);
++		status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
++		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++			return_ACPI_STATUS(status);
++		}
+ 	}
+ 
+ 	/* Get current value of PM1A control */
+@@ -513,18 +521,19 @@ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
+ 		}
+ 	}
+ 
+-	/* Execute the _BFS method */
++	if (bfs) {
++		/* Execute the _BFS method */
+ 
+-	arg_list.count = 1;
+-	arg_list.pointer = &arg;
+-	arg.type = ACPI_TYPE_INTEGER;
+-	arg.integer.value = sleep_state;
++		arg_list.count = 1;
++		arg_list.pointer = &arg;
++		arg.type = ACPI_TYPE_INTEGER;
++		arg.integer.value = sleep_state;
+ 
+-	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
+-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+-		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
++		status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
++		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++			ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
++		}
+ 	}
+-
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 779e4e5..9042875 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -713,6 +713,32 @@ static void acpi_power_off(void)
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
+ }
+ 
++/*
++ * ACPI 2.0 created the optional _GTS and _BFS,
++ * but industry adoption has been neither rapid nor broad.
++ *
++ * Linux gets into trouble when it executes poorly validated
++ * paths through the BIOS, so disable _GTS and _BFS by default,
++ * but do speak up and offer the option to enable them.
++ */
++void __init acpi_gts_bfs_check(void)
++{
++	acpi_handle dummy;
++
++	if (ACPI_SUCCESS(acpi_get_handle(ACPI_ROOT_OBJECT, METHOD_NAME__GTS, &dummy)))
++	{
++		printk(KERN_NOTICE PREFIX "BIOS offers _GTS\n");
++		printk(KERN_NOTICE PREFIX "If \"acpi.gts=1\" improves suspend, "
++			"please notify linux-acpi@vger.kernel.org\n");
++	}
++	if (ACPI_SUCCESS(acpi_get_handle(ACPI_ROOT_OBJECT, METHOD_NAME__BFS, &dummy)))
++	{
++		printk(KERN_NOTICE PREFIX "BIOS offers _BFS\n");
++		printk(KERN_NOTICE PREFIX "If \"acpi.bfs=1\" improves resume, "
++			"please notify linux-acpi@vger.kernel.org\n");
++	}
++}
++
+ int __init acpi_sleep_init(void)
+ {
+ 	acpi_status status;
+@@ -771,5 +797,6 @@ int __init acpi_sleep_init(void)
+ 	 * object can also be evaluated when the system enters S5.
+ 	 */
+ 	register_reboot_notifier(&tts_notifier);
++	acpi_gts_bfs_check();
+ 	return 0;
+ }
 -- 
 1.6.0.6
 
