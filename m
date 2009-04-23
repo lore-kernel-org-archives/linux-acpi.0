@@ -1,128 +1,49 @@
-From: Tim Gardner <timg@tpi.com>
-Subject: Re: [PATCH] Sony laptop: Some Sony Vaia laptops do not enable wwan
- power by default.
-Date: Thu, 23 Apr 2009 10:41:25 -0600
-Message-ID: <49F09A35.6070304@tpi.com>
-References: <20090422185351.AB41AF88CE@sepang.rtg.net> <20090423090454.GB24761@kamineko.org>
-Reply-To: timg@tpi.com
+From: Norbert Preining <preining@logic.at>
+Subject: Re: 2.6.30-rc3 video/i915 build error
+Date: Thu, 23 Apr 2009 18:46:42 +0200
+Message-ID: <20090423164642.GF495@gamma.logic.tuwien.ac.at>
+References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757234AbZDWQlm@vger.kernel.org>
-In-Reply-To: <20090423090454.GB24761@kamineko.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:49880 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511AbZDWQzx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 12:55:53 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, rui.zhang@intel.com, Keith Packard <keithp@keithp.com>, linux-acpi@vger.kernel.org
 
-Mattia Dongili wrote:
-> On Wed, Apr 22, 2009 at 12:53:51PM -0600, Tim Gardner wrote:
->> Mattia,
->>
->> Does this patch makes sense for just the Vaio? I've had positive feedback from
->> the tester in the bug report.
->>
->> rtg
->> -----------------
->> From 083972abb1d5e84845927b3925f077953c207b82 Mon Sep 17 00:00:00 2001
->> From: Tim Gardner <tim.gardner@canonical.com>
->> Date: Tue, 21 Apr 2009 11:09:10 -0600
->> Subject: [PATCH] Sony laptop: Some Sony Vaio laptops do not enable wwan power by default.
->>
->> Bug: https://bugs.launchpad.net/bugs/364678
->>
->> Added quirk to enable wwan power based on DMI information already present in the module.
->> It appears that wwan is not powered up from a cold boot.
+On Do, 23 Apr 2009, Len Brown wrote:
+> I thought we had addressed this, no?
+
+The last I have seen are the two patches by  Zhao Yakui in the emails
+subject: 
+	ACPI: Weaken the dependency between ACPI video driver and I915
+and
+	ACPI: Check whether the acpi video is deferrable only when KMS is enabled
+
+> CONFIG_DRM_I915=y
+> CONFIG_ACPI_VIDEO=m
 > 
-> The bug reporter says that this happens when booting from windows to
-> linux, is it still true when manually enabling the device in linux and
-> then rebooting (into linux again)?
-> 
+> drivers/built-in.o: In function `intel_opregion_init':
+> (.text+0x9d540): undefined reference to `acpi_video_register'
 
-I can probably find out, though I'm not sure what impact it would have
-on the driver. Does this laptop have a physical rfkill slider switch
-from which you can somehow query initial state via ACPI or GPIO? If not,
-then I assume the desired behavior is to just enable wwan and bluetooth
-upon every boot ?
+For me these two patches fix the problem.
 
->> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
->> ---
->>  drivers/misc/sony-laptop.c |   24 +++++++++++++++++++++++-
->>  1 files changed, 23 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/misc/sony-laptop.c b/drivers/misc/sony-laptop.c
->> index 7e73acc..eab7011 100644
->> --- a/drivers/misc/sony-laptop.c
->> +++ b/drivers/misc/sony-laptop.c
->> @@ -1248,10 +1248,13 @@ struct device_ctrl {
->>  	u16				evport_offset;
->>  	u8				has_camera;
->>  	u8				has_bluetooth;
->> -	u8				has_wwan;
->>  	struct sonypi_eventtypes	*event_types;
->>  };
->>  
->> +struct sony_pic_quirk_entry {
->> +	u8				set_wwan_power;
->> +};
->> +
->>  struct sony_pic_dev {
->>  	struct device_ctrl	*control;
->>  	struct acpi_device	*acpi_dev;
->> @@ -1260,6 +1263,7 @@ struct sony_pic_dev {
->>  	struct list_head	interrupts;
->>  	struct list_head	ioports;
->>  	struct mutex		lock;
->> +	struct sony_pic_quirk_entry *quirks;
->>  	u8			camera_power;
->>  	u8			bluetooth_power;
->>  	u8			wwan_power;
->> @@ -2685,6 +2689,12 @@ static int sony_pic_add(struct acpi_device *device)
->>  	if (result)
->>  		goto err_remove_pf;
->>  
->> +	if (spic_dev.quirks && spic_dev.quirks->set_wwan_power) {
->> +		/*
->> +		 * Power isn't enabled by default.
->> +		 */
->> +		sony_pic_set_wwanpower(1);
->> +	}
->>  	return 0;
->>  
->>  err_remove_pf:
->> @@ -2755,6 +2765,16 @@ static struct acpi_driver sony_pic_driver = {
->>  		},
->>  };
->>  
->> +static struct sony_pic_quirk_entry sony_pic_vaio_vgn = {
->> +	.set_wwan_power = 1,
->> +};
->> +
->> +static int dmi_matched(const struct dmi_system_id *dmi)
->> +{
->> +	spic_dev.quirks = dmi->driver_data;
->> +	return 0;
->> +}
->> +
->>  static struct dmi_system_id __initdata sonypi_dmi_table[] = {
->>  	{
->>  		.ident = "Sony Vaio",
->> @@ -2769,6 +2789,8 @@ static struct dmi_system_id __initdata sonypi_dmi_table[] = {
->>  			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
->>  			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-"),
->>  		},
->> +		.callback = dmi_matched,
->> +		.driver_data = &sony_pic_vaio_vgn,
-> 
-> This is like just enabling it on all type3 (and some type2) vaios.
-> Might as well call your quirk unconditionally for all models.
-> 
-> Honestly I'd rather work towards the rfkill implementation as Matthew
-> suggests.
+Best wishes
 
-Agreed.
+Norbert
 
-rtg
--- 
-Tim Gardner timg@tpi.com www.tpi.com
-OR 503-601-0234 x102 MT 406-443-5357
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+FRATING GREEN (adj.)
+The shade of green which is supposed to make you feel comfortable in
+hospitals, industrious in schools and uneasy in police stations.
+			--- Douglas Adams, The Meaning of Liff
