@@ -1,50 +1,41 @@
-From: Chris Wright <chrisw@sous-sol.org>
-Subject: [patch 014/100] dock: fix dereference after kfree()
-Date: Thu, 23 Apr 2009 00:20:34 -0700
-Message-ID: <20090423072223.406830766@sous-sol.org>
-References: <20090423072020.428683652@sous-sol.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH] Sony laptop: Some Sony Vaia laptops do not enable wwan
+	power by default.
+Date: Thu, 23 Apr 2009 17:50:21 +0900
+Message-ID: <20090423085021.GA24761@kamineko.org>
+References: <20090422185351.AB41AF88CE@sepang.rtg.net> <20090422195034.GA32375@srcf.ucam.org> <49EF78F2.7040203@tpi.com> <20090422201115.GA783@srcf.ucam.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sous-sol.org ([216.99.217.87]:48343 "EHLO x200.localdomain"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755646AbZDWH20 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Apr 2009 03:28:26 -0400
-Content-Disposition: inline; filename=dock-fix-dereference-after-kfree.patch
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:43019
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751607AbZDWIuX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 04:50:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20090422201115.GA783@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Dan Carpenter <error27@gmail.com>, Len Brown <len.brown@intel.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Tim Gardner <timg@tpi.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
----------------------
+On Wed, Apr 22, 2009 at 09:11:15PM +0100, Matthew Garrett wrote:
+> On Wed, Apr 22, 2009 at 02:07:14PM -0600, Tim Gardner wrote:
+> 
+> > The laptop model that doesn't power up wwan on cold boot contains a
+> > "Sony Programmable IO Control Driver" ("VGN-" according to the DMI
+> > info). It appears that only laptops with a "Sony Notebook Control
+> > Driver" enjoy rfkill goodness. I don't know for sure if those models
+> > fail to power up wwan when rfkill is disabled.
+> 
+> Right. It'd need porting to the rfkill infrastructure, rather than just 
+> being a sysfs attribute.
 
-From: Dan Carpenter <error27@gmail.com>
-
-upstream commit: f240729832dff3785104d950dad2d3ced4387f6d
-
-dock_remove() calls kfree() on dock_station so we should use
-list_for_each_entry_safe() to avoid dereferencing freed memory.
-
-Found by smatch (http://repo.or.cz/w/smatch.git/).  Compile tested.
-
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
----
- drivers/acpi/dock.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -1146,9 +1146,10 @@ static int __init dock_init(void)
- static void __exit dock_exit(void)
- {
- 	struct dock_station *dock_station;
-+	struct dock_station *tmp;
- 
- 	unregister_acpi_bus_notifier(&dock_acpi_notifier);
--	list_for_each_entry(dock_station, &dock_stations, sibiling)
-+	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibiling)
- 		dock_remove(dock_station);
- }
- 
-
+Agreed, the only thing I'm missing is how to read the initial device
+state (same for bluetooth and wifi).
+I've been throwing some values at the SPIC device with much success for
+now. Tracing in windows is a big no-no as it dies on me as soon as I
+start any tracing utility.
+I'm open for suggestions.
+-- 
+mattia
+:wq!
