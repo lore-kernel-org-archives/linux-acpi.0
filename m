@@ -1,87 +1,100 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86/hpet: prevent boot hang when hpet=force used on
-	old ICH
-Date: Thu, 23 Apr 2009 08:09:36 +0200
-Message-ID: <20090423060936.GA1917@elte.hu>
-References: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 01/29] ACPI: button: whitespace changes
+Date: Thu, 23 Apr 2009 02:23:23 -0400
+Message-ID: <50a4da890102a455e5cd3dd358c38650d07178d3.1240467664.git.len.brown@intel.com>
+References: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:49358 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754117AbZDWGJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Apr 2009 02:09:57 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:41714 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753269AbZDWGX5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 02:23:57 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KIJ00GR3J3UDS0Z@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 01:23:57 -0500 (CDT)
+In-reply-to: <1240467831-32613-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: linux-acpi@vger.kernel.org
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-* Len Brown <lenb@kernel.org> wrote:
+This patch changes a bit of whitespace to follow Linux conventions.
 
-> From: Len Brown <len.brown@intel.com>
-> 
-> Linux tells ICH4 users that they can (manually) invoke
-> "hpet=force" to enable the undocumented HPET.
-> The HPET becomes available for both clocksource and clockevents.
-> 
-> But as of ff69f2bba67bd45514923aaedbf40fe351787c59
-> (acpi: fix of pmtimer overflow that make Cx states time incorrect)
-> the hpet may be used for idle accounting, and
-> hpet=force on an ICH4 box hangs boot.
-> 
-> It turns out that reading the HPET timer immediately
-> after return from C3 hangs.
-> 
-> Well, the reason we enable the HPET on these systems
-> is primarily for clockevents -- the HPET has a longer
-> maximum timer duration than the PIT.  HPET as a clocksource
-> is less interesting.
-> 
-> So for "hpet=force" on old ICH, allow HPET clockevents,
-> but do not allow HPET as a clocksource.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13087
-> 
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
-> Ingo/Peter/Thomas,
-> This regression was filed against ACPI, but the fix is under x86.
-> I'd wait for Venki's ack on anything related to HPET,
-> and I can send via your tree or yours, just let me know.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/button.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-Looks good, thanks!
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index d73c94b..52eb06e 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -1,5 +1,5 @@
+ /*
+- *  acpi_button.c - ACPI Button Driver ($Revision: 30 $)
++ *  button.c - ACPI Button Driver
+  *
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+@@ -133,7 +133,6 @@ static int acpi_button_info_seq_show(struct seq_file *seq, void *offset)
+ 
+ 	seq_printf(seq, "type:                    %s\n",
+ 		   acpi_device_name(button->device));
+-
+ 	return 0;
+ }
+ 
+@@ -259,6 +258,7 @@ static int acpi_lid_send_state(struct acpi_button *button)
+ 					&state);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
++
+ 	/* input layer checks if event is redundant */
+ 	input_report_switch(button->input, SW_LID, !state);
+ 	input_sync(button->input);
+@@ -299,13 +299,12 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 				  "Unsupported event [0x%x]\n", event));
+ 		break;
+ 	}
+-
+-	return;
+ }
+ 
+ static int acpi_button_resume(struct acpi_device *device)
+ {
+ 	struct acpi_button *button;
++
+ 	if (!device)
+ 		return -EINVAL;
+ 	button = acpi_driver_data(device);
+@@ -424,7 +423,6 @@ static int acpi_button_add(struct acpi_device *device)
+ 
+ 	printk(KERN_INFO PREFIX "%s [%s]\n",
+ 	       acpi_device_name(device), acpi_device_bid(device));
+-
+ 	return 0;
+ 
+  err_remove_fs:
+@@ -448,7 +446,6 @@ static int acpi_button_remove(struct acpi_device *device, int type)
+ 	acpi_button_remove_fs(device);
+ 	input_unregister_device(button->input);
+ 	kfree(button);
+-
+ 	return 0;
+ }
+ 
+@@ -459,6 +456,7 @@ static int __init acpi_button_init(void)
+ 	acpi_button_dir = proc_mkdir(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 	if (!acpi_button_dir)
+ 		return -ENODEV;
++
+ 	result = acpi_bus_register_driver(&acpi_button_driver);
+ 	if (result < 0) {
+ 		remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+-- 
+1.6.0.6
 
-There's two minor details which you or Venki might want to fix when 
-this is resubmitted with Venki's ack:
-
-> +	if (hpet_is_forced_old_ich()) {
-> +		printk(KERN_WARNING "hpet: hpet=force on old ICH enables clockevents,"
-> +				" but not clocksource.\n");
-> +		return -ENODEV;
-
-that should be in a single line, to make git grep work when someone 
-greps for a line out of a syslog:
-
-	git grep "hpet: hpet=force on old ICH enables clockevents, but not clocksource."
-
-( The string can be shortened to fit nicely in a line, and/or 
-  defined separately or checkpatch can be ignored. )
-
-> +++ b/arch/x86/kernel/quirks.c
-> @@ -253,6 +253,10 @@ static void old_ich_force_enable_hpet(struct pci_dev *dev)
->  	dev_printk(KERN_DEBUG, &dev->dev, "Failed to force enable HPET\n");
->  }
->  
-> +int hpet_is_forced_old_ich() {
-> +	return (force_hpet_resume_type == OLD_ICH_FORCE_HPET_RESUME);
-> +}
-
-the function needs a proper prototype and the curly brace should 
-start on the next line i guess.
-
-Thanks,
-
-	Ingo
