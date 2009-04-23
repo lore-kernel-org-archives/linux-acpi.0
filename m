@@ -1,49 +1,43 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: 2.6.30-rc3 video/i915 build error
-Date: Thu, 23 Apr 2009 18:46:42 +0200
-Message-ID: <20090423164642.GF495@gamma.logic.tuwien.ac.at>
-References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
+From: Dave Hansen <dave@sr71.net>
+Subject: Re: 2.6.30-rc2 soft lockups: ACPI?  clock source problem?
+Date: Thu, 23 Apr 2009 11:31:48 -0700
+Message-ID: <1240511508.10627.159.camel@nimitz>
+References: <1240335038.11194.11.camel@nimitz>
+	 <20090422204557.10c3cc37.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:49880 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511AbZDWQzx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 12:55:53 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
+Received: from www.sr71.net ([198.145.64.142]:34418 "EHLO blackbird.sr71.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751056AbZDWSbu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Apr 2009 14:31:50 -0400
+In-Reply-To: <20090422204557.10c3cc37.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, rui.zhang@intel.com, Keith Packard <keithp@keithp.com>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, lenb@kernel.org, john stultz <johnstul@us.ibm.com>
 
-On Do, 23 Apr 2009, Len Brown wrote:
-> I thought we had addressed this, no?
+On Wed, 2009-04-22 at 20:45 -0700, Andrew Morton wrote:
+> (Is jstultz@us.ibm.com correct?)
 
-The last I have seen are the two patches by  Zhao Yakui in the emails
-subject: 
-	ACPI: Weaken the dependency between ACPI video driver and I915
-and
-	ACPI: Check whether the acpi video is deferrable only when KMS is enabled
+Only I want it to go to the black hole which is Lotus Notes. :)
 
-> CONFIG_DRM_I915=y
-> CONFIG_ACPI_VIDEO=m
+> On Tue, 21 Apr 2009 10:30:38 -0700 Dave Hansen <dave@sr71.net> wrote:
+> > This was during my first boot of 2.6.30-rc2.
 > 
-> drivers/built-in.o: In function `intel_opregion_init':
-> (.text+0x9d540): undefined reference to `acpi_video_register'
+> Did it ever happen again?
 
-For me these two patches fix the problem.
+I've seen it on three different boots, but the stack traces were a bit
+different each time.  So, I assume it is a true timekeeping thing
+instead of something *actually* locking up.
 
-Best wishes
+> I assume this is a post-2.6.29 regression?  (Yet another.  We've been
+> extra bad this time)
 
-Norbert
+This laptop has been quite good to me and I haven't rebooted since the
+late 2.6.28 days.  It isn't anything special, though.  Just a Lenovo
+T61.  I wonder if my .config is a bit different.
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-FRATING GREEN (adj.)
-The shade of green which is supposed to make you feel comfortable in
-hospitals, industrious in schools and uneasy in police stations.
-			--- Douglas Adams, The Meaning of Liff
+-- Dave
+
