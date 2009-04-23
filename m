@@ -1,64 +1,101 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI Exception
-Date: Thu, 23 Apr 2009 08:56:17 +0800
-Message-ID: <1240448177.7661.515.camel@rzhang-dt>
-References: <fab5b76e0904220858x71bf226dn19071ddc5692e7ec@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] x86/hpet: prevent boot hang when hpet=force used on old ICH
+Date: Wed, 22 Apr 2009 22:27:40 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:64157 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752420AbZDWAzx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Apr 2009 20:55:53 -0400
-In-Reply-To: <fab5b76e0904220858x71bf226dn19071ddc5692e7ec@mail.gmail.com>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:59082 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbZDWC1s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2009 22:27:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcin Gozdalik <gozdal@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: x86@kernel.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-does the ACPI Exception happen during or after the boot time?
-please attach the acpidump and full dmesg output.
+From: Len Brown <len.brown@intel.com>
 
-please attach the output of "grep . /sys/class/thermal/*/*"
+Linux tells ICH4 users that they can (manually) invoke
+"hpet=force" to enable the undocumented HPET.
+The HPET becomes available for both clocksource and clockevents.
+
+But as of ff69f2bba67bd45514923aaedbf40fe351787c59
+(acpi: fix of pmtimer overflow that make Cx states time incorrect)
+the hpet may be used for idle accounting, and
+hpet=force on an ICH4 box hangs boot.
+
+It turns out that reading the HPET timer immediately
+after return from C3 hangs.
+
+Well, the reason we enable the HPET on these systems
+is primarily for clockevents -- the HPET has a longer
+maximum timer duration than the PIT.  HPET as a clocksource
+is less interesting.
+
+So for "hpet=force" on old ICH, allow HPET clockevents,
+but do not allow HPET as a clocksource.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=13087
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+Ingo/Peter/Thomas,
+This regression was filed against ACPI, but the fix is under x86.
+I'd wait for Venki's ack on anything related to HPET,
+and I can send via your tree or yours, just let me know.
 
 thanks,
-rui
+-Len
 
-On Wed, 2009-04-22 at 23:58 +0800, Marcin Gozdalik wrote:
-> Hi
-> 
-> I am seeing the following in logs:
-> 
-> Apr 22 16:00:07 myth kernel: [   39.354031] ACPI Exception
-> (thermal-0479): AE_ERROR, ACPI thermal trip point state changed
-> Apr 22 16:00:07 myth kernel: [   39.354040] Please send acpidump to
-> linux-acpi@vger.kernel.org
-> Apr 22 16:00:07 myth kernel: [   39.354045]  [20080926]
-> 
-> I am using Ubuntu 9.04:
-> 
-> root@myth:/home/gozdal# uname -a
-> Linux myth 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17 01:58:03 UTC
-> 2009 x86_64 GNU/Linux
-> 
-> Motherboard is Abit AN-M2HD(MCP68) flashed with the latest BIOS.
-> 
-> The machine powers down sometimes because of an ACPI trip point:
-> 
-> Apr 22 17:27:19 myth kernel: [ 5272.004934] ACPI: Critical trip point
-> Apr 22 17:27:19 myth kernel: [ 5272.004952] Critical temperature
-> reached (121 C), shutting down.
-> Apr 22 17:27:19 myth kernel: [ 5272.004973] ACPI: Unable to turn
-> cooling device [ffff88006f841800] 'on'
-> Apr 22 17:27:26 myth kernel: [ 5278.204238] Critical temperature
-> reached (34 C), shutting down.
-> 
-> although I believe this is an error in measurement, as the temperature
-> probably wouldn't cool in 7 seconds from 121 to 34 Celsius.
-> 
-> Best regards
-> 
-> --
-> Marcin Gozdalik <gozdal@gmail.com>
+ arch/x86/include/asm/hpet.h |    1 +
+ arch/x86/kernel/hpet.c      |    5 +++++
+ arch/x86/kernel/quirks.c    |    4 ++++
+ 3 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/arch/x86/include/asm/hpet.h b/arch/x86/include/asm/hpet.h
+index 1c22cb0..39d4e86 100644
+--- a/arch/x86/include/asm/hpet.h
++++ b/arch/x86/include/asm/hpet.h
+@@ -66,6 +66,7 @@
+ extern unsigned long hpet_address;
+ extern unsigned long force_hpet_address;
+ extern int hpet_force_user;
++extern int hpet_is_forced_old_ich(void);
+ extern int is_hpet_enabled(void);
+ extern int hpet_enable(void);
+ extern void hpet_disable(void);
+diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
+index 3f0019e..8b061c7 100644
+--- a/arch/x86/kernel/hpet.c
++++ b/arch/x86/kernel/hpet.c
+@@ -752,6 +752,11 @@ static int hpet_clocksource_register(void)
+ 	u64 start, now;
+ 	cycle_t t1;
+ 
++	if (hpet_is_forced_old_ich()) {
++		printk(KERN_WARNING "hpet: hpet=force on old ICH enables clockevents,"
++				" but not clocksource.\n");
++		return -ENODEV;
++	}
+ 	/* Start the counter */
+ 	hpet_restart_counter();
+ 
+diff --git a/arch/x86/kernel/quirks.c b/arch/x86/kernel/quirks.c
+index e95022e..9e4d73d 100644
+--- a/arch/x86/kernel/quirks.c
++++ b/arch/x86/kernel/quirks.c
+@@ -253,6 +253,10 @@ static void old_ich_force_enable_hpet(struct pci_dev *dev)
+ 	dev_printk(KERN_DEBUG, &dev->dev, "Failed to force enable HPET\n");
+ }
+ 
++int hpet_is_forced_old_ich() {
++	return (force_hpet_resume_type == OLD_ICH_FORCE_HPET_RESUME);
++}
++
+ /*
+  * Undocumented chipset features. Make sure that the user enforced
+  * this.
+-- 
+1.6.3.rc1.34.g0be9b
 
