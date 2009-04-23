@@ -1,43 +1,53 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: 2.6.30-rc3 : Regression: i915 , video
-Date: Thu, 23 Apr 2009 15:48:46 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904231537590.15830@localhost.localdomain>
-References: <72010.86725.qm@web112215.mail.gq1.yahoo.com>
+Subject: Re: 2.6.30-rc3 video/i915 build error
+Date: Thu, 23 Apr 2009 15:50:42 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain>
+References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
+ <20090423164642.GF495@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:46153 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752858AbZDWTs7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 15:48:59 -0400
-In-reply-to: <72010.86725.qm@web112215.mail.gq1.yahoo.com>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:57960 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905AbZDWTux (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 15:50:53 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KIK003TVKGK2UCQ@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 14:50:45 -0500 (CDT)
+In-reply-to: <20090423164642.GF495@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: We La <w.landgraf@yahoo.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, rui.zhang@intel.com, Keith Packard <keithp@keithp.com>, linux-acpi@vger.kernel.org
 
 
-> 
-> Problems on MSI U100 laptop:
-> 
-> root@werner:~# modprobe i915
-> WARNING: Error inserting video (/lib/modules/2.6.30-rc3/kernel/drivers/acpi/video.ko): No such device
-> FATAL: Error inserting i915 (/lib/modules/2.6.30-rc3/kernel/drivers/gpu/drm/i915/i915.ko): Unknown symbol in module, or unknown parameter (see dmesg)
-> root@werner:~#
-> 
-> Apr 23 16:16:57 localhost kernel: i915: Unknown symbol acpi_video_register
-> 
-> 
-> On older kernels this drivers worked
-> 
-> Werner Landgraf
-> Linux  SYS
 
-you've got modular i915 and no acpi video driver?
-Does this patch help?
+
+On Thu, 23 Apr 2009, Norbert Preining wrote:
+
+> On Do, 23 Apr 2009, Len Brown wrote:
+> > I thought we had addressed this, no?
+> 
+> The last I have seen are the two patches by  Zhao Yakui in the emails
+> subject: 
+> 	ACPI: Weaken the dependency between ACPI video driver and I915
+> and
+> 	ACPI: Check whether the acpi video is deferrable only when KMS is enabled
+> 
+> > CONFIG_DRM_I915=y
+> > CONFIG_ACPI_VIDEO=m
+> > 
+> > drivers/built-in.o: In function `intel_opregion_init':
+> > (.text+0x9d540): undefined reference to `acpi_video_register'
+> 
+> For me these two patches fix the problem.
+
+Matthew's response to those patches seems to be sufficient:
 
 http://patchwork.kernel.org/patch/18420/
 
 thanks,
--Len Brown, Intel Open Source Technology Center
+Len Brown, Intel Open Source Technology Center
 
