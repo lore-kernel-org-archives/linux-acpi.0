@@ -1,67 +1,71 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: 2.6.30-rc3 video/i915 build error
-Date: Fri, 24 Apr 2009 11:46:31 +0800
-Message-ID: <1240544791.3651.82.camel@localhost.localdomain>
-References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
-	 <20090423164642.GF495@gamma.logic.tuwien.ac.at>
-	 <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain>
-	 <1240535458.3651.63.camel@localhost.localdomain>
-	 <alpine.LFD.2.00.0904232156040.15843@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] i915: Register ACPI video even when not modesetting
+Date: Fri, 24 Apr 2009 00:43:00 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904240040460.15843@localhost.localdomain>
+References: <20090415204636.GA32365@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:8396 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751064AbZDXDpp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Apr 2009 23:45:45 -0400
-In-Reply-To: <alpine.LFD.2.00.0904232156040.15843@localhost.localdomain>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:18268 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391AbZDXEnF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2009 00:43:05 -0400
+In-reply-to: <20090415204636.GA32365@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Norbert Preining <preining@logic.at>, Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, "Zhang, Rui" <rui.zhang@intel.com>, Keith Packard <keithp@keithp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, 2009-04-24 at 09:57 +0800, Len Brown wrote:
+applied
 
-Hi, Len
-    In my test if VIDEO_OUTPUT_CONTROL is not selected, there exists the
-following failure:
-    >drivers/built-in.o: In function `acpi_video_bus_put_devices':
-    >video.c:(.text+0x41307): undefined reference to
-`video_output_unregister'
-    >drivers/built-in.o: In function `acpi_video_bus_add':
-video.c:(.text+0x43024): undefined reference to `video_output_register'
-    >make: *** [.tmp_vmlinux1] Error 1
+(and acpi-devel fixed to linux-acpi on cc:-)
 
-    In order to fix this issue we must select the VIDEO_OUTPUT_CONTROL
-when ACPI_VIDEO is selected. 
-    I add the following content in drivers/gpu/drm/Kconfig
-    >select ACPI_VIDEO if ACPI 
-    >select VIDEO_OUTPUT_CONTROL if ACPI_VIDEO
-    
-    And then it will report that there exits recursive dependency:
-ACPI_VIDEO -> VIDEO_OUTPUT_CONTROL -> ACPI_VIDEO
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-    In fact in current kernel there exists the following dependency:
-    ACPI_VIDEO depends on VIDEO_OUTPUT_CONTROL.
+On Wed, 15 Apr 2009, Matthew Garrett wrote:
 
-    If we delete the ACPI_VIDEO configuration in drivers/acpi/Kconfig,
-we can't select the acpi_video configuration when i915 is not used.
-
-    So IMO it is not very good to change the dependency. After changing
-the dependency between ACPI_VIDEO and I915, the new issue about
-dependency is triggered. 
-
-    Thanks.
+> The ACPI video driver defers registration to the i915 driver if the 
+> system supports opregion-mediated backlight control. This registration 
+> was only being performed in the KMS case. Ensure it's done even if we 
+> don't have modesetting enabled.
 > 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 > 
+> diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
+> index 6942772..8dc1fd3 100644
+> --- a/drivers/gpu/drm/i915/i915_opregion.c
+> +++ b/drivers/gpu/drm/i915/i915_opregion.c
+> @@ -370,11 +370,8 @@ int intel_opregion_init(struct drm_device *dev, int resume)
+>  	if (mboxes & MBOX_ACPI) {
+>  		DRM_DEBUG("Public ACPI methods supported\n");
+>  		opregion->acpi = base + OPREGION_ACPI_OFFSET;
+> -		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+> +		if (drm_core_check_feature(dev, DRIVER_MODESET))
+>  			intel_didl_outputs(dev);
+> -			if (!resume)
+> -				acpi_video_register();
+> -		}
+>  	} else {
+>  		DRM_DEBUG("Public ACPI methods not supported\n");
+>  		err = -ENOTSUPP;
+> @@ -391,6 +388,10 @@ int intel_opregion_init(struct drm_device *dev, int resume)
+>  		opregion->asle = base + OPREGION_ASLE_OFFSET;
+>  	}
+>  
+> +	if (!resume)
+> +		acpi_video_register();
+> +
+> +
+>  	/* Notify BIOS we are ready to handle ACPI video ext notifs.
+>  	 * Right now, all the events are handled by the ACPI video module.
+>  	 * We don't actually need to do anything with them. */
 > 
-> 
-> 
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
