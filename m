@@ -1,71 +1,93 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] i915: Register ACPI video even when not modesetting
-Date: Fri, 24 Apr 2009 00:43:00 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904240040460.15843@localhost.localdomain>
-References: <20090415204636.GA32365@srcf.ucam.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI video: dmi check for broken _BQC on Acer Aspire 5720
+Date: Fri, 24 Apr 2009 13:29:40 +0800
+Message-ID: <1240550980.7661.544.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:18268 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751391AbZDXEnF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2009 00:43:05 -0400
-In-reply-to: <20090415204636.GA32365@srcf.ucam.org>
+Received: from mga09.intel.com ([134.134.136.24]:46361 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752029AbZDXF32 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Apr 2009 01:29:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, maximlevitsky@gmail.com
 
-applied
 
-(and acpi-devel fixed to linux-acpi on cc:-)
+On Acer Aspire 5720, _BQC always returns a value 9 smaller than
+the actual brightness level.
+Add dmi quirk for this laptop.
+http://bugzilla.kernel.org/show_bug.cgi?id=13121
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-On Wed, 15 Apr 2009, Matthew Garrett wrote:
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -87,6 +87,8 @@ static const struct acpi_device_id video
+ };
+ MODULE_DEVICE_TABLE(acpi, video_device_ids);
+ 
++static int bqc_offset;
++
+ static struct acpi_driver acpi_video_bus = {
+ 	.name = "video",
+ 	.class = ACPI_VIDEO_CLASS,
+@@ -556,7 +558,8 @@ acpi_video_device_lcd_get_level_current(
+ 								 - 3 - (*level);
+ 				*level = device->brightness->levels[*level + 2];
+ 
+-			}
++			} else if (bqc_offset)
++				*level += bqc_offset;
+ 			device->brightness->curr = *level;
+ 			return 0;
+ 		} else {
+@@ -698,6 +701,29 @@ acpi_video_bus_DOS(struct acpi_video_bus
+ 	return status;
+ }
+ 
++static int video_bqc_offset(const struct dmi_system_id *d)
++{
++	bqc_offset = 9;
++	return 0;
++}
++
++static struct dmi_system_id video_dmi_table[] __initdata = {
++	/*
++	 * Acer Aspire 5720 _BQC method is broken,
++	 * it always returns a value smaller than the actual brightness level
++	 * http://bugzilla.kernel.org/show_bug.cgi?id=13121
++	 */
++	{
++	 .callback = video_bqc_offset,
++	 .ident = "Acer Aspire 5720",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5720"),
++		},
++	},
++	{}
++};
++
+ /*
+  * Simple comparison function used to sort backlight levels.
+  */
+@@ -2287,6 +2313,8 @@ EXPORT_SYMBOL(acpi_video_register);
+ 
+ static int __init acpi_video_init(void)
+ {
++	dmi_check_system(video_dmi_table);
++
+ 	if (intel_opregion_present())
+ 		return 0;
+ 
 
-> The ACPI video driver defers registration to the i915 driver if the 
-> system supports opregion-mediated backlight control. This registration 
-> was only being performed in the KMS case. Ensure it's done even if we 
-> don't have modesetting enabled.
-> 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> 
-> diff --git a/drivers/gpu/drm/i915/i915_opregion.c b/drivers/gpu/drm/i915/i915_opregion.c
-> index 6942772..8dc1fd3 100644
-> --- a/drivers/gpu/drm/i915/i915_opregion.c
-> +++ b/drivers/gpu/drm/i915/i915_opregion.c
-> @@ -370,11 +370,8 @@ int intel_opregion_init(struct drm_device *dev, int resume)
->  	if (mboxes & MBOX_ACPI) {
->  		DRM_DEBUG("Public ACPI methods supported\n");
->  		opregion->acpi = base + OPREGION_ACPI_OFFSET;
-> -		if (drm_core_check_feature(dev, DRIVER_MODESET)) {
-> +		if (drm_core_check_feature(dev, DRIVER_MODESET))
->  			intel_didl_outputs(dev);
-> -			if (!resume)
-> -				acpi_video_register();
-> -		}
->  	} else {
->  		DRM_DEBUG("Public ACPI methods not supported\n");
->  		err = -ENOTSUPP;
-> @@ -391,6 +388,10 @@ int intel_opregion_init(struct drm_device *dev, int resume)
->  		opregion->asle = base + OPREGION_ASLE_OFFSET;
->  	}
->  
-> +	if (!resume)
-> +		acpi_video_register();
-> +
-> +
->  	/* Notify BIOS we are ready to handle ACPI video ext notifs.
->  	 * Right now, all the events are handled by the ACPI video module.
->  	 * We don't actually need to do anything with them. */
-> 
-> -- 
-> Matthew Garrett | mjg59@srcf.ucam.org
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+
