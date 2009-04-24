@@ -1,50 +1,74 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: 2.6.30-rc3 video/i915 build error
-Date: Thu, 23 Apr 2009 21:57:02 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904232156040.15843@localhost.localdomain>
-References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
- <20090423164642.GF495@gamma.logic.tuwien.ac.at>
- <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain>
- <1240535458.3651.63.camel@localhost.localdomain>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Add the module param check for processor.max_cstate
+Date: Fri, 24 Apr 2009 10:25:12 +0800
+Message-ID: <1240539912.3651.68.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:36875 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751794AbZDXB5W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 21:57:22 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KIL00DAH1F6IBZN@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 23 Apr 2009 20:57:07 -0500 (CDT)
-In-reply-to: <1240535458.3651.63.camel@localhost.localdomain>
+Received: from mga09.intel.com ([134.134.136.24]:41051 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752706AbZDXCYd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Apr 2009 22:24:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Norbert Preining <preining@logic.at>, Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, "Zhang, Rui" <rui.zhang@intel.com>, Keith Packard <keithp@keithp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, 24 Apr 2009, yakui_zhao wrote:
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-> On Fri, 2009-04-24 at 03:50 +0800, Len Brown wrote:
-> 
-> Hi, Len
->     The issue can be fixed by the patch from Matthew.
->     In Matthew's patch the acpi video is also selected when the i915 is
-> compiled as builtin-kernel module.
->     But IMO this is not very good. From the Kconfig file we know that
-> acpi video driver depends on the following configuration:
->     BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL
-> 
->     If the VIDEO_OUTPUT_CONTROL/BACKLIGHT_CLASS_DEVICE is not selected,
-> then it will still fail in kernel compilation.
+When the boot option of "processor.max_cstate=0" is added, the C-state 
+won't be configured correctly. In such case the cpu idle function will access
+the uninitialized memory region and then kernel panic will happen.
 
-Matthew's patch is in.
-Please send me an additional patch for the additionanl failure case.
+So it is necessary to add the module param check for the processor.max_cstate.
+If it is equal to or less than zero, it will be ignored. If it is beyond the
+max threshold, it is also ignored.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+http://bugzilla.kernel.org/show_bug.cgi?id=13142
 
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/processor_idle.c |   27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
+Index: linux-2.6/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_idle.c	2009-04-21 15:48:52.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_idle.c	2009-04-24 10:00:47.000000000 +0800
+@@ -70,7 +70,32 @@
+ #define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+ 
+ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+-module_param(max_cstate, uint, 0000);
++
++static int param_set_max_cstate(const char *val, struct kernel_param *kp)
++{
++	unsigned long cstate = 0;
++	int ret = 0;
++
++	if (!val)
++		return -EINVAL;
++
++	ret = strict_strtoul(val, 10, &cstate);
++	if (ret == -EINVAL || (unsigned int)cstate != cstate)
++		return -EINVAL;
++	/*
++	 * if the value is equal to or less than zero, it will be ingored.
++	 * Of course it will also be ignored if it is bigger than the
++	 * threshold of ACPI_PROCESSOR_MAX_POWER.
++	 */
++	if (cstate <= 0 || cstate > ACPI_PROCESSOR_MAX_POWER)
++		return -EINVAL;
++
++	max_cstate = cstate;
++
++	return 0;
++}
++module_param_call(max_cstate, param_set_max_cstate, NULL,
++		  &max_cstate, 0000);
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
+ 
 
 
