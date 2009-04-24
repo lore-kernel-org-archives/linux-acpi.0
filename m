@@ -1,121 +1,47 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI video: dmi check for broken _BQC on Acer Aspire 5720
-Date: Fri, 24 Apr 2009 02:15:59 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0904240212540.15843@localhost.localdomain>
-References: <1240550980.7661.544.camel@rzhang-dt>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] ACPI/hpet: prevent boot hang when hpet=force used on
+	ICH-4M
+Date: Fri, 24 Apr 2009 08:37:34 +0200
+Message-ID: <20090424063734.GA21739@elte.hu>
+References: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain> <alpine.LFD.2.00.0904231917030.15843@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:20044 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757768AbZDXGQi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2009 02:16:38 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KIL00HHWDEP5VGA@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 24 Apr 2009 01:16:01 -0500 (CDT)
-In-reply-to: <1240550980.7661.544.camel@rzhang-dt>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:57652 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754704AbZDXGhp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Apr 2009 02:37:45 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0904231917030.15843@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, maximlevitsky@gmail.com
+To: Len Brown <lenb@kernel.org>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org
 
 
-On Fri, 24 Apr 2009, Zhang Rui wrote:
+* Len Brown <lenb@kernel.org> wrote:
 
+> From: Len Brown <len.brown@intel.com>
 > 
-> On Acer Aspire 5720, _BQC always returns a value 9 smaller than
-> the actual brightness level.
-> Add dmi quirk for this laptop.
-> http://bugzilla.kernel.org/show_bug.cgi?id=13121
+> Linux tells ICH4 users that they can (manually) invoke
+> "hpet=force" to enable the undocumented ICH-4M HPET.
+> The HPET becomes available for both clocksource and clockevents.
 > 
-> Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/video.c |   30 +++++++++++++++++++++++++++++-
->  1 file changed, 29 insertions(+), 1 deletion(-)
+> But as of ff69f2bba67bd45514923aaedbf40fe351787c59
+> (acpi: fix of pmtimer overflow that make Cx states time incorrect)
+> the HPET may be used via clocksource for idle accounting, and
+> hpet=force on an ICH4 box hangs boot.
 > 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -87,6 +87,8 @@ static const struct acpi_device_id video
->  };
->  MODULE_DEVICE_TABLE(acpi, video_device_ids);
->  
-> +static int bqc_offset;
-> +
-
-are there other machines with a similar bqc_offset AML bug?
-
-If no, then I'd rather this simple workaround be simpler
-rather than be ready for a general case that will never happen...
-
-in any case, the code/comments should be clear that
-this is a hideoous workaround rather than how things
-are supposed to work.  eg call it bqc_offset_idiotic_aml_workaround or 
-something..
-
-thanks,
--Len Brown, Intel Open Source Technology Center
-
->  static struct acpi_driver acpi_video_bus = {
->  	.name = "video",
->  	.class = ACPI_VIDEO_CLASS,
-> @@ -556,7 +558,8 @@ acpi_video_device_lcd_get_level_current(
->  								 - 3 - (*level);
->  				*level = device->brightness->levels[*level + 2];
->  
-> -			}
-> +			} else if (bqc_offset)
-> +				*level += bqc_offset;
->  			device->brightness->curr = *level;
->  			return 0;
->  		} else {
-> @@ -698,6 +701,29 @@ acpi_video_bus_DOS(struct acpi_video_bus
->  	return status;
->  }
->  
-> +static int video_bqc_offset(const struct dmi_system_id *d)
-> +{
-> +	bqc_offset = 9;
-> +	return 0;
-> +}
-> +
-> +static struct dmi_system_id video_dmi_table[] __initdata = {
-> +	/*
-> +	 * Acer Aspire 5720 _BQC method is broken,
-> +	 * it always returns a value smaller than the actual brightness level
-> +	 * http://bugzilla.kernel.org/show_bug.cgi?id=13121
-> +	 */
-> +	{
-> +	 .callback = video_bqc_offset,
-> +	 .ident = "Acer Aspire 5720",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 5720"),
-> +		},
-> +	},
-> +	{}
-> +};
-> +
->  /*
->   * Simple comparison function used to sort backlight levels.
->   */
-> @@ -2287,6 +2313,8 @@ EXPORT_SYMBOL(acpi_video_register);
->  
->  static int __init acpi_video_init(void)
->  {
-> +	dmi_check_system(video_dmi_table);
-> +
->  	if (intel_opregion_present())
->  		return 0;
->  
+> It turns out that touching the MMIO HPET withing
+> the ARB_DIS part of C3 will hang the hardware.
 > 
+> The fix is to simply move the timer access outside
+> the ARB_DIS region.  This is a no-op on modern hardware
+> because ARB_DIS is no longer used.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13087
+
+Nice fix! This moots the other half-quirk patch you wrote for hpet, 
+right?
+
+	Ingo
