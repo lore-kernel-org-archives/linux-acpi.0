@@ -1,44 +1,62 @@
-From: Mike Arthur <mike@mikearthur.co.uk>
-Subject: MacBook 5,2 fails to boot
-Date: Fri, 24 Apr 2009 14:13:24 +0100
-Message-ID: <200904241413.24658.mike@mikearthur.co.uk>
+From: Kalle Valo <kalle.valo@nokia.com>
+Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
+Date: Fri, 24 Apr 2009 16:44:22 +0300
+Message-ID: <87ljpqqi89.fsf@nokia.com>
+References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:46456 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215AbZDXNNa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2009 09:13:30 -0400
-Received: by fxm2 with SMTP id 2so1092323fxm.37
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2009 06:13:29 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:47936 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbZDXNtH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2009 09:49:07 -0400
+In-Reply-To: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera> (ext Rafael J. Wysocki's message of "Thu\, 16 Apr 2009 23\:42\:31 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "ext Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>
 
-This message would ideally follow on in the thread "MacBook5,2" but I wasn't 
-subscribed at the time and can't coax my mail client into replying to it.
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-This is the referenced thread:
-http://markmail.org/message/x333am4rnnjud4op
+> This message contains a list of some regressions from 2.6.29, for
+> which there are no fixes in the mainline I know of. If any of them
+> have been fixed already, please let me know.
+>
+> If you know of any other unresolved regressions from 2.6.29, please
+> let me know either and I'll add them to the list. Also, please let
+> me know if any of the entries below are invalid.
+>
+> Each entry from the list will be sent additionally in an automatic reply to
+> this message with CCs to the people involved in reporting and handling the
+> issue.
+>
 
-I'm having the same issue as described here. I've reproduced this on Debian's 
-2.6.26/2.6.29 packages and a custom built 2.6.30-rc2 package.
+[...]
 
-I've done a slight bit of kernel development in the past and am quite happy 
-building and running patched kernels and trying stuff out as there's nothing 
-important in my Linux system so far. I've tried doing a netconsole but sadly 
-it fails before any output is sent.
+> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=13067
+> Subject         : iwl3945: wlan0: beacon loss from AP - sending probe request
+> Submitter       : Maciej Rutecki <maciej.rutecki@gmail.com>
+> Date            : 2009-04-05 9:11 (12 days old)
+> References      : http://marc.info/?l=linux-kernel&m=123892272218266&w=4
 
-If this would be better filed on the ACPI Bugzilla then let me know. Basically 
-I want to try and get this resolved as soon as I can so am willing to be as 
-helpful as I can be to get this debugged.
+The regression here is that I added a printk() to inform about beacon
+loss. The issue has been there a long time, the printk() just exposed
+it.
 
-Thanks for your time!
+Michael wrote a patch which silences the printk:
+
+http://git.kernel.org/?p=linux/kernel/git/linville/wireless-testing.git;a=commit;h=16eaea5faa37d552b14e246ca56a436e55ca67b3
+
+I fixed the beacon loss detection here:
+
+http://git.kernel.org/?p=linux/kernel/git/linville/wireless-testing.git;a=commit;h=3b6dc5a431e4fef35717cba53544a95209f49b68
+
+John, I think Michael's patch should be sent to 2.6.30. Any chances
+for that?
+
+Rafael, is it possible to send your regression mails to
+linux-wireless@vger.kernel.org as well? Very few wireless developers
+have time to follow netdev or lkml.
 
 -- 
-Cheers,
-Mike Arthur
-http://mikearthur.co.uk/
+Kalle Valo
