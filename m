@@ -1,53 +1,43 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH]: ACPI: Add the module param check for
-	processor.max_cstate
-Date: Fri, 24 Apr 2009 11:30:27 +0800
-Message-ID: <1240543827.3651.70.camel@localhost.localdomain>
-References: <1240539912.3651.68.camel@localhost.localdomain>
-	 <alpine.LFD.2.00.0904232323410.15843@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI / powernow-k8 problems with M4A78T-E (AM3) and 2.6.30-rc3
+Date: Thu, 23 Apr 2009 23:35:39 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0904232334430.15843@localhost.localdomain>
+References: <F632EDDF1017D445AE61401A3E974CC082EA4131CE@EUEXCLU01.EU.NEC.COM>
+ <alpine.LFD.2.00.0904231616480.15843@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:38198 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751099AbZDXD3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Apr 2009 23:29:55 -0400
-In-Reply-To: <alpine.LFD.2.00.0904232323410.15843@localhost.localdomain>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:45005 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750704AbZDXDfr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2009 23:35:47 -0400
+In-reply-to: <alpine.LFD.2.00.0904231616480.15843@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Ross Alexander <Ross.Alexander@EU.NEC.COM>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 2009-04-24 at 11:24 +0800, Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
-> Subject: [PATCH] ACPI: prevent processor.max_cstate=0 boot crash
+> On Thu, 23 Apr 2009, Ross Alexander wrote:
 > 
-> As processor.max_cstate is an init-time-only modparam,
-> sanity checking it at init-time is sufficient.
+> > With BIOS version 0801 the powernow-k8 faulting.
+> > 
+> > ------------[ cut here ]------------
+> > WARNING: at arch/x86/kernel/cpu/cpufreq/powernow-k8.c:1257 powernowk8_cpu_init+0
+> > x4e0/0xd3f()
+> > Hardware name: System Product Name
+> > [Firmware Bug]: powernow-k8: Your BIOS does not provide ACPI _PSS objects in a w
+> > ay that Linux understands. Please report this to the Linux ACPI maintainers and
+> > complain to your BIOS vendor.
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13142
-This is also OK. And it is easier.
+> If you attach the output from acpidump to a new bugzilla entry,
+> 
+> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
 
-Thanks.
-> 
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/processor_idle.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 6fe1214..436127e 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -1037,6 +1037,9 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
->  		dev->states[i].desc[0] = '\0';
->  	}
->  
-> +	if (max_cstate == 0)
-> +		max_cstate = 1;
-> +
->  	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
->  		cx = &pr->power.states[i];
->  		state = &dev->states[count];
+Turns out that the report already exists.
+Please attach the output from acpidump here:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=13146
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
