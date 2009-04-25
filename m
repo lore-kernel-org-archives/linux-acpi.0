@@ -1,208 +1,100 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] eee-laptop: Register as a pci-hotplug device
-Date: Sat, 25 Apr 2009 16:12:29 +0200
-Message-ID: <71cd59b00904250712k332bfc14nb181aaabd7c605e5@mail.gmail.com>
-References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain>
-	 <gemini.ket9w800w44dc0hvg.linux@youmustbejoking.demon.co.uk>
-	 <20090209234911.GB862@elte.hu>
-	 <5030E21460%linux@youmustbejoking.demon.co.uk>
-	 <20090210150431.GA26798@srcf.ucam.org>
-	 <5030E7CFF4%linux@youmustbejoking.demon.co.uk>
-	 <20090419015614.GA6926@srcf.ucam.org>
-	 <71cd59b00904190020x7d946c29w736d89fc27d39594@mail.gmail.com>
-	 <20090419151306.GA15048@srcf.ucam.org>
+From: Martin Steigerwald <Martin@lichtvoll.de>
+Subject: Re: [patch 013/100] ACPI: cap off P-state transition latency from buggy BIOSes
+Date: Sat, 25 Apr 2009 17:59:02 +0200
+Message-ID: <200904251759.11600.Martin@lichtvoll.de>
+References: <20090423072020.428683652@sous-sol.org> <20090423072218.102318325@sous-sol.org> (sfid-20090423_104745_885400_65A6F0E7)
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart4124018.QTTYZMyo0t";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f163.google.com ([209.85.218.163]:61137 "EHLO
-	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbZDYOMd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Apr 2009 10:12:33 -0400
-In-Reply-To: <20090419151306.GA15048@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754062AbZDYP6a@vger.kernel.org>
+In-Reply-To: <20090423072218.102318325@sous-sol.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Chris Wright <chrisw@sous-sol.org>, stable@kernel.org, Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Darren Salt <linux@youmustbejoking.demon.co.uk>
 
-Hi,
-I take your patch and make it works against acpi4asus tree.
-If you think it's ok, then I'll send a serie including this patch to Len.
-(the tree is at http://git.iksaif.net/ )
+--nextPart4124018.QTTYZMyo0t
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-From: Matthew Garrett <mjg@redhat.com>
+Am Donnerstag 23 April 2009 schrieb Chris Wright:
+> -stable review patch.  If anyone has any objections, please let us
+> know. ---------------------
+>
+> From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+>
+> upstream commit: a59d1637eb0e0a37ee0e5c92800c60abe3624e24
+>
+> Some BIOSes report very high frequency transition latency which are
+> plainly wrong on CPus that can change frequency using native MSR
+> interface.
+>
+> One such system is IBM T42 (2327-8ZU) as reported by Owen Taylor and
+> Rik van Riel.
+>
+> cpufreq_ondemand driver uses this transition latency to come up with a
+> reasonable sampling interval to sample CPU usage and with such high
+> latency value, ondemand sampling interval ends up being very high
+> (0.5 sec, in this particular case), resulting in performance impact due
+> to slow response to increasing frequency.
+>
+> Fix it by capping-off the transition latency to 20uS for native MSR
+> based frequency transitions.
+>
+> mjg: We've confirmed that this also helps on the X31
+>
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> Acked-by: Matthew Garrett <mjg@redhat.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+> ---
+>
+>  arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> --- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> +++ b/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+> @@ -680,6 +680,18 @@ static int acpi_cpufreq_cpu_init(struct
+>  			    perf->states[i].transition_latency * 1000;
+>  	}
+>
+> +	/* Check for high latency (>20uS) from buggy BIOSes, like on T42 */
+> +	if (perf->control_register.space_id =3D=3D ACPI_ADR_SPACE_FIXED_HARDWARE
+> && +	    policy->cpuinfo.transition_latency > 20 * 1000) {
+> +		static int print_once;
+> +		policy->cpuinfo.transition_latency =3D 20 * 1000;
+> +		if (!print_once) {
+> +			print_once =3D 1;
+> +			printk(KERN_INFO "Capping off P-state tranision latency"
 
-The eee contains a logically (but not physically) hotpluggable PCIe slot.
-Currently this is handled by adding or removing the PCI device in response
-to rfkill events, but if a user has forced pciehp to bind to it (with the
-force=1 argument) then both drivers will try to handle the event and
-hilarity (in the form of oopses) will ensue. This can be avoided by having
-eee-laptop register the slot as a hotplug slot. Only one of pciehp and
-eee-laptop will successfully register this, avoiding the problem.
+typo: tranision =3D> transition
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-Tested-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
----
- drivers/platform/x86/Kconfig        |    1 +
- drivers/platform/x86/eeepc-laptop.c |   87 +++++++++++++++++++++++++++++++++++
- 2 files changed, 88 insertions(+), 0 deletions(-)
+> +				" at 20 uS\n");
+> +		}
+> +	}
+> +
+>  	data->max_freq =3D perf->states[0].core_frequency * 1000;
+>  	/* table init */
+>  	for (i=3D0; i<perf->state_count; i++) {
+=2D-=20
+Martin 'Helios' Steigerwald - http://www.Lichtvoll.de
+GPG: 03B0 0D6C 0040 0710 4AFA  B82F 991B EAAC A599 84C7
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 284ebac..afbe441 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -341,6 +341,7 @@ config EEEPC_LAPTOP
- 	select BACKLIGHT_CLASS_DEVICE
- 	select HWMON
- 	select RFKILL
-+	select HOTPLUG_PCI
- 	---help---
- 	  This driver supports the Fn-Fx keys on Eee PC laptops.
- 	  It also adds the ability to switch camera/wlan on/off.
-diff --git a/drivers/platform/x86/eeepc-laptop.c
-b/drivers/platform/x86/eeepc-laptop.c
-index 7aaf587..4440f6c 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -31,6 +31,7 @@
- #include <linux/input.h>
- #include <linux/rfkill.h>
- #include <linux/pci.h>
-+#include <linux/pci_hotplug.h>
+--nextPart4124018.QTTYZMyo0t
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
- #define EEEPC_LAPTOP_VERSION	"0.1"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-@@ -132,6 +133,7 @@ struct eeepc_hotk {
- 	u16 *keycode_map;
- 	struct rfkill *eeepc_wlan_rfkill;
- 	struct rfkill *eeepc_bluetooth_rfkill;
-+	struct hotplug_slot *hotplug_slot;
- };
+iEYEABECAAYFAknzM0kACgkQmRvqrKWZhMd8tQCfW46wySxqSShaHy98HPnTt0wj
+VH0AnilyDhXpg4q0gs23p44eGsbS3oDj
+=b1rB
+-----END PGP SIGNATURE-----
 
- /* The actual device the driver binds to */
-@@ -197,6 +199,15 @@ static struct acpi_driver eeepc_hotk_driver = {
- 	},
- };
-
-+/* PCI hotplug ops */
-+static int eeepc_get_adapter_status(struct hotplug_slot *slot, u8 *value);
-+
-+static struct hotplug_slot_ops eeepc_hotplug_slot_ops = {
-+	.owner = THIS_MODULE,
-+	.get_adapter_status = eeepc_get_adapter_status,
-+	.get_power_status = eeepc_get_adapter_status,
-+};
-+
- /* The backlight device /sys/class/backlight */
- static struct backlight_device *eeepc_backlight_device;
-
-@@ -529,6 +540,19 @@ static int notify_brn(void)
- 	return -1;
- }
-
-+static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
-+				    u8 *value)
-+{
-+	int val = get_acpi(CM_ASL_WLAN);
-+
-+	if (val == 1 || val == 0)
-+		*value = val;
-+	else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
- {
- 	enum rfkill_state state;
-@@ -655,6 +679,54 @@ static void eeepc_unregister_rfkill_notifier(char *node)
- 	}
- }
-
-+static void eeepc_cleanup_pci_hotplug(struct hotplug_slot *hotplug_slot)
-+{
-+	kfree(hotplug_slot->info);
-+	kfree(hotplug_slot);
-+}
-+
-+static int eeepc_setup_pci_hotplug(void)
-+{
-+	int ret = -ENOMEM;
-+	struct pci_bus *bus = pci_find_bus(0, 1);
-+
-+	if (!bus) {
-+		printk(EEEPC_ERR "Unable to find wifi PCI bus\n");
-+		return -ENODEV;
-+	}
-+
-+	ehotk->hotplug_slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
-+	if (!ehotk->hotplug_slot)
-+		goto error_slot;
-+
-+	ehotk->hotplug_slot->info = kzalloc(sizeof(struct hotplug_slot_info),
-+					    GFP_KERNEL);
-+	if (!ehotk->hotplug_slot->info)
-+		goto error_info;
-+
-+	ehotk->hotplug_slot->private = ehotk;
-+	ehotk->hotplug_slot->release = &eeepc_cleanup_pci_hotplug;
-+	ehotk->hotplug_slot->ops = &eeepc_hotplug_slot_ops;
-+	eeepc_get_adapter_status(ehotk->hotplug_slot,
-+				 &ehotk->hotplug_slot->info->adapter_status);
-+
-+	ret = pci_hp_register(ehotk->hotplug_slot, bus, 0, "eeepc-wifi");
-+	if (ret) {
-+		printk(EEEPC_ERR "Unable to register hotplug slot - %d\n", ret);
-+		goto error_register;
-+	}
-+
-+	return 0;
-+
-+error_register:
-+	kfree(ehotk->hotplug_slot->info);
-+error_info:
-+	kfree(ehotk->hotplug_slot);
-+	ehotk->hotplug_slot = NULL;
-+error_slot:
-+	return ret;
-+}
-+
- static int eeepc_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -738,8 +810,21 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 			goto bluetooth_fail;
- 	}
-
-+	result = eeepc_setup_pci_hotplug();
-+	/*
-+	 * If we get -EBUSY then something else is handling the PCI hotplug -
-+	 * don't fail in this case
-+	 */
-+	if (result == -EBUSY)
-+		return 0;
-+	else if (result)
-+		goto pci_fail;
-+
- 	return 0;
-
-+ pci_fail:
-+	if (ehotk->eeepc_bluetooth_rfkill)
-+		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
-  bluetooth_fail:
- 	if (ehotk->eeepc_bluetooth_rfkill)
- 		rfkill_free(ehotk->eeepc_bluetooth_rfkill);
-@@ -768,6 +853,8 @@ static int eeepc_hotk_remove(struct acpi_device
-*device, int type)
-
- 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
- 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
-+	if (ehotk->hotplug_slot)
-+		pci_hp_deregister(ehotk->hotplug_slot);
-
- 	kfree(ehotk);
- 	return 0;
--- 
-1.6.2.3
+--nextPart4124018.QTTYZMyo0t--
