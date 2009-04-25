@@ -1,39 +1,47 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86/hpet: prevent boot hang when hpet=force used on
-	old ICH
-Date: Sat, 25 Apr 2009 01:45:02 +0200
-Message-ID: <20090424234502.GF6403@elte.hu>
-References: <alpine.LFD.2.00.0904222223200.21119@localhost.localdomain> <20090423060936.GA1917@elte.hu> <alpine.LFD.2.00.0904231901570.15843@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [stable] [PATCH 2/5] thinkpad-acpi: fix LED blinking through
+	timer trigger
+Date: Sat, 25 Apr 2009 01:25:55 -0300
+Message-ID: <20090425042555.GD17216@khazad-dum.debian.net>
+References: <1239677054-3221-1-git-send-email-hmh@hmh.eng.br> <1239677054-3221-3-git-send-email-hmh@hmh.eng.br> <20090421194426.GD30916@hera.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:46085 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052AbZDXXpU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Apr 2009 19:45:20 -0400
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:53876 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751067AbZDYE0C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Apr 2009 00:26:02 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904231901570.15843@localhost.localdomain>
+In-Reply-To: <20090421194426.GD30916@hera.kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Chris Wright <chrisw@sous-sol.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-
-* Len Brown <lenb@kernel.org> wrote:
-
-> Ingo,
-> Thanks for the reply.
+On Tue, 21 Apr 2009, Chris Wright wrote:
+> * Henrique de Moraes Holschuh (hmh@hmh.eng.br) wrote:
+> > The set_blink hook code in the LED subdriver would never manage to get
+> > a LED to blink, and instead it would just turn it on.  The consequence
+> > of this is that the "timer" trigger would not cause the LED to blink
+> > if given default parameters.
+> > 
+> > This problem exists since 2.6.26-rc1.
+> > 
+> > To fix it, switch the deferred LED work handling to use the
+> > thinkpad-acpi-specific LED status (off/on/blink) directly.
+> > 
+> > This also makes the code easier to read, and to extend later.
+> > 
+> > Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> > Cc: stable@kernel.org
 > 
-> But please disregard that patch -- we've cooked up a better one
-> that allows ICH4M to continue to use hpet=force, even for clocksource.
-> (and it is an ACPI patch rather than an x86 patch:-)
+> This is still not upstream.
 
-ok.
+It is upstream now, commit 75bd3bf2ade9d548be0d2bde60b5ee0fdce0b127.
 
-> However, I'll also send a 2nd patch to stop soliciting more 
-> hpet=force users, since technically we shouldn't be encouraging 
-> the use of this un-documented and lightly-validated hardware.
-
-agreed - i've applied this patch.
-
-	Ingo
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
