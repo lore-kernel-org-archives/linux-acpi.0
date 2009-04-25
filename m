@@ -1,47 +1,35 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [stable] [PATCH 2/5] thinkpad-acpi: fix LED blinking through
-	timer trigger
-Date: Sat, 25 Apr 2009 01:25:55 -0300
-Message-ID: <20090425042555.GD17216@khazad-dum.debian.net>
-References: <1239677054-3221-1-git-send-email-hmh@hmh.eng.br> <1239677054-3221-3-git-send-email-hmh@hmh.eng.br> <20090421194426.GD30916@hera.kernel.org>
+From: =?iso-8859-1?B?qUdsb2JhbA==?= <wheelcovers@bellnet.ca>
+Subject: Winner
+Date: Sat, 25 Apr 2009 10:02:43 -0400
+Message-ID: <20090425140243.ONYU1670.simmts8-srv.bellnexxia.net__3718.54112386263$1240668271$gmane$org@simip9-ac.srvr.bell.ca>
+Reply-To: jerry.smith33@onlineprocessingdept.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:53876 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751067AbZDYE0C (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Apr 2009 00:26:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20090421194426.GD30916@hera.kernel.org>
+Received: from simmts8-qfe0.srvr.bell.ca ([206.47.199.166]:47870 "EHLO
+	simmts8-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751850AbZDYOCp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Apr 2009 10:02:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Wright <chrisw@sous-sol.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: info@lotto.org
 
-On Tue, 21 Apr 2009, Chris Wright wrote:
-> * Henrique de Moraes Holschuh (hmh@hmh.eng.br) wrote:
-> > The set_blink hook code in the LED subdriver would never manage to get
-> > a LED to blink, and instead it would just turn it on.  The consequence
-> > of this is that the "timer" trigger would not cause the LED to blink
-> > if given default parameters.
-> > 
-> > This problem exists since 2.6.26-rc1.
-> > 
-> > To fix it, switch the deferred LED work handling to use the
-> > thinkpad-acpi-specific LED status (off/on/blink) directly.
-> > 
-> > This also makes the code easier to read, and to extend later.
-> > 
-> > Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> > Cc: stable@kernel.org
-> 
-> This is still not upstream.
+The Global Award Programme.Therefore you have been approve for a lump s=
+um payout of (=A3950.000.00  GBP) by your E-ID send your details=20
 
-It is upstream now, commit 75bd3bf2ade9d548be0d2bde60b5ee0fdce0b127.
+Name:.......................
+Address:....................
+Country:....................
+Occupation:................
+Phone Number:...............
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Yours faithfully,
+Mrs Joan Thomas
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
