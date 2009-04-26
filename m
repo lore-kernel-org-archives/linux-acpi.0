@@ -1,60 +1,147 @@
-From: "AON WEBMAIL" <help-desk@aon.at>
-Subject: AON Ihre E-Mail-Konto Expires in 2 Tagen
-Date: Sun, 26 Apr 2009 14:45:09 -0700
-Message-ID: <200904262145.n3QLj9o2026979@sapphire.spiritone.com>
-Reply-To: updat-conf@live.com
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] x86/acpi: calling mp_config_acpi_gsi in mp_register_gsi
+Date: Sun, 26 Apr 2009 14:55:26 -0700
+Message-ID: <49F4D84E.4030401@kernel.org>
+References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain> <49F4D7CB.4040406@kernel.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from jade.aracnet.com ([216.99.193.136]:38840 "EHLO jade.aracnet.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751663AbZDZXIv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Apr 2009 19:08:51 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752612AbZDZV4n@vger.kernel.org>
+In-Reply-To: <49F4D7CB.4040406@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: help-desk@aon.at
 
-AON Ihre E-Mail-Konto Expires in 2 Tagen=20
-AON Webmail Liebe User,=20
 
-Diese Information wird von AON Helpdesk Programm,=20
-in regelm=E4=DFigen Abst=E4nden =FCberpr=FCft die Gr=F6=DFe der E-Mail-=
-Raum, in dem neue Nachrichten=20
-erhalten. Das Programm wird w=F6chentlich, um sicherzustellen, niemand =
-Posteingang w=E4chst zu=20
-gro=DF. Wenn Sie Ihren Posteingang zu gro=DF wird, werden Sie nicht in =
-der Lage zu erhalten=20
-neue E-Mail. Kurz bevor diese Nachricht gesendet wurde, Sie hatten 18 M=
-egabyte (MB)=20
-oder mehrere Nachrichten in Ihrem Posteingang auf AON Webmail. Um uns z=
-u helfen=20
-=E4ndern Sie Ihren Raum in unserer Datenbank vor, um unsere INBOX, m=FC=
-ssen Sie=20
-Antwort auf diese E-Mail und geben Sie Ihre User-Namen (___________=20
-) Und Passwort (_____________).=20
+it seems that change about calling mp_config_acpi_gsi in acpi_pci_irq_enable()
+never get into mainline.
 
-Es w=E4re eine Nachricht Alert in regelm=E4=DFigen Abst=E4nden, ob Ihr=20
-Posteingang Gr=F6=DFe nach wie vor zwischen 18 und 20 MB. Wenn Sie Ihre=
-n Posteingang Gr=F6=DFe=20
-w=E4chst=20
-bis 20 MB, dann ein Programm auf AON Webmail wird Ihre E-Mail =E4lteste=
-n=20
-in einen Ordner in Ihrem Home-Verzeichnis, um sicherzustellen, dass Sie=
- weiter=20
-eingehenden E-Mails zu erhalten. Sie werden per E-Mail benachrichtigt, =
-dass dies=20
-stattgefunden. Wenn Sie Ihren Posteingang w=E4chst auf 25 MB, werden Si=
-e nicht in der Lage zu erhalten=20
+actually we could call that in mp_register_gsi with struct device...
+also could make mp_config_acpi_gsi to be static
 
-neue E-Mail wird an den Absender zur=FCckgeschickt. All dies wird=20
-Programmiert auf Ihre E-Mail auf, f=FCllen die R=E4ume vor.=20
+[Impact: make update_mptable working]
 
-Vielen Dank f=FCr Ihre Mitarbeit.=20
-Support Desk (Help Desk)=20
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+ arch/x86/include/asm/mpspec.h |    9 ------
+ arch/x86/kernel/acpi/boot.c   |   62 ++++++++++++++++++++++++------------------
+ 2 files changed, 36 insertions(+), 35 deletions(-)
+
+Index: linux-2.6/arch/x86/include/asm/mpspec.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/mpspec.h
++++ linux-2.6/arch/x86/include/asm/mpspec.h
+@@ -77,17 +77,8 @@ extern int mp_register_gsi(struct device
+ 				 int active_high_low);
+ extern int acpi_probe_gsi(void);
+ #ifdef CONFIG_X86_IO_APIC
+-extern int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
+-				u32 gsi, int triggering, int polarity);
+ extern int mp_find_ioapic(int gsi);
+ extern int mp_find_ioapic_pin(int ioapic, int gsi);
+-#else
+-static inline int
+-mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
+-		   u32 gsi, int triggering, int polarity)
+-{
+-	return 0;
+-}
+ #endif
+ #else /* !CONFIG_ACPI: */
+ static inline int acpi_probe_gsi(void)
+Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
++++ linux-2.6/arch/x86/kernel/acpi/boot.c
+@@ -33,6 +33,7 @@
+ #include <linux/irq.h>
+ #include <linux/bootmem.h>
+ #include <linux/ioport.h>
++#include <linux/pci.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/io_apic.h>
+@@ -1158,6 +1159,40 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	}
+ }
+ 
++static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int triggering,
++			int polarity)
++{
++#ifdef CONFIG_X86_MPPARSE
++	struct mpc_intsrc mp_irq;
++	struct pci_dev *pdev;
++	unsigned char number;
++	unsigned int devfn;
++	int ioapic;
++	u8 pin;
++
++	if (!acpi_ioapic)
++		return 0;
++
++	pdev = to_pci_dev(dev);
++	number = pdev->bus->number;
++	devfn = pdev->devfn;
++	pin = pdev->pin;
++	/* print the entry should happen on mptable identically */
++	mp_irq.type = MP_INTSRC;
++	mp_irq.irqtype = mp_INT;
++	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
++				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
++	mp_irq.srcbus = number;
++	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
++	ioapic = mp_find_ioapic(gsi);
++	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
++	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
++
++	save_mp_irq(&mp_irq);
++#endif
++	return 0;
++}
++
+ int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
+ {
+ 	int ioapic;
+@@ -1189,6 +1224,7 @@ int mp_register_gsi(struct device *dev,
+ 		       ioapic_pin);
+ 		return gsi;
+ 	}
++	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
+ 
+ 	/*
+ 	 * Avoid pin reprogramming.  PRTs typically include entries
+@@ -1208,32 +1244,6 @@ int mp_register_gsi(struct device *dev,
+ 	return gsi;
+ }
+ 
+-int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
+-			u32 gsi, int triggering, int polarity)
+-{
+-#ifdef CONFIG_X86_MPPARSE
+-	struct mpc_intsrc mp_irq;
+-	int ioapic;
+-
+-	if (!acpi_ioapic)
+-		return 0;
+-
+-	/* print the entry should happen on mptable identically */
+-	mp_irq.type = MP_INTSRC;
+-	mp_irq.irqtype = mp_INT;
+-	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
+-				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
+-	mp_irq.srcbus = number;
+-	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
+-	ioapic = mp_find_ioapic(gsi);
+-	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
+-	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
+-
+-	save_mp_irq(&mp_irq);
+-#endif
+-	return 0;
+-}
+-
+ /*
+  * Parse IOAPIC related entries in MADT
+  * returns 0 on success, < 0 on error
