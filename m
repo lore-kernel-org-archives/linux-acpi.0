@@ -1,152 +1,38 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] x86/acpi: calling mp_config_acpi_gsi in mp_register_gsi
-Date: Sun, 26 Apr 2009 16:25:40 -0700
-Message-ID: <49F4ED74.1040900@kernel.org>
-References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain> <49F4D7CB.4040406@kernel.org> <49F4D84E.4030401@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: s2ram on Lenovo X300 is broken
+Date: Mon, 27 Apr 2009 01:12:28 +0200
+Message-ID: <200904270112.28813.rjw@sisk.pl>
+References: <6D80BDFB1A1FA74DA476417C24C452A102495C8361@scl-exch2k7.phoenix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754712AbZDZX0v@vger.kernel.org>
-In-Reply-To: <49F4D84E.4030401@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:45843 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751917AbZDZXNR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Apr 2009 19:13:17 -0400
+In-Reply-To: <6D80BDFB1A1FA74DA476417C24C452A102495C8361@scl-exch2k7.phoenix.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kaushik Barde <Kaushik_Barde@phoenix.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-it seems it still have some problem. will have -v2.
+On Sunday 26 April 2009, Kaushik Barde wrote:
+> I am using stable-2.6.29.1 on Lenovo X300.
+> 
+> echo mem > /sys/power/state works if I disable AP core using echo 0 > /sys/devices/system/cpu/cpu1/online.
+> 
+> With SMP, first s3 cycle goes through, subsequent suspend does not work.
+> 
+> Is this a known issue with CPU_HOTPLUG or suspend re-ordering code?
 
-YH
+Similar symptoms have been reported, but the previous reporter did not connect
+them with the CPU hotplugging.
 
-Yinghai Lu wrote:
-> it seems that change about calling mp_config_acpi_gsi in acpi_pci_irq_enable()
-> never get into mainline.
-> 
-> actually we could call that in mp_register_gsi with struct device...
-> also could make mp_config_acpi_gsi to be static
-> 
-> [Impact: make update_mptable working]
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> ---
->  arch/x86/include/asm/mpspec.h |    9 ------
->  arch/x86/kernel/acpi/boot.c   |   62 ++++++++++++++++++++++++------------------
->  2 files changed, 36 insertions(+), 35 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/include/asm/mpspec.h
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/include/asm/mpspec.h
-> +++ linux-2.6/arch/x86/include/asm/mpspec.h
-> @@ -77,17 +77,8 @@ extern int mp_register_gsi(struct device
->  				 int active_high_low);
->  extern int acpi_probe_gsi(void);
->  #ifdef CONFIG_X86_IO_APIC
-> -extern int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
-> -				u32 gsi, int triggering, int polarity);
->  extern int mp_find_ioapic(int gsi);
->  extern int mp_find_ioapic_pin(int ioapic, int gsi);
-> -#else
-> -static inline int
-> -mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
-> -		   u32 gsi, int triggering, int polarity)
-> -{
-> -	return 0;
-> -}
->  #endif
->  #else /* !CONFIG_ACPI: */
->  static inline int acpi_probe_gsi(void)
-> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-> +++ linux-2.6/arch/x86/kernel/acpi/boot.c
-> @@ -33,6 +33,7 @@
->  #include <linux/irq.h>
->  #include <linux/bootmem.h>
->  #include <linux/ioport.h>
-> +#include <linux/pci.h>
->  
->  #include <asm/pgtable.h>
->  #include <asm/io_apic.h>
-> @@ -1158,6 +1159,40 @@ void __init mp_config_acpi_legacy_irqs(v
->  	}
->  }
->  
-> +static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int triggering,
-> +			int polarity)
-> +{
-> +#ifdef CONFIG_X86_MPPARSE
-> +	struct mpc_intsrc mp_irq;
-> +	struct pci_dev *pdev;
-> +	unsigned char number;
-> +	unsigned int devfn;
-> +	int ioapic;
-> +	u8 pin;
-> +
-> +	if (!acpi_ioapic)
-> +		return 0;
-> +
-> +	pdev = to_pci_dev(dev);
-> +	number = pdev->bus->number;
-> +	devfn = pdev->devfn;
-> +	pin = pdev->pin;
-> +	/* print the entry should happen on mptable identically */
-> +	mp_irq.type = MP_INTSRC;
-> +	mp_irq.irqtype = mp_INT;
-> +	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
-> +				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
-> +	mp_irq.srcbus = number;
-> +	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
-> +	ioapic = mp_find_ioapic(gsi);
-> +	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
-> +	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
-> +
-> +	save_mp_irq(&mp_irq);
-> +#endif
-> +	return 0;
-> +}
-> +
->  int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
->  {
->  	int ioapic;
-> @@ -1189,6 +1224,7 @@ int mp_register_gsi(struct device *dev,
->  		       ioapic_pin);
->  		return gsi;
->  	}
-> +	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
->  
->  	/*
->  	 * Avoid pin reprogramming.  PRTs typically include entries
-> @@ -1208,32 +1244,6 @@ int mp_register_gsi(struct device *dev,
->  	return gsi;
->  }
->  
-> -int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
-> -			u32 gsi, int triggering, int polarity)
-> -{
-> -#ifdef CONFIG_X86_MPPARSE
-> -	struct mpc_intsrc mp_irq;
-> -	int ioapic;
-> -
-> -	if (!acpi_ioapic)
-> -		return 0;
-> -
-> -	/* print the entry should happen on mptable identically */
-> -	mp_irq.type = MP_INTSRC;
-> -	mp_irq.irqtype = mp_INT;
-> -	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
-> -				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
-> -	mp_irq.srcbus = number;
-> -	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
-> -	ioapic = mp_find_ioapic(gsi);
-> -	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
-> -	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
-> -
-> -	save_mp_irq(&mp_irq);
-> -#endif
-> -	return 0;
-> -}
-> -
->  /*
->   * Parse IOAPIC related entries in MADT
->   * returns 0 on success, < 0 on error
-> 
+The issue isn't actually known and suspend-resume works on many SMP systems.
+
+Is the problem reproducible with the current mainline kernel?
+
+Rafael
