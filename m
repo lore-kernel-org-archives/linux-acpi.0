@@ -1,177 +1,34 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] x86/acpi: remove compress irq trick for 32bit
-Date: Sun, 26 Apr 2009 14:53:15 -0700
-Message-ID: <49F4D7CB.4040406@kernel.org>
-References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH] eee-laptop: Register as a pci-hotplug device
+Date: Sun, 26 Apr 2009 22:51:08 +0200
+Message-ID: <71cd59b00904261351k18a8bc0cue076c1bb44da4813@mail.gmail.com>
+References: <alpine.LFD.2.00.0902081251090.3048@localhost.localdomain>
+	 <20090209234911.GB862@elte.hu>
+	 <5030E21460%linux@youmustbejoking.demon.co.uk>
+	 <20090210150431.GA26798@srcf.ucam.org>
+	 <5030E7CFF4%linux@youmustbejoking.demon.co.uk>
+	 <20090419015614.GA6926@srcf.ucam.org>
+	 <71cd59b00904190020x7d946c29w736d89fc27d39594@mail.gmail.com>
+	 <20090419151306.GA15048@srcf.ucam.org>
+	 <71cd59b00904250712k332bfc14nb181aaabd7c605e5@mail.gmail.com>
+	 <20090426171640.GA9633@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain>
-Sender: linux-pci-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756661AbZDZU6Z@vger.kernel.org>
+In-Reply-To: <20090426171640.GA9633@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Darren Salt <linux@youmustbejoking.demon.co.uk>
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, Apr 26, 2009 at 7:16 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> Hm. I /think/ that version leaks notification handlers on the failure
+> path. Does this look ok? I don't have an eee to hand right now, so can't
+> test this at the moment.
+I'll test it tomorow, but it seems ok.
+Thanks
 
-We already have per cpu vector for 32bit, and don't need this trick any more.
-
-on 3 ioapic system (24 per ioapic) before patch got
-ACPI: PCI Interrupt Link [ILSB] enabled at IRQ 71
-IOAPIC[2]: Set routing entry (10-23 -> 0xa9 -> IRQ 64 Mode:1 Active:1)
-pci 0000:80:01.1: PCI INT A -> Link[ILSB] -> GSI 71 (level, low) -> IRQ 64
-ACPI: PCI Interrupt Link [LE5B] enabled at IRQ 67
-IOAPIC[2]: Set routing entry (10-19 -> 0xb1 -> IRQ 65 Mode:1 Active:1)
-pci 0000:83:00.0: PCI INT B -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 65
-ACPI: PCI Interrupt Link [LE5A] enabled at IRQ 66
-IOAPIC[2]: Set routing entry (10-18 -> 0xb9 -> IRQ 66 Mode:1 Active:1)
-pci 0000:83:00.1: PCI INT A -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-ACPI: PCI Interrupt Link [LE5D] enabled at IRQ 65
-IOAPIC[2]: Set routing entry (10-17 -> 0xc1 -> IRQ 67 Mode:1 Active:1)
-pci 0000:84:00.0: PCI INT B -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 67
-ACPI: PCI Interrupt Link [LE5C] enabled at IRQ 64
-IOAPIC[2]: Set routing entry (10-16 -> 0xc9 -> IRQ 68 Mode:1 Active:1)
-pci 0000:84:00.1: PCI INT A -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 68
-pci 0000:87:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-pci 0000:87:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 67
-pci 0000:88:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 68
-pci 0000:88:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 65
-pci 0000:8b:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-pci 0000:8b:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 67
-pci 0000:8c:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 68
-pci 0000:8c:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 65
-
-after patch will get
-ACPI: PCI Interrupt Link [ILSB] enabled at IRQ 71
-IOAPIC[2]: Set routing entry (10-23 -> 0xa9 -> IRQ 71 Mode:1 Active:1)
-pci 0000:80:01.1: PCI INT A -> Link[ILSB] -> GSI 71 (level, low) -> IRQ 71
-ACPI: PCI Interrupt Link [LE5B] enabled at IRQ 67
-IOAPIC[2]: Set routing entry (10-19 -> 0xb1 -> IRQ 67 Mode:1 Active:1)
-pci 0000:83:00.0: PCI INT B -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 67
-ACPI: PCI Interrupt Link [LE5A] enabled at IRQ 66
-IOAPIC[2]: Set routing entry (10-18 -> 0xb9 -> IRQ 66 Mode:1 Active:1)
-pci 0000:83:00.1: PCI INT A -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-ACPI: PCI Interrupt Link [LE5D] enabled at IRQ 65
-IOAPIC[2]: Set routing entry (10-17 -> 0xc1 -> IRQ 65 Mode:1 Active:1)
-pci 0000:84:00.0: PCI INT B -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 65
-ACPI: PCI Interrupt Link [LE5C] enabled at IRQ 64
-IOAPIC[2]: Set routing entry (10-16 -> 0xc9 -> IRQ 64 Mode:1 Active:1)
-pci 0000:84:00.1: PCI INT A -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 64
-pci 0000:87:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-pci 0000:87:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 65
-pci 0000:88:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 64
-pci 0000:88:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 67
-pci 0000:8b:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-pci 0000:8b:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 65
-pci 0000:8c:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 64
-pci 0000:8c:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 67
-
-[ Impact: make irq = gsi on 32bit system with more ioapics ]
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- arch/x86/kernel/acpi/boot.c |   65 ++++----------------------------------------
- 1 file changed, 7 insertions(+), 58 deletions(-)
-
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -1162,22 +1162,9 @@ int mp_register_gsi(struct device *dev,
- {
- 	int ioapic;
- 	int ioapic_pin;
--#ifdef CONFIG_X86_32
--#define MAX_GSI_NUM	4096
--#define IRQ_COMPRESSION_START	64
--
--	static int pci_irq = IRQ_COMPRESSION_START;
--	/*
--	 * Mapping between Global System Interrupts, which
--	 * represent all possible interrupts, and IRQs
--	 * assigned to actual devices.
--	 */
--	static int gsi_to_irq[MAX_GSI_NUM];
--#else
- 
- 	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
- 		return gsi;
--#endif
- 
- 	/* Don't set up the ACPI SCI because it's already set up */
- 	if (acpi_gbl_FADT.sci_interrupt == gsi)
-@@ -1196,66 +1183,28 @@ int mp_register_gsi(struct device *dev,
- 		gsi = ioapic_renumber_irq(ioapic, gsi);
- #endif
- 
--	/*
--	 * Avoid pin reprogramming.  PRTs typically include entries
--	 * with redundant pin->gsi mappings (but unique PCI devices);
--	 * we only program the IOAPIC on the first.
--	 */
- 	if (ioapic_pin > MP_MAX_IOAPIC_PIN) {
- 		printk(KERN_ERR "Invalid reference to IOAPIC pin "
- 		       "%d-%d\n", mp_ioapic_routing[ioapic].apic_id,
- 		       ioapic_pin);
- 		return gsi;
- 	}
-+
-+	/*
-+	 * Avoid pin reprogramming.  PRTs typically include entries
-+	 * with redundant pin->gsi mappings (but unique PCI devices);
-+	 * we only program the IOAPIC on the first.
-+	 */
- 	if (test_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed)) {
- 		pr_debug("Pin %d-%d already programmed\n",
- 			 mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
--#ifdef CONFIG_X86_32
--		return (gsi < IRQ_COMPRESSION_START ? gsi : gsi_to_irq[gsi]);
--#else
- 		return gsi;
--#endif
- 	}
--
- 	set_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed);
--#ifdef CONFIG_X86_32
--	/*
--	 * For GSI >= 64, use IRQ compression
--	 */
--	if ((gsi >= IRQ_COMPRESSION_START)
--	    && (triggering == ACPI_LEVEL_SENSITIVE)) {
--		/*
--		 * For PCI devices assign IRQs in order, avoiding gaps
--		 * due to unused I/O APIC pins.
--		 */
--		int irq = gsi;
--		if (gsi < MAX_GSI_NUM) {
--			/*
--			 * Retain the VIA chipset work-around (gsi > 15), but
--			 * avoid a problem where the 8254 timer (IRQ0) is setup
--			 * via an override (so it's not on pin 0 of the ioapic),
--			 * and at the same time, the pin 0 interrupt is a PCI
--			 * type.  The gsi > 15 test could cause these two pins
--			 * to be shared as IRQ0, and they are not shareable.
--			 * So test for this condition, and if necessary, avoid
--			 * the pin collision.
--			 */
--			gsi = pci_irq++;
--			/*
--			 * Don't assign IRQ used by ACPI SCI
--			 */
--			if (gsi == acpi_gbl_FADT.sci_interrupt)
--				gsi = pci_irq++;
--			gsi_to_irq[irq] = gsi;
--		} else {
--			printk(KERN_ERR "GSI %u is too high\n", gsi);
--			return gsi;
--		}
--	}
--#endif
- 	io_apic_set_pci_routing(dev, ioapic, ioapic_pin, gsi,
- 				triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
- 				polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
-+
- 	return gsi;
- }
- 
+-- 
+Corentin Chary
+http://xf.iksaif.net
