@@ -1,213 +1,87 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: EEE PC hangs when booting off battery
-Date: Sun, 26 Apr 2009 12:34:06 +0100
-Message-ID: <49F446AE.6070607@tuffmail.co.uk>
-References: <49E065CF.6040408@tuffmail.co.uk> <200904140859.02188.bjorn.helgaas@hp.com> <20090414081728.10de978a@infradead.org> <200904140948.37633.bjorn.helgaas@hp.com> <49E5F01B.2060201@tuffmail.co.uk> <49EF0ABD.2080801@tuffmail.co.uk>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
+Date: Mon, 27 Apr 2009 12:18:02 +0200
+Message-ID: <200904271218.02906.trenn@suse.de>
+References: <87k5691x3y.fsf@olivierberger.com> <200904021502.31021.trenn@suse.de> <87ws98r0fl.fsf@olivierberger.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754131AbZDZLe2@vger.kernel.org>
-In-Reply-To: <49EF0ABD.2080801@tuffmail.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:39441 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753115AbZD0KSF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Apr 2009 06:18:05 -0400
+In-Reply-To: <87ws98r0fl.fsf@olivierberger.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Olivier Berger <oberger@ouvaton.org>
+Cc: linux-acpi@vger.kernel.org
 
-Alan Jenkins wrote:
-> Alan Jenkins wrote:
->   
->> Bjorn Helgaas wrote:
->>   
->>     
->>> On Tuesday 14 April 2009 09:17:28 am Arjan van de Ven wrote:
->>>   
->>>     
->>>       
->>>> On Tue, 14 Apr 2009 08:59:01 -0600
->>>> Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
->>>>
->>>>     
->>>>       
->>>>         
->>>>> I can't help with the real problem of why the asynchronous battery
->>>>> init causes the hang.
->>>>>       
->>>>>         
->>>>>           
->>>> that got fixed already for the module case.
->>>>     
->>>>       
->>>>         
->>> But apparently still broken for the builtin case?  I think Alan is
->>> running pretty new bits -- he said "latest git" on April 11.
->>>   
->>>     
->>>       
->> It's now fixed, in 2.6.30-rc2.  My battery is modular btw.  I suspect
->>
->> 5d38258ec026921a7b266f4047ebeaa75db358e5 "ACPI battery: fix async boot
->> oops" [removal of __init]
->>
->> was not sufficient to fix my problem, but it was solved by the "real" fix,
->>
->> d6de2c80e9d758d2e36c21699117db6178c0f517 "async: Fix module loading
->> async-work regression" [module loading waits on async work]
->>
->>
->> I would argue there's still a question over why the asynchronous battery
->> init (_with_ the oops fix) should cause a hang in the idle routine.  But
->> since the regression is fixed, it's not exactly an urgent question.
->>   
->>     
->
-> Ugh.  Recently I tried building the battery driver into the kernel, to
-> benefit from the async work.  Later, I tried booting from the battery
-> and it hung again.
->
-> This time, the kernel did not even respond to SysRq.  I tried
-> nmi_watchdog=1 and waiting 2 minutes, but the watchdog didn't trigger
-> either.  As before, it doesn't happen with acpi=off.
->
-> I checked that this still happened in todays rc3, and it doesn't happen
-> if I revert
->
-> 0f66af530116e9f4dd97f328d91718b56a6fc5a4 "ACPI: battery: asynchronous init"
->
->   
+On Saturday 25 April 2009 21:35:42 Olivier Berger wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Hi.
+> 
+> Following advice from Thomas Renninger, I hereby propose a patch for the
+> ACPI blacklisting kernel code, that I've successfully applied to kernel
+> 2.6.26-15, that allows ACPI detection on Asus P4B266 mainboards.
+Hmm, there seem to be different models of this motherboard series:
+P4B266
+P4B266-C
+P4B266-E
+P4B266-M
+P4B266-SE
 
-It looks like my hang is caused by linkwatch_event() deadlocking on
-rtnl_lock().  I can't see any direct connection to asynchronous battery
-init, so perhaps that is just revealing a bug by changing the timing.
+P4B266 and P4B266-SE seem to have a similar BIOS history and the latest
+for both is: Beta Version 1011.003 
 
-It appears I wasn't patient enough for hung task detection.  If I leave
-it long enough, I see:
+The rest has a similar version string, but different latest BIOS versions
+(e.g. 1007)
 
-<scrolled off top of screen>
-? kobject_uevent_env
-? kobject_uevent_env
-__mutex_lock_slowpath
-mutex_lock
-rtnl_lock
-linkwatch_event
-worker_thread
-? linkwatch_event
-? autoremove_wake_function
-? worker_thread
-kthread
-kernel_thread_helper
+The dmi blacklisting currently done in the kernel is probably matching
+all of above and is rather unfortunate.
+We could have:
+  - A BIOS update which makes all of above models work with acpi(=force)
+    well. Then your patch is perfect.
+
+  - One or more of above (latest) BIOSes does not work well with acpi=force
+    still.
+    Then we'd get regressions and some people will moan about that and
+    the patch will get reverted. In this case we should find out which
+    kind of BIOS/mainboard it is and enhance the blacklisting to only
+    match this(these) -> dmidecode is needed to be able to blacklist more
+    fine grained.
+
+> Maybe there could be a smarter version that would allow blacklisting for
+> same mainboards with older BIOS versions than the one I'm using, but I
+> don't know if/how that'd be possible. So the patch I propose is pretty
+> obvious.
+> 
+> FYI, here are some reports that mention acpi=force working succesfully
+> for P4B266 mainboards (in english and german) :
+> 
+> http://forums.fedoraforum.org/showpost.php?p=669615&postcount=5 / http://fedoraforum.org/forum/showpost.php?p=669615&postcount=5
+> https://lists.ubuntu.com/archives/kernel-bugs/2006-November/023486.html / https://bugs.launchpad.net/linux/+bug/43961/comments/145
+> http://forum.ubuntuusers.de/topic/automatische-abschaltung/#post-249151
+> http://www.pc-forum24.de/suse-system-installieren/3031-suse-10-2-laesst-sich-nicht-ausschalten.html#post13729
+> 
+> I hope this won't break things for different BIOS versions than mine,
+That's the risk and we should try to find out more first.
+
+I wonder whether it's worth that at all, one of the latest BIOSes is from:
+2003/06/10
+
+> and that this will on the other hand allow lots of users to benefit from
+> working ACPI.
+It should be best if you state in above references that these guys
+must use acpi=force.
+Others should find it then via google.
+That's the easiest and safest way.
+I tried to find out who and why this got added, but this exists even before
+git history...
 
 
-INFO: task modprobe:485 blocked for more than 120 seconds
-Call trace:
-? __atomic_notifier_call_chain
-schedule
-schedule_timeout
-? notify_update
-? do_con_write
-? __wake_up
-wait_for_common
-? default_wake_function
-wait_for_completion
-flush_cpu_workqueue
-? wq_barrier_func
-flush_workqueue
-flush_scheduled_work
-tty_ldisc_release
-? tty_fasyc
-tty_release_dev
-? free_pgtables
-tty_release
-__fput
-filp_close
-sys_close
-syscall_call
-? __send_remote_softirq
-? usecs_to_jiffies
-
-
-I then seem to get another repetition of the second calltrace, followed
-by a new one
-
-INFO: task swapper:1 blocked for more than 120 seconds
-Call trace:
-schedule
-schedule_timeout
-? __wake_up_common
-? wake_up
-wait_for_common
-wait_for_completion
-call_usermodehelper_exec
-__request_module
-crypto_larval_lookup
-? extract_entropy
-crypto_alg_mod_lookup
-crypto_alloc_base
-ieee80211_wep_init
-ieee80211_register_hw
-? ath5k_hw_set_bss
-ath5k+pci_probe
-local_pci_probe
-pci_device_probe
-driver_probe_device
-__driver_attach
-bus_for_each_dev
-driver_attach
-? __driver_attach
-buad_add_driver
-driver_register
-? ktime_get_ts
-__pci_register_driver
-init_ath5k_pci
-_stext
-? init_ath5k_pci
-? proc_create_data
-? register_ieq_proc
-kernel_init
-? kernel_init
-kernel_thread_helper
-
-
-
-
-The hang happens at this point:
-
-[    0.967588] scsi 1:0:0:0: Direct-Access     ATA      SILICONMOTION SM
-n/a  PQ: 0 ANSI: 5
-[    0.968049] calling  4_sd_probe_async+0x0/0x225 @ 323
-[    0.968313] initcall 3_async_port_probe+0x0/0x95 returned 0 after
-343051 usecs
-<mark> (see below).
-[    0.968786] sd 1:0:0:0: [sda] 7815024 512-byte hardware sectors:
-(4.00 GB/3.72 GiB)
-[    0.968964] sd 1:0:0:0: [sda] Write Protect is off
-[    0.969062] sd 1:0:0:0: [sda] Mode Sense: 00 3a 00 00
-[    0.969132] sd 1:0:0:0: [sda] Write cache: disabled, read cache:
-enabled, doesn't support DPO or FUA
-[    0.969543]  sda: sda1 sda2
-[    0.970965] sd 1:0:0:0: [sda] Attached SCSI disk
-[    0.971073] initcall 4_sd_probe_async+0x0/0x225 returned 0 after 2849
-usecs
-
-On a successful boot, the next lines are
-
-[    0.971188] async_continuing @ 1 after 2483 usec
-[    0.971305] Freeing unused kernel memory: 256k freed
-[    1.071724] calling  ata_generic_init+0x0/0x19 [ata_generic] @ 574
-[    1.073798] initcall ata_generic_init+0x0/0x19 [ata_generic] returned
-0 after 144 usecs
-[    1.183372] Clocksource tsc unstable (delta = -128600689 ns)
-[    2.035932] EXT4-fs: delayed allocation enabled
-
-Also, on a successful boot, I see these additional lines at the point
-<mark> above.
-
-[    0.968461] async_continuing @ 1 after 76663 usec
-[    0.968556] async_waiting @ 1
-
-In fact, when the hang happens I can see no "async_waiting @ 1" on my
-50-line screen.  Which makes sense if  the kernel init process is hung
-in init_athk_pci().
-
-
-Thanks
-Alan
+     Thomas
