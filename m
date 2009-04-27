@@ -1,131 +1,152 @@
-From: Robert Szalai <krumpirluk@gmail.com>
-Subject: Re: [Help] I can't get Intel Speedstep working
-Date: Mon, 27 Apr 2009 07:51:57 +0200
-Message-ID: <cd5c26b90904262251x37ea5bb2q4885cec9b3e56695@mail.gmail.com>
-References: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com>
-	 <cd5c26b90903110540l19a721d1k1b7102f6f5c71d29@mail.gmail.com>
-	 <49DFE813.3020705@gmail.com>
-	 <alpine.LFD.2.00.0904102242160.8559@localhost.localdomain>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] x86/acpi: calling mp_config_acpi_gsi in mp_register_gsi -v2
+Date: Sun, 26 Apr 2009 18:12:49 -0700
+Message-ID: <49F50691.7070209@kernel.org>
+References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain> <49F4D7CB.4040406@kernel.org> <49F4D84E.4030401@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:54419 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821AbZD0Fv6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2009 01:51:58 -0400
-Received: by ewy24 with SMTP id 24so1943614ewy.37
-        for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2009 22:51:57 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.00.0904102242160.8559@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754921AbZD0BOY@vger.kernel.org>
+In-Reply-To: <49F4D84E.4030401@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Robert Hancock <hancockrwd@gmail.com>, linux-acpi@vger.kernel.org
 
-Thank you for your reply.
+it seems that change about calling mp_config_acpi_gsi in acpi_pci_irq_enable()
+never get into mainline.
 
-I'm using the latest kernel now (2.6.30 rc3) but the situation hasn't c=
-hanged.
-Actually I have no Speedstep option in my BIOS at all, but according to=
- the
-manufacturer it should work out of box (and it really works in Windows)=
-=2E
-I've flashed the latest BIOS of course and my CPU is supported by the
-manufacturer
-according to their website. (It's a Shuttle K48 by the way).
+actually we could call that in mp_register_gsi with struct device...
+also could make mp_config_acpi_gsi to be static
 
-Here is my dmesg and full acpidump:
+v2: some calling could have to be pci device, need to check that
 
-http://www.easy-share.com/1904779435/dmesg.txt
-http://www.easy-share.com/1904779378/acpidump.txt
+[Impact: make update_mptable working]
 
-It is strange that I can't find any FADT table after extracting my
-acpidump (with acpixtract -a).
-Is there any hope for fixing Speedstep on my box?
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
-Thank you very much
-Robert Szalai
+---
+ arch/x86/include/asm/mpspec.h |    9 -----
+ arch/x86/kernel/acpi/boot.c   |   66 +++++++++++++++++++++++++-----------------
+ 2 files changed, 40 insertions(+), 35 deletions(-)
 
-2009/4/11 Len Brown <lenb@kernel.org>:
->
->
-> On Fri, 10 Apr 2009, Robert Hancock wrote:
->
->> Robert Szalai wrote:
->> > Hello everybody,
->> >
->> > I have a Shuttle K48 Barebone PC (Intel 945GC + ICH7 chipset) and =
-a
->> > Core 2 Duo E7300 CPU. I'm using Ubuntu 8.04 with 2.6.24-23-generic
->> > kernel on my box. Everything works fine except Speedstep. When I t=
-ry
->> > to load acpi_cpufreq module, I get the following error:
->
-> Please try 2.6.29.
->
->> > $ sudo modprobe acpi_cpufreq
->> > FATAL: Error inserting acpi_cpufreq
->> > (/lib/modules/2.6.24-23-generic/kernel/arch/x86/kernel/cpu/cpufreq=
-/acpi-cpufreq.ko):
->> > No such device
->> >
->> > I've tried everything (other kernel versions, various patches) but=
- the
->> > result is the same.
->> > I don't know if it is related to EIST or not but I've found these =
-two
->> > Exceptions in my dmesg:
->> >
->> > [ =A0 20.675593] ACPI Exception (processor_core-0822): AE_NOT_FOUN=
-D,
->> > Processor Device is not present [20070126]
->> > [ =A0 20.675599] ACPI Exception (processor_core-0822): AE_NOT_FOUN=
-D,
->> > Processor Device is not present [20070126]
->
-> This is actually sort of curious, but I'm too lazy to see why 2.6.24
-> blurts this. =A0Let me know if 2.6.29 still does.
->
->> > After some research I've found that maybe a broken DSDT table is t=
-he
->> > couse of my problem. I'm not an ACPI expert and I dont't know how =
-to
->> > locate and fix the problem in my DSDT. I've uploaded my dsdt.dsl t=
-o
->> >
->> > http://www.easy-share.com/1903982677/dsdt.dsl
->> >
->> > Any suggestions? I'd really like to use Speedstep on my Box.
->> > You are my last hope Guys.
->>
->> Your system doesn't seem to have anything interesting regarding CPU =
-frequency
->> scaling in the DSDT, but it's often in the FADT instead. Posting a f=
-ull
->> acpidump might be more useful..
->
-> yes, and the full dmesg please.
-> It is common for _PSS etc. to be dynamically loaded (though your DSDT=
- has
-> no Load's in it, so not in this case), or it could be included in an =
-SSDT
-> that we'd see in the acpidump.
->
->> Also make sure that any BIOS settings to allow CPU frequency scaling=
- are
->> enabled.
->
-> As it is a bare-bones system, you might also want to verify that you'=
-ve
-> got the latest BIOS for the board. =A0It is possible that the BIOS
-> you have doesn't know about the processor you have.
->
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-2.6/arch/x86/include/asm/mpspec.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/mpspec.h
++++ linux-2.6/arch/x86/include/asm/mpspec.h
+@@ -77,17 +77,8 @@ extern int mp_register_gsi(struct device
+ 				 int active_high_low);
+ extern int acpi_probe_gsi(void);
+ #ifdef CONFIG_X86_IO_APIC
+-extern int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
+-				u32 gsi, int triggering, int polarity);
+ extern int mp_find_ioapic(int gsi);
+ extern int mp_find_ioapic_pin(int ioapic, int gsi);
+-#else
+-static inline int
+-mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
+-		   u32 gsi, int triggering, int polarity)
+-{
+-	return 0;
+-}
+ #endif
+ #else /* !CONFIG_ACPI: */
+ static inline int acpi_probe_gsi(void)
+Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
++++ linux-2.6/arch/x86/kernel/acpi/boot.c
+@@ -33,6 +33,7 @@
+ #include <linux/irq.h>
+ #include <linux/bootmem.h>
+ #include <linux/ioport.h>
++#include <linux/pci.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/io_apic.h>
+@@ -1158,6 +1159,44 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	}
+ }
+ 
++static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int triggering,
++			int polarity)
++{
++#ifdef CONFIG_X86_MPPARSE
++	struct mpc_intsrc mp_irq;
++	struct pci_dev *pdev;
++	unsigned char number;
++	unsigned int devfn;
++	int ioapic;
++	u8 pin;
++
++	if (!acpi_ioapic)
++		return 0;
++	if (!dev)
++		return 0;
++	if (dev->bus != &pci_bus_type)
++		return 0;
++
++	pdev = to_pci_dev(dev);
++	number = pdev->bus->number;
++	devfn = pdev->devfn;
++	pin = pdev->pin;
++	/* print the entry should happen on mptable identically */
++	mp_irq.type = MP_INTSRC;
++	mp_irq.irqtype = mp_INT;
++	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
++				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
++	mp_irq.srcbus = number;
++	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
++	ioapic = mp_find_ioapic(gsi);
++	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
++	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
++
++	save_mp_irq(&mp_irq);
++#endif
++	return 0;
++}
++
+ int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
+ {
+ 	int ioapic;
+@@ -1189,6 +1228,7 @@ int mp_register_gsi(struct device *dev,
+ 		       ioapic_pin);
+ 		return gsi;
+ 	}
++	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
+ 
+ 	/*
+ 	 * Avoid pin reprogramming.  PRTs typically include entries
+@@ -1208,32 +1248,6 @@ int mp_register_gsi(struct device *dev,
+ 	return gsi;
+ }
+ 
+-int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
+-			u32 gsi, int triggering, int polarity)
+-{
+-#ifdef CONFIG_X86_MPPARSE
+-	struct mpc_intsrc mp_irq;
+-	int ioapic;
+-
+-	if (!acpi_ioapic)
+-		return 0;
+-
+-	/* print the entry should happen on mptable identically */
+-	mp_irq.type = MP_INTSRC;
+-	mp_irq.irqtype = mp_INT;
+-	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
+-				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
+-	mp_irq.srcbus = number;
+-	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
+-	ioapic = mp_find_ioapic(gsi);
+-	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
+-	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
+-
+-	save_mp_irq(&mp_irq);
+-#endif
+-	return 0;
+-}
+-
+ /*
+  * Parse IOAPIC related entries in MADT
+  * returns 0 on success, < 0 on error
