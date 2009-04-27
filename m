@@ -1,188 +1,131 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86/acpi: remove compress irq trick for 32bit
-Date: Mon, 27 Apr 2009 05:30:12 +0200
-Message-ID: <20090427033012.GB10087@elte.hu>
-References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain> <49F4D7CB.4040406@kernel.org>
+From: Robert Szalai <krumpirluk@gmail.com>
+Subject: Re: [Help] I can't get Intel Speedstep working
+Date: Mon, 27 Apr 2009 07:51:57 +0200
+Message-ID: <cd5c26b90904262251x37ea5bb2q4885cec9b3e56695@mail.gmail.com>
+References: <cd5c26b90903110528x6762c035xb5bc26aa31f22c26@mail.gmail.com>
+	 <cd5c26b90903110540l19a721d1k1b7102f6f5c71d29@mail.gmail.com>
+	 <49DFE813.3020705@gmail.com>
+	 <alpine.LFD.2.00.0904102242160.8559@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754965AbZD0Dbm@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <49F4D7CB.4040406@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Tejun Heo <tj@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:54419 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753821AbZD0Fv6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2009 01:51:58 -0400
+Received: by ewy24 with SMTP id 24so1943614ewy.37
+        for <linux-acpi@vger.kernel.org>; Sun, 26 Apr 2009 22:51:57 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.0904102242160.8559@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Robert Hancock <hancockrwd@gmail.com>, linux-acpi@vger.kernel.org
 
+Thank you for your reply.
 
-* Yinghai Lu <yinghai@kernel.org> wrote:
+I'm using the latest kernel now (2.6.30 rc3) but the situation hasn't c=
+hanged.
+Actually I have no Speedstep option in my BIOS at all, but according to=
+ the
+manufacturer it should work out of box (and it really works in Windows)=
+=2E
+I've flashed the latest BIOS of course and my CPU is supported by the
+manufacturer
+according to their website. (It's a Shuttle K48 by the way).
 
-> 
-> We already have per cpu vector for 32bit, and don't need this trick any more.
-> 
-> on 3 ioapic system (24 per ioapic) before patch got
-> ACPI: PCI Interrupt Link [ILSB] enabled at IRQ 71
-> IOAPIC[2]: Set routing entry (10-23 -> 0xa9 -> IRQ 64 Mode:1 Active:1)
-> pci 0000:80:01.1: PCI INT A -> Link[ILSB] -> GSI 71 (level, low) -> IRQ 64
-> ACPI: PCI Interrupt Link [LE5B] enabled at IRQ 67
-> IOAPIC[2]: Set routing entry (10-19 -> 0xb1 -> IRQ 65 Mode:1 Active:1)
-> pci 0000:83:00.0: PCI INT B -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 65
-> ACPI: PCI Interrupt Link [LE5A] enabled at IRQ 66
-> IOAPIC[2]: Set routing entry (10-18 -> 0xb9 -> IRQ 66 Mode:1 Active:1)
-> pci 0000:83:00.1: PCI INT A -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-> ACPI: PCI Interrupt Link [LE5D] enabled at IRQ 65
-> IOAPIC[2]: Set routing entry (10-17 -> 0xc1 -> IRQ 67 Mode:1 Active:1)
-> pci 0000:84:00.0: PCI INT B -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 67
-> ACPI: PCI Interrupt Link [LE5C] enabled at IRQ 64
-> IOAPIC[2]: Set routing entry (10-16 -> 0xc9 -> IRQ 68 Mode:1 Active:1)
-> pci 0000:84:00.1: PCI INT A -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 68
-> pci 0000:87:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-> pci 0000:87:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 67
-> pci 0000:88:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 68
-> pci 0000:88:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 65
-> pci 0000:8b:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-> pci 0000:8b:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 67
-> pci 0000:8c:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 68
-> pci 0000:8c:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 65
-> 
-> after patch will get
-> ACPI: PCI Interrupt Link [ILSB] enabled at IRQ 71
-> IOAPIC[2]: Set routing entry (10-23 -> 0xa9 -> IRQ 71 Mode:1 Active:1)
-> pci 0000:80:01.1: PCI INT A -> Link[ILSB] -> GSI 71 (level, low) -> IRQ 71
-> ACPI: PCI Interrupt Link [LE5B] enabled at IRQ 67
-> IOAPIC[2]: Set routing entry (10-19 -> 0xb1 -> IRQ 67 Mode:1 Active:1)
-> pci 0000:83:00.0: PCI INT B -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 67
-> ACPI: PCI Interrupt Link [LE5A] enabled at IRQ 66
-> IOAPIC[2]: Set routing entry (10-18 -> 0xb9 -> IRQ 66 Mode:1 Active:1)
-> pci 0000:83:00.1: PCI INT A -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-> ACPI: PCI Interrupt Link [LE5D] enabled at IRQ 65
-> IOAPIC[2]: Set routing entry (10-17 -> 0xc1 -> IRQ 65 Mode:1 Active:1)
-> pci 0000:84:00.0: PCI INT B -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 65
-> ACPI: PCI Interrupt Link [LE5C] enabled at IRQ 64
-> IOAPIC[2]: Set routing entry (10-16 -> 0xc9 -> IRQ 64 Mode:1 Active:1)
-> pci 0000:84:00.1: PCI INT A -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 64
-> pci 0000:87:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-> pci 0000:87:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 65
-> pci 0000:88:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 64
-> pci 0000:88:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 67
-> pci 0000:8b:00.0: PCI INT B -> Link[LE5A] -> GSI 66 (level, low) -> IRQ 66
-> pci 0000:8b:00.1: PCI INT A -> Link[LE5D] -> GSI 65 (level, low) -> IRQ 65
-> pci 0000:8c:00.0: PCI INT B -> Link[LE5C] -> GSI 64 (level, low) -> IRQ 64
-> pci 0000:8c:00.1: PCI INT A -> Link[LE5B] -> GSI 67 (level, low) -> IRQ 67
-> 
-> [ Impact: make irq = gsi on 32bit system with more ioapics ]
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> ---
->  arch/x86/kernel/acpi/boot.c |   65 ++++----------------------------------------
->  1 file changed, 7 insertions(+), 58 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-> +++ linux-2.6/arch/x86/kernel/acpi/boot.c
-> @@ -1162,22 +1162,9 @@ int mp_register_gsi(struct device *dev,
->  {
->  	int ioapic;
->  	int ioapic_pin;
-> -#ifdef CONFIG_X86_32
-> -#define MAX_GSI_NUM	4096
-> -#define IRQ_COMPRESSION_START	64
-> -
-> -	static int pci_irq = IRQ_COMPRESSION_START;
-> -	/*
-> -	 * Mapping between Global System Interrupts, which
-> -	 * represent all possible interrupts, and IRQs
-> -	 * assigned to actual devices.
-> -	 */
-> -	static int gsi_to_irq[MAX_GSI_NUM];
-> -#else
->  
->  	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
->  		return gsi;
-> -#endif
->  
->  	/* Don't set up the ACPI SCI because it's already set up */
->  	if (acpi_gbl_FADT.sci_interrupt == gsi)
-> @@ -1196,66 +1183,28 @@ int mp_register_gsi(struct device *dev,
->  		gsi = ioapic_renumber_irq(ioapic, gsi);
->  #endif
->  
-> -	/*
-> -	 * Avoid pin reprogramming.  PRTs typically include entries
-> -	 * with redundant pin->gsi mappings (but unique PCI devices);
-> -	 * we only program the IOAPIC on the first.
-> -	 */
->  	if (ioapic_pin > MP_MAX_IOAPIC_PIN) {
->  		printk(KERN_ERR "Invalid reference to IOAPIC pin "
->  		       "%d-%d\n", mp_ioapic_routing[ioapic].apic_id,
->  		       ioapic_pin);
->  		return gsi;
->  	}
-> +
-> +	/*
-> +	 * Avoid pin reprogramming.  PRTs typically include entries
-> +	 * with redundant pin->gsi mappings (but unique PCI devices);
-> +	 * we only program the IOAPIC on the first.
-> +	 */
->  	if (test_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed)) {
->  		pr_debug("Pin %d-%d already programmed\n",
->  			 mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
-> -#ifdef CONFIG_X86_32
-> -		return (gsi < IRQ_COMPRESSION_START ? gsi : gsi_to_irq[gsi]);
-> -#else
->  		return gsi;
-> -#endif
->  	}
-> -
->  	set_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed);
-> -#ifdef CONFIG_X86_32
-> -	/*
-> -	 * For GSI >= 64, use IRQ compression
-> -	 */
-> -	if ((gsi >= IRQ_COMPRESSION_START)
-> -	    && (triggering == ACPI_LEVEL_SENSITIVE)) {
-> -		/*
-> -		 * For PCI devices assign IRQs in order, avoiding gaps
-> -		 * due to unused I/O APIC pins.
-> -		 */
-> -		int irq = gsi;
-> -		if (gsi < MAX_GSI_NUM) {
-> -			/*
-> -			 * Retain the VIA chipset work-around (gsi > 15), but
-> -			 * avoid a problem where the 8254 timer (IRQ0) is setup
-> -			 * via an override (so it's not on pin 0 of the ioapic),
-> -			 * and at the same time, the pin 0 interrupt is a PCI
-> -			 * type.  The gsi > 15 test could cause these two pins
-> -			 * to be shared as IRQ0, and they are not shareable.
-> -			 * So test for this condition, and if necessary, avoid
-> -			 * the pin collision.
-> -			 */
-> -			gsi = pci_irq++;
-> -			/*
-> -			 * Don't assign IRQ used by ACPI SCI
-> -			 */
-> -			if (gsi == acpi_gbl_FADT.sci_interrupt)
-> -				gsi = pci_irq++;
-> -			gsi_to_irq[irq] = gsi;
-> -		} else {
-> -			printk(KERN_ERR "GSI %u is too high\n", gsi);
-> -			return gsi;
-> -		}
-> -	}
-> -#endif
->  	io_apic_set_pci_routing(dev, ioapic, ioapic_pin, gsi,
->  				triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
->  				polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
-> +
->  	return gsi;
->  }
->  
+Here is my dmesg and full acpidump:
 
-Nice!
+http://www.easy-share.com/1904779435/dmesg.txt
+http://www.easy-share.com/1904779378/acpidump.txt
 
-  Acked-by: Ingo Molnar <mingo@elte.hu>
+It is strange that I can't find any FADT table after extracting my
+acpidump (with acpixtract -a).
+Is there any hope for fixing Speedstep on my box?
 
-Len, any preference about which tree should carry this?
+Thank you very much
+Robert Szalai
 
-	Ingo
+2009/4/11 Len Brown <lenb@kernel.org>:
+>
+>
+> On Fri, 10 Apr 2009, Robert Hancock wrote:
+>
+>> Robert Szalai wrote:
+>> > Hello everybody,
+>> >
+>> > I have a Shuttle K48 Barebone PC (Intel 945GC + ICH7 chipset) and =
+a
+>> > Core 2 Duo E7300 CPU. I'm using Ubuntu 8.04 with 2.6.24-23-generic
+>> > kernel on my box. Everything works fine except Speedstep. When I t=
+ry
+>> > to load acpi_cpufreq module, I get the following error:
+>
+> Please try 2.6.29.
+>
+>> > $ sudo modprobe acpi_cpufreq
+>> > FATAL: Error inserting acpi_cpufreq
+>> > (/lib/modules/2.6.24-23-generic/kernel/arch/x86/kernel/cpu/cpufreq=
+/acpi-cpufreq.ko):
+>> > No such device
+>> >
+>> > I've tried everything (other kernel versions, various patches) but=
+ the
+>> > result is the same.
+>> > I don't know if it is related to EIST or not but I've found these =
+two
+>> > Exceptions in my dmesg:
+>> >
+>> > [ =A0 20.675593] ACPI Exception (processor_core-0822): AE_NOT_FOUN=
+D,
+>> > Processor Device is not present [20070126]
+>> > [ =A0 20.675599] ACPI Exception (processor_core-0822): AE_NOT_FOUN=
+D,
+>> > Processor Device is not present [20070126]
+>
+> This is actually sort of curious, but I'm too lazy to see why 2.6.24
+> blurts this. =A0Let me know if 2.6.29 still does.
+>
+>> > After some research I've found that maybe a broken DSDT table is t=
+he
+>> > couse of my problem. I'm not an ACPI expert and I dont't know how =
+to
+>> > locate and fix the problem in my DSDT. I've uploaded my dsdt.dsl t=
+o
+>> >
+>> > http://www.easy-share.com/1903982677/dsdt.dsl
+>> >
+>> > Any suggestions? I'd really like to use Speedstep on my Box.
+>> > You are my last hope Guys.
+>>
+>> Your system doesn't seem to have anything interesting regarding CPU =
+frequency
+>> scaling in the DSDT, but it's often in the FADT instead. Posting a f=
+ull
+>> acpidump might be more useful..
+>
+> yes, and the full dmesg please.
+> It is common for _PSS etc. to be dynamically loaded (though your DSDT=
+ has
+> no Load's in it, so not in this case), or it could be included in an =
+SSDT
+> that we'd see in the acpidump.
+>
+>> Also make sure that any BIOS settings to allow CPU frequency scaling=
+ are
+>> enabled.
+>
+> As it is a bare-bones system, you might also want to verify that you'=
+ve
+> got the latest BIOS for the board. =A0It is possible that the BIOS
+> you have doesn't know about the processor you have.
+>
+> thanks,
+> -Len Brown, Intel Open Source Technology Center
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
