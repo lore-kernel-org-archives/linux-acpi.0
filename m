@@ -1,28 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: s2ram on Lenovo X300 is broken
-Date: Mon, 27 Apr 2009 22:32:25 +0200
-Message-ID: <200904272232.25666.rjw@sisk.pl>
-References: <6D80BDFB1A1FA74DA476417C24C452A102495C8361@scl-exch2k7.phoenix.com> <200904270112.28813.rjw@sisk.pl> <6D80BDFB1A1FA74DA476417C24C452A102495C837E@scl-exch2k7.phoenix.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] x86/pci: do assign root bus res if _CRS is used
+Date: Mon, 27 Apr 2009 14:39:36 -0600
+Message-ID: <200904271439.37396.bjorn.helgaas@hp.com>
+References: <49ED22EC.2040204@kernel.org> <200904271344.04099.bjorn.helgaas@hp.com> <49F61265.10201@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53010 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755151AbZD0UdK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Apr 2009 16:33:10 -0400
-In-Reply-To: <6D80BDFB1A1FA74DA476417C24C452A102495C837E@scl-exch2k7.phoenix.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <49F61265.10201@kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Gary Hade <garyhade@us.ibm.com>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>
 List-Id: linux-acpi@vger.kernel.org
-To: Kaushik Barde <Kaushik_Barde@phoenix.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Monday 27 April 2009, Kaushik Barde wrote:
-> I tried with both stable 2.6.28.9 and 2.6.29.1, and yes, issue is reproducible.
+On Monday 27 April 2009 02:15:33 pm Yinghai Lu wrote:
+> Bjorn Helgaas wrote:
+> > On Monday 20 April 2009 07:35:40 pm Yinghai Lu wrote:
+> >> it wil be overwriten later if _CRS is used, so don't bother to set it.
+> >>
+> >> [ Impact: cleanup ]
+> >>
+> >> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> >>
+> >> ---
+> >>  arch/x86/pci/amd_bus.c |    4 ++++
+> >>  1 file changed, 4 insertions(+)
+> >>
+> >> Index: linux-2.6/arch/x86/pci/amd_bus.c
+> >> ===================================================================
+> >> --- linux-2.6.orig/arch/x86/pci/amd_bus.c
+> >> +++ linux-2.6/arch/x86/pci/amd_bus.c
+> >> @@ -100,6 +100,10 @@ void x86_pci_root_bus_res_quirks(struct
+> >>  	int j;
+> >>  	struct pci_root_info *info;
+> >>  
+> >> +	/* don't go for it if _CRS is used */
+> >> +	if (pci_probe & PCI_USE__CRS)
+> >> +		return;
+> >> +
+> >>  	/* if only one root bus, don't need to anything */
+> >>  	if (pci_root_num < 2)
+> >>  		return;
+> > 
+> > This isn't a comment on this patch per se.
+> > 
+> > I am concerned about the fact that "pci=use_crs" is not the default.
+> > From the changelog of 62f420f8282, it sounds like you have to boot an
+> > IBM x3850 with "pci=use_crs" to make hot-plug work, even though ACPI
+> > tells us everything we need to know.  That's backwards.
+> > 
+> > We shouldn't need an option to tell Linux that the firmware is
+> > trustworthy.  We should have an option to *ignore* it for the times
+> > when we trip over something broken and haven't figured out a way to
+> > work around it yet.
+> 
+> other system may have broken _CRS.
 
-I thought of 2.6.30-rc3 (or later).
+Do you have examples of problems here, or are you just worried that
+there *may* be problems?
 
-Thanks,
-Rafael
+> maybe we could try to use DMI whitelist them?
+
+I don't like a whitelist because it requires ongoing maintenance
+for correctly-working machines.  A blacklist is nicer because it
+only requires maintenance for *broken* machines.  A date-based
+solution would be better from that point of view.
+
+Bjorn
