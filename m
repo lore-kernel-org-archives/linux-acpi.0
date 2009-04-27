@@ -1,87 +1,90 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
-Date: Mon, 27 Apr 2009 12:18:02 +0200
-Message-ID: <200904271218.02906.trenn@suse.de>
-References: <87k5691x3y.fsf@olivierberger.com> <200904021502.31021.trenn@suse.de> <87ws98r0fl.fsf@olivierberger.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] ACPI: idle: mark_tsc_unstable() at init-time, not
+ run-time
+Date: Mon, 27 Apr 2009 13:35:00 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.0904271334400.4529@localhost.localdomain>
+References: <alpine.LFD.2.00.0904210111530.4902@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:39441 "EHLO mx1.suse.de"
+Received: from www.tglx.de ([62.245.132.106]:32878 "EHLO www.tglx.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753115AbZD0KSF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Apr 2009 06:18:05 -0400
-In-Reply-To: <87ws98r0fl.fsf@olivierberger.com>
-Content-Disposition: inline
+	id S1752297AbZD0LgC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Apr 2009 07:36:02 -0400
+In-Reply-To: <alpine.LFD.2.00.0904210111530.4902@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olivier Berger <oberger@ouvaton.org>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Saturday 25 April 2009 21:35:42 Olivier Berger wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+On Tue, 21 Apr 2009, Len Brown wrote:
+
+> From: Len Brown <len.brown@intel.com>
 > 
-> Hi.
+> The c2 and c3 idle handlers check tsc_halts_in_c()
+> after every time they return from idle.  Um, when?:-)
 > 
-> Following advice from Thomas Renninger, I hereby propose a patch for the
-> ACPI blacklisting kernel code, that I've successfully applied to kernel
-> 2.6.26-15, that allows ACPI detection on Asus P4B266 mainboards.
-Hmm, there seem to be different models of this motherboard series:
-P4B266
-P4B266-C
-P4B266-E
-P4B266-M
-P4B266-SE
-
-P4B266 and P4B266-SE seem to have a similar BIOS history and the latest
-for both is: Beta Version 1011.003 
-
-The rest has a similar version string, but different latest BIOS versions
-(e.g. 1007)
-
-The dmi blacklisting currently done in the kernel is probably matching
-all of above and is rather unfortunate.
-We could have:
-  - A BIOS update which makes all of above models work with acpi(=force)
-    well. Then your patch is perfect.
-
-  - One or more of above (latest) BIOSes does not work well with acpi=force
-    still.
-    Then we'd get regressions and some people will moan about that and
-    the patch will get reverted. In this case we should find out which
-    kind of BIOS/mainboard it is and enhance the blacklisting to only
-    match this(these) -> dmidecode is needed to be able to blacklist more
-    fine grained.
-
-> Maybe there could be a smarter version that would allow blacklisting for
-> same mainboards with older BIOS versions than the one I'm using, but I
-> don't know if/how that'd be possible. So the patch I propose is pretty
-> obvious.
+> Move this check to init-time to remove the unnecessary
+> run-time overhead, and also to have the check complete before
+> the first entry into the idle handler.
 > 
-> FYI, here are some reports that mention acpi=force working succesfully
-> for P4B266 mainboards (in english and german) :
+> ff69f2bba67bd45514923aaedbf40fe351787c59
+> (acpi: fix of pmtimer overflow that make Cx states time incorrect)
+> replaced the hard-coded use of the PM-timer inside idle,
+> with ktime_get_readl(), which possibly uses the TSC --
+> so it is now especially prudent to detect a broken TSC
+> before entering idle.
 > 
-> http://forums.fedoraforum.org/showpost.php?p=669615&postcount=5 / http://fedoraforum.org/forum/showpost.php?p=669615&postcount=5
-> https://lists.ubuntu.com/archives/kernel-bugs/2006-November/023486.html / https://bugs.launchpad.net/linux/+bug/43961/comments/145
-> http://forum.ubuntuusers.de/topic/automatische-abschaltung/#post-249151
-> http://www.pc-forum24.de/suse-system-installieren/3031-suse-10-2-laesst-sich-nicht-ausschalten.html#post13729
+> http://bugzilla.kernel.org/show_bug.cgi?id=13087
 > 
-> I hope this won't break things for different BIOS versions than mine,
-That's the risk and we should try to find out more first.
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-I wonder whether it's worth that at all, one of the latest BIOSes is from:
-2003/06/10
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 
-> and that this will on the other hand allow lots of users to benefit from
-> working ACPI.
-It should be best if you state in above references that these guys
-must use acpi=force.
-Others should find it then via google.
-That's the easiest and safest way.
-I tried to find out who and why this got added, but this exists even before
-git history...
-
-
-     Thomas
+> ---
+>  drivers/acpi/processor_idle.c |   15 +++++----------
+>  1 files changed, 5 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 6fe1214..9d1f01e 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -581,6 +581,11 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+>  	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+>  		struct acpi_processor_cx *cx = &pr->power.states[i];
+>  
+> +#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+> +		/* TSC could halt in idle, so notify users */
+> +		if (tsc_halts_in_c(cx->type))
+> +			mark_tsc_unstable("TSC halts in idle");;
+> +#endif
+>  		switch (cx->type) {
+>  		case ACPI_STATE_C1:
+>  			cx->valid = 1;
+> @@ -871,11 +876,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+>  	kt2 = ktime_get_real();
+>  	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  
+> -#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+> -	/* TSC could halt in idle, so notify users */
+> -	if (tsc_halts_in_c(cx->type))
+> -		mark_tsc_unstable("TSC halts in idle");;
+> -#endif
+>  	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+>  
+>  	/* Tell the scheduler how much we idled: */
+> @@ -989,11 +989,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+>  		spin_unlock(&c3_lock);
+>  	}
+>  
+> -#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86)
+> -	/* TSC could halt in idle, so notify users */
+> -	if (tsc_halts_in_c(ACPI_STATE_C3))
+> -		mark_tsc_unstable("TSC halts in idle");
+> -#endif
+>  	sleep_ticks = us_to_pm_timer_ticks(idle_time);
+>  	/* Tell the scheduler how much we idled: */
+>  	sched_clock_idle_wakeup_event(sleep_ticks*PM_TIMER_TICK_NS);
+> -- 
+> 1.6.3.rc1.18.g66996
+> 
