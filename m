@@ -1,152 +1,59 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] x86/acpi: calling mp_config_acpi_gsi in mp_register_gsi -v2
-Date: Sun, 26 Apr 2009 18:12:49 -0700
-Message-ID: <49F50691.7070209@kernel.org>
-References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain> <49F4D7CB.4040406@kernel.org> <49F4D84E.4030401@kernel.org>
+From: Kaushik Barde <Kaushik_Barde@Phoenix.com>
+Subject: RE: s2ram on Lenovo X300 is broken
+Date: Sun, 26 Apr 2009 17:47:56 -0700
+Message-ID: <6D80BDFB1A1FA74DA476417C24C452A102495C837E@scl-exch2k7.phoenix.com>
+References: <6D80BDFB1A1FA74DA476417C24C452A102495C8361@scl-exch2k7.phoenix.com>
+ <200904270112.28813.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754921AbZD0BOY@vger.kernel.org>
-In-Reply-To: <49F4D84E.4030401@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from scl-exch2k.phoenix.com ([216.148.212.222]:37138 "EHLO
+	scl-exch2k.phoenix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260AbZD0Arw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Apr 2009 20:47:52 -0400
+In-Reply-To: <200904270112.28813.rjw@sisk.pl>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-it seems that change about calling mp_config_acpi_gsi in acpi_pci_irq_enable()
-never get into mainline.
+I tried with both stable 2.6.28.9 and 2.6.29.1, and yes, issue is reproducible.
 
-actually we could call that in mp_register_gsi with struct device...
-also could make mp_config_acpi_gsi to be static
+On 28.9, if move AP (disable_nonboot_cpu) before suspend_console followed by a msleep(500), and keep it seem to work OK. But I don't like it.
 
-v2: some calling could have to be pci device, need to check that
+On 29.1, looks like order is changed again, that solution does not work.
 
-[Impact: make update_mptable working]
+Either-way, its stopping somewhere in __cpu_down, I need to track it down.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+-Kaushik
 
----
- arch/x86/include/asm/mpspec.h |    9 -----
- arch/x86/kernel/acpi/boot.c   |   66 +++++++++++++++++++++++++-----------------
- 2 files changed, 40 insertions(+), 35 deletions(-)
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+Sent: Sunday, April 26, 2009 4:12 PM
+To: Kaushik Barde
+Cc: linux-acpi@vger.kernel.org
+Subject: Re: s2ram on Lenovo X300 is broken
 
-Index: linux-2.6/arch/x86/include/asm/mpspec.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/mpspec.h
-+++ linux-2.6/arch/x86/include/asm/mpspec.h
-@@ -77,17 +77,8 @@ extern int mp_register_gsi(struct device
- 				 int active_high_low);
- extern int acpi_probe_gsi(void);
- #ifdef CONFIG_X86_IO_APIC
--extern int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
--				u32 gsi, int triggering, int polarity);
- extern int mp_find_ioapic(int gsi);
- extern int mp_find_ioapic_pin(int ioapic, int gsi);
--#else
--static inline int
--mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
--		   u32 gsi, int triggering, int polarity)
--{
--	return 0;
--}
- #endif
- #else /* !CONFIG_ACPI: */
- static inline int acpi_probe_gsi(void)
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -33,6 +33,7 @@
- #include <linux/irq.h>
- #include <linux/bootmem.h>
- #include <linux/ioport.h>
-+#include <linux/pci.h>
- 
- #include <asm/pgtable.h>
- #include <asm/io_apic.h>
-@@ -1158,6 +1159,44 @@ void __init mp_config_acpi_legacy_irqs(v
- 	}
- }
- 
-+static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int triggering,
-+			int polarity)
-+{
-+#ifdef CONFIG_X86_MPPARSE
-+	struct mpc_intsrc mp_irq;
-+	struct pci_dev *pdev;
-+	unsigned char number;
-+	unsigned int devfn;
-+	int ioapic;
-+	u8 pin;
-+
-+	if (!acpi_ioapic)
-+		return 0;
-+	if (!dev)
-+		return 0;
-+	if (dev->bus != &pci_bus_type)
-+		return 0;
-+
-+	pdev = to_pci_dev(dev);
-+	number = pdev->bus->number;
-+	devfn = pdev->devfn;
-+	pin = pdev->pin;
-+	/* print the entry should happen on mptable identically */
-+	mp_irq.type = MP_INTSRC;
-+	mp_irq.irqtype = mp_INT;
-+	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
-+				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
-+	mp_irq.srcbus = number;
-+	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
-+	ioapic = mp_find_ioapic(gsi);
-+	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
-+	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
-+
-+	save_mp_irq(&mp_irq);
-+#endif
-+	return 0;
-+}
-+
- int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
- {
- 	int ioapic;
-@@ -1189,6 +1228,7 @@ int mp_register_gsi(struct device *dev,
- 		       ioapic_pin);
- 		return gsi;
- 	}
-+	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
- 
- 	/*
- 	 * Avoid pin reprogramming.  PRTs typically include entries
-@@ -1208,32 +1248,6 @@ int mp_register_gsi(struct device *dev,
- 	return gsi;
- }
- 
--int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
--			u32 gsi, int triggering, int polarity)
--{
--#ifdef CONFIG_X86_MPPARSE
--	struct mpc_intsrc mp_irq;
--	int ioapic;
--
--	if (!acpi_ioapic)
--		return 0;
--
--	/* print the entry should happen on mptable identically */
--	mp_irq.type = MP_INTSRC;
--	mp_irq.irqtype = mp_INT;
--	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
--				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
--	mp_irq.srcbus = number;
--	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
--	ioapic = mp_find_ioapic(gsi);
--	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
--	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
--
--	save_mp_irq(&mp_irq);
--#endif
--	return 0;
--}
--
- /*
-  * Parse IOAPIC related entries in MADT
-  * returns 0 on success, < 0 on error
+On Sunday 26 April 2009, Kaushik Barde wrote:
+> I am using stable-2.6.29.1 on Lenovo X300.
+> 
+> echo mem > /sys/power/state works if I disable AP core using echo 0 > /sys/devices/system/cpu/cpu1/online.
+> 
+> With SMP, first s3 cycle goes through, subsequent suspend does not work.
+> 
+> Is this a known issue with CPU_HOTPLUG or suspend re-ordering code?
+
+Similar symptoms have been reported, but the previous reporter did not connect
+them with the CPU hotplugging.
+
+The issue isn't actually known and suspend-resume works on many SMP systems.
+
+Is the problem reproducible with the current mainline kernel?
+
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
