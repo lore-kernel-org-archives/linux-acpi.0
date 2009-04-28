@@ -1,215 +1,102 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 6/9] irq: make io_apic_set_pci_routing to take device
-Date: Mon, 27 Apr 2009 18:01:20 -0700
-Message-ID: <49F65560.20904@kernel.org>
-References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org>
+From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: Re: [PATCH] x86/pci: do assign root bus res if _CRS is used
+Date: Mon, 27 Apr 2009 19:07:01 -0700
+Message-ID: <86802c440904271907r335f7834p8f03aa13bc6515e8@mail.gmail.com>
+References: <49ED22EC.2040204@kernel.org>
+	 <200904271439.37396.bjorn.helgaas@hp.com>
+	 <86802c440904271400q379da621ja808c96152c3fb8b@mail.gmail.com>
+	 <200904271624.17295.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <49E80457.5060403@kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Suresh Siddha <suresh.b.siddha@intel.co>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200904271624.17295.bjorn.helgaas@hp.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Gary Hade <garyhade@us.ibm.com>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, Apr 27, 2009 at 3:24 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> w=
+rote:
+> On Monday 27 April 2009 03:00:16 pm Yinghai Lu wrote:
+>> On Mon, Apr 27, 2009 at 1:39 PM, Bjorn Helgaas <bjorn.helgaas@hp.com=
+> wrote:
+>> >> other system may have broken _CRS.
+>> >
+>> > Do you have examples of problems here, or are you just worried tha=
+t
+>> > there *may* be problems?
+>> one system with three chains... with pci=3Duse_crs
+>> [ =A0 =A09.365669] pci_bus 0000:00: resource 0 io: =A0[0x00-0x3af]
+>> [ =A0 =A09.371065] pci_bus 0000:00: resource 1 io: =A0[0x3e0-0xcf7]
+>> [ =A0 =A09.376551] pci_bus 0000:00: resource 2 io: =A0[0x3b0-0x3bb]
+>> [ =A0 =A09.382028] pci_bus 0000:00: resource 3 io: =A0[0x3c0-0x3df]
+>> [ =A0 =A09.387513] pci_bus 0000:00: resource 4 io: =A0[0xd00-0xefff]
+>> [ =A0 =A09.393077] pci_bus 0000:00: resource 5 mem: [0x0a0000-0x0bff=
+ff]
+>> [ =A0 =A09.399084] pci_bus 0000:00: resource 6 mem: [0x0d0000-0x0dff=
+ff]
+>> [ =A0 =A09.405089] pci_bus 0000:00: resource 7 mem: [0xdd000000-0xdf=
+ffffff]
+>> [ =A0 =A09.505332] pci_bus 0000:40: resource 0 io: =A0[0x5000-0x8fff=
+]
+>> [ =A0 =A09.510991] pci_bus 0000:40: resource 1 mem: [0xdb000000-0xdc=
+ffffff]
+>> [ =A0 =A09.553378] pci_bus 0000:80: resource 0 io: =A0[0x1000-0x4fff=
+]
+>> [ =A0 =A09.559036] pci_bus 0000:80: resource 1 mem: [0xda000000-0xda=
+ffffff]
+>>
+>> without that: amd_bus.c will read that from pci conf space
+>> [ =A0 =A09.310965] pci_bus 0000:00: resource 0 io: =A0[0x9000-0xefff=
+]
+>> [ =A0 =A09.316621] pci_bus 0000:00: resource 1 io: =A0[0x00-0xfff]
+>> [ =A0 =A09.322020] pci_bus 0000:00: resource 2 mem: [0xdd000000-0xdf=
+ffffff]
+>> [ =A0 =A09.328373] pci_bus 0000:00: resource 3 mem: [0x0a0000-0x0bff=
+ff]
+>> [ =A0 =A09.334378] pci_bus 0000:00: resource 4 mem: [0xc0000000-0xd9=
+ffffff]
+>> [ =A0 =A09.340731] pci_bus 0000:00: resource 5 mem: [0xf0000000-0xff=
+ffffff]
+>> [ =A0 =A09.347084] pci_bus 0000:00: resource 6 mem: [0x840000000-0xf=
+cffffffff]
+>> [ =A0 =A09.444440] pci_bus 0000:40: resource 0 io: =A0[0x5000-0x8fff=
+]
+>> [ =A0 =A09.450099] pci_bus 0000:40: resource 1 io: =A0[0xf000-0xffff=
+]
+>> [ =A0 =A09.455757] pci_bus 0000:40: resource 2 mem: [0xdb000000-0xdc=
+ffffff]
+>> [ =A0 =A09.498118] pci_bus 0000:80: resource 0 io: =A0[0x1000-0x4fff=
+]
+>> [ =A0 =A09.503777] pci_bus 0000:80: resource 1 mem: [0xda000000-0xda=
+ffffff]
+>
+> It's interesting that many of the differences involve the legacy
+> VGA I/O ports in the 0x3b0-0x3df range. =A0My guess is that the AMD
+> chipset has special routing for those ranges. =A0If it didn't, it
+> would be difficult to support VGA devices under the other two
+> root bridges. =A0Maybe that VGA routing doesn't show up in the
+> bridge's PCI config space. =A0Can you tell from the ASL whether the
+> root bridge _SRS/_PRS/_CRS methods handle the VGA ranges specially?
+>
+> One of the differences is that PCI config space shows a 64-bit region
+> (bus 0000:00 mem 0x840000000-0xfcffffffff) that doesn't show up in
+> the _CRS info. =A0But the _CRS parsing depends on acpi_resource_to_ad=
+dress64(),
+> which doesn't know about the ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64
+> descriptors added in ACPI 3.0. =A0So this difference could be a resul=
+t
+> of that Linux bug. =A0It'd be interesting to see whether the test pat=
+ch
+> below makes a difference.
+will check it.
+>
+> The PCI config space region 0xf0000000-0xffffffff, also on bus 0000:0=
+0,
+> looks suspicious to me. =A0I thought that area contained a bunch of
+> BIOS-y things like reset vectors and local APICs.
 
-Impact: so use dev_to_node later
+in the amd_bus.c, will put left over resource to def HT chain.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Acked-by: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-ia64@vger.kernel.org
-Cc: Tony Luck <tony.luck@intel.com>
-
----
- arch/ia64/kernel/acpi.c        |    5 +++--
- arch/x86/include/asm/io_apic.h |    4 ++--
- arch/x86/include/asm/mpspec.h  |    4 +++-
- arch/x86/kernel/acpi/boot.c    |    8 ++++----
- arch/x86/kernel/apic/io_apic.c |    3 ++-
- drivers/acpi/pci_irq.c         |    5 +++--
- drivers/char/hpet.c            |    4 ++--
- drivers/pnp/pnpacpi/rsparser.c |    2 +-
- include/linux/acpi.h           |    2 +-
- 9 files changed, 21 insertions(+), 16 deletions(-)
-
-Index: linux-2.6/arch/ia64/kernel/acpi.c
-===================================================================
---- linux-2.6.orig/arch/ia64/kernel/acpi.c
-+++ linux-2.6/arch/ia64/kernel/acpi.c
-@@ -636,7 +636,7 @@ void __init acpi_numa_arch_fixup(void)
-  * success: return IRQ number (>=0)
-  * failure: return < 0
-  */
--int acpi_register_gsi(u32 gsi, int triggering, int polarity)
-+int acpi_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
- {
- 	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
- 		return gsi;
-@@ -678,7 +678,8 @@ static int __init acpi_parse_fadt(struct
- 
- 	fadt = (struct acpi_table_fadt *)fadt_header;
- 
--	acpi_register_gsi(fadt->sci_interrupt, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW);
-+	acpi_register_gsi(NULL, fadt->sci_interrupt, ACPI_LEVEL_SENSITIVE,
-+				 ACPI_ACTIVE_LOW);
- 	return 0;
- }
- 
-Index: linux-2.6/arch/x86/include/asm/io_apic.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/io_apic.h
-+++ linux-2.6/arch/x86/include/asm/io_apic.h
-@@ -154,8 +154,8 @@ extern int timer_through_8259;
- extern int io_apic_get_unique_id(int ioapic, int apic_id);
- extern int io_apic_get_version(int ioapic);
- extern int io_apic_get_redir_entries(int ioapic);
--extern int io_apic_set_pci_routing(int ioapic, int pin, int irq,
--				   int edge_level, int active_high_low);
-+extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
-+				  int irq, int edge_level, int active_high_low);
- #endif /* CONFIG_ACPI */
- 
- extern int (*ioapic_renumber_irq)(int ioapic, int irq);
-Index: linux-2.6/arch/x86/include/asm/mpspec.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/mpspec.h
-+++ linux-2.6/arch/x86/include/asm/mpspec.h
-@@ -72,7 +72,9 @@ extern void mp_register_ioapic(int id, u
- extern void mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
- 				   u32 gsi);
- extern void mp_config_acpi_legacy_irqs(void);
--extern int mp_register_gsi(u32 gsi, int edge_level, int active_high_low);
-+struct device;
-+extern int mp_register_gsi(struct device *dev, u32 gsi, int edge_level,
-+				 int active_high_low);
- extern int acpi_probe_gsi(void);
- #ifdef CONFIG_X86_IO_APIC
- extern int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -522,7 +522,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned in
-  * success: return IRQ number (>=0)
-  * failure: return < 0
-  */
--int acpi_register_gsi(u32 gsi, int triggering, int polarity)
-+int acpi_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
- {
- 	unsigned int irq;
- 	unsigned int plat_gsi = gsi;
-@@ -539,7 +539,7 @@ int acpi_register_gsi(u32 gsi, int trigg
- 
- #ifdef CONFIG_X86_IO_APIC
- 	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC) {
--		plat_gsi = mp_register_gsi(gsi, triggering, polarity);
-+		plat_gsi = mp_register_gsi(dev, gsi, triggering, polarity);
- 	}
- #endif
- 	acpi_gsi_to_irq(plat_gsi, &irq);
-@@ -1158,7 +1158,7 @@ void __init mp_config_acpi_legacy_irqs(v
- 	}
- }
- 
--int mp_register_gsi(u32 gsi, int triggering, int polarity)
-+int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
- {
- 	int ioapic;
- 	int ioapic_pin;
-@@ -1253,7 +1253,7 @@ int mp_register_gsi(u32 gsi, int trigger
- 		}
- 	}
- #endif
--	io_apic_set_pci_routing(ioapic, ioapic_pin, gsi,
-+	io_apic_set_pci_routing(dev, ioapic, ioapic_pin, gsi,
- 				triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
- 				polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
- 	return gsi;
-Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
-+++ linux-2.6/arch/x86/kernel/apic/io_apic.c
-@@ -3916,7 +3916,8 @@ int __init io_apic_get_version(int ioapi
- }
- #endif
- 
--int io_apic_set_pci_routing (int ioapic, int pin, int irq, int triggering, int polarity)
-+int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
-+				 int triggering, int polarity)
- {
- 	struct irq_desc *desc;
- 	struct irq_cfg *cfg;
-Index: linux-2.6/drivers/acpi/pci_irq.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_irq.c
-+++ linux-2.6/drivers/acpi/pci_irq.c
-@@ -401,7 +401,8 @@ int acpi_pci_irq_enable(struct pci_dev *
- 		/* Interrupt Line values above 0xF are forbidden */
- 		if (dev->irq > 0 && (dev->irq <= 0xF)) {
- 			printk(" - using IRQ %d\n", dev->irq);
--			acpi_register_gsi(dev->irq, ACPI_LEVEL_SENSITIVE,
-+			acpi_register_gsi(&dev->dev, dev->irq,
-+					  ACPI_LEVEL_SENSITIVE,
- 					  ACPI_ACTIVE_LOW);
- 			return 0;
- 		} else {
-@@ -410,7 +411,7 @@ int acpi_pci_irq_enable(struct pci_dev *
- 		}
- 	}
- 
--	rc = acpi_register_gsi(gsi, triggering, polarity);
-+	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
- 	if (rc < 0) {
- 		dev_warn(&dev->dev, "PCI INT %c: failed to register GSI\n",
- 			 pin_name(pin));
-Index: linux-2.6/drivers/char/hpet.c
-===================================================================
---- linux-2.6.orig/drivers/char/hpet.c
-+++ linux-2.6/drivers/char/hpet.c
-@@ -224,7 +224,7 @@ static void hpet_timer_set_irq(struct hp
- 			break;
- 		}
- 
--		gsi = acpi_register_gsi(irq, ACPI_LEVEL_SENSITIVE,
-+		gsi = acpi_register_gsi(NULL, irq, ACPI_LEVEL_SENSITIVE,
- 					ACPI_ACTIVE_LOW);
- 		if (gsi > 0)
- 			break;
-@@ -939,7 +939,7 @@ static acpi_status hpet_resources(struct
- 		irqp = &res->data.extended_irq;
- 
- 		for (i = 0; i < irqp->interrupt_count; i++) {
--			irq = acpi_register_gsi(irqp->interrupts[i],
-+			irq = acpi_register_gsi(NULL, irqp->interrupts[i],
- 				      irqp->triggering, irqp->polarity);
- 			if (irq < 0)
- 				return AE_ERROR;
-Index: linux-2.6/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- linux-2.6.orig/drivers/pnp/pnpacpi/rsparser.c
-+++ linux-2.6/drivers/pnp/pnpacpi/rsparser.c
-@@ -123,7 +123,7 @@ static void pnpacpi_parse_allocated_irqr
- 	}
- 
- 	flags = irq_flags(triggering, polarity, shareable);
--	irq = acpi_register_gsi(gsi, triggering, polarity);
-+	irq = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
- 	if (irq >= 0)
- 		pcibios_penalize_isa_irq(irq, 1);
- 	else
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -119,7 +119,7 @@ extern int pci_mmcfg_config_num;
- extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
- 
--int acpi_register_gsi (u32 gsi, int triggering, int polarity);
-+int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- 
- #ifdef CONFIG_X86_IO_APIC
+YH
