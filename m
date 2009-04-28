@@ -1,72 +1,63 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: acpi 'video' driver, and issues with
-	'brightness_switch_enabled=0'
-Date: Tue, 28 Apr 2009 10:43:24 +0800
-Message-ID: <1240886605.4639.19.camel@rzhang-dt>
-References: <1240855052.11237.7.camel@maxim-laptop>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: 2.6.30-rc3 video/i915 build error
+Date: Tue, 28 Apr 2009 14:02:01 +0800
+Message-ID: <1240898521.31318.24.camel@localhost.localdomain>
+References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain>
+	 <20090423164642.GF495@gamma.logic.tuwien.ac.at>
+	 <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain>
+	 <1240535458.3651.63.camel@localhost.localdomain>
+	 <alpine.LFD.2.00.0904232156040.15843@localhost.localdomain>
+	 <1240544791.3651.82.camel@localhost.localdomain>
+	 <alpine.LFD.2.00.0904241145220.10096@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:24780 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:22695 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752469AbZD1CnL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Apr 2009 22:43:11 -0400
-In-Reply-To: <1240855052.11237.7.camel@maxim-laptop>
+	id S1750965AbZD1GBv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Apr 2009 02:01:51 -0400
+In-Reply-To: <alpine.LFD.2.00.0904241145220.10096@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Norbert Preining <preining@logic.at>, Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, "Zhang, Rui" <rui.zhang@intel.com>, Keith Packard <keithp@keithp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, 2009-04-28 at 01:57 +0800, Maxim Levitsky wrote:
-> I have a notebook which handles brightness keys in hardware, but tell=
-s
-> loudly when it does so.
->=20
-if you boot into console mode w/o ACPI video driver, does the brightnes=
-s
-still change when you press the hotkeys?
+On Fri, 2009-04-24 at 23:49 +0800, Len Brown wrote:
+> From: Len Brown <len.brown@intel.com>
+> Subject: [PATCH] ACPI, i915: build fix
+Hi, Len
+    It seems that the issue still exists if KMS is not set in kernel
+configuration.
+    	
+    Maybe this should depend on whether the I915 is selected.
 
-> Currently, acpi 'video' also sets the brightness, which result in dou=
-ble
-> setting, and on top of that it emits a key that makes gpm set brightn=
-ess
-> again.
->=20
-we need to support the brightness control in console mode.
-and "=EF=BB=BFbrightness_switch_enabled" should be cleared in graphics =
-mode to
-prevent the ACPI video driver action upon hotkey events.
+thanks.
+	
+> 
+> drivers/built-in.o: In function `intel_opregion_init':
+> (.text+0x9d540): undefined reference to `acpi_video_register'
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/gpu/drm/Kconfig |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+> index 3a22eb9..f33d252 100644
+> --- a/drivers/gpu/drm/Kconfig
+> +++ b/drivers/gpu/drm/Kconfig
+> @@ -83,6 +83,12 @@ config DRM_I915
+>  config DRM_I915_KMS
+>  	bool "Enable modesetting on intel by default"
+>  	depends on DRM_I915
+> +	# i915 KMS depends on ACPI_VIDEO when ACPI is enabled
+> +	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+> +	select VIDEO_OUTPUT_CONTROL if ACPI
+> +	select BACKLIGHT_CLASS_DEVICE if ACPI
+> +	select INPUT if ACPI
+> +	select ACPI_VIDEO if ACPI
+>  	help
+>  	  Choose this option if you want kernel modesetting enabled by default,
+>  	  and you have a new enough userspace to support this. Running old
 
-> And (yes...) on top of that keyboard emits a brightness up/down even,
-> which (you guessed...) sets brightness again.
->=20
-> I found out that it is possible to tell gnome-power-manager not to se=
-t
-> brightness, but yet in kernel driver still sets it.
->=20
-> I found out even earlier that I can use brightness_switch_enabled=3D0=
-,
-> which supposed to make inkernel driver not touch the brightness.
-> But I found out that this driver won't update the brightness, in /sys
-> interface when I set this param.
->=20
-No, when =EF=BB=BF"=EF=BB=BFbrightness_switch_enabled" is cleared, gdm =
-should still use
-the ACPI backlight sysfs I/F if available to change the backlight,
-i.e. /sys/class/backlight/acpi_video0/...
-
-what's the model name of your laptop?
-are you using Intel graphics?
-please attach the output of acpidump and lspci.
-It would be great if you can file a bug report about this issue at
-bugzilla.kernel.org.
-
-thanks,
-rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
