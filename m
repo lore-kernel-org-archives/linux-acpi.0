@@ -1,46 +1,84 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 900af0d breaks some embedded suspend/resume
-Date: Sun, 26 Apr 2009 11:25:51 +0200
-Message-ID: <20090426092550.GB1354@ucw.cz>
-References: <20090417231009.GB6900@flint.arm.linux.org.uk> <20090418135323.GA7148@flint.arm.linux.org.uk> <alpine.LFD.2.00.0904181205010.4042@localhost.localdomain> <200904190044.58444.rjw@sisk.pl>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: [PATCH] Temporarily add modalias for Dell DMI match on dell-wmi
+Date: Tue, 28 Apr 2009 17:22:57 -0500
+Message-ID: <49F781C1.4080001@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig75DED4E4088DD029FA3D90D0"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45478 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752809AbZD1U1x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2009 16:27:53 -0400
-Content-Disposition: inline
-In-Reply-To: <200904190044.58444.rjw@sisk.pl>
+Received: from ausc60pc101.us.dell.com ([143.166.85.206]:59787 "EHLO
+	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027AbZD1WWs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2009 18:22:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King <rmk+lkml@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Linux Kernel List <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun 2009-04-19 00:44:57, Rafael J. Wysocki wrote:
-> On Saturday 18 April 2009, Linus Torvalds wrote:
-> > 
-> > On Sat, 18 Apr 2009, Russell King wrote:
-> > > 
-> > > What I need to be able to do is to suspend most devices on the host side
-> > > which may involve talking to a separate microcontroller via I2C to shut
-> > > down power to peripherals.
-> > 
-> > I suspect that for cases like this, the simplest thing to do is to just 
-> > add a marker for "don't mess with my power management, I'm doing 
-> > everything through sysdev" for the specified devices.
-> 
-> In this particular case, if sysdev was used, there would be no problem, but the
-> platform uses a platform device to suspend-resume the i2c controller.
-> In principle we could convert it to use a sysdev, but that would be more
-> difficult than the last patch I sent IMO (at least to me).
-> 
-> Also, apparently it is not the only platform doing it.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig75DED4E4088DD029FA3D90D0
+Content-Type: multipart/mixed;
+ boundary="------------070609030505050705090301"
 
-OTOH... if the device is needed in late phases of sleep, sysdev *does*
-sound like a way to go. So it would be nice to convert those devices
-to sysdevs one day.....
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+This is a multi-part message in MIME format.
+--------------070609030505050705090301
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi:
+
+Until the sysfs interface is ready, there is no way to automatically
+load dell-wmi.  The equivalent module for Acer laptops, acer-wmi has a
+workaround in place to match on the DMI tables for the machine.  This
+type of solution works on for Dell as well and gets the module loading
+when necessary.
+
+Patch is attached to prevent Exchange messing up line breaks.
+
+Regards
+--=20
+Mario Limonciello
+*Dell | Linux Engineering*
+mario_limonciello@dell.com
+
+--------------070609030505050705090301
+Content-Type: text/x-patch;
+ name="dell-wmi-temporary-modalias.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="dell-wmi-temporary-modalias.patch"
+
+--- a/drivers/platform/x86/dell-wmi.c~	2009-04-28 17:12:01.000000000 -050=
+0
++++ b/drivers/platform/x86/dell-wmi.c	2009-04-28 17:12:43.000000000 -0500=
+
+@@ -40,6 +40,10 @@
+=20
+ MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
+=20
++/* Temporary workaround until the WMI sysfs interface goes in.
++   Borrowed from acer-wmi */
++MODULE_ALIAS("dmi:*:*Dell*:*:");
++
+ struct key_entry {
+ 	char type;		/* See KE_* below */
+ 	u16 code;
+
+--------------070609030505050705090301--
+
+--------------enig75DED4E4088DD029FA3D90D0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkn3gcIACgkQ2CrZjkA73YseDgCeKCKp38K94nvxtS0dZEtkNZhR
+Ym8An1r6KhpYbprQx/0ZF1Xwq4DLT4Ap
+=2/1t
+-----END PGP SIGNATURE-----
+
+--------------enig75DED4E4088DD029FA3D90D0--
