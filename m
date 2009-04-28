@@ -1,46 +1,88 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
-Date: Tue, 28 Apr 2009 19:56:49 +0200
-Message-ID: <200904281956.50640.trenn@suse.de>
-References: <87k5691x3y.fsf@olivierberger.com> <200904281339.15689.trenn@suse.de> <877i14aed8.fsf@olivierberger.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
+	even when ignore_ppc=0
+Date: Tue, 28 Apr 2009 12:33:04 -0700
+Message-ID: <20090428193303.GC6968@plum>
+References: <20090415225348.GW8311@plum> <20090416002712.GX8311@plum> <200904161201.13409.trenn@suse.de> <20090416174217.GY8311@plum> <20090416224507.GA31984@srcf.ucam.org>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49188 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756625AbZD1R4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2009 13:56:51 -0400
-In-Reply-To: <877i14aed8.fsf@olivierberger.com>
+Received: from e37.co.us.ibm.com ([32.97.110.158]:55144 "EHLO
+	e37.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753488AbZD1TdN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2009 15:33:13 -0400
 Content-Disposition: inline
+In-Reply-To: <20090416224507.GA31984@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olivier Berger <oberger@ouvaton.org>
-Cc: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-T24gVHVlc2RheSAyOCBBcHJpbCAyMDA5IDE5OjE1OjQ3IE9saXZpZXIgQmVyZ2VyIHdyb3RlOgo+
-IFRob21hcyBSZW5uaW5nZXIgPHRyZW5uQHN1c2UuZGU+IHdyaXRlczoKCgo+IEknbSB0aGlua2lu
-ZyBhYm91dCBzb21lIGtpbmQgb2Ygd2FybmluZyBtZXNzYWdlIHRoYXQgbWlnaHQgYmUgcHJvdmlk
-ZWQKPiBieSB0aGUga2VybmVsLgo+IAo+IEN1cnJlbnRseSwgdGhlIGJsYWNrbGlzdGluZyBpc3N1
-ZXMgc29tZXRoaW5nIGxpa2UgOiAKPiAgeHh4IGRldGVjdGVkIDogZm9yY2UgdXNlIG9mIGFjcGk9
-aHQgCj4gCj4gTWF5YmUgaW4gc29tZSBncmV5bGlzdGVkIGNhc2VzIChsaWtlIHN1Y2ggQVNVUyBQ
-NEIyNjYpLCBhbiBhZGRpdGlvbmFsCj4gbWVzc2FnZSBtYXkgYmUgaXNzdWVkLCBzb21ldGhpbmcg
-bGlrZSA6Cj4gIHh4eCBkZXRlY3RlZCA6IG1heSB3b3JrIHdpdGggYWNwaT1mb3JjZSAodGVzdCBh
-dCBvd24gcmlzaykKPiBvciBzb21ldGhpbmcgbGlrZSB0aGF0ID8KU291bmRzIGxpa2UgYSBnb29k
-IGlkZWEuClNvbWV0aGluZyBsaWtlIHRoYXQgKG5vdCB0ZXN0ZWQgYXQgYWxsKS4KSSBjb3VsZCBp
-bWFnaW5lIExlbiBhZGRzIHRoaXMgb25lIGlmIHlvdSBnaXZlIGl0IGEgdHJ5IGFuZCBzZWUKdGhl
-IG1lc3NhZ2UgcG9wcGluZyB1cCBpbiBkbWVzZy4KCkFDUEk6IFNvbWUgbGF0ZXN0IFA0QjI2NiBC
-SU9TZXMgcHJlZmVyIGFjcGksIGJ1dCBnZXQgYmxhY2tsaXN0ZWQsIG5vdGlmeSB1c2VyCgoKU2ln
-bmVkLW9mZi1ieTogVGhvbWFzIFJlbm5pbmdlciA8dHJlbm5Ac3VzZS5kZT4KCi0tLQogYXJjaC94
-ODYva2VybmVsL2FjcGkvYm9vdC5jIHwgICAgMyArKysKIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2Vy
-dGlvbnMoKykKCkluZGV4OiBsaW51eC0yLjYvYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jCj09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2FyY2gveDg2L2tlcm5lbC9hY3BpL2Jvb3QuYwor
-KysgbGludXgtMi42L2FyY2gveDg2L2tlcm5lbC9hY3BpL2Jvb3QuYwpAQCAtMTQ5Niw2ICsxNDk2
-LDkgQEAgc3RhdGljIGludCBfX2luaXQgZm9yY2VfYWNwaV9odChjb25zdCBzdAogCWlmICghYWNw
-aV9mb3JjZSkgewogCQlwcmludGsoS0VSTl9OT1RJQ0UgIiVzIGRldGVjdGVkOiBmb3JjZSB1c2Ug
-b2YgYWNwaT1odFxuIiwKIAkJICAgICAgIGQtPmlkZW50KTsKKwkJaWYgKCFzdHJjbXAoZC0+aWRl
-bnQsICJBU1VTIFA0QjI2NiIpKQorCQkJcHJpbnRrKEtFUk5fTk9USUNFICJMYXRlc3QgQklPU2Vz
-IG1pZ2h0IHdvcmsgYmV0dGVyIgorCQkJICAgICAgICIgd2l0aCBhY3BpPWZvcmNlXG4iKTsKIAkJ
-ZGlzYWJsZV9hY3BpKCk7CiAJCWFjcGlfaHQgPSAxOwogCX0gZWxzZSB7CgAK
+On Thu, Apr 16, 2009 at 11:45:07PM +0100, Matthew Garrett wrote:
+
+> That's not really an option. It works with Windows.
+
+Who verified that?  Does anyone know what strategy Windows uses to avoid this
+T60 problem?  
+
+> Please figure out how to make it work on everything rather than us just
+> repeatedly toggling between different sets of broken machines or being forced
+> to have a static table of machines.
+
+I've thought about this for a while and still don't know how to proceed with
+this suggestion.  Right now we have:
+
+1. Linux, which right now does not read _PPC at boot time regardless of the
+ignore_ppc setting, leaving the kernel's copy set to 0 regardless of what the
+BIOS wants the kernel to do.  The kernel will pick up the correct value of _PPC
+if the BIOS sends a "re-evaluate _PPC" event.
+
+Obviously, if ignore_ppc=1 then we should ignore _PPC, but I'm talking about
+_PPC not being read when ignore_ppc=0 or ignore_ppc isn't set at all.
+
+2. A whole lot of machines that set _PPC to 0 all the time; this scenario
+works because _PPC and the cpufreq max_freq controls just happen to match.
+
+3. A smaller collection of machines that leave _PPC at 0 except for special
+circumstances that warrant freq/voltage restrictions (power overage,
+thermal/power throttling via p-state, etc.)
+
+This is a problem for the following sequence:
+
+  1. BIOS decides to set _PPC to any non-zero value.
+  2. The kernel boots with ignore_ppc=0, doesn't check _PPC, and runs with
+     all p-states enabled.
+
+      <here is where we're running with the wrong _PPC and potentially
+       using more power/putting out more heat than the firmware wants>
+
+  3. BIOS changes _PPC to something else and sends a Notify event.
+  4. Kernel now runs with the correct p-state restrictions.
+
+4. Broken T60s where the EC (which is read in the _PPC method) freaks out and
+returns 2 all the time.  If you set ignore_ppc=1 then you get the full range of
+speeds even if the BIOS doesn't want to allow it.  Clearly the firmware needs
+some sort of fix, which means that we could Lenovo, which may or may not
+succeed because T60s were discontinued 18 months ago.
+
+I can think of a few ways to proceed with the kernel:
+
+1. No changes at all.  If ignore_ppc = 0 and _PPC != 0 when the kernel boots,
+the kernel ignores the BIOS.  That seems broken to me.
+
+2. Add my revert patch, which leaves the ignore_ppc toggle in place for T60
+owners.  This doesn't satisfy the "no toggling" rule, but at least there's
+still an override for when the automatic method doesn't work.
+
+3. Add the revert patch and put in a DMI check to turn on ignore_ppc for all
+T60s.  This doesn't satisfy the "static table" constraint though at least it
+requires less manual intervention.
+
+I'd rather have the kernel work for the vast majority of machines that do not
+freak out, and special case the ones that do.  But I'm not clever enough to
+figure out a solution that fixes the runs-with-wrong-_PPC problem, avoids
+reading _PPC on machines that freak out, and doesn't involve blacklists or a
+toggle.  Any suggestions?
+
+--D
