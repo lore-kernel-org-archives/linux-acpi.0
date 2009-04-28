@@ -1,93 +1,46 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: [PATCH] Ignore garbage in dell-wmi events
-Date: Tue, 28 Apr 2009 12:40:34 -0500
-Message-ID: <49F73F92.9000201@dell.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
+Date: Tue, 28 Apr 2009 19:56:49 +0200
+Message-ID: <200904281956.50640.trenn@suse.de>
+References: <87k5691x3y.fsf@olivierberger.com> <200904281339.15689.trenn@suse.de> <877i14aed8.fsf@olivierberger.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigBE91C302E964777B58B0587D"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausxipps301.us.dell.com ([143.166.148.223]:4763 "EHLO
-	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942AbZD1RkX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2009 13:40:23 -0400
+Received: from cantor2.suse.de ([195.135.220.15]:49188 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756625AbZD1R4v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Apr 2009 13:56:51 -0400
+In-Reply-To: <877i14aed8.fsf@olivierberger.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Olivier Berger <oberger@ouvaton.org>
+Cc: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigBE91C302E964777B58B0587D
-Content-Type: multipart/mixed;
- boundary="------------070907050000020300020104"
-
-This is a multi-part message in MIME format.
---------------070907050000020300020104
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi:
-
-In debugging with some future machines that actually contain BIOS level
-support for dell-wmi, I've determined that the upper half of the data
-that comes back from wmi_get_event_data may sometimes contain extra
-information that isn't currently relevant when pulling scan codes out of
-the data.  This causes dell-wmi to improperly respond to these events.
-
-I'm attaching a patch (Exchange would munge up the line breaks otherwise)=
-=2E
-
-Thanks,
-
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
-
---------------070907050000020300020104
-Content-Type: text/x-patch;
- name="dell-wmi-mask-buffer.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
- filename="dell-wmi-mask-buffer.patch"
-
---- a/drivers/platform/x86/dell-wmi.c~	2009-04-28 12:32:32.000000000 -050=
-0
-+++ b/drivers/platform/x86/dell-wmi.c	2009-04-28 12:33:02.000000000 -0500=
-
-@@ -182,7 +182,7 @@
-=20
- 	if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER) {
- 		int *buffer =3D (int *)obj->buffer.pointer;
--		key =3D dell_wmi_get_entry_by_scancode(buffer[1]);
-+		key =3D dell_wmi_get_entry_by_scancode(0xFFFF & buffer[1]);
- 		if (key) {
- 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
- 			input_sync(dell_wmi_input_dev);
-@@ -190,7 +190,7 @@
- 			input_sync(dell_wmi_input_dev);
- 		} else
- 			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
--			       buffer[1]);
-+			       0xFFFF & buffer[1]);
- 	}
- }
-=20
-
---------------070907050000020300020104--
-
---------------enigBE91C302E964777B58B0587D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkn3P5IACgkQ2CrZjkA73YtCDwCfRkLkC/pwtbBkwJ5/WdbUcpfT
-bIEAnArGeF/Hv08L64pb4X4kArJRMsid
-=vOJp
------END PGP SIGNATURE-----
-
---------------enigBE91C302E964777B58B0587D--
+T24gVHVlc2RheSAyOCBBcHJpbCAyMDA5IDE5OjE1OjQ3IE9saXZpZXIgQmVyZ2VyIHdyb3RlOgo+
+IFRob21hcyBSZW5uaW5nZXIgPHRyZW5uQHN1c2UuZGU+IHdyaXRlczoKCgo+IEknbSB0aGlua2lu
+ZyBhYm91dCBzb21lIGtpbmQgb2Ygd2FybmluZyBtZXNzYWdlIHRoYXQgbWlnaHQgYmUgcHJvdmlk
+ZWQKPiBieSB0aGUga2VybmVsLgo+IAo+IEN1cnJlbnRseSwgdGhlIGJsYWNrbGlzdGluZyBpc3N1
+ZXMgc29tZXRoaW5nIGxpa2UgOiAKPiAgeHh4IGRldGVjdGVkIDogZm9yY2UgdXNlIG9mIGFjcGk9
+aHQgCj4gCj4gTWF5YmUgaW4gc29tZSBncmV5bGlzdGVkIGNhc2VzIChsaWtlIHN1Y2ggQVNVUyBQ
+NEIyNjYpLCBhbiBhZGRpdGlvbmFsCj4gbWVzc2FnZSBtYXkgYmUgaXNzdWVkLCBzb21ldGhpbmcg
+bGlrZSA6Cj4gIHh4eCBkZXRlY3RlZCA6IG1heSB3b3JrIHdpdGggYWNwaT1mb3JjZSAodGVzdCBh
+dCBvd24gcmlzaykKPiBvciBzb21ldGhpbmcgbGlrZSB0aGF0ID8KU291bmRzIGxpa2UgYSBnb29k
+IGlkZWEuClNvbWV0aGluZyBsaWtlIHRoYXQgKG5vdCB0ZXN0ZWQgYXQgYWxsKS4KSSBjb3VsZCBp
+bWFnaW5lIExlbiBhZGRzIHRoaXMgb25lIGlmIHlvdSBnaXZlIGl0IGEgdHJ5IGFuZCBzZWUKdGhl
+IG1lc3NhZ2UgcG9wcGluZyB1cCBpbiBkbWVzZy4KCkFDUEk6IFNvbWUgbGF0ZXN0IFA0QjI2NiBC
+SU9TZXMgcHJlZmVyIGFjcGksIGJ1dCBnZXQgYmxhY2tsaXN0ZWQsIG5vdGlmeSB1c2VyCgoKU2ln
+bmVkLW9mZi1ieTogVGhvbWFzIFJlbm5pbmdlciA8dHJlbm5Ac3VzZS5kZT4KCi0tLQogYXJjaC94
+ODYva2VybmVsL2FjcGkvYm9vdC5jIHwgICAgMyArKysKIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2Vy
+dGlvbnMoKykKCkluZGV4OiBsaW51eC0yLjYvYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jCj09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2FyY2gveDg2L2tlcm5lbC9hY3BpL2Jvb3QuYwor
+KysgbGludXgtMi42L2FyY2gveDg2L2tlcm5lbC9hY3BpL2Jvb3QuYwpAQCAtMTQ5Niw2ICsxNDk2
+LDkgQEAgc3RhdGljIGludCBfX2luaXQgZm9yY2VfYWNwaV9odChjb25zdCBzdAogCWlmICghYWNw
+aV9mb3JjZSkgewogCQlwcmludGsoS0VSTl9OT1RJQ0UgIiVzIGRldGVjdGVkOiBmb3JjZSB1c2Ug
+b2YgYWNwaT1odFxuIiwKIAkJICAgICAgIGQtPmlkZW50KTsKKwkJaWYgKCFzdHJjbXAoZC0+aWRl
+bnQsICJBU1VTIFA0QjI2NiIpKQorCQkJcHJpbnRrKEtFUk5fTk9USUNFICJMYXRlc3QgQklPU2Vz
+IG1pZ2h0IHdvcmsgYmV0dGVyIgorCQkJICAgICAgICIgd2l0aCBhY3BpPWZvcmNlXG4iKTsKIAkJ
+ZGlzYWJsZV9hY3BpKCk7CiAJCWFjcGlfaHQgPSAxOwogCX0gZWxzZSB7CgAK
