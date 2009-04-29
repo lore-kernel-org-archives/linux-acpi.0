@@ -1,139 +1,79 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: acpi 'video' driver, and issues with
-	'brightness_switch_enabled=0'
-Date: Wed, 29 Apr 2009 11:08:20 +0800
-Message-ID: <1240974500.4639.54.camel@rzhang-dt>
-References: <1240855052.11237.7.camel@maxim-laptop>
-	 <1240886605.4639.19.camel@rzhang-dt>
-	 <1240912731.29860.11.camel@maxim-laptop>
+From: Corrado Zoccolo <czoccolo@gmail.com>
+Subject: Re: "ACPI: EC: missing confirmations, switch off interrupt mode"
+	wastes time on startup
+Date: Wed, 29 Apr 2009 09:41:14 +0200
+Message-ID: <4e5e476b0904290041u6bb475e0o9a409b5e6d83b9ba@mail.gmail.com>
+References: <4e5e476b0903260847m1de3e976ne20279df359176cf@mail.gmail.com>
+	 <9b2b86520903260958r790e5459r553308311522e88f@mail.gmail.com>
+	 <4e5e476b0903261454h1525c30chdc86dbcb1cf3cb5c@mail.gmail.com>
+	 <9b2b86520903270310x78193514l44b89ed6d3088cf8@mail.gmail.com>
+	 <48f7fe350904281736j5ecb6fa8l12426fc17f591551@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:59049 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752717AbZD2DHz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2009 23:07:55 -0400
-In-Reply-To: <1240912731.29860.11.camel@maxim-laptop>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758034AbZD2Hlb@vger.kernel.org>
+In-Reply-To: <48f7fe350904281736j5ecb6fa8l12426fc17f591551@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ryan Hope <rmh3093@gmail.com>
+Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux-kernel@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, 2009-04-28 at 17:58 +0800, Maxim Levitsky wrote:
-> On Tue, 2009-04-28 at 10:43 +0800, Zhang Rui wrote:
-> > On Tue, 2009-04-28 at 01:57 +0800, Maxim Levitsky wrote:
-> > > I have a notebook which handles brightness keys in hardware, but =
-tells
-> > > loudly when it does so.
-> > >=20
-> > if you boot into console mode w/o ACPI video driver, does the brigh=
-tness
-> > still change when you press the hotkeys?
-> They always work.
-> For s while, due to buggy ACPI table, acpi 'video' driver won't work,=
- so
-> I blacklisted it, and yet hw keys did work.
->=20
-so if you kill acpid, and run "cat /proc/acpi/event", there are some
-ACPI video events popping up when you press the hotkeys, right?
+Alexey has provided a patch for this. Please look at:
+http://bugzilla.kernel.org/show_bug.cgi?id=12949
 
-this is bad, because these events are "Used to notify OSPM that the
-output device brightness should be increased/decreased by one level.
-Used to notify OSPM that the user pressed a button or key that is
-associated with cycling brightness." according to the ACPI spec.
-So, if BIOS changes the brightness for OS, it should not issue an event
-any more.
+Corrado
 
-> >=20
-> > > Currently, acpi 'video' also sets the brightness, which result in=
- double
-> > > setting, and on top of that it emits a key that makes gpm set bri=
-ghtness
-> > > again.
-> > >=20
-> > we need to support the brightness control in console mode.
-> > and "=EF=BB=BFbrightness_switch_enabled" should be cleared in graph=
-ics mode to
-> > prevent the ACPI video driver action upon hotkey events.
-> How gnome power manager can do that, use /sys/module iface?
->=20
-> >=20
-> > > And (yes...) on top of that keyboard emits a brightness up/down e=
-ven,
-> > > which (you guessed...) sets brightness again.
-> > >=20
-> > > I found out that it is possible to tell gnome-power-manager not t=
-o set
-> > > brightness, but yet in kernel driver still sets it.
-> > >=20
-> > > I found out even earlier that I can use brightness_switch_enabled=
-=3D0,
-> > > which supposed to make inkernel driver not touch the brightness.
-> > > But I found out that this driver won't update the brightness, in =
-/sys
-> > > interface when I set this param.
-> > >=20
-> > No, when =EF=BB=BF"=EF=BB=BFbrightness_switch_enabled" is cleared, =
-gdm should still use
-> > the ACPI backlight sysfs I/F if available to change the backlight,
-> > i.e. /sys/class/backlight/acpi_video0/...
-> Indeed it does, but I don't like it, hardware already changed the
-> brightness, but it receives another two events about brightness up/do=
-wn.
->=20
-well, this is rather a hardware problem to me.
-Because OS should change the brightness upon such a notification, eithe=
-r
-in ACPI video driver, or in user space.
-IMO, if BIOS doesn't want OS to change the backlight, it should not
-issue such events at all.
-
-> It (and I too) can change the brightness, but it doesn't update to
-> reflect current brightness
-> (/sys/class/backlight/acpi_video0/brightness) shows cached value from
-> last time it was set.
->=20
-> there is also the actual_brightness, but I think it isn't used by gpm=
-=2E
->=20
-=EF=BB=BF/sys/class/backlight/acpi_video0/brightness doesn't reflect th=
-e actual
-brightness level, gdm should use actual_brightness instead.
-
-But if gdm uses the sysfs backlight I/F, the value of these two files
-should be the same.
-
-can you do this test please?
-1. attach the output of "grep . /sys/class/backlight/acpi_video0/*"
-2. press the hotkey
-3. redo step 1.
-
->=20
-> >=20
-> > what's the model name of your laptop?
-> acer aspire 5720G
-
-hah, I know this laptop.
-> > are you using Intel graphics?
-> no, nvidia 8400GS
->=20
-> > please attach the output of acpidump and lspci.
->=20
-> > It would be great if you can file a bug report about this issue at
-> > bugzilla.kernel.org.
-> No problem.
-And I know you're good at reporting bugs. :p
-
-why not move this discussion to the bugzilla so that I can better track
-this bug?
-
-thanks,
-rui
+On Wed, Apr 29, 2009 at 2:36 AM, Ryan Hope <rmh3093@gmail.com> wrote:
+> I am getting this on my Acer also...
+>
+> -Ryan
+>
+> On 3/27/09, Alan Jenkins <sourcejedi.lkml@googlemail.com> wrote:
+>> On 3/26/09, Corrado Zoccolo <czoccolo@gmail.com> wrote:
+>>> On Thu, Mar 26, 2009 at 5:58 PM, Alan Jenkins
+>>> <sourcejedi.lkml@googlemail.com> wrote:
+>>>> On 3/26/09, Corrado Zoccolo <czoccolo@gmail.com> wrote:
+>>>>
+>>>> Currently there is no option to force polling, sorry.  I'm _guessing_
+>>>> this was a deliberate omission.  But I can sympathise that even 0.5s
+>>>> boot delay is bad on a netbook.
+>>>>
+>>> Yes. Do you think that changing olpc_ec_timeout kernel parameter may
+>>> help in getting the timeout sooner?
+>>>
+>>
+>> No, that's something different.  There's no boot option to change the
+>> timeout.
+>>
+>>>> Feel free to create a new bugzilla entry.  You can attach the full
+>>>> output of dmesg, but acpidump is probably not required.  What would be
+>>>> really helpful is if you could file on bugzilla, and attach a full
+>>>> debug trace.  I.e. as well as the normal dmesg, attach the dmesg
+>>>> output after recompiling with this change:
+>>>>
+>>>
+>>> bug: http://bugzilla.kernel.org/show_bug.cgi?id=12949
+>>> full debug dmesg: http://bugzilla.kernel.org/attachment.cgi?id=20695
+>>
+>> Great.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+>
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+__________________________________________________________________________
+
+dott. Corrado Zoccolo                          mailto:czoccolo@gmail.com
+PhD - Department of Computer Science - University of Pisa, Italy
+--------------------------------------------------------------------------
+The self-confidence of a warrior is not the self-confidence of the average
+man. The average man seeks certainty in the eyes of the onlooker and calls
+that self-confidence. The warrior seeks impeccability in his own eyes and
+calls that humbleness.
+                               Tales of Power - C. Castaneda
