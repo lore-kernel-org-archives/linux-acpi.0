@@ -1,38 +1,61 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
-	even when ignore_ppc=0
-Date: Wed, 29 Apr 2009 23:00:37 +0100
-Message-ID: <20090429220037.GA8604@srcf.ucam.org>
-References: <20090415225348.GW8311@plum> <20090416002712.GX8311@plum> <200904161201.13409.trenn@suse.de> <20090416174217.GY8311@plum> <20090416224507.GA31984@srcf.ucam.org> <20090428193303.GC6968@plum> <20090428195348.GA8376@srcf.ucam.org> <20090429213930.GE6968@plum>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Re: [PATCH 1/3] Add support for more dell-wmi hotkeys
+Date: Wed, 29 Apr 2009 17:31:08 -0500
+Message-ID: <49F8D52C.6000200@dell.com>
+References: <49ECBAE2.2080308@dell.com> <49EE09D9.2060209@dell.com> <20090429165729.GB32619@srcf.ucam.org> <49F89981.10806@dell.com> <20090429183154.GC2325@srcf.ucam.org> <49F8C59F.2010603@dell.com> <20090429212924.GA7900@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig2696E8A015B9414078ACA2D2"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:52645 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465AbZD2WAm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2009 18:00:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20090429213930.GE6968@plum>
+Received: from ausxipps301.us.dell.com ([143.166.148.223]:41507 "EHLO
+	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762300AbZD2Wa6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2009 18:30:58 -0400
+In-Reply-To: <20090429212924.GA7900@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Apr 29, 2009 at 02:39:31PM -0700, Darrick J. Wong wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig2696E8A015B9414078ACA2D2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> I don't know about XP's copy of intelppm.sys, but this would seem to confirm
-> that WS03 and WS08 check _PPC at boot time.
+Hi Matthew:
 
-Ok, so that makes things interesting. From what we know about the T60 
-(and based on Ingo's report), _PPC may evaluate to 2 on bootup. However, 
-if this is ignored then later notifications are correct. This implies 
-that Windows either ignores the initial evaluation or does something 
-that triggers a notification.
+Matthew Garrett wrote:
+> On Wed, Apr 29, 2009 at 04:24:47PM -0500, Mario Limonciello wrote:
+>
+> Ok. Is there any programmatic way to determine whether a given Dell=20
+> complies with your WMI spec or not? I'd prefer not to use DMI tables=20
+> unless it's the only way to identify the machines - the risk is that=20
+> there'll be something else that also uses its own codes and will just=20
+> behave oddly until someone figures out why it's broken.
+>  =20
+Not that I can easily discern.  The only relevant bit that i'm finding
+is whether a key is reported as "programmable", which might be the case
+for the M6300.  I'll try to look further into it to see if that's the
+case here, and if that information can be flagged upon.
+--=20
+Mario Limonciello
+*Dell | Linux Engineering*
+mario_limonciello@dell.com
 
-The only notifications appear to be sent from event methods, so there's 
-nothing obvious there that we can trigger. I'm actually quite confused 
-by this now. Ingo, if you re-add that block, does your system stop 
-working again?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--------------enig2696E8A015B9414078ACA2D2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkn41SwACgkQ2CrZjkA73Yv7NQCfZbCoWoRTf/9xBZ2sG16yAM5+
+RH8An2TPA8YAeYEh8oLRGlO8SM0bHonb
+=BNj2
+-----END PGP SIGNATURE-----
+
+--------------enig2696E8A015B9414078ACA2D2--
