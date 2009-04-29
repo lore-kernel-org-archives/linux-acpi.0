@@ -1,35 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] Ignore garbage in dell-wmi events
-Date: Wed, 29 Apr 2009 13:16:13 -0700
-Message-ID: <20090429131613.abed991b.akpm@linux-foundation.org>
-References: <49F73F92.9000201@dell.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/3] Add support for more dell-wmi hotkeys
+Date: Wed, 29 Apr 2009 21:30:08 +0100
+Message-ID: <20090429203008.GB2944@srcf.ucam.org>
+References: <49ECBAE2.2080308@dell.com> <49EE09D9.2060209@dell.com> <20090429165729.GB32619@srcf.ucam.org> <49F89981.10806@dell.com> <20090429183154.GC2325@srcf.ucam.org> <36672.1241033029@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58910 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753429AbZD2URG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Apr 2009 16:17:06 -0400
-In-Reply-To: <49F73F92.9000201@dell.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:37880 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751730AbZD2UaN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2009 16:30:13 -0400
+Content-Disposition: inline
+In-Reply-To: <36672.1241033029@turing-police.cc.vt.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario Limonciello <mario_limonciello@dell.com>
-Cc: mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Cc: Mario Limonciello <mario_limonciello@dell.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 28 Apr 2009 12:40:34 -0500
-Mario Limonciello <mario_limonciello@dell.com> wrote:
-
-> In debugging with some future machines that actually contain BIOS level
-> support for dell-wmi, I've determined that the upper half of the data
-> that comes back from wmi_get_event_data may sometimes contain extra
-> information that isn't currently relevant when pulling scan codes out of
-> the data.  This causes dell-wmi to improperly respond to these events.
+On Wed, Apr 29, 2009 at 03:23:49PM -0400, Valdis.Kletnieks@vt.edu wrote:
+> On Wed, 29 Apr 2009 19:31:54 BST, Matthew Garrett said:
+> > It's a precision M6300 - I'm afraid I'm not sure what BIOS it's running.
 > 
-> I'm attaching a patch (Exchange would munge up the line breaks otherwise).
+> This works on Latitudes and Optiplexes, should be good for Precision as well:
+> 
+> # dmidecode | grep -C 5 'BIOS Info'
+> 
+> should get you (somewhere) this:
+> 
+> Handle 0x0000, DMI type 0, 24 bytes
+> BIOS Information
+>         Vendor: Dell Inc.
+>         Version: A09
+>         Release Date: 06/04/2008
+> 
 
-Can you please send along a Signed-off-by: for this patch? 
-Documentation/SubmittingPatches explains what it's all about.
+Yeah, the issue is that the battery is flat and I can't find the PSU :)
 
-Thanks.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
