@@ -1,64 +1,35 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] x86: don't print strange not connect ioapic
-Date: Wed, 29 Apr 2009 13:04:41 -0700
-Message-ID: <49F8B2D9.3080903@kernel.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] Ignore garbage in dell-wmi events
+Date: Wed, 29 Apr 2009 13:16:13 -0700
+Message-ID: <20090429131613.abed991b.akpm@linux-foundation.org>
+References: <49F73F92.9000201@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53140 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751713AbZD2UFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Apr 2009 16:05:06 -0400
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58910 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753429AbZD2URG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2009 16:17:06 -0400
+In-Reply-To: <49F73F92.9000201@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Mario Limonciello <mario_limonciello@dell.com>
+Cc: mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Tue, 28 Apr 2009 12:40:34 -0500
+Mario Limonciello <mario_limonciello@dell.com> wrote:
 
-in setup_IO_APIC_irqs(), we only need to go with ioapic that handle legacy irqs,
-because at that points we only have those irq in mp_irqs[]
+> In debugging with some future machines that actually contain BIOS level
+> support for dell-wmi, I've determined that the upper half of the data
+> that comes back from wmi_get_event_data may sometimes contain extra
+> information that isn't currently relevant when pulling scan codes out of
+> the data.  This causes dell-wmi to improperly respond to these events.
+> 
+> I'm attaching a patch (Exchange would munge up the line breaks otherwise).
 
-will not print out those strange not connected pin warning.
+Can you please send along a Signed-off-by: for this patch? 
+Documentation/SubmittingPatches explains what it's all about.
 
-[ Impact: don't go with not used ioapic yet ]
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-
----
- arch/x86/kernel/apic/io_apic.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
-+++ linux-2.6/arch/x86/kernel/apic/io_apic.c
-@@ -1477,10 +1477,27 @@ static void __init setup_IO_APIC_irqs(vo
- 	struct irq_desc *desc;
- 	struct irq_cfg *cfg;
- 	int node = cpu_to_node(boot_cpu_id);
-+	int ioapic_start = 0, ioapic_end = nr_ioapics;
- 
- 	apic_printk(APIC_VERBOSE, KERN_DEBUG "init IO_APIC IRQs\n");
- 
--	for (apic_id = 0; apic_id < nr_ioapics; apic_id++) {
-+#ifdef CONFIG_ACPI
-+	/*
-+	 * when acpi is used, at this point, we only have legacy entries
-+	 * in mp_irqs[] by mp_config_acpi_legacy_irqs/mp_override_legacy_irq
-+	 * so only setup for that ioapic, and will not print out those strange
-+	 * not connected on other ioapic
-+	 */
-+	if (!acpi_disabled && acpi_ioapic) {
-+		ioapic_start = mp_find_ioapic(0);
-+		if (ioapic_start < 0)
-+			ioapic_start = 0;
-+		else
-+			ioapic_end = ioapic_start + 1;
-+	}
-+#endif
-+
-+	for (apic_id = ioapic_start; apic_id < ioapic_end; apic_id++) {
- 		for (pin = 0; pin < nr_ioapic_registers[apic_id]; pin++) {
- 
- 			idx = find_irq_entry(apic_id, pin, mp_INT);
+Thanks.
