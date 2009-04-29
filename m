@@ -1,55 +1,64 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH 1/3] Add support for more dell-wmi hotkeys
-Date: Wed, 29 Apr 2009 15:23:49 -0400
-Message-ID: <36672.1241033029@turing-police.cc.vt.edu>
-References: <49ECBAE2.2080308@dell.com> <49EE09D9.2060209@dell.com> <20090429165729.GB32619@srcf.ucam.org> <49F89981.10806@dell.com>
-            <20090429183154.GC2325@srcf.ucam.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] x86: don't print strange not connect ioapic
+Date: Wed, 29 Apr 2009 13:04:41 -0700
+Message-ID: <49F8B2D9.3080903@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1241033029_4397P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from turing-police.cc.vt.edu ([128.173.14.107]:36938 "EHLO
-	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759594AbZD2TX5 (ORCPT
-	<RFC822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2009 15:23:57 -0400
-In-Reply-To: Your message of "Wed, 29 Apr 2009 19:31:54 BST."
-             <20090429183154.GC2325@srcf.ucam.org>
+Received: from hera.kernel.org ([140.211.167.34]:53140 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751713AbZD2UFG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2009 16:05:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Mario Limonciello <mario_limonciello@dell.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
---==_Exmh_1241033029_4397P
-Content-Type: text/plain; charset="us-ascii"
-Content-Id: <36666.1241033029.1@turing-police.cc.vt.edu>
-
-On Wed, 29 Apr 2009 19:31:54 BST, Matthew Garrett said:
-> It's a precision M6300 - I'm afraid I'm not sure what BIOS it's running.
-
-This works on Latitudes and Optiplexes, should be good for Precision as well:
-
-# dmidecode | grep -C 5 'BIOS Info'
-
-should get you (somewhere) this:
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-        Vendor: Dell Inc.
-        Version: A09
-        Release Date: 06/04/2008
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 
---==_Exmh_1241033029_4397P
-Content-Type: application/pgp-signature
+in setup_IO_APIC_irqs(), we only need to go with ioapic that handle legacy irqs,
+because at that points we only have those irq in mp_irqs[]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+will not print out those strange not connected pin warning.
 
-iD8DBQFJ+KlFcC3lWbTT17ARAkzWAKDa/As+kYSKrP9bSpyC0XG7pwn2NwCaA78w
-zdLfV4QJvi+Tvmdv1h9yUGA=
-=BMMZ
------END PGP SIGNATURE-----
+[ Impact: don't go with not used ioapic yet ]
 
---==_Exmh_1241033029_4397P--
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ arch/x86/kernel/apic/io_apic.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
++++ linux-2.6/arch/x86/kernel/apic/io_apic.c
+@@ -1477,10 +1477,27 @@ static void __init setup_IO_APIC_irqs(vo
+ 	struct irq_desc *desc;
+ 	struct irq_cfg *cfg;
+ 	int node = cpu_to_node(boot_cpu_id);
++	int ioapic_start = 0, ioapic_end = nr_ioapics;
+ 
+ 	apic_printk(APIC_VERBOSE, KERN_DEBUG "init IO_APIC IRQs\n");
+ 
+-	for (apic_id = 0; apic_id < nr_ioapics; apic_id++) {
++#ifdef CONFIG_ACPI
++	/*
++	 * when acpi is used, at this point, we only have legacy entries
++	 * in mp_irqs[] by mp_config_acpi_legacy_irqs/mp_override_legacy_irq
++	 * so only setup for that ioapic, and will not print out those strange
++	 * not connected on other ioapic
++	 */
++	if (!acpi_disabled && acpi_ioapic) {
++		ioapic_start = mp_find_ioapic(0);
++		if (ioapic_start < 0)
++			ioapic_start = 0;
++		else
++			ioapic_end = ioapic_start + 1;
++	}
++#endif
++
++	for (apic_id = ioapic_start; apic_id < ioapic_end; apic_id++) {
+ 		for (pin = 0; pin < nr_ioapic_registers[apic_id]; pin++) {
+ 
+ 			idx = find_irq_entry(apic_id, pin, mp_INT);
