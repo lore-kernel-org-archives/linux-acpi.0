@@ -1,79 +1,108 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 1/6] ACPI: allow drivers to request both device and system
-	notify events
-Date: Thu, 30 Apr 2009 09:35:37 -0600
-Message-ID: <20090430153537.12628.5751.stgit@bob.kio>
+Subject: [PATCH 3/6] ACPI: battery: use .notify method instead of installing
+	handler directly
+Date: Thu, 30 Apr 2009 09:35:47 -0600
+Message-ID: <20090430153547.12628.3749.stgit@bob.kio>
 References: <20090430153419.12628.91088.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:20013 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763969AbZD3Pfi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2009 11:35:38 -0400
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:13280 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763943AbZD3Pfs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2009 11:35:48 -0400
 In-Reply-To: <20090430153419.12628.91088.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: Karol Kozimor <sziwan@users.sourceforge.net>, Corentin Chary <corentincj@iksaif.net>, acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Matthew Garrett <mjg@redhat.com>
 
-System notify events (0x00-0x7f) are common across all device types
-and should be handled in Linux/ACPI, not in drivers.  However, some
-BIOSes use system notify events in device-specific ways that require
-the driver to be involved.
+This patch adds a .notify() method.  The presence of .notify() causes
+Linux/ACPI to manage event handlers and notify handlers on our behalf,
+so we don't have to install and remove them ourselves.
 
-This patch adds a ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag.  When a
-driver sets this flag and supplies a .notify method, Linux/ACPI calls
-the .notify method for ALL notify events on the device, not just the
-device-specific (0x80-0xff) events.
+This driver apparently relies on seeing ALL notify events, not just
+device-specific ones (because it used ACPI_ALL_NOTIFY).  We use the
+ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 ---
- drivers/acpi/bus.c      |    6 +++++-
- include/acpi/acpi_bus.h |    3 +++
- 2 files changed, 8 insertions(+), 1 deletions(-)
+ drivers/acpi/battery.c |   22 +++++-----------------
+ 1 files changed, 5 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index e8f7b64..fd6a930 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -549,6 +549,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b0de631..eb00c4e 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -796,13 +796,12 @@ static void acpi_battery_remove_fs(struct acpi_device *device)
+                                  Driver Interface
+    -------------------------------------------------------------------------- */
+ 
+-static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_battery_notify(struct acpi_device *device, u32 event)
+ {
+-	struct acpi_battery *battery = data;
+-	struct acpi_device *device;
++	struct acpi_battery *battery = acpi_driver_data(device);
++
+ 	if (!battery)
+ 		return;
+-	device = battery->device;
+ 	acpi_battery_update(battery);
+ 	acpi_bus_generate_proc_event(device, event,
+ 				     acpi_battery_present(battery));
+@@ -819,7 +818,6 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ static int acpi_battery_add(struct acpi_device *device)
  {
  	int result = 0;
- 	struct acpi_device *device = NULL;
-+	struct acpi_driver *driver;
+-	acpi_status status = 0;
+ 	struct acpi_battery *battery = NULL;
+ 	if (!device)
+ 		return -EINVAL;
+@@ -837,14 +835,6 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (result)
+ 		goto end;
+ #endif
+-	status = acpi_install_notify_handler(device->handle,
+-					     ACPI_ALL_NOTIFY,
+-					     acpi_battery_notify, battery);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_EXCEPTION((AE_INFO, status, "Installing notify handler"));
+-		result = -ENODEV;
+-		goto end;
+-	}
+ 	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
+ 	       ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
+ 	       device->status.battery_present ? "present" : "absent");
+@@ -860,15 +850,11 @@ static int acpi_battery_add(struct acpi_device *device)
  
- 	blocking_notifier_call_chain(&acpi_bus_notify_list,
- 		type, (void *)handle);
-@@ -629,7 +630,10 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 		break;
- 	}
+ static int acpi_battery_remove(struct acpi_device *device, int type)
+ {
+-	acpi_status status = 0;
+ 	struct acpi_battery *battery = NULL;
  
--	return;
-+	driver = device->driver;
-+	if (driver && driver->ops.notify &&
-+	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
-+		driver->ops.notify(device, type);
- }
- 
- /* --------------------------------------------------------------------------
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c34b110..84e35d5 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -114,10 +114,13 @@ struct acpi_device_ops {
- 	acpi_op_notify notify;
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 	battery = acpi_driver_data(device);
+-	status = acpi_remove_notify_handler(device->handle,
+-					    ACPI_ALL_NOTIFY,
+-					    acpi_battery_notify);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	acpi_battery_remove_fs(device);
+ #endif
+@@ -896,10 +882,12 @@ static struct acpi_driver acpi_battery_driver = {
+ 	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+ 	.ids = battery_device_ids,
++	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+ 	.ops = {
+ 		.add = acpi_battery_add,
+ 		.resume = acpi_battery_resume,
+ 		.remove = acpi_battery_remove,
++		.notify = acpi_battery_notify,
+ 		},
  };
  
-+#define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
-+
- struct acpi_driver {
- 	char name[80];
- 	char class[80];
- 	const struct acpi_device_id *ids; /* Supported Hardware IDs */
-+	unsigned int flags;
- 	struct acpi_device_ops ops;
- 	struct device_driver drv;
- 	struct module *owner;
 
