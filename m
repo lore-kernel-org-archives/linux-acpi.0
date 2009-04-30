@@ -1,110 +1,69 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
 	even when ignore_ppc=0
-Date: Thu, 30 Apr 2009 11:17:46 +0200
-Message-ID: <20090430091746.GA2839@elte.hu>
-References: <20090415225348.GW8311@plum> <200904291519.29683.trenn@suse.de> <20090429214312.GX7917@plum> <200904301107.45753.trenn@suse.de>
+Date: Thu, 30 Apr 2009 10:54:14 +0100
+Message-ID: <20090430095414.GA19462@srcf.ucam.org>
+References: <20090415225348.GW8311@plum> <20090416002712.GX8311@plum> <200904161201.13409.trenn@suse.de> <20090416174217.GY8311@plum> <20090416224507.GA31984@srcf.ucam.org> <20090428193303.GC6968@plum> <20090428195348.GA8376@srcf.ucam.org> <20090429213930.GE6968@plum> <20090429220037.GA8604@srcf.ucam.org> <20090430072556.GD16737@elte.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="sdtB3X0nJg68CQEu"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:52899 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752125AbZD3JSE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2009 05:18:04 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:55798 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753316AbZD3JyW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2009 05:54:22 -0400
 Content-Disposition: inline
-In-Reply-To: <200904301107.45753.trenn@suse.de>
+In-Reply-To: <20090430072556.GD16737@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: djwong@us.ibm.com, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>, Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
+
+On Thu, Apr 30, 2009 at 09:25:56AM +0200, Ingo Molnar wrote:
+
+> OTOH, if you rely on me figuring out which patch to revert and what 
+> to do, it will take an indeterminate amount of time - together with 
+> all the other items in my 'would be nice to hack on, given a bit of 
+> free time' queue :)
+
+Here's Darrick's patch:
+
+Earlier, Ingo Molnar posted a patch to make it so that the kernel would avoid
+reading _PPC on his broken T60.  Unfortunately, it seems that with Thomas
+Renninger's patch last July to eliminate _PPC evaluations when the processor
+driver loads, the kernel never actually reads _PPC at all!  This is problematic
+if you happen to boot your non-T60 computer in a state where the BIOS _wants_
+_PPC to be something other than zero.
+
+So, put the _PPC evaluation back into acpi_processor_get_performance_info if
+ignore_ppc isn't 1.
+
+This second version restores the correct function call, which simplifies
+the patch.  I apologize for the churn and the poor eyesight.
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+
+ drivers/acpi/processor_perflib.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
 
---sdtB3X0nJg68CQEu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index cafb410..85af717 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -348,7 +348,11 @@ static int acpi_processor_get_performance_info(struct acpi_processor *pr)
+ 	if (result)
+ 		goto update_bios;
+ 
+-	return 0;
++	/* We need to call _PPC once when cpufreq starts */
++	if (ignore_ppc != 1)
++		result = acpi_processor_get_platform_limit(pr);
++
++	return result;
+ 
+ 	/*
+ 	 * Having _PPC but missing frequencies (_PSS, _PCT) is a very good hint that
 
-
-* Thomas Renninger <trenn@suse.de> wrote:
-
-> On Wednesday 29 April 2009 11:43:12 pm Darrick J. Wong wrote:
-> > On Wed, Apr 29, 2009 at 03:19:28PM +0200, Thomas Renninger wrote:
-> > > Ingo, did you do a BIOS update in between?
-> > > The DSDT and SSDTs you added do not contain a _PPC function.
-> > > These ACPI tables definitely do not suffer from an initial _PPC
-> > > evaluation.
-> >
-> > P-state tables are probably loaded from separate SSDT tables "CPU0IST" and
-> > "CPU1IST".  You can download 'em with something like this:
-> >
-> > # dmesg | grep IST
-> > ACPI: SSDT BFD30566, 01FB (r1  PmRef    CPU0IST   3000 INTL 20030224)
-> >            ^addr     ^length
-> >
-> > # acpidump --addr 0xBFD30566 --length 0x1FB > cpu0ist
-> > # iasl -d cpu0ist
-> >
-> > Then paste cpu0ist.dsl somewhere.
-> 
-> Oops forgot about the tables loaded at runtime, I take back the definitely :)
-> Ingo, can you also do:
-> acpidump --addr 0x7F6E609E --length 0x1ED >cpu0ist
-> acpidump --addr 0x7F6E628B --length 0x94 >cpu1ist
-> acpidump --addr 0x7F6E5DE1 --length 0x238 >cpu0cst
-> acpidump --addr 0x7F6E6019 --length 0x85 >cpu1cst
-
-sure - attached.
-
-	Ingo
-
---sdtB3X0nJg68CQEu
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=cpu0ist
-Content-Transfer-Encoding: base64
-
-U1NEVO0BAAABdVBtUmVmAENwdTBJc3QAAAEAAElOVEwTBQUgEEgcXC5fUFJfQ1BVMBRABV9Q
-UEMAcAoAYHBcLwVfU0JfUENJMExQQ19FQ19fTFBNRGCgKZJgoCWRXERUMDBcLwVfU0JfUENJ
-MExQQ19FQ19fSFQxMHBcTFdTVGCkYBRHB19QQ1QAoEEEkHtDRkdECgEAe1BEQzAKAQCkEiwC
-ERQKEYIMAH9AAACZAQAAAAAAAHkAERQKEYIMAH8QAACYAQAAAAAAAHkApBIsAhEUChGCDAAB
-EAAAsgAAAAAAAAB5ABEUChGCDAABCAAAswAAAAAAAAB5ABQaWFBTUwCgDntQREMwCgEApE5Q
-U1OkU1BTUwhTUFNTEkYGAxIgBgwpBwAADBh5AAAMbgAAAAwKAAAADIMAAAAMAAAAABIgBgw1
-BQAADCBOAAAMbgAAAAwKAAAADIMBAAAMAQAAABIgBgzoAwAADMgyAAAMbgAAAAwKAAAADIMC
-AAAMAgAAAAhfUFNTEkYGAxIgBgwpBwAADBh5AAAMCgAAAAwKAAAADCwLAAAMLAsAABIgBgw1
-BQAADCBOAAAMCgAAAAwKAAAADB0IAAAMHQgAABIgBgzoAwAADMgyAAAMCgAAAAwKAAAADBMG
-AAAMEwYAAA==
-
---sdtB3X0nJg68CQEu
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=cpu1ist
-Content-Transfer-Encoding: base64
-
-U1NEVJQAAAABllBtUmVmAENwdTFJc3QAAAEAAElOVEwTBQUgEE8GXC5fUFJfQ1BVMRQWX1BQ
-QwCkXC8DX1BSX0NQVTBfUFBDFDRfUENUAKQSLAIRFAoRggwAf0AAAJkBAAAAAAAAeQARFAoR
-ggwAfxAAAJgBAAAAAAAAeQAUFl9QU1MApFwvA19QUl9DUFUwX1BTUw==
-
---sdtB3X0nJg68CQEu
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=cpu0cst
-Content-Transfer-Encoding: base64
-
-U1NEVDgCAAABolBtUmVmAENwdTBDc3QAAAEAAElOVEwTBQUgEEMhXC5fUFJfQ1BVMAhDU1Qx
-EiMCCgESHgQRFAoRggwAfwAAAAAAAAAAAAAAeQAKAQoBC+gDCENTVDISQwQDCgISHgQRFAoR
-ggwAfwAAAAAAAAAAAAAAeQAKAQoBC+gDEh4EERQKEYIMAAEIAAAUEAAAAAAAAHkACgIKAQv0
-AQhDU1QzEkEGBAoDEh4EERQKEYIMAH8AAAAAAAAAAAAAAHkACgEKAQvoAxIeBBEUChGCDAAB
-CAAAFBAAAAAAAAB5AAoCCgEL9AESHQQRFAoRggwAAQgAABUQAAAAAAAAeQAKAwoRCmQIQ1NU
-NBJBBgQKAxIeBBEUChGCDAB/AAAAAAAAAAAAAAB5AAoBCgEL6AMSHgQRFAoRggwAAQgAABQQ
-AAAAAAAAeQAKAgoBC/QBEh0EERQKEYIMAAEIAAAWEAAAAAAAAHkACgMKOQpkFEYMX0NTVACg
-O5B7Q0ZHRAwAAAABAJJ7UERDMAoQAKQSIwIKARIeBBEUChGCDAB/AAAAAAAAAAAAAAB5AAoB
-Cp0L6AOgRQV7Q0ZHRAqAAKALXEMyTkGkQ1NUMaALXEMzTkGkQ1NUMqAhXC8GX1NCX1BDSTBM
-UENfRUNfX0FDX19fUFNSpENTVDOgC1xDNE5BpENTVDOkQ1NUNKAYkJJ7Q0ZHRAqAAHtDRkdE
-CkAApENTVDOgDntDRkdECiAApENTVDKkQ1NUMQ==
-
---sdtB3X0nJg68CQEu
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=cpu1cst
-Content-Transfer-Encoding: base64
-
-U1NEVIUAAAABu1BtUmVmAENwdTFDc3QAAAEAAElOVEwTBQUgEEAGXC5fUFJfQ1BVMRRDBV9D
-U1QAoDuQe0NGR0QMAAAAAQCSe1BEQzEKEACkEiMCCgESHgQRFAoRggwAfwAAAAAAAAAAAAAA
-eQAKAQqdC+gDpFwvA19QUl9DUFUwX0NTVA==
-
---sdtB3X0nJg68CQEu--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
