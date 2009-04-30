@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH 4/6] ACPI: asus-laptop: use .notify method
-	instead of	installing handler directly
-Date: Thu, 30 Apr 2009 09:35:53 -0600
-Message-ID: <20090430153552.12628.78554.stgit@bob.kio>
+Subject: [PATCH 5/6] ACPI: asus-acpi: use .notify method
+	instead of installing	handler directly
+Date: Thu, 30 Apr 2009 09:35:58 -0600
+Message-ID: <20090430153558.12628.80916.stgit@bob.kio>
 References: <20090430153419.12628.91088.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,30 +25,35 @@ This patch adds a .notify() method.  The presence of .notify() causes
 Linux/ACPI to manage event handlers and notify handlers on our behalf,
 so we don't have to install and remove them ourselves.
 
-This driver apparently relies on seeing ALL notify events, not just
-device-specific ones (because it used ACPI_ALL_NOTIFY).  We use the
-ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events.
+This driver relies on seeing system notify events, not device-specific
+ones (because it used ACPI_SYSTEM_NOTIFY).  We use the
+ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events, then
+just ignore any device events we get.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 CC: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+CC: Karol Kozimor <sziwan-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 CC: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 ---
- drivers/platform/x86/asus-laptop.c |   23 +++++------------------
- 1 files changed, 5 insertions(+), 18 deletions(-)
+ drivers/platform/x86/asus_acpi.c |   30 +++++++++++++-----------------
+ 1 files changed, 13 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index eeafc6c..22a38fe 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -207,13 +207,17 @@ MODULE_DEVICE_TABLE(acpi, asus_device_ids);
- 
+diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
+index ba1f749..ddf5240 100644
+--- a/drivers/platform/x86/asus_acpi.c
++++ b/drivers/platform/x86/asus_acpi.c
+@@ -455,6 +455,8 @@ static struct asus_hotk *hotk;
+  */
  static int asus_hotk_add(struct acpi_device *device);
  static int asus_hotk_remove(struct acpi_device *device, int type);
 +static void asus_hotk_notify(struct acpi_device *device, u32 event);
 +
- static struct acpi_driver asus_hotk_driver = {
- 	.name = ASUS_HOTK_NAME,
- 	.class = ASUS_HOTK_CLASS,
+ static const struct acpi_device_id asus_device_ids[] = {
+ 	{"ATK0100", 0},
+ 	{"", 0},
+@@ -465,9 +467,11 @@ static struct acpi_driver asus_hotk_driver = {
+ 	.name = "asus_acpi",
+ 	.class = ACPI_HOTK_CLASS,
  	.ids = asus_device_ids,
 +	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
@@ -58,40 +63,45 @@ index eeafc6c..22a38fe 100644
  		},
  };
  
-@@ -812,7 +816,7 @@ static int asus_setkeycode(struct input_dev *dev, int scancode, int keycode)
- 	return -EINVAL;
+@@ -1101,12 +1105,20 @@ static int asus_hotk_remove_fs(struct acpi_device *device)
+ 	return 0;
  }
  
 -static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
 +static void asus_hotk_notify(struct acpi_device *device, u32 event)
  {
- 	static struct key_entry *key;
- 	u16 count;
-@@ -1124,7 +1128,6 @@ static int asus_hotk_found;
+ 	/* TODO Find a better way to handle events count. */
+ 	if (!hotk)
+ 		return;
  
- static int asus_hotk_add(struct acpi_device *device)
- {
--	acpi_status status = AE_OK;
- 	int result;
- 
- 	if (!device)
-@@ -1149,15 +1152,6 @@ static int asus_hotk_add(struct acpi_device *device)
- 
- 	asus_hotk_add_fs();
++	/*
++	 * The BIOS *should* be sending us device events, but apparently
++	 * Asus uses system events instead, so just ignore any device
++	 * events we get.
++	 */
++	if (event > ACPI_MAX_SYS_NOTIFY)
++		return;
++
+ 	if ((event & ~((u32) BR_UP)) < 16)
+ 		hotk->brightness = (event & ~((u32) BR_UP));
+ 	else if ((event & ~((u32) BR_DOWN)) < 16)
+@@ -1346,15 +1358,6 @@ static int asus_hotk_add(struct acpi_device *device)
+ 	if (result)
+ 		goto end;
  
 -	/*
 -	 * We install the handler, it will receive the hotk in parameter, so, we
 -	 * could add other data to the hotk struct
 -	 */
--	status = acpi_install_notify_handler(hotk->handle, ACPI_ALL_NOTIFY,
+-	status = acpi_install_notify_handler(hotk->handle, ACPI_SYSTEM_NOTIFY,
 -					     asus_hotk_notify, hotk);
 -	if (ACPI_FAILURE(status))
--		printk(ASUS_ERR "Error installing notify handler\n");
+-		printk(KERN_ERR "  Error installing notify handler\n");
 -
- 	asus_hotk_found = 1;
- 
- 	/* WLED and BLED are on by default */
-@@ -1198,16 +1192,9 @@ end:
+ 	/* For laptops without GPLV: init the hotk->brightness value */
+ 	if ((!hotk->methods->brightness_get)
+ 	    && (!hotk->methods->brightness_status)
+@@ -1389,16 +1392,9 @@ end:
  
  static int asus_hotk_remove(struct acpi_device *device, int type)
  {
@@ -100,14 +110,14 @@ index eeafc6c..22a38fe 100644
  	if (!device || !acpi_driver_data(device))
  		return -EINVAL;
  
--	status = acpi_remove_notify_handler(hotk->handle, ACPI_ALL_NOTIFY,
+-	status = acpi_remove_notify_handler(hotk->handle, ACPI_SYSTEM_NOTIFY,
 -					    asus_hotk_notify);
 -	if (ACPI_FAILURE(status))
--		printk(ASUS_ERR "Error removing notify handler\n");
+-		printk(KERN_ERR "Asus ACPI: Error removing notify handler\n");
 -
- 	kfree(hotk->name);
- 	kfree(hotk);
+ 	asus_hotk_remove_fs(device);
  
+ 	kfree(hotk);
 
 
 ------------------------------------------------------------------------------
