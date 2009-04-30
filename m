@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH 5/6] ACPI: asus-acpi: use .notify method
-	instead of installing	handler directly
-Date: Thu, 30 Apr 2009 09:35:58 -0600
-Message-ID: <20090430153558.12628.80916.stgit@bob.kio>
+Subject: [PATCH 6/6] ACPI: eeepc-laptop: use .notify method
+	instead of	installing handler directly
+Date: Thu, 30 Apr 2009 09:36:03 -0600
+Message-ID: <20090430153603.12628.46200.stgit@bob.kio>
 References: <20090430153419.12628.91088.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -32,92 +32,88 @@ just ignore any device events we get.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 CC: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
-CC: Karol Kozimor <sziwan-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 CC: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+CC: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/platform/x86/asus_acpi.c |   30 +++++++++++++-----------------
- 1 files changed, 13 insertions(+), 17 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   19 ++++++-------------
+ 1 files changed, 6 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
-index ba1f749..ddf5240 100644
---- a/drivers/platform/x86/asus_acpi.c
-+++ b/drivers/platform/x86/asus_acpi.c
-@@ -455,6 +455,8 @@ static struct asus_hotk *hotk;
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 6f54fd1..d9424fd 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -177,6 +177,7 @@ static struct key_entry eeepc_keymap[] = {
   */
- static int asus_hotk_add(struct acpi_device *device);
- static int asus_hotk_remove(struct acpi_device *device, int type);
-+static void asus_hotk_notify(struct acpi_device *device, u32 event);
-+
- static const struct acpi_device_id asus_device_ids[] = {
- 	{"ATK0100", 0},
- 	{"", 0},
-@@ -465,9 +467,11 @@ static struct acpi_driver asus_hotk_driver = {
- 	.name = "asus_acpi",
- 	.class = ACPI_HOTK_CLASS,
- 	.ids = asus_device_ids,
+ static int eeepc_hotk_add(struct acpi_device *device);
+ static int eeepc_hotk_remove(struct acpi_device *device, int type);
++static void eeepc_hotk_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id eeepc_device_ids[] = {
+ 	{EEEPC_HOTK_HID, 0},
+@@ -188,9 +189,11 @@ static struct acpi_driver eeepc_hotk_driver = {
+ 	.name = EEEPC_HOTK_NAME,
+ 	.class = EEEPC_HOTK_CLASS,
+ 	.ids = eeepc_device_ids,
 +	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
- 		.add = asus_hotk_add,
- 		.remove = asus_hotk_remove,
-+		.notify = asus_hotk_notify,
- 		},
+ 		.add = eeepc_hotk_add,
+ 		.remove = eeepc_hotk_remove,
++		.notify = eeepc_hotk_notify,
+ 	},
  };
  
-@@ -1101,12 +1105,20 @@ static int asus_hotk_remove_fs(struct acpi_device *device)
- 	return 0;
+@@ -554,13 +557,15 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+ 	}
  }
  
--static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
-+static void asus_hotk_notify(struct acpi_device *device, u32 event)
+-static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
++static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
  {
- 	/* TODO Find a better way to handle events count. */
- 	if (!hotk)
- 		return;
+ 	static struct key_entry *key;
+ 	u16 count;
  
-+	/*
-+	 * The BIOS *should* be sending us device events, but apparently
-+	 * Asus uses system events instead, so just ignore any device
-+	 * events we get.
-+	 */
+ 	if (!ehotk)
+ 		return;
 +	if (event > ACPI_MAX_SYS_NOTIFY)
 +		return;
-+
- 	if ((event & ~((u32) BR_UP)) < 16)
- 		hotk->brightness = (event & ~((u32) BR_UP));
- 	else if ((event & ~((u32) BR_DOWN)) < 16)
-@@ -1346,15 +1358,6 @@ static int asus_hotk_add(struct acpi_device *device)
+ 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
+ 		notify_brn();
+ 	count = ehotk->event_count[event % 128]++;
+@@ -626,7 +631,6 @@ static void eeepc_unregister_rfkill_notifier(char *node)
+ 
+ static int eeepc_hotk_add(struct acpi_device *device)
+ {
+-	acpi_status status = AE_OK;
+ 	int result;
+ 
+ 	if (!device)
+@@ -644,11 +648,6 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 	result = eeepc_hotk_check();
  	if (result)
- 		goto end;
- 
--	/*
--	 * We install the handler, it will receive the hotk in parameter, so, we
--	 * could add other data to the hotk struct
--	 */
--	status = acpi_install_notify_handler(hotk->handle, ACPI_SYSTEM_NOTIFY,
--					     asus_hotk_notify, hotk);
+ 		goto ehotk_fail;
+-	status = acpi_install_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
+-					     eeepc_hotk_notify, ehotk);
 -	if (ACPI_FAILURE(status))
--		printk(KERN_ERR "  Error installing notify handler\n");
+-		printk(EEEPC_ERR "Error installing notify handler\n");
 -
- 	/* For laptops without GPLV: init the hotk->brightness value */
- 	if ((!hotk->methods->brightness_get)
- 	    && (!hotk->methods->brightness_status)
-@@ -1389,16 +1392,9 @@ end:
+ 	if (get_acpi(CM_ASL_WLAN) != -1) {
+ 		ehotk->eeepc_wlan_rfkill = rfkill_allocate(&device->dev,
+ 							   RFKILL_TYPE_WLAN);
+@@ -726,14 +725,8 @@ static int eeepc_hotk_add(struct acpi_device *device)
  
- static int asus_hotk_remove(struct acpi_device *device, int type)
+ static int eeepc_hotk_remove(struct acpi_device *device, int type)
  {
 -	acpi_status status = 0;
 -
  	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
- 
--	status = acpi_remove_notify_handler(hotk->handle, ACPI_SYSTEM_NOTIFY,
--					    asus_hotk_notify);
+ 		 return -EINVAL;
+-	status = acpi_remove_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
+-					    eeepc_hotk_notify);
 -	if (ACPI_FAILURE(status))
--		printk(KERN_ERR "Asus ACPI: Error removing notify handler\n");
--
- 	asus_hotk_remove_fs(device);
+-		printk(EEEPC_ERR "Error removing notify handler\n");
  
- 	kfree(hotk);
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
 
 
 ------------------------------------------------------------------------------
