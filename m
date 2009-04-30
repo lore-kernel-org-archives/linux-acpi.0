@@ -1,16 +1,17 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 1/4] x86/acpi: move pin_programmed bit map to io_apic.c
-Date: Thu, 30 Apr 2009 01:19:28 -0700
-Message-ID: <49F95F10.3060209@kernel.org>
+Subject: [PATCH 3/4] x86/acpi: move setup io apic routing out of ACPI macro
+ scope
+Date: Thu, 30 Apr 2009 01:22:39 -0700
+Message-ID: <49F95FCF.7040506@kernel.org>
 References: <49F8B2D9.3080903@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55957 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56021 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760146AbZD3IUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2009 04:20:06 -0400
+	id S1761552AbZD3IXJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Apr 2009 04:23:09 -0400
 In-Reply-To: <49F8B2D9.3080903@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,90 +19,60 @@ To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 
-prepare to call setup_io_apic_routing in pcibios_irq_enable
-also remove not needed member apic_id.
+so we could set io apic routing when ACPI is not set
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
 ---
- arch/x86/kernel/acpi/boot.c    |   18 ++----------------
- arch/x86/kernel/apic/io_apic.c |   25 ++++++++++++++++++++++++-
- 2 files changed, 26 insertions(+), 17 deletions(-)
+ arch/x86/include/asm/io_apic.h |    4 -
+ arch/x86/kernel/apic/io_apic.c |  122 ++++++++++++++++++++---------------------
+ 2 files changed, 63 insertions(+), 63 deletions(-)
 
-Index: linux-2.6/arch/x86/kernel/acpi/boot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
-+++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -904,10 +904,8 @@ extern int es7000_plat;
- #endif
- 
- static struct {
--	int apic_id;
- 	int gsi_base;
- 	int gsi_end;
--	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
- } mp_ioapic_routing[MAX_IO_APICS];
- 
- int mp_find_ioapic(int gsi)
-@@ -996,7 +994,6 @@ void __init mp_register_ioapic(int id, u
- 	 * Build basic GSI lookup table to facilitate gsi->io_apic lookups
- 	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
- 	 */
--	mp_ioapic_routing[idx].apic_id = mp_ioapics[idx].apicid;
- 	mp_ioapic_routing[idx].gsi_base = gsi_base;
- 	mp_ioapic_routing[idx].gsi_end = gsi_base +
- 	    io_apic_get_redir_entries(idx);
-@@ -1189,7 +1186,7 @@ static int mp_config_acpi_gsi(struct dev
- 	mp_irq.srcbus = number;
- 	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
- 	ioapic = mp_find_ioapic(gsi);
--	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
-+	mp_irq.dstapic = mp_ioapics[ioapic].apicid;
- 	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
- 
- 	save_mp_irq(&mp_irq);
-@@ -1224,23 +1221,12 @@ int mp_register_gsi(struct device *dev,
- 
- 	if (ioapic_pin > MP_MAX_IOAPIC_PIN) {
- 		printk(KERN_ERR "Invalid reference to IOAPIC pin "
--		       "%d-%d\n", mp_ioapic_routing[ioapic].apic_id,
-+		       "%d-%d\n", mp_ioapics[ioapic].apicid,
- 		       ioapic_pin);
- 		return gsi;
- 	}
- 	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
- 
--	/*
--	 * Avoid pin reprogramming.  PRTs typically include entries
--	 * with redundant pin->gsi mappings (but unique PCI devices);
--	 * we only program the IOAPIC on the first.
--	 */
--	if (test_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed)) {
--		pr_debug("Pin %d-%d already programmed\n",
--			 mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
--		return gsi;
--	}
--	set_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed);
- 	io_apic_set_pci_routing(dev, ioapic, ioapic_pin, gsi,
- 				triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
- 				polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
 Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
 ===================================================================
 --- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
 +++ linux-2.6/arch/x86/kernel/apic/io_apic.c
-@@ -3938,7 +3938,7 @@ int __init io_apic_get_version(int ioapi
+@@ -3855,6 +3855,67 @@ int __init arch_probe_nr_irqs(void)
  }
  #endif
  
--int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
 +static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
- 				 int triggering, int polarity)
- {
- 	struct irq_desc *desc;
-@@ -3975,6 +3975,29 @@ int io_apic_set_pci_routing(struct devic
- 	return 0;
- }
- 
++				 int triggering, int polarity)
++{
++	struct irq_desc *desc;
++	struct irq_cfg *cfg;
++	int node;
++
++	if (!IO_APIC_IRQ(irq)) {
++		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
++			ioapic);
++		return -EINVAL;
++	}
++
++	if (dev)
++		node = dev_to_node(dev);
++	else
++		node = cpu_to_node(boot_cpu_id);
++
++	desc = irq_to_desc_alloc_node(irq, node);
++	if (!desc) {
++		printk(KERN_INFO "can not get irq_desc %d\n", irq);
++		return 0;
++	}
++
++	/*
++	 * IRQs < 16 are already in the irq_2_pin[] map
++	 */
++	if (irq >= NR_IRQS_LEGACY) {
++		cfg = desc->chip_data;
++		add_pin_to_irq_node(cfg, node, ioapic, pin);
++	}
++
++	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
++
++	return 0;
++}
++
 +static struct {
 +	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
 +} mp_ioapic_routing[MAX_IO_APICS];
@@ -125,6 +96,92 @@ Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
 +	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
 +					 triggering, polarity);
 +}
++
+ /* --------------------------------------------------------------------------
+                           ACPI-based IOAPIC Configuration
+    -------------------------------------------------------------------------- */
+@@ -3949,67 +4010,6 @@ int __init io_apic_get_version(int ioapi
+ }
+ #endif
  
+-static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+-				 int triggering, int polarity)
+-{
+-	struct irq_desc *desc;
+-	struct irq_cfg *cfg;
+-	int node;
+-
+-	if (!IO_APIC_IRQ(irq)) {
+-		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
+-			ioapic);
+-		return -EINVAL;
+-	}
+-
+-	if (dev)
+-		node = dev_to_node(dev);
+-	else
+-		node = cpu_to_node(boot_cpu_id);
+-
+-	desc = irq_to_desc_alloc_node(irq, node);
+-	if (!desc) {
+-		printk(KERN_INFO "can not get irq_desc %d\n", irq);
+-		return 0;
+-	}
+-
+-	/*
+-	 * IRQs < 16 are already in the irq_2_pin[] map
+-	 */
+-	if (irq >= NR_IRQS_LEGACY) {
+-		cfg = desc->chip_data;
+-		add_pin_to_irq_node(cfg, node, ioapic, pin);
+-	}
+-
+-	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
+-
+-	return 0;
+-}
+-
+-static struct {
+-	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
+-} mp_ioapic_routing[MAX_IO_APICS];
+-
+-int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+-				 int triggering, int polarity)
+-{
+-
+-	/*
+-	 * Avoid pin reprogramming.  PRTs typically include entries
+-	 * with redundant pin->gsi mappings (but unique PCI devices);
+-	 * we only program the IOAPIC on the first.
+-	 */
+-	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
+-		pr_debug("Pin %d-%d already programmed\n",
+-			 mp_ioapics[ioapic].apicid, pin);
+-		return 0;
+-	}
+-	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
+-
+-	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
+-					 triggering, polarity);
+-}
+-
  int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity)
  {
+ 	int i;
+Index: linux-2.6/arch/x86/include/asm/io_apic.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/io_apic.h
++++ linux-2.6/arch/x86/include/asm/io_apic.h
+@@ -154,10 +154,10 @@ extern int timer_through_8259;
+ extern int io_apic_get_unique_id(int ioapic, int apic_id);
+ extern int io_apic_get_version(int ioapic);
+ extern int io_apic_get_redir_entries(int ioapic);
+-extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
+-				  int irq, int edge_level, int active_high_low);
+ #endif /* CONFIG_ACPI */
+ 
++extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
++				  int irq, int edge_level, int active_high_low);
+ extern int (*ioapic_renumber_irq)(int ioapic, int irq);
+ extern void ioapic_init_mappings(void);
+ 
