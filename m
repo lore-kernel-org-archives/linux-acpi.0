@@ -1,45 +1,58 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: 2.6.30-rc3 video/i915 build error
-Date: Thu, 30 Apr 2009 20:12:03 +0200
-Message-ID: <20090430181203.GC15491@gamma.logic.tuwien.ac.at>
-References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain> <20090423164642.GF495@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain> <20090430180730.GB15491@gamma.logic.tuwien.ac.at>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 0/2]: the patch set to weaken the dependency between
+ ACPI video driver and i915 driver
+Date: Thu, 30 Apr 2009 13:23:26 -0700
+Message-ID: <20090430132326.127e9fb8.akpm@linux-foundation.org>
+References: <1239678275.5564.66.camel@localhost.localdomain>
+	<20090415205656.GA32509@srcf.ucam.org>
+	<alpine.LFD.2.00.0904231552550.15830@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:52813 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368AbZD3SML (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2009 14:12:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20090430180730.GB15491@gamma.logic.tuwien.ac.at>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45056 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1762016AbZD3U3X (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Apr 2009 16:29:23 -0400
+In-Reply-To: <alpine.LFD.2.00.0904231552550.15830@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, rui.zhang@intel.com, Keith Packard <keithp@keithp.com>, linux-acpi@vger.kernel.org
+Cc: mjg59@srcf.ucam.org, yakui.zhao@intel.com, linux-acpi@vger.kernel.org, dri-devel@lists.sourceforge.net, David John <davidjon@xenontk.org>, We La <w.landgraf@yahoo.com>
 
-On Do, 30 Apr 2009, Norbert Preining wrote:
-> So I tried to activate the backlight device to =y but calling make
-> config always ended with
-> 	CONFIG_BACKLIGHT_CLASS_DEVICE=m
+(cc dri-devel)
 
-Ok, I guess it needs a 
-	select CONFIG_BACKLIGHT_LCD_SUPPORT
-	select CONFIG_LCD_CLASS_DEVICE
-	select CONFIG_BACKLIGHT_CLASS_DEVICE
-or something similar.
+On Thu, 23 Apr 2009 15:56:24 -0400 (EDT)
+Len Brown <lenb@kernel.org> wrote:
 
-Then it compiles.
+> applied
+> 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+> On Wed, 15 Apr 2009, Matthew Garrett wrote:
+> 
+> > How about we just replace these with the following?
+> > 
+> > diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+> > index 3a22eb9..cf7e7c2 100644
+> > --- a/drivers/gpu/drm/Kconfig
+> > +++ b/drivers/gpu/drm/Kconfig
+> > @@ -71,6 +71,7 @@ config DRM_I915
+> >  	select FB_CFB_COPYAREA
+> >  	select FB_CFB_IMAGEBLIT
+> >  	select FB
+> > +	select ACPI_VIDEO if ACPI
+> >  	tristate "i915 driver"
+> >  	help
+> >  	  Choose this option if you have a system that has Intel 830M, 845G,
 
-Best wishes
+You applied this a week ago, but it isn't in mainline or linux-next.
+We La described it as fixing a regression and David John said
 
-Norbert
+: Can you forward this patch to Linus?  This regression breaks quite a
+: few configs where ACPI Video is compiled as a module and i915 is built
+: in.  This should have been in stable, but I guess it's too late now.
 
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-SAFFRON WALDEN (n.)
-To spray the person you are talking to with half-chewed breadcrumbs or
-small pieces of whitebait.
-			--- Douglas Adams, The Meaning of Liff
+So...  wazzup?
