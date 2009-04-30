@@ -1,124 +1,62 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH 6/6] ACPI: eeepc-laptop: use .notify method
-	instead of	installing handler directly
-Date: Thu, 30 Apr 2009 09:36:03 -0600
-Message-ID: <20090430153603.12628.46200.stgit@bob.kio>
-References: <20090430153419.12628.91088.stgit@bob.kio>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: 2.6.30-rc3 video/i915 build error
+Date: Thu, 30 Apr 2009 20:07:30 +0200
+Message-ID: <20090430180730.GB15491@gamma.logic.tuwien.ac.at>
+References: <alpine.LFD.2.00.0904231231100.15830@localhost.localdomain> <20090423164642.GF495@gamma.logic.tuwien.ac.at> <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20090430153419.12628.91088.stgit-tBlMHHroXgg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Karol Kozimor <sziwan-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexey Starikovskiy <alexey.y.starikovskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:59672 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932135AbZD3SIS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2009 14:08:18 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0904231550020.15830@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Eric Anholt <eric@anholt.net>, rui.zhang@intel.com, Keith Packard <keithp@keithp.com>, linux-acpi@vger.kernel.org
 
-This patch adds a .notify() method.  The presence of .notify() causes
-Linux/ACPI to manage event handlers and notify handlers on our behalf,
-so we don't have to install and remove them ourselves.
+On Do, 23 Apr 2009, Len Brown wrote:
+> > > CONFIG_DRM_I915=y
+> > > CONFIG_ACPI_VIDEO=m
+> > > 
+> > > drivers/built-in.o: In function `intel_opregion_init':
+> > > (.text+0x9d540): undefined reference to `acpi_video_register'
+> > 
+> > For me these two patches fix the problem.
+> 
+> Matthew's response to those patches seems to be sufficient:
+> 
+> http://patchwork.kernel.org/patch/18420/
 
-This driver relies on seeing system notify events, not device-specific
-ones (because it used ACPI_SYSTEM_NOTIFY).  We use the
-ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events, then
-just ignore any device events we get.
+I have to disagree. 2.6.30-rc4, with that patch I get that in my config:
+	CONFIG_DRM_I915=y
+	# CONFIG_DRM_I915_KMS is not set
+	CONFIG_ACPI_VIDEO=y
+and it finishes with
+  MODPOST vmlinux.o
+drivers/built-in.o: In function `acpi_video_bus_put_devices': video.c:(.text+0x383a1): undefined reference to `backlight_device_unregister'
+drivers/built-in.o: In function `acpi_video_bus_add': video.c:(.text+0x39c6a): undefined reference to `backlight_device_register'
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-CC: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
-CC: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-CC: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/platform/x86/eeepc-laptop.c |   19 ++++++-------------
- 1 files changed, 6 insertions(+), 13 deletions(-)
+So I tried to activate the backlight device to =y but calling make
+config always ended with
+	CONFIG_BACKLIGHT_CLASS_DEVICE=m
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 6f54fd1..d9424fd 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -177,6 +177,7 @@ static struct key_entry eeepc_keymap[] = {
-  */
- static int eeepc_hotk_add(struct acpi_device *device);
- static int eeepc_hotk_remove(struct acpi_device *device, int type);
-+static void eeepc_hotk_notify(struct acpi_device *device, u32 event);
- 
- static const struct acpi_device_id eeepc_device_ids[] = {
- 	{EEEPC_HOTK_HID, 0},
-@@ -188,9 +189,11 @@ static struct acpi_driver eeepc_hotk_driver = {
- 	.name = EEEPC_HOTK_NAME,
- 	.class = EEEPC_HOTK_CLASS,
- 	.ids = eeepc_device_ids,
-+	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
- 	.ops = {
- 		.add = eeepc_hotk_add,
- 		.remove = eeepc_hotk_remove,
-+		.notify = eeepc_hotk_notify,
- 	},
- };
- 
-@@ -554,13 +557,15 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
- 	}
- }
- 
--static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
-+static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
- {
- 	static struct key_entry *key;
- 	u16 count;
- 
- 	if (!ehotk)
- 		return;
-+	if (event > ACPI_MAX_SYS_NOTIFY)
-+		return;
- 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
- 		notify_brn();
- 	count = ehotk->event_count[event % 128]++;
-@@ -626,7 +631,6 @@ static void eeepc_unregister_rfkill_notifier(char *node)
- 
- static int eeepc_hotk_add(struct acpi_device *device)
- {
--	acpi_status status = AE_OK;
- 	int result;
- 
- 	if (!device)
-@@ -644,11 +648,6 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 	result = eeepc_hotk_check();
- 	if (result)
- 		goto ehotk_fail;
--	status = acpi_install_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
--					     eeepc_hotk_notify, ehotk);
--	if (ACPI_FAILURE(status))
--		printk(EEEPC_ERR "Error installing notify handler\n");
--
- 	if (get_acpi(CM_ASL_WLAN) != -1) {
- 		ehotk->eeepc_wlan_rfkill = rfkill_allocate(&device->dev,
- 							   RFKILL_TYPE_WLAN);
-@@ -726,14 +725,8 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 
- static int eeepc_hotk_remove(struct acpi_device *device, int type)
- {
--	acpi_status status = 0;
--
- 	if (!device || !acpi_driver_data(device))
- 		 return -EINVAL;
--	status = acpi_remove_notify_handler(ehotk->handle, ACPI_SYSTEM_NOTIFY,
--					    eeepc_hotk_notify);
--	if (ACPI_FAILURE(status))
--		printk(EEEPC_ERR "Error removing notify handler\n");
- 
- 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
- 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+So still not working, which is bad. And the patches I mentioned before
+do not apply anymore, so rc4 is out for testing for me.
 
+Full .config on request.
 
-------------------------------------------------------------------------------
-Register Now & Save for Velocity, the Web Performance & Operations 
-Conference from O'Reilly Media. Velocity features a full day of 
-expert-led, hands-on workshops and two days of sessions from industry 
-leaders in dedicated Performance & Operations tracks. Use code vel09scf 
-and Save an extra 15% before 5/3. http://p.sf.net/sfu/velocityconf
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
+Debian Developer <preining@debian.org>                         Debian TeX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+HULL (adj.)
+Descriptive of the smell of a weekend cottage.
+			--- Douglas Adams, The Meaning of Liff
