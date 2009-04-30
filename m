@@ -1,187 +1,69 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 3/4] x86/acpi: move setup io apic routing out of ACPI macro
- scope
-Date: Thu, 30 Apr 2009 01:22:39 -0700
-Message-ID: <49F95FCF.7040506@kernel.org>
-References: <49F8B2D9.3080903@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot even when ignore_ppc=0
+Date: Thu, 30 Apr 2009 11:07:45 +0200
+Message-ID: <200904301107.45753.trenn@suse.de>
+References: <20090415225348.GW8311@plum> <200904291519.29683.trenn@suse.de> <20090429214312.GX7917@plum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56021 "EHLO hera.kernel.org"
+Received: from cantor2.suse.de ([195.135.220.15]:43281 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761552AbZD3IXJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2009 04:23:09 -0400
-In-Reply-To: <49F8B2D9.3080903@kernel.org>
+	id S1753640AbZD3JHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Apr 2009 05:07:07 -0400
+In-Reply-To: <20090429214312.GX7917@plum>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: djwong@us.ibm.com, Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Wednesday 29 April 2009 11:43:12 pm Darrick J. Wong wrote:
+> On Wed, Apr 29, 2009 at 03:19:28PM +0200, Thomas Renninger wrote:
+> > Ingo, did you do a BIOS update in between?
+> > The DSDT and SSDTs you added do not contain a _PPC function.
+> > These ACPI tables definitely do not suffer from an initial _PPC
+> > evaluation.
+>
+> P-state tables are probably loaded from separate SSDT tables "CPU0IST" and
+> "CPU1IST".  You can download 'em with something like this:
+>
+> # dmesg | grep IST
+> ACPI: SSDT BFD30566, 01FB (r1  PmRef    CPU0IST   3000 INTL 20030224)
+>            ^addr     ^length
+>
+> # acpidump --addr 0xBFD30566 --length 0x1FB > cpu0ist
+> # iasl -d cpu0ist
+>
+> Then paste cpu0ist.dsl somewhere.
 
-so we could set io apic routing when ACPI is not set
+Oops forgot about the tables loaded at runtime, I take back the definitely :)
+Ingo, can you also do:
+acpidump --addr 0x7F6E609E --length 0x1ED >cpu0ist
+acpidump --addr 0x7F6E628B --length 0x94 >cpu1ist
+acpidump --addr 0x7F6E5DE1 --length 0x238 >cpu0cst
+acpidump --addr 0x7F6E6019 --length 0x85 >cpu1cst
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Then we should finally have all ACPI bits of such an affected system together.
+The addresses and table lengths should work for your T60 and can be found in 
+the SSDT2:
+Name (SSDT, Package (0x0C)
+        {
+            "CPU0IST ",
+            0x7F6E609E,
+            0x000001ED,
+            "CPU1IST ",
+            0x7F6E628B,
+            0x00000094,
+            "CPU0CST ",
+            0x7F6E5DE1,
+            0x00000238,
+            "CPU1CST ",
+            0x7F6E6019,
+            0x00000085
+        })
 
----
- arch/x86/include/asm/io_apic.h |    4 -
- arch/x86/kernel/apic/io_apic.c |  122 ++++++++++++++++++++---------------------
- 2 files changed, 63 insertions(+), 63 deletions(-)
+Thanks,
 
-Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
-+++ linux-2.6/arch/x86/kernel/apic/io_apic.c
-@@ -3855,6 +3855,67 @@ int __init arch_probe_nr_irqs(void)
- }
- #endif
- 
-+static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
-+				 int triggering, int polarity)
-+{
-+	struct irq_desc *desc;
-+	struct irq_cfg *cfg;
-+	int node;
-+
-+	if (!IO_APIC_IRQ(irq)) {
-+		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
-+			ioapic);
-+		return -EINVAL;
-+	}
-+
-+	if (dev)
-+		node = dev_to_node(dev);
-+	else
-+		node = cpu_to_node(boot_cpu_id);
-+
-+	desc = irq_to_desc_alloc_node(irq, node);
-+	if (!desc) {
-+		printk(KERN_INFO "can not get irq_desc %d\n", irq);
-+		return 0;
-+	}
-+
-+	/*
-+	 * IRQs < 16 are already in the irq_2_pin[] map
-+	 */
-+	if (irq >= NR_IRQS_LEGACY) {
-+		cfg = desc->chip_data;
-+		add_pin_to_irq_node(cfg, node, ioapic, pin);
-+	}
-+
-+	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
-+
-+	return 0;
-+}
-+
-+static struct {
-+	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
-+} mp_ioapic_routing[MAX_IO_APICS];
-+
-+int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
-+				 int triggering, int polarity)
-+{
-+
-+	/*
-+	 * Avoid pin reprogramming.  PRTs typically include entries
-+	 * with redundant pin->gsi mappings (but unique PCI devices);
-+	 * we only program the IOAPIC on the first.
-+	 */
-+	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
-+		pr_debug("Pin %d-%d already programmed\n",
-+			 mp_ioapics[ioapic].apicid, pin);
-+		return 0;
-+	}
-+	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
-+
-+	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
-+					 triggering, polarity);
-+}
-+
- /* --------------------------------------------------------------------------
-                           ACPI-based IOAPIC Configuration
-    -------------------------------------------------------------------------- */
-@@ -3949,67 +4010,6 @@ int __init io_apic_get_version(int ioapi
- }
- #endif
- 
--static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
--				 int triggering, int polarity)
--{
--	struct irq_desc *desc;
--	struct irq_cfg *cfg;
--	int node;
--
--	if (!IO_APIC_IRQ(irq)) {
--		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
--			ioapic);
--		return -EINVAL;
--	}
--
--	if (dev)
--		node = dev_to_node(dev);
--	else
--		node = cpu_to_node(boot_cpu_id);
--
--	desc = irq_to_desc_alloc_node(irq, node);
--	if (!desc) {
--		printk(KERN_INFO "can not get irq_desc %d\n", irq);
--		return 0;
--	}
--
--	/*
--	 * IRQs < 16 are already in the irq_2_pin[] map
--	 */
--	if (irq >= NR_IRQS_LEGACY) {
--		cfg = desc->chip_data;
--		add_pin_to_irq_node(cfg, node, ioapic, pin);
--	}
--
--	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
--
--	return 0;
--}
--
--static struct {
--	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
--} mp_ioapic_routing[MAX_IO_APICS];
--
--int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
--				 int triggering, int polarity)
--{
--
--	/*
--	 * Avoid pin reprogramming.  PRTs typically include entries
--	 * with redundant pin->gsi mappings (but unique PCI devices);
--	 * we only program the IOAPIC on the first.
--	 */
--	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
--		pr_debug("Pin %d-%d already programmed\n",
--			 mp_ioapics[ioapic].apicid, pin);
--		return 0;
--	}
--	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
--
--	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
--					 triggering, polarity);
--}
--
- int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity)
- {
- 	int i;
-Index: linux-2.6/arch/x86/include/asm/io_apic.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/io_apic.h
-+++ linux-2.6/arch/x86/include/asm/io_apic.h
-@@ -154,10 +154,10 @@ extern int timer_through_8259;
- extern int io_apic_get_unique_id(int ioapic, int apic_id);
- extern int io_apic_get_version(int ioapic);
- extern int io_apic_get_redir_entries(int ioapic);
--extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
--				  int irq, int edge_level, int active_high_low);
- #endif /* CONFIG_ACPI */
- 
-+extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
-+				  int irq, int edge_level, int active_high_low);
- extern int (*ioapic_renumber_irq)(int ioapic, int irq);
- extern void ioapic_init_mappings(void);
- 
+     Thomas
