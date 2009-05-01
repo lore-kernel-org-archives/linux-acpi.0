@@ -1,104 +1,128 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2.6.29.y] ACPI: Revert conflicting workaround for BIOS w/
- mangled PRT entries
-Date: Fri, 01 May 2009 11:12:41 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905011106130.6437@localhost.localdomain>
+From: The Holy ettlz <theholyettlz@googlemail.com>
+Subject: Inconsistent processor throttling behaviour on Clevo M720R/Intel
+ T8100
+Date: Fri, 01 May 2009 16:43:17 +0100
+Message-ID: <1241192597.2554.12.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-IYvZAar7noKCWVR3ac6Y"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:56990 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331AbZEAPM6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2009 11:12:58 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KIZ0017W0X6Y5JK@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 01 May 2009 10:12:48 -0500 (CDT)
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:52319 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752158AbZEAPnZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2009 11:43:25 -0400
+Received: by ewy24 with SMTP id 24so2493769ewy.37
+        for <linux-acpi@vger.kernel.org>; Fri, 01 May 2009 08:43:24 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org, tmb@mandriva.org
+To: linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
 
-upstream 82babbb3887e234c995626e4121d411ea9070ca5
-backported to 2.6.29.2
+--=-IYvZAar7noKCWVR3ac6Y
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-2f894ef9c8b36a35d80709bedca276d2fc691941
-in Linux-2.6.21 worked around BIOS with mangled _PRT entries:
-http://bugzilla.kernel.org/show_bug.cgi?id=6859
+Hello,
 
-d0e184abc5983281ef189db2c759d65d56eb1b80
-worked around the same issue via ACPICA, and shipped in 2.6.27.
+I'm encountering a problem on my notebook (Clevo M720R) with an Intel
+T8100 processor whereby Core 0 is always in the T3 throttling state
+following a reboot. There is no thermal reason why this should be so,
+and it is quite annoying having to force all computationally-intensive
+tasks onto Core 1 (which is unthrottled). This is reflected in the
+benchmarks: Core 0 takes around 21s to do what Core 1 does in 12s.
 
-Unfortunately the two workarounds conflict:
-http://bugzilla.kernel.org/show_bug.cgi?id=12270
+In the /proc tree,=20
 
-So revert the Linux specific one.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/acpica/rscreate.c |   27 ++-------------------------
- 1 file changed, 2 insertions(+), 25 deletions(-)
+$ cat /proc/acpi/processor/CPU0/throttling=20
+state count:             8
+active state:            T3
+state available: T3 to T7
+states:
+    T0:                  100%
+    T1:                  88%
+    T2:                  75%
+   *T3:                  63%
+    T4:                  50%
+    T5:                  38%
+    T6:                  25%
+    T7:                  13%
 
-Index: linux-2.6.29.y/drivers/acpi/acpica/rscreate.c
-===================================================================
---- linux-2.6.29.y.orig/drivers/acpi/acpica/rscreate.c
-+++ linux-2.6.29.y/drivers/acpi/acpica/rscreate.c
-@@ -191,8 +191,6 @@ acpi_rs_create_pci_routing_table(union a
- 	user_prt = ACPI_CAST_PTR(struct acpi_pci_routing_table, buffer);
- 
- 	for (index = 0; index < number_of_elements; index++) {
--		int source_name_index = 2;
--		int source_index_index = 3;
- 
- 		/*
- 		 * Point user_prt past this current structure
-@@ -261,27 +259,6 @@ acpi_rs_create_pci_routing_table(union a
- 			return_ACPI_STATUS(AE_BAD_DATA);
- 		}
- 
--		/*
--		 * If BIOS erroneously reversed the _PRT source_name and source_index,
--		 * then reverse them back.
--		 */
--		if (ACPI_GET_OBJECT_TYPE(sub_object_list[3]) !=
--		    ACPI_TYPE_INTEGER) {
--			if (acpi_gbl_enable_interpreter_slack) {
--				source_name_index = 3;
--				source_index_index = 2;
--				printk(KERN_WARNING
--				       "ACPI: Handling Garbled _PRT entry\n");
--			} else {
--				ACPI_ERROR((AE_INFO,
--					    "(PRT[%X].source_index) Need Integer, found %s",
--					    index,
--					    acpi_ut_get_object_type_name
--					    (sub_object_list[3])));
--				return_ACPI_STATUS(AE_BAD_DATA);
--			}
--		}
--
- 		user_prt->pin = (u32) obj_desc->integer.value;
- 
- 		/*
-@@ -305,7 +282,7 @@ acpi_rs_create_pci_routing_table(union a
- 		 * 3) Third subobject: Dereference the PRT.source_name
- 		 * The name may be unresolved (slack mode), so allow a null object
- 		 */
--		obj_desc = sub_object_list[source_name_index];
-+		obj_desc = sub_object_list[2];
- 		if (obj_desc) {
- 			switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
- 			case ACPI_TYPE_LOCAL_REFERENCE:
-@@ -379,7 +356,7 @@ acpi_rs_create_pci_routing_table(union a
- 
- 		/* 4) Fourth subobject: Dereference the PRT.source_index */
- 
--		obj_desc = sub_object_list[source_index_index];
-+		obj_desc = sub_object_list[3];
- 		if (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER) {
- 			ACPI_ERROR((AE_INFO,
- 				    "(PRT[%X].SourceIndex) Need Integer, found %s",
+$ cat /proc/acpi/processor/CPU1/throttling=20
+state count:             8
+active state:            T0
+state available: T0 to T7
+states:
+   *T0:                  100%
+    T1:                  88%
+    T2:                  75%
+    T3:                  63%
+    T4:                  50%
+    T5:                  38%
+    T6:                  25%
+    T7:                  13% =20
+
+
+If I boot with acpi=3Doff, there is no problem and I get full performance
+from both cores. Now, if I suspend and resume, the situation changes.
+The active state is outside the reported range:
+
+
+$ cat /proc/acpi/processor/CPU0/throttling=20
+state count:             8
+active state:            T8
+state available: T3 to T7
+states:
+    T0:                  100%
+    T1:                  88%
+    T2:                  75%
+    T3:                  63%
+    T4:                  50%
+    T5:                  38%
+    T6:                  25%
+    T7:                  13%
+
+$ cat /proc/acpi/processor/CPU1/throttling=20
+state count:             8
+active state:            T8
+state available: T0 to T7
+states:
+    T0:                  100%
+    T1:                  88%
+    T2:                  75%
+    T3:                  63%
+    T4:                  50%
+    T5:                  38%
+    T6:                  25%
+    T7:                  13%
+
+
+I get full performance from both cores in this case.
+
+Any suggestions, and what additional info would be useful? In the
+meantime, is there any way to disable throttling without taking out the
+rest of ACPI and thermal so that I can get my notebook's full
+performance from the outset?
+
+Many thanks,
+James.
+
+--=20
+The Holy ettlz                              TheHolyettlz@googlemail.com
+PGP key ID: 03F94B5D
+-----------------------------------------------------------------------
+
+
+--=-IYvZAar7noKCWVR3ac6Y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkn7GJQACgkQL/Is9AP5S122dQCfX231FVscMEKr05ozB3Go5H89
+MTcAoM0mWOOZF6vxfrW/tsqT1T41Edh+
+=6+G0
+-----END PGP SIGNATURE-----
+
+--=-IYvZAar7noKCWVR3ac6Y--
+
