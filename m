@@ -1,58 +1,105 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 0/2]: the patch set to weaken the dependency between
- ACPI video driver and i915 driver
-Date: Thu, 30 Apr 2009 13:23:26 -0700
-Message-ID: <20090430132326.127e9fb8.akpm@linux-foundation.org>
-References: <1239678275.5564.66.camel@localhost.localdomain>
-	<20090415205656.GA32509@srcf.ucam.org>
-	<alpine.LFD.2.00.0904231552550.15830@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Subject: [PATCH 2.6.27.y..2.6.28.y] ACPI: Revert conflicting
+ workaround for BIOS w/ mangled PRT entries
+Date: Fri, 01 May 2009 11:05:56 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905011101050.6437@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45056 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762016AbZD3U3X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2009 16:29:23 -0400
-In-Reply-To: <alpine.LFD.2.00.0904231552550.15830@localhost.localdomain>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:35006 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755444AbZEAPGO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2009 11:06:14 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KIZ00AOD0LZCJ0G@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 01 May 2009 10:06:05 -0500 (CDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: mjg59@srcf.ucam.org, yakui.zhao@intel.com, linux-acpi@vger.kernel.org, dri-devel@lists.sourceforge.net, David John <davidjon@xenontk.org>, We La <w.landgraf@yahoo.com>
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, tmb@mandriva.org
 
-(cc dri-devel)
+From: Zhang Rui <rui.zhang@intel.com>
 
-On Thu, 23 Apr 2009 15:56:24 -0400 (EDT)
-Len Brown <lenb@kernel.org> wrote:
+upstream 82babbb3887e234c995626e4121d411ea9070ca5
+backported to apply cleanly to 2.6.27.21
+and apply with offset -1 to 2.6.28.9
 
-> applied
-> 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
-> On Wed, 15 Apr 2009, Matthew Garrett wrote:
-> 
-> > How about we just replace these with the following?
-> > 
-> > diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-> > index 3a22eb9..cf7e7c2 100644
-> > --- a/drivers/gpu/drm/Kconfig
-> > +++ b/drivers/gpu/drm/Kconfig
-> > @@ -71,6 +71,7 @@ config DRM_I915
-> >  	select FB_CFB_COPYAREA
-> >  	select FB_CFB_IMAGEBLIT
-> >  	select FB
-> > +	select ACPI_VIDEO if ACPI
-> >  	tristate "i915 driver"
-> >  	help
-> >  	  Choose this option if you have a system that has Intel 830M, 845G,
+2f894ef9c8b36a35d80709bedca276d2fc691941
+in Linux-2.6.21 worked around BIOS with mangled _PRT entries:
+http://bugzilla.kernel.org/show_bug.cgi?id=6859
 
-You applied this a week ago, but it isn't in mainline or linux-next.
-We La described it as fixing a regression and David John said
+d0e184abc5983281ef189db2c759d65d56eb1b80
+worked around the same issue via ACPICA, and shipped in 2.6.27.
 
-: Can you forward this patch to Linus?  This regression breaks quite a
-: few configs where ACPI Video is compiled as a module and i915 is built
-: in.  This should have been in stable, but I guess it's too late now.
+Unfortunately the two workarounds conflict:
+http://bugzilla.kernel.org/show_bug.cgi?id=12270
 
-So...  wazzup?
+So revert the Linux specific one.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/resources/rscreate.c |   27 ++-------------------------
+ 1 file changed, 2 insertions(+), 25 deletions(-)
+
+Index: linux-2.6.27.y/drivers/acpi/resources/rscreate.c
+===================================================================
+--- linux-2.6.27.y.orig/drivers/acpi/resources/rscreate.c
++++ linux-2.6.27.y/drivers/acpi/resources/rscreate.c
+@@ -191,8 +191,6 @@ acpi_rs_create_pci_routing_table(union a
+ 	user_prt = ACPI_CAST_PTR(struct acpi_pci_routing_table, buffer);
+ 
+ 	for (index = 0; index < number_of_elements; index++) {
+-		int source_name_index = 2;
+-		int source_index_index = 3;
+ 
+ 		/*
+ 		 * Point user_prt past this current structure
+@@ -261,27 +259,6 @@ acpi_rs_create_pci_routing_table(union a
+ 			return_ACPI_STATUS(AE_BAD_DATA);
+ 		}
+ 
+-		/*
+-		 * If BIOS erroneously reversed the _PRT source_name and source_index,
+-		 * then reverse them back.
+-		 */
+-		if (ACPI_GET_OBJECT_TYPE(sub_object_list[3]) !=
+-		    ACPI_TYPE_INTEGER) {
+-			if (acpi_gbl_enable_interpreter_slack) {
+-				source_name_index = 3;
+-				source_index_index = 2;
+-				printk(KERN_WARNING
+-				       "ACPI: Handling Garbled _PRT entry\n");
+-			} else {
+-				ACPI_ERROR((AE_INFO,
+-					    "(PRT[%X].source_index) Need Integer, found %s",
+-					    index,
+-					    acpi_ut_get_object_type_name
+-					    (sub_object_list[3])));
+-				return_ACPI_STATUS(AE_BAD_DATA);
+-			}
+-		}
+-
+ 		user_prt->pin = (u32) obj_desc->integer.value;
+ 
+ 		/*
+@@ -305,7 +282,7 @@ acpi_rs_create_pci_routing_table(union a
+ 		 * 3) Third subobject: Dereference the PRT.source_name
+ 		 * The name may be unresolved (slack mode), so allow a null object
+ 		 */
+-		obj_desc = sub_object_list[source_name_index];
++		obj_desc = sub_object_list[2];
+ 		if (obj_desc) {
+ 			switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
+ 			case ACPI_TYPE_LOCAL_REFERENCE:
+@@ -380,7 +357,7 @@ acpi_rs_create_pci_routing_table(union a
+ 
+ 		/* 4) Fourth subobject: Dereference the PRT.source_index */
+ 
+-		obj_desc = sub_object_list[source_index_index];
++		obj_desc = sub_object_list[3];
+ 		if (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER) {
+ 			ACPI_ERROR((AE_INFO,
+ 				    "(PRT[%X].SourceIndex) Need Integer, found %s",
