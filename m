@@ -1,36 +1,117 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Bank screen after resume on Dell XPS M1330
-Date: Sun, 3 May 2009 23:09:23 +0100
-Message-ID: <20090503220923.GA27497@srcf.ucam.org>
-References: <200905031111.50789.arvidjaar@mail.ru> <20090503105932.GA18170@srcf.ucam.org> <20090503215740.GG1368@ucw.cz> <20090503215935.GA27257@srcf.ucam.org> <20090503220552.GC20166@elf.ucw.cz>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Inconsistent processor throttling behaviour on Clevo
+	M720R/Intel T8100
+Date: Mon, 04 May 2009 09:15:50 +0800
+Message-ID: <1241399750.15284.33.camel@rzhang-dt>
+References: <1241192597.2554.12.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:54066 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767AbZECWJZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 May 2009 18:09:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20090503220552.GC20166@elf.ucw.cz>
+Received: from mga01.intel.com ([192.55.52.88]:48390 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751061AbZEDBPg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 May 2009 21:15:36 -0400
+In-Reply-To: <1241192597.2554.12.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: The Holy ettlz <theholyettlz@googlemail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, May 04, 2009 at 12:05:52AM +0200, Pavel Machek wrote:
-> On Sun 2009-05-03 22:59:35, Matthew Garrett wrote:
-> > Not for current nivida, except for some Thinkpads.
+On Fri, 2009-05-01 at 23:43 +0800, The Holy ettlz wrote:
+> Hello,
 > 
-> Ok, that's bad. There still should be chance to reverse-engineer the
-> BIOS or tweak the emulation in libx86 until it works with the nvidias,
-> but... that's a lot of work.
+> I'm encountering a problem on my notebook (Clevo M720R) with an Intel
+> T8100 processor whereby Core 0 is always in the T3 throttling state
+> following a reboot. There is no thermal reason why this should be so,
+> and it is quite annoying having to force all computationally-intensive
+> tasks onto Core 1 (which is unthrottled). This is reflected in the
+> benchmarks: Core 0 takes around 21s to do what Core 1 does in 12s.
+> 
+> In the /proc tree, 
+> 
+> 
+> $ cat /proc/acpi/processor/CPU0/throttling 
+> state count:             8
+> active state:            T3
+> state available: T3 to T7
+> states:
+>     T0:                  100%
+>     T1:                  88%
+>     T2:                  75%
+>    *T3:                  63%
+>     T4:                  50%
+>     T5:                  38%
+>     T6:                  25%
+>     T7:                  13%
+> 
 
-nvidia BIOSes call into chunks of system BIOS code that aren't available 
-after boot. They rewrite themselves so the c000:0003 entry point just 
-returns in order to prevent you from executing random code. It's not an 
-emulation issue. The only way to fix this is to finish nouveau's 
-implementation of the nvidia bios table bytecode and execute the init 
-tables on resume.
+please attach the output of "grep . /proc/acpi/processor/CPU*/*".
+please attach the acpidump output.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> $ cat /proc/acpi/processor/CPU1/throttling 
+> state count:             8
+> active state:            T0
+> state available: T0 to T7
+> states:
+>    *T0:                  100%
+>     T1:                  88%
+>     T2:                  75%
+>     T3:                  63%
+>     T4:                  50%
+>     T5:                  38%
+>     T6:                  25%
+>     T7:                  13%  
+> 
+> 
+> If I boot with acpi=off, there is no problem and I get full performance
+> from both cores. Now, if I suspend and resume, the situation changes.
+> The active state is outside the reported range:
+> 
+
+hmmm, I'll attach a debug patch after the acpidump file is available. :)
+
+> 
+> $ cat /proc/acpi/processor/CPU0/throttling 
+> state count:             8
+> active state:            T8
+> state available: T3 to T7
+> states:
+>     T0:                  100%
+>     T1:                  88%
+>     T2:                  75%
+>     T3:                  63%
+>     T4:                  50%
+>     T5:                  38%
+>     T6:                  25%
+>     T7:                  13%
+> 
+> $ cat /proc/acpi/processor/CPU1/throttling 
+> state count:             8
+> active state:            T8
+> state available: T0 to T7
+> states:
+>     T0:                  100%
+>     T1:                  88%
+>     T2:                  75%
+>     T3:                  63%
+>     T4:                  50%
+>     T5:                  38%
+>     T6:                  25%
+>     T7:                  13%
+> 
+> 
+> I get full performance from both cores in this case.
+> 
+> Any suggestions, and what additional info would be useful? In the
+> meantime, is there any way to disable throttling without taking out the
+> rest of ACPI and thermal so that I can get my notebook's full
+> performance from the outset?
+> 
+the answer is "no" so far.
+But I think it's a good idea.
+patch will be attached later.
+
+thanks,
+rui
+
