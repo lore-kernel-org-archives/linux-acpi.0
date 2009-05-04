@@ -1,55 +1,38 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH 1/3] Add support for more dell-wmi hotkeys
-Date: Mon, 04 May 2009 11:38:44 -0500
-Message-ID: <49FF1A14.8090501@dell.com>
-References: <49ECBAE2.2080308@dell.com> <49EE09D9.2060209@dell.com> <20090429171508.GA717@srcf.ucam.org> <49F89A5C.2090508@dell.com> <20090429182914.GB2325@srcf.ucam.org>
+From: Mikko O Rantanen <mcrantan@cs.helsinki.fi>
+Subject: DMI info
+Date: Tue, 5 May 2009 02:46:50 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0905050245120.7860@melkinkari.cs.Helsinki.FI>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig12D0C14451FA86A8EC1E8244"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:34271 "EHLO
-	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758212AbZEDQic (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2009 12:38:32 -0400
-In-Reply-To: <20090429182914.GB2325@srcf.ucam.org>
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:47469 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520AbZEDXqw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2009 19:46:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by svm-3.cs.helsinki.fi (Postfix) with ESMTP id BEF3F111C9E
+	for <linux-acpi@vger.kernel.org>; Tue,  5 May 2009 02:46:50 +0300 (EEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig12D0C14451FA86A8EC1E8244
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-Hi Matthew:
+as per your request in dmesg:
 
-Matthew Garrett wrote:
-> Oh, hmm, that's true. I'll rework it with that in mind.
->  =20
-Any updates on the rework?  What's wrong the approach I proposed before
-to just tie them to a dummy key type until something better is available?=
-
-
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
+-- snip snip snip --
+[  307.730244] ACPI: DMI System Vendor: Dell Inc.
+[  307.730245] ACPI: DMI Product Name: PowerEdge R900
+[  307.730246] ACPI: DMI Product Version:
+[  307.730246] ACPI: DMI Board Name: 0TT975
+[  307.730247] ACPI: DMI BIOS Vendor: Dell Inc.
+[  307.730248] ACPI: DMI BIOS Date: 10/09/2007
+[  307.730249] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
+-- snip snip snip --
 
 
---------------enig12D0C14451FA86A8EC1E8244
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Best regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkn/GhQACgkQ2CrZjkA73Yu6YwCeKlO1SghNAzXHxn/r1m5QlMF8
-Fh8An0t7NUPa5iHS6A1BgZl3hXJDrvWY
-=fAll
------END PGP SIGNATURE-----
-
---------------enig12D0C14451FA86A8EC1E8244--
+-- 
+Mikko Rantanen / University of Helsinki / Dept. of CS
