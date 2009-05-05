@@ -1,38 +1,40 @@
-From: Mikko O Rantanen <mcrantan@cs.helsinki.fi>
-Subject: DMI info
-Date: Tue, 5 May 2009 02:46:50 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0905050245120.7860@melkinkari.cs.Helsinki.FI>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFC] [PATCH] PCI mmconfig without ACPI
+Date: Tue, 5 May 2009 10:57:44 -0700
+Message-ID: <20090505105744.4268e341@hobbes>
+References: <1233766786.16414.26.camel@localhost.localdomain>
+	<20090204181738.GA16174@elte.hu>
+	<1234812741.28801.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:47469 "EHLO
-	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752520AbZEDXqw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2009 19:46:52 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by svm-3.cs.helsinki.fi (Postfix) with ESMTP id BEF3F111C9E
-	for <linux-acpi@vger.kernel.org>; Tue,  5 May 2009 02:46:50 +0300 (EEST)
+Received: from outbound-mail-135.bluehost.com ([67.222.39.25]:36700 "HELO
+	outbound-mail-135.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751810AbZEER5t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2009 13:57:49 -0400
+In-Reply-To: <1234812741.28801.4.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Ed Swierk <eswierk@aristanetworks.com>
+Cc: Ingo Molnar <mingo@elte.hu>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-Hello,
+On Mon, 16 Feb 2009 11:32:21 -0800
+Ed Swierk <eswierk@aristanetworks.com> wrote:
 
-as per your request in dmesg:
+> Here's another attempt at decoupling the setup of memory-mapped PCI
+> configuration space from ACPI.  I implemented your suggestions for
+> moving the ACPI-specific code to a separate file.  I left the
+> definition of struct acpi_mcfg_allocation alone, and created a new
+> struct pci_mcfg_allocation.  The former is now used only for parsing
+> the actual ACPI MCFG table, while the latter is used to store
+> information about mmcfg regions regardless of where they came from.
+> 
+> (This is still an RFC; the code is pretty much untested.)
+> 
 
--- snip snip snip --
-[  307.730244] ACPI: DMI System Vendor: Dell Inc.
-[  307.730245] ACPI: DMI Product Name: PowerEdge R900
-[  307.730246] ACPI: DMI Product Version:
-[  307.730246] ACPI: DMI Board Name: 0TT975
-[  307.730247] ACPI: DMI BIOS Vendor: Dell Inc.
-[  307.730248] ACPI: DMI BIOS Date: 10/09/2007
-[  307.730249] ACPI: Please send DMI info above to linux-acpi@vger.kernel.org
--- snip snip snip --
-
-
-Best regards,
+I'm still a bit dubious about this; does it solve a real issue?  Or
+just remove the ACPI dependency for its own sake?
 
 -- 
-Mikko Rantanen / University of Helsinki / Dept. of CS
+Jesse Barnes, Intel Open Source Technology Center
