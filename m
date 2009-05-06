@@ -1,115 +1,60 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: PROBLEM: (regression) thermal zone - fan is turned on at
-	higher temperature than it should
-Date: Wed, 06 May 2009 08:59:57 +0800
-Message-ID: <1241571597.15284.91.camel@rzhang-dt>
-References: <200905052105.07316.eightgraph@gmail.com>
+From: Dave Hansen <dave@sr71.net>
+Subject: Re: 2.6.30-rc2 soft lockups: ACPI?  clock source problem?
+Date: Tue, 05 May 2009 21:58:08 -0700
+Message-ID: <1241585888.8010.22.camel@localhost.localdomain>
+References: <1240335038.11194.11.camel@nimitz>
+	 <20090422204557.10c3cc37.akpm@linux-foundation.org>
+	 <1240511508.10627.159.camel@nimitz>
+	 <1240513827.7224.2.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48700 "EHLO mga03.intel.com"
+Received: from www.sr71.net ([198.145.64.142]:49495 "EHLO blackbird.sr71.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755742AbZEFA73 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 May 2009 20:59:29 -0400
-In-Reply-To: <200905052105.07316.eightgraph@gmail.com>
+	id S1752035AbZEFE6J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2009 00:58:09 -0400
+In-Reply-To: <1240513827.7224.2.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vladimir Zajac <eightgraph@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>
+To: john stultz <johnstul@us.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, lenb@kernel.org
 
-Hi, Vladimir
+On Thu, 2009-04-23 at 12:10 -0700, john stultz wrote:
+> On Thu, 2009-04-23 at 11:31 -0700, Dave Hansen wrote:
+> > On Wed, 2009-04-22 at 20:45 -0700, Andrew Morton wrote:
+> > > (Is jstultz@us.ibm.com correct?)
+> > 
+> > Only I want it to go to the black hole which is Lotus Notes. :)
+> > 
+> > > On Tue, 21 Apr 2009 10:30:38 -0700 Dave Hansen <dave@sr71.net> wrote:
+> > > > This was during my first boot of 2.6.30-rc2.
+> > > 
+> > > Did it ever happen again?
+> > 
+> > I've seen it on three different boots, but the stack traces were a bit
+> > different each time.  So, I assume it is a true timekeeping thing
+> > instead of something *actually* locking up.
+> > 
+> > > I assume this is a post-2.6.29 regression?  (Yet another.  We've been
+> > > extra bad this time)
+> > 
+> > This laptop has been quite good to me and I haven't rebooted since the
+> > late 2.6.28 days.  It isn't anything special, though.  Just a Lenovo
+> > T61.  I wonder if my .config is a bit different.
+> 
+> I've got a T61 at home, so I'll try to test it out. Dave, can you send
+> me your .config? Also any chance you can bisect this down a tiny bit?
 
-On Wed, 2009-05-06 at 03:05 +0800, Vladimir Zajac wrote:
-> [1.] One line summary of the problem:
-> (regression) thermal zone - fan is turned on at higher temperature than it should
-> 
-> [2.] Full description of the problem/report:
-> After upgrade to 2.6.30-rc4 I noticed that my laptop's fan sometimes runs at lower speed than it used to.
-> 2.6.29 does not have the bug.
-> 
-> The laptop (HP Compaq 6710b) has 5 ACPI cooling devices which correspond to different fan speeds. They are not turned on when I expect them to be.
-> 
-> Expected behavior: 
-> Each active cooling device should be turned on when current temperature is equal or higher than its trip point.
-> (This is how it worked in 2.6.29 and earlier versions and also how it is defined by ACPI specification.)
-> 
-> Actual behavior in 2.6.30-rc4: 
-> Each cooling device is turned on only when current temperature is strictly greater than the corresponding trip point but not when current temperature is equal to the trip point.
-> 
-> It is caused by commit b1569e99c795bf83b4ddf41c4f1c42761ab7f75e:
-> 
-> author	Matthew Garrett <mjg59@srcf.ucam.org>
-> 	Wed, 3 Dec 2008 17:55:32 +0000 (17:55 +0000)
-> committer	Len Brown <len.brown@intel.com>
-> 	Fri, 20 Feb 2009 23:41:56 +0000 (18:41 -0500)
-> commit	b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
-> ACPI: move thermal trip handling to generic thermal layer
-> 
-> 
-> This commit (probably unintentionally) also changed how kernel determines if a cooling device has to be activated:
->  before the commit: cooling device is activated if current temperature >= trip point temperature
->   after the commit: cooling device is activated if current temperature > trip point temperature
-> 
-> I tried to change the trip point test back to "temp >= trip_temp" in drivers/thermal/termal_sys.c (attached patch). It fixes the issue on my laptop.
-> 
-> [3.] Keywords (i.e., modules, networking, kernel):
-> acpi, thermal zone
-> 
-> [4.] Kernel information
-> [4.1.] Kernel version (from /proc/version):
-> Linux version 2.6.30-rc4-64v01kms (root@V2G64) (gcc version 4.3.2 (Gentoo 4.3.2-r3 p1.6, pie-10.1.5) ) #2 SMP PREEMPT Fri May 1 00:11:41 CEST 2009
-> 
-> [5.] Most recent kernel version which did not have the bug:
-> 2.6.29
-> 
-> [X.] Other notes, patches, fixes, workarounds:
-> 
-> patch which should fix the issue(for 2.6.30-rc4):
+OK, so I got back to this.  It's actually fixed in -rc4!  I assume it
+was something in the ACPI merge that happened after -rc3.
 
-Thanks for finding the problem and fixing it.
+I did check that the clocksource was set as the hpet in all cases both
+before and after I saw the cpu lockup warning and on the good versions
+of the kernel.
 
-But I think you must want to resend the patch with correct format so
-that Len can pick it up.
+I can still go back and bisect it if anyone thinks that would be
+valuable.
 
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-
-> 
-> --- linux-2.6.30-rc4/drivers/thermal/thermal_sys.c	2009-04-30 23:52:59.000000000 +0200
-> +++ linux-2.6.30-rc4-p1/drivers/thermal/thermal_sys.c	2009-05-04 19:58:30.000000000 +0200
-> @@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
->  
->  		switch (trip_type) {
->  		case THERMAL_TRIP_CRITICAL:
-> -			if (temp > trip_temp) {
-> +			if (temp >= trip_temp) {
->  				if (tz->ops->notify)
->  					ret = tz->ops->notify(tz, count,
->  							      trip_type);
-> @@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
->  			}
->  			break;
->  		case THERMAL_TRIP_HOT:
-> -			if (temp > trip_temp)
-> +			if (temp >= trip_temp)
->  				if (tz->ops->notify)
->  					tz->ops->notify(tz, count, trip_type);
->  			break;
-> @@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
->  
->  				cdev = instance->cdev;
->  
-> -				if (temp > trip_temp)
-> +				if (temp >= trip_temp)
->  					cdev->ops->set_cur_state(cdev, 1);
->  				else
->  					cdev->ops->set_cur_state(cdev, 0);
->  			}
->  			break;
->  		case THERMAL_TRIP_PASSIVE:
-> -			if (temp > trip_temp || tz->passive)
-> +			if (temp >= trip_temp || tz->passive)
->  				thermal_zone_device_passive(tz, temp,
->  							    trip_temp, count);
->  			break;
+-- Dave
 
