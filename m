@@ -1,7 +1,8 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 5/7] x86/pci: add 4 more return param in IO_APIC_get_PCI_irq_vector
-Date: Wed, 06 May 2009 10:08:22 -0700
-Message-ID: <4A01C406.2040303@kernel.org>
+Subject: [PATCH 6/7] x86/acpi: move setup io apic routing out of ACPI macro
+ scope
+Date: Wed, 06 May 2009 10:08:50 -0700
+Message-ID: <4A01C422.5070400@kernel.org>
 References: <4A01C35C.7060207@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -14,294 +15,169 @@ Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vge
 List-Id: linux-acpi@vger.kernel.org
 
 
-so prepare those params for pcibios_irq_enable to call setup_io_apic_routing
+so we could set io apic routing when ACPI is not set
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
 ---
- arch/x86/include/asm/hw_irq.h     |    4 +
- arch/x86/kernel/apic/io_apic.c    |  107 ++++++++++++++++++++------------------
- arch/x86/pci/irq.c                |   24 +++++++-
- drivers/pci/hotplug/ibmphp_core.c |   52 +++++++++---------
- 4 files changed, 110 insertions(+), 77 deletions(-)
+ arch/x86/include/asm/io_apic.h |    4 -
+ arch/x86/kernel/apic/io_apic.c |  122 ++++++++++++++++++++---------------------
+ 2 files changed, 63 insertions(+), 63 deletions(-)
 
 Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
 ===================================================================
 --- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
 +++ linux-2.6/arch/x86/kernel/apic/io_apic.c
-@@ -874,54 +874,6 @@ static int __init find_isa_irq_apic(int
- 	return -1;
+@@ -3840,6 +3840,67 @@ int __init arch_probe_nr_irqs(void)
  }
+ #endif
  
--/*
-- * Find a specific PCI IRQ entry.
-- * Not an __init, possibly needed by modules
-- */
--static int pin_2_irq(int idx, int apic, int pin);
--
--int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin)
++static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
++				 int triggering, int polarity)
++{
++	struct irq_desc *desc;
++	struct irq_cfg *cfg;
++	int node;
++
++	if (!IO_APIC_IRQ(irq)) {
++		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
++			ioapic);
++		return -EINVAL;
++	}
++
++	if (dev)
++		node = dev_to_node(dev);
++	else
++		node = cpu_to_node(boot_cpu_id);
++
++	desc = irq_to_desc_alloc_node(irq, node);
++	if (!desc) {
++		printk(KERN_INFO "can not get irq_desc %d\n", irq);
++		return 0;
++	}
++
++	/*
++	 * IRQs < 16 are already in the irq_2_pin[] map
++	 */
++	if (irq >= NR_IRQS_LEGACY) {
++		cfg = desc->chip_data;
++		add_pin_to_irq_node(cfg, node, ioapic, pin);
++	}
++
++	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
++
++	return 0;
++}
++
++static struct {
++	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
++} mp_ioapic_routing[MAX_IO_APICS];
++
++int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
++				 int triggering, int polarity)
++{
++
++	/*
++	 * Avoid pin reprogramming.  PRTs typically include entries
++	 * with redundant pin->gsi mappings (but unique PCI devices);
++	 * we only program the IOAPIC on the first.
++	 */
++	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
++		pr_debug("Pin %d-%d already programmed\n",
++			 mp_ioapics[ioapic].apicid, pin);
++		return 0;
++	}
++	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
++
++	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
++					 triggering, polarity);
++}
++
+ /* --------------------------------------------------------------------------
+                           ACPI-based IOAPIC Configuration
+    -------------------------------------------------------------------------- */
+@@ -3934,67 +3995,6 @@ int __init io_apic_get_version(int ioapi
+ }
+ #endif
+ 
+-static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+-				 int triggering, int polarity)
 -{
--	int apic, i, best_guess = -1;
+-	struct irq_desc *desc;
+-	struct irq_cfg *cfg;
+-	int node;
 -
--	apic_printk(APIC_DEBUG, "querying PCI -> IRQ mapping bus:%d, slot:%d, pin:%d.\n",
--		bus, slot, pin);
--	if (test_bit(bus, mp_bus_not_pci)) {
--		apic_printk(APIC_VERBOSE, "PCI BIOS passed nonexistent PCI bus %d!\n", bus);
--		return -1;
+-	if (!IO_APIC_IRQ(irq)) {
+-		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
+-			ioapic);
+-		return -EINVAL;
 -	}
--	for (i = 0; i < mp_irq_entries; i++) {
--		int lbus = mp_irqs[i].srcbus;
 -
--		for (apic = 0; apic < nr_ioapics; apic++)
--			if (mp_ioapics[apic].apicid == mp_irqs[i].dstapic ||
--			    mp_irqs[i].dstapic == MP_APIC_ALL)
--				break;
+-	if (dev)
+-		node = dev_to_node(dev);
+-	else
+-		node = cpu_to_node(boot_cpu_id);
 -
--		if (!test_bit(lbus, mp_bus_not_pci) &&
--		    !mp_irqs[i].irqtype &&
--		    (bus == lbus) &&
--		    (slot == ((mp_irqs[i].srcbusirq >> 2) & 0x1f))) {
--			int irq = pin_2_irq(i, apic, mp_irqs[i].dstirq);
--
--			if (!(apic || IO_APIC_IRQ(irq)))
--				continue;
--
--			if (pin == (mp_irqs[i].srcbusirq & 3))
--				return irq;
--			/*
--			 * Use the first all-but-pin matching entry as a
--			 * best-guess fuzzy result for broken mptables.
--			 */
--			if (best_guess < 0)
--				best_guess = irq;
--		}
+-	desc = irq_to_desc_alloc_node(irq, node);
+-	if (!desc) {
+-		printk(KERN_INFO "can not get irq_desc %d\n", irq);
+-		return 0;
 -	}
--	return best_guess;
+-
+-	/*
+-	 * IRQs < 16 are already in the irq_2_pin[] map
+-	 */
+-	if (irq >= NR_IRQS_LEGACY) {
+-		cfg = desc->chip_data;
+-		add_pin_to_irq_node(cfg, node, ioapic, pin);
+-	}
+-
+-	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
+-
+-	return 0;
 -}
 -
--EXPORT_SYMBOL(IO_APIC_get_PCI_irq_vector);
+-static struct {
+-	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
+-} mp_ioapic_routing[MAX_IO_APICS];
 -
- #if defined(CONFIG_EISA) || defined(CONFIG_MCA)
- /*
-  * EISA Edge/Level control register, ELCR
-@@ -1140,6 +1092,65 @@ static int pin_2_irq(int idx, int apic,
- 	return irq;
- }
- 
-+/*
-+ * Find a specific PCI IRQ entry.
-+ * Not an __init, possibly needed by modules
-+ */
-+int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
-+				int *ioapic, int *ioapic_pin,
-+				int *trigger, int *polarity)
-+{
-+	int apic, i, best_guess = -1;
-+
-+	apic_printk(APIC_DEBUG,
-+		    "querying PCI -> IRQ mapping bus:%d, slot:%d, pin:%d.\n",
-+		    bus, slot, pin);
-+	if (test_bit(bus, mp_bus_not_pci)) {
-+		apic_printk(APIC_VERBOSE,
-+			    "PCI BIOS passed nonexistent PCI bus %d!\n", bus);
-+		return -1;
-+	}
-+	for (i = 0; i < mp_irq_entries; i++) {
-+		int lbus = mp_irqs[i].srcbus;
-+
-+		for (apic = 0; apic < nr_ioapics; apic++)
-+			if (mp_ioapics[apic].apicid == mp_irqs[i].dstapic ||
-+			    mp_irqs[i].dstapic == MP_APIC_ALL)
-+				break;
-+
-+		if (!test_bit(lbus, mp_bus_not_pci) &&
-+		    !mp_irqs[i].irqtype &&
-+		    (bus == lbus) &&
-+		    (slot == ((mp_irqs[i].srcbusirq >> 2) & 0x1f))) {
-+			int irq = pin_2_irq(i, apic, mp_irqs[i].dstirq);
-+
-+			if (!(apic || IO_APIC_IRQ(irq)))
-+				continue;
-+
-+			if (pin == (mp_irqs[i].srcbusirq & 3)) {
-+				*ioapic = apic;
-+				*ioapic_pin = mp_irqs[i].dstirq;
-+				*trigger = irq_trigger(i);
-+				*polarity = irq_polarity(i);
-+				return irq;
-+			}
-+			/*
-+			 * Use the first all-but-pin matching entry as a
-+			 * best-guess fuzzy result for broken mptables.
-+			 */
-+			if (best_guess < 0) {
-+				*ioapic = apic;
-+				*ioapic_pin = mp_irqs[i].dstirq;
-+				*trigger = irq_trigger(i);
-+				*polarity = irq_polarity(i);
-+				best_guess = irq;
-+			}
-+		}
-+	}
-+	return best_guess;
-+}
-+EXPORT_SYMBOL(IO_APIC_get_PCI_irq_vector);
-+
- void lock_vector_lock(void)
+-int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+-				 int triggering, int polarity)
+-{
+-
+-	/*
+-	 * Avoid pin reprogramming.  PRTs typically include entries
+-	 * with redundant pin->gsi mappings (but unique PCI devices);
+-	 * we only program the IOAPIC on the first.
+-	 */
+-	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
+-		pr_debug("Pin %d-%d already programmed\n",
+-			 mp_ioapics[ioapic].apicid, pin);
+-		return 0;
+-	}
+-	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
+-
+-	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
+-					 triggering, polarity);
+-}
+-
+ int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity)
  {
- 	/* Used to the online set of cpus does not change
-Index: linux-2.6/arch/x86/include/asm/hw_irq.h
+ 	int i;
+Index: linux-2.6/arch/x86/include/asm/io_apic.h
 ===================================================================
---- linux-2.6.orig/arch/x86/include/asm/hw_irq.h
-+++ linux-2.6/arch/x86/include/asm/hw_irq.h
-@@ -66,7 +66,9 @@ extern unsigned long io_apic_irqs;
- extern void init_VISWS_APIC_irqs(void);
- extern void setup_IO_APIC(void);
- extern void disable_IO_APIC(void);
--extern int IO_APIC_get_PCI_irq_vector(int bus, int slot, int fn);
-+extern int IO_APIC_get_PCI_irq_vector(int bus, int devfn, int pin,
-+					int *ioapic, int *ioapic_pin,
-+					int *trigger, int *polarity);
- extern void setup_ioapic_dest(void);
+--- linux-2.6.orig/arch/x86/include/asm/io_apic.h
++++ linux-2.6/arch/x86/include/asm/io_apic.h
+@@ -154,10 +154,10 @@ extern int timer_through_8259;
+ extern int io_apic_get_unique_id(int ioapic, int apic_id);
+ extern int io_apic_get_version(int ioapic);
+ extern int io_apic_get_redir_entries(int ioapic);
+-extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
+-				  int irq, int edge_level, int active_high_low);
+ #endif /* CONFIG_ACPI */
  
- extern void enable_IO_APIC(void);
-Index: linux-2.6/drivers/pci/hotplug/ibmphp_core.c
-===================================================================
---- linux-2.6.orig/drivers/pci/hotplug/ibmphp_core.c
-+++ linux-2.6/drivers/pci/hotplug/ibmphp_core.c
-@@ -153,45 +153,49 @@ int ibmphp_init_devno(struct slot **cur_
- 		return -1;
- 	}
- 	for (loop = 0; loop < len; loop++) {
--		if ((*cur_slot)->number == rtable->slots[loop].slot) {
--		if ((*cur_slot)->bus == rtable->slots[loop].bus) {
-+		if ((*cur_slot)->number == rtable->slots[loop].slot &&
-+		    (*cur_slot)->bus == rtable->slots[loop].bus) {
-+			int ioapic = -1, ioapic_pin = -1;
-+			int triggering, polarity;
-+
- 			(*cur_slot)->device = PCI_SLOT(rtable->slots[loop].devfn);
- 			for (i = 0; i < 4; i++)
- 				(*cur_slot)->irq[i] = IO_APIC_get_PCI_irq_vector((int) (*cur_slot)->bus,
--						(int) (*cur_slot)->device, i);
-+						(int) (*cur_slot)->device, i.
-+						&ioapic, &ioapic_pin,
-+						&triggering, &polarity);
++extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
++				  int irq, int edge_level, int active_high_low);
+ extern int (*ioapic_renumber_irq)(int ioapic, int irq);
+ extern void ioapic_init_mappings(void);
  
--				debug("(*cur_slot)->irq[0] = %x\n",
--						(*cur_slot)->irq[0]);
--				debug("(*cur_slot)->irq[1] = %x\n",
--						(*cur_slot)->irq[1]);
--				debug("(*cur_slot)->irq[2] = %x\n",
--						(*cur_slot)->irq[2]);
--				debug("(*cur_slot)->irq[3] = %x\n",
--						(*cur_slot)->irq[3]);
-+			debug("(*cur_slot)->irq[0] = %x\n",
-+					(*cur_slot)->irq[0]);
-+			debug("(*cur_slot)->irq[1] = %x\n",
-+					(*cur_slot)->irq[1]);
-+			debug("(*cur_slot)->irq[2] = %x\n",
-+					(*cur_slot)->irq[2]);
-+			debug("(*cur_slot)->irq[3] = %x\n",
-+					(*cur_slot)->irq[3]);
- 
--				debug("rtable->exlusive_irqs = %x\n",
-+			debug("rtable->exlusive_irqs = %x\n",
- 					rtable->exclusive_irqs);
--				debug("rtable->slots[loop].irq[0].bitmap = %x\n",
-+			debug("rtable->slots[loop].irq[0].bitmap = %x\n",
- 					rtable->slots[loop].irq[0].bitmap);
--				debug("rtable->slots[loop].irq[1].bitmap = %x\n",
-+			debug("rtable->slots[loop].irq[1].bitmap = %x\n",
- 					rtable->slots[loop].irq[1].bitmap);
--				debug("rtable->slots[loop].irq[2].bitmap = %x\n",
-+			debug("rtable->slots[loop].irq[2].bitmap = %x\n",
- 					rtable->slots[loop].irq[2].bitmap);
--				debug("rtable->slots[loop].irq[3].bitmap = %x\n",
-+			debug("rtable->slots[loop].irq[3].bitmap = %x\n",
- 					rtable->slots[loop].irq[3].bitmap);
- 
--				debug("rtable->slots[loop].irq[0].link = %x\n",
-+			debug("rtable->slots[loop].irq[0].link = %x\n",
- 					rtable->slots[loop].irq[0].link);
--				debug("rtable->slots[loop].irq[1].link = %x\n",
-+			debug("rtable->slots[loop].irq[1].link = %x\n",
- 					rtable->slots[loop].irq[1].link);
--				debug("rtable->slots[loop].irq[2].link = %x\n",
-+			debug("rtable->slots[loop].irq[2].link = %x\n",
- 					rtable->slots[loop].irq[2].link);
--				debug("rtable->slots[loop].irq[3].link = %x\n",
-+			debug("rtable->slots[loop].irq[3].link = %x\n",
- 					rtable->slots[loop].irq[3].link);
--				debug("end of init_devno\n");
--				kfree(rtable);
--				return 0;
--			}
-+			debug("end of init_devno\n");
-+			kfree(rtable);
-+			return 0;
- 		}
- 	}
- 
-Index: linux-2.6/arch/x86/pci/irq.c
-===================================================================
---- linux-2.6.orig/arch/x86/pci/irq.c
-+++ linux-2.6/arch/x86/pci/irq.c
-@@ -1051,12 +1051,16 @@ static void __init pcibios_fixup_irqs(vo
- 		 */
- 		if (io_apic_assign_pci_irqs) {
- 			int irq;
-+			int ioapic = -1, ioapic_pin = -1;
-+			int triggering, polarity;
- 
- 			/*
- 			 * interrupt pins are numbered starting from 1
- 			 */
- 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
--				PCI_SLOT(dev->devfn), pin - 1);
-+						PCI_SLOT(dev->devfn), pin - 1,
-+						&ioapic, &ioapic_pin,
-+						&triggering, &polarity);
- 			/*
- 			 * Busses behind bridges are typically not listed in the
- 			 * MP-table.  In this case we have to look up the IRQ
-@@ -1072,7 +1076,10 @@ static void __init pcibios_fixup_irqs(vo
- 				pin = pci_swizzle_interrupt_pin(dev, pin);
- 				bus = bridge->bus->number;
- 				irq = IO_APIC_get_PCI_irq_vector(bus,
--						PCI_SLOT(bridge->devfn), pin - 1);
-+						PCI_SLOT(bridge->devfn),
-+						pin - 1,
-+						&ioapic, &ioapic_pin,
-+						&triggering, &polarity);
- 				if (irq >= 0)
- 					dev_warn(&dev->dev,
- 						"using bridge %s INT %c to "
-@@ -1221,8 +1228,14 @@ static int pirq_enable_irq(struct pci_de
- 
- 		if (io_apic_assign_pci_irqs) {
- 			int irq;
-+			int ioapic = -1, ioapic_pin = -1;
-+			int triggering, polarity;
- 
--			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number, PCI_SLOT(dev->devfn), pin - 1);
-+			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
-+						PCI_SLOT(dev->devfn),
-+						pin - 1,
-+						&ioapic, &ioapic_pin,
-+						&triggering, &polarity);
- 			/*
- 			 * Busses behind bridges are typically not listed in the MP-table.
- 			 * In this case we have to look up the IRQ based on the parent bus,
-@@ -1235,7 +1248,10 @@ static int pirq_enable_irq(struct pci_de
- 
- 				pin = pci_swizzle_interrupt_pin(dev, pin);
- 				irq = IO_APIC_get_PCI_irq_vector(bridge->bus->number,
--						PCI_SLOT(bridge->devfn), pin - 1);
-+						PCI_SLOT(bridge->devfn),
-+						pin - 1,
-+						&ioapic, &ioapic_pin,
-+						&triggering, &polarity);
- 				if (irq >= 0)
- 					dev_warn(&dev->dev, "using bridge %s "
- 						 "INT %c to get IRQ %d\n",
