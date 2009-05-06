@@ -1,22 +1,24 @@
-From: yakui_zhao <yakui.zhao@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: PROBLEM: (regression) thermal zone - fan is turned on at
 	higher temperature than it should
-Date: Wed, 06 May 2009 08:46:52 +0800
-Message-ID: <1241570812.3773.72.camel@localhost.localdomain>
+Date: Wed, 06 May 2009 08:59:57 +0800
+Message-ID: <1241571597.15284.91.camel@rzhang-dt>
 References: <200905052105.07316.eightgraph@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47782 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:48700 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329AbZEFApK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 May 2009 20:45:10 -0400
+	id S1755742AbZEFA73 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 May 2009 20:59:29 -0400
 In-Reply-To: <200905052105.07316.eightgraph@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Vladimir Zajac <eightgraph@gmail.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>
+
+Hi, Vladimir
 
 On Wed, 2009-05-06 at 03:05 +0800, Vladimir Zajac wrote:
 > [1.] One line summary of the problem:
@@ -48,12 +50,6 @@ On Wed, 2009-05-06 at 03:05 +0800, Vladimir Zajac wrote:
 > This commit (probably unintentionally) also changed how kernel determines if a cooling device has to be activated:
 >  before the commit: cooling device is activated if current temperature >= trip point temperature
 >   after the commit: cooling device is activated if current temperature > trip point temperature
-Do you mean that the issue can be fixed by changing the "temperature >
-trip point" to "temperature >= trip point"?
-
-If so, what you have done is reasonable.
-
-Thanks.
 > 
 > I tried to change the trip point test back to "temp >= trip_temp" in drivers/thermal/termal_sys.c (attached patch). It fixes the issue on my laptop.
 > 
@@ -70,6 +66,14 @@ Thanks.
 > [X.] Other notes, patches, fixes, workarounds:
 > 
 > patch which should fix the issue(for 2.6.30-rc4):
+
+Thanks for finding the problem and fixing it.
+
+But I think you must want to resend the patch with correct format so
+that Len can pick it up.
+
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+
 > 
 > --- linux-2.6.30-rc4/drivers/thermal/thermal_sys.c	2009-04-30 23:52:59.000000000 +0200
 > +++ linux-2.6.30-rc4-p1/drivers/thermal/thermal_sys.c	2009-05-04 19:58:30.000000000 +0200
@@ -108,8 +112,4 @@ Thanks.
 >  				thermal_zone_device_passive(tz, temp,
 >  							    trip_temp, count);
 >  			break;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
