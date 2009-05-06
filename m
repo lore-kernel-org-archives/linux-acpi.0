@@ -1,74 +1,107 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Bank screen after resume on Dell XPS M1330
-Date: Wed, 6 May 2009 22:30:18 +0200
-Message-ID: <20090506203018.GA28070@elf.ucw.cz>
-References: <200905031111.50789.arvidjaar@mail.ru> <200905061955.13161.arvidjaar@mail.ru> <20090506165226.GA9072@elf.ucw.cz> <200905062130.26099.arvidjaar@mail.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 11/18] ACPI: Revert conflicting workaround for BIOS w/ mangled PRT entries
+Date: Wed, 06 May 2009 13:30:21 -0700
+Message-ID: <20090506203130.096743335@blue.kroah.org>
+References: <20090506203010.615363711@blue.kroah.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35774 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751805AbZEFUaW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 16:30:22 -0400
-Content-Disposition: inline
-In-Reply-To: <200905062130.26099.arvidjaar@mail.ru>
+Received: from kroah.org ([198.145.64.141]:33952 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761057AbZEFUjM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2009 16:39:12 -0400
+Content-Disposition: inline; filename=acpi-revert-conflicting-workaround-for-bios-w-mangled-prt-entries.patch
+In-Reply-To: <20090506203353.GA14624@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, tmb@mandriva.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Wed 2009-05-06 21:30:23, Andrey Borzenkov wrote:
-> On Wednesday 06 of May 2009 20:52:26 Pavel Machek wrote:
-> > On Wed 2009-05-06 19:55:10, Andrey Borzenkov wrote:
-> > > On Tuesday 05 of May 2009 23:49:02 Pavel Machek wrote:
-> > > > On Mon 2009-05-04 06:27:35, Andrey Borzenkov wrote:
-> > > > > On Sunday 03 of May 2009 15:56:03 Matthew Garrett wrote:
-> > > > > > On Sun, May 03, 2009 at 03:43:28PM +0400, Andrey Borzenkov 
-> wrote:
-> > > > > > > On Sunday 03 of May 2009 14:59:32 Matthew Garrett wrote:
-> > > > > > > > On Sun, May 03, 2009 at 11:11:47AM +0400, Andrey
-> > > > > > > > Borzenkov
-> > >
-> > > wrote:
-> > > > > > > > > 01:00.0 VGA compatible controller: nVidia Corporation
-> > > > > > > > > GeForce 8400M GS (rev a1)
-> > > > > > > >
-> > > > > > > > We don't know how to reinitialise nvidia graphics
-> > > > > > > > hardware.
-> > > > > > >
-> > > > > > > Just in case - same issue also after resume from
-> > > > > > > hibernation. I was under impression, that hibernation does
-> > > > > > > not have these issues as card goes via normal POST routine.
-> > > > > >
-> > > > > > Hm. That sounds a bit weirder.
-> > > > >
-> > > > > Is it worth further debugging? Anything I can provide?
-> > > >
-> > > > Try it with minimum config, init=/bin/bash? Switch to plain vga
-> > > > console?
-> > >
-> > > As stated in my first mail, that is exactly what I started with :)
-> >
-> > Ok, ok, and even that failed with hibernation?
-> 
-> You are right, I was not careful when testing. I tested once more with 
-> two different kernels; hibernation works (also in normal init 3) as long 
-> as video settings are the same between suspend and resume. If they 
-> differ (e.g. plain VGA before suspend and frame buffer after) display is 
-> most likely completely garbled (but still is not blank).
-> 
-> Of course, any attempt to switch to X (using nv driver) after resume is 
-> doomed. OTOH *starting* X after resume seems to work. 
 
-Ok, that's what I'd expect. Hibernation _should_ work on any hardware.
+2.6.27-stable review patch.  If anyone has any objections, please let us know.
 
-Now, nv driver probably has a problem that needs to be fixed... You
-should be able to use framebuffer X driver and have hibernation
-totally working for you...
+------------------
 
-And no, different video modes between hibernation and resume are bad
-idea.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+From: Zhang Rui <rui.zhang@intel.com>
+
+upstream 82babbb3887e234c995626e4121d411ea9070ca5
+backported to apply cleanly to 2.6.27.21
+and apply with offset -1 to 2.6.28.9
+
+2f894ef9c8b36a35d80709bedca276d2fc691941
+in Linux-2.6.21 worked around BIOS with mangled _PRT entries:
+http://bugzilla.kernel.org/show_bug.cgi?id=6859
+
+d0e184abc5983281ef189db2c759d65d56eb1b80
+worked around the same issue via ACPICA, and shipped in 2.6.27.
+
+Unfortunately the two workarounds conflict:
+http://bugzilla.kernel.org/show_bug.cgi?id=12270
+
+So revert the Linux specific one.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/acpi/resources/rscreate.c |   27 ++-------------------------
+ 1 file changed, 2 insertions(+), 25 deletions(-)
+
+--- a/drivers/acpi/resources/rscreate.c
++++ b/drivers/acpi/resources/rscreate.c
+@@ -191,8 +191,6 @@ acpi_rs_create_pci_routing_table(union a
+ 	user_prt = ACPI_CAST_PTR(struct acpi_pci_routing_table, buffer);
+ 
+ 	for (index = 0; index < number_of_elements; index++) {
+-		int source_name_index = 2;
+-		int source_index_index = 3;
+ 
+ 		/*
+ 		 * Point user_prt past this current structure
+@@ -261,27 +259,6 @@ acpi_rs_create_pci_routing_table(union a
+ 			return_ACPI_STATUS(AE_BAD_DATA);
+ 		}
+ 
+-		/*
+-		 * If BIOS erroneously reversed the _PRT source_name and source_index,
+-		 * then reverse them back.
+-		 */
+-		if (ACPI_GET_OBJECT_TYPE(sub_object_list[3]) !=
+-		    ACPI_TYPE_INTEGER) {
+-			if (acpi_gbl_enable_interpreter_slack) {
+-				source_name_index = 3;
+-				source_index_index = 2;
+-				printk(KERN_WARNING
+-				       "ACPI: Handling Garbled _PRT entry\n");
+-			} else {
+-				ACPI_ERROR((AE_INFO,
+-					    "(PRT[%X].source_index) Need Integer, found %s",
+-					    index,
+-					    acpi_ut_get_object_type_name
+-					    (sub_object_list[3])));
+-				return_ACPI_STATUS(AE_BAD_DATA);
+-			}
+-		}
+-
+ 		user_prt->pin = (u32) obj_desc->integer.value;
+ 
+ 		/*
+@@ -305,7 +282,7 @@ acpi_rs_create_pci_routing_table(union a
+ 		 * 3) Third subobject: Dereference the PRT.source_name
+ 		 * The name may be unresolved (slack mode), so allow a null object
+ 		 */
+-		obj_desc = sub_object_list[source_name_index];
++		obj_desc = sub_object_list[2];
+ 		if (obj_desc) {
+ 			switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
+ 			case ACPI_TYPE_LOCAL_REFERENCE:
+@@ -380,7 +357,7 @@ acpi_rs_create_pci_routing_table(union a
+ 
+ 		/* 4) Fourth subobject: Dereference the PRT.source_index */
+ 
+-		obj_desc = sub_object_list[source_index_index];
++		obj_desc = sub_object_list[3];
+ 		if (ACPI_GET_OBJECT_TYPE(obj_desc) != ACPI_TYPE_INTEGER) {
+ 			ACPI_ERROR((AE_INFO,
+ 				    "(PRT[%X].SourceIndex) Need Integer, found %s",
+
+
