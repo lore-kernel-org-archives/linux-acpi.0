@@ -1,30 +1,29 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 11/18] ACPI: Revert conflicting workaround for BIOS w/ mangled PRT entries
-Date: Wed, 06 May 2009 13:30:21 -0700
-Message-ID: <20090506203130.096743335@blue.kroah.org>
-References: <20090506203010.615363711@blue.kroah.org>
+Subject: [patch 31/58] ACPI: Revert conflicting workaround for BIOS w/ mangled PRT entries
+Date: Wed, 06 May 2009 14:45:59 -0700
+Message-ID: <20090506214759.573551004@mini.kroah.org>
+References: <20090506214528.660389067@mini.kroah.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:33952 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:57200 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761057AbZEFUjM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 May 2009 16:39:12 -0400
+	id S1760095AbZEFVyp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2009 17:54:45 -0400
 Content-Disposition: inline; filename=acpi-revert-conflicting-workaround-for-bios-w-mangled-prt-entries.patch
-In-Reply-To: <20090506203353.GA14624@kroah.com>
+In-Reply-To: <20090506215017.GA21981@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, tmb@mandriva.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, tmb@mandriva.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
 
-2.6.27-stable review patch.  If anyone has any objections, please let us know.
+2.6.29-stable review patch.  If anyone has any objections, please let us know.
 
 ------------------
 
 From: Zhang Rui <rui.zhang@intel.com>
 
 upstream 82babbb3887e234c995626e4121d411ea9070ca5
-backported to apply cleanly to 2.6.27.21
-and apply with offset -1 to 2.6.28.9
+backported to 2.6.29.2
 
 2f894ef9c8b36a35d80709bedca276d2fc691941
 in Linux-2.6.21 worked around BIOS with mangled _PRT entries:
@@ -43,11 +42,11 @@ Signed-off-by: Len Brown <len.brown@intel.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- drivers/acpi/resources/rscreate.c |   27 ++-------------------------
+ drivers/acpi/acpica/rscreate.c |   27 ++-------------------------
  1 file changed, 2 insertions(+), 25 deletions(-)
 
---- a/drivers/acpi/resources/rscreate.c
-+++ b/drivers/acpi/resources/rscreate.c
+--- a/drivers/acpi/acpica/rscreate.c
++++ b/drivers/acpi/acpica/rscreate.c
 @@ -191,8 +191,6 @@ acpi_rs_create_pci_routing_table(union a
  	user_prt = ACPI_CAST_PTR(struct acpi_pci_routing_table, buffer);
  
@@ -94,7 +93,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		if (obj_desc) {
  			switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
  			case ACPI_TYPE_LOCAL_REFERENCE:
-@@ -380,7 +357,7 @@ acpi_rs_create_pci_routing_table(union a
+@@ -379,7 +356,7 @@ acpi_rs_create_pci_routing_table(union a
  
  		/* 4) Fourth subobject: Dereference the PRT.source_index */
  
