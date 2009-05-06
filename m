@@ -1,18 +1,74 @@
-From: "Sol Serrano" <glessiekr@brookmonthealthcare.com>
-Subject: Your gf caught on camera
-Date: Wed, 6 May 2009 20:46:29 -0000
-Message-ID: <20090506204629.1090201@brookmonthealthcare.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Bank screen after resume on Dell XPS M1330
+Date: Wed, 6 May 2009 22:30:18 +0200
+Message-ID: <20090506203018.GA28070@elf.ucw.cz>
+References: <200905031111.50789.arvidjaar@mail.ru> <200905061955.13161.arvidjaar@mail.ru> <20090506165226.GA9072@elf.ucw.cz> <200905062130.26099.arvidjaar@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 78-105-248-199.zone3.bethere.co.uk ([78.105.248.199]:54020 "HELO
-	78-105-248-199.zone3.bethere.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754724AbZEFUO6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 16:14:58 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35774 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751805AbZEFUaW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 16:30:22 -0400
+Content-Disposition: inline
+In-Reply-To: <200905062130.26099.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Your discount code expires in 2 days http://vxysc.siwwawuw.cn/
+On Wed 2009-05-06 21:30:23, Andrey Borzenkov wrote:
+> On Wednesday 06 of May 2009 20:52:26 Pavel Machek wrote:
+> > On Wed 2009-05-06 19:55:10, Andrey Borzenkov wrote:
+> > > On Tuesday 05 of May 2009 23:49:02 Pavel Machek wrote:
+> > > > On Mon 2009-05-04 06:27:35, Andrey Borzenkov wrote:
+> > > > > On Sunday 03 of May 2009 15:56:03 Matthew Garrett wrote:
+> > > > > > On Sun, May 03, 2009 at 03:43:28PM +0400, Andrey Borzenkov 
+> wrote:
+> > > > > > > On Sunday 03 of May 2009 14:59:32 Matthew Garrett wrote:
+> > > > > > > > On Sun, May 03, 2009 at 11:11:47AM +0400, Andrey
+> > > > > > > > Borzenkov
+> > >
+> > > wrote:
+> > > > > > > > > 01:00.0 VGA compatible controller: nVidia Corporation
+> > > > > > > > > GeForce 8400M GS (rev a1)
+> > > > > > > >
+> > > > > > > > We don't know how to reinitialise nvidia graphics
+> > > > > > > > hardware.
+> > > > > > >
+> > > > > > > Just in case - same issue also after resume from
+> > > > > > > hibernation. I was under impression, that hibernation does
+> > > > > > > not have these issues as card goes via normal POST routine.
+> > > > > >
+> > > > > > Hm. That sounds a bit weirder.
+> > > > >
+> > > > > Is it worth further debugging? Anything I can provide?
+> > > >
+> > > > Try it with minimum config, init=/bin/bash? Switch to plain vga
+> > > > console?
+> > >
+> > > As stated in my first mail, that is exactly what I started with :)
+> >
+> > Ok, ok, and even that failed with hibernation?
+> 
+> You are right, I was not careful when testing. I tested once more with 
+> two different kernels; hibernation works (also in normal init 3) as long 
+> as video settings are the same between suspend and resume. If they 
+> differ (e.g. plain VGA before suspend and frame buffer after) display is 
+> most likely completely garbled (but still is not blank).
+> 
+> Of course, any attempt to switch to X (using nv driver) after resume is 
+> doomed. OTOH *starting* X after resume seems to work. 
 
+Ok, that's what I'd expect. Hibernation _should_ work on any hardware.
+
+Now, nv driver probably has a problem that needs to be fixed... You
+should be able to use framebuffer X driver and have hibernation
+totally working for you...
+
+And no, different video modes between hibernation and resume are bad
+idea.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
