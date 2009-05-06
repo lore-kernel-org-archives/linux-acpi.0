@@ -1,136 +1,84 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/6] ACPI: button: minor cleanups
-Date: Wed, 6 May 2009 11:20:52 -0600
-Message-ID: <200905061120.52793.bjorn.helgaas@hp.com>
-References: <20090408153427.12354.62167.stgit@bob.kio> <200904171339.15895.bjorn.helgaas@hp.com> <200905061713.08057.trenn@suse.de>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: Bank screen after resume on Dell XPS M1330
+Date: Wed, 6 May 2009 21:30:23 +0400
+Message-ID: <200905062130.26099.arvidjaar@mail.ru>
+References: <200905031111.50789.arvidjaar@mail.ru> <200905061955.13161.arvidjaar@mail.ru> <20090506165226.GA9072@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: multipart/signed;
+  boundary="nextPart3802586.PxiQHfATqJ";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:40672 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288AbZEFRUz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 13:20:55 -0400
-In-Reply-To: <200905061713.08057.trenn@suse.de>
-Content-Disposition: inline
+Received: from mx40.mail.ru ([94.100.176.54]:50992 "EHLO mx40.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750983AbZEFRab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2009 13:30:31 -0400
+In-Reply-To: <20090506165226.GA9072@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday 06 May 2009 09:13:07 am Thomas Renninger wrote:
-> Below is the outcome of the patch which fixes a fixed feature button
-> s2ram issue.
-> 
-> This does not work anymore since Bjoern's patches.
-> Comparing the with the HID of the acpi device looks ugly.
-> 
-> Shall I revive the fixed feature vs GPE button types?
-> ACPI_BUTTON_TYPE_POWERF and ACPI_BUTTON_TYPE_SLEEPF?
+--nextPart3802586.PxiQHfATqJ
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-I don't understand exactly how I broke this.
+On Wednesday 06 of May 2009 20:52:26 Pavel Machek wrote:
+> On Wed 2009-05-06 19:55:10, Andrey Borzenkov wrote:
+> > On Tuesday 05 of May 2009 23:49:02 Pavel Machek wrote:
+> > > On Mon 2009-05-04 06:27:35, Andrey Borzenkov wrote:
+> > > > On Sunday 03 of May 2009 15:56:03 Matthew Garrett wrote:
+> > > > > On Sun, May 03, 2009 at 03:43:28PM +0400, Andrey Borzenkov=20
+wrote:
+> > > > > > On Sunday 03 of May 2009 14:59:32 Matthew Garrett wrote:
+> > > > > > > On Sun, May 03, 2009 at 11:11:47AM +0400, Andrey
+> > > > > > > Borzenkov
+> >
+> > wrote:
+> > > > > > > > 01:00.0 VGA compatible controller: nVidia Corporation
+> > > > > > > > GeForce 8400M GS (rev a1)
+> > > > > > >
+> > > > > > > We don't know how to reinitialise nvidia graphics
+> > > > > > > hardware.
+> > > > > >
+> > > > > > Just in case - same issue also after resume from
+> > > > > > hibernation. I was under impression, that hibernation does
+> > > > > > not have these issues as card goes via normal POST routine.
+> > > > >
+> > > > > Hm. That sounds a bit weirder.
+> > > >
+> > > > Is it worth further debugging? Anything I can provide?
+> > >
+> > > Try it with minimum config, init=3D/bin/bash? Switch to plain vga
+> > > console?
+> >
+> > As stated in my first mail, that is exactly what I started with :)
+>
+> Ok, ok, and even that failed with hibernation?
 
-Your patch makes us remove the fixed event handler in .suspend()
-and install it again in .resume().  In 2.6.29, we didn't touch the
-handler during suspend/resume, and my patches didn't change that
-aspect of things.
+You are right, I was not careful when testing. I tested once more with=20
+two different kernels; hibernation works (also in normal init 3) as long=20
+as video settings are the same between suspend and resume. If they=20
+differ (e.g. plain VGA before suspend and frame buffer after) display is=20
+most likely completely garbled (but still is not blank).
 
-Whatever the problem is, it feels like something that should be
-handled in the Linux/ACPI code, not in the driver.
+Of course, any attempt to switch to X (using nv driver) after resume is=20
+doomed. OTOH *starting* X after resume seems to work.=20
 
-Did you identify the patch that broke things?  My guess would be
-373cfc360ec773b, but I took a look at it (and 46ec8598fde74b, on
-which it depends), and I don't see the problem yet.
+Sorry for the noise.
 
-Bjorn
+--nextPart3802586.PxiQHfATqJ
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-> Can you think of anything nicer?
-> 
-> Thanks,
-> 
->      Thomas
-> 
-> 
-> ACPI: button: Fix fixed feature buttons for s2disk for HW modifing event registers
-> 
-> This happened on a recent HP laptop. After s2disk the fixed feature power button
-> event handler is not functional because the BIOS has modified the fixed feature
-> register(s) when resuming/rebooting after s2disk.
-> Setting up some bits there again by unregistering and re-installing the fixed
-> feature event handler fixes the problem and the button is functional again after s2disk.
-> 
-> Comment from Rafael:
-> This may be a consequence of the fact that we initialize ACPI before reading
-> the hibernation image from disk.  The spec seems to assume that won't be done. 
-> Hence, I think we should handle this.
-> 
-> 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 9195deb..80ee2bc 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -74,6 +74,7 @@ MODULE_DEVICE_TABLE(acpi, button_device_ids);
->  static int acpi_button_add(struct acpi_device *device);
->  static int acpi_button_remove(struct acpi_device *device, int type);
->  static int acpi_button_resume(struct acpi_device *device);
-> +static int acpi_button_suspend(struct acpi_device *device, pm_message_t state);
->  static void acpi_button_notify(struct acpi_device *device, u32 event);
->  static int acpi_button_info_open_fs(struct inode *inode, struct file *file);
->  static int acpi_button_state_open_fs(struct inode *inode, struct file *file);
-> @@ -85,6 +86,7 @@ static struct acpi_driver acpi_button_driver = {
->  	.ops = {
->  		.add = acpi_button_add,
->  		.resume = acpi_button_resume,
-> +		.suspend = acpi_button_suspend,
->  		.remove = acpi_button_remove,
->  		.notify = acpi_button_notify,
->  	},
-> @@ -281,8 +283,41 @@ static int acpi_button_resume(struct acpi_device *device)
->  {
->  	struct acpi_button *button = acpi_driver_data(device);
->  
-> -	if (button->type == ACPI_BUTTON_TYPE_LID)
-> +	if (!button)
-> +		return -EINVAL;
-> +	switch (button->type) {
-> +	case ACPI_BUTTON_TYPE_LID:
->  		return acpi_lid_send_state(device);
-> +	case ACPI_BUTTON_TYPE_SLEEPF:
-> +		return acpi_install_fixed_event_handler(
-> +					ACPI_EVENT_SLEEP_BUTTON,
-> +					acpi_button_notify_fixed, button);
-> +
-> +	case ACPI_BUTTON_TYPE_POWERF:
-> +		return acpi_install_fixed_event_handler(
-> +					ACPI_EVENT_POWER_BUTTON,
-> +					acpi_button_notify_fixed, button);
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int acpi_button_suspend(struct acpi_device *device, pm_message_t state)
-> +{
-> +	struct acpi_button *button;
-> +	if (!device)
-> +		return -EINVAL;
-> +	button = acpi_driver_data(device);
-> +	if (!button)
-> +		return -EINVAL;
-> +	switch (button->type) {
-> +	case ACPI_BUTTON_TYPE_SLEEPF:
-> +		return acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
-> +					       acpi_button_notify_fixed);
-> +
-> +	case ACPI_BUTTON_TYPE_POWERF:
-> +		return acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
-> +					       acpi_button_notify_fixed);
-> +	}
->  	return 0;
->  }
->  
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
+iEYEABECAAYFAkoByS8ACgkQR6LMutpd94yWgwCgjUPHY6uS0pVCJ+LRpGzyuPhj
+jp8AoJlAvEBF95F03npMOVZM6QoyHMH6
+=SwRv
+-----END PGP SIGNATURE-----
 
+--nextPart3802586.PxiQHfATqJ--
