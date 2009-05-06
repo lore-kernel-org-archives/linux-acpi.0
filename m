@@ -1,84 +1,71 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: Bank screen after resume on Dell XPS M1330
-Date: Wed, 6 May 2009 21:30:23 +0400
-Message-ID: <200905062130.26099.arvidjaar@mail.ru>
-References: <200905031111.50789.arvidjaar@mail.ru> <200905061955.13161.arvidjaar@mail.ru> <20090506165226.GA9072@elf.ucw.cz>
+From: Vladimir Zajac <eightgraph@gmail.com>
+Subject: [PATCH 2.6.30-rc4] thermal: fix off-by-1 error in trip point trigger condition
+Date: Wed, 6 May 2009 19:34:21 +0200
+Message-ID: <200905061934.21821.eightgraph@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3802586.PxiQHfATqJ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx40.mail.ru ([94.100.176.54]:50992 "EHLO mx40.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750983AbZEFRab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 May 2009 13:30:31 -0400
-In-Reply-To: <20090506165226.GA9072@elf.ucw.cz>
+Received: from fg-out-1718.google.com ([72.14.220.153]:42415 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112AbZEFReZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 13:34:25 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---nextPart3802586.PxiQHfATqJ
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+This patch fixes a regression caused by commit
+b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
+"ACPI: move thermal trip handling to generic thermal layer"
+which accidentally changed trip point trigger condition to
+  temp > trip_temp
 
-On Wednesday 06 of May 2009 20:52:26 Pavel Machek wrote:
-> On Wed 2009-05-06 19:55:10, Andrey Borzenkov wrote:
-> > On Tuesday 05 of May 2009 23:49:02 Pavel Machek wrote:
-> > > On Mon 2009-05-04 06:27:35, Andrey Borzenkov wrote:
-> > > > On Sunday 03 of May 2009 15:56:03 Matthew Garrett wrote:
-> > > > > On Sun, May 03, 2009 at 03:43:28PM +0400, Andrey Borzenkov=20
-wrote:
-> > > > > > On Sunday 03 of May 2009 14:59:32 Matthew Garrett wrote:
-> > > > > > > On Sun, May 03, 2009 at 11:11:47AM +0400, Andrey
-> > > > > > > Borzenkov
-> >
-> > wrote:
-> > > > > > > > 01:00.0 VGA compatible controller: nVidia Corporation
-> > > > > > > > GeForce 8400M GS (rev a1)
-> > > > > > >
-> > > > > > > We don't know how to reinitialise nvidia graphics
-> > > > > > > hardware.
-> > > > > >
-> > > > > > Just in case - same issue also after resume from
-> > > > > > hibernation. I was under impression, that hibernation does
-> > > > > > not have these issues as card goes via normal POST routine.
-> > > > >
-> > > > > Hm. That sounds a bit weirder.
-> > > >
-> > > > Is it worth further debugging? Anything I can provide?
-> > >
-> > > Try it with minimum config, init=3D/bin/bash? Switch to plain vga
-> > > console?
-> >
-> > As stated in my first mail, that is exactly what I started with :)
->
-> Ok, ok, and even that failed with hibernation?
+This patch changes the trigger condition back to
+  temp >= trip_temp
 
-You are right, I was not careful when testing. I tested once more with=20
-two different kernels; hibernation works (also in normal init 3) as long=20
-as video settings are the same between suspend and resume. If they=20
-differ (e.g. plain VGA before suspend and frame buffer after) display is=20
-most likely completely garbled (but still is not blank).
+Signed-off-by: Vladimir Zajac <eightgraph@gmail.com>
+---
 
-Of course, any attempt to switch to X (using nv driver) after resume is=20
-doomed. OTOH *starting* X after resume seems to work.=20
+ thermal_sys.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Sorry for the noise.
-
---nextPart3802586.PxiQHfATqJ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkoByS8ACgkQR6LMutpd94yWgwCgjUPHY6uS0pVCJ+LRpGzyuPhj
-jp8AoJlAvEBF95F03npMOVZM6QoyHMH6
-=SwRv
------END PGP SIGNATURE-----
-
---nextPart3802586.PxiQHfATqJ--
+--- linux-2.6.30-rc4/drivers/thermal/thermal_sys.c	2009-04-30 23:52:59.000000000 +0200
++++ linux-2.6.30-rc4-p1/drivers/thermal/thermal_sys.c	2009-05-04 19:58:30.000000000 +0200
+@@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
+ 
+ 		switch (trip_type) {
+ 		case THERMAL_TRIP_CRITICAL:
+-			if (temp > trip_temp) {
++			if (temp >= trip_temp) {
+ 				if (tz->ops->notify)
+ 					ret = tz->ops->notify(tz, count,
+ 							      trip_type);
+@@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
+ 			}
+ 			break;
+ 		case THERMAL_TRIP_HOT:
+-			if (temp > trip_temp)
++			if (temp >= trip_temp)
+ 				if (tz->ops->notify)
+ 					tz->ops->notify(tz, count, trip_type);
+ 			break;
+@@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
+ 
+ 				cdev = instance->cdev;
+ 
+-				if (temp > trip_temp)
++				if (temp >= trip_temp)
+ 					cdev->ops->set_cur_state(cdev, 1);
+ 				else
+ 					cdev->ops->set_cur_state(cdev, 0);
+ 			}
+ 			break;
+ 		case THERMAL_TRIP_PASSIVE:
+-			if (temp > trip_temp || tz->passive)
++			if (temp >= trip_temp || tz->passive)
+ 				thermal_zone_device_passive(tz, temp,
+ 							    trip_temp, count);
+ 			break;
