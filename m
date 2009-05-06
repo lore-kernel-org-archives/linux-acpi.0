@@ -1,158 +1,126 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 2/7] x86/acpi: calling mp_config_acpi_gsi in mp_register_gsi
- -v2
-Date: Wed, 06 May 2009 10:06:15 -0700
-Message-ID: <4A01C387.7090103@kernel.org>
+Subject: [PATCH 4/7] x86/acpi: move pin_programmed bit map to io_apic.c
+Date: Wed, 06 May 2009 10:07:41 -0700
+Message-ID: <4A01C3DD.3050104@kernel.org>
 References: <4A01C35C.7060207@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:38604 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751733AbZEFRH4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 May 2009 13:07:56 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <4A01C35C.7060207@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 
-it seems that change about calling mp_config_acpi_gsi in acpi_pci_irq_enable()
-never get into mainline.
-
-actually we could call that in mp_register_gsi with struct device...
-also could make mp_config_acpi_gsi to be static
-
-v2: some calling could have to be pci device, need to check that
-
-[Impact: make update_mptable working]
+prepare to call setup_io_apic_routing in pcibios_irq_enable
+also remove not needed member apic_id.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 
 ---
- arch/x86/include/asm/mpspec.h |    9 -----
- arch/x86/kernel/acpi/boot.c   |   66 +++++++++++++++++++++++++-----------------
- 2 files changed, 40 insertions(+), 35 deletions(-)
+ arch/x86/kernel/acpi/boot.c    |   18 ++----------------
+ arch/x86/kernel/apic/io_apic.c |   25 ++++++++++++++++++++++++-
+ 2 files changed, 26 insertions(+), 17 deletions(-)
 
-Index: linux-2.6/arch/x86/include/asm/mpspec.h
-===================================================================
---- linux-2.6.orig/arch/x86/include/asm/mpspec.h
-+++ linux-2.6/arch/x86/include/asm/mpspec.h
-@@ -77,17 +77,8 @@ extern int mp_register_gsi(struct device
- 				 int active_high_low);
- extern int acpi_probe_gsi(void);
- #ifdef CONFIG_X86_IO_APIC
--extern int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
--				u32 gsi, int triggering, int polarity);
- extern int mp_find_ioapic(int gsi);
- extern int mp_find_ioapic_pin(int ioapic, int gsi);
--#else
--static inline int
--mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
--		   u32 gsi, int triggering, int polarity)
--{
--	return 0;
--}
- #endif
- #else /* !CONFIG_ACPI: */
- static inline int acpi_probe_gsi(void)
 Index: linux-2.6/arch/x86/kernel/acpi/boot.c
 ===================================================================
 --- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
 +++ linux-2.6/arch/x86/kernel/acpi/boot.c
-@@ -33,6 +33,7 @@
- #include <linux/irq.h>
- #include <linux/bootmem.h>
- #include <linux/ioport.h>
-+#include <linux/pci.h>
+@@ -904,10 +904,8 @@ extern int es7000_plat;
+ #endif
  
- #include <asm/pgtable.h>
- #include <asm/io_apic.h>
-@@ -1158,6 +1159,44 @@ void __init mp_config_acpi_legacy_irqs(v
- 	}
- }
+ static struct {
+-	int apic_id;
+ 	int gsi_base;
+ 	int gsi_end;
+-	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
+ } mp_ioapic_routing[MAX_IO_APICS];
  
-+static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int triggering,
-+			int polarity)
-+{
-+#ifdef CONFIG_X86_MPPARSE
-+	struct mpc_intsrc mp_irq;
-+	struct pci_dev *pdev;
-+	unsigned char number;
-+	unsigned int devfn;
-+	int ioapic;
-+	u8 pin;
-+
-+	if (!acpi_ioapic)
-+		return 0;
-+	if (!dev)
-+		return 0;
-+	if (dev->bus != &pci_bus_type)
-+		return 0;
-+
-+	pdev = to_pci_dev(dev);
-+	number = pdev->bus->number;
-+	devfn = pdev->devfn;
-+	pin = pdev->pin;
-+	/* print the entry should happen on mptable identically */
-+	mp_irq.type = MP_INTSRC;
-+	mp_irq.irqtype = mp_INT;
-+	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
-+				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
-+	mp_irq.srcbus = number;
-+	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
-+	ioapic = mp_find_ioapic(gsi);
-+	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
-+	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
-+
-+	save_mp_irq(&mp_irq);
-+#endif
-+	return 0;
-+}
-+
- int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
- {
- 	int ioapic;
-@@ -1189,6 +1228,7 @@ int mp_register_gsi(struct device *dev,
+ int mp_find_ioapic(int gsi)
+@@ -996,7 +994,6 @@ void __init mp_register_ioapic(int id, u
+ 	 * Build basic GSI lookup table to facilitate gsi->io_apic lookups
+ 	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
+ 	 */
+-	mp_ioapic_routing[idx].apic_id = mp_ioapics[idx].apicid;
+ 	mp_ioapic_routing[idx].gsi_base = gsi_base;
+ 	mp_ioapic_routing[idx].gsi_end = gsi_base +
+ 	    io_apic_get_redir_entries(idx);
+@@ -1189,7 +1186,7 @@ static int mp_config_acpi_gsi(struct dev
+ 	mp_irq.srcbus = number;
+ 	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
+ 	ioapic = mp_find_ioapic(gsi);
+-	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
++	mp_irq.dstapic = mp_ioapics[ioapic].apicid;
+ 	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
+ 
+ 	save_mp_irq(&mp_irq);
+@@ -1224,23 +1221,12 @@ int mp_register_gsi(struct device *dev,
+ 
+ 	if (ioapic_pin > MP_MAX_IOAPIC_PIN) {
+ 		printk(KERN_ERR "Invalid reference to IOAPIC pin "
+-		       "%d-%d\n", mp_ioapic_routing[ioapic].apic_id,
++		       "%d-%d\n", mp_ioapics[ioapic].apicid,
  		       ioapic_pin);
  		return gsi;
  	}
-+	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
+ 	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
  
- 	/*
- 	 * Avoid pin reprogramming.  PRTs typically include entries
-@@ -1208,32 +1248,6 @@ int mp_register_gsi(struct device *dev,
- 	return gsi;
+-	/*
+-	 * Avoid pin reprogramming.  PRTs typically include entries
+-	 * with redundant pin->gsi mappings (but unique PCI devices);
+-	 * we only program the IOAPIC on the first.
+-	 */
+-	if (test_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed)) {
+-		pr_debug("Pin %d-%d already programmed\n",
+-			 mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
+-		return gsi;
+-	}
+-	set_bit(ioapic_pin, mp_ioapic_routing[ioapic].pin_programmed);
+ 	io_apic_set_pci_routing(dev, ioapic, ioapic_pin, gsi,
+ 				triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
+ 				polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
+Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
++++ linux-2.6/arch/x86/kernel/apic/io_apic.c
+@@ -3923,7 +3923,7 @@ int __init io_apic_get_version(int ioapi
+ }
+ #endif
+ 
+-int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
++static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+ 				 int triggering, int polarity)
+ {
+ 	struct irq_desc *desc;
+@@ -3960,6 +3960,29 @@ int io_apic_set_pci_routing(struct devic
+ 	return 0;
  }
  
--int mp_config_acpi_gsi(unsigned char number, unsigned int devfn, u8 pin,
--			u32 gsi, int triggering, int polarity)
--{
--#ifdef CONFIG_X86_MPPARSE
--	struct mpc_intsrc mp_irq;
--	int ioapic;
--
--	if (!acpi_ioapic)
--		return 0;
--
--	/* print the entry should happen on mptable identically */
--	mp_irq.type = MP_INTSRC;
--	mp_irq.irqtype = mp_INT;
--	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
--				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
--	mp_irq.srcbus = number;
--	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
--	ioapic = mp_find_ioapic(gsi);
--	mp_irq.dstapic = mp_ioapic_routing[ioapic].apic_id;
--	mp_irq.dstirq = mp_find_ioapic_pin(ioapic, gsi);
--
--	save_mp_irq(&mp_irq);
--#endif
--	return 0;
--}
--
- /*
-  * Parse IOAPIC related entries in MADT
-  * returns 0 on success, < 0 on error
++static struct {
++	DECLARE_BITMAP(pin_programmed, MP_MAX_IOAPIC_PIN + 1);
++} mp_ioapic_routing[MAX_IO_APICS];
++
++int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
++				 int triggering, int polarity)
++{
++
++	/*
++	 * Avoid pin reprogramming.  PRTs typically include entries
++	 * with redundant pin->gsi mappings (but unique PCI devices);
++	 * we only program the IOAPIC on the first.
++	 */
++	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
++		pr_debug("Pin %d-%d already programmed\n",
++			 mp_ioapics[ioapic].apicid, pin);
++		return 0;
++	}
++	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
++
++	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
++					 triggering, polarity);
++}
+ 
+ int acpi_get_override_irq(int bus_irq, int *trigger, int *polarity)
+ {
