@@ -1,71 +1,62 @@
-From: Vladimir Zajac <eightgraph@gmail.com>
-Subject: [PATCH 2.6.30-rc4] thermal: fix off-by-1 error in trip point trigger condition
-Date: Wed, 6 May 2009 19:34:21 +0200
-Message-ID: <200905061934.21821.eightgraph@gmail.com>
+From: The Holy ettlz <theholyettlz@googlemail.com>
+Subject: Re: Inconsistent processor throttling behaviour on Clevo
+ M720R/Intel T8100
+Date: Wed, 06 May 2009 21:01:49 +0100
+Message-ID: <1241640109.3198.2.camel@localhost.localdomain>
+References: <1241192597.2554.12.camel@localhost.localdomain>
+	 <1241399750.15284.33.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-4wAswIGkiHAzIhi34ZZ7"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:42415 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbZEFReZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 13:34:25 -0400
-Content-Disposition: inline
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:53012 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756034AbZEFUBx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2009 16:01:53 -0400
+Received: by ewy24 with SMTP id 24so520935ewy.37
+        for <linux-acpi@vger.kernel.org>; Wed, 06 May 2009 13:01:52 -0700 (PDT)
+In-Reply-To: <1241399750.15284.33.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This patch fixes a regression caused by commit
-b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
-"ACPI: move thermal trip handling to generic thermal layer"
-which accidentally changed trip point trigger condition to
-  temp > trip_temp
 
-This patch changes the trigger condition back to
-  temp >= trip_temp
+--=-4wAswIGkiHAzIhi34ZZ7
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Vladimir Zajac <eightgraph@gmail.com>
----
+On Mon, 2009-05-04 at 09:15 +0800, Zhang Rui wrote:
+>=20
+> please attach the output of "grep . /proc/acpi/processor/CPU*/*".
+> please attach the acpidump output.
 
- thermal_sys.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Thanks for your response. Rather than clog up the mailing list with the
+attachments, I've opened Bug 13259 at
 
---- linux-2.6.30-rc4/drivers/thermal/thermal_sys.c	2009-04-30 23:52:59.000000000 +0200
-+++ linux-2.6.30-rc4-p1/drivers/thermal/thermal_sys.c	2009-05-04 19:58:30.000000000 +0200
-@@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
- 
- 		switch (trip_type) {
- 		case THERMAL_TRIP_CRITICAL:
--			if (temp > trip_temp) {
-+			if (temp >= trip_temp) {
- 				if (tz->ops->notify)
- 					ret = tz->ops->notify(tz, count,
- 							      trip_type);
-@@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
- 			}
- 			break;
- 		case THERMAL_TRIP_HOT:
--			if (temp > trip_temp)
-+			if (temp >= trip_temp)
- 				if (tz->ops->notify)
- 					tz->ops->notify(tz, count, trip_type);
- 			break;
-@@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
- 
- 				cdev = instance->cdev;
- 
--				if (temp > trip_temp)
-+				if (temp >= trip_temp)
- 					cdev->ops->set_cur_state(cdev, 1);
- 				else
- 					cdev->ops->set_cur_state(cdev, 0);
- 			}
- 			break;
- 		case THERMAL_TRIP_PASSIVE:
--			if (temp > trip_temp || tz->passive)
-+			if (temp >= trip_temp || tz->passive)
- 				thermal_zone_device_passive(tz, temp,
- 							    trip_temp, count);
- 			break;
+http://bugzilla.kernel.org/show_bug.cgi?id=3D13259
+
+with the requested information.
+
+Regards,
+James.
+
+--=20
+The Holy ettlz                              TheHolyettlz@googlemail.com
+PGP key ID: 03F94B5D
+-----------------------------------------------------------------------
+
+
+--=-4wAswIGkiHAzIhi34ZZ7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkoB7K0ACgkQL/Is9AP5S10qJgCdEyqE8XwAy3narL+TOcuIZPNA
+XlEAnRhywo2XtTWPZ2HZBB61LjhooHlY
+=/9yu
+-----END PGP SIGNATURE-----
+
+--=-4wAswIGkiHAzIhi34ZZ7--
+
