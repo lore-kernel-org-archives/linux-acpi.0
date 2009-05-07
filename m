@@ -1,238 +1,164 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 4/4] ACPICA: Delete NextObject pointer
-Date: Thu, 07 May 2009 19:52:18 +0400
-Message-ID: <20090507155218.26361.61352.stgit@thinkpad>
-References: <20090507155202.26361.38778.stgit@thinkpad>
+Subject: [PATCH 1/4] ACPICA: Remove use of caches in controlled way
+Date: Thu, 07 May 2009 19:52:02 +0400
+Message-ID: <20090507155202.26361.38778.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.telecom.mipt.ru ([81.5.91.10]:60227 "EHLO
+Received: from relay1.telecom.mipt.ru ([81.5.91.10]:60226 "EHLO
 	relay1.telecom.mipt.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760397AbZEGQBN (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 7 May 2009 12:01:13 -0400
-In-Reply-To: <20090507155202.26361.38778.stgit@thinkpad>
+	with ESMTP id S1760279AbZEGQBM (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 7 May 2009 12:01:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>
 Cc: Linux-acpi@vger.kernel.org
 
-NextObject field was used for double objects (removed by prev patch) and
-for data objects. Data object size is now untangled from all other object
-sizes, so we can save size of pointer in all object allocations.
-
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- source/components/namespace/nsobject.c |   38 ++++++--------------------------
- source/components/utilities/utcopy.c   |   13 ++++++++---
- source/include/aclocal.h               |    4 ++-
- source/include/acobject.h              |    3 +--
- 4 files changed, 19 insertions(+), 39 deletions(-)
+ source/components/utilities/utcache.c |   99 +++++----------------------------
+ 1 files changed, 14 insertions(+), 85 deletions(-)
 
 
-diff --git a/source/components/namespace/nsobject.c b/source/components/namespace/nsobject.c
-index 9191e79..10e1b4d 100644
---- a/source/components/namespace/nsobject.c
-+++ b/source/components/namespace/nsobject.c
-@@ -154,7 +154,6 @@ AcpiNsAttachObject (
-     ACPI_OBJECT_TYPE        Type)
+diff --git a/source/components/utilities/utcache.c b/source/components/utilities/utcache.c
+index aabc0a2..d08d520 100644
+--- a/source/components/utilities/utcache.c
++++ b/source/components/utilities/utcache.c
+@@ -287,49 +287,15 @@ AcpiOsReleaseObject (
+     ACPI_MEMORY_LIST        *Cache,
+     void                    *Object)
  {
-     ACPI_OPERAND_OBJECT     *ObjDesc;
--    ACPI_OPERAND_OBJECT     *LastObjDesc;
-     ACPI_OBJECT_TYPE        ObjectType = ACPI_TYPE_ANY;
- 
- 
-@@ -255,19 +254,6 @@ AcpiNsAttachObject (
-          */
-         AcpiUtAddReference (ObjDesc);
- 
--        /*
--         * Handle objects with multiple descriptors - walk
--         * to the end of the descriptor list
--         */
--        LastObjDesc = ObjDesc;
--        while (LastObjDesc->Common.NextObject)
--        {
--            LastObjDesc = LastObjDesc->Common.NextObject;
--        }
+-    ACPI_STATUS             Status;
 -
--        /* Install the object at the front of the object list */
 -
--        LastObjDesc->Common.NextObject = Node->Object;
+     ACPI_FUNCTION_ENTRY ();
+ 
+-
+     if (!Cache || !Object)
+     {
+         return (AE_BAD_PARAMETER);
      }
  
-     Node->Type     = (UINT8) ObjectType;
-@@ -312,15 +298,6 @@ AcpiNsDetachObject (
-     /* Clear the entry in all cases */
- 
-     Node->Object = NULL;
--    if (ACPI_GET_DESCRIPTOR_TYPE (ObjDesc) == ACPI_DESC_TYPE_OPERAND)
+-    /* If cache is full, just free this object */
+-
+-    if (Cache->CurrentDepth >= Cache->MaxDepth)
 -    {
--        Node->Object = ObjDesc->Common.NextObject;
--        if (Node->Object &&
--           ((Node->Object)->Common.Type != ACPI_TYPE_LOCAL_DATA))
--        {
--            Node->Object = Node->Object->Common.NextObject;
--        }
+-        ACPI_FREE (Object);
+-        ACPI_MEM_TRACKING (Cache->TotalFreed++);
 -    }
- 
-     /* Reset the node type to untyped */
- 
-@@ -404,14 +381,13 @@ AcpiNsAttachData (
-     ObjDesc = Node->Object;
-     while (ObjDesc)
-     {
--        if ((ObjDesc->Common.Type == ACPI_TYPE_LOCAL_DATA) &&
--            (ObjDesc->Data.Handler == Handler))
-+        if (ObjDesc->Data.Handler == Handler)
-         {
-             return (AE_ALREADY_EXISTS);
-         }
- 
-         PrevObjDesc = ObjDesc;
--        ObjDesc = ObjDesc->Common.NextObject;
-+        ObjDesc = ObjDesc->Data.Next;
-     }
- 
-     /* Create an internal object for the data */
-@@ -429,7 +405,7 @@ AcpiNsAttachData (
- 
-     if (PrevObjDesc)
-     {
--        PrevObjDesc->Common.NextObject = DataDesc;
-+        PrevObjDesc->Data.Next = DataDesc;
-     }
-     else
-     {
-@@ -472,11 +448,11 @@ AcpiNsDetachData (
-         {
-             if (PrevObjDesc)
-             {
--                PrevObjDesc->Common.NextObject = ObjDesc->Common.NextObject;
-+                PrevObjDesc->Data.Next = ObjDesc->Data.Next;
-             }
-             else
-             {
--                Node->Object = ObjDesc->Common.NextObject;
-+                Node->Object = ObjDesc->Data.Next;
-             }
- 
-             AcpiUtRemoveReference (ObjDesc);
-@@ -484,7 +460,7 @@ AcpiNsDetachData (
-         }
- 
-         PrevObjDesc = ObjDesc;
--        ObjDesc = ObjDesc->Common.NextObject;
-+        ObjDesc = ObjDesc->Data.Next;
-     }
- 
-     return (AE_NOT_FOUND);
-@@ -525,7 +501,7 @@ AcpiNsGetAttachedData (
-             return (AE_OK);
-         }
- 
--        ObjDesc = ObjDesc->Common.NextObject;
-+        ObjDesc = ObjDesc->Data.Next;
-     }
- 
-     return (AE_NOT_FOUND);
-diff --git a/source/components/utilities/utcopy.c b/source/components/utilities/utcopy.c
-index 785c313..192db88 100644
---- a/source/components/utilities/utcopy.c
-+++ b/source/components/utilities/utcopy.c
-@@ -795,14 +795,17 @@ AcpiUtCopySimpleObject (
-     ACPI_OPERAND_OBJECT     *DestDesc)
- {
-     UINT16                  ReferenceCount;
--    ACPI_OPERAND_OBJECT     *NextObject;
-+    ACPI_OPERAND_OBJECT     *NextObject = NULL;
-     ACPI_STATUS             Status;
- 
- 
-     /* Save fields from destination that we don't want to overwrite */
- 
-     ReferenceCount = DestDesc->Common.ReferenceCount;
--    NextObject = DestDesc->Common.NextObject;
-+    if (DestDesc->Common.Type == ACPI_TYPE_LOCAL_DATA)
-+    {
-+	NextObject = DestDesc->Data.Next;
-+    }
- 
-     /* Copy the entire source object over the destination object*/
- 
-@@ -812,8 +815,10 @@ AcpiUtCopySimpleObject (
-     /* Restore the saved fields */
- 
-     DestDesc->Common.ReferenceCount = ReferenceCount;
--    DestDesc->Common.NextObject = NextObject;
 -
-+    if (DestDesc->Common.Type == ACPI_TYPE_LOCAL_DATA)
-+    {
-+	DestDesc->Data.Next = NextObject;
-+    }
-     /* New object is not static, regardless of source */
+-    /* Otherwise put this object back into the cache */
+-
+-    else
+-    {
+-        Status = AcpiUtAcquireMutex (ACPI_MTX_CACHES);
+-        if (ACPI_FAILURE (Status))
+-        {
+-            return (Status);
+-        }
+-
+-        /* Mark the object as cached */
+-
+-        ACPI_MEMSET (Object, 0xCA, Cache->ObjectSize);
+-        ACPI_SET_DESCRIPTOR_TYPE (Object, ACPI_DESC_TYPE_CACHED);
+-
+-        /* Put the object at the head of the cache list */
+-
+-        * (ACPI_CAST_INDIRECT_PTR (char,
+-            &(((char *) Object)[Cache->LinkOffset]))) = Cache->ListHead;
+-        Cache->ListHead = Object;
+-        Cache->CurrentDepth++;
+-
+-        (void) AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+-    }
++    ACPI_FREE (Object);
++    ACPI_MEM_TRACKING (Cache->TotalFreed++);
  
-     DestDesc->Common.Flags &= ~AOPOBJ_STATIC_POINTER;
-diff --git a/source/include/aclocal.h b/source/include/aclocal.h
-index 4598d28..eade51f 100644
---- a/source/include/aclocal.h
-+++ b/source/include/aclocal.h
-@@ -269,7 +269,6 @@ typedef enum
-  */
- typedef struct acpi_namespace_node
+     return (AE_OK);
+ }
+@@ -353,8 +319,6 @@ AcpiOsAcquireObject (
+     ACPI_MEMORY_LIST        *Cache)
  {
--    union acpi_operand_object       *Object;        /* Interpreter object */
-     UINT8                           DescriptorType; /* Differentiate object descriptor types */
-     UINT8                           Type;           /* ACPI Type associated with this name */
-     UINT8                           Flags;          /* Miscellaneous flags */
-@@ -277,6 +276,7 @@ typedef struct acpi_namespace_node
-     ACPI_NAME_UNION                 Name;           /* ACPI Name, always 4 chars per ACPI spec */
-     struct acpi_namespace_node      *Child;         /* First child */
-     struct acpi_namespace_node      *Peer;          /* Peer. Parent if ANOBJ_END_OF_PEER_LIST set */
-+    union acpi_operand_object       *Object;        /* Interpreter object */
+     ACPI_STATUS             Status;
+-    void                    *Object;
+-
  
-     /*
-      * The following fields are used by the ASL compiler and disassembler only
-@@ -852,11 +852,11 @@ typedef union acpi_parse_value
+     ACPI_FUNCTION_NAME (OsAcquireObject);
+ 
+@@ -372,61 +336,26 @@ AcpiOsAcquireObject (
+ 
+     ACPI_MEM_TRACKING (Cache->Requests++);
+ 
+-    /* Check the cache first */
++    /* The cache is empty, create a new object */
+ 
+-    if (Cache->ListHead)
+-    {
+-        /* There is an object available, use it */
+-
+-        Object = Cache->ListHead;
+-        Cache->ListHead = *(ACPI_CAST_INDIRECT_PTR (char,
+-                                &(((char *) Object)[Cache->LinkOffset])));
+-
+-        Cache->CurrentDepth--;
+-
+-        ACPI_MEM_TRACKING (Cache->Hits++);
+-        ACPI_DEBUG_PRINT ((ACPI_DB_EXEC,
+-            "Object %p from %s cache\n", Object, Cache->ListName));
+-
+-        Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+-        if (ACPI_FAILURE (Status))
+-        {
+-            return (NULL);
+-        }
+-
+-        /* Clear (zero) the previously used Object */
+-
+-        ACPI_MEMSET (Object, 0, Cache->ObjectSize);
+-    }
+-    else
+-    {
+-        /* The cache is empty, create a new object */
+-
+-        ACPI_MEM_TRACKING (Cache->TotalAllocated++);
++    ACPI_MEM_TRACKING (Cache->TotalAllocated++);
+ 
+ #ifdef ACPI_DBG_TRACK_ALLOCATIONS
+-        if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache->MaxOccupied)
+-        {
+-            Cache->MaxOccupied = Cache->TotalAllocated - Cache->TotalFreed;
+-        }
++    if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache->MaxOccupied)
++    {
++        Cache->MaxOccupied = Cache->TotalAllocated - Cache->TotalFreed;
++    }
  #endif
  
- #define ACPI_PARSE_COMMON \
--    union acpi_parse_object         *Parent;        /* Parent op */\
-     UINT8                           DescriptorType; /* To differentiate various internal objs */\
-     UINT8                           Flags;          /* Type of Op */\
-     UINT16                          AmlOpcode;      /* AML opcode */\
-     UINT32                          AmlOffset;      /* Offset of declaration in AML */\
-+    union acpi_parse_object         *Parent;        /* Parent op */\
-     union acpi_parse_object         *Next;          /* Next op */\
-     ACPI_NAMESPACE_NODE             *Node;          /* For use by interpreter */\
-     ACPI_PARSE_VALUE                Value;          /* Value or args associated with the opcode */\
-diff --git a/source/include/acobject.h b/source/include/acobject.h
-index c78696b..29caa8d 100644
---- a/source/include/acobject.h
-+++ b/source/include/acobject.h
-@@ -152,7 +152,6 @@
-  * structures.
-  */
- #define ACPI_OBJECT_COMMON_HEADER \
--    union acpi_operand_object       *NextObject;        /* Objects linked to parent NS node */\
-     UINT8                           DescriptorType;     /* To differentiate various internal objs */\
-     UINT8                           Type;               /* ACPI_OBJECT_TYPE */\
-     UINT16                          ReferenceCount;     /* For object deletion management */\
-@@ -524,6 +523,7 @@ typedef enum
- typedef struct acpi_object_data
- {
-     ACPI_OBJECT_COMMON_HEADER
-+    union acpi_operand_object       *Next;        /* Objects linked to parent NS node */
-     ACPI_OBJECT_HANDLER             Handler;
-     void                            *Pointer;
+-        /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
++    /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
  
-@@ -598,7 +598,6 @@ typedef union acpi_operand_object
+-        Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+-        if (ACPI_FAILURE (Status))
+-        {
+-            return (NULL);
+-        }
+-
+-        Object = ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
+-        if (!Object)
+-        {
+-            return (NULL);
+-        }
++    Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
++    if (ACPI_FAILURE (Status))
++    {
++        return (NULL);
+     }
  
- typedef struct acpi_common_descriptor
- {
--    void                            *CommonPointer;
-     UINT8                           DescriptorType; /* To differentiate various internal objs */
+-    return (Object);
++    return ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
+ }
+ #endif /* ACPI_USE_LOCAL_CACHE */
  
- } ACPI_COMMON_DESCRIPTOR;
 
