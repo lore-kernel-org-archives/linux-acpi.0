@@ -1,15 +1,15 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 2/4] ACPICA: Remove cache code
-Date: Thu, 07 May 2009 19:52:08 +0400
-Message-ID: <20090507155207.26361.8436.stgit@thinkpad>
+Subject: [PATCH 4/4] ACPICA: Delete NextObject pointer
+Date: Thu, 07 May 2009 19:52:18 +0400
+Message-ID: <20090507155218.26361.61352.stgit@thinkpad>
 References: <20090507155202.26361.38778.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.telecom.mipt.ru ([81.5.91.10]:60212 "EHLO
+Received: from relay1.telecom.mipt.ru ([81.5.91.10]:60227 "EHLO
 	relay1.telecom.mipt.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760129AbZEGQBN (ORCPT
+	with ESMTP id S1760397AbZEGQBN (ORCPT
 	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 7 May 2009 12:01:13 -0400
 In-Reply-To: <20090507155202.26361.38778.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -17,1007 +17,222 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>
 Cc: Linux-acpi@vger.kernel.org
 
+NextObject field was used for double objects (removed by prev patch) and
+for data objects. Data object size is now untangled from all other object
+sizes, so we can save size of pointer in all object allocations.
+
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- source/components/debugger/dbexec.c    |   73 ------
- source/components/debugger/dbstats.c   |   38 ---
- source/components/namespace/nsalloc.c  |    6 -
- source/components/parser/psutils.c     |    8 -
- source/components/utilities/utalloc.c  |   61 -----
- source/components/utilities/utcache.c  |  362 --------------------------------
- source/components/utilities/utobject.c |    4 
- source/components/utilities/utstate.c  |    4 
- source/components/utilities/utxface.c  |   35 ---
- source/include/acconfig.h              |    8 -
- source/include/acglobal.h              |    8 -
- source/include/acobject.h              |   12 -
- source/include/acpiosxf.h              |   29 ---
- source/include/actypes.h               |   10 -
- source/include/platform/acenv.h        |    7 -
- source/include/platform/acfreebsd.h    |    1 
- source/include/platform/aclinux.h      |    1 
- source/include/platform/acos2.h        |    1 
- source/tools/acpisrc/astable.c         |    2 
- 19 files changed, 12 insertions(+), 658 deletions(-)
- delete mode 100644 source/components/utilities/utcache.c
+ source/components/namespace/nsobject.c |   38 ++++++--------------------------
+ source/components/utilities/utcopy.c   |   13 ++++++++---
+ source/include/aclocal.h               |    4 ++-
+ source/include/acobject.h              |    3 +--
+ 4 files changed, 19 insertions(+), 39 deletions(-)
 
 
-diff --git a/source/components/debugger/dbexec.c b/source/components/debugger/dbexec.c
-index eb39b37..c0bdb84 100644
---- a/source/components/debugger/dbexec.c
-+++ b/source/components/debugger/dbexec.c
-@@ -138,10 +138,6 @@ static void
- AcpiDbExecuteSetup (
-     ACPI_DB_METHOD_INFO     *Info);
- 
--static UINT32
--AcpiDbGetOutstandingAllocations (
--    void);
--
- static void ACPI_SYSTEM_XFACE
- AcpiDbMethodThread (
-     void                    *Context);
-@@ -323,48 +319,6 @@ AcpiDbExecuteSetup (
- }
- 
- 
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
--UINT32
--AcpiDbGetCacheInfo (
--    ACPI_MEMORY_LIST        *Cache)
--{
--
--    return (Cache->TotalAllocated - Cache->TotalFreed - Cache->CurrentDepth);
--}
--#endif
--
--/*******************************************************************************
-- *
-- * FUNCTION:    AcpiDbGetOutstandingAllocations
-- *
-- * PARAMETERS:  None
-- *
-- * RETURN:      Current global allocation count minus cache entries
-- *
-- * DESCRIPTION: Determine the current number of "outstanding" allocations --
-- *              those allocations that have not been freed and also are not
-- *              in one of the various object caches.
-- *
-- ******************************************************************************/
--
--static UINT32
--AcpiDbGetOutstandingAllocations (
--    void)
--{
--    UINT32                  Outstanding = 0;
--
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
--
--    Outstanding += AcpiDbGetCacheInfo (AcpiGbl_StateCache);
--    Outstanding += AcpiDbGetCacheInfo (AcpiGbl_PsNodeCache);
--    Outstanding += AcpiDbGetCacheInfo (AcpiGbl_PsNodeExtCache);
--    Outstanding += AcpiDbGetCacheInfo (AcpiGbl_OperandCache);
--#endif
--
--    return (Outstanding);
--}
--
--
- /*******************************************************************************
-  *
-  * FUNCTION:    AcpiDbExecutionWalk
-@@ -442,17 +396,6 @@ AcpiDbExecute (
-     ACPI_BUFFER             ReturnObj;
-     char                    *NameString;
- 
--
--#ifdef ACPI_DEBUG_OUTPUT
--    UINT32                  PreviousAllocations;
--    UINT32                  Allocations;
--
--
--    /* Memory allocation tracking */
--
--    PreviousAllocations = AcpiDbGetOutstandingAllocations ();
--#endif
--
-     if (*Name == '*')
-     {
-         (void) AcpiWalkNamespace (ACPI_TYPE_METHOD, ACPI_ROOT_OBJECT,
-@@ -489,22 +432,6 @@ AcpiDbExecute (
-      */
-     AcpiOsSleep ((ACPI_INTEGER) 10);
- 
--
--#ifdef ACPI_DEBUG_OUTPUT
--
--    /* Memory allocation tracking */
--
--    Allocations = AcpiDbGetOutstandingAllocations () - PreviousAllocations;
--
--    AcpiDbSetOutputDestination (ACPI_DB_DUPLICATE_OUTPUT);
--
--    if (Allocations > 0)
--    {
--        AcpiOsPrintf ("Outstanding: 0x%X allocations after execution\n",
--                        Allocations);
--    }
--#endif
--
-     if (ACPI_FAILURE (Status))
-     {
-         AcpiOsPrintf ("Execution of %s failed with status %s\n",
-diff --git a/source/components/debugger/dbstats.c b/source/components/debugger/dbstats.c
-index f2f2f78..4ae3f65 100644
---- a/source/components/debugger/dbstats.c
-+++ b/source/components/debugger/dbstats.c
-@@ -189,9 +189,6 @@ static void
- AcpiDbListInfo (
-     ACPI_MEMORY_LIST        *List)
+diff --git a/source/components/namespace/nsobject.c b/source/components/namespace/nsobject.c
+index 9191e79..10e1b4d 100644
+--- a/source/components/namespace/nsobject.c
++++ b/source/components/namespace/nsobject.c
+@@ -154,7 +154,6 @@ AcpiNsAttachObject (
+     ACPI_OBJECT_TYPE        Type)
  {
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
--    UINT32                  Outstanding;
--#endif
+     ACPI_OPERAND_OBJECT     *ObjDesc;
+-    ACPI_OPERAND_OBJECT     *LastObjDesc;
+     ACPI_OBJECT_TYPE        ObjectType = ACPI_TYPE_ANY;
  
-     AcpiOsPrintf ("\n%s\n", List->ListName);
  
-@@ -207,41 +204,6 @@ AcpiDbListInfo (
-             (List->CurrentDepth * List->ObjectSize));
+@@ -255,19 +254,6 @@ AcpiNsAttachObject (
+          */
+         AcpiUtAddReference (ObjDesc);
+ 
+-        /*
+-         * Handle objects with multiple descriptors - walk
+-         * to the end of the descriptor list
+-         */
+-        LastObjDesc = ObjDesc;
+-        while (LastObjDesc->Common.NextObject)
+-        {
+-            LastObjDesc = LastObjDesc->Common.NextObject;
+-        }
+-
+-        /* Install the object at the front of the object list */
+-
+-        LastObjDesc->Common.NextObject = Node->Object;
      }
  
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
--    if (List->MaxDepth > 0)
--    {
--        AcpiOsPrintf (
--            "    Cache: [Requests Hits Misses ObjSize]             %8.2X %8.2X %8.2X %8.2X\n",
--            List->Requests,
--            List->Hits,
--            List->Requests - List->Hits,
--            List->ObjectSize);
--    }
--
--    Outstanding = AcpiDbGetCacheInfo (List);
--
--    if (List->ObjectSize)
--    {
--        AcpiOsPrintf (
--            "    Mem:   [Alloc    Free Max    CurSize Outstanding] %8.2X %8.2X %8.2X %8.2X %8.2X\n",
--            List->TotalAllocated,
--            List->TotalFreed,
--            List->MaxOccupied,
--            Outstanding * List->ObjectSize,
--            Outstanding);
--    }
--    else
--    {
--        AcpiOsPrintf (
--            "    Mem:   [Alloc Free Max CurSize Outstanding Total] %8.2X %8.2X %8.2X %8.2X %8.2X %8.2X\n",
--            List->TotalAllocated,
--            List->TotalFreed,
--            List->MaxOccupied,
--            List->CurrentTotalSize,
--            Outstanding,
--            List->TotalSize);
--    }
--#endif
- }
- #endif
+     Node->Type     = (UINT8) ObjectType;
+@@ -312,15 +298,6 @@ AcpiNsDetachObject (
+     /* Clear the entry in all cases */
  
-diff --git a/source/components/namespace/nsalloc.c b/source/components/namespace/nsalloc.c
-index 1158c36..a1b43b7 100644
---- a/source/components/namespace/nsalloc.c
-+++ b/source/components/namespace/nsalloc.c
-@@ -150,7 +150,7 @@ AcpiNsCreateNode (
-     ACPI_FUNCTION_TRACE (NsCreateNode);
+     Node->Object = NULL;
+-    if (ACPI_GET_DESCRIPTOR_TYPE (ObjDesc) == ACPI_DESC_TYPE_OPERAND)
+-    {
+-        Node->Object = ObjDesc->Common.NextObject;
+-        if (Node->Object &&
+-           ((Node->Object)->Common.Type != ACPI_TYPE_LOCAL_DATA))
+-        {
+-            Node->Object = Node->Object->Common.NextObject;
+-        }
+-    }
  
+     /* Reset the node type to untyped */
  
--    Node = AcpiOsAcquireObject (AcpiGbl_NamespaceCache);
-+    Node = ACPI_ALLOCATE_ZEROED (sizeof (ACPI_NAMESPACE_NODE));
-     if (!Node)
+@@ -404,14 +381,13 @@ AcpiNsAttachData (
+     ObjDesc = Node->Object;
+     while (ObjDesc)
      {
-         return_PTR (NULL);
-@@ -242,7 +242,7 @@ AcpiNsDeleteNode (
-     /* Detach an object if there is one, then delete the node */
- 
-     AcpiNsDetachObject (Node);
--    (void) AcpiOsReleaseObject (AcpiGbl_NamespaceCache, Node);
-+    ACPI_FREE (Node);
-     return_VOID;
- }
- 
-@@ -398,7 +398,7 @@ AcpiNsDeleteChildren (
- 
-         /* Now we can delete the node */
- 
--        (void) AcpiOsReleaseObject (AcpiGbl_NamespaceCache, ChildNode);
-+        ACPI_FREE (ChildNode);
- 
-         /* And move on to the next child in the list */
- 
-diff --git a/source/components/parser/psutils.c b/source/components/parser/psutils.c
-index 42f2b01..116e388 100644
---- a/source/components/parser/psutils.c
-+++ b/source/components/parser/psutils.c
-@@ -232,13 +232,13 @@ AcpiPsAllocOp (
-     {
-         /* The generic op (default) is by far the most common (16 to 1) */
- 
--        Op = AcpiOsAcquireObject (AcpiGbl_PsNodeCache);
-+        Op = ACPI_ALLOCATE_ZEROED (sizeof (ACPI_PARSE_OBJ_COMMON));
-     }
-     else
-     {
-         /* Extended parseop */
- 
--        Op = AcpiOsAcquireObject (AcpiGbl_PsNodeExtCache);
-+        Op = ACPI_ALLOCATE_ZEROED (sizeof (ACPI_PARSE_OBJ_NAMED));
-     }
- 
-     /* Initialize the Op */
-@@ -280,11 +280,11 @@ AcpiPsFreeOp (
- 
-     if (Op->Common.Flags & ACPI_PARSEOP_GENERIC)
-     {
--        (void) AcpiOsReleaseObject (AcpiGbl_PsNodeCache, Op);
-+        ACPI_FREE (Op);
-     }
-     else
-     {
--        (void) AcpiOsReleaseObject (AcpiGbl_PsNodeExtCache, Op);
-+        ACPI_FREE (Op);
-     }
- }
- 
-diff --git a/source/components/utilities/utalloc.c b/source/components/utilities/utalloc.c
-index a66b940..26ca984 100644
---- a/source/components/utilities/utalloc.c
-+++ b/source/components/utilities/utalloc.c
-@@ -139,48 +139,8 @@ ACPI_STATUS
- AcpiUtCreateCaches (
-     void)
- {
--    ACPI_STATUS             Status;
--
--
--    /* Object Caches, for frequently used objects */
--
--    Status = AcpiOsCreateCache ("Acpi-Namespace", sizeof (ACPI_NAMESPACE_NODE),
--                ACPI_MAX_NAMESPACE_CACHE_DEPTH, &AcpiGbl_NamespaceCache);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--    Status = AcpiOsCreateCache ("Acpi-State", sizeof (ACPI_GENERIC_STATE),
--                ACPI_MAX_STATE_CACHE_DEPTH, &AcpiGbl_StateCache);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--    Status = AcpiOsCreateCache ("Acpi-Parse", sizeof (ACPI_PARSE_OBJ_COMMON),
--                ACPI_MAX_PARSE_CACHE_DEPTH, &AcpiGbl_PsNodeCache);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--    Status = AcpiOsCreateCache ("Acpi-ParseExt", sizeof (ACPI_PARSE_OBJ_NAMED),
--                ACPI_MAX_EXTPARSE_CACHE_DEPTH, &AcpiGbl_PsNodeExtCache);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--    Status = AcpiOsCreateCache ("Acpi-Operand", sizeof (ACPI_OPERAND_OBJECT),
--                ACPI_MAX_OBJECT_CACHE_DEPTH, &AcpiGbl_OperandCache);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--
- #ifdef ACPI_DBG_TRACK_ALLOCATIONS
-+    ACPI_STATUS             Status;
- 
-     /* Memory allocation lists */
- 
-@@ -227,25 +187,6 @@ AcpiUtDeleteCaches (
-         ACPI_STRCPY (Buffer, "MEMORY");
-         (void) AcpiDbDisplayStatistics (Buffer);
-     }
--#endif
--
--    (void) AcpiOsDeleteCache (AcpiGbl_NamespaceCache);
--    AcpiGbl_NamespaceCache = NULL;
--
--    (void) AcpiOsDeleteCache (AcpiGbl_StateCache);
--    AcpiGbl_StateCache = NULL;
--
--    (void) AcpiOsDeleteCache (AcpiGbl_OperandCache);
--    AcpiGbl_OperandCache = NULL;
--
--    (void) AcpiOsDeleteCache (AcpiGbl_PsNodeCache);
--    AcpiGbl_PsNodeCache = NULL;
--
--    (void) AcpiOsDeleteCache (AcpiGbl_PsNodeExtCache);
--    AcpiGbl_PsNodeExtCache = NULL;
--
--
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
- 
-     /* Debug only - display leftover memory allocation, if any */
- 
-diff --git a/source/components/utilities/utcache.c b/source/components/utilities/utcache.c
-deleted file mode 100644
-index d08d520..0000000
---- a/source/components/utilities/utcache.c
-+++ /dev/null
-@@ -1,362 +0,0 @@
--/******************************************************************************
-- *
-- * Module Name: utcache - local cache allocation routines
-- *
-- *****************************************************************************/
--
--/******************************************************************************
-- *
-- * 1. Copyright Notice
-- *
-- * Some or all of this work - Copyright (c) 1999 - 2009, Intel Corp.
-- * All rights reserved.
-- *
-- * 2. License
-- *
-- * 2.1. This is your license from Intel Corp. under its intellectual property
-- * rights.  You may have additional license terms from the party that provided
-- * you this software, covering your right to use that party's intellectual
-- * property rights.
-- *
-- * 2.2. Intel grants, free of charge, to any person ("Licensee") obtaining a
-- * copy of the source code appearing in this file ("Covered Code") an
-- * irrevocable, perpetual, worldwide license under Intel's copyrights in the
-- * base code distributed originally by Intel ("Original Intel Code") to copy,
-- * make derivatives, distribute, use and display any portion of the Covered
-- * Code in any form, with the right to sublicense such rights; and
-- *
-- * 2.3. Intel grants Licensee a non-exclusive and non-transferable patent
-- * license (with the right to sublicense), under only those claims of Intel
-- * patents that are infringed by the Original Intel Code, to make, use, sell,
-- * offer to sell, and import the Covered Code and derivative works thereof
-- * solely to the minimum extent necessary to exercise the above copyright
-- * license, and in no event shall the patent license extend to any additions
-- * to or modifications of the Original Intel Code.  No other license or right
-- * is granted directly or by implication, estoppel or otherwise;
-- *
-- * The above copyright and patent license is granted only if the following
-- * conditions are met:
-- *
-- * 3. Conditions
-- *
-- * 3.1. Redistribution of Source with Rights to Further Distribute Source.
-- * Redistribution of source code of any substantial portion of the Covered
-- * Code or modification with rights to further distribute source must include
-- * the above Copyright Notice, the above License, this list of Conditions,
-- * and the following Disclaimer and Export Compliance provision.  In addition,
-- * Licensee must cause all Covered Code to which Licensee contributes to
-- * contain a file documenting the changes Licensee made to create that Covered
-- * Code and the date of any change.  Licensee must include in that file the
-- * documentation of any changes made by any predecessor Licensee.  Licensee
-- * must include a prominent statement that the modification is derived,
-- * directly or indirectly, from Original Intel Code.
-- *
-- * 3.2. Redistribution of Source with no Rights to Further Distribute Source.
-- * Redistribution of source code of any substantial portion of the Covered
-- * Code or modification without rights to further distribute source must
-- * include the following Disclaimer and Export Compliance provision in the
-- * documentation and/or other materials provided with distribution.  In
-- * addition, Licensee may not authorize further sublicense of source of any
-- * portion of the Covered Code, and must include terms to the effect that the
-- * license from Licensee to its licensee is limited to the intellectual
-- * property embodied in the software Licensee provides to its licensee, and
-- * not to intellectual property embodied in modifications its licensee may
-- * make.
-- *
-- * 3.3. Redistribution of Executable. Redistribution in executable form of any
-- * substantial portion of the Covered Code or modification must reproduce the
-- * above Copyright Notice, and the following Disclaimer and Export Compliance
-- * provision in the documentation and/or other materials provided with the
-- * distribution.
-- *
-- * 3.4. Intel retains all right, title, and interest in and to the Original
-- * Intel Code.
-- *
-- * 3.5. Neither the name Intel nor any other trademark owned or controlled by
-- * Intel shall be used in advertising or otherwise to promote the sale, use or
-- * other dealings in products derived from or relating to the Covered Code
-- * without prior written authorization from Intel.
-- *
-- * 4. Disclaimer and Export Compliance
-- *
-- * 4.1. INTEL MAKES NO WARRANTY OF ANY KIND REGARDING ANY SOFTWARE PROVIDED
-- * HERE.  ANY SOFTWARE ORIGINATING FROM INTEL OR DERIVED FROM INTEL SOFTWARE
-- * IS PROVIDED "AS IS," AND INTEL WILL NOT PROVIDE ANY SUPPORT,  ASSISTANCE,
-- * INSTALLATION, TRAINING OR OTHER SERVICES.  INTEL WILL NOT PROVIDE ANY
-- * UPDATES, ENHANCEMENTS OR EXTENSIONS.  INTEL SPECIFICALLY DISCLAIMS ANY
-- * IMPLIED WARRANTIES OF MERCHANTABILITY, NONINFRINGEMENT AND FITNESS FOR A
-- * PARTICULAR PURPOSE.
-- *
-- * 4.2. IN NO EVENT SHALL INTEL HAVE ANY LIABILITY TO LICENSEE, ITS LICENSEES
-- * OR ANY OTHER THIRD PARTY, FOR ANY LOST PROFITS, LOST DATA, LOSS OF USE OR
-- * COSTS OF PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, OR FOR ANY INDIRECT,
-- * SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THIS AGREEMENT, UNDER ANY
-- * CAUSE OF ACTION OR THEORY OF LIABILITY, AND IRRESPECTIVE OF WHETHER INTEL
-- * HAS ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.  THESE LIMITATIONS
-- * SHALL APPLY NOTWITHSTANDING THE FAILURE OF THE ESSENTIAL PURPOSE OF ANY
-- * LIMITED REMEDY.
-- *
-- * 4.3. Licensee shall not export, either directly or indirectly, any of this
-- * software or system incorporating such software without first obtaining any
-- * required license or other approval from the U. S. Department of Commerce or
-- * any other agency or department of the United States Government.  In the
-- * event Licensee exports any such software from the United States or
-- * re-exports any such software from a foreign destination, Licensee shall
-- * ensure that the distribution and export/re-export of the software is in
-- * compliance with all laws, regulations, orders, or other restrictions of the
-- * U.S. Export Administration Regulations. Licensee agrees that neither it nor
-- * any of its subsidiaries will export/re-export any technical data, process,
-- * software, or service, directly or indirectly, to any country for which the
-- * United States government or any agency thereof requires an export license,
-- * other governmental approval, or letter of assurance, without first obtaining
-- * such license, approval or letter.
-- *
-- *****************************************************************************/
--
--#define __UTCACHE_C__
--
--#include "acpi.h"
--#include "accommon.h"
--
--#define _COMPONENT          ACPI_UTILITIES
--        ACPI_MODULE_NAME    ("utcache")
--
--
--#ifdef ACPI_USE_LOCAL_CACHE
--/*******************************************************************************
-- *
-- * FUNCTION:    AcpiOsCreateCache
-- *
-- * PARAMETERS:  CacheName       - Ascii name for the cache
-- *              ObjectSize      - Size of each cached object
-- *              MaxDepth        - Maximum depth of the cache (in objects)
-- *              ReturnCache     - Where the new cache object is returned
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Create a cache object
-- *
-- ******************************************************************************/
--
--ACPI_STATUS
--AcpiOsCreateCache (
--    char                    *CacheName,
--    UINT16                  ObjectSize,
--    UINT16                  MaxDepth,
--    ACPI_MEMORY_LIST        **ReturnCache)
--{
--    ACPI_MEMORY_LIST        *Cache;
--
--
--    ACPI_FUNCTION_ENTRY ();
--
--
--    if (!CacheName || !ReturnCache || (ObjectSize < 16))
--    {
--        return (AE_BAD_PARAMETER);
--    }
--
--    /* Create the cache object */
--
--    Cache = AcpiOsAllocate (sizeof (ACPI_MEMORY_LIST));
--    if (!Cache)
--    {
--        return (AE_NO_MEMORY);
--    }
--
--    /* Populate the cache object and return it */
--
--    ACPI_MEMSET (Cache, 0, sizeof (ACPI_MEMORY_LIST));
--    Cache->LinkOffset = 8;
--    Cache->ListName   = CacheName;
--    Cache->ObjectSize = ObjectSize;
--    Cache->MaxDepth   = MaxDepth;
--
--    *ReturnCache = Cache;
--    return (AE_OK);
--}
--
--
--/*******************************************************************************
-- *
-- * FUNCTION:    AcpiOsPurgeCache
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Free all objects within the requested cache.
-- *
-- ******************************************************************************/
--
--ACPI_STATUS
--AcpiOsPurgeCache (
--    ACPI_MEMORY_LIST        *Cache)
--{
--    char                    *Next;
--    ACPI_STATUS             Status;
--
--
--    ACPI_FUNCTION_ENTRY ();
--
--
--    if (!Cache)
--    {
--        return (AE_BAD_PARAMETER);
--    }
--
--    Status = AcpiUtAcquireMutex (ACPI_MTX_CACHES);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--    /* Walk the list of objects in this cache */
--
--    while (Cache->ListHead)
--    {
--        /* Delete and unlink one cached state object */
--
--        Next = *(ACPI_CAST_INDIRECT_PTR (char,
--                    &(((char *) Cache->ListHead)[Cache->LinkOffset])));
--        ACPI_FREE (Cache->ListHead);
--
--        Cache->ListHead = Next;
--        Cache->CurrentDepth--;
--    }
--
--    (void) AcpiUtReleaseMutex (ACPI_MTX_CACHES);
--    return (AE_OK);
--}
--
--
--/*******************************************************************************
-- *
-- * FUNCTION:    AcpiOsDeleteCache
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Free all objects within the requested cache and delete the
-- *              cache object.
-- *
-- ******************************************************************************/
--
--ACPI_STATUS
--AcpiOsDeleteCache (
--    ACPI_MEMORY_LIST        *Cache)
--{
--    ACPI_STATUS             Status;
--
--
--    ACPI_FUNCTION_ENTRY ();
--
--
--   /* Purge all objects in the cache */
--
--    Status = AcpiOsPurgeCache (Cache);
--    if (ACPI_FAILURE (Status))
--    {
--        return (Status);
--    }
--
--    /* Now we can delete the cache object */
--
--    AcpiOsFree (Cache);
--    return (AE_OK);
--}
--
--
--/*******************************************************************************
-- *
-- * FUNCTION:    AcpiOsReleaseObject
-- *
-- * PARAMETERS:  Cache       - Handle to cache object
-- *              Object      - The object to be released
-- *
-- * RETURN:      None
-- *
-- * DESCRIPTION: Release an object to the specified cache.  If cache is full,
-- *              the object is deleted.
-- *
-- ******************************************************************************/
--
--ACPI_STATUS
--AcpiOsReleaseObject (
--    ACPI_MEMORY_LIST        *Cache,
--    void                    *Object)
--{
--    ACPI_FUNCTION_ENTRY ();
--
--    if (!Cache || !Object)
--    {
--        return (AE_BAD_PARAMETER);
--    }
--
--    ACPI_FREE (Object);
--    ACPI_MEM_TRACKING (Cache->TotalFreed++);
--
--    return (AE_OK);
--}
--
--
--/*******************************************************************************
-- *
-- * FUNCTION:    AcpiOsAcquireObject
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *
-- * RETURN:      the acquired object.  NULL on error
-- *
-- * DESCRIPTION: Get an object from the specified cache.  If cache is empty,
-- *              the object is allocated.
-- *
-- ******************************************************************************/
--
--void *
--AcpiOsAcquireObject (
--    ACPI_MEMORY_LIST        *Cache)
--{
--    ACPI_STATUS             Status;
--
--    ACPI_FUNCTION_NAME (OsAcquireObject);
--
--
--    if (!Cache)
--    {
--        return (NULL);
--    }
--
--    Status = AcpiUtAcquireMutex (ACPI_MTX_CACHES);
--    if (ACPI_FAILURE (Status))
--    {
--        return (NULL);
--    }
--
--    ACPI_MEM_TRACKING (Cache->Requests++);
--
--    /* The cache is empty, create a new object */
--
--    ACPI_MEM_TRACKING (Cache->TotalAllocated++);
--
--#ifdef ACPI_DBG_TRACK_ALLOCATIONS
--    if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache->MaxOccupied)
--    {
--        Cache->MaxOccupied = Cache->TotalAllocated - Cache->TotalFreed;
--    }
--#endif
--
--    /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
--
--    Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
--    if (ACPI_FAILURE (Status))
--    {
--        return (NULL);
--    }
--
--    return ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
--}
--#endif /* ACPI_USE_LOCAL_CACHE */
--
--
-diff --git a/source/components/utilities/utobject.c b/source/components/utilities/utobject.c
-index e38d2b2..4d2c64c 100644
---- a/source/components/utilities/utobject.c
-+++ b/source/components/utilities/utobject.c
-@@ -471,7 +471,7 @@ AcpiUtAllocateObjectDescDbg (
-     ACPI_FUNCTION_TRACE (UtAllocateObjectDescDbg);
- 
- 
--    Object = AcpiOsAcquireObject (AcpiGbl_OperandCache);
-+    Object = ACPI_ALLOCATE_ZEROED (sizeof (ACPI_OPERAND_OBJECT));
-     if (!Object)
-     {
-         ACPI_ERROR ((ModuleName, LineNumber,
-@@ -520,7 +520,7 @@ AcpiUtDeleteObjectDesc (
-         return_VOID;
-     }
- 
--    (void) AcpiOsReleaseObject (AcpiGbl_OperandCache, Object);
-+    ACPI_FREE (Object);
-     return_VOID;
- }
- 
-diff --git a/source/components/utilities/utstate.c b/source/components/utilities/utstate.c
-index 245ca02..1d98853 100644
---- a/source/components/utilities/utstate.c
-+++ b/source/components/utilities/utstate.c
-@@ -250,7 +250,7 @@ AcpiUtCreateGenericState (
-     ACPI_FUNCTION_ENTRY ();
- 
- 
--    State = AcpiOsAcquireObject (AcpiGbl_StateCache);
-+    State = ACPI_ALLOCATE_ZEROED (sizeof(ACPI_GENERIC_STATE));
-     if (State)
-     {
-         /* Initialize */
-@@ -462,7 +462,7 @@ AcpiUtDeleteGenericState (
- 
-     if (State)
-     {
--        (void) AcpiOsReleaseObject (AcpiGbl_StateCache, State);
-+        ACPI_FREE (State);
-     }
-     return_VOID;
- }
-diff --git a/source/components/utilities/utxface.c b/source/components/utilities/utxface.c
-index 4207f3d..17477cc 100644
---- a/source/components/utilities/utxface.c
-+++ b/source/components/utilities/utxface.c
-@@ -413,13 +413,6 @@ AcpiInitializeObjects (
+-        if ((ObjDesc->Common.Type == ACPI_TYPE_LOCAL_DATA) &&
+-            (ObjDesc->Data.Handler == Handler))
++        if (ObjDesc->Data.Handler == Handler)
+         {
+             return (AE_ALREADY_EXISTS);
          }
+ 
+         PrevObjDesc = ObjDesc;
+-        ObjDesc = ObjDesc->Common.NextObject;
++        ObjDesc = ObjDesc->Data.Next;
      }
  
--    /*
--     * Empty the caches (delete the cached objects) on the assumption that
--     * the table load filled them up more than they will be at runtime --
--     * thus wasting non-paged memory.
--     */
--    Status = AcpiPurgeCachedObjects ();
--
-     AcpiGbl_StartupFlags |= ACPI_INITIALIZED_OK;
-     return_ACPI_STATUS (Status);
- }
-@@ -679,33 +672,5 @@ AcpiInstallInitializationHandler (
+     /* Create an internal object for the data */
+@@ -429,7 +405,7 @@ AcpiNsAttachData (
  
- ACPI_EXPORT_SYMBOL (AcpiInstallInitializationHandler)
+     if (PrevObjDesc)
+     {
+-        PrevObjDesc->Common.NextObject = DataDesc;
++        PrevObjDesc->Data.Next = DataDesc;
+     }
+     else
+     {
+@@ -472,11 +448,11 @@ AcpiNsDetachData (
+         {
+             if (PrevObjDesc)
+             {
+-                PrevObjDesc->Common.NextObject = ObjDesc->Common.NextObject;
++                PrevObjDesc->Data.Next = ObjDesc->Data.Next;
+             }
+             else
+             {
+-                Node->Object = ObjDesc->Common.NextObject;
++                Node->Object = ObjDesc->Data.Next;
+             }
  
--
--/*****************************************************************************
-- *
-- * FUNCTION:    AcpiPurgeCachedObjects
-- *
-- * PARAMETERS:  None
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Empty all caches (delete the cached objects)
-- *
-- ****************************************************************************/
--
--ACPI_STATUS
--AcpiPurgeCachedObjects (
--    void)
--{
--    ACPI_FUNCTION_TRACE (AcpiPurgeCachedObjects);
--
--    (void) AcpiOsPurgeCache (AcpiGbl_StateCache);
--    (void) AcpiOsPurgeCache (AcpiGbl_OperandCache);
--    (void) AcpiOsPurgeCache (AcpiGbl_PsNodeCache);
--    (void) AcpiOsPurgeCache (AcpiGbl_PsNodeExtCache);
--    return_ACPI_STATUS (AE_OK);
--}
--
--ACPI_EXPORT_SYMBOL (AcpiPurgeCachedObjects)
--
- #endif /* ACPI_ASL_COMPILER */
+             AcpiUtRemoveReference (ObjDesc);
+@@ -484,7 +460,7 @@ AcpiNsDetachData (
+         }
  
-diff --git a/source/include/acconfig.h b/source/include/acconfig.h
-index 7b458cc..c8d1767 100644
---- a/source/include/acconfig.h
-+++ b/source/include/acconfig.h
-@@ -144,14 +144,6 @@
+         PrevObjDesc = ObjDesc;
+-        ObjDesc = ObjDesc->Common.NextObject;
++        ObjDesc = ObjDesc->Data.Next;
+     }
+ 
+     return (AE_NOT_FOUND);
+@@ -525,7 +501,7 @@ AcpiNsGetAttachedData (
+             return (AE_OK);
+         }
+ 
+-        ObjDesc = ObjDesc->Common.NextObject;
++        ObjDesc = ObjDesc->Data.Next;
+     }
+ 
+     return (AE_NOT_FOUND);
+diff --git a/source/components/utilities/utcopy.c b/source/components/utilities/utcopy.c
+index 785c313..192db88 100644
+--- a/source/components/utilities/utcopy.c
++++ b/source/components/utilities/utcopy.c
+@@ -795,14 +795,17 @@ AcpiUtCopySimpleObject (
+     ACPI_OPERAND_OBJECT     *DestDesc)
+ {
+     UINT16                  ReferenceCount;
+-    ACPI_OPERAND_OBJECT     *NextObject;
++    ACPI_OPERAND_OBJECT     *NextObject = NULL;
+     ACPI_STATUS             Status;
+ 
+ 
+     /* Save fields from destination that we don't want to overwrite */
+ 
+     ReferenceCount = DestDesc->Common.ReferenceCount;
+-    NextObject = DestDesc->Common.NextObject;
++    if (DestDesc->Common.Type == ACPI_TYPE_LOCAL_DATA)
++    {
++	NextObject = DestDesc->Data.Next;
++    }
+ 
+     /* Copy the entire source object over the destination object*/
+ 
+@@ -812,8 +815,10 @@ AcpiUtCopySimpleObject (
+     /* Restore the saved fields */
+ 
+     DestDesc->Common.ReferenceCount = ReferenceCount;
+-    DestDesc->Common.NextObject = NextObject;
+-
++    if (DestDesc->Common.Type == ACPI_TYPE_LOCAL_DATA)
++    {
++	DestDesc->Data.Next = NextObject;
++    }
+     /* New object is not static, regardless of source */
+ 
+     DestDesc->Common.Flags &= ~AOPOBJ_STATIC_POINTER;
+diff --git a/source/include/aclocal.h b/source/include/aclocal.h
+index 4598d28..eade51f 100644
+--- a/source/include/aclocal.h
++++ b/source/include/aclocal.h
+@@ -269,7 +269,6 @@ typedef enum
   */
- #define ACPI_OS_NAME                    "Microsoft Windows NT"
- 
--/* Maximum objects in the various object caches */
--
--#define ACPI_MAX_STATE_CACHE_DEPTH      96          /* State objects */
--#define ACPI_MAX_PARSE_CACHE_DEPTH      96          /* Parse tree objects */
--#define ACPI_MAX_EXTPARSE_CACHE_DEPTH   96          /* Parse tree objects */
--#define ACPI_MAX_OBJECT_CACHE_DEPTH     96          /* Interpreter operand objects */
--#define ACPI_MAX_NAMESPACE_CACHE_DEPTH  96          /* Namespace objects */
--
- /*
-  * Should the subsystem abort the loading of an ACPI table if the
-  * table checksum is incorrect?
-diff --git a/source/include/acglobal.h b/source/include/acglobal.h
-index 827a394..cd73f4f 100644
---- a/source/include/acglobal.h
-+++ b/source/include/acglobal.h
-@@ -258,14 +258,6 @@ ACPI_EXTERN ACPI_RW_LOCK                AcpiGbl_NamespaceRwLock;
-  *
-  ****************************************************************************/
- 
--/* Object caches */
--
--ACPI_EXTERN ACPI_CACHE_T               *AcpiGbl_NamespaceCache;
--ACPI_EXTERN ACPI_CACHE_T               *AcpiGbl_StateCache;
--ACPI_EXTERN ACPI_CACHE_T               *AcpiGbl_PsNodeCache;
--ACPI_EXTERN ACPI_CACHE_T               *AcpiGbl_PsNodeExtCache;
--ACPI_EXTERN ACPI_CACHE_T               *AcpiGbl_OperandCache;
--
- /* Global handlers */
- 
- ACPI_EXTERN ACPI_OBJECT_NOTIFY_HANDLER  AcpiGbl_DeviceNotify;
-diff --git a/source/include/acobject.h b/source/include/acobject.h
-index 5941859..a82e07d 100644
---- a/source/include/acobject.h
-+++ b/source/include/acobject.h
-@@ -540,17 +540,6 @@ typedef struct acpi_object_data
- 
- } ACPI_OBJECT_DATA;
- 
--
--/* Structure used when objects are cached for reuse */
--
--typedef struct acpi_object_cache_list
--{
--    ACPI_OBJECT_COMMON_HEADER
--    union acpi_operand_object       *Next;              /* Link for object cache and internal lists*/
--
--} ACPI_OBJECT_CACHE_LIST;
--
--
- /******************************************************************************
-  *
-  * ACPI_OPERAND_OBJECT Descriptor - a giant union of all of the above
-@@ -583,7 +572,6 @@ typedef union acpi_operand_object
-     ACPI_OBJECT_REFERENCE               Reference;
-     ACPI_OBJECT_EXTRA                   Extra;
-     ACPI_OBJECT_DATA                    Data;
--    ACPI_OBJECT_CACHE_LIST              Cache;
+ typedef struct acpi_namespace_node
+ {
+-    union acpi_operand_object       *Object;        /* Interpreter object */
+     UINT8                           DescriptorType; /* Differentiate object descriptor types */
+     UINT8                           Type;           /* ACPI Type associated with this name */
+     UINT8                           Flags;          /* Miscellaneous flags */
+@@ -277,6 +276,7 @@ typedef struct acpi_namespace_node
+     ACPI_NAME_UNION                 Name;           /* ACPI Name, always 4 chars per ACPI spec */
+     struct acpi_namespace_node      *Child;         /* First child */
+     struct acpi_namespace_node      *Peer;          /* Peer. Parent if ANOBJ_END_OF_PEER_LIST set */
++    union acpi_operand_object       *Object;        /* Interpreter object */
  
      /*
-      * Add namespace node to union in order to simplify code that accepts both
-diff --git a/source/include/acpiosxf.h b/source/include/acpiosxf.h
-index 730057d..ce63187 100644
---- a/source/include/acpiosxf.h
-+++ b/source/include/acpiosxf.h
-@@ -283,35 +283,6 @@ AcpiOsGetPhysicalAddress (
-     void                    *LogicalAddress,
-     ACPI_PHYSICAL_ADDRESS   *PhysicalAddress);
+      * The following fields are used by the ASL compiler and disassembler only
+@@ -852,11 +852,11 @@ typedef union acpi_parse_value
+ #endif
  
--
--/*
-- * Memory/Object Cache
-- */
--ACPI_STATUS
--AcpiOsCreateCache (
--    char                    *CacheName,
--    UINT16                  ObjectSize,
--    UINT16                  MaxDepth,
--    ACPI_CACHE_T            **ReturnCache);
--
--ACPI_STATUS
--AcpiOsDeleteCache (
--    ACPI_CACHE_T            *Cache);
--
--ACPI_STATUS
--AcpiOsPurgeCache (
--    ACPI_CACHE_T            *Cache);
--
--void *
--AcpiOsAcquireObject (
--    ACPI_CACHE_T            *Cache);
--
--ACPI_STATUS
--AcpiOsReleaseObject (
--    ACPI_CACHE_T            *Cache,
--    void                    *Object);
--
--
- /*
-  * Interrupt handlers
+ #define ACPI_PARSE_COMMON \
+-    union acpi_parse_object         *Parent;        /* Parent op */\
+     UINT8                           DescriptorType; /* To differentiate various internal objs */\
+     UINT8                           Flags;          /* Type of Op */\
+     UINT16                          AmlOpcode;      /* AML opcode */\
+     UINT32                          AmlOffset;      /* Offset of declaration in AML */\
++    union acpi_parse_object         *Parent;        /* Parent op */\
+     union acpi_parse_object         *Next;          /* Next op */\
+     ACPI_NAMESPACE_NODE             *Node;          /* For use by interpreter */\
+     ACPI_PARSE_VALUE                Value;          /* Value or args associated with the opcode */\
+diff --git a/source/include/acobject.h b/source/include/acobject.h
+index c78696b..29caa8d 100644
+--- a/source/include/acobject.h
++++ b/source/include/acobject.h
+@@ -152,7 +152,6 @@
+  * structures.
   */
-diff --git a/source/include/actypes.h b/source/include/actypes.h
-index 8f970d9..9885f8a 100644
---- a/source/include/actypes.h
-+++ b/source/include/actypes.h
-@@ -298,16 +298,6 @@ typedef UINT32                          ACPI_PHYSICAL_ADDRESS;
- #define ACPI_CPU_FLAGS                  ACPI_SIZE
- #endif
+ #define ACPI_OBJECT_COMMON_HEADER \
+-    union acpi_operand_object       *NextObject;        /* Objects linked to parent NS node */\
+     UINT8                           DescriptorType;     /* To differentiate various internal objs */\
+     UINT8                           Type;               /* ACPI_OBJECT_TYPE */\
+     UINT16                          ReferenceCount;     /* For object deletion management */\
+@@ -524,6 +523,7 @@ typedef enum
+ typedef struct acpi_object_data
+ {
+     ACPI_OBJECT_COMMON_HEADER
++    union acpi_operand_object       *Next;        /* Objects linked to parent NS node */
+     ACPI_OBJECT_HANDLER             Handler;
+     void                            *Pointer;
  
--/* Object returned from AcpiOsCreateCache */
--
--#ifndef ACPI_CACHE_T
--#ifdef ACPI_USE_LOCAL_CACHE
--#define ACPI_CACHE_T                    ACPI_MEMORY_LIST
--#else
--#define ACPI_CACHE_T                    void *
--#endif
--#endif
--
- /*
-  * Synchronization objects - Mutexes, Semaphores, and SpinLocks
-  */
-diff --git a/source/include/platform/acenv.h b/source/include/platform/acenv.h
-index 58cb03b..7691f27 100644
---- a/source/include/platform/acenv.h
-+++ b/source/include/platform/acenv.h
-@@ -159,17 +159,10 @@
- #define ACPI_DBG_TRACK_ALLOCATIONS
- #endif
+@@ -598,7 +598,6 @@ typedef union acpi_operand_object
  
--/* Linkable ACPICA library */
--
--#ifdef ACPI_LIBRARY
--#define ACPI_USE_LOCAL_CACHE
--#endif
--
- /* Common for all ACPICA applications */
+ typedef struct acpi_common_descriptor
+ {
+-    void                            *CommonPointer;
+     UINT8                           DescriptorType; /* To differentiate various internal objs */
  
- #ifdef ACPI_APPLICATION
- #define ACPI_USE_SYSTEM_CLIBRARY
--#define ACPI_USE_LOCAL_CACHE
- #endif
- 
- /* Common debug support */
-diff --git a/source/include/platform/acfreebsd.h b/source/include/platform/acfreebsd.h
-index 3e438aa..5ea7795 100644
---- a/source/include/platform/acfreebsd.h
-+++ b/source/include/platform/acfreebsd.h
-@@ -125,7 +125,6 @@
- 
- #define ACPI_THREAD_ID                  lwpid_t
- #define ACPI_UINTPTR_T                  uintptr_t
--#define ACPI_USE_LOCAL_CACHE
- #define __cdecl
- 
- #ifdef _KERNEL
-diff --git a/source/include/platform/aclinux.h b/source/include/platform/aclinux.h
-index c6f868c..0165d2d 100644
---- a/source/include/platform/aclinux.h
-+++ b/source/include/platform/aclinux.h
-@@ -144,7 +144,6 @@
- #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
- #define strtoul                     simple_strtoul
- 
--#define ACPI_CACHE_T                struct kmem_cache
- #define ACPI_SPINLOCK               spinlock_t *
- #define ACPI_CPU_FLAGS              unsigned long
- #define ACPI_THREAD_ID              struct task_struct *
-diff --git a/source/include/platform/acos2.h b/source/include/platform/acos2.h
-index 21e3373..5fea8c2 100644
---- a/source/include/platform/acos2.h
-+++ b/source/include/platform/acos2.h
-@@ -165,7 +165,6 @@ unsigned short OSPMReleaseGlobalLock (void *);
- #endif
- 
- #ifndef ACPI_ASL_COMPILER
--#define ACPI_USE_LOCAL_CACHE
- #undef ACPI_DEBUGGER
- #endif
- 
-diff --git a/source/tools/acpisrc/astable.c b/source/tools/acpisrc/astable.c
-index b813551..d958bb6 100644
---- a/source/tools/acpisrc/astable.c
-+++ b/source/tools/acpisrc/astable.c
-@@ -253,7 +253,6 @@ ACPI_TYPED_IDENTIFIER_TABLE           AcpiIdentifiers[] = {
-     {"ACPI_BIT_REGISTER_INFO",              SRC_TYPE_STRUCT},
-     {"ACPI_BUFFER",                         SRC_TYPE_STRUCT},
-     {"ACPI_BUS_ATTRIBUTE",                  SRC_TYPE_STRUCT},
--    {"ACPI_CACHE_T",                        SRC_TYPE_SIMPLE},
-     {"ACPI_COMMON_FACS",                    SRC_TYPE_STRUCT},
-     {"ACPI_COMMON_STATE",                   SRC_TYPE_STRUCT},
-     {"ACPI_COMMON_DESCRIPTOR",              SRC_TYPE_STRUCT},
-@@ -335,7 +334,6 @@ ACPI_TYPED_IDENTIFIER_TABLE           AcpiIdentifiers[] = {
-     {"ACPI_OBJECT_BANK_FIELD",              SRC_TYPE_STRUCT},
-     {"ACPI_OBJECT_BUFFER",                  SRC_TYPE_STRUCT},
-     {"ACPI_OBJECT_BUFFER_FIELD",            SRC_TYPE_STRUCT},
--    {"ACPI_OBJECT_CACHE_LIST",              SRC_TYPE_STRUCT},
-     {"ACPI_OBJECT_COMMON",                  SRC_TYPE_STRUCT},
-     {"ACPI_OBJECT_DATA",                    SRC_TYPE_STRUCT},
-     {"ACPI_OBJECT_DEVICE",                  SRC_TYPE_STRUCT},
+ } ACPI_COMMON_DESCRIPTOR;
 
