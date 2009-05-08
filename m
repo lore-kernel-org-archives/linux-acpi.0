@@ -1,121 +1,93 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: acpi/suspend - irq 9: nobody cared
-Date: Fri, 08 May 2009 09:53:54 +0800
-Message-ID: <1241747634.3773.129.camel@localhost.localdomain>
-References: <20090507105821.GA5864@hash.localnet>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: suspend: restore BM_RLD on resume
+Date: Thu, 07 May 2009 22:32:13 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905072228030.20287@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:11442 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751689AbZEHBwB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 May 2009 21:52:01 -0400
-In-Reply-To: <20090507105821.GA5864@hash.localnet>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:44477 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314AbZEHCcQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2009 22:32:16 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KJB00AZW0DQOEK4@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 07 May 2009 21:32:15 -0500 (CDT)
+Received: from localhost.localdomain (d975xbx2 [127.0.0.1])
+	by localhost.localdomain (8.14.2/8.14.2) with ESMTP id n482WDUe031544	for
+ <linux-acpi@vger.kernel.org>; Thu, 07 May 2009 22:32:14 -0400
+Received: from localhost (lenb@localhost)
+	by localhost.localdomain (8.14.2/8.14.2/Submit) with ESMTP id n482WDlC031540
+	for <linux-acpi@vger.kernel.org>; Thu, 07 May 2009 22:32:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Copeland <me@bobcopeland.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Thu, 2009-05-07 at 18:58 +0800, Bob Copeland wrote:
-> Hi,
-> 
-> I have been seeing the following in 2.6.30 whenever I suspend to ram.
-> The power button no longer works afterwards.  I don't recall any 
-> problems with 2.6.29.  Anyone have any ideas before I try bisecting?
->From the description it seems that this is a regression.
-Will you please use git-bisect to identify the commit which causes the
-regression?
+From: Len Brown <len.brown@intel.com>
 
-Thanks.
-> 
-> (The previous W taint is something unrelated.)
-> 
-> [31263.940249] appletouch: Geyser mode initialized.
-> [31263.941375] usb 4-2: type resume
-> [31264.043112] usb 4-2: reset full speed USB device using uhci_hcd and address 2
-> [31264.183582] usb 5-1: type resume
-> [31264.283313] irq 9: nobody cared (try booting with the "irqpoll" option)
-> [31264.283318] Pid: 0, comm: swapper Tainted: G        W  2.6.30-rc4-wl #116
-> [31264.283320] Call Trace:
-> [31264.283328]  [<c015a01a>] __report_bad_irq+0x33/0x74
-> [31264.283333]  [<c015a150>] note_interrupt+0xf5/0x14d
-> [31264.283337]  [<c015a6bf>] handle_fasteoi_irq+0x8c/0xb0
-> [31264.283342]  [<c0104601>] handle_irq+0x40/0x4b
-> [31264.283348]  [<c035a322>] do_IRQ+0x4a/0x8c
-> [31264.283352]  [<c010312e>] common_interrupt+0x2e/0x34
-> [31264.283358]  [<c01455a3>] ? trace_hardirqs_on+0xb/0xd
-> [31264.283362]  [<c014007b>] ? timer_list_show+0x1b3/0x939
-> [31264.283375]  [<f891c00f>] ? acpi_idle_enter_c1+0xad/0xb9 [processor]
-> [31264.283380]  [<c02d20ee>] cpuidle_idle_call+0x6a/0x9c
-> [31264.283384]  [<c0101cc8>] cpu_idle+0x53/0x87
-> [31264.283388]  [<c03467e0>] rest_init+0x6c/0x6e
-> [31264.283394]  [<c04df74d>] start_kernel+0x286/0x28b
-> [31264.283398]  [<c04df037>] __init_begin+0x37/0x3c
-> [31264.283400] handlers:
-> [31264.283402] [<c022cabc>] (acpi_irq+0x0/0x2e)
-> [31264.283408] Disabling IRQ #9
-> [31264.285035] usb 5-1: reset full speed USB device using uhci_hcd and address 2
-> [31264.383127] ------------[ cut here ]------------
-> [31264.383132] WARNING: at kernel/irq/handle.c:366 handle_IRQ_event+0x40/0x179()
-> [31264.383137] Hardware name: MacBook1,1
-> [31264.383140] BUG: IRQ handler called from non-hardirq context!Modules linked in: fuse i915 drm af_packet acpi_cpufreq binfmt_misc dm_mirror dm_region_hash dm_log dm_multipath dm_mod arc4 ecb ath5k snd_hda_codec_idt snd_hda_intel hid_apple appletouch snd_hda_codec mac80211 usbhid snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq ath snd_seq_device sky2 ohci1394 snd_pcm_oss snd_mixer_oss cfg80211 ieee1394 processor button snd_pcm snd_timer uhci_hcd ehci_hcd bitrev snd ac battery thermal snd_page_alloc crc32 sg joydev sr_mod applesmc input_polldev evdev cdrom unix [last unloaded: microcode]
-> [31264.383241] Pid: 0, comm: swapper Tainted: G        W  2.6.30-rc4-wl #116
-> [31264.383245] Call Trace:
-> [31264.383254]  [<c012590f>] warn_slowpath+0x76/0xa5
-> [31264.383264]  [<c01473e5>] ? print_lock_contention_bug+0x14/0xd7
-> [31264.383272]  [<c013bb30>] ? sched_clock_cpu+0x92/0x2f1
-> [31264.383281]  [<c01455a3>] ? trace_hardirqs_on+0xb/0xd
-> [31264.383290]  [<c035659a>] ? _spin_unlock_irqrestore+0x3b/0x5d
-> [31264.383298]  [<c0145473>] ? trace_hardirqs_on_caller+0x18/0x13d
-> [31264.383307]  [<c03565a6>] ? _spin_unlock_irqrestore+0x47/0x5d
-> [31264.383315]  [<c0159f0d>] ? try_one_irq+0x92/0xf7
-> [31264.383323]  [<c0158f31>] handle_IRQ_event+0x40/0x179
-> [31264.383331]  [<c0159f25>] try_one_irq+0xaa/0xf7
-> [31264.383340]  [<c0159fa1>] poll_all_shared_irqs+0x2f/0x44
-> [31264.383348]  [<c0159fc3>] poll_spurious_irqs+0xd/0x22
-> [31264.383356]  [<c012d860>] run_timer_softirq+0x196/0x20f
-> [31264.383363]  [<c012d7e1>] ? run_timer_softirq+0x117/0x20f
-> [31264.383372]  [<c0159fb6>] ? poll_spurious_irqs+0x0/0x22
-> [31264.383381]  [<c0129f91>] __do_softirq+0xb1/0x182
-> [31264.383390]  [<c012a092>] do_softirq+0x30/0x48
-> [31264.383397]  [<c012a20a>] irq_exit+0x3d/0x74
-> [31264.383405]  [<c035a34e>] do_IRQ+0x76/0x8c
-> [31264.383413]  [<c010312e>] common_interrupt+0x2e/0x34
-> [31264.383422]  [<c014007b>] ? timer_list_show+0x1b3/0x939
-> [31264.383440]  [<f891c281>] ? acpi_idle_enter_bm+0x266/0x291 [processor]
-> [31264.383450]  [<c02d20ee>] cpuidle_idle_call+0x6a/0x9c
-> [31264.383458]  [<c0101cc8>] cpu_idle+0x53/0x87
-> [31264.383465]  [<c03467e0>] rest_init+0x6c/0x6e
-> [31264.383482]  [<c04df74d>] start_kernel+0x286/0x28b
-> [31264.383487]  [<c04df037>] __init_begin+0x37/0x3c
-> [31264.383489] ---[ end trace 576a96bb93c6d61f ]---
-> [31264.460510] ieee80211 phy0: legacy class resume
-> [31264.460589] drm card0: legacy class resume
-> [31264.460634] pci 0000:00:02.0: restoring config space at offset 0x1 (was 0x900007, writing 0x900003)
-> [31264.460661] pci 0000:00:02.0: setting latency timer to 64
-> 
-> bob@sludge wireless-testing]$ cat /proc/interrupts 
->            CPU0       CPU1       
->   0:    1967552          0   IO-APIC-edge      timer
->   8:         84          0   IO-APIC-edge      rtc0
->   9:     138333     261669   IO-APIC-fasteoi   acpi
->  14:     329504          0   IO-APIC-edge      ata_piix
->  15:          0          0   IO-APIC-edge      ata_piix
->  16:       1918      84773   IO-APIC-fasteoi   uhci_hcd:usb5, eth0, i915@pci:0000:00:02.0
->  17:     127320          0   IO-APIC-fasteoi   ath
->  18:         69          0   IO-APIC-fasteoi   uhci_hcd:usb4
->  19:       4230     117896   IO-APIC-fasteoi   ata_piix, uhci_hcd:usb3, ohci1394
->  21:        744      79985   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb2
->  22:        268          0   IO-APIC-fasteoi   HDA Intel
-> NMI:          0          0   Non-maskable interrupts
-> LOC:     357130    1384924   Local timer interrupts
-> SPU:          0          0   Spurious interrupts
-> RES:     243366     162707   Rescheduling interrupts
-> CAL:        193        367   Function call interrupts
-> TLB:       2533       2519   TLB shootdowns
-> TRM:          0          0   Thermal event interrupts
-> ERR:          0
-> MIS:          0
-> 
+In 2.6.29,
+31878dd86b7df9a147f5e6cc6e07092b4308782b
+"ACPI: remove BM_RLD access from idle entry path"
+moved BM_RLD initialization to init-time from run time.
+
+But we discovered that some BIOS do not restore BM_RLD
+after suspend, causing device errors on C3 and C4
+after resume.  So now the kernel restores BM_RLD.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=13032
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_idle.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index f7ca8c5..afa5c03 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -202,15 +202,41 @@ static void acpi_state_timer_broadcast(struct acpi_processor *pr,
+  * Suspend / resume control
+  */
+ static int acpi_idle_suspend;
++static u32 saved_bm_rld;
++
++static void acpi_idle_bm_rld_save(void)
++{
++	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
++	printk(KERN_NOTICE PREFIX "saved: BM_RLD %u\n", saved_bm_rld);
++}
++static void acpi_idle_bm_rld_restore(void)
++{
++	u32 resumed_bm_rld;
++
++	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
++	printk(KERN_NOTICE PREFIX "resumed: BM_RLD %u\n", resumed_bm_rld);
++	if (resumed_bm_rld != saved_bm_rld) {
++		printk(KERN_WARNING PREFIX "restored BM_RLD %u\n", saved_bm_rld);
++		acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
++	}
++}
+ 
+ int acpi_processor_suspend(struct acpi_device * device, pm_message_t state)
+ {
++	if (acpi_idle_suspend == 1)
++		return 0;
++
++	acpi_idle_bm_rld_save();
+ 	acpi_idle_suspend = 1;
+ 	return 0;
+ }
+ 
+ int acpi_processor_resume(struct acpi_device * device)
+ {
++	if (acpi_idle_suspend == 0)
++		return 0;
++
++	acpi_idle_bm_rld_restore();
+ 	acpi_idle_suspend = 0;
+ 	return 0;
+ }
+-- 
+1.6.3
 
