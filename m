@@ -1,46 +1,42 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: 2.6.30-rc2-git2: Reported regressions from 2.6.29
-Date: Sat, 9 May 2009 18:37:12 -0300
-Message-ID: <20090509183712.54ac4c79@pedra.chehab.org>
-References: <EJaiQ4Wfaz.A.3YG.4v85JB@chimera>
-	<200904202208.23899.laurent.pinchart@skynet.be>
-	<d82e647a0904201847n403424efnb5a0c40a4cac365d@mail.gmail.com>
-	<200904220121.12002.laurent.pinchart@skynet.be>
-	<20090509112819.759594d5@linux-lm>
-	<alpine.LFD.2.01.0905090923370.3586@localhost.localdomain>
+From: Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
+Subject: Re: Asus Eee 901Go ACPI errors on 2.6.30-rc4-git4
+Date: Sat, 9 May 2009 19:47:01 -0600
+Message-ID: <20090510014701.GA17193@ellpspace.math.ualberta.ca>
+References: <87vdobq48p.fsf@fzidpc73.tu-graz.ac.at> <9b2b86520905080646r85f30bcp6f50d7388d8289f5@mail.gmail.com> <20090509025643.GA24335@ellpspace.math.ualberta.ca> <9b2b86520905090113v427c1de8n4d8479016701d30a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.01.0905090923370.3586@localhost.localdomain>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ming Lei <tom.leiming@gmail.com>, Laurent Pinchart <laurent.pinchart@skynet.be>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, video4linux-list@redhat.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ellpspace.math.ualberta.ca ([129.128.207.67]:34428 "EHLO
+	ellpspace.math.ualberta.ca" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752461AbZEJBrW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 May 2009 21:47:22 -0400
+Content-Disposition: inline
+In-Reply-To: <9b2b86520905090113v427c1de8n4d8479016701d30a@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: Mario Lang <mlang@tugraz.at>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Em Sat, 9 May 2009 09:24:51 -0700 (PDT)
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
-
+On Sat, May 09, 2009 at 09:13:18AM +0100, Alan Jenkins wrote:
+> On 5/9/09, Michal Jaegermann <michal@ellpspace.math.ualberta.ca> wrote:
 > 
+> > https://bugzilla.redhat.com/buglist.cgi?quicksearch=+Method+parse%2Fexecution+failed
+> >
+> > brings a list where it is possible to find something of that sort
+> > in different settings too.
 > 
-> On Sat, 9 May 2009, Ming Lei wrote:
-> > 
-> > Rc5 has been released today, why isn't this patch accepted by upstream
-> > now?  It is really a bug fix.
+> I think that's a very general failure message, that ACPI failed to
+> execute some method.  I don't think there are any other EC (Embedded
+> Controller) failures on that list.
 
+Hm, at least https://bugzilla.redhat.com/show_bug.cgi?id=472650#c5
+seems to be quite similar.  It says:
 
-> 
-> I can take it directly, but was hoping to get it through the regular DVB 
-> tree. Haven't had a DVB update request yet (or maybe it got lost?)
-> 
-> 		Linus
+ACPI Error (evregion-0315): No handler for Region [EC__] (f780b848)
+[EmbeddedControl] [20080609]
+....
+and so on.  That is for GX700 laptop from MSI.
 
-The patch were added on my linux-next tree. I'll move it to the tree I handle
-bug fixes and I'll ask Linus to pull from it together with a few other fixes I
-have there, later today or tomorrow.
+I did not go through every of those reports from the referenced list.
 
-
-
-
-Cheers,
-Mauro
+    Michal
