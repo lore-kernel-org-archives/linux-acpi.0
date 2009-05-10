@@ -1,74 +1,35 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [RFC] ACPI battery driver: odd usage of generic power supply class
- on battery removal
-Date: Sun, 10 May 2009 18:57:46 +0100
-Message-ID: <4A07159A.9010006@tuffmail.co.uk>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: Re: [PATCH] ACPI: suspend: don't let device _PS3 failure prevent
+ suspend
+Date: Sun, 10 May 2009 22:48:18 +0200
+Message-ID: <4A073D92.5060904@gmx.net>
+References: <bug-13243-10286@http.bugzilla.kernel.org/> <20090505150138.92f3ecd6.akpm@linux-foundation.org> <4A02000D.9030400@gmx.net> <200905061616.36707.bjorn.helgaas@hp.com> <1241660638.3773.90.camel@localhost.localdomain> <4A0330E3.9060909@gmx.net> <alpine.LFD.2.00.0905080037240.20287@localhost.localdomain> <20090508122354.GA30672@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:42640 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333AbZEJR6J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 May 2009 13:58:09 -0400
-Received: by ewy24 with SMTP id 24so2978619ewy.37
-        for <linux-acpi@vger.kernel.org>; Sun, 10 May 2009 10:58:09 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:46104 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751062AbZEJUsZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 May 2009 16:48:25 -0400
+In-Reply-To: <20090508122354.GA30672@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, yakui_zhao <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "cedric@belbone.be" <cedric@belbone.be>, linux-acpi@vger.kernel.org
 
-Hi,
+Henrique de Moraes Holschuh schrieb:
 
-The ACPI battery driver does something strange with the generic power 
-supply class, when the battery is removed from my laptop.  Instead of 
-clearing the "present" attribute of the class device, it removes the 
-entire class device.
+> On Fri, 08 May 2009, Len Brown wrote:
+>> Or perhaps we should just shrug off the _PS3 failure
+>> and carry on with _DIS like we used to -- which is
+>> what this patch does.
+> 
+> Maybe "printk and carry on" would be better?
+> 
 
-Can this be corrected, or is there a specific reason for it?
+And there is very similar code just a few lines above: where we turn on 
+the device by setting it to D0.  There, too, we may want to skip the 
+check whether or not the transition was successful or not.
 
-Patch follows for illustration purposes.
-
-If this can be changed, I'd also try to cleanup acpi_battery_update().  
-I don't think it's right that CONFIG_ACPI_SYSFS_POWER affects the 
-control flow.  When it's disabled, acpi_battery_present() is not tested 
-before calling acpi_battery_get_state().  It might not cause any 
-problems, but it is evil.
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 69cbc57..050444a 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -482,6 +482,11 @@ static int sysfs_add_battery(struct acpi_battery *battery)
- 	return device_create_file(battery->bat.dev, &alarm_attr);
- }
- 
-+static void sysfs_update_battery(struct acpi_battery *battery)
-+{
-+	power_supply_changed(&battery->bat);
-+}
-+
- static void sysfs_remove_battery(struct acpi_battery *battery)
- {
- 	if (!battery->bat.dev)
-@@ -500,7 +505,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		return result;
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 	if (!acpi_battery_present(battery)) {
--		sysfs_remove_battery(battery);
-+		sysfs_update_battery(battery);
- 		battery->update_time = 0;
- 		return 0;
- 	}
-@@ -513,8 +518,7 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 		acpi_battery_init_alarm(battery);
- 	}
- #ifdef CONFIG_ACPI_SYSFS_POWER
--	if (!battery->bat.dev)
--		sysfs_add_battery(battery);
-+	sysfs_update_battery(battery);
- #endif
- 	return acpi_battery_get_state(battery);
- }
-
-
+--- Witold
