@@ -1,117 +1,63 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 0/6] ACPI: button: minor cleanups
-Date: Mon, 11 May 2009 08:56:37 +0200
-Message-ID: <200905110856.37626.trenn@suse.de>
-References: <20090408153427.12354.62167.stgit@bob.kio> <200905061120.52793.bjorn.helgaas@hp.com> <200905081453.02556.bjorn.helgaas@hp.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 7/7] x86/pci: update pirq_enable_irq to setup io apic
+	routing -v2
+Date: Mon, 11 May 2009 09:49:13 +0200
+Message-ID: <20090511074913.GA5636@elte.hu>
+References: <4A01C35C.7060207@kernel.org> <4A01C46E.8000501@kernel.org> <20090507141222.GI481@elte.hu> <20090507095256.7f87fb42@jbarnes-g45>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60187 "EHLO mx2.suse.de"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:42317 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751369AbZEKFzl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 May 2009 01:55:41 -0400
-In-Reply-To: <200905081453.02556.bjorn.helgaas@hp.com>
+	id S1751777AbZEKHuJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 May 2009 03:50:09 -0400
 Content-Disposition: inline
+In-Reply-To: <20090507095256.7f87fb42@jbarnes-g45>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
-
-On Friday 08 May 2009 10:53:01 pm Bjorn Helgaas wrote:
-> On Wednesday 06 May 2009 11:20:52 am Bjorn Helgaas wrote:
-> > On Wednesday 06 May 2009 09:13:07 am Thomas Renninger wrote:
-> > > Below is the outcome of the patch which fixes a fixed feature button
-> > > s2ram issue.
-> > >
-> > > This does not work anymore since Bjoern's patches.
-> > > Comparing the with the HID of the acpi device looks ugly.
-> > >
-> > > Shall I revive the fixed feature vs GPE button types?
-> > > ACPI_BUTTON_TYPE_POWERF and ACPI_BUTTON_TYPE_SLEEPF?
-> >
-> > I don't understand exactly how I broke this.
-Ahh, sorry.
-You did not break anything.
-
-The patch is a fix (not for a regression), but is now (with your change)
-somewhat harder/uncleaner to integrate.
-
-The fix removes fixed featured button's fixed event handler on
-suspend and installs it again on resume.
-
-With your change, the button driver does not know anymore about
-fixed feature buttons. And notify handlers shouldn't be touched with
-your change in the button driver, but I think this is cleaner.
-
-So this is nothing urgent. I'll send a patch which works with your
-version, but I am not sure what the cleanest way is now to add this.
-
-Sorry for not being clear,
-
-      Thomas
-
-> What tree are you testing?  In Linus's upstream tree, 373cfc360e
-> adds the .notify method, and at the same time, it removes
-> acpi_button_notify_fixed().
->
-> Your patch below, which fixes the problem, shows that you already
-> have the .notify method, and yet you apparently *also* have the
-> acpi_button_notify_fixed() function.  That makes me suspect that
-> you're using a tree with a merge error.
->
-> Bjorn
->
-> > > @@ -85,6 +86,7 @@ static struct acpi_driver acpi_button_driver = {
-> > >  	.ops = {
-> > >  		.add = acpi_button_add,
-> > >  		.resume = acpi_button_resume,
-> > > +		.suspend = acpi_button_suspend,
-> > >  		.remove = acpi_button_remove,
-> > >  		.notify = acpi_button_notify,
-> > >  	},
-> > > @@ -281,8 +283,41 @@ static int acpi_button_resume(struct acpi_device
-> > > *device) {
-> > >  	struct acpi_button *button = acpi_driver_data(device);
-> > >
-> > > -	if (button->type == ACPI_BUTTON_TYPE_LID)
-> > > +	if (!button)
-> > > +		return -EINVAL;
-> > > +	switch (button->type) {
-> > > +	case ACPI_BUTTON_TYPE_LID:
-> > >  		return acpi_lid_send_state(device);
-> > > +	case ACPI_BUTTON_TYPE_SLEEPF:
-> > > +		return acpi_install_fixed_event_handler(
-> > > +					ACPI_EVENT_SLEEP_BUTTON,
-> > > +					acpi_button_notify_fixed, button);
-> > > +
-> > > +	case ACPI_BUTTON_TYPE_POWERF:
-> > > +		return acpi_install_fixed_event_handler(
-> > > +					ACPI_EVENT_POWER_BUTTON,
-> > > +					acpi_button_notify_fixed, button);
-> > > +	}
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int acpi_button_suspend(struct acpi_device *device,
-> > > pm_message_t state) +{
-> > > +	struct acpi_button *button;
-> > > +	if (!device)
-> > > +		return -EINVAL;
-> > > +	button = acpi_driver_data(device);
-> > > +	if (!button)
-> > > +		return -EINVAL;
-> > > +	switch (button->type) {
-> > > +	case ACPI_BUTTON_TYPE_SLEEPF:
-> > > +		return acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
-> > > +					       acpi_button_notify_fixed);
-> > > +
-> > > +	case ACPI_BUTTON_TYPE_POWERF:
-> > > +		return acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
-> > > +					       acpi_button_notify_fixed);
-> > > +	}
-> > >  	return 0;
-> > >  }
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 
+* Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
+
+> On Thu, 7 May 2009 16:12:22 +0200
+> Ingo Molnar <mingo@elte.hu> wrote:
+> 
+> > 
+> > * Yinghai Lu <yinghai@kernel.org> wrote:
+> > 
+> > > 
+> > > so we could set io apic routing only when enable device irq.
+> > > 
+> > > also could make setup_IO_APIC_irqs and setup_ioapic_dest only handle
+> > > first ioapic...
+> > > 
+> > > v2: remove one one not needed style change.
+> > >     merge the patch only setup io_apic for acpi on in
+> > > setup_IO_APIC_irqs
+> > > 
+> > > [ Impact: make mptable irq enable more like acpi is used, and
+> > > numa_irq_desc could get correct node when acpi=off ]
+> > > 
+> > > Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> > > 
+> > > ---
+> > >  arch/x86/kernel/apic/io_apic.c |  148
+> > > ++++++++++++++++++++---------------------
+> > > arch/x86/pci/irq.c             |   84 ++++++++--------------- 2
+> > > files changed, 103 insertions(+), 129 deletions(-)
+> > 
+> > Jesse, did this patch have your Acked-by?
+> 
+> Yeah, both of them are fine with me.  Ultimately you get to keep 
+> any broken pieces from io_apic changes anyway, right? :)
+
+Yeah, generally. But the wider the blame can be spread when it does 
+break, the better! ;-)
+
+> Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+
+Thanks!
+
+	Ingo
