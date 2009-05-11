@@ -1,35 +1,33 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH] ACPI: suspend: don't let device _PS3 failure prevent
- suspend
-Date: Sun, 10 May 2009 22:48:18 +0200
-Message-ID: <4A073D92.5060904@gmx.net>
-References: <bug-13243-10286@http.bugzilla.kernel.org/> <20090505150138.92f3ecd6.akpm@linux-foundation.org> <4A02000D.9030400@gmx.net> <200905061616.36707.bjorn.helgaas@hp.com> <1241660638.3773.90.camel@localhost.localdomain> <4A0330E3.9060909@gmx.net> <alpine.LFD.2.00.0905080037240.20287@localhost.localdomain> <20090508122354.GA30672@khazad-dum.debian.net>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [RFC] ACPI battery driver: odd usage of generic power supply
+ class on battery removal
+Date: Mon, 11 May 2009 03:31:49 +0300
+Message-ID: <1242001909.19932.3.camel@maxim-laptop>
+References: <4A07159A.9010006@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46104 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751062AbZEJUsZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 May 2009 16:48:25 -0400
-In-Reply-To: <20090508122354.GA30672@khazad-dum.debian.net>
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:43815 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810AbZEKAbz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 May 2009 20:31:55 -0400
+Received: by bwz22 with SMTP id 22so2342062bwz.37
+        for <linux-acpi@vger.kernel.org>; Sun, 10 May 2009 17:31:55 -0700 (PDT)
+In-Reply-To: <4A07159A.9010006@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, yakui_zhao <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "cedric@belbone.be" <cedric@belbone.be>, linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux acpi <linux-acpi@vger.kernel.org>
 
-Henrique de Moraes Holschuh schrieb:
+I also agree with that.
 
-> On Fri, 08 May 2009, Len Brown wrote:
->> Or perhaps we should just shrug off the _PS3 failure
->> and carry on with _DIS like we used to -- which is
->> what this patch does.
-> 
-> Maybe "printk and carry on" would be better?
-> 
+For example what would happen if I remove the battery, and then boot the
+laptop?
 
-And there is very similar code just a few lines above: where we turn on 
-the device by setting it to D0.  There, too, we may want to skip the 
-check whether or not the transition was successful or not.
+In this case nobody could know my system has a battery.
+Currently that makes gpm to hide 'battery' tab.
 
---- Witold
+Best regards,
+	Maxim Levitsky
+
