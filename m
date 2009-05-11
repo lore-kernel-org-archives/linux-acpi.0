@@ -1,203 +1,73 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/4] ACPICA: Remove use of caches in controlled way
-Date: Mon, 11 May 2009 08:42:26 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308582281A5F5@orsmsx503.amr.corp.intel.com>
-References: <20090507155202.26361.38778.stgit@thinkpad>
- <1242029667.4641.31.camel@minggr.sh.intel.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [RFC] ACPI battery driver: odd usage of generic power supply
+ class on battery removal
+Date: Mon, 11 May 2009 16:44:49 +0100
+Message-ID: <4A0847F1.4060205@tuffmail.co.uk>
+References: <4A07159A.9010006@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53218 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753439AbZEKPnX convert rfc822-to-8bit (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 11 May 2009 11:43:23 -0400
-In-Reply-To: <1242029667.4641.31.camel@minggr.sh.intel.com>
-Content-Language: en-US
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:54810 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110AbZEKPow (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2009 11:44:52 -0400
+Received: by ewy24 with SMTP id 24so3518060ewy.37
+        for <linux-acpi@vger.kernel.org>; Mon, 11 May 2009 08:44:52 -0700 (PDT)
+In-Reply-To: <4A07159A.9010006@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lin, Ming M" <ming.m.lin@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Maxim Levitsky <maximlevitsky@gmail.com>
 
-Removing the cache has exposed a couple of bugs that we are currently working on. We need to make sure that we pass the ASLTS suite before the code is integrated/released.
+Alan Jenkins wrote:
+> Hi,
+>
+> The ACPI battery driver does something strange with the generic power
+> supply class, when the battery is removed from my laptop.  Instead of
+> clearing the "present" attribute of the class device, it removes the
+> entire class device.
+>
+> Can this be corrected, or is there a specific reason for it?
+>
+> Patch follows for illustration purposes.
+>
+> If this can be changed, I'd also try to cleanup
+> acpi_battery_update().  I don't think it's right that
+> CONFIG_ACPI_SYSFS_POWER affects the control flow.  When it's disabled,
+> acpi_battery_present() is not tested before calling
+> acpi_battery_get_state().  It might not cause any problems, but it is
+> evil.
+>
 
-Bob
+Ignore that patch, it won't work :-).  I have correct code prepared now
+though.
 
 
->-----Original Message-----
->From: Lin, Ming M
->Sent: Monday, May 11, 2009 1:14 AM
->To: Alexey Starikovskiy
->Cc: Moore, Robert; Linux-acpi@vger.kernel.org
->Subject: Re: [PATCH 1/4] ACPICA: Remove use of caches in controlled way
->
->Hi, Alexey
->
->The attachment are the linuxized version of your patches.
->I added another patch (the 4th) to remove linux specific cache code.
->
->The patches are applied on top of linux-acpi-2.6/acpica branch.
->
->Do you have any suggestion what data I should collect to verify if these
->patches have a performance gain?
->
->Lin Ming
->
->On Thu, 2009-05-07 at 23:52 +0800, Alexey Starikovskiy wrote:
->> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
->> ---
->>
->>  source/components/utilities/utcache.c |   99 +++++----------------------
->------
->>  1 files changed, 14 insertions(+), 85 deletions(-)
->>
->>
->> diff --git a/source/components/utilities/utcache.c
->b/source/components/utilities/utcache.c
->> index aabc0a2..d08d520 100644
->> --- a/source/components/utilities/utcache.c
->> +++ b/source/components/utilities/utcache.c
->> @@ -287,49 +287,15 @@ AcpiOsReleaseObject (
->>      ACPI_MEMORY_LIST        *Cache,
->>      void                    *Object)
->>  {
->> -    ACPI_STATUS             Status;
->> -
->> -
->>      ACPI_FUNCTION_ENTRY ();
->>
->> -
->>      if (!Cache || !Object)
->>      {
->>          return (AE_BAD_PARAMETER);
->>      }
->>
->> -    /* If cache is full, just free this object */
->> -
->> -    if (Cache->CurrentDepth >= Cache->MaxDepth)
->> -    {
->> -        ACPI_FREE (Object);
->> -        ACPI_MEM_TRACKING (Cache->TotalFreed++);
->> -    }
->> -
->> -    /* Otherwise put this object back into the cache */
->> -
->> -    else
->> -    {
->> -        Status = AcpiUtAcquireMutex (ACPI_MTX_CACHES);
->> -        if (ACPI_FAILURE (Status))
->> -        {
->> -            return (Status);
->> -        }
->> -
->> -        /* Mark the object as cached */
->> -
->> -        ACPI_MEMSET (Object, 0xCA, Cache->ObjectSize);
->> -        ACPI_SET_DESCRIPTOR_TYPE (Object, ACPI_DESC_TYPE_CACHED);
->> -
->> -        /* Put the object at the head of the cache list */
->> -
->> -        * (ACPI_CAST_INDIRECT_PTR (char,
->> -            &(((char *) Object)[Cache->LinkOffset]))) = Cache->ListHead;
->> -        Cache->ListHead = Object;
->> -        Cache->CurrentDepth++;
->> -
->> -        (void) AcpiUtReleaseMutex (ACPI_MTX_CACHES);
->> -    }
->> +    ACPI_FREE (Object);
->> +    ACPI_MEM_TRACKING (Cache->TotalFreed++);
->>
->>      return (AE_OK);
->>  }
->> @@ -353,8 +319,6 @@ AcpiOsAcquireObject (
->>      ACPI_MEMORY_LIST        *Cache)
->>  {
->>      ACPI_STATUS             Status;
->> -    void                    *Object;
->> -
->>
->>      ACPI_FUNCTION_NAME (OsAcquireObject);
->>
->> @@ -372,61 +336,26 @@ AcpiOsAcquireObject (
->>
->>      ACPI_MEM_TRACKING (Cache->Requests++);
->>
->> -    /* Check the cache first */
->> +    /* The cache is empty, create a new object */
->>
->> -    if (Cache->ListHead)
->> -    {
->> -        /* There is an object available, use it */
->> -
->> -        Object = Cache->ListHead;
->> -        Cache->ListHead = *(ACPI_CAST_INDIRECT_PTR (char,
->> -                                &(((char *) Object)[Cache-
->>LinkOffset])));
->> -
->> -        Cache->CurrentDepth--;
->> -
->> -        ACPI_MEM_TRACKING (Cache->Hits++);
->> -        ACPI_DEBUG_PRINT ((ACPI_DB_EXEC,
->> -            "Object %p from %s cache\n", Object, Cache->ListName));
->> -
->> -        Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
->> -        if (ACPI_FAILURE (Status))
->> -        {
->> -            return (NULL);
->> -        }
->> -
->> -        /* Clear (zero) the previously used Object */
->> -
->> -        ACPI_MEMSET (Object, 0, Cache->ObjectSize);
->> -    }
->> -    else
->> -    {
->> -        /* The cache is empty, create a new object */
->> -
->> -        ACPI_MEM_TRACKING (Cache->TotalAllocated++);
->> +    ACPI_MEM_TRACKING (Cache->TotalAllocated++);
->>
->>  #ifdef ACPI_DBG_TRACK_ALLOCATIONS
->> -        if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache-
->>MaxOccupied)
->> -        {
->> -            Cache->MaxOccupied = Cache->TotalAllocated - Cache-
->>TotalFreed;
->> -        }
->> +    if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache-
->>MaxOccupied)
->> +    {
->> +        Cache->MaxOccupied = Cache->TotalAllocated - Cache->TotalFreed;
->> +    }
->>  #endif
->>
->> -        /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
->> +    /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
->>
->> -        Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
->> -        if (ACPI_FAILURE (Status))
->> -        {
->> -            return (NULL);
->> -        }
->> -
->> -        Object = ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
->> -        if (!Object)
->> -        {
->> -            return (NULL);
->> -        }
->> +    Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
->> +    if (ACPI_FAILURE (Status))
->> +    {
->> +        return (NULL);
->>      }
->>
->> -    return (Object);
->> +    return ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
->>  }
->>  #endif /* ACPI_USE_LOCAL_CACHE */
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    ACPI: battery: register power_supply subdevice only when battery is
+present
+   
+    Make sure no power_supply object is present unless we actualy detect
+    presence of battery. This fixes ghost batteries detected by HAL
+   
+    Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+
+Ok, I found the original discussion
+<http://lkml.indiana.edu/hypermail/linux/kernel/0710.3/2001.html>.  At
+that point, the battery driver tried to change the set of properties
+dynamically.  If the battery was not present, there was a bug that
+caused the set of properties to be left empty.
+
+But it doesn't do that right now.  When I tested my (corrected) patches,
+the set of properties remained constant, "present" returned "0", and all
+the other attributes returned -ENODEV.
+
+So I think we can revisit this and fix it the right way this time :-). 
+I just need to write the descriptions, then I'll submit the patches for
+review.
+
+Thanks
+Alan
