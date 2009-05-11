@@ -1,50 +1,117 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH] ACPI: suspend: don't let device _PS3 failure prevent
-	suspend
-Date: Mon, 11 May 2009 10:43:02 +0800
-Message-ID: <1242009782.3773.139.camel@localhost.localdomain>
-References: <bug-13243-10286@http.bugzilla.kernel.org/>
-	 <20090505150138.92f3ecd6.akpm@linux-foundation.org>
-	 <4A02000D.9030400@gmx.net> <200905061616.36707.bjorn.helgaas@hp.com>
-	 <1241660638.3773.90.camel@localhost.localdomain> <4A0330E3.9060909@gmx.net>
-	 <alpine.LFD.2.00.0905080037240.20287@localhost.localdomain>
-	 <20090508122354.GA30672@khazad-dum.debian.net>  <4A073D92.5060904@gmx.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 0/6] ACPI: button: minor cleanups
+Date: Mon, 11 May 2009 08:56:37 +0200
+Message-ID: <200905110856.37626.trenn@suse.de>
+References: <20090408153427.12354.62167.stgit@bob.kio> <200905061120.52793.bjorn.helgaas@hp.com> <200905081453.02556.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:39327 "EHLO mga03.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:60187 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754319AbZEKClH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 May 2009 22:41:07 -0400
-In-Reply-To: <4A073D92.5060904@gmx.net>
+	id S1751369AbZEKFzl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 May 2009 01:55:41 -0400
+In-Reply-To: <200905081453.02556.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "cedric@belbone.be" <cedric@belbone.be>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Mon, 2009-05-11 at 04:48 +0800, Witold Szczeponik wrote:
-> Henrique de Moraes Holschuh schrieb:
-> 
-> > On Fri, 08 May 2009, Len Brown wrote:
-> >> Or perhaps we should just shrug off the _PS3 failure
-> >> and carry on with _DIS like we used to -- which is
-> >> what this patch does.
-> > 
-> > Maybe "printk and carry on" would be better?
-> > 
-> 
-> And there is very similar code just a few lines above: where we turn on 
-> the device by setting it to D0.  There, too, we may want to skip the 
-> check whether or not the transition was successful or not.
-What you said is right.
-It sounds reasonable that we skip the power state check while transiting
-it to D0 state.
+On Friday 08 May 2009 10:53:01 pm Bjorn Helgaas wrote:
+> On Wednesday 06 May 2009 11:20:52 am Bjorn Helgaas wrote:
+> > On Wednesday 06 May 2009 09:13:07 am Thomas Renninger wrote:
+> > > Below is the outcome of the patch which fixes a fixed feature button
+> > > s2ram issue.
+> > >
+> > > This does not work anymore since Bjoern's patches.
+> > > Comparing the with the HID of the acpi device looks ugly.
+> > >
+> > > Shall I revive the fixed feature vs GPE button types?
+> > > ACPI_BUTTON_TYPE_POWERF and ACPI_BUTTON_TYPE_SLEEPF?
+> >
+> > I don't understand exactly how I broke this.
+Ahh, sorry.
+You did not break anything.
 
-In fact the power state check can be skipped by adding the boot option
-of "acpi.power_nocheck=1".
+The patch is a fix (not for a regression), but is now (with your change)
+somewhat harder/uncleaner to integrate.
 
-thanks.
-> 
-> --- Witold
+The fix removes fixed featured button's fixed event handler on
+suspend and installs it again on resume.
+
+With your change, the button driver does not know anymore about
+fixed feature buttons. And notify handlers shouldn't be touched with
+your change in the button driver, but I think this is cleaner.
+
+So this is nothing urgent. I'll send a patch which works with your
+version, but I am not sure what the cleanest way is now to add this.
+
+Sorry for not being clear,
+
+      Thomas
+
+> What tree are you testing?  In Linus's upstream tree, 373cfc360e
+> adds the .notify method, and at the same time, it removes
+> acpi_button_notify_fixed().
+>
+> Your patch below, which fixes the problem, shows that you already
+> have the .notify method, and yet you apparently *also* have the
+> acpi_button_notify_fixed() function.  That makes me suspect that
+> you're using a tree with a merge error.
+>
+> Bjorn
+>
+> > > @@ -85,6 +86,7 @@ static struct acpi_driver acpi_button_driver = {
+> > >  	.ops = {
+> > >  		.add = acpi_button_add,
+> > >  		.resume = acpi_button_resume,
+> > > +		.suspend = acpi_button_suspend,
+> > >  		.remove = acpi_button_remove,
+> > >  		.notify = acpi_button_notify,
+> > >  	},
+> > > @@ -281,8 +283,41 @@ static int acpi_button_resume(struct acpi_device
+> > > *device) {
+> > >  	struct acpi_button *button = acpi_driver_data(device);
+> > >
+> > > -	if (button->type == ACPI_BUTTON_TYPE_LID)
+> > > +	if (!button)
+> > > +		return -EINVAL;
+> > > +	switch (button->type) {
+> > > +	case ACPI_BUTTON_TYPE_LID:
+> > >  		return acpi_lid_send_state(device);
+> > > +	case ACPI_BUTTON_TYPE_SLEEPF:
+> > > +		return acpi_install_fixed_event_handler(
+> > > +					ACPI_EVENT_SLEEP_BUTTON,
+> > > +					acpi_button_notify_fixed, button);
+> > > +
+> > > +	case ACPI_BUTTON_TYPE_POWERF:
+> > > +		return acpi_install_fixed_event_handler(
+> > > +					ACPI_EVENT_POWER_BUTTON,
+> > > +					acpi_button_notify_fixed, button);
+> > > +	}
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int acpi_button_suspend(struct acpi_device *device,
+> > > pm_message_t state) +{
+> > > +	struct acpi_button *button;
+> > > +	if (!device)
+> > > +		return -EINVAL;
+> > > +	button = acpi_driver_data(device);
+> > > +	if (!button)
+> > > +		return -EINVAL;
+> > > +	switch (button->type) {
+> > > +	case ACPI_BUTTON_TYPE_SLEEPF:
+> > > +		return acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
+> > > +					       acpi_button_notify_fixed);
+> > > +
+> > > +	case ACPI_BUTTON_TYPE_POWERF:
+> > > +		return acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
+> > > +					       acpi_button_notify_fixed);
+> > > +	}
+> > >  	return 0;
+> > >  }
+
 
