@@ -1,126 +1,335 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/6] ACPI: button: minor cleanups
-Date: Mon, 11 May 2009 16:13:42 -0600
-Message-ID: <200905111613.44542.bjorn.helgaas@hp.com>
-References: <20090408153427.12354.62167.stgit@bob.kio> <200905081453.02556.bjorn.helgaas@hp.com> <200905110856.37626.trenn@suse.de>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] x86: introduce io_apic_irq_attr -v2
+Date: Mon, 11 May 2009 15:55:15 -0700
+Message-ID: <4A08ACD3.2070401@kernel.org>
+References: <4A01C35C.7060207@kernel.org> <4A01C406.2040303@kernel.org> <20090511082834.GD5636@elte.hu> <4A087F35.2000903@kernel.org> <20090511213755.GB21232@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:34892 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756398AbZEKWNs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2009 18:13:48 -0400
-In-Reply-To: <200905110856.37626.trenn@suse.de>
-Content-Disposition: inline
+Received: from hera.kernel.org ([140.211.167.34]:48004 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757388AbZEKW4Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 May 2009 18:56:25 -0400
+In-Reply-To: <20090511213755.GB21232@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
-
-On Monday 11 May 2009 12:56:37 am Thomas Renninger wrote:
-> On Friday 08 May 2009 10:53:01 pm Bjorn Helgaas wrote:
-> > On Wednesday 06 May 2009 11:20:52 am Bjorn Helgaas wrote:
-> > > On Wednesday 06 May 2009 09:13:07 am Thomas Renninger wrote:
-> > > > Below is the outcome of the patch which fixes a fixed feature button
-> > > > s2ram issue.
-> > > >
-> > > > This does not work anymore since Bjoern's patches.
-> > > > Comparing the with the HID of the acpi device looks ugly.
-> > > >
-> > > > Shall I revive the fixed feature vs GPE button types?
-> > > > ACPI_BUTTON_TYPE_POWERF and ACPI_BUTTON_TYPE_SLEEPF?
-> > >
-> > > I don't understand exactly how I broke this.
-> Ahh, sorry.
-> You did not break anything.
-> 
-> The patch is a fix (not for a regression), but is now (with your change)
-> somewhat harder/uncleaner to integrate.
-
-Oh, I see.  I was getting worried, so thanks for clarifying that!
-
-The problem is that on some laptops, the button driver doesn't
-receive fixed hardware power button events after resuming from
-hibernation.  Here's my guess at what's happening:
-
-    <first boot>
-
-	disable button event in PM1_EN (acpi_ev_fixed_event_initialize())
-	load button driver
-	install fixed hardware event handler
-	clear button event status in PM1_STS (acpi_install_fixed_event_handler())
-	enable button event in PM1_EN (acpi_install_fixed_event_handler())
-
-	<write hibernation image to disk and power off>
-
-    <second boot>
-
-	disable button event in PM1_EN (acpi_ev_fixed_event_initialize())
-	read hibernation image from disk
-	branch into hibernation image
-
-Now the button driver is present because it was in the hibernation
-image, but we didn't call acpi_install_fixed_event_handler() in the
-second boot, so the fixed hardware event has never been enabled in
-PM1_EN.
-
-If my guess were correct, fixed hardware power buttons shouldn't work
-on *any* systems after hibernation.  But maybe there's more that I
-don't understand.
-
-Maybe we need something along the lines of the patch below.  I notice
-that there are several other places where we disable/enable GPEs in the
-suspend/resume path, and I suppose we should consider fixed hardware
-events at those places, too.
-
-Bjorn
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 
-diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
-index d0a0807..b590ce5 100644
---- a/drivers/acpi/acpica/evxfevnt.c
-+++ b/drivers/acpi/acpica/evxfevnt.c
-@@ -812,6 +812,29 @@ acpi_ev_get_gpe_device(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 	return (AE_OK);
- }
+according to Ingo, some io_apic related function get too more parameter
+So reduce related funcs to get less param by passing io_apic_irq pointer
+
+v2: io_apic_irq ==> irq_attr
+    triggering ==> trigger
+
+[ Impact: cleanup ]
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ arch/x86/include/asm/hw_irq.h     |   11 +++++++--
+ arch/x86/include/asm/io_apic.h    |    5 ++--
+ arch/x86/kernel/acpi/boot.c       |   23 +++++++++++---------
+ arch/x86/kernel/apic/io_apic.c    |   43 ++++++++++++++++++++++----------------
+ arch/x86/pci/irq.c                |   16 ++++----------
+ drivers/pci/hotplug/ibmphp_core.c |    8 ++-----
+ 6 files changed, 58 insertions(+), 48 deletions(-)
+
+Index: linux-2.6/arch/x86/include/asm/hw_irq.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/hw_irq.h
++++ linux-2.6/arch/x86/include/asm/hw_irq.h
+@@ -66,9 +66,16 @@ extern unsigned long io_apic_irqs;
+ extern void init_VISWS_APIC_irqs(void);
+ extern void setup_IO_APIC(void);
+ extern void disable_IO_APIC(void);
++
++struct io_apic_irq_attr {
++	int ioapic;
++	int ioapic_pin;
++	int trigger;
++	int polarity;
++};
++
+ extern int IO_APIC_get_PCI_irq_vector(int bus, int devfn, int pin,
+-					int *ioapic, int *ioapic_pin,
+-					int *trigger, int *polarity);
++					struct io_apic_irq_attr *irq_attr);
+ extern void setup_ioapic_dest(void);
  
-+acpi_status acpi_enable_fixed_events(void)
-+{
-+	acpi_status status;
-+	u32 i;
-+
-+	ACPI_FUNCTION_TRACE(acpi_disable_all_gpes);
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	for (i = 0; i < ACPI_NUM_FIXED_EVENTS; i++) {
-+		if (acpi_gbl_fixed_event_handlers[i].handler) {
-+			acpi_enable_event(i, 0);
-+		}
-+	}
-+
-+	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
-+
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
- /******************************************************************************
-  *
-  * FUNCTION:    acpi_disable_all_gpes
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 01574a0..85aa8be 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -501,6 +501,7 @@ static void acpi_hibernation_leave(void)
+ extern void enable_IO_APIC(void);
+Index: linux-2.6/arch/x86/include/asm/io_apic.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/io_apic.h
++++ linux-2.6/arch/x86/include/asm/io_apic.h
+@@ -156,8 +156,9 @@ extern int io_apic_get_version(int ioapi
+ extern int io_apic_get_redir_entries(int ioapic);
+ #endif /* CONFIG_ACPI */
  
- static void acpi_pm_enable_gpes(void)
+-extern int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin,
+-				  int irq, int edge_level, int active_high_low);
++struct io_apic_irq_attr;
++extern int io_apic_set_pci_routing(struct device *dev, int irq,
++		 struct io_apic_irq_attr *irq_attr);
+ extern int (*ioapic_renumber_irq)(int ioapic, int irq);
+ extern void ioapic_init_mappings(void);
+ 
+Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
++++ linux-2.6/arch/x86/kernel/acpi/boot.c
+@@ -523,7 +523,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned in
+  * success: return IRQ number (>=0)
+  * failure: return < 0
+  */
+-int acpi_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
++int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
  {
-+	acpi_enable_fixed_events();
- 	acpi_enable_all_runtime_gpes();
+ 	unsigned int irq;
+ 	unsigned int plat_gsi = gsi;
+@@ -533,14 +533,14 @@ int acpi_register_gsi(struct device *dev
+ 	 * Make sure all (legacy) PCI IRQs are set as level-triggered.
+ 	 */
+ 	if (acpi_irq_model == ACPI_IRQ_MODEL_PIC) {
+-		if (triggering == ACPI_LEVEL_SENSITIVE)
++		if (trigger == ACPI_LEVEL_SENSITIVE)
+ 			eisa_set_level_irq(gsi);
+ 	}
+ #endif
+ 
+ #ifdef CONFIG_X86_IO_APIC
+ 	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC) {
+-		plat_gsi = mp_register_gsi(dev, gsi, triggering, polarity);
++		plat_gsi = mp_register_gsi(dev, gsi, trigger, polarity);
+ 	}
+ #endif
+ 	acpi_gsi_to_irq(plat_gsi, &irq);
+@@ -1156,7 +1156,7 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	}
  }
  
+-static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int triggering,
++static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
+ 			int polarity)
+ {
+ #ifdef CONFIG_X86_MPPARSE
+@@ -1181,7 +1181,7 @@ static int mp_config_acpi_gsi(struct dev
+ 	/* print the entry should happen on mptable identically */
+ 	mp_irq.type = MP_INTSRC;
+ 	mp_irq.irqtype = mp_INT;
+-	mp_irq.irqflag = (triggering == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
++	mp_irq.irqflag = (trigger == ACPI_EDGE_SENSITIVE ? 4 : 0x0c) |
+ 				(polarity == ACPI_ACTIVE_HIGH ? 1 : 3);
+ 	mp_irq.srcbus = number;
+ 	mp_irq.srcbusirq = (((devfn >> 3) & 0x1f) << 2) | ((pin - 1) & 3);
+@@ -1194,10 +1194,11 @@ static int mp_config_acpi_gsi(struct dev
+ 	return 0;
+ }
+ 
+-int mp_register_gsi(struct device *dev, u32 gsi, int triggering, int polarity)
++int mp_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+ {
+ 	int ioapic;
+ 	int ioapic_pin;
++	struct io_apic_irq_attr irq_attr;
+ 
+ 	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
+ 		return gsi;
+@@ -1225,11 +1226,13 @@ int mp_register_gsi(struct device *dev,
+ 		       ioapic_pin);
+ 		return gsi;
+ 	}
+-	mp_config_acpi_gsi(dev, gsi, triggering, polarity);
++	mp_config_acpi_gsi(dev, gsi, trigger, polarity);
+ 
+-	io_apic_set_pci_routing(dev, ioapic, ioapic_pin, gsi,
+-				triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
+-				polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
++	irq_attr.ioapic	    = ioapic;
++	irq_attr.ioapic_pin = ioapic_pin;
++	irq_attr.trigger    = (trigger == ACPI_EDGE_SENSITIVE ? 0 : 1);
++	irq_attr.polarity   = (polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
++	io_apic_set_pci_routing(dev, gsi, &irq_attr);
+ 
+ 	return gsi;
+ }
+Index: linux-2.6/arch/x86/kernel/apic/io_apic.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/apic/io_apic.c
++++ linux-2.6/arch/x86/kernel/apic/io_apic.c
+@@ -1097,8 +1097,7 @@ static int pin_2_irq(int idx, int apic,
+  * Not an __init, possibly needed by modules
+  */
+ int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
+-				int *ioapic, int *ioapic_pin,
+-				int *trigger, int *polarity)
++				struct io_apic_irq_attr *irq_attr)
+ {
+ 	int apic, i, best_guess = -1;
+ 
+@@ -1128,10 +1127,10 @@ int IO_APIC_get_PCI_irq_vector(int bus,
+ 				continue;
+ 
+ 			if (pin == (mp_irqs[i].srcbusirq & 3)) {
+-				*ioapic = apic;
+-				*ioapic_pin = mp_irqs[i].dstirq;
+-				*trigger = irq_trigger(i);
+-				*polarity = irq_polarity(i);
++				irq_attr->ioapic     = apic;
++				irq_attr->ioapic_pin = mp_irqs[i].dstirq;
++				irq_attr->trigger    = irq_trigger(i);
++				irq_attr->polarity   = irq_polarity(i);
+ 				return irq;
+ 			}
+ 			/*
+@@ -1139,10 +1138,10 @@ int IO_APIC_get_PCI_irq_vector(int bus,
+ 			 * best-guess fuzzy result for broken mptables.
+ 			 */
+ 			if (best_guess < 0) {
+-				*ioapic = apic;
+-				*ioapic_pin = mp_irqs[i].dstirq;
+-				*trigger = irq_trigger(i);
+-				*polarity = irq_polarity(i);
++				irq_attr->ioapic     = apic;
++				irq_attr->ioapic_pin = mp_irqs[i].dstirq;
++				irq_attr->trigger    = irq_trigger(i);
++				irq_attr->polarity   = irq_polarity(i);
+ 				best_guess = irq;
+ 			}
+ 		}
+@@ -3866,13 +3865,16 @@ int __init arch_probe_nr_irqs(void)
+ }
+ #endif
+ 
+-static int __io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+-				 int triggering, int polarity)
++static int __io_apic_set_pci_routing(struct device *dev, int irq,
++				struct io_apic_irq_attr *irq_attr)
+ {
+ 	struct irq_desc *desc;
+ 	struct irq_cfg *cfg;
+ 	int node;
++	int ioapic, pin;
++	int trigger, polarity;
+ 
++	ioapic = irq_attr->ioapic;
+ 	if (!IO_APIC_IRQ(irq)) {
+ 		apic_printk(APIC_QUIET,KERN_ERR "IOAPIC[%d]: Invalid reference to IRQ 0\n",
+ 			ioapic);
+@@ -3890,6 +3892,10 @@ static int __io_apic_set_pci_routing(str
+ 		return 0;
+ 	}
+ 
++	pin = irq_attr->ioapic_pin;
++	trigger = irq_attr->trigger;
++	polarity = irq_attr->polarity;
++
+ 	/*
+ 	 * IRQs < 16 are already in the irq_2_pin[] map
+ 	 */
+@@ -3898,20 +3904,22 @@ static int __io_apic_set_pci_routing(str
+ 		add_pin_to_irq_node(cfg, node, ioapic, pin);
+ 	}
+ 
+-	setup_IO_APIC_irq(ioapic, pin, irq, desc, triggering, polarity);
++	setup_IO_APIC_irq(ioapic, pin, irq, desc, trigger, polarity);
+ 
+ 	return 0;
+ }
+ 
+-int io_apic_set_pci_routing(struct device *dev, int ioapic, int pin, int irq,
+-				 int triggering, int polarity)
++int io_apic_set_pci_routing(struct device *dev, int irq,
++				struct io_apic_irq_attr *irq_attr)
+ {
+-
++	int ioapic, pin;
+ 	/*
+ 	 * Avoid pin reprogramming.  PRTs typically include entries
+ 	 * with redundant pin->gsi mappings (but unique PCI devices);
+ 	 * we only program the IOAPIC on the first.
+ 	 */
++	ioapic = irq_attr->ioapic;
++	pin = irq_attr->ioapic_pin;
+ 	if (test_bit(pin, mp_ioapic_routing[ioapic].pin_programmed)) {
+ 		pr_debug("Pin %d-%d already programmed\n",
+ 			 mp_ioapics[ioapic].apicid, pin);
+@@ -3919,8 +3927,7 @@ int io_apic_set_pci_routing(struct devic
+ 	}
+ 	set_bit(pin, mp_ioapic_routing[ioapic].pin_programmed);
+ 
+-	return __io_apic_set_pci_routing(dev, ioapic, pin, irq,
+-					 triggering, polarity);
++	return __io_apic_set_pci_routing(dev, irq, irq_attr);
+ }
+ 
+ /* --------------------------------------------------------------------------
+Index: linux-2.6/arch/x86/pci/irq.c
+===================================================================
+--- linux-2.6.orig/arch/x86/pci/irq.c
++++ linux-2.6/arch/x86/pci/irq.c
+@@ -1200,14 +1200,11 @@ static int pirq_enable_irq(struct pci_de
+ #ifdef CONFIG_X86_IO_APIC
+ 			struct pci_dev *temp_dev;
+ 			int irq;
+-			int ioapic = -1, ioapic_pin = -1;
+-			int triggering, polarity;
++			struct io_apic_irq_attr irq_attr;
+ 
+ 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
+ 						PCI_SLOT(dev->devfn),
+-						pin - 1,
+-						&ioapic, &ioapic_pin,
+-						&triggering, &polarity);
++						pin - 1, &irq_attr);
+ 			/*
+ 			 * Busses behind bridges are typically not listed in the MP-table.
+ 			 * In this case we have to look up the IRQ based on the parent bus,
+@@ -1221,9 +1218,7 @@ static int pirq_enable_irq(struct pci_de
+ 				pin = pci_swizzle_interrupt_pin(dev, pin);
+ 				irq = IO_APIC_get_PCI_irq_vector(bridge->bus->number,
+ 						PCI_SLOT(bridge->devfn),
+-						pin - 1,
+-						&ioapic, &ioapic_pin,
+-						&triggering, &polarity);
++						pin - 1, &irq_attr);
+ 				if (irq >= 0)
+ 					dev_warn(&dev->dev, "using bridge %s "
+ 						 "INT %c to get IRQ %d\n",
+@@ -1233,9 +1228,8 @@ static int pirq_enable_irq(struct pci_de
+ 			}
+ 			dev = temp_dev;
+ 			if (irq >= 0) {
+-				io_apic_set_pci_routing(&dev->dev, ioapic,
+-							ioapic_pin, irq,
+-							triggering, polarity);
++				io_apic_set_pci_routing(&dev->dev, irq,
++							 &irq_attr);
+ 				dev->irq = irq;
+ 				dev_info(&dev->dev, "PCI->APIC IRQ transform: "
+ 					 "INT %c -> IRQ %d\n", 'A' + pin - 1, irq);
+Index: linux-2.6/drivers/pci/hotplug/ibmphp_core.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/hotplug/ibmphp_core.c
++++ linux-2.6/drivers/pci/hotplug/ibmphp_core.c
+@@ -155,15 +155,13 @@ int ibmphp_init_devno(struct slot **cur_
+ 	for (loop = 0; loop < len; loop++) {
+ 		if ((*cur_slot)->number == rtable->slots[loop].slot &&
+ 		    (*cur_slot)->bus == rtable->slots[loop].bus) {
+-			int ioapic = -1, ioapic_pin = -1;
+-			int triggering, polarity;
++			struct io_apic_irq_attr irq_attr;
+ 
+ 			(*cur_slot)->device = PCI_SLOT(rtable->slots[loop].devfn);
+ 			for (i = 0; i < 4; i++)
+ 				(*cur_slot)->irq[i] = IO_APIC_get_PCI_irq_vector((int) (*cur_slot)->bus,
+-						(int) (*cur_slot)->device, i.
+-						&ioapic, &ioapic_pin,
+-						&triggering, &polarity);
++						(int) (*cur_slot)->device, i,
++						 &irq_attr);
+ 
+ 			debug("(*cur_slot)->irq[0] = %x\n",
+ 					(*cur_slot)->irq[0]);
