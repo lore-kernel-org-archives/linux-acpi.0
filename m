@@ -1,28 +1,44 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 5/7] x86/pci: add 4 more return param in
-	IO_APIC_get_PCI_irq_vector
-Date: Mon, 11 May 2009 11:05:27 +0200
-Message-ID: <20090511090527.GA20087@elte.hu>
-References: <4A01C35C.7060207@kernel.org> <4A01C406.2040303@kernel.org>
+From: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
+Subject: Re: hints an infos to start debuging on hp-wmi
+Date: Mon, 11 May 2009 08:48:55 -0400
+Message-ID: <20090511124855.GA2721@tuxdriver.com>
+References: <gu4g0g$s1e$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4A01C406.2040303@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+In-Reply-To: <gu4g0g$s1e$1@ger.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: feldmaus <feldmann_markus-Mmb7MZpHnFY@public.gmane.org>
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, May 09, 2009 at 07:55:13PM +0200, feldmaus wrote:
 
-hm, you broke the build:
+> i had many trouble with the wlan card of my girl friends HP zv5265ea
+> Laptop. It is a BCM4303 Wlan Card. The Problem i think is the
+> hp-wmi driver, so i want to debug it.
 
-drivers/pci/hotplug/ibmphp_core.c: In function =E2=80=98ibmphp_init_dev=
-no=E2=80=99:
-drivers/pci/hotplug/ibmphp_core.c:165: error: expected identifier befor=
-e =E2=80=98&=E2=80=99 token
-drivers/pci/hotplug/ibmphp_core.c:166: error: too few arguments to func=
-tion =E2=80=98IO_APIC_get_PCI_irq_vector=E2=80=99
+Is the problem related to RF-Kill?  If not, then hp-wmi is probably
+not the best place to start...
 
-	Ingo
+> It would be nice if someody gives me a start point how to ?
+> I currently using the 2.6.29-rc7 kernel sources.
+> Which sources or header files do i have to modify ?
+
+./drivers/platform/x86/hp-wmi.c
+
+> Are there any developers documentation for the hp-wmi ?
+
+No idea...
+
+Good luck!
+
+John
+-- 
+John W. Linville		Someday the world will need a hero, and you
+linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org			might be all we have.  Be ready.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
