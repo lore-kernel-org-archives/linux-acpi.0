@@ -1,29 +1,48 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: suspend: don't let device _PS3 failure prevent
-	suspend
-Date: Tue, 12 May 2009 05:11:52 +0100
-Message-ID: <20090512041152.GA26448@srcf.ucam.org>
-References: <bug-13243-10286@http.bugzilla.kernel.org/> <4A073D92.5060904@gmx.net> <1242009782.3773.139.camel@localhost.localdomain> <200905111721.10166.rjw@sisk.pl> <1242089305.3773.198.camel@localhost.localdomain> <20090512020147.GA24896@srcf.ucam.org> <1242095172.3773.209.camel@localhost.localdomain> <20090512025017.GB24896@srcf.ucam.org> <1242097574.3773.212.camel@localhost.localdomain>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Skip the power state check in power transition
+Date: Tue, 12 May 2009 13:27:40 +0800
+Message-ID: <1242106060.3773.216.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35859 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757919AbZELEM1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 00:12:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1242097574.3773.212.camel@localhost.localdomain>
+Received: from mga11.intel.com ([192.55.52.93]:7733 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752120AbZELFZZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 May 2009 01:25:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Witold Szczeponik <Witold.Szczeponik@gmx.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "cedric@belbone.be" <cedric@belbone.be>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, May 12, 2009 at 11:06:14AM +0800, yakui_zhao wrote:
-> It will be OK to change the default value of "power_nocheck" to 1.
-> 
-> I will do this.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Sounds good. Thanks!
+Skip the power state check in course of power transition by changing the
+default value of acpi_power_nocheck to 1. If so, it is unnecessary to add the
+boot option of "acpi.power_nocheck=1" or add it into DMI power check table to
+skip the power state check.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Of course the power state check still can be enabled by adding the boot option
+of "acpi.power_nocheck=0".
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+---
+ drivers/acpi/power.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/power.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/power.c	2009-04-16 16:10:24.000000000 +0800
++++ linux-2.6/drivers/acpi/power.c	2009-05-12 13:12:27.000000000 +0800
+@@ -54,7 +54,7 @@
+ #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+ #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+ 
+-int acpi_power_nocheck;
++int acpi_power_nocheck = 1;
+ module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+ 
+ static int acpi_power_add(struct acpi_device *device);
+
+
