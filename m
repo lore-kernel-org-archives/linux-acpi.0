@@ -1,40 +1,72 @@
-From: Bob Copeland <me@bobcopeland.com>
-Subject: Re: acpi/suspend - irq 9: nobody cared
-Date: Tue, 12 May 2009 15:26:50 -0400
-Message-ID: <b6c5339f0905121226n5e1bd058v3220196728024e55@mail.gmail.com>
-References: <20090507105821.GA5864@hash.localnet>
-	 <1241747634.3773.129.camel@localhost.localdomain>
-	 <200905121301.08524.bjorn.helgaas@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: akpm@linux-foundation.org
+Subject: [patch for 2.6.30? 1/1] acpi thermal: fix off-by-1 error in trip point trigger condition
+Date: Tue, 12 May 2009 13:25:03 -0700
+Message-ID: <200905122044.n4CKiJd2027310@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:26020 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbZELT0t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 15:26:49 -0400
-In-Reply-To: <200905121301.08524.bjorn.helgaas@hp.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50663 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750939AbZELUsf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 May 2009 16:48:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: yakui_zhao <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, eightgraph@gmail.com, rui.zhang@intel.com
 
-On Tue, May 12, 2009 at 3:01 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> w=
-rote:
-> Even if you can't bisect this, can you please open a bugzilla at
-> http://bugzilla.kernel.org ? =A0Also, if you can verify that it is
-> really a regression since 2.6.29, please drop a note to Rafael,
-> who tracks regressions. =A0Plus, he knows all about suspend/resume,
-> so maybe he can even fix it :)
+From: Vladimir Zajac <eightgraph@gmail.com>
 
-Yeah, I'll open a bug report for it.  I'm in the process of bisecting
-but there's a boot hang somewhere in the window (2.6.29 <-> .30-rc2)
-so it's taking some time.
+Fix a regression caused by commit b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
+("ACPI: move thermal trip handling to generic thermal layer") which
+accidentally changed trip point trigger condition to temp > trip_temp
 
---=20
-Bob Copeland %% www.bobcopeland.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch changes the trigger condition back to
+  temp >= trip_temp
+
+Signed-off-by: Vladimir Zajac <eightgraph@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/thermal/thermal_sys.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff -puN drivers/thermal/thermal_sys.c~acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~acpi-thermal-fix-off-by-1-error-in-trip-point-trigger-condition
++++ a/drivers/thermal/thermal_sys.c
+@@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
+ 
+ 		switch (trip_type) {
+ 		case THERMAL_TRIP_CRITICAL:
+-			if (temp > trip_temp) {
++			if (temp >= trip_temp) {
+ 				if (tz->ops->notify)
+ 					ret = tz->ops->notify(tz, count,
+ 							      trip_type);
+@@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
+ 			}
+ 			break;
+ 		case THERMAL_TRIP_HOT:
+-			if (temp > trip_temp)
++			if (temp >= trip_temp)
+ 				if (tz->ops->notify)
+ 					tz->ops->notify(tz, count, trip_type);
+ 			break;
+@@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
+ 
+ 				cdev = instance->cdev;
+ 
+-				if (temp > trip_temp)
++				if (temp >= trip_temp)
+ 					cdev->ops->set_cur_state(cdev, 1);
+ 				else
+ 					cdev->ops->set_cur_state(cdev, 0);
+ 			}
+ 			break;
+ 		case THERMAL_TRIP_PASSIVE:
+-			if (temp > trip_temp || tz->passive)
++			if (temp >= trip_temp || tz->passive)
+ 				thermal_zone_device_passive(tz, temp,
+ 							    trip_temp, count);
+ 			break;
+_
