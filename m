@@ -1,61 +1,45 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH]: ACPI: Skip the power state check in power transition
-Date: Tue, 12 May 2009 08:57:39 -0600
-Message-ID: <200905120857.40058.bjorn.helgaas@hp.com>
-References: <1242106060.3773.216.camel@localhost.localdomain>
+From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: Re: [PATCH] x86: introduce io_apic_irq_attr -v2
+Date: Tue, 12 May 2009 08:17:07 -0700
+Message-ID: <86802c440905120817j5d102aa2i43e7d8f8f8ba10b2@mail.gmail.com>
+References: <4A01C35C.7060207@kernel.org> <4A01C406.2040303@kernel.org>
+	 <20090511082834.GD5636@elte.hu> <4A087F35.2000903@kernel.org>
+	 <20090511213755.GB21232@elte.hu> <4A08ACD3.2070401@kernel.org>
+	 <20090512103236.GC11714@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:37169 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163AbZELO5l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 10:57:41 -0400
-In-Reply-To: <1242106060.3773.216.camel@localhost.localdomain>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090512103236.GC11714@elte.hu>
+Sender: linux-pci-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Monday 11 May 2009 11:27:40 pm yakui_zhao wrote:
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
-> Skip the power state check in course of power transition by changing the
-> default value of acpi_power_nocheck to 1. If so, it is unnecessary to add the
-> boot option of "acpi.power_nocheck=1" or add it into DMI power check table to
-> skip the power state check.
-> 
-> Of course the power state check still can be enabled by adding the boot option
-> of "acpi.power_nocheck=0".
+On Tue, May 12, 2009 at 3:32 AM, Ingo Molnar <mingo@elte.hu> wrote:
+>
+> * Yinghai Lu <yinghai@kernel.org> wrote:
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+ioapic =A0 =A0 =3D apic;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+ioapic_pin =3D mp_irqs[i].dstirq;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+trigger =A0 =A0=3D irq_trigger(i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+polarity =A0 =3D irq_polarity(i);
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+ioapic =A0 =A0 =3D apic;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+ioapic_pin =3D mp_irqs[i].dstirq;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+trigger =A0 =A0=3D irq_trigger(i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq_attr->=
+polarity =A0 =3D irq_polarity(i);
+>
+> Shouldnt this be factored out ino a helper function?
+>
+set_io_apic_irq_attr()?
 
-What is the value of keeping the "acpi.power_nocheck" option at all?
-
-If we can get along without it, it'd be nice to just remove the
-whole thing.
-
-Bjorn
-
-> Index: linux-2.6/drivers/acpi/power.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/power.c	2009-04-16 16:10:24.000000000 +0800
-> +++ linux-2.6/drivers/acpi/power.c	2009-05-12 13:12:27.000000000 +0800
-> @@ -54,7 +54,7 @@
->  #define ACPI_POWER_RESOURCE_STATE_ON	0x01
->  #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
->  
-> -int acpi_power_nocheck;
-> +int acpi_power_nocheck = 1;
->  module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
->  
->  static int acpi_power_add(struct acpi_device *device);
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+YH
