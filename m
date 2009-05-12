@@ -1,90 +1,61 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 3/3] ACPI: battery: register power_supply subdevice even when
- battery not present
-Date: Tue, 12 May 2009 15:51:54 +0100
-Message-ID: <4A098D0A.6090509@tuffmail.co.uk>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH]: ACPI: Skip the power state check in power transition
+Date: Tue, 12 May 2009 08:57:39 -0600
+Message-ID: <200905120857.40058.bjorn.helgaas@hp.com>
+References: <1242106060.3773.216.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:50621 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951AbZELOv6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 10:51:58 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so23626eyd.37
-        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2009 07:51:57 -0700 (PDT)
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:37169 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbZELO5l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 10:57:41 -0400
+In-Reply-To: <1242106060.3773.216.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Keeping this device around lets userspace know that we have a battery
-bay, even if there is nothing in it at the moment.  This is what every
-other battery driver does, so ACPI should do it as well.
+On Monday 11 May 2009 11:27:40 pm yakui_zhao wrote:
+> From: Zhao Yakui <yakui.zhao@intel.com>
+> 
+> Skip the power state check in course of power transition by changing the
+> default value of acpi_power_nocheck to 1. If so, it is unnecessary to add the
+> boot option of "acpi.power_nocheck=1" or add it into DMI power check table to
+> skip the power state check.
+> 
+> Of course the power state check still can be enabled by adding the boot option
+> of "acpi.power_nocheck=0".
 
-There is no reason to preserve the old behaviour.  We now correctly
-provide the "present" attribute, which will return "0" when the battery
-is removed.  HAL was already trying to check this attribute, so
-it should be fine.
+What is the value of keeping the "acpi.power_nocheck" option at all?
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+If we can get along without it, it'd be nice to just remove the
+whole thing.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 9208e97..9331f01 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -487,8 +487,6 @@ static int sysfs_add_battery(struct acpi_battery *battery)
- 
- static void sysfs_remove_battery(struct acpi_battery *battery)
- {
--	if (!battery->bat.dev)
--		return;
- 	device_remove_file(battery->bat.dev, &alarm_attr);
- 	power_supply_unregister(&battery->bat);
- 	battery->bat.dev = NULL;
-@@ -502,9 +500,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 	if (result)
- 		return result;
- 	if (!acpi_battery_present(battery)) {
--#ifdef CONFIG_ACPI_SYSFS_POWER
--		sysfs_remove_battery(battery);
--#endif
- 		battery->update_time = 0;
- 		return 0;
- 	}
-@@ -515,10 +510,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
- 			return result;
- 		acpi_battery_init_alarm(battery);
- 	}
--#ifdef CONFIG_ACPI_SYSFS_POWER
--	if (!battery->bat.dev)
--		sysfs_add_battery(battery);
--#endif
- 	return acpi_battery_get_state(battery);
- }
- 
-@@ -810,9 +801,7 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
- #ifdef CONFIG_ACPI_SYSFS_POWER
--	/* acpi_batter_update could remove power_supply object */
--	if (battery->bat.dev)
--		power_supply_changed(&battery->bat);
-+	power_supply_changed(&battery->bat);
- #endif
- }
- 
-@@ -837,6 +826,11 @@ static int acpi_battery_add(struct acpi_device *device)
- 	if (result)
- 		goto end;
- #endif
-+#ifdef CONFIG_ACPI_SYSFS_POWER
-+	result = sysfs_add_battery(battery);
-+	if (result)
-+		goto end;
-+#endif
- 	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_ALL_NOTIFY,
- 					     acpi_battery_notify, battery);
+Bjorn
+
+> Index: linux-2.6/drivers/acpi/power.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/power.c	2009-04-16 16:10:24.000000000 +0800
+> +++ linux-2.6/drivers/acpi/power.c	2009-05-12 13:12:27.000000000 +0800
+> @@ -54,7 +54,7 @@
+>  #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+>  #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+>  
+> -int acpi_power_nocheck;
+> +int acpi_power_nocheck = 1;
+>  module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+>  
+>  static int acpi_power_add(struct acpi_device *device);
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
