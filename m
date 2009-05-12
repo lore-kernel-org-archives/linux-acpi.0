@@ -1,61 +1,90 @@
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH] ACPI: battery drivers should call power_supply_changed()
-Date: Tue, 12 May 2009 15:50:58 +0100
-Message-ID: <4A098CD2.2030608@tuffmail.co.uk>
+Subject: [PATCH 3/3] ACPI: battery: register power_supply subdevice even when
+ battery not present
+Date: Tue, 12 May 2009 15:51:54 +0100
+Message-ID: <4A098D0A.6090509@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:43172 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581AbZELOvB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 10:51:01 -0400
-Received: by ewy24 with SMTP id 24so26527ewy.37
-        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2009 07:51:01 -0700 (PDT)
+Received: from ey-out-2122.google.com ([74.125.78.25]:50621 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951AbZELOv6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 10:51:58 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so23626eyd.37
+        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2009 07:51:57 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux acpi <linux-acpi@vger.kernel.org>
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Calling kobject_uevent() directly is a layering violation.  In
-particular, it means we'll miss updating the generic LED trigger.
+Keeping this device around lets userspace know that we have a battery
+bay, even if there is nothing in it at the moment.  This is what every
+other battery driver does, so ACPI should do it as well.
+
+There is no reason to preserve the old behaviour.  We now correctly
+provide the "present" attribute, which will return "0" when the battery
+is removed.  HAL was already trying to check this attribute, so
+it should be fine.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 2ccc87e..9208e97 100644
+index 9208e97..9331f01 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
-@@ -812,7 +812,7 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+@@ -487,8 +487,6 @@ static int sysfs_add_battery(struct acpi_battery *battery)
+ 
+ static void sysfs_remove_battery(struct acpi_battery *battery)
+ {
+-	if (!battery->bat.dev)
+-		return;
+ 	device_remove_file(battery->bat.dev, &alarm_attr);
+ 	power_supply_unregister(&battery->bat);
+ 	battery->bat.dev = NULL;
+@@ -502,9 +500,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	if (result)
+ 		return result;
+ 	if (!acpi_battery_present(battery)) {
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+-		sysfs_remove_battery(battery);
+-#endif
+ 		battery->update_time = 0;
+ 		return 0;
+ 	}
+@@ -515,10 +510,6 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 			return result;
+ 		acpi_battery_init_alarm(battery);
+ 	}
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+-	if (!battery->bat.dev)
+-		sysfs_add_battery(battery);
+-#endif
+ 	return acpi_battery_get_state(battery);
+ }
+ 
+@@ -810,9 +801,7 @@ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ 					dev_name(&device->dev), event,
+ 					acpi_battery_present(battery));
  #ifdef CONFIG_ACPI_SYSFS_POWER
- 	/* acpi_batter_update could remove power_supply object */
- 	if (battery->bat.dev)
--		kobject_uevent(&battery->bat.dev->kobj, KOBJ_CHANGE);
-+		power_supply_changed(&battery->bat);
+-	/* acpi_batter_update could remove power_supply object */
+-	if (battery->bat.dev)
+-		power_supply_changed(&battery->bat);
++	power_supply_changed(&battery->bat);
  #endif
  }
  
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 4b214b7..dfa9455 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -890,7 +890,7 @@ static void acpi_sbs_callback(void *context)
- 					      sbs->charger_present);
+@@ -837,6 +826,11 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	if (result)
+ 		goto end;
  #endif
- #ifdef CONFIG_ACPI_SYSFS_POWER
--		kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
-+		power_supply_changed(&sbs->charger);
- #endif
- 	}
- 	if (sbs->manager_present) {
-@@ -909,7 +909,7 @@ static void acpi_sbs_callback(void *context)
- 						      bat->present);
- #endif
- #ifdef CONFIG_ACPI_SYSFS_POWER
--			kobject_uevent(&bat->bat.dev->kobj, KOBJ_CHANGE);
-+			power_supply_changed(&bat->bat);
- #endif
- 		}
- 	}
++#ifdef CONFIG_ACPI_SYSFS_POWER
++	result = sysfs_add_battery(battery);
++	if (result)
++		goto end;
++#endif
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_ALL_NOTIFY,
+ 					     acpi_battery_notify, battery);
 
 
