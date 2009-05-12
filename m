@@ -1,54 +1,241 @@
-From: akpm@linux-foundation.org
-Subject: [patch 3/3] dell-wmi: mask off BIS-provided garbage in scancode data
-Date: Tue, 12 May 2009 13:35:27 -0700
-Message-ID: <200905122054.n4CKsgZq001675@imap1.linux-foundation.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/4] ACPICA: Remove use of caches in controlled way
+Date: Tue, 12 May 2009 14:28:18 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D830858250D8F15@orsmsx503.amr.corp.intel.com>
+References: <20090507155202.26361.38778.stgit@thinkpad>
+ <1242029667.4641.31.camel@minggr.sh.intel.com>
+ <4911F71203A09E4D9981D27F9D8308582281A5F5@orsmsx503.amr.corp.intel.com>
+ <4A09C5D6.80409@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53823 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751989AbZELVBm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 May 2009 17:01:42 -0400
+Received: from mga11.intel.com ([192.55.52.93]:53851 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750974AbZELV2S convert rfc822-to-8bit (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Tue, 12 May 2009 17:28:18 -0400
+In-Reply-To: <4A09C5D6.80409@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, mario_limonciello@dell.com, dtor@mail.ru, len.brown@intel.com, mjg@redhat.com
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, "Linux-acpi@vger.kernel.org" <Linux-acpi@vger.kernel.org>
 
-From: Mario Limonciello <mario_limonciello@dell.com>
+Problems with deletion of the DdbHandle object type. I think we have it under control, thanks.
 
-In debugging with some future machines that actually contain BIOS level
-support for dell-wmi, I've determined that the upper half of the data that
-comes back from wmi_get_event_data may sometimes contain extra information
-that isn't currently relevant when pulling scan codes out of the data. 
-This causes dell-wmi to improperly respond to these events.
 
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+>-----Original Message-----
+>From: Alexey Starikovskiy [mailto:aystarik@gmail.com]
+>Sent: Tuesday, May 12, 2009 11:54 AM
+>To: Moore, Robert
+>Cc: Lin, Ming M; Alexey Starikovskiy; Linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH 1/4] ACPICA: Remove use of caches in controlled way
+>
+>What bugs are you seeing? May I be of any help?
+>
+>Regards,
+>Alex.
+>
+>
+>Moore, Robert wrote:
+>> Removing the cache has exposed a couple of bugs that we are currently
+>working on. We need to make sure that we pass the ASLTS suite before the
+>code is integrated/released.
+>>
+>> Bob
+>>
+>>
+>>
+>>> -----Original Message-----
+>>> From: Lin, Ming M
+>>> Sent: Monday, May 11, 2009 1:14 AM
+>>> To: Alexey Starikovskiy
+>>> Cc: Moore, Robert; Linux-acpi@vger.kernel.org
+>>> Subject: Re: [PATCH 1/4] ACPICA: Remove use of caches in controlled way
+>>>
+>>> Hi, Alexey
+>>>
+>>> The attachment are the linuxized version of your patches.
+>>> I added another patch (the 4th) to remove linux specific cache code.
+>>>
+>>> The patches are applied on top of linux-acpi-2.6/acpica branch.
+>>>
+>>> Do you have any suggestion what data I should collect to verify if these
+>>> patches have a performance gain?
+>>>
+>>> Lin Ming
+>>>
+>>> On Thu, 2009-05-07 at 23:52 +0800, Alexey Starikovskiy wrote:
+>>>
+>>>> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+>>>> ---
+>>>>
+>>>>  source/components/utilities/utcache.c |   99 +++++--------------------
+>--
+>>>>
+>>> ------
+>>>
+>>>>  1 files changed, 14 insertions(+), 85 deletions(-)
+>>>>
+>>>>
+>>>> diff --git a/source/components/utilities/utcache.c
+>>>>
+>>> b/source/components/utilities/utcache.c
+>>>
+>>>> index aabc0a2..d08d520 100644
+>>>> --- a/source/components/utilities/utcache.c
+>>>> +++ b/source/components/utilities/utcache.c
+>>>> @@ -287,49 +287,15 @@ AcpiOsReleaseObject (
+>>>>      ACPI_MEMORY_LIST        *Cache,
+>>>>      void                    *Object)
+>>>>  {
+>>>> -    ACPI_STATUS             Status;
+>>>> -
+>>>> -
+>>>>      ACPI_FUNCTION_ENTRY ();
+>>>>
+>>>> -
+>>>>      if (!Cache || !Object)
+>>>>      {
+>>>>          return (AE_BAD_PARAMETER);
+>>>>      }
+>>>>
+>>>> -    /* If cache is full, just free this object */
+>>>> -
+>>>> -    if (Cache->CurrentDepth >= Cache->MaxDepth)
+>>>> -    {
+>>>> -        ACPI_FREE (Object);
+>>>> -        ACPI_MEM_TRACKING (Cache->TotalFreed++);
+>>>> -    }
+>>>> -
+>>>> -    /* Otherwise put this object back into the cache */
+>>>> -
+>>>> -    else
+>>>> -    {
+>>>> -        Status = AcpiUtAcquireMutex (ACPI_MTX_CACHES);
+>>>> -        if (ACPI_FAILURE (Status))
+>>>> -        {
+>>>> -            return (Status);
+>>>> -        }
+>>>> -
+>>>> -        /* Mark the object as cached */
+>>>> -
+>>>> -        ACPI_MEMSET (Object, 0xCA, Cache->ObjectSize);
+>>>> -        ACPI_SET_DESCRIPTOR_TYPE (Object, ACPI_DESC_TYPE_CACHED);
+>>>> -
+>>>> -        /* Put the object at the head of the cache list */
+>>>> -
+>>>> -        * (ACPI_CAST_INDIRECT_PTR (char,
+>>>> -            &(((char *) Object)[Cache->LinkOffset]))) = Cache-
+>>ListHead;
+>>>> -        Cache->ListHead = Object;
+>>>> -        Cache->CurrentDepth++;
+>>>> -
+>>>> -        (void) AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+>>>> -    }
+>>>> +    ACPI_FREE (Object);
+>>>> +    ACPI_MEM_TRACKING (Cache->TotalFreed++);
+>>>>
+>>>>      return (AE_OK);
+>>>>  }
+>>>> @@ -353,8 +319,6 @@ AcpiOsAcquireObject (
+>>>>      ACPI_MEMORY_LIST        *Cache)
+>>>>  {
+>>>>      ACPI_STATUS             Status;
+>>>> -    void                    *Object;
+>>>> -
+>>>>
+>>>>      ACPI_FUNCTION_NAME (OsAcquireObject);
+>>>>
+>>>> @@ -372,61 +336,26 @@ AcpiOsAcquireObject (
+>>>>
+>>>>      ACPI_MEM_TRACKING (Cache->Requests++);
+>>>>
+>>>> -    /* Check the cache first */
+>>>> +    /* The cache is empty, create a new object */
+>>>>
+>>>> -    if (Cache->ListHead)
+>>>> -    {
+>>>> -        /* There is an object available, use it */
+>>>> -
+>>>> -        Object = Cache->ListHead;
+>>>> -        Cache->ListHead = *(ACPI_CAST_INDIRECT_PTR (char,
+>>>> -                                &(((char *) Object)[Cache-
+>>>> LinkOffset])));
+>>>> -
+>>>> -        Cache->CurrentDepth--;
+>>>> -
+>>>> -        ACPI_MEM_TRACKING (Cache->Hits++);
+>>>> -        ACPI_DEBUG_PRINT ((ACPI_DB_EXEC,
+>>>> -            "Object %p from %s cache\n", Object, Cache->ListName));
+>>>> -
+>>>> -        Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+>>>> -        if (ACPI_FAILURE (Status))
+>>>> -        {
+>>>> -            return (NULL);
+>>>> -        }
+>>>> -
+>>>> -        /* Clear (zero) the previously used Object */
+>>>> -
+>>>> -        ACPI_MEMSET (Object, 0, Cache->ObjectSize);
+>>>> -    }
+>>>> -    else
+>>>> -    {
+>>>> -        /* The cache is empty, create a new object */
+>>>> -
+>>>> -        ACPI_MEM_TRACKING (Cache->TotalAllocated++);
+>>>> +    ACPI_MEM_TRACKING (Cache->TotalAllocated++);
+>>>>
+>>>>  #ifdef ACPI_DBG_TRACK_ALLOCATIONS
+>>>> -        if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache-
+>>>> MaxOccupied)
+>>>> -        {
+>>>> -            Cache->MaxOccupied = Cache->TotalAllocated - Cache-
+>>>> TotalFreed;
+>>>> -        }
+>>>> +    if ((Cache->TotalAllocated - Cache->TotalFreed) > Cache-
+>>>> MaxOccupied)
+>>>> +    {
+>>>> +        Cache->MaxOccupied = Cache->TotalAllocated - Cache-
+>>TotalFreed;
+>>>> +    }
+>>>>  #endif
+>>>>
+>>>> -        /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
+>>>> +    /* Avoid deadlock with ACPI_ALLOCATE_ZEROED */
+>>>>
+>>>> -        Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+>>>> -        if (ACPI_FAILURE (Status))
+>>>> -        {
+>>>> -            return (NULL);
+>>>> -        }
+>>>> -
+>>>> -        Object = ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
+>>>> -        if (!Object)
+>>>> -        {
+>>>> -            return (NULL);
+>>>> -        }
+>>>> +    Status = AcpiUtReleaseMutex (ACPI_MTX_CACHES);
+>>>> +    if (ACPI_FAILURE (Status))
+>>>> +    {
+>>>> +        return (NULL);
+>>>>      }
+>>>>
+>>>> -    return (Object);
+>>>> +    return ACPI_ALLOCATE_ZEROED (Cache->ObjectSize);
+>>>>  }
+>>>>  #endif /* ACPI_USE_LOCAL_CACHE */
+>>>>
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+>in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
- drivers/platform/x86/dell-wmi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN drivers/platform/x86/dell-wmi.c~dell-wmi-mask-off-bis-provided-garbage-in-scancode-data drivers/platform/x86/dell-wmi.c
---- a/drivers/platform/x86/dell-wmi.c~dell-wmi-mask-off-bis-provided-garbage-in-scancode-data
-+++ a/drivers/platform/x86/dell-wmi.c
-@@ -122,7 +122,7 @@ static void dell_wmi_notify(u32 value, v
- 
- 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
- 		int *buffer = (int *)obj->buffer.pointer;
--		key = dell_wmi_get_entry_by_scancode(buffer[1]);
-+		key = dell_wmi_get_entry_by_scancode(0xFFFF & buffer[1]);
- 		if (key) {
- 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
- 			input_sync(dell_wmi_input_dev);
-@@ -130,7 +130,7 @@ static void dell_wmi_notify(u32 value, v
- 			input_sync(dell_wmi_input_dev);
- 		} else
- 			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
--			       buffer[1]);
-+			       0xFFFF & buffer[1]);
- 	}
- }
- 
-_
