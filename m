@@ -1,44 +1,79 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering
- S3
-Date: Tue, 12 May 2009 22:01:09 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0905122155550.7989-100000@netrider.rowland.org>
-References: <1242177651.16529.26.camel@rzhang-dt>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH]: ACPI: Skip the power state check in power transition
+Date: Wed, 13 May 2009 11:13:04 +0800
+Message-ID: <1242184384.3773.241.camel@localhost.localdomain>
+References: <1242106060.3773.216.camel@localhost.localdomain>
+	 <200905120857.40058.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:46601 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751371AbZEMCBJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2009 22:01:09 -0400
-In-Reply-To: <1242177651.16529.26.camel@rzhang-dt>
+Received: from mga02.intel.com ([134.134.136.20]:21946 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758570AbZEMDKp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 May 2009 23:10:45 -0400
+In-Reply-To: <200905120857.40058.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 13 May 2009, Zhang Rui wrote:
-
-> Hi, all,
+On Tue, 2009-05-12 at 22:57 +0800, Bjorn Helgaas wrote:
+> On Monday 11 May 2009 11:27:40 pm yakui_zhao wrote:
+> > From: Zhao Yakui <yakui.zhao@intel.com>
+> > 
+> > Skip the power state check in course of power transition by changing the
+> > default value of acpi_power_nocheck to 1. If so, it is unnecessary to add the
+> > boot option of "acpi.power_nocheck=1" or add it into DMI power check table to
+> > skip the power state check.
+> > 
+> > Of course the power state check still can be enabled by adding the boot option
+> > of "acpi.power_nocheck=0".
 > 
-> I did some S3 tests on an eeepc901, the total suspend time(from issue
-> the suspend command to power down) is about 2.5s~3s.
-> something interesting is that kernel runs disk sync before entering S3
-> state, and this takes about 0.7~1.2s.
-> my question is that, why do we need this for s2ram?
-> can we remove this and run sys_sync for S4 only?
+> What is the value of keeping the "acpi.power_nocheck" option at all?
+> 
+> If we can get along without it, it'd be nice to just remove the
+> whole thing.
+Yes. If we delete the course of the power state check in power
+transition, it will be unnecessary to add the boot option.
 
-At the risk of sounding foolish, I'd guess that a system in S3 (or more
-generally, suspend-to-RAM) is a lot more at risk of losing power or
-failing to restore than a normally running system.  (A normally running
-system is trivially not at risk of failing to restore!)  Consequently
-it makes sense to flush the I/O buffers before entering this state, to
-minimize the potential for loss of data.
+In fact this object is defined in ACPI spec. And we had better follow
+that. IMO Linux ACPI does the right thing.
+The boot option of "acpi.power_nocheck" is only to make Linux be
+compatible with windows.
 
-When you think about it, a system in S4 is actually _less_ likely to 
-run into trouble than one in S3, since it can't fail because of loss of 
-power.  So if anything, we should remove the disk sync from hibernation 
-and leave it in system suspend.
+At the same time if we want to make the power state check more strict,
+we will have to re-add the source-code. 
 
-Alan Stern
+So IMO it will be better that the power state check in power transition
+is controlled by one module parameter.
+
+Best regards.
+    Yakui.
+
+> 
+> Bjorn
+> 
+> > Index: linux-2.6/drivers/acpi/power.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/acpi/power.c	2009-04-16 16:10:24.000000000 +0800
+> > +++ linux-2.6/drivers/acpi/power.c	2009-05-12 13:12:27.000000000 +0800
+> > @@ -54,7 +54,7 @@
+> >  #define ACPI_POWER_RESOURCE_STATE_ON	0x01
+> >  #define ACPI_POWER_RESOURCE_STATE_UNKNOWN 0xFF
+> >  
+> > -int acpi_power_nocheck;
+> > +int acpi_power_nocheck = 1;
+> >  module_param_named(power_nocheck, acpi_power_nocheck, bool, 000);
+> >  
+> >  static int acpi_power_add(struct acpi_device *device);
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
 
