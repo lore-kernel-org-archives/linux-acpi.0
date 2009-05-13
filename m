@@ -1,62 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering S3
-Date: Wed, 13 May 2009 16:16:26 +0200
-Message-ID: <200905131616.27334.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org>
+From: Bob Copeland <me@bobcopeland.com>
+Subject: Re: [BISECTED] Was Re: acpi/suspend - irq 9: nobody cared
+Date: Wed, 13 May 2009 11:30:02 -0400
+Message-ID: <b6c5339f0905130830k3549095dv3eee08d7d3155a37@mail.gmail.com>
+References: <20090507105821.GA5864@hash.localnet>
+	 <d3f22a0905122245h15786220g31ad0dcb8caa3a38@mail.gmail.com>
+	 <1242192968.14626.40.camel@minggr.sh.intel.com>
+	 <200905131015.45635.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49622 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714AbZEMOR1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 May 2009 10:17:27 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:62051 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756444AbZEMPaE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2009 11:30:04 -0400
+In-Reply-To: <200905131015.45635.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-pm@lists.linux-foundation.org, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Lin Ming <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, yakui_zhao <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Wednesday 13 May 2009, Alan Stern wrote:
-> On Wed, 13 May 2009, Rafael J. Wysocki wrote:
-> 
-> > > > I generally agree, but I think we may also leave the syncing to the user space,
-> > > > in both cases.
-> > > 
-> > > Well...
-> > > 
-> > > Normally kernel writes dirty data to disk each 30
-> > > seconds. s2ram/s2disk breaks that promise, so it seems fair to add
-> > > explicit sync to keep the "promise".
-> > > 
-> > > OTOH, I agree it would be more flexible if we left sync to
-> > > userspace. In uswsusp case, it actually makes sense. In s2ram
-> > > case... if we can do it while keeping compatibility with old
-> > > behaviour... why not.
-> > 
-> > That really depends on the distrubution.  (open)SUSE always syncs before
-> > suspend/hibernation AFAICS, but I don't know about the other distros.
-> 
-> This doesn't address the real question: Should the system be allowed to 
-> go into S3 without doing a sync first?
-> 
-> Whether the sync is initiated by userspace or by the kernel doesn't 
-> make any difference.  Likewise, it doesn't matter if there are two 
-> syncs (because the second will be very fast, as Pavel said).
-> 
-> If you really wanted to speed up the suspend transition then you would
-> leave out the sync entirely.  But IMO this would be a mistake; the risk
-> of data loss is too great.  Which means the time overhead is necessary,
-> one way or another.  If userspace does a sync first then the suspend
-> transition will be faster, but this is just an accounting artifact (do
-> you count the time required for the sync toward the time required for
-> the suspend or not).
+2009/5/13 Rafael J. Wysocki <rjw@sisk.pl>:
+>> So we preserve SCI_EN bit per spec.
+>
+> In fact we do set SCI_EN directly in drivers/acpi/sleep.c in a couple=
+ of
+> places exactly because the hardware is _known_ to wrong things here. =
+=A0So, we
+> don't really preserve it, _exactly_ because at least some pieces of h=
+ardware
+> out there don't follow the spec. =A0Including Macs, IIRC.
+>
+> Bob, can you please verify if the Lin Ming's patch helps?
 
-My point was in fact that if we left the syncing to the user space, then the
-user would be able to decide not to sync risking data loss.  At the moment the
-user has no choice. :-)
+Yes, my laptop is one of those pieces of hardware.  I can confirm that =
+Lin
+Ming's patch works on my system.
 
-Thanks,
-Rafael
+--=20
+Bob Copeland %% www.bobcopeland.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
