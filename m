@@ -1,55 +1,62 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering
- S3
-Date: Wed, 13 May 2009 10:06:17 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org>
-References: <200905131053.39271.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering S3
+Date: Wed, 13 May 2009 16:16:26 +0200
+Message-ID: <200905131616.27334.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:45826 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752544AbZEMOGR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2009 10:06:17 -0400
-In-Reply-To: <200905131053.39271.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:49622 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751714AbZEMOR1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 May 2009 10:17:27 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Alan Stern <stern@rowland.harvard.edu>
 Cc: Pavel Machek <pavel@ucw.cz>, linux-pm@lists.linux-foundation.org, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, 13 May 2009, Rafael J. Wysocki wrote:
-
-> > > I generally agree, but I think we may also leave the syncing to the user space,
-> > > in both cases.
-> > 
-> > Well...
-> > 
-> > Normally kernel writes dirty data to disk each 30
-> > seconds. s2ram/s2disk breaks that promise, so it seems fair to add
-> > explicit sync to keep the "promise".
-> > 
-> > OTOH, I agree it would be more flexible if we left sync to
-> > userspace. In uswsusp case, it actually makes sense. In s2ram
-> > case... if we can do it while keeping compatibility with old
-> > behaviour... why not.
+On Wednesday 13 May 2009, Alan Stern wrote:
+> On Wed, 13 May 2009, Rafael J. Wysocki wrote:
 > 
-> That really depends on the distrubution.  (open)SUSE always syncs before
-> suspend/hibernation AFAICS, but I don't know about the other distros.
+> > > > I generally agree, but I think we may also leave the syncing to the user space,
+> > > > in both cases.
+> > > 
+> > > Well...
+> > > 
+> > > Normally kernel writes dirty data to disk each 30
+> > > seconds. s2ram/s2disk breaks that promise, so it seems fair to add
+> > > explicit sync to keep the "promise".
+> > > 
+> > > OTOH, I agree it would be more flexible if we left sync to
+> > > userspace. In uswsusp case, it actually makes sense. In s2ram
+> > > case... if we can do it while keeping compatibility with old
+> > > behaviour... why not.
+> > 
+> > That really depends on the distrubution.  (open)SUSE always syncs before
+> > suspend/hibernation AFAICS, but I don't know about the other distros.
+> 
+> This doesn't address the real question: Should the system be allowed to 
+> go into S3 without doing a sync first?
+> 
+> Whether the sync is initiated by userspace or by the kernel doesn't 
+> make any difference.  Likewise, it doesn't matter if there are two 
+> syncs (because the second will be very fast, as Pavel said).
+> 
+> If you really wanted to speed up the suspend transition then you would
+> leave out the sync entirely.  But IMO this would be a mistake; the risk
+> of data loss is too great.  Which means the time overhead is necessary,
+> one way or another.  If userspace does a sync first then the suspend
+> transition will be faster, but this is just an accounting artifact (do
+> you count the time required for the sync toward the time required for
+> the suspend or not).
 
-This doesn't address the real question: Should the system be allowed to 
-go into S3 without doing a sync first?
+My point was in fact that if we left the syncing to the user space, then the
+user would be able to decide not to sync risking data loss.  At the moment the
+user has no choice. :-)
 
-Whether the sync is initiated by userspace or by the kernel doesn't 
-make any difference.  Likewise, it doesn't matter if there are two 
-syncs (because the second will be very fast, as Pavel said).
-
-If you really wanted to speed up the suspend transition then you would
-leave out the sync entirely.  But IMO this would be a mistake; the risk
-of data loss is too great.  Which means the time overhead is necessary,
-one way or another.  If userspace does a sync first then the suspend
-transition will be faster, but this is just an accounting artifact (do
-you count the time required for the sync toward the time required for
-the suspend or not).
-
-Alan Stern
-
+Thanks,
+Rafael
