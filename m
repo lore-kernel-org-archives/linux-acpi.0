@@ -1,135 +1,245 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH 1/3] Add support for more dell-wmi hotkeys
-Date: Wed, 13 May 2009 12:50:30 -0500
-Message-ID: <4A0B0866.2040402@dell.com>
-References: <49ECBAE2.2080308@dell.com> <49EE09D9.2060209@dell.com> <20090429171508.GA717@srcf.ucam.org>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: [RFC] i915/acpi: add lid status notification and detection
+Date: Wed, 13 May 2009 11:57:34 -0700
+Message-ID: <20090513115734.338b7d55@jbarnes-g45>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigF2783BDB7574C6D1AB71DD59"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60pc101.us.dell.com ([143.166.85.206]:28505 "EHLO
-	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755090AbZEMRu3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2009 13:50:29 -0400
-In-Reply-To: <20090429171508.GA717@srcf.ucam.org>
+Received: from outbound-mail-312.bluehost.com ([67.222.54.5]:57554 "HELO
+	outbound-mail-312.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754398AbZEMS5o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 May 2009 14:57:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: intel-gfx@lists.freedesktop.org, linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigF2783BDB7574C6D1AB71DD59
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+In the i915 driver we want to know if the lid is open or closed and
+when its status changes, since we want to use the closed state to
+indicate that the LFP is unavailable (disconnected in KMS terms) and
+open to indicate that it's usable.
 
-Hi Matthew:
+To that end, this patch adds some code to the ACPI button driver to
+send us lid notifications as they occur and provide us with current lid
+status when called.
 
-Matthew Garrett wrote:
-> This is the version I'm planning on applying - look ok? I've skipped th=
-e=20
-> OSD stuff, since right now we're not going to do anything terribly=20
-> useful with them. I'd prefer some consensus on where we're going with=20
-> these notifications.
->
-> commit d0cc3d9de1b8e97a7176ddc7efe48239896100c1
-> Author: Matthew Garrett <mjg@redhat.com>
-> Date:   Wed Apr 29 18:07:30 2009 +0100
->
->     From: Mario Limonciello <mario_limonciello@dell.com>
->    =20
->     dell-wmi: Add additional keyboard events
->    =20
->     Upcoming Dell hardware will send more keyboard events via WMI. Add =
-support
->     for them.
->    =20
->     Signed-off-by: Mario Limonciello <mario_limonciello@dell.com>
->
-> diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/del=
-l-wmi.c
-> index 81d7179..847f486 100644
-> --- a/drivers/platform/x86/dell-wmi.c
-> +++ b/drivers/platform/x86/dell-wmi.c
-> @@ -48,8 +48,49 @@ struct key_entry {
-> =20
->  enum { KE_KEY, KE_SW, KE_END };
-> =20
-> +/*
-> + * There are some additional events sent as scancodes, but these are
-> + * not currently terribly relevant to Linux. They are:
-> + *=20
-> + * 0xe020: Mute
-> + * 0xe02e: Volume down
-> + * 0xe030: Volume up
-> + * 0xe00c: Keyboard illumination toggle
-> + * 0xe033: Keyboard illumination up
-> + * 0xe034: Keyboard illumination down
-> + * 0xe00d: BIOS error detected
-> + * 0xe013: Ambient light sensor toggle
-> + * 0xe03a: Caps lock
-> + * 0xe045: Num lock
-> + * 0xe046: Scroll lock
-> + *
-> + * All of these are either notifications (rather than requests for cha=
-nge) or
-> + * are also sent via the keyboard controller
-> + */
-> +
->  static struct key_entry dell_wmi_keymap[] =3D {
->  	{KE_KEY, 0xe045, KEY_PROG1},
-> +        {KE_KEY, 0xe009, KEY_EJECTCD},
-> +
-> +	/* These also contain the brightness level at offset 6 */
-> +	{KE_KEY, 0xe006, KEY_BRIGHTNESSUP},
-> +	{KE_KEY, 0xe005, KEY_BRIGHTNESSDOWN},
-> +
-> +	/* The next device is at offset 6, the active devices are at
-> +	   offset 8 and the attached devices at offset 10 */
-> +	{KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
-> +
-> +	/* This is actually for all radios. Although physically a
-> +	 * switch, the notification does not provide an indication of
-> +	 * state and so it should be reported as a key */
-> +	{KE_KEY, 0xe008, KEY_WLAN},
-> +
-> +	/* Wifi Catcher */
-> +	{KE_KEY, 0xe011, KEY_PROG2},
-> +
-> +	/* Battery health status button */
-> +	{KE_KEY, 0xe007, KEY_BATTERY},
-> +
->  	{KE_END, 0}
->  };
->  =20
-Two additional comments:
+It's a bit ugly, and I don't handle the inter-module dependencies very
+well at this point, but you should get the idea.
 
-1) Rather  than KEY_DISPLAYTOGGLE, it would make more sense to use
-KEY_SWITCHVIDEOMODE.
+There's also a policy question here.  On some machines, a lid close
+will cause the ACPI firmware to program the GPU, disabling the pipe
+associated with the panel.  Should we detect this and turn it back on
+at open time?  That could be dangerous if userspace has received the
+LVDS hotplug event and changed the config out from under us...
 
-2) There is another scancode that should be tied to KEY_SWITCHVIDEOMODE,
-0xe09b.  Machines will support one or the other, but not both.
+Comments?
 
-Regards
+-- 
+Jesse Barnes, Intel Open Source Technology Center
 
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 9195deb..ebb593e 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -113,6 +113,9 @@ static const struct file_operations acpi_button_state_fops = {
+ 	.release = single_release,
+ };
+ 
++static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
++static struct acpi_device *lid_device;
++
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -229,11 +232,38 @@ static int acpi_button_remove_fs(struct acpi_device *device)
+ /* --------------------------------------------------------------------------
+                                 Driver Interface
+    -------------------------------------------------------------------------- */
++int acpi_lid_notifier_register(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&acpi_lid_notifier, nb);
++}
++EXPORT_SYMBOL(acpi_lid_notifier_register);
++
++int acpi_lid_notifier_unregister(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&acpi_lid_notifier, nb);
++}
++EXPORT_SYMBOL(acpi_lid_notifier_unregister);
++
++int acpi_lid_open(void)
++{
++	acpi_status status;
++	unsigned long long state;
++
++	status = acpi_evaluate_integer(lid_device->handle, "_LID", NULL,
++				       &state);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return !!state;
++}
++EXPORT_SYMBOL(acpi_lid_open);
++
+ static int acpi_lid_send_state(struct acpi_device *device)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 	unsigned long long state;
+ 	acpi_status status;
++	int ret;
+ 
+ 	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &state);
+ 	if (ACPI_FAILURE(status))
+@@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct acpi_device *device)
+ 	/* input layer checks if event is redundant */
+ 	input_report_switch(button->input, SW_LID, !state);
+ 	input_sync(button->input);
+-	return 0;
++
++	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
++	if (ret == NOTIFY_DONE)
++		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
++						   device);
++	return ret;
+ }
+ 
+ static void acpi_button_notify(struct acpi_device *device, u32 event)
+@@ -364,8 +399,14 @@ static int acpi_button_add(struct acpi_device *device)
+ 	error = input_register_device(input);
+ 	if (error)
+ 		goto err_remove_fs;
+-	if (button->type == ACPI_BUTTON_TYPE_LID)
++	if (button->type == ACPI_BUTTON_TYPE_LID) {
+ 		acpi_lid_send_state(device);
++		/*
++		 * This assumes there's only one lid device, or if there are
++		 * more we only care about the last one...
++		 */
++		lid_device = device;
++	}
+ 
+ 	if (device->wakeup.flags.valid) {
+ 		/* Button's GPE is run-wake GPE */
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 2506592..fb12fb9 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -190,6 +190,8 @@ typedef struct drm_i915_private {
+ 	unsigned int lvds_use_ssc:1;
+ 	int lvds_ssc_freq;
+ 
++	struct notifier_block lid_notifier;
++
+ 	struct drm_i915_fence_reg fence_regs[16]; /* assume 965 */
+ 	int fence_reg_start; /* 4 if userland hasn't ioctl'd us yet */
+ 	int num_fence_regs; /* 8 on pre-965, 16 otherwise */
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index bdcda36..08c1260 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -24,6 +24,8 @@
+  *	Eric Anholt <eric@anholt.net>
+  */
+ 
++#include <linux/module.h>
++#include <linux/input.h>
+ #include <linux/i2c.h>
+ #include "drmP.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index 6619f26..8f05b09 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -27,6 +27,7 @@
+  *      Jesse Barnes <jesse.barnes@intel.com>
+  */
+ 
++#include <acpi/button.h>
+ #include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include "drmP.h"
+@@ -277,12 +278,18 @@ static void intel_lvds_mode_set(struct drm_encoder *encoder,
+ /**
+  * Detect the LVDS connection.
+  *
+- * This always returns CONNECTOR_STATUS_CONNECTED.  This connector should only have
+- * been set up if the LVDS was actually connected anyway.
++ * Since LVDS doesn't have hotlug, we use the lid as a proxy.  Open means
++ * connected and closed means disconnected.  We also send hotplug events as
++ * needed, using lid status notification from the input layer.
+  */
+ static enum drm_connector_status intel_lvds_detect(struct drm_connector *connector)
+ {
+-	return connector_status_connected;
++	enum drm_connector_status status = connector_status_connected;
++
++	if (!acpi_lid_open())
++		status = connector_status_disconnected;
++
++	return status;
+ }
+ 
+ /**
+@@ -321,6 +328,17 @@ static int intel_lvds_get_modes(struct drm_connector *connector)
+ 	return 0;
+ }
+ 
++static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
++			    void *unused)
++{
++	struct drm_i915_private *dev_priv =
++		container_of(nb, struct drm_i915_private, lid_notifier);
++
++	drm_sysfs_hotplug_event(dev_priv->dev);
++
++	return NOTIFY_OK;
++}
++
+ /**
+  * intel_lvds_destroy - unregister and free LVDS structures
+  * @connector: connector to free
+@@ -330,10 +348,14 @@ static int intel_lvds_get_modes(struct drm_connector *connector)
+  */
+ static void intel_lvds_destroy(struct drm_connector *connector)
+ {
++	struct drm_device *dev = connector->dev;
+ 	struct intel_output *intel_output = to_intel_output(connector);
++	struct drm_i915_private *dev_priv = dev->dev_private;
+ 
+ 	if (intel_output->ddc_bus)
+ 		intel_i2c_destroy(intel_output->ddc_bus);
++	if (dev_priv->lid_notifier.notifier_call)
++		acpi_lid_notifier_unregister(&dev_priv->lid_notifier);
+ 	drm_sysfs_connector_remove(connector);
+ 	drm_connector_cleanup(connector);
+ 	kfree(connector);
+@@ -508,6 +530,11 @@ void intel_lvds_init(struct drm_device *dev)
+ 		goto failed;
+ 
+ out:
++	dev_priv->lid_notifier.notifier_call = intel_lid_notify;
++	if (acpi_lid_notifier_register(&dev_priv->lid_notifier)) {
++		DRM_DEBUG("lid notifier registration failed\n");
++		dev_priv->lid_notifier.notifier_call = NULL;
++	}
+ 	drm_sysfs_connector_add(connector);
+ 	return;
+ 
+diff --git a/include/acpi/button.h b/include/acpi/button.h
+new file mode 100644
+index 0000000..bb643a7
+--- /dev/null
++++ b/include/acpi/button.h
+@@ -0,0 +1,10 @@
++#ifndef ACPI_BUTTON_H
++#define ACPI_BUTTON_H
++
++#include <linux/notifier.h>
++
++extern int acpi_lid_notifier_register(struct notifier_block *nb);
++extern int acpi_lid_notifier_unregister(struct notifier_block *nb);
++extern int acpi_lid_open(void);
++
++#endif /* ACPI_BUTTON_H */
 
-
---------------enigF2783BDB7574C6D1AB71DD59
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkoLCGYACgkQ2CrZjkA73YtihACfak3E0yd8SouytvsnPB/roPyW
-6WUAoJmRsuBQeMLGXKzKMUPA0CQZTsdm
-=4u3i
------END PGP SIGNATURE-----
-
---------------enigF2783BDB7574C6D1AB71DD59--
