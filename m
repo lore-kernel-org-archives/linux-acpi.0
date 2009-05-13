@@ -1,34 +1,55 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH]: ACPI: Skip the power state check in power transition
-Date: Wed, 13 May 2009 14:08:05 +0100
-Message-ID: <20090513130803.GA27522@srcf.ucam.org>
-References: <1242106060.3773.216.camel@localhost.localdomain> <200905120857.40058.bjorn.helgaas@hp.com> <1242184384.3773.241.camel@localhost.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering
+ S3
+Date: Wed, 13 May 2009 10:06:17 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org>
+References: <200905131053.39271.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39591 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754906AbZEMNIL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2009 09:08:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1242184384.3773.241.camel@localhost.localdomain>
+Received: from iolanthe.rowland.org ([192.131.102.54]:45826 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752544AbZEMOGR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2009 10:06:17 -0400
+In-Reply-To: <200905131053.39271.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-pm@lists.linux-foundation.org, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, May 13, 2009 at 11:13:04AM +0800, yakui_zhao wrote:
+On Wed, 13 May 2009, Rafael J. Wysocki wrote:
 
-> In fact this object is defined in ACPI spec. And we had better follow
-> that. IMO Linux ACPI does the right thing.
-> The boot option of "acpi.power_nocheck" is only to make Linux be
-> compatible with windows.
+> > > I generally agree, but I think we may also leave the syncing to the user space,
+> > > in both cases.
+> > 
+> > Well...
+> > 
+> > Normally kernel writes dirty data to disk each 30
+> > seconds. s2ram/s2disk breaks that promise, so it seems fair to add
+> > explicit sync to keep the "promise".
+> > 
+> > OTOH, I agree it would be more flexible if we left sync to
+> > userspace. In uswsusp case, it actually makes sense. In s2ram
+> > case... if we can do it while keeping compatibility with old
+> > behaviour... why not.
+> 
+> That really depends on the distrubution.  (open)SUSE always syncs before
+> suspend/hibernation AFAICS, but I don't know about the other distros.
 
-The default behaviour should be to be compatible with Windows, 
-regardless of what the spec says. There's an argument for providing a 
-strict interpretation of the spec for testing purposes, but I don't see 
-any reason for it to be split up into dozens of individual kernel 
-parameters.
+This doesn't address the real question: Should the system be allowed to 
+go into S3 without doing a sync first?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Whether the sync is initiated by userspace or by the kernel doesn't 
+make any difference.  Likewise, it doesn't matter if there are two 
+syncs (because the second will be very fast, as Pavel said).
+
+If you really wanted to speed up the suspend transition then you would
+leave out the sync entirely.  But IMO this would be a mistake; the risk
+of data loss is too great.  Which means the time overhead is necessary,
+one way or another.  If userspace does a sync first then the suspend
+transition will be faster, but this is just an accounting artifact (do
+you count the time required for the sync toward the time required for
+the suspend or not).
+
+Alan Stern
+
