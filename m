@@ -1,33 +1,33 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
-Date: Thu, 14 May 2009 13:18:54 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905141317350.24833@localhost.localdomain>
-References: <87k5691x3y.fsf@olivierberger.com>
- <200904021502.31021.trenn@suse.de> <87ws98r0fl.fsf@olivierberger.com>
+Subject: Re: [patch 1/3] acpi: check _PSS invalidation when BIOS report _PSS
+ with 0x80000000
+Date: Thu, 14 May 2009 13:35:10 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905141335000.24833@localhost.localdomain>
+References: <200905122054.n4CKsfa3001669@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:45333 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbZENRTq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2009 13:19:46 -0400
+Received: from vms173003pub.verizon.net ([206.46.173.3]:46750 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751220AbZENRf2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2009 13:35:28 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173009.mailsrvcs.net
+ by vms173003.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KJN002QP9FK0VYD@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 14 May 2009 12:18:57 -0500 (CDT)
-In-reply-to: <87ws98r0fl.fsf@olivierberger.com>
+ with ESMTPA id <0KJN00BWRA6OF4VK@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 14 May 2009 12:35:13 -0500 (CDT)
+In-reply-to: <200905122054.n4CKsfa3001669@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Olivier Berger <oberger@ouvaton.org>
-Cc: linux-acpi@vger.kernel.org, Thomas Renninger <trenn@suse.de>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
 
-Olivier,
-If you can send me a properly formatted patch
-to remove the dmi entry,
-(Documentation/SubmittingPatches)
-including your signed-off, i'll apply it.
+NAK
+
+This is a recording.
+
+Andrew, please remove this patch from your series
+per issues earlier discussed on the list.
 
 thanks,
 Len Brown, Intel Open Source Technology Center
-
