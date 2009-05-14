@@ -1,44 +1,57 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH]: ACPI: Skip the power state check in power transition
-Date: Thu, 14 May 2009 09:47:39 +0800
-Message-ID: <1242265659.3773.428.camel@localhost.localdomain>
-References: <1242106060.3773.216.camel@localhost.localdomain>
-	 <200905120857.40058.bjorn.helgaas@hp.com>
-	 <1242184384.3773.241.camel@localhost.localdomain>
-	 <20090513130803.GA27522@srcf.ucam.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering
+	S3
+Date: Thu, 14 May 2009 11:42:49 +0200
+Message-ID: <20090514094249.GG6417@elf.ucw.cz>
+References: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org> <200905131616.27334.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57459 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754677AbZENBpQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 May 2009 21:45:16 -0400
-In-Reply-To: <20090513130803.GA27522@srcf.ucam.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45810 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160AbZENJmz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2009 05:42:55 -0400
+Content-Disposition: inline
+In-Reply-To: <200905131616.27334.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Wed, 2009-05-13 at 21:08 +0800, Matthew Garrett wrote:
-> The default behaviour should be to be compatible with Windows, 
-> regardless of what the spec says. There's an argument for providing a 
-> strict interpretation of the spec for testing purposes, but I don't
-> see 
-> any reason for it to be split up into dozens of individual kernel 
-> parameters
-The ACPI 1.0 spec is followed by windows XP. And the power state is not
-checked in power transition under windows XP.
-But we don't know whether it is still skipped on the new version
-windows.(For example: Windows 7).
 
-If the module param is removed, we must delete the source code related
-with power state check. And if the power state is checked in power
-transition on windows 7, what we should do? It is not reasonable to add
-them again.
+> > > That really depends on the distrubution.  (open)SUSE always syncs before
+> > > suspend/hibernation AFAICS, but I don't know about the other distros.
+> > 
+> > This doesn't address the real question: Should the system be allowed to 
+> > go into S3 without doing a sync first?
+> > 
+> > Whether the sync is initiated by userspace or by the kernel doesn't 
+> > make any difference.  Likewise, it doesn't matter if there are two 
+> > syncs (because the second will be very fast, as Pavel said).
+> > 
+> > If you really wanted to speed up the suspend transition then you would
+> > leave out the sync entirely.  But IMO this would be a mistake; the risk
+> > of data loss is too great.  Which means the time overhead is necessary,
+> > one way or another.  If userspace does a sync first then the suspend
+> > transition will be faster, but this is just an accounting artifact (do
+> > you count the time required for the sync toward the time required for
+> > the suspend or not).
+> 
+> My point was in fact that if we left the syncing to the user space, then the
+> user would be able to decide not to sync risking data loss.  At the moment the
+> user has no choice. :-)
 
-Maybe it is better to determine whether the power state check is skipped
-in power transition.
+Well, if you can add the choice, without adding anything ugly and with
+staying back-compatible, why not. (sync has to stay by default). I
+believe ioctls() on /dev/snapshot may already enable you to do s2ram
+without sync; if not they could be extended.
 
-Thanks.
+But remember there are even in-kernel s2ram triggers, for example on
+zaurus when battery goes critical.
 
+(And s2ram without sync _is_ "wrong": writeback timeouts are not
+honored).
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
