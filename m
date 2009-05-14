@@ -1,38 +1,35 @@
-From: Francis Russell <francis+lkml@unchartedbackwaters.co.uk>
-Subject: Spurious power button event on resume from hibernate
-Date: Thu, 14 May 2009 22:27:03 +0100
-Message-ID: <4A0C8CA7.2020104@unchartedbackwaters.co.uk>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 1/3] acpi: check _PSS invalidation when BIOS report _PSS
+ with 0x80000000
+Date: Thu, 14 May 2009 15:44:12 -0700
+Message-ID: <20090514154412.fee72568.akpm@linux-foundation.org>
+References: <200905122054.n4CKsfa3001669@imap1.linux-foundation.org>
+	<alpine.LFD.2.00.0905141335000.24833@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.unchartedbackwaters.co.uk ([78.110.170.111]:45588 "EHLO
-	smtp.unchartedbackwaters.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762AbZENVer (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41588 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755850AbZENWpQ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 May 2009 17:34:47 -0400
-Received: from [192.168.0.2] (host81-129-160-105.range81-129.btcentralplus.com [81.129.160.105])
-	by smtp.unchartedbackwaters.co.uk (Postfix) with ESMTPSA id 545FB135267
-	for <linux-acpi@vger.kernel.org>; Thu, 14 May 2009 22:27:05 +0100 (BST)
+	Thu, 14 May 2009 18:45:16 -0400
+In-Reply-To: <alpine.LFD.2.00.0905141335000.24833@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, youquan.song@intel.com, venkatesh.pallipadi@intel.com
 
-Hi all,
+On Thu, 14 May 2009 13:35:10 -0400 (EDT)
+Len Brown <lenb@kernel.org> wrote:
 
-I have a Samsung R560 laptop running amd64 Debian testing with a
-2.6.29.3 kernel compiled from vanilla sources. Upon resume from
-hibernate, it appears that the OS receives a power button event that
-causes the system to shut down. I've verified this the best I can by
-killing acpid then watching the output of /proc/acpi/event during
-hibernate (triggered by writing 'disk' to /sys/power/state).
+> NAK
+> 
+> This is a recording.
+> 
+> Andrew, please remove this patch from your series
+> per issues earlier discussed on the list.
+> 
 
-This problem looked very similar to that discussed in another Bugzilla
-entry (http://bugzilla.kernel.org/show_bug.cgi?id=6612) so I had I
-extended the changes made by the patch in the obvious way to the S4
-state but it made no difference. Is this something the kernel should be
-handling? How can I debug this further?
 
-Many thanks,
-
-Francis
+Did the problem get fixed?
