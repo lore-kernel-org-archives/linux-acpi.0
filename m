@@ -1,45 +1,46 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/7] x86/acpi: calling mp_config_acpi_gsi in
- mp_register_gsi -v2
-Date: Thu, 14 May 2009 12:20:22 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905141154390.19537@localhost.localdomain>
-References: <4A01C35C.7060207@kernel.org> <4A01C387.7090103@kernel.org>
+Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
+Date: Thu, 14 May 2009 13:14:29 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905141307300.24833@localhost.localdomain>
+References: <87k5691x3y.fsf@olivierberger.com>
+ <200904281339.15689.trenn@suse.de> <877i14aed8.fsf@olivierberger.com>
+ <200904281956.50640.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:44396 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760833AbZENQUZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2009 12:20:25 -0400
-In-reply-to: <4A01C387.7090103@kernel.org>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:49432 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788AbZENRQy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2009 13:16:54 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KJN00EAP988NQIG@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 14 May 2009 12:14:34 -0500 (CDT)
+In-reply-to: <200904281956.50640.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Olivier Berger <oberger@ouvaton.org>, linux-acpi@vger.kernel.org
 
-mp_config_acpi_gsi() has been dead code since the day it went into 2.6.27.
-Rather than repairing that, I'd rather see it removed.
+The P4B266 DMI entry went into ./arch/i386/kernel/dmi_scan.c
+back in Aug-2003.
 
-The justification for 2944e16b25e7fb8b5ee0dd9dc7197a0f9e523cfd
-"x86: update mptable" was:
+That was when I was just starting to maintain ACPI,
+and I took a bunch of blacklist entries from SuSE
+because they were already shipping with ACPI enabled.
 
-    1. kexec kernel with acpi=off
-    2. work around BIOSes where acpi routing is working, but mptable is
-       not right, so can use kernel/kexec to start other OSes that don't have
-       good acpi support.
-    
-    command line: update_mptable
+In the short term, it may have been the right thing to do,
+but in the long term it was a mistake and I regret doing it.
 
-So this is a command line option to allow
-MPS code to call into ACPI code to support kexec from an ACPI
-mode into non-ACPI mode -- all without a single comment in the code.
+Blacklist entries paper-over real bugs, and unless we are lucky
+enough that somebody like you, Oliver, steps forward,
+blacklist entries are nearly impossible to ever remove.
 
-I'm not convinced that the scenario that this code was
-intended to address justifies adding unreadable code to
-an area of the kernel which is notoriously over-complicated
-and fragile.  Doing so is the opposite of optimizing for maintenance.
-
-No, I don't want to see any MPS code ever call into ACPI code.
+So I'm inclined to apply your original patch to delete
+the blacklist entry entirely.  If somebody with one of
+those boxes has a regression, we'll go fix their box --
+which we may have acutally fixed years ago and not known it...
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len
