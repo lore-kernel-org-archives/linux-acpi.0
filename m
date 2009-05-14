@@ -1,40 +1,27 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 5/7] eeepc-laptop: Register as a pci-hotplug device
-Date: Thu, 14 May 2009 11:33:13 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905141129110.19537@localhost.localdomain>
-References: <1240817023-5985-1-git-send-email-corentincj@iksaif.net>
- <1240817023-5985-2-git-send-email-corentincj@iksaif.net>
- <1240817023-5985-3-git-send-email-corentincj@iksaif.net>
- <1240817023-5985-4-git-send-email-corentincj@iksaif.net>
- <1240817023-5985-5-git-send-email-corentincj@iksaif.net>
- <1240817023-5985-6-git-send-email-corentincj@iksaif.net>
+Subject: Re: [PATCH] x86/acpi: remove compress irq trick for 32bit
+Date: Thu, 14 May 2009 11:41:15 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905141140000.19537@localhost.localdomain>
+References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu>
+ <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org>
+ <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain>
+ <49F4D7CB.4040406@kernel.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:33807 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751246AbZENPdq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2009 11:33:46 -0400
-Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KJN00F7P4JGM0ZE@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 14 May 2009 10:33:25 -0500 (CDT)
-In-reply-to: <1240817023-5985-6-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <49F4D7CB.4040406@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>
 
-applied to acpi-test
+Yinghai,
+I'm really happy to see this workaround finally get removed.
 
-If it is common, then we should push for .30.
-If it is not common, then since it is larger
-than most -rc5 bugfixes, I'd prefer to wait for .31,
-even though it is driver specific.
+Acked-by: Len Brown <len.brown@intel.com>
 
-please advise.
+Ingo,
+go ahead and keep this with your irq patches.
 
 thanks,
 Len Brown, Intel Open Source Technology Center
-
