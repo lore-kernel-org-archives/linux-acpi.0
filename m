@@ -1,84 +1,57 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Battery information in sysfs for userspace tools
-Date: Fri, 15 May 2009 10:07:44 +0200
-Message-ID: <1242374864.3992.15.camel@miria>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH] ACPI: Idle C-states disabled by max_cstate should not
+ disable the TSC
+Date: Fri, 15 May 2009 10:27:55 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.0905151027130.3561@localhost.localdomain>
+References: <alpine.DEB.2.00.0905072359530.28378@gandalf.stny.rr.com> <200905110226.50115.elendil@planet.nl> <alpine.LFD.2.00.0905111614570.3561@localhost.localdomain> <4A0855A5.8040109@tut.fi> <alpine.LFD.2.00.0905141545280.24833@localhost.localdomain>
+ <alpine.LFD.2.00.0905141608070.24833@localhost.localdomain> <alpine.LFD.2.00.0905142217340.3561@localhost.localdomain> <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain> <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:45231 "EHLO smtp2-g21.free.fr"
+Received: from www.tglx.de ([62.245.132.106]:53046 "EHLO www.tglx.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755673AbZEOINJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 May 2009 04:13:09 -0400
-Received: from smtp2-g21.free.fr (localhost [127.0.0.1])
-	by smtp2-g21.free.fr (Postfix) with ESMTP id 381FC4B0179
-	for <linux-acpi@vger.kernel.org>; Fri, 15 May 2009 10:13:04 +0200 (CEST)
-Received: from molly.corsac.net (molly.corsac.net [81.57.48.219])
-	by smtp2-g21.free.fr (Postfix) with ESMTP id 50DB84B015E
-	for <linux-acpi@vger.kernel.org>; Fri, 15 May 2009 10:13:02 +0200 (CEST)
+	id S1756481AbZEOI3U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 May 2009 04:29:20 -0400
+In-Reply-To: <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Evgeni Golov <evgeni@debian.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Janne Kulmala <janne.t.kulmala@tut.fi>, Frans Pop <elendil@planet.nl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@elte.hu>, johnstul@us.ibm.com, linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, 15 May 2009, Len Brown wrote:
 
-Evgeni Golov (CC:ed) is currently taking care of fixing acpitool wrt.
-sysfs support (which is badly broken).=20
+> From: Len Brown <len.brown@intel.com>
+> 
+> Processor idle power states C2 and C3 stop the TSC on many machines.
+> Linux recognizes this situation and marks the TSC as unstable:
+> 
+> Marking TSC unstable due to TSC halts in idle
+> 
+> But if those same machines are booted with "processor.max_cstate=1",
+> then there is no need to validate C2 and C3, and no need to
+> disable the TSC, which can be reliably used as a clocksource.
+> 
+> Signed-off-by: Len Brown <len.brown@intel.com>
 
-Using the files in /sys/class/power_supply/BAT*/ we have some wondering
-about units.
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 
-=46or the current rate, for example, we have:
-
-corsac@hidalgo: grep . /sys/class/power_supply/BAT0/*now   =20
-/sys/class/power_supply/BAT0/current_now:14415000
-/sys/class/power_supply/BAT0/energy_now:44170000
-/sys/class/power_supply/BAT0/voltage_now:12481000
-corsac@hidalgo: grep . /sys/devices/platform/smapi/BAT0/*now
-/sys/devices/platform/smapi/BAT0/current_now:1151
-/sys/devices/platform/smapi/BAT0/power_now:14365
-
-I'm a bit puzzled with the differences in current_now (the battery is
-charging at that time), and don't really know if we can trust the units=
-=2E
-
-I would assume (in /sys/class/power_supply):
-current_now to be in uA
-energy_now to be in uWh
-voltage_now to be in uV
-
-as said in include/linux/power_supply.h
-
-/*
- * All voltages, currents, charges, energies, time and temperatures in =
-uV,
- * =C2=B5A, =C2=B5Ah, =C2=B5Wh, seconds and tenths of degree Celsius un=
-less otherwise
- * stated. It's driver's job to convert its raw values to units in whic=
-h
- * this class operates.
- */
-
-
-and the current (dis)charging rate in W to be
-(current_now/1.000.000)*(energy_now/1.000.000). But that gives, for an
-end of charge, a charging rate of:
-
-(14415000 / 1000000) * (12481000 / 1000000) =3D approx. 179.91362
-
-which seems definitely wrong.
-
-Where am I mistaken?
-
-Btw this is on 2.6.29.2 on a Thinkpad T61, and tp-smapi is loaded.
-
-Cheers,
---=20
-Yves-Alexis
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/acpi/processor_idle.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index e39a40a..e65476f 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -582,7 +582,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+>  
+>  	pr->power.timer_broadcast_on_state = INT_MAX;
+>  
+> -	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+> +	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
+>  		struct acpi_processor_cx *cx = &pr->power.states[i];
+>  
+>  		switch (cx->type) {
+> -- 
+> 1.6.3.1.9.g95405b
+> 
