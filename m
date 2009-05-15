@@ -1,67 +1,36 @@
-From: Yinghai Lu <yhlu.kernel@gmail.com>
-Subject: Re: SRAT v1 support
-Date: Fri, 15 May 2009 11:38:52 -0700
-Message-ID: <86802c440905151138t42705477s95a972704db2ce9c@mail.gmail.com>
-References: <4A0D8178.4060604@bull.net>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
+	even when ignore_ppc=0
+Date: Fri, 15 May 2009 12:12:21 -0700
+Message-ID: <20090515191219.GH6968@plum>
+References: <20090416174217.GY8311@plum> <20090416224507.GA31984@srcf.ucam.org> <20090428193303.GC6968@plum> <20090428195348.GA8376@srcf.ucam.org> <20090429213930.GE6968@plum> <20090429220037.GA8604@srcf.ucam.org> <20090430072556.GD16737@elte.hu> <20090430095414.GA19462@srcf.ucam.org> <20090430111042.GA12809@elte.hu> <20090430111338.GA21297@srcf.ucam.org>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f166.google.com ([209.85.217.166]:53231 "EHLO
-	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680AbZEOSiw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 14:38:52 -0400
-In-Reply-To: <4A0D8178.4060604@bull.net>
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:51651 "EHLO e4.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751349AbZEOTMV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 May 2009 15:12:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20090430111338.GA21297@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: xb <xavier.bru@bull.net>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len
-Cc: linux-acpi@vger.kernel.org, Zoltan <zoltan.menyhart@bull.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, May 15, 2009 at 7:51 AM, xb <xavier.bru@bull.net> wrote:
-> Recent linux kernels suppose that the =A0SRAT table is in rev 2 forma=
-t (ACPI
-> 3.0), but some BIOSes still provide SRAT table in rev 1.
-> The rev 2 of the SRAT extension mainly provides an extension of the
-> "proximity_domain" item from 8 bits to 32 bits, using a "reserved" fi=
-eld of
-> the structure.
-> When the "reserved" field is not null, linux finds a wrong proximity =
-domain,
-> and numa initialization is wrong.
-> Following patch tests the SRAT revision to allow a correct initializa=
-tion:
->
-> This patch tests the version of SRAT ACPI table to allow supporting S=
-RAT rev
-> 1 and SRAT rev 2.
->
-> diff -Nru linux-2.6.29-rc7-orig/arch/x86/kernel/acpi/boot.c
-> linux-2.6.29-rc7-tmp/arch/x86/kernel/acpi/boot.c
-> --- linux-2.6.29-rc7-orig/arch/x86/kernel/acpi/boot.c =A0 =A02009-03-=
-12
-> 14:41:38.000000000 +0100
-> +++ linux-2.6.29-rc7-tmp/arch/x86/kernel/acpi/boot.c =A0 =A02009-03-1=
-6
-> 14:52:07.000000000 +0100
-> @@ -260,7 +260,8 @@
-> }
->
-> static int __init
-> -acpi_parse_lapic(struct acpi_subtable_header * header, const unsigne=
-d long
-> end)
-> +acpi_parse_lapic(const struct acpi_subtable_header * const header,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0const unsigned long end, const int r=
-ev)
+On Thu, Apr 30, 2009 at 12:13:38PM +0100, Matthew Garrett wrote:
+> On Thu, Apr 30, 2009 at 01:10:42PM +0200, Ingo Molnar wrote:
+> 
+> > thanks - i've applied this and started testing it. I suspect 1-2 
+> > days of test-time should be enough to see if it breaks this box in 
+> > any way.
+> 
+> My recollection was that you'd see the machine limited to 1GHz on every 
+> boot?
 
-do we need to pass that rev all over around?
+That seems accurate based on my reading of the old thread.
 
-looks like we could use one srat_version or pxm_mask variable to get
-the same result.
+It's been a couple of weeks; has anyone seen any problems?
 
-YH
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--D
