@@ -1,168 +1,39 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: idle: rename lapic timer workaround routines
-Date: Fri, 15 May 2009 02:18:25 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905150217220.4995@localhost.localdomain>
-References: <alpine.DEB.2.00.0905072359530.28378@gandalf.stny.rr.com>
- <200905110226.50115.elendil@planet.nl>
- <alpine.LFD.2.00.0905111614570.3561@localhost.localdomain>
- <4A0855A5.8040109@tut.fi>
- <alpine.LFD.2.00.0905141545280.24833@localhost.localdomain>
- <alpine.LFD.2.00.0905141608070.24833@localhost.localdomain>
- <alpine.LFD.2.00.0905142217340.3561@localhost.localdomain>
- <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain>
- <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
+From: Tulio Magno Quites Machado Filho <tuliom@quites.com.br>
+Subject: Failed to switch brightness with an emachines
+Date: Fri, 15 May 2009 09:08:22 +0200
+Message-ID: <20090515070822.GA4121@joutaro.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:16871 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917AbZEOGSb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 02:18:31 -0400
-In-reply-to: <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:33729 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754092AbZEOGyM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 02:54:12 -0400
+Received: by ewy24 with SMTP id 24so2232524ewy.37
+        for <linux-acpi@vger.kernel.org>; Thu, 14 May 2009 23:54:12 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Janne Kulmala <janne.t.kulmala@tut.fi>, Frans Pop <elendil@planet.nl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@elte.hu>, johnstul@us.ibm.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-From: Len Brown <len.brown@intel.com>
+Hello,
 
-cosmetic only.  The lapic_timer workaround routines
-are specific to the lapic_timer, and are not acpi-generic.
+I have got a bug here really weird. I thought it was the same as http://bugzilla.kernel.org/show_bug.cgi?id=13121 but I tried to make a patch for my emachines E510 without success. Maybe (and probably) I have made a mistake.
+This notebook is from a subsidiary of Acer(emachines) and they have most software in commom and probably the ACPI table.
 
-old:
+So, the description of the bug is the same as bug #13121, but the difference is that after a suspend to disk, everything seems to work fine, except that I continue to get the messages "ACPI: Failed to switch the brightness".
 
-acpi_timer_check_state()
-acpi_propagate_timer_broadcast()
-acpi_state_timer_broadcast()
+I have also seen this in dmesg:
+[    0.262435] ACPI Warning (nspredef-0331): \_SB_.PCI0._OSC: Parameter count mismatch - ASL declared 5, ACPI requires 4 [20090320]
 
-new:
+I'm running Linus' kernel 2.6.30-rc5.
 
-lapic_timer_check_state()
-lapic_timer_propagate_broadcast()
-lapic_timer_state_broadcast()
+Any ideas to solve this?
 
-also, simplify the code in acpi_processor_power_verify()
-so that lapic_timer_check_state() is simply called
-from one place for all valid C-states, including C1.
+I'm not in the list so, please add my e-mail address in the replies.
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/processor_idle.c |   35 ++++++++++++++++-------------------
- 1 files changed, 16 insertions(+), 19 deletions(-)
+Thank you,
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index e65476f..60c3bcd 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -139,7 +139,7 @@ static void acpi_safe_halt(void)
-  * are affected too. We pick the most conservative approach: we assume
-  * that the local APIC stops in both C2 and C3.
-  */
--static void acpi_timer_check_state(int state, struct acpi_processor *pr,
-+static void lapic_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cx)
- {
- 	struct acpi_processor_power *pwr = &pr->power;
-@@ -159,7 +159,7 @@ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 		pr->power.timer_broadcast_on_state = state;
- }
- 
--static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
-+static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
- {
- 	unsigned long reason;
- 
-@@ -170,7 +170,7 @@ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
- }
- 
- /* Power(C) State timer broadcast control */
--static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- 				       struct acpi_processor_cx *cx,
- 				       int broadcast)
- {
-@@ -187,10 +187,10 @@ static void acpi_state_timer_broadcast(struct acpi_processor *pr,
- 
- #else
- 
--static void acpi_timer_check_state(int state, struct acpi_processor *pr,
-+static void lapic_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cstate) { }
--static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
--static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+static void lapic_timer_propagate_broadcast(struct acpi_processor *pr) { }
-+static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- 				       struct acpi_processor_cx *cx,
- 				       int broadcast)
- {
-@@ -592,24 +592,21 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 
- 		case ACPI_STATE_C2:
- 			acpi_processor_power_verify_c2(cx);
--			if (cx->valid)
--				acpi_timer_check_state(i, pr, cx);
- 			break;
- 
- 		case ACPI_STATE_C3:
- 			acpi_processor_power_verify_c3(pr, cx);
--			if (cx->valid)
--				acpi_timer_check_state(i, pr, cx);
- 			break;
- 		}
--		if (cx->valid)
--			tsc_check_state(cx->type);
-+		if (!cx->valid)
-+			continue;
- 
--		if (cx->valid)
--			working++;
-+		lapic_timer_check_state(i, pr, cx);
-+		tsc_check_state(cx->type);
-+		working++;
- 	}
- 
--	acpi_propagate_timer_broadcast(pr);
-+	lapic_timer_propagate_broadcast(pr);
- 
- 	return (working);
- }
-@@ -863,7 +860,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	 * Must be done before busmaster disable as we might need to
- 	 * access HPET !
- 	 */
--	acpi_state_timer_broadcast(pr, cx, 1);
-+	lapic_timer_state_broadcast(pr, cx, 1);
- 
- 	if (cx->type == ACPI_STATE_C3)
- 		ACPI_FLUSH_CPU_CACHE();
-@@ -885,7 +882,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 
- 	cx->usage++;
- 
--	acpi_state_timer_broadcast(pr, cx, 0);
-+	lapic_timer_state_broadcast(pr, cx, 0);
- 	cx->time += sleep_ticks;
- 	return idle_time;
- }
-@@ -952,7 +949,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	 * Must be done before busmaster disable as we might need to
- 	 * access HPET !
- 	 */
--	acpi_state_timer_broadcast(pr, cx, 1);
-+	lapic_timer_state_broadcast(pr, cx, 1);
- 
- 	kt1 = ktime_get_real();
- 	/*
-@@ -997,7 +994,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 
- 	cx->usage++;
- 
--	acpi_state_timer_broadcast(pr, cx, 0);
-+	lapic_timer_state_broadcast(pr, cx, 0);
- 	cx->time += sleep_ticks;
- 	return idle_time;
- }
 -- 
-1.6.3.1.9.g95405b
-
+Tulio Magno
 
