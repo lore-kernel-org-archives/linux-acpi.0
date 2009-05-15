@@ -1,8 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: Idle C-states disabled by max_cstate should not disable
- the TSC
-Date: Fri, 15 May 2009 01:40:01 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
+Subject: [PATCH] ACPI: idle: rename lapic timer workaround routines
+Date: Fri, 15 May 2009 02:18:25 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905150217220.4995@localhost.localdomain>
 References: <alpine.DEB.2.00.0905072359530.28378@gandalf.stny.rr.com>
  <200905110226.50115.elendil@planet.nl>
  <alpine.LFD.2.00.0905111614570.3561@localhost.localdomain>
@@ -11,14 +10,15 @@ References: <alpine.DEB.2.00.0905072359530.28378@gandalf.stny.rr.com>
  <alpine.LFD.2.00.0905141608070.24833@localhost.localdomain>
  <alpine.LFD.2.00.0905142217340.3561@localhost.localdomain>
  <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain>
+ <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:31586 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754393AbZEOFkH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 01:40:07 -0400
-In-reply-to: <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:16871 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbZEOGSb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 02:18:31 -0400
+In-reply-to: <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
@@ -26,33 +26,143 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Janne Kulmala <janne.t.kulmala@tut.fi>
 
 From: Len Brown <len.brown@intel.com>
 
-Processor idle power states C2 and C3 stop the TSC on many machines.
-Linux recognizes this situation and marks the TSC as unstable:
+cosmetic only.  The lapic_timer workaround routines
+are specific to the lapic_timer, and are not acpi-generic.
 
-Marking TSC unstable due to TSC halts in idle
+old:
 
-But if those same machines are booted with "processor.max_cstate=1",
-then there is no need to validate C2 and C3, and no need to
-disable the TSC, which can be reliably used as a clocksource.
+acpi_timer_check_state()
+acpi_propagate_timer_broadcast()
+acpi_state_timer_broadcast()
+
+new:
+
+lapic_timer_check_state()
+lapic_timer_propagate_broadcast()
+lapic_timer_state_broadcast()
+
+also, simplify the code in acpi_processor_power_verify()
+so that lapic_timer_check_state() is simply called
+from one place for all valid C-states, including C1.
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/processor_idle.c |   35 ++++++++++++++++-------------------
+ 1 files changed, 16 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index e39a40a..e65476f 100644
+index e65476f..60c3bcd 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -582,7 +582,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+@@ -139,7 +139,7 @@ static void acpi_safe_halt(void)
+  * are affected too. We pick the most conservative approach: we assume
+  * that the local APIC stops in both C2 and C3.
+  */
+-static void acpi_timer_check_state(int state, struct acpi_processor *pr,
++static void lapic_timer_check_state(int state, struct acpi_processor *pr,
+ 				   struct acpi_processor_cx *cx)
+ {
+ 	struct acpi_processor_power *pwr = &pr->power;
+@@ -159,7 +159,7 @@ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
+ 		pr->power.timer_broadcast_on_state = state;
+ }
  
- 	pr->power.timer_broadcast_on_state = INT_MAX;
+-static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
++static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
+ {
+ 	unsigned long reason;
  
--	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
-+	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
+@@ -170,7 +170,7 @@ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
+ }
  
- 		switch (cx->type) {
+ /* Power(C) State timer broadcast control */
+-static void acpi_state_timer_broadcast(struct acpi_processor *pr,
++static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+ 				       struct acpi_processor_cx *cx,
+ 				       int broadcast)
+ {
+@@ -187,10 +187,10 @@ static void acpi_state_timer_broadcast(struct acpi_processor *pr,
+ 
+ #else
+ 
+-static void acpi_timer_check_state(int state, struct acpi_processor *pr,
++static void lapic_timer_check_state(int state, struct acpi_processor *pr,
+ 				   struct acpi_processor_cx *cstate) { }
+-static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
+-static void acpi_state_timer_broadcast(struct acpi_processor *pr,
++static void lapic_timer_propagate_broadcast(struct acpi_processor *pr) { }
++static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+ 				       struct acpi_processor_cx *cx,
+ 				       int broadcast)
+ {
+@@ -592,24 +592,21 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+ 
+ 		case ACPI_STATE_C2:
+ 			acpi_processor_power_verify_c2(cx);
+-			if (cx->valid)
+-				acpi_timer_check_state(i, pr, cx);
+ 			break;
+ 
+ 		case ACPI_STATE_C3:
+ 			acpi_processor_power_verify_c3(pr, cx);
+-			if (cx->valid)
+-				acpi_timer_check_state(i, pr, cx);
+ 			break;
+ 		}
+-		if (cx->valid)
+-			tsc_check_state(cx->type);
++		if (!cx->valid)
++			continue;
+ 
+-		if (cx->valid)
+-			working++;
++		lapic_timer_check_state(i, pr, cx);
++		tsc_check_state(cx->type);
++		working++;
+ 	}
+ 
+-	acpi_propagate_timer_broadcast(pr);
++	lapic_timer_propagate_broadcast(pr);
+ 
+ 	return (working);
+ }
+@@ -863,7 +860,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	 * Must be done before busmaster disable as we might need to
+ 	 * access HPET !
+ 	 */
+-	acpi_state_timer_broadcast(pr, cx, 1);
++	lapic_timer_state_broadcast(pr, cx, 1);
+ 
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
+@@ -885,7 +882,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 
+ 	cx->usage++;
+ 
+-	acpi_state_timer_broadcast(pr, cx, 0);
++	lapic_timer_state_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+ 	return idle_time;
+ }
+@@ -952,7 +949,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	 * Must be done before busmaster disable as we might need to
+ 	 * access HPET !
+ 	 */
+-	acpi_state_timer_broadcast(pr, cx, 1);
++	lapic_timer_state_broadcast(pr, cx, 1);
+ 
+ 	kt1 = ktime_get_real();
+ 	/*
+@@ -997,7 +994,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 
+ 	cx->usage++;
+ 
+-	acpi_state_timer_broadcast(pr, cx, 0);
++	lapic_timer_state_broadcast(pr, cx, 0);
+ 	cx->time += sleep_ticks;
+ 	return idle_time;
+ }
 -- 
 1.6.3.1.9.g95405b
+
 
