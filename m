@@ -1,49 +1,29 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 5/7] eeepc-laptop: Register as a pci-hotplug device
-Date: Fri, 15 May 2009 11:31:20 +0200
-Message-ID: <71cd59b00905150231m5635876do8cbf44fec7d09110@mail.gmail.com>
-References: <1240817023-5985-1-git-send-email-corentincj@iksaif.net>
-	 <1240817023-5985-2-git-send-email-corentincj@iksaif.net>
-	 <1240817023-5985-3-git-send-email-corentincj@iksaif.net>
-	 <1240817023-5985-4-git-send-email-corentincj@iksaif.net>
-	 <1240817023-5985-5-git-send-email-corentincj@iksaif.net>
-	 <1240817023-5985-6-git-send-email-corentincj@iksaif.net>
-	 <alpine.LFD.2.00.0905141129110.19537@localhost.localdomain>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] x86/acpi: remove compress irq trick for 32bit
+Date: Fri, 15 May 2009 15:06:59 +0200
+Message-ID: <20090515130659.GA31171@elte.hu>
+References: <49E68C41.4020801@kernel.org> <20090416090315.GF9813@elte.hu> <49E802CE.5030406@kernel.org> <49E80457.5060403@kernel.org> <alpine.LFD.2.00.0904230039420.21119@localhost.localdomain> <49F4D7CB.4040406@kernel.org> <alpine.LFD.2.00.0905141140000.19537@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:60393 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757904AbZEOJbV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 05:31:21 -0400
-Received: by ewy24 with SMTP id 24so2304700ewy.37
-        for <linux-acpi@vger.kernel.org>; Fri, 15 May 2009 02:31:21 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.00.0905141129110.19537@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0905141140000.19537@localhost.localdomain>
+Sender: linux-pci-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Matthew Garrett <mjg@redhat.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 14, 2009 at 5:33 PM, Len Brown <lenb@kernel.org> wrote:
-> applied to acpi-test
->
-> If it is common, then we should push for .30.
-> If it is not common, then since it is larger
-> than most -rc5 bugfixes, I'd prefer to wait for .31,
-> even though it is driver specific.
->
-> please advise.
->
-> thanks,
-> Len Brown, Intel Open Source Technology Center
->
->
 
-The bug is only triggered with specific configuration and kernel
-parameters (pciehp force=1).
-The patch is too large, I think we should wait for .31.
+* Len Brown <lenb@kernel.org> wrote:
 
--- 
-Corentin Chary
-http://xf.iksaif.net - http://uffs.org
+> Yinghai,
+> I'm really happy to see this workaround finally get removed.
+> 
+> Acked-by: Len Brown <len.brown@intel.com>
+> 
+> Ingo,
+> go ahead and keep this with your irq patches.
+
+thanks Len!
+
+	Ingo
