@@ -1,38 +1,58 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [linux-pm] [RFC] why do we need run disk sync before entering
-	S3
-Date: Thu, 14 May 2009 22:00:56 -0300
-Message-ID: <20090515010055.GB21718@khazad-dum.debian.net>
-References: <Pine.LNX.4.44L0.0905131000360.3004-100000@iolanthe.rowland.org> <200905131616.27334.rjw@sisk.pl> <20090514094249.GG6417@elf.ucw.cz>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI: Idle C-states disabled by max_cstate should not disable
+ the TSC
+Date: Fri, 15 May 2009 01:40:01 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
+References: <alpine.DEB.2.00.0905072359530.28378@gandalf.stny.rr.com>
+ <200905110226.50115.elendil@planet.nl>
+ <alpine.LFD.2.00.0905111614570.3561@localhost.localdomain>
+ <4A0855A5.8040109@tut.fi>
+ <alpine.LFD.2.00.0905141545280.24833@localhost.localdomain>
+ <alpine.LFD.2.00.0905141608070.24833@localhost.localdomain>
+ <alpine.LFD.2.00.0905142217340.3561@localhost.localdomain>
+ <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:36119 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752714AbZEOBA5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 May 2009 21:00:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20090514094249.GG6417@elf.ucw.cz>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:31586 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754393AbZEOFkH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 01:40:07 -0400
+In-reply-to: <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Janne Kulmala <janne.t.kulmala@tut.fi>, Frans Pop <elendil@planet.nl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@elte.hu>, johnstul@us.ibm.com, linux-acpi@vger.kernel.org
 
-On Thu, 14 May 2009, Pavel Machek wrote:
-> But remember there are even in-kernel s2ram triggers, for example on
-> zaurus when battery goes critical.
+From: Len Brown <len.brown@intel.com>
 
-Are there?  I am quite interested on this!
+Processor idle power states C2 and C3 stop the TSC on many machines.
+Linux recognizes this situation and marks the TSC as unstable:
 
-Are they safe on x86?
+Marking TSC unstable due to TSC halts in idle
 
-thinkpad-acpi receives some critical alarms from the firmware, for which the
-recommended action by the vendor is to go into S3 immediately.  There is
-also one which requires S4 as the recommended damage control measure.
+But if those same machines are booted with "processor.max_cstate=1",
+then there is no need to validate C2 and C3, and no need to
+disable the TSC, which can be reliably used as a clocksource.
 
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/processor_idle.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index e39a40a..e65476f 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -582,7 +582,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+ 
+ 	pr->power.timer_broadcast_on_state = INT_MAX;
+ 
+-	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
++	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
+ 		struct acpi_processor_cx *cx = &pr->power.states[i];
+ 
+ 		switch (cx->type) {
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.6.3.1.9.g95405b
+
