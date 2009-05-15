@@ -1,356 +1,295 @@
-From: xb <xavier.bru@bull.net>
-Subject: SRAT v1 support
-Date: Fri, 15 May 2009 16:51:36 +0200
-Message-ID: <4A0D8178.4060604@bull.net>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: [PATCH] i915/acpi: add lid status notification and detection
+Date: Fri, 15 May 2009 11:16:23 -0700
+Message-ID: <20090515111623.52c34628@jbarnes-g45>
+References: <20090513115734.338b7d55@jbarnes-g45>
+	<1242264144.3773.415.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ecfrec.frec.bull.fr ([129.183.4.8]:32799 "EHLO
-	ecfrec.frec.bull.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000AbZEOPMk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 11:12:40 -0400
-Received: from cyclope.frec.bull.fr (cyclope.frec.bull.fr [129.183.4.9])
-	by ecfrec.frec.bull.fr (Postfix) with ESMTP id 3A42A71FC3
-	for <linux-acpi@vger.kernel.org>; Fri, 15 May 2009 16:51:36 +0200 (CEST)
+Received: from outbound-mail-316.bluehost.com ([67.222.54.9]:55340 "HELO
+	outbound-mail-316.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753715AbZEOSQ1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 May 2009 14:16:27 -0400
+In-Reply-To: <1242264144.3773.415.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zoltan <zoltan.menyhart@bull.net>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Recent linux kernels suppose that the  SRAT table is in rev 2 format 
-(ACPI 3.0), but some BIOSes still provide SRAT table in rev 1.
-The rev 2 of the SRAT extension mainly provides an extension of the 
-"proximity_domain" item from 8 bits to 32 bits, using a "reserved" field 
-of the structure.
-When the "reserved" field is not null, linux finds a wrong proximity 
-domain, and numa initialization is wrong.
-Following patch tests the SRAT revision to allow a correct initialization:
+On Thu, 14 May 2009 09:22:24 +0800
+yakui_zhao <yakui.zhao@intel.com> wrote:
 
-This patch tests the version of SRAT ACPI table to allow supporting SRAT 
-rev 1 and SRAT rev 2.
+> On Thu, 2009-05-14 at 02:57 +0800, Jesse Barnes wrote:
+> > In the i915 driver we want to know if the lid is open or closed and
+> > when its status changes, since we want to use the closed state to
+> > indicate that the LFP is unavailable (disconnected in KMS terms) and
+> > open to indicate that it's usable.
+> > 
+> > To that end, this patch adds some code to the ACPI button driver to
+> > send us lid notifications as they occur and provide us with current
+> > lid status when called.
+> > 
+> > It's a bit ugly, and I don't handle the inter-module dependencies
+> > very well at this point, but you should get the idea.
+> The tight module dependency. If the ACPI button is compiled as module
+> and i915 is compiled as built-in kernel, we will fail in kernel
+> compilation. 
 
-diff -Nru linux-2.6.29-rc7-orig/arch/x86/kernel/acpi/boot.c 
-linux-2.6.29-rc7-tmp/arch/x86/kernel/acpi/boot.c
---- linux-2.6.29-rc7-orig/arch/x86/kernel/acpi/boot.c    2009-03-12 
-14:41:38.000000000 +0100
-+++ linux-2.6.29-rc7-tmp/arch/x86/kernel/acpi/boot.c    2009-03-16 
-14:52:07.000000000 +0100
-@@ -260,7 +260,8 @@
- }
+I think a select ACPI_BUTTON in the i915 kconfig should handle that...
+
+> > There's also a policy question here.  On some machines, a lid close
+> > will cause the ACPI firmware to program the GPU, disabling the pipe
+> > associated with the panel.  Should we detect this and turn it back
+> > on at open time?  That could be dangerous if userspace has received
+> > the LVDS hotplug event and changed the config out from under us...
+> > 
+> > Comments?
+> It seems that the LID status is used to determine whether the LVDS is
+> connected.
+> It is not reliable. On some boxes the initial LID status is incorrect.
+> Maybe the LID status is open. But the ACPI returns that the LID is
+> close. In such case the LVDS is not initialized and user can't get the
+> output.
+
+Do we have a blacklist for that?  If the lid status isn't reliable and
+the firmware messes with the GPU at lid event time we'll be in
+trouble...
+
+If it looks ok other than that, can we send it up through Eric's tree?
+
+Thanks,
+-- 
+Jesse Barnes, Intel Open Source Technology Center
+
+
+In the i915 driver we want to know if the lid is open or closed and
+when its status changes, since we want to use the closed state to
+indicate that the LFP is unavailable (disconnected in KMS terms) and
+open to indicate that it's usable.
+
+To that end, this patch adds some code to the ACPI button driver to
+send us lid notifications as they occur and provide us with current lid
+status when called.
+
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 9195deb..ebb593e 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -113,6 +113,9 @@ static const struct file_operations acpi_button_state_fops = {
+ 	.release = single_release,
+ };
  
- static int __init
--acpi_parse_lapic(struct acpi_subtable_header * header, const unsigned 
-long end)
-+acpi_parse_lapic(const struct acpi_subtable_header * const header,
-+                const unsigned long end, const int rev)
- {
-     struct acpi_madt_local_apic *processor = NULL;
- 
-@@ -285,7 +286,8 @@
- }
- 
- static int __init
--acpi_parse_sapic(struct acpi_subtable_header *header, const unsigned 
-long end)
-+acpi_parse_sapic(const struct acpi_subtable_header * const header,
-+                const unsigned long end, const int rev)
- {
-     struct acpi_madt_local_sapic *processor = NULL;
- 
-@@ -303,8 +305,8 @@
- }
- 
- static int __init
--acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
--              const unsigned long end)
-+acpi_parse_lapic_addr_ovr(const struct acpi_subtable_header * const header,
-+                  const unsigned long end, const int rev)
- {
-     struct acpi_madt_local_apic_override *lapic_addr_ovr = NULL;
- 
-@@ -319,7 +321,8 @@
- }
- 
- static int __init
--acpi_parse_lapic_nmi(struct acpi_subtable_header * header, const 
-unsigned long end)
-+acpi_parse_lapic_nmi(const struct acpi_subtable_header * const header,
-+                const unsigned long end, const int rev)
- {
-     struct acpi_madt_local_apic_nmi *lapic_nmi = NULL;
- 
-@@ -341,7 +344,8 @@
- #ifdef CONFIG_X86_IO_APIC
- 
- static int __init
--acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned 
-long end)
-+acpi_parse_ioapic(const struct acpi_subtable_header * const header,
-+                const unsigned long end, const int rev)
- {
-     struct acpi_madt_io_apic *ioapic = NULL;
- 
-@@ -392,8 +396,8 @@
- }
- 
- static int __init
--acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
--               const unsigned long end)
-+acpi_parse_int_src_ovr(const struct acpi_subtable_header * const header,
-+               const unsigned long end, const int rev)
- {
-     struct acpi_madt_interrupt_override *intsrc = NULL;
- 
-@@ -426,7 +430,8 @@
- }
- 
- static int __init
--acpi_parse_nmi_src(struct acpi_subtable_header * header, const unsigned 
-long end)
-+acpi_parse_nmi_src(const struct acpi_subtable_header * const header,
-+                const unsigned long end, const int rev)
- {
-     struct acpi_madt_nmi_source *nmi_src = NULL;
- 
-diff -Nru linux-2.6.29-rc7-orig/arch/x86/mm/srat_64.c 
-linux-2.6.29-rc7-tmp/arch/x86/mm/srat_64.c
---- linux-2.6.29-rc7-orig/arch/x86/mm/srat_64.c    2009-03-12 
-14:41:38.000000000 +0100
-+++ linux-2.6.29-rc7-tmp/arch/x86/mm/srat_64.c    2009-03-16 
-15:25:18.000000000 +0100
-@@ -220,7 +220,7 @@
- 
- /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
- void __init
--acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-+acpi_numa_memory_affinity_init(const struct acpi_srat_mem_affinity * 
-const ma, const int rev)
- {
-     struct bootnode *nd, oldnode;
-     unsigned long start, end;
-@@ -240,7 +240,18 @@
-         return;
-     start = ma->base_address;
-     end = start + ma->length;
--    pxm = ma->proximity_domain;
-+    switch (rev){
-+    case ACPI_SRAT_MEM_AFF_ACPI2:
-+        pxm = ma->_2.proximity_domain;
-+        break;
-+    case ACPI_SRAT_MEM_AFF_ACPI3:
-+        pxm = ma->_3.proximity_domain;
-+        break;
-+    default:
-+        printk(KERN_ERR "SRAT: unknown memory affinity revision 
-%d+1\n", rev);
-+        bad_srat();
-+        return;
-+    }
-     node = setup_node(pxm);
-     if (node < 0) {
-         printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-diff -Nru linux-2.6.29-rc7-orig/drivers/acpi/numa.c 
-linux-2.6.29-rc7-tmp/drivers/acpi/numa.c
---- linux-2.6.29-rc7-orig/drivers/acpi/numa.c    2009-03-12 
-14:41:43.000000000 +0100
-+++ linux-2.6.29-rc7-tmp/drivers/acpi/numa.c    2009-03-16 
-15:25:59.000000000 +0100
-@@ -88,7 +88,8 @@
- #endif  /*  0  */
- 
- static void __init
--acpi_table_print_srat_entry(struct acpi_subtable_header *header)
-+acpi_table_print_srat_entry(const struct acpi_subtable_header * const 
-header,
-+                                const int rev)
- {
- 
-     ACPI_FUNCTION_NAME("acpi_table_print_srat_entry");
-@@ -116,13 +117,25 @@
-     case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
- #ifdef ACPI_DEBUG_OUTPUT
-         {
--            struct acpi_srat_mem_affinity *p =
--                (struct acpi_srat_mem_affinity *)header;
-+            struct acpi_srat_mem_affinity *p = (struct 
-acpi_srat_mem_affinity *)header;
-+            int pxm;
++static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
++static struct acpi_device *lid_device;
 +
-+            switch (rev){
-+            case ACPI_SRAT_MEM_AFF_ACPI2:
-+                pxm = p->_2.proximity_domain;
-+                break;
-+            case ACPI_SRAT_MEM_AFF_ACPI3:
-+                pxm = p->_3.proximity_domain;
-+                break;
-+            default:
-+                printk(KERN_ERR "SRAT: unknown memory affinity revision 
-%d+1\n", rev);
-+                pxm = 0;
-+            }
-             ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-                       "SRAT Memory (0x%lx length 0x%lx) in proximity 
-domain %d %s%s\n",
-                       (unsigned long)p->base_address,
-                       (unsigned long)p->length,
--                      p->proximity_domain,
-+                      pxm,
-                       (p->flags & ACPI_SRAT_MEM_ENABLED)?
-                       "enabled" : "disabled",
-                       (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
-@@ -181,8 +194,8 @@
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -229,11 +232,38 @@ static int acpi_button_remove_fs(struct acpi_device *device)
+ /* --------------------------------------------------------------------------
+                                 Driver Interface
+    -------------------------------------------------------------------------- */
++int acpi_lid_notifier_register(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&acpi_lid_notifier, nb);
++}
++EXPORT_SYMBOL(acpi_lid_notifier_register);
++
++int acpi_lid_notifier_unregister(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&acpi_lid_notifier, nb);
++}
++EXPORT_SYMBOL(acpi_lid_notifier_unregister);
++
++int acpi_lid_open(void)
++{
++	acpi_status status;
++	unsigned long long state;
++
++	status = acpi_evaluate_integer(lid_device->handle, "_LID", NULL,
++				       &state);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return !!state;
++}
++EXPORT_SYMBOL(acpi_lid_open);
++
+ static int acpi_lid_send_state(struct acpi_device *device)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 	unsigned long long state;
+ 	acpi_status status;
++	int ret;
+ 
+ 	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &state);
+ 	if (ACPI_FAILURE(status))
+@@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct acpi_device *device)
+ 	/* input layer checks if event is redundant */
+ 	input_report_switch(button->input, SW_LID, !state);
+ 	input_sync(button->input);
+-	return 0;
++
++	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
++	if (ret == NOTIFY_DONE)
++		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
++						   device);
++	return ret;
  }
  
- static int __init
--acpi_parse_processor_affinity(struct acpi_subtable_header * header,
--                  const unsigned long end)
-+acpi_parse_processor_affinity(const struct acpi_subtable_header * const 
-header,
-+                  const unsigned long end, const int rev)
+ static void acpi_button_notify(struct acpi_device *device, u32 event)
+@@ -364,8 +399,14 @@ static int acpi_button_add(struct acpi_device *device)
+ 	error = input_register_device(input);
+ 	if (error)
+ 		goto err_remove_fs;
+-	if (button->type == ACPI_BUTTON_TYPE_LID)
++	if (button->type == ACPI_BUTTON_TYPE_LID) {
+ 		acpi_lid_send_state(device);
++		/*
++		 * This assumes there's only one lid device, or if there are
++		 * more we only care about the last one...
++		 */
++		lid_device = device;
++	}
+ 
+ 	if (device->wakeup.flags.valid) {
+ 		/* Button's GPE is run-wake GPE */
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 3a22eb9..dde56b6 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -71,6 +71,7 @@ config DRM_I915
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB
++	select ACPI_BUTTON
+ 	tristate "i915 driver"
+ 	help
+ 	  Choose this option if you have a system that has Intel 830M, 845G,
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 2506592..fb12fb9 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -190,6 +190,8 @@ typedef struct drm_i915_private {
+ 	unsigned int lvds_use_ssc:1;
+ 	int lvds_ssc_freq;
+ 
++	struct notifier_block lid_notifier;
++
+ 	struct drm_i915_fence_reg fence_regs[16]; /* assume 965 */
+ 	int fence_reg_start; /* 4 if userland hasn't ioctl'd us yet */
+ 	int num_fence_regs; /* 8 on pre-965, 16 otherwise */
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index bdcda36..08c1260 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -24,6 +24,8 @@
+  *	Eric Anholt <eric@anholt.net>
+  */
+ 
++#include <linux/module.h>
++#include <linux/input.h>
+ #include <linux/i2c.h>
+ #include "drmP.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index 6619f26..8f05b09 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -27,6 +27,7 @@
+  *      Jesse Barnes <jesse.barnes@intel.com>
+  */
+ 
++#include <acpi/button.h>
+ #include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include "drmP.h"
+@@ -277,12 +278,18 @@ static void intel_lvds_mode_set(struct drm_encoder *encoder,
+ /**
+  * Detect the LVDS connection.
+  *
+- * This always returns CONNECTOR_STATUS_CONNECTED.  This connector should only have
+- * been set up if the LVDS was actually connected anyway.
++ * Since LVDS doesn't have hotlug, we use the lid as a proxy.  Open means
++ * connected and closed means disconnected.  We also send hotplug events as
++ * needed, using lid status notification from the input layer.
+  */
+ static enum drm_connector_status intel_lvds_detect(struct drm_connector *connector)
  {
-     struct acpi_srat_cpu_affinity *processor_affinity;
- 
-@@ -190,7 +203,7 @@
-     if (!processor_affinity)
-         return -EINVAL;
- 
--    acpi_table_print_srat_entry(header);
-+    acpi_table_print_srat_entry(header, rev);
- 
-     /* let architecture-dependent part to do it */
-     acpi_numa_processor_affinity_init(processor_affinity);
-@@ -199,8 +212,8 @@
+-	return connector_status_connected;
++	enum drm_connector_status status = connector_status_connected;
++
++	if (!acpi_lid_open())
++		status = connector_status_disconnected;
++
++	return status;
  }
  
- static int __init
--acpi_parse_memory_affinity(struct acpi_subtable_header * header,
--               const unsigned long end)
-+acpi_parse_memory_affinity(const struct acpi_subtable_header * const 
-header,
-+                   const unsigned long end, const int rev)
- {
-     struct acpi_srat_mem_affinity *memory_affinity;
- 
-@@ -208,10 +221,10 @@
-     if (!memory_affinity)
-         return -EINVAL;
- 
--    acpi_table_print_srat_entry(header);
-+    acpi_table_print_srat_entry(header, rev);
- 
-     /* let architecture-dependent part to do it */
--    acpi_numa_memory_affinity_init(memory_affinity);
-+    acpi_numa_memory_affinity_init(memory_affinity, rev);
- 
-     return 0;
+ /**
+@@ -321,6 +328,17 @@ static int intel_lvds_get_modes(struct drm_connector *connector)
+ 	return 0;
  }
-@@ -239,7 +252,7 @@
  
- int __init acpi_numa_init(void)
++static int intel_lid_notify(struct notifier_block *nb, unsigned long val,
++			    void *unused)
++{
++	struct drm_i915_private *dev_priv =
++		container_of(nb, struct drm_i915_private, lid_notifier);
++
++	drm_sysfs_hotplug_event(dev_priv->dev);
++
++	return NOTIFY_OK;
++}
++
+ /**
+  * intel_lvds_destroy - unregister and free LVDS structures
+  * @connector: connector to free
+@@ -330,10 +348,14 @@ static int intel_lvds_get_modes(struct drm_connector *connector)
+  */
+ static void intel_lvds_destroy(struct drm_connector *connector)
  {
--    /* SRAT: Static Resource Affinity Table */
-+    /* SRAT: Static/System Resource Affinity Table */
-     if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
-         acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
-                       acpi_parse_processor_affinity, NR_CPUS);
-diff -Nru linux-2.6.29-rc7-orig/drivers/acpi/tables.c 
-linux-2.6.29-rc7-tmp/drivers/acpi/tables.c
---- linux-2.6.29-rc7-orig/drivers/acpi/tables.c    2009-03-12 
-14:41:43.000000000 +0100
-+++ linux-2.6.29-rc7-tmp/drivers/acpi/tables.c    2009-03-16 
-15:01:05.000000000 +0100
-@@ -44,7 +44,7 @@
++	struct drm_device *dev = connector->dev;
+ 	struct intel_output *intel_output = to_intel_output(connector);
++	struct drm_i915_private *dev_priv = dev->dev_private;
  
- static int acpi_apic_instance __initdata;
+ 	if (intel_output->ddc_bus)
+ 		intel_i2c_destroy(intel_output->ddc_bus);
++	if (dev_priv->lid_notifier.notifier_call)
++		acpi_lid_notifier_unregister(&dev_priv->lid_notifier);
+ 	drm_sysfs_connector_remove(connector);
+ 	drm_connector_cleanup(connector);
+ 	kfree(connector);
+@@ -508,6 +530,11 @@ void intel_lvds_init(struct drm_device *dev)
+ 		goto failed;
  
--void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-+void acpi_table_print_madt_entry(const struct acpi_subtable_header * 
-const header)
- {
-     if (!header)
-         return;
-@@ -206,7 +206,7 @@
-            table_end) {
-         if (entry->type == entry_id
-             && (!max_entries || count++ < max_entries))
--            if (handler(entry, table_end))
-+            if (handler(entry, table_end, table_header->revision))
-                 return -EINVAL;
+ out:
++	dev_priv->lid_notifier.notifier_call = intel_lid_notify;
++	if (acpi_lid_notifier_register(&dev_priv->lid_notifier)) {
++		DRM_DEBUG("lid notifier registration failed\n");
++		dev_priv->lid_notifier.notifier_call = NULL;
++	}
+ 	drm_sysfs_connector_add(connector);
+ 	return;
  
-         entry = (struct acpi_subtable_header *)
-diff -Nru linux-2.6.29-rc7-orig/include/acpi/actbl1.h 
-linux-2.6.29-rc7-tmp/include/acpi/actbl1.h
---- linux-2.6.29-rc7-orig/include/acpi/actbl1.h    2009-03-12 
-14:41:40.000000000 +0100
-+++ linux-2.6.29-rc7-tmp/include/acpi/actbl1.h    2009-03-16 
-14:53:14.000000000 +0100
-@@ -1193,16 +1193,26 @@
- };
- 
- /* 1: Memory Affinity */
-+#define    ACPI_SRAT_MEM_AFF_ACPI2    1
-+#define    ACPI_SRAT_MEM_AFF_ACPI3    2
- 
- struct acpi_srat_mem_affinity {
-     struct acpi_subtable_header header;
--    u32 proximity_domain;
--    u16 reserved;        /* Reserved, must be zero */
-+    union {
-+        struct {        /* ACPI 2 */
-+            u8 proximity_domain;
-+            u8 reserved[5];    /* Reserved, must be zero */
-+        } _2;
-+        struct {        /* ACPI 3 */
-+            u32 proximity_domain;
-+            u16 reserved;    /* Reserved, must be zero */
-+        } _3;
-+    };
-     u64 base_address;
-     u64 length;
--       u32 reserved1;
-+    u32 reserved1;
-     u32 flags;
--       u64 reserved2;           /* Reserved, must be zero */
-+    u64 reserved2;            /* Reserved, must be zero */
- };
- 
- /* Flags */
-diff -Nru linux-2.6.29-rc7-orig/include/linux/acpi.h 
-linux-2.6.29-rc7-tmp/include/linux/acpi.h
---- linux-2.6.29-rc7-orig/include/linux/acpi.h    2009-03-12 
-14:41:40.000000000 +0100
-+++ linux-2.6.29-rc7-tmp/include/linux/acpi.h    2009-03-16 
-15:19:07.000000000 +0100
-@@ -76,7 +76,8 @@
- 
- typedef int (*acpi_table_handler) (struct acpi_table_header *table);
- 
--typedef int (*acpi_table_entry_handler) (struct acpi_subtable_header 
-*header, const unsigned long end);
-+typedef int (*acpi_table_entry_handler) (const struct 
-acpi_subtable_header * const header,
-+                    const unsigned long end, const int revision);
- 
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- int early_acpi_boot_init(void);
-@@ -91,12 +92,12 @@
-     int entry_id, acpi_table_entry_handler handler, unsigned int 
-max_entries);
- int acpi_table_parse_madt (enum acpi_madt_type id, 
-acpi_table_entry_handler handler, unsigned int max_entries);
- int acpi_parse_mcfg (struct acpi_table_header *header);
--void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
-+void acpi_table_print_madt_entry (const struct acpi_subtable_header * 
-const madt);
- 
- /* the following four functions are architecture-dependent */
- void acpi_numa_slit_init (struct acpi_table_slit *slit);
- void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
--void acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
-+void acpi_numa_memory_affinity_init (const struct 
-acpi_srat_mem_affinity * const ma, const int rev);
- void acpi_numa_arch_fixup(void);
- 
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
+diff --git a/include/acpi/button.h b/include/acpi/button.h
+new file mode 100644
+index 0000000..bb643a7
+--- /dev/null
++++ b/include/acpi/button.h
+@@ -0,0 +1,10 @@
++#ifndef ACPI_BUTTON_H
++#define ACPI_BUTTON_H
++
++#include <linux/notifier.h>
++
++extern int acpi_lid_notifier_register(struct notifier_block *nb);
++extern int acpi_lid_notifier_unregister(struct notifier_block *nb);
++extern int acpi_lid_open(void);
++
++#endif /* ACPI_BUTTON_H */
 
