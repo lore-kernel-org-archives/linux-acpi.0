@@ -1,36 +1,70 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: Re: [PATCH v2] acpi: Fix regression where _PPC is not read at boot
-	even when ignore_ppc=0
-Date: Fri, 15 May 2009 12:12:21 -0700
-Message-ID: <20090515191219.GH6968@plum>
-References: <20090416174217.GY8311@plum> <20090416224507.GA31984@srcf.ucam.org> <20090428193303.GC6968@plum> <20090428195348.GA8376@srcf.ucam.org> <20090429213930.GE6968@plum> <20090429220037.GA8604@srcf.ucam.org> <20090430072556.GD16737@elte.hu> <20090430095414.GA19462@srcf.ucam.org> <20090430111042.GA12809@elte.hu> <20090430111338.GA21297@srcf.ucam.org>
-Reply-To: djwong@us.ibm.com
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] x86/acpi: don't call mp_config_acpi_gsi if update_mptable
+ is not used
+Date: Fri, 15 May 2009 12:53:22 -0700
+Message-ID: <4A0DC832.5090200@kernel.org>
+References: <4A0DC7DC.7000204@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e4.ny.us.ibm.com ([32.97.182.144]:51651 "EHLO e4.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751349AbZEOTMV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 May 2009 15:12:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20090430111338.GA21297@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4A0DC7DC.7000204@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, linux-kernel <linux-kernel@vger.kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Apr 30, 2009 at 12:13:38PM +0100, Matthew Garrett wrote:
-> On Thu, Apr 30, 2009 at 01:10:42PM +0200, Ingo Molnar wrote:
-> 
-> > thanks - i've applied this and started testing it. I suspect 1-2 
-> > days of test-time should be enough to see if it breaks this box in 
-> > any way.
-> 
-> My recollection was that you'd see the machine limited to 1GHz on every 
-> boot?
 
-That seems accurate based on my reading of the old thread.
 
-It's been a couple of weeks; has anyone seen any problems?
+Len doesn't want mp code is called from acpi code.
 
---D
+[ Impact: less touch code flow for acpi code ]
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ arch/x86/include/asm/mpspec.h |    1 +
+ arch/x86/kernel/acpi/boot.c   |    4 +++-
+ arch/x86/kernel/mpparse.c     |    2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/arch/x86/include/asm/mpspec.h
+===================================================================
+--- linux-2.6.orig/arch/x86/include/asm/mpspec.h
++++ linux-2.6/arch/x86/include/asm/mpspec.h
+@@ -72,6 +72,7 @@ extern void mp_register_ioapic(int id, u
+ extern void mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
+ 				   u32 gsi);
+ extern void mp_config_acpi_legacy_irqs(void);
++extern int enable_update_mptable;
+ struct device;
+ extern int mp_register_gsi(struct device *dev, u32 gsi, int edge_level,
+ 				 int active_high_low);
+Index: linux-2.6/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/boot.c
++++ linux-2.6/arch/x86/kernel/acpi/boot.c
+@@ -1226,7 +1226,9 @@ int mp_register_gsi(struct device *dev,
+ 		       ioapic_pin);
+ 		return gsi;
+ 	}
+-	mp_config_acpi_gsi(dev, gsi, trigger, polarity);
++
++	if (enable_update_mptable)
++		mp_config_acpi_gsi(dev, gsi, trigger, polarity);
+ 
+ 	set_io_apic_irq_attr(&irq_attr, ioapic, ioapic_pin,
+ 			     trigger == ACPI_EDGE_SENSITIVE ? 0 : 1,
+Index: linux-2.6/arch/x86/kernel/mpparse.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/mpparse.c
++++ linux-2.6/arch/x86/kernel/mpparse.c
+@@ -957,7 +957,7 @@ out:
+ 	return 0;
+ }
+ 
+-static int __initdata enable_update_mptable;
++int enable_update_mptable;
+ 
+ static int __init update_mptable_setup(char *str)
+ {
