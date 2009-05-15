@@ -1,18 +1,18 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] ACPI: Idle C-states disabled by max_cstate should not
- disable the TSC
-Date: Fri, 15 May 2009 10:27:55 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.0905151027130.3561@localhost.localdomain>
+Subject: Re: [PATCH] ACPI: idle: rename lapic timer workaround routines
+Date: Fri, 15 May 2009 10:28:28 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.0905151028080.3561@localhost.localdomain>
 References: <alpine.DEB.2.00.0905072359530.28378@gandalf.stny.rr.com> <200905110226.50115.elendil@planet.nl> <alpine.LFD.2.00.0905111614570.3561@localhost.localdomain> <4A0855A5.8040109@tut.fi> <alpine.LFD.2.00.0905141545280.24833@localhost.localdomain>
  <alpine.LFD.2.00.0905141608070.24833@localhost.localdomain> <alpine.LFD.2.00.0905142217340.3561@localhost.localdomain> <alpine.LFD.2.00.0905141750100.24833@localhost.localdomain> <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
+ <alpine.LFD.2.00.0905150217220.4995@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:53046 "EHLO www.tglx.de"
+Received: from www.tglx.de ([62.245.132.106]:53055 "EHLO www.tglx.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756481AbZEOI3U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 May 2009 04:29:20 -0400
-In-Reply-To: <alpine.LFD.2.00.0905150138001.10065@localhost.localdomain>
+	id S1761125AbZEOI3g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 May 2009 04:29:36 -0400
+In-Reply-To: <alpine.LFD.2.00.0905150217220.4995@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -22,36 +22,26 @@ On Fri, 15 May 2009, Len Brown wrote:
 
 > From: Len Brown <len.brown@intel.com>
 > 
-> Processor idle power states C2 and C3 stop the TSC on many machines.
-> Linux recognizes this situation and marks the TSC as unstable:
+> cosmetic only.  The lapic_timer workaround routines
+> are specific to the lapic_timer, and are not acpi-generic.
 > 
-> Marking TSC unstable due to TSC halts in idle
+> old:
 > 
-> But if those same machines are booted with "processor.max_cstate=1",
-> then there is no need to validate C2 and C3, and no need to
-> disable the TSC, which can be reliably used as a clocksource.
+> acpi_timer_check_state()
+> acpi_propagate_timer_broadcast()
+> acpi_state_timer_broadcast()
+> 
+> new:
+> 
+> lapic_timer_check_state()
+> lapic_timer_propagate_broadcast()
+> lapic_timer_state_broadcast()
+> 
+> also, simplify the code in acpi_processor_power_verify()
+> so that lapic_timer_check_state() is simply called
+> from one place for all valid C-states, including C1.
 > 
 > Signed-off-by: Len Brown <len.brown@intel.com>
 
 Acked-by: Thomas Gleixner <tglx@linutronix.de>
 
-> ---
->  drivers/acpi/processor_idle.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index e39a40a..e65476f 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -582,7 +582,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
->  
->  	pr->power.timer_broadcast_on_state = INT_MAX;
->  
-> -	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
-> +	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
->  		struct acpi_processor_cx *cx = &pr->power.states[i];
->  
->  		switch (cx->type) {
-> -- 
-> 1.6.3.1.9.g95405b
-> 
