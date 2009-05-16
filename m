@@ -1,112 +1,106 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/19] eeepc-laptop: report brightness control events via the
- input layer
-Date: Sat, 16 May 2009 02:02:04 -0400
-Message-ID: <64b86b6583db832b28bb54575e32b9e2a1a7d84f.1242453625.git.len.brown@intel.com>
+Subject: [PATCH 08/19] eeepc-laptop: Work around rfkill firmware bug
+Date: Sat, 16 May 2009 02:02:05 -0400
+Message-ID: <978605c4fd8e7470f225eec7b5aab69d8796afcc.1242453625.git.len.brown@intel.com>
 References: <1242453736-20763-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173009pub.verizon.net ([206.46.173.9]:28805 "EHLO
 	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbZEPGCW (ORCPT
+	with ESMTP id S1751782AbZEPGCW (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 May 2009 02:02:22 -0400
 Received: from localhost.localdomain ([96.237.168.40])
  by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KJQ00LMJ3FYL90S@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 16 May 2009 01:02:23 -0500 (CDT)
+ with ESMTPA id <0KJQ00II23FZMX27@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 May 2009 01:02:24 -0500 (CDT)
 In-reply-to: <1242453736-20763-1-git-send-email-lenb@kernel.org>
 In-reply-to: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
 References: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Darren Salt <linux@youmustbejoking.demon.co.uk>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-This maps the brightness control events to one of two keys, either
-KEY_BRIGHTNESSDOWN or KEY_BRIGHTNESSUP, as needed.
+1) Buggy firmware can change the RFKILL state by itself. This is easily
+   detected.  The RFKILL API states that in such cases, we should call
+   rfkill_force_state() to notify the core.
 
-Some mapping has to be done due to the fact that the BIOS reports them as
-<base value> + <current brightness index>; the selection is done according to
-the sign of the change in brightness (if this is 0, no keypress is reported).
+   I have reported the bug to Asus. I believe this is the right thing
+   to do for robustness, even if this particular firmware bug is fixed.
 
-(Ref. http://lists.alioth.debian.org/pipermail/debian-eeepc-devel/2009-April/002001.html)
+2) The same bug causes the wireless toggle key to be reported as 0x11
+   instead of 0x10.  0x11 is otherwise unused, so it should be safe to
+   add this as a new keycode.
 
-Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+The bug is triggered by removing the laptop battery while hibernated.
+
+On resume, the wireless toggle key causes the firmware to toggle the
+wireless state itself.  (Also, the key is reported as 0x11 when the
+current wireless state is OFF).
+
+This is very poor behaviour because the OS can't predict whether the
+firmware is controlling the RFKILL state.
+
+Without this workaround, the bug means users have to press the wireless
+toggle key twice to enable, due to the OS/firmware conflict.  (Assuming
+rfkill-input or equivalent is being used).  The workaround avoids this.
+
+I believe that acpid scripts which toggle the value of the sysfs state file
+when the toggle key is pressed will be rendered ineffective by the bug,
+regardless of this workaround.  If they simply toggle the state, when the
+firmware has already toggled it, then you will never see a state change.
+
+Tested on "EEEPC 4G" only.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   29 ++++++++++++++++++++++++++---
- 1 files changed, 26 insertions(+), 3 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index e21f7cd..f54cfea 100644
+index f54cfea..57f21f0 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -166,6 +166,8 @@ static struct key_entry eeepc_keymap[] = {
- 	{KE_KEY, 0x1b, KEY_ZOOM },
- 	{KE_KEY, 0x1c, KEY_PROG2 },
- 	{KE_KEY, 0x1d, KEY_PROG3 },
-+	{KE_KEY, NOTIFY_BRN_MIN,     KEY_BRIGHTNESSDOWN },
-+	{KE_KEY, NOTIFY_BRN_MIN + 2, KEY_BRIGHTNESSUP },
- 	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
- 	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
- 	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
-@@ -512,11 +514,16 @@ static int eeepc_hotk_check(void)
- 	return 0;
- }
- 
--static void notify_brn(void)
-+static int notify_brn(void)
- {
-+	/* returns the *previous* brightness, or -1 */
- 	struct backlight_device *bd = eeepc_backlight_device;
--	if (bd)
-+	if (bd) {
-+		int old = bd->props.brightness;
- 		bd->props.brightness = read_brightness(bd);
-+		return old;
-+	}
-+	return -1;
- }
+@@ -158,6 +158,7 @@ enum { KE_KEY, KE_END };
+ static struct key_entry eeepc_keymap[] = {
+ 	/* Sleep already handled via generic ACPI code */
+ 	{KE_KEY, 0x10, KEY_WLAN },
++	{KE_KEY, 0x11, KEY_WLAN },
+ 	{KE_KEY, 0x12, KEY_PROG1 },
+ 	{KE_KEY, 0x13, KEY_MUTE },
+ 	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
+@@ -528,6 +529,7 @@ static int notify_brn(void)
  
  static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
-@@ -558,17 +565,33 @@ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
  {
- 	static struct key_entry *key;
- 	u16 count;
-+	int brn = -ENODEV;
++	enum rfkill_state state;
+ 	struct pci_dev *dev;
+ 	struct pci_bus *bus = pci_find_bus(0, 1);
  
- 	if (!ehotk)
+@@ -539,7 +541,9 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
  		return;
- 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX)
--		notify_brn();
-+		brn = notify_brn();
- 	count = ehotk->event_count[event % 128]++;
- 	acpi_bus_generate_proc_event(ehotk->device, event, count);
- 	acpi_bus_generate_netlink_event(ehotk->device->pnp.device_class,
- 					dev_name(&ehotk->device->dev), event,
- 					count);
- 	if (ehotk->inputdev) {
-+		if (brn != -ENODEV) {
-+			/* brightness-change events need special
-+			 * handling for conversion to key events
-+			 */
-+			if (brn < 0)
-+				brn = event;
-+			else
-+				brn += NOTIFY_BRN_MIN;
-+			if (event < brn)
-+				event = NOTIFY_BRN_MIN; /* brightness down */
-+			else if (event > brn)
-+				event = NOTIFY_BRN_MIN + 2; /* ... up */
-+			else
-+				event = NOTIFY_BRN_MIN + 1; /* ... unchanged */
-+		}
- 		key = eepc_get_entry_by_scancode(event);
- 		if (key) {
- 			switch (key->type) {
+ 	}
+ 
+-	if (get_acpi(CM_ASL_WLAN) == 1) {
++	eeepc_wlan_rfkill_state(ehotk->eeepc_wlan_rfkill, &state);
++
++	if (state == RFKILL_STATE_UNBLOCKED) {
+ 		dev = pci_get_slot(bus, 0);
+ 		if (dev) {
+ 			/* Device already present */
+@@ -559,6 +563,8 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+ 			pci_dev_put(dev);
+ 		}
+ 	}
++
++	rfkill_force_state(ehotk->eeepc_wlan_rfkill, state);
+ }
+ 
+ static void eeepc_hotk_notify(acpi_handle handle, u32 event, void *data)
 -- 
 1.6.0.6
 
