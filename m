@@ -1,72 +1,99 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPI: resume: re-enable SCI-enable workaround
-Date: Fri, 15 May 2009 23:50:09 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308582DB91515@orsmsx503.amr.corp.intel.com>
-References: <20090507105821.GA5864@hash.localnet>
- <d3f22a0905122245h15786220g31ad0dcb8caa3a38@mail.gmail.com>
- <1242192968.14626.40.camel@minggr.sh.intel.com>
- <200905131015.45635.rjw@sisk.pl>
- <b6c5339f0905130830k3549095dv3eee08d7d3155a37@mail.gmail.com>
- <alpine.LFD.2.00.0905152233180.4571@localhost.localdomain>
- <4911F71203A09E4D9981D27F9D8308582DB914DF@orsmsx503.amr.corp.intel.com>
- <alpine.LFD.2.00.0905160137210.4571@localhost.localdomain>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: Battery information in sysfs for userspace tools
+Date: Sun, 17 May 2009 01:06:52 +0400
+Message-ID: <4A0F2AEC.9060802@gmail.com>
+References: <1242374864.3992.15.camel@miria>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:36510 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752074AbZEPGuM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 May 2009 02:50:12 -0400
-In-Reply-To: <alpine.LFD.2.00.0905160137210.4571@localhost.localdomain>
-Content-Language: en-US
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:46651 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479AbZEPVGw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 May 2009 17:06:52 -0400
+Received: by bwz22 with SMTP id 22so2543470bwz.37
+        for <linux-acpi@vger.kernel.org>; Sat, 16 May 2009 14:06:52 -0700 (PDT)
+In-Reply-To: <1242374864.3992.15.camel@miria>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Bob Copeland <me@bobcopeland.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-ACPICA did not change the SCI_EN value. The #define associated with the control register has always been 0x0201 in ACPICA.
-
-A linux patch changes the value from 0x0201 to 0x0200, and represents a divergence of linux from ACPICA.
-
-What ACPICA did was to rename the #define, that is what broke the linux patch.
+To: Yves-Alexis Perez <corsac@debian.org>
+Cc: linux-acpi@vger.kernel.org, Evgeni Golov <evgeni@debian.org>
 
 
-- #define ACPI_PM1_CONTROL_PRESERVED_BITS         0x0201  /* Bit 9, Bit 0 (SCI_EN) */
-
-
-+ #define ACPI_PM1_CONTROL_IGNORED_BITS           0x0201  /* Bits 9, 0(SCI_EN) */
-+ #define ACPI_PM1_CONTROL_RESERVED_BITS          0xC1F8  /* Bits 14-15, 3-8 */
-+#define ACPI_PM1_CONTROL_PRESERVED_BITS \
-+         (ACPI_PM1_CONTROL_IGNORED_BITS | ACPI_PM1_CONTROL_RESERVED_BITS)
-
-
-
-
->-----Original Message-----
->From: Len Brown [mailto:lenb@kernel.org]
->Sent: Friday, May 15, 2009 10:50 PM
->To: Moore, Robert
->Cc: Bob Copeland; Rafael J. Wysocki; Lin, Ming M; Bjorn Helgaas; Zhao,
->Yakui; linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
->Subject: RE: [PATCH] ACPI: resume: re-enable SCI-enable workaround
+Yves-Alexis Perez wrote:
+> Hi,
+>
+> Evgeni Golov (CC:ed) is currently taking care of fixing acpitool wrt.
+> sysfs support (which is badly broken).=20
+>
+> Using the files in /sys/class/power_supply/BAT*/ we have some wonderi=
+ng
+> about units.
+>
+> For the current rate, for example, we have:
+>
+> corsac@hidalgo: grep . /sys/class/power_supply/BAT0/*now   =20
+> /sys/class/power_supply/BAT0/current_now:14415000
+> /sys/class/power_supply/BAT0/energy_now:44170000
+> /sys/class/power_supply/BAT0/voltage_now:12481000
+> corsac@hidalgo: grep . /sys/devices/platform/smapi/BAT0/*now
+> /sys/devices/platform/smapi/BAT0/current_now:1151
+> /sys/devices/platform/smapi/BAT0/power_now:14365
+>
+> I'm a bit puzzled with the differences in current_now (the battery is
+> charging at that time), and don't really know if we can trust the uni=
+ts.
+>
+> I would assume (in /sys/class/power_supply):
+> current_now to be in uA
+> energy_now to be in uWh
+> voltage_now to be in uV
+>
+> as said in include/linux/power_supply.h
+>
+> /*
+>  * All voltages, currents, charges, energies, time and temperatures i=
+n uV,
+>  * =B5A, =B5Ah, =B5Wh, seconds and tenths of degree Celsius unless ot=
+herwise
+>  * stated. It's driver's job to convert its raw values to units in wh=
+ich
+>  * this class operates.
+>  */
 >
 >
->> >The BIOS bug workaround mistakenly got disabled
->> >when we followed the ACPI specification more closely
->> >by ignoring OS updates to that bit.
->>
->> Not exactly. ACPICA has always preserved the SCI_EN bit. Linux apparently
->has a "linux-only" patch to ACPICA that disables this.
->>
->> The recent version of ACPICA change the #define enough such that the
->patch no longer works.
+> and the current (dis)charging rate in W to be
+> (current_now/1.000.000)*(energy_now/1.000.000). But that gives, for a=
+n
+> end of charge, a charging rate of:
 >
->"We" here means Linux, and thus the description is accurate.
->
->The fact is that in 2.6.29 Linux had
->ACPI_PM1_CONTROL_PRESERVED_BITS 0x0200
->and when "we" updated it to 0x201 via the ACPICA update,
->the workaround in the Linux resume code became a NOP.
->
->-Len
+>  =20
+Currently, sysfs interface repeats brokenness of /proc/acpi/battery=20
+interface.
+it is possible to have battery info in energy units and charge units.
+If you see 'energy_now' variable, then 'current_now' and more=20
+appropriate 'power_now'
+will report in uW units.
+But if you have 'charge_now', then 'current_now' will report in uA=20
+units, and you will not see 'power_now'.
+So, in short, 'charge_now' reports in same units (sans *h) as capacity,=
+=20
+either 'charge_now' or 'energy_now'.
+The proper way to handle it is to check for 'energy_now' and if it is=20
+present, look for 'power_now'. It should be
+present in 2.6.30 and later kernels (remaining time=20
+energy_now/power_now). If it is not present (as in 2.6.29), then you=20
+should assume that 'current_now' has value in uW, and remaining time is=
+=20
+energy_now/current_now.
+If you have 'charge_now', remaining time is charge_now/current_now=20
+without any complications.
+
+Regards,
+Alex.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
