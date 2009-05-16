@@ -1,92 +1,77 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/19] ACPI processor: introduce module parameter
- processor.ignore_tpc
-Date: Sat, 16 May 2009 02:02:13 -0400
-Message-ID: <56c213fa012f2bad9eff908292ff2500f840b020.1242453625.git.len.brown@intel.com>
+Subject: [PATCH 06/19] eeepc-laptop: fix wlan rfkill state change during init
+Date: Sat, 16 May 2009 02:02:03 -0400
+Message-ID: <fbc97e4c5c31ea198f912196b1379d7493362800.1242453625.git.len.brown@intel.com>
 References: <1242453736-20763-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:30755 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453AbZEPGCf (ORCPT
+Received: from vms173007pub.verizon.net ([206.46.173.7]:28158 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753259AbZEPGCf (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 May 2009 02:02:35 -0400
 Received: from localhost.localdomain ([96.237.168.40])
- by vms173001.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KJQ00JYI3G2SFXC@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 16 May 2009 01:02:31 -0500 (CDT)
+ with ESMTPA id <0KJQ0060P3FYGA8A@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 May 2009 01:02:28 -0500 (CDT)
 In-reply-to: <1242453736-20763-1-git-send-email-lenb@kernel.org>
 In-reply-to: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
 References: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Introduce module parameter processor.ignore_tpc.
+When an rfkill device is registered, the rfkill core will change its
+state to the system default. So we need to prepare for state changes
+*before* we register it. That means installing the eeepc-specific ACPI
+callback which handles the hotplug of the wireless network adaptor.
 
-Some laptops are shipped with buggy _TPC,
-this module parameter is used to to disable the buggy support.
+This problem doesn't occur during normal operation.  You have to
 
-http://bugzilla.kernel.org/show_bug.cgi?id=13259
+1) Boot with wireless enabled. eeepc-laptop should load automatically.
+2) modprobe -r eeepc-laptop
+3) modprobe eeepc-laptop
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: James Ettle <theholyettlz@googlemail.com>
+On boot, the default rfkill state will be set to enabled.
+With the current core code, step 2) will disable the wireless.
+Therefore in step 3), the wireless will change state during registration,
+from disabled to enabled.  But without this fix, the PCI device for the
+wireless adaptor will not appear.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Acked-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_throttling.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index d0d1f4d..5f09fb8 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -45,6 +45,14 @@
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_throttling");
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 6f54fd1..e21f7cd 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -649,6 +649,9 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 	if (ACPI_FAILURE(status))
+ 		printk(EEEPC_ERR "Error installing notify handler\n");
  
-+/* ignore_tpc:
-+ *  0 -> acpi processor driver doesn't ignore _TPC values
-+ *  1 -> acpi processor driver ignores _TPC values
-+ */
-+static int ignore_tpc;
-+module_param(ignore_tpc, int, 0644);
-+MODULE_PARM_DESC(ignore_tpc, "Disable broken BIOS _TPC throttling support");
++	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
++	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
 +
- struct throttling_tstate {
- 	unsigned int cpu;		/* cpu nr */
- 	int target_state;		/* target T-state */
-@@ -283,6 +291,10 @@ static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
- 
- 	if (!pr)
- 		return -EINVAL;
-+
-+	if (ignore_tpc)
-+		goto end;
-+
- 	status = acpi_evaluate_integer(pr->handle, "_TPC", NULL, &tpc);
- 	if (ACPI_FAILURE(status)) {
- 		if (status != AE_NOT_FOUND) {
-@@ -290,6 +302,8 @@ static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
- 		}
- 		return -ENODEV;
+ 	if (get_acpi(CM_ASL_WLAN) != -1) {
+ 		ehotk->eeepc_wlan_rfkill = rfkill_allocate(&device->dev,
+ 							   RFKILL_TYPE_WLAN);
+@@ -704,9 +707,6 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 			goto bluetooth_fail;
  	}
-+
-+end:
- 	pr->throttling_platform_limit = (int)tpc;
- 	return 0;
- }
-@@ -302,6 +316,9 @@ int acpi_processor_tstate_has_changed(struct acpi_processor *pr)
- 	struct acpi_processor_limit *limit;
- 	int target_state;
  
-+	if (ignore_tpc)
-+		return 0;
-+
- 	result = acpi_processor_get_platform_limit(pr);
- 	if (result) {
- 		/* Throttling Limit is unsupported */
+-	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
+-	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
+-
+ 	return 0;
+ 
+  bluetooth_fail:
 -- 
 1.6.0.6
 
