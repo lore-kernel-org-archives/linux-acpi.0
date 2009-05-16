@@ -1,41 +1,64 @@
 From: Len Brown <lenb@kernel.org>
-Subject: RE: [PATCH] ACPI: resume: re-enable SCI-enable workaround
-Date: Sat, 16 May 2009 01:49:30 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905160137210.4571@localhost.localdomain>
-References: <20090507105821.GA5864@hash.localnet>
- <d3f22a0905122245h15786220g31ad0dcb8caa3a38@mail.gmail.com>
- <1242192968.14626.40.camel@minggr.sh.intel.com>
- <200905131015.45635.rjw@sisk.pl>
- <b6c5339f0905130830k3549095dv3eee08d7d3155a37@mail.gmail.com>
- <alpine.LFD.2.00.0905152233180.4571@localhost.localdomain>
- <4911F71203A09E4D9981D27F9D8308582DB914DF@orsmsx503.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 04/19] ACPI: power: update error message
+Date: Sat, 16 May 2009 02:02:01 -0400
+Message-ID: <ddc50b6ad634d9ce2526a777d4b7da80effdfb60.1242453625.git.len.brown@intel.com>
+References: <1242453736-20763-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:59240 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbZEPFtr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 May 2009 01:49:47 -0400
-In-reply-to: <4911F71203A09E4D9981D27F9D8308582DB914DF@orsmsx503.amr.corp.intel.com>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:28805 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688AbZEPGCV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 May 2009 02:02:21 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KJQ00AZ93FWWHRC@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 16 May 2009 01:02:21 -0500 (CDT)
+In-reply-to: <1242453736-20763-1-git-send-email-lenb@kernel.org>
+In-reply-to: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
+References: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Bob Copeland <me@bobcopeland.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Lin, Ming M" <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
+From: Len Brown <len.brown@intel.com>
 
-> >The BIOS bug workaround mistakenly got disabled
-> >when we followed the ACPI specification more closely
-> >by ignoring OS updates to that bit.
-> 
-> Not exactly. ACPICA has always preserved the SCI_EN bit. Linux apparently has a "linux-only" patch to ACPICA that disables this.
-> 
-> The recent version of ACPICA change the #define enough such that the patch no longer works.
+"Transitioning device [%s] to D%d" is not correct.
+We print this line when we attempted to transition
+the device, and it failed.
 
-"We" here means Linux, and thus the description is accurate.
+So instead, print
+"Device [%s] failed to transition to D%d\n"
 
-The fact is that in 2.6.29 Linux had
-ACPI_PM1_CONTROL_PRESERVED_BITS 0x0200
-and when "we" updated it to 0x201 via the ACPICA update,
-the workaround in the Linux resume code became a NOP.
+This can happen under two conditions:
 
--Len
+1. acpi_power_transition() fails when trying to handle the
+   _ON/_OFF for associated power resource.
+
+2. acpi_evaluate_object() on the explicit _PS0/_PS3
+   for that actual device could fail.
+
+this change clarifies, but doesn't fix
+http://bugzilla.kernel.org/show_bug.cgi?id=13243
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/bus.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index e8f7b64..ae862f1 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -312,7 +312,7 @@ int acpi_bus_set_power(acpi_handle handle, int state)
+       end:
+ 	if (result)
+ 		printk(KERN_WARNING PREFIX
+-			      "Transitioning device [%s] to D%d\n",
++			      "Device [%s] failed to transition to D%d\n",
+ 			      device->pnp.bus_id, state);
+ 	else {
+ 		device->power.state = state;
+-- 
+1.6.0.6
+
