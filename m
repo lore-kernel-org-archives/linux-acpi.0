@@ -1,65 +1,29 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI: resume: re-enable SCI-enable workaround
-Date: Fri, 15 May 2009 22:34:15 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905152233180.4571@localhost.localdomain>
-References: <20090507105821.GA5864@hash.localnet>
- <d3f22a0905122245h15786220g31ad0dcb8caa3a38@mail.gmail.com>
- <1242192968.14626.40.camel@minggr.sh.intel.com>
- <200905131015.45635.rjw@sisk.pl>
- <b6c5339f0905130830k3549095dv3eee08d7d3155a37@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ACPI processor: introduce module parameter
+ processor.ignore_tpc
+Date: Fri, 15 May 2009 23:04:25 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905152304130.4571@localhost.localdomain>
+References: <1242005757.15284.119.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:39936 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755334AbZEPCed (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 22:34:33 -0400
-In-reply-to: <b6c5339f0905130830k3549095dv3eee08d7d3155a37@mail.gmail.com>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:46123 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754904AbZEPDE2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2009 23:04:28 -0400
+Received: from localhost.localdomain ([96.237.168.40])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KJP00I89V7F19Y6@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 15 May 2009 22:04:27 -0500 (CDT)
+In-reply-to: <1242005757.15284.119.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Copeland <me@bobcopeland.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Lin Ming <ming.m.lin@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, yakui_zhao <yakui.zhao@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, theholyettlz@googlemail.com
 
-From: Lin Ming <ming.m.lin@intel.com>
+applied (with some English tweaks:-)
 
-The BIOS bug workaround mistakenly got disabled
-when we followed the ACPI specification more closely
-by ignoring OS updates to that bit.
-
-(The BIOS is supposed to update SCI_EN, not the OS)
-
-http://bugzilla.kernel.org/show_bug.cgi?id=13289
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-
-as-applied.
 thanks,
--Len
-
- drivers/acpi/acpica/aclocal.h |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 772ee5c..2ec394a 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -787,7 +787,12 @@ struct acpi_bit_register_info {
- 
- /* For control registers, both ignored and reserved bits must be preserved */
- 
--#define ACPI_PM1_CONTROL_IGNORED_BITS           0x0201	/* Bits 9, 0(SCI_EN) */
-+/*
-+ * The ACPI spec says to ignore PM1_CTL.SCI_EN (bit 0)
-+ * but we need to be able to write ACPI_BITREG_SCI_ENABLE directly
-+ * as a BIOS workaround on some machines.
-+ */
-+#define ACPI_PM1_CONTROL_IGNORED_BITS           0x0200	/* Bits 9 */
- #define ACPI_PM1_CONTROL_RESERVED_BITS          0xC1F8	/* Bits 14-15, 3-8 */
- #define ACPI_PM1_CONTROL_PRESERVED_BITS \
- 	       (ACPI_PM1_CONTROL_IGNORED_BITS | ACPI_PM1_CONTROL_RESERVED_BITS)
--- 
-1.6.3.1.9.g95405b
-
+Len Brown, Intel Open Source Technology Center
 
