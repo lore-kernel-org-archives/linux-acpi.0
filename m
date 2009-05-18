@@ -1,76 +1,59 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: Re: 2.6.30-rc6: Reported regressions from 2.6.29
-Date: Mon, 18 May 2009 17:45:50 +0200
-Message-ID: <20090518154550.GB22133@redhat.com>
-References: <_AjETDMbIoL.A.DcH.RYzDKB@chimera> <20090517073327.GC1583@elte.hu> <20090518145725.GB18607@redhat.com> <20090518151102.GA6241@elte.hu> <alpine.LFD.2.01.0905180819130.3301@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [i915] Kernel does not compile when set to use i915 kernel mode-setting per default (CONFIG_DRM_I915_KMS=y)
+Date: Mon, 18 May 2009 21:01:06 +0200
+Message-ID: <200905182101.06511.rjw@sisk.pl>
+References: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:36504 "EHLO mx2.redhat.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:56870 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751422AbZERPwY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 May 2009 11:52:24 -0400
+	id S1752938AbZERTBf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 May 2009 15:01:35 -0400
+In-Reply-To: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.01.0905180819130.3301@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jonathan Corbet <corbet@lwn.net>, Martin Bammer <mrb74@gmx.at>, Jeff Garzik <jgarzik@pobox.com>, Kumar Gala <galak@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Zorael <zorael@gmail.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 05/18, Linus Torvalds wrote:
->
-> On Mon, 18 May 2009, Ingo Molnar wrote:
-> >
-> > Btw., why did the patch (and the revert) make any difference to the
-> > test? Timing differences look improbable.
->
-> It's the change from
->
-> 	!signal_group_exit(signal)
->
-> to
->
-> 	!sig_kernel_only(signr)
->
-> and quite frankly, I still don't see the point.
+Adding CCs.
 
-Previously,
-
-	!signal_group_exit(signal)
-
-meant: we do not know what should we do, let's ignore this signal.
-Unless the multithreaded init does exec, in this case we should
-respect SIGKILL.
-
-With the recent changes, sig_kernel_only() means: we already checked
-we should handle SIGKILL/SIGSTOP when this signal was queued.
-
-> The comment seems to be wrong too:
->
->     If SIGSTOP/SIGKILL originate from a descendant of container-init they are
->     never queued (i.e dropped in sig_ignored() in an earler patch).
->
->     If SIGSTOP/SIGKILL originate from parent namespace, the signal is queued
->     and container-init processes the signal.
->
-> since the bug was that the SIGSTOP (from within the same container) was
-> _not_ ignored like the comment says.
-
-Yes, the changelog could be better because it ignores ptrace issues. But
-this was discussed,
-
->From http://marc.info/?t=123222433100001
-
-	Yes we should handle SIGSTOP fine if it sent from the parent namespace.
-
-	Also. Currently it is possible to ptrace the global init, but even
-	ptracer can't stop it (but ptrace_stop() works). With these patches
-	ptracer can stop init.
-
-	I forgot to mention this behaviour change, imho this side-effect
-	is good.
-
-So, at least this change is not "by accident".
-
-Oleg.
-
+On Monday 18 May 2009, you wrote:
+> (First post, so please CC to zorael@gmail.com in case it doesn't automatically.)
+> 
+> 
+> I'm trying to compile 2.6.30-rc6 to enable kernel mode-setting *per
+> default*, for my Intel 945GME video chipset. Alas, when compiling, it
+> halts with the following tidbit:
+> 
+> ...
+>   LD      .tmp_vmlinux1
+> drivers/built-in.o: In function `intel_opregion_free':
+> /usr/src/linux/drivers/gpu/drm/i915/i915_opregion.c:422: undefined
+> reference to `acpi_video_exit'
+> drivers/built-in.o: In function `intel_opregion_init':
+> /usr/src/linux/drivers/gpu/drm/i915/i915_opregion.c:393: undefined
+> reference to `acpi_video_register'
+> make[1]: *** [.tmp_vmlinux1] Error 1
+> make[1]: Leaving directory `/usr/src/linux-2.6.29'
+> make: *** [debian/stamp/build/kernel] Error 2
+> 
+> 
+> grepping acpi_video_register recursively I see it's defined as an
+> empty function in ./include/acpi/video.h, and as a more proper
+> function in ./drivers/acpi/video.c. Does somehow setting it to use KMS
+> per default via CONFIG_DRM_I915_KMS=y stop it from reading those
+> files?
+> 
+> I used to run with KMS by default in the early -30rc*s, but at some
+> point (rc2?), it stopped compiling succesfully. If I don't enable it
+> per default, it *does* compile, though I don't know how to explicitly
+> enable it at boot-time. So I'm living without KMS for the time being.
+> Woe.
+> 
+> Anything obvious I'm doing wrong?
+> 
+> -- Zorael
