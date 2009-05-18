@@ -1,76 +1,44 @@
-From: xb <xavier.bru@bull.net>
-Subject: Re: SRAT v1 support
-Date: Mon, 18 May 2009 13:19:24 +0200
-Message-ID: <4A11443C.2010602@bull.net>
-References: <4A0D8178.4060604@bull.net> <86802c440905151138t42705477s95a972704db2ce9c@mail.gmail.com>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Re: 2.6.30-rc6: Reported regressions from 2.6.29
+Date: Mon, 18 May 2009 16:57:25 +0200
+Message-ID: <20090518145725.GB18607@redhat.com>
+References: <_AjETDMbIoL.A.DcH.RYzDKB@chimera> <20090517073327.GC1583@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ecfrec.frec.bull.fr ([129.183.4.8]:36754 "EHLO
-	ecfrec.frec.bull.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313AbZERLT3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2009 07:19:29 -0400
-In-Reply-To: <86802c440905151138t42705477s95a972704db2ce9c@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20090517073327.GC1583@elte.hu>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Adrian Bunk <bunk@kernel.org>, DRI <dri-devel@lists.sourceforge.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Kumar Gala <galak@kernel.crashing.org>, Natalie Protasevich <protasnb@gmail.com>, Martin Bammer <mrb74@gmx.at>, Linus Torvalds <torvalds@linux-foundation.org>, Network Development <netdev@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Jeff Garzik <jgarzik@pobox.com>, Linux PM List <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-yes, could be simpler :-)
-
-    I just saw that Kurt Garloff from Suse has published 3 patches on 
-kernel mailing list that fixes the SRAT v1 issue:
-    [PATCH 0/3]: Discard reserved PXM bits for SRAT v1
-    [PATCH 1/3]: Store SRAT revision
-    [PATCH 2/3]: x86-64: Handle SRAT v1 and v2 consistently
-
-    It looks OK for us.
-
-Thanks.
-Xavier
-
-
-Yinghai Lu wrote:
-> On Fri, May 15, 2009 at 7:51 AM, xb <xavier.bru@bull.net> wrote:
->   
->> Recent linux kernels suppose that the  SRAT table is in rev 2 format (ACPI
->> 3.0), but some BIOSes still provide SRAT table in rev 1.
->> The rev 2 of the SRAT extension mainly provides an extension of the
->> "proximity_domain" item from 8 bits to 32 bits, using a "reserved" field of
->> the structure.
->> When the "reserved" field is not null, linux finds a wrong proximity domain,
->> and numa initialization is wrong.
->> Following patch tests the SRAT revision to allow a correct initialization:
->>
->> This patch tests the version of SRAT ACPI table to allow supporting SRAT rev
->> 1 and SRAT rev 2.
->>
->> diff -Nru linux-2.6.29-rc7-orig/arch/x86/kernel/acpi/boot.c
->> linux-2.6.29-rc7-tmp/arch/x86/kernel/acpi/boot.c
->> --- linux-2.6.29-rc7-orig/arch/x86/kernel/acpi/boot.c    2009-03-12
->> 14:41:38.000000000 +0100
->> +++ linux-2.6.29-rc7-tmp/arch/x86/kernel/acpi/boot.c    2009-03-16
->> 14:52:07.000000000 +0100
->> @@ -260,7 +260,8 @@
->> }
->>
->> static int __init
->> -acpi_parse_lapic(struct acpi_subtable_header * header, const unsigned long
->> end)
->> +acpi_parse_lapic(const struct acpi_subtable_header * const header,
->> +                const unsigned long end, const int rev)
->>     
+On 05/17, Ingo Molnar wrote:
 >
-> do we need to pass that rev all over around?
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13107
+> > Subject		: LTP 20080131 causes defunct processes w/2.6.30-rc1
+> > Submitter	: Kumar Gala <galak@kernel.crashing.org>
+> > Date		: 2009-04-09 15:43 (38 days old)
+> > First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=b3bfa0cba867f23365b81658b47efd906830879b
+> > References	: http://marc.info/?l=linux-kernel&m=123929187208953&w=4
+> > 		  http://lkml.org/lkml/2009/4/10/193
+> > Handled-By	: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 >
-> looks like we could use one srat_version or pxm_mask variable to get
-> the same result.
->
-> YH
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->   
+> Oleg says in that thread that it's as-designed, and followup
+> questions were not replied to (yet).
+
+Yes, I think this is false alarm. Perhaps I missed something, and
+I am waiting for more info from Kumar, but it looks like ltp was
+already changed to skip the "{ PTRACE_ATTACH, 1, EPERM }" test
+on kernels after 2.6.25
+
+Oleg.
