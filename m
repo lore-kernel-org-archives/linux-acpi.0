@@ -1,26 +1,25 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [i915] Kernel does not compile when set to use i915 kernel
  mode-setting per default (CONFIG_DRM_I915_KMS=y)
-Date: Mon, 18 May 2009 12:11:40 -0700
-Message-ID: <20090518121140.d0bacafd.randy.dunlap@oracle.com>
+Date: Mon, 18 May 2009 21:10:36 +0200
+Message-ID: <1242673836.32543.1288.camel@laptop>
 References: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com>
-	<200905182101.06511.rjw@sisk.pl>
+	 <200905182101.06511.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet12.oracle.com ([148.87.113.124]:27468 "EHLO
-	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782AbZERTLA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2009 15:11:00 -0400
+Received: from bombadil.infradead.org ([18.85.46.34]:44002 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752454AbZERTLF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2009 15:11:05 -0400
 In-Reply-To: <200905182101.06511.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zorael <zorael@gmail.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Mon, 18 May 2009 21:01:06 +0200 Rafael J. Wysocki wrote:
-
+On Mon, 2009-05-18 at 21:01 +0200, Rafael J. Wysocki wrote:
 > Adding CCs.
 > 
 > On Monday 18 May 2009, you wrote:
@@ -58,37 +57,6 @@ On Mon, 18 May 2009 21:01:06 +0200 Rafael J. Wysocki wrote:
 > > 
 > > Anything obvious I'm doing wrong?
 
+CONFIG_ACPI_VIDEO=y IIRC, Kconfig should be fixed, and I seem to
+remember seeing patch fly by.
 
-Len posted a patch for this.  It's below.
-Len, do you have this patch queued for Linus?
-
----
-From: Len Brown <len.brown@intel.com>
-Subject: [PATCH] ACPI, i915: build fix
-
-drivers/built-in.o: In function `intel_opregion_init':
-(.text+0x9d540): undefined reference to `acpi_video_register'
-
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/gpu/drm/Kconfig |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index 3a22eb9..f33d252 100644
---- a/drivers/gpu/drm/Kconfig
-+++ b/drivers/gpu/drm/Kconfig
-@@ -83,6 +83,12 @@ config DRM_I915
- config DRM_I915_KMS
- 	bool "Enable modesetting on intel by default"
- 	depends on DRM_I915
-+	# i915 KMS depends on ACPI_VIDEO when ACPI is enabled
-+	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
-+	select VIDEO_OUTPUT_CONTROL if ACPI
-+	select BACKLIGHT_CLASS_DEVICE if ACPI
-+	select INPUT if ACPI
-+	select ACPI_VIDEO if ACPI
- 	help
- 	  Choose this option if you want kernel modesetting enabled by default,
- 	  and you have a new enough userspace to support this. Running old
--- 
