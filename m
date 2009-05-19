@@ -1,49 +1,63 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH 1/2]cpuidle: makes AMD C1E works in acpi_idle
-Date: Tue, 19 May 2009 17:24:44 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.0905191722110.5983@localhost.localdomain>
-References: <20090519080942.GA12117@sli10-desk.sh.intel.com> <alpine.LFD.2.00.0905191447490.5983@localhost.localdomain> <20090519150908.GA27513@sli10-desk.sh.intel.com>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
+ suspend
+Date: Tue, 19 May 2009 11:30:32 -0500
+Message-ID: <4A12DEA8.4060305@dell.com>
+References: <4A11C126.1000704@dell.com> <1242710064.3147.4.camel@localhost.localdomain> <20090519090610.GA29967@srcf.ucam.org> <200905191447.34000.oliver@neukum.org> <20090519125853.GA12483@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig4B0AC60646A4CF9AA26AE72B"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:48644 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750721AbZESP0s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 May 2009 11:26:48 -0400
-In-Reply-To: <20090519150908.GA27513@sli10-desk.sh.intel.com>
+Received: from ausxippc101.us.dell.com ([143.166.85.207]:33513 "EHLO
+	ausxippc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240AbZESQa3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 12:30:29 -0400
+In-Reply-To: <20090519125853.GA12483@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "thisistempbox@yahoo.com" <thisistempbox@yahoo.com>, "mingo@redhat.com" <mingo@redhat.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Oliver Neukum <oliver@neukum.org>, Marcel Holtmann <marcel@holtmann.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 19 May 2009, Shaohua Li wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig4B0AC60646A4CF9AA26AE72B
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> On Tue, May 19, 2009 at 08:55:10PM +0800, Thomas Gleixner wrote:
-> > On Tue, 19 May 2009, Shaohua Li wrote:
-> > 
-> > > When AMD C1E is enabled, local APIC timer will stop even in C1. This patch uses
-> > > broadcast ipi to replace local APIC timer in C1.
-> > > 
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=13233
-> > 
-> > Hmm. This was addressed before in 
-> > 
-> > commit a8d6829044901a67732904be5f1eacdf8539604f (x86: prevent C-states
-> > hang on AMD C1E enabled machines)
-> > 
-> > We limit C-States to 1 via acpi_processor_cstate_check().
-> > 
-> > And we have the broadcast logic in c1e_idle() already. We also select
-> > c1e_idle as the idle routine, so why is the ACPI code not using this. ?
+Hi Guys:
+
+Matthew Garrett wrote:
+> On Tue, May 19, 2009 at 02:47:33PM +0200, Oliver Neukum wrote:
+>  =20
 >
-> We used to call pm_idle_save() for C1, which will call c1e_idle. But this is
-> removed, guess the reason is we want to do C1 enter per the information gotten
-> from BIOS. So this bug is a regression actually. The patch follows the logic
-> of c1e_idle().
+> It doesn't seem to for Mario, otherwise this patch wouldn't change=20
+> anything.
+>
+>  =20
+During S3, when power gets cut, the device is reset and the radio
+logical device no longer shows up.  At no point do either of the USB
+keyboard/mouse devices stop showing up on the bus.  Henceforth, there is
+no event for udev to trigger from when a mouse or keyboard gets
+added/removed.
 
-Hmm, ok. As long as the code does not undo something which was already
-set up in c1e_idle() I have no objections.
+--=20
+Mario Limonciello
+*Dell | Linux Engineering*
+mario_limonciello@dell.com
 
-Thanks,
 
-	tglx
+--------------enig4B0AC60646A4CF9AA26AE72B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkoS3qgACgkQ2CrZjkA73YsMnwCgixuWcPu6p8fuhHu7L1ftxEWt
+SB4An3TY/hsjnrZM6UzfKyXvk8IzKsEJ
+=oOrP
+-----END PGP SIGNATURE-----
+
+--------------enig4B0AC60646A4CF9AA26AE72B--
