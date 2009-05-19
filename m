@@ -1,115 +1,68 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH]cpuset: add new API to change cpuset top group's cpus
-Date: Tue, 19 May 2009 15:39:42 +0800
-Message-ID: <20090519073942.GA10864@sli10-desk.sh.intel.com>
+Subject: [PATCH 1/2]cpuidle: makes AMD C1E works in acpi_idle
+Date: Tue, 19 May 2009 16:09:42 +0800
+Message-ID: <20090519080942.GA12117@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4159 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:47639 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968AbZESHjm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 May 2009 03:39:42 -0400
+	id S1752393AbZESIJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 May 2009 04:09:42 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, menage@google.com
+Cc: lenb@kernel.org, thisistempbox@yahoo.com, mingo@redhat.com
 
-ACPI 4.0 defines processor aggregator device. The device can notify OS to idle
-some CPUs to save power. This isn't to hot remove cpus, but just makes cpus
-idle.
+When AMD C1E is enabled, local APIC timer will stop even in C1. This patch uses
+broadcast ipi to replace local APIC timer in C1.
 
-This patch adds one API to change cpuset top group's cpus. If we want to
-make one cpu idle, simply remove the cpu from cpuset top group's cpu list,
-then all tasks will be migrate to other cpus, and other tasks will not be
-migrated to this cpu again. No functional changes.
+http://bugzilla.kernel.org/show_bug.cgi?id=13233
 
-We will use this API in new ACPI processor aggregator device driver later.
+[ impact: avoid boot hang in AMD CPU with C1E enabled ]
 
-Signed-off-by: Shaohua Li<shaohua.li@intel.com>
+Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
- include/linux/cpuset.h |    5 +++++
- kernel/cpuset.c        |   27 ++++++++++++++++++++++++---
- 2 files changed, 29 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_idle.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Index: linux/kernel/cpuset.c
+Index: linux/drivers/acpi/processor_idle.c
 ===================================================================
---- linux.orig/kernel/cpuset.c	2009-05-12 16:27:16.000000000 +0800
-+++ linux/kernel/cpuset.c	2009-05-19 10:05:36.000000000 +0800
-@@ -929,14 +929,14 @@ static void update_tasks_cpumask(struct 
-  * @buf: buffer of cpu numbers written to this cpuset
-  */
- static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
--			  const char *buf)
-+			  const char *buf, bool top_ok)
- {
- 	struct ptr_heap heap;
- 	int retval;
- 	int is_load_balanced;
+--- linux.orig/drivers/acpi/processor_idle.c	2009-05-19 09:45:23.000000000 +0800
++++ linux/drivers/acpi/processor_idle.c	2009-05-19 09:56:59.000000000 +0800
+@@ -148,6 +148,9 @@ static void acpi_timer_check_state(int s
+ 	if (cpu_has(&cpu_data(pr->id), X86_FEATURE_ARAT))
+ 		return;
  
- 	/* top_cpuset.cpus_allowed tracks cpu_online_map; it's read-only */
--	if (cs == &top_cpuset)
-+	if (cs == &top_cpuset && !top_ok)
- 		return -EACCES;
- 
++	if (boot_cpu_has(X86_FEATURE_AMDC1E))
++		type = ACPI_STATE_C1;
++
  	/*
-@@ -1496,7 +1496,7 @@ static int cpuset_write_resmask(struct c
+ 	 * Check, if one of the previous states already marked the lapic
+ 	 * unstable
+@@ -611,6 +614,7 @@ static int acpi_processor_power_verify(s
+ 		switch (cx->type) {
+ 		case ACPI_STATE_C1:
+ 			cx->valid = 1;
++			acpi_timer_check_state(i, pr, cx);
+ 			break;
  
- 	switch (cft->private) {
- 	case FILE_CPULIST:
--		retval = update_cpumask(cs, trialcs, buf);
-+		retval = update_cpumask(cs, trialcs, buf, false);
- 		break;
- 	case FILE_MEMLIST:
- 		retval = update_nodemask(cs, trialcs, buf);
-@@ -1511,6 +1511,27 @@ static int cpuset_write_resmask(struct c
- 	return retval;
+ 		case ACPI_STATE_C2:
+@@ -835,6 +839,7 @@ static int acpi_idle_enter_c1(struct cpu
+ 		return 0;
+ 	}
+ 
++	acpi_state_timer_broadcast(pr, cx, 1);
+ 	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+ 	kt2 = ktime_get_real();
+@@ -842,6 +847,7 @@ static int acpi_idle_enter_c1(struct cpu
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
++	acpi_state_timer_broadcast(pr, cx, 0);
+ 
+ 	return idle_time;
  }
- 
-+int cpuset_change_top_cpumask(const char *buf)
-+{
-+	int retval = 0;
-+	struct cpuset *cs = &top_cpuset;
-+	struct cpuset *trialcs;
-+
-+	if (!cgroup_lock_live_group(cs->css.cgroup))
-+		return -ENODEV;
-+
-+	trialcs = alloc_trial_cpuset(cs);
-+	if (!trialcs)
-+		return -ENOMEM;
-+
-+	retval = update_cpumask(cs, trialcs, buf, true);
-+
-+	free_trial_cpuset(trialcs);
-+	cgroup_unlock();
-+	return retval;
-+}
-+EXPORT_SYMBOL(cpuset_change_top_cpumask);
-+
- /*
-  * These ascii lists should be read in a single call, by using a user
-  * buffer large enough to hold the entire map.  If read in smaller
-Index: linux/include/linux/cpuset.h
-===================================================================
---- linux.orig/include/linux/cpuset.h	2009-05-12 16:27:15.000000000 +0800
-+++ linux/include/linux/cpuset.h	2009-05-19 10:05:36.000000000 +0800
-@@ -92,6 +92,7 @@ extern void rebuild_sched_domains(void);
- 
- extern void cpuset_print_task_mems_allowed(struct task_struct *p);
- 
-+extern int cpuset_change_top_cpumask(const char *buf);
- #else /* !CONFIG_CPUSETS */
- 
- static inline int cpuset_init_early(void) { return 0; }
-@@ -188,6 +189,10 @@ static inline void cpuset_print_task_mem
- {
- }
- 
-+static inline int cpuset_change_top_cpumask(const char *buf)
-+{
-+	return -ENODEV;
-+}
- #endif /* !CONFIG_CPUSETS */
- 
- #endif /* _LINUX_CPUSET_H */
