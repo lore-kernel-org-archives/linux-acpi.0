@@ -1,67 +1,92 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH 2/2]cpuidle: makes AMD C1E works in suspend/resume path
-Date: Tue, 19 May 2009 15:07:08 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.0905191456050.5983@localhost.localdomain>
-References: <20090519080954.GB12117@sli10-desk.sh.intel.com>
+From: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
+Date: Tue, 19 May 2009 19:07:25 +0530
+Message-ID: <20090519133725.GA16709@dirshya.in.ibm.com>
+References: <20090519073942.GA10864@sli10-desk.sh.intel.com> <1242722454.26820.461.camel@twins> <20090519084852.GA13682@sli10-desk.sh.intel.com> <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
+Reply-To: svaidy@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:50863 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753776AbZESNI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 May 2009 09:08:29 -0400
-In-Reply-To: <20090519080954.GB12117@sli10-desk.sh.intel.com>
+Received: from e23smtp01.au.ibm.com ([202.81.31.143]:42228 "EHLO
+	e23smtp01.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537AbZESNht (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 09:37:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1242729538.26820.497.camel@twins>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, thisistempbox@yahoo.com, lenb@kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "menage@google.com" <menage@google.com>
 
-On Tue, 19 May 2009, Shaohua Li wrote:
+* Peter Zijlstra <peterz@infradead.org> [2009-05-19 12:38:58]:
 
-> When AMD C1E is enabled, local APIC timer will stop even in C1. To avoid
-> suspend/resume hang, this patch removes C1 and replace it with a cpu_relax() in
-> suspend/resume path. This hasn't any impact in runtime path.
+> On Tue, 2009-05-19 at 10:56 +0200, Peter Zijlstra wrote:
+> > On Tue, 2009-05-19 at 16:48 +0800, Shaohua Li wrote:
+> > > On Tue, May 19, 2009 at 04:40:54PM +0800, Peter Zijlstra wrote:
+> > > > On Tue, 2009-05-19 at 15:39 +0800, Shaohua Li wrote:
+> > > > > ACPI 4.0 defines processor aggregator device. The device can notify OS to idle
+> > > > > some CPUs to save power. This isn't to hot remove cpus, but just makes cpus
+> > > > > idle.
+> > > > > 
+> > > > > This patch adds one API to change cpuset top group's cpus. If we want to
+> > > > > make one cpu idle, simply remove the cpu from cpuset top group's cpu list,
+> > > > > then all tasks will be migrate to other cpus, and other tasks will not be
+> > > > > migrated to this cpu again. No functional changes.
+> > > > > 
+> > > > > We will use this API in new ACPI processor aggregator device driver later.
+> > > > 
+> > > > I don't think so. There really is a lot more to do than move processes
+> > > > about.
+> > > no processor running is good enough for us, we don't care about interrupts/softirq/
+> > > timers so far.
+> > 
+> > Well, I don't care for this interface.
+> > 
+> > > > Furthermore, I object to being able to remove online cpus from the top
+> > > > cpuset, that just doesn't make sense.
+> > > > 
+> > > > I'd suggest using hotplug for this.
+> > 
+> > > cpu hotplug involves too much things, and we are afraid it's not reliable.
+> > 
+> > Then make it more reliable instead of providing ugly ass shit like this.
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13233
+> OK, so perhaps I should have use different words. But the point is, we
+> don't need a new interface to force a cpu idle. Hotplug does that.
+
+We tried similar approaches to create idle time for power savings, but
+cpu hotplug interface seem to be a clean choice.  There could be
+issues with the interface, we should fix it.  Is there any other
+reason why cpuhotplug is 'ugly' other than its performance (speed)?
+
+I have tried few load balancer hacks to evacuate cores but not a solid
+design yet.  It has its advantages but still needs more work.
+
+http://lkml.org/lkml/2009/5/13/173
+
+> Furthermore, we should not want anything outside of that, either the cpu
+> is there available for work, or its not -- halfway measures don't make
+> sense.
 > 
-> [ impact: avoid suspend/resume hang in AMD CPU with C1E enabled ]
-> 
-> Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> ---
->  drivers/acpi/processor_idle.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Index: linux/drivers/acpi/processor_idle.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/processor_idle.c	2009-05-19 09:56:59.000000000 +0800
-> +++ linux/drivers/acpi/processor_idle.c	2009-05-19 10:01:23.000000000 +0800
-> @@ -834,8 +834,8 @@ static int acpi_idle_enter_c1(struct cpu
->  
->  	/* Do not access any ACPI IO ports in suspend path */
->  	if (acpi_idle_suspend) {
-> -		acpi_safe_halt();
->  		local_irq_enable();
-> +		cpu_relax();
->  		return 0;
->  	}
+> Furthermore, we already have power aware scheduling which tries to
+> aggregate idle time on cpu/core/packages so as to maximize the idle time
+> power savings. Use it there.
 
-Hmm, we removed the pm_idle_safe logic which took care of that in
-older kernel versions :(
+Power aware scheduling can optimally accumulate idle times.  Framework
+to create idle time to force idle cores is good and useful for power
+savings.  Other than the speed of online/offline I do not know of any
+other major issue for using cpu hotplug for this purpose.
+ 
+> > > Besides, a hot removed cpu will do a dead loop halt, which isn't power saving
+> > > efficient. To make hot removed cpu enters deep C-state is in whish list for a
+> > > long time, but still not available. The acpi_processor_idle is a module, and
+> > > cpuidle governor potentially can't handle offline cpu.
+> > 
+> > Then fix that hot-unplug idle loop. I agree that the hlt thing is silly,
+> > and I've no idea why its still there, seems like a much better candidate
+> > for your efforts than this.
 
-        if (!cx || acpi_idle_suspend) {
-                if (pm_idle_save)
-                        pm_idle_save();
-                else
-                        acpi_safe_halt();
-                return;
-        }
+I agree with Peter.  We need to make cpu hotplug save power first and
+later improve upon its performance.
 
-That's what took care of the broadcast on those AMD C1E machines as
-well.
-
-But yeah, that cpu_relax() loop is probably fine for the suspend path.
-
-Thanks,
-
-	tglx
+--Vaidy
