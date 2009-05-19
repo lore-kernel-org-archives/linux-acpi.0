@@ -1,82 +1,73 @@
-From: Mario Limonciello <mario_limonciello-8PEkshWhKlo@public.gmane.org>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
- suspend
-Date: Tue, 19 May 2009 17:19:58 -0500
-Message-ID: <4A13308E.4040703@dell.com>
-References: <4A11C126.1000704@dell.com> <200905192326.46274.oliver@neukum.org> <4A1328D6.5090404@dell.com> <200905200016.49110.oliver@neukum.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
+Date: Wed, 20 May 2009 00:36:41 +0200
+Message-ID: <1242772601.26820.527.camel@twins>
+References: <20090519073942.GA10864@sli10-desk.sh.intel.com>
+	 <1242722454.26820.461.camel@twins>
+	 <20090519084852.GA13682@sli10-desk.sh.intel.com>
+	 <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
+	 <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig948EC0435FDE58DFE4091A13"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200905200016.49110.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:34586 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127AbZESWhi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 18:37:38 -0400
+In-Reply-To: <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig948EC0435FDE58DFE4091A13
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2009-05-19 at 15:01 -0400, Len Brown wrote:
+> > ... the point is, we
+> > don't need a new interface to force a cpu idle. Hotplug does that.
+> >
+> > Furthermore, we should not want anything outside of that, either the cpu
+> > is there available for work, or its not -- halfway measures don't make
+> > sense.
+> > 
+> > Furthermore, we already have power aware scheduling which tries to
+> > aggregate idle time on cpu/core/packages so as to maximize the idle time
+> > power savings. Use it there.
+> 
+> Some context...
 
-Hi Oliver:
+<snip default story of thermal overcommit>
 
-Oliver Neukum wrote:
-> Am Dienstag, 19. Mai 2009 23:47:02 schrieb Mario Limonciello:
->  =20
->
-> That is correct the devices have been successfully resumed and thus are=
+> > > > Besides, a hot removed cpu will do a dead loop halt, which isn't power saving
+> > > > efficient. To make hot removed cpu enters deep C-state is in whish list for a
+> > > > long time, but still not available. The acpi_processor_idle is a module, and
+> > > > cpuidle governor potentially can't handle offline cpu.
+> > > 
+> > > Then fix that hot-unplug idle loop. I agree that the hlt thing is silly,
+> > > and I've no idea why its still there, seems like a much better candidate
+> > > for your efforts than this.
+> 
+> CONFIG_HOTPLUG_CPU has been problematic in the past.
+> It does more than what we need here, so we thought
+> a lighter-weight and lower-latency method that simply
+> didn't schedule to the idled cpu would suffice.
 
-> present. Generally the idea of suspened/resume is to have the same syst=
-em
-> after resumption. It is correct to not generate events. Usbcore cannot =
-know
-> that you use udev to switch the device from pure HID to HID + bluetooth=
-=2E
->
->  =20
-Right, which makes sense.
->
-> Yes, the question is whether it is the clean thing to do.
->
-> Marcel, are the HID devices usable after hid2hci has run? Should we
-> choose to not resume from power loss any hid device which hid2hci
-> operated on?
->
-> 	Regards
-> 		Oliver
->
->  =20
-I can actually field this answer.  Currently those HID devices have no
-purpose after hid2hci has operated on them.  If transitioned back into
-full HID mode, then the mouse and keyboard HID devices can be functional.=
+> We are fixing the hotplug-unplug idle loop, but there
+> turns out to be some issues with it related to idle
+> processors with interrupts disabled that don't actually
+> get down into the deep C-states we request:-(
+> 
+> So this is why you see a patch for a "halfway measure",
+> it does what is necessary, and does nothing more.
 
+Its broken, its ill-defined and its not going to happen.
 
-Regards
+Ripping cpus out of the top cpuset might upset the cpuset configuration
+and has no regards for any realtime processes. And I must take back my
+earlier suggestion, hotplug is a bad solution too.
 
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello-8PEkshWhKlo@public.gmane.org
+There's just too much user policy (cpuset configuration) to upset.
+
+The IBM folks are working on a scheduler based solution, please talk to
+them.
 
 
---------------enig948EC0435FDE58DFE4091A13
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkoTMI4ACgkQ2CrZjkA73YuWnQCcDCG2bbVA1oZ9OrcOMPcmKQyd
-gb4AoIiFinZdgpdW5+cw9jevG9Bf0ASQ
-=wB0I
------END PGP SIGNATURE-----
-
---------------enig948EC0435FDE58DFE4091A13--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
