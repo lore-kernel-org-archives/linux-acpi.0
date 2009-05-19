@@ -1,41 +1,34 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on suspend
-Date: Tue, 19 May 2009 14:47:33 +0200
-Message-ID: <200905191447.34000.oliver@neukum.org>
-References: <4A11C126.1000704@dell.com> <1242710064.3147.4.camel@localhost.localdomain> <20090519090610.GA29967@srcf.ucam.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 1/2]cpuidle: makes AMD C1E works in acpi_idle
+Date: Tue, 19 May 2009 14:55:10 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.0905191447490.5983@localhost.localdomain>
+References: <20090519080942.GA12117@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:59727 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713AbZESMrO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 08:47:14 -0400
-In-Reply-To: <20090519090610.GA29967@srcf.ucam.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753133AbZESM4o@vger.kernel.org>
+In-Reply-To: <20090519080942.GA12117@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, thisistempbox@yahoo.com, mingo@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Mario Limonciello <mario_limonciello@dell.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Am Dienstag, 19. Mai 2009 11:06:12 schrieb Matthew Garrett:
-> On Mon, May 18, 2009 at 10:14:24PM -0700, Marcel Holtmann wrote:
-> > Hi Matthew,
-> >
-> > > Ok. I don't think the right way to implement this is forcing
-> > > dell-laptop to simulate an unplug. The HCI driver should be responsible
-> > > for saving and restoring state of the device in its suspend/resume
-> > > method.
-> >
-> > what do you expect the generic USB driver to do? I don't see anything we
-> > can do about it, if the device gets removed from underneath us.
->
-> If the device is getting removed from underneath you, why isn't hid2hci
-> being run again when it reappears as the hid device?
+On Tue, 19 May 2009, Shaohua Li wrote:
 
-udev triggers exactly that.
+> When AMD C1E is enabled, local APIC timer will stop even in C1. This patch uses
+> broadcast ipi to replace local APIC timer in C1.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13233
 
-	Regards
-		Oliver
+Hmm. This was addressed before in 
 
+commit a8d6829044901a67732904be5f1eacdf8539604f (x86: prevent C-states
+hang on AMD C1E enabled machines)
+
+We limit C-States to 1 via acpi_processor_cstate_check().
+
+And we have the broadcast logic in c1e_idle() already. We also select
+c1e_idle as the idle routine, so why is the ACPI code not using this. ?
+
+Thanks,
+
+	tglx
