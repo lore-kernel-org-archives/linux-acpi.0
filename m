@@ -1,38 +1,115 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on suspend
-Date: Tue, 19 May 2009 09:36:55 +0200
-Message-ID: <200905190936.55968.oliver@neukum.org>
-References: <4A11C126.1000704@dell.com> <200905190827.52541.oliver@neukum.org> <1242715512.3147.6.camel@localhost.localdomain>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH]cpuset: add new API to change cpuset top group's cpus
+Date: Tue, 19 May 2009 15:39:42 +0800
+Message-ID: <20090519073942.GA10864@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:55953 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752269AbZESHgg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 03:36:36 -0400
-In-Reply-To: <1242715512.3147.6.camel@localhost.localdomain>
+Received: from mga11.intel.com ([192.55.52.93]:4159 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752968AbZESHjm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 May 2009 03:39:42 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: linux-usb@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Mario Limonciello <mario_limonciello@dell.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, menage@google.com
 
-Am Dienstag, 19. Mai 2009 08:45:12 schrieb Marcel Holtmann:
-> Hi Oliver,
+ACPI 4.0 defines processor aggregator device. The device can notify OS to idle
+some CPUs to save power. This isn't to hot remove cpus, but just makes cpus
+idle.
 
-> > > what do you expect the generic USB driver to do? I don't see anything
-> > > we can do about it, if the device gets removed from underneath us.
-> >
-> > In order to do this we'd have to put hid2hci into usbcore and maintain
-> > a list of devices it should operate on.
->
-> you know that hid2hci is a user space utility.
+This patch adds one API to change cpuset top group's cpus. If we want to
+make one cpu idle, simply remove the cpu from cpuset top group's cpu list,
+then all tasks will be migrate to other cpus, and other tasks will not be
+migrated to this cpu again. No functional changes.
 
-Yes. I wanted to say that we'd have to port it into kernel space.
-I don't think it would be worth the effort. Sorry for being unclear.
+We will use this API in new ACPI processor aggregator device driver later.
 
-	Regards
-		Oliver
+Signed-off-by: Shaohua Li<shaohua.li@intel.com>
+---
+ include/linux/cpuset.h |    5 +++++
+ kernel/cpuset.c        |   27 ++++++++++++++++++++++++---
+ 2 files changed, 29 insertions(+), 3 deletions(-)
 
+Index: linux/kernel/cpuset.c
+===================================================================
+--- linux.orig/kernel/cpuset.c	2009-05-12 16:27:16.000000000 +0800
++++ linux/kernel/cpuset.c	2009-05-19 10:05:36.000000000 +0800
+@@ -929,14 +929,14 @@ static void update_tasks_cpumask(struct 
+  * @buf: buffer of cpu numbers written to this cpuset
+  */
+ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
+-			  const char *buf)
++			  const char *buf, bool top_ok)
+ {
+ 	struct ptr_heap heap;
+ 	int retval;
+ 	int is_load_balanced;
+ 
+ 	/* top_cpuset.cpus_allowed tracks cpu_online_map; it's read-only */
+-	if (cs == &top_cpuset)
++	if (cs == &top_cpuset && !top_ok)
+ 		return -EACCES;
+ 
+ 	/*
+@@ -1496,7 +1496,7 @@ static int cpuset_write_resmask(struct c
+ 
+ 	switch (cft->private) {
+ 	case FILE_CPULIST:
+-		retval = update_cpumask(cs, trialcs, buf);
++		retval = update_cpumask(cs, trialcs, buf, false);
+ 		break;
+ 	case FILE_MEMLIST:
+ 		retval = update_nodemask(cs, trialcs, buf);
+@@ -1511,6 +1511,27 @@ static int cpuset_write_resmask(struct c
+ 	return retval;
+ }
+ 
++int cpuset_change_top_cpumask(const char *buf)
++{
++	int retval = 0;
++	struct cpuset *cs = &top_cpuset;
++	struct cpuset *trialcs;
++
++	if (!cgroup_lock_live_group(cs->css.cgroup))
++		return -ENODEV;
++
++	trialcs = alloc_trial_cpuset(cs);
++	if (!trialcs)
++		return -ENOMEM;
++
++	retval = update_cpumask(cs, trialcs, buf, true);
++
++	free_trial_cpuset(trialcs);
++	cgroup_unlock();
++	return retval;
++}
++EXPORT_SYMBOL(cpuset_change_top_cpumask);
++
+ /*
+  * These ascii lists should be read in a single call, by using a user
+  * buffer large enough to hold the entire map.  If read in smaller
+Index: linux/include/linux/cpuset.h
+===================================================================
+--- linux.orig/include/linux/cpuset.h	2009-05-12 16:27:15.000000000 +0800
++++ linux/include/linux/cpuset.h	2009-05-19 10:05:36.000000000 +0800
+@@ -92,6 +92,7 @@ extern void rebuild_sched_domains(void);
+ 
+ extern void cpuset_print_task_mems_allowed(struct task_struct *p);
+ 
++extern int cpuset_change_top_cpumask(const char *buf);
+ #else /* !CONFIG_CPUSETS */
+ 
+ static inline int cpuset_init_early(void) { return 0; }
+@@ -188,6 +189,10 @@ static inline void cpuset_print_task_mem
+ {
+ }
+ 
++static inline int cpuset_change_top_cpumask(const char *buf)
++{
++	return -ENODEV;
++}
+ #endif /* !CONFIG_CPUSETS */
+ 
+ #endif /* _LINUX_CPUSET_H */
