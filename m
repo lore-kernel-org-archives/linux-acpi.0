@@ -1,85 +1,65 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
- suspend
-Date: Mon, 18 May 2009 16:36:40 -0500
-Message-ID: <4A11D4E8.1020807@dell.com>
-References: <4A11C126.1000704@dell.com> <20090518210241.GA17755@srcf.ucam.org>
+From: Nigel Cunningham <ncunningham@crca.org.au>
+Subject: Re: [RFC] why do we need run disk sync before entering S3
+Date: Tue, 19 May 2009 11:03:39 +1000
+Message-ID: <1242695019.10835.127.camel@nigel-laptop>
+References: <Pine.LNX.4.44L0.0905122155550.7989-100000@netrider.rowland.org>
+	<200905131003.15199.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig376252EF10F8BD2D68EBEB4D"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60pc101.us.dell.com ([143.166.85.206]:19287 "EHLO
-	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752064AbZERVgg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2009 17:36:36 -0400
-In-Reply-To: <20090518210241.GA17755@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200905131003.15199.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig376252EF10F8BD2D68EBEB4D
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi.
 
-Hi Matthew:
+On Wed, 2009-05-13 at 10:03 +0200, Rafael J. Wysocki wrote:
+> On Wednesday 13 May 2009, Alan Stern wrote:
+> > On Wed, 13 May 2009, Zhang Rui wrote:
+> > 
+> > > Hi, all,
+> > > 
+> > > I did some S3 tests on an eeepc901, the total suspend time(from issue
+> > > the suspend command to power down) is about 2.5s~3s.
+> > > something interesting is that kernel runs disk sync before entering S3
+> > > state, and this takes about 0.7~1.2s.
+> > > my question is that, why do we need this for s2ram?
+> > > can we remove this and run sys_sync for S4 only?
+> > 
+> > At the risk of sounding foolish, I'd guess that a system in S3 (or more
+> > generally, suspend-to-RAM) is a lot more at risk of losing power or
+> > failing to restore than a normally running system.  (A normally running
+> > system is trivially not at risk of failing to restore!)  Consequently
+> > it makes sense to flush the I/O buffers before entering this state, to
+> > minimize the potential for loss of data.
+> > 
+> > When you think about it, a system in S4 is actually _less_ likely to 
+> > run into trouble than one in S3, since it can't fail because of loss of 
+> > power.  So if anything, we should remove the disk sync from hibernation 
+> > and leave it in system suspend.
+> 
+> I generally agree, but I think we may also leave the syncing to the user space,
+> in both cases.
 
-Matthew Garrett wrote:
-> On Mon, May 18, 2009 at 03:12:22PM -0500, Mario Limonciello wrote:
->  =20
->>  Dell BT devices need to be removed from the bus and reinserted
->>  so that userspace udev rules can transition the devices into the
->>  proper mode after S3 or S4.
->>    =20
->
-> This sounds wrong. What kind of reinitialisation are you talking about?=
+Sorry for coming into this discussion late - I was unavailable most of
+last week.
 
->  =20
-Dell BT adapters will startup in a HID mode.  In HID mode two logical
-USB devices are exposed, a mouse and a keyboard.  If properly set, the
-BT radio will work with pre-paired keyboards or mice in this mode.  This
-is useful for things like BIOS control via a BT keyboard.  A command is
-sent to one of the descriptors of the mouse to cause the device to
-transition to HCI mode.  When transitioned to HCI mode, a radio device
-is exposed allowing it to pair and operate with any BT device.
+Another point to remember is that syncing from userspace will not be
+guaranteed to stop data loss. To be sure that all of userspace's writes
+are synced, we need to do the syncing after userspace has stopped
+submitting the writes, which implies after userspace has been frozen.
 
-Here's what the utility looks like that ships with bluez:
-http://git.kernel.org/?p=3Dbluetooth/bluez.git;a=3Dblob;f=3Dtools/hid2hci=
-=2Ec;h=3D11d707fd76e940b884c9078907ab1504cd7350d4;hb=3DHEAD
-Look at the switch_dell method to see how it works.
+Regards,
 
-Currently, this is implemented via a set of udev rules shipped with
-bluez that match the Dell device and transition it to HCI mode.
-Here's the udev rule that matches:
-ACTION=3D=3D"add", ENV{ID_VENDOR}=3D=3D"413c", ENV{ID_CLASS}=3D=3D"mouse"=
-, ATTRS{bmAttributes}=3D=3D"e0", KERNEL=3D=3D"mouse*", RUN+=3D"/usr/sbin/=
-hid2hci --method dell -v $env{ID_VENDOR} -p $env{ID_MODEL} --mode hci"
-
-When coming out of S3 if the killswitch isn't activated, the logical USB
-mouse isn't coldplugged again preventing the udev rule from being
-matched upon.  You can manually run hid2hci and the device will switch
-modes.
-
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
-
-
---------------enig376252EF10F8BD2D68EBEB4D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkoR1OgACgkQ2CrZjkA73Yt0dgCgl8wxzdS7QiJSheFxNHCalPaj
-xQgAoIhOUpcA9K6V6PvR7bDp1REFEsiq
-=lId8
------END PGP SIGNATURE-----
-
---------------enig376252EF10F8BD2D68EBEB4D--
+Nigel
