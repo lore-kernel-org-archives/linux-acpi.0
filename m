@@ -1,100 +1,66 @@
-From: Len Brown <lenb@kernel.org>
+From: Paul Menage <menage@google.com>
 Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
-Date: Tue, 19 May 2009 15:01:46 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
+Date: Tue, 19 May 2009 12:55:18 -0700
+Message-ID: <6599ad830905191255r13b6166fs105213faf30f229f@mail.gmail.com>
 References: <20090519073942.GA10864@sli10-desk.sh.intel.com>
- <1242722454.26820.461.camel@twins>
- <20090519084852.GA13682@sli10-desk.sh.intel.com>
- <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:41648 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751713AbZESTCa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 15:02:30 -0400
-In-reply-to: <1242729538.26820.497.camel@twins>
+Received: from smtp-out.google.com ([216.239.33.17]:15579 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbZESTzV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 15:55:21 -0400
+In-Reply-To: <20090519073942.GA10864@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-> ... the point is, we
-> don't need a new interface to force a cpu idle. Hotplug does that.
+On Tue, May 19, 2009 at 12:39 AM, Shaohua Li <shaohua.li@intel.com> wro=
+te:
 >
-> Furthermore, we should not want anything outside of that, either the cpu
-> is there available for work, or its not -- halfway measures don't make
-> sense.
-> 
-> Furthermore, we already have power aware scheduling which tries to
-> aggregate idle time on cpu/core/packages so as to maximize the idle time
-> power savings. Use it there.
+> This patch adds one API to change cpuset top group's cpus. If we want=
+ to
+> make one cpu idle, simply remove the cpu from cpuset top group's cpu =
+list,
+> then all tasks will be migrate to other cpus, and other tasks will no=
+t be
+> migrated to this cpu again. No functional changes.
 
-Some context...
+>
+> +int cpuset_change_top_cpumask(const char *buf)
+> +{
+> + =A0 =A0 =A0 int retval =3D 0;
+> + =A0 =A0 =A0 struct cpuset *cs =3D &top_cpuset;
+> + =A0 =A0 =A0 struct cpuset *trialcs;
+> +
+> + =A0 =A0 =A0 if (!cgroup_lock_live_group(cs->css.cgroup))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
 
-In the past, server room power and thermal issues were handled
-either by spending too much money to provision power and
-thermals for theoretical worst case, or by abruptly shutting off
-servers when hard limits were reached.
+top_cpuset can't possibly be dead, so a plain cgroup_lock() would be fi=
+ne here.
 
-Going forward, platforms are getting smarter, measuring how
-much power is drawn from the power supply, measuring the room
-thermals etc. so that real dollars can be saved by deploying
-systems that exceed the theoretical worst case if the power
-and thermal limits are enforced.
+> +
+> + =A0 =A0 =A0 trialcs =3D alloc_trial_cpuset(cs);
+> + =A0 =A0 =A0 if (!trialcs)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
 
-So if server approaches a budget, the platform
-will notify the OS to limit its P-states, and limit its T-states
-in order to draw less power.
+You returned without doing a cgroup_unlock()
 
-If that is not sufficient, the platform will ask us to take
-processors off-line.  These are not processors that are otherwise idle
--- those are already saving as much power as they can --
-these are processors that are fully utilized.
+> +
+> + =A0 =A0 =A0 retval =3D update_cpumask(cs, trialcs, buf, true);
 
-So power-aware scheduling is moot here, this isn't the
-partially idle case, this is the fully utilized case.
+This will fail if any child cpuset is using any cpu not in the new
+cpumask, since a child's cpumask must be a subset of its parent's.
 
-If power draw continues to be too high, the platform
-will simply ask us to take more processors off line.
+So this can't work without co-ordination with userspace regarding
+child cpusets. Given that, it seems simpler to do the whole thing in
+userspace, or just use the existing hotplug infrastructure.
 
-If this dance doesn't reduce power below that required,
-the platform will be shut off.
-
-So it is sufficient to simply not schedule cpu burners
-on the 'idled' processor.  Interrupts should generally
-not matter -- and if they do, we'll end up simply idling
-an additional processor.
-
-> > > Besides, a hot removed cpu will do a dead loop halt, which isn't power saving
-> > > efficient. To make hot removed cpu enters deep C-state is in whish list for a
-> > > long time, but still not available. The acpi_processor_idle is a module, and
-> > > cpuidle governor potentially can't handle offline cpu.
-> > 
-> > Then fix that hot-unplug idle loop. I agree that the hlt thing is silly,
-> > and I've no idea why its still there, seems like a much better candidate
-> > for your efforts than this.
-
-CONFIG_HOTPLUG_CPU has been problematic in the past.
-It does more than what we need here, so we thought
-a lighter-weight and lower-latency method that simply
-didn't schedule to the idled cpu would suffice.
-
-Personally, I don't think that CONFIG_HOTPLUG_CPU should exist,
-taking processors on and off-line should be part of CONFIG_SMP.
-
-A while back when I selected CONFIG_HOTPLUG_CPU from ACPI && SMP,
-there was a torrent of outrage that it infringed on user's right's
-to save that additional 18KB of memory that CONFIG_HOTPLUG_CPU
-includes that SMP does not...
-
-We are fixing the hotplug-unplug idle loop, but there
-turns out to be some issues with it related to idle
-processors with interrupts disabled that don't actually
-get down into the deep C-states we request:-(
-
-So this is why you see a patch for a "halfway measure",
-it does what is necessary, and does nothing more.
-
--Len
-
+Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
