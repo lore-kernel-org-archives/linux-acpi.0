@@ -1,56 +1,54 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
-Date: Wed, 20 May 2009 13:58:16 +0200
-Message-ID: <87ljosnfzb.fsf@basil.nowhere.org>
+Date: Wed, 20 May 2009 14:17:05 +0200
+Message-ID: <1242821825.26820.583.camel@twins>
 References: <20090519073942.GA10864@sli10-desk.sh.intel.com>
-	<1242722454.26820.461.camel@twins>
-	<20090519084852.GA13682@sli10-desk.sh.intel.com>
-	<1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
-	<alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
-	<1242772601.26820.527.camel@twins>
+	 <1242722454.26820.461.camel@twins>
+	 <20090519084852.GA13682@sli10-desk.sh.intel.com>
+	 <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
+	 <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
+	 <1242772601.26820.527.camel@twins>  <87ljosnfzb.fsf@basil.nowhere.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:36178 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754680AbZETL6R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 07:58:17 -0400
-In-Reply-To: <1242772601.26820.527.camel@twins> (Peter Zijlstra's message of "Wed, 20 May 2009 00:36:41 +0200")
+Received: from casper.infradead.org ([85.118.1.10]:60849 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776AbZETMSF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 08:18:05 -0400
+In-Reply-To: <87ljosnfzb.fsf@basil.nowhere.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
+To: Andi Kleen <andi@firstfloor.org>
 Cc: Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 
-Peter Zijlstra <peterz@infradead.org> writes:
+On Wed, 2009-05-20 at 13:58 +0200, Andi Kleen wrote:
 
-Peter, in general the discussion would be much more fruitful
-if you explained your reasoning more verbosely. I can only guess
-what your rationales are from your half sentence 
-pronouncements.
+> Could you explain that please? How does changing the top level
+> cpuset affect other cpu sets?
 
-> and has no regards for any realtime processes.
 
-You're saying this should not be done if any realtime processes are
-currently bound to a to be temporarily removed CPU?
+Suppose you have 8 cpus and created 3 cpusets:
 
-That sounds reasonable and I'm sure could be implemented
-with the original patch.
+ A: cpu0 - system administration stuff
+ B: cpu1-5 - generic computational stuff
+ C: cpu6-7 - latency critical stuff
 
-> And I must take back my
-> earlier suggestion, hotplug is a bad solution too.
->
-> There's just too much user policy (cpuset configuration) to upset.
+Each such set is made a load-balance domain (iow load-balancing on the
+top level set is disabled).
 
-Could you explain that please? How does changing the top level
-cpuset affect other cpu sets?
+Now, suppose someone thinks its a good idea to remove cpu0 because the
+machine is running against some thermal limit -- what will all the
+administration stuff (including sshd) do?
 
-> The IBM folks are working on a scheduler based solution, please talk to
-> them.
+Same goes for the latency critical stuff.
 
-I don't claim to fully understand the scheduler, but naively since
-cpusets can already do this adding another mechanism for it too that
-needs to be checked in fast paths would seem somewhat redundant?
+You really want to start shrinking the generic computational capacity
+first.
 
--Andi
--- 
-ak@linux.intel.com -- Speaking for myself only.
+The thing is, you cannot simply rip cpus out from under a system, people
+might rely on them being there and have policy attached to them -- esp.
+people touching cpusets should know that a machine isn't configured
+homogeneous and any odd cpu will do.
+
+
