@@ -1,56 +1,92 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
- suspend
-Date: Wed, 20 May 2009 14:31:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0905201423130.4044-100000@iolanthe.rowland.org>
-References: <4A144347.80303@dell.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [i915] Kernel does not compile when set to use i915 kernel mode-setting
+ per default (CONFIG_DRM_I915_KMS=y)
+Date: Wed, 20 May 2009 12:52:51 -0700
+Message-ID: <4A145F93.6010802@oracle.com>
+References: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com> <4A145A71.20006@xandros.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4A144347.80303-8PEkshWhKlo@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mario Limonciello <mario_limonciello-8PEkshWhKlo@public.gmane.org>
-Cc: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet11.oracle.com ([148.87.113.123]:48211 "EHLO
+	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320AbZETTwG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 15:52:06 -0400
+In-Reply-To: <4A145A71.20006@xandros.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Woody Suwalski <woodys@xandros.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zorael <zorael@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 20 May 2009, Mario Limonciello wrote:
-
-> Hi Alan:
+Woody Suwalski wrote:
+> Rafael J. Wysocki wrote:
+>> On Monday 18 May 2009, Randy Dunlap wrote:
+>>  
+>>> On Mon, 18 May 2009 21:01:06 +0200 Rafael J. Wysocki wrote:
+>>>
+>>>    
+>>>> Adding CCs.
+>>>>
+>>>> On Monday 18 May 2009, you wrote:
+>>>>      
+>>>>> (First post, so please CC to zorael@gmail.com in case it doesn't
+>>>>> automatically.)
+>>>>>
+>>>>>
+>>>>> I'm trying to compile 2.6.30-rc6 to enable kernel mode-setting *per
+>>>>> default*, for my Intel 945GME video chipset. Alas, when compiling, it
+>>>>> halts with the following tidbit:
+>>>>>
+>>>>> ...
+>>>>>   LD      .tmp_vmlinux1
+>>>>> drivers/built-in.o: In function `intel_opregion_free':
+>>>>> /usr/src/linux/drivers/gpu/drm/i915/i915_opregion.c:422: undefined
+>>>>> reference to `acpi_video_exit'
+>>>>> drivers/built-in.o: In function `intel_opregion_init':
+>>>>> /usr/src/linux/drivers/gpu/drm/i915/i915_opregion.c:393: undefined
+>>>>> reference to `acpi_video_register'
+>>>>> make[1]: *** [.tmp_vmlinux1] Error 1
+>>>>> make[1]: Leaving directory `/usr/src/linux-2.6.29'
+>>>>> make: *** [debian/stamp/build/kernel] Error 2
+>>>>>
+>>>>>
+>>>>> grepping acpi_video_register recursively I see it's defined as an
+>>>>> empty function in ./include/acpi/video.h, and as a more proper
+>>>>> function in ./drivers/acpi/video.c. Does somehow setting it to use KMS
+>>>>> per default via CONFIG_DRM_I915_KMS=y stop it from reading those
+>>>>> files?
+>>>>>
+>>>>> I used to run with KMS by default in the early -30rc*s, but at some
+>>>>> point (rc2?), it stopped compiling succesfully. If I don't enable it
+>>>>> per default, it *does* compile, though I don't know how to explicitly
+>>>>> enable it at boot-time. So I'm living without KMS for the time being.
+>>>>> Woe.
+>>>>>
+>>>>> Anything obvious I'm doing wrong?
+>>>>>         
+>>> Len posted a patch for this.  It's below.
+>>> Len, do you have this patch queued for Linus?
+>>>     
+>>
+>> Ah, it's commit ecb4aed78dcf09e48c8c34c8c2fa7f5c69344be6, which went in
+>> slightly after -rc6.  So it should be fixed.
+>>
+>> Zorael, please test the current Linus' tree.
+>>
+>>   
+> Len's patch idea does not work for me - if ACPI is build as a module, I
+> have no way to force acpi-video to be built in.
+> And kernel with i915 built-in breaks...
+> So to summarize: acpi=m with i915=y is broken...
 > 
-> Alan Stern wrote:
-> > On Wed, 20 May 2009, Oliver Neukum wrote:
-> >
-> >   
-> >
-> > That's okay.  Inelegant, perhaps, but workable.  Besides, as we see 
-> > below, the new rule would have to do more than the old rule.
-> >
-> >   
-> I agree this is a rather inelegant solution. A  new rule would have to
-> be added to hid2hci then.  It's much more preferable to be able to fix
-> kernel space from mucking up the device.  Is there a way to mark a
-> device to /not/ run reset-resume after S3?
+> For now I am simply commenting-out the i915 acpi-video calls, but that
+> is not a good way...
+> We need to move the core acpi-video to the main kernel...
 
-	echo 0 >/sys/bus/usb/devices/.../power/persist
+Please post your troublesome kernel .config file.
 
-This will also prevent reset-resume after hibernation.
-
-> > Does that create the same removal event?  If it does then you wouldd be
-> > in an unfortunate state.  The script would have to check somehow
-> > whether the removal was deliberate or spontaneous.
-> >   
-> Yes it does create the same removal event when you switch to HID mode. 
-> I don't know of any way that you can calculate if the switch was
-> intentional.
-
-You can't.  Instead you have to arrange things so that when the
-intentional change was made, it left behind a timestamp indicator.  If
-that timestamp if present and not more than a few seconds in the past,
-you know the change was intentional.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+-- 
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
