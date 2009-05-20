@@ -1,73 +1,56 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
  suspend
-Date: Wed, 20 May 2009 12:52:07 -0500
-Message-ID: <4A144347.80303@dell.com>
-References: <Pine.LNX.4.44L0.0905201010260.2914-100000@iolanthe.rowland.org>
+Date: Wed, 20 May 2009 14:31:27 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0905201423130.4044-100000@iolanthe.rowland.org>
+References: <4A144347.80303@dell.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigB359AB15FA284C81FF087FC8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:21581 "EHLO
-	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753210AbZETRwH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 13:52:07 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0905201010260.2914-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4A144347.80303-8PEkshWhKlo@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mario Limonciello <mario_limonciello-8PEkshWhKlo@public.gmane.org>
+Cc: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Oliver Neukum <oliver@neukum.org>, linux-usb@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Marcel Holtmann <marcel@holtmann.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigB359AB15FA284C81FF087FC8
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Wed, 20 May 2009, Mario Limonciello wrote:
 
-Hi Alan:
+> Hi Alan:
+> 
+> Alan Stern wrote:
+> > On Wed, 20 May 2009, Oliver Neukum wrote:
+> >
+> >   
+> >
+> > That's okay.  Inelegant, perhaps, but workable.  Besides, as we see 
+> > below, the new rule would have to do more than the old rule.
+> >
+> >   
+> I agree this is a rather inelegant solution. A  new rule would have to
+> be added to hid2hci then.  It's much more preferable to be able to fix
+> kernel space from mucking up the device.  Is there a way to mark a
+> device to /not/ run reset-resume after S3?
 
-Alan Stern wrote:
-> On Wed, 20 May 2009, Oliver Neukum wrote:
->
->  =20
->
-> That's okay.  Inelegant, perhaps, but workable.  Besides, as we see=20
-> below, the new rule would have to do more than the old rule.
->
->  =20
-I agree this is a rather inelegant solution. A  new rule would have to
-be added to hid2hci then.  It's much more preferable to be able to fix
-kernel space from mucking up the device.  Is there a way to mark a
-device to /not/ run reset-resume after S3?
->
-> Does that create the same removal event?  If it does then you wouldd be=
+	echo 0 >/sys/bus/usb/devices/.../power/persist
 
-> in an unfortunate state.  The script would have to check somehow
-> whether the removal was deliberate or spontaneous.
->  =20
-Yes it does create the same removal event when you switch to HID mode.=20
-I don't know of any way that you can calculate if the switch was
-intentional.
+This will also prevent reset-resume after hibernation.
 
+> > Does that create the same removal event?  If it does then you wouldd be
+> > in an unfortunate state.  The script would have to check somehow
+> > whether the removal was deliberate or spontaneous.
+> >   
+> Yes it does create the same removal event when you switch to HID mode. 
+> I don't know of any way that you can calculate if the switch was
+> intentional.
 
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
+You can't.  Instead you have to arrange things so that when the
+intentional change was made, it left behind a timestamp indicator.  If
+that timestamp if present and not more than a few seconds in the past,
+you know the change was intentional.
 
+Alan Stern
 
---------------enigB359AB15FA284C81FF087FC8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkoUQ0kACgkQ2CrZjkA73Ysy9gCfSMI5AHPnu9ESAQXALOUSWQFx
-A7AAoJ7hcMAqSzOxokGhJWF5DRAOqi9o
-=wsxt
------END PGP SIGNATURE-----
-
---------------enigB359AB15FA284C81FF087FC8--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
