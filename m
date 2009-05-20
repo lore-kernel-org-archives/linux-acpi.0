@@ -1,70 +1,50 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on suspend
-Date: Wed, 20 May 2009 14:29:04 +0200
-Message-ID: <200905201429.06113.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0905192212560.7309-100000@netrider.rowland.org>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
+Date: Wed, 20 May 2009 15:13:01 +0200
+Message-ID: <20090520131301.GF8684@one.firstfloor.org>
+References: <20090519073942.GA10864@sli10-desk.sh.intel.com> <1242722454.26820.461.camel@twins> <20090519084852.GA13682@sli10-desk.sh.intel.com> <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins> <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain> <1242772601.26820.527.camel@twins> <87ljosnfzb.fsf@basil.nowhere.org> <1242821825.26820.583.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:48788 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754764AbZETM2r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 08:28:47 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0905192212560.7309-100000@netrider.rowland.org>
+Received: from one.firstfloor.org ([213.235.205.2]:49163 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556AbZETNHE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 09:07:04 -0400
 Content-Disposition: inline
+In-Reply-To: <1242821825.26820.583.camel@twins>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Mario Limonciello <mario_limonciello@dell.com>, linux-usb@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Marcel Holtmann <marcel@holtmann.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Andi Kleen <andi@firstfloor.org>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 
-Am Mittwoch, 20. Mai 2009 04:17:59 schrieb Alan Stern:
-> On Wed, 20 May 2009, Oliver Neukum wrote:
+Thanks for the explanation.
 
-> > Marcel, are the HID devices usable after hid2hci has run? Should we
-> > choose to not resume from power loss any hid device which hid2hci
-> > operated on?
->
-> I'd like to know why the device switches back from HID+bluetooth to
-> pure HID during a suspend-resume sequence.  Does it undergo a
-> reset-resume?
+My naive reaction would be to fail if the socket to be taken out
+is the only member of some cpuset. Or maybe break affinities in this case.
 
-Yes.
+> You really want to start shrinking the generic computational capacity
+> first.
 
-[ =A0111.356035] usb 2-3: reset high speed USB device using ehci_hcd an=
-d address 2
-[ =A0111.668045] usb 3-4: reset full speed USB device using ohci_hcd an=
-d address 2
-[ =A0112.177152] usb 3-4.1: reset full speed USB device using ohci_hcd =
-and address 3
-[ =A0112.361151] usb 3-4.2: reset full speed USB device using ohci_hcd =
-and address 4
-[ =A0112.471157] pm_op(): usb_dev_resume+0x0/0x10 returns -19
-[ =A0112.471160] PM: Device 3-4.3 failed to resume: error -19
-[ =A0112.471373] PM: resume devices took 3.256 seconds
-[ =A0112.471980] PM: Finishing wakeup.
-[ =A0112.471982] Restarting tasks ... <6>usb 3-4.3: USB disconnect, add=
-ress 5
-[ =A0112.504314] btusb_send_frame: hci0 urb f4520700 submission failed
->
-> Here's another question: Since there is a udev removal event for the
-> radio device, why not add a udev rule to switch back to HID+bluetooth
-> mode every time that event occurs?
+One general issue to remember that if you don't react to the platform hint 
+the platform will likely force a lower p-state on you to not exceed
+the thermal limits, making everyone slower. 
 
-1. You'd have two rules doing the same thing (resume & addition)
-2. It is unclean, as the removal event doesn't tell you which device to=
- run
-hid2hci on
-3. The device might really be physically removed
-4. You can intentionally run hid2hci to switch back to HID
+(this will likely also not make your real time process happy)
 
-	Regards
-		Oliver
+So it's a bit more than a hint; it's more like a command "or else"
 
-PS: Why, oh why don't people use configurations as they were designed?
+So it's a good idea to react or at least make at least a reasonable attempt 
+to react.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The thing is, you cannot simply rip cpus out from under a system, people
+> might rely on them being there and have policy attached to them -- esp.
+> people touching cpusets should know that a machine isn't configured
+> homogeneous and any odd cpu will do.
+
+Ok, so do you think it's possible to figure out based on the cpuset
+graph / real time runqueue if a socket can be taken out? 
+
+-Andi
+
+-- 
+ak@linux.intel.com -- Speaking for myself only.
