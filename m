@@ -1,104 +1,52 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
-Date: Wed, 20 May 2009 15:41:55 +0200
-Message-ID: <1242826915.26820.609.camel@twins>
-References: <20090519073942.GA10864@sli10-desk.sh.intel.com>
-	 <1242722454.26820.461.camel@twins>
-	 <20090519084852.GA13682@sli10-desk.sh.intel.com>
-	 <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
-	 <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
-	 <1242772601.26820.527.camel@twins> <87ljosnfzb.fsf@basil.nowhere.org>
-	 <1242821825.26820.583.camel@twins>
-	 <20090520131301.GF8684@one.firstfloor.org>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
+ suspend
+Date: Wed, 20 May 2009 10:17:24 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0905201010260.2914-100000@iolanthe.rowland.org>
+References: <200905201429.06113.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:55888 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557AbZETNmA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 09:42:00 -0400
-In-Reply-To: <20090520131301.GF8684@one.firstfloor.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200905201429.06113.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+Cc: Mario Limonciello <mario_limonciello-8PEkshWhKlo@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 
-On Wed, 2009-05-20 at 15:13 +0200, Andi Kleen wrote:
-> Thanks for the explanation.
+On Wed, 20 May 2009, Oliver Neukum wrote:
+
+> > Here's another question: Since there is a udev removal event for the
+> > radio device, why not add a udev rule to switch back to HID+bluetooth
+> > mode every time that event occurs?
 > 
-> My naive reaction would be to fail if the socket to be taken out
-> is the only member of some cpuset. Or maybe break affinities in this case.
+> 1. You'd have two rules doing the same thing (resume & addition)
 
-Right, breaking affinities would go against the policy of the admin, I'm
-not sure we'd want to go there. We could start generating msgs about how
-we're in thermal trouble and the given configuration is obstructing
-counter measures etc..
+That's okay.  Inelegant, perhaps, but workable.  Besides, as we see 
+below, the new rule would have to do more than the old rule.
 
-Currently hot-unplug does break affinities, but that's an explicit
-action by the admin himself, so he gets what he asks for (and we do
-generate complaints in syslog about it).
+> 2. It is unclean, as the removal event doesn't tell you which device to run
+> hid2hci on
 
-[ Same scenario for the HPC guys who affinity fix all their threads to
-  specific cpus, there's really nothing you can do there. Then again
-  such folks generally run their machines at 100% so they'd better
-  be able to deal with their thermal peak capacity anyway. ]
+I'm sure you could figure it out from the sysfs paths.
 
-> > You really want to start shrinking the generic computational capacity
-> > first.
-> 
-> One general issue to remember that if you don't react to the platform hint 
-> the platform will likely force a lower p-state on you to not exceed
-> the thermal limits, making everyone slower. 
-> 
-> (this will likely also not make your real time process happy)
+> 3. The device might really be physically removed
 
-Quite.
+True.  So you'd want to delay for a second or so before trying to do
+the switch and check whether the device is still attached.
 
-> So it's a bit more than a hint; it's more like a command "or else"
-> 
-> So it's a good idea to react or at least make at least a reasonable attempt 
-> to react.
+> 4. You can intentionally run hid2hci to switch back to HID
 
-Sure, does the thing give more than a: 'react now, or else' impulse?
-That is, can we see it coming, or will we have to deal with it when
-we're there?
+Does that create the same removal event?  If it does then you wouldd be
+in an unfortunate state.  The script would have to check somehow
+whether the removal was deliberate or spontaneous.
 
-The latter also has the problem that you have to react very quickly.
+> PS: Why, oh why don't people use configurations as they were designed?
 
-> > The thing is, you cannot simply rip cpus out from under a system, people
-> > might rely on them being there and have policy attached to them -- esp.
-> > people touching cpusets should know that a machine isn't configured
-> > homogeneous and any odd cpu will do.
-> 
-> Ok, so do you think it's possible to figure out based on the cpuset
-> graph / real time runqueue if a socket can be taken out? 
+I can't answer that.  :-)
 
-Right, so all of this depends on a number of things, how frequent and
-how fast would these situations occur?
+Alan Stern
 
-I would think they'd be rare events, otherwise you really messed up your
-infrastructure. I also think reaction times should be in the seconds,
-otherwise you're cutting it way to close.
-
-
-The work IBM has been doing is centered around overloading neighbouring
-packages in order to keep some idle. The overload is exposed as a
-percentage.
-
-This works within scheduling domains, so if you carve your machine up in
-tiny (<= 1 package) domains its impossible to do anything (corner case,
-we could send cries for help syslog's way).
-
-I was hoping we could control the situation with that. But for that to
-work we need some gradual information in order to make that
-thermal<->overload feedback work.
-
-
-A single: idle a core now (< 'n' sec) or die, isn't really helpful.
-
-[ figuring out how to deal with RT tasks and the like is still open,
-  the problem with SCHED_FIFO/RR is that such tasks don't give
-  utilization numbers, so we'll have to guesstimate them based on
-  historic behaviour.  SCHED_EDF or similar future realtime bits
-  would be much easier to deal with in this case ]
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
