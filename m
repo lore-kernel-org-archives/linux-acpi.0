@@ -1,149 +1,105 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [i915] Kernel does not compile when set to use i915 kernel mode-setting
- per default (CONFIG_DRM_I915_KMS=y)
-Date: Wed, 20 May 2009 14:27:49 -0700
-Message-ID: <4A1475D5.6080602@oracle.com>
-References: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com> <4A1464C9.9030603@xandros.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH] x86/pci: do assign root bus res if _CRS is used
+Date: Wed, 20 May 2009 16:49:10 -0700
+Message-ID: <20090520164910.6939b92b@jbarnes-g45>
+References: <49ED22EC.2040204@kernel.org>
+	<200904291708.52830.bjorn.helgaas@hp.com>
+	<200904300914.22772.bjorn.helgaas@hp.com>
+	<200905081640.12677.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet12.oracle.com ([148.87.113.124]:21052 "EHLO
-	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541AbZETV1B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2009 17:27:01 -0400
-In-Reply-To: <4A1464C9.9030603@xandros.com>
+Received: from outbound-mail-318.bluehost.com ([67.222.54.250]:53921 "HELO
+	outbound-mail-318.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754037AbZETXtY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2009 19:49:24 -0400
+In-Reply-To: <200905081640.12677.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Woody Suwalski <woodys@xandros.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zorael <zorael@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Gary Hade <garyhade@us.ibm.com>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>
 
-Woody Suwalski wrote:
-> Randy Dunlap wrote:
->> Woody Suwalski wrote:
->>  
->>> Rafael J. Wysocki wrote:
->>>    
->>>> On Monday 18 May 2009, Randy Dunlap wrote:
->>>>  
->>>>      
->>>>> On Mon, 18 May 2009 21:01:06 +0200 Rafael J. Wysocki wrote:
->>>>>
->>>>>           
->>>>>> Adding CCs.
->>>>>>
->>>>>> On Monday 18 May 2009, you wrote:
->>>>>>               
->>>>>>> (First post, so please CC to zorael@gmail.com in case it doesn't
->>>>>>> automatically.)
->>>>>>>
->>>>>>>
->>>>>>> I'm trying to compile 2.6.30-rc6 to enable kernel mode-setting *per
->>>>>>> default*, for my Intel 945GME video chipset. Alas, when
->>>>>>> compiling, it
->>>>>>> halts with the following tidbit:
->>>>>>>
->>>>>>> ...
->>>>>>>   LD      .tmp_vmlinux1
->>>>>>> drivers/built-in.o: In function `intel_opregion_free':
->>>>>>> /usr/src/linux/drivers/gpu/drm/i915/i915_opregion.c:422: undefined
->>>>>>> reference to `acpi_video_exit'
->>>>>>> drivers/built-in.o: In function `intel_opregion_init':
->>>>>>> /usr/src/linux/drivers/gpu/drm/i915/i915_opregion.c:393: undefined
->>>>>>> reference to `acpi_video_register'
->>>>>>> make[1]: *** [.tmp_vmlinux1] Error 1
->>>>>>> make[1]: Leaving directory `/usr/src/linux-2.6.29'
->>>>>>> make: *** [debian/stamp/build/kernel] Error 2
->>>>>>>
->>>>>>>
->>>>>>> grepping acpi_video_register recursively I see it's defined as an
->>>>>>> empty function in ./include/acpi/video.h, and as a more proper
->>>>>>> function in ./drivers/acpi/video.c. Does somehow setting it to
->>>>>>> use KMS
->>>>>>> per default via CONFIG_DRM_I915_KMS=y stop it from reading those
->>>>>>> files?
->>>>>>>
->>>>>>> I used to run with KMS by default in the early -30rc*s, but at some
->>>>>>> point (rc2?), it stopped compiling succesfully. If I don't enable it
->>>>>>> per default, it *does* compile, though I don't know how to
->>>>>>> explicitly
->>>>>>> enable it at boot-time. So I'm living without KMS for the time
->>>>>>> being.
->>>>>>> Woe.
->>>>>>>
->>>>>>> Anything obvious I'm doing wrong?
->>>>>>>                     
->>>>> Len posted a patch for this.  It's below.
->>>>> Len, do you have this patch queued for Linus?
->>>>>             
->>>> Ah, it's commit ecb4aed78dcf09e48c8c34c8c2fa7f5c69344be6, which went in
->>>> slightly after -rc6.  So it should be fixed.
->>>>
->>>> Zorael, please test the current Linus' tree.
->>>>
->>>>         
->>> Len's patch idea does not work for me - if ACPI is build as a module, I
->>> have no way to force acpi-video to be built in.
->>> And kernel with i915 built-in breaks...
->>> So to summarize: acpi=m with i915=y is broken...
->>>
->>> For now I am simply commenting-out the i915 acpi-video calls, but that
->>> is not a good way...
->>> We need to move the core acpi-video to the main kernel...
->>>     
->>
->> Please post your troublesome kernel .config file.
->>
->> Thanks,
->>   
-> Certainly...
-> Here it is inlined:
+On Fri, 8 May 2009 16:40:10 -0600
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> Did anything happen with this?
+> 
+> The longer we wait to make "use_crs" the default, the harder it
+> will be, so I'd like to push ahead.
 
-Thanks.  If Len's patch is moved to apply to DRM_I915 instead of to
-DRM_I915_KMS, it works for me, but I'll leave it to Len to decide
-if that's the right or wrong thing to do.
-
----
-
-
-From: Len Brown <len.brown@intel.com>
-Subject: [PATCH] ACPI, i915: build fix
-
-drivers/built-in.o: In function `intel_opregion_init':
-(.text+0x9d540): undefined reference to `acpi_video_register'
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/gpu/drm/Kconfig |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
---- lnx-2630-rc6.orig/drivers/gpu/drm/Kconfig
-+++ lnx-2630-rc6/drivers/gpu/drm/Kconfig
-@@ -67,12 +67,18 @@ config DRM_I830
- 	  will load the correct one.
- 
- config DRM_I915
-+	tristate "i915 driver"
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
- 	select FB
- 	select FRAMEBUFFER_CONSOLE if !EMBEDDED
--	tristate "i915 driver"
-+	# i915 depends on ACPI_VIDEO when ACPI is enabled
-+	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
-+	select VIDEO_OUTPUT_CONTROL if ACPI
-+	select BACKLIGHT_CLASS_DEVICE if ACPI
-+	select INPUT if ACPI
-+	select ACPI_VIDEO if ACPI
- 	help
- 	  Choose this option if you have a system that has Intel 830M, 845G,
- 	  852GM, 855GM 865G or 915G integrated graphics.  If M is selected, the
-
-
+Here's a patch to make CRS the default.  If it looks ok I can push it
+into my linux-next branch.  I'm all for using reliable data from the
+BIOS.  I guess we'll find out fairly quickly if this stuff isn't...
 
 -- 
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
+Jesse Barnes, Intel Open Source Technology Center
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 90b3924..8d798bf 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -1777,7 +1777,7 @@ and is between 256 and 4096 characters. It is defined in the file
+ 				IRQ routing is enabled.
+ 		noacpi		[X86] Do not use ACPI for IRQ routing
+ 				or for PCI scanning.
+-		use_crs		[X86] Use _CRS for PCI resource
++		nocrs		[X86] Don't use _CRS for PCI resource
+ 				allocation.
+ 		routeirq	Do IRQ routing for all PCI devices.
+ 				This is normally done in pci_enable_device(),
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index e60fd3e..010c08c 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -25,7 +25,7 @@
+ #define PCI_BIOS_IRQ_SCAN	0x2000
+ #define PCI_ASSIGN_ALL_BUSSES	0x4000
+ #define PCI_CAN_SKIP_ISA_ALIGN	0x8000
+-#define PCI_USE__CRS		0x10000
++#define PCI_NO_CRS		0x10000
+ #define PCI_CHECK_ENABLE_AMD_MMCONF	0x20000
+ #define PCI_HAS_IO_ECS		0x40000
+ #define PCI_NOASSIGN_ROMS	0x80000
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index c0ecf25..9f562a3 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -217,7 +217,7 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int do
+ #endif
+ 	}
+ 
+-	if (bus && (pci_probe & PCI_USE__CRS))
++	if (bus && !(pci_probe & PCI_NO_CRS))
+ 		get_current_resources(device, busnum, domain, bus);
+ 	return bus;
+ }
+diff --git a/arch/x86/pci/amd_bus.c b/arch/x86/pci/amd_bus.c
+index f893d6a..cfed6b1 100644
+--- a/arch/x86/pci/amd_bus.c
++++ b/arch/x86/pci/amd_bus.c
+@@ -101,7 +101,7 @@ void x86_pci_root_bus_res_quirks(struct pci_bus *b)
+ 	struct pci_root_info *info;
+ 
+ 	/* don't go for it if _CRS is used */
+-	if (pci_probe & PCI_USE__CRS)
++	if (!(pci_probe & PCI_NO_CRS)
+ 		return;
+ 
+ 	/* if only one root bus, don't need to anything */
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 2202b62..3e361c7 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -515,8 +515,8 @@ char * __devinit  pcibios_setup(char *str)
+ 	} else if (!strcmp(str, "assign-busses")) {
+ 		pci_probe |= PCI_ASSIGN_ALL_BUSSES;
+ 		return NULL;
+-	} else if (!strcmp(str, "use_crs")) {
+-		pci_probe |= PCI_USE__CRS;
++	} else if (!strcmp(str, "nocrs")) {
++		pci_probe |= PCI_NO_CRS;
+ 		return NULL;
+ 	} else if (!strcmp(str, "earlydump")) {
+ 		pci_early_dump_regs = 1;
+
