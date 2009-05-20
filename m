@@ -1,58 +1,37 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] Explicitly disable BT radio using rfkill interface on
- suspend
-Date: Tue, 19 May 2009 22:17:59 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0905192212560.7309-100000@netrider.rowland.org>
-References: <200905200016.49110.oliver@neukum.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: x86 platform: oqo: select INPUT_POLLDEV
+Date: Tue, 19 May 2009 19:28:28 -0700
+Message-ID: <20090520022826.GA17649@dtor-d630.eng.vmware.com>
+References: <200903041955.n24JtOKb027987@imap1.linux-foundation.org> <200904131916.40428.dmitry.torokhov@gmail.com> <49E4C700.6010309@oracle.com> <alpine.LFD.2.00.0904200026490.10996@localhost.localdomain> <4A135B42.2020208@oracle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:33621 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750860AbZETCR6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 22:17:58 -0400
-In-Reply-To: <200905200016.49110.oliver@neukum.org>
+Received: from rv-out-0506.google.com ([209.85.198.224]:32087 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860AbZETC3G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 22:29:06 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so51134rvb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2009 19:29:07 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4A135B42.2020208@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Mario Limonciello <mario_limonciello@dell.com>, linux-usb@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Marcel Holtmann <marcel@holtmann.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Len Brown <lenb@kernel.org>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, hpa@zytor.com, mingo@elte.hu, mjg59@srcf.ucam.org, tglx@linutronix.de
 
-On Wed, 20 May 2009, Oliver Neukum wrote:
+On Tue, May 19, 2009 at 06:22:10PM -0700, Randy Dunlap wrote:
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> OQO_WMI uses INPUT_POLLDEV, but it can select that instead of
+> depending on it, since it represents library code.
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Len Brown <lenb@kernel.org>
 
-> Am Dienstag, 19. Mai 2009 23:47:02 schrieb Mario Limonciello:
-> > Hi Oliver:
-> 
-> > Attached are both the lsusb listings.  As you can see, the missing
-> > device post-suspend is that Bluetooth radio device (which is why I
-> > proposed this patch in the first place).
-> 
-> This explains the error in your log.
-> 
-> > There is a udev removal event for this device, but as I said, there are
-> > no add/remove/change events for the keyboard or mouse devices.  I'm
-> > attaching udevadm monitor ran from right before the suspend to right after.
-> 
-> That is correct the devices have been successfully resumed and thus are
-> present. Generally the idea of suspened/resume is to have the same system
-> after resumption. It is correct to not generate events. Usbcore cannot know
-> that you use udev to switch the device from pure HID to HID + bluetooth.
-> 
-> > Sending the appropriate hid report to the mouse device will re-attach
-> > this Bluetooth radio device to the bus.
-> 
-> Yes, the question is whether it is the clean thing to do.
-> 
-> Marcel, are the HID devices usable after hid2hci has run? Should we
-> choose to not resume from power loss any hid device which hid2hci
-> operated on?
+Thanks Randy.
 
-I'd like to know why the device switches back from HID+bluetooth to
-pure HID during a suspend-resume sequence.  Does it undergo a
-reset-resume?
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
 
-Here's another question: Since there is a udev removal event for the 
-radio device, why not add a udev rule to switch back to HID+bluetooth 
-mode every time that event occurs?
-
-Alan Stern
-
+-- 
+Dmitry
