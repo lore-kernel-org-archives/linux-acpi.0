@@ -1,73 +1,51 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
-Date: Wed, 20 May 2009 00:36:41 +0200
-Message-ID: <1242772601.26820.527.camel@twins>
-References: <20090519073942.GA10864@sli10-desk.sh.intel.com>
-	 <1242722454.26820.461.camel@twins>
-	 <20090519084852.GA13682@sli10-desk.sh.intel.com>
-	 <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
-	 <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: x86 platform: oqo: select INPUT_POLLDEV
+Date: Tue, 19 May 2009 18:22:10 -0700
+Message-ID: <4A135B42.2020208@oracle.com>
+References: <200903041955.n24JtOKb027987@imap1.linux-foundation.org> <200904131916.40428.dmitry.torokhov@gmail.com> <49E4C700.6010309@oracle.com> <alpine.LFD.2.00.0904200026490.10996@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34586 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127AbZESWhi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 18:37:38 -0400
-In-Reply-To: <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain>
+Received: from rcsinet12.oracle.com ([148.87.113.124]:19949 "EHLO
+	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755035AbZETBVf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2009 21:21:35 -0400
+In-Reply-To: <alpine.LFD.2.00.0904200026490.10996@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, hpa@zytor.com, mingo@elte.hu, mjg59@srcf.ucam.org, tglx@linutronix.de
 
-On Tue, 2009-05-19 at 15:01 -0400, Len Brown wrote:
-> > ... the point is, we
-> > don't need a new interface to force a cpu idle. Hotplug does that.
-> >
-> > Furthermore, we should not want anything outside of that, either the cpu
-> > is there available for work, or its not -- halfway measures don't make
-> > sense.
-> > 
-> > Furthermore, we already have power aware scheduling which tries to
-> > aggregate idle time on cpu/core/packages so as to maximize the idle time
-> > power savings. Use it there.
-> 
-> Some context...
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-<snip default story of thermal overcommit>
+OQO_WMI uses INPUT_POLLDEV, but it can select that instead of
+depending on it, since it represents library code.
 
-> > > > Besides, a hot removed cpu will do a dead loop halt, which isn't power saving
-> > > > efficient. To make hot removed cpu enters deep C-state is in whish list for a
-> > > > long time, but still not available. The acpi_processor_idle is a module, and
-> > > > cpuidle governor potentially can't handle offline cpu.
-> > > 
-> > > Then fix that hot-unplug idle loop. I agree that the hlt thing is silly,
-> > > and I've no idea why its still there, seems like a much better candidate
-> > > for your efforts than this.
-> 
-> CONFIG_HOTPLUG_CPU has been problematic in the past.
-> It does more than what we need here, so we thought
-> a lighter-weight and lower-latency method that simply
-> didn't schedule to the idled cpu would suffice.
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/platform/x86/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> We are fixing the hotplug-unplug idle loop, but there
-> turns out to be some issues with it related to idle
-> processors with interrupts disabled that don't actually
-> get down into the deep C-states we request:-(
-> 
-> So this is why you see a patch for a "halfway measure",
-> it does what is necessary, and does nothing more.
-
-Its broken, its ill-defined and its not going to happen.
-
-Ripping cpus out of the top cpuset might upset the cpuset configuration
-and has no regards for any realtime processes. And I must take back my
-earlier suggestion, hotplug is a bad solution too.
-
-There's just too much user policy (cpuset configuration) to upset.
-
-The IBM folks are working on a scheduler based solution, please talk to
-them.
+--- linux-next-20090519.orig/drivers/platform/x86/Kconfig
++++ linux-next-20090519/drivers/platform/x86/Kconfig
+@@ -146,9 +146,10 @@ config MSI_LAPTOP
+ config OQO_WMI
+        tristate "OQO WMI extras"
+        depends on ACPI_WMI
+-       depends on INPUT && INPUT_POLLDEV
++       depends on INPUT
+        depends on RFKILL
+        depends on BACKLIGHT_CLASS_DEVICE
++	select INPUT_POLLDEV
+        help
+          Say Y here if you want to support rfkill and backlight control on
+          series 2 OQO handheld devices.
 
 
+-- 
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
