@@ -1,113 +1,90 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: don't check power state after _ON/_OFF
-Date: Fri, 22 May 2009 00:32:20 +0100
-Message-ID: <20090521233220.GA1778@srcf.ucam.org>
-References: <20090521232853.3282.8302.stgit@bob.kio>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: [PATCH] ACPI: Disable ARB_DISABLE on platforms where it is not needed
+Date: Thu, 21 May 2009 16:48:13 -0700
+Message-ID: <20090521234813.GA11561@linux-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39352 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754334AbZEUXc2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2009 19:32:28 -0400
+Received: from mga03.intel.com ([143.182.124.21]:14573 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754167AbZEUXsN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 May 2009 19:48:13 -0400
 Content-Disposition: inline
-In-Reply-To: <20090521232853.3282.8302.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Witold Szczeponik <Witold.Szczeponik@gmx.net>, Yakui Zhao <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thu, May 21, 2009 at 05:28:53PM -0600, Bjorn Helgaas wrote:
-> We used to evaluate _STA to check the power state of a device after
-> running _ON or _OFF.  But as far as I can tell, there's no benefit
-> to evaluating _STA, and sometimes we trip over bugs when BIOSes don't
-> implement _STA correctly.
-> 
-> Yakui says Windows XP doesn't evaluate _STA during power transition.
-> So let's skip it in Linux, too.  It's conceivable that we'll need to
-> check _STA in the future for some reason, but until we do, I don't
-> see a reason to clutter this code path.
-> 
-> References:
->     http://bugzilla.kernel.org/show_bug.cgi?id=13243
->     http://marc.info/?l=linux-acpi&m=124166053803753&w=2
->     http://marc.info/?l=linux-acpi&m=124175761408256&w=2
->     http://marc.info/?l=linux-acpi&m=124210593114061&w=2
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> CC: Yakui Zhao <yakui.zhao@intel.com>
-> CC: Matthew Garrett <mjg59@srcf.ucam.org>
-> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
-> CC: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-> CC: Alexey Starikovskiy <astarikovskiy@suse.de>
-> CC: Len Brown <lenb@kernel.org>
 
-Acked-by: Matthew Garrett <mjg@redhat.com>
+ARB_DISABLE is a nop on all of the recent Intel platforms. Disable
+ARB_DISABLE and attached c3_lock on C3 entry exit for such platforms.
 
->  drivers/acpi/power.c |   28 ++--------------------------
->  1 files changed, 2 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 56665a6..d74365d 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -194,7 +194,7 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
->  
->  static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
->  {
-> -	int result = 0, state;
-> +	int result = 0;
->  	int found = 0;
->  	acpi_status status = AE_OK;
->  	struct acpi_power_resource *resource = NULL;
-> @@ -236,18 +236,6 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->  
-> -	if (!acpi_power_nocheck) {
-> -		/*
-> -		 * If acpi_power_nocheck is set, it is unnecessary to check
-> -		 * the power state after power transition.
-> -		 */
-> -		result = acpi_power_get_state(resource->device->handle,
-> -				&state);
-> -		if (result)
-> -			return result;
-> -		if (state != ACPI_POWER_RESOURCE_STATE_ON)
-> -			return -ENOEXEC;
-> -	}
->  	/* Update the power resource's _device_ power state */
->  	resource->device->power.state = ACPI_STATE_D0;
->  
-> @@ -258,7 +246,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
->  
->  static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
->  {
-> -	int result = 0, state;
-> +	int result = 0;
->  	acpi_status status = AE_OK;
->  	struct acpi_power_resource *resource = NULL;
->  	struct list_head *node, *next;
-> @@ -293,18 +281,6 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
->  	if (ACPI_FAILURE(status))
->  		return -ENODEV;
->  
-> -	if (!acpi_power_nocheck) {
-> -		/*
-> -		 * If acpi_power_nocheck is set, it is unnecessary to check
-> -		 * the power state after power transition.
-> -		 */
-> -		result = acpi_power_get_state(handle, &state);
-> -		if (result)
-> -			return result;
-> -		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
-> -			return -ENOEXEC;
-> -	}
-> -
->  	/* Update the power resource's _device_ power state */
->  	resource->device->power.state = ACPI_STATE_D3;
->  
-> 
-> 
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+---
+ arch/x86/kernel/acpi/cstate.c |   16 +++++++++++++---
+ drivers/acpi/processor_idle.c |    7 +++++--
+ 2 files changed, 18 insertions(+), 5 deletions(-)
+
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index bbbe4bb..763637d 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -34,12 +34,22 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+ 		flags->bm_check = 1;
+ 	else if (c->x86_vendor == X86_VENDOR_INTEL) {
+ 		/*
+-		 * Today all CPUs that support C3 share cache.
+-		 * TBD: This needs to look at cache shared map, once
+-		 * multi-core detection patch makes to the base.
++		 * Today all MP CPUs that support C3 share cache.
++		 * And caches should not be flushed by software while
++		 * entering C3 type state.
+ 		 */
+ 		flags->bm_check = 1;
+ 	}
++
++	/*
++	 * On all recent platforms, ARB_DISABLE is a nop.
++	 * So, set bm_control to zero to indicate that ARB_DISABLE
++	 * is not required while entering C3 type state on
++	 * P4, Core and beyond CPUs
++	 */
++	if (c->x86_vendor == X86_VENDOR_INTEL &&
++	    (c->x86 > 0x6 || (c->x86 == 6 && c->x86_model >= 14)))
++			flags->bm_control = 0;
+ }
+ EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
+ 
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 72069ba..4840c79 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -512,7 +512,8 @@ static void acpi_processor_power_verify_c2(struct acpi_processor_cx *cx)
+ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+ 					   struct acpi_processor_cx *cx)
+ {
+-	static int bm_check_flag;
++	static int bm_check_flag = -1;
++	static int bm_control_flag = -1;
+ 
+ 
+ 	if (!cx->address)
+@@ -542,12 +543,14 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+ 	}
+ 
+ 	/* All the logic here assumes flags.bm_check is same across all CPUs */
+-	if (!bm_check_flag) {
++	if (bm_check_flag == -1) {
+ 		/* Determine whether bm_check is needed based on CPU  */
+ 		acpi_processor_power_init_bm_check(&(pr->flags), pr->id);
+ 		bm_check_flag = pr->flags.bm_check;
++		bm_control_flag = pr->flags.bm_control;
+ 	} else {
+ 		pr->flags.bm_check = bm_check_flag;
++		pr->flags.bm_control = bm_control_flag;
+ 	}
+ 
+ 	if (pr->flags.bm_check) {
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.0.6
+
