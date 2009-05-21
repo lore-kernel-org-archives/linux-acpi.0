@@ -1,75 +1,116 @@
-From: Yinghai Lu <yhlu.kernel@gmail.com>
-Subject: Re: [PATCH] x86/pci: do assign root bus res if _CRS is used
-Date: Wed, 20 May 2009 17:10:01 -0700
-Message-ID: <86802c440905201710q297ac1ecj4279a780811843b1@mail.gmail.com>
-References: <49ED22EC.2040204@kernel.org>
-	 <200904291708.52830.bjorn.helgaas@hp.com>
-	 <200904300914.22772.bjorn.helgaas@hp.com>
-	 <200905081640.12677.bjorn.helgaas@hp.com>
-	 <20090520164910.6939b92b@jbarnes-g45>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
+Date: Thu, 21 May 2009 09:22:13 +0800
+Message-ID: <20090521012213.GA14907@sli10-desk.sh.intel.com>
+References: <20090519084852.GA13682@sli10-desk.sh.intel.com> <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins> <alpine.LFD.2.00.0905191429440.29241@localhost.localdomain> <1242772601.26820.527.camel@twins> <87ljosnfzb.fsf@basil.nowhere.org> <1242821825.26820.583.camel@twins> <20090520131301.GF8684@one.firstfloor.org> <1242826915.26820.609.camel@twins> <20090520173635.GB32078@dirshya.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090520164910.6939b92b@jbarnes-g45>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Gary Hade <garyhade@us.ibm.com>, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:31327 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752759AbZEUBWP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2009 21:22:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20090520173635.GB32078@dirshya.in.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Andi Kleen <andi@firstfloor.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>
 
-On Wed, May 20, 2009 at 4:49 PM, Jesse Barnes <jbarnes@virtuousgeek.org=
-> wrote:
-> On Fri, 8 May 2009 16:40:10 -0600
-> Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
->> Did anything happen with this?
->>
->> The longer we wait to make "use_crs" the default, the harder it
->> will be, so I'd like to push ahead.
->
-> Here's a patch to make CRS the default. =A0If it looks ok I can push =
-it
-> into my linux-next branch. =A0I'm all for using reliable data from th=
-e
-> BIOS. =A0I guess we'll find out fairly quickly if this stuff isn't...
->
-> --
-> Jesse Barnes, Intel Open Source Technology Center
->
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kern=
-el-parameters.txt
-> index 90b3924..8d798bf 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -1777,7 +1777,7 @@ and is between 256 and 4096 characters. It is d=
-efined in the file
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0IRQ ro=
-uting is enabled.
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0noacpi =A0 =A0 =A0 =A0 =A0[X86] Do not=
- use ACPI for IRQ routing
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0or for=
- PCI scanning.
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 use_crs =A0 =A0 =A0 =A0 [X86] Use _CRS =
-for PCI resource
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nocrs =A0 =A0 =A0 =A0 =A0 [X86] Don't u=
-se _CRS for PCI resource
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0alloca=
-tion.
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0routeirq =A0 =A0 =A0 =A0Do IRQ routing=
- for all PCI devices.
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0This i=
-s normally done in pci_enable_device(),
-> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pc=
-i_x86.h
-> index e60fd3e..010c08c 100644
-> --- a/arch/x86/include/asm/pci_x86.h
-> +++ b/arch/x86/include/asm/pci_x86.h
-> @@ -25,7 +25,7 @@
-> =A0#define PCI_BIOS_IRQ_SCAN =A0 =A0 =A00x2000
-> =A0#define PCI_ASSIGN_ALL_BUSSES =A00x4000
-> =A0#define PCI_CAN_SKIP_ISA_ALIGN 0x8000
-> -#define PCI_USE__CRS =A0 =A0 =A0 =A0 =A0 0x10000
-> +#define PCI_NO_CRS =A0 =A0 =A0 =A0 =A0 =A0 0x10000
+On Thu, May 21, 2009 at 01:36:35AM +0800, Vaidyanathan Srinivasan wrote:
+> * Peter Zijlstra <peterz@infradead.org> [2009-05-20 15:41:55]:
+> 
+> > On Wed, 2009-05-20 at 15:13 +0200, Andi Kleen wrote:
+> > > Thanks for the explanation.
+> > > 
+> > > My naive reaction would be to fail if the socket to be taken out
+> > > is the only member of some cpuset. Or maybe break affinities in this case.
+> > 
+> > Right, breaking affinities would go against the policy of the admin, I'm
+> > not sure we'd want to go there. We could start generating msgs about how
+> > we're in thermal trouble and the given configuration is obstructing
+> > counter measures etc..
+> > 
+> > Currently hot-unplug does break affinities, but that's an explicit
+> > action by the admin himself, so he gets what he asks for (and we do
+> > generate complaints in syslog about it).
+> > 
+> > [ Same scenario for the HPC guys who affinity fix all their threads to
+> >   specific cpus, there's really nothing you can do there. Then again
+> >   such folks generally run their machines at 100% so they'd better
+> >   be able to deal with their thermal peak capacity anyway. ]
+> > 
+> > > > You really want to start shrinking the generic computational capacity
+> > > > first.
+> > > 
+> > > One general issue to remember that if you don't react to the platform hint 
+> > > the platform will likely force a lower p-state on you to not exceed
+> > > the thermal limits, making everyone slower. 
+> > > 
+> > > (this will likely also not make your real time process happy)
+> > 
+> > Quite.
+> > 
+> > > So it's a bit more than a hint; it's more like a command "or else"
+> > > 
+> > > So it's a good idea to react or at least make at least a reasonable attempt 
+> > > to react.
+> > 
+> > Sure, does the thing give more than a: 'react now, or else' impulse?
+> > That is, can we see it coming, or will we have to deal with it when
+> > we're there?
+> > 
+> > The latter also has the problem that you have to react very quickly.
+> > 
+> > > > The thing is, you cannot simply rip cpus out from under a system, people
+> > > > might rely on them being there and have policy attached to them -- esp.
+> > > > people touching cpusets should know that a machine isn't configured
+> > > > homogeneous and any odd cpu will do.
+> > > 
+> > > Ok, so do you think it's possible to figure out based on the cpuset
+> > > graph / real time runqueue if a socket can be taken out? 
+> > 
+> > Right, so all of this depends on a number of things, how frequent and
+> > how fast would these situations occur?
+> > 
+> > I would think they'd be rare events, otherwise you really messed up your
+> > infrastructure. I also think reaction times should be in the seconds,
+> > otherwise you're cutting it way to close.
+> > 
+> > 
+> > The work IBM has been doing is centered around overloading neighbouring
+> > packages in order to keep some idle. The overload is exposed as a
+> > percentage.
+> > 
+> > This works within scheduling domains, so if you carve your machine up in
+> > tiny (<= 1 package) domains its impossible to do anything (corner case,
+> > we could send cries for help syslog's way).
+> > 
+> > I was hoping we could control the situation with that. But for that to
+> > work we need some gradual information in order to make that
+> > thermal<->overload feedback work.
+> 
+> The advantages of this method is to reduce load on one package and not
+> target a particular CPU.  This is less restrictive and can allow the
+> load balancer to work out the details.  Keeping a core idle on an
+> average (over a time interval) is good enough to reduce the power and
+> heat.  
+> 
+> Here we need not touch the RT jobs or break use space policies.  We
+> effectively reduce capacity and let the loadbalancer have the
+> flexibility of figuring out which CPU should not be scheduled now.
+> 
+> That said, this is not useful for a 'cpu cache error' case, in which
+> case you will have to cpu-hot-unplug anyway.  You don't want any
+> interrupts/timers to land there in an unreliable CPU.
+> 
+> Overloading the powersave load balancer to assume reduced capacity on
+> some of the packages while overloading some others packages is the
+> core idea.  The RFC patches still need a lot of work to meet the
+> required functionality.
+So the main concern is breaking user policy, but it appears any approach
+(cpu hotplug/cpuset) will break user policy (affinity). I wonder how the
+scheduler approach can overcome this to my little scheduler knowledge.
 
-PCI_NO_ROOT_CRS is more accurate ?
-
-YH
+Thanks,
+Shaohua
