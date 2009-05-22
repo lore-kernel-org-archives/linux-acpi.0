@@ -1,49 +1,71 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] X86: DMI match for the Sony VGN-Z540N as it needs BIOS
-	reboot
-Date: Fri, 22 May 2009 11:35:50 +0800
-Message-ID: <1242963350.32574.53.camel@rzhang-dt>
+Subject: Re: BUG: blank screen - unless keyboard/synaptic combo
+Date: Fri, 22 May 2009 11:39:16 +0800
+Message-ID: <1242963556.32574.59.camel@rzhang-dt>
+References: <4A12FCB2.6090409@gmail.com>  <4A15DC88.5070005@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:29108 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:11390 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353AbZEVDfQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 May 2009 23:35:16 -0400
+	id S1752116AbZEVDil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 May 2009 23:38:41 -0400
+In-Reply-To: <4A15DC88.5070005@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
+To: Niel Lambrechts <niel.lambrechts@gmail.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Not sure where I should send the patch to.
+is this a regression or it exists on all the kernel you've tried?
+please remote login the box after resume, and get the output of
+"xrandr --verbose".
 
-x86: DMI match for the Sony VGN-Z540N as it needs BIOS reboot
-http://bugzilla.kernel.org/show_bug.cgi?id=12901
+thanks,
+rui
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- arch/x86/kernel/reboot.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
-
-Index: linux-2.6/arch/x86/kernel/reboot.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/reboot.c
-+++ linux-2.6/arch/x86/kernel/reboot.c
-@@ -232,6 +232,14 @@ static struct dmi_system_id __initdata r
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Dell DXP061"),
- 		},
- 	},
-+	{	/* Handle problems with rebooting on Sony VGN-Z540N */
-+		.callback = set_bios_reboot,
-+		.ident = "Sony VGN-Z540N",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "VGN-Z540N"),
-+		},
-+	},
- 	{ }
- };
- 
-
+On Fri, 2009-05-22 at 06:58 +0800, Niel Lambrechts wrote:
+> Cc's added, attached lspci output.
+> 
+> On 05/19/2009 08:38 PM, Niel Lambrechts wrote:
+> > I have a strange problem in that during a resume from hibernate my
+> > text console (or X) remains blank - that is, until I simultaneously
+> > press a keyboard key and touch the synaptic pad. It is not sufficient
+> > to press just one or the other, it needs to be done simultaneously and
+> > it resumes fine after doing this.
+> 
+> I have tried quite hard to overcome this issue. All of the following hibernation 
+> tests I tried involved booting into a text console, without ever starting X. 
+> With each test I still had a blank screen upon resume, and each time it was 
+> fully recoverable by pressing any keyboard key/synaptic pad touch combo.
+> 
+> 1. Disabling a CPU core - NO CHANGE.
+> Based on a "multi-processor concurrency" fix mentioned on the web (Ubuntu bug 
+> #272307).
+> 
+> 2. Upgrade BIOS to latest level - NO CHANGE.
+> BIOS 6FET70WW, released 04/17/2009.
+> 
+> 3. Switching to ATI Mobility Radeon HD 3650 graphics card. NO CHANGE.
+> My Lenovo W500 has "switchable graphics" BIOS option, and I tried this test with 
+> both the integrated or the above-mentioned card without difference.
+> _This result seems quite interesting to me, as if it could be some type of bus 
+> related freeze where the keyboard/synaptic combo plays a role._
+> 
+> 4. Disabling BIOS Options - NO CHANGE.
+> Enabling/disabling security chip features + TXT features.
+> Disabling fingerprint reader.
+> Disabling memory security feature.
+> 
+> 5. Kernel options - NO CHANGE.
+> ACPI debugging - I enabled CONFIG_ACPI_DEBUG, but did not see any messages 
+> generated when I pressed a keyboard key + synaptic mousepad combo that recovers 
+> the console.
+> FIRMWARE_EDID - still testing this.
+> 
+> Any suggestions on anything else I could try would be most welcome...!
+> 
+> Thanks,
+> Niel
+> 
 
