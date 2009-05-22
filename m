@@ -1,71 +1,63 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: BUG: blank screen - unless keyboard/synaptic combo
-Date: Fri, 22 May 2009 11:39:16 +0800
-Message-ID: <1242963556.32574.59.camel@rzhang-dt>
-References: <4A12FCB2.6090409@gmail.com>  <4A15DC88.5070005@gmail.com>
+From: Olivier Berger <oberger@ouvaton.org>
+Subject: Re: Incorrect ACPI blacklisting of ASUS P4B266 ?
+Date: Fri, 22 May 2009 07:52:57 +0200
+Message-ID: <874ovd65vq.fsf@olivierberger.com>
+References: <87k5691x3y.fsf@olivierberger.com>
+	<200904281339.15689.trenn@suse.de> <877i14aed8.fsf@olivierberger.com>
+	<200904281956.50640.trenn@suse.de>
+	<alpine.LFD.2.00.0905141307300.24833@localhost.localdomain>
+	<87ws8gfabd.fsf@olivierberger.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:11390 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752116AbZEVDil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 May 2009 23:38:41 -0400
-In-Reply-To: <4A15DC88.5070005@gmail.com>
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:47769 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880AbZEVFyQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2009 01:54:16 -0400
+Received: from smtp4-g21.free.fr (smtp4-g21.free.fr [212.27.42.4])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 21580CA8EF2
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2009 07:54:12 +0200 (CEST)
+Received: from smtp4-g21.free.fr (localhost [127.0.0.1])
+	by smtp4-g21.free.fr (Postfix) with ESMTP id 18F004C80DC
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2009 07:53:00 +0200 (CEST)
+Received: from asustour (mag77-1-82-238-14-130.fbx.proxad.net [82.238.14.130])
+	by smtp4-g21.free.fr (Postfix) with ESMTP id 326844C80AD
+	for <linux-acpi@vger.kernel.org>; Fri, 22 May 2009 07:52:58 +0200 (CEST)
+Received: from olivier by asustour with local (Exim 4.69)
+	(envelope-from <oberger@ouvaton.org>)
+	id 1M7Ngf-0003lp-E2
+	for linux-acpi@vger.kernel.org; Fri, 22 May 2009 07:52:57 +0200
+In-Reply-To: <87ws8gfabd.fsf@olivierberger.com> (Olivier Berger's message of "Sun\, 17 May 2009 09\:38\:46 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-is this a regression or it exists on all the kernel you've tried?
-please remote login the box after resume, and get the output of
-"xrandr --verbose".
+Olivier Berger <oberger@ouvaton.org> writes:
 
-thanks,
-rui
+> Len Brown <lenb@kernel.org> writes:
+>
+>> Olivier,
+>> If you can send me a properly formatted patch
+>> to remove the dmi entry,
+>> (Documentation/SubmittingPatches)
+>> including your signed-off, i'll apply it.
+>
+> Here's it in attachment. I'm not really experienced with git so I hope
+> it suits your needs.
 
-On Fri, 2009-05-22 at 06:58 +0800, Niel Lambrechts wrote:
-> Cc's added, attached lspci output.
-> 
-> On 05/19/2009 08:38 PM, Niel Lambrechts wrote:
-> > I have a strange problem in that during a resume from hibernate my
-> > text console (or X) remains blank - that is, until I simultaneously
-> > press a keyboard key and touch the synaptic pad. It is not sufficient
-> > to press just one or the other, it needs to be done simultaneously and
-> > it resumes fine after doing this.
-> 
-> I have tried quite hard to overcome this issue. All of the following hibernation 
-> tests I tried involved booting into a text console, without ever starting X. 
-> With each test I still had a blank screen upon resume, and each time it was 
-> fully recoverable by pressing any keyboard key/synaptic pad touch combo.
-> 
-> 1. Disabling a CPU core - NO CHANGE.
-> Based on a "multi-processor concurrency" fix mentioned on the web (Ubuntu bug 
-> #272307).
-> 
-> 2. Upgrade BIOS to latest level - NO CHANGE.
-> BIOS 6FET70WW, released 04/17/2009.
-> 
-> 3. Switching to ATI Mobility Radeon HD 3650 graphics card. NO CHANGE.
-> My Lenovo W500 has "switchable graphics" BIOS option, and I tried this test with 
-> both the integrated or the above-mentioned card without difference.
-> _This result seems quite interesting to me, as if it could be some type of bus 
-> related freeze where the keyboard/synaptic combo plays a role._
-> 
-> 4. Disabling BIOS Options - NO CHANGE.
-> Enabling/disabling security chip features + TXT features.
-> Disabling fingerprint reader.
-> Disabling memory security feature.
-> 
-> 5. Kernel options - NO CHANGE.
-> ACPI debugging - I enabled CONFIG_ACPI_DEBUG, but did not see any messages 
-> generated when I pressed a keyboard key + synaptic mousepad combo that recovers 
-> the console.
-> FIRMWARE_EDID - still testing this.
-> 
-> Any suggestions on anything else I could try would be most welcome...!
-> 
-> Thanks,
-> Niel
-> 
+FYI, I've resent it in an individual mail
+(http://marc.info/?l=linux-acpi&m=124291514825272&w=2) and 
 
+Len Brown <lenb@kernel.org> writes:
+
+> applied for 2.6.31
+>
+
+Thanks.
+
+Best regards,
+
+-- 
+Olivier BERGER 
+(OpenPGP: 1024D/B4C5F37F)
+http://www.olivierberger.com/weblog/
