@@ -1,112 +1,172 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 4/4] ACPI: use handle, not device, in system notification path
-Date: Fri, 22 May 2009 11:43:56 -0600
-Message-ID: <20090522174356.4304.94935.stgit@bob.kio>
-References: <20090522174223.4304.7099.stgit@bob.kio>
+From: Niel Lambrechts <niel.lambrechts@gmail.com>
+Subject: Re: BUG: blank screen - unless keyboard/synaptic combo
+Date: Fri, 22 May 2009 20:12:27 +0200
+Message-ID: <4A16EB0B.20205@gmail.com>
+References: <4A12FCB2.6090409@gmail.com>  <4A15DC88.5070005@gmail.com> <1242963556.32574.59.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:35822 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757224AbZEVRnz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2009 13:43:55 -0400
-In-Reply-To: <20090522174223.4304.7099.stgit@bob.kio>
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:45326 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755553AbZEVSTC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2009 14:19:02 -0400
+In-Reply-To: <1242963556.32574.59.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This patch changes the global system notification path so it uses the
-acpi_handle, not the acpi_device.
+(fixed top posting)
 
-System notifications often deal with device presence and status change.
-In these cases, we may not have an acpi_device.  For example, we may
-get a Device Check notification on an object that previously was not
-present.  Since the object was not present, we would not have had an
-acpi_device for it.
+On 05/22/2009 05:39 AM, Zhang Rui wrote:
+> On Fri, 2009-05-22 at 06:58 +0800, Niel Lambrechts wrote:
+>    
+>> Cc's added, attached lspci output.
+>>
+>> On 05/19/2009 08:38 PM, Niel Lambrechts wrote:
+>>      
+>>> I have a strange problem in that during a resume from hibernate my
+>>> text console (or X) remains blank - that is, until I simultaneously
+>>> press a keyboard key and touch the synaptic pad. It is not sufficient
+>>> to press just one or the other, it needs to be done simultaneously and
+>>> it resumes fine after doing this.
+>>>        
+> is this a regression or it exists on all the kernel you've tried?
+>    
+Hi Zhang,
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- drivers/acpi/bus.c |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+It is not a recent regression, all of the kernels I tried back to 2.6.28 
+shows the same problem. The test results I posted last night was with 
+2.6.30-rc6. I suspect it did not happen in 2.6.27, but I might be wrong 
+since I could not bisect that far back (I am using EXT4 and have too 
+many issues to bisect that far back).
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 2b08c3d..2876fc7 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -450,11 +450,14 @@ int acpi_bus_receive_event(struct acpi_bus_event *event)
-                              Notification Handling
-    -------------------------------------------------------------------------- */
- 
--static void acpi_bus_check_device(struct acpi_device *device)
-+static void acpi_bus_check_device(acpi_handle handle)
- {
-+	struct acpi_device *device;
- 	acpi_status status;
- 	struct acpi_device_status old_status;
- 
-+	if (acpi_bus_get_device(handle, &device))
-+		return;
- 	if (!device)
- 		return;
- 
-@@ -488,13 +491,10 @@ static void acpi_bus_check_device(struct acpi_device *device)
- 	}
- }
- 
--static void acpi_bus_check_scope(struct acpi_device *device)
-+static void acpi_bus_check_scope(acpi_handle handle)
- {
--	if (!device)
--		return;
--
- 	/* Status Change? */
--	acpi_bus_check_device(device);
-+	acpi_bus_check_device(handle);
- 
- 	/*
- 	 * TBD: Enumerate child devices within this device's scope and
-@@ -531,13 +531,10 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 	blocking_notifier_call_chain(&acpi_bus_notify_list,
- 		type, (void *)handle);
- 
--	if (acpi_bus_get_device(handle, &device))
--		return;
--
- 	switch (type) {
- 
- 	case ACPI_NOTIFY_BUS_CHECK:
--		acpi_bus_check_scope(device);
-+		acpi_bus_check_scope(handle);
- 		/*
- 		 * TBD: We'll need to outsource certain events to non-ACPI
- 		 *      drivers via the device manager (device.c).
-@@ -545,7 +542,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 		break;
- 
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		acpi_bus_check_device(device);
-+		acpi_bus_check_device(handle);
- 		/*
- 		 * TBD: We'll need to outsource certain events to non-ACPI
- 		 *      drivers via the device manager (device.c).
-@@ -583,10 +580,13 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
- 		break;
- 	}
- 
--	driver = device->driver;
--	if (driver && driver->ops.notify &&
--	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
--		driver->ops.notify(device, type);
-+	acpi_bus_get_device(handle, &device);
-+	if (device) {
-+		driver = device->driver;
-+		if (driver && driver->ops.notify &&
-+		    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
-+			driver->ops.notify(device, type);
-+	}
- }
- 
- /* --------------------------------------------------------------------------
+> please remote login the box after resume, and get the output of
+> "xrandr --verbose".
+>    
+
+When I resume from suspend to RAM there is no problem.
+
+When I resume from hibernate, my laptop actually remains unusable until 
+I do the combination of things I mentioned. I cannot log in from remote 
+or even ping the laptop, except if I first press the mentioned key 
+combo. Before this, the display is either entirely blank or sometimes 
+there is a white cursor in the top left corner.
+
+The blank screen happens in runlevel 3 without X or "i915" loaded - I'm 
+not sure but I suppose you want the "xrandr" output for another reason. 
+It is interesting that it happens regardless of whether I am using Intel 
+integrated graphics or Mobility Radeon HD 3650 (my laptop has both and I 
+can enable one at a time). I boot the system with vga=791 and it is 
+using vesafb for console.
+
+I attached the output you asked for below after hibernating an Xorg 
+session, but this is from just after pressing the combo as I could not 
+log in over the network with the laptop in the blank state.
+
+Thanks,
+Niel
+
+
+niella@linux-7vph:> xrandr --verbose
+Screen 0: minimum 320 x 200, current 1600 x 1024, maximum 3840 x 1200
+VGA disconnected 1600x1024+0+0 (0x3d) normal (normal left inverted right 
+x axis y axis) 0mm x 0mm
+         Identifier: 0x3b
+         Timestamp:  184631
+         Subpixel:   unknown
+         Clones:
+         CRTC:       0
+         CRTCs:      0 1
+         Transform:  1.000000 0.000000 0.000000
+                     0.000000 1.000000 0.000000
+                     0.000000 0.000000 1.000000
+                    filter:
+   1600x1024 (0x3d)  136.4MHz *current
+         h: width  1600 start 1704 end 1872 total 2144 skew    0 clock   
+63.6KHz
+         v: height 1024 start 1025 end 1028 total 1060           clock   
+60.0Hz
+LVDS connected 1600x1024+0+0 (0x3d) normal (normal left inverted right x 
+axis y axis) 331mm x 207mm
+         Identifier: 0x3c
+         Timestamp:  184631
+         Subpixel:   horizontal rgb
+         Clones:
+         CRTC:       1
+         CRTCs:      1
+         Transform:  1.000000 0.000000 0.000000
+                     0.000000 1.000000 0.000000
+                     0.000000 0.000000 1.000000
+                    filter:
+         EDID_DATA:
+                 00ffffffffffff0030ae554000000000
+                 0011010380211578ea87f594574f8c27
+                 27505400000001010101010101010101
+                 0101010101018c41807a71b011403020
+                 33004bcf100000197434802071b01440
+                 302026004bcf100000190000000f00d1
+                 0a32d10a281101004ca35532000000fe
+                 004c544e31353455322d4c30350a0011
+         PANEL_FITTING:  full_aspect
+                 supported: center       full_aspect  full
+         BACKLIGHT_CONTROL:      combination
+                 supported: native       legacy       combination  kernel
+         BACKLIGHT: 4722 (0x00001272)    range:  (0,4722)
+   1600x1024 (0x3d)  136.4MHz *current +preferred
+         h: width  1600 start 1704 end 1872 total 2144 skew    0 clock   
+63.6KHz
+         v: height 1024 start 1025 end 1028 total 1060           clock   
+60.0Hz
+   1920x1200 (0x3e)  167.8MHz -HSync -VSync +preferred
+         h: width  1920 start 1968 end 2000 total 2298 skew    0 clock   
+73.0KHz
+         v: height 1200 start 1203 end 1206 total 1217           clock   
+60.0Hz
+   1920x1200 (0x3f)  134.3MHz -HSync -VSync
+         h: width  1920 start 1968 end 2000 total 2208 skew    0 clock   
+60.8KHz
+         v: height 1200 start 1202 end 1208 total 1220           clock   
+49.8Hz
+   1600x1200 (0x40)  162.0MHz +HSync +VSync
+         h: width  1600 start 1664 end 1856 total 2160 skew    0 clock   
+75.0KHz
+         v: height 1200 start 1201 end 1204 total 1250           clock   
+60.0Hz
+   1400x1050 (0x41)  122.0MHz +HSync +VSync
+         h: width  1400 start 1488 end 1640 total 1880 skew    0 clock   
+64.9KHz
+         v: height 1050 start 1052 end 1064 total 1082           clock   
+60.0Hz
+   1280x1024 (0x42)  108.0MHz +HSync +VSync
+         h: width  1280 start 1328 end 1440 total 1688 skew    0 clock   
+64.0KHz
+         v: height 1024 start 1025 end 1028 total 1066           clock   
+60.0Hz
+   1280x960 (0x43)  108.0MHz +HSync +VSync
+         h: width  1280 start 1376 end 1488 total 1800 skew    0 clock   
+60.0KHz
+         v: height  960 start  961 end  964 total 1000           clock   
+60.0Hz
+   1024x768 (0x44)   65.0MHz -HSync -VSync
+         h: width  1024 start 1048 end 1184 total 1344 skew    0 clock   
+48.4KHz
+         v: height  768 start  771 end  777 total  806           clock   
+60.0Hz
+   800x600 (0x45)   40.0MHz +HSync +VSync
+         h: width   800 start  840 end  968 total 1056 skew    0 clock   
+37.9KHz
+         v: height  600 start  601 end  605 total  628           clock   
+60.3Hz
+   800x600 (0x46)   36.0MHz +HSync +VSync
+         h: width   800 start  824 end  896 total 1024 skew    0 clock   
+35.2KHz
+         v: height  600 start  601 end  603 total  625           clock   
+56.2Hz
+   640x480 (0x47)   25.2MHz -HSync -VSync
+         h: width   640 start  656 end  752 total  800 skew    0 clock   
+31.5KHz
+         v: height  480 start  490 end  492 total  525           clock   
+59.9Hz
 
