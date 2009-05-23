@@ -1,20 +1,20 @@
 From: Joan <zandhlpa@rrcol.com>
 Subject: Lucky Winner!!!
-Date: Sat, 23 May 2009 0:47:40 -0500
-Message-ID: <7h9gbp$d90v8i@rrcs-agw-01b.hrndva.rr.com>
+Date: Sat, 23 May 2009 0:47:41 -0500
+Message-ID: <7h9gbp$d90v8j@rrcs-agw-01b.hrndva.rr.com>
 Reply-To: brownwilliams09@btinternet.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-commlb.mail.rr.com ([71.74.57.8]:39127 "EHLO
+Received: from hrndva-commlb.mail.rr.com ([71.74.57.8]:64940 "EHLO
 	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115AbZEWFrk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 May 2009 01:47:40 -0400
+	with ESMTP id S1751155AbZEWFrl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 May 2009 01:47:41 -0400
 Received: from rrcs-agw-01.hrndva.rr.com ([24.28.200.151])
-          by hrndva-comm-mta02.mail.rr.com with ESMTP
-          id <20090523054741.WCPW19886.hrndva-comm-mta02.mail.rr.com@rrcs-agw-01.hrndva.rr.com>
-          for <linux-acpi@vger.kernel.org>; Sat, 23 May 2009 05:47:41 +0000
+          by hrndva-comm-mta01.mail.rr.com with ESMTP
+          id <20090523054742.VCCD2776.hrndva-comm-mta01.mail.rr.com@rrcs-agw-01.hrndva.rr.com>
+          for <linux-acpi@vger.kernel.org>; Sat, 23 May 2009 05:47:42 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: info@winners.org
