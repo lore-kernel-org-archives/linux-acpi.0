@@ -1,44 +1,34 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [RFC] [PATCH]: ACPI: Rename ACPI processor device bus ID
-Date: Sat, 23 May 2009 13:20:14 +0800
-Message-ID: <1243056014.8523.188.camel@localhost.localdomain>
-References: <1242892973.8523.53.camel@localhost.localdomain>
-	 <20090523031811.GB10163@khazad-dum.debian.net>
+From: Joan <zandhlpa@rrcol.com>
+Subject: Lucky Winner!!!
+Date: Sat, 23 May 2009 0:47:39 -0500
+Message-ID: <7h9gbp$d90v8f@rrcs-agw-01b.hrndva.rr.com>
+Reply-To: brownwilliams09@btinternet.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48144 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750869AbZEWFSz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 May 2009 01:18:55 -0400
-In-Reply-To: <20090523031811.GB10163@khazad-dum.debian.net>
+Received: from hrndva-commlb.mail.rr.com ([71.74.57.8]:39106 "EHLO
+	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbZEWFrj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 May 2009 01:47:39 -0400
+Received: from rrcs-agw-01.hrndva.rr.com ([24.28.200.151])
+          by hrndva-comm-mta02.mail.rr.com with ESMTP
+          id <20090523054740.WCPG19886.hrndva-comm-mta02.mail.rr.com@rrcs-agw-01.hrndva.rr.com>
+          for <linux-acpi@vger.kernel.org>; Sat, 23 May 2009 05:47:40 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: info@winners.org
 
-On Sat, 2009-05-23 at 11:18 +0800, Henrique de Moraes Holschuh wrote:
-> On Thu, 21 May 2009, yakui_zhao wrote:
-> > +	sprintf(acpi_device_bid(device), "CPU%X", pr->id);
-> 
-> Is this safe against overflows, i.e. is pr->id something *we* set?  Because
-> if it is in any way read from the ACPI firmware, you have to either use
-> snprintf, or use the format string to limit the %X to a safe lenght...
-Thanks for pointing out this issue.
-Now the array size of acpi_bus_id is 5. And when the cpu number is above
-256, the overflow will happen. But it is very luck that the following
-three bytes are not used by other variable because of align. And this
-still can work.
-Of course I already sent a patch, in which the array size is changed
-from 5 to 8.
-
-At the same time if the cpu number is less than or equal to 256, the
-length of format string is safe.
-
-thanks.
-
-Best regards.
-	Yakui 
-> 
-
+ =A3950,000.00 GBP has been won by you in our Global Online Promotion d=
+raw  Get back to this office with your details send to=20
+1.Full Name:=20
+2.Full Address:=20
+3.Status:=20
+4.Occupation=20
+5.Phone Number:=20
+6.Country:
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
