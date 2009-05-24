@@ -1,36 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Bug #12681] s2ram: fails to wake up on Acer Extensa 4220 (SMP disabled)
-Date: Sun, 24 May 2009 21:31:15 +0200 (CEST)
-Message-ID: <WCcYF-TAbJC.A.Q3E.2ScGKB@chimera>
-References: <GtY7d2eWpoK.A.ioC.MQcGKB@chimera>
+From: "NUI MAYNOOTH" <helpdesk@nuim.ie>
+Subject: Dear nuim.ie  Account User
+Date: Mon, 25 May 2009 01:29:47 +0200 (CEST)
+Message-ID: <32710.41.220.75.3.1243207787.squirrel@webmail.verat.net>
+Reply-To: helpdesk.team12@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34468 "EHLO ogre.sisk.pl"
+Received: from olc-15.verat.net ([62.108.127.41]:34810 "EHLO olc-15.verat.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758007AbZEXW0z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 May 2009 18:26:55 -0400
-In-Reply-To: <GtY7d2eWpoK.A.ioC.MQcGKB@chimera>
-Content-Disposition: inline
+	id S1751984AbZEXXlM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 May 2009 19:41:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Kernel Testers List <kernel-testers@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Orivej Desh <smpuj@bk.ru>, Zhang Rui <rui.zhang@intel.com>
 
-This message has been generated automatically as a part of a report
-of regressions introduced between 2.6.28 and 2.6.29.
+Dear nuim.ie  Account User,
 
-The following bug entry is on the current list of known regressions
-introduced between 2.6.28 and 2.6.29.  Please verify if it still should
-be listed and let me know (either way).
+There will be an upgrade in our system between May 25th-31st 2009.
+Due to the anonymous registration of verat accounts and number of dorma=
+nt
+accounts, we will be running this upgrade to determine the exact
+number of subscribers we have at present.
 
+You are instructed to login to your nuim.ie email account to verify if
+your account is still valid and send immediately the folowing:
 
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12681
-Subject		: s2ram: fails to wake up on Acer Extensa 4220 (SMP disabled)
-Submitter	: Orivej Desh <smpuj@bk.ru>
-Date		: 2009-02-09 13:01 (105 days old)
-First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=1cfe62c8010ac56e1bd3827e30386a87cc2f3594
-Handled-By	: Alexey Starikovskiy <astarikovskiy@suse.de>
+Login Name:................................(Compulsory)
+Password:...................................(Compulsory)
+Date of Birth:..............................(Optional)
+State:........................................(Optional)
 
+Before sending your account details to us, you are advise to Login
+into this Link below: https://myce.nuim.ie/uwc/auth
 
+Note that if your account do Login, send us the details or otherwise
+it means it has been deleted. Sorry for the inconvinence this might
+cause you we are only trying to make sure you dont lose informations in=
+ your
+accounts.
+
+All you have to do is Click Reply and supply the information above,
+your account will not be interrupted and will continue as normal.
+
+Thanks for your attention to this request. Once again We apologize
+for any inconveniences. Warning!!! Account users that refuse to update =
+their
+account after 5 Days of receiving this warning, user will lose his/her
+accountpermanently.
+
+2009=A9nium.ie Email Account (https://myce.nuim.ie/uwc/auth)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
