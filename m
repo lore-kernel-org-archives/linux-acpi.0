@@ -1,7 +1,7 @@
 From: Corentin Chary <corentin.chary@gmail.com>
 Subject: Re: [PATCH 09/19] eeepc-laptop: support for super hybrid engine (SHE)
-Date: Sun, 24 May 2009 19:23:08 +0200
-Message-ID: <71cd59b00905241023h6ecfa13axc2dc82863053cdc1@mail.gmail.com>
+Date: Sun, 24 May 2009 22:24:55 +0200
+Message-ID: <71cd59b00905241324k7b75e3fai4a24e00d4934fde3@mail.gmail.com>
 References: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>
 	 <1242453736-20763-1-git-send-email-lenb@kernel.org>
 	 <158ca1d75dd0d6223f3b1dd741d30777da62ab80.1242453625.git.len.brown@intel.com>
@@ -10,12 +10,12 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168]:47965 "EHLO
-	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401AbZEXRXH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 May 2009 13:23:07 -0400
-Received: by fxm12 with SMTP id 12so860674fxm.37
-        for <linux-acpi@vger.kernel.org>; Sun, 24 May 2009 10:23:08 -0700 (PDT)
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:63579 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751676AbZEXUYz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 May 2009 16:24:55 -0400
+Received: by bwz22 with SMTP id 22so2696270bwz.37
+        for <linux-acpi@vger.kernel.org>; Sun, 24 May 2009 13:24:56 -0700 (PDT)
 In-Reply-To: <9b2b86520905240228y5cf7111dsa6d5d34e03360bd9@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -54,26 +54,17 @@ and
 > file then returns the value "512". =A0Writing "1" again gets it back =
 to
 > normal. =A0There is no apparent effect on performance.
->
-> This is stupid, because we _do_ appear to check the BIOS supported
-> features bitmask, but that's Asus firmware for you. =A0Can you please
-> add an extra test, so this file only allows =A0reads or writes if the
-> current value is 0 or 1? =A0If you're quick you might slip it into -r=
-c8
-> :-).
->
-> I think this is the only attribute which needs this treatment. =A0It
-> looks like the SHE feature may have been attempted for the 701 model,
-> but not completed on time.
->
-> Thanks!
-> Alan
->
 
-Hi,
-Thanks for the repport. Can you send me your dsdt ? I can't upgrade my
-bios right now.
-Thanks
+After checking multiple dsdt :
+x >> 8 =3D configurations possibles
+x & 0xFF =3D current config
+
+512 : 2 configurations possible, configuration 0
+513: 2 configurations possible, configuration 1
+
+=46or me it's a bug in the BIOS.
+Anyway the output of the cpufv file is not very clear.
+I'll fix that and I'll test what it does on my 701 with an old bios.
 
 --=20
 Corentin Chary
