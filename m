@@ -1,132 +1,119 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [PATCH 09/19] eeepc-laptop: support for super hybrid engine (SHE)
-Date: Mon, 25 May 2009 12:51:20 +0100
-Message-ID: <4A1A8638.2060105@tuffmail.co.uk>
-References: <45cb50e646d1560eff01c5ad0f0df3c7fd6148dd.1242453625.git.len.brown@intel.com>	 <71cd59b00905241023h6ecfa13axc2dc82863053cdc1@mail.gmail.com>	 <4A198401.3040003@tuffmail.co.uk>	 <200905251012.31526.corentin.chary@gmail.com>	 <4A1A685E.1070004@tuffmail.co.uk>	 <71cd59b00905250259n358cf58r837e01dc836e2c84@mail.gmail.com>	 <4A1A6DDD.3090202@tuffmail.co.uk> <71cd59b00905250419u4256446endef52672b7d5ab77@mail.gmail.com>
+From: Nick Nobody <me@nikosapi.org>
+Subject: Re: s2ram results from a toshiba portege 3110ct
+Date: Mon, 25 May 2009 11:10:39 -0400
+Message-ID: <200905251110.40173.me@nikosapi.org>
+References: <200905231212.50757.me@nikosapi.org> <1243229037.32574.60.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:40844 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220AbZEYLuo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 May 2009 07:50:44 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so783892eyd.37
-        for <linux-acpi@vger.kernel.org>; Mon, 25 May 2009 04:50:44 -0700 (PDT)
-In-Reply-To: <71cd59b00905250419u4256446endef52672b7d5ab77@mail.gmail.com>
+Received: from nikosapi.org ([209.123.162.110]:56679 "EHLO nikosapi.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751600AbZEYPJo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 May 2009 11:09:44 -0400
+In-Reply-To: <1243229037.32574.60.camel@rzhang-dt>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Grigori Goronzy <greg@chown.ath.cx>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-Corentin Chary wrote:
-> On Mon, May 25, 2009 at 12:07 PM, Alan Jenkins
-> <alan-jenkins@tuffmail.co.uk> wrote:
->   
->> Corentin Chary wrote:
->>     
->>> On Mon, May 25, 2009 at 11:43 AM, Alan Jenkins
->>> <alan-jenkins@tuffmail.co.uk> wrote:
->>>
->>>       
->>>> Corentin Chary wrote:
->>>>
->>>>         
->>>>> On Sunday 24 May 2009 19:29:37 Alan Jenkins wrote:
->>>>>
->>>>>
->>>>>           
->>>>>> Corentin Chary wrote:
->>>>>>
->>>>>>
->>>>>>             
->>>>>>> On Sun, May 24, 2009 at 11:28 AM, Alan Jenkins
->>>>>>>
->>>>>>> <sourcejedi.lkml@googlemail.com> wrote:
->>>>>>>
->>>>>>>
->>>>>>>               
->>>>>>>> On 5/16/09, Len Brown <lenb@kernel.org> wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>>                 
->>>>>>>>> From: Grigori Goronzy <greg@chown.ath.cx>
->>>>>>>>>
->>>>>>>>> The older eeepc-acpi driver allowed to control the SHE performance
->>>>>>>>> preset through a ACPI function for just this purpose. SHE underclocks
->>>>>>>>> and undervolts the FSB and undervolts the CPU (at preset 2,
->>>>>>>>> "powersave"), or slightly overclocks the CPU (at preset 0,
->>>>>>>>> "performance"). Preset 1 is the default setting with default clocks and
->>>>>>>>> voltage.
->>>>>>>>>
->>>>>>>>> The new eeepc-laptop driver doesn't support it anymore.
->>>>>>>>> The attached patch adds support for it to eeepc-laptop. It's very
->>>>>>>>> straight-forward and almost trivial.
->>>>>>>>>
->>>>>>>>> Signed-off-by: Grigori Goronzy <greg@chown.ath.cx>
->>>>>>>>> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
->>>>>>>>> Signed-off-by: Len Brown <len.brown@intel.com>
->>>>>>>>> ---
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>                   
->>>>>>>> Hi, out of curiosity I tried this on my EeePC 701.  I upgraded the
->>>>>>>> BIOS to the latest version available a few months ago.
->>>>>>>>
->>>>>>>> I find that the file is present and can successfully be read from.
->>>>>>>> The file returns the value "513".  If I write "1" to it, nothing
->>>>>>>> happens.  If I write "0" to it, the speakers start hissing and the
->>>>>>>> file then returns the value "512".  Writing "1" again gets it back to
->>>>>>>> normal.  There is no apparent effect on performance.
->>>>>>>>
->>>>>>>> This is stupid, because we _do_ appear to check the BIOS supported
->>>>>>>> features bitmask, but that's Asus firmware for you.  Can you please
->>>>>>>> add an extra test, so this file only allows  reads or writes if the
->>>>>>>> current value is 0 or 1?  If you're quick you might slip it into -rc8
->>>>>>>>
->>>>>>>>
->>>>>>>>                 
->>>>> Hi, Can you try this patch ? It seems to works for me.
->>>>>
->>>>>
->>>>>           
->>>> Thanks, it does make the interface less confusing. The behaviour (no
->>>> performance change, hissing speakers) is the same.
->>>>
->>>>         
->>> It works on mine (original bios). But I don't know how to see if there
->>> is a performance change.
->>> Is there a quick cpu bench ?
->>>
->>>       
->> I used:
->>
->> time for {1..10000}; do echo -n; done
->>
->> It's a bit bogus - I expect it would show if my 630Mhz processor jumped
->> to 900Mhz, but smaller changes might be lost in noise.
->>
->> <http://pavelmachek.livejournal.com/77425.html> suggests "time factor
->> $[65863223*65863159]", which should be better.
->>
->> I think it's also significant that the current (630Mhz) setting is "1".
->> I would expect "0" to be slower - but in the original 701 BIOS, 630Mhz
->> is the slower of the two speeds, right?
->>     
+Just tried out 2.6.30rc7 and the bug is no longer present.
+
+thanks,
+
+nick
+
+On May 25, 2009 01:23:57 am Zhang Rui wrote:
+> this seems like a bug that we have already fixed.
+> will you please try the latest git kernel to see if the problem still
+> exists?
 >
-> 1 - time factor: ~ 1.574s  - default, seems to be 630Mhz
-> 0 - time factor: ~ 1.01s    - seems to be 900
+> thanks,
+> rui
 >
->   
+> On Sun, 2009-05-24 at 00:12 +0800, Nick Nobody wrote:
+> > Hello,
+> >
+> > I'm running ubuntu 9.04 on a 10 year old toshiba portege 3110ct and s2ram
+> > actually works! The laptop is not listed in the database, but here's the
+> > output from s2ram -i:
+> >
+> > This machine can be identified by:
+> >     sys_vendor   = "TOSHIBA"
+> >     sys_product  = "PORTEGE 3110CT"
+> >     sys_version  = "Version 1.0"
+> >     bios_version = "Version 7.20"
+> >
+> > Note: acpi=force has to be passed as a kernel option because the bios is
+> > quite old. Also, I'm not using the most recent version of the bios
+> > (v7.70) because it breaks booting off a cdrom for me.
+> >
+> > The machine sleeps and wakes up by simply running "s2ram -f" but I get
+> > the following warning in my dmesg upon wakeup. I'm not sure if it's
+> > anything bad; the machine works fine despite the warning.
+> >
+> > [  249.592803] WARNING: at
+> > /build/buildd/linux-2.6.28/arch/x86/mm/ioremap.c:226
+> > __ioremap_caller+0x251/0x2b0()
+> > [  249.592841] Modules linked in: lp pcmcia ppdev snd_es1968 gameport
+> > snd_ac97_codec ac97_bus snd_pcm_oss snd_mixer_oss snd_pcm snd_page_alloc
+> > snd_mpu401_uart snd_seq_dummy snd_seq_oss snd_seq_midi snd_rawmidi
+> > snd_seq_midi_event snd_seq snd_timer snd_seq_device donauboe snd psmouse
+> > yenta_socket pcspkr serio_raw rsrc_nonstatic soundcore irda pcmcia_core
+> > i2c_piix4 crc_ccitt toshiba_acpi input_polldev video output parport_pc
+> > parport e100 mii floppy fbcon tileblit font bitblit softcursor
+> > [  249.593302] Pid: 832, comm: ktoshkeyd Tainted: G        W  2.6.28-11-
+> > generic #42-Ubuntu
+> > [  249.593336] Call Trace:
+> > [  249.593429]  [<c0500ac6>] ? printk+0x18/0x1a
+> > [  249.593493]  [<c0139b24>] warn_on_slowpath+0x54/0x80
+> > [  249.593559]  [<c0370020>] ? scsi_nl_rcv_msg+0xf0/0x1a0
+> > [  249.593609]  [<c0500ac6>] ? printk+0x18/0x1a
+> > [  249.593653]  [<c013feaf>] ? iomem_map_sanity_check+0xdf/0xf0
+> > [  249.593709]  [<c0123d91>] __ioremap_caller+0x251/0x2b0
+> > [  249.593783]  [<c0123f06>] ioremap_nocache+0x16/0x20
+> > [  249.593863]  [<c04f2755>] ? acpi_os_map_memory+0x11/0x1a
+> > [  249.593910]  [<c04f2755>] acpi_os_map_memory+0x11/0x1a
+> > [  249.593991]  [<c0303500>]
+> > acpi_ex_system_memory_space_handler+0xd7/0x207 [  249.594043] 
+> > [<c0303429>] ? acpi_ex_system_memory_space_handler+0x0/0x207 [ 
+> > 249.594094]  [<c02fcac5>] acpi_ev_address_space_dispatch+0x12f/0x16f [ 
+> > 249.594145]  [<c0300880>] acpi_ex_access_region+0x3c/0x98
+> > [  249.594193]  [<c03009f3>] acpi_ex_field_datum_io+0x117/0x1ae
+> > [  249.594244]  [<c0300d41>] acpi_ex_write_with_update_rule+0xd5/0xde
+> > [  249.594295]  [<c0300edb>] acpi_ex_insert_into_field+0x191/0x2c2
+> > [  249.594355]  [<c0305a35>] ? acpi_ns_search_one_scope+0x15/0x3a
+> > [  249.594406]  [<c02ff699>] acpi_ex_write_data_to_field+0x169/0x181
+> > [  249.594456]  [<c03036b2>] acpi_ex_store_object_to_node+0x82/0xb7
+> > [  249.594505]  [<c0303963>] acpi_ex_store+0x9f/0xf4
+> > [  249.594550]  [<c03018d8>] acpi_ex_opcode_1A_1T_1R+0x3d9/0x533
+> > [  249.594599]  [<c0301fff>] ? acpi_ex_resolve_operands+0x18f/0x434
+> > [  249.594682]  [<c02fa2c6>] acpi_ds_exec_end_op+0xe6/0x370
+> > [  249.594737]  [<c03092bb>] acpi_ps_parse_loop+0x24a/0x2a7
+> > [  249.594781]  [<c0308554>] acpi_ps_parse_aml+0x6d/0x267
+> > [  249.594828]  [<c0309845>] acpi_ps_execute_method+0x11c/0x1d3
+> > [  249.594880]  [<c0306400>] acpi_ns_evaluate+0x11c/0x1e4
+> > [  249.594930]  [<c0305f9d>] acpi_evaluate_object+0xdd/0x1bc
+> > [  249.595029]  [<c6913163>] hci_raw+0x60/0x98 [toshiba_acpi]
+> > [  249.595101]  [<c012ad96>] ? dequeue_entity+0x16/0x2a0
+> > [  249.595146]  [<c01320f8>] ? dequeue_task_fair+0x68/0x70
+> > [  249.595190]  [<c012888f>] ? dequeue_task+0xcf/0x130
+> > [  249.595237]  [<c0102ab7>] ? __switch_to+0xb7/0x1a0
+> > [  249.595292]  [<c012f9cb>] ? finish_task_switch+0x2b/0xe0
+> > [  249.595362]  [<c69131d8>] hci_read1+0x3d/0x5b [toshiba_acpi]
+> > [  249.595422]  [<c0143db0>] ? process_timeout+0x0/0x10
+> > [  249.595467]  [<c05016da>] ? schedule_timeout+0x7a/0xe0
+> > [  249.595536]  [<c6913b35>] toshiba_acpi_thread+0xf5/0x180
+> > [toshiba_acpi] [  249.595604]  [<c6913a40>] ?
+> > toshiba_acpi_thread+0x0/0x180 [toshiba_acpi] [  249.595664]  [<c0105477>]
+> > kernel_thread_helper+0x7/0x10
+> > [  249.595696] ---[ end trace 4eaa2a86a8e2da22 ]---
+> > [  249.596058] resource map sanity check conflict: 0x100b6800 0x100b77ff
+> > 0x100a0000 0x100b6dff reserved
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-How illogical :-).  Oh - I should have read the commit message, this is 
-the expected order (and proper SHE just has the extra state: 2 / 
-"performance").
-
-Perhaps we should DMI-blacklist 701s with newer BIOS versions, so we 
-only provide the performance control when it is available from the BIOS 
-setup screen.  The specific version is well-documented e.g. on 
-forum.eeeuser.com.
-
-Thanks for your time
-Alan
