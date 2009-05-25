@@ -1,108 +1,175 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: s2ram results from a toshiba portege 3110ct
-Date: Mon, 25 May 2009 13:23:57 +0800
-Message-ID: <1243229037.32574.60.camel@rzhang-dt>
-References: <200905231212.50757.me@nikosapi.org>
+Subject: Re: BUG: blank screen - unless keyboard/synaptic combo
+Date: Mon, 25 May 2009 13:58:11 +0800
+Message-ID: <1243231091.32574.62.camel@rzhang-dt>
+References: <4A12FCB2.6090409@gmail.com>  <4A15DC88.5070005@gmail.com>
+	 <1242963556.32574.59.camel@rzhang-dt>  <4A16EB0B.20205@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:25261 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751015AbZEYFXV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 May 2009 01:23:21 -0400
-In-Reply-To: <200905231212.50757.me@nikosapi.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4A16EB0B.20205@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Niel Lambrechts <niel.lambrechts@gmail.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Nick Nobody <me@nikosapi.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-this seems like a bug that we have already fixed.
-will you please try the latest git kernel to see if the problem still
-exists?
+please attach the dmesg output after S4 resume.
 
 thanks,
 rui
 
-On Sun, 2009-05-24 at 00:12 +0800, Nick Nobody wrote:
-> Hello,
+On Sat, 2009-05-23 at 02:12 +0800, Niel Lambrechts wrote:
+> (fixed top posting)
 > 
-> I'm running ubuntu 9.04 on a 10 year old toshiba portege 3110ct and s2ram 
-> actually works! The laptop is not listed in the database, but here's the 
-> output from s2ram -i:
+> On 05/22/2009 05:39 AM, Zhang Rui wrote:
+> > On Fri, 2009-05-22 at 06:58 +0800, Niel Lambrechts wrote:
+> >    
+> >> Cc's added, attached lspci output.
+> >>
+> >> On 05/19/2009 08:38 PM, Niel Lambrechts wrote:
+> >>      
+> >>> I have a strange problem in that during a resume from hibernate my
+> >>> text console (or X) remains blank - that is, until I simultaneously
+> >>> press a keyboard key and touch the synaptic pad. It is not sufficient
+> >>> to press just one or the other, it needs to be done simultaneously and
+> >>> it resumes fine after doing this.
+> >>>        
+> > is this a regression or it exists on all the kernel you've tried?
+> >    
+> Hi Zhang,
 > 
-> This machine can be identified by:
->     sys_vendor   = "TOSHIBA"
->     sys_product  = "PORTEGE 3110CT"
->     sys_version  = "Version 1.0"
->     bios_version = "Version 7.20"
+> It is not a recent regression, all of the kernels I tried back to 2.6.28 
+> shows the same problem. The test results I posted last night was with 
+> 2.6.30-rc6. I suspect it did not happen in 2.6.27, but I might be wrong 
+> since I could not bisect that far back (I am using EXT4 and have too 
+> many issues to bisect that far back).
 > 
-> Note: acpi=force has to be passed as a kernel option because the bios is quite 
-> old. Also, I'm not using the most recent version of the bios (v7.70) because 
-> it breaks booting off a cdrom for me.
+> > please remote login the box after resume, and get the output of
+> > "xrandr --verbose".
+> >    
 > 
-> The machine sleeps and wakes up by simply running "s2ram -f" but I get the 
-> following warning in my dmesg upon wakeup. I'm not sure if it's anything bad; 
-> the machine works fine despite the warning.
+> When I resume from suspend to RAM there is no problem.
 > 
-> [  249.592803] WARNING: at 
-> /build/buildd/linux-2.6.28/arch/x86/mm/ioremap.c:226 
-> __ioremap_caller+0x251/0x2b0()              
-> [  249.592841] Modules linked in: lp pcmcia ppdev snd_es1968 gameport 
-> snd_ac97_codec ac97_bus snd_pcm_oss snd_mixer_oss snd_pcm snd_page_alloc 
-> snd_mpu401_uart snd_seq_dummy snd_seq_oss snd_seq_midi snd_rawmidi 
-> snd_seq_midi_event snd_seq snd_timer snd_seq_device donauboe snd psmouse 
-> yenta_socket pcspkr serio_raw rsrc_nonstatic soundcore irda pcmcia_core 
-> i2c_piix4 crc_ccitt toshiba_acpi input_polldev video output parport_pc parport 
-> e100 mii floppy fbcon tileblit font bitblit softcursor        
-> [  249.593302] Pid: 832, comm: ktoshkeyd Tainted: G        W  2.6.28-11-
-> generic #42-Ubuntu                                  
-> [  249.593336] Call Trace:                                                                                                  
-> [  249.593429]  [<c0500ac6>] ? printk+0x18/0x1a                                                                             
-> [  249.593493]  [<c0139b24>] warn_on_slowpath+0x54/0x80                                                                     
-> [  249.593559]  [<c0370020>] ? scsi_nl_rcv_msg+0xf0/0x1a0                                                                   
-> [  249.593609]  [<c0500ac6>] ? printk+0x18/0x1a                                                                             
-> [  249.593653]  [<c013feaf>] ? iomem_map_sanity_check+0xdf/0xf0                                                             
-> [  249.593709]  [<c0123d91>] __ioremap_caller+0x251/0x2b0                                                                   
-> [  249.593783]  [<c0123f06>] ioremap_nocache+0x16/0x20                                                                      
-> [  249.593863]  [<c04f2755>] ? acpi_os_map_memory+0x11/0x1a                                                                 
-> [  249.593910]  [<c04f2755>] acpi_os_map_memory+0x11/0x1a                                                                   
-> [  249.593991]  [<c0303500>] acpi_ex_system_memory_space_handler+0xd7/0x207                                                 
-> [  249.594043]  [<c0303429>] ? acpi_ex_system_memory_space_handler+0x0/0x207                                                
-> [  249.594094]  [<c02fcac5>] acpi_ev_address_space_dispatch+0x12f/0x16f                                                     
-> [  249.594145]  [<c0300880>] acpi_ex_access_region+0x3c/0x98                                                                
-> [  249.594193]  [<c03009f3>] acpi_ex_field_datum_io+0x117/0x1ae                                                             
-> [  249.594244]  [<c0300d41>] acpi_ex_write_with_update_rule+0xd5/0xde                                                       
-> [  249.594295]  [<c0300edb>] acpi_ex_insert_into_field+0x191/0x2c2                                                          
-> [  249.594355]  [<c0305a35>] ? acpi_ns_search_one_scope+0x15/0x3a                                                           
-> [  249.594406]  [<c02ff699>] acpi_ex_write_data_to_field+0x169/0x181                                                        
-> [  249.594456]  [<c03036b2>] acpi_ex_store_object_to_node+0x82/0xb7                                                         
-> [  249.594505]  [<c0303963>] acpi_ex_store+0x9f/0xf4                                                                        
-> [  249.594550]  [<c03018d8>] acpi_ex_opcode_1A_1T_1R+0x3d9/0x533                                                            
-> [  249.594599]  [<c0301fff>] ? acpi_ex_resolve_operands+0x18f/0x434                                                         
-> [  249.594682]  [<c02fa2c6>] acpi_ds_exec_end_op+0xe6/0x370                                                                 
-> [  249.594737]  [<c03092bb>] acpi_ps_parse_loop+0x24a/0x2a7                                                                 
-> [  249.594781]  [<c0308554>] acpi_ps_parse_aml+0x6d/0x267                                                                   
-> [  249.594828]  [<c0309845>] acpi_ps_execute_method+0x11c/0x1d3                                                             
-> [  249.594880]  [<c0306400>] acpi_ns_evaluate+0x11c/0x1e4                                                                   
-> [  249.594930]  [<c0305f9d>] acpi_evaluate_object+0xdd/0x1bc                                                                
-> [  249.595029]  [<c6913163>] hci_raw+0x60/0x98 [toshiba_acpi]                                                               
-> [  249.595101]  [<c012ad96>] ? dequeue_entity+0x16/0x2a0                                                                    
-> [  249.595146]  [<c01320f8>] ? dequeue_task_fair+0x68/0x70                                                                  
-> [  249.595190]  [<c012888f>] ? dequeue_task+0xcf/0x130                                                                      
-> [  249.595237]  [<c0102ab7>] ? __switch_to+0xb7/0x1a0                                                                       
-> [  249.595292]  [<c012f9cb>] ? finish_task_switch+0x2b/0xe0                                                                 
-> [  249.595362]  [<c69131d8>] hci_read1+0x3d/0x5b [toshiba_acpi]                                                             
-> [  249.595422]  [<c0143db0>] ? process_timeout+0x0/0x10                                                                     
-> [  249.595467]  [<c05016da>] ? schedule_timeout+0x7a/0xe0                                                                   
-> [  249.595536]  [<c6913b35>] toshiba_acpi_thread+0xf5/0x180 [toshiba_acpi]                                                  
-> [  249.595604]  [<c6913a40>] ? toshiba_acpi_thread+0x0/0x180 [toshiba_acpi]                                                 
-> [  249.595664]  [<c0105477>] kernel_thread_helper+0x7/0x10                                                                  
-> [  249.595696] ---[ end trace 4eaa2a86a8e2da22 ]---                                                                         
-> [  249.596058] resource map sanity check conflict: 0x100b6800 0x100b77ff 
-> 0x100a0000 0x100b6dff reserved                  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> When I resume from hibernate, my laptop actually remains unusable until 
+> I do the combination of things I mentioned. I cannot log in from remote 
+> or even ping the laptop, except if I first press the mentioned key 
+> combo. Before this, the display is either entirely blank or sometimes 
+> there is a white cursor in the top left corner.
+> 
+> The blank screen happens in runlevel 3 without X or "i915" loaded - I'm 
+> not sure but I suppose you want the "xrandr" output for another reason. 
+> It is interesting that it happens regardless of whether I am using Intel 
+> integrated graphics or Mobility Radeon HD 3650 (my laptop has both and I 
+> can enable one at a time). I boot the system with vga=791 and it is 
+> using vesafb for console.
+> 
+> I attached the output you asked for below after hibernating an Xorg 
+> session, but this is from just after pressing the combo as I could not 
+> log in over the network with the laptop in the blank state.
+> 
+> Thanks,
+> Niel
+> 
+> 
+> niella@linux-7vph:> xrandr --verbose
+> Screen 0: minimum 320 x 200, current 1600 x 1024, maximum 3840 x 1200
+> VGA disconnected 1600x1024+0+0 (0x3d) normal (normal left inverted right 
+> x axis y axis) 0mm x 0mm
+>          Identifier: 0x3b
+>          Timestamp:  184631
+>          Subpixel:   unknown
+>          Clones:
+>          CRTC:       0
+>          CRTCs:      0 1
+>          Transform:  1.000000 0.000000 0.000000
+>                      0.000000 1.000000 0.000000
+>                      0.000000 0.000000 1.000000
+>                     filter:
+>    1600x1024 (0x3d)  136.4MHz *current
+>          h: width  1600 start 1704 end 1872 total 2144 skew    0 clock   
+> 63.6KHz
+>          v: height 1024 start 1025 end 1028 total 1060           clock   
+> 60.0Hz
+> LVDS connected 1600x1024+0+0 (0x3d) normal (normal left inverted right x 
+> axis y axis) 331mm x 207mm
+>          Identifier: 0x3c
+>          Timestamp:  184631
+>          Subpixel:   horizontal rgb
+>          Clones:
+>          CRTC:       1
+>          CRTCs:      1
+>          Transform:  1.000000 0.000000 0.000000
+>                      0.000000 1.000000 0.000000
+>                      0.000000 0.000000 1.000000
+>                     filter:
+>          EDID_DATA:
+>                  00ffffffffffff0030ae554000000000
+>                  0011010380211578ea87f594574f8c27
+>                  27505400000001010101010101010101
+>                  0101010101018c41807a71b011403020
+>                  33004bcf100000197434802071b01440
+>                  302026004bcf100000190000000f00d1
+>                  0a32d10a281101004ca35532000000fe
+>                  004c544e31353455322d4c30350a0011
+>          PANEL_FITTING:  full_aspect
+>                  supported: center       full_aspect  full
+>          BACKLIGHT_CONTROL:      combination
+>                  supported: native       legacy       combination  kernel
+>          BACKLIGHT: 4722 (0x00001272)    range:  (0,4722)
+>    1600x1024 (0x3d)  136.4MHz *current +preferred
+>          h: width  1600 start 1704 end 1872 total 2144 skew    0 clock   
+> 63.6KHz
+>          v: height 1024 start 1025 end 1028 total 1060           clock   
+> 60.0Hz
+>    1920x1200 (0x3e)  167.8MHz -HSync -VSync +preferred
+>          h: width  1920 start 1968 end 2000 total 2298 skew    0 clock   
+> 73.0KHz
+>          v: height 1200 start 1203 end 1206 total 1217           clock   
+> 60.0Hz
+>    1920x1200 (0x3f)  134.3MHz -HSync -VSync
+>          h: width  1920 start 1968 end 2000 total 2208 skew    0 clock   
+> 60.8KHz
+>          v: height 1200 start 1202 end 1208 total 1220           clock   
+> 49.8Hz
+>    1600x1200 (0x40)  162.0MHz +HSync +VSync
+>          h: width  1600 start 1664 end 1856 total 2160 skew    0 clock   
+> 75.0KHz
+>          v: height 1200 start 1201 end 1204 total 1250           clock   
+> 60.0Hz
+>    1400x1050 (0x41)  122.0MHz +HSync +VSync
+>          h: width  1400 start 1488 end 1640 total 1880 skew    0 clock   
+> 64.9KHz
+>          v: height 1050 start 1052 end 1064 total 1082           clock   
+> 60.0Hz
+>    1280x1024 (0x42)  108.0MHz +HSync +VSync
+>          h: width  1280 start 1328 end 1440 total 1688 skew    0 clock   
+> 64.0KHz
+>          v: height 1024 start 1025 end 1028 total 1066           clock   
+> 60.0Hz
+>    1280x960 (0x43)  108.0MHz +HSync +VSync
+>          h: width  1280 start 1376 end 1488 total 1800 skew    0 clock   
+> 60.0KHz
+>          v: height  960 start  961 end  964 total 1000           clock   
+> 60.0Hz
+>    1024x768 (0x44)   65.0MHz -HSync -VSync
+>          h: width  1024 start 1048 end 1184 total 1344 skew    0 clock   
+> 48.4KHz
+>          v: height  768 start  771 end  777 total  806           clock   
+> 60.0Hz
+>    800x600 (0x45)   40.0MHz +HSync +VSync
+>          h: width   800 start  840 end  968 total 1056 skew    0 clock   
+> 37.9KHz
+>          v: height  600 start  601 end  605 total  628           clock   
+> 60.3Hz
+>    800x600 (0x46)   36.0MHz +HSync +VSync
+>          h: width   800 start  824 end  896 total 1024 skew    0 clock   
+> 35.2KHz
+>          v: height  600 start  601 end  603 total  625           clock   
+> 56.2Hz
+>    640x480 (0x47)   25.2MHz -HSync -VSync
+>          h: width   640 start  656 end  752 total  800 skew    0 clock   
+> 31.5KHz
+>          v: height  480 start  490 end  492 total  525           clock   
+> 59.9Hz
+> 
