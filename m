@@ -1,241 +1,52 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 09/19] eeepc-laptop: support for super hybrid engine (SHE)
-Date: Tue, 26 May 2009 20:05:37 +0200
-Message-ID: <71cd59b00905261105n69c4e3f6l9d2907e6099d5490@mail.gmail.com>
-References: <71cd59b00905241023h6ecfa13axc2dc82863053cdc1@mail.gmail.com>
-	 <4A1A685E.1070004@tuffmail.co.uk>
-	 <71cd59b00905250259n358cf58r837e01dc836e2c84@mail.gmail.com>
-	 <4A1A6DDD.3090202@tuffmail.co.uk>
-	 <71cd59b00905250419u4256446endef52672b7d5ab77@mail.gmail.com>
-	 <4A1A8638.2060105@tuffmail.co.uk>
-	 <71cd59b00905260312h1673589doac918a6a298e55a2@mail.gmail.com>
-	 <4A1BC130.9020201@tuffmail.co.uk> <20090526172910.GA4653@blackheart>
-	 <4A1C2A40.4080007@tuffmail.co.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.30-rc6: Reported regressions from 2.6.29
+Date: Tue, 26 May 2009 20:48:12 +0200
+Message-ID: <200905262048.13325.rjw@sisk.pl>
+References: <_AjETDMbIoL.A.DcH.RYzDKB@chimera> <200905260102.29455.rjw@sisk.pl> <200905261730.53041.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:59328 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356AbZEZSFg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 May 2009 14:05:36 -0400
-Received: by mail-bw0-f222.google.com with SMTP id 22so4003842bwz.37
-        for <linux-acpi@vger.kernel.org>; Tue, 26 May 2009 11:05:37 -0700 (PDT)
-In-Reply-To: <4A1C2A40.4080007@tuffmail.co.uk>
+Received: from ogre.sisk.pl ([217.79.144.158]:47288 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755613AbZEZSru (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 May 2009 14:47:50 -0400
+In-Reply-To: <200905261730.53041.elendil@planet.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Grigori Goronzy <greg@chown.ath.cx>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Ahmad Abdel-Yaman <a.yaman@gmail.com>, Francesco Lattanzio <franz.lattanzio@gmail.com>
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, kernel-testers@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, May 26, 2009 at 7:43 PM, Alan Jenkins
-<alan-jenkins@tuffmail.co.uk> wrote:
-> Francesco Lattanzio wrote:
->> On Tue, May 26, 2009 at 11:15:12AM +0100, Alan Jenkins wrote:
->>
->>> Corentin Chary wrote:
->>>
->>>> On Mon, May 25, 2009 at 1:51 PM, Alan Jenkins
->>>> <alan-jenkins@tuffmail.co.uk> wrote:
->>>>
->>>>
->>>>> Corentin Chary wrote:
->>>>>
->>>>>
->>>>>> On Mon, May 25, 2009 at 12:07 PM, Alan Jenkins
->>>>>> <alan-jenkins@tuffmail.co.uk> wrote:
->>>>>>
->>>>>>
->>>>>>
->>>>>>> Corentin Chary wrote:
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>> On Mon, May 25, 2009 at 11:43 AM, Alan Jenkins
->>>>>>>> <alan-jenkins@tuffmail.co.uk> wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>> Corentin Chary wrote:
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>> On Sunday 24 May 2009 19:29:37 Alan Jenkins wrote:
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>> Corentin Chary wrote:
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>> On Sun, May 24, 2009 at 11:28 AM, Alan Jenkins
->>>>>>>>>>>>
->>>>>>>>>>>> <sourcejedi.lkml@googlemail.com> wrote:
->>>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>>> On 5/16/09, Len Brown <lenb@kernel.org> wrote:
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>> From: Grigori Goronzy <greg@chown.ath.cx>
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> The older eeepc-acpi driver allowed to control the SHE p=
-erformance
->>>>>>>>>>>>>> preset through a ACPI function for just this purpose. SH=
-E
->>>>>>>>>>>>>> underclocks
->>>>>>>>>>>>>> and undervolts the FSB and undervolts the CPU (at preset=
- 2,
->>>>>>>>>>>>>> "powersave"), or slightly overclocks the CPU (at preset =
-0,
->>>>>>>>>>>>>> "performance"). Preset 1 is the default setting with def=
-ault
->>>>>>>>>>>>>> clocks and
->>>>>>>>>>>>>> voltage.
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> The new eeepc-laptop driver doesn't support it anymore.
->>>>>>>>>>>>>> The attached patch adds support for it to eeepc-laptop. =
-It's very
->>>>>>>>>>>>>> straight-forward and almost trivial.
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> Signed-off-by: Grigori Goronzy <greg@chown.ath.cx>
->>>>>>>>>>>>>> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
->>>>>>>>>>>>>> Signed-off-by: Len Brown <len.brown@intel.com>
->>>>>>>>>>>>>> ---
->>>>>>>>>>>>>>
->>>>>>>>>>>>>>
->>>>>>>>>>>>>>
->>>>>>>>>>>>>>
->>>>>>>>>>>>>>
->>>>>>>>>>>>> Hi, out of curiosity I tried this on my EeePC 701. =A0I u=
-pgraded the
->>>>>>>>>>>>> BIOS to the latest version available a few months ago.
->>>>>>>>>>>>>
->>>>>>>>>>>>> I find that the file is present and can successfully be r=
-ead from.
->>>>>>>>>>>>> The file returns the value "513". =A0If I write "1" to it=
-, nothing
->>>>>>>>>>>>> happens. =A0If I write "0" to it, the speakers start hiss=
-ing and the
->>>>>>>>>>>>> file then returns the value "512". =A0Writing "1" again g=
-ets it back
->>>>>>>>>>>>> to
->>>>>>>>>>>>> normal. =A0There is no apparent effect on performance.
->>>>>>>>>>>>>
->>>>>>>>>>>>> This is stupid, because we _do_ appear to check the BIOS =
-supported
->>>>>>>>>>>>> features bitmask, but that's Asus firmware for you. =A0Ca=
-n you please
->>>>>>>>>>>>> add an extra test, so this file only allows =A0reads or w=
-rites if the
->>>>>>>>>>>>> current value is 0 or 1? =A0If you're quick you might sli=
-p it into
->>>>>>>>>>>>> -rc8
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>>>>>
->>>>>>>>>> Hi, Can you try this patch ? It seems to works for me.
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>> Thanks, it does make the interface less confusing. The behavi=
-our (no
->>>>>>>>> performance change, hissing speakers) is the same.
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>> It works on mine (original bios). But I don't know how to see =
-if there
->>>>>>>> is a performance change.
->>>>>>>> Is there a quick cpu bench ?
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>> I used:
->>>>>>>
->>>>>>> time for {1..10000}; do echo -n; done
->>>>>>>
->>>>>>> It's a bit bogus - I expect it would show if my 630Mhz processo=
-r jumped
->>>>>>> to 900Mhz, but smaller changes might be lost in noise.
->>>>>>>
->>>>>>> <http://pavelmachek.livejournal.com/77425.html> suggests "time =
-factor
->>>>>>> $[65863223*65863159]", which should be better.
->>>>>>>
->>>>>>> I think it's also significant that the current (630Mhz) setting=
- is "1".
->>>>>>> I would expect "0" to be slower - but in the original 701 BIOS,=
- 630Mhz
->>>>>>> is the slower of the two speeds, right?
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>> 1 - time factor: ~ 1.574s =A0- default, seems to be 630Mhz
->>>>>> 0 - time factor: ~ 1.01s =A0 =A0- seems to be 900
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>> How illogical :-). =A0Oh - I should have read the commit message,=
- this is the
->>>>> expected order (and proper SHE just has the extra state: 2 / "per=
-formance").
->>>>>
->>>>> Perhaps we should DMI-blacklist 701s with newer BIOS versions, so=
- we only
->>>>> provide the performance control when it is available from the BIO=
-S setup
->>>>> screen. =A0The specific version is well-documented e.g. on forum.=
-eeeuser.com.
->>>>>
->>>>>
->>>>>
->>>> Upgraded my 701 to latest bios 1302. Everything works fine.
->>>> I've got a 701 4G, yours is a =A0701SD ?
->>>>
->>>> Thanks
->>>>
->>>>
->>> No, mine is a 701 4G. =A0Weird.
->>>
->>> Alan
->>>
->> This patch also works for 1000H. However for 901 I received discorda=
-nt reports -- maybe a BIOS upgrade could fix this issue.
->> Both 1000H and 901 have three possible configuration, with 0 the hig=
-hest performant and 2 the lowest.
->>
->
-> My BIOS is the same though, version 1302. =A0I think the only other
-> possibilities are that my machine is just broken, or Asus changed the
-> hardware at some point.
->
+On Tuesday 26 May 2009, Frans Pop wrote:
+> On Tuesday 26 May 2009, Rafael J. Wysocki wrote:
+> > On Monday 25 May 2009, Frans Pop wrote:
+> > > Rafael J. Wysocki wrote:
+> > > > If you know of any other unresolved regressions from 2.6.29, please
+> > > > let me know either and I'll add them to the list.
+> > >
+> > > It may be worth tracking a possible regression introduced with -rc6
+> > > as a result of http://bugzilla.kernel.org/show_bug.cgi?id=13259.
+> > >
+> > > A new warning that was added in drivers/acpi/processor_throttling.c
+> > > (commit 4973b22a: 'ACPI processor: reset the throttling state once
+> > > it's invalid') may be triggering in cases where it shouldn't. It
+> > > seems to trigger during boot and on 'cat
+> > > /proc/acpi/processor/*/throttling'. Otherwise it's probably
+> > > relatively harmless.
+> > >
+> > > See the comments starting at #23 for details.
+> >
+> > Hmm.  It's really better if you file a separate bug for that with a
+> > reference to the previous discussion.
+> 
+> Done (after doing additional debugging):
+> http://bugzilla.kernel.org/show_bug.cgi?id=13389
+> 
+> Marked as regression and set as blocking for #13070.
 
-Maybe it's because I tested my patch with a 2.6.28 kernel.
-I should try with a git kernel.
+Thanks!
 
---=20
-Corentin Chary
-http://xf.iksaif.net - http://uffs.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Rafael
