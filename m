@@ -1,98 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH]cpuset: add new API to change cpuset top group's cpus
-Date: Wed, 27 May 2009 22:34:38 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905272211510.25587@localhost.localdomain>
-References: <20090519073942.GA10864@sli10-desk.sh.intel.com>
- <1242722454.26820.461.camel@twins>
- <20090519084852.GA13682@sli10-desk.sh.intel.com>
- <1242723364.26820.466.camel@twins> <1242729538.26820.497.camel@twins>
- <20090519133725.GA16709@dirshya.in.ibm.com>
+From: Niel Lambrechts <niel.lambrechts@gmail.com>
+Subject: Re: 2.6.30-rc6: i915: Xserver crash - oops after rmmod
+Date: Thu, 28 May 2009 07:13:57 +0200
+Message-ID: <4A1E1D95.5060409@gmail.com>
+References: <4A11B52E.7080808@gmail.com> <20090527171414.108710cf.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:31915 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365AbZE1Cej (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2009 22:34:39 -0400
-In-reply-to: <20090519133725.GA16709@dirshya.in.ibm.com>
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:43155 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751297AbZE1FO0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2009 01:14:26 -0400
+In-Reply-To: <20090527171414.108710cf.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Shaohua Li <shaohua.li@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "menage@google.com" <menage@google.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, eric@anholt.net, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org
 
-On Tue, 19 May 2009, Vaidyanathan Srinivasan wrote:
+Hi Andrew,
 
-> We tried similar approaches to create idle time for power savings, but
-> cpu hotplug interface seem to be a clean choice.  There could be
-> issues with the interface, we should fix it.  Is there any other
-> reason why cpuhotplug is 'ugly' other than its performance (speed)?
-> 
-> I have tried few load balancer hacks to evacuate cores but not a solid
-> design yet.  It has its advantages but still needs more work.
-> 
-> http://lkml.org/lkml/2009/5/13/173
+On 05/28/2009 02:14 AM, Andrew Morton wrote:
+> On Mon, 18 May 2009 21:21:18 +0200
+> Niel Lambrechts <niel.lambrechts@gmail.com> wrote:
+>
+>   
+>> Hi,
+>>     
+> Huge response, huh?
+>   
+Yeah, no one fell for the humour coating... ;-)
 
-Thanks for the pointer.
-I agree with Andi, please avoid the term "throttling", since
-it has been used for ages to refer processor clock throttling --
-which is actually significantly less effective at saving
-energy than what you are trying to do.  (not the word "energy"
-here, where the word "power" is incorrectly used in the thread above)
+> The wordwrapping makes this painful to read.
+>
+> rmmod crashed under drivers/acpi/video.c:acpi_video_exit()'s call to
+> acpi_bus_unregister_driver().  So it might be an acpi-related bug.
+>
+> If it's reproducible at all, please raise a (non-wordwrapped!) report
+> against acpi at bugzilla.kernel.org, thanks.
+>   
+Ugh, Thunderbird doesn't format it like this when you preview - but when
+I save it to a file it looks horrible...
 
-"core evacuation" is a better description, I agree, though I wonder
-why you don't simply call it "forced idling", since that is what
-you are trying to do.
+I don't think I would easily be able to reproduce this, but I still had
+a copy of my kernel log for that date. The bug is filed at:
+http://bugzilla.kernel.org/show_bug.cgi?id=13396
 
-> > Furthermore, we should not want anything outside of that, either the cpu
-> > is there available for work, or its not -- halfway measures don't make
-> > sense.
-> > 
-> > Furthermore, we already have power aware scheduling which tries to
-> > aggregate idle time on cpu/core/packages so as to maximize the idle time
-> > power savings. Use it there.
-> 
-> Power aware scheduling can optimally accumulate idle times.  Framework
-> to create idle time to force idle cores is good and useful for power
-> savings.  Other than the speed of online/offline I do not know of any
-> other major issue for using cpu hotplug for this purpose.
+Also, if you do have a moment, I'd love to hear your opinion on my post
+"2.6.29.4: hibernation fails with large kernel trace"!
 
-It sounds like you want to use this technique more often
-that I had in mind.  You are thinking of a warm rack, which
-may stay warm all day long.  I am thinking of a rack which
-has a theoretical power draw higher than the providioned
-electrical supply.  As there is a huge difference between
-actual and theoretical power draw, this saves many dollars.
+Thanks for the response!
 
-So what you're looking at is more frequent use than we need,
-and that is fine -- as long as you exhaust P-states first --
-since forcing cores to be idle has a more severe performance
-impact than running at a deeper P-state.
-
-I didn't see P-states addressed in your thread.
-
-> > > > Besides, a hot removed cpu will do a dead loop halt, which isn't power saving
-> > > > efficient. To make hot removed cpu enters deep C-state is in whish list for a
-> > > > long time, but still not available. The acpi_processor_idle is a module, and
-> > > > cpuidle governor potentially can't handle offline cpu.
-> > > 
-> > > Then fix that hot-unplug idle loop. I agree that the hlt thing is silly,
-> > > and I've no idea why its still there, seems like a much better candidate
-> > > for your efforts than this.
-> 
-> I agree with Peter.  We need to make cpu hotplug save power first and
-> later improve upon its performance.
-
-We do have a patch to fix the offline idle loop to save power.
-We can use hotplug in the short term until something better comes along.
-Yes, it will break cpusets, just like Shaohua's original patch broke them 
--- and that will make using it inappropriate for some customers.
-
-While I think this mechanism is important, I don't think that a large %
-of customers will deploy it.  I think the ones that deploy it will do so
-to save money on electrical provisioning, not on pushing the limits
-of their air conditioner.  So I don't expect its performance requirement
-to be extremely severe.  I don't think it will justify tuning the
-performance of cpu-hotplug, which I don't think was ever intended
-to be in the performance path.
-
--Len
+Niel
