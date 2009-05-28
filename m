@@ -1,102 +1,128 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/6] ACPI: allow drivers to request both device and system notify events
-Date: Wed, 27 May 2009 18:02:26 -0600
-Message-ID: <200905271802.26902.bjorn.helgaas@hp.com>
-References: <20090430153419.12628.91088.stgit@bob.kio> <20090430153537.12628.5751.stgit@bob.kio> <alpine.LFD.2.00.0905271840110.25587@localhost.localdomain>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH] PCI/ACPI: fix wrong ref count handling in acpi_pci_bind()
+Date: Thu, 28 May 2009 09:09:19 +0900
+Message-ID: <4A1DD62F.50707@jp.fujitsu.com>
+References: <4A1B32E3.7060801@jp.fujitsu.com> <200905260946.02184.bjorn.helgaas@hp.com> <20090526234148.GA12468@ldl.fc.hp.com> <4A1C8208.6090707@jp.fujitsu.com> <alpine.LFD.2.00.0905271756060.25587@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:22785 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755965AbZE1ACe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2009 20:02:34 -0400
-In-Reply-To: <alpine.LFD.2.00.0905271840110.25587@localhost.localdomain>
-Content-Disposition: inline
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:51096 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759821AbZE1AJi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2009 20:09:38 -0400
+In-Reply-To: <alpine.LFD.2.00.0905271756060.25587@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>, Corentin Chary <corentincj@iksaif.net>, acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Matthew Garrett <mjg@redhat.com>
+Cc: Alex Chiang <achiang@hp.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Wednesday 27 May 2009 04:41:15 pm Len Brown wrote:
-> On Thu, 30 Apr 2009, Bjorn Helgaas wrote:
+Thank you for updating the patch.
+It looks good to me.
+
+Thanks,
+Kenji Kaneshige
+
+
+Len Brown wrote:
+>>From dacd2549ca61ddbdd1ed62a76ca95dea3f0e02c6 Mon Sep 17 00:00:00 2001
+> From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> Date: Tue, 26 May 2009 09:08:03 +0900
+> Subject: [PATCH] PCI/ACPI: fix wrong ref count handling in acpi_pci_bind()
 > 
-> > System notify events (0x00-0x7f) are common across all device types
-> > and should be handled in Linux/ACPI, not in drivers.  However, some
-> > BIOSes use system notify events in device-specific ways that require
-> > the driver to be involved.
-> > 
-> > This patch adds a ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag.  When a
-> > driver sets this flag and supplies a .notify method, Linux/ACPI calls
-> > the .notify method for ALL notify events on the device, not just the
-> > device-specific (0x80-0xff) events.
+> The 'dev' field of struct acpi_pci_data is having a pointer to struct
+> pci_dev without incrementing the reference counter. Because of this, I
+> got the following kernel oops when I was doing some pci hotplug
+> operations. This patch fixes this bug by replacing wrong hand-made
+> pci_find_slot() with pci_get_slot() in acpi_pci_bind().
 > 
-> What bad things would happen if we did this by default
-> rather than requiring a driver to ask for it?
-
-If the Linux/ACPI code were doing the right thing, I don't think
-drivers would have to know about the system events.
-
-I think some of the drivers that use ACPI_ALL_NOTIFY probably do
-it to deal with BIOSes that use system events when they should be
-using device events.  And some are probably using it unnecessarily.
-
-If we sent all events to drivers by default, I guess we'd have
-to tweak a few driver .notify methods to ignore the system ones.
-Maybe that's the right thing.
-
-Bjorn
-
-> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > ---
-> >  drivers/acpi/bus.c      |    6 +++++-
-> >  include/acpi/acpi_bus.h |    3 +++
-> >  2 files changed, 8 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > index e8f7b64..fd6a930 100644
-> > --- a/drivers/acpi/bus.c
-> > +++ b/drivers/acpi/bus.c
-> > @@ -549,6 +549,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
-> >  {
-> >  	int result = 0;
-> >  	struct acpi_device *device = NULL;
-> > +	struct acpi_driver *driver;
-> >  
-> >  	blocking_notifier_call_chain(&acpi_bus_notify_list,
-> >  		type, (void *)handle);
-> > @@ -629,7 +630,10 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
-> >  		break;
-> >  	}
-> >  
-> > -	return;
-> > +	driver = device->driver;
-> > +	if (driver && driver->ops.notify &&
-> > +	    (driver->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS))
-> > +		driver->ops.notify(device, type);
-> >  }
-> >  
-> >  /* --------------------------------------------------------------------------
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index c34b110..84e35d5 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -114,10 +114,13 @@ struct acpi_device_ops {
-> >  	acpi_op_notify notify;
-> >  };
-> >  
-> > +#define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
-> > +
-> >  struct acpi_driver {
-> >  	char name[80];
-> >  	char class[80];
-> >  	const struct acpi_device_id *ids; /* Supported Hardware IDs */
-> > +	unsigned int flags;
-> >  	struct acpi_device_ops ops;
-> >  	struct device_driver drv;
-> >  	struct module *owner;
-> > 
+>  BUG: unable to handle kernel NULL pointer dereference at 00000000000000e8
+>  IP: [<ffffffff803f0e9b>] acpi_pci_unbind+0xb1/0xdd
 > 
+>  Call Trace:
+>   [<ffffffff803ecee4>] acpi_bus_remove+0x54/0x68
+>   [<ffffffff803ecf6d>] acpi_bus_trim+0x75/0xe3
+>   [<ffffffffa0345ddd>] acpiphp_disable_slot+0x16d/0x1e0 [acpiphp]
+>   [<ffffffffa03441f0>] disable_slot+0x20/0x60 [acpiphp]
+>   [<ffffffff803cfc18>] power_write_file+0xc8/0x110
+>   [<ffffffff803c6a54>] pci_slot_attr_store+0x24/0x30
+>   [<ffffffff803469ce>] sysfs_write_file+0xce/0x140
+>   [<ffffffff802e94e7>] vfs_write+0xc7/0x170
+>   [<ffffffff802e9aa0>] sys_write+0x50/0x90
+>   [<ffffffff8020bd6b>] system_call_fastpath+0x16/0x1b
+> 
+> Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Reviewed-by: Alex Chiang <achiang@hp.com>
+> Tested-by: Alex Chiang <achiang@hp.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+> 
+> as applied to the acpi tree...
+> 
+> cheers,
+> -Len
+> 
+>  drivers/acpi/pci_bind.c |   24 ++++++------------------
+>  1 files changed, 6 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
+> index 95650f8..bc46de3 100644
+> --- a/drivers/acpi/pci_bind.c
+> +++ b/drivers/acpi/pci_bind.c
+> @@ -116,9 +116,6 @@ int acpi_pci_bind(struct acpi_device *device)
+>  	struct acpi_pci_data *pdata;
+>  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>  	acpi_handle handle;
+> -	struct pci_dev *dev;
+> -	struct pci_bus *bus;
+> -
+>  
+>  	if (!device || !device->parent)
+>  		return -EINVAL;
+> @@ -176,20 +173,9 @@ int acpi_pci_bind(struct acpi_device *device)
+>  	 * Locate matching device in PCI namespace.  If it doesn't exist
+>  	 * this typically means that the device isn't currently inserted
+>  	 * (e.g. docking station, port replicator, etc.).
+> -	 * We cannot simply search the global pci device list, since
+> -	 * PCI devices are added to the global pci list when the root
+> -	 * bridge start ops are run, which may not have happened yet.
+>  	 */
+> -	bus = pci_find_bus(data->id.segment, data->id.bus);
+> -	if (bus) {
+> -		list_for_each_entry(dev, &bus->devices, bus_list) {
+> -			if (dev->devfn == PCI_DEVFN(data->id.device,
+> -						    data->id.function)) {
+> -				data->dev = dev;
+> -				break;
+> -			}
+> -		}
+> -	}
+> +	data->dev = pci_get_slot(pdata->bus,
+> +				PCI_DEVFN(data->id.device, data->id.function));
+>  	if (!data->dev) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>  				  "Device %04x:%02x:%02x.%d not present in PCI namespace\n",
+> @@ -259,9 +245,10 @@ int acpi_pci_bind(struct acpi_device *device)
+>  
+>        end:
+>  	kfree(buffer.pointer);
+> -	if (result)
+> +	if (result) {
+> +		pci_dev_put(data->dev);
+>  		kfree(data);
+> -
+> +	}
+>  	return result;
+>  }
+>  
+> @@ -303,6 +290,7 @@ static int acpi_pci_unbind(struct acpi_device *device)
+>  	if (data->dev->subordinate) {
+>  		acpi_pci_irq_del_prt(data->id.segment, data->bus->number);
+>  	}
+> +	pci_dev_put(data->dev);
+>  	kfree(data);
+>  
+>        end:
 
 
