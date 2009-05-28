@@ -1,53 +1,39 @@
-From: Niel Lambrechts <niel.lambrechts@gmail.com>
-Subject: Re: 2.6.30-rc6: i915: Xserver crash - oops after rmmod
-Date: Thu, 28 May 2009 07:13:57 +0200
-Message-ID: <4A1E1D95.5060409@gmail.com>
-References: <4A11B52E.7080808@gmail.com> <20090527171414.108710cf.akpm@linux-foundation.org>
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: Montreal Linux Power Management Mini-Summit -- July 13, 2009
+Date: Thu, 28 May 2009 14:36:44 +0900
+Message-ID: <aec7e5c30905272236r57336212u30e0d697ded83ee@mail.gmail.com>
+References: <alpine.LFD.2.00.0905211430220.4390@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:43155 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297AbZE1FO0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2009 01:14:26 -0400
-In-Reply-To: <20090527171414.108710cf.akpm@linux-foundation.org>
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:54985 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184AbZE1Fgn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2009 01:36:43 -0400
+In-Reply-To: <alpine.LFD.2.00.0905211430220.4390@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, eric@anholt.net, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux Power Management List <linux-pm@lists.osdl.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Andrew,
+Hi Len,
 
-On 05/28/2009 02:14 AM, Andrew Morton wrote:
-> On Mon, 18 May 2009 21:21:18 +0200
-> Niel Lambrechts <niel.lambrechts@gmail.com> wrote:
+On Fri, May 22, 2009 at 4:12 AM, Len Brown <lenb@kernel.org> wrote:
+> We will hold a Linux Power Management Mini-Summit in Montreal
+> on Monday, July 13, 2009 -- concurrent with day-1 of the
+> tutorials at the at the Linux Symposium.
 >
->   
->> Hi,
->>     
-> Huge response, huh?
->   
-Yeah, no one fell for the humour coating... ;-)
-
-> The wordwrapping makes this painful to read.
+> http://www.linuxsymposium.org/2009/schedule.php
 >
-> rmmod crashed under drivers/acpi/video.c:acpi_video_exit()'s call to
-> acpi_bus_unregister_driver().  So it might be an acpi-related bug.
+> This is an opportunity for members of the Linux Power Management
+> development community to meet face-to-face to discuss the future.
 >
-> If it's reproducible at all, please raise a (non-wordwrapped!) report
-> against acpi at bugzilla.kernel.org, thanks.
->   
-Ugh, Thunderbird doesn't format it like this when you preview - but when
-I save it to a file it looks horrible...
+> Suggestions for agenda topics should be sent to:
+> linux-pm@lists.linux-foundation.org
 
-I don't think I would easily be able to reproduce this, but I still had
-a copy of my kernel log for that date. The bug is filed at:
-http://bugzilla.kernel.org/show_bug.cgi?id=13396
+I'd like to attend and discuss the following:
+ - Runtime PM for Platform Devices.
+ - User space interface for clock configuration.
 
-Also, if you do have a moment, I'd love to hear your opinion on my post
-"2.6.29.4: hibernation fails with large kernel trace"!
-
-Thanks for the response!
-
-Niel
+/ magnus
