@@ -1,80 +1,127 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 32/65] ACPICA: Region deletion: Ensure region object is removed
- from handler list
-Date: Fri, 29 May 2009 21:42:10 -0400
-Message-ID: <3362a6badb4fe75e198885b125b21ccf846861b4.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 42/65] ACPI: ac: use .notify method instead of installing
+ handler directly
+Date: Fri, 29 May 2009 21:42:20 -0400
+Message-ID: <191b302efe1c70ef77b6b67ba35821078048bad4.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:61730 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756119AbZE3Bmy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:54 -0400
+Received: from vms173009pub.verizon.net ([206.46.173.9]:40281 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322AbZE3Bm5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:57 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173007.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00B2MORIFTT3@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:55 -0500 (CDT)
+ with ESMTPA id <0KKF00COUORM7TQ3@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:59 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Prevents a possible fault when a dynamic operation region is
-deleted. ACPICA BZ 507.
+This patch adds a .notify() method.  The presence of .notify() causes
+Linux/ACPI to manage event handlers and notify handlers on our behalf,
+so we don't have to install and remove them ourselves.
 
-http://acpica.org/bugzilla/show_bug.cgi?id=507
+This driver apparently relies on seeing ALL notify events, not just
+device-specific ones (because it used ACPI_ALL_NOTIFY).  We use the
+ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events.
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/utdelete.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ drivers/acpi/ac.c |   20 +++++---------------
+ 1 files changed, 5 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-index a5ee23b..bc17103 100644
---- a/drivers/acpi/acpica/utdelete.c
-+++ b/drivers/acpi/acpica/utdelete.c
-@@ -75,6 +75,7 @@ static void acpi_ut_delete_internal_obj(union acpi_operand_object *object)
- 	union acpi_operand_object *handler_desc;
- 	union acpi_operand_object *second_desc;
- 	union acpi_operand_object *next_desc;
-+	union acpi_operand_object **last_obj_ptr;
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 88e42ab..0df8fcb 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -61,6 +61,7 @@ static int acpi_ac_open_fs(struct inode *inode, struct file *file);
+ static int acpi_ac_add(struct acpi_device *device);
+ static int acpi_ac_remove(struct acpi_device *device, int type);
+ static int acpi_ac_resume(struct acpi_device *device);
++static void acpi_ac_notify(struct acpi_device *device, u32 event);
  
- 	ACPI_FUNCTION_TRACE_PTR(ut_delete_internal_obj, object);
+ static const struct acpi_device_id ac_device_ids[] = {
+ 	{"ACPI0003", 0},
+@@ -72,10 +73,12 @@ static struct acpi_driver acpi_ac_driver = {
+ 	.name = "ac",
+ 	.class = ACPI_AC_CLASS,
+ 	.ids = ac_device_ids,
++	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+ 	.ops = {
+ 		.add = acpi_ac_add,
+ 		.remove = acpi_ac_remove,
+ 		.resume = acpi_ac_resume,
++		.notify = acpi_ac_notify,
+ 		},
+ };
  
-@@ -223,6 +224,26 @@ static void acpi_ut_delete_internal_obj(union acpi_operand_object *object)
- 			 */
- 			handler_desc = object->region.handler;
- 			if (handler_desc) {
-+				next_desc =
-+				    handler_desc->address_space.region_list;
-+				last_obj_ptr =
-+				    &handler_desc->address_space.region_list;
-+
-+				/* Remove the region object from the handler's list */
-+
-+				while (next_desc) {
-+					if (next_desc == object) {
-+						*last_obj_ptr =
-+						    next_desc->region.next;
-+						break;
-+					}
-+
-+					/* Walk the linked list of handler */
-+
-+					last_obj_ptr = &next_desc->region.next;
-+					next_desc = next_desc->region.next;
-+				}
-+
- 				if (handler_desc->address_space.handler_flags &
- 				    ACPI_ADDR_HANDLER_DEFAULT_INSTALLED) {
+@@ -220,16 +223,14 @@ static int acpi_ac_remove_fs(struct acpi_device *device)
+                                    Driver Model
+    -------------------------------------------------------------------------- */
  
+-static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
++static void acpi_ac_notify(struct acpi_device *device, u32 event)
+ {
+-	struct acpi_ac *ac = data;
+-	struct acpi_device *device = NULL;
++	struct acpi_ac *ac = acpi_driver_data(device);
+ 
+ 
+ 	if (!ac)
+ 		return;
+ 
+-	device = ac->device;
+ 	switch (event) {
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -253,7 +254,6 @@ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+ static int acpi_ac_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+-	acpi_status status = AE_OK;
+ 	struct acpi_ac *ac = NULL;
+ 
+ 
+@@ -286,13 +286,6 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	ac->charger.get_property = get_ac_property;
+ 	power_supply_register(&ac->device->dev, &ac->charger);
+ #endif
+-	status = acpi_install_notify_handler(device->handle,
+-					     ACPI_ALL_NOTIFY, acpi_ac_notify,
+-					     ac);
+-	if (ACPI_FAILURE(status)) {
+-		result = -ENODEV;
+-		goto end;
+-	}
+ 
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+@@ -328,7 +321,6 @@ static int acpi_ac_resume(struct acpi_device *device)
+ 
+ static int acpi_ac_remove(struct acpi_device *device, int type)
+ {
+-	acpi_status status = AE_OK;
+ 	struct acpi_ac *ac = NULL;
+ 
+ 
+@@ -337,8 +329,6 @@ static int acpi_ac_remove(struct acpi_device *device, int type)
+ 
+ 	ac = acpi_driver_data(device);
+ 
+-	status = acpi_remove_notify_handler(device->handle,
+-					    ACPI_ALL_NOTIFY, acpi_ac_notify);
+ #ifdef CONFIG_ACPI_SYSFS_POWER
+ 	if (ac->charger.dev)
+ 		power_supply_unregister(&ac->charger);
 -- 
 1.6.0.6
 
