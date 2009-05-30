@@ -1,148 +1,111 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 58/65] i7300_idle: allow testing on i5000-series hardware w/o
- re-compile
-Date: Fri, 29 May 2009 21:42:36 -0400
-Message-ID: <2f102607ac77354b02a76cf2748598ce9f270f08.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 55/65] ACPI: don't check power state after _ON/_OFF
+Date: Fri, 29 May 2009 21:42:33 -0400
+Message-ID: <bdf43bbf2e19952d82995a50e00cb4b66afa4f0c.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:33022 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757376AbZE3BnF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:05 -0400
+Received: from vms173009pub.verizon.net ([206.46.173.9]:40281 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755617AbZE3BnD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:03 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173005.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00BXBORRY2C4@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:43:04 -0500 (CDT)
+ with ESMTPA id <0KKF00CGYORR7NE3@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:43:03 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Testing the i7300_idle driver on i5000-series hardware required
-an edit to i7300_idle.h to "#define SUPPORT_I5000 1" and a re-build
-of both i7300_idle and ioat_dma.
+We used to evaluate _STA to check the power state of a device after
+running _ON or _OFF.  But as far as I can tell, there's no benefit
+to evaluating _STA, and sometimes we trip over bugs when BIOSes don't
+implement _STA correctly.
 
-Replace that build-time scheme with a load-time module parameter:
-"7300_idle.forceload=1" to make it easier to test the driver
-on hardware that while not officially validated, works fine
-and is much more commonly available.
+Yakui says Windows XP doesn't evaluate _STA during power transition.
+So let's skip it in Linux, too.  It's conceivable that we'll need to
+check _STA in the future for some reason, but until we do, I don't
+see a reason to clutter this code path.
 
-By default (no modparam) the driver will continue to load
-only on the i7300.
+References:
+    http://bugzilla.kernel.org/show_bug.cgi?id=13243
+    http://marc.info/?l=linux-acpi&m=124166053803753&w=2
+    http://marc.info/?l=linux-acpi&m=124175761408256&w=2
+    http://marc.info/?l=linux-acpi&m=124210593114061&w=2
 
-Note that ioat_dma runs a copy of i7300_idle's probe routine
-to know to reserve an IOAT channel for i7300_idle.
-This change makes ioat_dma do that always on the i5000,
-just like it does on the i7300.
-
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
-Acked-by: Andrew Henroid <andrew.d.henroid@intel.com>
 ---
- drivers/dma/ioat_dma.c     |    2 +-
- drivers/idle/i7300_idle.c  |    6 +++++-
- include/linux/i7300_idle.h |   20 ++++++++++----------
- 3 files changed, 16 insertions(+), 12 deletions(-)
+ drivers/acpi/power.c |   28 ++--------------------------
+ 1 files changed, 2 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/dma/ioat_dma.c b/drivers/dma/ioat_dma.c
-index 1955ee8..a600fc0 100644
---- a/drivers/dma/ioat_dma.c
-+++ b/drivers/dma/ioat_dma.c
-@@ -173,7 +173,7 @@ static int ioat_dma_enumerate_channels(struct ioatdma_device *device)
- 	xfercap = (xfercap_scale == 0 ? -1 : (1UL << xfercap_scale));
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 56665a6..d74365d 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -194,7 +194,7 @@ static int acpi_power_get_list_state(struct acpi_handle_list *list, int *state)
  
- #ifdef  CONFIG_I7300_IDLE_IOAT_CHANNEL
--	if (i7300_idle_platform_probe(NULL, NULL) == 0) {
-+	if (i7300_idle_platform_probe(NULL, NULL, 1) == 0) {
- 		device->common.chancnt--;
- 	}
- #endif
-diff --git a/drivers/idle/i7300_idle.c b/drivers/idle/i7300_idle.c
-index bf74039..949c97f 100644
---- a/drivers/idle/i7300_idle.c
-+++ b/drivers/idle/i7300_idle.c
-@@ -41,6 +41,10 @@ static int debug;
- module_param_named(debug, debug, uint, 0644);
- MODULE_PARM_DESC(debug, "Enable debug printks in this driver");
- 
-+static int forceload;
-+module_param_named(forceload, forceload, uint, 0644);
-+MODULE_PARM_DESC(debug, "Enable driver testing on unvalidated i5000");
-+
- #define dprintk(fmt, arg...) \
- 	do { if (debug) printk(KERN_INFO I7300_PRINT fmt, ##arg); } while (0)
- 
-@@ -552,7 +556,7 @@ static int __init i7300_idle_init(void)
- 	cpus_clear(idle_cpumask);
- 	total_us = 0;
- 
--	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev))
-+	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev, forceload))
+ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+ {
+-	int result = 0, state;
++	int result = 0;
+ 	int found = 0;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_power_resource *resource = NULL;
+@@ -236,18 +236,6 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
+ 	if (ACPI_FAILURE(status))
  		return -ENODEV;
  
- 	if (i7300_idle_thrt_save())
-diff --git a/include/linux/i7300_idle.h b/include/linux/i7300_idle.h
-index 05a80c4..1587b7d 100644
---- a/include/linux/i7300_idle.h
-+++ b/include/linux/i7300_idle.h
-@@ -16,35 +16,33 @@
- struct fbd_ioat {
- 	unsigned int vendor;
- 	unsigned int ioat_dev;
-+	unsigned int enabled;
- };
+-	if (!acpi_power_nocheck) {
+-		/*
+-		 * If acpi_power_nocheck is set, it is unnecessary to check
+-		 * the power state after power transition.
+-		 */
+-		result = acpi_power_get_state(resource->device->handle,
+-				&state);
+-		if (result)
+-			return result;
+-		if (state != ACPI_POWER_RESOURCE_STATE_ON)
+-			return -ENOEXEC;
+-	}
+ 	/* Update the power resource's _device_ power state */
+ 	resource->device->power.state = ACPI_STATE_D0;
  
- /*
-  * The i5000 chip-set has the same hooks as the i7300
-- * but support is disabled by default because this driver
-- * has not been validated on that platform.
-+ * but it is not enabled by default and must be manually
-+ * manually enabled with "forceload=1" because it is
-+ * only lightly validated.
-  */
--#define SUPPORT_I5000 0
+@@ -258,7 +246,7 @@ static int acpi_power_on(acpi_handle handle, struct acpi_device *dev)
  
- static const struct fbd_ioat fbd_ioat_list[] = {
--	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB},
--#if SUPPORT_I5000
--	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT},
--#endif
-+	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB, 1},
-+	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT, 0},
- 	{0, 0}
- };
- 
- /* table of devices that work with this driver */
- static const struct pci_device_id pci_tbl[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_FBD_CNB) },
--#if SUPPORT_I5000
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
--#endif
- 	{ } /* Terminating entry */
- };
- 
- /* Check for known platforms with I/O-AT */
- static inline int i7300_idle_platform_probe(struct pci_dev **fbd_dev,
--						struct pci_dev **ioat_dev)
-+						struct pci_dev **ioat_dev,
-+						int enable_all)
+ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
  {
- 	int i;
- 	struct pci_dev *memdev, *dmadev;
-@@ -69,6 +67,8 @@ static inline int i7300_idle_platform_probe(struct pci_dev **fbd_dev,
- 	for (i = 0; fbd_ioat_list[i].vendor != 0; i++) {
- 		if (dmadev->vendor == fbd_ioat_list[i].vendor &&
- 		    dmadev->device == fbd_ioat_list[i].ioat_dev) {
-+			if (!(fbd_ioat_list[i].enabled || enable_all))
-+				continue;
- 			if (fbd_dev)
- 				*fbd_dev = memdev;
- 			if (ioat_dev)
+-	int result = 0, state;
++	int result = 0;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_power_resource *resource = NULL;
+ 	struct list_head *node, *next;
+@@ -293,18 +281,6 @@ static int acpi_power_off_device(acpi_handle handle, struct acpi_device *dev)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	if (!acpi_power_nocheck) {
+-		/*
+-		 * If acpi_power_nocheck is set, it is unnecessary to check
+-		 * the power state after power transition.
+-		 */
+-		result = acpi_power_get_state(handle, &state);
+-		if (result)
+-			return result;
+-		if (state != ACPI_POWER_RESOURCE_STATE_OFF)
+-			return -ENOEXEC;
+-	}
+-
+ 	/* Update the power resource's _device_ power state */
+ 	resource->device->power.state = ACPI_STATE_D3;
+ 
 -- 
 1.6.0.6
 
