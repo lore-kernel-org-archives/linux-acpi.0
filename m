@@ -1,85 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/11] ACPI: sanity check _PSS frequency to prevent cpufreq
- crash
-Date: Fri, 29 May 2009 21:37:15 -0400
-Message-ID: <34d531e640cb805973cf656b15c716b961565cea.1243647312.git.len.brown@intel.com>
-References: <1243647441-31392-1-git-send-email-lenb@kernel.org>
+Subject: [PATCH 05/65] ACPI: Remove Asus P4B266 from blacklist
+Date: Fri, 29 May 2009 21:41:43 -0400
+Message-ID: <afc72c70407e33ea993e8ab7aa802299f64dfee8.1243647607.git.len.brown@intel.com>
+References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:46125 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754943AbZE3Bhj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:37:39 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:61678 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754943AbZE3Bmr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:47 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173017.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF008F3OIGIHE2@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:34 -0500 (CDT)
-In-reply-to: <1243647441-31392-1-git-send-email-lenb@kernel.org>
-In-reply-to: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
-References: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
+ with ESMTPA id <0KKF00K9JORCJRW3@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:49 -0500 (CDT)
+In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
+In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
+References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Olivier Berger <oberger@ouvaton.org>, Len Brown <len.brown@intel.com>
 
-From: Len Brown <len.brown@intel.com>
+From: Olivier Berger <oberger@ouvaton.org>
 
-When BIOS SETUP is changed to disable EIST, some BIOS
-hand the OS an un-initialized _PSS:
+See http://marc.info/?l=linux-acpi&m=124068823904429&w=2 for discussion
 
-        Name (_PSS, Package (0x06)
-        {
-            Package (0x06)
-            {
-                0x80000000,	// frequency [MHz]
-                0x80000000,	// power [mW]
-                0x80000000,	// latency [us]
-                0x80000000,	// BM latency [us]
-                0x80000000,	// control
-                0x80000000	// status
-            },
-	    ...
-
-These are outrageous values for frequency,
-power and latency, raising the question where to draw
-the line between legal and illegal.  We tend to survive
-garbage in the power and latency fields, but we can BUG_ON
-when garbage is in the frequency field.
-
-Cpufreq multiplies the frequency by 1000 and stores it in a u32 KHz.
-So disregard a _PSS with a frequency so large
-that it can't be represented by cpufreq.
-
-https://bugzilla.redhat.com/show_bug.cgi?id=500311
-
+Signed-off-by: Olivier Berger <oberger@ouvaton.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_perflib.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ arch/x86/kernel/acpi/boot.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index cafb410..60e543d 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -309,9 +309,15 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
- 				  (u32) px->bus_master_latency,
- 				  (u32) px->control, (u32) px->status));
- 
--		if (!px->core_frequency) {
--			printk(KERN_ERR PREFIX
--				    "Invalid _PSS data: freq is zero\n");
-+		/*
-+ 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
-+		 */
-+		if (!px->core_frequency ||
-+		    ((u32)(px->core_frequency * 1000) !=
-+		     (px->core_frequency * 1000))) {
-+			printk(KERN_ERR FW_BUG PREFIX
-+			       "Invalid BIOS _PSS frequency: 0x%llx MHz\n",
-+			       px->core_frequency);
- 			result = -EFAULT;
- 			kfree(pr->performance->states);
- 			goto end;
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 82f051e..fb2e7c7 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1565,14 +1565,6 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
+ 	 },
+ 	{
+ 	 .callback = force_acpi_ht,
+-	 .ident = "ASUS P4B266",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		     DMI_MATCH(DMI_BOARD_NAME, "P4B266"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+ 	 .ident = "ASUS P2B-DS",
+ 	 .matches = {
+ 		     DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
 -- 
 1.6.0.6
 
