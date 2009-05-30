@@ -1,117 +1,71 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 44/65] ACPI: asus-laptop: use .notify method instead of
- installing handler directly
-Date: Fri, 29 May 2009 21:42:22 -0400
-Message-ID: <c9bbb29194b7beb8f254645c2379b64c1455137d.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 26/65] ACPICA: Fix reference count issues for DdbHandle object
+Date: Fri, 29 May 2009 21:42:04 -0400
+Message-ID: <06366c149232f64c89f513f188ccc6783d0e444f.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:40281 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756019AbZE3Bm6 (ORCPT
+Received: from vms173005pub.verizon.net ([206.46.173.5]:33022 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755898AbZE3Bm6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:58 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173009.mailsrvcs.net
+ by vms173005.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00CA4ORN8HD4@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:43:00 -0500 (CDT)
+ with ESMTPA id <0KKF00BKBORHYE24@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:59 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Corentin Chary <corentincj@iksaif.net>, acpi4asus-user@lists.sourceforge.net, Len Brown <len.brown@intel.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Lin Ming <ming.m.lin@intel.com>
 
-This patch adds a .notify() method.  The presence of .notify() causes
-Linux/ACPI to manage event handlers and notify handlers on our behalf,
-so we don't have to install and remove them ourselves.
+Fix a problem where the DdbHandle could be prematurely deleted,
+possibly causing a fault.
 
-This driver apparently relies on seeing ALL notify events, not just
-device-specific ones (because it used ACPI_ALL_NOTIFY).  We use the
-ACPI_DRIVER_ALL_NOTIFY_EVENTS driver flag to request all events.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Corentin Chary <corentincj@iksaif.net>
-CC: acpi4asus-user@lists.sourceforge.net
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/asus-laptop.c |   23 +++++------------------
- 1 files changed, 5 insertions(+), 18 deletions(-)
+ drivers/acpi/acpica/exconfig.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index bfc1a88..eaffe73 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -207,13 +207,17 @@ MODULE_DEVICE_TABLE(acpi, asus_device_ids);
- 
- static int asus_hotk_add(struct acpi_device *device);
- static int asus_hotk_remove(struct acpi_device *device, int type);
-+static void asus_hotk_notify(struct acpi_device *device, u32 event);
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 3deb20a..c0348ff 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -229,6 +229,8 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
+ 				       walk_state);
+ 		if (ACPI_FAILURE(status)) {
+ 			(void)acpi_ex_unload_table(ddb_handle);
 +
- static struct acpi_driver asus_hotk_driver = {
- 	.name = ASUS_HOTK_NAME,
- 	.class = ASUS_HOTK_CLASS,
- 	.ids = asus_device_ids,
-+	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
- 	.ops = {
- 		.add = asus_hotk_add,
- 		.remove = asus_hotk_remove,
-+		.notify = asus_hotk_notify,
- 		},
- };
++			acpi_ut_remove_reference(ddb_handle);
+ 			return_ACPI_STATUS(status);
+ 		}
+ 	}
+@@ -454,6 +456,10 @@ acpi_ex_load_op(union acpi_operand_object *obj_desc,
+ 		return_ACPI_STATUS(status);
+ 	}
  
-@@ -812,7 +816,7 @@ static int asus_setkeycode(struct input_dev *dev, int scancode, int keycode)
- 	return -EINVAL;
++	/* Remove the reference by added by acpi_ex_store above */
++
++	acpi_ut_remove_reference(ddb_handle);
++
+ 	/* Invoke table handler if present */
+ 
+ 	if (acpi_gbl_table_handler) {
+@@ -530,8 +536,5 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
+ 	(void)acpi_tb_release_owner_id(table_index);
+ 	acpi_tb_set_table_loaded_flag(table_index, FALSE);
+ 
+-	/* Table unloaded, remove a reference to the ddb_handle object */
+-
+-	acpi_ut_remove_reference(ddb_handle);
+ 	return_ACPI_STATUS(AE_OK);
  }
- 
--static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
-+static void asus_hotk_notify(struct acpi_device *device, u32 event)
- {
- 	static struct key_entry *key;
- 	u16 count;
-@@ -1124,7 +1128,6 @@ static int asus_hotk_found;
- 
- static int asus_hotk_add(struct acpi_device *device)
- {
--	acpi_status status = AE_OK;
- 	int result;
- 
- 	if (!device)
-@@ -1149,15 +1152,6 @@ static int asus_hotk_add(struct acpi_device *device)
- 
- 	asus_hotk_add_fs();
- 
--	/*
--	 * We install the handler, it will receive the hotk in parameter, so, we
--	 * could add other data to the hotk struct
--	 */
--	status = acpi_install_notify_handler(hotk->handle, ACPI_ALL_NOTIFY,
--					     asus_hotk_notify, hotk);
--	if (ACPI_FAILURE(status))
--		printk(ASUS_ERR "Error installing notify handler\n");
--
- 	asus_hotk_found = 1;
- 
- 	/* WLED and BLED are on by default */
-@@ -1198,16 +1192,9 @@ end:
- 
- static int asus_hotk_remove(struct acpi_device *device, int type)
- {
--	acpi_status status = 0;
--
- 	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
- 
--	status = acpi_remove_notify_handler(hotk->handle, ACPI_ALL_NOTIFY,
--					    asus_hotk_notify);
--	if (ACPI_FAILURE(status))
--		printk(ASUS_ERR "Error removing notify handler\n");
--
- 	kfree(hotk->name);
- 	kfree(hotk);
- 
 -- 
 1.6.0.6
 
