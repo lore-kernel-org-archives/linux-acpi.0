@@ -1,107 +1,79 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: x86 platform: oqo: select INPUT_POLLDEV
-Date: Fri, 29 May 2009 20:52:55 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0905292051260.4293@localhost.localdomain>
-References: <200903041955.n24JtOKb027987@imap1.linux-foundation.org>
- <200904131916.40428.dmitry.torokhov@gmail.com> <49E4C700.6010309@oracle.com>
- <alpine.LFD.2.00.0904200026490.10996@localhost.localdomain>
- <4A135B42.2020208@oracle.com>
- <20090520022826.GA17649@dtor-d630.eng.vmware.com>
- <alpine.LFD.2.00.0905271632430.4277@localhost.localdomain>
- <20090527230356.GA29571@srcf.ucam.org>
+Subject: Re: [i915] Kernel does not compile when set to use i915 kernel
+ mode-setting per default (CONFIG_DRM_I915_KMS=y)
+Date: Fri, 29 May 2009 21:13:52 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0905292113150.4293@localhost.localdomain>
+References: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com>
+ <4A1464C9.9030603@xandros.com> <4A1475D5.6080602@oracle.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:59652 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449AbZE3AxP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 20:53:15 -0400
-Received: from localhost.localdomain ([98.118.45.40])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00HFGMGBQCM2@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 19:53:05 -0500 (CDT)
-In-reply-to: <20090527230356.GA29571@srcf.ucam.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:40279 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754280AbZE3BOI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:14:08 -0400
+In-reply-to: <4A1475D5.6080602@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Randy Dunlap <randy.dunlap@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, hpa@zytor.com, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Woody Suwalski <woodys@xandros.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zorael <zorael@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
+From: Len Brown <len.brown@intel.com>
+Subject: [PATCH] ACPI, i915: build fix (v2)
 
-> Is it public? I can pull it myself easily enough.
+drivers/built-in.o: In function `intel_opregion_init':
+(.text+0x9d540): undefined reference to `acpi_video_register'
 
-yes, commit id's below.
+v2: move under DRM_I915 from DRM_I915_KMS
 
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+as applied.
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len
 
+ drivers/gpu/drm/Kconfig |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-commit 261a37014c353eb392334f31f6bc2166253d12c2
-Author: Randy Dunlap <randy.dunlap@oracle.com>
-Date:   Tue May 26 23:59:27 2009 -0700
-
-    oqo: select INPUT_POLLDEV
-    From: Randy Dunlap <randy.dunlap@oracle.com>
-    
-    OQO_WMI uses INPUT_POLLDEV, but it can select that instead of 
-depending on
-    it, since it represents library code.
-    
-    Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-    Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 0eba5e81e02f5f239e3691c9e9f9afef3050b387
-Author: Randy Dunlap <randy.dunlap@oracle.com>
-Date:   Wed Mar 4 11:55:24 2009 -0800
-
-    x86: oqo: depends on INPUT_POLLDEV
-    
-    oqo driver uses polled input functions, so make it depend
-    on INPUT_POLLDEV.
-    
-    ERROR: "input_register_polled_device" 
-[drivers/platform/x86/oqo-wmi.ko] undefined!
-    ERROR: "input_allocate_polled_device" 
-[drivers/platform/x86/oqo-wmi.ko] undefined!
-    ERROR: "input_free_polled_device" [drivers/platform/x86/oqo-wmi.ko] 
-undefined!
-    ERROR: "input_unregister_polled_device" 
-[drivers/platform/x86/oqo-wmi.ko] undefined!
-    
-    Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-    Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
-    Cc: Ingo Molnar <mingo@elte.hu>
-    Cc: Thomas Gleixner <tglx@linutronix.de>
-    Cc: "H. Peter Anvin" <hpa@zytor.com>
-    Cc: Len Brown <lenb@kernel.org>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 94c4b5977f33894cc316edf07c5cb72b5d193628
-Author: Len Brown <len.brown@intel.com>
-Date:   Fri Feb 6 23:06:38 2009 -0500
-
-    oqo: dev_set_name()
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 9c82cd255907ad639bed4ffc8fcaf1bd59badb50
-Author: Matthew Garrett <mjg59@srcf.ucam.org>
-Date:   Wed Dec 3 19:55:37 2008 +0000
-
-    platform/x86: Add oqo-wmi driver for model 2 OQO backlight and rfkill 
-control
-    
-    oqo-wmi provides a WMI-based interface to backlight and rfkill control 
-on
-    model 2 OQO devices. It was originally written by Brian Julin
-    (<bri@abrij.org>) - I've ported it to the rfkill layer and tidied it 
-up a
-    little.
-    
-    Signed-off-by: Matthew Garrett <mjg@redhat.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 4cd35d8..f5d46e7 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -67,12 +67,18 @@ config DRM_I830
+ 	  will load the correct one.
+ 
+ config DRM_I915
++	tristate "i915 driver"
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB
+ 	select FRAMEBUFFER_CONSOLE if !EMBEDDED
+-	tristate "i915 driver"
++	# i915 depends on ACPI_VIDEO when ACPI is enabled
++	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
++	select VIDEO_OUTPUT_CONTROL if ACPI
++	select BACKLIGHT_CLASS_DEVICE if ACPI
++	select INPUT if ACPI
++	select ACPI_VIDEO if ACPI
+ 	help
+ 	  Choose this option if you have a system that has Intel 830M, 845G,
+ 	  852GM, 855GM 865G or 915G integrated graphics.  If M is selected, the
+@@ -84,12 +90,6 @@ config DRM_I915
+ config DRM_I915_KMS
+ 	bool "Enable modesetting on intel by default"
+ 	depends on DRM_I915
+-	# i915 KMS depends on ACPI_VIDEO when ACPI is enabled
+-	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+-	select VIDEO_OUTPUT_CONTROL if ACPI
+-	select BACKLIGHT_CLASS_DEVICE if ACPI
+-	select INPUT if ACPI
+-	select ACPI_VIDEO if ACPI
+ 	help
+ 	  Choose this option if you want kernel modesetting enabled by default,
+ 	  and you have a new enough userspace to support this. Running old
+-- 
+1.6.3.1.175.g3be7e
 
 
