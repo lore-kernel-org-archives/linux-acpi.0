@@ -1,78 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 01/11] cpuidle: makes AMD C1E work in acpi_idle
-Date: Fri, 29 May 2009 21:37:11 -0400
-Message-ID: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
+Subject: [PATCH 05/11] ACPI: sanity check _PSS frequency to prevent cpufreq
+ crash
+Date: Fri, 29 May 2009 21:37:15 -0400
+Message-ID: <34d531e640cb805973cf656b15c716b961565cea.1243647312.git.len.brown@intel.com>
 References: <1243647441-31392-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173017pub.verizon.net ([206.46.173.17]:46125 "EHLO
 	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576AbZE3Bhj (ORCPT
+	with ESMTP id S1754943AbZE3Bhj (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:37:39 -0400
 Received: from localhost.localdomain ([98.118.45.40])
  by vms173017.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00IHTOIEHY12@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:32 -0500 (CDT)
+ with ESMTPA id <0KKF008F3OIGIHE2@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:34 -0500 (CDT)
 In-reply-to: <1243647441-31392-1-git-send-email-lenb@kernel.org>
+In-reply-to: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
+References: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Len Brown <len.brown@intel.com>
 
-When AMD C1E is enabled, local APIC timer will stop even in C1.
-This patch uses broadcast IPI to replace local APIC timer in C1.
+When BIOS SETUP is changed to disable EIST, some BIOS
+hand the OS an un-initialized _PSS:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=13233
+        Name (_PSS, Package (0x06)
+        {
+            Package (0x06)
+            {
+                0x80000000,	// frequency [MHz]
+                0x80000000,	// power [mW]
+                0x80000000,	// latency [us]
+                0x80000000,	// BM latency [us]
+                0x80000000,	// control
+                0x80000000	// status
+            },
+	    ...
 
-[ impact: avoid boot hang in AMD CPU with C1E enabled ]
+These are outrageous values for frequency,
+power and latency, raising the question where to draw
+the line between legal and illegal.  We tend to survive
+garbage in the power and latency fields, but we can BUG_ON
+when garbage is in the frequency field.
 
-Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cpufreq multiplies the frequency by 1000 and stores it in a u32 KHz.
+So disregard a _PSS with a frequency so large
+that it can't be represented by cpufreq.
+
+https://bugzilla.redhat.com/show_bug.cgi?id=500311
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_perflib.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 72069ba..6b7bcc7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -148,6 +148,9 @@ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 	if (cpu_has(&cpu_data(pr->id), X86_FEATURE_ARAT))
- 		return;
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index cafb410..60e543d 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -309,9 +309,15 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
+ 				  (u32) px->bus_master_latency,
+ 				  (u32) px->control, (u32) px->status));
  
-+	if (boot_cpu_has(X86_FEATURE_AMDC1E))
-+		type = ACPI_STATE_C1;
-+
- 	/*
- 	 * Check, if one of the previous states already marked the lapic
- 	 * unstable
-@@ -611,6 +614,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
-+			acpi_timer_check_state(i, pr, cx);
- 			break;
- 
- 		case ACPI_STATE_C2:
-@@ -835,6 +839,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
- 		return 0;
- 	}
- 
-+	acpi_state_timer_broadcast(pr, cx, 1);
- 	kt1 = ktime_get_real();
- 	acpi_idle_do_entry(cx);
- 	kt2 = ktime_get_real();
-@@ -842,6 +847,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
- 
- 	local_irq_enable();
- 	cx->usage++;
-+	acpi_state_timer_broadcast(pr, cx, 0);
- 
- 	return idle_time;
- }
+-		if (!px->core_frequency) {
+-			printk(KERN_ERR PREFIX
+-				    "Invalid _PSS data: freq is zero\n");
++		/*
++ 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
++		 */
++		if (!px->core_frequency ||
++		    ((u32)(px->core_frequency * 1000) !=
++		     (px->core_frequency * 1000))) {
++			printk(KERN_ERR FW_BUG PREFIX
++			       "Invalid BIOS _PSS frequency: 0x%llx MHz\n",
++			       px->core_frequency);
+ 			result = -EFAULT;
+ 			kfree(pr->performance->states);
+ 			goto end;
 -- 
 1.6.0.6
 
