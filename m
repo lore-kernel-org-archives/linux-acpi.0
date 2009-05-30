@@ -1,59 +1,80 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 47/65] ACPI: use LNXCPU, not ACPI_CPU,
- for Linux-specific processor _HID
-Date: Fri, 29 May 2009 21:42:25 -0400
-Message-ID: <b9417f84e17b93a6976a8a88b38bf9567975cb38.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 10/65] ACPICA: Change behavior of object copy for mutex/event
+ objects
+Date: Fri, 29 May 2009 21:41:48 -0400
+Message-ID: <33a1d461d294722dd15ffe17651bdd48b5763883.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:33022 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757322AbZE3BnE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:04 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:39590 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756947AbZE3BnD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:03 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173005.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00BLGORPXYT3@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:43:01 -0500 (CDT)
+ with ESMTPA id <0KKF00H0ROREPWW2@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:50 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPI_PROCESSOR_OBJECT_HID is a synthetic _HID that Linux generates
-for "Processor" definitions.  Unlike "Device" definitions, "Processor"
-definitions do not have a _HID in the namespace, so we generate a
-fake _HID.  By convention, all these fake _HIDs begin with "LNX".
+When copying these internal objects, cannot simply copy the
+underlying OS object. A new OS object must be created.
 
-This does change the user-visible _HID for "Processor" objects --
-previously, we used "ACPI_CPU" and this changes that to "LNXCPU",
-which starts with "LNX" as do all the other made-up _HIDs.  This
-change is visible in processor filenames and "hid" files under
-/sys/devices/LNXSYSTM:00/.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpi_drivers.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/acpica/utcopy.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 0352c8f..c9922b3 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -57,7 +57,7 @@
-  */
+diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
+index 919624f..0f0c64b 100644
+--- a/drivers/acpi/acpica/utcopy.c
++++ b/drivers/acpi/acpica/utcopy.c
+@@ -676,6 +676,7 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
+ {
+ 	u16 reference_count;
+ 	union acpi_operand_object *next_object;
++	acpi_status status;
  
- #define ACPI_POWER_HID			"LNXPOWER"
--#define ACPI_PROCESSOR_OBJECT_HID	"ACPI_CPU"
-+#define ACPI_PROCESSOR_OBJECT_HID	"LNXCPU"
- #define ACPI_PROCESSOR_HID		"ACPI0007"
- #define ACPI_SYSTEM_HID			"LNXSYSTM"
- #define ACPI_THERMAL_HID		"LNXTHERM"
+ 	/* Save fields from destination that we don't want to overwrite */
+ 
+@@ -768,6 +769,28 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
+ 		}
+ 		break;
+ 
++		/*
++		 * For Mutex and Event objects, we cannot simply copy the underlying
++		 * OS object. We must create a new one.
++		 */
++	case ACPI_TYPE_MUTEX:
++
++		status = acpi_os_create_mutex(&dest_desc->mutex.os_mutex);
++		if (ACPI_FAILURE(status)) {
++			return status;
++		}
++		break;
++
++	case ACPI_TYPE_EVENT:
++
++		status = acpi_os_create_semaphore(ACPI_NO_UNIT_LIMIT, 0,
++						  &dest_desc->event.
++						  os_semaphore);
++		if (ACPI_FAILURE(status)) {
++			return status;
++		}
++		break;
++
+ 	default:
+ 		/* Nothing to do for other simple objects */
+ 		break;
 -- 
 1.6.0.6
 
