@@ -1,93 +1,67 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 3/5] thinkpad-acpi: fix BEEP ACPI handler warnings
-Date: Sat, 30 May 2009 13:25:07 -0300
-Message-ID: <1243700709-25977-4-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 5/5] thinkpad-acpi: silence bogus warning
+	when ACPI video is disabled
+Date: Sat, 30 May 2009 13:25:09 -0300
+Message-ID: <1243700709-25977-6-git-send-email-hmh@hmh.eng.br>
 References: <1243700709-25977-1-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:40003 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758222AbZE3QZS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 May 2009 12:25:18 -0400
-In-Reply-To: <1243700709-25977-1-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1243700709-25977-1-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Some ThinkPads want two arguments for BEEP, while others want just
-one, causing ACPICA to log warnings like this:
+Make use of acpi_video_backlight_support() also in hotkey_init, to make
+sure this doesn't happen:
 
-ACPI Warning (nseval-0177): Excess arguments - method [BEEP] needs 1,
-found 2 [20080926]
+thinkpad_acpi: This ThinkPad has standard ACPI backlight brightness
+               control, supported by the ACPI video driver
+thinkpad_acpi: Disabling thinkpad-acpi brightness events by default...
+thinkpad_acpi: Standard ACPI backlight interface not available,
+               thinkpad_acpi native brightness control enabled
+thinkpad_acpi: detected a 16-level brightness capable ThinkPad
 
-Deal with it.
+Note that this is purely cosmetic, there is absolutely _no_ change in
+behaviour.  Those events are sometimes enabled at runtime by userspace, but
+the driver never enables them by itself unless someone messed with the
+default keymaps.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Reported-by: Jochen Schulz <jrschulz-gCdIjHM9zsRQtr0SbaWXQg@public.gmane.org>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   26 ++++++++++++++++++++++++--
- 1 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 3981b06..da739d5 100644
+index 06c7c03..5a22a06 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -264,6 +264,7 @@ static struct {
- 	u32 wan:1;
- 	u32 uwb:1;
- 	u32 fan_ctrl_status_undef:1;
-+	u32 beep_needs_two_args:1;
- 	u32 input_device_registered:1;
- 	u32 platform_drv_registered:1;
- 	u32 platform_drv_attrs_registered:1;
-@@ -5142,8 +5143,17 @@ static struct ibm_struct led_driver_data = {
+@@ -2655,7 +2655,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		/* update bright_acpimode... */
+ 		tpacpi_check_std_acpi_brightness_support();
  
- TPACPI_HANDLE(beep, ec, "BEEP");	/* all except R30, R31 */
- 
-+#define TPACPI_BEEP_Q1 0x0001
-+
-+static const struct tpacpi_quirk beep_quirk_table[] __initconst = {
-+	TPACPI_Q_IBM('I', 'M', TPACPI_BEEP_Q1), /* 570 */
-+	TPACPI_Q_IBM('I', 'U', TPACPI_BEEP_Q1), /* 570E - unverified */
-+};
-+
- static int __init beep_init(struct ibm_init_struct *iibm)
- {
-+	unsigned long quirks;
-+
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing beep subdriver\n");
- 
- 	TPACPI_ACPIHANDLE_INIT(beep);
-@@ -5151,6 +5161,11 @@ static int __init beep_init(struct ibm_init_struct *iibm)
- 	vdbg_printk(TPACPI_DBG_INIT, "beep is %s\n",
- 		str_supported(beep_handle != NULL));
- 
-+	quirks = tpacpi_check_quirks(beep_quirk_table,
-+				     ARRAY_SIZE(beep_quirk_table));
-+
-+	tp_features.beep_needs_two_args = !!(quirks & TPACPI_BEEP_Q1);
-+
- 	return (beep_handle)? 0 : 1;
- }
- 
-@@ -5182,8 +5197,15 @@ static int beep_write(char *buf)
- 			/* beep_cmd set */
- 		} else
- 			return -EINVAL;
--		if (!acpi_evalf(beep_handle, NULL, NULL, "vdd", beep_cmd, 0))
--			return -EIO;
-+		if (tp_features.beep_needs_two_args) {
-+			if (!acpi_evalf(beep_handle, NULL, NULL, "vdd",
-+					beep_cmd, 0))
-+				return -EIO;
-+		} else {
-+			if (!acpi_evalf(beep_handle, NULL, NULL, "vd",
-+					beep_cmd))
-+				return -EIO;
-+		}
- 	}
- 
- 	return 0;
+-	if (tp_features.bright_acpimode) {
++	if (tp_features.bright_acpimode && acpi_video_backlight_support()) {
+ 		printk(TPACPI_INFO
+ 		       "This ThinkPad has standard ACPI backlight "
+ 		       "brightness control, supported by the ACPI "
 -- 
 1.6.2.4
 
+
+------------------------------------------------------------------------------
+Register Now for Creativity and Technology (CaT), June 3rd, NYC. CaT 
+is a gathering of tech-side developers & brand creativity professionals. Meet
+the minds behind Google Creative Lab, Visual Complexity, Processing, & 
+iPhoneDevCamp as they present alongside digital heavyweights like Barbarian 
+Group, R/GA, & Big Spaceship. http://p.sf.net/sfu/creativitycat-com 
