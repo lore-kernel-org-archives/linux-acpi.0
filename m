@@ -1,80 +1,85 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/65] ACPICA: Change behavior of object copy for mutex/event
- objects
-Date: Fri, 29 May 2009 21:41:48 -0400
-Message-ID: <33a1d461d294722dd15ffe17651bdd48b5763883.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 59/65] ACPI: sanity check _PSS frequency to prevent cpufreq
+ crash
+Date: Fri, 29 May 2009 21:42:37 -0400
+Message-ID: <34d531e640cb805973cf656b15c716b961565cea.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:39590 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756947AbZE3BnD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:03 -0400
+Received: from vms173009pub.verizon.net ([206.46.173.9]:40281 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757372AbZE3BnF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:05 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173001.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00H0ROREPWW2@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:50 -0500 (CDT)
+ with ESMTPA id <0KKF00CSMORR4TY3@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:43:04 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Len Brown <len.brown@intel.com>
 
-When copying these internal objects, cannot simply copy the
-underlying OS object. A new OS object must be created.
+When BIOS SETUP is changed to disable EIST, some BIOS
+hand the OS an un-initialized _PSS:
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+        Name (_PSS, Package (0x06)
+        {
+            Package (0x06)
+            {
+                0x80000000,	// frequency [MHz]
+                0x80000000,	// power [mW]
+                0x80000000,	// latency [us]
+                0x80000000,	// BM latency [us]
+                0x80000000,	// control
+                0x80000000	// status
+            },
+	    ...
+
+These are outrageous values for frequency,
+power and latency, raising the question where to draw
+the line between legal and illegal.  We tend to survive
+garbage in the power and latency fields, but we can BUG_ON
+when garbage is in the frequency field.
+
+Cpufreq multiplies the frequency by 1000 and stores it in a u32 KHz.
+So disregard a _PSS with a frequency so large
+that it can't be represented by cpufreq.
+
+https://bugzilla.redhat.com/show_bug.cgi?id=500311
+
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/utcopy.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_perflib.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
-index 919624f..0f0c64b 100644
---- a/drivers/acpi/acpica/utcopy.c
-+++ b/drivers/acpi/acpica/utcopy.c
-@@ -676,6 +676,7 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
- {
- 	u16 reference_count;
- 	union acpi_operand_object *next_object;
-+	acpi_status status;
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index cafb410..60e543d 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -309,9 +309,15 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
+ 				  (u32) px->bus_master_latency,
+ 				  (u32) px->control, (u32) px->status));
  
- 	/* Save fields from destination that we don't want to overwrite */
- 
-@@ -768,6 +769,28 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
- 		}
- 		break;
- 
+-		if (!px->core_frequency) {
+-			printk(KERN_ERR PREFIX
+-				    "Invalid _PSS data: freq is zero\n");
 +		/*
-+		 * For Mutex and Event objects, we cannot simply copy the underlying
-+		 * OS object. We must create a new one.
++ 		 * Check that ACPI's u64 MHz will be valid as u32 KHz in cpufreq
 +		 */
-+	case ACPI_TYPE_MUTEX:
-+
-+		status = acpi_os_create_mutex(&dest_desc->mutex.os_mutex);
-+		if (ACPI_FAILURE(status)) {
-+			return status;
-+		}
-+		break;
-+
-+	case ACPI_TYPE_EVENT:
-+
-+		status = acpi_os_create_semaphore(ACPI_NO_UNIT_LIMIT, 0,
-+						  &dest_desc->event.
-+						  os_semaphore);
-+		if (ACPI_FAILURE(status)) {
-+			return status;
-+		}
-+		break;
-+
- 	default:
- 		/* Nothing to do for other simple objects */
- 		break;
++		if (!px->core_frequency ||
++		    ((u32)(px->core_frequency * 1000) !=
++		     (px->core_frequency * 1000))) {
++			printk(KERN_ERR FW_BUG PREFIX
++			       "Invalid BIOS _PSS frequency: 0x%llx MHz\n",
++			       px->core_frequency);
+ 			result = -EFAULT;
+ 			kfree(pr->performance->states);
+ 			goto end;
 -- 
 1.6.0.6
 
