@@ -1,55 +1,148 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/11] ACPI processor: remove spurious newline from warning
- message
-Date: Fri, 29 May 2009 21:37:19 -0400
-Message-ID: <21671b88be331fb9c95891d5ee7d2e940e6b024c.1243647312.git.len.brown@intel.com>
+Subject: [PATCH 04/11] i7300_idle: allow testing on i5000-series hardware w/o
+ re-compile
+Date: Fri, 29 May 2009 21:37:14 -0400
+Message-ID: <2f102607ac77354b02a76cf2748598ce9f270f08.1243647312.git.len.brown@intel.com>
 References: <1243647441-31392-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:36295 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576AbZE3Bh3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:37:29 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:40794 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773AbZE3Bha (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:37:30 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173001.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF006XNOIHUBM3@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:31 -0500 (CDT)
+ with ESMTPA id <0KKF00574OIF2B22@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:28 -0500 (CDT)
 In-reply-to: <1243647441-31392-1-git-send-email-lenb@kernel.org>
 In-reply-to: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
 References: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Frans Pop <elendil@planet.nl>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 
-From: Frans Pop <elendil@planet.nl>
+From: Len Brown <len.brown@intel.com>
 
-Commit 4973b22a ("ACPI processor: reset the throttling state once it's
-invalid") introduced a new warning which prints a spurious newline.
+Testing the i7300_idle driver on i5000-series hardware required
+an edit to i7300_idle.h to "#define SUPPORT_I5000 1" and a re-build
+of both i7300_idle and ioat_dma.
 
-The ACPI_WARNING macro that is used already takes care of adding a
-newline, after adding ACPI_CA_VERSION to the message. Remove the newline
-to avoid the message getting split into two lines.
+Replace that build-time scheme with a load-time module parameter:
+"7300_idle.forceload=1" to make it easier to test the driver
+on hardware that while not officially validated, works fine
+and is much more commonly available.
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
+By default (no modparam) the driver will continue to load
+only on the i7300.
+
+Note that ioat_dma runs a copy of i7300_idle's probe routine
+to know to reserve an IOAT channel for i7300_idle.
+This change makes ioat_dma do that always on the i5000,
+just like it does on the i7300.
+
 Signed-off-by: Len Brown <len.brown@intel.com>
+Acked-by: Andrew Henroid <andrew.d.henroid@intel.com>
 ---
- drivers/acpi/processor_throttling.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/dma/ioat_dma.c     |    2 +-
+ drivers/idle/i7300_idle.c  |    6 +++++-
+ include/linux/i7300_idle.h |   20 ++++++++++----------
+ 3 files changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 7f16f5f..2275437 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -840,7 +840,7 @@ static int acpi_processor_get_throttling_ptc(struct acpi_processor *pr)
- 		state = acpi_get_throttling_state(pr, value);
- 		if (state == -1) {
- 			ACPI_WARNING((AE_INFO,
--				"Invalid throttling state, reset\n"));
-+				"Invalid throttling state, reset"));
- 			state = 0;
- 			ret = acpi_processor_set_throttling(pr, state);
- 			if (ret)
+diff --git a/drivers/dma/ioat_dma.c b/drivers/dma/ioat_dma.c
+index 1955ee8..a600fc0 100644
+--- a/drivers/dma/ioat_dma.c
++++ b/drivers/dma/ioat_dma.c
+@@ -173,7 +173,7 @@ static int ioat_dma_enumerate_channels(struct ioatdma_device *device)
+ 	xfercap = (xfercap_scale == 0 ? -1 : (1UL << xfercap_scale));
+ 
+ #ifdef  CONFIG_I7300_IDLE_IOAT_CHANNEL
+-	if (i7300_idle_platform_probe(NULL, NULL) == 0) {
++	if (i7300_idle_platform_probe(NULL, NULL, 1) == 0) {
+ 		device->common.chancnt--;
+ 	}
+ #endif
+diff --git a/drivers/idle/i7300_idle.c b/drivers/idle/i7300_idle.c
+index bf74039..949c97f 100644
+--- a/drivers/idle/i7300_idle.c
++++ b/drivers/idle/i7300_idle.c
+@@ -41,6 +41,10 @@ static int debug;
+ module_param_named(debug, debug, uint, 0644);
+ MODULE_PARM_DESC(debug, "Enable debug printks in this driver");
+ 
++static int forceload;
++module_param_named(forceload, forceload, uint, 0644);
++MODULE_PARM_DESC(debug, "Enable driver testing on unvalidated i5000");
++
+ #define dprintk(fmt, arg...) \
+ 	do { if (debug) printk(KERN_INFO I7300_PRINT fmt, ##arg); } while (0)
+ 
+@@ -552,7 +556,7 @@ static int __init i7300_idle_init(void)
+ 	cpus_clear(idle_cpumask);
+ 	total_us = 0;
+ 
+-	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev))
++	if (i7300_idle_platform_probe(&fbd_dev, &ioat_dev, forceload))
+ 		return -ENODEV;
+ 
+ 	if (i7300_idle_thrt_save())
+diff --git a/include/linux/i7300_idle.h b/include/linux/i7300_idle.h
+index 05a80c4..1587b7d 100644
+--- a/include/linux/i7300_idle.h
++++ b/include/linux/i7300_idle.h
+@@ -16,35 +16,33 @@
+ struct fbd_ioat {
+ 	unsigned int vendor;
+ 	unsigned int ioat_dev;
++	unsigned int enabled;
+ };
+ 
+ /*
+  * The i5000 chip-set has the same hooks as the i7300
+- * but support is disabled by default because this driver
+- * has not been validated on that platform.
++ * but it is not enabled by default and must be manually
++ * manually enabled with "forceload=1" because it is
++ * only lightly validated.
+  */
+-#define SUPPORT_I5000 0
+ 
+ static const struct fbd_ioat fbd_ioat_list[] = {
+-	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB},
+-#if SUPPORT_I5000
+-	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT},
+-#endif
++	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB, 1},
++	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT, 0},
+ 	{0, 0}
+ };
+ 
+ /* table of devices that work with this driver */
+ static const struct pci_device_id pci_tbl[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_FBD_CNB) },
+-#if SUPPORT_I5000
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
+-#endif
+ 	{ } /* Terminating entry */
+ };
+ 
+ /* Check for known platforms with I/O-AT */
+ static inline int i7300_idle_platform_probe(struct pci_dev **fbd_dev,
+-						struct pci_dev **ioat_dev)
++						struct pci_dev **ioat_dev,
++						int enable_all)
+ {
+ 	int i;
+ 	struct pci_dev *memdev, *dmadev;
+@@ -69,6 +67,8 @@ static inline int i7300_idle_platform_probe(struct pci_dev **fbd_dev,
+ 	for (i = 0; fbd_ioat_list[i].vendor != 0; i++) {
+ 		if (dmadev->vendor == fbd_ioat_list[i].vendor &&
+ 		    dmadev->device == fbd_ioat_list[i].ioat_dev) {
++			if (!(fbd_ioat_list[i].enabled || enable_all))
++				continue;
+ 			if (fbd_dev)
+ 				*fbd_dev = memdev;
+ 			if (ioat_dev)
 -- 
 1.6.0.6
 
