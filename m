@@ -1,116 +1,76 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 03/11] PCI/ACPI: fix wrong ref count handling in acpi_pci_bind()
-Date: Fri, 29 May 2009 21:37:13 -0400
-Message-ID: <dacd2549ca61ddbdd1ed62a76ca95dea3f0e02c6.1243647312.git.len.brown@intel.com>
+Subject: [PATCH 11/11] ACPI, i915: build fix (v2)
+Date: Fri, 29 May 2009 21:37:21 -0400
+Message-ID: <31db5645bda24682dadbc97d5e8a7918ade2a298.1243647312.git.len.brown@intel.com>
 References: <1243647441-31392-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:40794 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205AbZE3Bh3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:37:29 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:36295 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754785AbZE3Bha (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:37:30 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173019.mailsrvcs.net
+ by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00A4BOIFO7Z1@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:28 -0500 (CDT)
+ with ESMTPA id <0KKF00HPYOIIPWV2@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:37:31 -0500 (CDT)
 In-reply-to: <1243647441-31392-1-git-send-email-lenb@kernel.org>
 In-reply-to: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
 References: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647311.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Len Brown <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>
 
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+From: Len Brown <len.brown@intel.com>
 
-The 'dev' field of struct acpi_pci_data is having a pointer to struct
-pci_dev without incrementing the reference counter. Because of this, I
-got the following kernel oops when I was doing some pci hotplug
-operations. This patch fixes this bug by replacing wrong hand-made
-pci_find_slot() with pci_get_slot() in acpi_pci_bind().
+drivers/built-in.o: In function `intel_opregion_init':
+(.text+0x9d540): undefined reference to `acpi_video_register'
 
- BUG: unable to handle kernel NULL pointer dereference at 00000000000000e8
- IP: [<ffffffff803f0e9b>] acpi_pci_unbind+0xb1/0xdd
+v2: move under DRM_I915 from DRM_I915_KMS
 
- Call Trace:
-  [<ffffffff803ecee4>] acpi_bus_remove+0x54/0x68
-  [<ffffffff803ecf6d>] acpi_bus_trim+0x75/0xe3
-  [<ffffffffa0345ddd>] acpiphp_disable_slot+0x16d/0x1e0 [acpiphp]
-  [<ffffffffa03441f0>] disable_slot+0x20/0x60 [acpiphp]
-  [<ffffffff803cfc18>] power_write_file+0xc8/0x110
-  [<ffffffff803c6a54>] pci_slot_attr_store+0x24/0x30
-  [<ffffffff803469ce>] sysfs_write_file+0xce/0x140
-  [<ffffffff802e94e7>] vfs_write+0xc7/0x170
-  [<ffffffff802e9aa0>] sys_write+0x50/0x90
-  [<ffffffff8020bd6b>] system_call_fastpath+0x16/0x1b
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Reviewed-by: Alex Chiang <achiang@hp.com>
-Tested-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- drivers/acpi/pci_bind.c |   24 ++++++------------------
- 1 files changed, 6 insertions(+), 18 deletions(-)
+ drivers/gpu/drm/Kconfig |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 95650f8..bc46de3 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -116,9 +116,6 @@ int acpi_pci_bind(struct acpi_device *device)
- 	struct acpi_pci_data *pdata;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	acpi_handle handle;
--	struct pci_dev *dev;
--	struct pci_bus *bus;
--
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 4cd35d8..f5d46e7 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -67,12 +67,18 @@ config DRM_I830
+ 	  will load the correct one.
  
- 	if (!device || !device->parent)
- 		return -EINVAL;
-@@ -176,20 +173,9 @@ int acpi_pci_bind(struct acpi_device *device)
- 	 * Locate matching device in PCI namespace.  If it doesn't exist
- 	 * this typically means that the device isn't currently inserted
- 	 * (e.g. docking station, port replicator, etc.).
--	 * We cannot simply search the global pci device list, since
--	 * PCI devices are added to the global pci list when the root
--	 * bridge start ops are run, which may not have happened yet.
- 	 */
--	bus = pci_find_bus(data->id.segment, data->id.bus);
--	if (bus) {
--		list_for_each_entry(dev, &bus->devices, bus_list) {
--			if (dev->devfn == PCI_DEVFN(data->id.device,
--						    data->id.function)) {
--				data->dev = dev;
--				break;
--			}
--		}
--	}
-+	data->dev = pci_get_slot(pdata->bus,
-+				PCI_DEVFN(data->id.device, data->id.function));
- 	if (!data->dev) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Device %04x:%02x:%02x.%d not present in PCI namespace\n",
-@@ -259,9 +245,10 @@ int acpi_pci_bind(struct acpi_device *device)
- 
-       end:
- 	kfree(buffer.pointer);
--	if (result)
-+	if (result) {
-+		pci_dev_put(data->dev);
- 		kfree(data);
--
-+	}
- 	return result;
- }
- 
-@@ -303,6 +290,7 @@ static int acpi_pci_unbind(struct acpi_device *device)
- 	if (data->dev->subordinate) {
- 		acpi_pci_irq_del_prt(data->id.segment, data->bus->number);
- 	}
-+	pci_dev_put(data->dev);
- 	kfree(data);
- 
-       end:
+ config DRM_I915
++	tristate "i915 driver"
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB
+ 	select FRAMEBUFFER_CONSOLE if !EMBEDDED
+-	tristate "i915 driver"
++	# i915 depends on ACPI_VIDEO when ACPI is enabled
++	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
++	select VIDEO_OUTPUT_CONTROL if ACPI
++	select BACKLIGHT_CLASS_DEVICE if ACPI
++	select INPUT if ACPI
++	select ACPI_VIDEO if ACPI
+ 	help
+ 	  Choose this option if you have a system that has Intel 830M, 845G,
+ 	  852GM, 855GM 865G or 915G integrated graphics.  If M is selected, the
+@@ -84,12 +90,6 @@ config DRM_I915
+ config DRM_I915_KMS
+ 	bool "Enable modesetting on intel by default"
+ 	depends on DRM_I915
+-	# i915 KMS depends on ACPI_VIDEO when ACPI is enabled
+-	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+-	select VIDEO_OUTPUT_CONTROL if ACPI
+-	select BACKLIGHT_CLASS_DEVICE if ACPI
+-	select INPUT if ACPI
+-	select ACPI_VIDEO if ACPI
+ 	help
+ 	  Choose this option if you want kernel modesetting enabled by default,
+ 	  and you have a new enough userspace to support this. Running old
 -- 
 1.6.0.6
 
