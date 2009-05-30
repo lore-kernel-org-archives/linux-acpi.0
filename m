@@ -1,50 +1,80 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 20/65] ACPICA: Update version to 20090422.
-Date: Fri, 29 May 2009 21:41:58 -0400
-Message-ID: <ba9e2ae443feb7231d9631ea0f62b63e26cfb9b1.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 06/65] cpuidle: makes AMD C1E work in acpi_idle
+Date: Fri, 29 May 2009 21:41:44 -0400
+Message-ID: <87ad57bacb25c3f24c54f142ef445f68277705f0.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:39590 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757390AbZE3BnF (ORCPT
+Received: from vms173017pub.verizon.net ([206.46.173.17]:50006 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757349AbZE3BnF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:05 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173001.mailsrvcs.net
+ by vms173017.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00HX4ORGPI13@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:52 -0500 (CDT)
+ with ESMTPA id <0KKF00FFTORD9KM2@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:49 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Shaohua Li <shaohua.li@intel.com>
 
-Version 20090422.
+When AMD C1E is enabled, local APIC timer will stop even in C1.
+This patch uses broadcast IPI to replace local APIC timer in C1.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+http://bugzilla.kernel.org/show_bug.cgi?id=13233
+
+[ impact: avoid boot hang in AMD CPU with C1E enabled ]
+
+Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/processor_idle.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index a868df6..60b76a3 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -47,7 +47,7 @@
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 72069ba..6b7bcc7 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -148,6 +148,9 @@ static void acpi_timer_check_state(int state, struct acpi_processor *pr,
+ 	if (cpu_has(&cpu_data(pr->id), X86_FEATURE_ARAT))
+ 		return;
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
++	if (boot_cpu_has(X86_FEATURE_AMDC1E))
++		type = ACPI_STATE_C1;
++
+ 	/*
+ 	 * Check, if one of the previous states already marked the lapic
+ 	 * unstable
+@@ -611,6 +614,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+ 		switch (cx->type) {
+ 		case ACPI_STATE_C1:
+ 			cx->valid = 1;
++			acpi_timer_check_state(i, pr, cx);
+ 			break;
  
--#define ACPI_CA_VERSION                 0x20090320
-+#define ACPI_CA_VERSION                 0x20090422
+ 		case ACPI_STATE_C2:
+@@ -835,6 +839,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 		return 0;
+ 	}
  
- #include "actypes.h"
- #include "actbl.h"
++	acpi_state_timer_broadcast(pr, cx, 1);
+ 	kt1 = ktime_get_real();
+ 	acpi_idle_do_entry(cx);
+ 	kt2 = ktime_get_real();
+@@ -842,6 +847,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
++	acpi_state_timer_broadcast(pr, cx, 0);
+ 
+ 	return idle_time;
+ }
 -- 
 1.6.0.6
 
