@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 35/65] ACPI: increase size of acpi_bus_id[]
-Date: Fri, 29 May 2009 21:42:13 -0400
-Message-ID: <94140c22f63604c0b41f97c671cce5938756875d.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 31/65] ACPICA: Eliminate extra call to NsGetParentNode
+Date: Fri, 29 May 2009 21:42:09 -0400
+Message-ID: <c446eed6187addf9f76ee0028abed32393aef27e.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:61730 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756248AbZE3Bm5 (ORCPT
+Received: from vms173009pub.verizon.net ([206.46.173.9]:40281 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755879AbZE3Bm5 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:57 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173007.mailsrvcs.net
+ by vms173009.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00J1OORJXEP2@vms173007.mailsrvcs.net> for
+ with ESMTPA id <0KKF0058VORIUAT3@vms173009.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:55 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
@@ -19,34 +19,49 @@ References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhao Yakui <yaui.zhao@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Alex Chiang <achiang@hp.com>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Zhao Yakui <yaui.zhao@intel.com>
+From: Alex Chiang <achiang@hp.com>
 
-Previously [5], now [8].
+Was called twice in the same function with the same parameter.
+Alex Chiang.
 
-sprintf(acpi_device_bid(device), "CPU%X", cpu_id)
-now looks better on systems with more than 0xFF processors.
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acpi_bus.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/acpica/nsxfobj.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c34b110..0be2410 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -168,7 +168,7 @@ struct acpi_device_dir {
+diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
+index dd33d8b..4071bad 100644
+--- a/drivers/acpi/acpica/nsxfobj.c
++++ b/drivers/acpi/acpica/nsxfobj.c
+@@ -162,6 +162,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_type)
+ acpi_status acpi_get_parent(acpi_handle handle, acpi_handle * ret_handle)
+ {
+ 	struct acpi_namespace_node *node;
++	struct acpi_namespace_node *parent_node;
+ 	acpi_status status;
  
- /* Plug and Play */
+ 	if (!ret_handle) {
+@@ -189,12 +190,12 @@ acpi_status acpi_get_parent(acpi_handle handle, acpi_handle * ret_handle)
  
--typedef char acpi_bus_id[5];
-+typedef char acpi_bus_id[8];
- typedef unsigned long acpi_bus_address;
- typedef char acpi_hardware_id[15];
- typedef char acpi_unique_id[9];
+ 	/* Get the parent entry */
+ 
+-	*ret_handle =
+-	    acpi_ns_convert_entry_to_handle(acpi_ns_get_parent_node(node));
++	parent_node = acpi_ns_get_parent_node(node);
++	*ret_handle = acpi_ns_convert_entry_to_handle(parent_node);
+ 
+ 	/* Return exception if parent is null */
+ 
+-	if (!acpi_ns_get_parent_node(node)) {
++	if (!parent_node) {
+ 		status = AE_NULL_ENTRY;
+ 	}
+ 
 -- 
 1.6.0.6
 
