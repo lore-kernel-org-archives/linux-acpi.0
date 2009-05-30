@@ -1,18 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 52/65] ACPI: remove unused "status_changed" return value from
- Check Device handling
-Date: Fri, 29 May 2009 21:42:30 -0400
-Message-ID: <48df8bbf5a80197c6fe3824e9f612d3aaa20d1ae.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 51/65] ACPI: simplify notification debug messages
+Date: Fri, 29 May 2009 21:42:29 -0400
+Message-ID: <071aa4c5d085fc439f871efd8c8598736b8f81cc.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173017pub.verizon.net ([206.46.173.17]:50006 "EHLO
 	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757509AbZE3BnQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:16 -0400
+	with ESMTP id S1756601AbZE3BnP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:43:15 -0400
 Received: from localhost.localdomain ([98.118.45.40])
  by vms173017.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF003YWORQ28T2@vms173017.mailsrvcs.net> for
+ with ESMTPA id <0KKF007DAORQ7OX2@vms173017.mailsrvcs.net> for
  linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:43:02 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
@@ -24,91 +23,96 @@ Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Remove "status_changed" return from acpi_bus_check_device().  Nobody
-does anything useful based on its value.
+This replaces several messages that depend on the acpi_device struct
+with a single message that uses just the acpi_handle.  We should be
+able to deal with notifications to objects that do not yet have an
+acpi_device struct.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c |   22 +++-------------------
- 1 files changed, 3 insertions(+), 19 deletions(-)
+ drivers/acpi/bus.c |   27 +++------------------------
+ 1 files changed, 3 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index eb98638..19e78fb 100644
+index cdfecc0..eb98638 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
-@@ -450,8 +450,7 @@ int acpi_bus_receive_event(struct acpi_bus_event *event)
-                              Notification Handling
-    -------------------------------------------------------------------------- */
+@@ -551,6 +551,9 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 	struct acpi_device *device = NULL;
+ 	struct acpi_driver *driver;
  
--static int
--acpi_bus_check_device(struct acpi_device *device, int *status_changed)
-+static int acpi_bus_check_device(struct acpi_device *device)
- {
- 	acpi_status status = 0;
- 	struct acpi_device_status old_status;
-@@ -460,9 +459,6 @@ acpi_bus_check_device(struct acpi_device *device, int *status_changed)
- 	if (!device)
- 		return -EINVAL;
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Notification %#02x to handle %p\n",
++			  type, handle));
++
+ 	blocking_notifier_call_chain(&acpi_bus_notify_list,
+ 		type, (void *)handle);
  
--	if (status_changed)
--		*status_changed = 0;
--
- 	old_status = device->status;
+@@ -560,9 +563,6 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 	switch (type) {
  
- 	/*
-@@ -471,10 +467,6 @@ acpi_bus_check_device(struct acpi_device *device, int *status_changed)
- 	 */
- 	if (device->parent && !device->parent->status.present) {
- 		device->status = device->parent->status;
--		if (STRUCT_TO_INT(old_status) != STRUCT_TO_INT(device->status)) {
--			if (status_changed)
--				*status_changed = 1;
--		}
- 		return 0;
- 	}
- 
-@@ -485,9 +477,6 @@ acpi_bus_check_device(struct acpi_device *device, int *status_changed)
- 	if (STRUCT_TO_INT(old_status) == STRUCT_TO_INT(device->status))
- 		return 0;
- 
--	if (status_changed)
--		*status_changed = 1;
--
- 	/*
- 	 * Device Insertion/Removal
- 	 */
-@@ -505,20 +494,15 @@ acpi_bus_check_device(struct acpi_device *device, int *status_changed)
- static int acpi_bus_check_scope(struct acpi_device *device)
- {
- 	int result = 0;
--	int status_changed = 0;
--
- 
- 	if (!device)
- 		return -EINVAL;
- 
- 	/* Status Change? */
--	result = acpi_bus_check_device(device, &status_changed);
-+	result = acpi_bus_check_device(device);
- 	if (result)
- 		return result;
- 
--	if (!status_changed)
--		return 0;
--
- 	/*
- 	 * TBD: Enumerate child devices within this device's scope and
- 	 *       run acpi_bus_check_device()'s on them.
-@@ -571,7 +555,7 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 	case ACPI_NOTIFY_BUS_CHECK:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received BUS CHECK notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		result = acpi_bus_check_scope(device);
+ 		/*
+ 		 * TBD: We'll need to outsource certain events to non-ACPI
+@@ -571,9 +571,6 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
  		break;
  
  	case ACPI_NOTIFY_DEVICE_CHECK:
--		result = acpi_bus_check_device(device, NULL);
-+		result = acpi_bus_check_device(device);
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received DEVICE CHECK notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		result = acpi_bus_check_device(device, NULL);
  		/*
  		 * TBD: We'll need to outsource certain events to non-ACPI
- 		 *      drivers via the device manager (device.c).
+@@ -582,44 +579,26 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 		break;
+ 
+ 	case ACPI_NOTIFY_DEVICE_WAKE:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received DEVICE WAKE notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		/* TBD */
+ 		break;
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received EJECT REQUEST notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		/* TBD */
+ 		break;
+ 
+ 	case ACPI_NOTIFY_DEVICE_CHECK_LIGHT:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received DEVICE CHECK LIGHT notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		/* TBD: Exactly what does 'light' mean? */
+ 		break;
+ 
+ 	case ACPI_NOTIFY_FREQUENCY_MISMATCH:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received FREQUENCY MISMATCH notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		/* TBD */
+ 		break;
+ 
+ 	case ACPI_NOTIFY_BUS_MODE_MISMATCH:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received BUS MODE MISMATCH notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		/* TBD */
+ 		break;
+ 
+ 	case ACPI_NOTIFY_POWER_FAULT:
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Received POWER FAULT notification for device [%s]\n",
+-				  device->pnp.bus_id));
+ 		/* TBD */
+ 		break;
+ 
 -- 
 1.6.0.6
 
