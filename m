@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 25/65] ACPICA: Simplify and optimize NsGetNextNode function
-Date: Fri, 29 May 2009 21:42:03 -0400
-Message-ID: <8c725bf93706db976e9de495579ca625d493e809.1243647607.git.len.brown@intel.com>
+Subject: [PATCH 30/65] ACPICA: Simplify internal operation region interface
+Date: Fri, 29 May 2009 21:42:08 -0400
+Message-ID: <f5407af3f271ed4cd6655cf30d419d77e0f8bfaa.1243647607.git.len.brown@intel.com>
 References: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:60019 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755796AbZE3Bmv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:51 -0400
+Received: from vms173007pub.verizon.net ([206.46.173.7]:61730 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756062AbZE3Bmx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2009 21:42:53 -0400
 Received: from localhost.localdomain ([98.118.45.40])
- by vms173003.mailsrvcs.net
+ by vms173007.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KKF00EJHORHEEA0@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:53 -0500 (CDT)
+ with ESMTPA id <0KKF00J97ORIXKM2@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 29 May 2009 20:42:54 -0500 (CDT)
 In-reply-to: <1243647763-31572-1-git-send-email-lenb@kernel.org>
 In-reply-to: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
 References: <4b9575c04a5fe38d02eeabcad743ed886ebc53a4.1243647607.git.len.brown@intel.com>
@@ -23,217 +23,157 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-Reduced parameter count and reduced code for this frequently
-used function.
+Changed address parameter to a simple offset. This removes the
+need for the caller to access the region object to obtain the
+physical address.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acnamesp.h |   13 ++++++-
- drivers/acpi/acpica/nsalloc.c  |   14 ++------
- drivers/acpi/acpica/nswalk.c   |   69 ++++++++++++++++++++++++++++++---------
- drivers/acpi/acpica/nsxfobj.c  |    2 +-
- 4 files changed, 69 insertions(+), 29 deletions(-)
+ drivers/acpi/acpica/acevents.h |    2 +-
+ drivers/acpi/acpica/evregion.c |   12 +++++++-----
+ drivers/acpi/acpica/exconfig.c |    9 ++++-----
+ drivers/acpi/acpica/exfldio.c  |   20 +++++++++++---------
+ 4 files changed, 23 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
-index 46cb5b4..94cdc2b 100644
---- a/drivers/acpi/acpica/acnamesp.h
-+++ b/drivers/acpi/acpica/acnamesp.h
-@@ -99,10 +99,19 @@ acpi_ns_walk_namespace(acpi_object_type type,
- 		       acpi_walk_callback user_function,
- 		       void *context, void **return_value);
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index 07e2013..0bba148 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -139,7 +139,7 @@ acpi_status acpi_ev_initialize_op_regions(void);
+ acpi_status
+ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 			       u32 function,
+-			       acpi_physical_address address,
++			       u32 region_offset,
+ 			       u32 bit_width, acpi_integer * value);
  
--struct acpi_namespace_node *acpi_ns_get_next_node(acpi_object_type type, struct acpi_namespace_node
--						  *parent, struct acpi_namespace_node
-+struct acpi_namespace_node *acpi_ns_get_next_node(struct acpi_namespace_node
-+						  *parent,
-+						  struct acpi_namespace_node
- 						  *child);
- 
-+struct acpi_namespace_node *acpi_ns_get_next_node_typed(acpi_object_type type,
-+							struct
-+							acpi_namespace_node
-+							*parent,
-+							struct
-+							acpi_namespace_node
-+							*child);
-+
- /*
-  * nsparse - table parsing
-  */
-diff --git a/drivers/acpi/acpica/nsalloc.c b/drivers/acpi/acpica/nsalloc.c
-index aceb931..efc971a 100644
---- a/drivers/acpi/acpica/nsalloc.c
-+++ b/drivers/acpi/acpica/nsalloc.c
-@@ -334,9 +334,7 @@ void acpi_ns_delete_namespace_subtree(struct acpi_namespace_node *parent_node)
- 
- 		/* Get the next node in this scope (NULL if none) */
- 
--		child_node =
--		    acpi_ns_get_next_node(ACPI_TYPE_ANY, parent_node,
--					  child_node);
-+		child_node = acpi_ns_get_next_node(parent_node, child_node);
- 		if (child_node) {
- 
- 			/* Found a child node - detach any attached object */
-@@ -345,8 +343,7 @@ void acpi_ns_delete_namespace_subtree(struct acpi_namespace_node *parent_node)
- 
- 			/* Check if this node has any children */
- 
--			if (acpi_ns_get_next_node
--			    (ACPI_TYPE_ANY, child_node, NULL)) {
-+			if (child_node->child) {
- 				/*
- 				 * There is at least one child of this node,
- 				 * visit the node
-@@ -432,9 +429,7 @@ void acpi_ns_delete_namespace_by_owner(acpi_owner_id owner_id)
- 		 * Get the next child of this parent node. When child_node is NULL,
- 		 * the first child of the parent is returned
- 		 */
--		child_node =
--		    acpi_ns_get_next_node(ACPI_TYPE_ANY, parent_node,
--					  child_node);
-+		child_node = acpi_ns_get_next_node(parent_node, child_node);
- 
- 		if (deletion_node) {
- 			acpi_ns_delete_children(deletion_node);
-@@ -452,8 +447,7 @@ void acpi_ns_delete_namespace_by_owner(acpi_owner_id owner_id)
- 
- 			/* Check if this node has any children */
- 
--			if (acpi_ns_get_next_node
--			    (ACPI_TYPE_ANY, child_node, NULL)) {
-+			if (child_node->child) {
- 				/*
- 				 * There is at least one child of this node,
- 				 * visit the node
-diff --git a/drivers/acpi/acpica/nswalk.c b/drivers/acpi/acpica/nswalk.c
-index 83e3aa6..35539df 100644
---- a/drivers/acpi/acpica/nswalk.c
-+++ b/drivers/acpi/acpica/nswalk.c
-@@ -52,8 +52,7 @@ ACPI_MODULE_NAME("nswalk")
+ acpi_status
+diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
+index 538d632..98c7f9c 100644
+--- a/drivers/acpi/acpica/evregion.c
++++ b/drivers/acpi/acpica/evregion.c
+@@ -275,7 +275,7 @@ acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
   *
-  * FUNCTION:    acpi_ns_get_next_node
-  *
-- * PARAMETERS:  Type                - Type of node to be searched for
-- *              parent_node         - Parent node whose children we are
-+ * PARAMETERS:  parent_node         - Parent node whose children we are
-  *                                    getting
-  *              child_node          - Previous child that was found.
-  *                                    The NEXT child will be returned
-@@ -66,27 +65,68 @@ ACPI_MODULE_NAME("nswalk")
-  *              within Scope is returned.
-  *
-  ******************************************************************************/
--struct acpi_namespace_node *acpi_ns_get_next_node(acpi_object_type type, struct acpi_namespace_node
--						  *parent_node, struct acpi_namespace_node
-+struct acpi_namespace_node *acpi_ns_get_next_node(struct acpi_namespace_node
-+						  *parent_node,
-+						  struct acpi_namespace_node
- 						  *child_node)
+  * PARAMETERS:  region_obj          - Internal region object
+  *              Function            - Read or Write operation
+- *              Address             - Where in the space to read or write
++ *              region_offset       - Where in the region to read or write
+  *              bit_width           - Field width in bits (8, 16, 32, or 64)
+  *              Value               - Pointer to in or out value, must be
+  *                                    full 64-bit acpi_integer
+@@ -290,7 +290,7 @@ acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
+ acpi_status
+ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 			       u32 function,
+-			       acpi_physical_address address,
++			       u32 region_offset,
+ 			       u32 bit_width, acpi_integer * value)
  {
--	struct acpi_namespace_node *next_node = NULL;
+ 	acpi_status status;
+@@ -396,7 +396,8 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+ 			  "Handler %p (@%p) Address %8.8X%8.8X [%s]\n",
+ 			  &region_obj->region.handler->address_space, handler,
+-			  ACPI_FORMAT_NATIVE_UINT(address),
++			  ACPI_FORMAT_NATIVE_UINT(region_obj->region.address +
++						  region_offset),
+ 			  acpi_ut_get_region_name(region_obj->region.
+ 						  space_id)));
+ 
+@@ -412,8 +413,9 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 
+ 	/* Call the handler */
+ 
+-	status = handler(function, address, bit_width, value,
+-			 handler_desc->address_space.context,
++	status = handler(function,
++			 (region_obj->region.address + region_offset),
++			 bit_width, value, handler_desc->address_space.context,
+ 			 region_obj2->extra.region_context);
+ 
+ 	if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index eca6f63..277fd60 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -280,23 +280,22 @@ acpi_ex_region_read(union acpi_operand_object *obj_desc, u32 length, u8 *buffer)
+ {
+ 	acpi_status status;
+ 	acpi_integer value;
+-	acpi_physical_address address;
++	u32 region_offset = 0;
+ 	u32 i;
+ 
+-	address = obj_desc->region.address;
 -
- 	ACPI_FUNCTION_ENTRY();
+ 	/* Bytewise reads */
  
- 	if (!child_node) {
+ 	for (i = 0; i < length; i++) {
+ 		status = acpi_ev_address_space_dispatch(obj_desc, ACPI_READ,
+-							address, 8, &value);
++							region_offset, 8,
++							&value);
+ 		if (ACPI_FAILURE(status)) {
+ 			return status;
+ 		}
  
- 		/* It's really the parent's _scope_ that we want */
- 
--		next_node = parent_node->child;
-+		return parent_node->child;
+ 		*buffer = (u8)value;
+ 		buffer++;
+-		address++;
++		region_offset++;
  	}
  
--	else {
--		/* Start search at the NEXT node */
--
--		next_node = acpi_ns_get_next_valid_node(child_node);
-+	/*
-+	 * Get the next node.
-+	 *
-+	 * If we are at the end of this peer list, return NULL
-+	 */
-+	if (child_node->flags & ANOBJ_END_OF_PEER_LIST) {
-+		return NULL;
- 	}
+ 	return AE_OK;
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index 99cee61..d4075b8 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -222,7 +222,7 @@ acpi_ex_access_region(union acpi_operand_object *obj_desc,
+ {
+ 	acpi_status status;
+ 	union acpi_operand_object *rgn_desc;
+-	acpi_physical_address address;
++	u32 region_offset;
  
-+	/* Otherwise just return the next peer */
-+
-+	return child_node->peer;
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ns_get_next_node_typed
-+ *
-+ * PARAMETERS:  Type                - Type of node to be searched for
-+ *              parent_node         - Parent node whose children we are
-+ *                                    getting
-+ *              child_node          - Previous child that was found.
-+ *                                    The NEXT child will be returned
-+ *
-+ * RETURN:      struct acpi_namespace_node - Pointer to the NEXT child or NULL if
-+ *                                    none is found.
-+ *
-+ * DESCRIPTION: Return the next peer node within the namespace.  If Handle
-+ *              is valid, Scope is ignored.  Otherwise, the first node
-+ *              within Scope is returned.
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_namespace_node *acpi_ns_get_next_node_typed(acpi_object_type type,
-+							struct
-+							acpi_namespace_node
-+							*parent_node,
-+							struct
-+							acpi_namespace_node
-+							*child_node)
-+{
-+	struct acpi_namespace_node *next_node = NULL;
-+
-+	ACPI_FUNCTION_ENTRY();
-+
-+	next_node = acpi_ns_get_next_node(parent_node, child_node);
-+
-+
- 	/* If any type is OK, we are done */
+ 	ACPI_FUNCTION_TRACE(ex_access_region);
  
- 	if (type == ACPI_TYPE_ANY) {
-@@ -186,9 +226,7 @@ acpi_ns_walk_namespace(acpi_object_type type,
- 		/* Get the next node in this scope.  Null if not found */
+@@ -243,7 +243,7 @@ acpi_ex_access_region(union acpi_operand_object *obj_desc,
+ 	 * 3) The current offset into the field
+ 	 */
+ 	rgn_desc = obj_desc->common_field.region_obj;
+-	address = rgn_desc->region.address +
++	region_offset =
+ 	    obj_desc->common_field.base_byte_offset + field_datum_byte_offset;
  
- 		status = AE_OK;
--		child_node =
--		    acpi_ns_get_next_node(ACPI_TYPE_ANY, parent_node,
--					  child_node);
-+		child_node = acpi_ns_get_next_node(parent_node, child_node);
- 		if (child_node) {
+ 	if ((function & ACPI_IO_MASK) == ACPI_READ) {
+@@ -260,16 +260,18 @@ acpi_ex_access_region(union acpi_operand_object *obj_desc,
+ 			      obj_desc->common_field.access_byte_width,
+ 			      obj_desc->common_field.base_byte_offset,
+ 			      field_datum_byte_offset, ACPI_CAST_PTR(void,
+-								     address)));
++								     (rgn_desc->
++								      region.
++								      address +
++								      region_offset))));
  
- 			/* Found next child, get the type if we are not searching for ANY */
-@@ -269,8 +307,7 @@ acpi_ns_walk_namespace(acpi_object_type type,
- 			 * function has specified that the maximum depth has been reached.
- 			 */
- 			if ((level < max_depth) && (status != AE_CTRL_DEPTH)) {
--				if (acpi_ns_get_next_node
--				    (ACPI_TYPE_ANY, child_node, NULL)) {
-+				if (child_node->child) {
+ 	/* Invoke the appropriate address_space/op_region handler */
  
- 					/* There is at least one child of this node, visit it */
+-	status = acpi_ev_address_space_dispatch(rgn_desc, function,
+-						address,
+-						ACPI_MUL_8(obj_desc->
+-							   common_field.
+-							   access_byte_width),
+-						value);
++	status =
++	    acpi_ev_address_space_dispatch(rgn_desc, function, region_offset,
++					   ACPI_MUL_8(obj_desc->common_field.
++						      access_byte_width),
++					   value);
  
-diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
-index 1c7efc1..dd33d8b 100644
---- a/drivers/acpi/acpica/nsxfobj.c
-+++ b/drivers/acpi/acpica/nsxfobj.c
-@@ -268,7 +268,7 @@ acpi_get_next_object(acpi_object_type type,
- 
- 	/* Internal function does the real work */
- 
--	node = acpi_ns_get_next_node(type, parent_node, child_node);
-+	node = acpi_ns_get_next_node_typed(type, parent_node, child_node);
- 	if (!node) {
- 		status = AE_NOT_FOUND;
- 		goto unlock_and_exit;
+ 	if (ACPI_FAILURE(status)) {
+ 		if (status == AE_NOT_IMPLEMENTED) {
 -- 
 1.6.0.6
 
