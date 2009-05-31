@@ -1,30 +1,63 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: [Bug #12681] s2ram: fails to wake up on Acer Extensa 4220 (SMP disabled)
-Date: Sat, 30 May 2009 21:55:33 +0200 (CEST)
-Message-ID: <PkPeJtNB3KO.A.WK.LYbIKB@chimera>
-References: <THxQaUP0K2D.A.QkF.UVbIKB@chimera>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [Resend] [PATCH]: ACPI: Rename ACPI processor device bus ID
+Date: Sun, 31 May 2009 10:31:51 +0800
+Message-ID: <1243737111.3634.168.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <THxQaUP0K2D.A.QkF.UVbIKB@chimera>
-Content-Disposition: inline
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Orivej Desh <smpuj-5URONGGNgjI@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:56995 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752524AbZEaCaG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 30 May 2009 22:30:06 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-This message has been generated automatically as a part of a report
-of regressions introduced between 2.6.28 and 2.6.29.
+From: Zhao Yakui <yakui.zhao@intel.com
 
-The following bug entry is on the current list of known regressions
-introduced between 2.6.28 and 2.6.29.  Please verify if it still should
-be listed and let me know (either way).
+On some boxes several processors use the same processor bus id.
+But they are located in different scope. For example:
+	\_SB.SCK0.CPU0
+	\_SB.SCK1.CPU0
+	As they use the same bus id, it can't be registered when
+registering proc I/F. It causes that the ACPI processor driver can't
+be bound with the processor device.
+	
+Rename the processor device bus id. And the new bus id will be 
+generated as the following format:
+	CPU+ CPU ID
+	
+For example: If the cpu ID is 5, then the bus ID will be "CPU5".
+	If the CPU ID is 10, then the bus ID will be "CPUA".
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/processor_core.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_core.c	2009-05-27 08:38:44.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_core.c	2009-05-31 10:21:21.000000000 +0800
+@@ -649,7 +649,16 @@
+ 			return -ENODEV;
+ 		}
+ 	}
+-
++	/*
++	 * On some boxes several processors use the same processor bus id.
++	 * But they are located in different scope. For example:
++	 * \_SB.SCK0.CPU0
++	 * \_SB.SCK1.CPU0
++	 * Rename the processor device bus id. And the new bus id will be
++	 * generated as the following format:
++	 * CPU+CPU ID.
++	 */
++	sprintf(acpi_device_bid(device), "CPU%X", pr->id);
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
+ 			  pr->acpi_id));
+ 
 
 
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=12681
-Subject		: s2ram: fails to wake up on Acer Extensa 4220 (SMP disabled)
-Submitter	: Orivej Desh <smpuj-5URONGGNgjI@public.gmane.org>
-Date		: 2009-02-09 13:01 (111 days old)
-First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=1cfe62c8010ac56e1bd3827e30386a87cc2f3594
-Handled-By	: Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
