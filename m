@@ -1,82 +1,154 @@
-From: Niel Lambrechts <niel.lambrechts@gmail.com>
-Subject: Re: BUG: blank screen - unless keyboard/synaptic combo
-Date: Mon, 01 Jun 2009 07:08:40 +0200
-Message-ID: <4A236258.4090004@gmail.com>
-References: <4A12FCB2.6090409@gmail.com>  <4A15DC88.5070005@gmail.com>	 <1242963556.32574.59.camel@rzhang-dt>  <4A16EB0B.20205@gmail.com> <1243231091.32574.62.camel@rzhang-dt> <4A1A3C44.1060503@gmail.com>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Add the reference count to avoid unloading ACPI
+	video bus twice
+Date: Mon, 01 Jun 2009 13:44:14 +0800
+Message-ID: <1243835054.3558.29.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4A1A3C44.1060503@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:56335 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751730AbZFAFnF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Jun 2009 01:43:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Niel Lambrechts wrote:
->>>>> c's added, attached lspci output.
->>>>>
->>>>> On 05/19/2009 08:38 PM, Niel Lambrechts wrote:
->>>>>
->>>>>         
->>>>>> I have a strange problem in that during a resume from hibernate my
->>>>>> text console (or X) remains blank - that is, until I simultaneously
->>>>>> press a keyboard key and touch the synaptic pad. It is not
->>>>>> sufficient
->>>>>> to press just one or the other, it needs to be done
->>>>>> simultaneously and
->>>>>> it resumes fine after doing this.
->>>>>>
->>>>>>            
->>>> is this a regression or it exists on all the kernel you've tried?
->>>>
->>>>        
->>> Hi Zhang,
->>>
->>> It is not a recent regression, all of the kernels I tried back to
->>> 2.6.28
->>> shows the same problem. The test results I posted last night was with
->>> 2.6.30-rc6. I suspect it did not happen in 2.6.27, but I might be wrong
->>> since I could not bisect that far back (I am using EXT4 and have too
->>> many issues to bisect that far back).
->>>
->>>     
->>>> please remote login the box after resume, and get the output of
->>>> "xrandr --verbose".
->>>>
->>>>        
->>> When I resume from suspend to RAM there is no problem.
->>>
->>> When I resume from hibernate, my laptop actually remains unusable until
->>> I do the combination of things I mentioned. I cannot log in from remote
->>> or even ping the laptop, except if I first press the mentioned key
->>> combo. Before this, the display is either entirely blank or sometimes
->>> there is a white cursor in the top left corner.
->>>
->>> The blank screen happens in runlevel 3 without X or "i915" loaded - I'm
->>> not sure but I suppose you want the "xrandr" output for another reason.
->>> It is interesting that it happens regardless of whether I am using
->>> Intel
->>> integrated graphics or Mobility Radeon HD 3650 (my laptop has both
->>> and I
->>> can enable one at a time). I boot the system with vga=791 and it is
->>> using vesafb for console.
->>>
->>> I attached the output you asked for below after hibernating an Xorg
->>> session, but this is from just after pressing the combo as I could not
->>> log in over the network with the laptop in the blank state.
->>>
->>> Thanks,
->>> Niel
-Hi,
+Sometimes both acpi video and i915 driver are compiled as modules.
+And there exists the strict dependency between the two drivers.
+The acpi video bus will be unloaded in course of unloading the i915 driver.
+If we unload the acpi video driver, then the kernel oops will be triggered.
 
-I've noticed that the screen only remains blank when I specify vga=xxx
-(I normally use vga=791) as a boot option, in other words when using vesafb.
+Add the reference count to avoid unloading the ACPI video bus twice.
+The reference count should be checked before unregistering the acpi video bus.
+If the reference count is already zero, it won't unregister it again.
+And after the acpi video bus is already unregistered, the reference count
+will be set to zero.
+At the same time the reference count is also checked when registering
+the acpi video bus.
 
-The blank screen on resume after hibernate consistently does not happen
-if I boot without it, and I tested with kernels from 2.6.28.
+http://bugzilla.kernel.org/show_bug.cgi?id=13396
 
-Any idea who can help with this?
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/video.c                 |   42 ++++++++++++++++++++++++++++-------
+ drivers/gpu/drm/i915/i915_opregion.c |    2 -
+ include/acpi/video.h                 |    4 +--
+ 3 files changed, 37 insertions(+), 11 deletions(-)
 
-Regards,
-Niel
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c	2009-05-31 09:33:17.000000000 +0800
++++ linux-2.6/drivers/acpi/video.c	2009-06-01 13:29:41.000000000 +0800
+@@ -76,6 +76,7 @@
+ static int brightness_switch_enabled = 1;
+ module_param(brightness_switch_enabled, bool, 0644);
+ 
++static int video_atomic = 0;
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+ static int acpi_video_resume(struct acpi_device *device);
+@@ -2302,7 +2303,13 @@
+ int acpi_video_register(void)
+ {
+ 	int result = 0;
+-
++	if (video_atomic) {
++		/*
++		 * if the function of acpi_video_register is already called,
++		 * don't register the acpi_vide_bus again and return no error.
++		 */
++		return 0;
++	}
+ 	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
+ 	if (!acpi_video_dir)
+ 		return -ENODEV;
+@@ -2312,11 +2319,34 @@
+ 		remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
+ 		return -ENODEV;
+ 	}
+-
++	/*
++	 * When the acpi_video_bus is loaded successfully, increase
++	 * the counter reference.
++	 */
++	video_atomic = 1;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(acpi_video_register);
+ 
++void acpi_video_unregister(void)
++{
++	if (!video_atomic) {
++		/*
++		 * If the acpi video bus is already unloaded, don't
++		 * unload it again and return directly.
++		 */
++		return;
++	}
++	acpi_bus_unregister_driver(&acpi_video_bus);
++
++	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
++
++	video_atomic = 0;
++
++	return;
++}
++EXPORT_SYMBOL(acpi_video_unregister);
++
+ /*
+  * This is kind of nasty. Hardware using Intel chipsets may require
+  * the video opregion code to be run first in order to initialise
+@@ -2334,16 +2364,12 @@
+ 	return acpi_video_register();
+ }
+ 
+-void __exit acpi_video_exit(void)
++static void __exit acpi_video_exit(void)
+ {
+-
+-	acpi_bus_unregister_driver(&acpi_video_bus);
+-
+-	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
++	acpi_video_unregister();
+ 
+ 	return;
+ }
+-EXPORT_SYMBOL(acpi_video_exit);
+ 
+ module_init(acpi_video_init);
+ module_exit(acpi_video_exit);
+Index: linux-2.6/include/acpi/video.h
+===================================================================
+--- linux-2.6.orig/include/acpi/video.h	2009-04-29 09:32:00.000000000 +0800
++++ linux-2.6/include/acpi/video.h	2009-06-01 13:34:19.000000000 +0800
+@@ -3,10 +3,10 @@
+ 
+ #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+ extern int acpi_video_register(void);
+-extern int acpi_video_exit(void);
++extern void acpi_video_unregister(void);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
+-static inline void acpi_video_exit(void) { return; }
++static inline void acpi_video_unregister(void) { return; }
+ #endif
+ 
+ #endif
+Index: linux-2.6/drivers/gpu/drm/i915/i915_opregion.c
+===================================================================
+--- linux-2.6.orig/drivers/gpu/drm/i915/i915_opregion.c	2009-04-29 09:32:00.000000000 +0800
++++ linux-2.6/drivers/gpu/drm/i915/i915_opregion.c	2009-06-01 12:02:00.000000000 +0800
+@@ -419,7 +419,7 @@
+ 		return;
+ 
+ 	if (!suspend)
+-		acpi_video_exit();
++		acpi_video_unregister();
+ 
+ 	opregion->acpi->drdy = 0;
+ 
+
+
