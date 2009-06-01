@@ -1,64 +1,82 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Lenovo S10e, charge_full == 0 ?!?
-Date: Mon, 01 Jun 2009 10:25:31 +0800
-Message-ID: <1243823131.32574.73.camel@rzhang-dt>
-References: <20090531214220.GK27997@hezmatt.org>
-	 <1243816851.3558.14.camel@localhost.localdomain>
-	 <20090601014551.GB6528@hezmatt.org>
+From: Niel Lambrechts <niel.lambrechts@gmail.com>
+Subject: Re: BUG: blank screen - unless keyboard/synaptic combo
+Date: Mon, 01 Jun 2009 07:08:40 +0200
+Message-ID: <4A236258.4090004@gmail.com>
+References: <4A12FCB2.6090409@gmail.com>  <4A15DC88.5070005@gmail.com>	 <1242963556.32574.59.camel@rzhang-dt>  <4A16EB0B.20205@gmail.com> <1243231091.32574.62.camel@rzhang-dt> <4A1A3C44.1060503@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53775 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753798AbZFACYx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 31 May 2009 22:24:53 -0400
-In-Reply-To: <20090601014551.GB6528@hezmatt.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4A1A3C44.1060503@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Palmer <mpalmer@hezmatt.org>
-Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, 2009-06-01 at 09:45 +0800, Matthew Palmer wrote:
-> [All: Cc's please, I'm not subscribed]
-> 
-> Hi Yakui,
-> 
-> On Mon, Jun 01, 2009 at 08:40:51AM +0800, yakui_zhao wrote:
-> > On Mon, 2009-06-01 at 05:42 +0800, Matthew Palmer wrote:
-> > > [Please Cc me; I'm not subscribed to the list]
-> > > 
-> > > Hi,
-> > Will you please check whether the output of "cat /proc/acpi/battery/*/*"
-> > is normal?
-> 
-> The tricky part there is: what exactly counts as "normal"?  As best I can
-> tell by comparing it to the output of my other laptop, the only possible
-> weirdnesses are:
-> 
-> alarm: unsupported
-> last full capacity: 0 mAh
-> 
-> Everything else looks reasonably similar.  Since it's only about 20 lines
-> long, I've pasted the whole output into the end of this e-mail.  Perhaps
-> there's something that's unobviously wrong.
-> 
-> > Of course you can open a new bug at
-> > http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-> > and attach the output of acpidump, "cat /proc/acpi/battery/*/*".
-> 
-> I'm not sure I care enough to create yet another never-to-be-used-again
-> bugzilla account.  I plan on nailing this problem down myself, with
-> assistance, rather than just reporting a bug and hoping someone else fixes
-> it for me.  I've placed the acpidump output at
-> http://hezmatt.org/~mpalmer/tmp/acpidump_s10e.txt 
+Niel Lambrechts wrote:
+>>>>> c's added, attached lspci output.
+>>>>>
+>>>>> On 05/19/2009 08:38 PM, Niel Lambrechts wrote:
+>>>>>
+>>>>>         
+>>>>>> I have a strange problem in that during a resume from hibernate my
+>>>>>> text console (or X) remains blank - that is, until I simultaneously
+>>>>>> press a keyboard key and touch the synaptic pad. It is not
+>>>>>> sufficient
+>>>>>> to press just one or the other, it needs to be done
+>>>>>> simultaneously and
+>>>>>> it resumes fine after doing this.
+>>>>>>
+>>>>>>            
+>>>> is this a regression or it exists on all the kernel you've tried?
+>>>>
+>>>>        
+>>> Hi Zhang,
+>>>
+>>> It is not a recent regression, all of the kernels I tried back to
+>>> 2.6.28
+>>> shows the same problem. The test results I posted last night was with
+>>> 2.6.30-rc6. I suspect it did not happen in 2.6.27, but I might be wrong
+>>> since I could not bisect that far back (I am using EXT4 and have too
+>>> many issues to bisect that far back).
+>>>
+>>>     
+>>>> please remote login the box after resume, and get the output of
+>>>> "xrandr --verbose".
+>>>>
+>>>>        
+>>> When I resume from suspend to RAM there is no problem.
+>>>
+>>> When I resume from hibernate, my laptop actually remains unusable until
+>>> I do the combination of things I mentioned. I cannot log in from remote
+>>> or even ping the laptop, except if I first press the mentioned key
+>>> combo. Before this, the display is either entirely blank or sometimes
+>>> there is a white cursor in the top left corner.
+>>>
+>>> The blank screen happens in runlevel 3 without X or "i915" loaded - I'm
+>>> not sure but I suppose you want the "xrandr" output for another reason.
+>>> It is interesting that it happens regardless of whether I am using
+>>> Intel
+>>> integrated graphics or Mobility Radeon HD 3650 (my laptop has both
+>>> and I
+>>> can enable one at a time). I boot the system with vga=791 and it is
+>>> using vesafb for console.
+>>>
+>>> I attached the output you asked for below after hibernating an Xorg
+>>> session, but this is from just after pressing the combo as I could not
+>>> log in over the network with the laptop in the blank state.
+>>>
+>>> Thanks,
+>>> Niel
+Hi,
 
-I can not access this url.
-Filing a new bug report makes it easier for us to track this bug.
-so I think it's still worth doing, btw, you can attach the acpidump
-there.
+I've noticed that the screen only remains blank when I specify vga=xxx
+(I normally use vga=791) as a boot option, in other words when using vesafb.
 
-thanks,
-rui
+The blank screen on resume after hibernate consistently does not happen
+if I boot without it, and I tested with kernels from 2.6.28.
 
+Any idea who can help with this?
 
+Regards,
+Niel
