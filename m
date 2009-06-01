@@ -1,89 +1,200 @@
-From: Woody Suwalski <woodys@xandros.com>
-Subject: Re: [i915] Kernel does not compile when set to use i915 kernel mode-setting per default (CONFIG_DRM_I915_KMS=y)
-Date: Mon, 1 Jun 2009 10:13:32 -0400
-Message-ID: <4A23E20C.3090807@xandros.com>
-References: <fcd863fc0905181109h372e5967t9d179b820a62132d@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII";
-	format="flowed"
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] hp-wmi: Add support for reporting tablet state
+Date: Mon,  1 Jun 2009 15:25:45 +0100
+Message-ID: <1243866345-25507-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ottmail.xandros.com ([142.46.212.35]:46025 "EHLO
-	ottmail.xandros.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897AbZFAOQS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jun 2009 10:16:18 -0400
-In-Reply-To: <alpine.LFD.2.00.0905292113150.4293@localhost.localdomain>
-References: <4A1464C9.9030603@xandros.com>
-References: <4A1475D5.6080602@oracle.com>
-References: <alpine.LFD.2.00.0905292113150.4293@localhost.localdomain>
-Content-Disposition: inline
+Received: from cavan.codon.org.uk ([93.93.128.6]:44421 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114AbZFAO1M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jun 2009 10:27:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zorael <zorael@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
-> Subject: [PATCH] ACPI, i915: build fix (v2)
->
-> drivers/built-in.o: In function `intel_opregion_init':
-> (.text+0x9d540): undefined reference to `acpi_video_register'
->
-> v2: move under DRM_I915 from DRM_I915_KMS
->
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> ---
-> as applied.
-> thanks,
-> -Len
->
->  drivers/gpu/drm/Kconfig |   14 +++++++-------
->  1 files changed, 7 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-> index 4cd35d8..f5d46e7 100644
-> --- a/drivers/gpu/drm/Kconfig
-> +++ b/drivers/gpu/drm/Kconfig
-> @@ -67,12 +67,18 @@ config DRM_I830
->  	  will load the correct one.
->  
->  config DRM_I915
-> +	tristate "i915 driver"
->  	select FB_CFB_FILLRECT
->  	select FB_CFB_COPYAREA
->  	select FB_CFB_IMAGEBLIT
->  	select FB
->  	select FRAMEBUFFER_CONSOLE if !EMBEDDED
-> -	tristate "i915 driver"
-> +	# i915 depends on ACPI_VIDEO when ACPI is enabled
-> +	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
-> +	select VIDEO_OUTPUT_CONTROL if ACPI
-> +	select BACKLIGHT_CLASS_DEVICE if ACPI
-> +	select INPUT if ACPI
-> +	select ACPI_VIDEO if ACPI
->  	help
->  	  Choose this option if you have a system that has Intel 830M, 845G,
->  	  852GM, 855GM 865G or 915G integrated graphics.  If M is selected, the
-> @@ -84,12 +90,6 @@ config DRM_I915
->  config DRM_I915_KMS
->  	bool "Enable modesetting on intel by default"
->  	depends on DRM_I915
-> -	# i915 KMS depends on ACPI_VIDEO when ACPI is enabled
-> -	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
-> -	select VIDEO_OUTPUT_CONTROL if ACPI
-> -	select BACKLIGHT_CLASS_DEVICE if ACPI
-> -	select INPUT if ACPI
-> -	select ACPI_VIDEO if ACPI
->  	help
->  	  Choose this option if you want kernel modesetting enabled by default,
->  	  and you have a new enough userspace to support this. Running old
->   
-Confirmed fixed - tried 2 builds based on -rc7, all OK.
+HP tablets send a WMI event when a tablet state change occurs, but use the
+same method as is used for reporting docking and undocking. The same query
+is used to obtain the state of the hardware. Bit 0 indicates the docking
+state, while bit 2 indicates the tablet state. This patch breaks these out
+and sends separate input events for tablet and dock state changes. An
+additional sysfs file is added to report the tablet state.
 
-Thanks, Woody
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/platform/x86/hp-wmi.c |   87 ++++++++++++++++++++++++++---------------
+ 1 files changed, 55 insertions(+), 32 deletions(-)
 
-
+diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+index 50d9019..46a7a6e 100644
+--- a/drivers/platform/x86/hp-wmi.c
++++ b/drivers/platform/x86/hp-wmi.c
+@@ -47,7 +47,7 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
+ #define HPWMI_DISPLAY_QUERY 0x1
+ #define HPWMI_HDDTEMP_QUERY 0x2
+ #define HPWMI_ALS_QUERY 0x3
+-#define HPWMI_DOCK_QUERY 0x4
++#define HPWMI_HARDWARE_QUERY 0x4
+ #define HPWMI_WIRELESS_QUERY 0x5
+ #define HPWMI_HOTKEY_QUERY 0xc
+ 
+@@ -75,10 +75,9 @@ struct key_entry {
+ 	u16 keycode;
+ };
+ 
+-enum { KE_KEY, KE_SW, KE_END };
++enum { KE_KEY, KE_END };
+ 
+ static struct key_entry hp_wmi_keymap[] = {
+-	{KE_SW, 0x01, SW_DOCK},
+ 	{KE_KEY, 0x02, KEY_BRIGHTNESSUP},
+ 	{KE_KEY, 0x03, KEY_BRIGHTNESSDOWN},
+ 	{KE_KEY, 0x20e6, KEY_PROG1},
+@@ -151,7 +150,22 @@ static int hp_wmi_als_state(void)
+ 
+ static int hp_wmi_dock_state(void)
+ {
+-	return hp_wmi_perform_query(HPWMI_DOCK_QUERY, 0, 0);
++	int ret = hp_wmi_perform_query(HPWMI_HARDWARE_QUERY, 0, 0);
++
++	if (ret < 0)
++		return ret;
++
++	return ret & 0x1;
++}
++
++static int hp_wmi_tablet_state(void)
++{
++	int ret = hp_wmi_perform_query(HPWMI_HARDWARE_QUERY, 0, 0);
++
++	if (ret < 0)
++		return ret;
++
++	return (ret & 0x4) ? 1 : 0;
+ }
+ 
+ static int hp_wmi_wifi_set(void *data, enum rfkill_state state)
+@@ -244,6 +258,15 @@ static ssize_t show_dock(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%d\n", value);
+ }
+ 
++static ssize_t show_tablet(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	int value = hp_wmi_tablet_state();
++	if (value < 0)
++		return -EINVAL;
++	return sprintf(buf, "%d\n", value);
++}
++
+ static ssize_t set_als(struct device *dev, struct device_attribute *attr,
+ 		       const char *buf, size_t count)
+ {
+@@ -256,6 +279,7 @@ static DEVICE_ATTR(display, S_IRUGO, show_display, NULL);
+ static DEVICE_ATTR(hddtemp, S_IRUGO, show_hddtemp, NULL);
+ static DEVICE_ATTR(als, S_IRUGO | S_IWUSR, show_als, set_als);
+ static DEVICE_ATTR(dock, S_IRUGO, show_dock, NULL);
++static DEVICE_ATTR(tablet, S_IRUGO, show_tablet, NULL);
+ 
+ static struct key_entry *hp_wmi_get_entry_by_scancode(int code)
+ {
+@@ -338,13 +362,13 @@ static void hp_wmi_notify(u32 value, void *context)
+ 						 key->keycode, 0);
+ 				input_sync(hp_wmi_input_dev);
+ 				break;
+-			case KE_SW:
+-				input_report_switch(hp_wmi_input_dev,
+-						    key->keycode,
+-						    hp_wmi_dock_state());
+-				input_sync(hp_wmi_input_dev);
+-				break;
+ 			}
++		} else if (eventcode == 0x1) {
++			input_report_switch(hp_wmi_input_dev, SW_DOCK,
++					    hp_wmi_dock_state());
++			input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
++					    hp_wmi_tablet_state());
++			input_sync(hp_wmi_input_dev);
+ 		} else if (eventcode == 0x5) {
+ 			if (wifi_rfkill)
+ 				rfkill_force_state(wifi_rfkill,
+@@ -381,18 +405,19 @@ static int __init hp_wmi_input_setup(void)
+ 			set_bit(EV_KEY, hp_wmi_input_dev->evbit);
+ 			set_bit(key->keycode, hp_wmi_input_dev->keybit);
+ 			break;
+-		case KE_SW:
+-			set_bit(EV_SW, hp_wmi_input_dev->evbit);
+-			set_bit(key->keycode, hp_wmi_input_dev->swbit);
+-
+-			/* Set initial dock state */
+-			input_report_switch(hp_wmi_input_dev, key->keycode,
+-					    hp_wmi_dock_state());
+-			input_sync(hp_wmi_input_dev);
+-			break;
+ 		}
+ 	}
+ 
++	set_bit(EV_SW, hp_wmi_input_dev->evbit);
++	set_bit(SW_DOCK, hp_wmi_input_dev->swbit);
++	set_bit(SW_TABLET_MODE, hp_wmi_input_dev->swbit);
++
++	/* Set initial hardware state */
++	input_report_switch(hp_wmi_input_dev, SW_DOCK, hp_wmi_dock_state());
++	input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
++			    hp_wmi_tablet_state());
++	input_sync(hp_wmi_input_dev);
++
+ 	err = input_register_device(hp_wmi_input_dev);
+ 
+ 	if (err) {
+@@ -409,6 +434,7 @@ static void cleanup_sysfs(struct platform_device *device)
+ 	device_remove_file(&device->dev, &dev_attr_hddtemp);
+ 	device_remove_file(&device->dev, &dev_attr_als);
+ 	device_remove_file(&device->dev, &dev_attr_dock);
++	device_remove_file(&device->dev, &dev_attr_tablet);
+ }
+ 
+ static int __init hp_wmi_bios_setup(struct platform_device *device)
+@@ -428,6 +454,9 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 	err = device_create_file(&device->dev, &dev_attr_dock);
+ 	if (err)
+ 		goto add_sysfs_error;
++	err = device_create_file(&device->dev, &dev_attr_tablet);
++	if (err)
++		goto add_sysfs_error;
+ 
+ 	if (wireless & 0x1) {
+ 		wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
+@@ -491,23 +520,17 @@ static int __exit hp_wmi_bios_remove(struct platform_device *device)
+ 
+ static int hp_wmi_resume_handler(struct platform_device *device)
+ {
+-	struct key_entry *key;
+-
+ 	/*
+-	 * Docking state may have changed while suspended, so trigger
+-	 * an input event for the current state. As this is a switch,
++	 * Hardware state may have changed while suspended, so trigger
++	 * input events for the current state. As this is a switch,
+ 	 * the input layer will only actually pass it on if the state
+ 	 * changed.
+ 	 */
+-	for (key = hp_wmi_keymap; key->type != KE_END; key++) {
+-		switch (key->type) {
+-		case KE_SW:
+-			input_report_switch(hp_wmi_input_dev, key->keycode,
+-					    hp_wmi_dock_state());
+-			input_sync(hp_wmi_input_dev);
+-			break;
+-		}
+-	}
++
++	input_report_switch(hp_wmi_input_dev, SW_DOCK, hp_wmi_dock_state());
++	input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
++			    hp_wmi_tablet_state());
++	input_sync(hp_wmi_input_dev);
+ 
+ 	return 0;
+ }
 -- 
-Woody Suwalski, Xandros, Ottawa, Canada, 1-613-842-3498 x414
+1.6.2.2
 
