@@ -1,73 +1,105 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 05/10] PCI Hotplug: acpiphp: convert to acpi_get_pci_dev
-Date: Tue, 02 Jun 2009 09:25:01 -0600
-Message-ID: <20090602152501.7346.41442.stgit@bob.kio>
+Subject: [PATCH 06/10] ACPI: kill acpi_get_pci_id
+Date: Tue, 02 Jun 2009 09:25:06 -0600
+Message-ID: <20090602152506.7346.72695.stgit@bob.kio>
 References: <20090602152351.7346.48697.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:47341 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757740AbZFBPZE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2009 11:25:04 -0400
 In-Reply-To: <20090602152351.7346.48697.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Now that acpi_get_pci_dev is available, let's use it instead of
-acpi_get_pci_id.
+acpi_get_pci_dev() is better, and all callers have been converted, so
+eliminate acpi_get_pci_id().
 
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/pci/hotplug/acpiphp_glue.c |   24 ++++++------------------
- 1 files changed, 6 insertions(+), 18 deletions(-)
+ drivers/acpi/pci_bind.c     |   52 -------------------------------------------
+ include/acpi/acpi_drivers.h |    1 -
+ 2 files changed, 0 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index fc6636e..a288e4e 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -678,18 +678,9 @@ static void remove_bridge(acpi_handle handle)
+diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
+index 584fa30..10e3ffc 100644
+--- a/drivers/acpi/pci_bind.c
++++ b/drivers/acpi/pci_bind.c
+@@ -139,58 +139,6 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_pci_dev);
  
- static struct pci_dev * get_apic_pci_info(acpi_handle handle)
- {
--	struct acpi_pci_id id;
--	struct pci_bus *bus;
- 	struct pci_dev *dev;
- 
--	if (ACPI_FAILURE(acpi_get_pci_id(handle, &id)))
--		return NULL;
+-/**
+- * acpi_get_pci_id
+- * ------------------
+- * This function is used by the ACPI Interpreter (a.k.a. Core Subsystem)
+- * to resolve PCI information for ACPI-PCI devices defined in the namespace.
+- * This typically occurs when resolving PCI operation region information.
+- */
+-acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id)
+-{
+-	int result = 0;
+-	acpi_status status = AE_OK;
+-	struct acpi_device *device = NULL;
+-	struct acpi_pci_data *data = NULL;
 -
--	bus = pci_find_bus(id.segment, id.bus);
--	if (!bus)
--		return NULL;
 -
--	dev = pci_get_slot(bus, PCI_DEVFN(id.device, id.function));
-+	dev = acpi_get_pci_dev(handle);
- 	if (!dev)
- 		return NULL;
- 
-@@ -1396,19 +1387,16 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
- /* Program resources in newly inserted bridge */
- static int acpiphp_configure_bridge (acpi_handle handle)
- {
--	struct acpi_pci_id pci_id;
-+	struct pci_dev *dev;
- 	struct pci_bus *bus;
- 
--	if (ACPI_FAILURE(acpi_get_pci_id(handle, &pci_id))) {
-+	dev = acpi_get_pci_dev(handle);
-+	if (!dev) {
- 		err("cannot get PCI domain and bus number for bridge\n");
- 		return -EINVAL;
- 	}
--	bus = pci_find_bus(pci_id.segment, pci_id.bus);
--	if (!bus) {
--		err("cannot find bus %d:%d\n",
--				pci_id.segment, pci_id.bus);
--		return -EINVAL;
+-	if (!id)
+-		return AE_BAD_PARAMETER;
+-
+-	result = acpi_bus_get_device(handle, &device);
+-	if (result) {
+-		printk(KERN_ERR PREFIX
+-			    "Invalid ACPI Bus context for device %s\n",
+-			    acpi_device_bid(device));
+-		return AE_NOT_EXIST;
 -	}
-+
-+	bus = dev->bus;
+-
+-	status = acpi_get_data(handle, acpi_pci_data_handler, (void **)&data);
+-	if (ACPI_FAILURE(status) || !data) {
+-		ACPI_EXCEPTION((AE_INFO, status,
+-				"Invalid ACPI-PCI context for device %s",
+-				acpi_device_bid(device)));
+-		return status;
+-	}
+-
+-	*id = data->id;
+-
+-	/*
+-	   id->segment = data->id.segment;
+-	   id->bus = data->id.bus;
+-	   id->device = data->id.device;
+-	   id->function = data->id.function;
+-	 */
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			  "Device %s has PCI address %04x:%02x:%02x.%d\n",
+-			  acpi_device_bid(device), id->segment, id->bus,
+-			  id->device, id->function));
+-
+-	return AE_OK;
+-}
+-
+-EXPORT_SYMBOL(acpi_get_pci_id);
  
- 	pci_bus_size_bridges(bus);
- 	pci_bus_assign_resources(bus);
+ static int acpi_pci_bind(struct acpi_device *device)
+ {
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index 1ef529b..310f5ff 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -98,7 +98,6 @@ void acpi_pci_irq_del_prt(int segment, int bus);
+ struct pci_bus;
+ 
+ struct pci_dev *acpi_get_pci_dev(acpi_handle);
+-acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
+ int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
+ 		       struct pci_bus *bus);
+ 
+
