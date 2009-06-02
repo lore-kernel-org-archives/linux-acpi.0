@@ -1,105 +1,131 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 06/10] ACPI: kill acpi_get_pci_id
-Date: Tue, 02 Jun 2009 09:25:06 -0600
-Message-ID: <20090602152506.7346.72695.stgit@bob.kio>
+Subject: [PATCH 08/10] ACPI: simplify acpi_pci_irq_add_prt() API
+Date: Tue, 02 Jun 2009 09:25:16 -0600
+Message-ID: <20090602152516.7346.24236.stgit@bob.kio>
 References: <20090602152351.7346.48697.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:47341 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757740AbZFBPZE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2009 11:25:04 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20090602152351.7346.48697.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-acpi_get_pci_dev() is better, and all callers have been converted, so
-eliminate acpi_get_pci_id().
+A PCI domain cannot change as you descend down subordinate buses, which
+makes the 'segment' argument to acpi_pci_irq_add_prt() useless.
 
+Change the interface to take a struct pci_bus *, from whence we can derive
+the bus number and segment. Reducing the number of arguments makes life
+simpler for callers.
+
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/pci_bind.c     |   52 -------------------------------------------
- include/acpi/acpi_drivers.h |    1 -
- 2 files changed, 0 insertions(+), 53 deletions(-)
+ drivers/acpi/pci_bind.c     |    8 ++++----
+ drivers/acpi/pci_irq.c      |   10 +++++-----
+ drivers/acpi/pci_root.c     |    5 +++--
+ include/acpi/acpi_drivers.h |    2 +-
+ 4 files changed, 13 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 584fa30..10e3ffc 100644
+index 0469cf2..96264d2 100644
 --- a/drivers/acpi/pci_bind.c
 +++ b/drivers/acpi/pci_bind.c
-@@ -139,58 +139,6 @@ out:
- }
- EXPORT_SYMBOL_GPL(acpi_get_pci_dev);
- 
--/**
-- * acpi_get_pci_id
-- * ------------------
-- * This function is used by the ACPI Interpreter (a.k.a. Core Subsystem)
-- * to resolve PCI information for ACPI-PCI devices defined in the namespace.
-- * This typically occurs when resolving PCI operation region information.
-- */
--acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id)
--{
--	int result = 0;
--	acpi_status status = AE_OK;
--	struct acpi_device *device = NULL;
--	struct acpi_pci_data *data = NULL;
--
--
--	if (!id)
--		return AE_BAD_PARAMETER;
--
--	result = acpi_bus_get_device(handle, &device);
--	if (result) {
--		printk(KERN_ERR PREFIX
--			    "Invalid ACPI Bus context for device %s\n",
--			    acpi_device_bid(device));
--		return AE_NOT_EXIST;
--	}
--
--	status = acpi_get_data(handle, acpi_pci_data_handler, (void **)&data);
--	if (ACPI_FAILURE(status) || !data) {
--		ACPI_EXCEPTION((AE_INFO, status,
--				"Invalid ACPI-PCI context for device %s",
--				acpi_device_bid(device)));
--		return status;
--	}
--
--	*id = data->id;
--
--	/*
--	   id->segment = data->id.segment;
--	   id->bus = data->id.bus;
--	   id->device = data->id.device;
--	   id->function = data->id.function;
--	 */
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "Device %s has PCI address %04x:%02x:%02x.%d\n",
--			  acpi_device_bid(device), id->segment, id->bus,
--			  id->device, id->function));
--
--	return AE_OK;
--}
--
--EXPORT_SYMBOL(acpi_get_pci_id);
- 
- static int acpi_pci_bind(struct acpi_device *device)
+@@ -137,7 +137,7 @@ static int acpi_pci_bind(struct acpi_device *device)
  {
+ 	acpi_status status;
+ 	acpi_handle handle;
+-	unsigned char bus;
++	struct pci_bus *bus;
+ 	struct pci_dev *dev;
+ 
+ 	dev = acpi_get_pci_dev(device->handle);
+@@ -170,11 +170,11 @@ static int acpi_pci_bind(struct acpi_device *device)
+ 		return 0;
+ 
+ 	if (dev->subordinate)
+-		bus = dev->subordinate->number;
++		bus = dev->subordinate;
+ 	else
+-		bus = dev->bus->number;
++		bus = dev->bus;
+ 
+-	acpi_pci_irq_add_prt(device->handle, pci_domain_nr(dev->bus), bus);
++	acpi_pci_irq_add_prt(device->handle, bus);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 51b9f82..3ed944c 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -182,7 +182,7 @@ static void do_prt_fixups(struct acpi_prt_entry *entry,
+ 	}
+ }
+ 
+-static int acpi_pci_irq_add_entry(acpi_handle handle, int segment, int bus,
++static int acpi_pci_irq_add_entry(acpi_handle handle, struct pci_bus *bus,
+ 				  struct acpi_pci_routing_table *prt)
+ {
+ 	struct acpi_prt_entry *entry;
+@@ -196,8 +196,8 @@ static int acpi_pci_irq_add_entry(acpi_handle handle, int segment, int bus,
+ 	 * 1=INTA, 2=INTB.  We use the PCI encoding throughout, so convert
+ 	 * it here.
+ 	 */
+-	entry->id.segment = segment;
+-	entry->id.bus = bus;
++	entry->id.segment = pci_domain_nr(bus);
++	entry->id.bus = bus->number;
+ 	entry->id.device = (prt->address >> 16) & 0xFFFF;
+ 	entry->pin = prt->pin + 1;
+ 
+@@ -242,7 +242,7 @@ static int acpi_pci_irq_add_entry(acpi_handle handle, int segment, int bus,
+ 	return 0;
+ }
+ 
+-int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus)
++int acpi_pci_irq_add_prt(acpi_handle handle, struct pci_bus *bus)
+ {
+ 	acpi_status status;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -271,7 +271,7 @@ int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus)
+ 
+ 	entry = buffer.pointer;
+ 	while (entry && (entry->length > 0)) {
+-		acpi_pci_irq_add_entry(handle, segment, bus, entry);
++		acpi_pci_irq_add_entry(handle, bus, entry);
+ 		entry = (struct acpi_pci_routing_table *)
+ 		    ((unsigned long)entry + entry->length);
+ 	}
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 25ddbb6..aa67f72 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -537,8 +537,9 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	 */
+ 	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
+ 	if (ACPI_SUCCESS(status))
+-		result = acpi_pci_irq_add_prt(device->handle, root->id.segment,
+-					      root->id.bus);
++		result = acpi_pci_irq_add_prt(device->handle,
++					      pci_find_bus(root->id.segment,
++							   root->id.bus));
+ 
+ 	/*
+ 	 * Scan and bind all _ADR-Based Devices
 diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 1ef529b..310f5ff 100644
+index 1c50f4f..c21d83f 100644
 --- a/include/acpi/acpi_drivers.h
 +++ b/include/acpi/acpi_drivers.h
-@@ -98,7 +98,6 @@ void acpi_pci_irq_del_prt(int segment, int bus);
- struct pci_bus;
+@@ -90,7 +90,7 @@ int acpi_pci_link_free_irq(acpi_handle handle);
  
- struct pci_dev *acpi_get_pci_dev(acpi_handle);
--acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
- int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
- 		       struct pci_bus *bus);
+ /* ACPI PCI Interrupt Routing (pci_irq.c) */
  
-
+-int acpi_pci_irq_add_prt(acpi_handle handle, int segment, int bus);
++int acpi_pci_irq_add_prt(acpi_handle handle, struct pci_bus *bus);
+ void acpi_pci_irq_del_prt(int segment, int bus);
+ 
+ /* ACPI PCI Device Binding (pci_bind.c) */
