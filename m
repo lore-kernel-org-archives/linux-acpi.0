@@ -1,7 +1,7 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 03/10] ACPI: export acpi_pci_find_root()
-Date: Tue, 02 Jun 2009 09:24:51 -0600
-Message-ID: <20090602152451.7346.99317.stgit@bob.kio>
+Subject: [PATCH 05/10] PCI Hotplug: acpiphp: convert to acpi_get_pci_dev
+Date: Tue, 02 Jun 2009 09:25:01 -0600
+Message-ID: <20090602152501.7346.41442.stgit@bob.kio>
 References: <20090602152351.7346.48697.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,97 +13,61 @@ To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This function is useful for pci_bind.c as well.
+Now that acpi_get_pci_dev is available, let's use it instead of
+acpi_get_pci_id.
 
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/pci_root.c |   33 ++++++++++-----------------------
- include/acpi/acpi_bus.h |   13 +++++++++++++
- 2 files changed, 23 insertions(+), 23 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   24 ++++++------------------
+ 1 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 853a6e4..bcab69a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -61,19 +61,6 @@ static struct acpi_driver acpi_pci_root_driver = {
- 		},
- };
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index fc6636e..a288e4e 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -678,18 +678,9 @@ static void remove_bridge(acpi_handle handle)
  
--struct acpi_pci_root {
--	struct list_head node;
--	struct acpi_device * device;
+ static struct pci_dev * get_apic_pci_info(acpi_handle handle)
+ {
 -	struct acpi_pci_id id;
 -	struct pci_bus *bus;
--
--	u32 osc_support_set;	/* _OSC state of support bits */
--	u32 osc_control_set;	/* _OSC state of control bits */
--	u32 osc_control_qry;	/* the latest _OSC query result */
--
--	u32 osc_queried:1;	/* has _OSC control been queried? */
--};
--
- static LIST_HEAD(acpi_pci_roots);
+ 	struct pci_dev *dev;
  
- static struct acpi_pci_driver *sub_driver;
-@@ -183,6 +170,16 @@ out:
- }
- EXPORT_SYMBOL_GPL(acpi_is_root_bridge);
+-	if (ACPI_FAILURE(acpi_get_pci_id(handle, &id)))
+-		return NULL;
+-
+-	bus = pci_find_bus(id.segment, id.bus);
+-	if (!bus)
+-		return NULL;
+-
+-	dev = pci_get_slot(bus, PCI_DEVFN(id.device, id.function));
++	dev = acpi_get_pci_dev(handle);
+ 	if (!dev)
+ 		return NULL;
  
-+struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
-+{
-+	struct acpi_pci_root *root;
-+	list_for_each_entry(root, &acpi_pci_roots, node) {
-+		if (root->device->handle == handle)
-+			return root;
-+	}
-+	return NULL;
-+}
-+
- static acpi_status
- get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+@@ -1396,19 +1387,16 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
+ /* Program resources in newly inserted bridge */
+ static int acpiphp_configure_bridge (acpi_handle handle)
  {
-@@ -336,16 +333,6 @@ static acpi_status acpi_pci_osc_support(struct acpi_pci_root *root, u32 flags)
- 	return status;
- }
+-	struct acpi_pci_id pci_id;
++	struct pci_dev *dev;
+ 	struct pci_bus *bus;
  
--static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
--{
--	struct acpi_pci_root *root;
--	list_for_each_entry(root, &acpi_pci_roots, node) {
--		if (root->device->handle == handle)
--			return root;
+-	if (ACPI_FAILURE(acpi_get_pci_id(handle, &pci_id))) {
++	dev = acpi_get_pci_dev(handle);
++	if (!dev) {
+ 		err("cannot get PCI domain and bus number for bridge\n");
+ 		return -EINVAL;
+ 	}
+-	bus = pci_find_bus(pci_id.segment, pci_id.bus);
+-	if (!bus) {
+-		err("cannot find bus %d:%d\n",
+-				pci_id.segment, pci_id.bus);
+-		return -EINVAL;
 -	}
--	return NULL;
--}
--
- /**
-  * acpi_pci_osc_control_set - commit requested control to Firmware
-  * @handle: acpi_handle for the target ACPI object
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 494088b..38f2bff 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -371,9 +371,22 @@ struct device *acpi_get_physical_device(acpi_handle);
- struct device *acpi_get_physical_pci_device(acpi_handle);
- 
- /* helper */
-+struct acpi_pci_root {
-+	struct list_head node;
-+	struct acpi_device *device;
-+	struct acpi_pci_id id;
-+	struct pci_bus *bus;
 +
-+	u32 osc_support_set;	/* _OSC state of support bits */
-+	u32 osc_control_set;	/* _OSC state of control bits */
-+	u32 osc_control_qry;	/* the latest _OSC query result */
-+
-+	u32 osc_queried:1;	/* has _OSC control been queried? */
-+};
- acpi_handle acpi_get_child(acpi_handle, acpi_integer);
- int acpi_is_root_bridge(acpi_handle);
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
-+struct acpi_pci_root *acpi_pci_find_root(acpi_handle);
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
++	bus = dev->bus;
  
- #ifdef CONFIG_PM_SLEEP
+ 	pci_bus_size_bridges(bus);
+ 	pci_bus_assign_resources(bus);
