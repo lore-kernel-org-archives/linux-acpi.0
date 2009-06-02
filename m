@@ -1,52 +1,38 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 08/10] ACPI: simplify acpi_pci_irq_add_prt() API
-Date: Tue, 2 Jun 2009 11:41:25 -0600
-Message-ID: <20090602174125.GE4326@ldl.fc.hp.com>
-References: <20090602152351.7346.48697.stgit@bob.kio> <20090602152516.7346.24236.stgit@bob.kio> <200906021130.15951.bjorn.helgaas@hp.com>
+From: Justin Mattock <justinmattock@gmail.com>
+Subject: ACPI Exception (evregion-0422): AE_ERROR, Returned by Handler for
+	[PCI_Config] [20090320]
+Date: Tue, 2 Jun 2009 11:02:37 -0700
+Message-ID: <dd18b0c30906021102h43b8ecc4u9e67687de129bca1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758643AbZFBRll@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200906021130.15951.bjorn.helgaas@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qy0-f104.google.com ([209.85.221.104]:52911 "EHLO
+	mail-qy0-f104.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756170AbZFBSCg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2009 14:02:36 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-* Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> On Tuesday 02 June 2009 09:25:16 am Alex Chiang wrote:
-> > A PCI domain cannot change as you descend down subordinate buses, which
-> > makes the 'segment' argument to acpi_pci_irq_add_prt() useless.
-> > 
-> > Change the interface to take a struct pci_bus *, from whence we can derive
-> > the bus number and segment. Reducing the number of arguments makes life
-> > simpler for callers.
-> 
-> Nice patch.
-> 
-> > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> > index 25ddbb6..aa67f72 100644
-> > --- a/drivers/acpi/pci_root.c
-> > +++ b/drivers/acpi/pci_root.c
-> > @@ -537,8 +537,9 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
-> >  	 */
-> >  	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
-> >  	if (ACPI_SUCCESS(status))
-> > -		result = acpi_pci_irq_add_prt(device->handle, root->id.segment,
-> > -					      root->id.bus);
-> > +		result = acpi_pci_irq_add_prt(device->handle,
-> > +					      pci_find_bus(root->id.segment,
-> > +							   root->id.bus));
-> 
-> I think you can just do this:
-> 
-> 	acpi_pci_irq_add_prt(device->handle, root->bus);
+I posted this error a few weeks ago, but had no response.
+So after a few weeks of looking at this, I wanted to find out if
+this is safe to see this, or should I be concerned:
 
-Ah, indeed you are right, thanks Bjorn.
+[    5.868418] ACPI: Power Button [PWRB]
+[    5.868547] input: Sleep Button as
+/devices/LNXSYSTM:00/device:00/PNP0C0E:00/input/input4
+[    5.868621] ACPI: Sleep Button [SLPB]
+[    6.093547] ACPI Exception (evregion-0422): AE_ERROR, Returned by
+Handler for [PCI_Config] [20090320]
+[    6.093555] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.PCI0.RP01.GFX0._PS0] (Node f703dcc0), AE_ERROR
+[    6.093614] ACPI: Transitioning device [GFX0] to D0
 
-Len, would you like me to respin, or can you just make the
-modification for me?
+I did do a dsdt dump, and looked for any errors
+but none had shown up.
+kernels that I have seen this are 2.6.29 -
+2.6.30-rc5
 
-Thanks.
-
-/ac
+-- 
+Justin P. Mattock
