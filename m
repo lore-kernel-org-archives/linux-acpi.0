@@ -1,74 +1,39 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [Resend] [PATCH]: ACPI: Rename ACPI processor device bus ID
-Date: Wed, 03 Jun 2009 10:34:06 +0800
-Message-ID: <1243996446.3558.202.camel@localhost.localdomain>
-References: <1243737111.3634.168.camel@localhost.localdomain>
-	 <200906021519.29217.trenn@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI Exception (evregion-0422): AE_ERROR, Returned by Handler
+	for [PCI_Config] [20090320]
+Date: Wed, 3 Jun 2009 03:44:53 +0100
+Message-ID: <20090603024453.GA28009@srcf.ucam.org>
+References: <dd18b0c30906021102h43b8ecc4u9e67687de129bca1@mail.gmail.com> <1243992286.9076.5.camel@rzhang-dt> <dd18b0c30906021911u4c2359daje01b0477a6bd23ff@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6399 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750780AbZFCCct (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Jun 2009 22:32:49 -0400
-In-Reply-To: <200906021519.29217.trenn@suse.de>
+Received: from cavan.codon.org.uk ([93.93.128.6]:54495 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346AbZFCCo5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2009 22:44:57 -0400
+Content-Disposition: inline
+In-Reply-To: <dd18b0c30906021911u4c2359daje01b0477a6bd23ff@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Justin Mattock <justinmattock@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, 2009-06-02 at 21:19 +0800, Thomas Renninger wrote:
-> On Sunday 31 May 2009 04:31:51 yakui_zhao wrote:
->=20
-> > +	/*
-> > +	 * On some boxes several processors use the same processor bus id=
-=2E
-> > +	 * But they are located in different scope. For example:
-> > +	 * \_SB.SCK0.CPU0
-> > +	 * \_SB.SCK1.CPU0
-> > +	 * Rename the processor device bus id. And the new bus id will be
-> > +	 * generated as the following format:
-> > +	 * CPU+CPU ID.
-> > +	 */
-> > +	sprintf(acpi_device_bid(device), "CPU%X", pr->id);
-> Hm, there were several attempts to get rid of acpi_device_bid and=20
-> friends.
-> Especially here, sprintfing into something function like looks really=
-=20
-> wrong.
-> Len, do you agree that not introducing new ones and at some point of
-> time replacing:
-> acpi_device_bid(device)
-> with
-> device->pnp.bus_id
-> is the way to go?
-=EF=BB=BFThe acpi_device_bid is not a function. It is equal to the
-device->pnp.bus_id for the ACPI device.
-#define acpi_device_bid(d)      ((d)->pnp.bus_id)
+On Tue, Jun 02, 2009 at 07:11:41PM -0700, Justin Mattock wrote:
 
-Thanks.
->=20
-> Thanks,
->=20
->     Thomas
->=20
-> >  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
-> >  			  pr->acpi_id));
-> > =20
-> >=20
-> >=20
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >=20
->=20
->=20
+> alright(Ill have to do that when I get a chance)
+> As for the error message after looking into it more today
+> I notice this message fired off as soon as I compiled
+> and loaded the nvidia module.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It looks like the nvidia driver is triggering an evaluation of the _PS0 
+method on your graphics hardware. This ought to just power up your 
+hardware. In the process it's trying to write to PCI configuration 
+space, and some kind of error is being generated as a result - the debug 
+output doesn't obviously make it possible to work out what.
+
+If your graphics hardware still works then it's not an issue, but 
+there's the possibility that this is a Linux bug which might generate 
+real problems in some other situation.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
