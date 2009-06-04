@@ -1,81 +1,87 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 06/11] ACPI: simplify acpi_pci_irq_del_prt() API
-Date: Wed, 03 Jun 2009 23:58:47 -0600
-Message-ID: <20090604055847.18802.98452.stgit@bob.kio>
+Subject: [PATCH v2 08/11] PCI Hotplug: acpiphp: convert to acpi_get_pci_dev
+Date: Wed, 03 Jun 2009 23:58:57 -0600
+Message-ID: <20090604055857.18802.34388.stgit@bob.kio>
 References: <20090604054504.18802.21690.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:16955 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757162AbZFDF6z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jun 2009 01:58:55 -0400
 In-Reply-To: <20090604054504.18802.21690.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org
 
-There is no need to pass a segment/bus tuple to this API, as the callsite
-always has a struct pci_bus. We can derive segment/bus from the
-struct pci_bus, so let's take this opportunit to simplify the API and
-make life easier for the callers.
+Now that acpi_get_pci_dev is available, let's use it instead of
+acpi_get_pci_id.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/pci_bind.c     |    3 +--
- drivers/acpi/pci_irq.c      |    7 ++++---
- include/acpi/acpi_drivers.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   25 +++++++------------------
+ 1 files changed, 7 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 6eb58ef..62cb383 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -113,8 +113,7 @@ static int acpi_pci_unbind(struct acpi_device *device)
- 		return 0;
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index fc6636e..0cb0f83 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -678,18 +678,9 @@ static void remove_bridge(acpi_handle handle)
  
- 	if (dev->subordinate)
--		acpi_pci_irq_del_prt(pci_domain_nr(dev->bus),
--				     dev->subordinate->number);
-+		acpi_pci_irq_del_prt(dev->subordinate);
+ static struct pci_dev * get_apic_pci_info(acpi_handle handle)
+ {
+-	struct acpi_pci_id id;
+-	struct pci_bus *bus;
+ 	struct pci_dev *dev;
  
- 	pci_dev_put(dev);
- 	return 0;
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 3ed944c..ef9509e 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -280,16 +280,17 @@ int acpi_pci_irq_add_prt(acpi_handle handle, struct pci_bus *bus)
+-	if (ACPI_FAILURE(acpi_get_pci_id(handle, &id)))
+-		return NULL;
+-
+-	bus = pci_find_bus(id.segment, id.bus);
+-	if (!bus)
+-		return NULL;
+-
+-	dev = pci_get_slot(bus, PCI_DEVFN(id.device, id.function));
++	dev = acpi_get_pci_dev(handle);
+ 	if (!dev)
+ 		return NULL;
+ 
+@@ -1396,19 +1387,16 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
+ /* Program resources in newly inserted bridge */
+ static int acpiphp_configure_bridge (acpi_handle handle)
+ {
+-	struct acpi_pci_id pci_id;
++	struct pci_dev *dev;
+ 	struct pci_bus *bus;
+ 
+-	if (ACPI_FAILURE(acpi_get_pci_id(handle, &pci_id))) {
++	dev = acpi_get_pci_dev(handle);
++	if (!dev) {
+ 		err("cannot get PCI domain and bus number for bridge\n");
+ 		return -EINVAL;
+ 	}
+-	bus = pci_find_bus(pci_id.segment, pci_id.bus);
+-	if (!bus) {
+-		err("cannot find bus %d:%d\n",
+-				pci_id.segment, pci_id.bus);
+-		return -EINVAL;
+-	}
++
++	bus = dev->bus;
+ 
+ 	pci_bus_size_bridges(bus);
+ 	pci_bus_assign_resources(bus);
+@@ -1416,6 +1404,7 @@ static int acpiphp_configure_bridge (acpi_handle handle)
+ 	acpiphp_set_hpp_values(handle, bus);
+ 	pci_enable_bridges(bus);
+ 	acpiphp_configure_ioapics(handle);
++	pci_dev_put(dev);
  	return 0;
  }
  
--void acpi_pci_irq_del_prt(int segment, int bus)
-+void acpi_pci_irq_del_prt(struct pci_bus *bus)
- {
- 	struct acpi_prt_entry *entry, *tmp;
- 
- 	printk(KERN_DEBUG
- 	       "ACPI: Delete PCI Interrupt Routing Table for %04x:%02x\n",
--	       segment, bus);
-+	       pci_domain_nr(bus), bus->number);
- 	spin_lock(&acpi_prt_lock);
- 	list_for_each_entry_safe(entry, tmp, &acpi_prt_list, list) {
--		if (segment == entry->id.segment && bus == entry->id.bus) {
-+		if (pci_domain_nr(bus) == entry->id.segment
-+			&& bus->number == entry->id.bus) {
- 			list_del(&entry->list);
- 			kfree(entry);
- 		}
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 702b12e..12e99c3 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -91,7 +91,7 @@ int acpi_pci_link_free_irq(acpi_handle handle);
- /* ACPI PCI Interrupt Routing (pci_irq.c) */
- 
- int acpi_pci_irq_add_prt(acpi_handle handle, struct pci_bus *bus);
--void acpi_pci_irq_del_prt(int segment, int bus);
-+void acpi_pci_irq_del_prt(struct pci_bus *bus);
- 
- /* ACPI PCI Device Binding (pci_bind.c) */
- 
+
