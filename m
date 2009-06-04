@@ -1,81 +1,75 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 00/11] Dynamic ACPI-PCI binding
-Date: Wed, 03 Jun 2009 23:58:16 -0600
-Message-ID: <20090604054504.18802.21690.stgit@bob.kio>
+Subject: [PATCH v2 01/11] ACPI: make acpi_pci_bind() static
+Date: Wed, 03 Jun 2009 23:58:21 -0600
+Message-ID: <20090604055821.18802.88142.stgit@bob.kio>
+References: <20090604054504.18802.21690.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:7259 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080AbZFDF6O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jun 2009 01:58:14 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090604054504.18802.21690.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
+acpi_pci_root_add() explicitly assigns device->ops.bind, and later
+calls acpi_pci_bind_root(), which also does the same thing.
 
-I hope this isn't too late for the .31 merge window. If so, no big deal;
-this patchset isn't urgent, it's just a nice cleanup that was inspired
-from investigating the recent bug in acpi_pci_bind() (fixed by dacd254).
+We don't need to repeat ourselves; removing the explicit assignment
+allows us to make acpi_pci_bind() static.
 
-This patch series eliminates static boot-time binding of ACPI
-and PCI devices, and introduces an API to perform this lookup
-during runtime.
-
-This change has the following advantages:
-
-	- eliminates struct acpi_device vs struct pci_dev lifetime issues
-	- lays groundwork for eliminating .bind/.unbind from acpi_device_ops
-	- lays more groundwork for eliminating .start from acpi_device_ops
-	  and thus simplifying ACPI drivers
-  	- whacks out a lot of code
-
-This patchset is based on lenb/test (66c74fa1d4), and has been boot
-tested on ia64 and x86. I also performed physical PCI hotplug tests
-using acpiphp on ia64. I do not have an acpiphp-capable x86 platform.
-
-I didn't test the changes in the video driver either, as I don't have
-the hardware.
-
-v1 -> v2
-	- rearrange series into a more logical order
-	- much simpler acpi_is_root_bridge() implementation
-	- no longer export acpi_pci_find_root()
-	- no longer leak memory in acpi_get_pci_dev()
-	- no longer leak references in acpi_pci_unbind/acpi_pci_bind
-	- convert video driver to use acpi_get_pci_dev()
-	- kill off acpi_get_physical_pci_device()
-	- incorporate Bjorn's other comments. :)
-
+Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
-Alex Chiang (11):
-      ACPI: kill acpi_get_physical_pci_device()
-      ACPI: video: convert to acpi_get_pci_dev
-      ACPI: kill acpi_get_pci_id
-      PCI Hotplug: acpiphp: convert to acpi_get_pci_dev
-      ACPI: acpi_pci_unbind should clean up properly after acpi_pci_bind
-      ACPI: simplify acpi_pci_irq_del_prt() API
-      ACPI: simplify acpi_pci_irq_add_prt() API
-      ACPI: eviscerate pci_bind.c
-      ACPI: Introduce acpi_get_pci_dev()
-      ACPI: Introduce acpi_is_root_bridge()
-      ACPI: make acpi_pci_bind() static
+ drivers/acpi/pci_bind.c     |    3 ++-
+ drivers/acpi/pci_root.c     |    2 --
+ include/acpi/acpi_drivers.h |    1 -
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-
- drivers/acpi/glue.c                |   40 -----
- drivers/acpi/pci_bind.c            |  315 +++++-------------------------------
- drivers/acpi/pci_irq.c             |   17 +-
- drivers/acpi/pci_root.c            |  112 ++++++++++++-
- drivers/acpi/video.c               |    6 -
- drivers/acpi/video_detect.c        |    9 +
- drivers/pci/hotplug/acpi_pcihp.c   |   40 -----
- drivers/pci/hotplug/acpiphp_glue.c |   27 +--
- include/acpi/acpi_bus.h            |    2 
- include/acpi/acpi_drivers.h        |   10 -
- include/linux/pci_hotplug.h        |    1 
- 11 files changed, 179 insertions(+), 400 deletions(-)
-
+diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
+index bc46de3..236765c 100644
+--- a/drivers/acpi/pci_bind.c
++++ b/drivers/acpi/pci_bind.c
+@@ -44,6 +44,7 @@ struct acpi_pci_data {
+ 	struct pci_dev *dev;
+ };
+ 
++static int acpi_pci_bind(struct acpi_device *device);
+ static int acpi_pci_unbind(struct acpi_device *device);
+ 
+ static void acpi_pci_data_handler(acpi_handle handle, u32 function,
+@@ -108,7 +109,7 @@ acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id)
+ 
+ EXPORT_SYMBOL(acpi_get_pci_id);
+ 
+-int acpi_pci_bind(struct acpi_device *device)
++static int acpi_pci_bind(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 196f97d..ca8dba3 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -386,8 +386,6 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+ 	device->driver_data = root;
+ 
+-	device->ops.bind = acpi_pci_bind;
+-
+ 	/*
+ 	 * All supported architectures that use ACPI have support for
+ 	 * PCI domains, so we indicate this in _OSC support capabilities.
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index 5e8ed3a..bbe9207 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -98,7 +98,6 @@ void acpi_pci_irq_del_prt(int segment, int bus);
+ struct pci_bus;
+ 
+ acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
+-int acpi_pci_bind(struct acpi_device *device);
+ int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
+ 		       struct pci_bus *bus);
+ 
