@@ -1,70 +1,55 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH v2 07/11] ACPI: acpi_pci_unbind should clean up
-	properly after acpi_pci_bind
-Date: Thu, 4 Jun 2009 17:35:21 -0600
-Message-ID: <20090604233521.GA12900@ethanol>
-References: <20090604054504.18802.21690.stgit@bob.kio> <20090604055852.18802.22743.stgit@bob.kio> <4A2788FA.2050606@jp.fujitsu.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: only a single core (out of 8) initialized
+Date: Thu, 4 Jun 2009 20:29:33 -0700
+Message-ID: <20090604202933.d7c24c3d.akpm@linux-foundation.org>
+References: <alpine.DEB.1.10.0906041949030.7953@asgard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:14082 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105AbZFDXpc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jun 2009 19:45:32 -0400
-Content-Disposition: inline
-In-Reply-To: <4A2788FA.2050606@jp.fujitsu.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50244 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752281AbZFEDbh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jun 2009 23:31:37 -0400
+In-Reply-To: <alpine.DEB.1.10.0906041949030.7953@asgard>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+To: david@lang.hm
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
->>  
->
-> I have a concern about this change.
->
-> The acpi_pci_irq_del_prt() against dev->bus removes not only
-> the _PRT entries for PCI function corresponding to specified
-> acpi_device, but also other _PRT entries for working PCI
-> devices/functions on the same bus. As a result, interrupt
-> initialization for those PCI functions would no longer work
-> properly after that.
->
-> So I think we should not call acpi_pci_irq_del_prt() against
-> dev->bus.
+On Thu, 4 Jun 2009 19:52:36 -0700 (PDT) david@lang.hm wrote:
 
-Thanks for the review. I agree with you.
+> this is 2.6.30-rc7
 
-Here is a respun version of this patch.
+Were any earlier kernels OK?
 
-From: Alex Chiang <achiang@hp.com>
+>  with a patch added to debug a nv sata driver 
+> incompatibility with the Intel SSDs on a tyan motherboard
+> 
+> on one system it sees all 8 cores, on the other system it only initializes 
+> one core.
+> 
+> can anyone help me spot what's going wrong in the one that's only seeing a 
+> single core? If I'm reading things correctly it's seeing both sockets for 
+> the NUMA setup, but then only initializing one core on the first socket.
 
-ACPI: acpi_pci_unbind should clean up properly after acpi_pci_bind
+good:
+	SMP: Allowing 8 CPUs, 4 hotplug CPUs
 
-In acpi_pci_bind, we set device->ops.bind and device->ops.unbind, but
-never clear them out.
+bad:	
+	SMP: Allowing 1 CPUs, 0 hotplug CPUs
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Alex Chiang <achiang@hp.com>
----
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 62cb383..c9cc650 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -109,11 +109,13 @@ static int acpi_pci_unbind(struct acpi_device *device)
- 	struct pci_dev *dev;
- 
- 	dev = acpi_get_pci_dev(device->handle);
--	if (!dev)
-+	if (!dev || !dev->subordinate)
- 		return 0;
- 
--	if (dev->subordinate)
--		acpi_pci_irq_del_prt(dev->subordinate);
-+	acpi_pci_irq_del_prt(dev->subordinate);
-+
-+	device->ops.bind = NULL;
-+	device->ops.unbind = NULL;
- 
- 	pci_dev_put(dev);
- 	return 0;
+perhaps due to
+	ACPI: No APIC-table, disabling MPS
+
+You could have a poke around in arch/x86/kernel/smpboot.c() and find
+out what happened here.  I'd be suspecting this code triggered:
+
+        /* no processor from mptable or madt */
+        if (!num_processors)
+                num_processors = 1;
+
+because ACPI doesn't like that board.
+
+Did you look into updating the BIOS?
+
