@@ -1,96 +1,64 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH v2 07/11] ACPI: acpi_pci_unbind should clean up
-	properly after acpi_pci_bind
-Date: Fri, 5 Jun 2009 09:59:54 -0600
-Message-ID: <20090605155954.GA11891@ldl.fc.hp.com>
-References: <20090604054504.18802.21690.stgit@bob.kio> <4A2788FA.2050606@jp.fujitsu.com> <20090604233521.GA12900@ethanol> <200906050949.02097.bjorn.helgaas@hp.com>
+From: david@lang.hm
+Subject: Re: only a single core (out of 8) initialized
+Date: Fri, 5 Jun 2009 09:47:37 -0700 (PDT)
+Message-ID: <alpine.DEB.1.10.0906050946530.7953@asgard>
+References: <alpine.DEB.1.10.0906041949030.7953@asgard> <20090604202933.d7c24c3d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:8676 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbZFEP7w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jun 2009 11:59:52 -0400
-Content-Disposition: inline
-In-Reply-To: <200906050949.02097.bjorn.helgaas@hp.com>
+Received: from mail.lang.hm ([64.81.33.126]:40972 "EHLO bifrost.lang.hm"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751988AbZFEQsB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Jun 2009 12:48:01 -0400
+In-Reply-To: <20090604202933.d7c24c3d.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-* Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> On Thursday 04 June 2009 05:35:21 pm Alex Chiang wrote:
-> > * Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> > >
-> > > I have a concern about this change.
-> > >
-> > > The acpi_pci_irq_del_prt() against dev->bus removes not only
-> > > the _PRT entries for PCI function corresponding to specified
-> > > acpi_device, but also other _PRT entries for working PCI
-> > > devices/functions on the same bus. As a result, interrupt
-> > > initialization for those PCI functions would no longer work
-> > > properly after that.
-> > >
-> > > So I think we should not call acpi_pci_irq_del_prt() against
-> > > dev->bus.
-> > 
-> > Thanks for the review. I agree with you.
-> 
-> I agree that this respun version makes things more the way they were,
-> so in that sense, it should do no harm.  But I still have the niggling
-> concern that .bind() adds _PRT info for non-bridges, and there's no
-> corresponding removal.  There should be some path that makes this
-> more symmetric.
+On Thu, 4 Jun 2009, Andrew Morton wrote:
 
-The comment in acpi_pci_bind doesn't seem to know if you can even
-have a _PRT for non-bridges. The spec (3.0b) says that _PRT is
-required for all root bridges, but doesn't mention anything about
-non-bridge devices.
+> On Thu, 4 Jun 2009 19:52:36 -0700 (PDT) david@lang.hm wrote:
+>
+>> this is 2.6.30-rc7
+>
+> Were any earlier kernels OK?
 
-My gut feeling is the way to cure the symmetry is to remove the
-path in .bind() that adds _PRT for non-bridges, but I'm a little
-hesitant to do that without knowing for sure.
+sorry, I missed this question.
 
-I think for this patch, the Hippocratic approach is the right
-one for now.
+I was running 2.6.29.1 when I noticed this problem. I haven't tried older 
+kernels yet.
 
-Thanks.
+David Lang
 
-/ac
- 
-> > Here is a respun version of this patch.
-> > 
-> > From: Alex Chiang <achiang@hp.com>
-> > 
-> > ACPI: acpi_pci_unbind should clean up properly after acpi_pci_bind
-> > 
-> > In acpi_pci_bind, we set device->ops.bind and device->ops.unbind, but
-> > never clear them out.
-> > 
-> > Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > Signed-off-by: Alex Chiang <achiang@hp.com>
-> > ---
-> > diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-> > index 62cb383..c9cc650 100644
-> > --- a/drivers/acpi/pci_bind.c
-> > +++ b/drivers/acpi/pci_bind.c
-> > @@ -109,11 +109,13 @@ static int acpi_pci_unbind(struct acpi_device *device)
-> >  	struct pci_dev *dev;
-> >  
-> >  	dev = acpi_get_pci_dev(device->handle);
-> > -	if (!dev)
-> > +	if (!dev || !dev->subordinate)
-> >  		return 0;
-> >  
-> > -	if (dev->subordinate)
-> > -		acpi_pci_irq_del_prt(dev->subordinate);
-> > +	acpi_pci_irq_del_prt(dev->subordinate);
-> > +
-> > +	device->ops.bind = NULL;
-> > +	device->ops.unbind = NULL;
-> >  
-> >  	pci_dev_put(dev);
-> >  	return 0;
-> > 
-> 
-> 
+>>  with a patch added to debug a nv sata driver
+>> incompatibility with the Intel SSDs on a tyan motherboard
+>>
+>> on one system it sees all 8 cores, on the other system it only initializes
+>> one core.
+>>
+>> can anyone help me spot what's going wrong in the one that's only seeing a
+>> single core? If I'm reading things correctly it's seeing both sockets for
+>> the NUMA setup, but then only initializing one core on the first socket.
+>
+> good:
+> 	SMP: Allowing 8 CPUs, 4 hotplug CPUs
+>
+> bad:
+> 	SMP: Allowing 1 CPUs, 0 hotplug CPUs
+>
+> perhaps due to
+> 	ACPI: No APIC-table, disabling MPS
+>
+> You could have a poke around in arch/x86/kernel/smpboot.c() and find
+> out what happened here.  I'd be suspecting this code triggered:
+>
+>        /* no processor from mptable or madt */
+>        if (!num_processors)
+>                num_processors = 1;
+>
+> because ACPI doesn't like that board.
+>
+> Did you look into updating the BIOS?
+>
+>
