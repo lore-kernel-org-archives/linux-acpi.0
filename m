@@ -1,42 +1,70 @@
-From: Rowland Hook <rjhook70@gmail.com>
-Subject: From Martins D.Legacy
-Date: Fri, 5 Jun 2009 13:39:38 -0700
-Message-ID: <73e2b0650906051339u36354146v3be228a12b5d0a68__13867.8550873466$1244234418$gmane$org@mail.gmail.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: only a single core (out of 8) initialized
+Date: Fri, 05 Jun 2009 19:24:58 -0600
+Message-ID: <4A29C56A.8020306@gmail.com>
+References: <alpine.DEB.1.10.0906041949030.7953@asgard> <20090604202933.d7c24c3d.akpm@linux-foundation.org> <alpine.DEB.1.10.0906042049230.11064@asgard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:49400 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460AbZFEUjp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jun 2009 16:39:45 -0400
-Received: by mail-ew0-f210.google.com with SMTP id 6so2497793ewy.37
-        for <linux-acpi@vger.kernel.org>; Fri, 05 Jun 2009 13:39:47 -0700 (PDT)
+Received: from yw-out-2324.google.com ([74.125.46.30]:13504 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752882AbZFFBY7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jun 2009 21:24:59 -0400
+In-Reply-To: <alpine.DEB.1.10.0906042049230.11064@asgard>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: david@lang.hm
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>
 
-My name is Martines Legacy
+david@lang.hm wrote:
+> On Thu, 4 Jun 2009, Andrew Morton wrote:
+> 
+>> Subject: Re: only a single core (out of 8) initialized
+>>
+>> On Thu, 4 Jun 2009 19:52:36 -0700 (PDT) david@lang.hm wrote:
+>>
+>>> this is 2.6.30-rc7
+>>
+>> Were any earlier kernels OK?
+>>
+>>>  with a patch added to debug a nv sata driver
+>>> incompatibility with the Intel SSDs on a tyan motherboard
+>>>
+>>> on one system it sees all 8 cores, on the other system it only 
+>>> initializes
+>>> one core.
+>>>
+>>> can anyone help me spot what's going wrong in the one that's only 
+>>> seeing a
+>>> single core? If I'm reading things correctly it's seeing both sockets 
+>>> for
+>>> the NUMA setup, but then only initializing one core on the first socket.
+>>
+>> good:
+>>     SMP: Allowing 8 CPUs, 4 hotplug CPUs
+>>
+>> bad:
+>>     SMP: Allowing 1 CPUs, 0 hotplug CPUs
+>>
+>> perhaps due to
+>>     ACPI: No APIC-table, disabling MPS
+>>
+>> You could have a poke around in arch/x86/kernel/smpboot.c() and find
+>> out what happened here.  I'd be suspecting this code triggered:
+>>
+>>        /* no processor from mptable or madt */
+>>        if (!num_processors)
+>>                num_processors = 1;
+>>
+>> because ACPI doesn't like that board.
+>>
+>> Did you look into updating the BIOS?
+> 
+> this is actually the newer of the two systems. I've already escalated up 
+> to Tyan about the fact that this board won't see the Intel SSD drives 
+> (unless you hotplug the drive). I've forwarded this to them as well. 
+> their website does show a newer bios than what was shipped to me.
 
-I am an American soldier serving in the military with the army's 3rd
-infantry division.with a need for assistance, I have summed up courage
-to contact you. I found your contact in address on  journal. I got a
-huge fund of Forty Million United States Dollars, (US$40,000,000)
-.This money is among the various currencies which was discovered in
-barrels at a farm-house near one of  Saddam Hussein old palaces in
-Tikrit-Iraq during a rescue operation. I and Sgt James.Howie where the
-first to discover this fund. We concluded and took part of this money
-which is ($40,000.000.00) and shared between us before informing
-anybody about it. This was quite an illegal even last week a roadside
-bomb killed my brother in-law. Find the story on
-web-address below:  http://news.bbc.co.uk/2/hi/middle_east/2988455.stm?
-If  you will do this with good faith and you assure me that my
-percentage will be safe in your care until I complete my service
-here,then I shall agree with You. This is no stolen money, and there
-is no danger involved. We will share upon this ratio: I will take 50%
-and you will take 30%. and 20% shall be given to charity organisation
-which you shall takecare of this offer after a sucessfull transaction,
-We will discuss this in details.
-
-Thanks
-Sgt.Martines Legacy
-Email: proger34@yahoo.com
+Yeah, it seems like a BIOS problem on that system. It's missing a bunch 
+of the ACPI tables that the other system has.
