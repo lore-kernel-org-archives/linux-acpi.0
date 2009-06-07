@@ -1,1990 +1,264 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 2/2] PM/Hibernate: Rename disk.c to hibernate.c
-Date: Sun, 7 Jun 2009 00:56:54 +0200
-Message-ID: <200906070056.55418.rjw@sisk.pl>
-References: <200906070054.19207.rjw@sisk.pl>
+From: Steven Hicks <shicks37@uncc.edu>
+Subject: Issues with MSI EC ACPI
+Date: Sat, 6 Jun 2009 21:26:03 -0400
+Message-ID: <200906062126.03414.shicks37@uncc.edu>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57075 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753763AbZFFXBG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 6 Jun 2009 19:01:06 -0400
-In-Reply-To: <200906070054.19207.rjw@sisk.pl>
+Received: from ironhost1.uncc.edu ([152.15.42.152]:3506 "EHLO uncc.edu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752949AbZFGBlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 6 Jun 2009 21:41:20 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: Pavel Machek <pavel@ucw.cz>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+I've been having issues with the MSI VR705 ACPI functionality. 
 
-Change the name of kernel/power/disk.c to kernel/power/hibernate.c
-in analogy with the file names introduced by the changes that
-separated the suspend to RAM and standby funtionality from the
-common PM functions.
+The chipset is an MCP79 and has an embedded controller that puts 
+this out at boot:
+ BIOS-e820: 00000000cffa0000 - 00000000cffae000 (ACPI data)
+ BIOS-e820: 00000000cffae000 - 00000000cfff0000 (ACPI NVS) 
+ACPI: RSDP 000FA450, 0014 (r0 MSI_NB)                      
+ACPI: RSDT CFFA0000, 004C (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: FACP CFFA0200, 0084 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: DSDT CFFA0680, 9247 (r1 MSI_NB MEGABOOK       10 INTL 
+20051117)
+ACPI: FACS CFFAE000, 0040                                            
+ACPI: APIC CFFA0390, 0080 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: MCFG CFFA0410, 003C (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: SLIC CFFA0450, 0176 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: WDRT CFFA05D0, 0047 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: ECDT CFFA0620, 0055 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: OEMB CFFAE040, 0078 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: HPET CFFAA680, 0038 (r1 MSI_NB MEGABOOK  1092009 MSFT       
+97)
+ACPI: NVHD CFFAE0C0, 0284 (r1 010909  NVHDCP   1092009 MSFT       
+97)
+ACPI: SSDT CFFAEC50, 04F0 (r1 MSI_NB MEGABOOK  1092009 INTL 
+20051117)
+ACPI: Local APIC address 0xfee00000                                  
+ACPI: PM-Timer IO Port: 0x4008                                       
+ACPI: Local APIC address 0xfee00000                                  
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)                   
+ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)                   
+ACPI: LAPIC (acpi_id[0x03] lapic_id[0x82] disabled)                  
+ACPI: LAPIC (acpi_id[0x04] lapic_id[0x83] disabled)                  
+ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])              
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)             
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)          
+ACPI: INT_SRC_OVR (bus 0 bus_irq 14 global_irq 14 high edge)         
+ACPI: INT_SRC_OVR (bus 0 bus_irq 15 global_irq 15 high edge)         
+ACPI: IRQ0 used by override.                                         
+ACPI: IRQ2 used by override.                                         
+ACPI: IRQ9 used by override.                                         
+ACPI: IRQ14 used by override.                                        
+ACPI: IRQ15 used by override.                                        
+ACPI: HPET id: 0x10de8201 base: 0xfed00000                           
+Using ACPI (MADT) for SMP configuration information                  
+ACPI: Core revision 20080926                                         
+ACPI: bus type pci registered                                        
+ACPI: EC: EC description table is found, configuring boot EC         
+ACPI: Interpreter enabled                                            
+ACPI: (supports S0 S1 S3 S4 S5)                                      
+ACPI: Using IOAPIC for interrupt routing                             
+ACPI: EC: input buffer is not empty, aborting transaction            
+ACPI: EC: input buffer is not empty, aborting transaction            
+ACPI: EC: input buffer is not empty, aborting transaction            
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI Error (uteval-0232): Method execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME       
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI Error (uteval-0232): Method execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME       
+PCI: MCFG area at fc000000 reserved in ACPI motherboard resources                                                 
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI: EC: GPE = 0x10, I/O: command/status = 0x62, data = 0x66                                                     
+ACPI: EC: driver started in poll mode                                                                             
+ACPI: No dock devices found.                                                                                      
+ACPI: PCI Root Bridge [PCI0] (0000:00)                                                                            
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]                                                               
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]                                                          
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.IXVE._PRT]                                                          
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P8._PRT]                                                          
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P9._PRT]                                                          
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P6._PRT]                                                          
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P7._PRT]                                                          
+ACPI: PCI Interrupt Link [LNKA] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LNKB] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LNKC] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LNKD] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN0A] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN0B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN0C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN0D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN1A] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN1B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN1C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN1D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN2A] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN2B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN2C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN2D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN3A] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN3B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN3C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN3D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN4A] (IRQs 16 17 18 19) *10                                                            
+ACPI: PCI Interrupt Link [LN4B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN4C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN4D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN5A] (IRQs 16 17 18 19) *11                                                            
+ACPI: PCI Interrupt Link [LN5B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN5C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN5D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN6A] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN6B] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN6C] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LN6D] (IRQs 16 17 18 19) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LUB0] (IRQs 20 21 22 23) *11                                                            
+ACPI: PCI Interrupt Link [LUB2] (IRQs 20 21 22 23) *9                                                             
+ACPI: PCI Interrupt Link [LMAC] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LAZA] (IRQs 20 21 22 23) *15                                                            
+ACPI: PCI Interrupt Link [SGRU] (IRQs 20 21 22 23) *14                                                            
+ACPI: PCI Interrupt Link [LSMB] (IRQs 20 21 22 23) *7                                                             
+ACPI: PCI Interrupt Link [LPMU] (IRQs 20 21 22 23) *10                                                            
+ACPI: PCI Interrupt Link [LSA0] (IRQs 20 21 22 23) *5                                                             
+ACPI: PCI Interrupt Link [LATA] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [UB11] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [UB12] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LRP0] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LRP1] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LRP2] (IRQs 20 21 22 23) *0, disabled.                                                  
+ACPI: PCI Interrupt Link [LRP3] (IRQs 20 21 22 23) *10                                                            
+ACPI: PCI Interrupt Link [LRP4] (IRQs 20 21 22 23) *11                                                            
+ACPI: PCI Interrupt Link [LRP5] (IRQs 20 21 22 23) *9                                                             
+ACPI: PCI Interrupt Link [LRP6] (IRQs 20 21 22 23) *15                                                            
+PCI: Using ACPI for IRQ routing                                                                                   
+pnp: PnP ACPI init                                                                                                
+ACPI: bus type pnp registered                                                                                     
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI Error (uteval-0232): Method execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME       
+pnp: PnP ACPI: found 13 devices                                                                                   
+ACPI: ACPI bus type pnp unregistered                                                                              
+ACPI: PCI Interrupt Link [LRP3] enabled at IRQ 23                                                                 
+ACPI: PCI Interrupt Link [LRP4] enabled at IRQ 22                                                                 
+ACPI: PCI Interrupt Link [LRP5] enabled at IRQ 21                                                                 
+ACPI: PCI Interrupt Link [LRP6] enabled at IRQ 20                                                                 
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI Error (uteval-0232): Method execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME       
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI Error (uteval-0232): Method execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME       
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.ADP1._PSR] (Node f7039c98), AE_TIME
+ACPI Exception (ac-0135): AE_TIME, Error reading AC Adapter state 
+[20080926]                                      
+ACPI: Power Button (FF) [PWRF]                                                                                    
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.LID0._LID] (Node f703c608), AE_TIME
+ACPI: Lid Switch [LID0]                                                                                           
+ACPI: Power Button (CM) [PWRB]                                                                                    
+ACPI: Sleep Button (CM) [SLPB]                                                                                    
+ACPI: SSDT CFFAE420, 01FA (r1 MSI_NB MEGABOOK  1092009 INTL 
+20051117)                                             
+ACPI: SSDT CFFAE6B0, 0594 (r1 MSI_NB MEGABOOK  1092009 INTL 
+20051117)                                             
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])                                                                   
+processor ACPI_CPU:00: registered as cooling_device0                                                              
+ACPI: Processor [P001] (supports 8 throttling states)                                                             
+ACPI: SSDT CFFAE350, 00CC (r1 MSI_NB MEGABOOK  1092009 INTL 
+20051117)                                             
+ACPI: SSDT CFFAE620, 0085 (r1 MSI_NB MEGABOOK  1092009 INTL 
+20051117)                                             
+ACPI: CPU1 (power states: C1[C1] C2[C2] C3[C3])                                                                   
+processor ACPI_CPU:01: registered as cooling_device1                                                              
+ACPI: Processor [P002] (supports 8 throttling states)                                                             
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME
+ACPI Error (uteval-0232): Method execution failed 
+[\_SB_.PCI0.SBRG.EC__.BAT1._STA] (Node f703c734), AE_TIME       
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI: EC: input buffer is not empty, aborting transaction                                                         
+ACPI Exception (evregion-0419): AE_TIME, Returned by Handler for 
+[EmbeddedControl] [20080926]                     
+ACPI Error (psparse-0524): Method parse/execution failed 
+[\_TZ_.THRM._TMP] (Node f703c5b8), AE_TIME               
+ACPI: PCI Interrupt Link [LN4A] enabled at IRQ 19                                                                 
+ACPI: PCI Interrupt Link [LSA0] enabled at IRQ 23                                                                 
+ACPI: PCI Interrupt Link [LUB2] enabled at IRQ 22                                                                 
+ACPI: PCI Interrupt Link [LUB0] enabled at IRQ 21                                                                 
+HDA Intel 0000:00:08.0: power state changed by ACPI to D0                                                         
+ACPI: PCI Interrupt Link [LAZA] enabled at IRQ 20                                                                 
+ACPI: PCI Interrupt Link [LN5A] enabled at IRQ 18
+ACPI: PCI Interrupt Link [SGRU] enabled at IRQ 23
+ACPI: EC: non-query interrupt received, switching to interrupt mode
+ACPI: EC: input buffer is not empty, aborting transaction
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/Makefile    |    2 
- kernel/power/disk.c      |  955 -----------------------------------------------
- kernel/power/hibernate.c |  955 +++++++++++++++++++++++++++++++++++++++++++++++
- kernel/power/power.h     |    4 
- 4 files changed, 958 insertions(+), 958 deletions(-)
 
-Index: linux-2.6/kernel/power/power.h
-===================================================================
---- linux-2.6.orig/kernel/power/power.h
-+++ linux-2.6/kernel/power/power.h
-@@ -45,7 +45,7 @@ static inline char *check_image_kernel(s
-  */
- #define SPARE_PAGES	((1024 * 1024) >> PAGE_SHIFT)
- 
--/* kernel/power/disk.c */
-+/* kernel/power/hibernate.c */
- extern int hibernation_snapshot(int platform_mode);
- extern int hibernation_restore(int platform_mode);
- extern int hibernation_platform_enter(void);
-@@ -147,7 +147,7 @@ extern int swsusp_swap_in_use(void);
-  */
- #define SF_PLATFORM_MODE	1
- 
--/* kernel/power/disk.c */
-+/* kernel/power/hibernate.c */
- extern int swsusp_check(void);
- extern void swsusp_free(void);
- extern int swsusp_read(unsigned int *flags_p);
-Index: linux-2.6/kernel/power/Makefile
-===================================================================
---- linux-2.6.orig/kernel/power/Makefile
-+++ linux-2.6/kernel/power/Makefile
-@@ -8,6 +8,6 @@ obj-$(CONFIG_PM_SLEEP)		+= console.o
- obj-$(CONFIG_FREEZER)		+= process.o
- obj-$(CONFIG_SUSPEND)		+= suspend.o
- obj-$(CONFIG_PM_TEST_SUSPEND)	+= suspend-test.o
--obj-$(CONFIG_HIBERNATION)	+= swsusp.o disk.o snapshot.o swap.o user.o
-+obj-$(CONFIG_HIBERNATION)	+= swsusp.o hibernate.o snapshot.o swap.o user.o
- 
- obj-$(CONFIG_MAGIC_SYSRQ)	+= poweroff.o
-Index: linux-2.6/kernel/power/disk.c
-===================================================================
---- linux-2.6.orig/kernel/power/disk.c
-+++ /dev/null
-@@ -1,955 +0,0 @@
--/*
-- * kernel/power/disk.c - Suspend-to-disk support.
-- *
-- * Copyright (c) 2003 Patrick Mochel
-- * Copyright (c) 2003 Open Source Development Lab
-- * Copyright (c) 2004 Pavel Machek <pavel@suse.cz>
-- *
-- * This file is released under the GPLv2.
-- *
-- */
--
--#include <linux/suspend.h>
--#include <linux/syscalls.h>
--#include <linux/reboot.h>
--#include <linux/string.h>
--#include <linux/device.h>
--#include <linux/kmod.h>
--#include <linux/delay.h>
--#include <linux/fs.h>
--#include <linux/mount.h>
--#include <linux/pm.h>
--#include <linux/console.h>
--#include <linux/cpu.h>
--#include <linux/freezer.h>
--#include <scsi/scsi_scan.h>
--#include <asm/suspend.h>
--
--#include "power.h"
--
--
--static int noresume = 0;
--static char resume_file[256] = CONFIG_PM_STD_PARTITION;
--dev_t swsusp_resume_device;
--sector_t swsusp_resume_block;
--
--enum {
--	HIBERNATION_INVALID,
--	HIBERNATION_PLATFORM,
--	HIBERNATION_TEST,
--	HIBERNATION_TESTPROC,
--	HIBERNATION_SHUTDOWN,
--	HIBERNATION_REBOOT,
--	/* keep last */
--	__HIBERNATION_AFTER_LAST
--};
--#define HIBERNATION_MAX (__HIBERNATION_AFTER_LAST-1)
--#define HIBERNATION_FIRST (HIBERNATION_INVALID + 1)
--
--static int hibernation_mode = HIBERNATION_SHUTDOWN;
--
--static struct platform_hibernation_ops *hibernation_ops;
--
--/**
-- * hibernation_set_ops - set the global hibernate operations
-- * @ops: the hibernation operations to use in subsequent hibernation transitions
-- */
--
--void hibernation_set_ops(struct platform_hibernation_ops *ops)
--{
--	if (ops && !(ops->begin && ops->end &&  ops->pre_snapshot
--	    && ops->prepare && ops->finish && ops->enter && ops->pre_restore
--	    && ops->restore_cleanup)) {
--		WARN_ON(1);
--		return;
--	}
--	mutex_lock(&pm_mutex);
--	hibernation_ops = ops;
--	if (ops)
--		hibernation_mode = HIBERNATION_PLATFORM;
--	else if (hibernation_mode == HIBERNATION_PLATFORM)
--		hibernation_mode = HIBERNATION_SHUTDOWN;
--
--	mutex_unlock(&pm_mutex);
--}
--
--static bool entering_platform_hibernation;
--
--bool system_entering_hibernation(void)
--{
--	return entering_platform_hibernation;
--}
--EXPORT_SYMBOL(system_entering_hibernation);
--
--#ifdef CONFIG_PM_DEBUG
--static void hibernation_debug_sleep(void)
--{
--	printk(KERN_INFO "hibernation debug: Waiting for 5 seconds.\n");
--	mdelay(5000);
--}
--
--static int hibernation_testmode(int mode)
--{
--	if (hibernation_mode == mode) {
--		hibernation_debug_sleep();
--		return 1;
--	}
--	return 0;
--}
--
--static int hibernation_test(int level)
--{
--	if (pm_test_level == level) {
--		hibernation_debug_sleep();
--		return 1;
--	}
--	return 0;
--}
--#else /* !CONFIG_PM_DEBUG */
--static int hibernation_testmode(int mode) { return 0; }
--static int hibernation_test(int level) { return 0; }
--#endif /* !CONFIG_PM_DEBUG */
--
--/**
-- *	platform_begin - tell the platform driver that we're starting
-- *	hibernation
-- */
--
--static int platform_begin(int platform_mode)
--{
--	return (platform_mode && hibernation_ops) ?
--		hibernation_ops->begin() : 0;
--}
--
--/**
-- *	platform_end - tell the platform driver that we've entered the
-- *	working state
-- */
--
--static void platform_end(int platform_mode)
--{
--	if (platform_mode && hibernation_ops)
--		hibernation_ops->end();
--}
--
--/**
-- *	platform_pre_snapshot - prepare the machine for hibernation using the
-- *	platform driver if so configured and return an error code if it fails
-- */
--
--static int platform_pre_snapshot(int platform_mode)
--{
--	return (platform_mode && hibernation_ops) ?
--		hibernation_ops->pre_snapshot() : 0;
--}
--
--/**
-- *	platform_leave - prepare the machine for switching to the normal mode
-- *	of operation using the platform driver (called with interrupts disabled)
-- */
--
--static void platform_leave(int platform_mode)
--{
--	if (platform_mode && hibernation_ops)
--		hibernation_ops->leave();
--}
--
--/**
-- *	platform_finish - switch the machine to the normal mode of operation
-- *	using the platform driver (must be called after platform_prepare())
-- */
--
--static void platform_finish(int platform_mode)
--{
--	if (platform_mode && hibernation_ops)
--		hibernation_ops->finish();
--}
--
--/**
-- *	platform_pre_restore - prepare the platform for the restoration from a
-- *	hibernation image.  If the restore fails after this function has been
-- *	called, platform_restore_cleanup() must be called.
-- */
--
--static int platform_pre_restore(int platform_mode)
--{
--	return (platform_mode && hibernation_ops) ?
--		hibernation_ops->pre_restore() : 0;
--}
--
--/**
-- *	platform_restore_cleanup - switch the platform to the normal mode of
-- *	operation after a failing restore.  If platform_pre_restore() has been
-- *	called before the failing restore, this function must be called too,
-- *	regardless of the result of platform_pre_restore().
-- */
--
--static void platform_restore_cleanup(int platform_mode)
--{
--	if (platform_mode && hibernation_ops)
--		hibernation_ops->restore_cleanup();
--}
--
--/**
-- *	platform_recover - recover the platform from a failure to suspend
-- *	devices.
-- */
--
--static void platform_recover(int platform_mode)
--{
--	if (platform_mode && hibernation_ops && hibernation_ops->recover)
--		hibernation_ops->recover();
--}
--
--/**
-- *	create_image - freeze devices that need to be frozen with interrupts
-- *	off, create the hibernation image and thaw those devices.  Control
-- *	reappears in this routine after a restore.
-- */
--
--static int create_image(int platform_mode)
--{
--	int error;
--
--	error = arch_prepare_suspend();
--	if (error)
--		return error;
--
--	/* At this point, dpm_suspend_start() has been called, but *not*
--	 * dpm_suspend_noirq(). We *must* call dpm_suspend_noirq() now.
--	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
--	 * become desynchronized with the actual state of the hardware
--	 * at resume time, and evil weirdness ensues.
--	 */
--	error = dpm_suspend_noirq(PMSG_FREEZE);
--	if (error) {
--		printk(KERN_ERR "PM: Some devices failed to power down, "
--			"aborting hibernation\n");
--		return error;
--	}
--
--	error = platform_pre_snapshot(platform_mode);
--	if (error || hibernation_test(TEST_PLATFORM))
--		goto Platform_finish;
--
--	error = disable_nonboot_cpus();
--	if (error || hibernation_test(TEST_CPUS)
--	    || hibernation_testmode(HIBERNATION_TEST))
--		goto Enable_cpus;
--
--	local_irq_disable();
--
--	error = sysdev_suspend(PMSG_FREEZE);
--	if (error) {
--		printk(KERN_ERR "PM: Some system devices failed to power down, "
--			"aborting hibernation\n");
--		goto Enable_irqs;
--	}
--
--	if (hibernation_test(TEST_CORE))
--		goto Power_up;
--
--	in_suspend = 1;
--	save_processor_state();
--	error = swsusp_arch_suspend();
--	if (error)
--		printk(KERN_ERR "PM: Error %d creating hibernation image\n",
--			error);
--	/* Restore control flow magically appears here */
--	restore_processor_state();
--	if (!in_suspend)
--		platform_leave(platform_mode);
--
-- Power_up:
--	sysdev_resume();
--	/* NOTE:  dpm_resume_noirq() is just a resume() for devices
--	 * that suspended with irqs off ... no overall powerup.
--	 */
--
-- Enable_irqs:
--	local_irq_enable();
--
-- Enable_cpus:
--	enable_nonboot_cpus();
--
-- Platform_finish:
--	platform_finish(platform_mode);
--
--	dpm_resume_noirq(in_suspend ?
--		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
--
--	return error;
--}
--
--/**
-- *	hibernation_snapshot - quiesce devices and create the hibernation
-- *	snapshot image.
-- *	@platform_mode - if set, use the platform driver, if available, to
-- *			 prepare the platform firmware for the power transition.
-- *
-- *	Must be called with pm_mutex held
-- */
--
--int hibernation_snapshot(int platform_mode)
--{
--	int error;
--
--	error = platform_begin(platform_mode);
--	if (error)
--		return error;
--
--	/* Free memory before shutting down devices. */
--	error = swsusp_shrink_memory();
--	if (error)
--		goto Close;
--
--	suspend_console();
--	error = dpm_suspend_start(PMSG_FREEZE);
--	if (error)
--		goto Recover_platform;
--
--	if (hibernation_test(TEST_DEVICES))
--		goto Recover_platform;
--
--	error = create_image(platform_mode);
--	/* Control returns here after successful restore */
--
-- Resume_devices:
--	dpm_resume_end(in_suspend ?
--		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
--	resume_console();
-- Close:
--	platform_end(platform_mode);
--	return error;
--
-- Recover_platform:
--	platform_recover(platform_mode);
--	goto Resume_devices;
--}
--
--/**
-- *	resume_target_kernel - prepare devices that need to be suspended with
-- *	interrupts off, restore the contents of highmem that have not been
-- *	restored yet from the image and run the low level code that will restore
-- *	the remaining contents of memory and switch to the just restored target
-- *	kernel.
-- */
--
--static int resume_target_kernel(bool platform_mode)
--{
--	int error;
--
--	error = dpm_suspend_noirq(PMSG_QUIESCE);
--	if (error) {
--		printk(KERN_ERR "PM: Some devices failed to power down, "
--			"aborting resume\n");
--		return error;
--	}
--
--	error = platform_pre_restore(platform_mode);
--	if (error)
--		goto Cleanup;
--
--	error = disable_nonboot_cpus();
--	if (error)
--		goto Enable_cpus;
--
--	local_irq_disable();
--
--	error = sysdev_suspend(PMSG_QUIESCE);
--	if (error)
--		goto Enable_irqs;
--
--	/* We'll ignore saved state, but this gets preempt count (etc) right */
--	save_processor_state();
--	error = restore_highmem();
--	if (!error) {
--		error = swsusp_arch_resume();
--		/*
--		 * The code below is only ever reached in case of a failure.
--		 * Otherwise execution continues at place where
--		 * swsusp_arch_suspend() was called
--		 */
--		BUG_ON(!error);
--		/* This call to restore_highmem() undos the previous one */
--		restore_highmem();
--	}
--	/*
--	 * The only reason why swsusp_arch_resume() can fail is memory being
--	 * very tight, so we have to free it as soon as we can to avoid
--	 * subsequent failures
--	 */
--	swsusp_free();
--	restore_processor_state();
--	touch_softlockup_watchdog();
--
--	sysdev_resume();
--
-- Enable_irqs:
--	local_irq_enable();
--
-- Enable_cpus:
--	enable_nonboot_cpus();
--
-- Cleanup:
--	platform_restore_cleanup(platform_mode);
--
--	dpm_resume_noirq(PMSG_RECOVER);
--
--	return error;
--}
--
--/**
-- *	hibernation_restore - quiesce devices and restore the hibernation
-- *	snapshot image.  If successful, control returns in hibernation_snaphot()
-- *	@platform_mode - if set, use the platform driver, if available, to
-- *			 prepare the platform firmware for the transition.
-- *
-- *	Must be called with pm_mutex held
-- */
--
--int hibernation_restore(int platform_mode)
--{
--	int error;
--
--	pm_prepare_console();
--	suspend_console();
--	error = dpm_suspend_start(PMSG_QUIESCE);
--	if (!error) {
--		error = resume_target_kernel(platform_mode);
--		dpm_resume_end(PMSG_RECOVER);
--	}
--	resume_console();
--	pm_restore_console();
--	return error;
--}
--
--/**
-- *	hibernation_platform_enter - enter the hibernation state using the
-- *	platform driver (if available)
-- */
--
--int hibernation_platform_enter(void)
--{
--	int error;
--
--	if (!hibernation_ops)
--		return -ENOSYS;
--
--	/*
--	 * We have cancelled the power transition by running
--	 * hibernation_ops->finish() before saving the image, so we should let
--	 * the firmware know that we're going to enter the sleep state after all
--	 */
--	error = hibernation_ops->begin();
--	if (error)
--		goto Close;
--
--	entering_platform_hibernation = true;
--	suspend_console();
--	error = dpm_suspend_start(PMSG_HIBERNATE);
--	if (error) {
--		if (hibernation_ops->recover)
--			hibernation_ops->recover();
--		goto Resume_devices;
--	}
--
--	error = dpm_suspend_noirq(PMSG_HIBERNATE);
--	if (error)
--		goto Resume_devices;
--
--	error = hibernation_ops->prepare();
--	if (error)
--		goto Platofrm_finish;
--
--	error = disable_nonboot_cpus();
--	if (error)
--		goto Platofrm_finish;
--
--	local_irq_disable();
--	sysdev_suspend(PMSG_HIBERNATE);
--	hibernation_ops->enter();
--	/* We should never get here */
--	while (1);
--
--	/*
--	 * We don't need to reenable the nonboot CPUs or resume consoles, since
--	 * the system is going to be halted anyway.
--	 */
-- Platofrm_finish:
--	hibernation_ops->finish();
--
--	dpm_suspend_noirq(PMSG_RESTORE);
--
-- Resume_devices:
--	entering_platform_hibernation = false;
--	dpm_resume_end(PMSG_RESTORE);
--	resume_console();
--
-- Close:
--	hibernation_ops->end();
--
--	return error;
--}
--
--/**
-- *	power_down - Shut the machine down for hibernation.
-- *
-- *	Use the platform driver, if configured so; otherwise try
-- *	to power off or reboot.
-- */
--
--static void power_down(void)
--{
--	switch (hibernation_mode) {
--	case HIBERNATION_TEST:
--	case HIBERNATION_TESTPROC:
--		break;
--	case HIBERNATION_REBOOT:
--		kernel_restart(NULL);
--		break;
--	case HIBERNATION_PLATFORM:
--		hibernation_platform_enter();
--	case HIBERNATION_SHUTDOWN:
--		kernel_power_off();
--		break;
--	}
--	kernel_halt();
--	/*
--	 * Valid image is on the disk, if we continue we risk serious data
--	 * corruption after resume.
--	 */
--	printk(KERN_CRIT "PM: Please power down manually\n");
--	while(1);
--}
--
--static int prepare_processes(void)
--{
--	int error = 0;
--
--	if (freeze_processes()) {
--		error = -EBUSY;
--		thaw_processes();
--	}
--	return error;
--}
--
--/**
-- *	hibernate - The granpappy of the built-in hibernation management
-- */
--
--int hibernate(void)
--{
--	int error;
--
--	mutex_lock(&pm_mutex);
--	/* The snapshot device should not be opened while we're running */
--	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
--		error = -EBUSY;
--		goto Unlock;
--	}
--
--	pm_prepare_console();
--	error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
--	if (error)
--		goto Exit;
--
--	error = usermodehelper_disable();
--	if (error)
--		goto Exit;
--
--	/* Allocate memory management structures */
--	error = create_basic_memory_bitmaps();
--	if (error)
--		goto Exit;
--
--	printk(KERN_INFO "PM: Syncing filesystems ... ");
--	sys_sync();
--	printk("done.\n");
--
--	error = prepare_processes();
--	if (error)
--		goto Finish;
--
--	if (hibernation_test(TEST_FREEZER))
--		goto Thaw;
--
--	if (hibernation_testmode(HIBERNATION_TESTPROC))
--		goto Thaw;
--
--	error = hibernation_snapshot(hibernation_mode == HIBERNATION_PLATFORM);
--	if (in_suspend && !error) {
--		unsigned int flags = 0;
--
--		if (hibernation_mode == HIBERNATION_PLATFORM)
--			flags |= SF_PLATFORM_MODE;
--		pr_debug("PM: writing image.\n");
--		error = swsusp_write(flags);
--		swsusp_free();
--		if (!error)
--			power_down();
--	} else {
--		pr_debug("PM: Image restored successfully.\n");
--		swsusp_free();
--	}
-- Thaw:
--	thaw_processes();
-- Finish:
--	free_basic_memory_bitmaps();
--	usermodehelper_enable();
-- Exit:
--	pm_notifier_call_chain(PM_POST_HIBERNATION);
--	pm_restore_console();
--	atomic_inc(&snapshot_device_available);
-- Unlock:
--	mutex_unlock(&pm_mutex);
--	return error;
--}
--
--
--/**
-- *	software_resume - Resume from a saved image.
-- *
-- *	Called as a late_initcall (so all devices are discovered and
-- *	initialized), we call swsusp to see if we have a saved image or not.
-- *	If so, we quiesce devices, the restore the saved image. We will
-- *	return above (in hibernate() ) if everything goes well.
-- *	Otherwise, we fail gracefully and return to the normally
-- *	scheduled program.
-- *
-- */
--
--static int software_resume(void)
--{
--	int error;
--	unsigned int flags;
--
--	/*
--	 * If the user said "noresume".. bail out early.
--	 */
--	if (noresume)
--		return 0;
--
--	/*
--	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
--	 * is configured into the kernel. Since the regular hibernate
--	 * trigger path is via sysfs which takes a buffer mutex before
--	 * calling hibernate functions (which take pm_mutex) this can
--	 * cause lockdep to complain about a possible ABBA deadlock
--	 * which cannot happen since we're in the boot code here and
--	 * sysfs can't be invoked yet. Therefore, we use a subclass
--	 * here to avoid lockdep complaining.
--	 */
--	mutex_lock_nested(&pm_mutex, SINGLE_DEPTH_NESTING);
--
--	if (swsusp_resume_device)
--		goto Check_image;
--
--	if (!strlen(resume_file)) {
--		error = -ENOENT;
--		goto Unlock;
--	}
--
--	pr_debug("PM: Checking image partition %s\n", resume_file);
--
--	/* Check if the device is there */
--	swsusp_resume_device = name_to_dev_t(resume_file);
--	if (!swsusp_resume_device) {
--		/*
--		 * Some device discovery might still be in progress; we need
--		 * to wait for this to finish.
--		 */
--		wait_for_device_probe();
--		/*
--		 * We can't depend on SCSI devices being available after loading
--		 * one of their modules until scsi_complete_async_scans() is
--		 * called and the resume device usually is a SCSI one.
--		 */
--		scsi_complete_async_scans();
--
--		swsusp_resume_device = name_to_dev_t(resume_file);
--		if (!swsusp_resume_device) {
--			error = -ENODEV;
--			goto Unlock;
--		}
--	}
--
-- Check_image:
--	pr_debug("PM: Resume from partition %d:%d\n",
--		MAJOR(swsusp_resume_device), MINOR(swsusp_resume_device));
--
--	pr_debug("PM: Checking hibernation image.\n");
--	error = swsusp_check();
--	if (error)
--		goto Unlock;
--
--	/* The snapshot device should not be opened while we're running */
--	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
--		error = -EBUSY;
--		goto Unlock;
--	}
--
--	pm_prepare_console();
--	error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
--	if (error)
--		goto Finish;
--
--	error = usermodehelper_disable();
--	if (error)
--		goto Finish;
--
--	error = create_basic_memory_bitmaps();
--	if (error)
--		goto Finish;
--
--	pr_debug("PM: Preparing processes for restore.\n");
--	error = prepare_processes();
--	if (error) {
--		swsusp_close(FMODE_READ);
--		goto Done;
--	}
--
--	pr_debug("PM: Reading hibernation image.\n");
--
--	error = swsusp_read(&flags);
--	if (!error)
--		hibernation_restore(flags & SF_PLATFORM_MODE);
--
--	printk(KERN_ERR "PM: Restore failed, recovering.\n");
--	swsusp_free();
--	thaw_processes();
-- Done:
--	free_basic_memory_bitmaps();
--	usermodehelper_enable();
-- Finish:
--	pm_notifier_call_chain(PM_POST_RESTORE);
--	pm_restore_console();
--	atomic_inc(&snapshot_device_available);
--	/* For success case, the suspend path will release the lock */
-- Unlock:
--	mutex_unlock(&pm_mutex);
--	pr_debug("PM: Resume from disk failed.\n");
--	return error;
--}
--
--late_initcall(software_resume);
--
--
--static const char * const hibernation_modes[] = {
--	[HIBERNATION_PLATFORM]	= "platform",
--	[HIBERNATION_SHUTDOWN]	= "shutdown",
--	[HIBERNATION_REBOOT]	= "reboot",
--	[HIBERNATION_TEST]	= "test",
--	[HIBERNATION_TESTPROC]	= "testproc",
--};
--
--/**
-- *	disk - Control hibernation mode
-- *
-- *	Suspend-to-disk can be handled in several ways. We have a few options
-- *	for putting the system to sleep - using the platform driver (e.g. ACPI
-- *	or other hibernation_ops), powering off the system or rebooting the
-- *	system (for testing) as well as the two test modes.
-- *
-- *	The system can support 'platform', and that is known a priori (and
-- *	encoded by the presence of hibernation_ops). However, the user may
-- *	choose 'shutdown' or 'reboot' as alternatives, as well as one fo the
-- *	test modes, 'test' or 'testproc'.
-- *
-- *	show() will display what the mode is currently set to.
-- *	store() will accept one of
-- *
-- *	'platform'
-- *	'shutdown'
-- *	'reboot'
-- *	'test'
-- *	'testproc'
-- *
-- *	It will only change to 'platform' if the system
-- *	supports it (as determined by having hibernation_ops).
-- */
--
--static ssize_t disk_show(struct kobject *kobj, struct kobj_attribute *attr,
--			 char *buf)
--{
--	int i;
--	char *start = buf;
--
--	for (i = HIBERNATION_FIRST; i <= HIBERNATION_MAX; i++) {
--		if (!hibernation_modes[i])
--			continue;
--		switch (i) {
--		case HIBERNATION_SHUTDOWN:
--		case HIBERNATION_REBOOT:
--		case HIBERNATION_TEST:
--		case HIBERNATION_TESTPROC:
--			break;
--		case HIBERNATION_PLATFORM:
--			if (hibernation_ops)
--				break;
--			/* not a valid mode, continue with loop */
--			continue;
--		}
--		if (i == hibernation_mode)
--			buf += sprintf(buf, "[%s] ", hibernation_modes[i]);
--		else
--			buf += sprintf(buf, "%s ", hibernation_modes[i]);
--	}
--	buf += sprintf(buf, "\n");
--	return buf-start;
--}
--
--
--static ssize_t disk_store(struct kobject *kobj, struct kobj_attribute *attr,
--			  const char *buf, size_t n)
--{
--	int error = 0;
--	int i;
--	int len;
--	char *p;
--	int mode = HIBERNATION_INVALID;
--
--	p = memchr(buf, '\n', n);
--	len = p ? p - buf : n;
--
--	mutex_lock(&pm_mutex);
--	for (i = HIBERNATION_FIRST; i <= HIBERNATION_MAX; i++) {
--		if (len == strlen(hibernation_modes[i])
--		    && !strncmp(buf, hibernation_modes[i], len)) {
--			mode = i;
--			break;
--		}
--	}
--	if (mode != HIBERNATION_INVALID) {
--		switch (mode) {
--		case HIBERNATION_SHUTDOWN:
--		case HIBERNATION_REBOOT:
--		case HIBERNATION_TEST:
--		case HIBERNATION_TESTPROC:
--			hibernation_mode = mode;
--			break;
--		case HIBERNATION_PLATFORM:
--			if (hibernation_ops)
--				hibernation_mode = mode;
--			else
--				error = -EINVAL;
--		}
--	} else
--		error = -EINVAL;
--
--	if (!error)
--		pr_debug("PM: Hibernation mode set to '%s'\n",
--			 hibernation_modes[mode]);
--	mutex_unlock(&pm_mutex);
--	return error ? error : n;
--}
--
--power_attr(disk);
--
--static ssize_t resume_show(struct kobject *kobj, struct kobj_attribute *attr,
--			   char *buf)
--{
--	return sprintf(buf,"%d:%d\n", MAJOR(swsusp_resume_device),
--		       MINOR(swsusp_resume_device));
--}
--
--static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
--			    const char *buf, size_t n)
--{
--	unsigned int maj, min;
--	dev_t res;
--	int ret = -EINVAL;
--
--	if (sscanf(buf, "%u:%u", &maj, &min) != 2)
--		goto out;
--
--	res = MKDEV(maj,min);
--	if (maj != MAJOR(res) || min != MINOR(res))
--		goto out;
--
--	mutex_lock(&pm_mutex);
--	swsusp_resume_device = res;
--	mutex_unlock(&pm_mutex);
--	printk(KERN_INFO "PM: Starting manual resume from disk\n");
--	noresume = 0;
--	software_resume();
--	ret = n;
-- out:
--	return ret;
--}
--
--power_attr(resume);
--
--static ssize_t image_size_show(struct kobject *kobj, struct kobj_attribute *attr,
--			       char *buf)
--{
--	return sprintf(buf, "%lu\n", image_size);
--}
--
--static ssize_t image_size_store(struct kobject *kobj, struct kobj_attribute *attr,
--				const char *buf, size_t n)
--{
--	unsigned long size;
--
--	if (sscanf(buf, "%lu", &size) == 1) {
--		image_size = size;
--		return n;
--	}
--
--	return -EINVAL;
--}
--
--power_attr(image_size);
--
--static struct attribute * g[] = {
--	&disk_attr.attr,
--	&resume_attr.attr,
--	&image_size_attr.attr,
--	NULL,
--};
--
--
--static struct attribute_group attr_group = {
--	.attrs = g,
--};
--
--
--static int __init pm_disk_init(void)
--{
--	return sysfs_create_group(power_kobj, &attr_group);
--}
--
--core_initcall(pm_disk_init);
--
--
--static int __init resume_setup(char *str)
--{
--	if (noresume)
--		return 1;
--
--	strncpy( resume_file, str, 255 );
--	return 1;
--}
--
--static int __init resume_offset_setup(char *str)
--{
--	unsigned long long offset;
--
--	if (noresume)
--		return 1;
--
--	if (sscanf(str, "%llu", &offset) == 1)
--		swsusp_resume_block = offset;
--
--	return 1;
--}
--
--static int __init noresume_setup(char *str)
--{
--	noresume = 1;
--	return 1;
--}
--
--__setup("noresume", noresume_setup);
--__setup("resume_offset=", resume_offset_setup);
--__setup("resume=", resume_setup);
-Index: linux-2.6/kernel/power/hibernate.c
-===================================================================
---- /dev/null
-+++ linux-2.6/kernel/power/hibernate.c
-@@ -0,0 +1,955 @@
-+/*
-+ * kernel/power/hibernate.c - Hibernation (a.k.a suspend-to-disk) support.
-+ *
-+ * Copyright (c) 2003 Patrick Mochel
-+ * Copyright (c) 2003 Open Source Development Lab
-+ * Copyright (c) 2004 Pavel Machek <pavel@suse.cz>
-+ * Copyright (c) 2009 Rafael J. Wysocki, Novell Inc.
-+ *
-+ * This file is released under the GPLv2.
-+ */
-+
-+#include <linux/suspend.h>
-+#include <linux/syscalls.h>
-+#include <linux/reboot.h>
-+#include <linux/string.h>
-+#include <linux/device.h>
-+#include <linux/kmod.h>
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/mount.h>
-+#include <linux/pm.h>
-+#include <linux/console.h>
-+#include <linux/cpu.h>
-+#include <linux/freezer.h>
-+#include <scsi/scsi_scan.h>
-+#include <asm/suspend.h>
-+
-+#include "power.h"
-+
-+
-+static int noresume = 0;
-+static char resume_file[256] = CONFIG_PM_STD_PARTITION;
-+dev_t swsusp_resume_device;
-+sector_t swsusp_resume_block;
-+
-+enum {
-+	HIBERNATION_INVALID,
-+	HIBERNATION_PLATFORM,
-+	HIBERNATION_TEST,
-+	HIBERNATION_TESTPROC,
-+	HIBERNATION_SHUTDOWN,
-+	HIBERNATION_REBOOT,
-+	/* keep last */
-+	__HIBERNATION_AFTER_LAST
-+};
-+#define HIBERNATION_MAX (__HIBERNATION_AFTER_LAST-1)
-+#define HIBERNATION_FIRST (HIBERNATION_INVALID + 1)
-+
-+static int hibernation_mode = HIBERNATION_SHUTDOWN;
-+
-+static struct platform_hibernation_ops *hibernation_ops;
-+
-+/**
-+ * hibernation_set_ops - set the global hibernate operations
-+ * @ops: the hibernation operations to use in subsequent hibernation transitions
-+ */
-+
-+void hibernation_set_ops(struct platform_hibernation_ops *ops)
-+{
-+	if (ops && !(ops->begin && ops->end &&  ops->pre_snapshot
-+	    && ops->prepare && ops->finish && ops->enter && ops->pre_restore
-+	    && ops->restore_cleanup)) {
-+		WARN_ON(1);
-+		return;
-+	}
-+	mutex_lock(&pm_mutex);
-+	hibernation_ops = ops;
-+	if (ops)
-+		hibernation_mode = HIBERNATION_PLATFORM;
-+	else if (hibernation_mode == HIBERNATION_PLATFORM)
-+		hibernation_mode = HIBERNATION_SHUTDOWN;
-+
-+	mutex_unlock(&pm_mutex);
-+}
-+
-+static bool entering_platform_hibernation;
-+
-+bool system_entering_hibernation(void)
-+{
-+	return entering_platform_hibernation;
-+}
-+EXPORT_SYMBOL(system_entering_hibernation);
-+
-+#ifdef CONFIG_PM_DEBUG
-+static void hibernation_debug_sleep(void)
-+{
-+	printk(KERN_INFO "hibernation debug: Waiting for 5 seconds.\n");
-+	mdelay(5000);
-+}
-+
-+static int hibernation_testmode(int mode)
-+{
-+	if (hibernation_mode == mode) {
-+		hibernation_debug_sleep();
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+static int hibernation_test(int level)
-+{
-+	if (pm_test_level == level) {
-+		hibernation_debug_sleep();
-+		return 1;
-+	}
-+	return 0;
-+}
-+#else /* !CONFIG_PM_DEBUG */
-+static int hibernation_testmode(int mode) { return 0; }
-+static int hibernation_test(int level) { return 0; }
-+#endif /* !CONFIG_PM_DEBUG */
-+
-+/**
-+ *	platform_begin - tell the platform driver that we're starting
-+ *	hibernation
-+ */
-+
-+static int platform_begin(int platform_mode)
-+{
-+	return (platform_mode && hibernation_ops) ?
-+		hibernation_ops->begin() : 0;
-+}
-+
-+/**
-+ *	platform_end - tell the platform driver that we've entered the
-+ *	working state
-+ */
-+
-+static void platform_end(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->end();
-+}
-+
-+/**
-+ *	platform_pre_snapshot - prepare the machine for hibernation using the
-+ *	platform driver if so configured and return an error code if it fails
-+ */
-+
-+static int platform_pre_snapshot(int platform_mode)
-+{
-+	return (platform_mode && hibernation_ops) ?
-+		hibernation_ops->pre_snapshot() : 0;
-+}
-+
-+/**
-+ *	platform_leave - prepare the machine for switching to the normal mode
-+ *	of operation using the platform driver (called with interrupts disabled)
-+ */
-+
-+static void platform_leave(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->leave();
-+}
-+
-+/**
-+ *	platform_finish - switch the machine to the normal mode of operation
-+ *	using the platform driver (must be called after platform_prepare())
-+ */
-+
-+static void platform_finish(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->finish();
-+}
-+
-+/**
-+ *	platform_pre_restore - prepare the platform for the restoration from a
-+ *	hibernation image.  If the restore fails after this function has been
-+ *	called, platform_restore_cleanup() must be called.
-+ */
-+
-+static int platform_pre_restore(int platform_mode)
-+{
-+	return (platform_mode && hibernation_ops) ?
-+		hibernation_ops->pre_restore() : 0;
-+}
-+
-+/**
-+ *	platform_restore_cleanup - switch the platform to the normal mode of
-+ *	operation after a failing restore.  If platform_pre_restore() has been
-+ *	called before the failing restore, this function must be called too,
-+ *	regardless of the result of platform_pre_restore().
-+ */
-+
-+static void platform_restore_cleanup(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->restore_cleanup();
-+}
-+
-+/**
-+ *	platform_recover - recover the platform from a failure to suspend
-+ *	devices.
-+ */
-+
-+static void platform_recover(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops && hibernation_ops->recover)
-+		hibernation_ops->recover();
-+}
-+
-+/**
-+ *	create_image - freeze devices that need to be frozen with interrupts
-+ *	off, create the hibernation image and thaw those devices.  Control
-+ *	reappears in this routine after a restore.
-+ */
-+
-+static int create_image(int platform_mode)
-+{
-+	int error;
-+
-+	error = arch_prepare_suspend();
-+	if (error)
-+		return error;
-+
-+	/* At this point, dpm_suspend_start() has been called, but *not*
-+	 * dpm_suspend_noirq(). We *must* call dpm_suspend_noirq() now.
-+	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
-+	 * become desynchronized with the actual state of the hardware
-+	 * at resume time, and evil weirdness ensues.
-+	 */
-+	error = dpm_suspend_noirq(PMSG_FREEZE);
-+	if (error) {
-+		printk(KERN_ERR "PM: Some devices failed to power down, "
-+			"aborting hibernation\n");
-+		return error;
-+	}
-+
-+	error = platform_pre_snapshot(platform_mode);
-+	if (error || hibernation_test(TEST_PLATFORM))
-+		goto Platform_finish;
-+
-+	error = disable_nonboot_cpus();
-+	if (error || hibernation_test(TEST_CPUS)
-+	    || hibernation_testmode(HIBERNATION_TEST))
-+		goto Enable_cpus;
-+
-+	local_irq_disable();
-+
-+	error = sysdev_suspend(PMSG_FREEZE);
-+	if (error) {
-+		printk(KERN_ERR "PM: Some system devices failed to power down, "
-+			"aborting hibernation\n");
-+		goto Enable_irqs;
-+	}
-+
-+	if (hibernation_test(TEST_CORE))
-+		goto Power_up;
-+
-+	in_suspend = 1;
-+	save_processor_state();
-+	error = swsusp_arch_suspend();
-+	if (error)
-+		printk(KERN_ERR "PM: Error %d creating hibernation image\n",
-+			error);
-+	/* Restore control flow magically appears here */
-+	restore_processor_state();
-+	if (!in_suspend)
-+		platform_leave(platform_mode);
-+
-+ Power_up:
-+	sysdev_resume();
-+	/* NOTE:  dpm_resume_noirq() is just a resume() for devices
-+	 * that suspended with irqs off ... no overall powerup.
-+	 */
-+
-+ Enable_irqs:
-+	local_irq_enable();
-+
-+ Enable_cpus:
-+	enable_nonboot_cpus();
-+
-+ Platform_finish:
-+	platform_finish(platform_mode);
-+
-+	dpm_resume_noirq(in_suspend ?
-+		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
-+
-+	return error;
-+}
-+
-+/**
-+ *	hibernation_snapshot - quiesce devices and create the hibernation
-+ *	snapshot image.
-+ *	@platform_mode - if set, use the platform driver, if available, to
-+ *			 prepare the platform firmware for the power transition.
-+ *
-+ *	Must be called with pm_mutex held
-+ */
-+
-+int hibernation_snapshot(int platform_mode)
-+{
-+	int error;
-+
-+	error = platform_begin(platform_mode);
-+	if (error)
-+		return error;
-+
-+	/* Free memory before shutting down devices. */
-+	error = swsusp_shrink_memory();
-+	if (error)
-+		goto Close;
-+
-+	suspend_console();
-+	error = dpm_suspend_start(PMSG_FREEZE);
-+	if (error)
-+		goto Recover_platform;
-+
-+	if (hibernation_test(TEST_DEVICES))
-+		goto Recover_platform;
-+
-+	error = create_image(platform_mode);
-+	/* Control returns here after successful restore */
-+
-+ Resume_devices:
-+	dpm_resume_end(in_suspend ?
-+		(error ? PMSG_RECOVER : PMSG_THAW) : PMSG_RESTORE);
-+	resume_console();
-+ Close:
-+	platform_end(platform_mode);
-+	return error;
-+
-+ Recover_platform:
-+	platform_recover(platform_mode);
-+	goto Resume_devices;
-+}
-+
-+/**
-+ *	resume_target_kernel - prepare devices that need to be suspended with
-+ *	interrupts off, restore the contents of highmem that have not been
-+ *	restored yet from the image and run the low level code that will restore
-+ *	the remaining contents of memory and switch to the just restored target
-+ *	kernel.
-+ */
-+
-+static int resume_target_kernel(bool platform_mode)
-+{
-+	int error;
-+
-+	error = dpm_suspend_noirq(PMSG_QUIESCE);
-+	if (error) {
-+		printk(KERN_ERR "PM: Some devices failed to power down, "
-+			"aborting resume\n");
-+		return error;
-+	}
-+
-+	error = platform_pre_restore(platform_mode);
-+	if (error)
-+		goto Cleanup;
-+
-+	error = disable_nonboot_cpus();
-+	if (error)
-+		goto Enable_cpus;
-+
-+	local_irq_disable();
-+
-+	error = sysdev_suspend(PMSG_QUIESCE);
-+	if (error)
-+		goto Enable_irqs;
-+
-+	/* We'll ignore saved state, but this gets preempt count (etc) right */
-+	save_processor_state();
-+	error = restore_highmem();
-+	if (!error) {
-+		error = swsusp_arch_resume();
-+		/*
-+		 * The code below is only ever reached in case of a failure.
-+		 * Otherwise execution continues at place where
-+		 * swsusp_arch_suspend() was called
-+		 */
-+		BUG_ON(!error);
-+		/* This call to restore_highmem() undos the previous one */
-+		restore_highmem();
-+	}
-+	/*
-+	 * The only reason why swsusp_arch_resume() can fail is memory being
-+	 * very tight, so we have to free it as soon as we can to avoid
-+	 * subsequent failures
-+	 */
-+	swsusp_free();
-+	restore_processor_state();
-+	touch_softlockup_watchdog();
-+
-+	sysdev_resume();
-+
-+ Enable_irqs:
-+	local_irq_enable();
-+
-+ Enable_cpus:
-+	enable_nonboot_cpus();
-+
-+ Cleanup:
-+	platform_restore_cleanup(platform_mode);
-+
-+	dpm_resume_noirq(PMSG_RECOVER);
-+
-+	return error;
-+}
-+
-+/**
-+ *	hibernation_restore - quiesce devices and restore the hibernation
-+ *	snapshot image.  If successful, control returns in hibernation_snaphot()
-+ *	@platform_mode - if set, use the platform driver, if available, to
-+ *			 prepare the platform firmware for the transition.
-+ *
-+ *	Must be called with pm_mutex held
-+ */
-+
-+int hibernation_restore(int platform_mode)
-+{
-+	int error;
-+
-+	pm_prepare_console();
-+	suspend_console();
-+	error = dpm_suspend_start(PMSG_QUIESCE);
-+	if (!error) {
-+		error = resume_target_kernel(platform_mode);
-+		dpm_resume_end(PMSG_RECOVER);
-+	}
-+	resume_console();
-+	pm_restore_console();
-+	return error;
-+}
-+
-+/**
-+ *	hibernation_platform_enter - enter the hibernation state using the
-+ *	platform driver (if available)
-+ */
-+
-+int hibernation_platform_enter(void)
-+{
-+	int error;
-+
-+	if (!hibernation_ops)
-+		return -ENOSYS;
-+
-+	/*
-+	 * We have cancelled the power transition by running
-+	 * hibernation_ops->finish() before saving the image, so we should let
-+	 * the firmware know that we're going to enter the sleep state after all
-+	 */
-+	error = hibernation_ops->begin();
-+	if (error)
-+		goto Close;
-+
-+	entering_platform_hibernation = true;
-+	suspend_console();
-+	error = dpm_suspend_start(PMSG_HIBERNATE);
-+	if (error) {
-+		if (hibernation_ops->recover)
-+			hibernation_ops->recover();
-+		goto Resume_devices;
-+	}
-+
-+	error = dpm_suspend_noirq(PMSG_HIBERNATE);
-+	if (error)
-+		goto Resume_devices;
-+
-+	error = hibernation_ops->prepare();
-+	if (error)
-+		goto Platofrm_finish;
-+
-+	error = disable_nonboot_cpus();
-+	if (error)
-+		goto Platofrm_finish;
-+
-+	local_irq_disable();
-+	sysdev_suspend(PMSG_HIBERNATE);
-+	hibernation_ops->enter();
-+	/* We should never get here */
-+	while (1);
-+
-+	/*
-+	 * We don't need to reenable the nonboot CPUs or resume consoles, since
-+	 * the system is going to be halted anyway.
-+	 */
-+ Platofrm_finish:
-+	hibernation_ops->finish();
-+
-+	dpm_suspend_noirq(PMSG_RESTORE);
-+
-+ Resume_devices:
-+	entering_platform_hibernation = false;
-+	dpm_resume_end(PMSG_RESTORE);
-+	resume_console();
-+
-+ Close:
-+	hibernation_ops->end();
-+
-+	return error;
-+}
-+
-+/**
-+ *	power_down - Shut the machine down for hibernation.
-+ *
-+ *	Use the platform driver, if configured so; otherwise try
-+ *	to power off or reboot.
-+ */
-+
-+static void power_down(void)
-+{
-+	switch (hibernation_mode) {
-+	case HIBERNATION_TEST:
-+	case HIBERNATION_TESTPROC:
-+		break;
-+	case HIBERNATION_REBOOT:
-+		kernel_restart(NULL);
-+		break;
-+	case HIBERNATION_PLATFORM:
-+		hibernation_platform_enter();
-+	case HIBERNATION_SHUTDOWN:
-+		kernel_power_off();
-+		break;
-+	}
-+	kernel_halt();
-+	/*
-+	 * Valid image is on the disk, if we continue we risk serious data
-+	 * corruption after resume.
-+	 */
-+	printk(KERN_CRIT "PM: Please power down manually\n");
-+	while(1);
-+}
-+
-+static int prepare_processes(void)
-+{
-+	int error = 0;
-+
-+	if (freeze_processes()) {
-+		error = -EBUSY;
-+		thaw_processes();
-+	}
-+	return error;
-+}
-+
-+/**
-+ *	hibernate - The granpappy of the built-in hibernation management
-+ */
-+
-+int hibernate(void)
-+{
-+	int error;
-+
-+	mutex_lock(&pm_mutex);
-+	/* The snapshot device should not be opened while we're running */
-+	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
-+		error = -EBUSY;
-+		goto Unlock;
-+	}
-+
-+	pm_prepare_console();
-+	error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
-+	if (error)
-+		goto Exit;
-+
-+	error = usermodehelper_disable();
-+	if (error)
-+		goto Exit;
-+
-+	/* Allocate memory management structures */
-+	error = create_basic_memory_bitmaps();
-+	if (error)
-+		goto Exit;
-+
-+	printk(KERN_INFO "PM: Syncing filesystems ... ");
-+	sys_sync();
-+	printk("done.\n");
-+
-+	error = prepare_processes();
-+	if (error)
-+		goto Finish;
-+
-+	if (hibernation_test(TEST_FREEZER))
-+		goto Thaw;
-+
-+	if (hibernation_testmode(HIBERNATION_TESTPROC))
-+		goto Thaw;
-+
-+	error = hibernation_snapshot(hibernation_mode == HIBERNATION_PLATFORM);
-+	if (in_suspend && !error) {
-+		unsigned int flags = 0;
-+
-+		if (hibernation_mode == HIBERNATION_PLATFORM)
-+			flags |= SF_PLATFORM_MODE;
-+		pr_debug("PM: writing image.\n");
-+		error = swsusp_write(flags);
-+		swsusp_free();
-+		if (!error)
-+			power_down();
-+	} else {
-+		pr_debug("PM: Image restored successfully.\n");
-+		swsusp_free();
-+	}
-+ Thaw:
-+	thaw_processes();
-+ Finish:
-+	free_basic_memory_bitmaps();
-+	usermodehelper_enable();
-+ Exit:
-+	pm_notifier_call_chain(PM_POST_HIBERNATION);
-+	pm_restore_console();
-+	atomic_inc(&snapshot_device_available);
-+ Unlock:
-+	mutex_unlock(&pm_mutex);
-+	return error;
-+}
-+
-+
-+/**
-+ *	software_resume - Resume from a saved image.
-+ *
-+ *	Called as a late_initcall (so all devices are discovered and
-+ *	initialized), we call swsusp to see if we have a saved image or not.
-+ *	If so, we quiesce devices, the restore the saved image. We will
-+ *	return above (in hibernate() ) if everything goes well.
-+ *	Otherwise, we fail gracefully and return to the normally
-+ *	scheduled program.
-+ *
-+ */
-+
-+static int software_resume(void)
-+{
-+	int error;
-+	unsigned int flags;
-+
-+	/*
-+	 * If the user said "noresume".. bail out early.
-+	 */
-+	if (noresume)
-+		return 0;
-+
-+	/*
-+	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
-+	 * is configured into the kernel. Since the regular hibernate
-+	 * trigger path is via sysfs which takes a buffer mutex before
-+	 * calling hibernate functions (which take pm_mutex) this can
-+	 * cause lockdep to complain about a possible ABBA deadlock
-+	 * which cannot happen since we're in the boot code here and
-+	 * sysfs can't be invoked yet. Therefore, we use a subclass
-+	 * here to avoid lockdep complaining.
-+	 */
-+	mutex_lock_nested(&pm_mutex, SINGLE_DEPTH_NESTING);
-+
-+	if (swsusp_resume_device)
-+		goto Check_image;
-+
-+	if (!strlen(resume_file)) {
-+		error = -ENOENT;
-+		goto Unlock;
-+	}
-+
-+	pr_debug("PM: Checking image partition %s\n", resume_file);
-+
-+	/* Check if the device is there */
-+	swsusp_resume_device = name_to_dev_t(resume_file);
-+	if (!swsusp_resume_device) {
-+		/*
-+		 * Some device discovery might still be in progress; we need
-+		 * to wait for this to finish.
-+		 */
-+		wait_for_device_probe();
-+		/*
-+		 * We can't depend on SCSI devices being available after loading
-+		 * one of their modules until scsi_complete_async_scans() is
-+		 * called and the resume device usually is a SCSI one.
-+		 */
-+		scsi_complete_async_scans();
-+
-+		swsusp_resume_device = name_to_dev_t(resume_file);
-+		if (!swsusp_resume_device) {
-+			error = -ENODEV;
-+			goto Unlock;
-+		}
-+	}
-+
-+ Check_image:
-+	pr_debug("PM: Resume from partition %d:%d\n",
-+		MAJOR(swsusp_resume_device), MINOR(swsusp_resume_device));
-+
-+	pr_debug("PM: Checking hibernation image.\n");
-+	error = swsusp_check();
-+	if (error)
-+		goto Unlock;
-+
-+	/* The snapshot device should not be opened while we're running */
-+	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
-+		error = -EBUSY;
-+		goto Unlock;
-+	}
-+
-+	pm_prepare_console();
-+	error = pm_notifier_call_chain(PM_RESTORE_PREPARE);
-+	if (error)
-+		goto Finish;
-+
-+	error = usermodehelper_disable();
-+	if (error)
-+		goto Finish;
-+
-+	error = create_basic_memory_bitmaps();
-+	if (error)
-+		goto Finish;
-+
-+	pr_debug("PM: Preparing processes for restore.\n");
-+	error = prepare_processes();
-+	if (error) {
-+		swsusp_close(FMODE_READ);
-+		goto Done;
-+	}
-+
-+	pr_debug("PM: Reading hibernation image.\n");
-+
-+	error = swsusp_read(&flags);
-+	if (!error)
-+		hibernation_restore(flags & SF_PLATFORM_MODE);
-+
-+	printk(KERN_ERR "PM: Restore failed, recovering.\n");
-+	swsusp_free();
-+	thaw_processes();
-+ Done:
-+	free_basic_memory_bitmaps();
-+	usermodehelper_enable();
-+ Finish:
-+	pm_notifier_call_chain(PM_POST_RESTORE);
-+	pm_restore_console();
-+	atomic_inc(&snapshot_device_available);
-+	/* For success case, the suspend path will release the lock */
-+ Unlock:
-+	mutex_unlock(&pm_mutex);
-+	pr_debug("PM: Resume from disk failed.\n");
-+	return error;
-+}
-+
-+late_initcall(software_resume);
-+
-+
-+static const char * const hibernation_modes[] = {
-+	[HIBERNATION_PLATFORM]	= "platform",
-+	[HIBERNATION_SHUTDOWN]	= "shutdown",
-+	[HIBERNATION_REBOOT]	= "reboot",
-+	[HIBERNATION_TEST]	= "test",
-+	[HIBERNATION_TESTPROC]	= "testproc",
-+};
-+
-+/**
-+ *	disk - Control hibernation mode
-+ *
-+ *	Suspend-to-disk can be handled in several ways. We have a few options
-+ *	for putting the system to sleep - using the platform driver (e.g. ACPI
-+ *	or other hibernation_ops), powering off the system or rebooting the
-+ *	system (for testing) as well as the two test modes.
-+ *
-+ *	The system can support 'platform', and that is known a priori (and
-+ *	encoded by the presence of hibernation_ops). However, the user may
-+ *	choose 'shutdown' or 'reboot' as alternatives, as well as one fo the
-+ *	test modes, 'test' or 'testproc'.
-+ *
-+ *	show() will display what the mode is currently set to.
-+ *	store() will accept one of
-+ *
-+ *	'platform'
-+ *	'shutdown'
-+ *	'reboot'
-+ *	'test'
-+ *	'testproc'
-+ *
-+ *	It will only change to 'platform' if the system
-+ *	supports it (as determined by having hibernation_ops).
-+ */
-+
-+static ssize_t disk_show(struct kobject *kobj, struct kobj_attribute *attr,
-+			 char *buf)
-+{
-+	int i;
-+	char *start = buf;
-+
-+	for (i = HIBERNATION_FIRST; i <= HIBERNATION_MAX; i++) {
-+		if (!hibernation_modes[i])
-+			continue;
-+		switch (i) {
-+		case HIBERNATION_SHUTDOWN:
-+		case HIBERNATION_REBOOT:
-+		case HIBERNATION_TEST:
-+		case HIBERNATION_TESTPROC:
-+			break;
-+		case HIBERNATION_PLATFORM:
-+			if (hibernation_ops)
-+				break;
-+			/* not a valid mode, continue with loop */
-+			continue;
-+		}
-+		if (i == hibernation_mode)
-+			buf += sprintf(buf, "[%s] ", hibernation_modes[i]);
-+		else
-+			buf += sprintf(buf, "%s ", hibernation_modes[i]);
-+	}
-+	buf += sprintf(buf, "\n");
-+	return buf-start;
-+}
-+
-+
-+static ssize_t disk_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			  const char *buf, size_t n)
-+{
-+	int error = 0;
-+	int i;
-+	int len;
-+	char *p;
-+	int mode = HIBERNATION_INVALID;
-+
-+	p = memchr(buf, '\n', n);
-+	len = p ? p - buf : n;
-+
-+	mutex_lock(&pm_mutex);
-+	for (i = HIBERNATION_FIRST; i <= HIBERNATION_MAX; i++) {
-+		if (len == strlen(hibernation_modes[i])
-+		    && !strncmp(buf, hibernation_modes[i], len)) {
-+			mode = i;
-+			break;
-+		}
-+	}
-+	if (mode != HIBERNATION_INVALID) {
-+		switch (mode) {
-+		case HIBERNATION_SHUTDOWN:
-+		case HIBERNATION_REBOOT:
-+		case HIBERNATION_TEST:
-+		case HIBERNATION_TESTPROC:
-+			hibernation_mode = mode;
-+			break;
-+		case HIBERNATION_PLATFORM:
-+			if (hibernation_ops)
-+				hibernation_mode = mode;
-+			else
-+				error = -EINVAL;
-+		}
-+	} else
-+		error = -EINVAL;
-+
-+	if (!error)
-+		pr_debug("PM: Hibernation mode set to '%s'\n",
-+			 hibernation_modes[mode]);
-+	mutex_unlock(&pm_mutex);
-+	return error ? error : n;
-+}
-+
-+power_attr(disk);
-+
-+static ssize_t resume_show(struct kobject *kobj, struct kobj_attribute *attr,
-+			   char *buf)
-+{
-+	return sprintf(buf,"%d:%d\n", MAJOR(swsusp_resume_device),
-+		       MINOR(swsusp_resume_device));
-+}
-+
-+static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			    const char *buf, size_t n)
-+{
-+	unsigned int maj, min;
-+	dev_t res;
-+	int ret = -EINVAL;
-+
-+	if (sscanf(buf, "%u:%u", &maj, &min) != 2)
-+		goto out;
-+
-+	res = MKDEV(maj,min);
-+	if (maj != MAJOR(res) || min != MINOR(res))
-+		goto out;
-+
-+	mutex_lock(&pm_mutex);
-+	swsusp_resume_device = res;
-+	mutex_unlock(&pm_mutex);
-+	printk(KERN_INFO "PM: Starting manual resume from disk\n");
-+	noresume = 0;
-+	software_resume();
-+	ret = n;
-+ out:
-+	return ret;
-+}
-+
-+power_attr(resume);
-+
-+static ssize_t image_size_show(struct kobject *kobj, struct kobj_attribute *attr,
-+			       char *buf)
-+{
-+	return sprintf(buf, "%lu\n", image_size);
-+}
-+
-+static ssize_t image_size_store(struct kobject *kobj, struct kobj_attribute *attr,
-+				const char *buf, size_t n)
-+{
-+	unsigned long size;
-+
-+	if (sscanf(buf, "%lu", &size) == 1) {
-+		image_size = size;
-+		return n;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+power_attr(image_size);
-+
-+static struct attribute * g[] = {
-+	&disk_attr.attr,
-+	&resume_attr.attr,
-+	&image_size_attr.attr,
-+	NULL,
-+};
-+
-+
-+static struct attribute_group attr_group = {
-+	.attrs = g,
-+};
-+
-+
-+static int __init pm_disk_init(void)
-+{
-+	return sysfs_create_group(power_kobj, &attr_group);
-+}
-+
-+core_initcall(pm_disk_init);
-+
-+
-+static int __init resume_setup(char *str)
-+{
-+	if (noresume)
-+		return 1;
-+
-+	strncpy( resume_file, str, 255 );
-+	return 1;
-+}
-+
-+static int __init resume_offset_setup(char *str)
-+{
-+	unsigned long long offset;
-+
-+	if (noresume)
-+		return 1;
-+
-+	if (sscanf(str, "%llu", &offset) == 1)
-+		swsusp_resume_block = offset;
-+
-+	return 1;
-+}
-+
-+static int __init noresume_setup(char *str)
-+{
-+	noresume = 1;
-+	return 1;
-+}
-+
-+__setup("noresume", noresume_setup);
-+__setup("resume_offset=", resume_offset_setup);
-+__setup("resume=", resume_setup);
+Can anyone offer help? Do I need to post an ACPIdump? If so how 
+would I do that?
+
+-Steven
