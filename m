@@ -1,217 +1,102 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Depreciate the ACPI processor proc I/F
-Date: Mon, 08 Jun 2009 16:20:04 +0800
-Message-ID: <1244449204.3636.31.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH 2/4] eeepc-laptop: Fix cpufv
+Date: Mon,  8 Jun 2009 10:16:48 +0200
+Message-ID: <1244449010-7995-3-git-send-email-corentincj@iksaif.net>
+References: <1244449010-7995-1-git-send-email-corentincj@iksaif.net>
+ <1244449010-7995-2-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51377 "EHLO mga11.intel.com"
+Received: from iksaif.net ([88.191.73.63]:52388 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752879AbZFHISs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jun 2009 04:18:48 -0400
+	id S1752940AbZFHIYV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Jun 2009 04:24:21 -0400
+In-Reply-To: <1244449010-7995-2-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-Now whether the ACPI processor proc I/F is registered depends on the
-CONFIG_PROC instead of CONFIG_ACPI_PROCFS. It had better depend on the
-CONFIG_ACPI_PROCFS. 
-Depreciate the ACPI processor proc I/F. When the CONFIG_ACPI_PROCFS
-is unset in kernel configuration, it won't be registered.
+Limit cpufv input to acceptable values.
+Make cpufv output more readable.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+According to the dsdt, the value returned by CFVG
+is composed by the current setting in the first byte
+and the number of settings (starting from 0) in the
+second byte.
+
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/acpi/processor_core.c       |   25 +++++++++++++++++++++----
- drivers/acpi/processor_idle.c       |    8 ++++++--
- drivers/acpi/processor_thermal.c    |    3 ++-
- drivers/acpi/processor_throttling.c |    3 ++-
- 4 files changed, 31 insertions(+), 8 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   58 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 57 insertions(+), 1 deletions(-)
 
-Index: linux-2.6/drivers/acpi/processor_core.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_core.c	2009-06-08 13:21:47.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_core.c	2009-06-08 16:03:46.000000000 +0800
-@@ -81,7 +81,9 @@
- static int acpi_processor_add(struct acpi_device *device);
- static int acpi_processor_start(struct acpi_device *device);
- static int acpi_processor_remove(struct acpi_device *device, int type);
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
-+#endif
- static void acpi_processor_notify(struct acpi_device *device, u32 event);
- static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
-@@ -110,7 +112,7 @@
- 
- #define INSTALL_NOTIFY_HANDLER		1
- #define UNINSTALL_NOTIFY_HANDLER	2
--
-+#ifdef CONFIG_ACPI_PROCFS
- static const struct file_operations acpi_processor_info_fops = {
- 	.owner = THIS_MODULE,
- 	.open = acpi_processor_info_open_fs,
-@@ -118,6 +120,7 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
- 
- DEFINE_PER_CPU(struct acpi_processor *, processors);
- struct acpi_processor_errata errata __read_mostly;
-@@ -316,6 +319,7 @@
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
- 
-+#ifdef CONFIG_ACPI_PROCFS
- static struct proc_dir_entry *acpi_processor_dir = NULL;
- 
- static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
-@@ -388,7 +392,6 @@
- 		return -EIO;
- 	return 0;
- }
--
- static int acpi_processor_remove_fs(struct acpi_device *device)
- {
- 
-@@ -405,6 +408,16 @@
- 
- 	return 0;
- }
-+#else
-+static inline int acpi_processor_add_fs(struct acpi_device *device)
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index a0845b2..ae1fb7b 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -395,7 +395,63 @@ static ssize_t show_sys_acpi(int cm, char *buf)
+ EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
+ EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
+ EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
+-EEEPC_CREATE_DEVICE_ATTR(cpufv, CM_ASL_CPUFV);
++
++struct eeepc_cpufv {
++	int num;
++	int cur;
++};
++
++static int get_cpufv(struct eeepc_cpufv *c)
 +{
++	c->cur = get_acpi(CM_ASL_CPUFV);
++	c->num = (c->cur >> 8) & 0xff;
++	c->cur &= 0xff;
++	if (c->cur < 0 || c->num <= 0 || c->num > 12)
++		return -ENODEV;
 +	return 0;
 +}
-+static inline int acpi_processor_remove_fs(struct acpi_device *device)
++
++static ssize_t show_cpufv(struct device *dev,
++			  struct device_attribute *attr,
++			  char *buf)
 +{
-+	return 0;
++	struct eeepc_cpufv c;
++	int i;
++	ssize_t len = 0;
++
++	if (get_cpufv(&c))
++		return sprintf(buf, "<unsupported>\n");
++	for (i = 0; i < c.num; i++)
++		len += sprintf(buf + len, i == c.cur ? "[%d] " : "%d ", i);
++	len += sprintf(buf + len, "\n");
++	return len;
 +}
-+#endif
++
++static ssize_t store_cpufv(struct device *dev,
++			   struct device_attribute *attr,
++			   const char *buf, size_t count)
++{
++	struct eeepc_cpufv c;
++	int rv, value;
++
++	if (get_cpufv(&c))
++		return -ENODEV;
++	rv = parse_arg(buf, count, &value);
++	if (rv < 0)
++		return rv;
++	if (!rv || value < 0 || value >= c.num)
++		return -EINVAL;
++	set_acpi(CM_ASL_CPUFV, value);
++	return rv;
++}
++
++static struct device_attribute dev_attr_cpufv = {
++	.attr = {
++		.name = "cpufv",
++		.mode = 0644 },
++	.show   = show_cpufv,
++	.store  = store_cpufv
++};
  
- /* Use the acpiid in MADT to map cpus in case of SMP */
- 
-@@ -1147,11 +1160,11 @@
- 				(struct acpi_table_header **)&madt)))
- 		madt = NULL;
- #endif
--
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
- 	if (!acpi_processor_dir)
- 		return -ENOMEM;
--
-+#endif
- 	/*
- 	 * Check whether the system is DMI table. If yes, OSPM
- 	 * should not use mwait for CPU-states.
-@@ -1179,7 +1192,9 @@
- 	cpuidle_unregister_driver(&acpi_idle_driver);
- 
- out_proc:
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+#endif
- 
- 	return result;
- }
-@@ -1196,7 +1211,9 @@
- 
- 	cpuidle_unregister_driver(&acpi_idle_driver);
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+#endif
- 
- 	return;
- }
-Index: linux-2.6/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_idle.c	2009-06-08 13:21:47.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_idle.c	2009-06-08 15:45:04.000000000 +0800
-@@ -682,6 +682,7 @@
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
- {
- 	struct acpi_processor *pr = seq->private;
-@@ -761,7 +762,7 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
--
-+#endif
- 
- /**
-  * acpi_idle_bm_check - checks if bus master activity was detected
-@@ -1219,7 +1220,7 @@
- 				       pr->power.states[i].type);
- 		printk(")\n");
- 	}
--
-+#ifdef CONFIG_ACPI_PROCFS
- 	/* 'power' [R] */
- 	entry = proc_create_data(ACPI_PROCESSOR_FILE_POWER,
- 				 S_IRUGO, acpi_device_dir(device),
-@@ -1227,6 +1228,7 @@
- 				 acpi_driver_data(device));
- 	if (!entry)
- 		return -EIO;
-+#endif
- 	return 0;
- }
- 
-@@ -1239,9 +1241,11 @@
- 	cpuidle_unregister_device(&pr->power.dev);
- 	pr->flags.power_setup_done = 0;
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	if (acpi_device_dir(device))
- 		remove_proc_entry(ACPI_PROCESSOR_FILE_POWER,
- 				  acpi_device_dir(device));
-+#endif
- 
- 	return 0;
- }
-Index: linux-2.6/drivers/acpi/processor_throttling.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_throttling.c	2009-06-08 08:57:35.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_throttling.c	2009-06-08 15:19:24.000000000 +0800
-@@ -1214,7 +1214,7 @@
- }
- 
- /* proc interface */
--
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_throttling_seq_show(struct seq_file *seq,
- 					      void *offset)
- {
-@@ -1322,3 +1322,4 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
-Index: linux-2.6/drivers/acpi/processor_thermal.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_thermal.c	2009-04-16 16:10:24.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_thermal.c	2009-06-08 15:22:32.000000000 +0800
-@@ -438,7 +438,7 @@
- };
- 
- /* /proc interface */
--
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
- {
- 	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
-@@ -517,3 +517,4 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
-
+ static struct attribute *platform_attributes[] = {
+ 	&dev_attr_camera.attr,
+-- 
+1.6.3.1
 
