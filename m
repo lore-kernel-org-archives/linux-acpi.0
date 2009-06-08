@@ -1,40 +1,59 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: Run-time PM idea (was: Re: [linux-pm] [RFC][PATCH 0/2] PM: Rearrange core suspend code)
-Date: Mon, 8 Jun 2009 15:58:49 +0200
-Message-ID: <200906081558.49860.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0906071651060.25203-100000@netrider.rowland.org> <20090608133215.GA15482@srcf.ucam.org> <20090608134647.GA14234@elte.hu>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: Run-time PM idea (was: Re: [linux-pm] [RFC][PATCH 0/2] PM:
+	Rearrange core suspend code)
+Date: Mon, 8 Jun 2009 16:21:54 +0200
+Message-ID: <20090608142154.GD14234@elte.hu>
+References: <Pine.LNX.4.44L0.0906071651060.25203-100000@netrider.rowland.org> <20090608131159.GA15100@srcf.ucam.org> <20090608132235.GC13214@elte.hu> <200906081539.20459.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:53427 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755627AbZFHN6F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2009 09:58:05 -0400
-In-Reply-To: <20090608134647.GA14234@elte.hu>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:54939 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754744AbZFHOWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Jun 2009 10:22:08 -0400
 Content-Disposition: inline
+In-Reply-To: <200906081539.20459.oliver@neukum.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
+To: Oliver Neukum <oliver@neukum.org>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>
 
-Am Montag, 8. Juni 2009 15:46:47 schrieb Ingo Molnar:
-> ( Providing a way to _override_ those defaults is of course natural,
-> =A0 via /sysfs, should the user express an interest in tweaking it, o=
-r
-> =A0 should the kernel get it so wrong that a distro wants to work it
-> =A0 around. But your argument seems to be "push configuration and
-> =A0 handling into user-space" which is really backwards. )
 
-If we agree that the default shall be that the kernel doesn't switch
-off features of the hardware for power saving by default, does this
-make a practical difference to keeping the configuration in user space?
+* Oliver Neukum <oliver@neukum.org> wrote:
 
-	Regards
-		Oliver
+> Am Montag, 8. Juni 2009 15:22:35 schrieb Ingo Molnar:
+> 
+> > What will the 'user space policy' bit do what the kernel cannot?
+> >
+> > If you mean the user has to configure something manually - that 
+> > wont really happen in practice. We are happy if they know where 
+> > to put those USB sticks in ;-)
+> 
+> User space need not be the user. Currently user space doesn't tell 
+> the kernel how much functionality it needs. open/close give a 
+> binary opposition which badly maps onto the graduated capabilities 
+> devices have.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If the kernel isnt told what capabilities are used that's buggy code 
+then.
+
+> For example do you really need every key pressed while the screen 
+> saver is running or is it enough for the keyboard to be able to 
+> generate a wakeup event?
+
+The sane default here is to suspend the keyboard, except if an audio 
+app is running that binds to the volume keys of the keyboard.
+
+If the 'keyboard' is properly abstracted in the kernel and the 
+kernel driver _knows_ that the volume keys are in use, this is not a 
+problem.
+
+Arguing otherwise is just saying the equivalent of: "we have a 
+broken model to utilize hardware, and instead of fixing it properly, 
+introduce an _even more broken_ model, because in the current model 
+things cannot be made to work".
+
+The kernel _needs_ to have precise information about whether a piece 
+of hardware is in use or not.
+
+	Ingo
