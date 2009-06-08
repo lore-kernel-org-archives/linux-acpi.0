@@ -1,69 +1,39 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 4/4] eeepc-laptop: enable camera by default
-Date: Mon,  8 Jun 2009 10:16:50 +0200
-Message-ID: <1244449010-7995-5-git-send-email-corentincj@iksaif.net>
-References: <1244449010-7995-1-git-send-email-corentincj@iksaif.net>
- <1244449010-7995-2-git-send-email-corentincj@iksaif.net>
- <1244449010-7995-3-git-send-email-corentincj@iksaif.net>
- <1244449010-7995-4-git-send-email-corentincj@iksaif.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:52387 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753154AbZFHIYV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jun 2009 04:24:21 -0400
-In-Reply-To: <1244449010-7995-4-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Subject: [PATCH] sony-laptop: no need to unblock rfkill on load
+Date: Mon, 08 Jun 2009 11:31:11 +0100
+Message-ID: <4A2CE86F.9040209@tuffmail.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
+Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Pekka Enberg <penberg@cs.helsinki.fi>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>
 
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+The re-written rfkill core ensures rfkill devices are initialized to
+the system default state.  The core calls set_block after registration
+so the driver shouldn't need to.
 
-If we leave the camera disabled by default, userspace programs (e.g.
-Skype, Cheese) leave the user out in the cold saying that the machine
-"has no camera." Therefore, it's better to enable camera by default and
-let people who really don't want it just disable the thing.
-
-To reduce power usage you should enable USB autosuspend:
-echo -n auto > /sys/bus/usb/drivers/uvcvideo/*:*/../power/level
-
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
 ---
- drivers/platform/x86/eeepc-laptop.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index dfda948..2c58641 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -341,6 +341,15 @@ static int eeepc_bluetooth_rfkill_state(void *data, enum rfkill_state *state)
- 	return 0;
+This patch applies on top of the rfkill rewrite in the wireless-testing tree.
+
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index aec0b27..c1b21a4 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -1114,7 +1114,6 @@ static int sony_nc_setup_rfkill(struct acpi_device *device,
+ 		return err;
+ 	}
+ 	sony_rfkill_devices[nc_type] = rfk;
+-	sony_nc_rfkill_set((void *)nc_type, false);
+ 	return err;
  }
  
-+static void __init eeepc_enable_camera(void)
-+{
-+	/*
-+	 * If the following call to set_acpi() fails, it's because there's no
-+	 * camera so we can ignore the error.
-+	 */
-+	set_acpi(CM_ASL_CAMERA, 1);
-+}
-+
- /*
-  * Sys helpers
-  */
-@@ -1128,6 +1137,9 @@ static int __init eeepc_laptop_init(void)
- 	result = eeepc_hwmon_init(dev);
- 	if (result)
- 		goto fail_hwmon;
-+
-+	eeepc_enable_camera();
-+
- 	/* Register platform stuff */
- 	result = platform_driver_register(&platform_driver);
- 	if (result)
--- 
-1.6.3.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
