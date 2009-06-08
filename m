@@ -1,40 +1,37 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Run-time PM idea (was: Re: [linux-pm] [RFC][PATCH 0/2] PM:
-	Rearrange core suspend code)
-Date: Mon, 8 Jun 2009 16:11:56 +0100
-Message-ID: <20090608151156.GA17805@srcf.ucam.org>
-References: <Pine.LNX.4.44L0.0906071651060.25203-100000@netrider.rowland.org> <20090608131159.GA15100@srcf.ucam.org> <20090608132235.GC13214@elte.hu> <200906081539.20459.oliver@neukum.org> <20090608142154.GD14234@elte.hu> <20090608143023.GA16752@srcf.ucam.org> <20090608150603.GB20905@elte.hu>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 1/2] PM: Separate suspend to RAM functionality
+	from core
+Date: Mon, 8 Jun 2009 08:36:03 +0200
+Message-ID: <20090608063603.GA1833@ucw.cz>
+References: <200906070054.19207.rjw@sisk.pl> <200906070055.55156.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41962 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756748AbZFHPMB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2009 11:12:01 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35426 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754244AbZFHPVd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2009 11:21:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20090608150603.GB20905@elte.hu>
+In-Reply-To: <200906070055.55156.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Oliver Neukum <oliver@neukum.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Mon, Jun 08, 2009 at 05:06:03PM +0200, Ingo Molnar wrote:
+On Sun 2009-06-07 00:55:54, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Move the suspend to RAM and standby code from kernel/power/main.c
+> to two separate files, kernel/power/suspend.c containing the basic
+> functions and kernel/power/suspend-test.c containing the automatic
+> suspend test facility based on the RTC clock alarm.
+> 
+> There are no changes in functionality related to these modifications.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-> But if you think that tracking the usage state of the hardware is 
-> 'complexity', then you very much dont know what you are talking 
-> about. The main task of the kernel is to track hardware usage and to 
-> abstract away the fact that the same hardware is used by multiple 
-> tasks, and to do it safely. It's what the kernel does all day.
-
-What I'm saying is that you don't *know* what the usage state of the 
-hardware is, and in many cases you can't know. A given user may be happy 
-to sacrifice their SATA hotplug support. Another with identical hardware 
-may not. A given network application may be mission critical and 
-intolerant of the network interface being shut down. The same 
-application in a different context may not. We'd need to provide a 
-bewildering array of interfaces to distinguish between these situations, 
-and we'd be unable to turn on autosuspend until the entirity of 
-userspace had been ported to them.
+ACK.
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
