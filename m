@@ -1,54 +1,66 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: Run-time PM idea (was: Re: [linux-pm] [RFC][PATCH 0/2] PM:
- Rearrange core suspend code)
-Date: Wed, 10 Jun 2009 00:44:58 +0200 (CEST)
-Message-ID: <alpine.LRH.2.00.0906100039370.31685@twin.jikos.cz>
-References: <Pine.LNX.4.44L0.0906071651060.25203-100000@netrider.rowland.org> <20090608131159.GA15100@srcf.ucam.org> <20090608132235.GC13214@elte.hu> <200906081539.20459.oliver@neukum.org> <20090608142154.GD14234@elte.hu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM: Rearrange core suspend code)
+Date: Wed, 10 Jun 2009 01:02:21 +0200
+Message-ID: <200906100102.22307.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906081626120.13888-100000@netrider.rowland.org> <200906082331.58933.rjw@sisk.pl> <200906090931.37626.oliver@neukum.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:49456 "EHLO mx1.suse.de"
+Received: from ogre.sisk.pl ([217.79.144.158]:44014 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751972AbZFIWpC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jun 2009 18:45:02 -0400
-In-Reply-To: <20090608142154.GD14234@elte.hu>
+	id S1752496AbZFIXJS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2009 19:09:18 -0400
+In-Reply-To: <200906090931.37626.oliver@neukum.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Oliver Neukum <oliver@neukum.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>
+To: Oliver Neukum <oliver@neukum.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Mon, 8 Jun 2009, Ingo Molnar wrote:
+On Tuesday 09 June 2009, Oliver Neukum wrote:
+> Am Montag, 8. Juni 2009 23:31:58 schrieb Rafael J. Wysocki:
+> > If ->autosuspend() fails, the device power state may be known, but the core
+> > can't be sure if the device is active.  This information is available to
+> > the driver and/or the bus type, which should change the status to whatever
+> > is appropriate.
+> 
+> That is quite confusing. You'd better define error returns.
 
-> > For example do you really need every key pressed while the screen 
-> > saver is running or is it enough for the keyboard to be able to 
-> > generate a wakeup event?
-> The sane default here is to suspend the keyboard, except if an audio 
-> app is running that binds to the volume keys of the keyboard.
-> If the 'keyboard' is properly abstracted in the kernel and the 
-> kernel driver _knows_ that the volume keys are in use, this is not a 
-> problem.
+That might work too, but the information need not be available to the driver
+immediately.  It may need to schedule a reset of the device to recover from
+the error condition, for example.
 
-So, if you want to abstract this properly, you are proposing that the 
-application should in some sense "bind to keyboard keys"?
+> One that would mean that the suspension has failed but the device is
+> unaffected, and another one that means that the device is in an
+> undefined state now.
+>
+> > > The scheme doesn't include any mechanism for communicating runtime
+> > > power information up the device tree.  When a device is autosuspended,
+> > > its parent's driver should be told so that the driver can consider
+> > > autosuspending the parent.
+> >
+> > I thought the bus type's ->autosuspend() callback could take care of this.
+> 
+> That can't work because you have to operate between busses.
 
-That has several drawbacks:
+OK, point taken.
 
-- applications in the current universe don't do that
-- it's awful overhead: 
-  + it apparently wouldn't have any other use than for waking up from 
-    autosuspended mode (possibly while screensaver is running)
-  + I believe that application writers will find it a little boring to 
-    have to start all their main() functions with explicit eunumeration of 
-    the keys the application is expecting :)
-- even if we require applications to do so, there will be ones violating 
-  this rule (i.e. kernel only knows what userspace tells him, in this 
-  situation ... is this reliable enough?)
+> > > Likewise, if we want to autoresume a device below an autosuspended
+> > > parent, the parent should be autoresumed first.  Did you want to make the
+> > > bus subsystem responsible for all of this?
+> >
+> > Yes, that was the idea.
+> 
+> That is an important point. Can some subsytems operate with a parent still
+> suspended?
 
-To sum it up -- I don't think that what you are proposing will work.
+OK, I see the value of doing that at the core level.
+
+I tried to address this in the new version of the patch, which has been sent
+in my last reply to Alan.
 
 Thanks,
-
--- 
-Jiri Kosina
-SUSE Labs
+Rafael
 
