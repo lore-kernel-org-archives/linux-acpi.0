@@ -1,69 +1,78 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [PATCH] sony-laptop: no need to unblock rfkill on load
-Date: Tue, 09 Jun 2009 11:30:34 +0200
-Message-ID: <1244539834.4672.6.camel@johannes.local>
-References: <4A2CE86F.9040209@tuffmail.co.uk>
-	 <1244457418.18863.8.camel@johannes.local>
-	 <20090608224915.GA4583@kamineko.org> <4A2E1DE3.4020509@tuffmail.co.uk>
-	 <20090609092112.GE7682@kamineko.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-NlYtVYRFLe8IqeYQ4aWp"
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 39/87] cpuidle: make AMC C1E work in processor_idle
+Date: Tue, 09 Jun 2009 02:39:27 -0700
+Message-ID: <20090609094101.186185386@blue.kroah.org>
+References: <20090609093848.204935043@blue.kroah.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xc.sipsolutions.net ([83.246.72.84]:50807 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759032AbZFIJbI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2009 05:31:08 -0400
-In-Reply-To: <20090609092112.GE7682@kamineko.org>
+Received: from kroah.org ([198.145.64.141]:54863 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760663AbZFIKTf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2009 06:19:35 -0400
+Content-Disposition: inline; filename=cpuidle-make-amc-c1e-work-in-processor_idle.patch
+In-Reply-To: <20090609094451.GA26439@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, lenb@kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>
 
+2.6.29-stable review patch.  If anyone has any objections, please let us know.
 
---=-NlYtVYRFLe8IqeYQ4aWp
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+------------------
 
-On Tue, 2009-06-09 at 18:21 +0900, Mattia Dongili wrote:
+From: Shaohua Li <shaohua.li@intel.com>
 
-> > It just bothered me because I was effectively reverting a recent commit=
-. =20
-> > I figuired I should let you know.  In case it didn't work, when it was=20
-> > merged you'd know why I did it and who to blame.  But there is always G=
-it=20
-> > history for that :-).
->=20
-> Errm... now that I look at that patch more closely, the code you're
-> modifying is not upstream either.
-> Anyway thanks for the ping, I'll take a look at what's going on in the
-> wireless-testing tree ;)
+commit 87ad57bacb25c3f24c54f142ef445f68277705f0 upstream
 
-Sorry, I guess I forgot to copy you on the rfkill rewrite. Basically
-I've rewritten the rfkill APIs and ported sony. Bug
-http://bugzilla.kernel.org/show_bug.cgi?id=3D13458 is related to that too.
+When AMD C1E is enabled, local APIC timer will stop even in C1. This patch uses
+broadcast ipi to replace local APIC timer in C1.
 
-johannes
+http://bugzilla.kernel.org/show_bug.cgi?id=13233
 
---=-NlYtVYRFLe8IqeYQ4aWp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+[ impact: avoid boot hang in AMD CPU with C1E enabled ]
 
------BEGIN PGP SIGNATURE-----
+Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-iQIcBAABAgAGBQJKLiu3AAoJEODzc/N7+Qma9f8QALSo7jV5bLOworPnSP8+vaVM
-y+VtSv5USPstYTaI+J4tictJfAQbZOQmekWhE+sklq5BclfXYt/6pkVtBkm74F9C
-ll2SRBoDb6Kw1PGfSt3Wflcq5aU5WiMWkRWzzn6pDj1QiI28Des3jffLFj4/hAZl
-9fBgyFdI+V8j3zkBBgFcNx2wkTJIp9gUG3J8dzXvY6+AdkzjHKPcaIxu3VPwMajy
-XEAPX4T6Ga6KxsTc91EIdgrnn3sdG+9w9j0ddeNg+mdDFo5tcG+qTNwIvEhAoAFE
-nqjQwCF6VVm1sM+faEqtgNWsLQ7SySAuuFaQ+DbgpbmEoi9Y1mIkxlzT1B2Uc5p5
-jnTdCNDcUt6fMdSYpAw9D1E22aTcENu0FheuZZ0v4NTQvMM13DIOaiL4K+CJ3DBa
-kj/+8MeWoO7kGI/bIK+iO/td+SRt91bnPkumqH5kpab2nrbmAci5ON6araxCktiZ
-VQtHgBs18okYSh21ewOU2FvhmOYG9FIco4cqg+o8WukYobBeT8RxY1L1W01n5Qg8
-o4DBhS2CKQg4Ea/Jbr9rkYtazQ6axU/JoGDQqsk13ODHfX+4ysxbhr8qDzhmnZma
-te6QeVjodRTPg/Tiz8/0W+RDdoedirdO/dkUm2NoUT9L0II8zlKP8Rio25jUcGkF
-AL8OmP09ReXRLrCmtAKI
-=rVdO
------END PGP SIGNATURE-----
+---
+ drivers/acpi/processor_idle.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---=-NlYtVYRFLe8IqeYQ4aWp--
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -212,6 +212,9 @@ static void acpi_timer_check_state(int s
+ 	struct acpi_processor_power *pwr = &pr->power;
+ 	u8 type = local_apic_timer_c2_ok ? ACPI_STATE_C3 : ACPI_STATE_C2;
+ 
++	if (boot_cpu_has(X86_FEATURE_AMDC1E))
++		type = ACPI_STATE_C1;
++
+ 	/*
+ 	 * Check, if one of the previous states already marked the lapic
+ 	 * unstable
+@@ -648,6 +651,7 @@ static int acpi_processor_power_verify(s
+ 		switch (cx->type) {
+ 		case ACPI_STATE_C1:
+ 			cx->valid = 1;
++			acpi_timer_check_state(i, pr, cx);
+ 			break;
+ 
+ 		case ACPI_STATE_C2:
+@@ -871,12 +875,14 @@ static int acpi_idle_enter_c1(struct cpu
+ 		return 0;
+ 	}
+ 
++	acpi_state_timer_broadcast(pr, cx, 1);
+ 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 	acpi_idle_do_entry(cx);
+ 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 
+ 	local_irq_enable();
+ 	cx->usage++;
++	acpi_state_timer_broadcast(pr, cx, 0);
+ 
+ 	return ticks_elapsed_in_us(t1, t2);
+ }
+
 
