@@ -1,71 +1,58 @@
 From: Alex Chiang <achiang@hp.com>
 Subject: Re: [PATCH v2 07/11] ACPI: acpi_pci_unbind should clean up
 	properly after acpi_pci_bind
-Date: Tue, 9 Jun 2009 13:09:11 -0600
-Message-ID: <20090609190911.GE23647@ldl.fc.hp.com>
-References: <20090604054504.18802.21690.stgit@bob.kio> <20090604055852.18802.22743.stgit@bob.kio> <4A2788FA.2050606@jp.fujitsu.com> <20090604233521.GA12900@ethanol> <4A2C8429.2020401@jp.fujitsu.com>
+Date: Tue, 9 Jun 2009 13:14:57 -0600
+Message-ID: <20090609191457.GF23647@ldl.fc.hp.com>
+References: <20090604054504.18802.21690.stgit@bob.kio> <4A2788FA.2050606@jp.fujitsu.com> <20090604233521.GA12900@ethanol> <200906050949.02097.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:18552 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756918AbZFITOz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2009 15:14:55 -0400
 Content-Disposition: inline
-In-Reply-To: <4A2C8429.2020401@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+In-Reply-To: <200906050949.02097.bjorn.helgaas@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-* Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> Alex Chiang wrote:
->> diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
->> index 62cb383..c9cc650 100644
->> --- a/drivers/acpi/pci_bind.c
->> +++ b/drivers/acpi/pci_bind.c
->> @@ -109,11 +109,13 @@ static int acpi_pci_unbind(struct acpi_device *device)
->>  	struct pci_dev *dev;
->>   	dev = acpi_get_pci_dev(device->handle);
->> -	if (!dev)
->> +	if (!dev || !dev->subordinate)
->>  		return 0;
->
-> This would leak the pci_dev's refcount
-> if dev != NULL && dev->subordinate == NULL.
+* Bjorn Helgaas <bjorn.helgaas@hp.com>:
+> On Thursday 04 June 2009 05:35:21 pm Alex Chiang wrote:
+> > * Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
+> > >
+> > > I have a concern about this change.
+> > >
+> > > The acpi_pci_irq_del_prt() against dev->bus removes not only
+> > > the _PRT entries for PCI function corresponding to specified
+> > > acpi_device, but also other _PRT entries for working PCI
+> > > devices/functions on the same bus. As a result, interrupt
+> > > initialization for those PCI functions would no longer work
+> > > properly after that.
+> > >
+> > > So I think we should not call acpi_pci_irq_del_prt() against
+> > > dev->bus.
+> > 
+> > Thanks for the review. I agree with you.
+> 
+> I agree that this respun version makes things more the way they were,
+> so in that sense, it should do no harm.  But I still have the niggling
+> concern that .bind() adds _PRT info for non-bridges, and there's no
+> corresponding removal.  There should be some path that makes this
+> more symmetric.
 
-Yes, of course you are correct. Thanks for correcting my
-sloppiness.
+Hm, in another forum, you suggested that dynamic PRT lookups
+might be a solution, which I kinda like.
 
-Here is the correct fix.
+So, the plan that I would prefer is:
 
-From: Alex Chiang <achiang@hp.com>
+	a) get this patchset in [and we 'do no harm' here so
+	_hopefully_ aren't introducing regressions]
 
-ACPI: acpi_pci_unbind should clean up properly after acpi_pci_bind
+	b) work on dynamic PRT lookups in a future patchset.
 
-In acpi_pci_bind, we set device->ops.bind and device->ops.unbind, but
-never clear them out.
+Thanks.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Alex Chiang <achiang@hp.com>
----
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 62cb383..af75784 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -109,12 +109,15 @@ static int acpi_pci_unbind(struct acpi_device *device)
- 	struct pci_dev *dev;
- 
- 	dev = acpi_get_pci_dev(device->handle);
--	if (!dev)
--		return 0;
-+	if (!dev || !dev->subordinate)
-+		goto out:
- 
--	if (dev->subordinate)
--		acpi_pci_irq_del_prt(dev->subordinate);
-+	acpi_pci_irq_del_prt(dev->subordinate);
- 
-+	device->ops.bind = NULL;
-+	device->ops.unbind = NULL;
-+
-+out:
- 	pci_dev_put(dev);
- 	return 0;
- }
+/ac
+
