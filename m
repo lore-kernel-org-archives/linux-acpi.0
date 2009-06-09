@@ -1,78 +1,94 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 39/87] cpuidle: make AMC C1E work in processor_idle
-Date: Tue, 09 Jun 2009 02:39:27 -0700
-Message-ID: <20090609094101.186185386@blue.kroah.org>
-References: <20090609093848.204935043@blue.kroah.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 2.6.30-rc4] thermal: fix off-by-1 error in trip point trigger condition
+Date: Tue, 9 Jun 2009 15:10:10 +0200
+Message-ID: <200906091510.11285.trenn@suse.de>
+References: <200905061934.21821.eightgraph@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:54863 "EHLO coco.kroah.org"
+Received: from cantor2.suse.de ([195.135.220.15]:41192 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760663AbZFIKTf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jun 2009 06:19:35 -0400
-Content-Disposition: inline; filename=cpuidle-make-amc-c1e-work-in-processor_idle.patch
-In-Reply-To: <20090609094451.GA26439@kroah.com>
+	id S1755588AbZFINKK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2009 09:10:10 -0400
+In-Reply-To: <200905061934.21821.eightgraph@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, lenb@kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>
+To: Vladimir Zajac <eightgraph@gmail.com>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-2.6.29-stable review patch.  If anyone has any objections, please let us know.
+On Wednesday 06 May 2009 19:34:21 Vladimir Zajac wrote:
+> This patch fixes a regression caused by commit
+> b1569e99c795bf83b4ddf41c4f1c42761ab7f75e
+> "ACPI: move thermal trip handling to generic thermal layer"
+> which accidentally changed trip point trigger condition to
+>   temp > trip_temp
+> 
+> This patch changes the trigger condition back to
+>   temp >= trip_temp
+> 
+> Signed-off-by: Vladimir Zajac <eightgraph@gmail.com>
+This one should have
+CC: stable@kernel.org
+added.
+Vladimir, do you mind submitting this one for stable inclusion
+if not done already.
 
-------------------
+Thanks,
 
-From: Shaohua Li <shaohua.li@intel.com>
+     Thomas
 
-commit 87ad57bacb25c3f24c54f142ef445f68277705f0 upstream
-
-When AMD C1E is enabled, local APIC timer will stop even in C1. This patch uses
-broadcast ipi to replace local APIC timer in C1.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=13233
-
-[ impact: avoid boot hang in AMD CPU with C1E enabled ]
-
-Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/acpi/processor_idle.c |    6 ++++++
- 1 file changed, 6 insertions(+)
-
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -212,6 +212,9 @@ static void acpi_timer_check_state(int s
- 	struct acpi_processor_power *pwr = &pr->power;
- 	u8 type = local_apic_timer_c2_ok ? ACPI_STATE_C3 : ACPI_STATE_C2;
- 
-+	if (boot_cpu_has(X86_FEATURE_AMDC1E))
-+		type = ACPI_STATE_C1;
-+
- 	/*
- 	 * Check, if one of the previous states already marked the lapic
- 	 * unstable
-@@ -648,6 +651,7 @@ static int acpi_processor_power_verify(s
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
-+			acpi_timer_check_state(i, pr, cx);
- 			break;
- 
- 		case ACPI_STATE_C2:
-@@ -871,12 +875,14 @@ static int acpi_idle_enter_c1(struct cpu
- 		return 0;
- 	}
- 
-+	acpi_state_timer_broadcast(pr, cx, 1);
- 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
- 	local_irq_enable();
- 	cx->usage++;
-+	acpi_state_timer_broadcast(pr, cx, 0);
- 
- 	return ticks_elapsed_in_us(t1, t2);
- }
+> ---
+> 
+>  thermal_sys.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> --- linux-2.6.30-rc4/drivers/thermal/thermal_sys.c	2009-04-30 
+23:52:59.000000000 +0200
+> +++ linux-2.6.30-rc4-p1/drivers/thermal/thermal_sys.c	2009-05-04 
+19:58:30.000000000 +0200
+> @@ -961,7 +961,7 @@ void thermal_zone_device_update(struct t
+>  
+>  		switch (trip_type) {
+>  		case THERMAL_TRIP_CRITICAL:
+> -			if (temp > trip_temp) {
+> +			if (temp >= trip_temp) {
+>  				if (tz->ops->notify)
+>  					ret = tz->ops->notify(tz, count,
+>  							      trip_type);
+> @@ -974,7 +974,7 @@ void thermal_zone_device_update(struct t
+>  			}
+>  			break;
+>  		case THERMAL_TRIP_HOT:
+> -			if (temp > trip_temp)
+> +			if (temp >= trip_temp)
+>  				if (tz->ops->notify)
+>  					tz->ops->notify(tz, count, trip_type);
+>  			break;
+> @@ -986,14 +986,14 @@ void thermal_zone_device_update(struct t
+>  
+>  				cdev = instance->cdev;
+>  
+> -				if (temp > trip_temp)
+> +				if (temp >= trip_temp)
+>  					cdev->ops->set_cur_state(cdev, 1);
+>  				else
+>  					cdev->ops->set_cur_state(cdev, 0);
+>  			}
+>  			break;
+>  		case THERMAL_TRIP_PASSIVE:
+> -			if (temp > trip_temp || tz->passive)
+> +			if (temp >= trip_temp || tz->passive)
+>  				thermal_zone_device_passive(tz, temp,
+>  							    trip_temp, count);
+>  			break;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
