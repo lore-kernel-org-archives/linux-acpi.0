@@ -1,58 +1,88 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH v2 07/11] ACPI: acpi_pci_unbind should clean up
-	properly after acpi_pci_bind
-Date: Tue, 9 Jun 2009 13:14:57 -0600
-Message-ID: <20090609191457.GF23647@ldl.fc.hp.com>
-References: <20090604054504.18802.21690.stgit@bob.kio> <4A2788FA.2050606@jp.fujitsu.com> <20090604233521.GA12900@ethanol> <200906050949.02097.bjorn.helgaas@hp.com>
+From: "lcostantino@gmail.com" <lcostantino@gmail.com>
+Subject: [PATCH] wmi: Fix kernel panic when stack protection enabled.
+Date: Tue, 9 Jun 2009 17:09:23 -0400 (EDT)
+Message-ID: <alpine.DEB.2.00.0906091707380.8360@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:18552 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756918AbZFITOz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2009 15:14:55 -0400
-Content-Disposition: inline
-In-Reply-To: <200906050949.02097.bjorn.helgaas@hp.com>
+Received: from mail-px0-f200.google.com ([209.85.216.200]:60940 "EHLO
+	mail-px0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbZFITSn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2009 15:18:43 -0400
+Received: by pxi38 with SMTP id 38so131765pxi.33
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2009 12:18:46 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+To: carlos@strangeworlds.co.uk
+Cc: linux-acpi@vger.kernel.org
 
-* Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> On Thursday 04 June 2009 05:35:21 pm Alex Chiang wrote:
-> > * Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>:
-> > >
-> > > I have a concern about this change.
-> > >
-> > > The acpi_pci_irq_del_prt() against dev->bus removes not only
-> > > the _PRT entries for PCI function corresponding to specified
-> > > acpi_device, but also other _PRT entries for working PCI
-> > > devices/functions on the same bus. As a result, interrupt
-> > > initialization for those PCI functions would no longer work
-> > > properly after that.
-> > >
-> > > So I think we should not call acpi_pci_irq_del_prt() against
-> > > dev->bus.
-> > 
-> > Thanks for the review. I agree with you.
-> 
-> I agree that this respun version makes things more the way they were,
-> so in that sense, it should do no harm.  But I still have the niggling
-> concern that .bind() adds _PRT info for non-bridges, and there's no
-> corresponding removal.  There should be some path that makes this
-> more symmetric.
+From: Costantino Leandro <lcostantino@gmail.com>
 
-Hm, in another forum, you suggested that dynamic PRT lookups
-might be a solution, which I kinda like.
+Summary:
+Kernel panic arise when stack protection is enabled, since strncat will 
+add a null terminating byte '\0'; So in functions
+like this one (wmi_query_block):
+        char wc[4]="WC";
+	....
+	strncat(method, block->object_id, 2);
+        ...
+the length of wc should be n+1 (wc[5]) or stack protection
+fault will arise. This is not noticeable when stack protection is
+disabled,but , isn't good either.
+Config used: [CONFIG_CC_STACKPROTECTOR_ALL=y, 
+	      CONFIG_CC_STACKPROTECTOR=y]
 
-So, the plan that I would prefer is:
+Panic Trace
+------------
+       .... stack-protector: kernel stack corrupted in : fa7b182c
+       2.6.30-rc8-obelisco-generic
+       call_trace:
+           [<c04a6c40>] ? panic+0x45/0xd9
+	   [<c012925d>] ? __stack_chk_fail+0x1c/0x40
+	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
+	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
+	   [<fa7e7000>] ? acer_wmi_init+0x00/0x61a [acer_wmi]
+	   [<fa7e7135>] ? acer_wmi_init+0x135/0x61a [acer_wmi]
+	   [<c0101159>] ? do_one_initcall+0x50+0x126
 
-	a) get this patchset in [and we 'do no harm' here so
-	_hopefully_ aren't introducing regressions]
+Signed-off-by: Costantino Leandro <lcostantino@gmail.com>
+---
+ drivers/platform/x86/wmi.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-	b) work on dynamic PRT lookups in a future patchset.
-
-Thanks.
-
-/ac
+diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
+index 043b208..f215a59 100644
+--- a/drivers/platform/x86/wmi.c
++++ b/drivers/platform/x86/wmi.c
+@@ -270,7 +270,7 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
+ 	acpi_status status;
+ 	struct acpi_object_list input;
+ 	union acpi_object params[3];
+-	char method[4] = "WM";
++	char method[5] = "WM";
+ 
+ 	if (!find_guid(guid_string, &wblock))
+ 		return AE_ERROR;
+@@ -328,8 +328,8 @@ struct acpi_buffer *out)
+ 	acpi_status status, wc_status = AE_ERROR;
+ 	struct acpi_object_list input, wc_input;
+ 	union acpi_object wc_params[1], wq_params[1];
+-	char method[4];
+-	char wc_method[4] = "WC";
++	char method[5];
++	char wc_method[5] = "WC";
+ 
+ 	if (!guid_string || !out)
+ 		return AE_BAD_PARAMETER;
+@@ -410,7 +410,7 @@ const struct acpi_buffer *in)
+ 	acpi_handle handle;
+ 	struct acpi_object_list input;
+ 	union acpi_object params[2];
+-	char method[4] = "WS";
++	char method[5] = "WS";
+ 
+ 	if (!guid_string || !in)
+ 		return AE_BAD_DATA;
+-- 
+1.5.6.5
 
