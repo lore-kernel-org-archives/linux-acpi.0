@@ -1,88 +1,36 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM:
- Rearrange core suspend code)
-Date: Mon, 8 Jun 2009 22:49:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906082233490.19072-100000@netrider.rowland.org>
-References: <200906082331.58933.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: does anyone have Dell Latitude E6400?
+Date: Tue, 09 Jun 2009 14:44:21 +0800
+Message-ID: <1244529861.9076.61.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:50194 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752749AbZFICtT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2009 22:49:19 -0400
-In-Reply-To: <200906082331.58933.rjw@sisk.pl>
+Received: from mga01.intel.com ([192.55.52.88]:47321 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757171AbZFIGnj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2009 02:43:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oliver Neukum <oliver@neukum.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
 
-On Mon, 8 Jun 2009, Rafael J. Wysocki wrote:
+Hi, all,
 
-> > Use of the RPM_UNKNOWN state isn't good.  A bus may have valid reasons 
-> > of its own for not carrying out an autosuspend.  When this happens the 
-> > device's state isn't unknown.
-> 
-> I'm not sure what you mean exactly.
-> 
-> If ->autosuspend() fails, the device power state may be known, but the core
-> can't be sure if the device is active.  This information is available to the
-> driver and/or the bus type, which should change the status to whatever is
-> appropriate.
+I need to purchase a laptop with ambient light sensor to implement the
+ACPI ambient light sensor driver in Linux.
+Google tells me that Dell Latitude e6400 has this, but I'm not sure if
+the sensor is controlled via ACPI or platform specific methods.
+so can anybody that has this laptop send me the lspci and acpidump
+output please?
 
-But no matter what the driver or bus type sets the state to, your 
-pm_autosuspend() will change it to one of RPM_UNKNOWN or RPM_SUSPENDED.  
-Neither might be right.
+If somebody knows some other laptop models with this ACPI device (grep
+ACPI0008 and _ALI/_ALR control methods in the acpidump), please let me
+know.
 
-> The name of this constant may be confusing, but I didn't have any better ideas.
+BTW, to get the acpidump output, you need to download the latest pmtools
+at http://www.lesswatts.org/projects/acpi/utilities.php,
+build and run "acpidump > acpidump.log".
 
-It's not clear what RPM_ACTIVE, RPM_IDLE, and RPM_SUSPENDED are 
-supposed to mean; this should be documented in the code.  Also, why 
-isn't there RPM_RESUMING?
-
-By the way, a legitimate reason for aborting an autosuspend is if the
-device's driver requires remote wakeup to be enabled during suspend but
-the user has disabled it.
-
-> > The scheme doesn't include any mechanism for communicating runtime
-> > power information up the device tree.  When a device is autosuspended,
-> > its parent's driver should be told so that the driver can consider
-> > autosuspending the parent.
-> 
-> I thought the bus type's ->autosuspend() callback could take care of this.
-
-Shouldn't this happen after the device's state has changed to 
-RPM_SUSPENDED?  That's not until after the callback returns.
-
-> > There should be a sysfs interface (like the one in USB) to allow
-> > userspace to prevent a device from being autosuspended -- and perhaps
-> > also to force it to be suspended.
-> 
-> To prevent a device from being suspended - yes.  To force it to stay suspended
-> - I'm not sure.
-
-I'm not sure either.  Oliver Neukum requested it originally and it has
-been useful for debugging, but I haven't seen many places where it
-would come in useful in practice.
-
-> > What about devices that have more than two runtime power states?  For
-> > example, you can't squeeze PCI's {D0,D1,D2,D3hot} range into {running,
-> > suspended}.
-> 
-> That has to be bus type-specific.
-> 
-> In the case of PCI all of the low power states (D1-D3) are in fact substates of
-> "suspended", because we generally need to quiesce the device before putting
-> it into any of these states.
-> 
-> I'm not sure if we can introduce more "levels of suspension", so to speak, at
-> the core level, but in any case we can easily distinguish between "device
-> quiesced and in a low power state" and "device fully active".
-> 
-> So, in this picture the device is "suspended" from the core's point of view
-> once it's bus type's ->autosuspend() callback has been successfully executed. 
-
-This too should be documented in the code.  Or in a Documentation file.
-
-Alan Stern
+thanks,
+rui
 
