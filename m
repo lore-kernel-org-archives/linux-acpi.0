@@ -1,77 +1,802 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 21/60] cpuidle: make AMC C1E work in processor_idle
-Date: Tue, 09 Jun 2009 17:13:49 -0700
-Message-ID: <20090610002344.559460966@blue.kroah.org>
-References: <20090610001328.251476848@blue.kroah.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [patch update] Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM: Rearrange core suspend code)
+Date: Wed, 10 Jun 2009 10:29:26 +0200
+Message-ID: <200906101029.27529.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906082233490.19072-100000@netrider.rowland.org> <200906100057.04473.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:56857 "EHLO coco.kroah.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:45681 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756388AbZFJDe2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jun 2009 23:34:28 -0400
-Content-Disposition: inline; filename=cpuidle-make-amc-c1e-work-in-processor_idle.patch
-In-Reply-To: <20090610032135.GA19346@kroah.com>
+	id S1751923AbZFJI2z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2009 04:28:55 -0400
+In-Reply-To: <200906100057.04473.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Cc: Justin Forbes <jmforbes@linuxtx.org>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, Dave Jones <davej@redhat.com>, Chuck Wolber <chuckw@quantumlinux.com>, Chris Wedgwood <reviews@ml.cw.f00f.org>, Michael Krufky <mkrufky@linuxtv.org>, Chuck Ebbert <cebbert@redhat.com>, Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>, Rodrigo Rubira Branco <rbranco@la.checkpoint.com>, Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, lenb@kernel.org, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
--stable review patch.  If anyone has any objections, please let us know.
+On Wednesday 10 June 2009, Rafael J. Wysocki wrote:
+> On Tuesday 09 June 2009, Alan Stern wrote:
+> > On Mon, 8 Jun 2009, Rafael J. Wysocki wrote:
+> > 
+> > > > Use of the RPM_UNKNOWN state isn't good.  A bus may have valid reasons 
+> > > > of its own for not carrying out an autosuspend.  When this happens the 
+> > > > device's state isn't unknown.
+> > > 
+> > > I'm not sure what you mean exactly.
+> > > 
+> > > If ->autosuspend() fails, the device power state may be known, but the core
+> > > can't be sure if the device is active.  This information is available to the
+> > > driver and/or the bus type, which should change the status to whatever is
+> > > appropriate.
+> > 
+> > But no matter what the driver or bus type sets the state to, your 
+> > pm_autosuspend() will change it to one of RPM_UNKNOWN or RPM_SUSPENDED.  
+> > Neither might be right.
+> 
+> The idea is that if ->autosuspend() or ->autoresume() returns an error code,
+> this is a situation the PM core cannot recover from by itself, so it shouldn't
+> pretend it knows what's happened.  Instead, it marks the device as "I don't
+> know if it is safe to touch this" and won't handle it until the device driver
+> or bus type clears the status.
+> 
+> > > The name of this constant may be confusing, but I didn't have any better ideas.
+> > 
+> > It's not clear what RPM_ACTIVE, RPM_IDLE, and RPM_SUSPENDED are 
+> > supposed to mean; this should be documented in the code.  Also, why 
+> > isn't there RPM_RESUMING?
+> 
+> Yes, there should be.  In fact it's in the current version of the patch, which
+> is appended.  Also, there's a comment explaining the meaning of the RPM_*
+> constants in pm.h .
+> 
+> > By the way, a legitimate reason for aborting an autosuspend is if the
+> > device's driver requires remote wakeup to be enabled during suspend but
+> > the user has disabled it.
+> 
+> Do you mean the user has disabled the remote wakeup?
+> 
+> > > > The scheme doesn't include any mechanism for communicating runtime
+> > > > power information up the device tree.  When a device is autosuspended,
+> > > > its parent's driver should be told so that the driver can consider
+> > > > autosuspending the parent.
+> > > 
+> > > I thought the bus type's ->autosuspend() callback could take care of this.
+> > 
+> > Shouldn't this happen after the device's state has changed to 
+> > RPM_SUSPENDED?  That's not until after the callback returns.
+> 
+> OK, I tried to address the issue of parent suspend/resume in the new
+> version of the patch below (I'm not sure if I did the nesting of spinlocks in
+> pm_request_resume() correctly).
+> 
+> > > > There should be a sysfs interface (like the one in USB) to allow
+> > > > userspace to prevent a device from being autosuspended -- and perhaps
+> > > > also to force it to be suspended.
+> > > 
+> > > To prevent a device from being suspended - yes.  To force it to stay suspended
+> > > - I'm not sure.
+> > 
+> > I'm not sure either.  Oliver Neukum requested it originally and it has
+> > been useful for debugging, but I haven't seen many places where it
+> > would come in useful in practice.
+> 
+> The problem with it is that the user space may not know if it is safe to keep
+> a device suspended and if it is not, the kernel will have to ignore the setting
+> anyway, so I'm not sure what's the point (except for debugging).
+> 
+> > > > What about devices that have more than two runtime power states?  For
+> > > > example, you can't squeeze PCI's {D0,D1,D2,D3hot} range into {running,
+> > > > suspended}.
+> > > 
+> > > That has to be bus type-specific.
+> > > 
+> > > In the case of PCI all of the low power states (D1-D3) are in fact substates of
+> > > "suspended", because we generally need to quiesce the device before putting
+> > > it into any of these states.
+> > > 
+> > > I'm not sure if we can introduce more "levels of suspension", so to speak, at
+> > > the core level, but in any case we can easily distinguish between "device
+> > > quiesced and in a low power state" and "device fully active".
+> > > 
+> > > So, in this picture the device is "suspended" from the core's point of view
+> > > once it's bus type's ->autosuspend() callback has been successfully executed. 
+> > 
+> > This too should be documented in the code.  Or in a Documentation file.
+> 
+> OK
+> 
+> I tried to address your comments and the Oliver's comments too in the new
+> version of the patch below.  Please have a look and tell me what you think.
 
-------------------
-From: Shaohua Li <shaohua.li@intel.com>
+Argh, I forgot about some important things.
 
-commit 87ad57bacb25c3f24c54f142ef445f68277705f0 upstream
+First, there are devices with no parent (actually, it would be much easier if
+they had a default dummy parent, but that's a separate issue).
 
-When AMD C1E is enabled, local APIC timer will stop even in C1. This patch uses
-broadcast ipi to replace local APIC timer in C1.
+Second, the parent has to be taken into account in the asynchronous resume
+path too (which BTW is more complicated).
 
-http://bugzilla.kernel.org/show_bug.cgi?id=13233
+Finally, I decided to follow the Oliver's suggestion that some error codes returned
+by ->autosuspend() and ->autoresume() may be regarded as "go back to the
+previous state" information.  I chose to use -EAGAIN and -EBUSY for this
+purpose.
 
-[ impact: avoid boot hang in AMD CPU with C1E enabled ]
+Updated patch follows, sorry for the confusion.
 
-Tested-by: Dmitry Lyzhyn <thisistempbox@yahoo.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Best,
+Rafael
 
 ---
- drivers/acpi/processor_idle.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/base/power/Makefile  |    1 
+ drivers/base/power/main.c    |    2 
+ drivers/base/power/runtime.c |  393 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pm.h           |   78 ++++++++
+ include/linux/pm_runtime.h   |   50 +++++
+ kernel/power/Kconfig         |   14 +
+ kernel/power/main.c          |   17 +
+ 7 files changed, 553 insertions(+), 2 deletions(-)
 
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -303,6 +303,9 @@ static void acpi_timer_check_state(int s
- 	struct acpi_processor_power *pwr = &pr->power;
- 	u8 type = local_apic_timer_c2_ok ? ACPI_STATE_C3 : ACPI_STATE_C2;
- 
-+	if (boot_cpu_has(X86_FEATURE_AMDC1E))
-+		type = ACPI_STATE_C1;
+Index: linux-2.6/kernel/power/Kconfig
+===================================================================
+--- linux-2.6.orig/kernel/power/Kconfig
++++ linux-2.6/kernel/power/Kconfig
+@@ -208,3 +208,17 @@ config APM_EMULATION
+ 	  random kernel OOPSes or reboots that don't seem to be related to
+ 	  anything, try disabling/enabling this option (or disabling/enabling
+ 	  APM in your BIOS).
 +
- 	/*
- 	 * Check, if one of the previous states already marked the lapic
- 	 * unstable
-@@ -1154,6 +1157,7 @@ static int acpi_processor_power_verify(s
- 		switch (cx->type) {
- 		case ACPI_STATE_C1:
- 			cx->valid = 1;
-+			acpi_timer_check_state(i, pr, cx);
- 			break;
++config PM_RUNTIME
++	bool "Run-time PM core functionality"
++	depends on PM
++	---help---
++	  Enable functionality allowing I/O devices to be put into energy-saving
++	  (low power) states at run time (or autosuspended) after a specified
++	  period of inactivity and woken up in response to a hardware-generated
++	  wake-up event or a driver's request.
++
++	  Hardware support is generally required for this functionality to work
++	  and the bus type drivers of the buses the devices are on are
++	  responsibile for the actual handling of the autosuspend requests and
++	  wake-up events.
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -11,6 +11,7 @@
+ #include <linux/kobject.h>
+ #include <linux/string.h>
+ #include <linux/resume-trace.h>
++#include <linux/workqueue.h>
  
- 		case ACPI_STATE_C2:
-@@ -1476,12 +1480,14 @@ static int acpi_idle_enter_c1(struct cpu
- 	if (pr->flags.bm_check)
- 		acpi_idle_update_bm_rld(pr, cx);
+ #include "power.h"
  
-+	acpi_state_timer_broadcast(pr, cx, 1);
- 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+@@ -217,8 +218,24 @@ static struct attribute_group attr_group
+ 	.attrs = g,
+ };
  
- 	local_irq_enable();
- 	cx->usage++;
-+	acpi_state_timer_broadcast(pr, cx, 0);
++#ifdef CONFIG_PM_RUNTIME
++struct workqueue_struct *pm_wq;
++
++static int __init pm_start_workqueue(void)
++{
++	pm_wq = create_freezeable_workqueue("pm");
++
++	return pm_wq ? 0 : -ENOMEM;
++}
++#else
++static inline int pm_start_workqueue(void) { return 0; }
++#endif
++
+ static int __init pm_init(void)
+ {
++	int error = pm_start_workqueue();
++	if (error)
++		return error;
+ 	power_kobj = kobject_create_and_add("power", NULL);
+ 	if (!power_kobj)
+ 		return -ENOMEM;
+Index: linux-2.6/include/linux/pm.h
+===================================================================
+--- linux-2.6.orig/include/linux/pm.h
++++ linux-2.6/include/linux/pm.h
+@@ -22,6 +22,9 @@
+ #define _LINUX_PM_H
  
- 	return ticks_elapsed_in_us(t1, t2);
+ #include <linux/list.h>
++#include <linux/workqueue.h>
++#include <linux/spinlock.h>
++#include <linux/completion.h>
+ 
+ /*
+  * Callbacks for platform drivers to implement.
+@@ -165,6 +168,15 @@ typedef struct pm_message {
+  * It is allowed to unregister devices while the above callbacks are being
+  * executed.  However, it is not allowed to unregister a device from within any
+  * of its own callbacks.
++ *
++ * There also are two callbacks related to run-time power management of devices:
++ *
++ * @autosuspend: Save the device registers and put it into an energy-saving (low
++ *	power) state at run-time, enable wake-up events as appropriate.
++ *
++ * @autoresume: Put the device into the full power state and restore its
++ *	registers (if applicable) at run time, in response to a wake-up event
++ *	generated by hardware or at a request of software.
+  */
+ 
+ struct dev_pm_ops {
+@@ -182,6 +194,10 @@ struct dev_pm_ops {
+ 	int (*thaw_noirq)(struct device *dev);
+ 	int (*poweroff_noirq)(struct device *dev);
+ 	int (*restore_noirq)(struct device *dev);
++#ifdef CONFIG_PM_RUNTIME
++	int (*autosuspend)(struct device *dev);
++	int (*autoresume)(struct device *dev);
++#endif
+ };
+ 
+ /**
+@@ -315,14 +331,72 @@ enum dpm_state {
+ 	DPM_OFF_IRQ,
+ };
+ 
++/**
++ * Device run-time power management state.
++ *
++ * These state labels are used internally by the PM core to indicate the current
++ * status of a device with respect to the PM core operations.  They do not
++ * reflect the actual power state of the device or its status as seen by the
++ * driver.
++ *
++ * RPM_ACTIVE		Device is fully operational, no run-time PM requests are
++ *			pending for it.
++ *
++ * RPM_IDLE		It has been requested that the device be suspended.
++ *			Suspend request has been put into the run-time PM
++ *			workqueue and it's pending execution.
++ *
++ * RPM_SUSPENDING	Device bus type's ->autosuspend() callback is being
++ *			executed.
++ *
++ * RPM_SUSPENDED	Device bus type's ->autosuspend() callback has completed
++ *			successfully.  The device is regarded as suspended.
++ *
++ * RPM_WAKE		It has been requested that the device be woken up.
++ *			Resume request has been put into the run-time PM
++ *			workqueue and it's pending execution.
++ *
++ * RPM_RESUMING		Device bus type's ->autoresume() callback is being
++ *			executed.
++ *
++ * RPM_ERROR		Represents a condition from which the PM core cannot
++ *			recover by itself.  If the device's run-time PM status
++ *			field has this value, all of the run-time PM operations
++ *			carried out for the device by the core will fail, until
++ *			the status field is changed to either RPM_ACTIVE or
++ *			RPM_SUSPENDED (it is not valid to use the other values
++ *			in such a situation) by the device's driver or bus type.
++ *			This happens when the device bus type's ->autosuspend()
++ *			or ->autoresume() callback returns error code other than
++ *			-EAGAIN or -EBUSY.
++ */
++
++enum rpm_state {
++	RPM_ERROR = -1,
++	RPM_ACTIVE,
++	RPM_IDLE,
++	RPM_SUSPENDING,
++	RPM_SUSPENDED,
++	RPM_WAKE,
++	RPM_RESUMING,
++};
++
+ struct dev_pm_info {
+ 	pm_message_t		power_state;
+-	unsigned		can_wakeup:1;
+-	unsigned		should_wakeup:1;
++	unsigned int		can_wakeup:1;
++	unsigned int		should_wakeup:1;
+ 	enum dpm_state		status;		/* Owned by the PM core */
+ #ifdef	CONFIG_PM_SLEEP
+ 	struct list_head	entry;
+ #endif
++#ifdef	CONFIG_PM_RUNTIME
++	struct delayed_work	suspend_work;
++	unsigned int		suspend_aborted:1;
++	struct work_struct	resume_work;
++	struct completion	work_done;
++	enum rpm_state		runtime_status;
++	spinlock_t		lock;
++#endif
+ };
+ 
+ /*
+Index: linux-2.6/drivers/base/power/Makefile
+===================================================================
+--- linux-2.6.orig/drivers/base/power/Makefile
++++ linux-2.6/drivers/base/power/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_PM)	+= sysfs.o
+ obj-$(CONFIG_PM_SLEEP)	+= main.o
++obj-$(CONFIG_PM_RUNTIME)	+= runtime.o
+ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+ 
+ ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+Index: linux-2.6/drivers/base/power/runtime.c
+===================================================================
+--- /dev/null
++++ linux-2.6/drivers/base/power/runtime.c
+@@ -0,0 +1,393 @@
++/*
++ * drivers/base/power/runtime.c - Helper functions for device run-time PM
++ *
++ * Copyright (c) 2009 Rafael J. Wysocki <rjw@sisk.pl>, Novell Inc.
++ *
++ * This file is released under the GPLv2.
++ */
++
++#include <linux/pm_runtime.h>
++
++/**
++ * pm_runtime_reset - Clear all of the device run-time PM flags.
++ * @dev: Device object to clear the flags for.
++ */
++static void pm_runtime_reset(struct device *dev)
++{
++	dev->power.suspend_aborted = false;
++	dev->power.runtime_status = RPM_ACTIVE;
++}
++
++/**
++ * pm_device_suspended - Check if given device has been suspended at run time.
++ * @dev: Device to check.
++ * @data: Ignored.
++ *
++ * Returns 0 if the device has been suspended or -EBUSY otherwise.
++ */
++static int pm_device_suspended(struct device *dev, void *data)
++{
++	int ret;
++
++	spin_lock(&dev->power.lock);
++
++	ret = dev->power.runtime_status == RPM_SUSPENDED ? 0 : -EBUSY;
++
++	spin_unlock(&dev->power.lock);
++
++	return ret;
++}
++
++/**
++ * pm_check_children - Check if all children of a device have been suspended.
++ * @dev: Device to check.
++ *
++ * Returns 0 if all children of the device have been suspended or -EBUSY
++ * otherwise.
++ */
++static int pm_check_children(struct device *dev)
++{
++	return device_for_each_child(dev, NULL, pm_device_suspended);
++}
++
++/**
++ * pm_autosuspend - Run autosuspend callback of given device object's bus type.
++ * @work: Work structure used for scheduling the execution of this function.
++ *
++ * Use @work to get the device object the suspend has been scheduled for,
++ * check if the suspend request hasn't been cancelled and run the
++ * ->autosuspend() callback from the device's bus type driver.  Update the
++ * run-time PM flags in the device object to reflect the current status of the
++ * device.
++ */
++static void pm_autosuspend(struct work_struct *work)
++{
++	struct delayed_work *dw = to_delayed_work(work);
++	struct device *dev = suspend_work_to_device(dw);
++	int error = 0;
++
++	spin_lock(&dev->power.lock);
++
++	if (dev->power.suspend_aborted) {
++		dev->power.runtime_status = RPM_ACTIVE;
++		goto out;
++	} else if (dev->power.runtime_status != RPM_IDLE) {
++		goto out;
++	} else if (pm_check_children(dev)) {
++		/*
++		 * We can only suspend the device if all of its children have
++		 * been suspended.
++		 */
++		goto out;
++	}
++
++	dev->power.runtime_status = RPM_SUSPENDING;
++	init_completion(&dev->power.work_done);
++
++	spin_unlock(&dev->power.lock);
++
++	if (dev && dev->bus && dev->bus->pm && dev->bus->pm->autosuspend)
++		error = dev->bus->pm->autosuspend(dev);
++
++	spin_lock(&dev->power.lock);
++
++	switch (error) {
++	case 0:
++		dev->power.runtime_status = RPM_SUSPENDED;
++		break;
++	case -EAGAIN:
++	case -EBUSY:
++		dev->power.runtime_status = RPM_ACTIVE;
++		break;
++	default:
++		dev->power.runtime_status = RPM_ERROR;
++	}
++	complete(&dev->power.work_done);
++
++ out:
++	spin_unlock(&dev->power.lock);
++}
++
++/**
++ * pm_request_suspend - Schedule run-time suspend of given device.
++ * @dev: Device to suspend.
++ * @delay: Time to wait before attempting to suspend the device.
++ */
++void pm_request_suspend(struct device *dev, unsigned long delay)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->power.lock, flags);
++
++	if (dev->power.runtime_status != RPM_ACTIVE)
++		goto out;
++
++	dev->power.runtime_status = RPM_IDLE;
++	dev->power.suspend_aborted = false;
++	queue_delayed_work(pm_wq, &dev->power.suspend_work, delay);
++
++ out:
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++}
++
++/**
++ * pm_cancel_suspend - Cancel a pending suspend request for given device.
++ * @dev: Device to cancel the suspend request for.
++ *
++ * Should be called under pm_lock_device() and only if we are sure that the
++ * ->autosuspend() callback hasn't started to yet.
++ */
++static void pm_cancel_suspend(struct device *dev)
++{
++	dev->power.suspend_aborted = true;
++	cancel_delayed_work(&dev->power.suspend_work);
++	dev->power.runtime_status = RPM_ACTIVE;
++}
++
++/**
++ * pm_autoresume - Run autoresume callback of given device object's bus type.
++ * @work: Work structure used for scheduling the execution of this function.
++ *
++ * Use @work to get the device object the resume has been scheduled for,
++ * check if the device is really suspended and run the ->autoresume() callback
++ * from the device's bus type driver.  Update the run-time PM flags in the
++ * device object to reflect the current status of the device.
++ */
++static void pm_autoresume(struct work_struct *work)
++{
++	struct device *dev = resume_work_to_device(work);
++	int error = 0;
++
++	if (dev->parent)
++		spin_lock(&dev->parent->power.lock);
++	spin_lock(&dev->power.lock);
++
++ repeat:
++	if (dev->power.runtime_status != RPM_WAKE) {
++		if (dev->parent)
++			spin_unlock(&dev->parent->power.lock);
++		goto out;
++	} else if (dev->parent
++	    && dev->parent->power.runtime_status != RPM_ACTIVE) {
++		if (dev->parent->power.runtime_status == RPM_RESUMING) {
++			spin_unlock(&dev->power.lock);
++			spin_unlock(&dev->parent->power.lock);
++
++			wait_for_completion(&dev->parent->power.work_done);
++
++			spin_lock(&dev->parent->power.lock);
++			spin_lock(&dev->power.lock);
++		}
++		if (dev->parent->power.runtime_status != RPM_ACTIVE) {
++			spin_unlock(&dev->parent->power.lock);
++			goto out;
++		}
++		goto repeat;
++	}
++
++	dev->power.runtime_status = RPM_RESUMING;
++	init_completion(&dev->power.work_done);
++
++	spin_unlock(&dev->power.lock);
++	if (dev->parent)
++		spin_unlock(&dev->parent->power.lock);
++
++	if (dev->bus && dev->bus->pm && dev->bus->pm->autoresume)
++		error = dev->bus->pm->autoresume(dev);
++
++	spin_lock(&dev->power.lock);
++
++	switch (error) {
++	case 0:
++		dev->power.runtime_status = RPM_ACTIVE;
++		break;
++	case -EAGAIN:
++	case -EBUSY:
++		dev->power.runtime_status = RPM_SUSPENDED;
++		break;
++	default:
++		dev->power.runtime_status = RPM_ERROR;
++	}
++	complete(&dev->power.work_done);
++
++ out:
++	spin_unlock(&dev->power.lock);
++}
++
++/**
++ * pm_request_resume - Schedule run-time resume of given device.
++ * @dev: Device to resume.
++ */
++void pm_request_resume(struct device *dev)
++{
++	unsigned long parent_flags = 0, flags;
++
++ repeat:
++	if (dev->parent)
++		spin_lock_irqsave(&dev->parent->power.lock, parent_flags);
++	spin_lock_irqsave(&dev->power.lock, flags);
++
++	if (dev->power.runtime_status == RPM_IDLE) {
++		/* Autosuspend request is pending, no need to resume. */
++		pm_cancel_suspend(dev);
++		goto out;
++	} else if (dev->power.runtime_status != RPM_SUSPENDING
++	    && dev->power.runtime_status != RPM_SUSPENDED) {
++		goto out;
++	} else if (dev->parent
++	    && (dev->parent->power.runtime_status == RPM_IDLE
++	      || dev->parent->power.runtime_status == RPM_SUSPENDING
++	      || dev->parent->power.runtime_status == RPM_SUSPENDED)) {
++		spin_unlock_irqrestore(&dev->power.lock, flags);
++		spin_unlock_irqrestore(&dev->parent->power.lock, parent_flags);
++
++		/* We have to resume the parent first. */
++		pm_request_resume(dev->parent);
++
++		goto repeat;
++	}
++
++	dev->power.runtime_status = RPM_WAKE;
++	queue_work(pm_wq, &dev->power.resume_work);
++
++ out:
++	spin_unlock_irqrestore(&dev->power.lock, flags);
++	if (dev->parent)
++		spin_unlock_irqrestore(&dev->parent->power.lock, parent_flags);
++}
++
++/**
++ * pm_resume_sync - Resume given device waiting for the operation to complete.
++ * @dev: Device to resume.
++ *
++ * Resume the device synchronously, waiting for the operation to complete.  If
++ * autosuspend is in progress while this function is being run, wait for it to
++ * finish before resuming the device.  If the autosuspend is scheduled, but it
++ * hasn't started yet, cancel it and we're done.
++ */
++int pm_resume_sync(struct device *dev)
++{
++	int error = 0;
++
++	spin_lock(&dev->power.lock);
++
++	if (dev->power.runtime_status == RPM_ACTIVE) {
++		goto out;
++	} if (dev->power.runtime_status == RPM_IDLE) {
++		/* ->autosuspend() hasn't started yet, no need to resume. */
++		pm_cancel_suspend(dev);
++		goto out;
++	}
++
++	if (dev->power.runtime_status == RPM_SUSPENDING) {
++		spin_unlock(&dev->power.lock);
++
++		/*
++		 * The ->autosuspend() callback is being executed right now,
++		 * wait for it to complete.
++		 */
++		wait_for_completion(&dev->power.work_done);
++	} else if (dev->power.runtime_status == RPM_SUSPENDED && dev->parent) {
++		spin_unlock(&dev->power.lock);
++
++		/* The device's parent may also be suspended.  Resume it. */
++		error = pm_resume_sync(dev->parent);
++		if (error)
++			return error;
++	} else {
++		spin_unlock(&dev->power.lock);
++	}
++
++	if (dev->parent)
++		spin_lock(&dev->parent->power.lock);
++	spin_lock(&dev->power.lock);
++
++	if (dev->power.runtime_status == RPM_RESUMING)
++		/* There's another resume running in parallel with us. */
++		error = -EAGAIN;
++	else if (dev->power.runtime_status != RPM_SUSPENDED)
++		error = -EINVAL;
++	if (error) {
++		if (dev->parent)
++			spin_unlock(&dev->parent->power.lock);
++		goto out;
++	}
++
++	dev->power.runtime_status = RPM_RESUMING;
++	init_completion(&dev->power.work_done);
++
++	spin_unlock(&dev->power.lock);
++	if (dev->parent)
++		spin_unlock(&dev->parent->power.lock);
++
++	if (dev->bus && dev->bus->pm && dev->bus->pm->autoresume)
++		error = dev->bus->pm->autoresume(dev);
++
++	spin_lock(&dev->power.lock);
++
++	switch (error) {
++	case 0:
++		dev->power.runtime_status = RPM_ACTIVE;
++		break;
++	case -EAGAIN:
++	case -EBUSY:
++		dev->power.runtime_status = RPM_SUSPENDED;
++		break;
++	default:
++		dev->power.runtime_status = RPM_ERROR;
++	}
++	complete(&dev->power.work_done);
++
++ out:
++	spin_unlock(&dev->power.lock);
++
++	return error;
++}
++
++/**
++ * pm_cancel_autosuspend - Cancel a pending autosuspend request for given device
++ * @dev: Device to handle.
++ *
++ * This routine is only supposed to be called when the run-time PM workqueue is
++ * frozen (i.e. during system-wide suspend or hibernation) when it is guaranteed
++ * that no work items are being executed.
++ */
++void pm_cancel_autosuspend(struct device *dev)
++{
++	spin_lock(&dev->power.lock);
++
++	cancel_delayed_work(&dev->power.suspend_work);
++	pm_runtime_reset(dev);
++
++	spin_unlock(&dev->power.lock);
++}
++
++/**
++ * pm_cancel_autoresume - Cancel a pending autoresume request for given device
++ * @dev: Device to handle.
++ *
++ * This routine is only supposed to be called when the run-time PM workqueue is
++ * frozen (i.e. during system-wide suspend or hibernation) when it is guaranteed
++ * that no work items are being executed.
++ */
++void pm_cancel_autoresume(struct device *dev)
++{
++	spin_lock(&dev->power.lock);
++
++	work_clear_pending(&dev->power.resume_work);
++	pm_runtime_reset(dev);
++
++	spin_unlock(&dev->power.lock);
++}
++
++/**
++ * pm_runtime_init - Initialize run-time PM fields in given device object.
++ * @dev: Device object to handle.
++ */
++void pm_runtime_init(struct device *dev)
++{
++	pm_runtime_reset(dev);
++	spin_lock_init(&dev->power.lock);
++	INIT_DELAYED_WORK(&dev->power.suspend_work, pm_autosuspend);
++	INIT_WORK(&dev->power.resume_work, pm_autoresume);
++}
+Index: linux-2.6/include/linux/pm_runtime.h
+===================================================================
+--- /dev/null
++++ linux-2.6/include/linux/pm_runtime.h
+@@ -0,0 +1,50 @@
++/*
++ * pm_runtime.h - Device run-time power management helper functions.
++ *
++ * Copyright (C) 2009 Rafael J. Wysocki <rjw@sisk.pl>
++ *
++ * This file is released under the GPLv2.
++ */
++
++#ifndef _LINUX_PM_RUNTIME_H
++#define _LINUX_PM_RUNTIME_H
++
++#include <linux/device.h>
++#include <linux/pm.h>
++
++#ifdef CONFIG_PM_RUNTIME
++extern struct workqueue_struct *pm_wq;
++
++extern void pm_runtime_init(struct device *dev);
++extern void pm_request_suspend(struct device *dev, unsigned long delay);
++extern void pm_request_resume(struct device *dev);
++extern int pm_resume_sync(struct device *dev);
++extern void pm_cancel_autosuspend(struct device *dev);
++extern void pm_cancel_autoresume(struct device *dev);
++
++static inline struct device *suspend_work_to_device(struct delayed_work *work)
++{
++	struct dev_pm_info *dpi;
++
++	dpi = container_of(work, struct dev_pm_info, suspend_work);
++	return container_of(dpi, struct device, power);
++}
++
++static inline struct device *resume_work_to_device(struct work_struct *work)
++{
++	struct dev_pm_info *dpi;
++
++	dpi = container_of(work, struct dev_pm_info, resume_work);
++	return container_of(dpi, struct device, power);
++}
++
++#else /* !CONFIG_PM_RUNTIME */
++static inline void pm_runtime_init(struct device *dev) {}
++static inline void pm_request_suspend(struct device *dev, unsigned long delay);
++static inline void pm_request_resume(struct device *dev) {}
++static inline int pm_resume_sync(struct device *dev) { return -ENOSYS; }
++static inline void pm_cancel_autosuspend(struct device *dev) {}
++static inline void pm_cancel_autoresume(struct device *dev) {}
++#endif /* !CONFIG_PM_RUNTIME */
++
++#endif
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -21,6 +21,7 @@
+ #include <linux/kallsyms.h>
+ #include <linux/mutex.h>
+ #include <linux/pm.h>
++#include <linux/pm_runtime.h>
+ #include <linux/resume-trace.h>
+ #include <linux/rwsem.h>
+ #include <linux/interrupt.h>
+@@ -88,6 +89,7 @@ void device_pm_add(struct device *dev)
+ 	}
+ 
+ 	list_add_tail(&dev->power.entry, &dpm_list);
++	pm_runtime_init(dev);
+ 	mutex_unlock(&dpm_list_mtx);
  }
-
-
+ 
