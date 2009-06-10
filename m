@@ -1,50 +1,70 @@
-From: akpm@linux-foundation.org
-Subject: [patch 1/4] dell-wmi: mask off upper bytes of event response
-Date: Wed, 10 Jun 2009 12:40:46 -0700
-Message-ID: <200906101940.n5AJekR7028796@imap1.linux-foundation.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56325 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758681AbZFJToe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:44:34 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH v3 00/12] Dynamic ACPI-PCI binding
+Date: Wed, 10 Jun 2009 13:55:04 -0600
+Message-ID: <20090610194714.28982.51363.stgit@bob.kio>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, mario_limonciello@dell.com, mjg@redhat.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-From: Mario Limonciello <mario_limonciello@dell.com>
+Hi Len,
 
-In debugging with some future machines that actually contain BIOS level
-support for dell-wmi, I've determined that the upper half of the data that
-comes back from wmi_get_event_data may sometimes contain extra information
-that isn't currently relevant when pulling scan codes out of the data. 
-This causes dell-wmi to improperly respond to these events.
+Bjorn suggested I respin this series one more time, so here it is.
 
-Signed-off-by: Mario Limonciello <mario_limonciello@dell.com>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Previous cover patches for rationale:
+
+	v1 - http://lkml.org/lkml/2009/6/2/282
+	v2 - http://lkml.org/lkml/2009/6/4/31
+
+Thanks.
+
+/ac
+
+Changelog:
+v2 -> v3
+	- incorporate Kenji's comment re: acpi_pci_unbind
+	- add an extra code movement patch to make evisceration easier to read
+
+v1 -> v2
+	- rearrange series into a more logical order
+	- much simpler acpi_is_root_bridge() implementation
+	- no longer export acpi_pci_find_root()
+	- no longer leak memory in acpi_get_pci_dev()
+	- no longer leak references in acpi_pci_unbind/acpi_pci_bind
+	- convert video driver to use acpi_get_pci_dev()
+	- kill off acpi_get_physical_pci_device()
+	- incorporate Bjorn's other comments. :)
+
 ---
 
- drivers/platform/x86/dell-wmi.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Alex Chiang (12):
+      ACPI: kill acpi_get_physical_pci_device()
+      ACPI: video: convert to acpi_get_pci_dev
+      ACPI: kill acpi_get_pci_id
+      PCI Hotplug: acpiphp: convert to acpi_get_pci_dev
+      ACPI: acpi_pci_unbind should clean up properly after acpi_pci_bind
+      ACPI: simplify acpi_pci_irq_del_prt() API
+      ACPI: simplify acpi_pci_irq_add_prt() API
+      ACPI: eviscerate pci_bind.c
+      ACPI: rearrange acpi_pci_bind/acpi_pci_unbind in pci_bind.c
+      ACPI: Introduce acpi_get_pci_dev()
+      ACPI: Introduce acpi_is_root_bridge()
+      ACPI: make acpi_pci_bind() static
 
-diff -puN drivers/platform/x86/dell-wmi.c~dell-wmi-mask-off-upper-bytes-of-event-response drivers/platform/x86/dell-wmi.c
---- a/drivers/platform/x86/dell-wmi.c~dell-wmi-mask-off-upper-bytes-of-event-response
-+++ a/drivers/platform/x86/dell-wmi.c
-@@ -122,7 +122,12 @@ static void dell_wmi_notify(u32 value, v
- 
- 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
- 		int *buffer = (int *)obj->buffer.pointer;
--		key = dell_wmi_get_entry_by_scancode(buffer[1]);
-+		/*
-+		 *  The upper bytes of the event may contain
-+		 *  additional information, so mask them off for the
-+		 *  scancode lookup
-+		 */
-+		key = dell_wmi_get_entry_by_scancode(buffer[1] & 0xFFFF);
- 		if (key) {
- 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
- 			input_sync(dell_wmi_input_dev);
-_
+
+ drivers/acpi/glue.c                |   40 -----
+ drivers/acpi/pci_bind.c            |  313 ++++--------------------------------
+ drivers/acpi/pci_irq.c             |   17 +-
+ drivers/acpi/pci_root.c            |  112 ++++++++++++-
+ drivers/acpi/video.c               |    6 -
+ drivers/acpi/video_detect.c        |    9 +
+ drivers/pci/hotplug/acpi_pcihp.c   |   40 -----
+ drivers/pci/hotplug/acpiphp_glue.c |   27 +--
+ include/acpi/acpi_bus.h            |    2 
+ include/acpi/acpi_drivers.h        |   10 -
+ include/linux/pci_hotplug.h        |    1 
+ 11 files changed, 176 insertions(+), 401 deletions(-)
