@@ -1,57 +1,68 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [patch update] Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM: Rearrange core suspend code)
-Date: Thu, 11 Jun 2009 01:15:30 +0200
-Message-ID: <200906110115.30729.oliver@neukum.org>
-References: <Pine.LNX.4.44L0.0906101656100.2589-100000@iolanthe.rowland.org> <200906102331.14267.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update] Re: [linux-pm] Run-time PM idea (was: Re:
+ [RFC][PATCH 0/2] PM: Rearrange core suspend code)
+Date: Wed, 10 Jun 2009 19:42:07 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906101933220.29717-100000@netrider.rowland.org>
+References: <200906102331.14267.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:43000 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756225AbZFJXOm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2009 19:14:42 -0400
+Received: from netrider.rowland.org ([192.131.102.5]:45750 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758543AbZFJXmH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2009 19:42:07 -0400
 In-Reply-To: <200906102331.14267.rjw@sisk.pl>
-Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: Oliver Neukum <oliver@neukum.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Am Mittwoch, 10. Juni 2009 23:31:13 schrieb Rafael J. Wysocki:
-> > > +/**
-> > > + * pm_check_children - Check if all children of a device have be=
-en
-> > > suspended. + * @dev: Device to check.
-> > > + *
-> > > + * Returns 0 if all children of the device have been suspended o=
-r
-> > > -EBUSY + * otherwise.
-> > > + */
+On Wed, 10 Jun 2009, Rafael J. Wysocki wrote:
+
+> > You know, it doesn't make any sense to have a suspend and a resume 
+> > both pending at the same time.
 > >
+> > So you could add only a delayed_work structure and use its embedded
+> > work_struct for resume requests.
+> 
+> I thought so too, but I was wrong. ;-)
+> 
+> If resume is requested while the suspend hasn't completed yet, we should
+> queue it (it's totally valid to request a suspending device to resume IMO), but
+> the delayed work is still being used by the workqueue code, so we can't modify
+> it.
+
+Where is the delayed work still being used?  There's even a comment in 
+run_workqueue() that says a work_struct can be freed by the function it 
+calls.
+
 > > We might want to do a runtime suspend even if the device's children
-> > aren't already suspended. =A0For example, you could suspend a link =
-while
+> > aren't already suspended.  For example, you could suspend a link while
 > > leaving the device on the other end of the link at full power --
-> > especially if powering down the device is slow but changing the lin=
-k's
+> > especially if powering down the device is slow but changing the link's
 > > power level is fast.
->
-> Well, this means that the dependencies between devices in the device =
-tree
-> are pretty much useless for the run-time PM as far as the core is
-> concerned. =A0In which case, why did you mention them at all?
+> 
+> Well, this means that the dependencies between devices in the device tree are
+> pretty much useless for the run-time PM as far as the core is concerned.  In
+> which case, why did you mention them at all?
 
-Some bussystems need this constraint others don't or only for some node=
-s.
-We need a way to communicate this to the core.
+The dependencies aren't totally useless.  It's still true that before
+you resume a device, you have to autoresume its parent.  And it's still
+true that when you suspend a device, the parent should be given a
+chance to autosuspend.
 
-	Regards
-		Oliver
+I guess the real point is that the decision about whether all children
+must be suspended should be made by the driver, not the PM core.
 
+> > I haven't checked the details of the code yet.  More later...
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One more thought...  The autosuspend and autoresume callbacks need to 
+be mutually exclusive with probe and remove.  So somehow the driver 
+core will need to block runtime PM calls.
+
+It might also be nice to make sure that the driver core autoresumes a 
+device before probing it and autosuspends a device (after some 
+reasonable delay) after unbinding its driver.
+
+Alan Stern
+
