@@ -1,55 +1,89 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v3 08/12] ACPI: acpi_pci_unbind should clean up properly after
-	acpi_pci_bind
-Date: Wed, 10 Jun 2009 13:55:45 -0600
-Message-ID: <20090610195545.28982.31987.stgit@bob.kio>
+Subject: [PATCH v3 12/12] ACPI: kill acpi_get_physical_pci_device()
+Date: Wed, 10 Jun 2009 13:56:05 -0600
+Message-ID: <20090610195605.28982.44680.stgit@bob.kio>
 References: <20090610194714.28982.51363.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:47578 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761471AbZFJTzn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2009 15:55:43 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20090610194714.28982.51363.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, linux-pci@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-In acpi_pci_bind, we set device->ops.bind and device->ops.unbind, but
-never clear them out.
+acpi_get_pci_dev() is (hopefully) better, and all callers have been
+converted, so let's get rid of this duplicated functionality.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/pci_bind.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/acpi/glue.c     |   40 ----------------------------------------
+ include/acpi/acpi_bus.h |    1 -
+ 2 files changed, 0 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index 62cb383..a205769 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -109,12 +109,15 @@ static int acpi_pci_unbind(struct acpi_device *device)
- 	struct pci_dev *dev;
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 8bd2c2a..a8a5c29 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -140,46 +140,6 @@ struct device *acpi_get_physical_device(acpi_handle handle)
  
- 	dev = acpi_get_pci_dev(device->handle);
+ EXPORT_SYMBOL(acpi_get_physical_device);
+ 
+-/* ToDo: When a PCI bridge is found, return the PCI device behind the bridge
+- *       This should work in general, but did not on a Lenovo T61 for the
+- *	 graphics card. But this must be fixed when the PCI device is
+- *       bound and the kernel device struct is attached to the acpi device
+- * Note: A success call will increase reference count by one
+- *       Do call put_device(dev) on the returned device then
+- */
+-struct device *acpi_get_physical_pci_device(acpi_handle handle)
+-{
+-	struct device *dev;
+-	long long device_id;
+-	acpi_status status;
+-
+-	status =
+-		acpi_evaluate_integer(handle, "_ADR", NULL, &device_id);
+-
+-	if (ACPI_FAILURE(status))
+-		return NULL;
+-
+-	/* We need to attempt to determine whether the _ADR refers to a
+-	   PCI device or not. There's no terribly good way to do this,
+-	   so the best we can hope for is to assume that there'll never
+-	   be a device in the host bridge */
+-	if (device_id >= 0x10000) {
+-		/* It looks like a PCI device. Does it exist? */
+-		dev = acpi_get_physical_device(handle);
+-	} else {
+-		/* It doesn't look like a PCI device. Does its parent
+-		   exist? */
+-		acpi_handle phandle;
+-		if (acpi_get_parent(handle, &phandle))
+-			return NULL;
+-		dev = acpi_get_physical_device(phandle);
+-	}
 -	if (!dev)
--		return 0;
-+	if (!dev || !dev->subordinate)
-+		goto out;
+-		return NULL;
+-	return dev;
+-}
+-EXPORT_SYMBOL(acpi_get_physical_pci_device);
+-
+ static int acpi_bind_one(struct device *dev, acpi_handle handle)
+ {
+ 	struct acpi_device *acpi_dev;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 494088b..c65e4ce 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -368,7 +368,6 @@ struct acpi_bus_type {
+ int register_acpi_bus_type(struct acpi_bus_type *);
+ int unregister_acpi_bus_type(struct acpi_bus_type *);
+ struct device *acpi_get_physical_device(acpi_handle);
+-struct device *acpi_get_physical_pci_device(acpi_handle);
  
--	if (dev->subordinate)
--		acpi_pci_irq_del_prt(dev->subordinate);
-+	acpi_pci_irq_del_prt(dev->subordinate);
-+
-+	device->ops.bind = NULL;
-+	device->ops.unbind = NULL;
- 
-+out:
- 	pci_dev_put(dev);
- 	return 0;
- }
-
+ /* helper */
+ acpi_handle acpi_get_child(acpi_handle, acpi_integer);
