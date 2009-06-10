@@ -1,7 +1,7 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v3 09/12] PCI Hotplug: acpiphp: convert to acpi_get_pci_dev
-Date: Wed, 10 Jun 2009 13:55:50 -0600
-Message-ID: <20090610195550.28982.48803.stgit@bob.kio>
+Subject: [PATCH v3 11/12] ACPI: video: convert to acpi_get_pci_dev
+Date: Wed, 10 Jun 2009 13:56:00 -0600
+Message-ID: <20090610195600.28982.3404.stgit@bob.kio>
 References: <20090610194714.28982.51363.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,73 +10,83 @@ Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20090610194714.28982.51363.stgit@bob.kio>
 Sender: linux-pci-owner@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 Now that acpi_get_pci_dev is available, let's use it instead of
-acpi_get_pci_id.
+acpi_get_physical_pci_device()
 
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/pci/hotplug/acpiphp_glue.c |   25 +++++++------------------
- 1 files changed, 7 insertions(+), 18 deletions(-)
+ drivers/acpi/video.c        |    6 +++---
+ drivers/acpi/video_detect.c |    9 +++++----
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index fc6636e..0cb0f83 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -678,18 +678,9 @@ static void remove_bridge(acpi_handle handle)
- 
- static struct pci_dev * get_apic_pci_info(acpi_handle handle)
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 1bdfb37..5adbf93 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1054,15 +1054,15 @@ static void acpi_video_bus_find_cap(struct acpi_video_bus *video)
+ static int acpi_video_bus_check(struct acpi_video_bus *video)
  {
--	struct acpi_pci_id id;
--	struct pci_bus *bus;
- 	struct pci_dev *dev;
- 
--	if (ACPI_FAILURE(acpi_get_pci_id(handle, &id)))
--		return NULL;
--
--	bus = pci_find_bus(id.segment, id.bus);
--	if (!bus)
--		return NULL;
--
--	dev = pci_get_slot(bus, PCI_DEVFN(id.device, id.function));
-+	dev = acpi_get_pci_dev(handle);
- 	if (!dev)
- 		return NULL;
- 
-@@ -1396,19 +1387,16 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
- /* Program resources in newly inserted bridge */
- static int acpiphp_configure_bridge (acpi_handle handle)
- {
--	struct acpi_pci_id pci_id;
+ 	acpi_status status = -ENOENT;
+-	struct device *dev;
 +	struct pci_dev *dev;
- 	struct pci_bus *bus;
  
--	if (ACPI_FAILURE(acpi_get_pci_id(handle, &pci_id))) {
-+	dev = acpi_get_pci_dev(handle);
-+	if (!dev) {
- 		err("cannot get PCI domain and bus number for bridge\n");
+ 	if (!video)
  		return -EINVAL;
- 	}
--	bus = pci_find_bus(pci_id.segment, pci_id.bus);
--	if (!bus) {
--		err("cannot find bus %d:%d\n",
--				pci_id.segment, pci_id.bus);
--		return -EINVAL;
--	}
-+
-+	bus = dev->bus;
  
- 	pci_bus_size_bridges(bus);
- 	pci_bus_assign_resources(bus);
-@@ -1416,6 +1404,7 @@ static int acpiphp_configure_bridge (acpi_handle handle)
- 	acpiphp_set_hpp_values(handle, bus);
- 	pci_enable_bridges(bus);
- 	acpiphp_configure_ioapics(handle);
+-	dev = acpi_get_physical_pci_device(video->device->handle);
++	dev = acpi_get_pci_dev(video->device->handle);
+ 	if (!dev)
+ 		return -ENODEV;
+-	put_device(dev);
 +	pci_dev_put(dev);
- 	return 0;
- }
  
+ 	/* Since there is no HID, CID and so on for VGA driver, we have
+ 	 * to check well known required nodes.
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 0973727..7cd2b63 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -10,7 +10,7 @@
+  * assinged
+  *
+  * After PCI devices are glued with ACPI devices
+- * acpi_get_physical_pci_device() can be called to identify ACPI graphics
++ * acpi_get_pci_dev() can be called to identify ACPI graphics
+  * devices for which a real graphics card is plugged in
+  *
+  * Now acpi_video_get_capabilities() can be called to check which
+@@ -36,6 +36,7 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/dmi.h>
++#include <linux/pci.h>
+ 
+ ACPI_MODULE_NAME("video");
+ #define _COMPONENT		ACPI_VIDEO_COMPONENT
+@@ -109,7 +110,7 @@ static acpi_status
+ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+ 	long *cap = context;
+-	struct device *dev;
++	struct pci_dev *dev;
+ 	struct acpi_device *acpi_dev;
+ 
+ 	const struct acpi_device_id video_ids[] = {
+@@ -120,10 +121,10 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		return AE_OK;
+ 
+ 	if (!acpi_match_device_ids(acpi_dev, video_ids)) {
+-		dev = acpi_get_physical_pci_device(handle);
++		dev = acpi_get_pci_dev(handle);
+ 		if (!dev)
+ 			return AE_OK;
+-		put_device(dev);
++		pci_dev_put(dev);
+ 		*cap |= acpi_is_video_device(acpi_dev);
+ 	}
+ 	return AE_OK;
