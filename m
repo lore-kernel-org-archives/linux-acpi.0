@@ -1,86 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Oliver Neukum <oliver@neukum.org>
 Subject: Re: [patch update] Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM: Rearrange core suspend code)
-Date: Thu, 11 Jun 2009 21:43:56 +0200
-Message-ID: <200906112143.57361.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906111041020.3040-100000@iolanthe.rowland.org>
+Date: Thu, 11 Jun 2009 23:05:48 +0200
+Message-ID: <200906112305.49232.oliver@neukum.org>
+References: <Pine.LNX.4.44L0.0906111433110.4875-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53802 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753305AbZFKTnV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2009 15:43:21 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906111041020.3040-100000@iolanthe.rowland.org>
+Received: from smtp-out002.kontent.com ([81.88.40.216]:54925 "EHLO
+	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656AbZFKVFA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jun 2009 17:05:00 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906111433110.4875-100000@iolanthe.rowland.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Oliver Neukum <oliver@neukum.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Thursday 11 June 2009, Alan Stern wrote:
-> On Thu, 11 Jun 2009, Rafael J. Wysocki wrote:
-> 
-> > The point here is what the core is supposed to do.  Does it need to handle
-> > this at all or leave it to the bus type and driver?
-> > 
-> > After reconsidering it for a while I think that we should define what
-> > "suspended" is supposed to mean from the core point of view.  And my opinion
-> > is that it should mean "device doesn't communicate with the CPUs and RAM due
-> > to power management".  That need not be power management of the device itself,
-> > but such that leads to the device not doing I/O.
-> > 
-> > Under this definition all devices behind an inactive link are suspended,
-> > because they can't do any I/O.  Which appears to makes sense, because their
-> > drivers have to be notified before the link is suspended and the link has to be
-> > turned on for the devices to be able to communicate with the CPU and RAM.
-> > 
-> > If this definition is adopted, then it's quite clear that the device can only
-> > be suspended if all of its children are suspended and it's always necessary
-> > to resume the parent of a device in order to resume the device itself.
-> 
-> Okay, I'll agree to that.  It should be made clear that a device which 
-> is "suspended" according to this definition is not necessarily in a 
-> low-power state.  For example, before powering down the link to a disk 
-> drive you might want the drive's suspend method to flush the drive's 
-> cache, but it wouldn't have to spin the drive down.
+Am Donnerstag, 11. Juni 2009 20:36:30 schrieb Alan Stern:
+> > Or abstractly any power saving state that does autoresume in hardwa=
+re.
+> > In these cases you know that you can enter a powersaving state that
+> > will add X latency.
+> >
+> > In terms of user space API we'll probably add a way for user space
+> > to specify how much latency may be added for power management's sak=
+e.
+> > If busses are stacked the "latency budget" has to be handled at cor=
+e
+> > level. If furthermore states that allow IO but with additional late=
+ncy
+> > are ignored, the budget will be calculated wrongly.
+>
+> Okay, fine. =A0What does this have to do with Rafael's work? =A0Why d=
+oes
+> setting the status to RPM_SUSPENDED even when a device is not in a
+> low-power state preclude handling buses that automatically change the=
+ir
+> power state?
 
-Exactly.
+=46or these cases the tree constraint does not apply.
+I think there are devices who can be suspended while children are activ=
+e
+and devices which can not be. This is an attribute of the device and sh=
+ould
+be evaluated by the core.
 
-> (But this example leaves open the question of how we would go about
-> spinning down the disk.  Submitting a 15-minute (or whatever) delayed
-> autosuspend request wouldn't work; the request wouldn't be accepted
-> because the disk is already suspended as far as the PM core is
-> concerned.  The disk's driver would have to implement its own 
-> spin-down delayed_work.)
+	Regards
+		Oliver
 
-Yes, it would.
-
-> > > > > I haven't checked the details of the code yet.  More later...
-> > > 
-> > > One more thought...  The autosuspend and autoresume callbacks need to 
-> > > be mutually exclusive with probe and remove.  So somehow the driver 
-> > > core will need to block runtime PM calls.
-> > 
-> > That's correct and I'm going to take care of this.
-> > 
-> > > It might also be nice to make sure that the driver core autoresumes a 
-> > > device before probing it and autosuspends a device (after some 
-> > > reasonable delay) after unbinding its driver.
-> > 
-> > Agreed.
-> 
-> This is another case where a usage counter comes in handy.  The driver
-> core resumes the device and increments the counter -- thus preventing
-> any unwanted autosuspends -- before making the probe and remove calls.
-
-I like this idea.
-
-BTW, where exactly the counter should be increased in that case?
-
-I thought of driver_probe_device(), but is it sufficient?  Or is there a better
-place?
-
-Best,
-Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
