@@ -1,156 +1,172 @@
 From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Add the reference count to avoid unloading ACPI
-	video bus twice
-Date: Fri, 12 Jun 2009 08:51:00 +0800
-Message-ID: <1244767860.3618.15.camel@localhost.localdomain>
+Subject: Re: [Intel-gfx] RFC] [Patch] [DRM/I915] :Check the LID device to
+	decide whether	the LVDS should be initialized
+Date: Fri, 12 Jun 2009 09:00:01 +0800
+Message-ID: <1244768401.3618.17.camel@localhost.localdomain>
+References: <1244187921.3558.223.camel@localhost.localdomain>
+	 <1244200261.11142.20.camel@gaiman.anholt.net>
+	 <1244422347.3698.6.camel@localhost.localdomain>
+	 <1244585813.4896.34.camel@gaiman.anholt.net>
+	 <20090609153559.2e93479d@jbarnes-x200>
+	 <1244714614.3618.10.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:61923 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:29198 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800AbZFLAto (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2009 20:49:44 -0400
+	id S1754014AbZFLA6o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2009 20:58:44 -0400
+In-Reply-To: <1244714614.3618.10.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-From: Zhao Yakui <yakui.zhao@intel.com>
-
-Sometimes both acpi video and i915 driver are compiled as modules.
-And there exists the strict dependency between the two drivers.
-The acpi video bus will be unloaded in course of unloading the i915 driver.
-If we unload the acpi video driver, then the kernel oops will be triggered.
-
-Add the reference count to avoid unloading the ACPI video bus twice.
-The reference count should be checked before unregistering the acpi video bus.
-If the reference count is already zero, it won't unregister it again.
-And after the acpi video bus is already unregistered, the reference count
-will be set to zero.
-At the same time the reference count is also checked when registering
-the acpi video bus.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=13396
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/video.c                 |   42 ++++++++++++++++++++++++++++-------
- drivers/gpu/drm/i915/i915_opregion.c |    2 -
- include/acpi/video.h                 |    4 +--
- 3 files changed, 37 insertions(+), 11 deletions(-)
-
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c	2009-05-31 09:33:17.000000000 +0800
-+++ linux-2.6/drivers/acpi/video.c	2009-06-01 13:29:41.000000000 +0800
-@@ -76,6 +76,7 @@
- static int brightness_switch_enabled = 1;
- module_param(brightness_switch_enabled, bool, 0644);
- 
-+static int video_atomic = 0;
- static int acpi_video_bus_add(struct acpi_device *device);
- static int acpi_video_bus_remove(struct acpi_device *device, int type);
- static int acpi_video_resume(struct acpi_device *device);
-@@ -2302,7 +2303,13 @@
- int acpi_video_register(void)
- {
- 	int result = 0;
--
-+	if (video_atomic) {
-+		/*
-+		 * if the function of acpi_video_register is already called,
-+		 * don't register the acpi_vide_bus again and return no error.
-+		 */
-+		return 0;
-+	}
- 	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
- 	if (!acpi_video_dir)
- 		return -ENODEV;
-@@ -2312,11 +2319,34 @@
- 		remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
- 		return -ENODEV;
- 	}
--
-+	/*
-+	 * When the acpi_video_bus is loaded successfully, increase
-+	 * the counter reference.
-+	 */
-+	video_atomic = 1;
- 	return 0;
- }
- EXPORT_SYMBOL(acpi_video_register);
- 
-+void acpi_video_unregister(void)
-+{
-+	if (!video_atomic) {
-+		/*
-+		 * If the acpi video bus is already unloaded, don't
-+		 * unload it again and return directly.
-+		 */
-+		return;
-+	}
-+	acpi_bus_unregister_driver(&acpi_video_bus);
-+
-+	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
-+
-+	video_atomic = 0;
-+
-+	return;
-+}
-+EXPORT_SYMBOL(acpi_video_unregister);
-+
- /*
-  * This is kind of nasty. Hardware using Intel chipsets may require
-  * the video opregion code to be run first in order to initialise
-@@ -2334,16 +2364,12 @@
- 	return acpi_video_register();
- }
- 
--void __exit acpi_video_exit(void)
-+static void __exit acpi_video_exit(void)
- {
--
--	acpi_bus_unregister_driver(&acpi_video_bus);
--
--	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
-+	acpi_video_unregister();
- 
- 	return;
- }
--EXPORT_SYMBOL(acpi_video_exit);
- 
- module_init(acpi_video_init);
- module_exit(acpi_video_exit);
-Index: linux-2.6/include/acpi/video.h
-===================================================================
---- linux-2.6.orig/include/acpi/video.h	2009-04-29 09:32:00.000000000 +0800
-+++ linux-2.6/include/acpi/video.h	2009-06-01 13:34:19.000000000 +0800
-@@ -3,10 +3,10 @@
- 
- #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
- extern int acpi_video_register(void);
--extern int acpi_video_exit(void);
-+extern void acpi_video_unregister(void);
- #else
- static inline int acpi_video_register(void) { return 0; }
--static inline void acpi_video_exit(void) { return; }
-+static inline void acpi_video_unregister(void) { return; }
- #endif
- 
- #endif
-Index: linux-2.6/drivers/gpu/drm/i915/i915_opregion.c
-===================================================================
---- linux-2.6.orig/drivers/gpu/drm/i915/i915_opregion.c	2009-04-29 09:32:00.000000000 +0800
-+++ linux-2.6/drivers/gpu/drm/i915/i915_opregion.c	2009-06-01 12:02:00.000000000 +0800
-@@ -419,7 +419,7 @@
- 		return;
- 
- 	if (!suspend)
--		acpi_video_exit();
-+		acpi_video_unregister();
- 
- 	opregion->acpi->drdy = 0;
- 
-
+On Thu, 2009-06-11 at 18:03 +0800, yakui_zhao wrote:
+cc: Linux-acpi
+> Hi, All
+> 
+>     This is a patch that the LID device is checked to decide whether the LVDS should
+> be initialized. If there is no LID device, it won't initialize the LVDS output device
+> in KMS mode on the boxes based on intel mobile chipset. In such case the pipe occupied
+> by LVDS can be used for other output device.
+>     If the LID device can be found, it will continue the current flowchart.
+>     
+>     On some boxes the mobile chipset is used and there is no LVDS device. In such
+> case we had better not initialize the LVDS output device so that one pipe can
+> be used for other output device. For example: E-TOP in bug 21496
+> 
+> But unfortunately the LVDS device is still initialized on such boxes based on
+> mobile chipset in KMS mode. It brings that this pipe occupied by LVDS can't be
+> used for other output device.
+> 
+> After checking the acpidump we find that there is no LID device on such boxes.
+> In such case we can use the LID device to decide whether the LVDS device should
+> be initialized. 
+> 
+> If there is no LID device, we can think that there is no LVDS device. It is
+> unnecessary to initialize the LVDS output device.
+> If there exists the LID device, it will continue the current flowchart.
+> 
+> Maybe on some boxes there is no LVDS device but the LID device is found. In
+> such case it had better be added to the quirk table.
+> 
+> Welcome the comments.
+>    Yakui
+> ---
+>  drivers/gpu/drm/i915/intel_lvds.c |   79 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 79 insertions(+)
+> 
+> Index: linux-2.6/drivers/gpu/drm/i915/intel_lvds.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/gpu/drm/i915/intel_lvds.c	2009-06-11 15:27:07.000000000 +0800
+> +++ linux-2.6/drivers/gpu/drm/i915/intel_lvds.c	2009-06-11 17:42:07.000000000 +0800
+> @@ -36,6 +36,7 @@
+>  #include "intel_drv.h"
+>  #include "i915_drm.h"
+>  #include "i915_drv.h"
+> +#include <linux/acpi.h>
+>  
+>  /**
+>   * Sets the backlight level.
+> @@ -503,7 +504,74 @@
+>  
+>  	{ }	/* terminating entry */
+>  };
+> +#ifdef CONFIG_ACPI
+> +/*
+> + * check_lid_device -- check whether it is ACPI LID device.
+> + * @handle: ACPI device handle
+> + * @level : depth in the ACPI namespace tree
+> + * @context: the number of LID device when we find the device
+> + * @rv: a return value to fill if desired (Not use)
+> + *
+> + * check whether it is a LID device by comparing the HID. If it is,
+> + * increase the number of LID device.
+> + */
+> +static acpi_status
+> +check_lid_device(acpi_handle handle, u32 level, void *context,
+> +			void **retyurn_value)
+> +{
+> +#define		ACPI_HID_LID		"PNP0C0D"
+> +	struct acpi_device *acpi_dev;
+> +	int *p_lid = (int *)context;
+> +
+> +	acpi_dev = NULL;
+> +	/* Get the acpi device for device handle */
+> +	if (acpi_bus_get_device(handle, &acpi_dev) || !acpi_dev) {
+> +		/* If there is no ACPI device for handle, return */
+> +		return AE_OK;
+> +	}
+> +	if (!strncmp(acpi_device_hid(acpi_dev), ACPI_HID_LID, 7)) {
+> +		/*
+> +		 * compare the device HID with "PNP0C0D". If it is equal, the
+> +		 * LID device is found. Increase the count
+> +		 */
+> +		(*p_lid)++;
+> +	}
+> +	return AE_OK;
+> +}
+> +/**
+> + * check whether there exists the ACPI LID device by enumerating the ACPI
+> + * device tree.
+> + * If ACPI is disabled, there is no ACPI device tree. 0 is returned.
+> + * If the LID device is found, it will return zero.
+> + * If no LID device is found, it will return  -ENODEV.
+> + */
+> +static int intel_lvds_find_lid(void)
+> +{
+> +	int lid_count = 0;
+>  
+> +	if (acpi_disabled) {
+> +		/*
+> +		 * if ACPI is disabled, there is no ACPI device tree. And
+> +		 * we don't know whether there exists the LID device.
+> +		 * In such case we will return 0.
+> +		 */
+> +		return 0;
+> +	}
+> +
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +				ACPI_UINT32_MAX,
+> +				check_lid_device, &lid_count, NULL);
+> +
+> +	if (!lid_count) {
+> +		/* No LID device is not found. Return -ENODEV */
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +#else
+> +static inline int intel_lvds_find_lid(void) { return 0; }
+> +#endif
+>  /**
+>   * intel_lvds_init - setup LVDS connectors on this device
+>   * @dev: drm device
+> @@ -526,6 +594,17 @@
+>  	if (dmi_check_system(intel_no_lvds))
+>  		return;
+>  
+> +	if (intel_lvds_find_lid()) {
+> +		/* If there is no LID device, we can think that there is
+> +		 * no LVDS output device. In such case it is unnecessary to
+> +		 * create the LVDS output device.
+> +		 * But maybe on some boxes there is no LVDS device while the
+> +		 * LID device is found. If so, it had better be added to
+> +		 * the quirk list.
+> +		 */
+> +		return;
+> +	}
+> +
+>  	if (IS_IGDNG(dev)) {
+>  		if ((I915_READ(PCH_LVDS) & LVDS_DETECTED) == 0)
+>  			return;
+> 
+> 
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
