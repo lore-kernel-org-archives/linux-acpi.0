@@ -1,91 +1,224 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [patch update] Re: Run-time PM idea (was: Re:
-	[RFC][PATCH 0/2] PM: Rearrange core suspend code)
-Date: Fri, 12 Jun 2009 12:13:12 +0900
-Message-ID: <aec7e5c30906112013q2d2827feh54192d518156f203@mail.gmail.com>
-References: <Pine.LNX.4.44L0.0906082233490.19072-100000@netrider.rowland.org>
-	<200906101029.27529.rjw@sisk.pl>
-	<aec7e5c30906102218j2f8f38dbt5d05a3928ca46c15@mail.gmail.com>
-	<200906111108.40785.oliver@neukum.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPI, PCI, x86: move MCFG parsing routine from ACPI to PCI file
+Date: Fri, 12 Jun 2009 00:05:13 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0906120002540.4350@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200906111108.40785.oliver@neukum.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: x86@kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Oliver,
+From: Len Brown <len.brown@intel.com>
 
-On Thu, Jun 11, 2009 at 6:08 PM, Oliver Neukum<oliver@neukum.org> wrote:
-> Am Donnerstag, 11. Juni 2009 07:18:46 schrieb Magnus Damm:
->> 3) When all devices in the power domain are suspended the bus code can
->> turn off the power. The reason why I'd like to only autosuspend when
->
-> So you are saying that you have power dependencies independent
-> of the device tree?
+Move acpi_parse_mcfg() from
+arch/x86/kernel/acpi/boot.c to arch/x86/pci/mmconfig-shared.c
+make it static, and re-name it to be pci_parse_mcfg().
 
-I can think of the following power dependencies:
-- hardware bus topology
-- clocks
-- power domains
+Move associated globals and helper routine with it.
 
->> all devices are idle is simply that we don't get any power savings
->> from the per device autosuspend() callbacks, only from turning off
->> power to the entire per-domain. So bindly autosuspending and
->> autoresuming devices is just pure overhead unless we know we can do it
->> for all devices in the domain.
->
-> Why can't you do this within the framework? You simply suspend when
-> all a domain's devices have been autosuspended.
+No functional change.
 
-So you mean I should handle that in my arch/bus specific
-dev->bus->pm->autosuspend() code? So instead of calling
-dev->driver->pm->autosuspend() straight away I keep track of the use
-count of the power domain and when the domain is unused I call
-dev->driver->pm->autosuspend() for all devices in the power domain
-before powering off?
+This code move is in preparation for SFI support,
+which will allow the PCI code to find the MCFG table
+on systems which do not support ACPI.
 
-I guess hooking in things in dev->bus->pm->autosuspend() is doable,
-but then dev->power.runtime_status will be set to RPM_SUSPENDED even
-though the actual device isn't suspended at all. And RPM_IDLE state
-will be more or less unused since the drivers should pass a delay of
-zero to make sure the bus code gets notified about the idle state
-straight away.
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ arch/x86/include/asm/pci_x86.h |    3 ++
+ arch/x86/kernel/acpi/boot.c    |   66 ----------------------------------------
+ arch/x86/pci/mmconfig-shared.c |   65 ++++++++++++++++++++++++++++++++++++++-
+ include/linux/acpi.h           |    3 --
+ 4 files changed, 67 insertions(+), 70 deletions(-)
 
-Basically, for my use case it would make more sense to let the
-bus_type directly decide when a device should be suspended instead of
-using a timeout before calling the bus_type code. I rather let the
-bus_type decide if a timeout should be used or not instead of using it
-for all bus_types.
-
-So I guess the plan is that drivers directly should invoke
-pm_request_suspend() to notify the bus that they are idle? (I guess
-similar to my platform_device_idle()?)
-
-For my use case there is no point in having the delay in
-pm_request_suspend(), we want to notify the bus about the per-device
-idleness straight away. Using a delay in pm_request_suspend() before
-calling the bus type autosuspend will just keep the current per-device
-state away from the bus level and make sure we _cannot_ enter deep
-sleep states. Which I believe will result in worse battery life
-because we spend more time than necessary in not-so-deep sleep states.
-
-So yes, I'd like to do things in dev->bus->pm->autosuspend(), and the
-code is quite close. I can't figure out why anyone would want the
-suspend delay at the current level though, but I guess other busses
-want to use that?
-
-Thanks for your comments,
-
-/ magnus
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index e60fd3e..b399988 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -121,6 +121,9 @@ extern int __init pcibios_init(void);
+ extern int __init pci_mmcfg_arch_init(void);
+ extern void __init pci_mmcfg_arch_free(void);
+ 
++extern struct acpi_mcfg_allocation *pci_mmcfg_config;
++extern int pci_mmcfg_config_num;
++
+ /*
+  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+  * on their northbrige except through the * %eax register. As such, you MUST
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 723989d..160439c 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -121,72 +121,6 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+ 	early_iounmap(map, size);
+ }
+ 
+-#ifdef CONFIG_PCI_MMCONFIG
+-
+-static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
+-
+-/* The physical address of the MMCONFIG aperture.  Set from ACPI tables. */
+-struct acpi_mcfg_allocation *pci_mmcfg_config;
+-int pci_mmcfg_config_num;
+-
+-static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
+-{
+-	if (!strcmp(mcfg->header.oem_id, "SGI"))
+-		acpi_mcfg_64bit_base_addr = TRUE;
+-
+-	return 0;
+-}
+-
+-int __init acpi_parse_mcfg(struct acpi_table_header *header)
+-{
+-	struct acpi_table_mcfg *mcfg;
+-	unsigned long i;
+-	int config_size;
+-
+-	if (!header)
+-		return -EINVAL;
+-
+-	mcfg = (struct acpi_table_mcfg *)header;
+-
+-	/* how many config structures do we have */
+-	pci_mmcfg_config_num = 0;
+-	i = header->length - sizeof(struct acpi_table_mcfg);
+-	while (i >= sizeof(struct acpi_mcfg_allocation)) {
+-		++pci_mmcfg_config_num;
+-		i -= sizeof(struct acpi_mcfg_allocation);
+-	};
+-	if (pci_mmcfg_config_num == 0) {
+-		printk(KERN_ERR PREFIX "MMCONFIG has no entries\n");
+-		return -ENODEV;
+-	}
+-
+-	config_size = pci_mmcfg_config_num * sizeof(*pci_mmcfg_config);
+-	pci_mmcfg_config = kmalloc(config_size, GFP_KERNEL);
+-	if (!pci_mmcfg_config) {
+-		printk(KERN_WARNING PREFIX
+-		       "No memory for MCFG config tables\n");
+-		return -ENOMEM;
+-	}
+-
+-	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
+-
+-	acpi_mcfg_oem_check(mcfg);
+-
+-	for (i = 0; i < pci_mmcfg_config_num; ++i) {
+-		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
+-		    !acpi_mcfg_64bit_base_addr) {
+-			printk(KERN_ERR PREFIX
+-			       "MMCONFIG not in low 4GB of memory\n");
+-			kfree(pci_mmcfg_config);
+-			pci_mmcfg_config_num = 0;
+-			return -ENODEV;
+-		}
+-	}
+-
+-	return 0;
+-}
+-#endif				/* CONFIG_PCI_MMCONFIG */
+-
+ #ifdef CONFIG_X86_LOCAL_APIC
+ static int __init acpi_parse_madt(struct acpi_table_header *table)
+ {
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index 8766b0e..712443e 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -523,6 +523,69 @@ reject:
+ 
+ static int __initdata known_bridge;
+ 
++static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
++
++/* The physical address of the MMCONFIG aperture.  Set from ACPI tables. */
++struct acpi_mcfg_allocation *pci_mmcfg_config;
++int pci_mmcfg_config_num;
++
++static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
++{
++	if (!strcmp(mcfg->header.oem_id, "SGI"))
++		acpi_mcfg_64bit_base_addr = TRUE;
++
++	return 0;
++}
++
++static int __init pci_parse_mcfg(struct acpi_table_header *header)
++{
++	struct acpi_table_mcfg *mcfg;
++	unsigned long i;
++	int config_size;
++
++	if (!header)
++		return -EINVAL;
++
++	mcfg = (struct acpi_table_mcfg *)header;
++
++	/* how many config structures do we have */
++	pci_mmcfg_config_num = 0;
++	i = header->length - sizeof(struct acpi_table_mcfg);
++	while (i >= sizeof(struct acpi_mcfg_allocation)) {
++		++pci_mmcfg_config_num;
++		i -= sizeof(struct acpi_mcfg_allocation);
++	};
++	if (pci_mmcfg_config_num == 0) {
++		printk(KERN_ERR PREFIX "MMCONFIG has no entries\n");
++		return -ENODEV;
++	}
++
++	config_size = pci_mmcfg_config_num * sizeof(*pci_mmcfg_config);
++	pci_mmcfg_config = kmalloc(config_size, GFP_KERNEL);
++	if (!pci_mmcfg_config) {
++		printk(KERN_WARNING PREFIX
++		       "No memory for MCFG config tables\n");
++		return -ENOMEM;
++	}
++
++	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
++
++	acpi_mcfg_oem_check(mcfg);
++
++	for (i = 0; i < pci_mmcfg_config_num; ++i) {
++		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
++		    !acpi_mcfg_64bit_base_addr) {
++			printk(KERN_ERR PREFIX
++			       "MMCONFIG not in low 4GB of memory\n");
++			kfree(pci_mmcfg_config);
++			pci_mmcfg_config_num = 0;
++			return -ENODEV;
++		}
++	}
++
++	return 0;
++}
++
+ static void __init __pci_mmcfg_init(int early)
+ {
+ 	/* MMCONFIG disabled */
+@@ -543,7 +606,7 @@ static void __init __pci_mmcfg_init(int early)
+ 	}
+ 
+ 	if (!known_bridge)
+-		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
++		acpi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+ 
+ 	pci_mmcfg_reject_broken(early);
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 88be890..73cb141 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -113,9 +113,6 @@ void acpi_irq_stats_init(void);
+ extern u32 acpi_irq_handled;
+ extern u32 acpi_irq_not_handled;
+ 
+-extern struct acpi_mcfg_allocation *pci_mmcfg_config;
+-extern int pci_mmcfg_config_num;
+-
+ extern int sbf_port;
+ extern unsigned long acpi_realmode_flags;
+ 
+-- 
+1.6.0.6
