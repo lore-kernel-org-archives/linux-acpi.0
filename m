@@ -1,224 +1,68 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPI, PCI, x86: move MCFG parsing routine from ACPI to PCI file
-Date: Fri, 12 Jun 2009 00:05:13 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0906120002540.4350@localhost.localdomain>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] wmi: Fix kernel panic when stack protection enabled.
+Date: Fri, 12 Jun 2009 06:44:18 +0100
+Message-ID: <200906120644.19252.carlos@strangeworlds.co.uk>
+References: <alpine.DEB.2.00.0906091707380.8360@debian> <200906092046.24983.carlos@strangeworlds.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: x86@kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from phoenix.slamd64.com ([217.10.145.2]:58654 "EHLO
+	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323AbZFLFpc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jun 2009 01:45:32 -0400
+In-Reply-To: <200906092046.24983.carlos@strangeworlds.co.uk>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "lcostantino@gmail.com" <lcostantino@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-From: Len Brown <len.brown@intel.com>
+On Tuesday 09 Jun 2009 20:46:24 Carlos Corbacho wrote:
+> [Adding Len to CC]
+>
+> On Tuesday 09 Jun 2009 22:09:23 lcostantino@gmail.com wrote:
+> > From: Costantino Leandro <lcostantino@gmail.com>
+> >
+> > Summary:
+> > Kernel panic arise when stack protection is enabled, since strncat will
+> > add a null terminating byte '\0'; So in functions
+> > like this one (wmi_query_block):
+> >         char wc[4]="WC";
+> > 	....
+> > 	strncat(method, block->object_id, 2);
+> >         ...
+> > the length of wc should be n+1 (wc[5]) or stack protection
+> > fault will arise. This is not noticeable when stack protection is
+> > disabled,but , isn't good either.
+> > Config used: [CONFIG_CC_STACKPROTECTOR_ALL=y,
+> > 	      CONFIG_CC_STACKPROTECTOR=y]
+> >
+> > Panic Trace
+> > ------------
+> >        .... stack-protector: kernel stack corrupted in : fa7b182c
+> >        2.6.30-rc8-obelisco-generic
+> >        call_trace:
+> >            [<c04a6c40>] ? panic+0x45/0xd9
+> > 	   [<c012925d>] ? __stack_chk_fail+0x1c/0x40
+> > 	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
+> > 	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
+> > 	   [<fa7e7000>] ? acer_wmi_init+0x00/0x61a [acer_wmi]
+> > 	   [<fa7e7135>] ? acer_wmi_init+0x135/0x61a [acer_wmi]
+> > 	   [<c0101159>] ? do_one_initcall+0x50+0x126
+> >
+> > Signed-off-by: Costantino Leandro <lcostantino@gmail.com>
+>
+> Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Move acpi_parse_mcfg() from
-arch/x86/kernel/acpi/boot.c to arch/x86/pci/mmconfig-shared.c
-make it static, and re-name it to be pci_parse_mcfg().
+Cc: stable@kernel.org
 
-Move associated globals and helper routine with it.
+Since I'm starting to get quite a few bug reports from people about 2.6.30 
+when distributions are turning on stack protector.
 
-No functional change.
-
-This code move is in preparation for SFI support,
-which will allow the PCI code to find the MCFG table
-on systems which do not support ACPI.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- arch/x86/include/asm/pci_x86.h |    3 ++
- arch/x86/kernel/acpi/boot.c    |   66 ----------------------------------------
- arch/x86/pci/mmconfig-shared.c |   65 ++++++++++++++++++++++++++++++++++++++-
- include/linux/acpi.h           |    3 --
- 4 files changed, 67 insertions(+), 70 deletions(-)
-
-diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
-index e60fd3e..b399988 100644
---- a/arch/x86/include/asm/pci_x86.h
-+++ b/arch/x86/include/asm/pci_x86.h
-@@ -121,6 +121,9 @@ extern int __init pcibios_init(void);
- extern int __init pci_mmcfg_arch_init(void);
- extern void __init pci_mmcfg_arch_free(void);
- 
-+extern struct acpi_mcfg_allocation *pci_mmcfg_config;
-+extern int pci_mmcfg_config_num;
-+
- /*
-  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
-  * on their northbrige except through the * %eax register. As such, you MUST
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 723989d..160439c 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -121,72 +121,6 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
- 	early_iounmap(map, size);
- }
- 
--#ifdef CONFIG_PCI_MMCONFIG
--
--static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
--
--/* The physical address of the MMCONFIG aperture.  Set from ACPI tables. */
--struct acpi_mcfg_allocation *pci_mmcfg_config;
--int pci_mmcfg_config_num;
--
--static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
--{
--	if (!strcmp(mcfg->header.oem_id, "SGI"))
--		acpi_mcfg_64bit_base_addr = TRUE;
--
--	return 0;
--}
--
--int __init acpi_parse_mcfg(struct acpi_table_header *header)
--{
--	struct acpi_table_mcfg *mcfg;
--	unsigned long i;
--	int config_size;
--
--	if (!header)
--		return -EINVAL;
--
--	mcfg = (struct acpi_table_mcfg *)header;
--
--	/* how many config structures do we have */
--	pci_mmcfg_config_num = 0;
--	i = header->length - sizeof(struct acpi_table_mcfg);
--	while (i >= sizeof(struct acpi_mcfg_allocation)) {
--		++pci_mmcfg_config_num;
--		i -= sizeof(struct acpi_mcfg_allocation);
--	};
--	if (pci_mmcfg_config_num == 0) {
--		printk(KERN_ERR PREFIX "MMCONFIG has no entries\n");
--		return -ENODEV;
--	}
--
--	config_size = pci_mmcfg_config_num * sizeof(*pci_mmcfg_config);
--	pci_mmcfg_config = kmalloc(config_size, GFP_KERNEL);
--	if (!pci_mmcfg_config) {
--		printk(KERN_WARNING PREFIX
--		       "No memory for MCFG config tables\n");
--		return -ENOMEM;
--	}
--
--	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
--
--	acpi_mcfg_oem_check(mcfg);
--
--	for (i = 0; i < pci_mmcfg_config_num; ++i) {
--		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
--		    !acpi_mcfg_64bit_base_addr) {
--			printk(KERN_ERR PREFIX
--			       "MMCONFIG not in low 4GB of memory\n");
--			kfree(pci_mmcfg_config);
--			pci_mmcfg_config_num = 0;
--			return -ENODEV;
--		}
--	}
--
--	return 0;
--}
--#endif				/* CONFIG_PCI_MMCONFIG */
--
- #ifdef CONFIG_X86_LOCAL_APIC
- static int __init acpi_parse_madt(struct acpi_table_header *table)
- {
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 8766b0e..712443e 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -523,6 +523,69 @@ reject:
- 
- static int __initdata known_bridge;
- 
-+static int acpi_mcfg_64bit_base_addr __initdata = FALSE;
-+
-+/* The physical address of the MMCONFIG aperture.  Set from ACPI tables. */
-+struct acpi_mcfg_allocation *pci_mmcfg_config;
-+int pci_mmcfg_config_num;
-+
-+static int __init acpi_mcfg_oem_check(struct acpi_table_mcfg *mcfg)
-+{
-+	if (!strcmp(mcfg->header.oem_id, "SGI"))
-+		acpi_mcfg_64bit_base_addr = TRUE;
-+
-+	return 0;
-+}
-+
-+static int __init pci_parse_mcfg(struct acpi_table_header *header)
-+{
-+	struct acpi_table_mcfg *mcfg;
-+	unsigned long i;
-+	int config_size;
-+
-+	if (!header)
-+		return -EINVAL;
-+
-+	mcfg = (struct acpi_table_mcfg *)header;
-+
-+	/* how many config structures do we have */
-+	pci_mmcfg_config_num = 0;
-+	i = header->length - sizeof(struct acpi_table_mcfg);
-+	while (i >= sizeof(struct acpi_mcfg_allocation)) {
-+		++pci_mmcfg_config_num;
-+		i -= sizeof(struct acpi_mcfg_allocation);
-+	};
-+	if (pci_mmcfg_config_num == 0) {
-+		printk(KERN_ERR PREFIX "MMCONFIG has no entries\n");
-+		return -ENODEV;
-+	}
-+
-+	config_size = pci_mmcfg_config_num * sizeof(*pci_mmcfg_config);
-+	pci_mmcfg_config = kmalloc(config_size, GFP_KERNEL);
-+	if (!pci_mmcfg_config) {
-+		printk(KERN_WARNING PREFIX
-+		       "No memory for MCFG config tables\n");
-+		return -ENOMEM;
-+	}
-+
-+	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
-+
-+	acpi_mcfg_oem_check(mcfg);
-+
-+	for (i = 0; i < pci_mmcfg_config_num; ++i) {
-+		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
-+		    !acpi_mcfg_64bit_base_addr) {
-+			printk(KERN_ERR PREFIX
-+			       "MMCONFIG not in low 4GB of memory\n");
-+			kfree(pci_mmcfg_config);
-+			pci_mmcfg_config_num = 0;
-+			return -ENODEV;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static void __init __pci_mmcfg_init(int early)
- {
- 	/* MMCONFIG disabled */
-@@ -543,7 +606,7 @@ static void __init __pci_mmcfg_init(int early)
- 	}
- 
- 	if (!known_bridge)
--		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
-+		acpi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
- 
- 	pci_mmcfg_reject_broken(early);
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 88be890..73cb141 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -113,9 +113,6 @@ void acpi_irq_stats_init(void);
- extern u32 acpi_irq_handled;
- extern u32 acpi_irq_not_handled;
- 
--extern struct acpi_mcfg_allocation *pci_mmcfg_config;
--extern int pci_mmcfg_config_num;
--
- extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
- 
+-Carlos
 -- 
-1.6.0.6
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
