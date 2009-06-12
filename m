@@ -1,51 +1,67 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [BUG][2.6.30] Niced processes do not raise CPU frequency with ondemand
-Date: Fri, 12 Jun 2009 20:05:02 +0200
-Message-ID: <200906122005.02965.elendil@planet.nl>
-References: <200906121844.02004.elendil@planet.nl> <200906121925.38693.elendil@planet.nl> <1244828508.4534.1404.camel@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch update] Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM: Rearrange core suspend code)
+Date: Fri, 12 Jun 2009 21:09:34 +0200
+Message-ID: <200906122109.35589.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906121027300.2915-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml102.kpnxchange.com ([195.121.3.6]:64603 "EHLO
-	CPSMTPM-EML102.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758844AbZFLSFC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Jun 2009 14:05:02 -0400
-In-Reply-To: <1244828508.4534.1404.camel@localhost.localdomain>
+Received: from ogre.sisk.pl ([217.79.144.158]:59422 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752417AbZFLTI7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Jun 2009 15:08:59 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906121027300.2915-100000@iolanthe.rowland.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Friday 12 June 2009, Pallipadi, Venkatesh wrote:
-> On Fri, 2009-06-12 at 10:25 -0700, Frans Pop wrote:
-> > On Friday 12 June 2009, Pallipadi, Venkatesh wrote:
-> > > What does ignore_nice under cpufreq/ondemand say?
-> >
-> > Right, that's 1 (was not aware that existed :-P)
-> > And changing it to 0 solves the problem.
->
-> OK. Good to know that there are no kernel bugs with honoring
-> ignore_nice_load setting. :)
->
-> > Next question is: how and why does it get set?
-> > As userland has not changed (AFAIK), my first suspect remains the
-> > kernel.
->
-> Kernel never sets this. It is initialized to 0 and provides a /sys
-> interface to user. I think it is set by some user app
-> (gnome-power-manager or some other app like that). That explains why it
-> is 0 initially after boot and gets changed later.
->
-> The support for ignore_nice_load=1 was broken in kernel for a short
-> while (arounf 2.6.28, IIRC). That may be the reason why this behavior
-> was not noticed earlier.
+On Friday 12 June 2009, Alan Stern wrote:
+> On Fri, 12 Jun 2009, Oliver Neukum wrote:
+> 
+> > Am Freitag, 12. Juni 2009 04:16:10 schrieb Alan Stern:
+> > > What tree constraint?  You mean that the PM core shouldn't allow
+> > > devices to suspend unless all their children are suspended?  Why
+> > > doesn't it still apply?
+> > 
+> > Because the hardware doesn't need it.
+> 
+> But maybe drivers need it.
+> 
+> > > Remember, when Rafael and I say "suspend" here, we don't mean "go to a
+> > > low-power state".  We mean "the PM core calls the runtime_suspend
+> > > method".  No matter what actions the link hardware may decide to take
+> > > on its own, the PM core will still want to observe the
+> > > all-children-suspended restriction when calling runtime_suspend
+> > > methods.
+> > 
+> > No. The core if it insists all children be suspended will not use
+> > the hardware's full capabilities.
+> 
+> That isn't what I said.  The core does not insist that all children be 
+> suspended, i.e., be in a low-power state.  It insists only that the 
+> children's drivers' runtime_suspend methods have been called.  Those 
+> methods are not obligated to put the children in a low-power state.
+> 
+> > If it leaves such power saving measures to the drivers, latency
+> > accounting will be wrong.
+> > 
+> > > > I think there are devices who can be suspended while children are active
+> > > > and devices which can not be. This is an attribute of the device and
+> > > > should be evaluated by the core.
+> > >
+> > > Clearly it should be decided by the driver.  Should there be a bit for
+> > > it in the dev_pm_info structure?
+> > 
+> > Yes.
+> 
+> That would resolve the issue.
 
-Thanks for the info. I'll see if I can figure out what's responsible.
-At least I know where to look now.
+So, are you suggesting that the core should only check the "all children
+suspended" condition if special flag is set in dev_pm_info?
 
-Cheers,
-FJP
+Best,
+Rafael
