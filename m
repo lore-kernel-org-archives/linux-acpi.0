@@ -1,72 +1,78 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [patch update] Re: [linux-pm] Run-time PM idea (was: Re:
- [RFC][PATCH 0/2] PM: Rearrange core suspend code)
-Date: Fri, 12 Jun 2009 10:32:02 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906121027300.2915-100000@iolanthe.rowland.org>
-References: <200906121015.19504.oliver@neukum.org>
+From: Frans Pop <elendil@planet.nl>
+Subject: [BUG][2.6.30] Niced processes do not raise CPU frequency with ondemand
+Date: Fri, 12 Jun 2009 18:44:00 +0200
+Message-ID: <200906121844.02004.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:32884 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755048AbZFLOcA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jun 2009 10:32:00 -0400
-In-Reply-To: <200906121015.19504.oliver@neukum.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1765923AbZFLQoT@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, 12 Jun 2009, Oliver Neukum wrote:
+I first noticed this while (cross-)compiling several 2.6.30 kernels on my 
+Core Duo HP 2510p notebook. I run the kernel builds with 'nice -n 10' and 
+noticed that both cores stayed at 800MHz instead of going up to 1333MHz.
 
-> Am Freitag, 12. Juni 2009 04:16:10 schrieb Alan Stern:
-> > What tree constraint? =A0You mean that the PM core shouldn't allow
-> > devices to suspend unless all their children are suspended? =A0Why
-> > doesn't it still apply?
->=20
-> Because the hardware doesn't need it.
+It does not seem to be a cpufreq problem as the frequency does go up if I 
+run the process without nice.
 
-But maybe drivers need it.
+I can simply reproduce it by running an empty loop:
+$ sh -c "while :; do :; done" => one core immediately goes to 1333MHz
+$ nice -n 10 sh -c "while :; do :; done" => both cores stay at 800MHz
 
-> > Remember, when Rafael and I say "suspend" here, we don't mean "go t=
-o a
-> > low-power state". =A0We mean "the PM core calls the runtime_suspend
-> > method". =A0No matter what actions the link hardware may decide to =
-take
-> > on its own, the PM core will still want to observe the
-> > all-children-suspended restriction when calling runtime_suspend
-> > methods.
->=20
-> No. The core if it insists all children be suspended will not use
-> the hardware's full capabilities.
+In both cases top shows 99/100% CPU usage for one core.
 
-That isn't what I said.  The core does not insist that all children be=20
-suspended, i.e., be in a low-power state.  It insists only that the=20
-children's drivers' runtime_suspend methods have been called.  Those=20
-methods are not obligated to put the children in a low-power state.
+The problem does not occur immediately after a new boot: the cpu frequency 
+does get raised to 1333MHz even for niced processes. I've also checked 
+that a single suspend to RAM + resume cycle does not trigger it.
 
-> If it leaves such power saving measures to the drivers, latency
-> accounting will be wrong.
->=20
-> > > I think there are devices who can be suspended while children are=
- active
-> > > and devices which can not be. This is an attribute of the device =
-and
-> > > should be evaluated by the core.
-> >
-> > Clearly it should be decided by the driver. =A0Should there be a bi=
-t for
-> > it in the dev_pm_info structure?
->=20
-> Yes.
+It is possible that it is triggered by undocking the notebook (I have not 
+verified that yet), but I do know that the problem remains after the 
+notebook is docked again.
 
-That would resolve the issue.
+I'm certain that the problem did not occur with earlier kernels (even when 
+undocked), but am not sure when it first started happening. As I'm not 
+yet certain how to trigger it, I cannot currently check that.
 
-Alan Stern
+System is running x86_64 kernel with Debian stable ("Lenny") userland.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Any suggestions?
+
+Cheers,
+FJP
+
+# grep . /sys/devices/system/cpu/*/cpufreq/*
+.../cpu0/cpufreq/affected_cpus:0
+.../cpu0/cpufreq/cpuinfo_cur_freq:800000
+.../cpu0/cpufreq/cpuinfo_max_freq:1333000
+.../cpu0/cpufreq/cpuinfo_min_freq:800000
+.../cpu0/cpufreq/cpuinfo_transition_latency:10000
+.../cpu0/cpufreq/related_cpus:0 1
+.../cpu0/cpufreq/scaling_available_frequencies:1333000 1200000 1067000 
+933000 800000
+.../cpu0/cpufreq/scaling_available_governors:ondemand performance
+.../cpu0/cpufreq/scaling_cur_freq:800000
+.../cpu0/cpufreq/scaling_driver:acpi-cpufreq
+.../cpu0/cpufreq/scaling_governor:ondemand
+.../cpu0/cpufreq/scaling_max_freq:1333000
+.../cpu0/cpufreq/scaling_min_freq:800000
+.../cpu0/cpufreq/scaling_setspeed:<unsupported>
+.../cpu1/cpufreq/affected_cpus:1
+.../cpu1/cpufreq/cpuinfo_cur_freq:800000
+.../cpu1/cpufreq/cpuinfo_max_freq:1333000
+.../cpu1/cpufreq/cpuinfo_min_freq:800000
+.../cpu1/cpufreq/cpuinfo_transition_latency:10000
+.../cpu1/cpufreq/related_cpus:0 1
+.../cpu1/cpufreq/scaling_available_frequencies:1333000 1200000 1067000 
+933000 800000
+.../cpu1/cpufreq/scaling_available_governors:ondemand performance
+.../cpu1/cpufreq/scaling_cur_freq:800000
+.../cpu1/cpufreq/scaling_driver:acpi-cpufreq
+.../cpu1/cpufreq/scaling_governor:ondemand
+.../cpu1/cpufreq/scaling_max_freq:1333000
+.../cpu1/cpufreq/scaling_min_freq:800000
+.../cpu1/cpufreq/scaling_setspeed:<unsupported>
