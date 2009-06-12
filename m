@@ -1,68 +1,101 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH] wmi: Fix kernel panic when stack protection enabled.
-Date: Fri, 12 Jun 2009 06:44:18 +0100
-Message-ID: <200906120644.19252.carlos@strangeworlds.co.uk>
-References: <alpine.DEB.2.00.0906091707380.8360@debian> <200906092046.24983.carlos@strangeworlds.co.uk>
+From: Oliver Neukum <oliver@neukum.org>
+Subject: Re: [patch update] Re: [linux-pm] Run-time PM idea (was: Re: [RFC][PATCH 0/2] PM: Rearrange core suspend code)
+Date: Fri, 12 Jun 2009 10:11:13 +0200
+Message-ID: <200906121011.13592.oliver@neukum.org>
+References: <Pine.LNX.4.44L0.0906082233490.19072-100000@netrider.rowland.org> <200906111108.40785.oliver@neukum.org> <aec7e5c30906112013q2d2827feh54192d518156f203@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:58654 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbZFLFpc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jun 2009 01:45:32 -0400
-In-Reply-To: <200906092046.24983.carlos@strangeworlds.co.uk>
+Received: from smtp-out003.kontent.com ([81.88.40.217]:53408 "EHLO
+	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753058AbZFLIKZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jun 2009 04:10:25 -0400
+In-Reply-To: <aec7e5c30906112013q2d2827feh54192d518156f203@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lcostantino@gmail.com" <lcostantino@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tuesday 09 Jun 2009 20:46:24 Carlos Corbacho wrote:
-> [Adding Len to CC]
+Am Freitag, 12. Juni 2009 05:13:12 schrieb Magnus Damm:
+> Hi Oliver,
 >
-> On Tuesday 09 Jun 2009 22:09:23 lcostantino@gmail.com wrote:
-> > From: Costantino Leandro <lcostantino@gmail.com>
+> On Thu, Jun 11, 2009 at 6:08 PM, Oliver Neukum<oliver@neukum.org> wrote:
+> > Am Donnerstag, 11. Juni 2009 07:18:46 schrieb Magnus Damm:
+> >> 3) When all devices in the power domain are suspended the bus code can
+> >> turn off the power. The reason why I'd like to only autosuspend when
 > >
-> > Summary:
-> > Kernel panic arise when stack protection is enabled, since strncat will
-> > add a null terminating byte '\0'; So in functions
-> > like this one (wmi_query_block):
-> >         char wc[4]="WC";
-> > 	....
-> > 	strncat(method, block->object_id, 2);
-> >         ...
-> > the length of wc should be n+1 (wc[5]) or stack protection
-> > fault will arise. This is not noticeable when stack protection is
-> > disabled,but , isn't good either.
-> > Config used: [CONFIG_CC_STACKPROTECTOR_ALL=y,
-> > 	      CONFIG_CC_STACKPROTECTOR=y]
-> >
-> > Panic Trace
-> > ------------
-> >        .... stack-protector: kernel stack corrupted in : fa7b182c
-> >        2.6.30-rc8-obelisco-generic
-> >        call_trace:
-> >            [<c04a6c40>] ? panic+0x45/0xd9
-> > 	   [<c012925d>] ? __stack_chk_fail+0x1c/0x40
-> > 	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
-> > 	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
-> > 	   [<fa7e7000>] ? acer_wmi_init+0x00/0x61a [acer_wmi]
-> > 	   [<fa7e7135>] ? acer_wmi_init+0x135/0x61a [acer_wmi]
-> > 	   [<c0101159>] ? do_one_initcall+0x50+0x126
-> >
-> > Signed-off-by: Costantino Leandro <lcostantino@gmail.com>
+> > So you are saying that you have power dependencies independent
+> > of the device tree?
 >
-> Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+> I can think of the following power dependencies:
+> - hardware bus topology
+> - clocks
+> - power domains
 
-Cc: stable@kernel.org
+That means that some devices otherwise unrelated have a common power
+switch, doesn't it?
 
-Since I'm starting to get quite a few bug reports from people about 2.6.30 
-when distributions are turning on stack protector.
+> >> all devices are idle is simply that we don't get any power savings
+> >> from the per device autosuspend() callbacks, only from turning off
+> >> power to the entire per-domain. So bindly autosuspending and
+> >> autoresuming devices is just pure overhead unless we know we can do it
+> >> for all devices in the domain.
+> >
+> > Why can't you do this within the framework? You simply suspend when
+> > all a domain's devices have been autosuspended.
+>
+> So you mean I should handle that in my arch/bus specific
+> dev->bus->pm->autosuspend() code? So instead of calling
+> dev->driver->pm->autosuspend() straight away I keep track of the use
+> count of the power domain and when the domain is unused I call
+> dev->driver->pm->autosuspend() for all devices in the power domain
+> before powering off?
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+How much overhead do you have in autosuspend() if it actually powers
+down the devices? If it is small, I suggest you really run the autosuspend
+methods in the drivers but use a counter for the actual power switching
+on a bus level.
+
+> I guess hooking in things in dev->bus->pm->autosuspend() is doable,
+> but then dev->power.runtime_status will be set to RPM_SUSPENDED even
+> though the actual device isn't suspended at all. And RPM_IDLE state
+
+Why do you care about a device being in RPM_SUSPENDED while
+active. The inverse is a bug, but this seems harmless.
+
+> will be more or less unused since the drivers should pass a delay of
+> zero to make sure the bus code gets notified about the idle state
+> straight away.
+
+So? You are not getting a common code without a little overhead
+for some cases.
+
+> Basically, for my use case it would make more sense to let the
+> bus_type directly decide when a device should be suspended instead of
+> using a timeout before calling the bus_type code. I rather let the
+> bus_type decide if a timeout should be used or not instead of using it
+> for all bus_types.
+
+So call with a delay of 0.
+
+> So I guess the plan is that drivers directly should invoke
+> pm_request_suspend() to notify the bus that they are idle? (I guess
+> similar to my platform_device_idle()?)
+
+Yes.
+
+> So yes, I'd like to do things in dev->bus->pm->autosuspend(), and the
+> code is quite close. I can't figure out why anyone would want the
+> suspend delay at the current level though, but I guess other busses
+> want to use that?
+
+In your case resumption seems to cost almost no energy. In other
+cases you must avoid short sleeps, as you conserve less energy
+sleeping than it takes to resume.
+
+	Regards
+		Oliver
+
