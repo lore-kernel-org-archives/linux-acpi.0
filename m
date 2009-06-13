@@ -1,59 +1,32 @@
-From: "Alexander E. Patrakov" <patrakov@gmail.com>
-Subject: Re: [Intel-gfx] RFC] [Patch] [DRM/I915] :Check the LID device to
-	decide whether the LVDS should be initialized
-Date: Sat, 13 Jun 2009 11:50:24 +0600
-Message-ID: <c072ca310906122250y44457a3chd549ca9a726410f9@mail.gmail.com>
-References: <1244187921.3558.223.camel@localhost.localdomain>
-	 <1244200261.11142.20.camel@gaiman.anholt.net>
-	 <1244422347.3698.6.camel@localhost.localdomain>
-	 <1244585813.4896.34.camel@gaiman.anholt.net>
-	 <20090609153559.2e93479d@jbarnes-x200>
-	 <1244714614.3618.10.camel@localhost.localdomain>
-	 <c072ca310906122248w62683eb4waad8fd0be49b20@mail.gmail.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH 2/4] eeepc-laptop: Fix cpufv
+Date: Sat, 13 Jun 2009 08:45:39 +0200
+Message-ID: <71cd59b00906122345y3546a8e7y57aaa86ac13c4600@mail.gmail.com>
+References: <1244449010-7995-1-git-send-email-corentincj@iksaif.net>
+	 <1244449010-7995-2-git-send-email-corentincj@iksaif.net>
+	 <1244449010-7995-3-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:55729 "EHLO
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:64005 "EHLO
 	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651AbZFMFuX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jun 2009 01:50:23 -0400
-Received: by bwz9 with SMTP id 9so2437551bwz.37
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2009 22:50:24 -0700 (PDT)
-In-Reply-To: <c072ca310906122248w62683eb4waad8fd0be49b20@mail.gmail.com>
+	with ESMTP id S1754857AbZFMGpi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jun 2009 02:45:38 -0400
+Received: by bwz9 with SMTP id 9so2447660bwz.37
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Jun 2009 23:45:39 -0700 (PDT)
+In-Reply-To: <1244449010-7995-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-2009/6/13 Alexander E. Patrakov <patrakov@gmail.com>:
-> 2009/6/11 yakui_zhao <yakui.zhao@intel.com>:
->> + =C2=A0 =C2=A0 =C2=A0 if (acpi_disabled) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /*
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* if ACPI i=
-s disabled, there is no ACPI device tree. And
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* we don't =
-know whether there exists the LID device.
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* In such c=
-ase we will return 0.
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->> + =C2=A0 =C2=A0 =C2=A0 }
->
-> Won't this prevent people from debugging ACPI problems on laptops by
-> disabling ACPI on the kernel command line? Does this patch mean that,
-> in such case, there will be no output at all? Maybe, without ACPI, we
-> should initialize LVDS if and only if there are no other output
-> devices connected?
-
-Oops, I misread the code. If ACPI is disabled, we return 0, not
--ENODEV. That's right.
+Hi Len,
+2.6.30 is out, please don't merge this patch, it'll break userspace API.
+Other patch are still ok.
+Thanks,
 
 
---=20
-Alexander E. Patrakov
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Corentin Chary
+http://xf.iksaif.net - http://uffs.org
