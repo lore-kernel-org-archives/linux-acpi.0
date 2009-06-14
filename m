@@ -1,195 +1,116 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Introduce core framework for run-time PM of I/O devices
-Date: Sun, 14 Jun 2009 12:29:05 +0200
-Message-ID: <200906141229.06561.rjw@sisk.pl>
-References: <200906140023.36147.rjw@sisk.pl> <aec7e5c30906140241w174e9585y3c5ebac2f4e8537d@mail.gmail.com>
+From: Joerg Platte <jplatte@naasa.net>
+Subject: [2.6.30] Kernel bug with dock driver
+Date: Sun, 14 Jun 2009 21:00:47 +0200
+Message-ID: <200906142100.48621.jplatte@naasa.net>
+Reply-To: jplatte@naasa.net
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36332 "EHLO ogre.sisk.pl"
+Received: from rosi.naasa.net ([212.8.0.13]:51564 "EHLO rosi.naasa.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751324AbZFNK2v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Jun 2009 06:28:51 -0400
-In-Reply-To: <aec7e5c30906140241w174e9585y3c5ebac2f4e8537d@mail.gmail.com>
+	id S1753219AbZFNTJf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Jun 2009 15:09:35 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Sunday 14 June 2009, Magnus Damm wrote:
-> Hi Rafael,
-> 
-> On Sun, Jun 14, 2009 at 7:23 AM, Rafael J. Wysocki<rjw@sisk.pl> wrote:
-> > Below is the current version of my "run-time PM for I/O devices" patch.
-> >
-> > I've done my best to address the comments received during the recent
-> > discussions, but at the same time I've tried to make the patch only contain
-> > the most essential things.  For this reason, for example, the sysfs interface
-> > is not there and it's going to be added in a separate patch.
-> 
-> Good decision. Let's do this step by step.
-> 
-> > Please let me know if you want me to change anything in this patch or to add
-> > anything new to it.  [Magnus, I remember you wanted something like
-> > ->runtime_wakeup() along with ->runtime_idle(), but I'm not sure it's really
-> > necessary.  Please let me know if you have any particular usage scenario for
-> > it.]
-> 
-> I will keep on building my arch specific platform bus code on top of
-> the latest version of this patch.
-> 
-> However, to begin with I'll not make use of the ->runtime_idle()
-> callback in the bus code. This because rearranging the existing
-> platform devices into a tree will require a lot of rewriting, and I'm
-> not convinced it's the right approach. I'd rather focus on getting
-> basic functionality in place at this point. So if no one else needs
-> ->runtime_idle(), feel free to exclude the ->runtime_idle() part if
-> you want to make the patch even leaner to begin with.
+Hi,
 
-I think it's going be useful in general.  If not, we can just drop it.
+today I ran into the following bug several times (Kernel 2.6.30, IBM Th=
+inkPad=20
+T40 with ultrabay HD and CD/DVD):
 
-> Together with the bus specific callbacks I plan to modify device
-> drivers to include pm_runtime_suspend() / pm_runtime_resume() calls to
-> notify the bus code when they are idle and when they need wakeup,
-> similar to my earlier proposal with
-> platform_device_idle()/platform_device_wakeup().
+BUG: unable to handle kernel paging request at 00001000
+IP: [<c01df5fa>] strcpy+0xe/0x1b
+*pde =3D 00000000
+Oops: 0000 [#1] PREEMPT
+last sysfs file: /sys/class/power_supply/BAT0/energy_full
+Modules linked in: nls_iso8859_1 nls_cp850 vfat fat usb_storage usb_lib=
+usual
+udf crc_itu_t sg sr_mod cdrom nfsd lockd nfs_acl auth_rpcgss sunrpc exp=
+ortfs
+radeon drm sco bridge stp llc bnep l2cap bluetooth ipt_MASQUERADE
+iptable_nat nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_state ipt_REJECT
+ipt_LOG xt_limit xt_tcpudp xt_mac xt_multiport iptable_filter iptable_m=
+angle
+ip_tables x_tables nf_conntrack_ftp nf_conntrack vboxdrv binfmt_misc
+af_packet cpufreq_userspace cpufreq_stats cpufreq_powersave nsc_ircc au=
+tofs4
+fuse nls_utf8 ntfs nls_base ext2 deadline_iosched as_iosched ircomm_tty
+ircomm tun acpi_cpufreq sbs sbshc snd_intel8x0m snd_intel8x0 snd_ac97_c=
+odec
+ac97_bus snd_pcm_oss snd_mixer_oss snd_pcm snd_seq_oss snd_seq_midi
+snd_rawmidi snd_seq_midi_event joydev snd_seq snd_timer snd_seq_device
+dvb_usb_cinergyT2 thinkpad_acpi irtty_sir dvb_usb yenta_socket
+rsrc_nonstatic ipw2200 pcmcia libipw sir_dev rfkill snd video led_class
+lib80211 i2c_i801 rng_core soundcore pcmcia_core snd_page_alloc 8250_pc=
+i
+dvb_core irda parport_pc parport crc_ccitt psmouse pcspkr nvram output
+battery ac button processor rtc_cmos 8250_pnp serio_raw rtc_core rtc_li=
+b
+8250 serial_core evdev ext3 jbd mbcache usbhid hid sd_mod ata_generic
+pata_acpi ata_piix uhci_hcd ehci_hcd libata e1000 usbcore scsi_mod inte=
+l_agp
+agpgart thermal fan unix cpufreq_conservative cpufreq_ondemand freq_tab=
+le
+radeonfb fb_ddc backlight i2c_algo_bit cfbcopyarea i2c_core cfbimgblt
+cfbfillrect fbcon tileblit font bitblit softcursor fb
 
-That sounds like a good plan.
+Pid: 52, comm: kacpi_notify Not tainted (2.6.30 #1) 2373G1G
+EIP: 0060:[<c01df5fa>] EFLAGS: 00010286 CPU: 0
+EIP is at strcpy+0xe/0x1b
+EAX: c278a22c EBX: c278a200 ECX: c278a22c EDX: 00001000
+ESI: 00001000 EDI: c278a22c EBP: f70a8f34 ESP: f70a8f28
+ DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
+Process kacpi_notify (pid: 52, ti=3Df70a8000 task=3Df70c0c40 task.ti=3D=
+f70a8000)
+Stack:
+ c278a200 c278a214 c278a244 f70a8f64 c01fc898 030a8f54 00001000 f708a87=
+9
+ 00000002 f6b3ca80 c278a218 00000014 f97fb132 f0a07a80 00000000 f70a8f7=
+0
+ f97fb14e 00000000 f70a8f7c f97fb023 f7041460 f70a8f8c c020199d f6984ac=
+0
+Call Trace:
+ [<c01fc898>] ? acpi_bus_generate_netlink_event+0x140/0x199
+ [<f97fb132>] ? bay_notify+0x0/0x1f [thinkpad_acpi]
+ [<f97fb14e>] ? bay_notify+0x1c/0x1f [thinkpad_acpi]
+ [<f97fb023>] ? dispatch_acpi_notify+0x23/0x26 [thinkpad_acpi]
+ [<c020199d>] ? acpi_ev_notify_dispatch+0x4c/0x57
+ [<c01f4558>] ? acpi_os_execute_deferred+0x20/0x2c
+ [<c012cff6>] ? worker_thread+0x15a/0x1fd
+ [<c01f4538>] ? acpi_os_execute_deferred+0x0/0x2c
+ [<c012fc7d>] ? autoremove_wake_function+0x0/0x33
+ [<c012ce9c>] ? worker_thread+0x0/0x1fd
+ [<c012f8bc>] ? kthread+0x42/0x67
+ [<c012f87a>] ? kthread+0x0/0x67
+ [<c01030d3>] ? kernel_thread_helper+0x7/0x10
+Code: ff ff 21 e3 8b 5b 18 83 eb 07 39 d9 73 08 89 01 89 51 04 31 c0 c3=
+ b8
+f2 ff ff ff c3 90 55 89 c1 89 e5 57 89 c7 56 89 d6 83 ec 04 <ac> aa 84 =
+c0 75
+fa 5a 89 c8 5e 5f 5d c3 55 89 e5 57 89 c7 56 89
+EIP: [<c01df5fa>] strcpy+0xe/0x1b SS:ESP 0068:f70a8f28
+CR2: 0000000000001000
+---[ end trace fe729b61cde0024d ]---
 
-> > --- linux-2.6.orig/include/linux/pm.h
-> > +++ linux-2.6/include/linux/pm.h
-> > @@ -182,6 +205,11 @@ struct dev_pm_ops {
-> >        int (*thaw_noirq)(struct device *dev);
-> >        int (*poweroff_noirq)(struct device *dev);
-> >        int (*restore_noirq)(struct device *dev);
-> > +#ifdef CONFIG_PM_RUNTIME
-> > +       int (*runtime_suspend)(struct device *dev);
-> > +       int (*runtime_resume)(struct device *dev);
-> > +       void (*runtime_idle)(struct device *dev);
-> > +#endif
-> 
-> Do we really need to wrap these in CONFIG_PM_RUNTIME? The callbacks
-> for STR and STD are not wrapped in CONFIG_SUSPEND and
-> CONFIG_HIBERNATION, right?
-> 
-> > --- /dev/null
-> > +++ linux-2.6/drivers/base/power/runtime.c
-> [snip]
-> > +/**
-> > + * pm_runtime_suspend - Run a device bus type's runtime_suspend() callback.
-> > + * @dev: Device to suspend.
-> > + *
-> > + * Check if the status of the device is appropriate and run the
-> > + * ->runtime_suspend() callback provided by the device's bus type driver.
-> > + * Update the run-time PM flags in the device object to reflect the current
-> > + * status of the device.
-> > + */
-> > +int pm_runtime_suspend(struct device *dev)
-> > +{
-> > +       int error = 0;
-> 
-> I'm sure you put a lot of thought into this already, but is it really
-> the best approach to assume that busses without runtime pm callbacks
-> can be suspended? I'd go with an error value by default and only
-> return 0 as callback return value.
+The bug message appears with a high probability - but not always - when=
+ I=20
+release the eject lever to exchange the drive in the ultrabay slot. I'm=
+ not=20
+sure if this bug is a regression of 2.6.30, because I did not change th=
+e drive=20
+in the ultrabay for several months. Maybe it was already in 2.6.29 or b=
+efore.=20
+How can I help to resolve this bug?
 
-Hmm, yes.  I think you're right.
-
-> > +/**
-> > + * pm_cancel_suspend - Cancel a pending suspend request for given device.
-> > + * @dev: Device to cancel the suspend request for.
-> > + *
-> > + * Should be called under pm_lock_device() and only if we are sure that the
-> > + * ->autosuspend() callback hasn't started to yet.
-> > + */
-> > +static void pm_cancel_suspend(struct device *dev)
-> > +{
-> > +       dev->power.suspend_aborted = true;
-> > +       cancel_delayed_work(&dev->power.runtime_work);
-> > +       dev->power.runtime_status = RPM_ACTIVE;
-> > +}
-> 
-> This pm_lock_device() comment seems to come from old code, no?
-
-Correct, I'll fix the comments.
-
-> > +/**
-> > + * pm_runtime_resume - Run a device bus type's runtime_resume() callback.
-> > + * @dev: Device to resume.
-> > + *
-> > + * Check if the device is really suspended and run the ->runtime_resume()
-> > + * callback provided by the device's bus type driver.  Update the run-time PM
-> > + * flags in the device object to reflect the current status of the device.  If
-> > + * runtime suspend is in progress while this function is being run, wait for it
-> > + * to finish before resuming the device.  If runtime suspend is scheduled, but
-> > + * it hasn't started yet, cancel it and we're done.
-> > + */
-> > +int pm_runtime_resume(struct device *dev)
-> > +{
-> > +       int error = 0;
-> 
-> Same here, does non-existing runtime pm callbacks really mean we can resume?
-
-Well, in fact if we get to the callback and it doesn't exist, that will be a
-bug.  So, I think it's a good idea to return error code in such a case.
-
-> > +/**
-> > + * pm_runtime_disable - Disable run-time power management for given device.
-> > + * @dev: Device to handle.
-> > + *
-> > + * Increase the depth field in the device's dev_pm_info structure, which will
-> > + * cause the run-time PM functions above to return without doing anything.
-> > + * If there is a run-time PM operation in progress, wait for it to complete.
-> > + */
-> > +void pm_runtime_disable(struct device *dev)
-> > +{
-> > +       might_sleep();
-> > +
-> > +       atomic_inc(&dev->power.depth);
-> > +
-> > +       if (dev->power.runtime_status & RPM_IN_PROGRESS)
-> > +               wait_for_completion(&dev->power.work_done);
-> > +}
-> > +EXPORT_SYMBOL_GPL(pm_runtime_disable);
-> > +
-> > +/**
-> > + * pm_runtime_enable - Disable run-time power management for given device.
-> > + * @dev: Device to handle.
-> > + *
-> > + * Enable run-time power management for given device by decreasing the depth
-> > + * field in its dev_pm_info structure.
-> > + */
-> > +void pm_runtime_enable(struct device *dev)
-> > +{
-> > +       if (!atomic_add_unless(&dev->power.depth, -1, 0))
-> > +               dev_warn(dev, "PM: Excessive pm_runtime_enable()!\n");
-> > +}
-> > +EXPORT_SYMBOL_GPL(pm_runtime_enable);
-> 
-> Any thoughts on performing ->runtime_resume()/->runtime_suspend() in
-> enable() and disable()? I guess it's performed too early/late to make
-> sense from the driver point of view?
-
-Some thoughts, yes.  As for an implementation, I'd like to wait until at least
-one bus type uses the framework.
-
-> Looking good, thanks a lot for your work on this!
-
-Thanks for your comments.
-
-> Any chance we can get this included in -rc1?
-
-Well, in fact I have already pushed all of the changes I wanted in 2.6.31.
-Also, I'd like to receive some comments on the $subject patch from the other
-people.
-
-That said, the merge window is still open, so if the comments are supportive
-and  there's a chance to put the final version into linux-next for a couple of
-days before the merge window ends, I may try to push it to Linus.  After all,
-the patch is not going to introduce any regressions. ;-)
-
-Best,
-Rafael
+regards,
+J=C3=B6rg
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
