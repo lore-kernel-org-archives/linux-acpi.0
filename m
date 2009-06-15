@@ -1,102 +1,53 @@
-From: Joerg Platte <jplatte@naasa.net>
-Subject: Re: [2.6.30] Kernel bug with dock driver
-Date: Mon, 15 Jun 2009 09:36:39 +0200
-Message-ID: <200906150936.41983.jplatte@naasa.net>
-References: <200906142100.48621.jplatte@naasa.net> <20090615020226.GA30720@khazad-dum.debian.net>
-Reply-To: jplatte@naasa.net
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: [Intel-gfx] RFC] [Patch] [DRM/I915] :Check the LID device to
+	decide whether the LVDS should be initialized
+Date: Mon, 15 Jun 2009 15:41:10 +0800
+Message-ID: <1245051670.3583.35.camel@localhost.localdomain>
+References: <1244187921.3558.223.camel@localhost.localdomain>
+	 <1244200261.11142.20.camel@gaiman.anholt.net>
+	 <1244422347.3698.6.camel@localhost.localdomain>
+	 <1244585813.4896.34.camel@gaiman.anholt.net>
+	 <20090609153559.2e93479d@jbarnes-x200>
+	 <1244714614.3618.10.camel@localhost.localdomain>
+	 <c072ca310906122248w62683eb4waad8fd0be49b20@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rosi.naasa.net ([212.8.0.13]:43699 "EHLO rosi.naasa.net"
+Received: from mga11.intel.com ([192.55.52.93]:17073 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796AbZFOHgn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jun 2009 03:36:43 -0400
-In-Reply-To: <20090615020226.GA30720@khazad-dum.debian.net>
-Content-Disposition: inline
+	id S1750796AbZFOHj6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Jun 2009 03:39:58 -0400
+In-Reply-To: <c072ca310906122248w62683eb4waad8fd0be49b20@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Alexander E. Patrakov" <patrakov@gmail.com>
+Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Am Monday, 15. June 2009 schrieb Henrique de Moraes Holschuh:
-> Do it in single user mode with udev helpers *killed*, but just releas=
-e
+On Sat, 2009-06-13 at 13:48 +0800, Alexander E. Patrakov wrote:
+> 2009/6/11 yakui_zhao <yakui.zhao@intel.com>:
+> > +       if (acpi_disabled) {
+> > +               /*
+> > +                * if ACPI is disabled, there is no ACPI device tree. And
+> > +                * we don't know whether there exists the LID device.
+> > +                * In such case we will return 0.
+> > +                */
+> > +               return 0;
+> > +       }
+> 
+> Won't this prevent people from debugging ACPI problems on laptops by
+> disabling ACPI on the kernel command line? Does this patch mean that,
+> in such case, there will be no output at all? Maybe, without ACPI, we
+> should initialize LVDS if and only if there are no other output
+> devices connected?
+No. It has no effect on LVDS output device if ACPI is disabled.
+If the system is booted with acpi disabled, the function of intel_lvds_find_lid
+will return zero and it will continue the current flowchart of LVDS output device.
 
-Today I tried to reproduce the bug in runlevel 2 (Debian based system) =
-without=20
-success, even after a suspend to disk. In the past this was one method =
-to=20
-trigger bugs with the bay.
+Thanks.
 
-> the lever, _don't_ pull the drive off the bay, unless you do verify t=
-hat
-> the bay LED went off.
->
-> ***NEVER*** remove an Ultrabay device with the Ultrabay LED still lit=
-,
-> especially if it is a PATA device.
 
-I did this accidentally some times before and the bay is still working.=
- But=20
-I'll try to not to do it again :)
 
-> If the bug cannot be reproduced in that condition, it is happening
-> because userspace is trapping the lever release event (as it should),
-> and doing something the kernel doesn't like with it (which is a bug
-> in the kernel in any case).  That might help you track down a better
-> way to reproduce the issue.
 
-Userspace scripts are written by me (based on some information from=20
-thinkwiki).=20
-The udev rule looks like this:
-ATTR{type}=3D=3D"ata_bay", ATTR{docked}=3D=3D"1", KERNEL=3D=3D"dock.*",=
- ACTION=3D=3D"change",=20
-SUBSYSTEM=3D=3D"platform", RUN+=3D"/usr/local/sbin/ultrabay_open"
+ 
 
-and ultrabay_open contains the following lines of shell code:
-#!/bin/bash
-ULTRABAY_SYSDIR=3D'/sys/class/scsi_device/1:0:0:0/device'
-shopt -s nullglob
-
-if [ -d $ULTRABAY_SYSDIR ]; then
-        sync
-        echo 1 > $ULTRABAY_SYSDIR/delete
-        logger "removed $ULTRABAY_SYSDIR"
-fi
-sync
-# Turn off power to the UltraBay:
-if [ -f /sys/devices/platform/dock.2/undock ]; then
-        echo 1 > /sys/devices/platform/dock.2/undock
-        logger "/sys/devices/platform/dock.2/undock"
-else
-        echo eject > /proc/acpi/ibm/bay
-fi
-# Tell the user we're OK
-logger "/proc/acpi/ibm/beep"
-echo 12 > /proc/acpi/ibm/beep
-
-What I discovered today after modifying ultrabay_open was that in some =
-cases=20
-the script is called again directly after inserting a drive to the bay.=
- But=20
-only, if the execution of this script takes some more time (I added a s=
-leep 2=20
-after the second sync to be able to see which command might trigger the=
- bug).
-
-So maybe yesterday this script was called twice and the kernel does not=
- like=20
-to undock a device while it is in the process of being undocked? How sh=
-ould I=20
-modify the udev rule to prevent another execution each time a drive is=20
-inserted into the bay?
-
-regards,
-J=F6rg
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
