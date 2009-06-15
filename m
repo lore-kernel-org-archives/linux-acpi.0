@@ -1,57 +1,45 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
- I/O devices
-Date: Sun, 14 Jun 2009 16:18:50 -0700
-Message-ID: <20090614161850.01435082@infradead.org>
-References: <200906140023.36147.rjw@sisk.pl>
-	<200906141158.50171.rjw@sisk.pl>
-	<200906150057.32424.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [2.6.30] Kernel bug with dock driver
+Date: Sun, 14 Jun 2009 23:02:26 -0300
+Message-ID: <20090615020226.GA30720@khazad-dum.debian.net>
+References: <200906142100.48621.jplatte@naasa.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37062 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753845AbZFNXS2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Jun 2009 19:18:28 -0400
-In-Reply-To: <200906150057.32424.rjw@sisk.pl>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:56001 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750838AbZFOCC2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Jun 2009 22:02:28 -0400
+Content-Disposition: inline
+In-Reply-To: <200906142100.48621.jplatte@naasa.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: Joerg Platte <jplatte@naasa.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 15 Jun 2009 00:57:31 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+On Sun, 14 Jun 2009, Joerg Platte wrote:
+> The bug message appears with a high probability - but not always -
+> when I release the eject lever to exchange the drive in the ultrabay
+> slot. I'm not sure if this bug is a regression of 2.6.30, because I
+> did not change the drive in the ultrabay for several months. Maybe it
+> was already in 2.6.29 or before.  How can I help to resolve this bug?
 
-> On Sunday 14 June 2009, Rafael J. Wysocki wrote:
-> > On Sunday 14 June 2009, Rafael J. Wysocki wrote:
-> > > Hi,
-> > > 
-> > > Below is the current version of my "run-time PM for I/O devices"
-> > > patch.
-> > > 
-> > > I've done my best to address the comments received during the
-> > > recent discussions, but at the same time I've tried to make the
-> > > patch only contain the most essential things.  For this reason,
-> > > for example, the sysfs interface is not there and it's going to
-> > > be added in a separate patch.
-> > > 
-> > > Please let me know if you want me to change anything in this
-> > > patch or to add anything new to it.  [Magnus, I remember you
-> > > wanted something like ->runtime_wakeup() along with
-> > > ->runtime_idle(), but I'm not sure it's really necessary.  Please
-> > > let me know if you have any particular usage scenario for it.]
-> 
-> Appended is an update of the patch addressing the today's comments
-> from Magnus.
+Do it in single user mode with udev helpers *killed*, but just release
+the lever, _don't_ pull the drive off the bay, unless you do verify that
+the bay LED went off.
 
-few comments from me
+***NEVER*** remove an Ultrabay device with the Ultrabay LED still lit,
+especially if it is a PATA device.
 
-1) For the usecases for upcoming hw from Intel (where you really can't talk to the hw while it's in powersave mode); the locking needs to be
-   IRQ safe. Think of it like this:
-   Lets assume you get a (shared) interrupt from your device. In the handler you need to make 100% sure that 
-    1) you're not suspended at this point .. basically do a forced wakeup right there and then
-    2) assure that you're not about to suspend
-2) You use jiffies in the API; I would suggest exposing milliseconds instead and internally convert to jiffies;
-   milliseconds tends to be a much more natural unit for this sort of thing
+If the bug cannot be reproduced in that condition, it is happening
+because userspace is trapping the lever release event (as it should),
+and doing something the kernel doesn't like with it (which is a bug
+in the kernel in any case).  That might help you track down a better
+way to reproduce the issue.
 
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
