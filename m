@@ -1,51 +1,52 @@
-From: fanderay <fanderay4@googlemail.com>
-Subject: 2.6.30: Periodic ACPI Exception and Error messages on Sony Vaio
-	SR19VN
-Date: Mon, 15 Jun 2009 11:21:10 +0100
-Message-ID: <31c940650906150321t7fef7904g85eaf0e02d8cbff7@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH 1/2] ACPICA: Clear power button status before enabling event
+Date: Mon, 15 Jun 2009 10:49:07 -0600
+Message-ID: <20090615164907.10901.73210.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:58525 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935AbZFOK0r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2009 06:26:47 -0400
-Received: by bwz9 with SMTP id 9so3215461bwz.37
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2009 03:26:48 -0700 (PDT)
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:18849 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590AbZFOQtG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2009 12:49:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-Hi,
+Clear power button status before enabling event.
 
-In 2.6.30 running on a Vaio SR19VN I receive bursts of messages like
-the following, consistently and periodically:
+It's unusual to enable an event, then immediately clear it, so this
+looks like a possible bug.  If it was intentional, perhaps a comment
+would be in order.
 
-[282755.328562] ACPI: EC: input buffer is not empty, aborting transaction
-[282755.328581] ACPI Exception (evregion-0422): AE_TIME, Returned by
-Handler for [EmbeddedControl] [20090320]
-[282755.328611] ACPI Error (psparse-0537): Method parse/execution
-failed [\_SB_.BAT0._BST] (Node ffff88013fa742d0), AE_TIME
-[282755.328780] ACPI Exception (battery-0385): AE_TIME, Evaluating
-_BST [20090320]
-[282755.836522] ACPI: EC: input buffer is not empty, aborting transaction
-[282756.336536] ACPI: EC: input buffer is not empty, aborting transaction
-[282756.336555] ACPI Exception (evregion-0422): AE_TIME, Returned by
-Handler for [EmbeddedControl] [20090320]
-[282756.336585] ACPI Error (psparse-0537): Method parse/execution
-failed [\_SB_.BAT0._BST] (Node ffff88013fa742d0), AE_TIME
-[282756.336757] ACPI Exception (battery-0385): AE_TIME, Evaluating
-_BST [20090320]
-[397784.536520] ACPI: EC: input buffer is not empty, aborting transaction
-[397784.536530] ACPI Exception (evregion-0422): AE_TIME, Returned by
-Handler for [EmbeddedControl] [20090320]
-[397784.536543] ACPI Error (psparse-0537): Method parse/execution
-failed [\_SB_.BAT0._BST] (Node ffff88013fa742d0), AE_TIME
-[397784.536607] ACPI Exception (battery-0385): AE_TIME, Evaluating
-_BST [20090320]
+This patch may be used under either the GPL v2 or the BSD-style license
+used for the Intel ACPICA.
 
-This has actually been going on for a while now, at least since some
-of the early .30 rc's.  It's not clear to me what it means or what the
-impact is.  (All the hardware details for this system can be found in
-Bug #13148.)
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+CC: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/hwsleep.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index db307a3..3558c53 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -613,12 +613,12 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+ 	(void)
+ 	    acpi_write_bit_register(acpi_gbl_fixed_event_info
+ 			      [ACPI_EVENT_POWER_BUTTON].
+-			      enable_register_id, ACPI_ENABLE_EVENT);
++			      status_register_id, ACPI_CLEAR_STATUS);
+ 
+ 	(void)
+ 	    acpi_write_bit_register(acpi_gbl_fixed_event_info
+ 			      [ACPI_EVENT_POWER_BUTTON].
+-			      status_register_id, ACPI_CLEAR_STATUS);
++			      enable_register_id, ACPI_ENABLE_EVENT);
+ 
+ 	arg.integer.value = ACPI_SST_WORKING;
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
+
