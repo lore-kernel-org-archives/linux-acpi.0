@@ -1,70 +1,58 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [2.6.30] Kernel bug with dock driver
-Date: Mon, 15 Jun 2009 17:29:28 -0300
-Message-ID: <20090615202928.GA28319@khazad-dum.debian.net>
-References: <200906142100.48621.jplatte@naasa.net> <20090615020226.GA30720@khazad-dum.debian.net> <200906150936.41983.jplatte@naasa.net>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
+ I/O devices
+Date: Mon, 15 Jun 2009 17:08:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906151700570.2643-100000@iolanthe.rowland.org>
+References: <200906150057.32424.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:35209 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755215AbZFOU3b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jun 2009 16:29:31 -0400
-Content-Disposition: inline
-In-Reply-To: <200906150936.41983.jplatte@naasa.net>
+Received: from iolanthe.rowland.org ([192.131.102.54]:54298 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S934483AbZFOVI4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2009 17:08:56 -0400
+In-Reply-To: <200906150057.32424.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joerg Platte <jplatte@naasa.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-On Mon, 15 Jun 2009, Joerg Platte wrote:
-> > If the bug cannot be reproduced in that condition, it is happening
-> > because userspace is trapping the lever release event (as it should),
-> > and doing something the kernel doesn't like with it (which is a bug
-> > in the kernel in any case).  That might help you track down a better
-> > way to reproduce the issue.
+On Mon, 15 Jun 2009, Rafael J. Wysocki wrote:
+
+> On Sunday 14 June 2009, Rafael J. Wysocki wrote:
+> > On Sunday 14 June 2009, Rafael J. Wysocki wrote:
+> > > Hi,
+> > > 
+> > > Below is the current version of my "run-time PM for I/O devices" patch.
+> > > 
+> > > I've done my best to address the comments received during the recent
+> > > discussions, but at the same time I've tried to make the patch only contain
+> > > the most essential things.  For this reason, for example, the sysfs interface
+> > > is not there and it's going to be added in a separate patch.
+> > > 
+> > > Please let me know if you want me to change anything in this patch or to add
+> > > anything new to it.  [Magnus, I remember you wanted something like
+> > > ->runtime_wakeup() along with ->runtime_idle(), but I'm not sure it's really
+> > > necessary.  Please let me know if you have any particular usage scenario for
+> > > it.]
 > 
-> if [ -d $ULTRABAY_SYSDIR ]; then
->         sync
->         echo 1 > $ULTRABAY_SYSDIR/delete
->         logger "removed $ULTRABAY_SYSDIR"
-> fi
-> sync
-> # Turn off power to the UltraBay:
-> if [ -f /sys/devices/platform/dock.2/undock ]; then
->         echo 1 > /sys/devices/platform/dock.2/undock
->         logger "/sys/devices/platform/dock.2/undock"
+> Appended is an update of the patch addressing the today's comments from Magnus.
 
-There might be a race there, as you call undock but you don't really know if
-the SCSI device was deleted.
+This is really looking very good.  I'll do a more detailed review
+later.  (In particular, I have not checked the details of the rather
+intricate state machine transitions.)  For now, a couple of things 
+struck my eye:
 
-> What I discovered today after modifying ultrabay_open was that in some cases 
-> the script is called again directly after inserting a drive to the bay. But 
-> only, if the execution of this script takes some more time (I added a sleep 2 
-> after the second sync to be able to see which command might trigger the bug).
+Shouldn't the calls to complete() really be complete_all()?  There
+might be more than one thread waiting for a suspend or resume callback
+to finish.
 
-So, please try to reproduce this by sending a number of delete requests
-back-to-back in a row, and also mixing delete requests with undock requests.
-When you find out what causes the OOPS (and it _is_ a bug in the kernel if
-any of those oops), we can try to direct the bug report to someone who can
-fix the problem.
+Since pm_runtime_resume() takes care of powering up the parent, there's 
+no need for pm_request_resume() to worry about it also.
 
-> to undock a device while it is in the process of being undocked? How should I 
-> modify the udev rule to prevent another execution each time a drive is 
-> inserted into the bay?
+The documentation should mention that the runtime_suspend method is 
+supposed to enable remote wakeup if it as available and if 
+device_may_wakeup(dev) is true.
 
-You will need locking, unfortunately.  Also, check if there is a device in
-the bay.  event+device in bay == hotunplug.  event+no device in bay ==
-hotplug.
+Alan Stern
 
-That is, if the events don't already tell you (i.e. different events for
-plug and unplug).  I don't recall right now if the ACPI events are
-different, but I do recall the thinkpad BIOS follows the ACPI spec correctly
-on this area.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
