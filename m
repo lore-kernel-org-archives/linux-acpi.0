@@ -1,53 +1,51 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: Re: [Intel-gfx] RFC] [Patch] [DRM/I915] :Check the LID device to
-	decide whether the LVDS should be initialized
-Date: Mon, 15 Jun 2009 15:41:10 +0800
-Message-ID: <1245051670.3583.35.camel@localhost.localdomain>
-References: <1244187921.3558.223.camel@localhost.localdomain>
-	 <1244200261.11142.20.camel@gaiman.anholt.net>
-	 <1244422347.3698.6.camel@localhost.localdomain>
-	 <1244585813.4896.34.camel@gaiman.anholt.net>
-	 <20090609153559.2e93479d@jbarnes-x200>
-	 <1244714614.3618.10.camel@localhost.localdomain>
-	 <c072ca310906122248w62683eb4waad8fd0be49b20@mail.gmail.com>
+From: fanderay <fanderay4@googlemail.com>
+Subject: 2.6.30: Periodic ACPI Exception and Error messages on Sony Vaio
+	SR19VN
+Date: Mon, 15 Jun 2009 11:21:10 +0100
+Message-ID: <31c940650906150321t7fef7904g85eaf0e02d8cbff7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17073 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796AbZFOHj6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jun 2009 03:39:58 -0400
-In-Reply-To: <c072ca310906122248w62683eb4waad8fd0be49b20@mail.gmail.com>
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:58525 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935AbZFOK0r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2009 06:26:47 -0400
+Received: by bwz9 with SMTP id 9so3215461bwz.37
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2009 03:26:48 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Alexander E. Patrakov" <patrakov@gmail.com>
-Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, 2009-06-13 at 13:48 +0800, Alexander E. Patrakov wrote:
-> 2009/6/11 yakui_zhao <yakui.zhao@intel.com>:
-> > +       if (acpi_disabled) {
-> > +               /*
-> > +                * if ACPI is disabled, there is no ACPI device tree. And
-> > +                * we don't know whether there exists the LID device.
-> > +                * In such case we will return 0.
-> > +                */
-> > +               return 0;
-> > +       }
-> 
-> Won't this prevent people from debugging ACPI problems on laptops by
-> disabling ACPI on the kernel command line? Does this patch mean that,
-> in such case, there will be no output at all? Maybe, without ACPI, we
-> should initialize LVDS if and only if there are no other output
-> devices connected?
-No. It has no effect on LVDS output device if ACPI is disabled.
-If the system is booted with acpi disabled, the function of intel_lvds_find_lid
-will return zero and it will continue the current flowchart of LVDS output device.
+Hi,
 
-Thanks.
+In 2.6.30 running on a Vaio SR19VN I receive bursts of messages like
+the following, consistently and periodically:
 
+[282755.328562] ACPI: EC: input buffer is not empty, aborting transaction
+[282755.328581] ACPI Exception (evregion-0422): AE_TIME, Returned by
+Handler for [EmbeddedControl] [20090320]
+[282755.328611] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.BAT0._BST] (Node ffff88013fa742d0), AE_TIME
+[282755.328780] ACPI Exception (battery-0385): AE_TIME, Evaluating
+_BST [20090320]
+[282755.836522] ACPI: EC: input buffer is not empty, aborting transaction
+[282756.336536] ACPI: EC: input buffer is not empty, aborting transaction
+[282756.336555] ACPI Exception (evregion-0422): AE_TIME, Returned by
+Handler for [EmbeddedControl] [20090320]
+[282756.336585] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.BAT0._BST] (Node ffff88013fa742d0), AE_TIME
+[282756.336757] ACPI Exception (battery-0385): AE_TIME, Evaluating
+_BST [20090320]
+[397784.536520] ACPI: EC: input buffer is not empty, aborting transaction
+[397784.536530] ACPI Exception (evregion-0422): AE_TIME, Returned by
+Handler for [EmbeddedControl] [20090320]
+[397784.536543] ACPI Error (psparse-0537): Method parse/execution
+failed [\_SB_.BAT0._BST] (Node ffff88013fa742d0), AE_TIME
+[397784.536607] ACPI Exception (battery-0385): AE_TIME, Evaluating
+_BST [20090320]
 
-
-
- 
-
+This has actually been going on for a while now, at least since some
+of the early .30 rc's.  It's not clear to me what it means or what the
+impact is.  (All the hardware details for this system can be found in
+Bug #13148.)
