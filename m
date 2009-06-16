@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 11/15] eeepc-laptop: sync eeepc-laptop with asus_acpi
-Date: Tue, 16 Jun 2009 21:28:52 +0200
-Message-ID: <1245180536-28009-12-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 12/15] eeepc-laptop: makes get_acpi() returns -ENODEV
+Date: Tue, 16 Jun 2009 21:28:53 +0200
+Message-ID: <1245180536-28009-13-git-send-email-corentincj@iksaif.net>
 References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-2-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-3-git-send-email-corentincj@iksaif.net>
@@ -13,77 +13,73 @@ References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-9-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-10-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-11-git-send-email-corentincj@iksaif.net>
+ <1245180536-28009-12-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:60978 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:60979 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752647AbZFPTb0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:31:26 -0400
-In-Reply-To: <1245180536-28009-11-git-send-email-corentincj@iksaif.net>
+	id S1754446AbZFPTb1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jun 2009 15:31:27 -0400
+In-Reply-To: <1245180536-28009-12-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-In the default Eee PC distribution, there is a modified
-asus_acpi driver. eeepc-laptop is a cleaned version of this
-driver. Sync ASL enum and getter/setters with asus_acpi.
+If there is there is no getter defined, get_acpi()
+will return -ENODEV.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 7121239..8ef9f74 100644
+index 8ef9f74..d466139 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -60,7 +60,10 @@ enum {
- 	DISABLE_ASL_GPS = 0x0020,
- 	DISABLE_ASL_DISPLAYSWITCH = 0x0040,
- 	DISABLE_ASL_MODEM = 0x0080,
--	DISABLE_ASL_CARDREADER = 0x0100
-+	DISABLE_ASL_CARDREADER = 0x0100,
-+	DISABLE_ASL_3G = 0x0200,
-+	DISABLE_ASL_WIMAX = 0x0400,
-+	DISABLE_ASL_HWCF = 0x0800
- };
+@@ -284,7 +284,7 @@ static int set_acpi(int cm, int value)
  
- enum {
-@@ -85,7 +88,13 @@ enum {
- 	CM_ASL_USBPORT3,
- 	CM_ASL_MODEM,
- 	CM_ASL_CARDREADER,
--	CM_ASL_LID
-+	CM_ASL_3G,
-+	CM_ASL_WIMAX,
-+	CM_ASL_HWCF,
-+	CM_ASL_LID,
-+	CM_ASL_TYPE,
-+	CM_ASL_PANELPOWER,	/*P901*/
-+	CM_ASL_TPD
- };
+ static int get_acpi(int cm)
+ {
+-	int value = -1;
++	int value = -ENODEV;
+ 	if ((ehotk->cm_supported & (0x1 << cm))) {
+ 		const char *method = cm_getv[cm];
+ 		if (method == NULL)
+@@ -379,13 +379,19 @@ static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
  
- static const char *cm_getv[] = {
-@@ -94,7 +103,8 @@ static const char *cm_getv[] = {
- 	NULL, "PBLG", NULL, NULL,
- 	"CFVG", NULL, NULL, NULL,
- 	"USBG", NULL, NULL, "MODG",
--	"CRDG", "LIDG"
-+	"CRDG", "M3GG", "WIMG", "HWCF",
-+	"LIDG",	"TYPE", "PBPG",	"TPDG"
- };
+ 	rv = parse_arg(buf, count, &value);
+ 	if (rv > 0)
+-		set_acpi(cm, value);
++		value = set_acpi(cm, value);
++	if (value < 0)
++		return value;
+ 	return rv;
+ }
  
- static const char *cm_setv[] = {
-@@ -103,7 +113,8 @@ static const char *cm_setv[] = {
- 	"SDSP", "PBLS", "HDPS", NULL,
- 	"CFVS", NULL, NULL, NULL,
- 	"USBG", NULL, NULL, "MODS",
--	"CRDS", NULL
-+	"CRDS", "M3GS", "WIMS", NULL,
-+	NULL, NULL, "PBPS", "TPDS"
- };
+ static ssize_t show_sys_acpi(int cm, char *buf)
+ {
+-	return sprintf(buf, "%d\n", get_acpi(cm));
++	int value = get_acpi(cm);
++
++	if (value < 0)
++		return value;
++	return sprintf(buf, "%d\n", value);
+ }
  
- #define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
+ #define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
+@@ -954,8 +960,9 @@ static int eeepc_new_rfkill(struct rfkill **rfkill,
+ {
+ 	int result;
+ 
+-	if (get_acpi(cm) == -1)
+-		return -ENODEV;
++	result = get_acpi(cm);
++	if (result < 0)
++		return result;
+ 
+ 	*rfkill = rfkill_allocate(dev, type);
+ 	if (!*rfkill)
 -- 
 1.6.3.1
 
