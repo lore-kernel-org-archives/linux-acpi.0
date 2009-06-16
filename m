@@ -1,83 +1,89 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 13/15] eeepc-laptop: get the right value for CMSG
-Date: Tue, 16 Jun 2009 21:28:54 +0200
-Message-ID: <1245180536-28009-14-git-send-email-corentincj@iksaif.net>
-References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-2-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-3-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-4-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-5-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-6-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-7-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-8-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-9-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-10-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-11-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-12-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-13-git-send-email-corentincj@iksaif.net>
+From: Johannes Stezenbach <js@sig21.net>
+Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
+Date: Tue, 16 Jun 2009 21:57:50 +0200
+Message-ID: <20090616195750.GA12814@sig21.net>
+References: <20090615232709.GA6059@sig21.net> <200906160216.29537.rjw@sisk.pl> <20090616142217.GA5548@sig21.net> <20090616115540.ceb67a30.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:60980 "EHLO iksaif.net"
+Received: from bar.sig21.net ([80.81.252.164]:34745 "EHLO bar.sig21.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753026AbZFPTb1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:31:27 -0400
-In-Reply-To: <1245180536-28009-13-git-send-email-corentincj@iksaif.net>
+	id S1752698AbZFPT53 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jun 2009 15:57:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20090616115540.ceb67a30.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: rjw@sisk.pl, linux-kernel@vger.kernel.org, davej@redhat.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, lenb@kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, tglx@linutronix.de
 
-CMSG is an ACPI method used to find features available on
-an Eee PC. But some features are never repported, even if present.
+On Tue, Jun 16, 2009 at 11:55:40AM -0700, Andrew Morton wrote:
+> On Tue, 16 Jun 2009 16:22:17 +0200
+> Johannes Stezenbach <js@sig21.net> wrote:
+> 
+> > Fix swsusp failure on !SMP
+> > 
+> > Commit 01599fca6758d2cd133e78f87426fc851c9ea725 introduced
+> > a regression which caused a backtrace on suspend and
+> > a hang on resume on a Thinkpad T42p (Pentium M CPU).
+> > 
+> > Signed-off-by: Johannes Stezenbach <js@sig21.net>
+> > 
+> > 
+> > --- linux-2.6.30/kernel/up.c.orig	2009-06-16 15:56:28.000000000 +0200
+> > +++ linux-2.6.30/kernel/up.c	2009-06-16 15:57:27.000000000 +0200
+> > @@ -10,11 +10,13 @@
+> >  int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
+> >  				int wait)
+> >  {
+> > +	unsigned long flags;
+> > +
+> >  	WARN_ON(cpu != 0);
+> >  
+> > -	local_irq_disable();
+> > +	local_irq_save(flags);
+> >  	(func)(info);
+> > -	local_irq_enable();
+> > +	local_irq_restore(flags);
+> >  
+> >  	return 0;
+> >  }
+> 
+> ok, what's going on here?  The patch implies that someone (presumably
+> acpi-cpufreq) is calling smp_call_function_single() with local
+> interrupts disabled.  That's a bug on SMP kernels.  And it'll generate
+> a trace if it happens:
+> 
+> 	/* Can deadlock when called with interrupts disabled */
+> 	WARN_ON_ONCE(irqs_disabled() && !oops_in_progress);
+> 
+> but nobody has reported such a trace AFAIK?
 
-If the getter of a feature is present, this patch will set
-the corresponding bit in cmsg.
+This problem apparently only exists on !SMP kernels...
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/eeepc-laptop.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+> Also, prior to 01599fca6758d2cd133e78f87426fc851c9ea725, acpi-cpufreq
+> was using work_on_cpu().  If it was calling work_on_cpu() with local
+> interrupts disabled then that would have been a bug too, which could
+> generate might_sleep() or scheduling-while-atomic warnings.
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index d466139..789710a 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -490,6 +490,28 @@ static int eeepc_setkeycode(struct input_dev *dev, int scancode, int keycode)
- 	return -EINVAL;
- }
- 
-+static void cmsg_quirk(int cm, const char *name)
-+{
-+	int dummy;
-+
-+	/* Some BIOSes do not report cm although it is avaliable.
-+	   Check if cm_getv[cm] works and, if yes, assume cm should be set. */
-+	if (!(ehotk->cm_supported & (1 << cm))
-+	    && !read_acpi_int(ehotk->handle, cm_getv[cm], &dummy)) {
-+		pr_info("%s (%x) not reported by BIOS,"
-+			" enabling anyway\n", name, 1 << cm);
-+		ehotk->cm_supported |= 1 << cm;
-+	}
-+}
-+
-+static void cmsg_quirks(void)
-+{
-+	cmsg_quirk(CM_ASL_LID, "LID");
-+	cmsg_quirk(CM_ASL_TYPE, "TYPE");
-+	cmsg_quirk(CM_ASL_PANELPOWER, "PANELPOWER");
-+	cmsg_quirk(CM_ASL_TPD, "TPD");
-+}
-+
- static int eeepc_hotk_check(void)
- {
- 	const struct key_entry *key;
-@@ -513,6 +535,7 @@ static int eeepc_hotk_check(void)
- 			pr_err("Get control methods supported failed\n");
- 			return -ENODEV;
- 		} else {
-+			cmsg_quirks();
- 			pr_info("Get control methods supported: 0x%x\n",
- 				ehotk->cm_supported);
- 		}
--- 
-1.6.3.1
+On !SMP, work_on_cpu() is just a function call:
+http://lxr.linux.no/linux+v2.6.30/include/linux/workqueue.h#L261
 
+> Because it is a bug to call the SMP version of
+> smp_call_function_single() with local interrupts disabled, I don't
+> think we should need to apply the above patch.
+
+and on SMP, smp_call_function_single() also uses
+local_irq_save/restore() iff  cpu == this_cpu:
+http://lxr.linux.no/linux+v2.6.30/kernel/smp.c#L272
+
+> But I don't know what we _should_ do because I don't know what the bug
+> is.  Are you able to get us a copy of that stack trace?
+
+Unfortunately my laptop doesn't have a serial port, and the
+stack trace is large and scrolls off the screen, I can only
+see the last part of it and I would need to find someone with
+a camera to take a picture...
+
+
+Johannes
