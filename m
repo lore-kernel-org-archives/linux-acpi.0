@@ -1,68 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices
-Date: Tue, 16 Jun 2009 01:21:39 +0200
-Message-ID: <200906160121.40843.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906151700570.2643-100000@iolanthe.rowland.org>
+Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
+Date: Tue, 16 Jun 2009 02:16:28 +0200
+Message-ID: <200906160216.29537.rjw@sisk.pl>
+References: <20090615232709.GA6059@sig21.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46467 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:46631 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751959AbZFOXVu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jun 2009 19:21:50 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906151700570.2643-100000@iolanthe.rowland.org>
+	id S1751372AbZFPAQW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Jun 2009 20:16:22 -0400
+In-Reply-To: <20090615232709.GA6059@sig21.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: Johannes Stezenbach <js@sig21.net>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, Dave Jones <davej@redhat.com>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
 
-On Monday 15 June 2009, Alan Stern wrote:
-> On Mon, 15 Jun 2009, Rafael J. Wysocki wrote:
+On Tuesday 16 June 2009, Johannes Stezenbach wrote:
+> Hi,
 > 
-> > On Sunday 14 June 2009, Rafael J. Wysocki wrote:
-> > > On Sunday 14 June 2009, Rafael J. Wysocki wrote:
-> > > > Hi,
-> > > > 
-> > > > Below is the current version of my "run-time PM for I/O devices" patch.
-> > > > 
-> > > > I've done my best to address the comments received during the recent
-> > > > discussions, but at the same time I've tried to make the patch only contain
-> > > > the most essential things.  For this reason, for example, the sysfs interface
-> > > > is not there and it's going to be added in a separate patch.
-> > > > 
-> > > > Please let me know if you want me to change anything in this patch or to add
-> > > > anything new to it.  [Magnus, I remember you wanted something like
-> > > > ->runtime_wakeup() along with ->runtime_idle(), but I'm not sure it's really
-> > > > necessary.  Please let me know if you have any particular usage scenario for
-> > > > it.]
-> > 
-> > Appended is an update of the patch addressing the today's comments from Magnus.
+> on my aging Thinkpad T42p resume from hibernation
+> fails in 2.6.30. There is a backtrace on suspend prior
+> to writing out the disk image, but I cannot capture
+> it due to lack of a serial port on the T42p. On
+> resume the machine is dead after reading the image
+> from disk.
 > 
-> This is really looking very good.  I'll do a more detailed review
-> later.  (In particular, I have not checked the details of the rather
-> intricate state machine transitions.)  For now, a couple of things 
-> struck my eye:
+> I've bisected this to:
 > 
-> Shouldn't the calls to complete() really be complete_all()?  There
-> might be more than one thread waiting for a suspend or resume callback
-> to finish.
+>  commit 01599fca6758d2cd133e78f87426fc851c9ea725
+>  Author: Andrew Morton <akpm@linux-foundation.org>
+>  Date:   Mon Apr 13 10:27:49 2009 -0700
+> 
+>     cpufreq: use smp_call_function_[single|many]() in acpi-cpufreq.c
+> 
+> I see in git log that this commit is known broken, but the
+> resume on my machine is still broken in 2.6.30.
+> 
+> If I disable CONFIG_X86_ACPI_CPUFREQ suspend/resume works in 2.6.30.
 
-Yes, thanks for pointing that out.
+Thanks a lot for bisecting this!
 
-> Since pm_runtime_resume() takes care of powering up the parent, there's 
-> no need for pm_request_resume() to worry about it also.
+Is it the reason for the enabling of interrupts during cpufreq_suspend()?
 
-But still it won't hurt to do it IMO, because the parents are then going to be
-resumed before our pm_runtime_resume() is called.
+/me wonders
 
-> The documentation should mention that the runtime_suspend method is 
-> supposed to enable remote wakeup if it as available and if 
-> device_may_wakeup(dev) is true.
+Is there anything we can do to fix this quickly?
 
-Well, I thought that was obvious. :-)
-
-Best,
 Rafael
