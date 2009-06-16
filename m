@@ -1,73 +1,77 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [Intel-gfx] [RFC] i915/acpi: add lid status notification and
- detection
-Date: Tue, 16 Jun 2009 11:33:20 -0700
-Message-ID: <20090616113320.69fa477d@jbarnes-g45>
-References: <20090513115734.338b7d55@jbarnes-g45>
-	<1242264144.3773.415.camel@localhost.localdomain>
-	<20090519171545.GA17801@srcf.ucam.org>
-	<1242896273.32574.10.camel@rzhang-dt>
-	<20090521093418.3f1a03d5@jbarnes-g45>
-	<4A15FE57.7040002@linux.intel.com>
-	<20090527015801.2f47089f@jbarnes-x200>
-	<1244704587.3616.109.camel@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
+Date: Tue, 16 Jun 2009 11:55:40 -0700
+Message-ID: <20090616115540.ceb67a30.akpm@linux-foundation.org>
+References: <20090615232709.GA6059@sig21.net>
+	<200906160216.29537.rjw@sisk.pl>
+	<20090616142217.GA5548@sig21.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-25.bluehost.com ([69.89.21.20]:47252 "HELO
-	outbound-mail-25.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752424AbZFPSdT (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57008 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761174AbZFPS6h (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2009 14:33:19 -0400
-In-Reply-To: <1244704587.3616.109.camel@localhost.localdomain>
+	Tue, 16 Jun 2009 14:58:37 -0400
+In-Reply-To: <20090616142217.GA5548@sig21.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Fu Michael <michael_fu@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "lenb@kernel.org" <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Johannes Stezenbach <js@sig21.net>
+Cc: rjw@sisk.pl, linux-kernel@vger.kernel.org, davej@redhat.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, lenb@kernel.org, venkatesh.pallipadi@intel.com, arjan@infradead.org, tglx@linutronix.de
 
-On Thu, 11 Jun 2009 15:16:27 +0800
-yakui_zhao <yakui.zhao@intel.com> wrote:
+On Tue, 16 Jun 2009 16:22:17 +0200
+Johannes Stezenbach <js@sig21.net> wrote:
 
-> On Wed, 2009-05-27 at 16:58 +0800, Jesse Barnes wrote:
-> > > >   
-> > > Jesse, Just talked with Rui,  the above status is based on "BIOS
-> > > upgrade or FW fix is acceptable as a bug fix solution". are you ok
-> > > with this? :) Many lid status has to be fixed via action such as
-> > > DSDT upgrade...
-> > 
-> > Yeah, I think that's ok, even if we need quirks for some
-> > platforms.  I really hate relying on BIOS vendors/OEMs to provide
-> > BIOS updates in general:  if Windows works on a given platform, why
-> > should Linux require a BIOS "fix" on it?  In this case though, we
-> > can work around broken platforms by just returning "open" all the
-> > time, if it comes to that.
-> Hi, 
->     It is a good point that the LID status is used to decide whether
-> the LVDS is connected or not.
->     As Rui said in the previous thread, sometimes the initial status
-> of LID is incorrect on some laptops. If we expect that LVDS can be
-> initialized correctly on such boxes, we will have to add the quirk so
-> that the LID status is not used for LVDS detection.
->    But maybe on such boxes the LID initial status is correct after
-> BIOS upgrading or using custom DSDT. Do we need to delete the quirk
-> for such box?  It is difficult to manage.
->     
->    So IMO we had better not use the LID status to determine whether
-> the LVDS is connected or not.
+> Fix swsusp failure on !SMP
+> 
+> Commit 01599fca6758d2cd133e78f87426fc851c9ea725 introduced
+> a regression which caused a backtrace on suspend and
+> a hang on resume on a Thinkpad T42p (Pentium M CPU).
+> 
+> Signed-off-by: Johannes Stezenbach <js@sig21.net>
+> 
+> 
+> --- linux-2.6.30/kernel/up.c.orig	2009-06-16 15:56:28.000000000 +0200
+> +++ linux-2.6.30/kernel/up.c	2009-06-16 15:57:27.000000000 +0200
+> @@ -10,11 +10,13 @@
+>  int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
+>  				int wait)
+>  {
+> +	unsigned long flags;
+> +
+>  	WARN_ON(cpu != 0);
+>  
+> -	local_irq_disable();
+> +	local_irq_save(flags);
+>  	(func)(info);
+> -	local_irq_enable();
+> +	local_irq_restore(flags);
+>  
+>  	return 0;
+>  }
 
-Well, what should we use then?  Think of a common use case: you plug in
-an external monitor and shut your lid.  Do we want to make the user
-manually change their configuration?  Or detect that the lid is no
-longer in use?  And what about the case where they boot with the lid
-closed (e.g. in a docked scenario)?  We want to support that
-automatically too...
+ok, what's going on here?  The patch implies that someone (presumably
+acpi-cpufreq) is calling smp_call_function_single() with local
+interrupts disabled.  That's a bug on SMP kernels.  And it'll generate
+a trace if it happens:
 
-If we can solve these issues some other way, that's fine, but right now
-we have nothing; I think my patch is an improvement over that, even if
-it won't work everywhere w/o quirks.
+	/* Can deadlock when called with interrupts disabled */
+	WARN_ON_ONCE(irqs_disabled() && !oops_in_progress);
 
-Len or Matthew, any comments?
+but nobody has reported such a trace AFAIK?
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+Also, prior to 01599fca6758d2cd133e78f87426fc851c9ea725, acpi-cpufreq
+was using work_on_cpu().  If it was calling work_on_cpu() with local
+interrupts disabled then that would have been a bug too, which could
+generate might_sleep() or scheduling-while-atomic warnings.
+
+
+
+Because it is a bug to call the SMP version of
+smp_call_function_single() with local interrupts disabled, I don't
+think we should need to apply the above patch.
+
+But I don't know what we _should_ do because I don't know what the bug
+is.  Are you able to get us a copy of that stack trace?
+
