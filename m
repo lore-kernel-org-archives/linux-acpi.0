@@ -1,173 +1,58 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH]: ACPI: Add the reference count to avoid unloading ACPI
-	video bus twice
-Date: Tue, 16 Jun 2009 08:50:58 -0600
-Message-ID: <20090616145058.GA18154@ldl.fc.hp.com>
-References: <1245122593.3583.117.camel@localhost.localdomain>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -next] eeepc: fix selects (third time)
+Date: Tue, 16 Jun 2009 10:44:58 -0700
+Message-ID: <4A37DA1A.8020800@oracle.com>
+References: <20090616165923.8ca4ddcb.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:8349 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754806AbZFPOu4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jun 2009 10:50:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1245122593.3583.117.camel@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20090616165923.8ca4ddcb.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi Yakui,
+linux-next still fails with various pci_*() undefined references, like:
 
-* yakui_zhao <yakui.zhao@intel.com>:
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
-> Sometimes both acpi video and i915 driver are compiled as modules.
-> And there exists the strict dependency between the two drivers.
-> The acpi video bus will be unloaded in course of unloading the i915 driver.
-> If we unload the acpi video driver, then the kernel oops will be triggered.
-> 
-> Add the reference count to avoid unloading the ACPI video bus twice.
-> The reference count should be checked before unregistering the acpi video bus.
-> If the reference count is already zero, it won't unregister it again.
-> And after the acpi video bus is already unregistered, the reference count
-> will be set to zero.
 
-Your implementation below isn't really a reference count, so I
-don't think you should call it that in your changelog.
+ERROR: "pci_scan_slot" [drivers/pci/hotplug/cpqphp.ko] undefined!
+ERROR: "pci_add_new_bus" [drivers/pci/hotplug/cpqphp.ko] undefined!
+and
+drivers/pci/hotplug/fakephp.c:55: error:implicit declaration of function 'pci_rescan_bus'
 
-Since you are talking about refcounts, have you tried using
-try_module_get()? 
+These are due to the eeepc driver's Kconfig selects.  Patch below
+fixes them.
 
-Thanks.
+---
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-/ac
+EEEPC_LAPTOP selects HOTPLUG_PCI.  This causes failures (build error below)
+when CONFIG_HOTPLUG is not enabled, so additionally select HOTPLUG since
+kconfig 'select' doesn't follow its dependency chain.
+Also, only select HOTPLUG_PCI if PCI is already enabled.
 
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13396
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> ---
->  drivers/acpi/video.c                 |   41 +++++++++++++++++++++++++++++------
->  drivers/gpu/drm/i915/i915_opregion.c |    2 -
->  include/acpi/video.h                 |    4 +--
->  3 files changed, 38 insertions(+), 9 deletions(-)
-> 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c	2009-06-16 10:25:12.000000000 +0800
-> +++ linux-2.6/drivers/acpi/video.c	2009-06-16 11:09:57.000000000 +0800
-> @@ -76,6 +76,7 @@
->  static int brightness_switch_enabled = 1;
->  module_param(brightness_switch_enabled, bool, 0644);
->  
-> +static int register_count = 0;
->  static int acpi_video_bus_add(struct acpi_device *device);
->  static int acpi_video_bus_remove(struct acpi_device *device, int type);
->  static int acpi_video_resume(struct acpi_device *device);
-> @@ -2318,6 +2319,13 @@
->  int acpi_video_register(void)
->  {
->  	int result = 0;
-> +	if (register_count) {
-> +		/*
-> +		 * if the function of acpi_video_register is already called,
-> +		 * don't register the acpi_vide_bus again and return no error.
-> +		 */
-> +		return 0;
-> +	}
->  
->  	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
->  	if (!acpi_video_dir)
-> @@ -2329,10 +2337,35 @@
->  		return -ENODEV;
->  	}
->  
-> +	/*
-> +	 * When the acpi_video_bus is loaded successfully, increase
-> +	 * the counter reference.
-> +	 */
-> +	register_count = 1;
-> +
->  	return 0;
->  }
->  EXPORT_SYMBOL(acpi_video_register);
->  
-> +void acpi_video_unregister(void)
-> +{
-> +	if (!register_count) {
-> +		/*
-> +		 * If the acpi video bus is already unloaded, don't
-> +		 * unload it again and return directly.
-> +		 */
-> +		return;
-> +	}
-> +	acpi_bus_unregister_driver(&acpi_video_bus);
-> +
-> +	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
-> +
-> +	register_count = 0;
-> +
-> +	return;
-> +}
-> +EXPORT_SYMBOL(acpi_video_unregister);
-> +
->  /*
->   * This is kind of nasty. Hardware using Intel chipsets may require
->   * the video opregion code to be run first in order to initialise
-> @@ -2350,16 +2383,12 @@
->  	return acpi_video_register();
->  }
->  
-> -void acpi_video_exit(void)
-> +static void __exit acpi_video_exit(void)
->  {
-> -
-> -	acpi_bus_unregister_driver(&acpi_video_bus);
-> -
-> -	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
-> +	acpi_video_unregister();
->  
->  	return;
->  }
-> -EXPORT_SYMBOL(acpi_video_exit);
->  
->  module_init(acpi_video_init);
->  module_exit(acpi_video_exit);
-> Index: linux-2.6/drivers/gpu/drm/i915/i915_opregion.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/gpu/drm/i915/i915_opregion.c	2009-06-16 10:25:12.000000000 +0800
-> +++ linux-2.6/drivers/gpu/drm/i915/i915_opregion.c	2009-06-16 10:29:50.000000000 +0800
-> @@ -419,7 +419,7 @@
->  		return;
->  
->  	if (!suspend)
-> -		acpi_video_exit();
-> +		acpi_video_unregister();
->  
->  	opregion->acpi->drdy = 0;
->  
-> Index: linux-2.6/include/acpi/video.h
-> ===================================================================
-> --- linux-2.6.orig/include/acpi/video.h	2009-06-16 10:25:12.000000000 +0800
-> +++ linux-2.6/include/acpi/video.h	2009-06-16 11:07:43.000000000 +0800
-> @@ -3,10 +3,10 @@
->  
->  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
->  extern int acpi_video_register(void);
-> -extern int acpi_video_exit(void);
-> +extern void acpi_video_unregister(void);
->  #else
->  static inline int acpi_video_register(void) { return 0; }
-> -static inline void acpi_video_exit(void) { return; }
-> +static inline void acpi_video_unregister(void) { return; }
->  #endif
->  
->  #endif
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+drivers/pci/hotplug/fakephp.c:55: error: implicit declaration of function 'pci_rescan_bus'
+ERROR: "pci_scan_slot" [drivers/pci/hotplug/pciehp.ko] undefined!
+ERROR: "pci_scan_bridge" [drivers/pci/hotplug/pciehp.ko] undefined!
+ERROR: "pci_scan_slot" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+ERROR: "pci_add_new_bus" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- linux-next-20090604.orig/drivers/platform/x86/Kconfig
++++ linux-next-20090604/drivers/platform/x86/Kconfig
+@@ -340,7 +340,8 @@ config EEEPC_LAPTOP
+ 	depends on RFKILL || RFKILL = n
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
+-	select HOTPLUG_PCI
++	select HOTPLUG
++	select HOTPLUG_PCI if PCI
+ 	---help---
+ 	  This driver supports the Fn-Fx keys on Eee PC laptops.
+ 	  It also adds the ability to switch camera/wlan on/off.
