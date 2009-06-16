@@ -1,40 +1,173 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
- I/O devices
-Date: Tue, 16 Jun 2009 10:30:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906161028480.3740-100000@iolanthe.rowland.org>
-References: <200906160121.40843.rjw@sisk.pl>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH]: ACPI: Add the reference count to avoid unloading ACPI
+	video bus twice
+Date: Tue, 16 Jun 2009 08:50:58 -0600
+Message-ID: <20090616145058.GA18154@ldl.fc.hp.com>
+References: <1245122593.3583.117.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:55769 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751023AbZFPOaS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jun 2009 10:30:18 -0400
-In-Reply-To: <200906160121.40843.rjw@sisk.pl>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:8349 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754806AbZFPOu4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jun 2009 10:50:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1245122593.3583.117.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 16 Jun 2009, Rafael J. Wysocki wrote:
+Hi Yakui,
 
-> > Since pm_runtime_resume() takes care of powering up the parent, there's 
-> > no need for pm_request_resume() to worry about it also.
+* yakui_zhao <yakui.zhao@intel.com>:
+> From: Zhao Yakui <yakui.zhao@intel.com>
 > 
-> But still it won't hurt to do it IMO, because the parents are then going to be
-> resumed before our pm_runtime_resume() is called.
-
-It's extra code that isn't needed.  In essence, you are trading code
-space for a shorter runtime stack.
-
-> > The documentation should mention that the runtime_suspend method is 
-> > supposed to enable remote wakeup if it as available and if 
-> > device_may_wakeup(dev) is true.
+> Sometimes both acpi video and i915 driver are compiled as modules.
+> And there exists the strict dependency between the two drivers.
+> The acpi video bus will be unloaded in course of unloading the i915 driver.
+> If we unload the acpi video driver, then the kernel oops will be triggered.
 > 
-> Well, I thought that was obvious. :-)
+> Add the reference count to avoid unloading the ACPI video bus twice.
+> The reference count should be checked before unregistering the acpi video bus.
+> If the reference count is already zero, it won't unregister it again.
+> And after the acpi video bus is already unregistered, the reference count
+> will be set to zero.
 
-Sometimes it doesn't hurt to state the obvious!  :-)
+Your implementation below isn't really a reference count, so I
+don't think you should call it that in your changelog.
 
-Alan Stern
+Since you are talking about refcounts, have you tried using
+try_module_get()? 
 
+Thanks.
+
+/ac
+
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13396
+> 
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> ---
+>  drivers/acpi/video.c                 |   41 +++++++++++++++++++++++++++++------
+>  drivers/gpu/drm/i915/i915_opregion.c |    2 -
+>  include/acpi/video.h                 |    4 +--
+>  3 files changed, 38 insertions(+), 9 deletions(-)
+> 
+> Index: linux-2.6/drivers/acpi/video.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/video.c	2009-06-16 10:25:12.000000000 +0800
+> +++ linux-2.6/drivers/acpi/video.c	2009-06-16 11:09:57.000000000 +0800
+> @@ -76,6 +76,7 @@
+>  static int brightness_switch_enabled = 1;
+>  module_param(brightness_switch_enabled, bool, 0644);
+>  
+> +static int register_count = 0;
+>  static int acpi_video_bus_add(struct acpi_device *device);
+>  static int acpi_video_bus_remove(struct acpi_device *device, int type);
+>  static int acpi_video_resume(struct acpi_device *device);
+> @@ -2318,6 +2319,13 @@
+>  int acpi_video_register(void)
+>  {
+>  	int result = 0;
+> +	if (register_count) {
+> +		/*
+> +		 * if the function of acpi_video_register is already called,
+> +		 * don't register the acpi_vide_bus again and return no error.
+> +		 */
+> +		return 0;
+> +	}
+>  
+>  	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
+>  	if (!acpi_video_dir)
+> @@ -2329,10 +2337,35 @@
+>  		return -ENODEV;
+>  	}
+>  
+> +	/*
+> +	 * When the acpi_video_bus is loaded successfully, increase
+> +	 * the counter reference.
+> +	 */
+> +	register_count = 1;
+> +
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(acpi_video_register);
+>  
+> +void acpi_video_unregister(void)
+> +{
+> +	if (!register_count) {
+> +		/*
+> +		 * If the acpi video bus is already unloaded, don't
+> +		 * unload it again and return directly.
+> +		 */
+> +		return;
+> +	}
+> +	acpi_bus_unregister_driver(&acpi_video_bus);
+> +
+> +	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
+> +
+> +	register_count = 0;
+> +
+> +	return;
+> +}
+> +EXPORT_SYMBOL(acpi_video_unregister);
+> +
+>  /*
+>   * This is kind of nasty. Hardware using Intel chipsets may require
+>   * the video opregion code to be run first in order to initialise
+> @@ -2350,16 +2383,12 @@
+>  	return acpi_video_register();
+>  }
+>  
+> -void acpi_video_exit(void)
+> +static void __exit acpi_video_exit(void)
+>  {
+> -
+> -	acpi_bus_unregister_driver(&acpi_video_bus);
+> -
+> -	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
+> +	acpi_video_unregister();
+>  
+>  	return;
+>  }
+> -EXPORT_SYMBOL(acpi_video_exit);
+>  
+>  module_init(acpi_video_init);
+>  module_exit(acpi_video_exit);
+> Index: linux-2.6/drivers/gpu/drm/i915/i915_opregion.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/gpu/drm/i915/i915_opregion.c	2009-06-16 10:25:12.000000000 +0800
+> +++ linux-2.6/drivers/gpu/drm/i915/i915_opregion.c	2009-06-16 10:29:50.000000000 +0800
+> @@ -419,7 +419,7 @@
+>  		return;
+>  
+>  	if (!suspend)
+> -		acpi_video_exit();
+> +		acpi_video_unregister();
+>  
+>  	opregion->acpi->drdy = 0;
+>  
+> Index: linux-2.6/include/acpi/video.h
+> ===================================================================
+> --- linux-2.6.orig/include/acpi/video.h	2009-06-16 10:25:12.000000000 +0800
+> +++ linux-2.6/include/acpi/video.h	2009-06-16 11:07:43.000000000 +0800
+> @@ -3,10 +3,10 @@
+>  
+>  #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+>  extern int acpi_video_register(void);
+> -extern int acpi_video_exit(void);
+> +extern void acpi_video_unregister(void);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+> -static inline void acpi_video_exit(void) { return; }
+> +static inline void acpi_video_unregister(void) { return; }
+>  #endif
+>  
+>  #endif
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
