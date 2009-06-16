@@ -1,130 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
-Date: Tue, 16 Jun 2009 23:39:59 +0200
-Message-ID: <200906162340.00384.rjw@sisk.pl>
-References: <20090615232709.GA6059@sig21.net> <20090616140923.eb3ae6e3.akpm@linux-foundation.org> <1245187090.4534.7423.camel@localhost.localdomain>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: [PATCH] x86/pci: do assign root bus res if _CRS is used
+Date: Tue, 16 Jun 2009 14:54:41 -0700
+Message-ID: <20090616145441.450253c6@jbarnes-g45>
+References: <49ED22EC.2040204@kernel.org>
+	<200905081640.12677.bjorn.helgaas@hp.com>
+	<20090520164910.6939b92b@jbarnes-g45>
+	<200905210846.18292.bjorn.helgaas@hp.com>
+	<20090521163737.GA7891@us.ibm.com>
+	<20090527194144.GA7933@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55283 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751078AbZFPVja (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2009 17:39:30 -0400
-In-Reply-To: <1245187090.4534.7423.camel@localhost.localdomain>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090527194144.GA7933@us.ibm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Yinghai Lu <yhlu.kernel@gmail.com>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Alex Chiang <achiang@hp.com>, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Johannes Stezenbach <js@sig21.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "davej@redhat.com" <davej@redhat.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "arjan@infradead.org" <arjan@infradead.org>, "tglx@linutronix.de" <tglx@linutronix.de>, benh@kernel.crashing.org
 
-On Tuesday 16 June 2009, Pallipadi, Venkatesh wrote:
-> On Tue, 2009-06-16 at 14:09 -0700, Andrew Morton wrote:
-> > On Tue, 16 Jun 2009 22:40:39 +0200
-> >
-> > Johannes Stezenbach <js@sig21.net> wrote:
-> > > On Tue, Jun 16, 2009 at 01:25:58PM -0700, Pallipadi, Venkatesh wrote:
-> > > > Can you try the patch below (your changes + a warnon). That should
-> > > > give the stack trace with successful suspend-resume.
-> > > >
-> > > > acpi-cpufreq will not directly disable interrupt and call these
-> > > > routines. So, it will be interesting to see how we are ending up in
-> > > > this state.
-> > >
-> > > Yes, I actually had the same idea and just did it ;-)
-> > > I also found this:
-> > > http://lkml.org/lkml/2007/7/17/674
-> > >
-> > > ------------[ cut here ]------------
-> > > WARNING: at kernel/up.c:18 smp_call_function_single+0x45/0x60()
-> > > Hardware name: 2373Y4M
-> > > Modules linked in: ath5k mac80211 cfg80211 uhci_hcd ehci_hcd
-> > > Pid: 4139, comm: bash Not tainted 2.6.30 #8
-> > > Call Trace:
-> > >  [<c011ea0d>] warn_slowpath_common+0x60/0x90
-> > >  [<c010d86c>] ? do_drv_read+0x0/0x31
-> > >  [<c011ea4a>] warn_slowpath_null+0xd/0x10
-> > >  [<c013acc1>] smp_call_function_single+0x45/0x60
-> > >  [<c010d4e5>] get_cur_val+0x62/0x6c
-> > >  [<c010d72f>] get_cur_freq_on_cpu+0x35/0x58
-> > >  [<c03786e9>] cpufreq_suspend+0x76/0xd9
-> > >  [<c0136c3b>] ? clockevents_notify+0x1e/0x68
-> > >  [<c02ff570>] sysdev_suspend+0x4e/0x182
-> > >  [<c013fd28>] hibernation_snapshot+0x89/0x16b
-> > >  [<c013fe99>] hibernate+0x8f/0x147
-> > >  [<c013ec82>] ? state_store+0x0/0xa2
-> > >  [<c013ecd7>] state_store+0x55/0xa2
-> > >  [<c013ec82>] ? state_store+0x0/0xa2
-> > >  [<c024dff5>] kobj_attr_store+0x1a/0x22
-> > >  [<c01a7164>] sysfs_write_file+0xb4/0xdf
-> > >  [<c01a70b0>] ? sysfs_write_file+0x0/0xdf
-> > >  [<c0170cf2>] vfs_write+0x8a/0x12c
-> > >  [<c0170e2d>] sys_write+0x3b/0x60
-> > >  [<c01028f4>] sysenter_do_call+0x12/0x26
-> > > ---[ end trace 1c2172bce3982a59 ]---
-> >
-> > Right, so it's the suspend-must-disable-local-interrupts thing.  Again.
-> >  create_image()'s local_irq_disable().
-> >
-> > It was wrong to call work_on_cpu() with lcoal interrupts disabled, and
-> > it's now wrong to call smp_call_function_single() with local interrupts
-> > disabled.  It's just that smp_call_function_single() warns while
-> > work_on_cpu() didn't.
-> >
-> > That all explains the warning But afaik we still don't know why your
-> > machine actually failed.  Perhaps it is a side-efect of emitting the
-> > warning when the console is in a weird state?
-> >
-> > So..  what to do?  Possibly we could hack cpufreq to not use
-> > smp_call_function_single() if the call is to be done on the local CPU.
-> > But SMP might still be broken - if it really does want to do a cross-cpu
-> > call.
->
-> We surely do not need cross CPU cal at this point as all secondary cpus
-> will be offline at this point.
->
-> > Why does cpufreq need to do a cross-CPU get_cur_freq_on_cpu() call at
-> > suspend time _anyway_?  Surely cpufreq knows the target CPU's frequency
-> > from its internal in-main-memory state?
->
-> That was what I was wondering as well. Looks like this part of
-> cpufreq_suspend came from
->
-> commit 42d4dc3f4e1ec1396371aac89d0dccfdd977191b
-> Author: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Date:   Fri Apr 29 07:40:12 2005 -0700
->
->     [PATCH] Add suspend method to cpufreq core
->
->     In order to properly fix some issues with cpufreq vs. sleep on
->     PowerBooks, I had to add a suspend callback to the pmac_cpufreq
-> driver.
->     I must force a switch to full speed before sleep and I switch back
-> to
->     previous speed on resume.
->
->     I also added a driver flag to disable the warnings in suspend/resume
->     since it is expected in this case to have different speed (and I
-> want it
->     to fixup the jiffies properly).
->
->     Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->     Signed-off-by: Andrew Morton <akpm@osdl.org>
->     Signed-off-by: Linus Torvalds <torvalds@osdl.org>
->
->
->
-> benh: Do you think we still need this cpufreq_driver->get() and return
-> error on (!cur_freq || !cpu_policy->cur) stuff?
-> May be we should all the checks only if CPUFREQ_PM_NO_WARN is set?
+On Wed, 27 May 2009 12:41:44 -0700
+Gary Hade <garyhade@us.ibm.com> wrote:
 
-In fact, we need to do this entire thing differently.
+> On Thu, May 21, 2009 at 09:37:37AM -0700, Gary Hade wrote:
+> > On Thu, May 21, 2009 at 08:46:17AM -0600, Bjorn Helgaas wrote:
+> > > On Wednesday 20 May 2009 5:49:10 pm Jesse Barnes wrote:
+> > > > On Fri, 8 May 2009 16:40:10 -0600
+> > > > Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> > > > > Did anything happen with this?
+> > > > > 
+> > > > > The longer we wait to make "use_crs" the default, the harder
+> > > > > it will be, so I'd like to push ahead.
+> > > > 
+> > > > Here's a patch to make CRS the default.  If it looks ok I can
+> > > > push it into my linux-next branch.  I'm all for using reliable
+> > > > data from the BIOS.  I guess we'll find out fairly quickly if
+> > > > this stuff isn't...
+> > > 
+> > > Thanks for following up on this, Jesse.  It was on my to-do list
+> > > for yesterday, but I didn't get to it.
+> > > 
+> > > Yinghai mentioned a specific box where we might have trouble, but
+> > > we never got enough details to really debug it.  So I think we
+> > > might as well give it a shot and fine-tune it as we need to.
+> > 
+> > I just remembered that Andrew Morton once raised some concerns
+> > related to the number of _CRS returned resources exceeding the
+> > fixed resource array size -> http://lkml.org/lkml/2007/11/1/49
+> > 
+> > I believe PCI_BUS_NUM_RESOURCES was later increased but if 
+> > that increase was insufficient to cover all systems that the
+> > code will now be exposed to, it seems like the "And should we
+> > really be silently ignoring this problem?  Should we at least
+> > report it?" comment that was not addressed could become relevent.
+> 
+> Not only do we not warn, if we did warn based on the current
+>     'if (info->res_num >= PCI_BUS_NUM_RESOURCES)'
+> resource array overrun avoidance criteria it would be incorrect
+> for a root bus that is connected to a subordinate bus with a
+> transparent bridge.  We need to avoid the last 3 slots of the
+> resource array since they do not get mapped to a transparent
+> bridge connected subordinate bus.  I believe the below patch
+> addresses these issues.
+> 
+> With PCI_BUS_NUM_RESOURCES currently at 16 we still have space
+> to accomodate 13 _CRS returned resource descriptors which will
+> hopefully be sufficient.
 
-The basic problem is that cpufreq_suspend() is a sysdev thing, so it will 
-always be called with iterrupts off and *only* for CPU0.  So, it looks like
-the majority of things we do there is just unnecessary (at least).
+Ok, just applied this one to my linux-next tree, since we'll want it
+now that _CRS is used by default.
 
-Best,
-Rafael
+Len, is this ok with you?  It touches x86 ACPI files rather than PCI
+files, but it's pretty tightly related...
 
+Thanks,
+-- 
+Jesse Barnes, Intel Open Source Technology Center
