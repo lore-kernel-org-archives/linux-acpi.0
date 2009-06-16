@@ -1,53 +1,153 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
-Date: Tue, 16 Jun 2009 02:16:28 +0200
-Message-ID: <200906160216.29537.rjw@sisk.pl>
-References: <20090615232709.GA6059@sig21.net>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Add the reference count to avoid unloading ACPI
+	video bus twice
+Date: Tue, 16 Jun 2009 11:23:13 +0800
+Message-ID: <1245122593.3583.117.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:46631 "EHLO ogre.sisk.pl"
+Received: from mga14.intel.com ([143.182.124.37]:36691 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751372AbZFPAQW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jun 2009 20:16:22 -0400
-In-Reply-To: <20090615232709.GA6059@sig21.net>
-Content-Disposition: inline
+	id S1751372AbZFPDWA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Jun 2009 23:22:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Dave Jones <davej@redhat.com>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@infradead.org>, Thomas Gleixner <tglx@linutronix.de>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 16 June 2009, Johannes Stezenbach wrote:
-> Hi,
-> 
-> on my aging Thinkpad T42p resume from hibernation
-> fails in 2.6.30. There is a backtrace on suspend prior
-> to writing out the disk image, but I cannot capture
-> it due to lack of a serial port on the T42p. On
-> resume the machine is dead after reading the image
-> from disk.
-> 
-> I've bisected this to:
-> 
->  commit 01599fca6758d2cd133e78f87426fc851c9ea725
->  Author: Andrew Morton <akpm@linux-foundation.org>
->  Date:   Mon Apr 13 10:27:49 2009 -0700
-> 
->     cpufreq: use smp_call_function_[single|many]() in acpi-cpufreq.c
-> 
-> I see in git log that this commit is known broken, but the
-> resume on my machine is still broken in 2.6.30.
-> 
-> If I disable CONFIG_X86_ACPI_CPUFREQ suspend/resume works in 2.6.30.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Thanks a lot for bisecting this!
+Sometimes both acpi video and i915 driver are compiled as modules.
+And there exists the strict dependency between the two drivers.
+The acpi video bus will be unloaded in course of unloading the i915 driver.
+If we unload the acpi video driver, then the kernel oops will be triggered.
 
-Is it the reason for the enabling of interrupts during cpufreq_suspend()?
+Add the reference count to avoid unloading the ACPI video bus twice.
+The reference count should be checked before unregistering the acpi video bus.
+If the reference count is already zero, it won't unregister it again.
+And after the acpi video bus is already unregistered, the reference count
+will be set to zero.
 
-/me wonders
+http://bugzilla.kernel.org/show_bug.cgi?id=13396
 
-Is there anything we can do to fix this quickly?
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/video.c                 |   41 +++++++++++++++++++++++++++++------
+ drivers/gpu/drm/i915/i915_opregion.c |    2 -
+ include/acpi/video.h                 |    4 +--
+ 3 files changed, 38 insertions(+), 9 deletions(-)
 
-Rafael
+Index: linux-2.6/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/video.c	2009-06-16 10:25:12.000000000 +0800
++++ linux-2.6/drivers/acpi/video.c	2009-06-16 11:09:57.000000000 +0800
+@@ -76,6 +76,7 @@
+ static int brightness_switch_enabled = 1;
+ module_param(brightness_switch_enabled, bool, 0644);
+ 
++static int register_count = 0;
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
+ static int acpi_video_resume(struct acpi_device *device);
+@@ -2318,6 +2319,13 @@
+ int acpi_video_register(void)
+ {
+ 	int result = 0;
++	if (register_count) {
++		/*
++		 * if the function of acpi_video_register is already called,
++		 * don't register the acpi_vide_bus again and return no error.
++		 */
++		return 0;
++	}
+ 
+ 	acpi_video_dir = proc_mkdir(ACPI_VIDEO_CLASS, acpi_root_dir);
+ 	if (!acpi_video_dir)
+@@ -2329,10 +2337,35 @@
+ 		return -ENODEV;
+ 	}
+ 
++	/*
++	 * When the acpi_video_bus is loaded successfully, increase
++	 * the counter reference.
++	 */
++	register_count = 1;
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(acpi_video_register);
+ 
++void acpi_video_unregister(void)
++{
++	if (!register_count) {
++		/*
++		 * If the acpi video bus is already unloaded, don't
++		 * unload it again and return directly.
++		 */
++		return;
++	}
++	acpi_bus_unregister_driver(&acpi_video_bus);
++
++	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
++
++	register_count = 0;
++
++	return;
++}
++EXPORT_SYMBOL(acpi_video_unregister);
++
+ /*
+  * This is kind of nasty. Hardware using Intel chipsets may require
+  * the video opregion code to be run first in order to initialise
+@@ -2350,16 +2383,12 @@
+ 	return acpi_video_register();
+ }
+ 
+-void acpi_video_exit(void)
++static void __exit acpi_video_exit(void)
+ {
+-
+-	acpi_bus_unregister_driver(&acpi_video_bus);
+-
+-	remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
++	acpi_video_unregister();
+ 
+ 	return;
+ }
+-EXPORT_SYMBOL(acpi_video_exit);
+ 
+ module_init(acpi_video_init);
+ module_exit(acpi_video_exit);
+Index: linux-2.6/drivers/gpu/drm/i915/i915_opregion.c
+===================================================================
+--- linux-2.6.orig/drivers/gpu/drm/i915/i915_opregion.c	2009-06-16 10:25:12.000000000 +0800
++++ linux-2.6/drivers/gpu/drm/i915/i915_opregion.c	2009-06-16 10:29:50.000000000 +0800
+@@ -419,7 +419,7 @@
+ 		return;
+ 
+ 	if (!suspend)
+-		acpi_video_exit();
++		acpi_video_unregister();
+ 
+ 	opregion->acpi->drdy = 0;
+ 
+Index: linux-2.6/include/acpi/video.h
+===================================================================
+--- linux-2.6.orig/include/acpi/video.h	2009-06-16 10:25:12.000000000 +0800
++++ linux-2.6/include/acpi/video.h	2009-06-16 11:07:43.000000000 +0800
+@@ -3,10 +3,10 @@
+ 
+ #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
+ extern int acpi_video_register(void);
+-extern int acpi_video_exit(void);
++extern void acpi_video_unregister(void);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
+-static inline void acpi_video_exit(void) { return; }
++static inline void acpi_video_unregister(void) { return; }
+ #endif
+ 
+ #endif
+
+
