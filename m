@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 14/15] eeepc-laptop: add rfkill support for the 3G modem in Eee PC 901 Go
-Date: Tue, 16 Jun 2009 21:28:55 +0200
-Message-ID: <1245180536-28009-15-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 11/15] eeepc-laptop: sync eeepc-laptop with asus_acpi
+Date: Tue, 16 Jun 2009 21:28:52 +0200
+Message-ID: <1245180536-28009-12-git-send-email-corentincj@iksaif.net>
 References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-2-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-3-git-send-email-corentincj@iksaif.net>
@@ -13,86 +13,77 @@ References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-9-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-10-git-send-email-corentincj@iksaif.net>
  <1245180536-28009-11-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-12-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-13-git-send-email-corentincj@iksaif.net>
- <1245180536-28009-14-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:60981 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:60978 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754950AbZFPTb2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:31:28 -0400
-In-Reply-To: <1245180536-28009-14-git-send-email-corentincj@iksaif.net>
+	id S1752647AbZFPTb0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jun 2009 15:31:26 -0400
+In-Reply-To: <1245180536-28009-11-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
+In the default Eee PC distribution, there is a modified
+asus_acpi driver. eeepc-laptop is a cleaned version of this
+driver. Sync ASL enum and getter/setters with asus_acpi.
+
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+), 0 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   19 +++++++++++++++----
+ 1 files changed, 15 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 789710a..deb103c 100644
+index 7121239..8ef9f74 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -141,6 +141,7 @@ struct eeepc_hotk {
- 	u16 *keycode_map;
- 	struct rfkill *wlan_rfkill;
- 	struct rfkill *bluetooth_rfkill;
-+	struct rfkill *wwan3g_rfkill;
- 	struct hotplug_slot *hotplug_slot;
+@@ -60,7 +60,10 @@ enum {
+ 	DISABLE_ASL_GPS = 0x0020,
+ 	DISABLE_ASL_DISPLAYSWITCH = 0x0040,
+ 	DISABLE_ASL_MODEM = 0x0080,
+-	DISABLE_ASL_CARDREADER = 0x0100
++	DISABLE_ASL_CARDREADER = 0x0100,
++	DISABLE_ASL_3G = 0x0200,
++	DISABLE_ASL_WIMAX = 0x0400,
++	DISABLE_ASL_HWCF = 0x0800
  };
  
-@@ -352,6 +353,23 @@ static int eeepc_bluetooth_rfkill_state(void *data, enum rfkill_state *state)
- 	return 0;
- }
+ enum {
+@@ -85,7 +88,13 @@ enum {
+ 	CM_ASL_USBPORT3,
+ 	CM_ASL_MODEM,
+ 	CM_ASL_CARDREADER,
+-	CM_ASL_LID
++	CM_ASL_3G,
++	CM_ASL_WIMAX,
++	CM_ASL_HWCF,
++	CM_ASL_LID,
++	CM_ASL_TYPE,
++	CM_ASL_PANELPOWER,	/*P901*/
++	CM_ASL_TPD
+ };
  
-+static int eeepc_wwan3g_rfkill_set(void *data, enum rfkill_state state)
-+{
-+	if (state == RFKILL_STATE_SOFT_BLOCKED)
-+		return set_acpi(CM_ASL_3G, 0);
-+	else
-+		return set_acpi(CM_ASL_3G, 1);
-+}
-+
-+static int eeepc_wwan3g_rfkill_state(void *data, enum rfkill_state *state)
-+{
-+	if (get_acpi(CM_ASL_3G) == 1)
-+		*state = RFKILL_STATE_UNBLOCKED;
-+	else
-+		*state = RFKILL_STATE_SOFT_BLOCKED;
-+	return 0;
-+}
-+
- static void __init eeepc_enable_camera(void)
- {
- 	/*
-@@ -939,6 +957,8 @@ static void eeepc_rfkill_exit(void)
- 		rfkill_unregister(ehotk->wlan_rfkill);
- 	if (ehotk->bluetooth_rfkill)
- 		rfkill_unregister(ehotk->bluetooth_rfkill);
-+	if (ehotk->wwan3g_rfkill)
-+		rfkill_unregister(ehotk->wwan3g_rfkill);
- 	if (ehotk->hotplug_slot)
- 		pci_hp_deregister(ehotk->hotplug_slot);
- }
-@@ -1036,6 +1056,15 @@ static int eeepc_rfkill_init(struct device *dev)
- 	if (result && result != -ENODEV)
- 		goto exit;
+ static const char *cm_getv[] = {
+@@ -94,7 +103,8 @@ static const char *cm_getv[] = {
+ 	NULL, "PBLG", NULL, NULL,
+ 	"CFVG", NULL, NULL, NULL,
+ 	"USBG", NULL, NULL, "MODG",
+-	"CRDG", "LIDG"
++	"CRDG", "M3GG", "WIMG", "HWCF",
++	"LIDG",	"TYPE", "PBPG",	"TPDG"
+ };
  
-+	result = eeepc_new_rfkill(&ehotk->wwan3g_rfkill,
-+				  "eeepc-wwan3g", dev,
-+				  RFKILL_TYPE_WWAN, CM_ASL_3G,
-+				  eeepc_wwan3g_rfkill_set,
-+				  eeepc_wwan3g_rfkill_state);
-+
-+	if (result && result != -ENODEV)
-+		goto exit;
-+
- 	result = eeepc_setup_pci_hotplug();
- 	/*
- 	 * If we get -EBUSY then something else is handling the PCI hotplug -
+ static const char *cm_setv[] = {
+@@ -103,7 +113,8 @@ static const char *cm_setv[] = {
+ 	"SDSP", "PBLS", "HDPS", NULL,
+ 	"CFVS", NULL, NULL, NULL,
+ 	"USBG", NULL, NULL, "MODS",
+-	"CRDS", NULL
++	"CRDS", "M3GS", "WIMS", NULL,
++	NULL, NULL, "PBPS", "TPDS"
+ };
+ 
+ #define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
 -- 
 1.6.3.1
 
