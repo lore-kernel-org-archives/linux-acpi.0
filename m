@@ -1,112 +1,142 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/2] ACPICA: Clear power button status before enabling event
-Date: Tue, 16 Jun 2009 22:26:27 -0600
-Message-ID: <200906162226.27783.bjorn.helgaas@hp.com>
-References: <20090615164907.10901.73210.stgit@bob.kio> <1245208900.3583.190.camel@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [2.6.30] Kernel bug with dock driver
+Date: Wed, 17 Jun 2009 15:13:16 +0800
+Message-ID: <1245222796.9076.93.camel@rzhang-dt>
+References: <200906142100.48621.jplatte@naasa.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:38622 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755276AbZFQE0l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 00:26:41 -0400
-In-Reply-To: <1245208900.3583.190.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:2073 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1764812AbZFQHMd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jun 2009 03:12:33 -0400
+In-Reply-To: <200906142100.48621.jplatte@naasa.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "jplatte@naasa.net" <jplatte@naasa.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On Tuesday 16 June 2009 9:21:40 pm yakui_zhao wrote:
-> On Tue, 2009-06-16 at 00:49 +0800, Bjorn Helgaas wrote:
-> > Clear power button status before enabling event.
-> > 
-> > It's unusual to enable an event, then immediately clear it, so this
-> > looks like a possible bug.  If it was intentional, perhaps a comment
-> > would be in order.
-> IMO this patch is unnecessary.
+this seems like an thinkpad_acpi driver problem.
+cc henrique.
 
-> It seems that we will clear the power button event immediately after it
-> is resumed from OS. (This is done in the function of
-> acpi_suspend_enter).
+jplatte,
+it would be great if you can verify if this is a regression or not.
+And please file a new bug report at
+http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+attach the full dmesg after the bug and the acpidump output there.
 
-A comment in acpi_suspend_enter() refers to ACPI 3.0b sec. 4.7.2.2.1.1,
-which says "OSPM responds [to a button press after the button press that
-transitioned the system into a sleeping state] by clearing the power button
-status bit and waking the system."
+thanks,
+rui
 
-So *somebody* has to clear the status bit, but I'm not sure that it has
-to be done in the Linux-specific code, e.g,. acpi_suspend_enter().  The
-term "OSPM" seems broad enough to include both the ACPI CA and the Linux-
-specific code, and it may be more robust to clear it in the CA.
 
-> Maybe the power event status bit is set before we re-enable the event
-> bit. And after we re-enable the power button event, OS can handle the
-> power button event (the acpi_leave_sleep_state is called with interrupts
-> enabled). 
-> 
-> If the patch is applied, the power button event will be lost.
 
-I think this is the scenario you refer to:
+On Mon, 2009-06-15 at 03:00 +0800, Joerg Platte wrote:
+> Hi,
+>=20
+> today I ran into the following bug several times (Kernel 2.6.30, IBM =
+ThinkPad=20
+> T40 with ultrabay HD and CD/DVD):
+>=20
+> BUG: unable to handle kernel paging request at 00001000
+> IP: [<c01df5fa>] strcpy+0xe/0x1b
+> *pde =3D 00000000
+> Oops: 0000 [#1] PREEMPT
+> last sysfs file: /sys/class/power_supply/BAT0/energy_full
+> Modules linked in: nls_iso8859_1 nls_cp850 vfat fat usb_storage usb_l=
+ibusual
+> udf crc_itu_t sg sr_mod cdrom nfsd lockd nfs_acl auth_rpcgss sunrpc e=
+xportfs
+> radeon drm sco bridge stp llc bnep l2cap bluetooth ipt_MASQUERADE
+> iptable_nat nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_state ipt_REJE=
+CT
+> ipt_LOG xt_limit xt_tcpudp xt_mac xt_multiport iptable_filter iptable=
+_mangle
+> ip_tables x_tables nf_conntrack_ftp nf_conntrack vboxdrv binfmt_misc
+> af_packet cpufreq_userspace cpufreq_stats cpufreq_powersave nsc_ircc =
+autofs4
+> fuse nls_utf8 ntfs nls_base ext2 deadline_iosched as_iosched ircomm_t=
+ty
+> ircomm tun acpi_cpufreq sbs sbshc snd_intel8x0m snd_intel8x0 snd_ac97=
+_codec
+> ac97_bus snd_pcm_oss snd_mixer_oss snd_pcm snd_seq_oss snd_seq_midi
+> snd_rawmidi snd_seq_midi_event joydev snd_seq snd_timer snd_seq_devic=
+e
+> dvb_usb_cinergyT2 thinkpad_acpi irtty_sir dvb_usb yenta_socket
+> rsrc_nonstatic ipw2200 pcmcia libipw sir_dev rfkill snd video led_cla=
+ss
+> lib80211 i2c_i801 rng_core soundcore pcmcia_core snd_page_alloc 8250_=
+pci
+> dvb_core irda parport_pc parport crc_ccitt psmouse pcspkr nvram outpu=
+t
+> battery ac button processor rtc_cmos 8250_pnp serio_raw rtc_core rtc_=
+lib
+> 8250 serial_core evdev ext3 jbd mbcache usbhid hid sd_mod ata_generic
+> pata_acpi ata_piix uhci_hcd ehci_hcd libata e1000 usbcore scsi_mod in=
+tel_agp
+> agpgart thermal fan unix cpufreq_conservative cpufreq_ondemand freq_t=
+able
+> radeonfb fb_ddc backlight i2c_algo_bit cfbcopyarea i2c_core cfbimgblt
+> cfbfillrect fbcon tileblit font bitblit softcursor fb
+>=20
+> Pid: 52, comm: kacpi_notify Not tainted (2.6.30 #1) 2373G1G
+> EIP: 0060:[<c01df5fa>] EFLAGS: 00010286 CPU: 0
+> EIP is at strcpy+0xe/0x1b
+> EAX: c278a22c EBX: c278a200 ECX: c278a22c EDX: 00001000
+> ESI: 00001000 EDI: c278a22c EBP: f70a8f34 ESP: f70a8f28
+>  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
+> Process kacpi_notify (pid: 52, ti=3Df70a8000 task=3Df70c0c40 task.ti=3D=
+f70a8000)
+> Stack:
+>  c278a200 c278a214 c278a244 f70a8f64 c01fc898 030a8f54 00001000 f708a=
+879
+>  00000002 f6b3ca80 c278a218 00000014 f97fb132 f0a07a80 00000000 f70a8=
+f70
+>  f97fb14e 00000000 f70a8f7c f97fb023 f7041460 f70a8f8c c020199d f6984=
+ac0
+> Call Trace:
+>  [<c01fc898>] ? acpi_bus_generate_netlink_event+0x140/0x199
+>  [<f97fb132>] ? bay_notify+0x0/0x1f [thinkpad_acpi]
+>  [<f97fb14e>] ? bay_notify+0x1c/0x1f [thinkpad_acpi]
+>  [<f97fb023>] ? dispatch_acpi_notify+0x23/0x26 [thinkpad_acpi]
+>  [<c020199d>] ? acpi_ev_notify_dispatch+0x4c/0x57
+>  [<c01f4558>] ? acpi_os_execute_deferred+0x20/0x2c
+>  [<c012cff6>] ? worker_thread+0x15a/0x1fd
+>  [<c01f4538>] ? acpi_os_execute_deferred+0x0/0x2c
+>  [<c012fc7d>] ? autoremove_wake_function+0x0/0x33
+>  [<c012ce9c>] ? worker_thread+0x0/0x1fd
+>  [<c012f8bc>] ? kthread+0x42/0x67
+>  [<c012f87a>] ? kthread+0x0/0x67
+>  [<c01030d3>] ? kernel_thread_helper+0x7/0x10
+> Code: ff ff 21 e3 8b 5b 18 83 eb 07 39 d9 73 08 89 01 89 51 04 31 c0 =
+c3 b8
+> f2 ff ff ff c3 90 55 89 c1 89 e5 57 89 c7 56 89 d6 83 ec 04 <ac> aa 8=
+4 c0 75
+> fa 5a 89 c8 5e 5f 5d c3 55 89 e5 57 89 c7 56 89
+> EIP: [<c01df5fa>] strcpy+0xe/0x1b SS:ESP 0068:f70a8f28
+> CR2: 0000000000001000
+> ---[ end trace fe729b61cde0024d ]---
+>=20
+> The bug message appears with a high probability - but not always - wh=
+en I=20
+> release the eject lever to exchange the drive in the ultrabay slot. I=
+'m not=20
+> sure if this bug is a regression of 2.6.30, because I did not change =
+the drive=20
+> in the ultrabay for several months. Maybe it was already in 2.6.29 or=
+ before.=20
+> How can I help to resolve this bug?
+>=20
+> regards,
+> J=C3=B6rg
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-  button press A causes wakeup
-  <possible button press B>
-  acpi_suspend_enter() clears event
-  <possible button press C>
-  acpi_leave_sleep_state() clears event
-  acpi_leave_sleep_state() enables event
-  <possible button press D>
-
-Even without this patch, we would lose button event B.  With this patch,
-we would also lose button event C.  This whole sequence should take very
-little time, so I'm dubious that there is any value in keeping either
-B or C -- it seems they'd most likely be unintentional.
-
-Actually, it seems like it would make the most sense to apply this patch
-*and* stop clearing the event in acpi_suspend_enter().  Then the code is
-simpler and easier to analyze, because we only touch the button status in
-one place.
-
-But I admit I know very little about suspend/resume, so maybe I just
-need more convincing :-)
-
-Bjorn
-
-> > This patch may be used under either the GPL v2 or the BSD-style license
-> > used for the Intel ACPICA.
-> > 
-> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > CC: Bob Moore <robert.moore@intel.com>
-> > ---
-> >  drivers/acpi/acpica/hwsleep.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-> > index db307a3..3558c53 100644
-> > --- a/drivers/acpi/acpica/hwsleep.c
-> > +++ b/drivers/acpi/acpica/hwsleep.c
-> > @@ -613,12 +613,12 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
-> >  	(void)
-> >  	    acpi_write_bit_register(acpi_gbl_fixed_event_info
-> >  			      [ACPI_EVENT_POWER_BUTTON].
-> > -			      enable_register_id, ACPI_ENABLE_EVENT);
-> > +			      status_register_id, ACPI_CLEAR_STATUS);
-> >  
-> >  	(void)
-> >  	    acpi_write_bit_register(acpi_gbl_fixed_event_info
-> >  			      [ACPI_EVENT_POWER_BUTTON].
-> > -			      status_register_id, ACPI_CLEAR_STATUS);
-> > +			      enable_register_id, ACPI_ENABLE_EVENT);
-> >  
-> >  	arg.integer.value = ACPI_SST_WORKING;
-> >  	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
