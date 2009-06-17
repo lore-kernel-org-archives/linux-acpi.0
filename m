@@ -1,186 +1,388 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/2] ACPICA: Clear power button status before enabling event
-Date: Wed, 17 Jun 2009 13:08:57 -0600
-Message-ID: <200906171308.58783.bjorn.helgaas@hp.com>
-References: <20090615164907.10901.73210.stgit@bob.kio> <200906162226.27783.bjorn.helgaas@hp.com> <1245224078.3614.21.camel@localhost.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update 2 fix] PM: Introduce core framework for run-time
+ PM of I/O devices
+Date: Wed, 17 Jun 2009 16:08:59 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906171408280.2820-100000@iolanthe.rowland.org>
+References: <200906170033.05662.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:43767 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726AbZFQTI7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 15:08:59 -0400
-In-Reply-To: <1245224078.3614.21.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:48669 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751444AbZFQUI5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 16:08:57 -0400
+In-Reply-To: <200906170033.05662.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-On Wednesday 17 June 2009 01:34:38 am yakui_zhao wrote:
-> On Wed, 2009-06-17 at 12:26 +0800, Bjorn Helgaas wrote:
-> > On Tuesday 16 June 2009 9:21:40 pm yakui_zhao wrote:
-> > > On Tue, 2009-06-16 at 00:49 +0800, Bjorn Helgaas wrote:
-> > > > Clear power button status before enabling event.
-> > > > 
-> > > > It's unusual to enable an event, then immediately clear it, so this
-> > > > looks like a possible bug.  If it was intentional, perhaps a comment
-> > > > would be in order.
-> > > IMO this patch is unnecessary.
-> > 
-> > > It seems that we will clear the power button event immediately after it
-> > > is resumed from OS. (This is done in the function of
-> > > acpi_suspend_enter).
-> > 
-> > A comment in acpi_suspend_enter() refers to ACPI 3.0b sec. 4.7.2.2.1.1,
-> > which says "OSPM responds [to a button press after the button press that
-> > transitioned the system into a sleeping state] by clearing the power button
-> > status bit and waking the system."
-> If the power button event is not cleared after finishing the resume, the
-> acpid will receive the power button event and then power off the system.
-> So OSPM had better clear the power button event in course of resuming to
-> avoid that the box is poweroff.
+On Wed, 17 Jun 2009, Rafael J. Wysocki wrote:
 
-I agree.
-
-> > So *somebody* has to clear the status bit, but I'm not sure that it has
-> > to be done in the Linux-specific code, e.g,. acpi_suspend_enter().  The
-> > term "OSPM" seems broad enough to include both the ACPI CA and the Linux-
-> > specific code, and it may be more robust to clear it in the CA.
-> > 
-> > > Maybe the power event status bit is set before we re-enable the event
-> > > bit. And after we re-enable the power button event, OS can handle the
-> > > power button event (the acpi_leave_sleep_state is called with interrupts
-> > > enabled). 
-> > > 
-> > > If the patch is applied, the power button event will be lost.
-> > 
-> > I think this is the scenario you refer to:
-> > 
-> >   button press A causes wakeup
-> >   <possible button press B>
-> >   acpi_suspend_enter() clears event
-> >   <possible button press C>
-      acpi_leave_sleep_state() runs _WAK here
-> >   acpi_leave_sleep_state() clears event
-> >   acpi_leave_sleep_state() enables event
-> >   <possible button press D>
-> > 
-> > Even without this patch, we would lose button event B.  With this patch,
-> > we would also lose button event C.  This whole sequence should take very
-> > little time, so I'm dubious that there is any value in keeping either
-> > B or C -- it seems they'd most likely be unintentional.
-> Without this patch, the power button event C can be handled.
+> Sorry for the broken patch.  My mailer started to wordwrap messages
+> automatically and I didn't notice.
 > 
-> If the power button event bit will be set in the _WAK object, then this
-> event can't be handled after applying your patch.
+> The correct patch is appended.
 
-I agree (because we run _WAK before clearing the power button event).
+> Index: linux-2.6/include/linux/pm.h
+> ===================================================================
+> --- linux-2.6.orig/include/linux/pm.h
+> +++ linux-2.6/include/linux/pm.h
 
-> > Actually, it seems like it would make the most sense to apply this patch
-> > *and* stop clearing the event in acpi_suspend_enter().  Then the code is
-> > simpler and easier to analyze, because we only touch the button status in
-> > one place.
-> IMO it will be better to clear the power button event in the function of
-> acpi_suspend_enter.
-> If we don't do that, maybe the BIOS will set the power button event
-> status/enable bit. And after the interrupt is enabled, the power button
-> event handler will send the event. In such case the acpid will receive
-> the event. Maybe the box will be powered off after resuming. This is not
-> what we wanted.
+> + * @runtime_suspend: Prepare the device for a condition in which it won't be
+> + *	able to communicate with the CPU(s) and RAM due to power management.
+> + *	This need not mean that the device should be put into a low power state,
+> + *	like for example when the device is behind a link, represented by a
 
-I agree.
-
-What's your opinion of the following patch?  This drops the clear
-from acpi_suspend_enter().  In the ACPI CA acpi_leave_sleep_state(),
-it clears first, then enables, and moves both before the _WAK
-execution.
-
-  button press A causes wakeup
-  <possible button press (or BIOS sets event) B>
-  acpi_leave_sleep_state() clears all GPEs
-  acpi_leave_sleep_state() enables runtime GPEs
-  acpi_leave_sleep_state() clears power button event
-  <possible button press C>
-  acpi_leave_sleep_state() enables power button event
-  <possible button press D>
-  acpi_leave_sleep_state() runs _WAK
-  <possible button "press" E from _WAK>
-  <possible button press F>
-  
-This should work the same as the current code -- we drop event B
-as desired, and we handle all others.
-
-It has the advantages that we remove a bit of code from Linux/ACPI,
-we only touch the power button events in one place, and we follow
-the same pattern (clear, then enable) as the GPEs.
-
-I'm not sure why acpi_suspend_enter() only clears the event when
-the acpi_target_sleep_state == ACPI_STATE_S3.  Sec. 4.7.2.2.1.1
-doesn't mention that.
-
-Bjorn
+Suggested rephrasing: For example, if the device is behind a link
+which is about to be turned off, the device may remain at full power.
+But if the device does go to low power and if device_may_wakeup(dev)
+is true, enable remote wakeup.
 
 
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index db307a3..c3252ee 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -592,6 +592,18 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	/* Enable power button */
-+
-+	(void)
-+	    acpi_write_bit_register(acpi_gbl_fixed_event_info
-+			      [ACPI_EVENT_POWER_BUTTON].
-+			      status_register_id, ACPI_CLEAR_STATUS);
-+
-+	(void)
-+	    acpi_write_bit_register(acpi_gbl_fixed_event_info
-+			      [ACPI_EVENT_POWER_BUTTON].
-+			      enable_register_id, ACPI_ENABLE_EVENT);
-+
- 	arg.integer.value = sleep_state;
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-@@ -608,18 +620,6 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
- 
- 	acpi_gbl_system_awake_and_running = TRUE;
- 
--	/* Enable power button */
--
--	(void)
--	    acpi_write_bit_register(acpi_gbl_fixed_event_info
--			      [ACPI_EVENT_POWER_BUTTON].
--			      enable_register_id, ACPI_ENABLE_EVENT);
--
--	(void)
--	    acpi_write_bit_register(acpi_gbl_fixed_event_info
--			      [ACPI_EVENT_POWER_BUTTON].
--			      status_register_id, ACPI_CLEAR_STATUS);
--
- 	arg.integer.value = ACPI_SST_WORKING;
- 	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 01574a0..b63c525 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -257,13 +257,6 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- 	/* Reprogram control registers and execute _BFS */
- 	acpi_leave_sleep_state_prep(acpi_state);
- 
--	/* ACPI 3.0 specs (P62) says that it's the responsibility
--	 * of the OSPM to clear the status bit [ implying that the
--	 * POWER_BUTTON event should not reach userspace ]
--	 */
--	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
--		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
--
- 	/*
- 	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
- 	 * (like wakeup GPE) haven't handler, this can avoid such GPE misfire.
+> +/**
+> + * Device run-time power management state.
+> + *
+> + * These state labels are used internally by the PM core to indicate the current
+> + * status of a device with respect to the PM core operations.  They do not
+> + * reflect the actual power state of the device or its status as seen by the
+> + * driver.
+> + *
+> + * RPM_ACTIVE		Device is fully operational, no run-time PM requests are
+> + *			pending for it.
+> + *
+> + * RPM_IDLE		It has been requested that the device be suspended.
+> + *			Suspend request has been put into the run-time PM
+> + *			workqueue and it's pending execution.
+> + *
+> + * RPM_SUSPENDING	Device bus type's ->runtime_suspend() callback is being
+> + *			executed.
+> + *
+> + * RPM_SUSPENDED	Device bus type's ->runtime_suspend() callback has
+> + *			completed successfully.  The device is regarded as
+> + *			suspended.
+> + *
+> + * RPM_WAKE		It has been requested that the device be woken up.
+> + *			Resume request has been put into the run-time PM
+> + *			workqueue and it's pending execution.
+> + *
+> + * RPM_RESUMING		Device bus type's ->runtime_resume() callback is being
+> + *			executed.
+> + *
+> + * RPM_ERROR		Represents a condition from which the PM core cannot
+> + *			recover by itself.  If the device's run-time PM status
+> + *			field has this value, all of the run-time PM operations
+> + *			carried out for the device by the core will fail, until
+> + *			the status field is changed to either RPM_ACTIVE or
+> + *			RPM_SUSPENDED (it is not valid to use the other values
+> + *			in such a situation) by the device's driver or bus type.
+> + *			This happens when the device bus type's
+> + *			->runtime_suspend() or ->runtime_resume() callback
+> + *			returns error code different from -EAGAIN or -EBUSY.
+
+What about RPM_GRACE?
+
+> + */
+> +
+> +#define RPM_ACTIVE	0
+> +#define RPM_IDLE	0x01
+> +#define RPM_SUSPENDING	0x02
+> +#define RPM_SUSPENDED	0x04
+> +#define RPM_WAKE	0x08
+> +#define RPM_RESUMING	0x10
+> +#define RPM_GRACE	0x20
+> +#define RPM_ERROR	(-1)
+
+This won't work very well when assigned to an unsigned 6-bit field.
+
+> +
+> +#define RPM_IN_SUSPEND	(RPM_SUSPENDING | RPM_SUSPENDED)
+> +#define RPM_INACTIVE	(RPM_IDLE | RPM_IN_SUSPEND)
+> +#define RPM_NO_SUSPEND	(RPM_WAKE | RPM_RESUMING | RPM_GRACE)
+> +#define RPM_IN_PROGRESS	(RPM_SUSPENDING | RPM_RESUMING)
+
+Since each of these is used only once, it would be better not to
+define them as macros.  Use the parenthesized expression instead; this
+will be easier for readers to understand.
+
+
+> +/**
+> + * __pm_runtime_change_status - Change the run-time PM status of a device.
+> + * @dev: Device to handle.
+> + * @status: Expected current run-time PM status of the device.
+> + * @new_status: New value of the device's run-time PM status.
+> + *
+> + * Change the run-time PM status of the device to @new_status if its current
+> + * value is equal to @status.
+> + */
+> +void __pm_runtime_change_status(struct device *dev, unsigned int status,
+
+If RPM_ERROR is -1 then status better not be unsigned.
+
+> +				unsigned int new_status)
+> +{
+> +	unsigned long flags;
+> +
+> +	if (atomic_read(&dev->power.depth) > 0)
+> +		return;
+
+Return only if new_status == RPM_SUSPENDED.  Is this routine ever
+called with status equal to anything other than RPM_ERROR?
+
+
++/**
++ * pm_check_children - Check if all children of a device have been suspended.
++ * @dev: Device to check.
++ *
++ * Returns 0 if all children of the device have been suspended or -EBUSY
++ * otherwise.
++ */
++static int pm_check_children(struct device *dev)
++{
++	return dev->power.suspend_skip_children ? 0 :
++			device_for_each_child(dev, NULL, pm_device_suspended);
++}
+
+Instead of a costly device_for_each_child(), would it be better to
+maintain a counter with the number of unsuspended children?
+
+
+> +/**
+> + * __pm_runtime_suspend - Run a device bus type's runtime_suspend() callback.
+> + * @dev: Device to suspend.
+> + * @sync: If unset, the funtion has been called via pm_wq.
+> + *
+> + * Check if the status of the device is appropriate and run the
+> + * ->runtime_suspend() callback provided by the device's bus type driver.
+> + * Update the run-time PM flags in the device object to reflect the current
+> + * status of the device.
+> + */
+> +int __pm_runtime_suspend(struct device *dev, bool sync)
+> +{
+> +	int error = -EINVAL;
+> +
+> +	if (atomic_read(&dev->power.depth) > 0)
+> +		return -EBUSY;
+
+Should this test be made inside the scope of the spinlock?
+
+For that matter, should power.depth always be set within the spinlock?
+If it is then it doesn't need to be an atomic_t.
+
+> +
+> +	spin_lock(&dev->power.lock);
+
+Should be spin_lock_irq().  Same in other places.
+
+> +
+> +	if (dev->power.runtime_status == RPM_ERROR) {
+> +		goto out;
+> +	} else if (dev->power.runtime_status & RPM_SUSPENDED) {
+> +		error = 0;
+> +		goto out;
+> +	} else if ((dev->power.runtime_status & RPM_NO_SUSPEND)
+> +	    || (!sync && dev->power.suspend_aborted)) {
+> +		/*
+> +		 * Device is resuming or in a post-resume grace period or
+> +		 * there's a resume request pending, or a pending suspend
+> +		 * request has just been cancelled and we're running as a result
+> +		 * of this request.
+> +		 */
+
+In the sync case, it might be better to wait until the ongoing resume
+(or resume grace period) is finished and then do the suspend.
+
+Of course, this depends on the context in which the synchronous
+runtime suspend is carried out.  Right now, the only such context I
+know of is when the user tells the system to force a USB device into a
+suspended state.
+
+> +		error = -EAGAIN;
+> +		goto out;
+> +	} else if (dev->power.runtime_status == RPM_SUSPENDING) {
+> +		spin_unlock(&dev->power.lock);
+> +
+> +		/*
+> +		 * Another suspend is running in parallel with us.  Wait for it
+> +		 * to complete and return.
+> +		 */
+> +		wait_for_completion(&dev->power.work_done);
+> +
+> +		return dev->power.runtime_error;
+> +	} else if (pm_check_children(dev)) {
+> +		/*
+> +		 * We can only suspend the device if all of its children have
+> +		 * been suspended.
+> +		 */
+> +		dev->power.runtime_status = RPM_ACTIVE;
+> +		error = -EAGAIN;
+
+-EBUSY would be more appropriate.
+
+> +		goto out;
+> +	}
+
+> +/**
+> + * pm_cancel_suspend - Cancel a pending suspend request for given device.
+> + * @dev: Device to cancel the suspend request for.
+> + */
+> +static void pm_cancel_suspend(struct device *dev)
+> +{
+> +	cancel_delayed_work(&dev->power.runtime_work);
+> +	dev->power.runtime_status &= RPM_GRACE;
+
+This looks strange.  Aren't we guaranteed at this point that the
+status is RPM_IDLE?
+
+> +	dev->power.suspend_aborted = true;
+> +}
+> +
+> +/**
+> + * __pm_runtime_resume - Run a device bus type's runtime_resume() callback.
+> + * @dev: Device to resume.
+> + * @grace: If set, force a post-resume grace period.
+> + *
+> + * Check if the device is really suspended and run the ->runtime_resume()
+> + * callback provided by the device's bus type driver.  Update the run-time PM
+> + * flags in the device object to reflect the current status of the device.  If
+> + * runtime suspend is in progress while this function is being run, wait for it
+> + * to finish before resuming the device.  If runtime suspend is scheduled, but
+> + * it hasn't started yet, cancel it and we're done.
+> + */
+> +int __pm_runtime_resume(struct device *dev, bool grace)
+> +{
+> +	int error = -EINVAL;
+...
+> +	} else if (dev->power.runtime_status == RPM_SUSPENDED && dev->parent
+> +	    && (dev->parent->power.runtime_status & ~RPM_GRACE)) {
+> +		spin_unlock(&dev->power.lock);
+
+Here's where you want to increment the parent's depth.  Figuring out
+where to decrement it again isn't easy, given the way this routine is
+structured.
+
+> +		spin_unlock(&dev->parent->power.lock);
+> +
+> +		/* The device's parent is not active.  Resume it and repeat. */
+> +		error = __pm_runtime_resume(dev->parent, false);
+> +		if (error)
+> +			return error;
+
+Need to reset error to -EINVAL.
+
+
+> +/**
+> + * pm_request_resume - Schedule run-time resume of given device.
+> + * @dev: Device to resume.
+> + * @grace: If set, force a post-resume grace period.
+> + */
+> +void __pm_request_resume(struct device *dev, bool grace)
+> +{
+> +	unsigned long parent_flags = 0, flags;
+> +
+> + repeat:
+> +	if (atomic_read(&dev->power.depth) > 0)
+> +		return;
+> +
+> +	if (dev->parent)
+> +		spin_lock_irqsave(&dev->parent->power.lock, parent_flags);
+> +	spin_lock_irqsave(&dev->power.lock, flags);
+> +
+> +	if (dev->power.runtime_status == RPM_IDLE) {
+> +		/* Autosuspend request is pending, no need to resume. */
+> +		pm_cancel_suspend(dev);
+> +		if (grace)
+> +			dev->power.runtime_status |= RPM_GRACE;
+> +		goto out;
+> +	} else if (!(dev->power.runtime_status & RPM_IN_SUSPEND)) {
+> +		goto out;
+> +	} else if (dev->parent
+> +	    && (dev->parent->power.runtime_status & RPM_INACTIVE)) {
+> +		spin_unlock_irqrestore(&dev->power.lock, flags);
+> +		spin_unlock_irqrestore(&dev->parent->power.lock, parent_flags);
+> +
+> +		/* The parent is suspending, suspended or idle. Wake it up. */
+> +		__pm_request_resume(dev->parent, false);
+> +
+> +		goto repeat;
+
+What if the parent's state is RPM_SUSPENDING?  Won't this go into a
+tight loop?  You need to test the parent's WAKEUP bit above.
+
+
+> Index: linux-2.6/Documentation/power/runtime_pm.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6/Documentation/power/runtime_pm.txt
+> @@ -0,0 +1,311 @@
+> +Run-time Power Management Framework for I/O Devices
+> +
+> +(C) 2009 Rafael J. Wysocki <rjw@sisk.pl>, Novell Inc.
+> +
+> +1. Introduction
+> +
+> +The support for run-time power management (run-time PM) of I/O devices is
+
+s/The support/Support/
+
+> +provided at the power management core (PM core) level by means of:
+
+> +pm_runtime_enable() and pm_runtime_disable() are used to enable and disable,
+> +respectively, all of the run-time PM core operations.  They do it by decreasing
+> +and increasing, respectively, the 'power.depth' field of 'struct device'.  If
+> +the value of this field is greater than 0, pm_runtime_suspend(),
+> +pm_request_suspend(), pm_runtime_resume() and so on return immediately without
+> +doing anything and -EBUSY is returned by pm_runtime_suspend(),
+> +pm_runtime_resume() and pm_runtime_resume_grace().  Therefore, if
+
+In your code, pm_runtime_disable() doesn't actually do a resume.  So if
+a driver wants to make sure a device is at full power and stays that
+way, it has to call:
+
+	pm_runtime_resume(dev);
+	pm_runtime_disable(dev);
+
+This is a race; another thread might suspend the device in between.
+It would make more sense to have have pm_runtime_resume() function
+normally even when depth > 0.  Then the calls could be made in the
+opposite order and there wouldn't be a race.
+
+The equivalent code in USB does this automatically.  The
+runtime-disable routine does a resume if the depth value was
+originally 0, and the runtime-enable routine queues a delayed
+autosuspend request if the final depth value is 0.
+
+> +pm_runtime_suspend(), pm_request_suspend(), pm_runtime_resume(),
+> +pm_runtime_resume_grace(), pm_request_resume(), and pm_request_resume_grace()
+> +use the 'power.runtime_status' and 'power.suspend_aborted' fields of
+> +'struct device' for mutual synchronization.  The 'power.runtime_status' field,
+
+Strictly speaking, they use those fields for mutual cooperation.  It's
+the power.lock field which provides synchronization.
+
+
+> +pm_runtime_suspend() is used to carry out a run-time suspend of an active
+> +device.  It is called directly by a bus type or device driver.  An asynchronous
+> +version of it is called by the PM core, to complete a request queued up by
+> +pm_request_suspend().  The only difference between them is the handling of
+> +situations when a queued up suspend request has just been cancelled.  Apart from
+> +this, they work in the same way.
+> +* If the device is suspended (i.e. the RPM_SUSPENDED bit is set in the device's
+> +  run-time PM status field, 'power.runtime_status'), success is returned.
+
+Blank lines surrounding the *-ed paragraphs would make this more
+readable.
+
+> +pm_request_resume() and pm_request_resume_grace() are used to queue up a resume
+> +request for a device that is suspended, suspending or has a suspend request
+> +pending.  The difference between them is that pm_request_resume_grace() causes
+> +the RPM_GRACE bit to be set in the device's run-time PM status field, which
+> +prevents the PM core from suspending the device or queuing up a suspend request
+> +for it until the RPM_GRACE bit is cleared with the help of pm_runtime_release().
+> +Apart from this, they work in the same way.
+
+Is RPM_GRACE really needed?  Can't we accomplish more or less the same
+thing by using the autosuspend delay combined with the depth counter?
+
+Alan Stern
+
