@@ -1,48 +1,52 @@
-From: Johannes Stezenbach <js@sig21.net>
-Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
-Date: Wed, 17 Jun 2009 00:44:31 +0200
-Message-ID: <20090616224431.GA14186@sig21.net>
-References: <20090615232709.GA6059@sig21.net> <200906160216.29537.rjw@sisk.pl> <20090616142217.GA5548@sig21.net> <20090616115540.ceb67a30.akpm@linux-foundation.org> <20090616195750.GA12814@sig21.net> <20090616202558.GA5423@linux-os.sc.intel.com> <20090616204039.GA13399@sig21.net> <20090616140923.eb3ae6e3.akpm@linux-foundation.org>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: Re: [Intel-gfx] [RFC] i915/acpi: add lid status notification and
+	detection
+Date: Wed, 17 Jun 2009 10:32:31 +0800
+Message-ID: <1245205951.3583.169.camel@localhost.localdomain>
+References: <20090513115734.338b7d55@jbarnes-g45>
+	 <1242264144.3773.415.camel@localhost.localdomain>
+	 <20090519171545.GA17801@srcf.ucam.org>
+	 <1242896273.32574.10.camel@rzhang-dt> <20090521093418.3f1a03d5@jbarnes-g45>
+	 <4A15FE57.7040002@linux.intel.com> <20090527015801.2f47089f@jbarnes-x200>
+	 <1244704587.3616.109.camel@localhost.localdomain>
+	 <20090616113320.69fa477d@jbarnes-g45>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:60103 "EHLO bar.sig21.net"
+Received: from mga02.intel.com ([134.134.136.20]:6952 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753774AbZFPWoS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2009 18:44:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20090616140923.eb3ae6e3.akpm@linux-foundation.org>
+	id S1751373AbZFQCbU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jun 2009 22:31:20 -0400
+In-Reply-To: <20090616113320.69fa477d@jbarnes-g45>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: venkatesh.pallipadi@intel.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, davej@redhat.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, lenb@kernel.org, arjan@infradead.org, tglx@linutronix.de
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Fu Michael <michael_fu@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "lenb@kernel.org" <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tue, Jun 16, 2009 at 02:09:23PM -0700, Andrew Morton wrote:
+On Wed, 2009-06-17 at 02:33 +0800, Jesse Barnes wrote:
+> Well, what should we use then?  Think of a common use case: you plug
+> in
+> an external monitor and shut your lid.  Do we want to make the user
+> manually change their configuration?  Or detect that the lid is no
+> longer in use?  And what about the case where they boot with the lid
+> closed (e.g. in a docked scenario)?  We want to support that
+> automatically too...
+This feature should work on most laptops. When the LID is closed, the
+LVDS is marked as disconnected.
+
+But this can't work for some boxes on which the initial Lid state is
+incorrect. We see such an exception on several laptops in ACPI bugzilla.
+
+If we expect this feature for most laptops, how about adding the
+exception boxes into the blacklist that doesn't support this feature?
+
+Thanks.
 > 
-> Right, so it's the suspend-must-disable-local-interrupts thing.  Again.
->  create_image()'s local_irq_disable().
+> If we can solve these issues some other way, that's fine, but right
+> now
+> we have nothing; I think my patch is an improvement over that, even if
+> it won't work everywhere w/o quirks.
 > 
-> It was wrong to call work_on_cpu() with lcoal interrupts disabled, and
-> it's now wrong to call smp_call_function_single() with local interrupts
-> disabled.  It's just that smp_call_function_single() warns while
-> work_on_cpu() didn't.
-> 
-> That all explains the warning But afaik we still don't know why your
-> machine actually failed.  Perhaps it is a side-efect of emitting the
-> warning when the console is in a weird state?
+> Len or Matthew, any comments
 
-smp_call_function_single() enables irqs and hibernate doesn't like that?
-
-BTW, I have no other UP machine to test with, but I reported
-in another thread that a !SMP kernel (or a SMP kernel
-with maxcpus=0 parameter) does not boot at all on
-my destop machine, see
-http://lkml.org/lkml/2009/6/12/468
-
-No idea if I should be worried about this since the
-SMP kernel now works fine, another hibernate problem
-was solved in
-http://lkml.org/lkml/2009/6/14/156
-
-
-Johannes
