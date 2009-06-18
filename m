@@ -1,25 +1,154 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI: acpi_device_register() should call
- device_register()
-Date: Wed, 17 Jun 2009 22:57:15 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0906172257120.8921@localhost.localdomain>
-References: <20090514142941.18569.75813.stgit@bob.kio>
- <20090514143132.18569.36441.stgit@bob.kio>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 1/2] ACPICA: Clear power button status before enabling event
+Date: Wed, 17 Jun 2009 21:38:04 -0600
+Message-ID: <200906172138.04877.bjorn.helgaas@hp.com>
+References: <20090615164907.10901.73210.stgit@bob.kio> <200906171308.58783.bjorn.helgaas@hp.com> <1245291266.7697.11.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:57242 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751676AbZFRDPx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 23:15:53 -0400
-In-reply-to: <20090514143132.18569.36441.stgit@bob.kio>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:41278 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830AbZFRDiT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 23:38:19 -0400
+In-Reply-To: <1245291266.7697.11.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-applied
+On Wednesday 17 June 2009 8:14:26 pm yakui_zhao wrote:
+> On Thu, 2009-06-18 at 03:08 +0800, Bjorn Helgaas wrote:
+> > What's your opinion of the following patch?  This drops the clear
+> > from acpi_suspend_enter().  In the ACPI CA acpi_leave_sleep_state(),
+> > it clears first, then enables, and moves both before the _WAK
+> > execution.
+> > 
+> >   button press A causes wakeup
+> >   <possible button press (or BIOS sets event) B>
+> >   acpi_leave_sleep_state() clears all GPEs
+> >   acpi_leave_sleep_state() enables runtime GPEs
+> >   acpi_leave_sleep_state() clears power button event
+> >   <possible button press C>
+> >   acpi_leave_sleep_state() enables power button event
+> >   <possible button press D>
+> >   acpi_leave_sleep_state() runs _WAK
+> >   <possible button "press" E from _WAK>
+> >   <possible button press F>
+> >   
+> > This should work the same as the current code -- we drop event B
+> > as desired, and we handle all others.
+> > 
+> > It has the advantages that we remove a bit of code from Linux/ACPI,
+> > we only touch the power button events in one place, and we follow
+> > the same pattern (clear, then enable) as the GPEs.
+> > 
+> > I'm not sure why acpi_suspend_enter() only clears the event when
+> > the acpi_target_sleep_state == ACPI_STATE_S3.  Sec. 4.7.2.2.1.1
+> > doesn't mention that.
+> We had better not delete the code that clears the power button event in
+> course of acpi_suspend_enter. 
+> This is to avoid that the power button wake event hits the user space.
+> 
+> Maybe the BIOS will set the power button event enable/status bit. And
+> after the interrupt is enabled, the power button event will hit the
+> userland. So it is appropriate to clear the power button event as early
+> as possible.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+OK, I think I see now.  I didn't think through the "should not reach
+userspace" language.  I think we just want to clear the event so we
+don't take another interrupt when we re-enable interrupts near the
+end of acpi_suspend_enter().
+
+>     Of course it can be cleared in the function of
+> "acpi_leave_sleep_state_prep".
+
+The interrupt path (acpi_ev_sci_xrupt_handler() ->
+acpi_ev_fixed_event_detect() -> acpi_ev_fixed_event_dispatch())
+is mostly in the ACPI CA, so I like your idea of clearing the
+power button event in acpi_leave_sleep_state_prep() because
+that's also in the CA, and it seems more robust if the CA
+clears it rather than assuming that the host OS will clear it.
+
+I would probably suggest moving the acpi_disable_all_gpes() into
+acpi_leave_sleep_state_prep() for the same reason.
+
+It's still asymmetric because we disable & clear *all* GPEs,
+but only the power button fixed event.
+
+And I still don't understand the ACPI_STATE_S3 test around the
+power button event clear.  Do you think that's necessary?
+
+Thanks for your patience in explaining all this to me.
+
+Bjorn
+
+> > diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+> > index db307a3..c3252ee 100644
+> > --- a/drivers/acpi/acpica/hwsleep.c
+> > +++ b/drivers/acpi/acpica/hwsleep.c
+> > @@ -592,6 +592,18 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+> >  		return_ACPI_STATUS(status);
+> >  	}
+> >  
+> > +	/* Enable power button */
+> > +
+> > +	(void)
+> > +	    acpi_write_bit_register(acpi_gbl_fixed_event_info
+> > +			      [ACPI_EVENT_POWER_BUTTON].
+> > +			      status_register_id, ACPI_CLEAR_STATUS);
+> > +
+> > +	(void)
+> > +	    acpi_write_bit_register(acpi_gbl_fixed_event_info
+> > +			      [ACPI_EVENT_POWER_BUTTON].
+> > +			      enable_register_id, ACPI_ENABLE_EVENT);
+> > +
+> >  	arg.integer.value = sleep_state;
+> >  	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
+> >  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> > @@ -608,18 +620,6 @@ acpi_status acpi_leave_sleep_state(u8 sleep_state)
+> >  
+> >  	acpi_gbl_system_awake_and_running = TRUE;
+> >  
+> > -	/* Enable power button */
+> > -
+> > -	(void)
+> > -	    acpi_write_bit_register(acpi_gbl_fixed_event_info
+> > -			      [ACPI_EVENT_POWER_BUTTON].
+> > -			      enable_register_id, ACPI_ENABLE_EVENT);
+> > -
+> > -	(void)
+> > -	    acpi_write_bit_register(acpi_gbl_fixed_event_info
+> > -			      [ACPI_EVENT_POWER_BUTTON].
+> > -			      status_register_id, ACPI_CLEAR_STATUS);
+> > -
+> >  	arg.integer.value = ACPI_SST_WORKING;
+> >  	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
+> >  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> > index 01574a0..b63c525 100644
+> > --- a/drivers/acpi/sleep.c
+> > +++ b/drivers/acpi/sleep.c
+> > @@ -257,13 +257,6 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+> >  	/* Reprogram control registers and execute _BFS */
+> >  	acpi_leave_sleep_state_prep(acpi_state);
+> >  
+> > -	/* ACPI 3.0 specs (P62) says that it's the responsibility
+> > -	 * of the OSPM to clear the status bit [ implying that the
+> > -	 * POWER_BUTTON event should not reach userspace ]
+> > -	 */
+> > -	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
+> > -		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
+> > -
+> >  	/*
+> >  	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
+> >  	 * (like wakeup GPE) haven't handler, this can avoid such GPE misfire.
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
