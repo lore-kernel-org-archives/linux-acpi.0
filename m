@@ -1,83 +1,64 @@
-From: Azael Avalos <coproscefalo@gmail.com>
-Subject: Re: [PATCH 2/2] toshiba-acpi: Support TOS1900-type devices
-Date: Wed, 17 Jun 2009 18:35:58 -0600
-Message-ID: <74962ea30906171735j671b031dxfb6b4e41a44bf11b@mail.gmail.com>
-References: <20090331230217.GA31599@srcf.ucam.org>
-	 <74962ea30904011003o354e8780ya5e9ac1a6a579084@mail.gmail.com>
-	 <20090401170708.GA14167@srcf.ucam.org>
-	 <74962ea30904011013v5ffa0620y1f1aefa2c84e1ce@mail.gmail.com>
-	 <20090602140357.GA13548@srcf.ucam.org>
-	 <74962ea30906090942r43d374e7ra00e5056eca040a8@mail.gmail.com>
-	 <20090609164529.GA11592@srcf.ucam.org>
-	 <74962ea30906091718o274a0968ica61ee7a8d915ed5@mail.gmail.com>
-	 <20090610002236.GA19743@srcf.ucam.org>
-	 <74962ea30906091729i3e445de8i7f45ccfe5e9ea234@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: acpi on sony vaio vgn-sz61mn
+Date: Thu, 18 Jun 2009 08:58:07 +0800
+Message-ID: <1245286687.9076.101.camel@rzhang-dt>
+References: <4A38F2FA.5000207@uni-koblenz.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f212.google.com ([209.85.220.212]:36023 "EHLO
-	mail-fx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754128AbZFRAf5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 20:35:57 -0400
-In-Reply-To: <74962ea30906091729i3e445de8i7f45ccfe5e9ea234@mail.gmail.com>
+Received: from mga14.intel.com ([143.182.124.37]:46835 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751306AbZFRA5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jun 2009 20:57:23 -0400
+In-Reply-To: <4A38F2FA.5000207@uni-koblenz.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, dsilvers@simtec.co.uk, toshiba_acpi@memebeam.org, linux-kernel@vger.kernel.org
+To: Sebastian Pohl <sebastianp@uni-koblenz.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-I've been playing w/ the omnibook module these days and I got hotkeys
-"working".
-
-I don't know why _Q43 is not being triggered, however I got the NTFY
-method to activate the TECF variable and so I can finally poll the TOHK
-variable to get the hotkey. I'm not sure is this is the correct way of doing
-things but we are in business.
-
-Basically this is what I did:
-
-1. Activate HCI Hotkey Events call 0x1E
-2. Pressing a hotkey generates an i8042 event (0x6e)
-3. Evaluate NTFY method, so TECF is at one
-4. Poll INFO method to get last pressed hotkey (once ;-) )
-5. Generate keycode for that hotkey
-
-Here's the output of the omnibook module while pressing Fn alone
-and then Fn-Esc:
-
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x100.
-omnibook: generating keycode 464.
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x17f.
-omnibook: generating keycode 464.
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x100.
-omnibook: generating keycode 464.
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x17f.
-omnibook: generating keycode 464.
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x101.
-omnibook: generating keycode 113.
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x101.
-omnibook: generating keycode 113.
-atkbd.c: Unknown key released (translated set 2, code 0x6e on isa0060/serio0).
-atkbd.c: Use 'setkeycodes 6e <keycode>' to make it known.
-omnibook: detected scancode 0x100.
-omnibook: generating keycode 464.
+On Wed, 2009-06-17 at 21:43 +0800, Sebastian Pohl wrote:
+> Hello everyone!
+>=20
+> Thank you to everyone working on the sony stuff! It made my laptop a=20
+> much more valuable companion!
+>=20
+> But there are still some flaws that are left. I am writing to get an=20
+> advise what to do with them.=20
 
 
-Saludos
-Azael
+>=20
+> Ok, the problems are:
+>=20
+> - The special button s2 generates the same acpi event as the stamina =
+switch
+> - The lidswitch does not generate any acpi events
+> - The Power does not generate any acpi events
+>=20
+please kill acpid, and run "cat /proc/acpi/event", what do you get when
+pressing each of the three buttons?
 
+run "cat /proc/interrupts" both before and after pressing these buttons=
+,
+does the number of ACPI or sony interrupts increase?
+If ACPI interrupts increases, please run
+"grep . /sys/firmware/acpi/interrupts/*" and tell us which GPE/Fixed
+event is fired.
 
--- 
--- El mundo apesta y vosotros apestais tambien --
+=EF=BB=BF
+> Should i post them to bugtrackter or=20
+> something else?
+>=20
+please file a new bug report at
+http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+and attach all the request info there.
+please also attach the acpidump output.
+
+thanks,
+rui
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
