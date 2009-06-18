@@ -1,69 +1,138 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/2] ACPICA: Clear power button status before enabling event
-Date: Thu, 18 Jun 2009 12:05:34 -0600
-Message-ID: <200906181205.35243.bjorn.helgaas@hp.com>
-References: <20090615164907.10901.73210.stgit@bob.kio> <200906172138.04877.bjorn.helgaas@hp.com> <1245308421.7697.73.camel@localhost.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update 2 fix] PM: Introduce core framework for run-time
+ PM of I/O devices
+Date: Thu, 18 Jun 2009 14:17:38 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906181336500.1445-100000@netrider.rowland.org>
+References: <200906180107.34764.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:33193 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752883AbZFRSGD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2009 14:06:03 -0400
-In-Reply-To: <1245308421.7697.73.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from netrider.rowland.org ([192.131.102.5]:60510 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753531AbZFRSRg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2009 14:17:36 -0400
+In-Reply-To: <200906180107.34764.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-On Thursday 18 June 2009 01:00:21 am yakui_zhao wrote:
-> On Thu, 2009-06-18 at 11:38 +0800, Bjorn Helgaas wrote:
-> > On Wednesday 17 June 2009 8:14:26 pm yakui_zhao wrote:
-> > > Maybe the BIOS will set the power button event enable/status bit. And
-> > > after the interrupt is enabled, the power button event will hit the
-> > > userland. So it is appropriate to clear the power button event as early
-> > > as possible.
+On Thu, 18 Jun 2009, Rafael J. Wysocki wrote:
+
+> Not only then.  The dev->power.depth counter was meant to be a "disable
+> everything" one, because there are situations in which we don't want even
+> resume to run (probe, release, system-wide suspend, hibernation, resume from
+> a system sleep state, possibly others).
+> 
+> That said, I overlooked some problems related to it.  So, I think to disable
+> the runtime PM of given device, it will be necessary to run a synchronous
+> runtime resume with taking a ref to block suspend.
+
+There should also be an async version, which increases depth while
+submitting a resume request.
+
+In fact, maybe it would be best if pm_request_resume always increments
+depth (unless it fails for some other reason) and __pm_runtime_resume
+increments depth whenever called synchronously.  And likewise for the
+suspend paths.
+
+> > Instead of a costly device_for_each_child(), would it be better to
+> > maintain a counter with the number of unsuspended children?
+> 
+> Hmm.  How exactly are we going to count them?  The only way I see at the moment
+> would be to increase this number by one when running pm_runtime_init() for a
+> new child.  Seems doable.
+
+That's right.  You also have to decrement the number when an
+unsuspended child device is removed, obviously.  The one thing to
+watch out for is what happens if a device is removed while its
+runtime_resume callback is running.  :-)
+
+> > > +	spin_lock(&dev->power.lock);
 > > 
-> > OK, I think I see now.  I didn't think through the "should not reach
-> > userspace" language.  I think we just want to clear the event so we
-> > don't take another interrupt when we re-enable interrupts near the
-> > end of acpi_suspend_enter().
+> > Should be spin_lock_irq().  Same in other places.
+> 
+> OK, I wasn't sure about that.
 
-> What you said is partially right.
->    The power button wakeup event had better not hit the userland. If the
-> acpid receives the power button wakeup event, then the system will be
-> shutdown. This is not what we wanted.
->    So it will be better that the power button event is cleared as early
-> as possible(At least it is cleared before the interrupt is re-enabled).
+The reasoning isn't complicated.  If a spinlock can be taken by an
+interrupt handler (or any other code that might run in interrupt
+context) then you have the possibility of a deadlock as follows:
 
-I don't like to think about this in terms like "as early as
-possible" because that doesn't help us figure out where the
-clearing needs to happen for correct system behavior.  "Before
-interrupts are re-enabled" does help us analyze correctness.
+	spin_lock(&lock);
+	<Interrupt occurs>
+		irq_handler() {
+			spin_lock(&lock);
 
-It's true that there is a window of time where button presses
-will be ignored, and moving the clear earlier does reduce the
-size of that window.  But the window is tiny compared to the
-time it takes a human to press a button, so I don't think this
-is very important.
+The handler can't acquire the lock because it is already in use, and
+it can't be released until the handler returns.
 
-> > And I still don't understand the ACPI_STATE_S3 test around the
-> > power button event clear.  Do you think that's necessary?
+As a result, if a spinlock is ever taken within an interrupt handler
+then it always has to be acquired with interrupts disabled.
+Similarly, if it is never taken within an interrupt handler but it is
+taken within a bottom-half routine, then it always has to be acquired
+with bottom halves disabled.
 
-> For the S3 test it is necessary to clear the power button event before
-> the interrupt is re-enabled.
+> From the functionality point of view, nothing wrong happens if runtime suspend
+> fails as long as an error code is returned and the caller has to be prepared
+> for a failure anyway.  Moreover, we never know why the resume is carried out,
+> so it's not clear whether it will be valid to carry out the suspend after that.
 
-My question is, can we clear the power button event when resuming
-from any kind of suspend?  If not, what is special about ACPI_STATE_S3
-that means we should clear the event for S3, but not for other states?
+Your first point certainly is correct.  As for the second point, if
+whoever did the resume doesn't want the device suspended again, he
+should have incremented depth.  So making the suspend wait until the
+resume is finished and then failing because the depth is positive
+would be a valid approach.
 
-Maybe I should have started by simply suggesting the removal of the
-clear in acpi_leave_sleep_state().  Does that serve some purpose?
-It looks useless to me.  Normally we would clear the event in the
-interrupt path (in acpi_ev_fixed_event_dispatch()), and I would think
-that would be enough.
+However there's no use worrying about this until we have some real
+examples.
 
-Bjorn
+> > > +		spin_unlock(&dev->parent->power.lock);
+> > > +
+> > > +		/* The device's parent is not active.  Resume it and repeat. */
+> > > +		error = __pm_runtime_resume(dev->parent, false);
+> > > +		if (error)
+> > > +			return error;
+> > 
+> > Need to reset error to -EINVAL.
+> 
+> Why -EINVAL?
+
+We have lost the context because of email trimming.  Briefly, when you
+jump back to "repeat:", the code there expects error to have been
+initialized to -EINVAL.  Some of the pathways will return error
+unchanged, expecting it to have that value.
+
+Alternatively, you could have those pathways set error and then you
+wouldn't have to initialize it.  Either way.
+
+
+> > The equivalent code in USB does this automatically.  The
+> > runtime-disable routine does a resume if the depth value was
+> > originally 0,
+> 
+> Yes, we should do that in general.
+> 
+> > and the runtime-enable routine queues a delayed autosuspend request if the
+> > final depth value is 0.
+> 
+> I don't like this.
+
+I guess this a question of how you view things.  My view has been that
+whever depth (or pm_usage_cnt in the USB code) is 0, it means neither
+the driver nor anyone else has any reason to keep the device at full
+power.  By definition, since that's what depth is -- a count of the
+reasons for not suspending.
+
+There might be some obscure other reason, but in general depth going
+to 0 means a delayed autosuspend request should be queued.
+
+Which reminds me... Something to think about: In an async call to
+__pm_runtime_suspend, if the runtime_suspend callback returns -EBUSY
+then perhaps your code should automatically requeue a new delayed
+autosuspend request.  Which implies, of course, that the autosuspend
+delay has to be stored in the dev_pm_info structure.  This isn't a bad
+thing, since exposing the value in sysfs gives userspace a consistent
+way to set the delay.
+
+Alan Stern
+
