@@ -1,46 +1,55 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: acpi on sony vaio vgn-sz61mn
-Date: Thu, 18 Jun 2009 11:16:51 +0900
-Message-ID: <20090618021651.GB12221@kamineko.org>
-References: <4A38F2FA.5000207@uni-koblenz.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [GIT PATCH] thinkpad-acpi queue for 2.6.31
+Date: Wed, 17 Jun 2009 22:50:58 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0906172249200.8921@localhost.localdomain>
+References: <1243700709-25977-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:38071
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753953AbZFRCQu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 22:16:50 -0400
-Content-Disposition: inline
-In-Reply-To: <4A38F2FA.5000207@uni-koblenz.de>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:34418 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291AbZFRCvU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2009 22:51:20 -0400
+Received: from localhost.localdomain ([98.118.45.40])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KLE00A8IYL0UMV1@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 17 Jun 2009 21:51:02 -0500 (CDT)
+In-reply-to: <1243700709-25977-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Cc: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Wed, Jun 17, 2009 at 03:43:22PM +0200, Sebastian Pohl wrote:
-> Hello everyone!
->
-> Thank you to everyone working on the sony stuff! It made my laptop a  
-> much more valuable companion!
->
-> But there are still some flaws that are left. I am writing to get an  
-> advise what to do with them. Should i post them to bugtrackter or  
-> something else?
->
-> Ok, the problems are:
->
-> - The special button s2 generates the same acpi event as the stamina switch
+applied
 
-yep, I have some ideas how to fix it in sony-laptop, I'll try to get it
-done this weekend.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-> - The lidswitch does not generate any acpi events
-> - The Power does not generate any acpi events
+On Sat, 30 May 2009, Henrique de Moraes Holschuh wrote:
 
-these should be part of the main acpi code, please follow Zhang
-directions to debug this.
-
-Thanks
--- 
-mattia
-:wq!
+> Len,
+> 
+> This patchset has some changes for thinkpad-acpi that I would like to see
+> merged for 2.6.31.   I will likely have a few more during the merge
+> window.
+> 
+> Shortlog:
+> 
+> Henrique de Moraes Holschuh (5):
+>       thinkpad-acpi: store fw version with strict checking
+>       thinkpad-acpi: add quirklist engine
+>       thinkpad-acpi: fix BEEP ACPI handler warnings
+>       thinkpad-acpi: enhance led support
+>       thinkpad-acpi: silence bogus warning when ACPI video is disabled
+> 
+> -- 
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
