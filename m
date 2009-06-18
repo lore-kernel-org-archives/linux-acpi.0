@@ -1,48 +1,38 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: [PATCH] wmi: Fix kernel panic when stack protection enabled.
-Date: Thu, 18 Jun 2009 22:52:30 +0100
-Message-ID: <200906182252.32049.carlos@strangeworlds.co.uk>
-References: <alpine.DEB.2.00.0906091707380.8360@debian> <200906092046.24983.carlos@strangeworlds.co.uk> <200906120644.19252.carlos@strangeworlds.co.uk>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [2.6.30] Kernel bug with dock driver
+Date: Thu, 18 Jun 2009 19:10:20 -0300
+Message-ID: <20090618221020.GA2979@khazad-dum.debian.net>
+References: <200906142100.48621.jplatte@naasa.net> <200906161125.00685.jplatte@naasa.net> <20090617123440.GA400@khazad-dum.debian.net> <200906182322.54566.jplatte@naasa.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from phoenix.slamd64.com ([217.10.145.2]:54439 "EHLO
-	phoenix.slamd64.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbZFRVzv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2009 17:55:51 -0400
-In-Reply-To: <200906120644.19252.carlos@strangeworlds.co.uk>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44938 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752691AbZFRWKW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jun 2009 18:10:22 -0400
 Content-Disposition: inline
+In-Reply-To: <200906182322.54566.jplatte@naasa.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: "lcostantino@gmail.com" <lcostantino@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Joerg Platte <jplatte@naasa.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday 12 June 2009 06:44:18 Carlos Corbacho wrote:
-> On Tuesday 09 Jun 2009 20:46:24 Carlos Corbacho wrote:
-> > [Adding Len to CC]
+On Thu, 18 Jun 2009, Joerg Platte wrote:
+> Am Wednesday, 17. June 2009 schrieb Henrique de Moraes Holschuh:
+> > If it causes a NULL derreference, it means someone has changed API and did
+> > NOT change all callsites.  It is that simple.
 > >
-> > On Tuesday 09 Jun 2009 22:09:23 lcostantino@gmail.com wrote:
-> > > From: Costantino Leandro <lcostantino@gmail.com>
+> thinkpad_acpi: dev_name() is returning NULL
 
-[..]
+There it is.  "Someone set us up the bomb."
 
-> > > Signed-off-by: Costantino Leandro <lcostantino@gmail.com>
-> >
-> > Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
->
-> Cc: stable@kernel.org
->
-> Since I'm starting to get quite a few bug reports from people about 2.6.30
-> when distributions are turning on stack protector.
+> Hope it helps...
 
-Len,
+Yes, it does.  Thank you.  Now at least I know what to look for.
 
-Ping? I'm still not seeing this patch in the ACPI or Linus' tree...
-
--Carlos
 -- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
