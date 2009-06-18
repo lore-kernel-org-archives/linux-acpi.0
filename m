@@ -1,64 +1,58 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: acpi on sony vaio vgn-sz61mn
-Date: Thu, 18 Jun 2009 08:58:07 +0800
-Message-ID: <1245286687.9076.101.camel@rzhang-dt>
-References: <4A38F2FA.5000207@uni-koblenz.de>
+Subject: Re: Acpi questions relating wrong battery indications
+Date: Thu, 18 Jun 2009 10:09:01 +0800
+Message-ID: <1245290941.9076.103.camel@rzhang-dt>
+References: <4A38DC8F.2000803@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:46835 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:2898 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751306AbZFRA5X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jun 2009 20:57:23 -0400
-In-Reply-To: <4A38F2FA.5000207@uni-koblenz.de>
+	id S1754419AbZFRCIR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jun 2009 22:08:17 -0400
+In-Reply-To: <4A38DC8F.2000803@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
+To: Patrick Voegeli Olivera <patrick.voegeli@gmail.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-06-17 at 21:43 +0800, Sebastian Pohl wrote:
-> Hello everyone!
->=20
-> Thank you to everyone working on the sony stuff! It made my laptop a=20
-> much more valuable companion!
->=20
-> But there are still some flaws that are left. I am writing to get an=20
-> advise what to do with them.=20
-
-
->=20
-> Ok, the problems are:
->=20
-> - The special button s2 generates the same acpi event as the stamina =
-switch
-> - The lidswitch does not generate any acpi events
-> - The Power does not generate any acpi events
->=20
-please kill acpid, and run "cat /proc/acpi/event", what do you get when
-pressing each of the three buttons?
-
-run "cat /proc/interrupts" both before and after pressing these buttons=
-,
-does the number of ACPI or sony interrupts increase?
-If ACPI interrupts increases, please run
-"grep . /sys/firmware/acpi/interrupts/*" and tell us which GPE/Fixed
-event is fired.
-
-=EF=BB=BF
-> Should i post them to bugtrackter or=20
-> something else?
->=20
 please file a new bug report at
-http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-and attach all the request info there.
-please also attach the acpidump output.
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+and attach the acpidump output there.
 
 thanks,
 rui
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 2009-06-17 at 20:07 +0800, Patrick Voegeli Olivera wrote:
+> Hi there,
+> 
+> My laptop is having an odd problem, which happens under every linux 
+> distribution I've tried: the battery state doesn't work as you'd expect.
+> 
+> While charging it, acpi -V correctly shows AC adapter on-line and 
+> battery state "Charging", fine here. The problem appears once it has 
+> fully charged: acpi -V will report AC adapter on-line and battery state 
+> "Discharging - something about at zero rate, will never fully 
+> discharge". Once I unplug the laptop from the AC source, the battery 
+> state will change to "Charged" and the AC adapter to offline.
+> 
+> So, to sumarize, it has the charged and discharging states changed. The 
+> AC adapter always reports properly wether plugged in or not.
+> 
+> I've looked into the acpi specs and have managed to track down where the 
+> battery changes its charging and discharging bit in my dsdt, but 
+> changing that ones only gave my discharging and charging mixed up. So 
+> then acpi -V would report discharging while the battery whas charging. 
+> Once it was fully charged it turned to charging and running from battery 
+> went to charged.
+> 
+> I don't see anything in the ACPI specs where it says what to show when 
+> the battery is full, how it is reported or whatever. I attach my dsdt 
+> file, maybe someone could look into it. I'm interested if this is a 
+> problem in acpi, my dsdt or if it is deeper BIOS stuff of something.
+> 
+> Thank you
+> 
+> PD: my laptop is a fujitsu-siemens esprimo u9200.
+
