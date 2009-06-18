@@ -1,35 +1,31 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: [2.6.30] Kernel bug with dock driver
-Date: Thu, 18 Jun 2009 19:10:20 -0300
-Message-ID: <20090618221020.GA2979@khazad-dum.debian.net>
-References: <200906142100.48621.jplatte@naasa.net> <200906161125.00685.jplatte@naasa.net> <20090617123440.GA400@khazad-dum.debian.net> <200906182322.54566.jplatte@naasa.net>
+Date: Thu, 18 Jun 2009 19:12:13 -0300
+Message-ID: <20090618221213.GB2979@khazad-dum.debian.net>
+References: <200906142100.48621.jplatte@naasa.net> <1245222796.9076.93.camel@rzhang-dt> <200906182326.57887.jplatte@naasa.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44938 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54305 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752691AbZFRWKW (ORCPT
+	by vger.kernel.org with ESMTP id S1753240AbZFRWMO (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jun 2009 18:10:22 -0400
+	Thu, 18 Jun 2009 18:12:14 -0400
 Content-Disposition: inline
-In-Reply-To: <200906182322.54566.jplatte@naasa.net>
+In-Reply-To: <200906182326.57887.jplatte@naasa.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joerg Platte <jplatte@naasa.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Platte <jplatte@naasa.net>
 
 On Thu, 18 Jun 2009, Joerg Platte wrote:
-> Am Wednesday, 17. June 2009 schrieb Henrique de Moraes Holschuh:
-> > If it causes a NULL derreference, it means someone has changed API and did
-> > NOT change all callsites.  It is that simple.
-> >
-> thinkpad_acpi: dev_name() is returning NULL
+> Am Wednesday, 17. June 2009 schrieb Zhang Rui:
+> 
+> > jplatte,
+> > it would be great if you can verify if this is a regression or not.
 
-There it is.  "Someone set us up the bomb."
-
-> Hope it helps...
-
-Yes, it does.  Thank you.  Now at least I know what to look for.
+Something is causing ACPI devices to have NULL for dev_name().  This
+broke thinkpad-acpi.  Any ideas?
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
