@@ -1,70 +1,175 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: Run-time PM idea (was: Re: [RFC][PATCH 0/2]   PM: Rearrange core
- suspend code)
-Date: Thu, 18 Jun 2009 19:50:15 -0600
-Message-ID: <4A3AEED7.90804@gmail.com>
-References: <200906072347.00580.rjw@sisk.pl> <20090608065419.GA13568@elte.hu>	<200906081330.50045.rjw@sisk.pl> <20090608130509.GA3272@elte.hu>	<20090608131159.GA15100@srcf.ucam.org>	<20090608132235.GC13214@elte.hu>	<20090608133215.GA15482@srcf.ucam.org>	<20090608134647.GA14234@elte.hu>	<20090608135431.GA16052@srcf.ucam.org>	<20090608142450.GE14234@elte.hu> <20090608143513.GB16752@srcf.ucam.org>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH 1/5] ACPI: pci_root: check _CRS,	then _BBN for downstream
+ bus number
+Date: Fri, 19 Jun 2009 12:35:58 +0900
+Message-ID: <4A3B079E.1070903@jp.fujitsu.com>
+References: <20090618203916.15850.7977.stgit@bob.kio> <20090618204647.15850.97454.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:41509 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931AbZFSBtx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2009 21:49:53 -0400
-In-Reply-To: <20090608143513.GB16752@srcf.ucam.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:44469 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533AbZFSDgT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2009 23:36:19 -0400
+Received: from m1.gw.fujitsu.co.jp ([10.0.50.71])
+	by fgwmail6.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id n5J3aKlw004119
+	for <linux-acpi@vger.kernel.org> (envelope-from kaneshige.kenji@jp.fujitsu.com);
+	Fri, 19 Jun 2009 12:36:20 +0900
+Received: from smail (m1 [127.0.0.1])
+	by outgoing.m1.gw.fujitsu.co.jp (Postfix) with ESMTP id 2223345DE4E
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:20 +0900 (JST)
+Received: from s1.gw.fujitsu.co.jp (s1.gw.fujitsu.co.jp [10.0.50.91])
+	by m1.gw.fujitsu.co.jp (Postfix) with ESMTP id E760D45DD71
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:19 +0900 (JST)
+Received: from s1.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
+	by s1.gw.fujitsu.co.jp (Postfix) with ESMTP id B42CDE08003
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:19 +0900 (JST)
+Received: from m108.s.css.fujitsu.com (m108.s.css.fujitsu.com [10.249.87.108])
+	by s1.gw.fujitsu.co.jp (Postfix) with ESMTP id 39AD11DB803A
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:19 +0900 (JST)
+In-Reply-To: <20090618204647.15850.97454.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, ide <linux-ide@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Alex Chiang <achiang@hp.com>, Shaohua Li <shaohua.li@intel.com>
 
-On 06/08/2009 08:35 AM, Matthew Garrett wrote:
-> On Mon, Jun 08, 2009 at 04:24:50PM +0200, Ingo Molnar wrote:
->> * Matthew Garrett<mjg59@srcf.ucam.org>  wrote:
->>> eSATA is pretty common now.
->> [ And 99% of the CPUs have an IDT still 99.9% of the users dont know
->>    what it is :) ]
->
-> Users know that there's a socket on the front of their computer that
-> they can plug a hard drive into, and if that doesn't work then they're
-> going to be upset.
->
->>> The problem with this kind of default is that you get people who
->>> are confused that their hardware doesn't work.
->> If the hardware 'doesnt work' that is a kernel bug. Hardware that
->> _cannot be suspended_ safely (physically) should not be
->> auto-suspended, of course.
->
-> So, like I said, the kernel can't automatically suspend AHCI unless it's
-> received some information from elsewhere that tells it it's ok to. The
-> kernel can't know if there's an eSATA port or not.
->
->>> If the kernel doesn't have enough information to make a decision
->>> it should err on the side of functionality - we're talking about
->>> fairly low-level power savings, but potentially several years of
->>> aggregate confusion on the part of users.
->> the difference between a 10W and a 1W footprint is a long series of
->> 'low-level power savings'.
->>
->> If users are getting confused and if hardware gets broken then tha's
->> a plain bug and the wrong path is being walked.
->
-> Yes. And powersaving is a tradeoff between functionality and power
-> consumption. The kernel doesn't know what level of functionality a given
-> user requires. It *can't* know that itself.
->
->>> Users are generally ok at realising correlation between a setting
->>> change and something no longer working, so as long as you provide
->>> that they'll be happy. I agree that this sucks. What we actually
->>> want is some means of reliably identifying whether a port is
->>> hotplug or not, but eSATA makes this very difficult.
->> Is it impossible?
->
-> To the best of my knowledge, yes.
+Bjorn Helgaas wrote:
+> To find a host bridge's downstream bus number, we currently look at _BBN
+> first.  If _BBN returns a bus number we've already seen, we conclude that
+> _BBN was wrong and look for a bus number in _CRS.
+> 
+> However, the spec[1] (figure 5-5 and the example in sec 9.12.1) and an ACPI
+> FAQ[2] suggest that the OS should use _CRS to discover the bus number
+> range, and that _BBN is really intended to bootstrap _CRS methods that
+> reference PCI opregions.
+> 
+> This patch makes us always look at _CRS first.  If _CRS doesn't supply a
+> bus number, we look at _BBN.  If _BBN doesn't exist, we default to zero.
+> This makes the behavior consistent regardless of device discovery order.
+> Previously, if A and B had duplicate _BBNs and we found A first, we'd only
+> look at B's _CRS, whereas if we found B first, we'd only look at A's _CRS.
+> 
+> I'm told that Windows discovers host bridge bus numbers using _CRS, so
+> it should be fairly safe to rely on this BIOS functionality.
+> 
+> This patch also removes two misleading messages: we printed the "Wrong _BBN
+> value, reboot and use option 'pci=noacpi'" message before looking at _CRS,
+> so we would likely find the bus number in _CRS, the system would work fine,
+> and the user would be confused.  The "PCI _CRS %d overrides _BBN 0" message
+> incorrectly assumes _BBN was zero, and it's useless anyway because we
+> print the segment/bus number a few lines later.
 
-Well, in some cases we can get an idea - the current AHCI spec has bits 
-in the PxCMD register (External SATA Port and Hot Plug Capable Port) 
-which can indicate which ports are externally accessible and thus are 
-likely to receive hotplug events. Of course, these are supposed to be 
-programmed by the BIOS based on the particular motherboard/machine, and 
-we all know how accurate BIOS-reported information can be..
+Though it might be very stupid question, can I ask you a question?
+
+Is minimum value of PCI bus number range reported by _CRS always
+equal to the bus number of the PCI root bus? I glanced over the
+specs, but I could not confirm it.
+
+Thanks,
+Kenji Kaneshige
+
+
+> 
+> References:
+>     [1] http://www.acpi.info/DOWNLOADS/ACPIspec30b.pdf
+>     [2] http://www.acpi.info/acpi_faq.htm _BBN/_CRS discussion
+>     http://download.microsoft.com/download/9/8/f/98f3fe47-dfc3-4e74-92a3-088782200fe7/TWAR05005_WinHEC05.ppt (slide 17)
+>     http://bugzilla.kernel.org/show_bug.cgi?id=1662 ASUS PR-DLS
+>     http://bugzilla.kernel.org/show_bug.cgi?id=1127 ASUS PR-DLSW
+>     http://bugzilla.kernel.org/show_bug.cgi?id=1741 ASUS PR-DLS533
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Reviewed-by: Alex Chiang <achiang@hp.com>
+> CC: Shaohua Li <shaohua.li@intel.com>
+> CC: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+> ---
+>  drivers/acpi/pci_root.c |   54 ++++++++++++++---------------------------------
+>  1 files changed, 16 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index f341b07..7847732 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -470,12 +470,12 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+>  {
+>  	int result = 0;
+>  	struct acpi_pci_root *root = NULL;
+> -	struct acpi_pci_root *tmp;
+>  	acpi_status status = AE_OK;
+>  	unsigned long long value = 0;
+>  	acpi_handle handle = NULL;
+>  	struct acpi_device *child;
+>  	u32 flags, base_flags;
+> +	int bus;
+>  
+>  
+>  	if (!device)
+> @@ -523,46 +523,24 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+>  	/* 
+>  	 * Bus
+>  	 * ---
+> -	 * Obtained via _BBN, if exists, otherwise assumed to be zero (0).
+> +	 * Check _CRS first, then _BBN.  If no _BBN, default to zero.
+>  	 */
+> -	status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN, NULL,
+> -				       &value);
+> -	switch (status) {
+> -	case AE_OK:
+> -		root->id.bus = (u16) value;
+> -		break;
+> -	case AE_NOT_FOUND:
+> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Assuming bus 0 (no _BBN)\n"));
+> -		root->id.bus = 0;
+> -		break;
+> -	default:
+> -		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BBN"));
+> -		result = -ENODEV;
+> -		goto end;
+> -	}
+> -
+> -	/* Some systems have wrong _BBN */
+> -	list_for_each_entry(tmp, &acpi_pci_roots, node) {
+> -		if ((tmp->id.segment == root->id.segment)
+> -		    && (tmp->id.bus == root->id.bus)) {
+> -			int bus = 0;
+> -			acpi_status status;
+> -
+> -			printk(KERN_ERR PREFIX
+> -				    "Wrong _BBN value, reboot"
+> -				    " and use option 'pci=noacpi'\n");
+> -
+> -			status = try_get_root_bridge_busnr(device->handle, &bus);
+> -			if (ACPI_FAILURE(status))
+> -				break;
+> -			if (bus != root->id.bus) {
+> -				printk(KERN_INFO PREFIX
+> -				       "PCI _CRS %d overrides _BBN 0\n", bus);
+> -				root->id.bus = bus;
+> -			}
+> -			break;
+> +	status = try_get_root_bridge_busnr(device->handle, &bus);
+> +	if (ACPI_SUCCESS(status))
+> +		root->id.bus = bus;
+> +	else {
+> +		status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN,					       NULL, &value);
+> +		if (ACPI_SUCCESS(status))
+> +			root->id.bus = (u16) value;
+> +		else if (status == AE_NOT_FOUND)
+> +			root->id.bus = 0;
+> +		else {
+> +			ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BBN"));
+> +			result = -ENODEV;
+> +			goto end;
+>  		}
+>  	}
+> +
+>  	/*
+>  	 * Device & Function
+>  	 * -----------------
+> 
+> 
+> 
+
+
+
