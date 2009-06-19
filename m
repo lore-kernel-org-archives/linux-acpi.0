@@ -1,175 +1,134 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 1/5] ACPI: pci_root: check _CRS,	then _BBN for downstream
- bus number
-Date: Fri, 19 Jun 2009 12:35:58 +0900
-Message-ID: <4A3B079E.1070903@jp.fujitsu.com>
-References: <20090618203916.15850.7977.stgit@bob.kio> <20090618204647.15850.97454.stgit@bob.kio>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH 00/15] acpi4asus updates
+Date: Fri, 19 Jun 2009 10:28:28 +0200
+Message-ID: <71cd59b00906190128h6de62133o9e8380e1992da59c@mail.gmail.com>
+References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
+	 <alpine.LFD.2.00.0906172241040.8921@localhost.localdomain>
+	 <alpine.LFD.2.00.0906180157380.8921@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:44469 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbZFSDgT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2009 23:36:19 -0400
-Received: from m1.gw.fujitsu.co.jp ([10.0.50.71])
-	by fgwmail6.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id n5J3aKlw004119
-	for <linux-acpi@vger.kernel.org> (envelope-from kaneshige.kenji@jp.fujitsu.com);
-	Fri, 19 Jun 2009 12:36:20 +0900
-Received: from smail (m1 [127.0.0.1])
-	by outgoing.m1.gw.fujitsu.co.jp (Postfix) with ESMTP id 2223345DE4E
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:20 +0900 (JST)
-Received: from s1.gw.fujitsu.co.jp (s1.gw.fujitsu.co.jp [10.0.50.91])
-	by m1.gw.fujitsu.co.jp (Postfix) with ESMTP id E760D45DD71
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:19 +0900 (JST)
-Received: from s1.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
-	by s1.gw.fujitsu.co.jp (Postfix) with ESMTP id B42CDE08003
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:19 +0900 (JST)
-Received: from m108.s.css.fujitsu.com (m108.s.css.fujitsu.com [10.249.87.108])
-	by s1.gw.fujitsu.co.jp (Postfix) with ESMTP id 39AD11DB803A
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 12:36:19 +0900 (JST)
-In-Reply-To: <20090618204647.15850.97454.stgit@bob.kio>
+Received: from mail-fx0-f206.google.com ([209.85.220.206]:55885 "EHLO
+	mail-fx0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbZFSI21 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2009 04:28:27 -0400
+Received: by fxm2 with SMTP id 2so117516fxm.37
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2009 01:28:28 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.0906180157380.8921@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Alex Chiang <achiang@hp.com>, Shaohua Li <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Bjorn Helgaas wrote:
-> To find a host bridge's downstream bus number, we currently look at _BBN
-> first.  If _BBN returns a bus number we've already seen, we conclude that
-> _BBN was wrong and look for a bus number in _CRS.
-> 
-> However, the spec[1] (figure 5-5 and the example in sec 9.12.1) and an ACPI
-> FAQ[2] suggest that the OS should use _CRS to discover the bus number
-> range, and that _BBN is really intended to bootstrap _CRS methods that
-> reference PCI opregions.
-> 
-> This patch makes us always look at _CRS first.  If _CRS doesn't supply a
-> bus number, we look at _BBN.  If _BBN doesn't exist, we default to zero.
-> This makes the behavior consistent regardless of device discovery order.
-> Previously, if A and B had duplicate _BBNs and we found A first, we'd only
-> look at B's _CRS, whereas if we found B first, we'd only look at A's _CRS.
-> 
-> I'm told that Windows discovers host bridge bus numbers using _CRS, so
-> it should be fairly safe to rely on this BIOS functionality.
-> 
-> This patch also removes two misleading messages: we printed the "Wrong _BBN
-> value, reboot and use option 'pci=noacpi'" message before looking at _CRS,
-> so we would likely find the bus number in _CRS, the system would work fine,
-> and the user would be confused.  The "PCI _CRS %d overrides _BBN 0" message
-> incorrectly assumes _BBN was zero, and it's useless anyway because we
-> print the segment/bus number a few lines later.
-
-Though it might be very stupid question, can I ask you a question?
-
-Is minimum value of PCI bus number range reported by _CRS always
-equal to the bus number of the PCI root bus? I glanced over the
-specs, but I could not confirm it.
-
-Thanks,
-Kenji Kaneshige
-
-
-> 
-> References:
->     [1] http://www.acpi.info/DOWNLOADS/ACPIspec30b.pdf
->     [2] http://www.acpi.info/acpi_faq.htm _BBN/_CRS discussion
->     http://download.microsoft.com/download/9/8/f/98f3fe47-dfc3-4e74-92a3-088782200fe7/TWAR05005_WinHEC05.ppt (slide 17)
->     http://bugzilla.kernel.org/show_bug.cgi?id=1662 ASUS PR-DLS
->     http://bugzilla.kernel.org/show_bug.cgi?id=1127 ASUS PR-DLSW
->     http://bugzilla.kernel.org/show_bug.cgi?id=1741 ASUS PR-DLS533
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> Reviewed-by: Alex Chiang <achiang@hp.com>
-> CC: Shaohua Li <shaohua.li@intel.com>
-> CC: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-> ---
->  drivers/acpi/pci_root.c |   54 ++++++++++++++---------------------------------
->  1 files changed, 16 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index f341b07..7847732 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -470,12 +470,12 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  {
->  	int result = 0;
->  	struct acpi_pci_root *root = NULL;
-> -	struct acpi_pci_root *tmp;
->  	acpi_status status = AE_OK;
->  	unsigned long long value = 0;
->  	acpi_handle handle = NULL;
->  	struct acpi_device *child;
->  	u32 flags, base_flags;
-> +	int bus;
->  
->  
->  	if (!device)
-> @@ -523,46 +523,24 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->  	/* 
->  	 * Bus
->  	 * ---
-> -	 * Obtained via _BBN, if exists, otherwise assumed to be zero (0).
-> +	 * Check _CRS first, then _BBN.  If no _BBN, default to zero.
->  	 */
-> -	status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN, NULL,
-> -				       &value);
-> -	switch (status) {
-> -	case AE_OK:
-> -		root->id.bus = (u16) value;
-> -		break;
-> -	case AE_NOT_FOUND:
-> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Assuming bus 0 (no _BBN)\n"));
-> -		root->id.bus = 0;
-> -		break;
-> -	default:
-> -		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BBN"));
-> -		result = -ENODEV;
-> -		goto end;
-> -	}
-> -
-> -	/* Some systems have wrong _BBN */
-> -	list_for_each_entry(tmp, &acpi_pci_roots, node) {
-> -		if ((tmp->id.segment == root->id.segment)
-> -		    && (tmp->id.bus == root->id.bus)) {
-> -			int bus = 0;
-> -			acpi_status status;
-> -
-> -			printk(KERN_ERR PREFIX
-> -				    "Wrong _BBN value, reboot"
-> -				    " and use option 'pci=noacpi'\n");
-> -
-> -			status = try_get_root_bridge_busnr(device->handle, &bus);
-> -			if (ACPI_FAILURE(status))
-> -				break;
-> -			if (bus != root->id.bus) {
-> -				printk(KERN_INFO PREFIX
-> -				       "PCI _CRS %d overrides _BBN 0\n", bus);
-> -				root->id.bus = bus;
-> -			}
-> -			break;
-> +	status = try_get_root_bridge_busnr(device->handle, &bus);
-> +	if (ACPI_SUCCESS(status))
-> +		root->id.bus = bus;
-> +	else {
-> +		status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN,					       NULL, &value);
-> +		if (ACPI_SUCCESS(status))
-> +			root->id.bus = (u16) value;
-> +		else if (status == AE_NOT_FOUND)
-> +			root->id.bus = 0;
-> +		else {
-> +			ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BBN"));
-> +			result = -ENODEV;
-> +			goto end;
->  		}
->  	}
-> +
->  	/*
->  	 * Device & Function
->  	 * -----------------
-> 
-> 
-> 
+On Thu, Jun 18, 2009 at 8:21 AM, Len Brown<lenb@kernel.org> wrote:
+>> applied
+>
+> This series was okay in my 2.6.30-based test tree -- modulo
+> a simple conflict with Bjorn's .notify patch. =A0But there are more
+> conflicts when merged up w/ Linus in preparation for a push
+> due to the rfkill changes that are upstream:-(
+>
+> I got lost trying to merge that branch on top of Linus's tree --
+> git merges do all the branch conflicts at once rather than
+> patch-by-patch, so I quickly lost track of which line was
+> from which patch.
+>
+> So I abandoned the 2.6.30-based asus branch in my test tree
+> and instead created a new asus branch on top of my release
+> tree, which contains Linus' latest, bjorn's .notifiy series;
+> and I simply took the (6) patches in the series that applied
+> cleanly and skipped the ones that did not.
+>
+> Corentin,
+> If you can refresh the skipped patches below (or simply the whole ser=
+ies)
+> so it applies on top of my test or release trees, that would be great=
+=2E
+>
+> thanks,
+> -Len
+>
+>
+> Subject: [01/15] eeepc-laptop: Register as a pci-hotplug device
+>
+> skipped
+>
+> Subject: [02/15] eeepc: fix kconfig selects
+>
+> skipped
+>
+> Subject: [03/15] eeepc-laptop.c: use pr_fmt and pr_<level>
+>
+> skipped
+>
+> Subject: [04/15] eeepc-laptop: enable camera by default
+>
+> applied
+>
+> Subject: [05/15] asus-laptop: platform dev as parent for led and back=
+light
+>
+> applied
+>
+> Subject: [06/15] acpi4asus: update MAINTAINER and KConfig links
+>
+> applied
+>
+> Subject: [07/15] asus_acpi: Deprecate in favor of asus-laptop
+>
+> applied
+>
+> Subject: [08/15] asus-laptop: use pr_fmt and pr_<level>
+>
+> skipped
+>
+> Subject: [09/15] eeepc-laptop: rfkill refactoring
+>
+> skipped
+>
+> Subject: [10/15] eeepc-laptop: right parent device
+>
+> skipped
+>
+> Subject: [11/15] eeepc-laptop: sync eeepc-laptop with asus_acpi
+>
+> applied
+>
+> Subject: [12/15] eeepc-laptop: makes get_acpi() returns -ENODEV
+>
+> skipped
+>
+> Subject: [13/15] eeepc-laptop: get the right value for CMSG
+>
+> skipped
+>
+> Subject: [14/15] eeepc-laptop: add rfkill support for the 3G modem in=
+ Eee PC
+>
+> skipped
+>
+> Subject: [15/15] eeepc-laptop: cpufv updates
+>
+> applied.
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
 
+Hi,
+Working on it, will send fixed patches soon.
 
+--=20
+Corentin Chary
+http://xf.iksaif.net - http://uffs.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
