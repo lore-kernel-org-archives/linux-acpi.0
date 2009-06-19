@@ -1,219 +1,152 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 4/9] ACPI: processor: move acpi_processor_start() after
-	acpi_processor_add()
-Date: Fri, 19 Jun 2009 15:31:54 -0600
-Message-ID: <20090619213154.18001.7468.stgit@bob.kio>
+Subject: [PATCH 5/9] ACPI: processor: remove .start() method
+Date: Fri, 19 Jun 2009 15:31:59 -0600
+Message-ID: <20090619213159.18001.67811.stgit@bob.kio>
 References: <20090619213038.18001.16533.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:16579 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754179AbZFSVbv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2009 17:31:51 -0400
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:43837 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754048AbZFSVb5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2009 17:31:57 -0400
 In-Reply-To: <20090619213038.18001.16533.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, Alex Chiang <achiang@hp.com>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Move acpi_processor_start() to just after acpi_processor_add().
-A subsequent patch will merge them.
+This patch folds the .start() method into .add().
 
-Code movement only; no functional change.
+acpi_processor_start() is always called immediately after
+acpi_processor_add(), so there's really no point in having them be
+separate methods.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Reviewed-by: Alex Chiang <achiang@hp.com>
 CC: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 CC: Zhao Yakui <yakui.zhao@intel.com>
 ---
- drivers/acpi/processor_core.c |  168 +++++++++++++++++++++--------------------
- 1 files changed, 84 insertions(+), 84 deletions(-)
+ drivers/acpi/processor_core.c |   44 +++++++----------------------------------
+ 1 files changed, 7 insertions(+), 37 deletions(-)
 
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 11ff257..5335ab6 100644
+index 5335ab6..3348c04 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -689,6 +689,90 @@ static int acpi_processor_get_info(struct acpi_device *device)
+@@ -79,7 +79,6 @@ MODULE_DESCRIPTION("ACPI Processor Driver");
+ MODULE_LICENSE("GPL");
  
- static DEFINE_PER_CPU(void *, processor_device_array);
- 
-+static void acpi_processor_notify(struct acpi_device *device, u32 event)
-+{
-+	struct acpi_processor *pr = acpi_driver_data(device);
-+	int saved;
-+
-+	if (!pr)
-+		return;
-+
-+	switch (event) {
-+	case ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
-+		saved = pr->performance_platform_limit;
-+		acpi_processor_ppc_has_changed(pr);
-+		if (saved == pr->performance_platform_limit)
-+			break;
-+		acpi_bus_generate_proc_event(device, event,
-+					pr->performance_platform_limit);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  dev_name(&device->dev), event,
-+						  pr->performance_platform_limit);
-+		break;
-+	case ACPI_PROCESSOR_NOTIFY_POWER:
-+		acpi_processor_cst_has_changed(pr);
-+		acpi_bus_generate_proc_event(device, event, 0);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  dev_name(&device->dev), event, 0);
-+		break;
-+	case ACPI_PROCESSOR_NOTIFY_THROTTLING:
-+		acpi_processor_tstate_has_changed(pr);
-+		acpi_bus_generate_proc_event(device, event, 0);
-+		acpi_bus_generate_netlink_event(device->pnp.device_class,
-+						  dev_name(&device->dev), event, 0);
-+	default:
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "Unsupported event [0x%x]\n", event));
-+		break;
-+	}
-+
-+	return;
-+}
-+
-+static int acpi_cpu_soft_notify(struct notifier_block *nfb,
-+		unsigned long action, void *hcpu)
-+{
-+	unsigned int cpu = (unsigned long)hcpu;
-+	struct acpi_processor *pr = per_cpu(processors, cpu);
-+
-+	if (action == CPU_ONLINE && pr) {
-+		acpi_processor_ppc_has_changed(pr);
-+		acpi_processor_cst_has_changed(pr);
-+		acpi_processor_tstate_has_changed(pr);
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block acpi_cpu_notifier =
-+{
-+	    .notifier_call = acpi_cpu_soft_notify,
-+};
-+
-+static int acpi_processor_add(struct acpi_device *device)
-+{
-+	struct acpi_processor *pr = NULL;
-+
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
-+	if (!pr)
-+		return -ENOMEM;
-+
-+	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
-+		kfree(pr);
-+		return -ENOMEM;
-+	}
-+
-+	pr->handle = device->handle;
-+	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
-+	device->driver_data = pr;
-+
-+	return 0;
-+}
-+
- static int __cpuinit acpi_processor_start(struct acpi_device *device)
+ static int acpi_processor_add(struct acpi_device *device);
+-static int acpi_processor_start(struct acpi_device *device);
+ static int acpi_processor_remove(struct acpi_device *device, int type);
+ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
+ static void acpi_processor_notify(struct acpi_device *device, u32 event);
+@@ -101,7 +100,6 @@ static struct acpi_driver acpi_processor_driver = {
+ 	.ops = {
+ 		.add = acpi_processor_add,
+ 		.remove = acpi_processor_remove,
+-		.start = acpi_processor_start,
+ 		.suspend = acpi_processor_suspend,
+ 		.resume = acpi_processor_resume,
+ 		.notify = acpi_processor_notify,
+@@ -751,10 +749,8 @@ static struct notifier_block acpi_cpu_notifier =
+ static int acpi_processor_add(struct acpi_device *device)
  {
- 	int result = 0;
-@@ -789,90 +873,6 @@ err_remove_fs:
- 	return result;
- }
- 
--static void acpi_processor_notify(struct acpi_device *device, u32 event)
--{
--	struct acpi_processor *pr = acpi_driver_data(device);
--	int saved;
--
--	if (!pr)
--		return;
--
--	switch (event) {
--	case ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
--		saved = pr->performance_platform_limit;
--		acpi_processor_ppc_has_changed(pr);
--		if (saved == pr->performance_platform_limit)
--			break;
--		acpi_bus_generate_proc_event(device, event,
--					pr->performance_platform_limit);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event,
--						  pr->performance_platform_limit);
--		break;
--	case ACPI_PROCESSOR_NOTIFY_POWER:
--		acpi_processor_cst_has_changed(pr);
--		acpi_bus_generate_proc_event(device, event, 0);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
--		break;
--	case ACPI_PROCESSOR_NOTIFY_THROTTLING:
--		acpi_processor_tstate_has_changed(pr);
--		acpi_bus_generate_proc_event(device, event, 0);
--		acpi_bus_generate_netlink_event(device->pnp.device_class,
--						  dev_name(&device->dev), event, 0);
--	default:
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--				  "Unsupported event [0x%x]\n", event));
--		break;
--	}
--
--	return;
--}
--
--static int acpi_cpu_soft_notify(struct notifier_block *nfb,
--		unsigned long action, void *hcpu)
--{
--	unsigned int cpu = (unsigned long)hcpu;
--	struct acpi_processor *pr = per_cpu(processors, cpu);
--
--	if (action == CPU_ONLINE && pr) {
--		acpi_processor_ppc_has_changed(pr);
--		acpi_processor_cst_has_changed(pr);
--		acpi_processor_tstate_has_changed(pr);
--	}
--	return NOTIFY_OK;
--}
--
--static struct notifier_block acpi_cpu_notifier =
--{
--	    .notifier_call = acpi_cpu_soft_notify,
--};
--
--static int acpi_processor_add(struct acpi_device *device)
--{
--	struct acpi_processor *pr = NULL;
+ 	struct acpi_processor *pr = NULL;
 -
 -
 -	if (!device)
 -		return -EINVAL;
--
--	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
--	if (!pr)
--		return -ENOMEM;
--
--	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
--		kfree(pr);
--		return -ENOMEM;
--	}
--
--	pr->handle = device->handle;
--	strcpy(acpi_device_name(device), ACPI_PROCESSOR_DEVICE_NAME);
--	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
--	device->driver_data = pr;
--
++	int result = 0;
++	struct sys_device *sysdev;
+ 
+ 	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
+ 	if (!pr)
+@@ -770,17 +766,6 @@ static int acpi_processor_add(struct acpi_device *device)
+ 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
+ 	device->driver_data = pr;
+ 
 -	return 0;
 -}
 -
- static int acpi_processor_remove(struct acpi_device *device, int type)
+-static int __cpuinit acpi_processor_start(struct acpi_device *device)
+-{
+-	int result = 0;
+-	struct acpi_processor *pr;
+-	struct sys_device *sysdev;
+-
+-	pr = acpi_driver_data(device);
+-
+ 	result = acpi_processor_get_info(device);
+ 	if (result) {
+ 		/* Processor is physically not present */
+@@ -798,7 +783,8 @@ static int __cpuinit acpi_processor_start(struct acpi_device *device)
+ 	    per_cpu(processor_device_array, pr->id) != device) {
+ 		printk(KERN_WARNING "BIOS reported wrong ACPI id "
+ 			"for the processor\n");
+-		return -ENODEV;
++		result = -ENODEV;
++		goto err_free_cpumask;
+ 	}
+ 	per_cpu(processor_device_array, pr->id) = device;
+ 
+@@ -806,7 +792,7 @@ static int __cpuinit acpi_processor_start(struct acpi_device *device)
+ 
+ 	result = acpi_processor_add_fs(device);
+ 	if (result)
+-		return result;
++		goto err_free_cpumask;
+ 
+ 	sysdev = get_cpu_sysdev(pr->id);
+ 	if (sysfs_create_link(&device->dev.kobj, &sysdev->kobj, "sysdev")) {
+@@ -869,6 +855,8 @@ err_power_exit:
+ 	acpi_processor_power_exit(pr, device);
+ err_remove_fs:
+ 	acpi_processor_remove_fs(device);
++err_free_cpumask:
++	free_cpumask_var(pr->throttling.shared_cpu_map);
+ 
+ 	return result;
+ }
+@@ -947,7 +935,6 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
  {
- 	struct acpi_processor *pr = NULL;
+ 	acpi_handle phandle;
+ 	struct acpi_device *pdev;
+-	struct acpi_processor *pr;
+ 
+ 
+ 	if (acpi_get_parent(handle, &phandle)) {
+@@ -962,12 +949,6 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+ 		return -ENODEV;
+ 	}
+ 
+-	acpi_bus_start(*device);
+-
+-	pr = acpi_driver_data(*device);
+-	if (!pr)
+-		return -ENODEV;
+-
+ 	return 0;
+ }
+ 
+@@ -997,17 +978,6 @@ static void __ref acpi_processor_hotplug_notify(acpi_handle handle,
+ 					    "Unable to add the device\n");
+ 			break;
+ 		}
+-
+-		pr = acpi_driver_data(device);
+-		if (!pr) {
+-			printk(KERN_ERR PREFIX "Driver data is NULL\n");
+-			break;
+-		}
+-
+-		result = acpi_processor_start(device);
+-		if (result)
+-			printk(KERN_ERR PREFIX "Device [%s] failed to start\n",
+-				    acpi_device_bid(device));
+ 		break;
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 
