@@ -1,33 +1,38 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 1/9] asus-laptop: use pr_fmt and pr_<level>
-Date: Fri, 19 Jun 2009 14:52:03 +0200
-Message-ID: <1245415931-26466-1-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 3/9] eeepc-laptop.c: use pr_fmt and pr_<level>
+Date: Fri, 19 Jun 2009 14:52:05 +0200
+Message-ID: <1245415931-26466-3-git-send-email-corentincj@iksaif.net>
 References: <alpine.LFD.2.00.0906180157380.8921@localhost.localdomain>
+ <1245415931-26466-1-git-send-email-corentincj@iksaif.net>
+ <1245415931-26466-2-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp21.orange.fr ([80.12.242.49]:23049 "EHLO smtp21.orange.fr"
+Received: from smtp21.orange.fr ([80.12.242.49]:23064 "EHLO smtp21.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752869AbZFSMyl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752549AbZFSMyl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Fri, 19 Jun 2009 08:54:41 -0400
-In-Reply-To: <alpine.LFD.2.00.0906180157380.8921@localhost.localdomain>
+In-Reply-To: <1245415931-26466-2-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Joe Perches <joe@perches.com>, Corentin Chary <corentincj@iksaif.net>
 
-Convert the unusual printk(ASUS_<level> uses to
+From: Joe Perches <joe@perches.com>
+
+Convert the unusual printk(EEEPC_<level> uses to
 the more standard pr_fmt and pr_<level>(.
 
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/asus-laptop.c |   50 ++++++++++++++++++-----------------
- 1 files changed, 26 insertions(+), 24 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   55 ++++++++++++++---------------------
+ 1 files changed, 22 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index faa87d3..db657bb 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -33,6 +33,8 @@
-  *  Sam Lin        - GPS support
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 870fd1e..20e264f 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -16,6 +16,8 @@
+  *  GNU General Public License for more details.
   */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -35,207 +40,179 @@ index faa87d3..db657bb 100644
  #include <linux/kernel.h>
  #include <linux/module.h>
  #include <linux/init.h>
-@@ -53,9 +55,10 @@
- #define ASUS_HOTK_NAME          "Asus Laptop Support"
- #define ASUS_HOTK_CLASS         "hotkey"
- #define ASUS_HOTK_DEVICE_NAME   "Hotkey"
--#define ASUS_HOTK_FILE          "asus-laptop"
-+#define ASUS_HOTK_FILE          KBUILD_MODNAME
- #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
+@@ -41,11 +43,6 @@
+ #define EEEPC_HOTK_DEVICE_NAME	"Hotkey"
+ #define EEEPC_HOTK_HID		"ASUS010"
  
-+
+-#define EEEPC_LOG	EEEPC_HOTK_FILE ": "
+-#define EEEPC_ERR	KERN_ERR	EEEPC_LOG
+-#define EEEPC_WARNING	KERN_WARNING	EEEPC_LOG
+-#define EEEPC_NOTICE	KERN_NOTICE	EEEPC_LOG
+-#define EEEPC_INFO	KERN_INFO	EEEPC_LOG
+ 
  /*
-  * Some events we use, same for all Asus
-  */
-@@ -327,7 +330,7 @@ static int read_wireless_status(int mask)
- 
- 	rv = acpi_evaluate_integer(wireless_status_handle, NULL, NULL, &status);
- 	if (ACPI_FAILURE(rv))
--		printk(ASUS_WARNING "Error reading Wireless status\n");
-+		pr_warning("Error reading Wireless status\n");
- 	else
- 		return (status & mask) ? 1 : 0;
- 
-@@ -341,7 +344,7 @@ static int read_gps_status(void)
- 
- 	rv = acpi_evaluate_integer(gps_status_handle, NULL, NULL, &status);
- 	if (ACPI_FAILURE(rv))
--		printk(ASUS_WARNING "Error reading GPS status\n");
-+		pr_warning("Error reading GPS status\n");
- 	else
- 		return status ? 1 : 0;
- 
-@@ -381,7 +384,7 @@ static void write_status(acpi_handle handle, int out, int mask)
+  * Definitions for Asus EeePC
+@@ -283,7 +280,7 @@ static int set_acpi(int cm, int value)
+ 		if (method == NULL)
+ 			return -ENODEV;
+ 		if (write_acpi_int(ehotk->handle, method, value, NULL))
+-			printk(EEEPC_WARNING "Error writing %s\n", method);
++			pr_warning("Error writing %s\n", method);
  	}
- 
- 	if (write_acpi_int(handle, NULL, out, NULL))
--		printk(ASUS_WARNING " write failed %x\n", mask);
-+		pr_warning(" write failed %x\n", mask);
+ 	return 0;
  }
- 
- /* /sys/class/led handlers */
-@@ -424,7 +427,7 @@ static int set_lcd_state(int value)
- 					      NULL, NULL, NULL);
- 
- 		if (ACPI_FAILURE(status))
--			printk(ASUS_WARNING "Error switching LCD\n");
-+			pr_warning("Error switching LCD\n");
+@@ -296,7 +293,7 @@ static int get_acpi(int cm)
+ 		if (method == NULL)
+ 			return -ENODEV;
+ 		if (read_acpi_int(ehotk->handle, method, &value))
+-			printk(EEEPC_WARNING "Error reading %s\n", method);
++			pr_warning("Error reading %s\n", method);
  	}
- 
- 	write_status(NULL, lcd, LCD_ON);
-@@ -448,7 +451,7 @@ static int read_brightness(struct backlight_device *bd)
- 
- 	rv = acpi_evaluate_integer(brightness_get_handle, NULL, NULL, &value);
- 	if (ACPI_FAILURE(rv))
--		printk(ASUS_WARNING "Error reading brightness\n");
-+		pr_warning("Error reading brightness\n");
- 
  	return value;
  }
-@@ -461,7 +464,7 @@ static int set_brightness(struct backlight_device *bd, int value)
- 	/* 0 <= value <= 15 */
- 
- 	if (write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
--		printk(ASUS_WARNING "Error changing brightness\n");
-+		pr_warning("Error changing brightness\n");
- 		ret = -EIO;
- 	}
- 
-@@ -591,7 +594,7 @@ static ssize_t store_ledd(struct device *dev, struct device_attribute *attr,
- 	rv = parse_arg(buf, count, &value);
- 	if (rv > 0) {
- 		if (write_acpi_int(ledd_set_handle, NULL, value, NULL))
--			printk(ASUS_WARNING "LED display write failed\n");
-+			pr_warning("LED display write failed\n");
- 		else
- 			hotk->ledd_status = (u32) value;
- 	}
-@@ -636,7 +639,7 @@ static void set_display(int value)
- {
- 	/* no sanity check needed for now */
- 	if (write_acpi_int(display_set_handle, NULL, value, NULL))
--		printk(ASUS_WARNING "Error setting display\n");
-+		pr_warning("Error setting display\n");
- 	return;
- }
- 
-@@ -651,7 +654,7 @@ static int read_display(void)
- 		rv = acpi_evaluate_integer(display_get_handle, NULL,
- 					   NULL, &value);
- 		if (ACPI_FAILURE(rv))
--			printk(ASUS_WARNING "Error reading display status\n");
-+			pr_warning("Error reading display status\n");
- 	}
- 
- 	value &= 0x0F;		/* needed for some models, shouldn't hurt others */
-@@ -693,7 +696,7 @@ static ssize_t store_disp(struct device *dev, struct device_attribute *attr,
- static void set_light_sens_switch(int value)
- {
- 	if (write_acpi_int(ls_switch_handle, NULL, value, NULL))
--		printk(ASUS_WARNING "Error setting light sensor switch\n");
-+		pr_warning("Error setting light sensor switch\n");
- 	hotk->light_switch = value;
- }
- 
-@@ -718,7 +721,7 @@ static ssize_t store_lssw(struct device *dev, struct device_attribute *attr,
- static void set_light_sens_level(int value)
- {
- 	if (write_acpi_int(ls_level_handle, NULL, value, NULL))
--		printk(ASUS_WARNING "Error setting light sensor level\n");
-+		pr_warning("Error setting light sensor level\n");
- 	hotk->light_level = value;
- }
- 
-@@ -979,11 +982,11 @@ static int asus_hotk_get_info(void)
- 	 */
- 	status = acpi_get_table(ACPI_SIG_DSDT, 1, &asus_info);
- 	if (ACPI_FAILURE(status))
--		printk(ASUS_WARNING "Couldn't get the DSDT table header\n");
-+		pr_warning("Couldn't get the DSDT table header\n");
- 
- 	/* We have to write 0 on init this far for all ASUS models */
- 	if (write_acpi_int(hotk->handle, "INIT", 0, &buffer)) {
--		printk(ASUS_ERR "Hotkey initialization failed\n");
-+		pr_err("Hotkey initialization failed\n");
- 		return -ENODEV;
- 	}
- 
-@@ -991,9 +994,9 @@ static int asus_hotk_get_info(void)
- 	status =
- 	    acpi_evaluate_integer(hotk->handle, "BSTS", NULL, &bsts_result);
- 	if (ACPI_FAILURE(status))
--		printk(ASUS_WARNING "Error calling BSTS\n");
-+		pr_warning("Error calling BSTS\n");
- 	else if (bsts_result)
--		printk(ASUS_NOTICE "BSTS called, 0x%02x returned\n",
-+		pr_notice("BSTS called, 0x%02x returned\n",
- 		       (uint) bsts_result);
- 
- 	/* This too ... */
-@@ -1024,7 +1027,7 @@ static int asus_hotk_get_info(void)
- 		return -ENOMEM;
- 
- 	if (*string)
--		printk(ASUS_NOTICE "  %s model detected\n", string);
-+		pr_notice("  %s model detected\n", string);
- 
- 	ASUS_HANDLE_INIT(mled_set);
- 	ASUS_HANDLE_INIT(tled_set);
-@@ -1081,7 +1084,7 @@ static int asus_input_init(void)
- 
- 	hotk->inputdev = input_allocate_device();
- 	if (!hotk->inputdev) {
--		printk(ASUS_INFO "Unable to allocate input device\n");
-+		pr_info("Unable to allocate input device\n");
- 		return 0;
- 	}
- 	hotk->inputdev->name = "Asus Laptop extra buttons";
-@@ -1100,7 +1103,7 @@ static int asus_input_init(void)
- 	}
- 	result = input_register_device(hotk->inputdev);
- 	if (result) {
--		printk(ASUS_INFO "Unable to register input device\n");
-+		pr_info("Unable to register input device\n");
- 		input_free_device(hotk->inputdev);
- 	}
- 	return result;
-@@ -1117,7 +1120,7 @@ static int asus_hotk_check(void)
- 	if (hotk->device->status.present) {
- 		result = asus_hotk_get_info();
+@@ -560,26 +557,23 @@ static int eeepc_hotk_check(void)
+ 	if (ehotk->device->status.present) {
+ 		if (write_acpi_int(ehotk->handle, "INIT", ehotk->init_flag,
+ 				    &buffer)) {
+-			printk(EEEPC_ERR "Hotkey initialization failed\n");
++			pr_err("Hotkey initialization failed\n");
+ 			return -ENODEV;
+ 		} else {
+-			printk(EEEPC_NOTICE "Hotkey init flags 0x%x\n",
+-			       ehotk->init_flag);
++			pr_notice("Hotkey init flags 0x%x\n", ehotk->init_flag);
+ 		}
+ 		/* get control methods supported */
+ 		if (read_acpi_int(ehotk->handle, "CMSG"
+ 				   , &ehotk->cm_supported)) {
+-			printk(EEEPC_ERR
+-			       "Get control methods supported failed\n");
++			pr_err("Get control methods supported failed\n");
+ 			return -ENODEV;
+ 		} else {
+-			printk(EEEPC_INFO
+-			       "Get control methods supported: 0x%x\n",
+-			       ehotk->cm_supported);
++			pr_info("Get control methods supported: 0x%x\n",
++				ehotk->cm_supported);
+ 		}
+ 		ehotk->inputdev = input_allocate_device();
+ 		if (!ehotk->inputdev) {
+-			printk(EEEPC_INFO "Unable to allocate input device\n");
++			pr_info("Unable to allocate input device\n");
+ 			return 0;
+ 		}
+ 		ehotk->inputdev->name = "Asus EeePC extra buttons";
+@@ -598,12 +592,12 @@ static int eeepc_hotk_check(void)
+ 		}
+ 		result = input_register_device(ehotk->inputdev);
+ 		if (result) {
+-			printk(EEEPC_INFO "Unable to register input device\n");
++			pr_info("Unable to register input device\n");
+ 			input_free_device(ehotk->inputdev);
+ 			return 0;
+ 		}
  	} else {
--		printk(ASUS_ERR "Hotkey device not present, aborting\n");
+-		printk(EEEPC_ERR "Hotkey device not present, aborting\n");
 +		pr_err("Hotkey device not present, aborting\n");
  		return -EINVAL;
  	}
+ 	return 0;
+@@ -644,7 +638,7 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+ 		return;
  
-@@ -1133,7 +1136,7 @@ static int asus_hotk_add(struct acpi_device *device)
- 	if (!device)
- 		return -EINVAL;
+ 	if (!bus) {
+-		printk(EEEPC_WARNING "Unable to find PCI bus 1?\n");
++		pr_warning("Unable to find PCI bus 1?\n");
+ 		return;
+ 	}
  
--	printk(ASUS_NOTICE "Asus Laptop Support version %s\n",
-+	pr_notice("Asus Laptop Support version %s\n",
- 	       ASUS_LAPTOP_VERSION);
- 
- 	hotk = kzalloc(sizeof(struct asus_hotk), GFP_KERNEL);
-@@ -1247,8 +1250,7 @@ static int asus_backlight_init(struct device *dev)
- 		bd = backlight_device_register(ASUS_HOTK_FILE, dev,
- 					       NULL, &asusbl_ops);
- 		if (IS_ERR(bd)) {
--			printk(ASUS_ERR
--			       "Could not register asus backlight device\n");
-+			pr_err("Could not register asus backlight device\n");
- 			asus_backlight_device = NULL;
- 			return PTR_ERR(bd);
+@@ -660,7 +654,7 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+ 		if (dev) {
+ 			pci_bus_assign_resources(bus);
+ 			if (pci_bus_add_device(dev))
+-				printk(EEEPC_ERR "Unable to hotplug wifi\n");
++				pr_err("Unable to hotplug wifi\n");
  		}
-@@ -1375,7 +1377,7 @@ static int __init asus_laptop_init(void)
+ 	} else {
+ 		dev = pci_get_slot(bus, 0);
+@@ -735,8 +729,7 @@ static int eeepc_register_rfkill_notifier(char *node)
+ 						     eeepc_rfkill_notify,
+ 						     NULL);
+ 		if (ACPI_FAILURE(status))
+-			printk(EEEPC_WARNING
+-			       "Failed to register notify on %s\n", node);
++			pr_warning("Failed to register notify on %s\n", node);
+ 	} else
+ 		return -ENODEV;
+ 
+@@ -755,8 +748,7 @@ static void eeepc_unregister_rfkill_notifier(char *node)
+ 						     ACPI_SYSTEM_NOTIFY,
+ 						     eeepc_rfkill_notify);
+ 		if (ACPI_FAILURE(status))
+-			printk(EEEPC_ERR
+-			       "Error removing rfkill notify handler %s\n",
++			pr_err("Error removing rfkill notify handler %s\n",
+ 				node);
+ 	}
+ }
+@@ -773,7 +765,7 @@ static int eeepc_setup_pci_hotplug(void)
+ 	struct pci_bus *bus = pci_find_bus(0, 1);
+ 
+ 	if (!bus) {
+-		printk(EEEPC_ERR "Unable to find wifi PCI bus\n");
++		pr_err("Unable to find wifi PCI bus\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -794,7 +786,7 @@ static int eeepc_setup_pci_hotplug(void)
+ 
+ 	ret = pci_hp_register(ehotk->hotplug_slot, bus, 0, "eeepc-wifi");
+ 	if (ret) {
+-		printk(EEEPC_ERR "Unable to register hotplug slot - %d\n", ret);
++		pr_err("Unable to register hotplug slot - %d\n", ret);
+ 		goto error_register;
+ 	}
+ 
+@@ -815,7 +807,7 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 
+ 	if (!device)
+ 		 return -EINVAL;
+-	printk(EEEPC_NOTICE EEEPC_HOTK_NAME "\n");
++	pr_notice(EEEPC_HOTK_NAME "\n");
+ 	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
+ 	if (!ehotk)
+ 		return -ENOMEM;
+@@ -1071,8 +1063,7 @@ static int eeepc_backlight_init(struct device *dev)
+ 	bd = backlight_device_register(EEEPC_HOTK_FILE, dev,
+ 				       NULL, &eeepcbl_ops);
+ 	if (IS_ERR(bd)) {
+-		printk(EEEPC_ERR
+-		       "Could not register eeepc backlight device\n");
++		pr_err("Could not register eeepc backlight device\n");
+ 		eeepc_backlight_device = NULL;
+ 		return PTR_ERR(bd);
+ 	}
+@@ -1091,8 +1082,7 @@ static int eeepc_hwmon_init(struct device *dev)
+ 
+ 	hwmon = hwmon_device_register(dev);
+ 	if (IS_ERR(hwmon)) {
+-		printk(EEEPC_ERR
+-		       "Could not register eeepc hwmon device\n");
++		pr_err("Could not register eeepc hwmon device\n");
+ 		eeepc_hwmon_device = NULL;
+ 		return PTR_ERR(hwmon);
+ 	}
+@@ -1125,8 +1115,7 @@ static int __init eeepc_laptop_init(void)
  		if (result)
  			goto fail_backlight;
  	} else
--		printk(ASUS_INFO "Brightness ignored, must be controlled by "
-+		pr_info("Brightness ignored, must be controlled by "
- 		       "ACPI video driver\n");
+-		printk(EEEPC_INFO "Backlight controlled by ACPI video "
+-		       "driver\n");
++		pr_info("Backlight controlled by ACPI video driver\n");
  
- 	return 0;
+ 	result = eeepc_hwmon_init(dev);
+ 	if (result)
 -- 
 1.6.3.1
 
