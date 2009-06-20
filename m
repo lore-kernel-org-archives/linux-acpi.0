@@ -1,68 +1,51 @@
-From: ingosbox@web.de
-Subject: acpi on lenovo ideapad s10e
-Date: Sat, 20 Jun 2009 15:56:07 +0200
-Message-ID: <188003802@web.de>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [patch update 2 fix] PM: Introduce core framework
+ for run-time PM of I/O devices
+Date: Sat, 20 Jun 2009 10:30:48 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906201010590.12994-100000@netrider.rowland.org>
+References: <Pine.LNX.4.44L0.0906192141380.4003-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate05.web.de ([217.72.192.243]:38590 "EHLO
-	fmmailgate05.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383AbZFTN4G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jun 2009 09:56:06 -0400
-Received: from web.de
-	by fmmailgate05.web.de (Postfix) with SMTP id B10415C208ED
-	for <linux-acpi@vger.kernel.org>; Sat, 20 Jun 2009 15:56:08 +0200 (CEST)
+Received: from netrider.rowland.org ([192.131.102.5]:39548 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752819AbZFTOap (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jun 2009 10:30:45 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906192141380.4003-100000@netrider.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Magnus Damm <magnus.damm@gmail.com>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-Jun 20 15:43:02 localhost kernel: [    0.257787] ACPI: BIOS _OSI(Linux)=
- query ignored
-Jun 20 15:43:02 localhost kernel: [    0.257867] ACPI: DMI System Vendo=
-r: LENOVO
+Some more thoughts...
 
-Jun 20 15:43:02 localhost kernel: [    0.257945] ACPI: DMI Product Name=
-: 40682RG
-Jun 20 15:43:02 localhost kernel: [    0.258018] ACPI: DMI Product Vers=
-ion: Lenovo
+Magnus, you might have some insights here.  It occurred to me that some 
+devices can switch power levels very quickly, and the drivers might 
+therefore want the runtime suspend and resume methods to be called as 
+soon as possible, even in interrupt context.
 
-Jun 20 15:43:02 localhost kernel: [    0.258094] ACPI: DMI Board Name: =
-Kuril
+In terms of the current framework, this probably means holding the
+runtime PM lock (i.e., not releasing it) across the calls to
+->runtime_suspend and ->runtime_resume.  It also means that
+pm_request_suspend and pm_request_resume should carry out their jobs
+immediately instead of queuing a work item.  (Unless the current status 
+is RPM_SUSPENDING or RPM_RESUMING, which should never happen.)
 
-Jun 20 15:43:02 localhost kernel: [    0.258171] ACPI: DMI BIOS Vendor:=
- LENOVO
-Jun 20 15:43:02 localhost kernel: [    0.258243] ACPI: DMI BIOS Date: 0=
-4/29/2009
-Jun 20 15:43:02 localhost kernel: [    0.258315] ACPI: Please send DMI =
-info above to linux-acpi@vge
-r.kernel.org
-Jun 20 15:43:02 localhost kernel: [    0.258393] ACPI: If "acpi_osi=3DL=
-inux" works better, please not
-ify linux-acpi@vger.kernel.org
-Jun 20 15:43:02 localhost kernel: [    0.259591] ACPI: Interpreter enab=
-led
-Jun 20 15:43:02 localhost kernel: [    0.259664] ACPI: (supports S0 S3 =
-S4 S5)
-Jun 20 15:43:02 localhost kernel: [    0.259929] ACPI: Using IOAPIC for=
- interrupt routing
-Jun 20 15:43:02 localhost kernel: [    0.264016] ACPI: EC: non-query in=
-terrupt received, switching
-to interrupt mode
-Jun 20 15:43:02 localhost kernel: [    0.324020] ACPI: EC: GPE =3D 0x17=
-, I/O: command/status =3D 0x66,
-data =3D 0x62
-Jun 20 15:43:02 localhost kernel: [    0.324020] ACPI: EC: driver start=
-ed in interrupt mode
-Jun 20 15:43:02 localhost kernel: [    0.324020] ACPI: PCI Root Bridge =
-[PCI0] (0000:00)
+Should there be a flag in dev_pm_info to select this behavior?
 
-___________________________________________________________________
-WEB.DE FreeDSL Komplettanschluss mit DSL 6.000 Flatrate und=20
-Telefonanschluss f=FCr 17,95 Euro/mtl.! http://produkte.web.de/go/02/
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When a device structure is unregistered and deallocated, we have to
+insure that there aren't any pending runtime PM workqueue items.  
+Hence device_del should call a routine that changes the status to an
+exceptional state (not RPM_ERROR but something else) to prevent new
+requests from being queued, and then calls cancel_work_sync or
+cancel_delayed_work_sync as required.
+
+Similarly, we should insure that runtime PM calls made before the
+device is registered don't do anything.  So when the device structure
+is first created and the contents are all 0, this should also be
+interpreted as an exceptional state.  We could call it RPM_UNREGISTERED
+and use it for both purposes.
+
+Alan Stern
+
