@@ -1,31 +1,68 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 00/15] acpi4asus updates
-Date: Fri, 19 Jun 2009 15:39:01 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0906191535220.4325@localhost.localdomain>
-References: <1245180536-28009-1-git-send-email-corentincj@iksaif.net>
- <alpine.LFD.2.00.0906172241040.8921@localhost.localdomain>
- <alpine.LFD.2.00.0906180157380.8921@localhost.localdomain>
- <71cd59b00906190128h6de62133o9e8380e1992da59c@mail.gmail.com>
+From: ingosbox@web.de
+Subject: acpi on lenovo ideapad s10e
+Date: Sat, 20 Jun 2009 15:56:07 +0200
+Message-ID: <188003802@web.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:49860 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbZFTGzo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jun 2009 02:55:44 -0400
-Received: from localhost.localdomain ([98.118.45.40])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KLI00MH13X3FC60@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 19 Jun 2009 14:39:04 -0500 (CDT)
-In-reply-to: <71cd59b00906190128h6de62133o9e8380e1992da59c@mail.gmail.com>
+Received: from fmmailgate05.web.de ([217.72.192.243]:38590 "EHLO
+	fmmailgate05.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbZFTN4G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jun 2009 09:56:06 -0400
+Received: from web.de
+	by fmmailgate05.web.de (Postfix) with SMTP id B10415C208ED
+	for <linux-acpi@vger.kernel.org>; Sat, 20 Jun 2009 15:56:08 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-thanks for the refresh, Corentin, they're now applied.
+Jun 20 15:43:02 localhost kernel: [    0.257787] ACPI: BIOS _OSI(Linux)=
+ query ignored
+Jun 20 15:43:02 localhost kernel: [    0.257867] ACPI: DMI System Vendo=
+r: LENOVO
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Jun 20 15:43:02 localhost kernel: [    0.257945] ACPI: DMI Product Name=
+: 40682RG
+Jun 20 15:43:02 localhost kernel: [    0.258018] ACPI: DMI Product Vers=
+ion: Lenovo
 
+Jun 20 15:43:02 localhost kernel: [    0.258094] ACPI: DMI Board Name: =
+Kuril
+
+Jun 20 15:43:02 localhost kernel: [    0.258171] ACPI: DMI BIOS Vendor:=
+ LENOVO
+Jun 20 15:43:02 localhost kernel: [    0.258243] ACPI: DMI BIOS Date: 0=
+4/29/2009
+Jun 20 15:43:02 localhost kernel: [    0.258315] ACPI: Please send DMI =
+info above to linux-acpi@vge
+r.kernel.org
+Jun 20 15:43:02 localhost kernel: [    0.258393] ACPI: If "acpi_osi=3DL=
+inux" works better, please not
+ify linux-acpi@vger.kernel.org
+Jun 20 15:43:02 localhost kernel: [    0.259591] ACPI: Interpreter enab=
+led
+Jun 20 15:43:02 localhost kernel: [    0.259664] ACPI: (supports S0 S3 =
+S4 S5)
+Jun 20 15:43:02 localhost kernel: [    0.259929] ACPI: Using IOAPIC for=
+ interrupt routing
+Jun 20 15:43:02 localhost kernel: [    0.264016] ACPI: EC: non-query in=
+terrupt received, switching
+to interrupt mode
+Jun 20 15:43:02 localhost kernel: [    0.324020] ACPI: EC: GPE =3D 0x17=
+, I/O: command/status =3D 0x66,
+data =3D 0x62
+Jun 20 15:43:02 localhost kernel: [    0.324020] ACPI: EC: driver start=
+ed in interrupt mode
+Jun 20 15:43:02 localhost kernel: [    0.324020] ACPI: PCI Root Bridge =
+[PCI0] (0000:00)
+
+___________________________________________________________________
+WEB.DE FreeDSL Komplettanschluss mit DSL 6.000 Flatrate und=20
+Telefonanschluss f=FCr 17,95 Euro/mtl.! http://produkte.web.de/go/02/
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
