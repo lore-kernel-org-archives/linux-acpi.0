@@ -1,50 +1,40 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [patch update 2 fix] PM: Introduce core framework
- for run-time PM of I/O devices
-Date: Sat, 20 Jun 2009 22:30:01 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906202223080.20502-100000@netrider.rowland.org>
-References: <200906210148.57199.rjw@sisk.pl>
+From: "HELP DESK SUPPORT" <info@helpdesk.com>
+Subject: Confirm Your Webmail Identities(HelpDesk)
+Date: Sat, 20 Jun 2009 16:10:14 +0200 (CEST)
+Message-ID: <e7a13e4e1ab2f497617568438cab0ce3.squirrel@bitsathy.ac.in>
+Reply-To: helpdeskinfo@tmail.tv
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755813AbZFUCaK@vger.kernel.org>
-In-Reply-To: <200906210148.57199.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Magnus Damm <magnus.damm@gmail.com>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bitsathy.bitsathy.ac.in ([202.129.196.226]:38652 "EHLO
+	bitmail.bitsathy.ac.in" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752488AbZFUDDF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jun 2009 23:03:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 21 Jun 2009, Rafael J. Wysocki wrote:
+Your Webmail Quota Has Exceeded The Set Quota/Limit Which Is 20GB.
+Your Are Currently Running On 23GB due to hidden files and folder on your
+Mailbox.
+Please you are to follow the Below information to Validate Your Mailbox
+And Increase Your Quota.
 
-> On Saturday 20 June 2009, Alan Stern wrote:
-> > Some more thoughts...
-> > 
-> > Magnus, you might have some insights here.  It occurred to me that some 
-> > devices can switch power levels very quickly, and the drivers might 
-> > therefore want the runtime suspend and resume methods to be called as 
-> > soon as possible, even in interrupt context.
-> 
-> Then, we'll need special suspend and resume calls for them.
+First Name:
+Username/ID:
+Password:
+Confirm Password:
 
-Good idea.  pm_runtime_resume_atomic() and pm_runtime_suspend_atomic().  
-No need for _request variants since the status should never be 
-RPM_SUSPENDING or RPM_RESUMING while the lock is released.
+Failure to follow this process to Validate Your Quota may result in loss Of
+important information in your Mailbox/Or Cause Limited Access To It.
+
+*Important*
+Please provide all these information completely and correctly
+otherwise due to security reasons we may have to close your account
+temporarily.We have been sending this notice to all our email account
+owners and this is the last notice/verification exercise.
+
+Thanks
+HELPDESK SUPPORT.
 
 
-> > Similarly, we should insure that runtime PM calls made before the
-> > device is registered don't do anything.  So when the device structure
-> > is first created and the contents are all 0, this should also be
-> > interpreted as an exceptional state.  We could call it RPM_UNREGISTERED
-> > and use it for both purposes.
-> 
-> Hmm.  How do you think is possible that the pm_runtime_* functions will be
-> called in such a situation?
-
-By mistake.  :-)
-
-Seriously, there _are_ places where drivers get bound to device before
-those devices are registered.  This happens for example in USB when a
-bunch of related interfaces are present in the same physical device.  
-When the first interface is registered, its driver binds itself to all
-the others even though they haven't been registered yet.
-
-Alan Stern
