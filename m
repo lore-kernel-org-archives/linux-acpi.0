@@ -1,197 +1,66 @@
-From: Mahmood Naderan <mahmood.nt@gmail.com>
-Subject: Re: BIOS and CPU C_states are strange
-Date: Sun, 21 Jun 2009 14:56:07 +0430
-Message-ID: <1acba2fa0906210326l40f6fc44h7e928036b57a0160@mail.gmail.com>
-References: <1acba2fa0906191006i3cd5a035pf18e096fdb92e27e@mail.gmail.com>
-	 <1acba2fa0906191007l4b8d5c17id068d868e6178fb8@mail.gmail.com>
-	 <ff05f3d00906191956m48655da5wc28a5553220ffdd0@mail.gmail.com>
-	 <1acba2fa0906192354i3cb0f2dbp2c8abed6704db3f@mail.gmail.com>
-	 <ff05f3d00906210249j6286e6cfw5fff9535e02839e0@mail.gmail.com>
-	 <1acba2fa0906210302x19c31974md75c72b7a171c852@mail.gmail.com>
-	 <ff05f3d00906210313g6a4c5fbarebcdfd4ab35921d2@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [patch update 2 fix] PM: Introduce core framework for run-time PM of I/O devices
+Date: Sun, 21 Jun 2009 13:32:45 +0200
+Message-ID: <200906211332.46249.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906202223080.20502-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:44814 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbZFUK0H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jun 2009 06:26:07 -0400
-Received: by bwz9 with SMTP id 9so2550763bwz.37
-        for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2009 03:26:08 -0700 (PDT)
-In-Reply-To: <ff05f3d00906210313g6a4c5fbarebcdfd4ab35921d2@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:51500 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751261AbZFULcU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Jun 2009 07:32:20 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906202223080.20502-100000@netrider.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Magnus Damm <magnus.damm@gmail.com>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-Hi,
-Thanks. Can I expect future versions of powertop will consider my
-problem or it is a specific bug related to my BIOS (my laptop is HP
-Pavilion DV2000)? I mean, this misreading is a bug in powertop or not?
+On Sunday 21 June 2009, Alan Stern wrote:
+> On Sun, 21 Jun 2009, Rafael J. Wysocki wrote:
+> 
+> > On Saturday 20 June 2009, Alan Stern wrote:
+> > > Some more thoughts...
+> > > 
+> > > Magnus, you might have some insights here.  It occurred to me that some 
+> > > devices can switch power levels very quickly, and the drivers might 
+> > > therefore want the runtime suspend and resume methods to be called as 
+> > > soon as possible, even in interrupt context.
+> > 
+> > Then, we'll need special suspend and resume calls for them.
+> 
+> Good idea.  pm_runtime_resume_atomic() and pm_runtime_suspend_atomic().  
+> No need for _request variants since the status should never be 
+> RPM_SUSPENDING or RPM_RESUMING while the lock is released.
 
---------------------------
-*Mahmood Naderan*
+Yes, exactly.  I also thought of the same names. :-)
 
+> > > Similarly, we should insure that runtime PM calls made before the
+> > > device is registered don't do anything.  So when the device structure
+> > > is first created and the contents are all 0, this should also be
+> > > interpreted as an exceptional state.  We could call it RPM_UNREGISTERED
+> > > and use it for both purposes.
+> > 
+> > Hmm.  How do you think is possible that the pm_runtime_* functions will be
+> > called in such a situation?
+> 
+> By mistake.  :-)
+> 
+> Seriously, there _are_ places where drivers get bound to device before
+> those devices are registered.  This happens for example in USB when a
+> bunch of related interfaces are present in the same physical device.  
+> When the first interface is registered, its driver binds itself to all
+> the others even though they haven't been registered yet.
 
+Well, the suspend functions could be protected against that under the
+assumption that no suspend is possible for resume_counter = 0 (then, the "good
+to go" value would be -1).
 
+Still, the resume functions start from acquring a spinlock, which is not going
+to work if that spinlock is uninitialized.
 
-On Sun, Jun 21, 2009 at 2:43 PM, Edward Shao<laface.tw@gmail.com> wrote=
-:
-> Hi~
-> powertop can download from
-> http://www.lesswatts.org/projects/powertop/download/powertop-1.11.tar=
-=2Egz
->
-> Sorry~I forgot the name of Intel utility.
->
-> Best Regards,
-> Edward
->
-> On Sun, Jun 21, 2009 at 6:02 PM, Mahmood Naderan<mahmood.nt@gmail.com=
-> wrote:
->> Hi,
->> 1- where can I find powertop source code?
->> 2- what is the name of intel utility in windows as you said?
->> --------------------------
->> *Mahmood Naderan*
->>
->>
->>
->>
->> On Sun, Jun 21, 2009 at 2:19 PM, Edward Shao<laface.tw@gmail.com> wr=
-ote:
->>> Hi~
->>> It's all depended on how utility to interpret raw information (both
->>> information reported by CPU or BIOS).
->>> You can check source code of powertop for detail information.
->>> For BIOS part, powertop checks value of mwait hint register reporte=
-d
->>> by ACPI _CST method.
->>>
->>> As my experience, powertop will cause a misleading sometimes,
->>> especially for new Intel CPU.
->>> For example:
->>> BIOS engineer said they followed Intel BIOS porting guide to report=
- an
->>> accuracy C-state (C6) information via ACPI _CST method.
->>> However powertop said BIOS only reports C3. (but Intel utility unde=
-r
->>> Windows said CPU can enter C6).
->>>
->>> Best Regards,
->>> Edward
->>>
->>> On Sat, Jun 20, 2009 at 2:54 PM, Mahmood Naderan<mahmood.nt@gmail.c=
-om> wrote:
->>>> Hi,
->>>>> Only simple check value of edx.
->>>>> Well, unless CPU uses CPUID.5.EDX[31:20], the reserved area.
->>>>
->>>> You mean that powertop is not correctly reading the states? Do you
->>>> mean that the BIOS reports better that the CPU ?
->>>>
->>>> --------------------------
->>>> *Mahmood Naderan*
->>>>
->>>>
->>>>
->>>> On Sat, Jun 20, 2009 at 7:26 AM, Edward Shao <laface.tw@gmail.com>=
- wrote:
->>>>>
->>>>> Hi Mahmood,
->>>>>
->>>>> So far as I know, if your CPU is Intel, powertop maybe cause a mi=
-sleading.
->>>>> Powertop uses CPUID.5.EDX to check CPU supported C states.
->>>>> According Intel's spec (Intel Processor Identification and the CP=
-UID
->>>>> Instruction (Application Note 485), a CPU only has
->>>>>
->>>>> C0, C1, C2, C3, C4 (prior Core i7)
->>>>> C0, C1, C2, C6, C7 (Core i7 and subsequent)
->>>>>
->>>>> Check with source code of powertop
->>>>> while (edx) {
->>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (edx&7)
->>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printf("C%i ", i);
->>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0edx =3D edx >> 4;
->>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i++;
->>>>> =A0 =A0 =A0 =A0}
->>>>> Only simple check value of edx.
->>>>> Well, unless CPU uses CPUID.5.EDX[31:20], the reserved area.
->>>>>
->>>>> Ps: I does not check AMD's spec.
->>>>>
->>>>> Best Regards,
->>>>> Edward
->>>>>
->>>>>
->>>>> On Sat, Jun 20, 2009 at 1:07 AM, Mahmood Naderan<mahmood.nt@gmail=
-=2Ecom> wrote:
->>>>> > Hi,
->>>>> > I have run powertop with root permission with both AC and batte=
-r powers. The
->>>>> > reported C_States are the same and strange:
->>>>> >
->>>>> > mahmood@magma:~$ sudo powertop
->>>>> > PowerTOP 1.11 =A0 (C) 2007, 2008 Intel Corporation
->>>>> >
->>>>> > Collecting data for 5 seconds
->>>>> >
->>>>> > Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6
->>>>> > Your BIOS reports the following C-states : C1 C2 C6
->>>>> >
->>>>> > Where are C4 and C5?
->>>>> >
->>>>> > --------------------------
->>>>> > *Mahmood Naderan*
->>>>> > --
->>>>> > To unsubscribe from this list: send the line "unsubscribe linux=
--acpi" in
->>>>> > the body of a message to majordomo@vger.kernel.org
->>>>> > More majordomo info at =A0http://vger.kernel.org/majordomo-info=
-=2Ehtml
->>>>> >
->>>>>
->>>>>
->>>>>
->>>>> --
->>>>> Best Regards,
->>>>> Edward
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-ac=
-pi" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
->>>>
->>>
->>>
->>>
->>> --
->>> Best Regards,
->>> Edward
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
->
->
-> --
-> Best Regards,
-> Edward
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Rafael
