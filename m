@@ -1,170 +1,173 @@
-From: Mahmood Naderan <mahmood.nt@gmail.com>
+From: Edward Shao <laface.tw@gmail.com>
 Subject: Re: BIOS and CPU C_states are strange
-Date: Sun, 21 Jun 2009 14:44:16 +0430
-Message-ID: <1acba2fa0906210314w528e9a1fie186486b40cd109d@mail.gmail.com>
+Date: Sun, 21 Jun 2009 18:13:27 +0800
+Message-ID: <ff05f3d00906210313g6a4c5fbarebcdfd4ab35921d2@mail.gmail.com>
 References: <1acba2fa0906191006i3cd5a035pf18e096fdb92e27e@mail.gmail.com>
 	 <1acba2fa0906191007l4b8d5c17id068d868e6178fb8@mail.gmail.com>
-	 <a8ca10150906200826l37a7ee2fs283ecfa955697c49@mail.gmail.com>
-	 <1acba2fa0906200846r751cf235q9e155e5445090d40@mail.gmail.com>
-	 <a8ca10150906201504p2186b3fbg5ac7761946f48697@mail.gmail.com>
-	 <1acba2fa0906210218o59a6c92fi86e30891c0816b5d@mail.gmail.com>
-	 <1acba2fa0906210220p27b9e902xd640029fa0122b24@mail.gmail.com>
-	 <ff05f3d00906210306p6a25687bqfa99b0ae6e0c322a@mail.gmail.com>
+	 <ff05f3d00906191956m48655da5wc28a5553220ffdd0@mail.gmail.com>
+	 <1acba2fa0906192354i3cb0f2dbp2c8abed6704db3f@mail.gmail.com>
+	 <ff05f3d00906210249j6286e6cfw5fff9535e02839e0@mail.gmail.com>
+	 <1acba2fa0906210302x19c31974md75c72b7a171c852@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:45959 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbZFUKOP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jun 2009 06:14:15 -0400
-Received: by bwz9 with SMTP id 9so2547558bwz.37
-        for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2009 03:14:16 -0700 (PDT)
-In-Reply-To: <ff05f3d00906210306p6a25687bqfa99b0ae6e0c322a@mail.gmail.com>
+Received: from mail-pz0-f197.google.com ([209.85.222.197]:62839 "EHLO
+	mail-pz0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862AbZFUKUX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jun 2009 06:20:23 -0400
+Received: by pzk35 with SMTP id 35so171933pzk.33
+        for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2009 03:20:25 -0700 (PDT)
+In-Reply-To: <1acba2fa0906210302x19c31974md75c72b7a171c852@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-hi,
-Maybe.... as I asked where is the source code of powertop and what is
-the intel utility that you said in windows? Thanks.
+Hi~
+powertop can download from
+http://www.lesswatts.org/projects/powertop/download/powertop-1.11.tar.g=
+z
 
---------------------------
-*Mahmood Naderan*
+Sorry~I forgot the name of Intel utility.
 
+Best Regards,
+Edward
 
-
-
-On Sun, Jun 21, 2009 at 2:36 PM, Edward Shao<laface.tw@gmail.com> wrote=
-:
-> Hi~
-> In your case, typically C3 should map to CPU C6.
+On Sun, Jun 21, 2009 at 6:02 PM, Mahmood Naderan<mahmood.nt@gmail.com> =
+wrote:
+> Hi,
+> 1- where can I find powertop source code?
+> 2- what is the name of intel utility in windows as you said?
+> --------------------------
+> *Mahmood Naderan*
 >
-> Best Regards,
-> Edward
 >
-> On Sun, Jun 21, 2009 at 5:20 PM, Mahmood Naderan<mahmood.nt@gmail.com=
-> wrote:
->> I got more confused... In my first post if you see, BIOS reports C1,
->> C2 and C6. Even it does not support C3 (!), =A0but here is the outpu=
-t of
->> "cat /proc/acpi/processor/CPU0/power":
+>
+>
+> On Sun, Jun 21, 2009 at 2:19 PM, Edward Shao<laface.tw@gmail.com> wro=
+te:
+>> Hi~
+>> It's all depended on how utility to interpret raw information (both
+>> information reported by CPU or BIOS).
+>> You can check source code of powertop for detail information.
+>> For BIOS part, powertop checks value of mwait hint register reported
+>> by ACPI _CST method.
 >>
->> active state: =A0 =A0 =A0 =A0 =A0 =A0C0
->> max_cstate: =A0 =A0 =A0 =A0 =A0 =A0 =A0C8
->> bus master activity: =A0 =A0 00000000
->> maximum allowed latency: 2000000000 usec
->> states:
->> =A0 =A0C1: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0type[C1] promotion[--]=
- demotion[--]
->> latency[001] usage[00000063] duration[00000000000000000000]
->> =A0 =A0C2: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0type[C2] promotion[--]=
- demotion[--]
->> latency[001] usage[00017466] duration[00000000000014422985]
->> =A0 =A0C3: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0type[C3] promotion[--]=
- demotion[--]
->> latency[162] usage[00096196] duration[00000000000650582389]
+>> As my experience, powertop will cause a misleading sometimes,
+>> especially for new Intel CPU.
+>> For example:
+>> BIOS engineer said they followed Intel BIOS porting guide to report =
+an
+>> accuracy C-state (C6) information via ACPI _CST method.
+>> However powertop said BIOS only reports C3. (but Intel utility under
+>> Windows said CPU can enter C6).
 >>
->> So I think something (BIOS or CPU or OS) is malfunctioning and does
->> not report correctly.
->> Now the big question is, will my system (a combination of CPU, BIOS
->> and OS) enter C3 (or even deeper states)?
+>> Best Regards,
+>> Edward
 >>
->> --------------------------
->> *Mahmood Naderan*
->>
->>
->>
->>
->> On Sun, Jun 21, 2009 at 2:34 AM, Ananth Narayan
->> S<ananth.narayan@gmail.com> wrote:
->>> You could see it that way. The OS will use the C states exported by
->>> the BIOS. If C4/C5 are not exported, the OS will not even know that
->>> such states exist. If you query /proc/acpi/CPU*/power, you'll proba=
-bly
->>> see just three C states listed (C1, C2, C3). Typically the last
->>> C-state (C3) in that will map to the lowest C-state supported by th=
-e
->>> processor.
+>> On Sat, Jun 20, 2009 at 2:54 PM, Mahmood Naderan<mahmood.nt@gmail.co=
+m> wrote:
+>>> Hi,
+>>>> Only simple check value of edx.
+>>>> Well, unless CPU uses CPUID.5.EDX[31:20], the reserved area.
 >>>
->>> -- Ananth
+>>> You mean that powertop is not correctly reading the states? Do you
+>>> mean that the BIOS reports better that the CPU ?
+>>>
+>>> --------------------------
+>>> *Mahmood Naderan*
 >>>
 >>>
 >>>
->>>
->>> On Sat, Jun 20, 2009 at 8:46 AM, Mahmood Naderan<mahmood.nt@gmail.c=
-om> wrote:
->>>> Hi,
->>>> So if my understanding is correct, the BIOS does not allow the CPU=
- to
->>>> enter C4 and C5 states. Right?
+>>> On Sat, Jun 20, 2009 at 7:26 AM, Edward Shao <laface.tw@gmail.com> =
+wrote:
 >>>>
->>>> --------------------------
->>>> *Mahmood Naderan*
+>>>> Hi Mahmood,
+>>>>
+>>>> So far as I know, if your CPU is Intel, powertop maybe cause a mis=
+leading.
+>>>> Powertop uses CPUID.5.EDX to check CPU supported C states.
+>>>> According Intel's spec (Intel Processor Identification and the CPU=
+ID
+>>>> Instruction (Application Note 485), a CPU only has
+>>>>
+>>>> C0, C1, C2, C3, C4 (prior Core i7)
+>>>> C0, C1, C2, C6, C7 (Core i7 and subsequent)
+>>>>
+>>>> Check with source code of powertop
+>>>> while (edx) {
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (edx&7)
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printf("C%i ", i);
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0edx =3D edx >> 4;
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i++;
+>>>> =A0 =A0 =A0 =A0}
+>>>> Only simple check value of edx.
+>>>> Well, unless CPU uses CPUID.5.EDX[31:20], the reserved area.
+>>>>
+>>>> Ps: I does not check AMD's spec.
+>>>>
+>>>> Best Regards,
+>>>> Edward
 >>>>
 >>>>
->>>>
->>>>
->>>> On Sat, Jun 20, 2009 at 7:56 PM, Ananth Narayan
->>>> S<ananth.narayan@gmail.com> wrote:
->>>>> Intel processors export a max supported c state value. But when i=
-t
->>>>> comes to c states, typically the one that provides max power savi=
-ngs
->>>>> is exported by the BIOS. The intermediate ones aren't.
->>>>>
->>>>> -- Ananth Narayan S.
->>>>>
->>>>>
->>>>>
->>>>>
->>>>> On Fri, Jun 19, 2009 at 10:07 AM, Mahmood Naderan<mahmood.nt@gmai=
-l.com> wrote:
->>>>>> Hi,
->>>>>> I have run powertop with root permission with both AC and batter=
+>>>> On Sat, Jun 20, 2009 at 1:07 AM, Mahmood Naderan<mahmood.nt@gmail.=
+com> wrote:
+>>>> > Hi,
+>>>> > I have run powertop with root permission with both AC and batter=
  powers. The
->>>>>> reported C_States are the same and strange:
->>>>>>
->>>>>> mahmood@magma:~$ sudo powertop
->>>>>> PowerTOP 1.11 =A0 (C) 2007, 2008 Intel Corporation
->>>>>>
->>>>>> Collecting data for 5 seconds
->>>>>>
->>>>>> Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6
->>>>>> Your BIOS reports the following C-states : C1 C2 C6
->>>>>>
->>>>>> Where are C4 and C5?
->>>>>>
->>>>>> --------------------------
->>>>>> *Mahmood Naderan*
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-=
+>>>> > reported C_States are the same and strange:
+>>>> >
+>>>> > mahmood@magma:~$ sudo powertop
+>>>> > PowerTOP 1.11 =A0 (C) 2007, 2008 Intel Corporation
+>>>> >
+>>>> > Collecting data for 5 seconds
+>>>> >
+>>>> > Your CPU supports the following C-states : C1 C2 C3 C4 C5 C6
+>>>> > Your BIOS reports the following C-states : C1 C2 C6
+>>>> >
+>>>> > Where are C4 and C5?
+>>>> >
+>>>> > --------------------------
+>>>> > *Mahmood Naderan*
+>>>> > --
+>>>> > To unsubscribe from this list: send the line "unsubscribe linux-=
 acpi" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.=
+>>>> > the body of a message to majordomo@vger.kernel.org
+>>>> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.=
 html
->>>>>>
->>>>>
+>>>> >
 >>>>
+>>>>
+>>>>
+>>>> --
+>>>> Best Regards,
+>>>> Edward
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acp=
+i" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
 >>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >>
->
->
->
-> --
-> Best Regards,
-> Edward
+>>
+>>
+>> --
+>> Best Regards,
+>> Edward
+>>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
  in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
+
+
+
+--=20
+Best Regards,
+Edward
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
