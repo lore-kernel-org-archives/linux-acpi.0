@@ -1,114 +1,169 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 5/9] ACPI: memory hotplug: remove .start() method
-Date: Mon, 22 Jun 2009 14:41:25 -0600
-Message-ID: <20090622204124.32761.97057.stgit@bob.kio>
+Subject: [PATCH 6/9] ACPI: EC: move acpi_ec_start() after acpi_ec_add()
+Date: Mon, 22 Jun 2009 14:41:30 -0600
+Message-ID: <20090622204130.32761.90486.stgit@bob.kio>
 References: <20090622204016.32761.47464.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:17955 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752623AbZFVUlW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2009 16:41:22 -0400
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:47218 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753784AbZFVUl1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2009 16:41:27 -0400
 In-Reply-To: <20090622204016.32761.47464.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Dave Hansen <haveblue@us.ibm.com>, Alex Chiang <achiang@hp.com>, Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-This patch folds the .start() method into .add().
+This patch rearranges ec_install_handlers() and acpi_ec_start() so
+acpi_ec_start() ends up just after acpi_ec_add().  A subsequent patch
+will merge them.
 
-The .start() method is called in two paths: boot-time device enumeration
-and run-time node addition, currently via container_device_add().  In both
-cases, .start() is called immediately after .add(), so there's no reason
-to make them separate methods.
+Code movement only; no functional change.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Reviewed-by: Alex Chiang <achiang@hp.com>
-CC: Yasunori Goto <y-goto@jp.fujitsu.com>
-CC: Dave Hansen <haveblue@us.ibm.com>
+CC: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
- drivers/acpi/acpi_memhotplug.c |   40 ++++++++++++++--------------------------
- 1 files changed, 14 insertions(+), 26 deletions(-)
+ drivers/acpi/ec.c |  112 +++++++++++++++++++++++++++--------------------------
+ 1 files changed, 56 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 7a0f4aa..a8d9d8f 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -50,7 +50,6 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
--static int acpi_memory_device_start(struct acpi_device *device);
- 
- static const struct acpi_device_id memory_device_ids[] = {
- 	{ACPI_MEMORY_DEVICE_HID, 0},
-@@ -65,7 +64,6 @@ static struct acpi_driver acpi_memory_device_driver = {
- 	.ops = {
- 		.add = acpi_memory_device_add,
- 		.remove = acpi_memory_device_remove,
--		.start = acpi_memory_device_start,
- 		},
- };
- 
-@@ -415,28 +413,6 @@ static int acpi_memory_device_add(struct acpi_device *device)
- 
- 	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
- 
--	return result;
--}
--
--static int acpi_memory_device_remove(struct acpi_device *device, int type)
--{
--	struct acpi_memory_device *mem_device = NULL;
--
--
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
--
--	mem_device = acpi_driver_data(device);
--	kfree(mem_device);
--
--	return 0;
--}
--
--static int acpi_memory_device_start (struct acpi_device *device)
--{
--	struct acpi_memory_device *mem_device;
--	int result = 0;
--
- 	/*
- 	 * Early boot code has recognized memory area by EFI/E820.
- 	 * If DSDT shows these memory devices on boot, hotplug is not necessary
-@@ -446,8 +422,6 @@ static int acpi_memory_device_start (struct acpi_device *device)
- 	if (!acpi_hotmem_initialized)
- 		return 0;
- 
--	mem_device = acpi_driver_data(device);
--
- 	if (!acpi_memory_check_device(mem_device)) {
- 		/* call add_memory func */
- 		result = acpi_memory_enable_device(mem_device);
-@@ -458,6 +432,20 @@ static int acpi_memory_device_start (struct acpi_device *device)
- 	return result;
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 391f331..8b387a4 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -788,6 +788,42 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 	return AE_CTRL_TERMINATE;
  }
  
-+static int acpi_memory_device_remove(struct acpi_device *device, int type)
++static int ec_install_handlers(struct acpi_ec *ec)
 +{
-+	struct acpi_memory_device *mem_device = NULL;
++	acpi_status status;
++	if (test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
++		return 0;
++	status = acpi_install_gpe_handler(NULL, ec->gpe,
++				  ACPI_GPE_EDGE_TRIGGERED,
++				  &acpi_ec_gpe_handler, ec);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
++	acpi_enable_gpe(NULL, ec->gpe);
++	status = acpi_install_address_space_handler(ec->handle,
++						    ACPI_ADR_SPACE_EC,
++						    &acpi_ec_space_handler,
++						    NULL, ec);
++	if (ACPI_FAILURE(status)) {
++		if (status == AE_NOT_FOUND) {
++			/*
++			 * Maybe OS fails in evaluating the _REG object.
++			 * The AE_NOT_FOUND error will be ignored and OS
++			 * continue to initialize EC.
++			 */
++			printk(KERN_ERR "Fail in evaluating the _REG object"
++				" of EC device. Broken bios is suspected.\n");
++		} else {
++			acpi_remove_gpe_handler(NULL, ec->gpe,
++				&acpi_ec_gpe_handler);
++			return -ENODEV;
++		}
++	}
 +
-+
-+	if (!device || !acpi_driver_data(device))
-+		return -EINVAL;
-+
-+	mem_device = acpi_driver_data(device);
-+	kfree(mem_device);
-+
++	set_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags);
 +	return 0;
 +}
 +
- /*
-  * Helper function to check for memory device
-  */
+ static void ec_remove_handlers(struct acpi_ec *ec)
+ {
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+@@ -842,6 +878,26 @@ static int acpi_ec_add(struct acpi_device *device)
+ 	return 0;
+ }
+ 
++static int acpi_ec_start(struct acpi_device *device)
++{
++	struct acpi_ec *ec;
++	int ret = 0;
++
++	if (!device)
++		return -EINVAL;
++
++	ec = acpi_driver_data(device);
++
++	if (!ec)
++		return -EINVAL;
++
++	ret = ec_install_handlers(ec);
++
++	/* EC is fully operational, allow queries */
++	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
++	return ret;
++}
++
+ static int acpi_ec_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_ec *ec;
+@@ -888,62 +944,6 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
+ 	return AE_OK;
+ }
+ 
+-static int ec_install_handlers(struct acpi_ec *ec)
+-{
+-	acpi_status status;
+-	if (test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
+-		return 0;
+-	status = acpi_install_gpe_handler(NULL, ec->gpe,
+-				  ACPI_GPE_EDGE_TRIGGERED,
+-				  &acpi_ec_gpe_handler, ec);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
+-	acpi_enable_gpe(NULL, ec->gpe);
+-	status = acpi_install_address_space_handler(ec->handle,
+-						    ACPI_ADR_SPACE_EC,
+-						    &acpi_ec_space_handler,
+-						    NULL, ec);
+-	if (ACPI_FAILURE(status)) {
+-		if (status == AE_NOT_FOUND) {
+-			/*
+-			 * Maybe OS fails in evaluating the _REG object.
+-			 * The AE_NOT_FOUND error will be ignored and OS
+-			 * continue to initialize EC.
+-			 */
+-			printk(KERN_ERR "Fail in evaluating the _REG object"
+-				" of EC device. Broken bios is suspected.\n");
+-		} else {
+-			acpi_remove_gpe_handler(NULL, ec->gpe,
+-				&acpi_ec_gpe_handler);
+-			return -ENODEV;
+-		}
+-	}
+-
+-	set_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags);
+-	return 0;
+-}
+-
+-static int acpi_ec_start(struct acpi_device *device)
+-{
+-	struct acpi_ec *ec;
+-	int ret = 0;
+-
+-	if (!device)
+-		return -EINVAL;
+-
+-	ec = acpi_driver_data(device);
+-
+-	if (!ec)
+-		return -EINVAL;
+-
+-	ret = ec_install_handlers(ec);
+-
+-	/* EC is fully operational, allow queries */
+-	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+-	return ret;
+-}
+-
+ static int acpi_ec_stop(struct acpi_device *device, int type)
+ {
+ 	struct acpi_ec *ec;
 
