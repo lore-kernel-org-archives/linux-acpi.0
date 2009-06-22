@@ -1,98 +1,98 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 2/5] fix a deadlock in hotplug case
-Date: Mon, 22 Jun 2009 11:31:15 +0800
-Message-ID: <1245641478-31805-2-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH 3/5] run ACPI device hot removal in kacpi_hotplug_wq
+Date: Mon, 22 Jun 2009 11:31:16 +0800
+Message-ID: <1245641478-31805-3-git-send-email-rui.zhang@intel.com>
 References: <n>
  <1245641478-31805-1-git-send-email-rui.zhang@intel.com>
+ <1245641478-31805-2-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:56781 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752281AbZFVDad (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Jun 2009 23:30:33 -0400
-In-Reply-To: <1245641478-31805-1-git-send-email-rui.zhang@intel.com>
+	id S1753184AbZFVDae (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Jun 2009 23:30:34 -0400
+In-Reply-To: <1245641478-31805-2-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 
-we used to run the hotplug code in keventd_wq.
-But when hot removing the ACPI battery device,
-power_supply_unregister invokes flush_scheduled_work.
-This causes a deadlock.
-Introduce a new workqueue for hotplug in this patch.
-http://bugzilla.kernel.org/show_bug.cgi?id=13533
+Run the ACPI device hot removal code in kacpi_hotplug_wq
+rather than a new kernel thread.
 
-Tested-by: Paul Martin <pm@debian.org>
-Tested-by: Vojtech Gondzala <vojtech.gondzala@gmail.com>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/osl.c |   23 ++++++++++++++---------
- 1 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/acpi/scan.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index d916bea..80488db 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -79,6 +79,11 @@ static acpi_osd_handler acpi_irq_handler;
- static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
-+/* 
-+ * run the hotplug code in a seperate workqueue
-+ * to avoid the deadlock issue
-+ */
-+static struct workqueue_struct *kacpi_hotplug_wq;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 8ff510b..9c6e42e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -95,7 +95,7 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
+ }
+ static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
  
- struct acpi_res_list {
- 	resource_size_t start;
-@@ -192,8 +197,10 @@ acpi_status acpi_os_initialize1(void)
+-static int acpi_bus_hot_remove_device(void *context)
++static void acpi_bus_hot_remove_device(void *context)
  {
- 	kacpid_wq = create_singlethread_workqueue("kacpid");
- 	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
-+	kacpi_hotplug_wq = create_singlethread_workqueue("kacpi_hotplug");
- 	BUG_ON(!kacpid_wq);
- 	BUG_ON(!kacpi_notify_wq);
-+	BUG_ON(!kacpi_hotplug_wq);
- 	return AE_OK;
- }
- 
-@@ -206,6 +213,7 @@ acpi_status acpi_os_terminate(void)
- 
- 	destroy_workqueue(kacpid_wq);
- 	destroy_workqueue(kacpi_notify_wq);
-+	destroy_workqueue(kacpi_hotplug_wq);
- 
- 	return AE_OK;
- }
-@@ -716,6 +724,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
+ 	struct acpi_device *device;
+ 	acpi_handle handle = context;
+@@ -104,10 +104,10 @@ static int acpi_bus_hot_remove_device(void *context)
  	acpi_status status = AE_OK;
- 	struct acpi_os_dpc *dpc;
- 	struct workqueue_struct *queue;
-+	work_func_t func;
- 	int ret;
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 			  "Scheduling function [%p(%p)] for deferred execution.\n",
-@@ -740,15 +749,11 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
- 	dpc->function = function;
- 	dpc->context = context;
  
--	if (!hp) {
--		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
--		queue = (type == OSL_NOTIFY_HANDLER) ?
--			kacpi_notify_wq : kacpid_wq;
--		ret = queue_work(queue, &dpc->work);
--	} else {
--		INIT_WORK(&dpc->work, acpi_os_execute_hp_deferred);
--		ret = schedule_work(&dpc->work);
--	}
-+	queue = hp ? kacpi_hotplug_wq :
-+		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
-+	func = hp ? acpi_os_execute_hp_deferred : acpi_os_execute_deferred;
-+	INIT_WORK(&dpc->work, func);
-+	ret = queue_work(queue, &dpc->work);
+ 	if (acpi_bus_get_device(handle, &device))
+-		return 0;
++		return;
  
- 	if (!ret) {
+ 	if (!device)
+-		return 0;
++		return;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 		"Hot-removing device %s...\n", dev_name(&device->dev)));
+@@ -115,7 +115,7 @@ static int acpi_bus_hot_remove_device(void *context)
+ 	if (acpi_bus_trim(device, 1)) {
  		printk(KERN_ERR PREFIX
+ 				"Removing device failed\n");
+-		return -1;
++		return;
+ 	}
+ 
+ 	/* power off device */
+@@ -142,9 +142,10 @@ static int acpi_bus_hot_remove_device(void *context)
+ 	 */
+ 	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
+ 	if (ACPI_FAILURE(status))
+-		return -ENODEV;
++		printk(KERN_WARNING PREFIX
++				"Eject device failed\n");
+ 
+-	return 0;
++	return;
+ }
+ 
+ static ssize_t
+@@ -155,7 +156,6 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 	acpi_status status;
+ 	acpi_object_type type = 0;
+ 	struct acpi_device *acpi_device = to_acpi_device(d);
+-	struct task_struct *task;
+ 
+ 	if ((!count) || (buf[0] != '1')) {
+ 		return -EINVAL;
+@@ -172,11 +172,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 		goto err;
+ 	}
+ 
+-	/* remove the device in another thread to fix the deadlock issue */
+-	task = kthread_run(acpi_bus_hot_remove_device,
+-				acpi_device->handle, "acpi_hot_remove_device");
+-	if (IS_ERR(task))
+-		ret = PTR_ERR(task);
++	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, acpi_device->handle);
+ err:
+ 	return ret;
+ }
 -- 
 1.5.4.4
 
