@@ -1,69 +1,44 @@
-From: Arjan van de Ven <arjan@infradead.org>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [linux-pm] [patch update 2 fix] PM: Introduce core framework
- for  run-time PM of I/O devices
-Date: Mon, 22 Jun 2009 06:49:15 -0700
-Message-ID: <20090622064915.741154a7@infradead.org>
-References: <Pine.LNX.4.44L0.0906192141380.4003-100000@netrider.rowland.org>
-	<Pine.LNX.4.44L0.0906201010590.12994-100000@netrider.rowland.org>
-	<aec7e5c30906212320v3e3e991fyd028d005675f1e25@mail.gmail.com>
-	<20090621234324.06fda564@infradead.org>
-	<aec7e5c30906220027v63c88e8aj32950a8d84558cce@mail.gmail.com>
+ for run-time PM of I/O devices
+Date: Mon, 22 Jun 2009 10:16:40 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906221007140.3081-100000@iolanthe.rowland.org>
+References: <200906211332.46249.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:40080 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbZFVNs3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2009 09:48:29 -0400
-In-Reply-To: <aec7e5c30906220027v63c88e8aj32950a8d84558cce@mail.gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:37308 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751676AbZFVOQh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2009 10:16:37 -0400
+In-Reply-To: <200906211332.46249.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Magnus Damm <magnus.damm@gmail.com>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
 
-On Mon, 22 Jun 2009 16:27:29 +0900
-Magnus Damm <magnus.damm@gmail.com> wrote:
+On Sun, 21 Jun 2009, Rafael J. Wysocki wrote:
 
-> On Mon, Jun 22, 2009 at 3:43 PM, Arjan van de
-> Ven<arjan@infradead.org> wrote:
-> > On Mon, 22 Jun 2009 15:20:43 +0900
-> > Magnus Damm <magnus.damm@gmail.com> wrote:
-> >
-> >> On Sat, Jun 20, 2009 at 11:30 PM, Alan
-> >> Stern<stern@rowland.harvard.edu> wrote:
-> >> > Some more thoughts...
-> >> >
-> >> > Magnus, you might have some insights here. =C2=A0It occurred to =
-me
-> >> > that some devices can switch power levels very quickly, and the
-> >> > drivers might therefore want the runtime suspend and resume
-> >> > methods to be called as soon as possible, even in interrupt
-> >> > context.
-> >>
-> >> I'd like to call pm_request_suspend() from interrupt context. I
-> >> don't
-> >
-> > there are some really strong reasons to at least be able to call th=
-e
-> > resume function from an interrupt handler.... shared interrupts are
-> > one of them.
->=20
-> I suppose you mean that you need to resume the hardware device before
-> you can check if it has a pending interrupt source? If so then you
-> also mean that suspended hardware devices may generate interrupts, no=
-?
+> > Seriously, there _are_ places where drivers get bound to device before
+> > those devices are registered.  This happens for example in USB when a
+> > bunch of related interfaces are present in the same physical device.  
+> > When the first interface is registered, its driver binds itself to all
+> > the others even though they haven't been registered yet.
+> 
+> Well, the suspend functions could be protected against that under the
+> assumption that no suspend is possible for resume_counter = 0 (then, the "good
+> to go" value would be -1).
+> 
+> Still, the resume functions start from acquring a spinlock, which is not going
+> to work if that spinlock is uninitialized.
 
-yes and no. For the shared interrupt case.. no.
-but yes for the hw I have in mind (and on my desk ;-) that can happen
-as well from the device itself.
+The initialization needs to be improved.  Most of the code in
+pm_runtime_init() should be called from device_pm_init(), and the rest
+should be moved into a separate pm_runtime_add() routine to be called
+from device_pm_add().
 
---=20
-Arjan van de Ven 	Intel Open Source Technology Centre
-=46or development, discussion and tips for power savings,=20
-visit http://www.lesswatts.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One of the things pm_runtime_add() could do is change the status from 
+RPM_UNREGISTERED to RPM_ACTIVE.
+
+Alan Stern
+
