@@ -1,62 +1,89 @@
-From: Lin Ming <lin@minggr.cn>
-Subject: Re: Question about AML code
-Date: Tue, 23 Jun 2009 13:24:34 +0800
-Message-ID: <d3f22a0906222224r3e375e07mfdf8bf68c1f95f92@mail.gmail.com>
-References: <ff05f3d00906222109g5e6aa02fp495946e7966c8b61@mail.gmail.com>
+From: Sebastian Pohl <sebastianp@uni-koblenz.de>
+Subject: Re: acpi on sony vaio vgn-sz61mn
+Date: Tue, 23 Jun 2009 10:30:02 +0200
+Message-ID: <4A40928A.7000608@uni-koblenz.de>
+References: <4A38F2FA.5000207@uni-koblenz.de> <1245286687.9076.101.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:44261 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbZFWFYb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 01:24:31 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so18154rvb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jun 2009 22:24:34 -0700 (PDT)
-In-Reply-To: <ff05f3d00906222109g5e6aa02fp495946e7966c8b61@mail.gmail.com>
+Received: from deliver.uni-koblenz.de ([141.26.64.15]:4660 "EHLO
+	deliver.uni-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbZFWI34 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 04:29:56 -0400
+In-Reply-To: <1245286687.9076.101.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Edward Shao <laface.tw@gmail.com>
+To: Zhang Rui <rui.zhang@intel.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Tue, Jun 23, 2009 at 12:09 PM, Edward Shao<laface.tw@gmail.com> wrote:
-> Dear folk,
->
-> Sorry, I does not familiar with ASL.
-> I would like to ask if below ASL is valid or not.
->
-> While (LLess (Local0, 0x0B))
-> {
->        Name (_T_0, Zero)
->        Store (LCDD, _T_0)
->        If (LEqual (_T_0, 0x01DFE430))
->        {
->                ...
->        }
->        Else
->        {
->                ...
->        }
-> }
->
-> I got ACPI error like below.
-> [   37.457772] nssearch-0145 [12] ns_search_one_scope   : Name [_T_0]
-> (Integer) f7444780 found in scope [GBQC] f741cc00
-> [   37.457775] ACPI Error (dswload-0790): [_T_0] Namespace lookup
-> failure, AE_ALREADY_EXISTS
-> [   37.457779]  dsutils-0089 [08] ds_clear_implicit_retu: Removing
-> reference on stale implicit return obj f772d348
-> [   37.457782] ACPI Exception (psloop-0227): AE_ALREADY_EXISTS, During
-> name lookup/catalog [20081204]
+Hi!
 
-It's because _T_0 is created multiple times in the while loop.
-You can move "Name (_T_0, Zero)" outside of the while loop, as below,
+Zhang Rui wrote:
+> On Wed, 2009-06-17 at 21:43 +0800, Sebastian Pohl wrote:
+>  =20
+>> Hello everyone!
+>>
+>> Thank you to everyone working on the sony stuff! It made my laptop a=
+=20
+>> much more valuable companion!
+>>
+>> But there are still some flaws that are left. I am writing to get an=
+=20
+>> advise what to do with them.=20
+>>    =20
+>
+>
+>  =20
+>> Ok, the problems are:
+>>
+>> - The special button s2 generates the same acpi event as the stamina=
+ switch
+>> - The lidswitch does not generate any acpi events
+>> - The Power does not generate any acpi events
+>>
+>>    =20
+> please kill acpid, and run "cat /proc/acpi/event", what do you get wh=
+en
+> pressing each of the three buttons?
+>  =20
+Both, the s2 Button and the stamina switch generate the following
 
-Name (_T_0, Zero)
-While (LLess (Local0, 0x0B))
-{
-    Store (LCDD, _T_0)
-    .....
-}
+sony/hotkey SPIC 00000001 00000021
+> run "cat /proc/interrupts" both before and after pressing these butto=
+ns,
+> does the number of ACPI or sony interrupts increase?
+> If ACPI interrupts increases, please run
+> "grep . /sys/firmware/acpi/interrupts/*" and tell us which GPE/Fixed
+> event is fired.
+>
+>  =20
+Only the stamina switch and the s2 button increase any interrupts but=20
+only sony interrupts are generated.
+> =EF=BB=BF
+>  =20
+>> Should i post them to bugtrackter or=20
+>> something else?
+>>
+>>    =20
+> please file a new bug report at
+> http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+> and attach all the request info there.
+> please also attach the acpidump output.
+>
+> thanks,
+> rui
+>
+>  =20
 
-Lin Ming
+thank you!
+
+regards
+
+     sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
