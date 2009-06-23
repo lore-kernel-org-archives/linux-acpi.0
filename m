@@ -1,55 +1,49 @@
-From: Edward Shao <laface.tw@gmail.com>
-Subject: Question about AML code
-Date: Tue, 23 Jun 2009 12:09:53 +0800
-Message-ID: <ff05f3d00906222109g5e6aa02fp495946e7966c8b61@mail.gmail.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: Sata link_power_management_policy questions
+Date: Mon, 22 Jun 2009 23:12:27 -0600
+Message-ID: <4A40643B.7090805@gmail.com>
+References: <4A3FD261.7060903@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:36280 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbZFWEJu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 00:09:50 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so8598rvb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jun 2009 21:09:53 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <4A3FD261.7060903@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Patrick Voegeli Olivera <patrick.voegeli@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, ide <linux-ide@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Dear folk,
+On 06/22/2009 12:50 PM, Patrick Voegeli Olivera wrote:
+> Hi there,
+>
+> I have a laptop with Sata set to native mode and ahci enabled in the
+> bios. In ubuntu, I can see
+> /sys/class/scsi_host/host0/link_power_management_policy for host0, host1
+> and host2, but if I read any of those using cat they always will return
+> max_performance, even if I echo min_power or medium_power and it gives
+> no errors:
+>
+> root@patrick-laptop:~# cat
+> /sys/class/scsi_host/host0/link_power_management_policy
+> max_performance
+> root@patrick-laptop:~# echo min_power >
+> /sys/class/scsi_host/host0/link_power_management_policy
+> root@patrick-laptop:~# cat
+> /sys/class/scsi_host/host0/link_power_management_policy
+> max_performance
+>
+> I've tried to look around for a solution, but I haven't found anything
+> useful. Is this a feature that depends on the HDD? Does the hard drive
+> need to be sata 2/300 or should it also work with sata 1/150? Is it just
+> that my laptop doesn't support it?
+>
+> Since my HDD is sata150, I've tried with another HDD and I had the same
+> problem. I don't know if it was sata2 compliant, though.
+>
+> My laptop has intel chipsets. Namely, the 965gm (with x3100 graphics)
+> northbridge and I think it has a ich8 southbridge.
+>
+> Any ideas on what to try?
 
-Sorry, I does not familiar with ASL.
-I would like to ask if below ASL is valid or not.
-
-While (LLess (Local0, 0x0B))
-{
-	Name (_T_0, Zero)
-	Store (LCDD, _T_0)
-	If (LEqual (_T_0, 0x01DFE430))
-	{
-		...
-	}
-	Else
-	{
-		...
-	}
-}
-
-I got ACPI error like below.
-[   37.457772] nssearch-0145 [12] ns_search_one_scope   : Name [_T_0]
-(Integer) f7444780 found in scope [GBQC] f741cc00
-[   37.457775] ACPI Error (dswload-0790): [_T_0] Namespace lookup
-failure, AE_ALREADY_EXISTS
-[   37.457779]  dsutils-0089 [08] ds_clear_implicit_retu: Removing
-reference on stale implicit return obj f772d348
-[   37.457782] ACPI Exception (psloop-0227): AE_ALREADY_EXISTS, During
-name lookup/catalog [20081204]
-
-Looks like _T_0 can not exist in a while loop?
-
-Is this error relative with ASL code or not?
-
-Thank you in advanced.
-
-Best Regards,
-Edward
+Please post your dmesg output and hdparm -I output for the drive. Also 
+cc-ing linux-ide.
