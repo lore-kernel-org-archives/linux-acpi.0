@@ -1,42 +1,44 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: kerneloops.org report for the week of June 14 2009
-Date: Tue, 23 Jun 2009 18:58:43 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.0906231857450.2767@localhost.localdomain>
-References: <20090614173331.18f01123@infradead.org> <alpine.LFD.2.00.0906231201430.2767@localhost.localdomain> <20090623115510.GC9497@elte.hu> <200906231856.24959.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update 3] PM: Introduce core framework for run-time PM
+ of I/O devices
+Date: Tue, 23 Jun 2009 13:02:15 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906231043290.3209-100000@iolanthe.rowland.org>
+References: <200906221749.50784.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:37413 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760024AbZFWRAv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2009 13:00:51 -0400
-In-Reply-To: <200906231856.24959.rjw@sisk.pl>
+Received: from iolanthe.rowland.org ([192.131.102.54]:55947 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1761141AbZFWRCN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 13:02:13 -0400
+In-Reply-To: <200906221749.50784.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Arjan van de Ven <arjan@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-On Tue, 23 Jun 2009, Rafael J. Wysocki wrote:
-> The long term solution for the issue at hand is to clean up the suspend-resume
-> support in cpufreq so that it doesn't do stupid things like calling
-> smp_call_function_single() with interrupts disabled, but that requires someone
-> (I can do it, but I need to dig through the cpufreq code for this purpose) to
-> figure out how to fix it.
-> 
-> I'm not quite sure if there's an acceptable short term solution, though.
-> 
-> In principle we can do
-> 
-> local_irq_save()
-> ...
-> local_irq_restore()
-> 
-> around each sysdevs ->susend() and ->resume() in addition to checking the
-> status of interrupts.  Would that work?
+On Mon, 22 Jun 2009, Rafael J. Wysocki wrote:
 
-Well not really, if the function enables interrupts you run into the
-same issue (interrupt service routine calls ktime_get()) again.
+> > And of course, synchronous pm_runtime_resume should always increment the 
+> > counter.
+> 
+> Sure.
 
-Thanks,
+Now that I've thought about it some more, I decided that we might want
+to be more flexible.  Without subjecting you to the entire line of
+reasoning, let's just say that I'm starting to wonder whether it's such
+a good idea to tie the counter increments to the PM core runtime resume
+calls at all.
 
-	tglx
+Maybe it would be better (easier to use, less constraining) to require
+the runtime_resume callback to do its own pm_runtime_get.  That way the
+driver would be entirely responsible for managing the usage counter;
+the PM core wouldn't be involved.  pm_runtime_get would simply
+increment the counter, so it could be used even in interrupt context.  
+At the moment, I don't see any need for it to queue an autoresume
+request if the device happens to be suspended.
+
+Something like this was probably your intention all along.  :-)
+
+Alan Stern
+
