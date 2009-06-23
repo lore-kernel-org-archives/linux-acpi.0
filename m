@@ -1,53 +1,67 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: Introduce core framework for run-time PM of I/O
- devices (rev. 3)
-Date: Tue, 23 Jun 2009 13:10:20 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906231303390.3209-100000@iolanthe.rowland.org>
-References: <200906230121.18932.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch update 3] PM: Introduce core framework for run-time PM of I/O devices
+Date: Tue, 23 Jun 2009 19:45:33 +0200
+Message-ID: <200906231945.35074.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906231043290.3209-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:35608 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751647AbZFWRKS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 13:10:18 -0400
-In-Reply-To: <200906230121.18932.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:38425 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751893AbZFWRpV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2009 13:45:21 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906231043290.3209-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Arjan van de Ven <arjan@infradead.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-On Tue, 23 Jun 2009, Rafael J. Wysocki wrote:
-
-> Hi,
+On Tuesday 23 June 2009, Alan Stern wrote:
+> On Mon, 22 Jun 2009, Rafael J. Wysocki wrote:
 > 
-> Below is a new revision of the patch introducing the run-time PM framework.
+> > > And of course, synchronous pm_runtime_resume should always increment the 
+> > > counter.
+> > 
+> > Sure.
 > 
-> The most visible changes from the last version:
+> Now that I've thought about it some more, I decided that we might want
+> to be more flexible.  Without subjecting you to the entire line of
+> reasoning, let's just say that I'm starting to wonder whether it's such
+> a good idea to tie the counter increments to the PM core runtime resume
+> calls at all.
 > 
-> * I realized that if child_count is atomic, we can drop the parent locking from
->   all of the functions, so I did that.
+> Maybe it would be better (easier to use, less constraining) to require
+> the runtime_resume callback to do its own pm_runtime_get.  That way the
+> driver would be entirely responsible for managing the usage counter;
+> the PM core wouldn't be involved.  pm_runtime_get would simply
+> increment the counter, so it could be used even in interrupt context.  
+> At the moment, I don't see any need for it to queue an autoresume
+> request if the device happens to be suspended.
 > 
-> * Introduced pm_runtime_put() that decrements the resume counter and queues
->   up an idle notification if the counter went down to 0 (and wasn't 0 previously).
->   Using asynchronous notification makes it possible to call pm_runtime_put()
->   from interrupt context, if necessary.
-> 
-> * Changed the meaning of the RPM_WAKE bit slightly (it is now also used for
->   disabling run-time PM for a device along with the resume counter).
-> 
-> Please let me know if I've overlooked anything. :-)
+> Something like this was probably your intention all along.  :-)
 
-This first thing to strike me was that you moved the idle notifications 
-into the workqueue.
+More or less. :-)
 
-Is that really needed?  Would we be better off just make the idle
-callbacks directly from pm_runtime_put?  They would run in whatever
-context the driver happened to be in at the time.
+In short, I think suspending (or queuing a suspend request) should fail if the
+usage counter is nonzero, but the resuming (or queuing up a resume request)
+should be possible regardless of its value.  The reason is that multiple
+threads may in theory attempt to resume the device at the same time.
 
-It's not clear exactly how much work the idle callbacks will need to 
-do, but it seems likely that they won't have to do too much more than 
-call pm_request_suspend.  And of course, that can be done in_interrupt.
+However, I'm not sure if the core should manipulate the usage counter by
+itself, because it's sort of problematic (there's no good approach to decide
+when to decrement the counter).
 
-Alan Stern
+So, I'd let the callers use pm_runtime_get() to increment the counter
+and pm_runtime_put() to decrement it, possibly queuing up an idle notification
+if the counter happens to reach 0.  Also, I'm not sure if unbalanced
+pm_runtime_put() should be regarded as a bug.
 
+At the same time, I'd like the core to use runtime_status and the other
+fields in dev_pm_info, except for the usage counter, to ensure that all
+operations are only carried out when it makes sense.
+
+Best,
+Rafael
