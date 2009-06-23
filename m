@@ -1,56 +1,50 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: why do drivers evaluate _INI?
-Date: Mon, 22 Jun 2009 17:32:35 -0600
-Message-ID: <200906221732.35993.bjorn.helgaas@hp.com>
+From: Tony Vroon <tony@linx.net>
+Subject: Re: why do drivers evaluate _INI?
+Date: Tue, 23 Jun 2009 01:01:15 +0100
+Message-ID: <1245715275.441.13.camel@localhost>
+References: <200906221732.35993.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-HQeazKLaO6sBOhrb1eHr"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:40802 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043AbZFVXcg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2009 19:32:36 -0400
-Content-Disposition: inline
+Received: from gold.linx.net ([195.66.232.40]:39187 "EHLO gold.linx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751955AbZFWAKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jun 2009 20:10:38 -0400
+In-Reply-To: <200906221732.35993.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@suse.cz>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@suse.cz>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
 
-[Sorry for the duplicate; I meant to CC: linux-acpi, so I added it here.]
 
-Why do we have ACPI device drivers evaluating _INI?  That seems
-like something that should be done by Linux/ACPI, not by the driver.
+--=-HQeazKLaO6sBOhrb1eHr
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I see the following drivers using _INI:
-  drivers/hwmon/hp_accel.c
-  drivers/platform/x86/fujitsu-laptop.c
-  drivers/platform/x86/sony-laptop.c
+On Mon, 2009-06-22 at 17:32 -0600, Bjorn Helgaas wrote:
+> I see the following drivers using _INI:
+>   drivers/platform/x86/fujitsu-laptop.c
 
-I looked at the git logs where the _INI usage was introduced in
-these drivers, but none gives enough information for me to understand
-why.
+Bjorn, can you send me an experimental patch where you remove it? I can
+regression test that for you on the Lifebook S6420.
 
-If running _INI in the driver makes a difference, I think it's
-really telling us about a problem in Linux/ACPI, and we should
-fix that problem rather than sprinkling _INI evaluation around
-in drivers.
+I'm happy to sign off on it if I see no functional regressions, and if
+not at least we'll have an idea of what to look for.
 
-I do see _INI evaluation in this path:
+Regards,
+Tony V.
 
-    acpi_init
-        acpi_bus_init
-            acpi_initialize_objects(ACPI_FULL_INITIALIZATION)
-                acpi_ns_initialize_devices
-                    acpi_ns_walk_namespace .. acpi_ns_init_one_device
+--=-HQeazKLaO6sBOhrb1eHr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-The spec (section 6.5.1) says OSPM should run _INI when a
-description table is loaded.  I assume the above path does
-this for the DSDT, at least, but I'm not smart enough about
-the ACPI CA to know whether we also handle SSDTs and dynamic
-LoadTables correctly.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (GNU/Linux)
 
-Bjorn
+iEYEABECAAYFAkpAG0sACgkQp5vW4rUFj5rEgQCeIM51beJ8h566pdfV9/k8vu3s
+X+gAn1t/30tpP8SzDfDTeF+l/h/T8Sm6
+=7z58
+-----END PGP SIGNATURE-----
 
-P.S.  I'm about to go on vacation for a couple weeks, so I'll
-be slow in responding to any discussion here.
+--=-HQeazKLaO6sBOhrb1eHr--
+
