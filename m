@@ -1,65 +1,187 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: why do drivers evaluate _INI?
-Date: Tue, 23 Jun 2009 11:05:13 +0900
-Message-ID: <20090623020513.GB22940@kamineko.org>
-References: <200906221732.35993.bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 2/5] fix a deadlock in hotplug case
+Date: Tue, 23 Jun 2009 10:20:29 +0800
+Message-ID: <1245723629.15520.52.camel@rzhang-dt>
+References: <n> <1245641478-31805-1-git-send-email-rui.zhang@intel.com>
+	 <1245641478-31805-2-git-send-email-rui.zhang@intel.com>
+	 <200906221554.07792.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:57974
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbZFWCFM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2009 22:05:12 -0400
-Content-Disposition: inline
-In-Reply-To: <200906221732.35993.bjorn.helgaas@hp.com>
+Received: from mga02.intel.com ([134.134.136.20]:20146 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752005AbZFWCTo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jun 2009 22:19:44 -0400
+In-Reply-To: <200906221554.07792.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@suse.cz>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 22, 2009 at 05:32:35PM -0600, Bjorn Helgaas wrote:
-> [Sorry for the duplicate; I meant to CC: linux-acpi, so I added it here.]
+On Tue, 2009-06-23 at 05:54 +0800, Bjorn Helgaas wrote:
+> On Sunday 21 June 2009 09:31:15 pm Zhang Rui wrote:
+> > we used to run the hotplug code in keventd_wq.
+> > But when hot removing the ACPI battery device,
+> > power_supply_unregister invokes flush_scheduled_work.
+> > This causes a deadlock.
+> > Introduce a new workqueue for hotplug in this patch.
+> > http://bugzilla.kernel.org/show_bug.cgi?id=13533
 > 
-> Why do we have ACPI device drivers evaluating _INI?  That seems
-> like something that should be done by Linux/ACPI, not by the driver.
+> Can you be specific about how the deadlock occurs?  That will
+> make it easier to make sure we don't re-introduce the deadlock
+> if this design is ever changed in the future.  And I will probably
+> try to change this design, so this is really a self-serving
+> request :-)
 > 
-> I see the following drivers using _INI:
->   drivers/hwmon/hp_accel.c
->   drivers/platform/x86/fujitsu-laptop.c
->   drivers/platform/x86/sony-laptop.c
+> I suspect the deadlock is something like this:
 > 
-> I looked at the git logs where the _INI usage was introduced in
-> these drivers, but none gives enough information for me to understand
-> why.
+>   <user removes battery, platform generates system-level notify>
+>     acpi_bus_notify
+>       blocking_notifier_call_chain
+>         acpi_dock_notifier_call
+>           acpi_os_hotplug_execute(acpi_dock_deferred_cb, ...)
+>             __acpi_os_execute(..., acpi_dock_deferred_cb, ...)
+>               schedule_work(<acpi_dock_deferred_cb>)
+>                 queue_work(keventd_wq, <acpi_dock_deferred_cb>)
+>                   <acpi_dock_deferred_cb queued for execution in keventd_wq>
 > 
-> If running _INI in the driver makes a difference, I think it's
-> really telling us about a problem in Linux/ACPI, and we should
-> fix that problem rather than sprinkling _INI evaluation around
-> in drivers.
+>   worker_thread(keventd_wq)
+>     acpi_os_execute_hp_deferred
+>       acpi_dock_deferred_cb
+>         dock_notify
+>           hotplug_dock_devices
+>             dock_remove_acpi_device
+>               acpi_bus_trim
+>                 acpi_bus_remove
+>                   device_release_driver
+>                     acpi_device_remove
+>                       acpi_battery_remove
+>                         sysfs_remove_battery
+>                           power_supply_unregister
+>                             flush_scheduled_work
+>                               flush_workqueue(keventd_wq)
 > 
-> I do see _INI evaluation in this path:
+> Now we're waiting for keventd_wq to be flushed, but it won't be
+> considered flushed until acpi_os_execute_hp_deferred() completes.
 > 
->     acpi_init
->         acpi_bus_init
->             acpi_initialize_objects(ACPI_FULL_INITIALIZATION)
->                 acpi_ns_initialize_devices
->                     acpi_ns_walk_namespace .. acpi_ns_init_one_device
-> 
-> The spec (section 6.5.1) says OSPM should run _INI when a
-> description table is loaded.  I assume the above path does
-> this for the DSDT, at least, but I'm not smart enough about
-> the ACPI CA to know whether we also handle SSDTs and dynamic
-> LoadTables correctly.
+exactly.
 
-well, it was long ago... I was going to say that when I added it it was because
-ospm wasn't calling _INI on the SNY6001 device but it doesn't seem to be the
-case... it was just my imagination I guess. I'll double check.
+> This sort of analysis is obviously way too long and too specific
+> for a source code comment, but it would be nice to have it in the
+> bugzilla, at least.
+> 
+> And maybe the changelog could mention that flush_scheduled_work()
+> applies to keventd_wq, just to close the loop there.
+> 
+> The source code comment:
+> 
+> > +/* 
+> > + * run the hotplug code in a seperate workqueue
+> > + * to avoid the deadlock issue
+> > + */
+> 
+> should be more specific about what "the deadlock issue" is.
+> Maybe something like:
+> 
+>   /*
+>    * We can't run hotplug code in keventd_wq because the hotplug
+>    * code may call driver .remove() functions, which often use
+>    * flush_scheduled_work() to wait for keventd_wq to be flushed.
+>    */
+> 
+> And it might make more sense to put the comment where the queue
+> is used, i.e., in __acpi_os_execute(), rather than at the definition.
+> 
+good point.
+Refreshed patch attached.
 
-Anyway, from a quick look, _STA on the SNY6001 is always returning 0x0F
-or 0x0D depending on the device being assigned an irq or not so ospm
-should be good.  I think the _INI call can be removed for sony-laptop.
+we used to run the hotplug code in keventd_wq.
+But when hot removing the ACPI battery device,
+power_supply_unregister invokes flush_scheduled_work.
+This causes a deadlock. i.e
+1. When dock is unplugged, all the hotplug code is run on kevent_wq.
+2. the hotplug code removes all the child devices of dock device.
+3. removing the child device may invoke flush_scheduled_work
+4. flush_scheduled_work waits until all the work on kevent_wq to be
+   finished, while this will never be true because the hotplug code
+   is running on keventd_wq...
 
-cheers
--- 
-mattia
-:wq!
+Introduce a new workqueue for hotplug in this patch.
+http://bugzilla.kernel.org/show_bug.cgi?id=13533
+
+Tested-by: Paul Martin <pm@debian.org>
+Tested-by: Vojtech Gondzala <vojtech.gondzala@gmail.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/osl.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+
+Index: linux-2.6/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/osl.c
++++ linux-2.6/drivers/acpi/osl.c
+@@ -79,6 +79,7 @@ static acpi_osd_handler acpi_irq_handler
+ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
++static struct workqueue_struct *kacpi_hotplug_wq;
+ 
+ struct acpi_res_list {
+ 	resource_size_t start;
+@@ -192,8 +193,10 @@ acpi_status acpi_os_initialize1(void)
+ {
+ 	kacpid_wq = create_singlethread_workqueue("kacpid");
+ 	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
++	kacpi_hotplug_wq = create_singlethread_workqueue("kacpi_hotplug");
+ 	BUG_ON(!kacpid_wq);
+ 	BUG_ON(!kacpi_notify_wq);
++	BUG_ON(!kacpi_hotplug_wq);
+ 	return AE_OK;
+ }
+ 
+@@ -206,6 +209,7 @@ acpi_status acpi_os_terminate(void)
+ 
+ 	destroy_workqueue(kacpid_wq);
+ 	destroy_workqueue(kacpi_notify_wq);
++	destroy_workqueue(kacpi_hotplug_wq);
+ 
+ 	return AE_OK;
+ }
+@@ -716,6 +720,7 @@ static acpi_status __acpi_os_execute(acp
+ 	acpi_status status = AE_OK;
+ 	struct acpi_os_dpc *dpc;
+ 	struct workqueue_struct *queue;
++	work_func_t func;
+ 	int ret;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+ 			  "Scheduling function [%p(%p)] for deferred execution.\n",
+@@ -740,15 +745,17 @@ static acpi_status __acpi_os_execute(acp
+ 	dpc->function = function;
+ 	dpc->context = context;
+ 
+-	if (!hp) {
+-		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-		queue = (type == OSL_NOTIFY_HANDLER) ?
+-			kacpi_notify_wq : kacpid_wq;
+-		ret = queue_work(queue, &dpc->work);
+-	} else {
+-		INIT_WORK(&dpc->work, acpi_os_execute_hp_deferred);
+-		ret = schedule_work(&dpc->work);
+-	}
++	/*
++	 * We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
++	 * because the hotplug code may call driver .remove() functions,
++	 * which invoke flush_scheduled_work/acpi_os_wait_events_complete
++	 * to flush these workqueues.
++	 */
++	queue = hp ? kacpi_hotplug_wq :
++		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
++	func = hp ? acpi_os_execute_hp_deferred : acpi_os_execute_deferred;
++	INIT_WORK(&dpc->work, func);
++	ret = queue_work(queue, &dpc->work);
+ 
+ 	if (!ret) {
+ 		printk(KERN_ERR PREFIX
+
+
