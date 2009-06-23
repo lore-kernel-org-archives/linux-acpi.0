@@ -1,131 +1,85 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: acpi on sony vaio vgn-sz61mn
-Date: Tue, 23 Jun 2009 16:48:06 +0800
-Message-ID: <1245746886.15520.98.camel@rzhang-dt>
-References: <4A38F2FA.5000207@uni-koblenz.de>
-	 <1245286687.9076.101.camel@rzhang-dt>  <4A40928A.7000608@uni-koblenz.de>
-	 <1245746655.15520.96.camel@rzhang-dt>  <4A40961D.50504@uni-koblenz.de>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: why do drivers evaluate _INI?
+Date: Tue, 23 Jun 2009 10:53:07 +0200
+Message-ID: <71cd59b00906230153q38f2d9b5h6c57621c389ecb0f@mail.gmail.com>
+References: <200906221732.35993.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21651 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751107AbZFWIrU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2009 04:47:20 -0400
-In-Reply-To: <4A40961D.50504@uni-koblenz.de>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:41578 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965AbZFWIxF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 04:53:05 -0400
+Received: by fxm9 with SMTP id 9so76298fxm.37
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2009 01:53:08 -0700 (PDT)
+In-Reply-To: <200906221732.35993.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@suse.cz>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
 
-On Tue, 2009-06-23 at 16:45 +0800, Sebastian Pohl wrote:
-> Zhang Rui wrote:
-> > On Tue, 2009-06-23 at 16:30 +0800, Sebastian Pohl wrote:
-> >  =20
-> >> Hi!
-> >>
-> >> Zhang Rui wrote:
-> >>    =20
-> >>> On Wed, 2009-06-17 at 21:43 +0800, Sebastian Pohl wrote:
-> >>>  =20
-> >>>      =20
-> >>>> Hello everyone!
-> >>>>
-> >>>> Thank you to everyone working on the sony stuff! It made my lapt=
-op a=20
-> >>>> much more valuable companion!
-> >>>>
-> >>>> But there are still some flaws that are left. I am writing to ge=
-t an=20
-> >>>> advise what to do with them.=20
-> >>>>    =20
-> >>>>        =20
-> >>>  =20
-> >>>      =20
-> >>>> Ok, the problems are:
-> >>>>
-> >>>> - The special button s2 generates the same acpi event as the sta=
-mina switch
-> >>>> - The lidswitch does not generate any acpi events
-> >>>> - The Power does not generate any acpi events
-> >>>>
-> >>>>    =20
-> >>>>        =20
-> >>> please kill acpid, and run "cat /proc/acpi/event", what do you ge=
-t when
-> >>> pressing each of the three buttons?
-> >>>  =20
-> >>>      =20
-> >> Both, the s2 Button and the stamina switch generate the following
-> >>
-> >>    =20
-> > so Q1 and Q2 are sony platform driver problems.
-> > what do you get when pressing the power button?
-> >
-> > thanks,
-> > rui
-> >  =20
->=20
-> When presing the power button nothing happens. No acpi output, no=20
-> interrupts, nothing. Same with the lid-switch.
->=20
+On Tue, Jun 23, 2009 at 1:32 AM, Bjorn Helgaas<bjorn.helgaas@hp.com> wr=
+ote:
+> [Sorry for the duplicate; I meant to CC: linux-acpi, so I added it he=
+re.]
+>
+> Why do we have ACPI device drivers evaluating _INI? =A0That seems
+> like something that should be done by Linux/ACPI, not by the driver.
+>
+> I see the following drivers using _INI:
+> =A0drivers/hwmon/hp_accel.c
+> =A0drivers/platform/x86/fujitsu-laptop.c
+> =A0drivers/platform/x86/sony-laptop.c
+>
+> I looked at the git logs where the _INI usage was introduced in
+> these drivers, but none gives enough information for me to understand
+> why.
+>
+> If running _INI in the driver makes a difference, I think it's
+> really telling us about a problem in Linux/ACPI, and we should
+> fix that problem rather than sprinkling _INI evaluation around
+> in drivers.
+>
+> I do see _INI evaluation in this path:
+>
+> =A0 =A0acpi_init
+> =A0 =A0 =A0 =A0acpi_bus_init
+> =A0 =A0 =A0 =A0 =A0 =A0acpi_initialize_objects(ACPI_FULL_INITIALIZATI=
+ON)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0acpi_ns_initialize_devices
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0acpi_ns_walk_namespace .. acpi=
+_ns_init_one_device
+>
+> The spec (section 6.5.1) says OSPM should run _INI when a
+> description table is loaded. =A0I assume the above path does
+> this for the DSDT, at least, but I'm not smart enough about
+> the ACPI CA to know whether we also handle SSDTs and dynamic
+> LoadTables correctly.
+>
+> Bjorn
+>
+> P.S. =A0I'm about to go on vacation for a couple weeks, so I'll
+> be slow in responding to any discussion here.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-even no ACPI interrupts?
-please attach the output of grep . /sys/firmware/acpi/interrupts/*
-both before and after pressing these buttons for a couple of times.
+Hi,
+I don't know if it's related, but:
+eeepc-laptop is calling "INIT" for device ASUS010
+asus-laptop is calling "INIT" for device ATK0100
 
-thanks,
-rui
+But for eeepc-laptop we provide some flags special to INIT, and in
+asus-laptop it returns the model name.
+So I don't think we can move INIT for these.
 
-> regards
->=20
->     sebastian
->=20
-> >> sony/hotkey SPIC 00000001 00000021
-> >>    =20
-> >>> run "cat /proc/interrupts" both before and after pressing these b=
-uttons,
-> >>> does the number of ACPI or sony interrupts increase?
-> >>> If ACPI interrupts increases, please run
-> >>> "grep . /sys/firmware/acpi/interrupts/*" and tell us which GPE/Fi=
-xed
-> >>> event is fired.
-> >>>
-> >>>  =20
-> >>>      =20
-> >> Only the stamina switch and the s2 button increase any interrupts =
-but=20
-> >> only sony interrupts are generated.
-> >>    =20
-> >>> =EF=BB=BF
-> >>>  =20
-> >>>      =20
-> >>>> Should i post them to bugtrackter or=20
-> >>>> something else?
-> >>>>
-> >>>>    =20
-> >>>>        =20
-> >>> please file a new bug report at
-> >>> http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-> >>> and attach all the request info there.
-> >>> please also attach the acpidump output.
-> >>>
-> >>> thanks,
-> >>> rui
-> >>>
-> >>>  =20
-> >>>      =20
-> >> thank you!
-> >>
-> >> regards
-> >>
-> >>      sebastian
-> >>    =20
-> >
-> >  =20
->=20
-
+--=20
+Corentin Chary
+http://xf.iksaif.net - http://uffs.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
