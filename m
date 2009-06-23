@@ -1,187 +1,217 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2/5] fix a deadlock in hotplug case
-Date: Tue, 23 Jun 2009 10:20:29 +0800
-Message-ID: <1245723629.15520.52.camel@rzhang-dt>
-References: <n> <1245641478-31805-1-git-send-email-rui.zhang@intel.com>
-	 <1245641478-31805-2-git-send-email-rui.zhang@intel.com>
-	 <200906221554.07792.bjorn.helgaas@hp.com>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Depreciate the ACPI processor proc I/F
+Date: Tue, 23 Jun 2009 10:47:44 +0800
+Message-ID: <1245725264.7266.1.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:20146 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:2230 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752005AbZFWCTo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jun 2009 22:19:44 -0400
-In-Reply-To: <200906221554.07792.bjorn.helgaas@hp.com>
+	id S1751010AbZFWCqk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jun 2009 22:46:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2009-06-23 at 05:54 +0800, Bjorn Helgaas wrote:
-> On Sunday 21 June 2009 09:31:15 pm Zhang Rui wrote:
-> > we used to run the hotplug code in keventd_wq.
-> > But when hot removing the ACPI battery device,
-> > power_supply_unregister invokes flush_scheduled_work.
-> > This causes a deadlock.
-> > Introduce a new workqueue for hotplug in this patch.
-> > http://bugzilla.kernel.org/show_bug.cgi?id=13533
-> 
-> Can you be specific about how the deadlock occurs?  That will
-> make it easier to make sure we don't re-introduce the deadlock
-> if this design is ever changed in the future.  And I will probably
-> try to change this design, so this is really a self-serving
-> request :-)
-> 
-> I suspect the deadlock is something like this:
-> 
->   <user removes battery, platform generates system-level notify>
->     acpi_bus_notify
->       blocking_notifier_call_chain
->         acpi_dock_notifier_call
->           acpi_os_hotplug_execute(acpi_dock_deferred_cb, ...)
->             __acpi_os_execute(..., acpi_dock_deferred_cb, ...)
->               schedule_work(<acpi_dock_deferred_cb>)
->                 queue_work(keventd_wq, <acpi_dock_deferred_cb>)
->                   <acpi_dock_deferred_cb queued for execution in keventd_wq>
-> 
->   worker_thread(keventd_wq)
->     acpi_os_execute_hp_deferred
->       acpi_dock_deferred_cb
->         dock_notify
->           hotplug_dock_devices
->             dock_remove_acpi_device
->               acpi_bus_trim
->                 acpi_bus_remove
->                   device_release_driver
->                     acpi_device_remove
->                       acpi_battery_remove
->                         sysfs_remove_battery
->                           power_supply_unregister
->                             flush_scheduled_work
->                               flush_workqueue(keventd_wq)
-> 
-> Now we're waiting for keventd_wq to be flushed, but it won't be
-> considered flushed until acpi_os_execute_hp_deferred() completes.
-> 
-exactly.
 
-> This sort of analysis is obviously way too long and too specific
-> for a source code comment, but it would be nice to have it in the
-> bugzilla, at least.
-> 
-> And maybe the changelog could mention that flush_scheduled_work()
-> applies to keventd_wq, just to close the loop there.
-> 
-> The source code comment:
-> 
-> > +/* 
-> > + * run the hotplug code in a seperate workqueue
-> > + * to avoid the deadlock issue
-> > + */
-> 
-> should be more specific about what "the deadlock issue" is.
-> Maybe something like:
-> 
->   /*
->    * We can't run hotplug code in keventd_wq because the hotplug
->    * code may call driver .remove() functions, which often use
->    * flush_scheduled_work() to wait for keventd_wq to be flushed.
->    */
-> 
-> And it might make more sense to put the comment where the queue
-> is used, i.e., in __acpi_os_execute(), rather than at the definition.
-> 
-good point.
-Refreshed patch attached.
+Now whether the ACPI processor proc I/F is registered depends on the
+CONFIG_PROC. It had better depend on the CONFIG_ACPI_PROCFS.
+Depreciate the ACPI processor proc I/F. When the CONFIG_ACPI_PROCFS
+is unset in kernel configuration, it won't be registered.
 
-we used to run the hotplug code in keventd_wq.
-But when hot removing the ACPI battery device,
-power_supply_unregister invokes flush_scheduled_work.
-This causes a deadlock. i.e
-1. When dock is unplugged, all the hotplug code is run on kevent_wq.
-2. the hotplug code removes all the child devices of dock device.
-3. removing the child device may invoke flush_scheduled_work
-4. flush_scheduled_work waits until all the work on kevent_wq to be
-   finished, while this will never be true because the hotplug code
-   is running on keventd_wq...
-
-Introduce a new workqueue for hotplug in this patch.
-http://bugzilla.kernel.org/show_bug.cgi?id=13533
-
-Tested-by: Paul Martin <pm@debian.org>
-Tested-by: Vojtech Gondzala <vojtech.gondzala@gmail.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 ---
- drivers/acpi/osl.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ drivers/acpi/processor_core.c       |   25 +++++++++++++++++++++----
+ drivers/acpi/processor_idle.c       |    8 ++++++--
+ drivers/acpi/processor_thermal.c    |    3 ++-
+ drivers/acpi/processor_throttling.c |    3 ++-
+ 4 files changed, 31 insertions(+), 8 deletions(-)
 
-Index: linux-2.6/drivers/acpi/osl.c
+Index: linux-2.6/drivers/acpi/processor_core.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/osl.c
-+++ linux-2.6/drivers/acpi/osl.c
-@@ -79,6 +79,7 @@ static acpi_osd_handler acpi_irq_handler
- static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
-+static struct workqueue_struct *kacpi_hotplug_wq;
+--- linux-2.6.orig/drivers/acpi/processor_core.c	2009-06-23 10:09:11.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_core.c	2009-06-23 10:40:25.000000000 +0800
+@@ -81,7 +81,9 @@
+ static int acpi_processor_add(struct acpi_device *device);
+ static int acpi_processor_start(struct acpi_device *device);
+ static int acpi_processor_remove(struct acpi_device *device, int type);
++#ifdef CONFIG_ACPI_PROCFS
+ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
++#endif
+ static void acpi_processor_notify(struct acpi_device *device, u32 event);
+ static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
+@@ -110,7 +112,7 @@
  
- struct acpi_res_list {
- 	resource_size_t start;
-@@ -192,8 +193,10 @@ acpi_status acpi_os_initialize1(void)
+ #define INSTALL_NOTIFY_HANDLER		1
+ #define UNINSTALL_NOTIFY_HANDLER	2
+-
++#ifdef CONFIG_ACPI_PROCFS
+ static const struct file_operations acpi_processor_info_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = acpi_processor_info_open_fs,
+@@ -118,6 +120,7 @@
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif
+ 
+ DEFINE_PER_CPU(struct acpi_processor *, processors);
+ struct acpi_processor_errata errata __read_mostly;
+@@ -316,6 +319,7 @@
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ static struct proc_dir_entry *acpi_processor_dir = NULL;
+ 
+ static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
+@@ -388,7 +392,6 @@
+ 		return -EIO;
+ 	return 0;
+ }
+-
+ static int acpi_processor_remove_fs(struct acpi_device *device)
  {
- 	kacpid_wq = create_singlethread_workqueue("kacpid");
- 	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
-+	kacpi_hotplug_wq = create_singlethread_workqueue("kacpi_hotplug");
- 	BUG_ON(!kacpid_wq);
- 	BUG_ON(!kacpi_notify_wq);
-+	BUG_ON(!kacpi_hotplug_wq);
- 	return AE_OK;
+ 
+@@ -405,6 +408,16 @@
+ 
+ 	return 0;
+ }
++#else
++static inline int acpi_processor_add_fs(struct acpi_device *device)
++{
++	return 0;
++}
++static inline int acpi_processor_remove_fs(struct acpi_device *device)
++{
++	return 0;
++}
++#endif
+ 
+ /* Use the acpiid in MADT to map cpus in case of SMP */
+ 
+@@ -1147,11 +1160,11 @@
+ 				(struct acpi_table_header **)&madt)))
+ 		madt = NULL;
+ #endif
+-
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	if (!acpi_processor_dir)
+ 		return -ENOMEM;
+-
++#endif
+ 	/*
+ 	 * Check whether the system is DMI table. If yes, OSPM
+ 	 * should not use mwait for CPU-states.
+@@ -1179,7 +1192,9 @@
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
+ out_proc:
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++#endif
+ 
+ 	return result;
+ }
+@@ -1196,7 +1211,9 @@
+ 
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++#endif
+ 
+ 	return;
+ }
+Index: linux-2.6/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_idle.c	2009-06-23 10:09:11.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_idle.c	2009-06-23 10:40:25.000000000 +0800
+@@ -679,6 +679,7 @@
+ 	return 0;
  }
  
-@@ -206,6 +209,7 @@ acpi_status acpi_os_terminate(void)
++#ifdef CONFIG_ACPI_PROCFS
+ static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	struct acpi_processor *pr = seq->private;
+@@ -758,7 +759,7 @@
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
+-
++#endif
  
- 	destroy_workqueue(kacpid_wq);
- 	destroy_workqueue(kacpi_notify_wq);
-+	destroy_workqueue(kacpi_hotplug_wq);
- 
- 	return AE_OK;
+ /**
+  * acpi_idle_bm_check - checks if bus master activity was detected
+@@ -1216,7 +1217,7 @@
+ 				       pr->power.states[i].type);
+ 		printk(")\n");
+ 	}
+-
++#ifdef CONFIG_ACPI_PROCFS
+ 	/* 'power' [R] */
+ 	entry = proc_create_data(ACPI_PROCESSOR_FILE_POWER,
+ 				 S_IRUGO, acpi_device_dir(device),
+@@ -1224,6 +1225,7 @@
+ 				 acpi_driver_data(device));
+ 	if (!entry)
+ 		return -EIO;
++#endif
+ 	return 0;
  }
-@@ -716,6 +720,7 @@ static acpi_status __acpi_os_execute(acp
- 	acpi_status status = AE_OK;
- 	struct acpi_os_dpc *dpc;
- 	struct workqueue_struct *queue;
-+	work_func_t func;
- 	int ret;
- 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 			  "Scheduling function [%p(%p)] for deferred execution.\n",
-@@ -740,15 +745,17 @@ static acpi_status __acpi_os_execute(acp
- 	dpc->function = function;
- 	dpc->context = context;
  
--	if (!hp) {
--		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
--		queue = (type == OSL_NOTIFY_HANDLER) ?
--			kacpi_notify_wq : kacpid_wq;
--		ret = queue_work(queue, &dpc->work);
--	} else {
--		INIT_WORK(&dpc->work, acpi_os_execute_hp_deferred);
--		ret = schedule_work(&dpc->work);
--	}
-+	/*
-+	 * We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
-+	 * because the hotplug code may call driver .remove() functions,
-+	 * which invoke flush_scheduled_work/acpi_os_wait_events_complete
-+	 * to flush these workqueues.
-+	 */
-+	queue = hp ? kacpi_hotplug_wq :
-+		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
-+	func = hp ? acpi_os_execute_hp_deferred : acpi_os_execute_deferred;
-+	INIT_WORK(&dpc->work, func);
-+	ret = queue_work(queue, &dpc->work);
+@@ -1236,9 +1238,11 @@
+ 	cpuidle_unregister_device(&pr->power.dev);
+ 	pr->flags.power_setup_done = 0;
  
- 	if (!ret) {
- 		printk(KERN_ERR PREFIX
++#ifdef CONFIG_ACPI_PROCFS
+ 	if (acpi_device_dir(device))
+ 		remove_proc_entry(ACPI_PROCESSOR_FILE_POWER,
+ 				  acpi_device_dir(device));
++#endif
+ 
+ 	return 0;
+ }
+Index: linux-2.6/drivers/acpi/processor_throttling.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_throttling.c	2009-06-16 13:49:58.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_throttling.c	2009-06-23 10:40:25.000000000 +0800
+@@ -1214,7 +1214,7 @@
+ }
+ 
+ /* proc interface */
+-
++#ifdef CONFIG_ACPI_PROCFS
+ static int acpi_processor_throttling_seq_show(struct seq_file *seq,
+ 					      void *offset)
+ {
+@@ -1322,3 +1322,4 @@
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif
+Index: linux-2.6/drivers/acpi/processor_thermal.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_thermal.c	2009-06-16 13:49:58.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_thermal.c	2009-06-23 10:40:25.000000000 +0800
+@@ -438,7 +438,7 @@
+ };
+ 
+ /* /proc interface */
+-
++#ifdef CONFIG_ACPI_PROCFS
+ static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
+@@ -517,3 +517,4 @@
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif
 
 
