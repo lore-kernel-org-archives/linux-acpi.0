@@ -1,105 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: kerneloops.org report for the week of June 14 2009
-Date: Tue, 23 Jun 2009 18:56:23 +0200
-Message-ID: <200906231856.24959.rjw@sisk.pl>
-References: <20090614173331.18f01123@infradead.org> <alpine.LFD.2.00.0906231201430.2767@localhost.localdomain> <20090623115510.GC9497@elte.hu>
+Subject: Re: [PATCH] PM: Introduce core framework for run-time PM of I/O devices (rev. 3)
+Date: Tue, 23 Jun 2009 19:00:03 +0200
+Message-ID: <200906231900.04660.rjw@sisk.pl>
+References: <200906230121.18932.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760916AbZFWQ4e@vger.kernel.org>
-In-Reply-To: <20090623115510.GC9497@elte.hu>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:38207 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755043AbZFWQ7X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2009 12:59:23 -0400
+In-Reply-To: <200906230121.18932.rjw@sisk.pl>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Arjan van de Ven <arjan@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Venki Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <lenb@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm@lists.linux-foundation.org, Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Arjan van de Ven <arjan@infradead.org>
 
-On Tuesday 23 June 2009, Ingo Molnar wrote:
+On Tuesday 23 June 2009, Rafael J. Wysocki wrote:
+> Hi,
 > 
-> * Thomas Gleixner <tglx@linutronix.de> wrote:
+> Below is a new revision of the patch introducing the run-time PM framework.
 > 
-> > On Sun, 14 Jun 2009, Arjan van de Ven wrote:
-> > > Rank 3: getnstimeofday (warning)
-> > > 	Reported 309 times (2446 total reports)
-> > > 	[suspend resume] getnstimeofday() is called before timekeeping is
-> >         resumed
-> > 
-> > > Rank 6: hres_timers_resume (warning)
-> > > 	Reported 188 times (1024 total reports)
-> > > 	[suspend resume] hres_timers_resume() is incorrectly called with
-> > >       interrupts on
-> > 
-> > Both have the same root cause. Something enables interrupts in the 
-> > early resume path. IIRC, there was a culprit identified recently. 
-> > Rafael ?
+> The most visible changes from the last version:
+> 
+> * I realized that if child_count is atomic, we can drop the parent locking from
+>   all of the functions, so I did that.
+> 
+> * Introduced pm_runtime_put() that decrements the resume counter and queues
+>   up an idle notification if the counter went down to 0 (and wasn't 0 previously).
+>   Using asynchronous notification makes it possible to call pm_runtime_put()
+>   from interrupt context, if necessary.
+> 
+> * Changed the meaning of the RPM_WAKE bit slightly (it is now also used for
+>   disabling run-time PM for a device along with the resume counter).
+> 
+> Please let me know if I've overlooked anything. :-)
 
-Apparently, we have smp_call_function_single() called from cpufreq_suspend
-via acpi_cpufreq somehow, but I'm still to figure out how this happens.
+Well, I found quite a few problems myself, mostly related to disabling-enabling
+of the run-time PM and to RPM_WAKE.
 
-> This can be debugged automatically today, using lockdep, by using a 
-> 'helper lock':
-> 
->   static DEFINE_PER_CPU(struct lockdep_map, helper_lock);
-> 
-> Then mark the lock irq-safe by doing something like:
-> 
-> static void mark_lock_irqsafe(void)
-> {
-> 	unsigned long flags;
-> 	int cpu;
-> 
-> 	local_irq_save(flags);
-> 	irq_enter(0);
-> 
-> 	for_each_online_cpu(cpu) {
-> 		lock_acquire(&per_cpu(helper_lock, cpu), 0, 0, 0, 0, NULL, 0);
-> 		lock_release(&per_cpu(helper_lock, cpu), 0, 0, 0, 0, NULL, 0);
-> 	}
-> 
-> 	irq_exit(0);
-> 	local_irq_restore(flags);
-> }
-> 
-> Then, the resume path, when it disables irqs, you can disallow 
-> irq-enable via:
-> 
-> 	local_irq_disable();
-> 	lock_acquire(&__get_cpu_var(helper_lock), 0, 0, 0, 0, NULL, 0);
-> 	...
-> 	<extensive suspend or resume codepaths, callbacks> 
-> 	...
-> 	lock_release(&__get_cpu_var(helper_lock), 0, 0, 0, 0, NULL, 0);
-> 	local_irq_enable();
-> 
-> And lockdep will warn if any function inbetween enables IRQs, by 
-> emitting a splat about incorrectly enabled hardirqs. It will warn 
-> about the specific place and will emit a relevant backtrace, - not 
-> just the handler in general.
-> 
-> This should work just fine with current lockdep facilities.
-> 
-> Rafael?
+Updated patch will be sent out later today.
 
-We have some debug code for checking interrupts disabled in sysdev_suspend
-and sysdev_resume already and these reports are from 2.6.29 where that code
-was not present.
-
-The long term solution for the issue at hand is to clean up the suspend-resume
-support in cpufreq so that it doesn't do stupid things like calling
-smp_call_function_single() with interrupts disabled, but that requires someone
-(I can do it, but I need to dig through the cpufreq code for this purpose) to
-figure out how to fix it.
-
-I'm not quite sure if there's an acceptable short term solution, though.
-
-In principle we can do
-
-local_irq_save()
-...
-local_irq_restore()
-
-around each sysdevs ->susend() and ->resume() in addition to checking the
-status of interrupts.  Would that work?
-
+Best,
 Rafael
