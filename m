@@ -1,76 +1,69 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: why do drivers evaluate _INI?
-Date: Wed, 24 Jun 2009 09:45:05 +0930 (CST)
-Message-ID: <200906240015.n5O0F5bO024937@turbo.physics.adelaide.edu.au>
-References: <1245770262.16646.16.camel@earth.gruber.myown>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch update 3] PM: Introduce core framework for run-time PM of I/O devices
+Date: Wed, 24 Jun 2009 02:17:38 +0200
+Message-ID: <200906240217.39608.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906231408370.3209-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:35054 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751830AbZFXAQm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2009 20:16:42 -0400
-In-Reply-To: <1245770262.16646.16.camel@earth.gruber.myown> from "nokos@gmx.net" at Jun 23, 2009 05:17:42 PM
+Received: from ogre.sisk.pl ([217.79.144.158]:40067 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751915AbZFXARG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2009 20:17:06 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906231408370.3209-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: nokos@gmx.net
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@suse.cz>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-Hi Peter
-
-> > > Why do we have ACPI device drivers evaluating _INI?  That seems
-> > > like something that should be done by Linux/ACPI, not by the driver.
-> > > 
-> > > I see the following drivers using _INI:
-> > >   drivers/hwmon/hp_accel.c
-> > >   drivers/platform/x86/fujitsu-laptop.c
-> > >   drivers/platform/x86/sony-laptop.c
-> > > 
-> > > I looked at the git logs where the _INI usage was introduced in
-> > > these drivers, but none gives enough information for me to understand
-> > > why.
-> > 
-> > I can't shed a lot of light on this from the point of view of
-> > fujitsu-laptop.
-> > 
-> > It appears that the evaluation of _INI was added to fujitsu-laptop as part
-> > of the patch which added support for hotkeys present on some Fujitsu
-> > laptops.  This patch was contributed by Peter Gruber - I've added him to the
-> > CC.  Perhaps he might explain why he added _INI evaluation as part of this
-> > patch (that is, what problem was encountered which required evaluation of
-> > _INI).
+On Tuesday 23 June 2009, Alan Stern wrote:
+> On Tue, 23 Jun 2009, Rafael J. Wysocki wrote:
 > 
-> The hotkey communication between hardware and the drivers is done using
-> acpi notifies and a (small) ringbuffer in the acpi dsdt code. The
-> easiest way to assure a consistent. The _INI method simply resets the
-> internal state of the ringbuffer which seems to be unavailable for
-> direct manipulation.
+> > In short, I think suspending (or queuing a suspend request) should fail if the
+> > usage counter is nonzero, but the resuming (or queuing up a resume request)
+> > should be possible regardless of its value.  The reason is that multiple
+> > threads may in theory attempt to resume the device at the same time.
+> 
+> Agreed.  Suspends and resumes aren't symmetrical -- a single resume 
+> request must outweigh numerous suspend requests.
+> 
+> > However, I'm not sure if the core should manipulate the usage counter by
+> > itself, because it's sort of problematic (there's no good approach to decide
+> > when to decrement the counter).
+> 
+> Yes.  The idea behind my previous message was that it's not really so
+> easy for the core to decide when to _increment_ the counter either.
+> 
+> > So, I'd let the callers use pm_runtime_get() to increment the counter
+> > and pm_runtime_put() to decrement it, possibly queuing up an idle notification
+> > if the counter happens to reach 0.  Also, I'm not sure if unbalanced
+> > pm_runtime_put() should be regarded as a bug.
+> 
+> It should be.  Once the counter is messed up, runtime PM wouldn't be
+> able to work properly.  But maybe you should add a pm_set_counter call
+> so that drivers can recover from imbalances.
+> 
+> One question still remains: If the counter is 0 at the end of a
+> successful pm_runtime_resume, should the core then call pm_notify_idle?  
+> Or should we make the driver responsible for that too?
 
-Thanks for this info Peter.  So evaluating _INI is required to ensure we
-start with an empty ringbuffer and don't end up with partial sequences
-and/or old keypresses being processed when the module is loaded - right?
+Good question. :-)
 
-> Another possible path would be to read and discard the ringbuffer on
-> module load to ensure a consistent state.
+I think the core may call pm_notify_idle() in that case, but not necessarily in
+the synchronous case.
 
-True - but is this really any neater than calling _INI in this context?  In
-addition, is there a definitive way to know that we have a consistant
-ringbuffer state?  If not we won't know when to stop reading.
+> > At the same time, I'd like the core to use runtime_status and the other
+> > fields in dev_pm_info, except for the usage counter, to ensure that all
+> > operations are only carried out when it makes sense.
+> 
+> Yes.  In fact, I'd say that when the counter is positive it doesn't
+> make sense to allow a runtime suspend -- so you don't need that
+> exception in your statement above.  :-)
 
-Having said that, the _INI method is called by acpi_ns_initialize_devices()
-which I assume forms part of the APCI core initialisation.  Presumedly there
-won't be a great deal of time elapsed between this and the initialisation of
-fujitsu-laptop in most cases.  If fujitsu-laptop didn't call _INI (as per
-the quick and dirty patch yesterday) there seems little scope for a real
-problem.  The only time when it *could* be an issue is when considerable
-time elapsed between ACPI initialisation and the loading of fujitsu-laptop -
-something which in practice is only going to apply to the machines of
-developers.
+Well, you're right.
 
-So, given this background, is there likely to be any real-world effect
-caused by the removal of the _INI call in fujitsu-laptop?
-
-Regards
-  jonathan
+Best,
+Rafael
