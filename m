@@ -1,26 +1,65 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: Sata link_power_management_policy questions
-Date: Tue, 23 Jun 2009 18:51:48 -0600
-Message-ID: <4A4178A4.5000505@gmail.com>
-References: <4A3FD261.7060903@gmail.com> <4A40643B.7090805@gmail.com> <4A40C3D9.7060602@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: acpi on sony vaio vgn-sz61mn
+Date: Wed, 24 Jun 2009 08:58:30 +0800
+Message-ID: <1245805110.15520.101.camel@rzhang-dt>
+References: <4A38F2FA.5000207@uni-koblenz.de>
+	 <1245286687.9076.101.camel@rzhang-dt>  <4A40928A.7000608@uni-koblenz.de>
+	 <1245746655.15520.96.camel@rzhang-dt>  <4A40961D.50504@uni-koblenz.de>
+	 <1245746886.15520.98.camel@rzhang-dt> <4A409CEA.6040900@uni-koblenz.de>
+	 <037F493892196B458CD3E193E8EBAD4F01E90EF8BB@pdsmsx502.ccr.corp.intel.com>
+	 <4A40A170.1050401@uni-koblenz.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <4A40C3D9.7060602@gmail.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Patrick Voegeli Olivera <patrick.voegeli@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-ide@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:43373 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751147AbZFXA5o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2009 20:57:44 -0400
+In-Reply-To: <4A40A170.1050401@uni-koblenz.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sebastian Pohl <sebastianp@uni-koblenz.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>
 
-On 06/23/2009 06:00 AM, Patrick Voegeli Olivera wrote:
-> Here they go,
->
-> I attach them as log files, since dmesg is quite long.
->
+On Tue, 2009-06-23 at 17:33 +0800, Sebastian Pohl wrote:
+> Zhang, Rui wrote:
+> >   
+> >> -----Original Message-----
+> >> From: Sebastian Pohl [mailto:sebastianp@uni-koblenz.de]
+> >> Sent: Tuesday, June 23, 2009 5:14 PM
+> >> To: Zhang, Rui
+> >> Cc: linux-acpi@vger.kernel.org; Mattia Dongili
+> >> Subject: Re: acpi on sony vaio vgn-sz61mn
+> >>     
+> >>>       
+> >> Hi,
+> >>
+> >> this is before:
+> >>
+> >> /sys/firmware/acpi/interrupts/error:       0
+> >> /sys/firmware/acpi/interrupts/ff_gbl_lock:       0    enabled
+> >> /sys/firmware/acpi/interrupts/ff_pmtimer:       0    invalid
+> >> /sys/firmware/acpi/interrupts/ff_pwr_btn:       0    invalid
+> >>     
+> > [Rui] power button fixed event is invalid?
+> > Please make sure CONFIG_ACPI_BUTTON=m/y
+> >
+> > Thanks,
+> > rui
+> >
+> >   
+> It was set to
+> 
+> CONFIG_ACPI_BUTTON=m
+> 
+> ist that right or should i change it?
+> 
+please make sure it's loaded.
+please attach the output of "grep . /proc/acpi/button/*/*/*"
 
-ahci 0000:00:1f.2: AHCI 0001.0100 32 slots 3 ports 3 Gbps 0x7 impl SATA mode
-ahci 0000:00:1f.2: flags: 64bit ncq sntf led clo pio slum part
+thanks,
+rui
 
-Looks like your chipset's AHCI controller doesn't support the ALPM link 
-power management capability (it would show "pm" in this string if it did).
+
+
