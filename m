@@ -1,63 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: Introduce core framework for run-time PM of I/O devices (rev. 3)
-Date: Wed, 24 Jun 2009 02:08:22 +0200
-Message-ID: <200906240208.23482.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906231303390.3209-100000@iolanthe.rowland.org>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: why do drivers evaluate _INI?
+Date: Wed, 24 Jun 2009 09:45:05 +0930 (CST)
+Message-ID: <200906240015.n5O0F5bO024937@turbo.physics.adelaide.edu.au>
+References: <1245770262.16646.16.camel@earth.gruber.myown>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40028 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752761AbZFXAII (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2009 20:08:08 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906231303390.3209-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:35054 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751830AbZFXAQm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2009 20:16:42 -0400
+In-Reply-To: <1245770262.16646.16.camel@earth.gruber.myown> from "nokos@gmx.net" at Jun 23, 2009 05:17:42 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm@lists.linux-foundation.org, Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Arjan van de Ven <arjan@infradead.org>
+To: nokos@gmx.net
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@suse.cz>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
 
-On Tuesday 23 June 2009, Alan Stern wrote:
-> On Tue, 23 Jun 2009, Rafael J. Wysocki wrote:
+Hi Peter
+
+> > > Why do we have ACPI device drivers evaluating _INI?  That seems
+> > > like something that should be done by Linux/ACPI, not by the driver.
+> > > 
+> > > I see the following drivers using _INI:
+> > >   drivers/hwmon/hp_accel.c
+> > >   drivers/platform/x86/fujitsu-laptop.c
+> > >   drivers/platform/x86/sony-laptop.c
+> > > 
+> > > I looked at the git logs where the _INI usage was introduced in
+> > > these drivers, but none gives enough information for me to understand
+> > > why.
+> > 
+> > I can't shed a lot of light on this from the point of view of
+> > fujitsu-laptop.
+> > 
+> > It appears that the evaluation of _INI was added to fujitsu-laptop as part
+> > of the patch which added support for hotkeys present on some Fujitsu
+> > laptops.  This patch was contributed by Peter Gruber - I've added him to the
+> > CC.  Perhaps he might explain why he added _INI evaluation as part of this
+> > patch (that is, what problem was encountered which required evaluation of
+> > _INI).
 > 
-> > Hi,
-> > 
-> > Below is a new revision of the patch introducing the run-time PM framework.
-> > 
-> > The most visible changes from the last version:
-> > 
-> > * I realized that if child_count is atomic, we can drop the parent locking from
-> >   all of the functions, so I did that.
-> > 
-> > * Introduced pm_runtime_put() that decrements the resume counter and queues
-> >   up an idle notification if the counter went down to 0 (and wasn't 0 previously).
-> >   Using asynchronous notification makes it possible to call pm_runtime_put()
-> >   from interrupt context, if necessary.
-> > 
-> > * Changed the meaning of the RPM_WAKE bit slightly (it is now also used for
-> >   disabling run-time PM for a device along with the resume counter).
-> > 
-> > Please let me know if I've overlooked anything. :-)
-> 
-> This first thing to strike me was that you moved the idle notifications 
-> into the workqueue.
+> The hotkey communication between hardware and the drivers is done using
+> acpi notifies and a (small) ringbuffer in the acpi dsdt code. The
+> easiest way to assure a consistent. The _INI method simply resets the
+> internal state of the ringbuffer which seems to be unavailable for
+> direct manipulation.
 
-Yes, I did.
- 
-> Is that really needed?  Would we be better off just make the idle
-> callbacks directly from pm_runtime_put?  They would run in whatever
-> context the driver happened to be in at the time.
-> 
-> It's not clear exactly how much work the idle callbacks will need to 
-> do, but it seems likely that they won't have to do too much more than 
-> call pm_request_suspend.  And of course, that can be done in_interrupt.
+Thanks for this info Peter.  So evaluating _INI is required to ensure we
+start with an empty ringbuffer and don't end up with partial sequences
+and/or old keypresses being processed when the module is loaded - right?
 
-I just don't want to put any constraints on the implementation of
-->runtime_idle().  The requirement that it be suitable for calling from
-interrupt context may be quite inconvenient for some drivers and I'm afraid
-they may have problems with meeting it.
+> Another possible path would be to read and discard the ringbuffer on
+> module load to ensure a consistent state.
 
-Best,
-Rafael
+True - but is this really any neater than calling _INI in this context?  In
+addition, is there a definitive way to know that we have a consistant
+ringbuffer state?  If not we won't know when to stop reading.
+
+Having said that, the _INI method is called by acpi_ns_initialize_devices()
+which I assume forms part of the APCI core initialisation.  Presumedly there
+won't be a great deal of time elapsed between this and the initialisation of
+fujitsu-laptop in most cases.  If fujitsu-laptop didn't call _INI (as per
+the quick and dirty patch yesterday) there seems little scope for a real
+problem.  The only time when it *could* be an issue is when considerable
+time elapsed between ACPI initialisation and the loading of fujitsu-laptop -
+something which in practice is only going to apply to the machines of
+developers.
+
+So, given this background, is there likely to be any real-world effect
+caused by the removal of the _INI call in fujitsu-laptop?
+
+Regards
+  jonathan
