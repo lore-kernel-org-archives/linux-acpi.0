@@ -1,238 +1,43 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Make ACPI processor proc I/F depend on the
-	ACPI_PROCFS
-Date: Wed, 24 Jun 2009 11:49:49 +0800
-Message-ID: <1245815389.7266.25.camel@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] for Bad _BQC behavior on HP laptops
+Date: Wed, 24 Jun 2009 12:01:54 +0800
+Message-ID: <1245816114.15520.109.camel@rzhang-dt>
+References: <8555910906130530y7bb92108ia46c23ec476b6b04@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45070 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:6803 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752604AbZFXDsl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2009 23:48:41 -0400
+	id S1750721AbZFXEBO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2009 00:01:14 -0400
+In-Reply-To: <8555910906130530y7bb92108ia46c23ec476b6b04@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Scott Howard <showard314@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-Now whether the ACPI processor proc I/F is registered depends on the
-CONFIG_PROC. It had better depend on the CONFIG_ACPI_PROCFS.
-When the CONFIG_ACPI_PROCFS is unset in kernel configuration, the
-ACPI processor proc I/F won't be registered.
+thanks,
+rui
 
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/Kconfig                |    6 +++++-
- drivers/acpi/processor_core.c       |   25 +++++++++++++++++++++----
- drivers/acpi/processor_idle.c       |    8 ++++++--
- drivers/acpi/processor_thermal.c    |    3 ++-
- drivers/acpi/processor_throttling.c |    3 ++-
- 5 files changed, 36 insertions(+), 9 deletions(-)
-
-Index: linux-2.6/drivers/acpi/processor_core.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_core.c	2009-06-24 11:25:06.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_core.c	2009-06-24 11:31:27.000000000 +0800
-@@ -81,7 +81,9 @@
- static int acpi_processor_add(struct acpi_device *device);
- static int acpi_processor_start(struct acpi_device *device);
- static int acpi_processor_remove(struct acpi_device *device, int type);
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
-+#endif
- static void acpi_processor_notify(struct acpi_device *device, u32 event);
- static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
-@@ -110,7 +112,7 @@
- 
- #define INSTALL_NOTIFY_HANDLER		1
- #define UNINSTALL_NOTIFY_HANDLER	2
--
-+#ifdef CONFIG_ACPI_PROCFS
- static const struct file_operations acpi_processor_info_fops = {
- 	.owner = THIS_MODULE,
- 	.open = acpi_processor_info_open_fs,
-@@ -118,6 +120,7 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
- 
- DEFINE_PER_CPU(struct acpi_processor *, processors);
- struct acpi_processor_errata errata __read_mostly;
-@@ -316,6 +319,7 @@
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
- 
-+#ifdef CONFIG_ACPI_PROCFS
- static struct proc_dir_entry *acpi_processor_dir = NULL;
- 
- static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
-@@ -388,7 +392,6 @@
- 		return -EIO;
- 	return 0;
- }
--
- static int acpi_processor_remove_fs(struct acpi_device *device)
- {
- 
-@@ -405,6 +408,16 @@
- 
- 	return 0;
- }
-+#else
-+static inline int acpi_processor_add_fs(struct acpi_device *device)
-+{
-+	return 0;
-+}
-+static inline int acpi_processor_remove_fs(struct acpi_device *device)
-+{
-+	return 0;
-+}
-+#endif
- 
- /* Use the acpiid in MADT to map cpus in case of SMP */
- 
-@@ -1156,11 +1169,11 @@
- 				(struct acpi_table_header **)&madt)))
- 		madt = NULL;
- #endif
--
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
- 	if (!acpi_processor_dir)
- 		return -ENOMEM;
--
-+#endif
- 	/*
- 	 * Check whether the system is DMI table. If yes, OSPM
- 	 * should not use mwait for CPU-states.
-@@ -1188,7 +1201,9 @@
- 	cpuidle_unregister_driver(&acpi_idle_driver);
- 
- out_proc:
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+#endif
- 
- 	return result;
- }
-@@ -1205,7 +1220,9 @@
- 
- 	cpuidle_unregister_driver(&acpi_idle_driver);
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+#endif
- 
- 	return;
- }
-Index: linux-2.6/drivers/acpi/processor_idle.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_idle.c	2009-06-24 11:24:53.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_idle.c	2009-06-24 11:31:27.000000000 +0800
-@@ -679,6 +679,7 @@
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
- {
- 	struct acpi_processor *pr = seq->private;
-@@ -758,7 +759,7 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
--
-+#endif
- 
- /**
-  * acpi_idle_bm_check - checks if bus master activity was detected
-@@ -1216,7 +1217,7 @@
- 				       pr->power.states[i].type);
- 		printk(")\n");
- 	}
--
-+#ifdef CONFIG_ACPI_PROCFS
- 	/* 'power' [R] */
- 	entry = proc_create_data(ACPI_PROCESSOR_FILE_POWER,
- 				 S_IRUGO, acpi_device_dir(device),
-@@ -1224,6 +1225,7 @@
- 				 acpi_driver_data(device));
- 	if (!entry)
- 		return -EIO;
-+#endif
- 	return 0;
- }
- 
-@@ -1236,9 +1238,11 @@
- 	cpuidle_unregister_device(&pr->power.dev);
- 	pr->flags.power_setup_done = 0;
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	if (acpi_device_dir(device))
- 		remove_proc_entry(ACPI_PROCESSOR_FILE_POWER,
- 				  acpi_device_dir(device));
-+#endif
- 
- 	return 0;
- }
-Index: linux-2.6/drivers/acpi/processor_throttling.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_throttling.c	2009-06-24 11:24:53.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_throttling.c	2009-06-24 11:31:27.000000000 +0800
-@@ -1214,7 +1214,7 @@
- }
- 
- /* proc interface */
--
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_throttling_seq_show(struct seq_file *seq,
- 					      void *offset)
- {
-@@ -1322,3 +1322,4 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
-Index: linux-2.6/drivers/acpi/processor_thermal.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_thermal.c	2009-06-24 11:24:53.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_thermal.c	2009-06-24 11:31:27.000000000 +0800
-@@ -438,7 +438,7 @@
- };
- 
- /* /proc interface */
--
-+#ifdef CONFIG_ACPI_PROCFS
- static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
- {
- 	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
-@@ -517,3 +517,4 @@
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
-Index: linux-2.6/drivers/acpi/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/acpi/Kconfig	2009-06-23 09:57:11.000000000 +0800
-+++ linux-2.6/drivers/acpi/Kconfig	2009-06-24 11:35:35.000000000 +0800
-@@ -60,7 +60,11 @@
- 	  /proc/acpi/fadt (/sys/firmware/acpi/tables/FACP)
- 	  /proc/acpi/debug_layer (/sys/module/acpi/parameters/debug_layer)
- 	  /proc/acpi/debug_level (/sys/module/acpi/parameters/debug_level)
--
-+	  /proc/acpi/processor/*/power (/sys/devices/system/cpu/*/cpuidle/*)
-+	  /proc/acpi/processor/*/performance (/sys/devices/system/cpu/*/
-+		cpufreq/*)
-+	  /proc/acpi/processor/*/throttling (/sys/class/thermal/
-+		cooling_device*/*)
- 	  This option has no effect on /proc/acpi/ files
- 	  and functions which do not yet exist in /sys.
- 
-
+On Sat, 2009-06-13 at 20:30 +0800, Scott Howard wrote:
+> Hello, this is the patch [1] as discussed on kernel bugzilla bug
+> #13511 [2]. I'm including the original comments from the patch
+> creator.
+> 
+> [1] http://bugzilla.kernel.org/attachment.cgi?id=21889
+> [2] http://bugzilla.kernel.org/show_bug.cgi?id=13511
+> 
+> 
+> 
+> Hello. On the following model
+>     Manufacturer: Packard Bell BV
+>     Product Name: EasyNote_BG45-U-001CH
+> BQC returns a value between 0 and 15 but the brightness levels are
+> between 0 and 8. I could make a table of correspondance however I find
+> it too inflexible. So I propose the following patch which disables BQC
+> if it behaves badly
+> 
 
