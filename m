@@ -1,79 +1,61 @@
-From: yakui_zhao <yakui.zhao@intel.com>
-Subject: [PATCH]: ACPI: Rename ACPI processor device bus ID
-Date: Wed, 24 Jun 2009 11:46:44 +0800
-Message-ID: <1245815204.7266.21.camel@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] io_start uses unsigned int instead of int
+Date: Tue, 23 Jun 2009 23:47:15 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0906232346450.32742@localhost.localdomain>
+References: <1243926700.9076.1.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50552 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751881AbZFXDpg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2009 23:45:36 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:57081 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751787AbZFXDrZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2009 23:47:25 -0400
+Received: from localhost.localdomain ([98.118.45.40])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KLQ00F2356T48J5@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 23 Jun 2009 22:47:19 -0500 (CDT)
+In-reply-to: <1243926700.9076.1.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-From: Zhao Yakui <yakui.zhao@intel.com
+Rui,
+Please send this to akpm cc: lkml
 
-On some boxes several processors use the same processor bus id.
-But they are located in different scope. For example:
-	\_SB.SCK0.CPU0
-	\_SB.SCK1.CPU0
-As they use the same bus id, OS will complain the following kernel OOPS 
-when registering proc I/F.
-    >------------[ cut here ]------------
-WARNING: at fs/proc/generic.c:590 proc_register+0x148/0x180()
-Hardware name: Sunrise Ridge
-proc_dir_entry 'processor/CPU0' already registered
-Modules linked in: processor(+) thermal_sys hwmon
-Pid: 255, comm: modprobe Tainted: G        W  2.6.30-rc3MASHLEY #1
-Call Trace:
- [<ffffffff8023f7ef>] warn_slowpath+0xb1/0xe5
- [<ffffffff8036243b>] ? ida_get_new_above+0x190/0x1b1
- [<ffffffff803625a8>] ? idr_pre_get+0x5f/0x75
- [<ffffffff8030b2f6>] proc_register+0x148/0x180
- [<ffffffff8030b4ff>] proc_mkdir_mode+0x3d/0x52
- [<ffffffff8030b525>] proc_mkdir+0x11/0x13
- [<ffffffffa0014b89>] acpi_processor_start+0x755/0x9bc [processor]
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-	
-Rename the processor device bus id. And the new bus id will be 
-generated as the following format:
-	CPU+ CPU ID
-	
-For example: If the cpu ID is 5, then the bus ID will be "CPU5".
-	If the CPU ID is 10, then the bus ID will be "CPUA".
+On Tue, 2 Jun 2009, Zhang Rui wrote:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=13612
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/processor_core.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/acpi/processor_core.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/processor_core.c	2009-06-24 11:24:53.000000000 +0800
-+++ linux-2.6/drivers/acpi/processor_core.c	2009-06-24 11:25:06.000000000 +0800
-@@ -649,7 +649,16 @@
- 			return -ENODEV;
- 		}
- 	}
--
-+	/*
-+	 * On some boxes several processors use the same processor bus id.
-+	 * But they are located in different scope. For example:
-+	 * \_SB.SCK0.CPU0
-+	 * \_SB.SCK1.CPU0
-+	 * Rename the processor device bus id. And the new bus id will be
-+	 * generated as the following format:
-+	 * CPU+CPU ID.
-+	 */
-+	sprintf(acpi_device_bid(device), "CPU%X", pr->id);
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
- 			  pr->acpi_id));
- 
-
-
+> Not sure which mail list I should send to.
+> 
+> io_start uses unsigned int instead of int
+> http://bugzilla.kernel.org/show_bug.cgi?id=13253
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  kernel/resource.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: linux-2.6/kernel/resource.c
+> ===================================================================
+> --- linux-2.6.orig/kernel/resource.c
+> +++ linux-2.6/kernel/resource.c
+> @@ -787,7 +787,7 @@ static int __init reserve_setup(char *st
+>  	static struct resource reserve[MAXRESERVE];
+>  
+>  	for (;;) {
+> -		int io_start, io_num;
+> +		unsigned int io_start, io_num;
+>  		int x = reserved;
+>  
+>  		if (get_option (&str, &io_start) != 2)
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
