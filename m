@@ -1,131 +1,75 @@
-From: Scott Howard <showard314@gmail.com>
-Subject: Re: [PATCH] for Bad _BQC behavior on HP laptops
-Date: Wed, 24 Jun 2009 10:17:01 -0400
-Message-ID: <8555910906240717i503ed3b6rfebd41c339a3a7fa@mail.gmail.com>
-References: <alpine.LFD.2.00.0906240046500.32742@localhost.localdomain>
-	 <fwc3cqz2svjdtedexkUYAxe124vaj_firegpg@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update 3] PM: Introduce core framework for run-time PM
+ of I/O devices
+Date: Wed, 24 Jun 2009 10:51:17 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906241014170.3199-100000@iolanthe.rowland.org>
+References: <200906240217.39608.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:59611 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbZFXORD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2009 10:17:03 -0400
-Received: by ewy6 with SMTP id 6so1219475ewy.37
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2009 07:17:05 -0700 (PDT)
-In-Reply-To: <fwc3cqz2svjdtedexkUYAxe124vaj_firegpg@mail.gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:38046 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750975AbZFXOvR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2009 10:51:17 -0400
+In-Reply-To: <200906240217.39608.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: phcoder@gmail.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-Thanks all,
-The original author is Vladimir Serbinenko, (phcoder) , and he is
-cc:ed to this email.
-~Scott Howard
+On Wed, 24 Jun 2009, Rafael J. Wysocki wrote:
 
-On Wed, Jun 24, 2009 at 12:47 AM, Len Brown <lenb@kernel.org> wrote:
->
-> nak,
-> needs signed-off-by from original author,
-> which appears to be here:
->
-> =A0http://bugzilla.kernel.org/show_bug.cgi?id=3D13511#c3
->
-> thanks,
-> Len Brown, Intel Open Source Technology Center
+> > One question still remains: If the counter is 0 at the end of a
+> > successful pm_runtime_resume, should the core then call pm_notify_idle?  
+> > Or should we make the driver responsible for that too?
+> 
+> Good question. :-)
+> 
+> I think the core may call pm_notify_idle() in that case, but not necessarily in
+> the synchronous case.
 
-from Zhang Rui <rui.zhang@intel.com>
-to Scott Howard <showard314@gmail.com>
-cc"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-date Wed, Jun 24, 2009 at 12:01 AM
-subject Re: [PATCH] for Bad _BQC behavior on HP laptops
-mailed-by intel.com
-hide details 12:01 AM (9 hours ago)
-Reply
-Acked-by: Zhang Rui <rui.zhang@intel.com>
+I'm not sure; we may want to do it even for synchronous resumes.  
+Otherwise the callers would be forced to do it.
 
-thanks,
-rui
-- Hide quoted text -
-On Sat, 2009-06-13 at 20:30 +0800, Scott Howard wrote:
-> Hello, this is the patch [1] as discussed on kernel bugzilla bug
-> #13511 [2]. I'm including the original comments from the patch
-> creator.
->
-> [1] http://bugzilla.kernel.org/attachment.cgi?id=3D21889
-> [2] http://bugzilla.kernel.org/show_bug.cgi?id=3D13511
->
->
->
-> Hello. On the following model
-> =A0 =A0 Manufacturer: Packard Bell BV
-> =A0 =A0 Product Name: EasyNote_BG45-U-001CH
-> BQC returns a value between 0 and 15 but the brightness levels are
-> between 0 and 8. I could make a table of correspondance however I fin=
-d
-> it too inflexible. So I propose the following patch which disables BQ=
-C
-> if it behaves badly
->
+There's also the other side of the coin.  What if the counter is 0 at
+the end of a failed pm_runtime_suspend?
 
-On Wed, Jun 24, 2009 at 9:38 AM, Scott Howard <showard314@gmail.com> wr=
-ote:
->
-> Thanks all,
-> The original author is Vladimir Serbinenko, (phcoder) , and he is cc:=
-ed to this email.
-> ~Scott Howard
->
-> On Wed, Jun 24, 2009 at 12:47 AM, Len Brown <lenb@kernel.org> wrote:
->>
->> nak,
->> needs signed-off-by from original author,
->> which appears to be here:
->>
->> =A0http://bugzilla.kernel.org/show_bug.cgi?id=3D13511#c3
->>
->> thanks,
->> Len Brown, Intel Open Source Technology Center
->
-> from
-> Zhang Rui <rui.zhang@intel.com>
-> toScott Howard <showard314@gmail.com>
-> cc"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-> dateWed, Jun 24, 2009 at 12:01 AM
-> subjectRe: [PATCH] for Bad _BQC behavior on HP laptops
-> mailed-byintel.com
-> hide details 12:01 AM (9 hours ago)
-> Reply
-> Acked-by: Zhang Rui <rui.zhang@intel.com>
->
-> thanks,
-> rui
-> - Hide quoted text -
-> On Sat, 2009-06-13 at 20:30 +0800, Scott Howard wrote:
-> > Hello, this is the patch [1] as discussed on kernel bugzilla bug
-> > #13511 [2]. I'm including the original comments from the patch
-> > creator.
-> >
-> > [1] http://bugzilla.kernel.org/attachment.cgi?id=3D21889
-> > [2] http://bugzilla.kernel.org/show_bug.cgi?id=3D13511
-> >
-> >
-> >
-> > Hello. On the following model
-> > =A0 =A0 Manufacturer: Packard Bell BV
-> > =A0 =A0 Product Name: EasyNote_BG45-U-001CH
-> > BQC returns a value between 0 and 15 but the brightness levels are
-> > between 0 and 8. I could make a table of correspondance however I f=
-ind
-> > it too inflexible. So I propose the following patch which disables =
-BQC
-> > if it behaves badly
-> >
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For example, suppose the driver's runtime_suspend method decides that
+the device hasn't been idle for long enough, so it wants to fail the
+suspend attempt with -EBUSY and queue a new delayed autosuspend
+request.  But at this point the status is RPM_SUSPENDING, so new
+suspend requests won't be accepted (N.B., the test for this in the most
+recent patch doesn't look right).
+
+Even with a queued notification, there's no guarantee that the
+notification won't be sent before the status changes from
+RPM_SUSPENDING to RPM_ACTIVE.  So we really do need the notification to
+be sent by pm_runtime_suspend, after it has updated the status and
+dropped the lock.
+
+
+There's another totally separate issue worth discussing here.  This 
+will affect the USB implementation of the new runtime PM framework.
+
+The difficulty is that some USB interface drivers require remote wakeup
+to be enabled while their interfaces are suspended.  But remote wakeup
+is a global setting; it doesn't take effect until the entire physical
+device is suspended.  (To put it another way, USB has no notion of
+suspending interfaces.)  This means we must not allow these interfaces
+to be suspended before the whole device is.  But the whole device is
+the parent of the interfaces -- if we can't suspend the children before
+suspending the parent then we're stuck.
+
+Clearly this is something the USB stack has to deal with; it shouldn't
+affect the general PM framework.  However the only solution I can think
+of involves subverting the framework, which isn't very nice.  The idea
+is to ignore runtime_suspend callbacks for these interface drivers;
+allow them to keep on running even though the PM core thinks they are
+suspended.  Then suspend and resume them as part of the callbacks for
+the entire device.  (For interface drivers that don't require remote
+wakeup there is no problem; it doesn't matter when they get suspended.)
+
+This will work, but it's a hack.  Does anybody have a better idea?
+
+Alan Stern
+
