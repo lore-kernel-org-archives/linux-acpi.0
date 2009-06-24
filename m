@@ -1,90 +1,88 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: [PATCH] wmi: Fix kernel panic when stack protection enabled.
-Date: Wed, 24 Jun 2009 18:54:01 +0100
-Message-ID: <20090624175401.16564.37550.stgit@localhost>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch update 3] PM: Introduce core framework for run-time PM of I/O devices
+Date: Wed, 24 Jun 2009 21:14:09 +0200
+Message-ID: <200906242114.10530.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906241014170.3199-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bb-87-81-255-5.ukonline.co.uk ([87.81.255.5]:36175 "EHLO
-	pegasus." rhost-flags-OK-OK-FAIL-FAIL) by vger.kernel.org with ESMTP
-	id S1751333AbZFXSSf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2009 14:18:35 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:46415 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754633AbZFXTNu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2009 15:13:50 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906241014170.3199-100000@iolanthe.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
 
-From: Costantino Leandro <lcostantino@gmail.com>
+On Wednesday 24 June 2009, Alan Stern wrote:
+> On Wed, 24 Jun 2009, Rafael J. Wysocki wrote:
+> 
+> > > One question still remains: If the counter is 0 at the end of a
+> > > successful pm_runtime_resume, should the core then call pm_notify_idle?  
+> > > Or should we make the driver responsible for that too?
+> > 
+> > Good question. :-)
+> > 
+> > I think the core may call pm_notify_idle() in that case, but not necessarily in
+> > the synchronous case.
+> 
+> I'm not sure; we may want to do it even for synchronous resumes.  
+> Otherwise the callers would be forced to do it.
 
-Summary:
-Kernel panic arise when stack protection is enabled, since strncat will
-add a null terminating byte '\0'; So in functions
-like this one (wmi_query_block):
-        char wc[4]="WC";
-	....
-	strncat(method, block->object_id, 2);
-        ...
-the length of wc should be n+1 (wc[5]) or stack protection
-fault will arise. This is not noticeable when stack protection is
-disabled,but , isn't good either.
-Config used: [CONFIG_CC_STACKPROTECTOR_ALL=y,
-	      CONFIG_CC_STACKPROTECTOR=y]
+I have no strong opinion.  We can do it in the sychronous case too.
 
-Panic Trace
-------------
-       .... stack-protector: kernel stack corrupted in : fa7b182c
-       2.6.30-rc8-obelisco-generic
-       call_trace:
-           [<c04a6c40>] ? panic+0x45/0xd9
-	   [<c012925d>] ? __stack_chk_fail+0x1c/0x40
-	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
-	   [<fa7b182c>] ? wmi_query_block+0x15a/0x162 [wmi]
-	   [<fa7e7000>] ? acer_wmi_init+0x00/0x61a [acer_wmi]
-	   [<fa7e7135>] ? acer_wmi_init+0x135/0x61a [acer_wmi]
-	   [<c0101159>] ? do_one_initcall+0x50+0x126
+> There's also the other side of the coin.  What if the counter is 0 at
+> the end of a failed pm_runtime_suspend?
+> 
+> For example, suppose the driver's runtime_suspend method decides that
+> the device hasn't been idle for long enough, so it wants to fail the
+> suspend attempt with -EBUSY and queue a new delayed autosuspend
+> request.  But at this point the status is RPM_SUSPENDING, so new
+> suspend requests won't be accepted (N.B., the test for this in the most
+> recent patch doesn't look right).
 
-[cc: Fixes kernel bugzilla bug 13514]
+In fact it was inversed (fixed now), thanks for spotting this!
 
-Signed-off-by: Costantino Leandro <lcostantino@gmail.com>
-Cc: stable@kernel.org
-Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
----
+> Even with a queued notification, there's no guarantee that the
+> notification won't be sent before the status changes from
+> RPM_SUSPENDING to RPM_ACTIVE.  So we really do need the notification to
+> be sent by pm_runtime_suspend, after it has updated the status and
+> dropped the lock.
 
- drivers/platform/x86/wmi.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+OK
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 21aa70a..d03e30a 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -299,7 +299,7 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
- 	acpi_status status;
- 	struct acpi_object_list input;
- 	union acpi_object params[3];
--	char method[4] = "WM";
-+	char method[5] = "WM";
- 
- 	if (!find_guid(guid_string, &wblock))
- 		return AE_ERROR;
-@@ -357,8 +357,8 @@ struct acpi_buffer *out)
- 	acpi_status status, wc_status = AE_ERROR;
- 	struct acpi_object_list input, wc_input;
- 	union acpi_object wc_params[1], wq_params[1];
--	char method[4];
--	char wc_method[4] = "WC";
-+	char method[5];
-+	char wc_method[5] = "WC";
- 
- 	if (!guid_string || !out)
- 		return AE_BAD_PARAMETER;
-@@ -439,7 +439,7 @@ const struct acpi_buffer *in)
- 	acpi_handle handle;
- 	struct acpi_object_list input;
- 	union acpi_object params[2];
--	char method[4] = "WS";
-+	char method[5] = "WS";
- 
- 	if (!guid_string || !in)
- 		return AE_BAD_DATA;
+> There's another totally separate issue worth discussing here.  This 
+> will affect the USB implementation of the new runtime PM framework.
+> 
+> The difficulty is that some USB interface drivers require remote wakeup
+> to be enabled while their interfaces are suspended.  But remote wakeup
+> is a global setting; it doesn't take effect until the entire physical
+> device is suspended.  (To put it another way, USB has no notion of
+> suspending interfaces.)  This means we must not allow these interfaces
+> to be suspended before the whole device is.  But the whole device is
+> the parent of the interfaces -- if we can't suspend the children before
+> suspending the parent then we're stuck.
 
+Not if we use the power.ignore_children flag on the parent.
+
+> Clearly this is something the USB stack has to deal with; it shouldn't
+> affect the general PM framework.  However the only solution I can think
+> of involves subverting the framework, which isn't very nice.  The idea
+> is to ignore runtime_suspend callbacks for these interface drivers;
+> allow them to keep on running even though the PM core thinks they are
+> suspended.  Then suspend and resume them as part of the callbacks for
+> the entire device.  (For interface drivers that don't require remote
+> wakeup there is no problem; it doesn't matter when they get suspended.)
+> 
+> This will work, but it's a hack.  Does anybody have a better idea?
+
+Well, as I said above, you can set power.ignore_children on the device
+and then it can be suspended even if the interfaces aren't.
+
+Best,
+Rafael
