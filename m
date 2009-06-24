@@ -1,75 +1,110 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [patch update 3] PM: Introduce core framework for run-time PM
- of I/O devices
-Date: Wed, 24 Jun 2009 10:51:17 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906241014170.3199-100000@iolanthe.rowland.org>
-References: <200906240217.39608.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
+Date: Wed, 24 Jun 2009 13:20:38 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0906241239440.20716@localhost.localdomain>
+References: <20090624041354.GA15936@sli10-desk.sh.intel.com>
+ <1245825558.19816.1861.camel@twins>
+ <20090624074703.GA28458@sli10-desk.sh.intel.com>
+ <1245830585.31755.11.camel@twins>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38046 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750975AbZFXOvR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2009 10:51:17 -0400
-In-Reply-To: <200906240217.39608.rjw@sisk.pl>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:65213 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757445AbZFXRVB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2009 13:21:01 -0400
+Received: from localhost.localdomain ([98.118.45.40])
+ by vms173005.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KLR00IOL6UKA0X1@vms173005.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 24 Jun 2009 12:20:45 -0500 (CDT)
+In-reply-to: <1245830585.31755.11.camel@twins>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oliver Neukum <oliver@neukum.org>, Magnus Damm <magnus.damm@gmail.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Shaohua Li <shaohua.li@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "svaidy@linux.vnet.ibm.com" <svaidy@linux.vnet.ibm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "andi@firstfloor.org" <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
 
-On Wed, 24 Jun 2009, Rafael J. Wysocki wrote:
-
-> > One question still remains: If the counter is 0 at the end of a
-> > successful pm_runtime_resume, should the core then call pm_notify_idle?  
-> > Or should we make the driver responsible for that too?
+> Any thermal facility that doesn't take cpusets into account, or worse
+> destroys user policy (the hotplug road), is a full stop in my book.
+>
+> Is similar to the saying the customer is always right, sure the admin
+> can indeed configure the machine so that any thermal policy is indeed
+> doomed to fail, and in that case I would print some warnings into syslog
+> and let the machine die of thermal overload -- not our problem.
+>
+> The thing is, the admin configures it in a way, and then expects it to
+> work like that. If any random event can void the guarantees what good
+> are they?
 > 
-> Good question. :-)
-> 
-> I think the core may call pm_notify_idle() in that case, but not necessarily in
-> the synchronous case.
+> Now, if ACPI-4.0 is so broken that it simply cannot support a sane
+> thermal model, then I suggest we simply not support this feature and
+> hope they will grow clue for 4.1 and try again next time.
 
-I'm not sure; we may want to do it even for synchronous resumes.  
-Otherwise the callers would be forced to do it.
+Peter,
+ACPI is just the messenger here - user policy in in charge,
+and everybody agrees, user policy is always right.
 
-There's also the other side of the coin.  What if the counter is 0 at
-the end of a failed pm_runtime_suspend?
+The policy may be a thermal cap to deal with thermal emergencies
+as gracefully as possible, or it may be an electrical cap to
+prevent a rack from approaching the limits of the provisioned
+electrical supply.
 
-For example, suppose the driver's runtime_suspend method decides that
-the device hasn't been idle for long enough, so it wants to fail the
-suspend attempt with -EBUSY and queue a new delayed autosuspend
-request.  But at this point the status is RPM_SUSPENDING, so new
-suspend requests won't be accepted (N.B., the test for this in the most
-recent patch doesn't look right).
+This isn't about a brain dead administrator, doomed thermal policy,
+or a broken ACPI spec.  This mechanism is about trying to maintain
+uptime in the face of thermal emergencies, and spending limited
+electrical provisioning dollars to match, rather than grosely exceed,
+maximum machine room requirements.
 
-Even with a queued notification, there's no guarantee that the
-notification won't be sent before the status changes from
-RPM_SUSPENDING to RPM_ACTIVE.  So we really do need the notification to
-be sent by pm_runtime_suspend, after it has updated the status and
-dropped the lock.
+Do you have any fundamental issues with these goals?
+Are we agreement that they are worth goals?
+
+The forced-idle technique is employed after the processors have
+all already been forced to their lowest performance P-state
+and the power/thermal problem has not been resolved.
+
+No, this isn't a happy scenario, we are definately impacting
+performance.  However, we are trying to impact system performance
+as little as possible while saving as much energy as possible.
+
+After P-states are exhausted and the problem is not resolved,
+the rack (via ACPI) asks Linux to idle a processor.
+Linux has full freedom to choose which processor.
+If the condition does not get resolved, the rack will ask us
+to offline more processors.
+
+If this technique fails, the rack will throttle the processors
+down as low as 1/16th of their lowest performance P-state.
+Yes, that is about 100MHz on most multi GHz systems...
+
+If that fails, the entire system is powered-off.
+
+Obviously, the approach is to impact performance as little as possible
+while impacting energy consumption as much as possible.  Use the most
+efficieint means first, and resort to increasingly invasive measures
+as necessary...
+
+I think we all agree that we must not break the administrator's
+cpuset policy if we are asked to force a core to be idle -- for
+whent the emergency is over,the system should return to normal
+and bear not permanent scars.
+
+The simplest thing that comes to mind is to declare a system
+with cpusets or binding fundamentally incompatible with
+forced idle, and to skip that technique and let the hardware
+throttle all the processor clocks with T-states.
+
+However, on aggregate, forced-idle is a more efficient way
+to save energy, as idle on today's processors is highly optimized.
+
+So if you can suggest how we can force processors to be idle
+even when cpusets and binding are present in a system,
+that would be great.
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
 
-There's another totally separate issue worth discussing here.  This 
-will affect the USB implementation of the new runtime PM framework.
 
-The difficulty is that some USB interface drivers require remote wakeup
-to be enabled while their interfaces are suspended.  But remote wakeup
-is a global setting; it doesn't take effect until the entire physical
-device is suspended.  (To put it another way, USB has no notion of
-suspending interfaces.)  This means we must not allow these interfaces
-to be suspended before the whole device is.  But the whole device is
-the parent of the interfaces -- if we can't suspend the children before
-suspending the parent then we're stuck.
 
-Clearly this is something the USB stack has to deal with; it shouldn't
-affect the general PM framework.  However the only solution I can think
-of involves subverting the framework, which isn't very nice.  The idea
-is to ignore runtime_suspend callbacks for these interface drivers;
-allow them to keep on running even though the PM core thinks they are
-suspended.  Then suspend and resume them as part of the callbacks for
-the entire device.  (For interface drivers that don't require remote
-wakeup there is no problem; it doesn't matter when they get suspended.)
 
-This will work, but it's a hack.  Does anybody have a better idea?
-
-Alan Stern
 
