@@ -1,269 +1,192 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 3/7] eeepc-laptop: rfkill refactoring
-Date: Thu, 25 Jun 2009 13:25:38 +0200
-Message-ID: <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 1/7] eeepc-laptop: Register as a pci-hotplug device
+Date: Thu, 25 Jun 2009 13:25:36 +0200
+Message-ID: <1245929142-3354-1-git-send-email-corentincj@iksaif.net>
 References: <alpine.LFD.2.00.0906240136300.32742@localhost.localdomain>
- <1245929142-3354-1-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:54898 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:54894 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439AbZFYLXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751273AbZFYLXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 25 Jun 2009 07:23:01 -0400
-In-Reply-To: <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <alpine.LFD.2.00.0906240136300.32742@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>
 
-Refactor rfkill code, because we'll add another
-rfkill for wwan3g later.
+The eee contains a logically (but not physically) hotpluggable PCIe slot.
+Currently this is handled by adding or removing the PCI device in response
+to rfkill events, but if a user has forced pciehp to bind to it (with the
+force=1 argument) then both drivers will try to handle the event and
+hilarity (in the form of oopses) will ensue. This can be avoided by having
+eee-laptop register the slot as a hotplug slot. Only one of pciehp and
+eee-laptop will successfully register this, avoiding the problem.
 
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Tested-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |  160 ++++++++++++++++++-----------------
- 1 files changed, 84 insertions(+), 76 deletions(-)
+ drivers/platform/x86/Kconfig        |    2 +
+ drivers/platform/x86/eeepc-laptop.c |   87 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 89 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 7232fe7..fee6a40 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -357,6 +357,8 @@ config EEEPC_LAPTOP
+ 	depends on RFKILL || RFKILL = n
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
++	select HOTPLUG
++	select HOTPLUG_PCI if PCI
+ 	---help---
+ 	  This driver supports the Fn-Fx keys on Eee PC laptops.
+ 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index d14f714..e46981a 100644
+index 4207b26..c0b203c 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -139,8 +139,8 @@ struct eeepc_hotk {
- 	u16 event_count[128];		/* count for each event */
- 	struct input_dev *inputdev;
+@@ -31,6 +31,7 @@
+ #include <linux/input.h>
+ #include <linux/rfkill.h>
+ #include <linux/pci.h>
++#include <linux/pci_hotplug.h>
+ 
+ #define EEEPC_LAPTOP_VERSION	"0.1"
+ 
+@@ -143,6 +144,7 @@ struct eeepc_hotk {
  	u16 *keycode_map;
--	struct rfkill *eeepc_wlan_rfkill;
--	struct rfkill *eeepc_bluetooth_rfkill;
-+	struct rfkill *wlan_rfkill;
-+	struct rfkill *bluetooth_rfkill;
- 	struct hotplug_slot *hotplug_slot;
+ 	struct rfkill *eeepc_wlan_rfkill;
+ 	struct rfkill *eeepc_bluetooth_rfkill;
++	struct hotplug_slot *hotplug_slot;
  };
  
-@@ -663,7 +663,7 @@ static void eeepc_rfkill_hotplug(void)
- 		}
- 	}
+ /* The actual device the driver binds to */
+@@ -213,6 +215,15 @@ static struct acpi_driver eeepc_hotk_driver = {
+ 	},
+ };
  
--	rfkill_set_sw_state(ehotk->eeepc_wlan_rfkill, blocked);
-+	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
++/* PCI hotplug ops */
++static int eeepc_get_adapter_status(struct hotplug_slot *slot, u8 *value);
++
++static struct hotplug_slot_ops eeepc_hotplug_slot_ops = {
++	.owner = THIS_MODULE,
++	.get_adapter_status = eeepc_get_adapter_status,
++	.get_power_status = eeepc_get_adapter_status,
++};
++
+ /* The backlight device /sys/class/backlight */
+ static struct backlight_device *eeepc_backlight_device;
+ 
+@@ -612,6 +623,19 @@ static int notify_brn(void)
+ 	return -1;
  }
  
- static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
-@@ -828,66 +828,8 @@ static int eeepc_hotk_add(struct acpi_device *device)
- 	if (result)
- 		goto ehotk_fail;
- 
--	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
--	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
--
--	if (get_acpi(CM_ASL_WLAN) != -1) {
--		ehotk->eeepc_wlan_rfkill = rfkill_alloc("eeepc-wlan",
--							&device->dev,
--							RFKILL_TYPE_WLAN,
--							&eeepc_rfkill_ops,
--							(void *)CM_ASL_WLAN);
--
--		if (!ehotk->eeepc_wlan_rfkill)
--			goto wlan_fail;
--
--		rfkill_init_sw_state(ehotk->eeepc_wlan_rfkill,
--				     get_acpi(CM_ASL_WLAN) != 1);
--		result = rfkill_register(ehotk->eeepc_wlan_rfkill);
--		if (result)
--			goto wlan_fail;
--	}
--
--	if (get_acpi(CM_ASL_BLUETOOTH) != -1) {
--		ehotk->eeepc_bluetooth_rfkill =
--			rfkill_alloc("eeepc-bluetooth",
--				     &device->dev,
--				     RFKILL_TYPE_BLUETOOTH,
--				     &eeepc_rfkill_ops,
--				     (void *)CM_ASL_BLUETOOTH);
--
--		if (!ehotk->eeepc_bluetooth_rfkill)
--			goto bluetooth_fail;
--
--		rfkill_init_sw_state(ehotk->eeepc_bluetooth_rfkill,
--				     get_acpi(CM_ASL_BLUETOOTH) != 1);
--		result = rfkill_register(ehotk->eeepc_bluetooth_rfkill);
--		if (result)
--			goto bluetooth_fail;
--	}
--
--	result = eeepc_setup_pci_hotplug();
--	/*
--	 * If we get -EBUSY then something else is handling the PCI hotplug -
--	 * don't fail in this case
--	 */
--	if (result == -EBUSY)
--		return 0;
--	else if (result)
--		goto pci_fail;
--
- 	return 0;
- 
-- pci_fail:
--	if (ehotk->eeepc_bluetooth_rfkill)
--		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
-- bluetooth_fail:
--	rfkill_destroy(ehotk->eeepc_bluetooth_rfkill);
--	rfkill_unregister(ehotk->eeepc_wlan_rfkill);
-- wlan_fail:
--	rfkill_destroy(ehotk->eeepc_wlan_rfkill);
--	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
--	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
-  ehotk_fail:
- 	kfree(ehotk);
- 	ehotk = NULL;
-@@ -900,18 +842,13 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
- 	if (!device || !acpi_driver_data(device))
- 		 return -EINVAL;
- 
--	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
--	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
--	if (ehotk->hotplug_slot)
--		pci_hp_deregister(ehotk->hotplug_slot);
--
- 	kfree(ehotk);
- 	return 0;
- }
- 
- static int eeepc_hotk_resume(struct acpi_device *device)
- {
--	if (ehotk->eeepc_wlan_rfkill) {
-+	if (ehotk->wlan_rfkill) {
- 		bool wlan;
- 
- 		/* Workaround - it seems that _PTS disables the wireless
-@@ -923,14 +860,13 @@ static int eeepc_hotk_resume(struct acpi_device *device)
- 		wlan = get_acpi(CM_ASL_WLAN);
- 		set_acpi(CM_ASL_WLAN, wlan);
- 
--		rfkill_set_sw_state(ehotk->eeepc_wlan_rfkill,
--				    wlan != 1);
-+		rfkill_set_sw_state(ehotk->wlan_rfkill, wlan != 1);
- 
- 		eeepc_rfkill_hotplug();
- 	}
- 
--	if (ehotk->eeepc_bluetooth_rfkill)
--		rfkill_set_sw_state(ehotk->eeepc_bluetooth_rfkill,
-+	if (ehotk->bluetooth_rfkill)
-+		rfkill_set_sw_state(ehotk->bluetooth_rfkill,
- 				    get_acpi(CM_ASL_BLUETOOTH) != 1);
- 
- 	return 0;
-@@ -1052,10 +988,14 @@ static void eeepc_backlight_exit(void)
- 
- static void eeepc_rfkill_exit(void)
- {
--	if (ehotk->eeepc_wlan_rfkill)
--		rfkill_unregister(ehotk->eeepc_wlan_rfkill);
--	if (ehotk->eeepc_bluetooth_rfkill)
--		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
-+	if (ehotk->wlan_rfkill)
-+		rfkill_unregister(ehotk->wlan_rfkill);
-+	if (ehotk->bluetooth_rfkill)
-+		rfkill_unregister(ehotk->bluetooth_rfkill);
-+	if (ehotk->hotplug_slot)
-+		pci_hp_deregister(ehotk->hotplug_slot);
- }
- 
- static void eeepc_input_exit(void)
-@@ -1090,6 +1030,67 @@ static void __exit eeepc_laptop_exit(void)
- 	platform_driver_unregister(&platform_driver);
- }
- 
-+static int eeepc_new_rfkill(struct rfkill **rfkill,
-+			    const char *name, struct device *dev,
-+			    enum rfkill_type type, int cm)
++static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
++				    u8 *value)
 +{
-+	int result;
++	int val = get_acpi(CM_ASL_WLAN);
 +
-+	if (get_acpi(cm) == -1)
-+		return -ENODEV;
-+
-+	*rfkill = rfkill_alloc(name, dev, type,
-+			       &eeepc_rfkill_ops, (void *)(unsigned long)cm);
-+
-+	if (!*rfkill)
++	if (val == 1 || val == 0)
++		*value = val;
++	else
 +		return -EINVAL;
 +
-+	rfkill_init_sw_state(*rfkill, get_acpi(cm) != 1);
-+	result = rfkill_register(*rfkill);
-+	if (result) {
-+		rfkill_destroy(*rfkill);
-+		*rfkill = NULL;
-+		return result;
-+	}
 +	return 0;
 +}
 +
-+
-+static int eeepc_rfkill_init(struct device *dev)
+ static void eeepc_rfkill_hotplug(void)
+ {
+ 	struct pci_dev *dev;
+@@ -744,6 +768,54 @@ static void eeepc_unregister_rfkill_notifier(char *node)
+ 	}
+ }
+ 
++static void eeepc_cleanup_pci_hotplug(struct hotplug_slot *hotplug_slot)
 +{
-+	int result = 0;
++	kfree(hotplug_slot->info);
++	kfree(hotplug_slot);
++}
 +
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
-+	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
++static int eeepc_setup_pci_hotplug(void)
++{
++	int ret = -ENOMEM;
++	struct pci_bus *bus = pci_find_bus(0, 1);
 +
-+	result = eeepc_new_rfkill(&ehotk->wlan_rfkill,
-+				  "eeepc-wlan", dev,
-+				  RFKILL_TYPE_WLAN, CM_ASL_WLAN);
++	if (!bus) {
++		printk(EEEPC_ERR "Unable to find wifi PCI bus\n");
++		return -ENODEV;
++	}
 +
-+	if (result && result != -ENODEV)
-+		goto exit;
++	ehotk->hotplug_slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
++	if (!ehotk->hotplug_slot)
++		goto error_slot;
 +
-+	result = eeepc_new_rfkill(&ehotk->bluetooth_rfkill,
-+				  "eeepc-bluetooth", dev,
-+				  RFKILL_TYPE_BLUETOOTH, CM_ASL_BLUETOOTH);
++	ehotk->hotplug_slot->info = kzalloc(sizeof(struct hotplug_slot_info),
++					    GFP_KERNEL);
++	if (!ehotk->hotplug_slot->info)
++		goto error_info;
 +
-+	if (result && result != -ENODEV)
-+		goto exit;
++	ehotk->hotplug_slot->private = ehotk;
++	ehotk->hotplug_slot->release = &eeepc_cleanup_pci_hotplug;
++	ehotk->hotplug_slot->ops = &eeepc_hotplug_slot_ops;
++	eeepc_get_adapter_status(ehotk->hotplug_slot,
++				 &ehotk->hotplug_slot->info->adapter_status);
 +
++	ret = pci_hp_register(ehotk->hotplug_slot, bus, 0, "eeepc-wifi");
++	if (ret) {
++		printk(EEEPC_ERR "Unable to register hotplug slot - %d\n", ret);
++		goto error_register;
++	}
++
++	return 0;
++
++error_register:
++	kfree(ehotk->hotplug_slot->info);
++error_info:
++	kfree(ehotk->hotplug_slot);
++	ehotk->hotplug_slot = NULL;
++error_slot:
++	return ret;
++}
++
+ static int eeepc_hotk_add(struct acpi_device *device)
+ {
+ 	int result;
+@@ -802,8 +874,21 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 			goto bluetooth_fail;
+ 	}
+ 
 +	result = eeepc_setup_pci_hotplug();
 +	/*
 +	 * If we get -EBUSY then something else is handling the PCI hotplug -
 +	 * don't fail in this case
 +	 */
 +	if (result == -EBUSY)
-+		result = 0;
-+
-+exit:
-+	if (result && result != -ENODEV)
-+		eeepc_rfkill_exit();
-+	return result;
-+}
-+
- static int eeepc_backlight_init(struct device *dev)
- {
- 	struct backlight_device *bd;
-@@ -1173,7 +1174,15 @@ static int __init eeepc_laptop_init(void)
- 				    &platform_attribute_group);
- 	if (result)
- 		goto fail_sysfs;
-+
-+	result = eeepc_rfkill_init(dev);
-+	if (result)
-+		goto fail_rfkill;
++		return 0;
++	else if (result)
++		goto pci_fail;
 +
  	return 0;
-+fail_rfkill:
-+	sysfs_remove_group(&platform_device->dev.kobj,
-+			   &platform_attribute_group);
- fail_sysfs:
- 	platform_device_del(platform_device);
- fail_platform_device2:
-@@ -1186,7 +1195,6 @@ fail_hwmon:
- 	eeepc_backlight_exit();
- fail_backlight:
- 	eeepc_input_exit();
--	eeepc_rfkill_exit();
- 	return result;
- }
  
++ pci_fail:
++	if (ehotk->eeepc_bluetooth_rfkill)
++		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
+  bluetooth_fail:
+ 	rfkill_destroy(ehotk->eeepc_bluetooth_rfkill);
+ 	rfkill_unregister(ehotk->eeepc_wlan_rfkill);
+@@ -825,6 +910,8 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
+ 
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
++	if (ehotk->hotplug_slot)
++		pci_hp_deregister(ehotk->hotplug_slot);
+ 
+ 	kfree(ehotk);
+ 	return 0;
 -- 
 1.6.3.3
 
