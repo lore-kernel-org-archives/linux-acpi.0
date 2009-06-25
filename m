@@ -1,74 +1,92 @@
-From: Richard Purdie <rpurdie@linux.intel.com>
-Subject: Re: a backlight issue
-Date: Thu, 25 Jun 2009 10:39:41 +0100
-Message-ID: <1245922781.6001.34.camel@dax.rpnet.com>
-References: <1245895749.7266.70.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH 4/7] eeepc-laptop: right parent device
+Date: Thu, 25 Jun 2009 13:25:39 +0200
+Message-ID: <1245929142-3354-4-git-send-email-corentincj@iksaif.net>
+References: <alpine.LFD.2.00.0906240136300.32742@localhost.localdomain>
+ <1245929142-3354-1-git-send-email-corentincj@iksaif.net>
+ <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
+ <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:21862 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750866AbZFYJlM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2009 05:41:12 -0400
-In-Reply-To: <1245895749.7266.70.camel@localhost.localdomain>
+Received: from iksaif.net ([88.191.73.63]:54901 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751665AbZFYLXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jun 2009 07:23:01 -0400
+In-Reply-To: <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-Hi,
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/eeepc-laptop.c |   34 ++++++++++++++++++----------------
+ 1 files changed, 18 insertions(+), 16 deletions(-)
 
-On Thu, 2009-06-25 at 10:09 +0800, yakui_zhao wrote:
->     On some boxes there is neither generic ACPI backlight I/F nor
-> platform backlight I/F. That means that the backlight brightness can't
-> be changed by using sys backlight I/F. But the backlight brightness can
-> be changed by using the driver backlight I/F. For example: on the box
-> based on intel-integrated graphics card the backlight brightness can
-> also be changed by using the LBB register in pci device. 
->     Can the graphics driver register the sys backlight I/F so that we
-> can change the backlight by using sys I/F? 
->     
->     If the graphics driver can also register the backlight I/F, it seems
-> that we can register three types of backlight I/F.
->     a. generic ACPI backlight I/F. This is registered by acpi video
-> driver.
->     b. platform backlight I/F. This is registered by the platform driver
->     c. graphics backlight I/F. This can be registered by the graphics
-> driver.
-> 
->     As there exist three types of backlight I/F, how can we make the
-> coordination among the three backlight I/F? In fact only one backlight
-> I/f is enough for user to change the brightness.
-
-I think in the short term you're right and that there needs to be
-something acpi specific as a backlight arbitrator. This problem is quite
-specific to acpi. Its worth thinking about the wider picture too though.
-
-Taking a machine with say, three graphics cards in it, what should
-happen? It should probably register one control for each screen with an
-adjustable backlight so if each card was dual head you'd get 6 controls.
-
-The key problem is knowing which backlight interface corresponds to
-which driver+screen. If we had that information, exporting your three
-interfaces above might be less of an issue as userspace could tell they
-were for the same hardware. The kernel could pick the best interface
-internally too, if it can tell they're for the same screen.
-
-I suspect at this point we've gone far beyond the environment the sysfs
-backlight interface was designed for and we'd be better off having the
-backlight control in parallel with the other screen data which probably
-runs through the DRM code.
-
-Even then its not straightforward though as even just considering the
-i915 driver, can it always use the i915 registers for the backlight or
-does it sometimes have to make ACPI calls?
-
-Cheers,
-
-Richard
-
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index e46981a..5b102c2 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -1143,18 +1143,6 @@ static int __init eeepc_laptop_init(void)
+ 		acpi_bus_unregister_driver(&eeepc_hotk_driver);
+ 		return -ENODEV;
+ 	}
+-	dev = acpi_get_physical_device(ehotk->device->handle);
+-
+-	if (!acpi_video_backlight_support()) {
+-		result = eeepc_backlight_init(dev);
+-		if (result)
+-			goto fail_backlight;
+-	} else
+-		pr_info("Backlight controlled by ACPI video driver\n");
+-
+-	result = eeepc_hwmon_init(dev);
+-	if (result)
+-		goto fail_hwmon;
+ 
+ 	eeepc_enable_camera();
+ 
+@@ -1175,12 +1163,30 @@ static int __init eeepc_laptop_init(void)
+ 	if (result)
+ 		goto fail_sysfs;
+ 
++	dev = &platform_device->dev;
++
++	if (!acpi_video_backlight_support()) {
++		result = eeepc_backlight_init(dev);
++		if (result)
++			goto fail_backlight;
++	} else
++		pr_info("Backlight controlled by ACPI video "
++			"driver\n");
++
++	result = eeepc_hwmon_init(dev);
++	if (result)
++		goto fail_hwmon;
++
+ 	result = eeepc_rfkill_init(dev);
+ 	if (result)
+ 		goto fail_rfkill;
+ 
+ 	return 0;
+ fail_rfkill:
++	eeepc_hwmon_exit();
++fail_hwmon:
++	eeepc_backlight_exit();
++fail_backlight:
+ 	sysfs_remove_group(&platform_device->dev.kobj,
+ 			   &platform_attribute_group);
+ fail_sysfs:
+@@ -1190,10 +1196,6 @@ fail_platform_device2:
+ fail_platform_device1:
+ 	platform_driver_unregister(&platform_driver);
+ fail_platform_driver:
+-	eeepc_hwmon_exit();
+-fail_hwmon:
+-	eeepc_backlight_exit();
+-fail_backlight:
+ 	eeepc_input_exit();
+ 	return result;
+ }
 -- 
-Richard Purdie
-Intel Open Source Technology Centre
+1.6.3.3
 
