@@ -1,76 +1,66 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 6/7] eeepc-laptop: get the right value for CMSG
-Date: Thu, 25 Jun 2009 13:25:41 +0200
-Message-ID: <1245929142-3354-6-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 7/7] eeepc-laptop: add rfkill support for the 3G modem in Eee PC 901 Go
+Date: Thu, 25 Jun 2009 13:25:42 +0200
+Message-ID: <1245929142-3354-7-git-send-email-corentincj@iksaif.net>
 References: <alpine.LFD.2.00.0906240136300.32742@localhost.localdomain>
  <1245929142-3354-1-git-send-email-corentincj@iksaif.net>
  <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
  <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
  <1245929142-3354-4-git-send-email-corentincj@iksaif.net>
  <1245929142-3354-5-git-send-email-corentincj@iksaif.net>
+ <1245929142-3354-6-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:54906 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:54905 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218AbZFYLXD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1752242AbZFYLXD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 25 Jun 2009 07:23:03 -0400
-In-Reply-To: <1245929142-3354-5-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1245929142-3354-6-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, Janne Grunau <j@jannau.net>
 
-CMSG is an ACPI method used to find features available on
-an Eee PC. But some features are never repported, even if present.
-
-If the getter of a feature is present, this patch will set
-the corresponding bit in cmsg.
-
+Signed-off-by: Janne Grunau <j@jannau.net>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 19cc9ae..f5d8473 100644
+index f5d8473..ec560f1 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -553,6 +553,28 @@ static int eeepc_setkeycode(struct input_dev *dev, int scancode, int keycode)
- 	return -EINVAL;
- }
+@@ -141,6 +141,7 @@ struct eeepc_hotk {
+ 	u16 *keycode_map;
+ 	struct rfkill *wlan_rfkill;
+ 	struct rfkill *bluetooth_rfkill;
++	struct rfkill *wwan3g_rfkill;
+ 	struct hotplug_slot *hotplug_slot;
+ };
  
-+static void cmsg_quirk(int cm, const char *name)
-+{
-+	int dummy;
+@@ -1023,6 +1024,8 @@ static void eeepc_rfkill_exit(void)
+ 		rfkill_unregister(ehotk->wlan_rfkill);
+ 	if (ehotk->bluetooth_rfkill)
+ 		rfkill_unregister(ehotk->bluetooth_rfkill);
++	if (ehotk->wwan3g_rfkill)
++		rfkill_unregister(ehotk->wwan3g_rfkill);
+ 	if (ehotk->hotplug_slot)
+ 		pci_hp_deregister(ehotk->hotplug_slot);
+ }
+@@ -1107,6 +1110,13 @@ static int eeepc_rfkill_init(struct device *dev)
+ 	if (result && result != -ENODEV)
+ 		goto exit;
+ 
++	result = eeepc_new_rfkill(&ehotk->wwan3g_rfkill,
++				  "eeepc-wwan3g", dev,
++				  RFKILL_TYPE_WWAN, CM_ASL_3G);
 +
-+	/* Some BIOSes do not report cm although it is avaliable.
-+	   Check if cm_getv[cm] works and, if yes, assume cm should be set. */
-+	if (!(ehotk->cm_supported & (1 << cm))
-+	    && !read_acpi_int(ehotk->handle, cm_getv[cm], &dummy)) {
-+		pr_info("%s (%x) not reported by BIOS,"
-+			" enabling anyway\n", name, 1 << cm);
-+		ehotk->cm_supported |= 1 << cm;
-+	}
-+}
++	if (result && result != -ENODEV)
++		goto exit;
 +
-+static void cmsg_quirks(void)
-+{
-+	cmsg_quirk(CM_ASL_LID, "LID");
-+	cmsg_quirk(CM_ASL_TYPE, "TYPE");
-+	cmsg_quirk(CM_ASL_PANELPOWER, "PANELPOWER");
-+	cmsg_quirk(CM_ASL_TPD, "TPD");
-+}
-+
- static int eeepc_hotk_check(void)
- {
- 	const struct key_entry *key;
-@@ -576,6 +598,7 @@ static int eeepc_hotk_check(void)
- 			pr_err("Get control methods supported failed\n");
- 			return -ENODEV;
- 		} else {
-+			cmsg_quirks();
- 			pr_info("Get control methods supported: 0x%x\n",
- 				ehotk->cm_supported);
- 		}
+ 	result = eeepc_setup_pci_hotplug();
+ 	/*
+ 	 * If we get -EBUSY then something else is handling the PCI hotplug -
 -- 
 1.6.3.3
 
