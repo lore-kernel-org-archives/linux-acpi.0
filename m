@@ -1,144 +1,145 @@
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: [RFC/PATCH] Winbond CIR driver for the WPCD376I chip (ACPI/PNP
-     id WEC1022)
-Date: Thu, 25 Jun 2009 13:46:01 +0200 (CEST)
-Message-ID: <461dbc08f8573008440a03b9618bce94.squirrel@www.hardeman.nu>
-References: <20090624213645.GA18843@hardeman.nu>
-    <20090624151335.0f73907c@jbarnes-g45>
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
+	I/O devices (rev. 5)
+Date: Thu, 25 Jun 2009 23:57:36 +0900
+Message-ID: <aec7e5c30906250757m437df51fla032afbadc0261f8@mail.gmail.com>
+References: <Pine.LNX.4.44L0.0906231303390.3209-100000@iolanthe.rowland.org>
+	 <200906240208.23482.rjw@sisk.pl> <200906240236.41526.rjw@sisk.pl>
+	 <200906242124.05511.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752855AbZFYLqN@vger.kernel.org>
-In-Reply-To: <20090624151335.0f73907c@jbarnes-g45>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757470AbZFYO5p@vger.kernel.org>
+In-Reply-To: <200906242124.05511.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm@lists.linux-foundation.org, Oliver Neukum <oliver@neukum.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, June 25, 2009 00:13, Jesse Barnes wrote:
-> On Wed, 24 Jun 2009 14:36:45 -0700
-> David H=E4rdeman <david@hardeman.nu> wrote:
+On Thu, Jun 25, 2009 at 4:24 AM, Rafael J. Wysocki<rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> Subject: PM: Introduce core framework for run-time PM of I/O devices =
+(rev. 5)
 >
->> I've written a driver for the
-=2E..
->> Winbond WPCD376I chipset
+> Introduce a core framework for run-time power management of I/O
+> devices. =A0Add device run-time PM fields to 'struct dev_pm_info'
+> and device run-time PM callbacks to 'struct dev_pm_ops'. =A0Introduce
+> a run-time PM workqueue and define some device run-time PM helper
+> functions at the core level. =A0Document all these things.
 >
-> Yay, glad I could get these released for you.  I just did a quick sca=
-n
-> of the driver (notes below)
+> Not-yet-signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Two more things that Intel could provide:
+Hi Rafael,
 
-a) Publish the datasheet (I know you mentioned doing this but
-   I can't find it on the Intel website)
+Thanks for your work on this. I've built some code for SuperH on top
+of this today, and with that behind me I have a few questions and a
+little bit of code feedback.
 
-b) Make the hardware needed to actually use the CIR functionality
-   available for purchase. http://www.easy-cir.com seems to be more
-   or less dead (which is curious since an ad for the website
-   seems to be included with every CIR-enabled Intel motherboard).
-   I had to solder my own IR receiver in order to write the driver.
+Questions:
 
->> I'd appreciate having the driver reviewed...and in addition I have
->> some questions for the list:
->>
->>    1) SuperI/O concurrency
->> ...
->
-> Yeah, often multifunction devices like this have higher level "bus
-> drivers" that take care of managing the global parts, and drivers tha=
-t
-> attach to it to manage individual functions.  If you were feeling
-> really ambitious you could do that for the superio chip and port any
-> sub-drivers... :)
+1) Which functions are device drivers supposed to use?
 
-My ambitions are more directed towards some kind of IR-subsystem into t=
-he
-kernel at the moment :) Besides, the Intel mainboards doesn't actually
-seem to use any of the other logical devices (which are mostly supporte=
-d
-by existing drivers anyway).
+I simply added pm_runtime_resume() and pm_runtime_suspend() where
+clk_enable() and clk_disable() normally are used. In interrupt
+handlers I used pm_request_suspend() instead of pm_runtime_suspend().
 
->> Where should this driver go in the tree? drivers/platform/x86/?
->
-> drivers/char is probably fine.
+I'm not sure if the v5 patch does the right thing around
+really_probe() like Alan pointed out. Basically, I'd like to be able
+to call my bus callback for ->runtime_resume() from the driver
+probe(), but power.resume_count seems stuck at 1 which leads to
+pm_runtime_resume() returning -EAGAIN before invoking the bus
+callback.
 
-I'm leaning towards drivers/input/misc now...
+This leads to question number two...
 
->> #define dprintk(fmt, arg...)                                    \
->> do {                                                            \
->>         if (debug)                                              \
->>                 printk(KERN_DEBUG DRVNAME fmt , ## arg);        \
->> } while (0)
->
-> Maybe you could use the generic debug functions instead (pr_debug iir=
-c)?
+2) What's the default state in probe()?
 
-Yes
+We touched this subject briefly before. I'd like to compare the
+Runtime PM default state with the clock framework default state. The
+clock framework requires you to use clk_enable() to enable the clock
+to a hardware block before it is allowed to access the hardware
+registers. At least that's how we handle stop bits on SuperH. So
+clocks come up disabled from boot and should be enabled and disabled
+by the device driver to save power.
 
-> ...
-> There are a few magic numbers above here you could possibly make into
-> #defines just to make things more readable.
+I'd like to change our Module Stop Bits code on SuperH (once again)
+from being handled by the clock framework to being managed by the
+Runtime PM framework. Having the clock framework deal with the stop
+bits works fine today, they are off by default after boot, and the
+driver often enables the clock with clk_enable() in probe() or
+hopefully in some more finegrained fashion.
 
-I'll try
+I'm not sure how the Module Stop Bits should fit with the Runtime PM
+code though. The default state for a device at probe() time seems to
+be RPM_ACTIVE. Should drivers call pm_runtime_enable() to enable
+Runtime PM?
 
-> The key up/down timeout handling seems like a pretty general problem,
-> maybe the input layer has some helpers for it?  Dunno.
+One part of me likes the idea that Runtime PM-enabled drivers start in
+RPM_SUSPENDED so they are forced to put pm_runtime_resume() before
+actually using the hardware. This makes the Runtime PM behaviour
+pretty close to the clock framework.
 
-drivers/media/common/ir-functions.c is the closest thing I could find
-while writing the driver. The functions there aren't usable because the=
-y
-do not properly implement the toggle/repeat handling and it forces the =
-use
-of a small, fixed-size keymap. The same problem existed when I improved
-the IR functionality in drivers/media/dvb/ttpci/budget-ci.c by the way,=
- so
-a generic version could probably be added to ir-functions in the future=
-=2E
+If you dislike starting from RPM_SUSPENDED (most likely) then I wonder
+how I should set the state to RPM_SUSPENDED in the driver. I'd like to
+make sure that pm_runtime_resume() can invoke the bus callback so the
+hardware can be turned on for the first time somehow. Should I do a
+dummy suspend?
 
->> static ssize_t
->> wbcir_show_last_scancode(struct device *dev,
->>                             struct device_attribute *attr, char *buf=
-)
->> {
->>         struct acpi_device *device =3D container_of(dev, struct
->> acpi_device, dev); struct wbcir_data *data =3D acpi_driver_data(devi=
-ce);
->>         return sprintf(buf, "0x%08X\n", data->last_scancode);
->> }
->>
->> static struct device_attribute dev_attr_last_scancode =3D {
->>         .attr =3D {
->>                 .name =3D "last_scancode",
->>                 .mode =3D 0444,
->>         },
->>         .show =3D wbcir_show_last_scancode,
->>         .store =3D NULL,
->>
->> };
->>
->> static struct attribute *wbcir_attributes[] =3D {
->>         &dev_attr_last_scancode.attr,
->>         NULL,
->> };
->>
->> static struct attribute_group wbcir_attribute_group =3D {
->>         .attrs =3D wbcir_attributes,
->> };
->
-> Are these just for debugging?  If so, you could put them in debugfs
-> instead...
+3) Should drivers use pm_suspend_ignore_children(dev, true)?
 
-No, they are there to help the user when generating a keymap for an
-unknown remote. Press key on remote, read value from
-/sys/.../last_scancode, add line saying "0x12345678 =3D KEY_EXPLODE" to
-keymap file, repeat...there aren't any user-friendly tools for this yet
-though.
+It turns out that I can't suspend my I2C master driver out of the box
+since it becomes the parent of all slaves on the I2C bus. The I2C
+master driver is just a platform driver, and the children are I2C
+devices (90% sure). I want to do Runtime PM regardless if the child
+devices are suspended or not, I guess I should use
+pm_suspend_ignore_children(dev, true) then?
 
-(Dropped Terry from the CC, I just saw that he had requested a driver f=
-or
-this chip earlier but I'm not sure he's that interested in the rest of =
-the
-discussion)
+> +/**
+> + * __pm_runtime_resume - Run a device bus type's runtime_resume() ca=
+llback.
+> + * @dev: Device to resume.
+> + * @sync: If unset, the funtion has been called via pm_wq.
+> + *
+> + * Check if the device is really suspended and run the ->runtime_res=
+ume()
+> + * callback provided by the device's bus type driver. =A0Update the =
+run-time PM
+> + * flags in the device object to reflect the current status of the d=
+evice. =A0If
+> + * runtime suspend is in progress while this function is being run, =
+wait for it
+> + * to finish before resuming the device. =A0If runtime suspend is sc=
+heduled, but
+> + * it hasn't started yet, cancel it and we're done.
+> + */
+> +int __pm_runtime_resume(struct device *dev, bool sync)
+> +{
+[snip]
+> +}
+> +EXPORT_SYMBOL_GPL(pm_runtime_resume);
 
---=20
-David H=E4rdeman
+You're missing "__" here unless you're aiming for something very exotic=
+=2E =3D)
+
+> +/**
+> + * pm_runtime_work - Run __pm_runtime_resume() for a device.
+> + * @work: Work structure used for scheduling the execution of this f=
+unction.
+> + *
+> + * Use @work to get the device object the resume has been scheduled =
+for and run
+> + * __pm_runtime_resume() for it.
+> + */
+> +static void pm_runtime_work(struct work_struct *work)
+> +{
+> + =A0 =A0 =A0 __pm_runtime_resume(work_to_device(work), false);
+> +}
+
+Anything wrong with the name pm_runtime_resume_work()?
+
+Looking forward to v6, I'll switch task now, will be back to this late =
+Monday.
+
+Cheers,
+
+/ magnus
