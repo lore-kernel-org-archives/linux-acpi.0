@@ -1,107 +1,76 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: acpi on sony vaio vgn-sz61mn
-Date: Thu, 25 Jun 2009 09:31:09 +0800
-Message-ID: <1245893469.15520.123.camel@rzhang-dt>
-References: <4A38F2FA.5000207@uni-koblenz.de>
-	 <1245286687.9076.101.camel@rzhang-dt>  <4A40928A.7000608@uni-koblenz.de>
-	 <1245746655.15520.96.camel@rzhang-dt>  <4A40961D.50504@uni-koblenz.de>
-	 <1245746886.15520.98.camel@rzhang-dt> <4A409CEA.6040900@uni-koblenz.de>
-	 <037F493892196B458CD3E193E8EBAD4F01E90EF8BB@pdsmsx502.ccr.corp.intel.com>
-	 <4A40A170.1050401@uni-koblenz.de> <1245805110.15520.101.camel@rzhang-dt>
-	 <4A41EE23.6040806@uni-koblenz.de>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: a backlight issue
+Date: Thu, 25 Jun 2009 10:09:09 +0800
+Message-ID: <1245895749.7266.70.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:42186 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:32398 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752636AbZFYBaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2009 21:30:25 -0400
-In-Reply-To: <4A41EE23.6040806@uni-koblenz.de>
+	id S1751548AbZFYCIC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2009 22:08:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, rpurdie@linux.intel.com
 
-please attach the full dmesg output in the bugzilla.
-and let's move the discussion there. :)
+Hi, Len
+    
+    On some boxes there is neither generic ACPI backlight I/F nor
+platform backlight I/F. That means that the backlight brightness can't
+be changed by using sys backlight I/F. But the backlight brightness can
+be changed by using the driver backlight I/F. For example: on the box
+based on intel-integrated graphics card the backlight brightness can
+also be changed by using the LBB register in pci device. 
+    Can the graphics driver register the sys backlight I/F so that we
+can change the backlight by using sys I/F? 
+    
+    If the graphics driver can also register the backlight I/F, it seems
+that we can register three types of backlight I/F.
+    a. generic ACPI backlight I/F. This is registered by acpi video
+driver.
+    b. platform backlight I/F. This is registered by the platform driver
+    c. graphics backlight I/F. This can be registered by the graphics
+driver.
 
-thanks,
-rui
+    As there exist three types of backlight I/F, how can we make the
+coordination among the three backlight I/F? In fact only one backlight
+I/f is enough for user to change the brightness.
 
-On Wed, 2009-06-24 at 17:13 +0800, Sebastian Pohl wrote:
-> Zhang Rui wrote:
-> > On Tue, 2009-06-23 at 17:33 +0800, Sebastian Pohl wrote:
-> >   
-> >> Zhang, Rui wrote:
-> >>     
-> >>>   
-> >>>       
-> >>>> -----Original Message-----
-> >>>> From: Sebastian Pohl [mailto:sebastianp@uni-koblenz.de]
-> >>>> Sent: Tuesday, June 23, 2009 5:14 PM
-> >>>> To: Zhang, Rui
-> >>>> Cc: linux-acpi@vger.kernel.org; Mattia Dongili
-> >>>> Subject: Re: acpi on sony vaio vgn-sz61mn
-> >>>>     
-> >>>>         
-> >>>>>       
-> >>>>>           
-> >>>> Hi,
-> >>>>
-> >>>> this is before:
-> >>>>
-> >>>> /sys/firmware/acpi/interrupts/error:       0
-> >>>> /sys/firmware/acpi/interrupts/ff_gbl_lock:       0    enabled
-> >>>> /sys/firmware/acpi/interrupts/ff_pmtimer:       0    invalid
-> >>>> /sys/firmware/acpi/interrupts/ff_pwr_btn:       0    invalid
-> >>>>     
-> >>>>         
-> >>> [Rui] power button fixed event is invalid?
-> >>> Please make sure CONFIG_ACPI_BUTTON=m/y
-> >>>
-> >>> Thanks,
-> >>> rui
-> >>>
-> >>>   
-> >>>       
-> >> It was set to
-> >>
-> >> CONFIG_ACPI_BUTTON=m
-> >>
-> >> ist that right or should i change it?
-> >>
-> >>     
-> > please make sure it's loaded.
-> > please attach the output of "grep . /proc/acpi/button/*/*/*"
-> >
-> > thanks,
-> > rui
-> >   
-> Hi,
-> 
-> the output is
-> 
-> /proc/acpi/button/lid/LID0/info:type:                    Lid Switch
-> /proc/acpi/button/lid/LID0/state:state:      open
-> /proc/acpi/button/power/PWRB/info:type:                    Power Button (CM)
-> 
-> I found it interesting that theres a lid switch status listed. So i 
-> tried with a magnet to trigger it and it came out like this:
-> 
-> /proc/acpi/button/lid/LID0/info:type:                    Lid Switch
-> /proc/acpi/button/lid/LID0/state:state:      closed
-> /proc/acpi/button/power/PWRB/info:type:                    Power Button (CM)
-> 
-> So this makes me think that the lid-switch itself is somehow reporting 
-> its status but it doesnt have any effects.
-> 
-> 
-> regards
-> 
->         sebastian
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rui provides a propose that use the backlight manager to choose the
+appropriate the backlight I/F. 
+    backlight manager only exports one single I/F to users, like:
+----|
+    |----brightness
+    |----actual_brightness
+    |----max_brightness
+    |----...
+    |----mode
+and it supports multiple modes, e.g.
+1. generic ---ACPI
+2. platform---platform drivers
+3. legacy-----i915
+
+The sysfs backlight manager always chooses the mode with highest
+priority (generic > platform > legacy), and call the respective
+callbacks when backlight is changed.
+For example, the backlight manager switches to the "generic" mode from
+"legacy" mode automatically when ACPI video driver is loaded at runtime.
+  
+   How about the above propose?
+
+ 
+BTW: now in the video driver only one of acpi generic backlight I/F and
+platform backlight I/F is registered. That means that the acpi generic
+backlight I/F is preferred if it exists. Of course we can switch to the
+platform backlight I/F by adding the boot option of
+"acpi_backlight=vendor".  In summary, the platform driver will check
+whether the acpi generic backlight is supported before registering the
+platform backlight I/F.
+
+
+Thanks.
+
+   
 
