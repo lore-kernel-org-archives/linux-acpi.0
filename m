@@ -1,101 +1,74 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [Debian-eeepc-devel] 5 second boot desktop with documentation
-Date: Thu, 25 Jun 2009 09:51:55 +0100
-Message-ID: <9b2b86520906250151h1be909cbu2afc0cf87cf08c4@mail.gmail.com>
-References: <4A40C611.3010804@powercraft.nl> <4A411732.2050902@powercraft.nl>
-	 <9b2b86520906240058v6e6c96c6r6bcd2e85f7d13823@mail.gmail.com>
-	 <4A41E4A2.9000103@powercraft.nl>
-	 <20090624110322.69851c4d@Prem6s.lanvoc>
-	 <9b2b86520906240255p48d00c27n16751ae04b1565f5@mail.gmail.com>
-	 <20090624132546.1a8389f0@Prem6s.lanvoc>
-	 <9b2b86520906240531l46bafd49p5e4dc1a17adad29a@mail.gmail.com>
-	 <20090624145749.6506b86d@Prem6s.lanvoc>
+From: Richard Purdie <rpurdie@linux.intel.com>
+Subject: Re: a backlight issue
+Date: Thu, 25 Jun 2009 10:39:41 +0100
+Message-ID: <1245922781.6001.34.camel@dax.rpnet.com>
+References: <1245895749.7266.70.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:42647 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbZFYIvy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2009 04:51:54 -0400
-Received: by bwz9 with SMTP id 9so1245732bwz.37
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2009 01:51:56 -0700 (PDT)
-In-Reply-To: <20090624145749.6506b86d@Prem6s.lanvoc>
+Received: from mga10.intel.com ([192.55.52.92]:21862 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750866AbZFYJlM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2009 05:41:12 -0400
+In-Reply-To: <1245895749.7266.70.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Fr=E9d=E9ric_Boiteux?= <fboiteux@calistel.com>
-Cc: debian-eeepc-devel@lists.alioth.debian.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 6/24/09, Fr=E9d=E9ric Boiteux <fboiteux@calistel.com> wrote:
-> Le Wed, 24 Jun 2009 13:31:39 +0100,
-> Alan Jenkins <sourcejedi.lkml@googlemail.com> a =E9crit :
->
->> On 6/24/09, Fr=E9d=E9ric Boiteux <fboiteux@calistel.com> wrote:
->> > =85
->> > I've tried, but the proposed workaround doesn't work here :-(
->> > I've booted with 'initcall_debug' option to have some more message=
-s,
->> > look at dmesg's file joined to this e-mail.
->>
->> Weird.  You said earlier that acpi_enforce_resources=3Dstrict solved
->> your problem on 2.6.29, so this looks like a regression in 2.6.30.
->>
->> [    0.000000] Kernel command line: root=3DLABEL=3Dracine ro vga=3D7=
-88
->> acpi_enforce_resources=3Dstrict init=3D/sbin/bootchartd initcall_deb=
-ug
->>
->> [   11.795501] i801_smbus 0000:00:1f.3: PCI INT B -> GSI 19 (level,
->> low) -> IRQ 19
->>
->> The point of acpi_enforce_resources=3Dstrict was to prevent drivers =
-like
->> i801_smbus binding to devices already handled by an ACPI BIOS.  It w=
-as
->> this conflict that was believed to cause the delay.
->>
->> What we want to see, which you should see on 2.6.29 with the "strict=
-"
->> boot option, is something like this:
->>
->> [    0.881441] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level,
->> low) -> IRQ 18
->> [    0.881441] ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f]
->> conflicts with ACPI region SMRG [0x400-0x40f]
->> [    0.881441] ACPI: Device needs an ACPI driver
->> [    0.881441] i801_smbus: probe of 0000:00:1f.3 failed with error -=
-16
->
-> Yes, I had this kind of messages with 2.6.29 kernel, but not in 2.6.3=
-0.
->
->> As a workaround / sanity check, can you avoid the delay on 2.6.30 if
->> you blacklist the i801_smbus module?
->
-> I've blacklisted the 'i2c_i801' module (responsible from i801_smbus
-> message), and yes, the boot delay disappeared ! :-)
->
->   If I can help to track this bug, I can do some tests.
->
-> 	Many thanks,
-> 		Fred.
->
+Hi,
 
-Thanks for your responsiveness.  I've created a kernel bugzilla entry.
+On Thu, 2009-06-25 at 10:09 +0800, yakui_zhao wrote:
+>     On some boxes there is neither generic ACPI backlight I/F nor
+> platform backlight I/F. That means that the backlight brightness can't
+> be changed by using sys backlight I/F. But the backlight brightness can
+> be changed by using the driver backlight I/F. For example: on the box
+> based on intel-integrated graphics card the backlight brightness can
+> also be changed by using the LBB register in pci device. 
+>     Can the graphics driver register the sys backlight I/F so that we
+> can change the backlight by using sys I/F? 
+>     
+>     If the graphics driver can also register the backlight I/F, it seems
+> that we can register three types of backlight I/F.
+>     a. generic ACPI backlight I/F. This is registered by acpi video
+> driver.
+>     b. platform backlight I/F. This is registered by the platform driver
+>     c. graphics backlight I/F. This can be registered by the graphics
+> driver.
+> 
+>     As there exist three types of backlight I/F, how can we make the
+> coordination among the three backlight I/F? In fact only one backlight
+> I/f is enough for user to change the brightness.
 
-<http://bugzilla.kernel.org/show_bug.cgi?id=3D13620>
+I think in the short term you're right and that there needs to be
+something acpi specific as a backlight arbitrator. This problem is quite
+specific to acpi. Its worth thinking about the wider picture too though.
 
-Can you please add as attachments:
- 1. dmesg for 2.6.29 with acpi_enforce_resources=3Dstrict
- 2. the output of acpidump (it's a debian package)
+Taking a machine with say, three graphics cards in it, what should
+happen? It should probably register one control for each screen with an
+adjustable backlight so if each card was dual head you'd get 6 controls.
 
-You will need to create a kernel bugzilla account if you haven't
-already got one.
+The key problem is knowing which backlight interface corresponds to
+which driver+screen. If we had that information, exporting your three
+interfaces above might be less of an issue as userspace could tell they
+were for the same hardware. The kernel could pick the best interface
+internally too, if it can tell they're for the same screen.
 
-Thanks
-Alan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I suspect at this point we've gone far beyond the environment the sysfs
+backlight interface was designed for and we'd be better off having the
+backlight control in parallel with the other screen data which probably
+runs through the DRM code.
+
+Even then its not straightforward though as even just considering the
+i915 driver, can it always use the i915 registers for the backlight or
+does it sometimes have to make ACPI calls?
+
+Cheers,
+
+Richard
+
+-- 
+Richard Purdie
+Intel Open Source Technology Centre
+
