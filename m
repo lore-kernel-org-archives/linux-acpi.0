@@ -1,96 +1,126 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [PATCH 0/9 v2] ACPI: remove .start() and .stop() methods
-Date: Thu, 25 Jun 2009 11:09:07 +0900
-Message-ID: <20090625110604.B02E.E1E9C6FF@jp.fujitsu.com>
-References: <20090622204016.32761.47464.stgit@bob.kio>
+From: Sebastian Pohl <sebastianp@uni-koblenz.de>
+Subject: Re: acpi on sony vaio vgn-sz61mn
+Date: Thu, 25 Jun 2009 10:31:55 +0200
+Message-ID: <4A4335FB.3030900@uni-koblenz.de>
+References: <4A38F2FA.5000207@uni-koblenz.de>	 <1245286687.9076.101.camel@rzhang-dt>  <4A40928A.7000608@uni-koblenz.de>	 <1245746655.15520.96.camel@rzhang-dt>  <4A40961D.50504@uni-koblenz.de>	 <1245746886.15520.98.camel@rzhang-dt> <4A409CEA.6040900@uni-koblenz.de>	 <037F493892196B458CD3E193E8EBAD4F01E90EF8BB@pdsmsx502.ccr.corp.intel.com>	 <4A40A170.1050401@uni-koblenz.de> <1245805110.15520.101.camel@rzhang-dt>	 <4A41EE23.6040806@uni-koblenz.de> <1245893469.15520.123.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:47778 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905AbZFYCJJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2009 22:09:09 -0400
-Received: from m3.gw.fujitsu.co.jp ([10.0.50.73])
-	by fgwmail6.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id n5P29Bh0006659
-	for <linux-acpi@vger.kernel.org> (envelope-from y-goto@jp.fujitsu.com);
-	Thu, 25 Jun 2009 11:09:11 +0900
-Received: from smail (m3 [127.0.0.1])
-	by outgoing.m3.gw.fujitsu.co.jp (Postfix) with ESMTP id 56F1945DD7F
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2009 11:09:11 +0900 (JST)
-Received: from s3.gw.fujitsu.co.jp (s3.gw.fujitsu.co.jp [10.0.50.93])
-	by m3.gw.fujitsu.co.jp (Postfix) with ESMTP id 3637145DD7E
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2009 11:09:11 +0900 (JST)
-Received: from s3.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
-	by s3.gw.fujitsu.co.jp (Postfix) with ESMTP id 0DA101DB8038
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2009 11:09:11 +0900 (JST)
-Received: from ml13.s.css.fujitsu.com (ml13.s.css.fujitsu.com [10.249.87.103])
-	by s3.gw.fujitsu.co.jp (Postfix) with ESMTP id AE1C11DB8044
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2009 11:09:07 +0900 (JST)
-In-Reply-To: <20090622204016.32761.47464.stgit@bob.kio>
+Received: from deliver.uni-koblenz.de ([141.26.64.15]:29975 "EHLO
+	deliver.uni-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531AbZFYIbz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2009 04:31:55 -0400
+In-Reply-To: <1245893469.15520.123.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>
 
-> From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> These patches remove several .start() methods (by folding them into
-> .add() methods) and a .stop() method (by folding it into .remove()).
-> There are no remaining .stop() methods, so I also removed it from
-> the driver_ops structure.
-> 
-> This simplifies the ACPI driver structure and will make it easier to
-> support hotplug in the Linux/ACPI core.
-> 
-> They also remove the KOBJ_ONLINE and KOBJ_OFFLINE events generated
-> by the processor driver for CPU hotplug events.  As far as I know,
-> these events are unused.
-> 
-> I don't have a way to test most of these changes, unfortunately, so
-> I'd welcome any feedback or testing reports.
+Hi,
 
-Hi.
+i opened a bug here http://bugzilla.kernel.org/show_bug.cgi?id=13607
 
-I could make a time to test this patch set.
-It works well on my box. :-)
+and i will attach the dmesg output later when i get to my notebook.
 
-Tested-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+regards
 
-Bye.
+     sebastian
 
-> 
-> These apply to the acpi-test branch.
-> 
-> ---
-> 
-> Bjorn Helgaas (9):
->       ACPI: processor: remove KOBJ_ONLINE/KOBJ_OFFLINE events
->       ACPI: processor: clean up in acpi_processor_start() error exits
->       ACPI: processor: move acpi_processor_start() after acpi_processor_add()
->       ACPI: processor: remove .start() method
->       ACPI: memory hotplug: remove .start() method
->       ACPI: EC: move acpi_ec_start() after acpi_ec_add()
->       ACPI: EC: remove .start() method
->       ACPI: EC: remove .stop() method
->       ACPI: remove unused acpi_device_ops .stop method
-> 
-> 
->  drivers/acpi/acpi_memhotplug.c |   40 +++----
->  drivers/acpi/ec.c              |  118 ++++++++--------------
->  drivers/acpi/processor_core.c  |  219 +++++++++++++++++-----------------------
->  drivers/acpi/scan.c            |    5 -
->  include/acpi/acpi_bus.h        |    2 
->  5 files changed, 153 insertions(+), 231 deletions(-)
-> 
-> -- 
-> Bjorn
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Yasunori Goto 
-
+Zhang Rui schrieb:
+> please attach the full dmesg output in the bugzilla.
+> and let's move the discussion there. :)
+>
+> thanks,
+> rui
+>
+> On Wed, 2009-06-24 at 17:13 +0800, Sebastian Pohl wrote:
+>   
+>> Zhang Rui wrote:
+>>     
+>>> On Tue, 2009-06-23 at 17:33 +0800, Sebastian Pohl wrote:
+>>>   
+>>>       
+>>>> Zhang, Rui wrote:
+>>>>     
+>>>>         
+>>>>>   
+>>>>>       
+>>>>>           
+>>>>>> -----Original Message-----
+>>>>>> From: Sebastian Pohl [mailto:sebastianp@uni-koblenz.de]
+>>>>>> Sent: Tuesday, June 23, 2009 5:14 PM
+>>>>>> To: Zhang, Rui
+>>>>>> Cc: linux-acpi@vger.kernel.org; Mattia Dongili
+>>>>>> Subject: Re: acpi on sony vaio vgn-sz61mn
+>>>>>>     
+>>>>>>         
+>>>>>>             
+>>>>>>>       
+>>>>>>>           
+>>>>>>>               
+>>>>>> Hi,
+>>>>>>
+>>>>>> this is before:
+>>>>>>
+>>>>>> /sys/firmware/acpi/interrupts/error:       0
+>>>>>> /sys/firmware/acpi/interrupts/ff_gbl_lock:       0    enabled
+>>>>>> /sys/firmware/acpi/interrupts/ff_pmtimer:       0    invalid
+>>>>>> /sys/firmware/acpi/interrupts/ff_pwr_btn:       0    invalid
+>>>>>>     
+>>>>>>         
+>>>>>>             
+>>>>> [Rui] power button fixed event is invalid?
+>>>>> Please make sure CONFIG_ACPI_BUTTON=m/y
+>>>>>
+>>>>> Thanks,
+>>>>> rui
+>>>>>
+>>>>>   
+>>>>>       
+>>>>>           
+>>>> It was set to
+>>>>
+>>>> CONFIG_ACPI_BUTTON=m
+>>>>
+>>>> ist that right or should i change it?
+>>>>
+>>>>     
+>>>>         
+>>> please make sure it's loaded.
+>>> please attach the output of "grep . /proc/acpi/button/*/*/*"
+>>>
+>>> thanks,
+>>> rui
+>>>   
+>>>       
+>> Hi,
+>>
+>> the output is
+>>
+>> /proc/acpi/button/lid/LID0/info:type:                    Lid Switch
+>> /proc/acpi/button/lid/LID0/state:state:      open
+>> /proc/acpi/button/power/PWRB/info:type:                    Power Button (CM)
+>>
+>> I found it interesting that theres a lid switch status listed. So i 
+>> tried with a magnet to trigger it and it came out like this:
+>>
+>> /proc/acpi/button/lid/LID0/info:type:                    Lid Switch
+>> /proc/acpi/button/lid/LID0/state:state:      closed
+>> /proc/acpi/button/power/PWRB/info:type:                    Power Button (CM)
+>>
+>> So this makes me think that the lid-switch itself is somehow reporting 
+>> its status but it doesnt have any effects.
+>>
+>>
+>> regards
+>>
+>>         sebastian
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>     
+>
+>   
 
