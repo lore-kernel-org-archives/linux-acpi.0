@@ -1,126 +1,101 @@
-From: Sebastian Pohl <sebastianp@uni-koblenz.de>
-Subject: Re: acpi on sony vaio vgn-sz61mn
-Date: Thu, 25 Jun 2009 10:31:55 +0200
-Message-ID: <4A4335FB.3030900@uni-koblenz.de>
-References: <4A38F2FA.5000207@uni-koblenz.de>	 <1245286687.9076.101.camel@rzhang-dt>  <4A40928A.7000608@uni-koblenz.de>	 <1245746655.15520.96.camel@rzhang-dt>  <4A40961D.50504@uni-koblenz.de>	 <1245746886.15520.98.camel@rzhang-dt> <4A409CEA.6040900@uni-koblenz.de>	 <037F493892196B458CD3E193E8EBAD4F01E90EF8BB@pdsmsx502.ccr.corp.intel.com>	 <4A40A170.1050401@uni-koblenz.de> <1245805110.15520.101.camel@rzhang-dt>	 <4A41EE23.6040806@uni-koblenz.de> <1245893469.15520.123.camel@rzhang-dt>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [Debian-eeepc-devel] 5 second boot desktop with documentation
+Date: Thu, 25 Jun 2009 09:51:55 +0100
+Message-ID: <9b2b86520906250151h1be909cbu2afc0cf87cf08c4@mail.gmail.com>
+References: <4A40C611.3010804@powercraft.nl> <4A411732.2050902@powercraft.nl>
+	 <9b2b86520906240058v6e6c96c6r6bcd2e85f7d13823@mail.gmail.com>
+	 <4A41E4A2.9000103@powercraft.nl>
+	 <20090624110322.69851c4d@Prem6s.lanvoc>
+	 <9b2b86520906240255p48d00c27n16751ae04b1565f5@mail.gmail.com>
+	 <20090624132546.1a8389f0@Prem6s.lanvoc>
+	 <9b2b86520906240531l46bafd49p5e4dc1a17adad29a@mail.gmail.com>
+	 <20090624145749.6506b86d@Prem6s.lanvoc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from deliver.uni-koblenz.de ([141.26.64.15]:29975 "EHLO
-	deliver.uni-koblenz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751531AbZFYIbz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2009 04:31:55 -0400
-In-Reply-To: <1245893469.15520.123.camel@rzhang-dt>
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:42647 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbZFYIvy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2009 04:51:54 -0400
+Received: by bwz9 with SMTP id 9so1245732bwz.37
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2009 01:51:56 -0700 (PDT)
+In-Reply-To: <20090624145749.6506b86d@Prem6s.lanvoc>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mattia Dongili <malattia@linux.it>
+To: =?ISO-8859-1?Q?Fr=E9d=E9ric_Boiteux?= <fboiteux@calistel.com>
+Cc: debian-eeepc-devel@lists.alioth.debian.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi,
-
-i opened a bug here http://bugzilla.kernel.org/show_bug.cgi?id=13607
-
-and i will attach the dmesg output later when i get to my notebook.
-
-regards
-
-     sebastian
-
-Zhang Rui schrieb:
-> please attach the full dmesg output in the bugzilla.
-> and let's move the discussion there. :)
+On 6/24/09, Fr=E9d=E9ric Boiteux <fboiteux@calistel.com> wrote:
+> Le Wed, 24 Jun 2009 13:31:39 +0100,
+> Alan Jenkins <sourcejedi.lkml@googlemail.com> a =E9crit :
 >
-> thanks,
-> rui
+>> On 6/24/09, Fr=E9d=E9ric Boiteux <fboiteux@calistel.com> wrote:
+>> > =85
+>> > I've tried, but the proposed workaround doesn't work here :-(
+>> > I've booted with 'initcall_debug' option to have some more message=
+s,
+>> > look at dmesg's file joined to this e-mail.
+>>
+>> Weird.  You said earlier that acpi_enforce_resources=3Dstrict solved
+>> your problem on 2.6.29, so this looks like a regression in 2.6.30.
+>>
+>> [    0.000000] Kernel command line: root=3DLABEL=3Dracine ro vga=3D7=
+88
+>> acpi_enforce_resources=3Dstrict init=3D/sbin/bootchartd initcall_deb=
+ug
+>>
+>> [   11.795501] i801_smbus 0000:00:1f.3: PCI INT B -> GSI 19 (level,
+>> low) -> IRQ 19
+>>
+>> The point of acpi_enforce_resources=3Dstrict was to prevent drivers =
+like
+>> i801_smbus binding to devices already handled by an ACPI BIOS.  It w=
+as
+>> this conflict that was believed to cause the delay.
+>>
+>> What we want to see, which you should see on 2.6.29 with the "strict=
+"
+>> boot option, is something like this:
+>>
+>> [    0.881441] i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level,
+>> low) -> IRQ 18
+>> [    0.881441] ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f]
+>> conflicts with ACPI region SMRG [0x400-0x40f]
+>> [    0.881441] ACPI: Device needs an ACPI driver
+>> [    0.881441] i801_smbus: probe of 0000:00:1f.3 failed with error -=
+16
 >
-> On Wed, 2009-06-24 at 17:13 +0800, Sebastian Pohl wrote:
->   
->> Zhang Rui wrote:
->>     
->>> On Tue, 2009-06-23 at 17:33 +0800, Sebastian Pohl wrote:
->>>   
->>>       
->>>> Zhang, Rui wrote:
->>>>     
->>>>         
->>>>>   
->>>>>       
->>>>>           
->>>>>> -----Original Message-----
->>>>>> From: Sebastian Pohl [mailto:sebastianp@uni-koblenz.de]
->>>>>> Sent: Tuesday, June 23, 2009 5:14 PM
->>>>>> To: Zhang, Rui
->>>>>> Cc: linux-acpi@vger.kernel.org; Mattia Dongili
->>>>>> Subject: Re: acpi on sony vaio vgn-sz61mn
->>>>>>     
->>>>>>         
->>>>>>             
->>>>>>>       
->>>>>>>           
->>>>>>>               
->>>>>> Hi,
->>>>>>
->>>>>> this is before:
->>>>>>
->>>>>> /sys/firmware/acpi/interrupts/error:       0
->>>>>> /sys/firmware/acpi/interrupts/ff_gbl_lock:       0    enabled
->>>>>> /sys/firmware/acpi/interrupts/ff_pmtimer:       0    invalid
->>>>>> /sys/firmware/acpi/interrupts/ff_pwr_btn:       0    invalid
->>>>>>     
->>>>>>         
->>>>>>             
->>>>> [Rui] power button fixed event is invalid?
->>>>> Please make sure CONFIG_ACPI_BUTTON=m/y
->>>>>
->>>>> Thanks,
->>>>> rui
->>>>>
->>>>>   
->>>>>       
->>>>>           
->>>> It was set to
->>>>
->>>> CONFIG_ACPI_BUTTON=m
->>>>
->>>> ist that right or should i change it?
->>>>
->>>>     
->>>>         
->>> please make sure it's loaded.
->>> please attach the output of "grep . /proc/acpi/button/*/*/*"
->>>
->>> thanks,
->>> rui
->>>   
->>>       
->> Hi,
->>
->> the output is
->>
->> /proc/acpi/button/lid/LID0/info:type:                    Lid Switch
->> /proc/acpi/button/lid/LID0/state:state:      open
->> /proc/acpi/button/power/PWRB/info:type:                    Power Button (CM)
->>
->> I found it interesting that theres a lid switch status listed. So i 
->> tried with a magnet to trigger it and it came out like this:
->>
->> /proc/acpi/button/lid/LID0/info:type:                    Lid Switch
->> /proc/acpi/button/lid/LID0/state:state:      closed
->> /proc/acpi/button/power/PWRB/info:type:                    Power Button (CM)
->>
->> So this makes me think that the lid-switch itself is somehow reporting 
->> its status but it doesnt have any effects.
->>
->>
->> regards
->>
->>         sebastian
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>     
+> Yes, I had this kind of messages with 2.6.29 kernel, but not in 2.6.3=
+0.
 >
->   
+>> As a workaround / sanity check, can you avoid the delay on 2.6.30 if
+>> you blacklist the i801_smbus module?
+>
+> I've blacklisted the 'i2c_i801' module (responsible from i801_smbus
+> message), and yes, the boot delay disappeared ! :-)
+>
+>   If I can help to track this bug, I can do some tests.
+>
+> 	Many thanks,
+> 		Fred.
+>
 
+Thanks for your responsiveness.  I've created a kernel bugzilla entry.
+
+<http://bugzilla.kernel.org/show_bug.cgi?id=3D13620>
+
+Can you please add as attachments:
+ 1. dmesg for 2.6.29 with acpi_enforce_resources=3Dstrict
+ 2. the output of acpidump (it's a debian package)
+
+You will need to create a kernel bugzilla account if you haven't
+already got one.
+
+Thanks
+Alan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
