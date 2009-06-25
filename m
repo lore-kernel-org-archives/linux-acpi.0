@@ -1,78 +1,269 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 5/7] eeepc-laptop: makes get_acpi() returns -ENODEV
-Date: Thu, 25 Jun 2009 13:25:40 +0200
-Message-ID: <1245929142-3354-5-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 3/7] eeepc-laptop: rfkill refactoring
+Date: Thu, 25 Jun 2009 13:25:38 +0200
+Message-ID: <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
 References: <alpine.LFD.2.00.0906240136300.32742@localhost.localdomain>
  <1245929142-3354-1-git-send-email-corentincj@iksaif.net>
  <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-4-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:54902 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:54898 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752004AbZFYLXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751439AbZFYLXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 25 Jun 2009 07:23:01 -0400
-In-Reply-To: <1245929142-3354-4-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-If there is there is no getter defined, get_acpi()
-will return -ENODEV.
+Refactor rfkill code, because we'll add another
+rfkill for wwan3g later.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |  160 ++++++++++++++++++-----------------
+ 1 files changed, 84 insertions(+), 76 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 5b102c2..19cc9ae 100644
+index d14f714..e46981a 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -289,7 +289,7 @@ static int set_acpi(int cm, int value)
+@@ -139,8 +139,8 @@ struct eeepc_hotk {
+ 	u16 event_count[128];		/* count for each event */
+ 	struct input_dev *inputdev;
+ 	u16 *keycode_map;
+-	struct rfkill *eeepc_wlan_rfkill;
+-	struct rfkill *eeepc_bluetooth_rfkill;
++	struct rfkill *wlan_rfkill;
++	struct rfkill *bluetooth_rfkill;
+ 	struct hotplug_slot *hotplug_slot;
+ };
  
- static int get_acpi(int cm)
- {
--	int value = -1;
-+	int value = -ENODEV;
- 	if ((ehotk->cm_supported & (0x1 << cm))) {
- 		const char *method = cm_getv[cm];
- 		if (method == NULL)
-@@ -367,13 +367,19 @@ static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
+@@ -663,7 +663,7 @@ static void eeepc_rfkill_hotplug(void)
+ 		}
+ 	}
  
- 	rv = parse_arg(buf, count, &value);
- 	if (rv > 0)
--		set_acpi(cm, value);
-+		value = set_acpi(cm, value);
-+	if (value < 0)
-+		return value;
- 	return rv;
+-	rfkill_set_sw_state(ehotk->eeepc_wlan_rfkill, blocked);
++	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
  }
  
- static ssize_t show_sys_acpi(int cm, char *buf)
+ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+@@ -828,66 +828,8 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 	if (result)
+ 		goto ehotk_fail;
+ 
+-	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
+-	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
+-
+-	if (get_acpi(CM_ASL_WLAN) != -1) {
+-		ehotk->eeepc_wlan_rfkill = rfkill_alloc("eeepc-wlan",
+-							&device->dev,
+-							RFKILL_TYPE_WLAN,
+-							&eeepc_rfkill_ops,
+-							(void *)CM_ASL_WLAN);
+-
+-		if (!ehotk->eeepc_wlan_rfkill)
+-			goto wlan_fail;
+-
+-		rfkill_init_sw_state(ehotk->eeepc_wlan_rfkill,
+-				     get_acpi(CM_ASL_WLAN) != 1);
+-		result = rfkill_register(ehotk->eeepc_wlan_rfkill);
+-		if (result)
+-			goto wlan_fail;
+-	}
+-
+-	if (get_acpi(CM_ASL_BLUETOOTH) != -1) {
+-		ehotk->eeepc_bluetooth_rfkill =
+-			rfkill_alloc("eeepc-bluetooth",
+-				     &device->dev,
+-				     RFKILL_TYPE_BLUETOOTH,
+-				     &eeepc_rfkill_ops,
+-				     (void *)CM_ASL_BLUETOOTH);
+-
+-		if (!ehotk->eeepc_bluetooth_rfkill)
+-			goto bluetooth_fail;
+-
+-		rfkill_init_sw_state(ehotk->eeepc_bluetooth_rfkill,
+-				     get_acpi(CM_ASL_BLUETOOTH) != 1);
+-		result = rfkill_register(ehotk->eeepc_bluetooth_rfkill);
+-		if (result)
+-			goto bluetooth_fail;
+-	}
+-
+-	result = eeepc_setup_pci_hotplug();
+-	/*
+-	 * If we get -EBUSY then something else is handling the PCI hotplug -
+-	 * don't fail in this case
+-	 */
+-	if (result == -EBUSY)
+-		return 0;
+-	else if (result)
+-		goto pci_fail;
+-
+ 	return 0;
+ 
+- pci_fail:
+-	if (ehotk->eeepc_bluetooth_rfkill)
+-		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
+- bluetooth_fail:
+-	rfkill_destroy(ehotk->eeepc_bluetooth_rfkill);
+-	rfkill_unregister(ehotk->eeepc_wlan_rfkill);
+- wlan_fail:
+-	rfkill_destroy(ehotk->eeepc_wlan_rfkill);
+-	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+-	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+  ehotk_fail:
+ 	kfree(ehotk);
+ 	ehotk = NULL;
+@@ -900,18 +842,13 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
+ 	if (!device || !acpi_driver_data(device))
+ 		 return -EINVAL;
+ 
+-	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+-	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+-	if (ehotk->hotplug_slot)
+-		pci_hp_deregister(ehotk->hotplug_slot);
+-
+ 	kfree(ehotk);
+ 	return 0;
+ }
+ 
+ static int eeepc_hotk_resume(struct acpi_device *device)
  {
--	return sprintf(buf, "%d\n", get_acpi(cm));
-+	int value = get_acpi(cm);
+-	if (ehotk->eeepc_wlan_rfkill) {
++	if (ehotk->wlan_rfkill) {
+ 		bool wlan;
+ 
+ 		/* Workaround - it seems that _PTS disables the wireless
+@@ -923,14 +860,13 @@ static int eeepc_hotk_resume(struct acpi_device *device)
+ 		wlan = get_acpi(CM_ASL_WLAN);
+ 		set_acpi(CM_ASL_WLAN, wlan);
+ 
+-		rfkill_set_sw_state(ehotk->eeepc_wlan_rfkill,
+-				    wlan != 1);
++		rfkill_set_sw_state(ehotk->wlan_rfkill, wlan != 1);
+ 
+ 		eeepc_rfkill_hotplug();
+ 	}
+ 
+-	if (ehotk->eeepc_bluetooth_rfkill)
+-		rfkill_set_sw_state(ehotk->eeepc_bluetooth_rfkill,
++	if (ehotk->bluetooth_rfkill)
++		rfkill_set_sw_state(ehotk->bluetooth_rfkill,
+ 				    get_acpi(CM_ASL_BLUETOOTH) != 1);
+ 
+ 	return 0;
+@@ -1052,10 +988,14 @@ static void eeepc_backlight_exit(void)
+ 
+ static void eeepc_rfkill_exit(void)
+ {
+-	if (ehotk->eeepc_wlan_rfkill)
+-		rfkill_unregister(ehotk->eeepc_wlan_rfkill);
+-	if (ehotk->eeepc_bluetooth_rfkill)
+-		rfkill_unregister(ehotk->eeepc_bluetooth_rfkill);
++	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
++	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
++	if (ehotk->wlan_rfkill)
++		rfkill_unregister(ehotk->wlan_rfkill);
++	if (ehotk->bluetooth_rfkill)
++		rfkill_unregister(ehotk->bluetooth_rfkill);
++	if (ehotk->hotplug_slot)
++		pci_hp_deregister(ehotk->hotplug_slot);
+ }
+ 
+ static void eeepc_input_exit(void)
+@@ -1090,6 +1030,67 @@ static void __exit eeepc_laptop_exit(void)
+ 	platform_driver_unregister(&platform_driver);
+ }
+ 
++static int eeepc_new_rfkill(struct rfkill **rfkill,
++			    const char *name, struct device *dev,
++			    enum rfkill_type type, int cm)
++{
++	int result;
 +
-+	if (value < 0)
-+		return value;
-+	return sprintf(buf, "%d\n", value);
++	if (get_acpi(cm) == -1)
++		return -ENODEV;
++
++	*rfkill = rfkill_alloc(name, dev, type,
++			       &eeepc_rfkill_ops, (void *)(unsigned long)cm);
++
++	if (!*rfkill)
++		return -EINVAL;
++
++	rfkill_init_sw_state(*rfkill, get_acpi(cm) != 1);
++	result = rfkill_register(*rfkill);
++	if (result) {
++		rfkill_destroy(*rfkill);
++		*rfkill = NULL;
++		return result;
++	}
++	return 0;
++}
++
++
++static int eeepc_rfkill_init(struct device *dev)
++{
++	int result = 0;
++
++	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
++	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
++
++	result = eeepc_new_rfkill(&ehotk->wlan_rfkill,
++				  "eeepc-wlan", dev,
++				  RFKILL_TYPE_WLAN, CM_ASL_WLAN);
++
++	if (result && result != -ENODEV)
++		goto exit;
++
++	result = eeepc_new_rfkill(&ehotk->bluetooth_rfkill,
++				  "eeepc-bluetooth", dev,
++				  RFKILL_TYPE_BLUETOOTH, CM_ASL_BLUETOOTH);
++
++	if (result && result != -ENODEV)
++		goto exit;
++
++	result = eeepc_setup_pci_hotplug();
++	/*
++	 * If we get -EBUSY then something else is handling the PCI hotplug -
++	 * don't fail in this case
++	 */
++	if (result == -EBUSY)
++		result = 0;
++
++exit:
++	if (result && result != -ENODEV)
++		eeepc_rfkill_exit();
++	return result;
++}
++
+ static int eeepc_backlight_init(struct device *dev)
+ {
+ 	struct backlight_device *bd;
+@@ -1173,7 +1174,15 @@ static int __init eeepc_laptop_init(void)
+ 				    &platform_attribute_group);
+ 	if (result)
+ 		goto fail_sysfs;
++
++	result = eeepc_rfkill_init(dev);
++	if (result)
++		goto fail_rfkill;
++
+ 	return 0;
++fail_rfkill:
++	sysfs_remove_group(&platform_device->dev.kobj,
++			   &platform_attribute_group);
+ fail_sysfs:
+ 	platform_device_del(platform_device);
+ fail_platform_device2:
+@@ -1186,7 +1195,6 @@ fail_hwmon:
+ 	eeepc_backlight_exit();
+ fail_backlight:
+ 	eeepc_input_exit();
+-	eeepc_rfkill_exit();
+ 	return result;
  }
  
- #define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
-@@ -1036,8 +1042,9 @@ static int eeepc_new_rfkill(struct rfkill **rfkill,
- {
- 	int result;
- 
--	if (get_acpi(cm) == -1)
--		return -ENODEV;
-+	result = get_acpi(cm);
-+	if (result < 0)
-+		return result;
- 
- 	*rfkill = rfkill_alloc(name, dev, type,
- 			       &eeepc_rfkill_ops, (void *)(unsigned long)cm);
 -- 
 1.6.3.3
 
