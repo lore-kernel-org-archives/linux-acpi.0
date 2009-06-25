@@ -1,66 +1,144 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 7/7] eeepc-laptop: add rfkill support for the 3G modem in Eee PC 901 Go
-Date: Thu, 25 Jun 2009 13:25:42 +0200
-Message-ID: <1245929142-3354-7-git-send-email-corentincj@iksaif.net>
-References: <alpine.LFD.2.00.0906240136300.32742@localhost.localdomain>
- <1245929142-3354-1-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-2-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-3-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-4-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-5-git-send-email-corentincj@iksaif.net>
- <1245929142-3354-6-git-send-email-corentincj@iksaif.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:54905 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242AbZFYLXD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2009 07:23:03 -0400
-In-Reply-To: <1245929142-3354-6-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: [RFC/PATCH] Winbond CIR driver for the WPCD376I chip (ACPI/PNP
+     id WEC1022)
+Date: Thu, 25 Jun 2009 13:46:01 +0200 (CEST)
+Message-ID: <461dbc08f8573008440a03b9618bce94.squirrel@www.hardeman.nu>
+References: <20090624213645.GA18843@hardeman.nu>
+    <20090624151335.0f73907c@jbarnes-g45>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752855AbZFYLqN@vger.kernel.org>
+In-Reply-To: <20090624151335.0f73907c@jbarnes-g45>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jesse Barnes <jesse.barnes@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, Janne Grunau <j@jannau.net>
 
-Signed-off-by: Janne Grunau <j@jannau.net>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/eeepc-laptop.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+On Thu, June 25, 2009 00:13, Jesse Barnes wrote:
+> On Wed, 24 Jun 2009 14:36:45 -0700
+> David H=E4rdeman <david@hardeman.nu> wrote:
+>
+>> I've written a driver for the
+=2E..
+>> Winbond WPCD376I chipset
+>
+> Yay, glad I could get these released for you.  I just did a quick sca=
+n
+> of the driver (notes below)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index f5d8473..ec560f1 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -141,6 +141,7 @@ struct eeepc_hotk {
- 	u16 *keycode_map;
- 	struct rfkill *wlan_rfkill;
- 	struct rfkill *bluetooth_rfkill;
-+	struct rfkill *wwan3g_rfkill;
- 	struct hotplug_slot *hotplug_slot;
- };
- 
-@@ -1023,6 +1024,8 @@ static void eeepc_rfkill_exit(void)
- 		rfkill_unregister(ehotk->wlan_rfkill);
- 	if (ehotk->bluetooth_rfkill)
- 		rfkill_unregister(ehotk->bluetooth_rfkill);
-+	if (ehotk->wwan3g_rfkill)
-+		rfkill_unregister(ehotk->wwan3g_rfkill);
- 	if (ehotk->hotplug_slot)
- 		pci_hp_deregister(ehotk->hotplug_slot);
- }
-@@ -1107,6 +1110,13 @@ static int eeepc_rfkill_init(struct device *dev)
- 	if (result && result != -ENODEV)
- 		goto exit;
- 
-+	result = eeepc_new_rfkill(&ehotk->wwan3g_rfkill,
-+				  "eeepc-wwan3g", dev,
-+				  RFKILL_TYPE_WWAN, CM_ASL_3G);
-+
-+	if (result && result != -ENODEV)
-+		goto exit;
-+
- 	result = eeepc_setup_pci_hotplug();
- 	/*
- 	 * If we get -EBUSY then something else is handling the PCI hotplug -
--- 
-1.6.3.3
+Two more things that Intel could provide:
 
+a) Publish the datasheet (I know you mentioned doing this but
+   I can't find it on the Intel website)
+
+b) Make the hardware needed to actually use the CIR functionality
+   available for purchase. http://www.easy-cir.com seems to be more
+   or less dead (which is curious since an ad for the website
+   seems to be included with every CIR-enabled Intel motherboard).
+   I had to solder my own IR receiver in order to write the driver.
+
+>> I'd appreciate having the driver reviewed...and in addition I have
+>> some questions for the list:
+>>
+>>    1) SuperI/O concurrency
+>> ...
+>
+> Yeah, often multifunction devices like this have higher level "bus
+> drivers" that take care of managing the global parts, and drivers tha=
+t
+> attach to it to manage individual functions.  If you were feeling
+> really ambitious you could do that for the superio chip and port any
+> sub-drivers... :)
+
+My ambitions are more directed towards some kind of IR-subsystem into t=
+he
+kernel at the moment :) Besides, the Intel mainboards doesn't actually
+seem to use any of the other logical devices (which are mostly supporte=
+d
+by existing drivers anyway).
+
+>> Where should this driver go in the tree? drivers/platform/x86/?
+>
+> drivers/char is probably fine.
+
+I'm leaning towards drivers/input/misc now...
+
+>> #define dprintk(fmt, arg...)                                    \
+>> do {                                                            \
+>>         if (debug)                                              \
+>>                 printk(KERN_DEBUG DRVNAME fmt , ## arg);        \
+>> } while (0)
+>
+> Maybe you could use the generic debug functions instead (pr_debug iir=
+c)?
+
+Yes
+
+> ...
+> There are a few magic numbers above here you could possibly make into
+> #defines just to make things more readable.
+
+I'll try
+
+> The key up/down timeout handling seems like a pretty general problem,
+> maybe the input layer has some helpers for it?  Dunno.
+
+drivers/media/common/ir-functions.c is the closest thing I could find
+while writing the driver. The functions there aren't usable because the=
+y
+do not properly implement the toggle/repeat handling and it forces the =
+use
+of a small, fixed-size keymap. The same problem existed when I improved
+the IR functionality in drivers/media/dvb/ttpci/budget-ci.c by the way,=
+ so
+a generic version could probably be added to ir-functions in the future=
+=2E
+
+>> static ssize_t
+>> wbcir_show_last_scancode(struct device *dev,
+>>                             struct device_attribute *attr, char *buf=
+)
+>> {
+>>         struct acpi_device *device =3D container_of(dev, struct
+>> acpi_device, dev); struct wbcir_data *data =3D acpi_driver_data(devi=
+ce);
+>>         return sprintf(buf, "0x%08X\n", data->last_scancode);
+>> }
+>>
+>> static struct device_attribute dev_attr_last_scancode =3D {
+>>         .attr =3D {
+>>                 .name =3D "last_scancode",
+>>                 .mode =3D 0444,
+>>         },
+>>         .show =3D wbcir_show_last_scancode,
+>>         .store =3D NULL,
+>>
+>> };
+>>
+>> static struct attribute *wbcir_attributes[] =3D {
+>>         &dev_attr_last_scancode.attr,
+>>         NULL,
+>> };
+>>
+>> static struct attribute_group wbcir_attribute_group =3D {
+>>         .attrs =3D wbcir_attributes,
+>> };
+>
+> Are these just for debugging?  If so, you could put them in debugfs
+> instead...
+
+No, they are there to help the user when generating a keymap for an
+unknown remote. Press key on remote, read value from
+/sys/.../last_scancode, add line saying "0x12345678 =3D KEY_EXPLODE" to
+keymap file, repeat...there aren't any user-friendly tools for this yet
+though.
+
+(Dropped Terry from the CC, I just saw that he had requested a driver f=
+or
+this chip earlier but I'm not sure he's that interested in the rest of =
+the
+discussion)
+
+--=20
+David H=E4rdeman
