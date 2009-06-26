@@ -1,84 +1,66 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 5/8] eeepc-laptop: makes get_acpi() returns -ENODEV
-Date: Fri, 26 Jun 2009 00:20:17 -0400
-Message-ID: <de5d83707f832b2e6fe3b9d067eb4a3b1ca7dd47.1245989983.git.len.brown@intel.com>
+Subject: [PATCH 8/8] ACPI: video: prevent NULL deref in acpi_get_pci_dev()
+Date: Fri, 26 Jun 2009 00:20:20 -0400
+Message-ID: <c2304baa8b293121e198a625e25902d439109a30.1245989983.git.len.brown@intel.com>
 References: <1245990020-20455-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:38147 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820AbZFZEVK (ORCPT
+	with ESMTP id S1750847AbZFZEVK (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jun 2009 00:21:10 -0400
 Received: from localhost.localdomain ([98.118.45.40])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KLT00EXFW2ARWJ4@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 25 Jun 2009 23:20:40 -0500 (CDT)
+ with ESMTPA id <0KLT00LBXW2D99B3@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 25 Jun 2009 23:20:43 -0500 (CDT)
 In-reply-to: <1245990020-20455-1-git-send-email-lenb@kernel.org>
 In-reply-to: <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com>
 References: <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Troy Moure <twmoure@szypr.net>, Alex Chiang <achiang@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Corentin Chary <corentincj@iksaif.net>
+From: Troy Moure <twmoure@szypr.net>
 
-If there is there is no getter defined, get_acpi()
-will return -ENODEV.
+ref: http://thread.gmane.org/gmane.linux.kernel/857228/focus=857468
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+When the ACPI video driver initializes, it does a namespace walk
+looking for for supported devices. When we find an appropriate
+handle, we walk up the ACPI tree looking for a PCI root bus, and
+then walk back down the PCI bus, assuming that every device
+inbetween is a P2P bridge.
+
+This assumption is not correct, and is reported broken on at
+least:
+
+	Dell Latitude E6400
+	ThinkPad X61
+	Dell XPS M1330
+
+Add a NULL deref check to prevent boot panics.
+
+Reported-by: Alessandro Suardi <alessandro.suardi@gmail.com>
+Signed-off-by: Troy Moure <twmoure@szypr.net>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/acpi/pci_root.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 5b102c2..19cc9ae 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -289,7 +289,7 @@ static int set_acpi(int cm, int value)
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 8a5bf3b..55b5b90 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -395,7 +395,7 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
+ 		fn  = adr & 0xffff;
  
- static int get_acpi(int cm)
- {
--	int value = -1;
-+	int value = -ENODEV;
- 	if ((ehotk->cm_supported & (0x1 << cm))) {
- 		const char *method = cm_getv[cm];
- 		if (method == NULL)
-@@ -367,13 +367,19 @@ static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
+ 		pdev = pci_get_slot(pbus, PCI_DEVFN(dev, fn));
+-		if (hnd == handle)
++		if (!pdev || hnd == handle)
+ 			break;
  
- 	rv = parse_arg(buf, count, &value);
- 	if (rv > 0)
--		set_acpi(cm, value);
-+		value = set_acpi(cm, value);
-+	if (value < 0)
-+		return value;
- 	return rv;
- }
- 
- static ssize_t show_sys_acpi(int cm, char *buf)
- {
--	return sprintf(buf, "%d\n", get_acpi(cm));
-+	int value = get_acpi(cm);
-+
-+	if (value < 0)
-+		return value;
-+	return sprintf(buf, "%d\n", value);
- }
- 
- #define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
-@@ -1036,8 +1042,9 @@ static int eeepc_new_rfkill(struct rfkill **rfkill,
- {
- 	int result;
- 
--	if (get_acpi(cm) == -1)
--		return -ENODEV;
-+	result = get_acpi(cm);
-+	if (result < 0)
-+		return result;
- 
- 	*rfkill = rfkill_alloc(name, dev, type,
- 			       &eeepc_rfkill_ops, (void *)(unsigned long)cm);
+ 		pbus = pdev->subordinate;
 -- 
 1.6.0.6
 
