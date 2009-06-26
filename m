@@ -1,68 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 5)
-Date: Fri, 26 Jun 2009 01:17:12 +0200
-Message-ID: <200906260117.12989.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906251144280.4836-100000@iolanthe.rowland.org> <200906252358.56909.rjw@sisk.pl>
+From: yakui_zhao <yakui.zhao@intel.com>
+Subject: [PATCH]: ACPI: Sort the ACPI P-state table in descending order by
+	cpufre
+Date: Fri, 26 Jun 2009 10:06:41 +0800
+Message-ID: <1245982001.7266.120.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54293 "EHLO ogre.sisk.pl"
+Received: from mga02.intel.com ([134.134.136.20]:39746 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751699AbZFYXQ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2009 19:16:56 -0400
-In-Reply-To: <200906252358.56909.rjw@sisk.pl>
-Content-Disposition: inline
+	id S1752306AbZFZCFc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jun 2009 22:05:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, ming.m.lin@intel.com
 
-On Thursday 25 June 2009, Rafael J. Wysocki wrote:
-> On Thursday 25 June 2009, Alan Stern wrote:
-> > On Wed, 24 Jun 2009, Alan Stern wrote:
-> > > More comments to follow when I get time to review more of the code...
-> > 
-> > Here we go.  This isn't so detailed, because I wasn't able to do a 
-> > detailed review.  Frankly, the code is kind of a mess.
-> > 
-> > The whole business about the runtime_notify and RPM_NOTIFY flags is 
-> > impenetrable.  My suggestion: Rename runtime_notify to notify_pending 
-> > and eliminate RPM_NOTIFY.  Then make sure that notify_pending is set 
-> > whenever a notify work item is queued.
-> 
-> I was going to do exactly that, but I realized it wouldn't work in general,
-> because ->runtime_idle() could run __pm_runtime_suspend() in theory.
-> 
-> The runtime_notify bit is only needed for pm_runtime_disable() so that it
-> knows there's a work item to cancel.
-> 
-> > The pm_notify_or_cancel_work routine should just be pm_notify_work.  
-> > It's silly to submit a workqueue item just to cancel a delayed
-> > workqueue item!
-> 
-> Maybe, but how do you think we should cancel it?  cancel_delayed_work()
-> doesn't guarantee that the work structure used for queuing the work will
-> not be accessed after it's returned and we can't schedule the next suspend
-> request until we know it's safe.  So, we have to use cancel_delayed_work_sync()
-> for that, which can't be done from interrupt context, so we need to do it in a
-> work function.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-BTW, the problem is this.
+According to ACPI spec the the _PSS object indicates to OSPM the supported
+processor performance states. And they should be sorted in descending order
+by cpufreq.
 
-Say we queue an idle notification, so power.work is used for this purpose.
-Then, suspend is requested, but we cannot cancel the notification
-asynchronously, so we can only queue the suspend.  power.suspend_work is used
-for that.
+But unfortunately on some boxes the cpufreq in _PSS object is sorted in
+ascending order, which causes that cpufreq driver can't work well.
 
-Now, assume a resume is requested, so seemingly we need to queue a resume
-(the suspend request is pending and we have to cancel it with
-cancel_delayed_work_sync()), but power.work is already in use.  There are
-two ways to handle this IMO: (1) use yet another 'struct work' variable
-(suboptimal) and (2) make the idle notification work function cancel the
-suspend instead of running the notification (that's what I did and I don't see
-how I can avoid it without doing (1)).
+Sort the ACPI P-state table in descending order by cpufreq.
 
-Best,
-Rafael
+http://bugzilla.kernel.org/show_bug.cgi?id=13529
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+tested-by: Mukik182 <mukik182@gmail.com>
+cc: Ling Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/processor_perflib.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/processor_perflib.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_perflib.c	2009-06-25 09:00:40.000000000 +0800
++++ linux-2.6/drivers/acpi/processor_perflib.c	2009-06-26 09:59:54.000000000 +0800
+@@ -38,6 +38,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/processor.h>
++#include <linux/sort.h>
+ 
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+@@ -246,6 +247,25 @@
+ 	return result;
+ }
+ 
++static int pss_cmp_func(const void *a, const void *b)
++{
++	struct acpi_processor_px *pxa, *pxb;
++	acpi_integer acpi_value;
++
++	pxa = (struct acpi_processor_px *)a;
++	pxb = (struct acpi_processor_px *)b;
++
++	acpi_value = pxb->core_frequency - pxa->core_frequency;
++	return (int) acpi_value;
++}
++static void pss_swap_func(void *a, void *b, int size)
++{
++	struct acpi_processor_px temp_px;
++
++	memcpy((void *)&temp_px, a, size);
++	memcpy(a, b, size);
++	memcpy(b, (void *)&temp_px, size);
++}
+ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
+ {
+ 	int result = 0;
+@@ -323,7 +343,10 @@
+ 			goto end;
+ 		}
+ 	}
+-
++	sort((void *)(pr->performance->states), pr->performance->state_count,
++			sizeof(struct acpi_processor_px),
++			pss_cmp_func,
++			pss_swap_func);
+       end:
+ 	kfree(buffer.pointer);
+ 
+
+
