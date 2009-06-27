@@ -1,63 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
-Date: Sat, 27 Jun 2009 00:32:44 +0200
-Message-ID: <200906270032.45290.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906261707260.4155-100000@iolanthe.rowland.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
+ I/O devices (rev. 6)
+Date: Fri, 26 Jun 2009 21:25:49 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906262106490.2995-100000@netrider.rowland.org>
+References: <200906270032.45290.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60143 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750875AbZFZWcb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jun 2009 18:32:31 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906261707260.4155-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from netrider.rowland.org ([192.131.102.5]:47122 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754580AbZF0BZq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jun 2009 21:25:46 -0400
+In-Reply-To: <200906270032.45290.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Friday 26 June 2009, Alan Stern wrote:
-> On Fri, 26 Jun 2009, Rafael J. Wysocki wrote:
+On Sat, 27 Jun 2009, Rafael J. Wysocki wrote:
+
+> > Speaking of races, have you noticed that the way power.work_done gets 
+> > used is racy?
 > 
-> > > It occurs to me that the problem would be solved if were a cancel_work
-> > > routine.  In the same vein, it ought to be possible for
-> > > cancel_delayed_work to run in interrupt context.  I'll see what can be
-> > > done.
+> Not really. :-)
+> 
+> > You can't wait for the completion before releasing the 
+> > lock, but then anything could happen.
 > > 
-> > Having looked at the workqueue code I'm not sure if there's a way to implement
-> > that in a non-racy way.  Which may be the reason why there are no such
-> > functions already. :-)
+> > A safer approach would be to use a wait_queue.
 > 
-> Well, I'll give it a try.
-> 
-> Speaking of races, have you noticed that the way power.work_done gets 
-> used is racy?
+> I'm not sure what you mean exactly.  What's the race?
 
-Not really. :-)
+Somebody calls pm_runtime_suspend when a suspend is already in 
+progress.  The routine sees that the status is RPM_SUSPENDING, so it 
+prepares to wait until the suspend is finished.  It drops the lock and 
+calls wait_for_completion.
 
-> You can't wait for the completion before releasing the 
-> lock, but then anything could happen.
-> 
-> A safer approach would be to use a wait_queue.
+But in between those last two steps, the suspend could finish and 
+a resume could start up.  Then the wait_for_completion wouldn't return 
+until the device was fully resumed!
 
-I'm not sure what you mean exactly.  What's the race?
+Now I admit this isn't as bad as it sounds.  The same sort of thing
+could happen even if there weren't two suspends going on at the same
+time; a resume could occur between when the routine drops the lock and
+when it returns.  So okay, forget I mentioned it.
 
-> > In the meantime I reworked the patch (below) to use more RPM_* flags and I
-> > removed the runtime_break and runtime_notify bits from it.  Also added some
-> > comments to explain some non-obvious steps (hope that helps).
-> > 
-> > I also added the pm_runtime_put_atomic() and pm_runtime_put() as per the
-> > comment above.
-> > 
-> > It seems to be a bit cleaner this way, but that's my personal view. :-)
-> 
-> I'll look at it over the weekend.  And I'll try to see if proper 
-> cancel_work and cancel_delayed_work functions can help clean it up.
+Alan Stern
 
-Great, thanks!
-
-Best,
-Rafael
