@@ -1,49 +1,44 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
- I/O devices (rev. 6)
-Date: Fri, 26 Jun 2009 21:25:49 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906262106490.2995-100000@netrider.rowland.org>
-References: <200906270032.45290.rjw@sisk.pl>
+From: =?utf-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH 0/2] Winbond IR driver
+Date: Sat, 27 Jun 2009 07:18:30 +0200
+Message-ID: <1246079912-17619-1-git-send-email-david@hardeman.nu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:47122 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754580AbZF0BZq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jun 2009 21:25:46 -0400
-In-Reply-To: <200906270032.45290.rjw@sisk.pl>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:48895 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbZF0FSt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Jun 2009 01:18:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org, =?utf-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
 
-On Sat, 27 Jun 2009, Rafael J. Wysocki wrote:
+The following two patches reintroduce the acpi .shutdown method
+which was removed prior to the release of 2.6.30 and then adds
+a driver for the IR functionality of the Winbond WPCD376I=20
+SuperI/O chip found on some Intel motherboards.
 
-> > Speaking of races, have you noticed that the way power.work_done gets 
-> > used is racy?
-> 
-> Not really. :-)
-> 
-> > You can't wait for the completion before releasing the 
-> > lock, but then anything could happen.
-> > 
-> > A safer approach would be to use a wait_queue.
-> 
-> I'm not sure what you mean exactly.  What's the race?
+acpi shutdown was removed in commit
+c0ce093f5b8bc3262c51bd0b5900424a67909831
 
-Somebody calls pm_runtime_suspend when a suspend is already in 
-progress.  The routine sees that the status is RPM_SUSPENDING, so it 
-prepares to wait until the suspend is finished.  It drops the lock and 
-calls wait_for_completion.
+David H=C3=A4rdeman (2):
+  ACPI: reintroduce acpi_device_ops .shutdown method
+  Add a driver for the Winbond WPCD376I IR functionality.
 
-But in between those last two steps, the suspend could finish and 
-a resume could start up.  Then the wait_for_completion wouldn't return 
-until the device was fully resumed!
+ MAINTAINERS                      |    6 +
+ drivers/acpi/scan.c              |   12 +
+ drivers/input/misc/Kconfig       |   15 +
+ drivers/input/misc/Makefile      |    1 +
+ drivers/input/misc/winbond-cir.c | 1693 ++++++++++++++++++++++++++++++=
+++++++++
+ include/acpi/acpi_bus.h          |    2 +
+ 6 files changed, 1729 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/misc/winbond-cir.c
 
-Now I admit this isn't as bad as it sounds.  The same sort of thing
-could happen even if there weren't two suspends going on at the same
-time; a resume could occur between when the routine drops the lock and
-when it returns.  So okay, forget I mentioned it.
-
-Alan Stern
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
