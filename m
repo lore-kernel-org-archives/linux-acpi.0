@@ -1,46 +1,148 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices
-Date: Sat, 27 Jun 2009 23:52:40 +0200
-Message-ID: <200906272352.42022.rjw@sisk.pl>
-References: <200906140023.36147.rjw@sisk.pl> <200906150057.32424.rjw@sisk.pl> <20090624150400.GG1784@ucw.cz>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
+Date: Sun, 28 Jun 2009 12:25:26 +0200
+Message-ID: <200906281225.27596.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906261707260.4155-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34437 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:35696 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751519AbZF0Vv5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Jun 2009 17:51:57 -0400
-In-Reply-To: <20090624150400.GG1784@ucw.cz>
+	id S1751804AbZF1KZR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Jun 2009 06:25:17 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906261707260.4155-100000@iolanthe.rowland.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Wednesday 24 June 2009, Pavel Machek wrote:
-> Hi!
+On Friday 26 June 2009, Alan Stern wrote:
+> On Fri, 26 Jun 2009, Rafael J. Wysocki wrote:
 > 
+> > > It occurs to me that the problem would be solved if were a cancel_work
+> > > routine.  In the same vein, it ought to be possible for
+> > > cancel_delayed_work to run in interrupt context.  I'll see what can be
+> > > done.
+> > 
+> > Having looked at the workqueue code I'm not sure if there's a way to implement
+> > that in a non-racy way.  Which may be the reason why there are no such
+> > functions already. :-)
 > 
-> > +2. Run-time PM Helper Functions and Device Fields
-> > +
-> > +The following helper functions are defined in drivers/base/power/runtime.c
-> > +and include/linux/pm_runtime.h:
-> > +
-> > +* void pm_runtime_init(struct device *dev);
-> > +* void pm_runtime_enable(struct device *dev);
-> > +* void pm_runtime_disable(struct device *dev);
-> > +* int pm_runtime_suspend(struct device *dev);
-> > +* void pm_request_suspend(struct device *dev, unsigned long delay);
-> > +* int pm_runtime_resume(struct device *dev);
-> > +* void pm_request_resume(struct device *dev);
-> > +* void pm_cancel_runtime_suspend(struct device *dev);
-> > +* void pm_cancel_runtime_resume(struct device *dev);
-> > +* void pm_suspend_check_children(struct device *dev, bool enable);
-> 
-> Those *s look confusingly like pointers. Remove them?
+> Well, I'll give it a try.
 
->From the doc?  OK, I can use another character. :-)
+I did that too. :-)
+
+It seems that if we do something like in the appended patch, then
+cancel_work() and cancel_delayed_work_dequeue() can be used to simplify the
+$subject patch slightly.
 
 Best,
 Rafael
+
+---
+ include/linux/workqueue.h |    2 ++
+ kernel/workqueue.c        |   40 ++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 38 insertions(+), 4 deletions(-)
+
+Index: linux-2.6/include/linux/workqueue.h
+===================================================================
+--- linux-2.6.orig/include/linux/workqueue.h
++++ linux-2.6/include/linux/workqueue.h
+@@ -223,6 +223,7 @@ int execute_in_process_context(work_func
+ extern int flush_work(struct work_struct *work);
+ 
+ extern int cancel_work_sync(struct work_struct *work);
++extern int cancel_work(struct work_struct *work);
+ 
+ /*
+  * Kill off a pending schedule_delayed_work().  Note that the work callback
+@@ -241,6 +242,7 @@ static inline int cancel_delayed_work(st
+ }
+ 
+ extern int cancel_delayed_work_sync(struct delayed_work *work);
++extern int cancel_delayed_work_dequeue(struct delayed_work *dwork);
+ 
+ /* Obsolete. use cancel_delayed_work_sync() */
+ static inline
+Index: linux-2.6/kernel/workqueue.c
+===================================================================
+--- linux-2.6.orig/kernel/workqueue.c
++++ linux-2.6/kernel/workqueue.c
+@@ -536,7 +536,7 @@ static void wait_on_work(struct work_str
+ 		wait_on_cpu_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
+ }
+ 
+-static int __cancel_work_timer(struct work_struct *work,
++static int __cancel_work_timer(struct work_struct *work, bool wait,
+ 				struct timer_list* timer)
+ {
+ 	int ret;
+@@ -545,7 +545,8 @@ static int __cancel_work_timer(struct wo
+ 		ret = (timer && likely(del_timer(timer)));
+ 		if (!ret)
+ 			ret = try_to_grab_pending(work);
+-		wait_on_work(work);
++		if (wait)
++			wait_on_work(work);
+ 	} while (unlikely(ret < 0));
+ 
+ 	work_clear_pending(work);
+@@ -575,11 +576,27 @@ static int __cancel_work_timer(struct wo
+  */
+ int cancel_work_sync(struct work_struct *work)
+ {
+-	return __cancel_work_timer(work, NULL);
++	return __cancel_work_timer(work, true, NULL);
+ }
+ EXPORT_SYMBOL_GPL(cancel_work_sync);
+ 
+ /**
++ * cancel_work - kill off a work without waiting for its callback to terminate
++ * @work: the work which is to be canceled
++ *
++ * Returns true if @work was pending.
++ *
++ * cancel_work() will cancel the work if it is queued, but it will not block
++ * until the works callback completes.  Apart from this, it works like
++ * cancel_work_sync().
++ */
++int cancel_work(struct work_struct *work)
++{
++	return __cancel_work_timer(work, false, NULL);
++}
++EXPORT_SYMBOL_GPL(cancel_work);
++
++/**
+  * cancel_delayed_work_sync - reliably kill off a delayed work.
+  * @dwork: the delayed work struct
+  *
+@@ -590,10 +607,25 @@ EXPORT_SYMBOL_GPL(cancel_work_sync);
+  */
+ int cancel_delayed_work_sync(struct delayed_work *dwork)
+ {
+-	return __cancel_work_timer(&dwork->work, &dwork->timer);
++	return __cancel_work_timer(&dwork->work, true, &dwork->timer);
+ }
+ EXPORT_SYMBOL(cancel_delayed_work_sync);
+ 
++/**
++ * cancel_delayed_work_dequeue - kill off a delayed work.
++ * @dwork: the delayed work struct
++ *
++ * Returns true if @dwork was pending.
++ *
++ * cancel_delayed_work_dequeue() will not wait for the work's callback to
++ * terminate.  Apart from this it works like cancel_delayed_work_sync().
++ */
++int cancel_delayed_work_dequeue(struct delayed_work *dwork)
++{
++	return __cancel_work_timer(&dwork->work, false, &dwork->timer);
++}
++EXPORT_SYMBOL(cancel_delayed_work_dequeue);
++
+ static struct workqueue_struct *keventd_wq __read_mostly;
+ 
+ /**
