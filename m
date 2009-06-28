@@ -1,57 +1,37 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+From: Frans Pop <elendil@planet.nl>
 Subject: Re: [PATCH] acpi processor: simplify needlessly complex printk
-Date: Sun, 28 Jun 2009 15:02:05 -0700
-Message-ID: <4A47E85D.3020202@gmail.com>
-References: <200906282203.55643.elendil@planet.nl>
+Date: Mon, 29 Jun 2009 00:28:32 +0200
+Message-ID: <200906290028.33285.elendil@planet.nl>
+References: <200906282203.55643.elendil@planet.nl> <4A47E85D.3020202@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f190.google.com ([209.85.216.190]:55032 "EHLO
-	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbZF1WA6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jun 2009 18:00:58 -0400
-In-Reply-To: <200906282203.55643.elendil@planet.nl>
+Received: from Cpsmtpm-eml107.kpnxchange.com ([195.121.3.11]:49726 "EHLO
+	CPSMTPM-EML107.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752106AbZF1W2b (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Jun 2009 18:28:31 -0400
+In-Reply-To: <4A47E85D.3020202@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Frans Pop wrote:
-> Why use three printk statements if one will do?
->
-> Signed-off-by: Frans Pop<elendil@planet.nl>
->
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 84e0f3c..b8fb74a 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -772,12 +772,11 @@ static int __cpuinit acpi_processor_start(struct acpi_device *device)
->   	if (result)
->   		printk(KERN_ERR PREFIX "Create sysfs link\n");
->
-> -	if (pr->flags.throttling) {
-> -		printk(KERN_INFO PREFIX "%s [%s] (supports",
-> -		       acpi_device_name(device), acpi_device_bid(device));
-> -		printk(" %d throttling states", pr->throttling.state_count);
-> -		printk(")\n");
-> -	}
-> +	if (pr->flags.throttling)
-> +		printk(KERN_INFO PREFIX
-> +			"%s [%s] (supports %d throttling states)\n",
-> +			acpi_device_name(device), acpi_device_bid(device),
-> +			pr->throttling.state_count);
->
->         end:
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
->    
-Would it be better to capitalize the S and add a period at the
-end, or does it not matter?
+On Monday 29 June 2009, Justin P. Mattock wrote:
+> Would it be better to capitalize the S and add a period at the
+> end, or does it not matter?
 
-Justin P. Mattock
+Kernel messages are in general not sentences.
+
+I thought of removing the parenteses, but if you look at the context of 
+the message then that only makes sense if other messages are modified at 
+the same time. The messages below appear together for my system and their 
+consistency could definitely be improved, but IMO that's better done in a 
+separate patch.
+
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+processor LNXCPU:00: registered as cooling_device7
+ACPI: Processor [CPU0] (supports 8 throttling states)
