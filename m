@@ -1,111 +1,117 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
-Date: Mon, 29 Jun 2009 16:09:23 +0200
-Message-ID: <200906291609.24394.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906282237180.11984-100000@netrider.rowland.org>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH] eeepc-laptop: fix hot-unplug on resume
+Date: Mon, 29 Jun 2009 16:16:56 +0200
+Message-ID: <200906291616.57440.rjw@sisk.pl>
+References: <4A48A196.3060409@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43936 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906AbZF2OJQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jun 2009 10:09:16 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906282237180.11984-100000@netrider.rowland.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4A48A196.3060409-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Cc: Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>, linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Monday 29 June 2009, Alan Stern wrote:
-> On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
-> 
-> > > The original version of __cancel_work_timer is not safe to use
-> > > in_interrupt.  If it is called from a handler whose IRQ interrupted
-> > > delayed_work_timer_fn, it can loop indefinitely.
-> > 
-> > Right, I overlooked that.
-> > 
-> > > Therefore I added a check; if it finds that the work_struct is currently
-> > > being enqueued and it is running in_interrupt, it gives up right away.
-> > 
-> > Hmm, it doesn't do the work_clear_pending(work) in that case, so we allow
-> > the work to be queued and run?
-> 
-> Yes.  That's better than leaving the work queued but with the "pending" 
-> flag cleared.  :-)
+On Monday 29 June 2009, Alan Jenkins wrote:
+> The patch below fixes a regression introduced by the rfkill rewrite. 
+> Please consider it for inclusion in 2.6.31 via the ACPI tree.
 
-So there still is a problem, I'm afraid (details below).
+Is there a Bugzilla # for this regression?
 
-> >  Out of couriosity, what the caller is supposed
-> > to do then?
-> 
-> In the case of cancel_work, this is a simple race.  The work_struct was
-> being submitted at the same time as the cancellation occurred.  The end
-> result is the same as if the submission had been slightly later: The
-> work is on the queue and it will run.  If the caller can guarantee that 
-> the work is not in the process of being submitted (as described in the 
-> kerneldoc) then this situation will never arise.
-> 
-> In the case of cancel_delayed_work, things are more complicated.  If
-> the cancellation had occurred a little earlier, it would have
-> deactivated the timer.  If it had occurred a little later, it would
-> have removed the item from the workqueue.  But since it arrived at
-> exactly the wrong time -- while the timer routine is enqueuing the work
-> -- there's nothing it can do.  The caller has to cope as best he can.
-> 
-> For runtime PM this isn't a big issue.  The only delayed work we have
-> is a delayed autosuspend request.  These things get cancelled when:
-> 
-> 	pm_runtime_suspend runs synchronously.  That happens in
-> 	process context so we're okay.
-> 
-> 	pm_runtime_suspend_atomic (not yet written!) is called.
-
-This is going to be added in a separate patch.
-
-> 	If the cancellation fails, we'll have to return an error.
-> 	The suspend will happen later, when the work item runs.
-> 	Ultimately, the best we can do is recommend that people
-> 	don't mix pm_request_suspend with pm_runtime_suspend_atomic.
-
-Well, not only in that cases and in fact this is where the actual problem is.
-
-Namely, pm_request_suspend() and pm_request_resume() have to cancel any
-pending requests in a reliable way so that the work struct can be used safely
-after they've returned.
-
-Assume for example that there's a suspend request pending while
-pm_request_resume() is being called.  pm_request_resume() uses
-cancel_delayed_work() to kill off the request, but that's in interrupt and it
-happens to return -1.  Now, there's pm_runtime_put_atomic() right after that
-which attempts to queue up an idle notification request before the
-delayed suspend request has a chance to run and bad things happen.
-
-So, it seems, pm_request_resume() can't kill suspend requests by itself
-and instead it has to queue up resume requests for this purpose, which
-brings us right back to the problem of two requests queued up at a time
-(a delayed suspend request and a resume request that is supposed to cancel it).
-
-Nevertheless, using your workqueue patch we can still simplify things quite a
-bit, so I think it's worth doing anyway.
-
-> Which reminds me...  The way you've got things set up, 
-> pm_runtime_put_atomic queues an idle notification, right?  That's 
-> a little inconsistent with the naming of the other routines.
-> 
-> Instead, pm_runtime_put_atomic should be a version of pm_runtime_put
-> that can safely be called in an atomic context -- it implies that it
-> will call the runtime_notify callback while holding the spinlock.  The
-> routine to queue an idle-notify request should be called something like
-> pm_request_put -- although that name isn't so great because it sounds 
-> like the put gets deferred instead of the notification.
-
-There can be pm_request_put() and pm_request_put_sync(), for example.
-Or pm_request_put_async() and pm_request_put(), depending on which version is
-going to be used more often.
-
-Thanks,
 Rafael
+
+> -------------------->
+> 
+> From d0265f0bfe63086816d61c69ee4b2dc4cb491d06 Mon Sep 17 00:00:00 2001
+> From: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+> Date: Mon, 29 Jun 2009 09:40:07 +0100
+> Subject: [PATCH] eeepc-laptop: fix hot-unplug on resume
+> 
+> OOPS on resume when the wireless adaptor is disabled during suspend was
+> introduced by "eeepc-laptop: read rfkill soft-blocked state on resume".
+> 
+> Unable to handle kernel NULL pointer dereference
+> 
+> Process s2disk
+> Tainted: G W
+> IP: klist_put
+> 
+> Call trace:
+> ? klist_del
+> ? device_del
+> ? device_unregister
+> ? pci_stop_dev
+> ? pci_stop_bus
+> ? pci_remove_device
+> ? eeepc_rfkill_hotplug [eeepc_laptop]
+> ? eeepc_hotk_resume [eeepc_laptop]
+> ? acpi_device_resume
+> ? device_resume
+> ? hibernation_snapshot
+> 
+> It appears the PCI device is removed twice.  The eeepc_rfkill_hotplug()
+> call from the resume handler is racing against the call from the ACPI
+> notifier callback.  The ACPI notification is triggered by the resume
+> handler when it refreshes the value of CM_ASL_WLAN.
+> 
+> The fix is to serialize hotplug calls using a workqueue.
+> 
+> Signed-off-by: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+> ---
+>  drivers/platform/x86/eeepc-laptop.c |    9 ++++++---
+>  1 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+> index ec560f1..222ffb8 100644
+> --- a/drivers/platform/x86/eeepc-laptop.c
+> +++ b/drivers/platform/x86/eeepc-laptop.c
+> @@ -143,6 +143,7 @@ struct eeepc_hotk {
+>  	struct rfkill *bluetooth_rfkill;
+>  	struct rfkill *wwan3g_rfkill;
+>  	struct hotplug_slot *hotplug_slot;
+> +	struct work_struct hotplug_work;
+>  };
+>  
+>  /* The actual device the driver binds to */
+> @@ -660,7 +661,7 @@ static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
+>  	return 0;
+>  }
+>  
+> -static void eeepc_rfkill_hotplug(void)
+> +static void eeepc_hotplug_work(struct work_struct *work)
+>  {
+>  	struct pci_dev *dev;
+>  	struct pci_bus *bus = pci_find_bus(0, 1);
+> @@ -701,7 +702,7 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+>  	if (event != ACPI_NOTIFY_BUS_CHECK)
+>  		return;
+>  
+> -	eeepc_rfkill_hotplug();
+> +	schedule_work(&ehotk->hotplug_work);
+>  }
+>  
+>  static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
+> @@ -892,7 +893,7 @@ static int eeepc_hotk_resume(struct acpi_device *device)
+>  
+>  		rfkill_set_sw_state(ehotk->wlan_rfkill, wlan != 1);
+>  
+> -		eeepc_rfkill_hotplug();
+> +		schedule_work(&ehotk->hotplug_work);
+>  	}
+>  
+>  	if (ehotk->bluetooth_rfkill)
+> @@ -1093,6 +1094,8 @@ static int eeepc_rfkill_init(struct device *dev)
+>  {
+>  	int result = 0;
+>  
+> +	INIT_WORK(&ehotk->hotplug_work, eeepc_hotplug_work);
+> +
+>  	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
+>  	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
