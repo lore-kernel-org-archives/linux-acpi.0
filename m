@@ -1,85 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
-Date: Mon, 29 Jun 2009 18:39:15 +0200
-Message-ID: <200906291839.16631.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906291203070.17436-100000@iolanthe.rowland.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
+ I/O devices (rev. 6)
+Date: Mon, 29 Jun 2009 13:29:40 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906291259320.17436-100000@iolanthe.rowland.org>
+References: <200906291839.16631.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45153 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751269AbZF2QjI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jun 2009 12:39:08 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906291203070.17436-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from iolanthe.rowland.org ([192.131.102.54]:34455 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751838AbZF2R3h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 13:29:37 -0400
+In-Reply-To: <200906291839.16631.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Monday 29 June 2009, Alan Stern wrote:
-> On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
+On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
+
+> Theoretically, we are, but practically we want to be able to use
+> pm_runtime_put() (the asynchronous version) after a pm_runtime_resume()
+> that found the device operational, but that would result in queuing a request
+> using the same work structure that is used by the pending suspend request.
+> Don't you see a problem here?
+
+This is a different situation.  pm_runtime_resume does have the luxury 
+of killing the suspend request, and it should do so.
+
+Let's think about it this way.  Why does a driver call
+pm_request_resume in the first place?  Because an interrupt handler or
+spinlocked region wants to do some I/O, so the device has to
+be active.
+
+But when will it do the I/O?  If the device is currently suspended, the
+driver can do the I/O at the end of its runtime_resume callback.  But
+if the status is RPM_ACTIVE, the callback won't be invoked, so the
+interrupt handler will have to do the I/O directly.  The same is true
+for RPM_IDLE.
+
+Except for one problem: In RPM_IDLE, a suspend might occur at any time.  
+(In theory the same thing could happen in RPM_ACTIVE.)  To prevent
+this, the driver can call pm_runtime_get before pm_request_resume.  
+When the I/O is all finished, it calls pm_request_put.
+
+If the work routine starts running before the pm_request_put, it will 
+see that the counter is positive so it will set the status back to 
+RPM_ACTIVE.  Then the put will queue an idle notification.  If the work 
+routine hasn't started running before the pm_request_put then the 
+status will remain RPM_IDLE all along.
+
+Regardless, it's not necessary for pm_request_resume to kill the 
+suspend request.  And even if it did, the driver would still need to 
+implement both pathways for doing the I/O.
+
+
+> > As long as the behavior is documented, I think it will be okay for
+> > pm_request_resume not to cancel a pending suspend request.
 > 
-> > > It doesn't need to know.  All it needs to do is guarantee that the
-> > > device will be in a resumed state some time not long after the function
-> > > returns.  Thus calling rpm_request_resume while the status is RPM_IDLE
-> > > is like calling it while the status is RPM_ACTIVE.  In neither case
-> > > does it have to do anything, because the device will already be resumed
-> > > when it returns.
-> > 
-> > Not exactly, because RPM_IDLE prevents idle notifications from being run,
-> > as it means a suspend has already been requested, which is not really the
-> > case after pm_request_resume().
-> 
-> Yes it is.  A delayed suspend and an immediate resume have _both_ been
-> requested.  We are within our rights to say that the resume request 
-> gets fulfilled immediately (by doing nothing) and the suspend request 
-> will be fulfilled later.
+> I could agree with that, but what about pm_runtime_resume() happening after
+> a suspend request has been scheduled?  Should it also ignore the pending
+> suspend request?
 
-Theoretically, we are, but practically we want to be able to use
-pm_runtime_put() (the asynchronous version) after a pm_runtime_resume()
-that found the device operational, but that would result in queuing a request
-using the same work structure that is used by the pending suspend request.
-Don't you see a problem here?
+It could, but probably it shouldn't.
 
-> > > > No, it doesn't matter if the request runs, but it does matter if the work
-> > > > structure used for queuing it up may be used for another purpose. :-)
-> > > 
-> > > What else would it be used for?  If rpm_request_resume returns without 
-> > > doing anything and leaves the status set to RPM_IDLE, then the work 
-> > > structure won't be reused until the status changes.
-> > 
-> > Which is not right, because we may want to run ->runtime_idle() before
-> > the status is changed.
-> 
-> If the status is RPM_IDLE then there's already a suspend request
-> queued.  So what reason is there for sending idle notifications?  The 
-> whole point of idle notifications is to let the driver know that it 
-> might want to initiate a suspend -- but one has already been initiated.
-> 
-> > That's why I think pm_request_resume() should queue up a resume request if
-> > a suspend request is pending.
-> 
-> Surely you don't mean we should suspend the device and then resume it
-> immediately afterward?
+> In which case it would be consistent to allow to schedule suspends even though
+> the resume counter is greater than 0.
 
-No, I don't.
+True enough, although I'm not sure there's a good reason for it.  You 
+certainly can increment the resume counter after scheduling a suspend 
+request -- the effect would be the same.
 
-> What would be the point?  Just leave the device active throughout.
+Alan Stern
 
-Absolutely.
-
-> As long as the behavior is documented, I think it will be okay for
-> pm_request_resume not to cancel a pending suspend request.
-
-I could agree with that, but what about pm_runtime_resume() happening after
-a suspend request has been scheduled?  Should it also ignore the pending
-suspend request?
-
-In which case it would be consistent to allow to schedule suspends even though
-the resume counter is greater than 0.
-
-Best,
-Rafael
