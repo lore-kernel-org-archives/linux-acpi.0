@@ -1,241 +1,245 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: 2.6.31-rc1-git3: Reported regressions from 2.6.30
-Date: Mon, 29 Jun 2009 01:51:02 +0200 (CEST)
-Message-ID: <ij4ZQY4URcP.A.F3B.vIASKB@chimera>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
+Date: Mon, 29 Jun 2009 02:15:38 +0200
+Message-ID: <200906290215.39517.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906281642500.7576-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38363 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:38420 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752745AbZF1Xza convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jun 2009 19:55:30 -0400
+	id S1752530AbZF2APY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Jun 2009 20:15:24 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906281642500.7576-100000@netrider.rowland.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-This message contains a list of some regressions from 2.6.30, for which=
- there
-are no fixes in the mainline I know of.  If any of them have been fixed=
- already,
-please let me know.
+On Sunday 28 June 2009, Alan Stern wrote:
+> On Sun, 28 Jun 2009, Rafael J. Wysocki wrote:
+> 
+> > It seems that if we do something like in the appended patch, then
+> > cancel_work() and cancel_delayed_work_dequeue() can be used to simplify the
+> > $subject patch slightly.
+> 
+> I merged your patch with my own work, leading to the patch below.
+> 
+> There were a bunch of things I didn't like about the existing code,
+> particularly cancel_delayed_work.  To start with, it seems like a large
+> enough routine that it shouldn't be inlined.
 
-If you know of any other unresolved regressions from 2.6.30, please let=
- me know
-either and I'll add them to the list.  Also, please let me know if any =
-of the
-entries below are invalid.
+Agreed.
 
-Each entry from the list will be sent additionally in an automatic repl=
-y to
-this message with CCs to the people involved in reporting and handling =
-the
-issue.
+> More importantly, it foolishly calls del_timer_sync, resulting in the
+> unnecessary restriction that it cannot be used in_interrupt.  Finally,
+> although it will deactivate a delayed_work's timer, it doesn't even try to
+> remove the item from the workqueue if the timer has already expired.
+> 
+> Your cancel_delayed_work_dequeue is better -- so much better that I
+> don't see any reason to keep the original cancel_delayed_work at all.  
+> I got rid of it and used your routine instead.
+> 
+> I also changed the comments you wrote for cancel_work.  You can see 
+> that now they are much more explicit and complete.
+> 
+> The original version of __cancel_work_timer is not safe to use
+> in_interrupt.  If it is called from a handler whose IRQ interrupted
+> delayed_work_timer_fn, it can loop indefinitely.
 
+Right, I overlooked that.
 
-Listed regressions statistics:
+> Therefore I added a check; if it finds that the work_struct is currently
+> being enqueued and it is running in_interrupt, it gives up right away.
 
-  Date          Total  Pending  Unresolved
-  ----------------------------------------
-  2009-06-29       22       22          15
+Hmm, it doesn't do the work_clear_pending(work) in that case, so we allow
+the work to be queued and run?  Out of couriosity, what the caller is supposed
+to do then?
 
+> There are a few other improvements too.
+> 
+> Consequently it is now safe to call cancel_work and cancel_delayed_work
+> in_interrupt or while holding a spinlock.  This means you can use these
+> functions to cancel the various PM runtime work items whenever needed.  
+> As a result, you don't need two work_structs in dev_pm_info; a single
+> delayed_work will be enough.
 
-Unresolved regressions
-----------------------
+Yes, I'm going to rebase the framework patch on top of this one.
 
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13667
-Subject		: drm: display arifacts when X.Org is stopped
-Submitter	: Frans Pop <elendil@planet.nl>
-Date		: 2009-06-27 18:52 (2 days old)
-References	: http://lkml.org/lkml/2009/6/27/105
+> Tell me what you think.
 
+I like the patch. :-)
 
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13666
-Subject		: WARNING: at mm/page_alloc.c:1743 __alloc_pages_nodemask
-Submitter	: Thomas Meyer <thomas@m3y3r.de>
-Date		: 2009-06-27 16:15 (2 days old)
-References	: http://lkml.org/lkml/2009/6/27/75
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13661
-Subject		: warning in smp_call_function_single while S2R
-Submitter	: Thomas Meyer <thomas@m3y3r.de>
-Date		: 2009-06-27 17:12 (2 days old)
-References	: http://lkml.org/lkml/2009/6/27/80
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13657
-Subject		: Linux-2.6.31-rc1 Fails To Recognize Some USB Disks
-Submitter	: Tarkan Erimer <tarkan.erimer@turknet.net.tr>
-Date		: 2009-06-26 10:03 (3 days old)
-References	: http://lkml.org/lkml/2009/6/26/34
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13656
-Subject		: 2.6.31-rc1 crashes randomly on my Machine.
-Submitter	: Zeno Davatz <zdavatz@gmail.com>
-Date		: 2009-06-26 08:56 (3 days old)
-References	: http://lkml.org/lkml/2009/6/26/27
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13652
-Subject		: scheduling while atomic: pptpgw
-Submitter	: Sergey Senozhatsky <sergey.senozhatsky@mail.by>
-Date		: 2009-06-19 21:15 (10 days old)
-References	: http://lkml.org/lkml/2009/6/19/237
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13650
-Subject		: Problem with alloc_arch_preferred_bootmem() on powerpc
-Submitter	: Sean MacLennan <smaclennan@pikatech.com>
-Date		: 2009-06-20 19:48 (9 days old)
-References	: http://marc.info/?l=3Dlinuxppc-embedded&m=3D12455273241177=
-5&w=3D4
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13645
-Subject		: NULL pointer dereference at (null) (level2_spare_pgt)
-Submitter	: poornima nayak <mpnayak@linux.vnet.ibm.com>
-Date		: 2009-06-17 17:56 (12 days old)
-References	: http://lkml.org/lkml/2009/6/17/194
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13643
-Subject		: Touchpad lost synchronization after resume from suspend to R=
-AM
-Submitter	: Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>
-Date		: 2009-06-28 10:42 (1 days old)
-References	: http://lkml.org/lkml/2009/6/23/365
-		  http://lkml.org/lkml/2009/6/25/256
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13633
-Subject		: [bisected] No sound on HDA Intel (ALC268)
-Submitter	: Brian Rogers <brian@xyzw.org>
-Date		: 2009-06-27 04:42 (2 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13627
-Subject		: Tunnel device ignores TCP/UDP traffic
-Submitter	: Paul Martin <pm@debian.org>
-Date		: 2009-06-26 14:45 (3 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13610
-Subject		: radeon kms invalid edid data at lvds
-Submitter	: Nicolas Reinecke <pl4nkton@googlemail.com>
-Date		: 2009-06-23 19:53 (6 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13601
-Subject		: Hard crash connecting via Huawei E169 + umtsmon
-Submitter	: Clemens Eisserer <linuxhippy@gmail.com>
-Date		: 2009-06-22 13:58 (7 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13592
-Subject		: Root partition is not found
-Submitter	: Fran=C3=A7ois Valenduc <francois.valenduc@tvcablenet.be>
-Date		: 2009-06-21 08:42 (8 days old)
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13522
-Subject		: BUG: scheduling while atomic
-Submitter	: Sergey Senozhatsky <sergey.senozhatsky@mail.by>
-Date		: 2009-06-12 19:29 (17 days old)
-
-
-Regressions with patches
-------------------------
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13665
-Subject		: commit 69c854817566 causes OOMs
-Submitter	: David Howells <dhowells@redhat.com>
-Date		: 2009-06-27 08:12 (2 days old)
-=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
-s/linux-2.6.git;a=3Dcommit;h=3D69c854817566db82c362797b4a6521d0b00fe1d8
-References	: http://lkml.org/lkml/2009/6/27/28
-Handled-By	: Wu Fengguang <fengguang.wu@intel.com>
-Patch		: http://patchwork.kernel.org/patch/32740/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13662
-Subject		: broken alpha smp build
-Submitter	: maximilian attems <max@stro.at>
-Date		: 2009-06-25 11:08 (4 days old)
-References	: http://lkml.org/lkml/2009/6/25/108
-Handled-By	: Tejun Heo <tj@kernel.org>
-Patch		: http://patchwork.kernel.org/patch/32714/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13659
-Subject		: iwlagn (4965): no wireless due to RFKILL problem
-Submitter	: Frans Pop <elendil@planet.nl>
-Date		: 2009-06-26 13:36 (3 days old)
-References	: http://lkml.org/lkml/2009/6/26/127
-Handled-By	: Johannes Berg <johannes@sipsolutions.net>
-Patch		: http://lkml.org/lkml/2009/6/27/35
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13658
-Subject		: parisc: multiple PCI BAR collisions
-Submitter	: Alexander Beregalov <a.beregalov@gmail.com>
-Date		: 2009-06-26 12:58 (3 days old)
-References	: http://lkml.org/lkml/2009/6/26/87
-Handled-By	: Matthew Wilcox <matthew@wil.cx>
-Patch		: http://patchwork.kernel.org/patch/32593/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13655
-Subject		: [Oops] 2.6.31-rc1: tun
-Submitter	: Sergei Trofimovich <slyich@gmail.com>
-Date		: 2009-06-25 23:53 (4 days old)
-References	: http://lkml.org/lkml/2009/6/25/435
-Handled-By	: Herbert Xu <herbert@gondor.apana.org.au>
-Patch		: http://patchwork.kernel.org/patch/32672/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13654
-Subject		: possible recursive locking detected at kmem_cache_free
-Submitter	: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
-Date		: 2009-06-25 11:59 (4 days old)
-References	: http://lkml.org/lkml/2009/6/25/373
-Handled-By	: Pekka J Enberg <penberg@cs.helsinki.fi>
-Patch		: http://patchwork.kernel.org/patch/32525/
-
-
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13653
-Subject		: system hangs after resume from suspend to disk, mce related
-Submitter	: Maciej Rutecki <maciej.rutecki@gmail.com>
-Date		: 2009-06-21 19:02 (8 days old)
-References	: http://lkml.org/lkml/2009/6/21/86
-Handled-By	: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Patch		: http://patchwork.kernel.org/patch/32062/
-
-
-=46or details, please visit the bug entries and follow the links given =
-in
-references.
-
-As you can see, there is a Bugzilla entry for each of the listed regres=
-sions.
-There also is a Bugzilla entry used for tracking the regressions from 2=
-=2E6.30,
-unresolved as well as resolved, at:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=3D13615
-
-Please let me know if there are any Bugzilla entries that should be add=
-ed to
-the list in there.
-
-Thanks,
+Best,
 Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+> Index: usb-2.6/include/linux/workqueue.h
+> ===================================================================
+> --- usb-2.6.orig/include/linux/workqueue.h
+> +++ usb-2.6/include/linux/workqueue.h
+> @@ -223,24 +223,10 @@ int execute_in_process_context(work_func
+>  extern int flush_work(struct work_struct *work);
+>  
+>  extern int cancel_work_sync(struct work_struct *work);
+> -
+> -/*
+> - * Kill off a pending schedule_delayed_work().  Note that the work callback
+> - * function may still be running on return from cancel_delayed_work(), unless
+> - * it returns 1 and the work doesn't re-arm itself. Run flush_workqueue() or
+> - * cancel_work_sync() to wait on it.
+> - */
+> -static inline int cancel_delayed_work(struct delayed_work *work)
+> -{
+> -	int ret;
+> -
+> -	ret = del_timer_sync(&work->timer);
+> -	if (ret)
+> -		work_clear_pending(&work->work);
+> -	return ret;
+> -}
+> +extern int cancel_work(struct work_struct *work);
+>  
+>  extern int cancel_delayed_work_sync(struct delayed_work *work);
+> +extern int cancel_delayed_work(struct delayed_work *dwork);
+>  
+>  /* Obsolete. use cancel_delayed_work_sync() */
+>  static inline
+> Index: usb-2.6/kernel/workqueue.c
+> ===================================================================
+> --- usb-2.6.orig/kernel/workqueue.c
+> +++ usb-2.6/kernel/workqueue.c
+> @@ -465,6 +465,7 @@ static int try_to_grab_pending(struct wo
+>  {
+>  	struct cpu_workqueue_struct *cwq;
+>  	int ret = -1;
+> +	unsigned long flags;
+>  
+>  	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work)))
+>  		return 0;
+> @@ -478,7 +479,7 @@ static int try_to_grab_pending(struct wo
+>  	if (!cwq)
+>  		return ret;
+>  
+> -	spin_lock_irq(&cwq->lock);
+> +	spin_lock_irqsave(&cwq->lock, flags);
+>  	if (!list_empty(&work->entry)) {
+>  		/*
+>  		 * This work is queued, but perhaps we locked the wrong cwq.
+> @@ -491,7 +492,7 @@ static int try_to_grab_pending(struct wo
+>  			ret = 1;
+>  		}
+>  	}
+> -	spin_unlock_irq(&cwq->lock);
+> +	spin_unlock_irqrestore(&cwq->lock, flags);
+>  
+>  	return ret;
+>  }
+> @@ -536,18 +537,26 @@ static void wait_on_work(struct work_str
+>  		wait_on_cpu_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
+>  }
+>  
+> -static int __cancel_work_timer(struct work_struct *work,
+> +static int __cancel_work_timer(struct work_struct *work, bool wait,
+>  				struct timer_list* timer)
+>  {
+>  	int ret;
+>  
+> -	do {
+> -		ret = (timer && likely(del_timer(timer)));
+> -		if (!ret)
+> -			ret = try_to_grab_pending(work);
+> -		wait_on_work(work);
+> -	} while (unlikely(ret < 0));
+> +	if (timer && likely(del_timer(timer))) {
+> +		ret = 1;
+> +		goto done;
+> +	}
+>  
+> +	for (;;) {
+> +		ret = try_to_grab_pending(work);
+> +		if (likely(ret >= 0))
+> +			break;
+> +		if (in_interrupt())
+> +			return ret;
+> +	}
+> +	if (ret == 0 && wait)
+> +		wait_on_work(work);
+> + done:
+>  	work_clear_pending(work);
+>  	return ret;
+>  }
+> @@ -575,11 +584,43 @@ static int __cancel_work_timer(struct wo
+>   */
+>  int cancel_work_sync(struct work_struct *work)
+>  {
+> -	return __cancel_work_timer(work, NULL);
+> +	return __cancel_work_timer(work, true, NULL);
+>  }
+>  EXPORT_SYMBOL_GPL(cancel_work_sync);
+>  
+>  /**
+> + * cancel_work - try to cancel a pending work_struct.
+> + * @work: the work_struct to cancel
+> + *
+> + * Try to cancel a pending work_struct before it starts running.
+> + * Upon return, @work may safely be reused if the return value
+> + * is 1 or the return value is 0 and the work callback function
+> + * doesn't resubmit @work.
+> + *
+> + * The callback function may be running upon return if the return value
+> + * is <= 0; use cancel_work_sync() to wait for the callback function
+> + * to finish.
+> + *
+> + * There's not much point using this routine unless you can guarantee
+> + * that neither the callback function nor anything else is in the
+> + * process of submitting @work (or is about to do so).  The only good
+> + * reason might be that optimistically trying to cancel @work has less
+> + * overhead than letting it go ahead and run.
+> + *
+> + * This routine may be called from interrupt context.
+> + *
+> + * Returns: 1 if @work was removed from its workqueue,
+> + *	    0 if @work was not pending (may be running),
+> + *	   -1 if @work was concurrently being enqueued and we were
+> + *		called in_interrupt.
+> + */
+> +int cancel_work(struct work_struct *work)
+> +{
+> +	return __cancel_work_timer(work, false, NULL);
+> +}
+> +EXPORT_SYMBOL_GPL(cancel_work);
+> +
+> +/**
+>   * cancel_delayed_work_sync - reliably kill off a delayed work.
+>   * @dwork: the delayed work struct
+>   *
+> @@ -590,10 +631,24 @@ EXPORT_SYMBOL_GPL(cancel_work_sync);
+>   */
+>  int cancel_delayed_work_sync(struct delayed_work *dwork)
+>  {
+> -	return __cancel_work_timer(&dwork->work, &dwork->timer);
+> +	return __cancel_work_timer(&dwork->work, true, &dwork->timer);
+>  }
+>  EXPORT_SYMBOL(cancel_delayed_work_sync);
+>  
+> +/**
+> + * cancel_delayed_work - try to cancel a delayed_work_struct.
+> + * @dwork: the delayed_work_struct to cancel
+> + *
+> + * Try to cancel a pending delayed_work, either by deactivating its
+> + * timer or by removing it from its workqueue.  This routine is just
+> + * like cancel_work() except that it handles a delayed_work.
+> + */
+> +int cancel_delayed_work(struct delayed_work *dwork)
+> +{
+> +	return __cancel_work_timer(&dwork->work, false, &dwork->timer);
+> +}
+> +EXPORT_SYMBOL(cancel_delayed_work);
+> +
+>  static struct workqueue_struct *keventd_wq __read_mostly;
+>  
+>  /**
