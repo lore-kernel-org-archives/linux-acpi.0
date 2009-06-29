@@ -1,245 +1,438 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
-Date: Mon, 29 Jun 2009 02:15:38 +0200
-Message-ID: <200906290215.39517.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906281642500.7576-100000@netrider.rowland.org>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: 2.6.31-rc1-git3: Reported regressions 2.6.29 -> 2.6.30
+Date: Mon, 29 Jun 2009 02:26:46 +0200 (CEST)
+Message-ID: <etTXaRqGgAC.A.SaE.6iASKB@chimera>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38420 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530AbZF2APY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Jun 2009 20:15:24 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906281642500.7576-100000@netrider.rowland.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Sunday 28 June 2009, Alan Stern wrote:
-> On Sun, 28 Jun 2009, Rafael J. Wysocki wrote:
-> 
-> > It seems that if we do something like in the appended patch, then
-> > cancel_work() and cancel_delayed_work_dequeue() can be used to simplify the
-> > $subject patch slightly.
-> 
-> I merged your patch with my own work, leading to the patch below.
-> 
-> There were a bunch of things I didn't like about the existing code,
-> particularly cancel_delayed_work.  To start with, it seems like a large
-> enough routine that it shouldn't be inlined.
+[NOTES:
+ * I hope you notice the jump of the number of reported regressions aft=
+er 2.6.30
+   was released.
+ * Please let me know which of these bugs have been fixed already (idea=
+lly
+   please also provide the name of the fix commit).
+ * The post-2.6.30 reports were flooded by the megre window noise that =
+made
+   them very difficult to track.]
 
-Agreed.
+This message contains a list of some regressions introduced between 2.6=
+=2E29 and
+2.6.30, for which there are no fixes in the mainline I know of.  If any=
+ of them
+have been fixed already, please let me know.
 
-> More importantly, it foolishly calls del_timer_sync, resulting in the
-> unnecessary restriction that it cannot be used in_interrupt.  Finally,
-> although it will deactivate a delayed_work's timer, it doesn't even try to
-> remove the item from the workqueue if the timer has already expired.
-> 
-> Your cancel_delayed_work_dequeue is better -- so much better that I
-> don't see any reason to keep the original cancel_delayed_work at all.  
-> I got rid of it and used your routine instead.
-> 
-> I also changed the comments you wrote for cancel_work.  You can see 
-> that now they are much more explicit and complete.
-> 
-> The original version of __cancel_work_timer is not safe to use
-> in_interrupt.  If it is called from a handler whose IRQ interrupted
-> delayed_work_timer_fn, it can loop indefinitely.
+If you know of any other unresolved regressions introduced between 2.6.=
+29
+and 2.6.30, please let me know either and I'll add them to the list.
+Also, please let me know if any of the entries below are invalid.
 
-Right, I overlooked that.
+Each entry from the list will be sent additionally in an automatic repl=
+y to
+this message with CCs to the people involved in reporting and handling =
+the
+issue.
 
-> Therefore I added a check; if it finds that the work_struct is currently
-> being enqueued and it is running in_interrupt, it gives up right away.
 
-Hmm, it doesn't do the work_clear_pending(work) in that case, so we allow
-the work to be queued and run?  Out of couriosity, what the caller is supposed
-to do then?
+Listed regressions statistics:
 
-> There are a few other improvements too.
-> 
-> Consequently it is now safe to call cancel_work and cancel_delayed_work
-> in_interrupt or while holding a spinlock.  This means you can use these
-> functions to cancel the various PM runtime work items whenever needed.  
-> As a result, you don't need two work_structs in dev_pm_info; a single
-> delayed_work will be enough.
+  Date          Total  Pending  Unresolved
+  ----------------------------------------
+  2009-06-29      133       46          43
+  2009-06-07      110       35          31
+  2009-05-31      100       32          27
+  2009-05-24       92       34          27
+  2009-05-16       81       36          33
+  2009-04-25       55       36          26
+  2009-04-17       37       35          28
 
-Yes, I'm going to rebase the framework patch on top of this one.
 
-> Tell me what you think.
+Unresolved regressions
+----------------------
 
-I like the patch. :-)
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13669
+Subject		: Kernel bug with dock driver
+Submitter	: Joerg Platte <jplatte-v18Uk5sXZWJeoWH0uzbU5w@public.gmane.org>
+Date		: 2009-06-14 21:00 (15 days old)
+References	: http://lkml.org/lkml/2009/6/14/216
+Handled-By	: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 
-Best,
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13668
+Subject		: Can't boot 2.6.30 powerpc kernel under qemu.
+Submitter	: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
+Date		: 2009-06-27 18:08 (2 days old)
+References	: http://lkml.org/lkml/2009/6/27/159
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13660
+Subject		: Crashes during boot on 2.6.30 / 2.6.31-rc, random programs
+Submitter	: Joao Correia <joaomiguelcorreia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-06-27 16:07 (2 days old)
+References	: http://lkml.org/lkml/2009/6/27/95
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13651
+Subject		: Anyone know what happened with PC speaker in 2.6.30?
+Submitter	: Michael Tokarev <mjt-XAri/EZa3C4vJsYlp49lxw@public.gmane.org>
+Date		: 2009-06-15 14:41 (14 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124507695427817&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13649
+Subject		: Bad page state in process with various applications
+Submitter	: Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-06-20 15:27 (9 days old)
+References	: http://marc.info/?l=3Dlinux-mm&m=3D124551168828090&w=3D4
+Handled-By	: Mel Gorman <mel-wPRd99KPJ+uzQB+pC5nmwQ@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13648
+Subject		: nfsd: page allocation failure
+Submitter	: Justin Piszcz <jpiszcz-BP4nVm5VUdNhbmWW9KSYcQ@public.gmane.org>
+Date		: 2009-06-22 12:08 (7 days old)
+References	: http://lkml.org/lkml/2009/6/22/309
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13647
+Subject		: fb/mmap lockdep report.
+Submitter	: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date		: 2009-06-21 13:33 (8 days old)
+=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
+s/linux-2.6.git;a=3Dcommit;h=3D513adb58685615b0b1d47a3f0d40f5352beff189
+References	: http://lkml.org/lkml/2009/6/21/90
+		  http://lkml.org/lkml/2009/6/21/122
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13646
+Subject		: warn_on tty_io.c, broken bluetooth
+Submitter	: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Date		: 2009-06-19 17:05 (10 days old)
+References	: http://lkml.org/lkml/2009/6/19/187
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13644
+Subject		: hibernation/swsusp lockup due to acpi-cpufreq
+Submitter	: Johannes Stezenbach <js-FF7aIK3TAVNeoWH0uzbU5w@public.gmane.org>
+Date		: 2009-06-16 01:27 (13 days old)
+References	: http://lkml.org/lkml/2009/6/15/630
+Handled-By	: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13634
+Subject		: [drm:drm_wait_vblank] failed to acquire vblank counter
+Submitter	: Cijoml Cijomlovic Cijomlov <cijoml-VIXq6x/3rUk@public.gmane.org>
+Date		: 2009-06-27 07:02 (2 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13624
+Subject		: usb: wrong autosuspend initialization
+Submitter	:  <list-2tUql6aCh3Vfq8cQ1yknNg@public.gmane.org>
+Date		: 2009-06-25 18:18 (4 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13621
+Subject		: xfs hangs with assertion failed
+Submitter	: Johannes Engel <jcnengel-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Date		: 2009-06-25 10:07 (4 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13620
+Subject		: acpi_enforce_resources broken - conflicting i2c module loade=
+d on some EeePCs
+Submitter	: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+Date		: 2009-06-25 08:31 (4 days old)
+References	: <http://lists.alioth.debian.org/pipermail/debian-eeepc-dev=
+el/2009-June/002316.html>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13613
+Subject		: lockups with JFS (inconsistent lock state)
+Submitter	: Jan &quot;Yenya&quot; Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>
+Date		: 2009-06-24 09:35 (5 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13581
+Subject		: ath9k doesn't work with newer kernels
+Submitter	: Matteo <rootkit85-whZMOeQn8C0@public.gmane.org>
+Date		: 2009-06-19 12:04 (10 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13558
+Subject		: Tracelog during resume
+Submitter	: Cijoml Cijomlovic Cijomlov <cijoml-VIXq6x/3rUk@public.gmane.org>
+Date		: 2009-06-17 11:32 (12 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13554
+Subject		: linux-image-2.6.30-1-686, KMS enabled: black screen, no X wi=
+ndow
+Submitter	: Jos van Wolput <wolput-kN7GrHn7egj0B9fh5IxImPP6llvjuJOh@public.gmane.org>
+Date		: 2009-06-17 06:28 (12 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13528
+Subject		: au0828: major drop in reception quality between 2.6.29.4 and=
+ 2.6.30 on HVR-950q
+Submitter	: Jim Faulkner <jfaulkne-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org>
+Date		: 2009-06-13 19:34 (16 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13518
+Subject		: slab grows with NFS write activity.
+Submitter	: Andrew Randrianasulu <randrik-JGs/UdohzUI@public.gmane.org>
+Date		: 2009-06-12 09:51 (17 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13514
+Subject		: acer_wmi causes stack corruption
+Submitter	: Rus <harbour-K87ZgELTUEPsG83rWm+8vg@public.gmane.org>
+Date		: 2009-06-12 08:13 (17 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13512
+Subject		: D43 on 2.6.30 doesn't suspend anymore
+Submitter	: Daniel Smolik <marvin-0pWKB23IDFjrBKCeMvbIDA@public.gmane.org>
+Date		: 2009-06-11 20:12 (18 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13502
+Subject		: GPE storm causes polling mode, which causes /proc/acpi/batte=
+ry read to take 4 seconds - MacBookPro4,1
+Submitter	:  <sveina-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-06-10 20:04 (19 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13472
+Subject		: Oops with minicom and USB serial
+Submitter	: Peter Chubb <peterc-M3ycANVxPotyL3EAZA59ERCuuivNXqWP@public.gmane.org>
+Date		: 2009-06-05 1:37 (24 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124416901026700&w=3D=
+4
+Handled-By	: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13471
+Subject		: Loading parport_pc kills the keyboard if ACPI is enabled
+Submitter	: Ozan =C3=87a=C4=9Flayan <ozan-caicS1wCkhO6A22drWdTBw@public.gmane.org>
+Date		: 2009-06-04 9:12 (25 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124410667532558&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13424
+Subject		: possible deadlock when doing governor switching
+Submitter	: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date		: 2009-05-31 16:36 (29 days old)
+References	: http://www.spinics.net/lists/cpufreq/msg00711.html
+Handled-By	: Mathieu Desnoyers <mathieu.desnoyers-scC8bbJcJLCw5LPnMra/2Q@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13408
+Subject		: Performance regression in 2.6.30-rc7
+Submitter	: Diego Calleja <diegocg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-05-30 18:51 (30 days old)
+References	: http://lkml.org/lkml/2009/5/30/146
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13407
+Subject		: adb trackpad disappears after suspend to ram
+Submitter	: Jan Scholz <scholz-wOpdxP1gw6Cc+IqHO83+wjjhTm2NLCe8@public.gmane.org>
+Date		: 2009-05-28 7:59 (32 days old)
+=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
+s/linux-2.6.git;a=3Dcommit;h=3D2ed8d2b3a81bdbb0418301628ccdb008ac9f40b7
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124349762314976&w=3D=
+4
+Handled-By	: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13401
+Subject		: pktcdvd writing is really slow with CFQ scheduler (bisected)
+Submitter	: Laurent Riffard <laurent.riffard-GANU6spQydw@public.gmane.org>
+Date		: 2009-05-28 18:43 (32 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13374
+Subject		: reiserfs blocked for more than 120secs
+Submitter	: Harald Dunkel <harald.dunkel-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
+Date		: 2009-05-23 8:52 (37 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124306880410811&w=3D=
+4
+		  http://lkml.org/lkml/2009/5/29/389
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13373
+Subject		: fbcon, intelfb, i915: INFO: possible circular locking depend=
+ency detected
+Submitter	: Miles Lane <miles.lane-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-05-23 5:08 (37 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124305538130702&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13362
+Subject		: rt2x00: slow wifi with correct basic rate bitmap
+Submitter	: Alejandro Riveira <ariveira-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-05-22 13:32 (38 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13351
+Subject		: 2.6.30 corrupts my system after suspend resume with readonly=
+ mounted hard disk
+Submitter	:  <unggnu-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Date		: 2009-05-20 14:09 (40 days old)
+=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
+s/linux-2.6.git;a=3Dcommit;h=3D78a8b35bc7abf8b8333d6f625e08c0f7cc1c3742
+Handled-By	: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13341
+Subject		: Random Oops at boot at loading ip6tables rules
+Submitter	:  <patrick-nxAOmsU53hB6lmGzAMPh1A@public.gmane.org>
+Date		: 2009-05-19 09:08 (41 days old)
+Handled-By	: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13337
+Subject		: [post 2.6.29 regression] hang during suspend of b44/b43 modu=
+les
+Submitter	: Tomas Janousek <tomi-YoqI/XImC7s@public.gmane.org>
+Date		: 2009-05-18 10:59 (42 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13328
+Subject		: b44: eth0: BUG! Timeout waiting for bit 00000002 of register=
+ 42c to clear.
+Submitter	: Francis Moreau <francis.moro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-05-03 16:22 (57 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124136778012280&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13319
+Subject		: Page allocation failures with b43 and p54usb
+Submitter	: Larry Finger <Larry.Finger-tQ5ms3gMjBLk1uMJSBkQmQ@public.gmane.org>
+Date		: 2009-04-29 21:01 (61 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124103897101088&w=3D=
+4
+		  http://lkml.org/lkml/2009/6/7/136
+Handled-By	: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13318
+Subject		: AGP doesn't work anymore on nforce2
+Submitter	: Karsten Mehrhoff <kawime-Mmb7MZpHnFY@public.gmane.org>
+Date		: 2009-04-30 8:51 (60 days old)
+=46irst-Bad-Commit: http://git.kernel.org/?p=3Dlinux/kernel/git/torvald=
+s/linux-2.6.git;a=3Dcommit;h=3D59de2bebabc5027f93df999d59cc65df591c3e6e
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124108156417560&w=3D=
+4
+Handled-By	: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13306
+Subject		: hibernate slow on _second_ run
+Submitter	: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Date		: 2009-05-14 09:34 (46 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13277
+Subject		: 2.6.30 regression - hang on 2nd resume - bisected - Thinkpad=
+ X40
+Submitter	: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
+Date		: 2009-05-11 10:08 (49 days old)
+Handled-By	: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13219
+Subject		: Intel 440GX: Since kernel 2.6.30-rc1, computers hangs random=
+ly but not with kernel <=3D 2.6.29.4
+Submitter	: David Hill <hilld-HTiBYHdybX7UkGsOFmftXw@public.gmane.org>
+Date		: 2009-05-01 16:57 (59 days old)
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13179
+Subject		: CD-R: wodim intermittent failures
+Submitter	: Andy Isaacson <adi-3HqRAUrWAWyGglJvpFV4uA@public.gmane.org>
+Date		: 2009-04-21 1:52 (69 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124027879214231&w=3D=
+4
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13119
+Subject		: Trouble with make-install from a NFS mount
+Submitter	: Gregory Haskins <ghaskins-Et1tbQHTxzrQT0dZR+AlfA@public.gmane.org>
+Date		: 2009-04-14 21:32 (76 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D123974482327044&w=3D=
+4
+Handled-By	: H. Peter Anvin <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13109
+Subject		: High latency on /sys/class/thermal
+Submitter	: Tiago Sim=C3=B5es Batista <tiagosbatista-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-04-11 14:56 (79 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D123946182301248&w=3D=
+4
+Handled-By	: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+		  Alexey Starikovskiy <astarikovskiy-l3A5Bk7waGM@public.gmane.org>
+
+
+Regressions with patches
+------------------------
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13663
+Subject		: suspend to ram regression (IDE related)
+Submitter	: Etienne Basset <etienne.basset-Bf/eaXMDFuuXqB7oj33eUg@public.gmane.org>
+Date		: 2009-06-26 17:40 (3 days old)
+References	: http://lkml.org/lkml/2009/6/26/242
+Handled-By	: Bartlomiej Zolnierkiewicz <bzolnier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Patch		: http://patchwork.kernel.org/patch/32719/
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13475
+Subject		: suspend/hibernate lockdep warning
+Submitter	: Dave Young <hidave.darkstar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date		: 2009-06-02 10:00 (27 days old)
+References	: http://marc.info/?l=3Dlinux-kernel&m=3D124393723321241&w=3D=
+4
+Handled-By	: Mathieu Desnoyers <mathieu.desnoyers-scC8bbJcJLCw5LPnMra/2Q@public.gmane.org>
+Patch		: http://patchwork.kernel.org/patch/28660/
+
+
+Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13389
+Subject		: Warning 'Invalid throttling state, reset' gets displayed whe=
+n it should not be
+Submitter	: Frans Pop <elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Date		: 2009-05-26 15:24 (34 days old)
+Handled-By	: Frans Pop <elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Patch		: http://bugzilla.kernel.org/attachment.cgi?id=3D21671
+		  http://bugzilla.kernel.org/attachment.cgi?id=3D21672
+
+
+=46or details, please visit the bug entries and follow the links given =
+in
+references.
+
+As you can see, there is a Bugzilla entry for each of the listed regres=
+sions.
+There also is a Bugzilla entry used for tracking the regressions introd=
+uced
+between 2.6.29 and 2.6.30, unresolved as well as resolved, at:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3D13070
+
+Please let me know if there are any Bugzilla entries that should be add=
+ed to
+the list in there.
+
+Thanks,
 Rafael
-
- 
-> Index: usb-2.6/include/linux/workqueue.h
-> ===================================================================
-> --- usb-2.6.orig/include/linux/workqueue.h
-> +++ usb-2.6/include/linux/workqueue.h
-> @@ -223,24 +223,10 @@ int execute_in_process_context(work_func
->  extern int flush_work(struct work_struct *work);
->  
->  extern int cancel_work_sync(struct work_struct *work);
-> -
-> -/*
-> - * Kill off a pending schedule_delayed_work().  Note that the work callback
-> - * function may still be running on return from cancel_delayed_work(), unless
-> - * it returns 1 and the work doesn't re-arm itself. Run flush_workqueue() or
-> - * cancel_work_sync() to wait on it.
-> - */
-> -static inline int cancel_delayed_work(struct delayed_work *work)
-> -{
-> -	int ret;
-> -
-> -	ret = del_timer_sync(&work->timer);
-> -	if (ret)
-> -		work_clear_pending(&work->work);
-> -	return ret;
-> -}
-> +extern int cancel_work(struct work_struct *work);
->  
->  extern int cancel_delayed_work_sync(struct delayed_work *work);
-> +extern int cancel_delayed_work(struct delayed_work *dwork);
->  
->  /* Obsolete. use cancel_delayed_work_sync() */
->  static inline
-> Index: usb-2.6/kernel/workqueue.c
-> ===================================================================
-> --- usb-2.6.orig/kernel/workqueue.c
-> +++ usb-2.6/kernel/workqueue.c
-> @@ -465,6 +465,7 @@ static int try_to_grab_pending(struct wo
->  {
->  	struct cpu_workqueue_struct *cwq;
->  	int ret = -1;
-> +	unsigned long flags;
->  
->  	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work)))
->  		return 0;
-> @@ -478,7 +479,7 @@ static int try_to_grab_pending(struct wo
->  	if (!cwq)
->  		return ret;
->  
-> -	spin_lock_irq(&cwq->lock);
-> +	spin_lock_irqsave(&cwq->lock, flags);
->  	if (!list_empty(&work->entry)) {
->  		/*
->  		 * This work is queued, but perhaps we locked the wrong cwq.
-> @@ -491,7 +492,7 @@ static int try_to_grab_pending(struct wo
->  			ret = 1;
->  		}
->  	}
-> -	spin_unlock_irq(&cwq->lock);
-> +	spin_unlock_irqrestore(&cwq->lock, flags);
->  
->  	return ret;
->  }
-> @@ -536,18 +537,26 @@ static void wait_on_work(struct work_str
->  		wait_on_cpu_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
->  }
->  
-> -static int __cancel_work_timer(struct work_struct *work,
-> +static int __cancel_work_timer(struct work_struct *work, bool wait,
->  				struct timer_list* timer)
->  {
->  	int ret;
->  
-> -	do {
-> -		ret = (timer && likely(del_timer(timer)));
-> -		if (!ret)
-> -			ret = try_to_grab_pending(work);
-> -		wait_on_work(work);
-> -	} while (unlikely(ret < 0));
-> +	if (timer && likely(del_timer(timer))) {
-> +		ret = 1;
-> +		goto done;
-> +	}
->  
-> +	for (;;) {
-> +		ret = try_to_grab_pending(work);
-> +		if (likely(ret >= 0))
-> +			break;
-> +		if (in_interrupt())
-> +			return ret;
-> +	}
-> +	if (ret == 0 && wait)
-> +		wait_on_work(work);
-> + done:
->  	work_clear_pending(work);
->  	return ret;
->  }
-> @@ -575,11 +584,43 @@ static int __cancel_work_timer(struct wo
->   */
->  int cancel_work_sync(struct work_struct *work)
->  {
-> -	return __cancel_work_timer(work, NULL);
-> +	return __cancel_work_timer(work, true, NULL);
->  }
->  EXPORT_SYMBOL_GPL(cancel_work_sync);
->  
->  /**
-> + * cancel_work - try to cancel a pending work_struct.
-> + * @work: the work_struct to cancel
-> + *
-> + * Try to cancel a pending work_struct before it starts running.
-> + * Upon return, @work may safely be reused if the return value
-> + * is 1 or the return value is 0 and the work callback function
-> + * doesn't resubmit @work.
-> + *
-> + * The callback function may be running upon return if the return value
-> + * is <= 0; use cancel_work_sync() to wait for the callback function
-> + * to finish.
-> + *
-> + * There's not much point using this routine unless you can guarantee
-> + * that neither the callback function nor anything else is in the
-> + * process of submitting @work (or is about to do so).  The only good
-> + * reason might be that optimistically trying to cancel @work has less
-> + * overhead than letting it go ahead and run.
-> + *
-> + * This routine may be called from interrupt context.
-> + *
-> + * Returns: 1 if @work was removed from its workqueue,
-> + *	    0 if @work was not pending (may be running),
-> + *	   -1 if @work was concurrently being enqueued and we were
-> + *		called in_interrupt.
-> + */
-> +int cancel_work(struct work_struct *work)
-> +{
-> +	return __cancel_work_timer(work, false, NULL);
-> +}
-> +EXPORT_SYMBOL_GPL(cancel_work);
-> +
-> +/**
->   * cancel_delayed_work_sync - reliably kill off a delayed work.
->   * @dwork: the delayed work struct
->   *
-> @@ -590,10 +631,24 @@ EXPORT_SYMBOL_GPL(cancel_work_sync);
->   */
->  int cancel_delayed_work_sync(struct delayed_work *dwork)
->  {
-> -	return __cancel_work_timer(&dwork->work, &dwork->timer);
-> +	return __cancel_work_timer(&dwork->work, true, &dwork->timer);
->  }
->  EXPORT_SYMBOL(cancel_delayed_work_sync);
->  
-> +/**
-> + * cancel_delayed_work - try to cancel a delayed_work_struct.
-> + * @dwork: the delayed_work_struct to cancel
-> + *
-> + * Try to cancel a pending delayed_work, either by deactivating its
-> + * timer or by removing it from its workqueue.  This routine is just
-> + * like cancel_work() except that it handles a delayed_work.
-> + */
-> +int cancel_delayed_work(struct delayed_work *dwork)
-> +{
-> +	return __cancel_work_timer(&dwork->work, false, &dwork->timer);
-> +}
-> +EXPORT_SYMBOL(cancel_delayed_work);
-> +
->  static struct workqueue_struct *keventd_wq __read_mostly;
->  
->  /**
