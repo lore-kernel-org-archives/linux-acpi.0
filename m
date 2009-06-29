@@ -1,81 +1,98 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
- I/O devices (rev. 6)
-Date: Mon, 29 Jun 2009 11:27:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0906291107040.16597-100000@iolanthe.rowland.org>
-References: <200906291654.56500.rjw@sisk.pl>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH, v3] eeepc-laptop: Fix build failure with HOTPLUG_PCI
+ && !SYSFS
+Date: Mon, 29 Jun 2009 08:27:37 -0700
+Message-ID: <4A48DD69.9030204@oracle.com>
+References: <alpine.LFD.2.00.0906260025380.20608@localhost.localdomain> <20090629080754.GA28336@elte.hu> <20090629081016.GA31398@elte.hu> <20090629081339.GA321@elte.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:59224 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751479AbZF2P1j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 11:27:39 -0400
-In-Reply-To: <200906291654.56500.rjw@sisk.pl>
+Received: from acsinet11.oracle.com ([141.146.126.233]:24475 "EHLO
+	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759857AbZF2P36 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 11:29:58 -0400
+In-Reply-To: <20090629081339.GA321@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, Corentin Chary <corentincj@iksaif.net>, Matthew Garrett <mjg@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
-
-> > > So, it seems, pm_request_resume() can't kill suspend requests by itself
-> > > and instead it has to queue up resume requests for this purpose, which
-> > > brings us right back to the problem of two requests queued up at a time
-> > > (a delayed suspend request and a resume request that is supposed to cancel it).
-> > 
-> > No, you're trying to do too much.  If the state is RPM_IDLE (i.e., a 
-> > suspend request is pending) then rpm_request_resume doesn't need to do 
-> > anything.  The device is already resumed!  Sure, it can try to kill the 
-> > request and change the state to RPM_ACTIVE, but it doesn't need to.
+Ingo Molnar wrote:
+> * Ingo Molnar <mingo@elte.hu> wrote:
 > 
-> I think it does need to do that, because the reuqest may be scheduled way
-> in the future and we can't preserve its work structure until it runs.
-> pm_request_resume() doesn't know in advance when the suspend work function is
-> going to be queued up and run.
-
-It doesn't need to know.  All it needs to do is guarantee that the
-device will be in a resumed state some time not long after the function
-returns.  Thus calling rpm_request_resume while the status is RPM_IDLE
-is like calling it while the status is RPM_ACTIVE.  In neither case
-does it have to do anything, because the device will already be resumed
-when it returns.
-
-Perhaps instead we should provide a way to kill a pending suspend
-request?  It's not clear that anyone would need this.  The only reason
-I can think of is if you wanted to change the timeout duration.  But it
-wouldn't be able to run in interrupt context.
-
-> > Think about it.  Even if the suspend request were killed off, there's 
-> > always the possibility that someone could call rpm_runtime_suspend 
-> > right afterward.  If the driver really wants to resume the device and 
-> > prevent it from suspending again, then the driver should call 
-> > pm_runtime_get before pm_request_resume.  Then it won't matter if the 
-> > suspend request runs.
+>>> The patch below fixes the build failure by turning the select 
+>>> lines into a single 'depends on' line. [...]
+>> i did the fix against the bisection point and the patch has a 
+>> conflict against later mainline - below is a merged up patch.
 > 
-> No, it doesn't matter if the request runs, but it does matter if the work
-> structure used for queuing it up may be used for another purpose. :-)
-
-What else would it be used for?  If rpm_request_resume returns without 
-doing anything and leaves the status set to RPM_IDLE, then the work 
-structure won't be reused until the status changes.
-
-
-> The problem with pm_<something>_put is that it does two things at a time,
-> decrements the resume counter and runs or queues up an idle notification.
-> Perhaps it's a good idea to call it after the second thing and change
-> pm_runtime_get() to pm_runtime_inuse(), so that we have:
+>> -	select HOTPLUG
+>> -	select HOTPLUG_PCI if PCI
+>> +       select HOTPLUG
+>> +       select HOTPLUG_PCI if PCI
 > 
-> * pm_runtime_inuse() - increment the resume counter
-> * pm_runtime_idle() - decrement the resume counter and run idle notification
-> * pm_request_idle()  - decrement the resume counter and queue idle notification
+> uhm, not a very nice conflict resolution this is.
 > 
-> and __pm_runtime_idle() as the "bare" idle notification function?
+> The one below is actually tested ;-)
+> 
+> 	Ingo
+> 
+> -------------------->
+> From de3e1cacc93ca48a288e27af5e82a365ba90020f Mon Sep 17 00:00:00 2001
+> From: Ingo Molnar <mingo@elte.hu>
+> Date: Mon, 29 Jun 2009 10:07:54 +0200
+> Subject: [PATCH] eeepc-laptop: Fix build failure with HOTPLUG_PCI && !SYSFS (was: ACPI & driver patches for 2.6.31-rc1)
+> 
+> FYI, there's a post-rc1 build regression with certain configs:
+> 
+>  drivers/built-in.o: In function `pci_hp_deregister':
+>  (.text+0xb166): undefined reference to `pci_hp_remove_module_link'
+>  drivers/built-in.o: In function `pci_hp_deregister':
+>  (.text+0xb19f): undefined reference to `pci_destroy_slot'
+>  drivers/built-in.o: In function `__pci_hp_register':
+>  (.text+0xb583): undefined reference to `pci_create_slot'
+>  drivers/built-in.o: In function `__pci_hp_register':
+>  (.text+0xb5b1): undefined reference to `pci_hp_create_module_link'
+>  make: *** [.tmp_vmlinux1] Error 1
+> 
+> Caused by:
+> 
+> | 2b121bc262fa03c94e653b2d44356c2f86c1bcdc is first bad commit
+> | commit 2b121bc262fa03c94e653b2d44356c2f86c1bcdc
+> | Date:   Thu Jun 25 13:25:36 2009 +0200
+> |
+> |     eeepc-laptop: Register as a pci-hotplug device
+> 
+> The problem is caused by this portion of the commit:
+> 
+> Signed-off-by: Ingo Molnar <mingo@elte.hu>
 
-I could live with that, but the nice thing about "get" and "put" is
-that they directly suggest a counter is being maintained and therefore
-the calls have to balance.  Maybe we should just call it 
-rpm_request_put and not worry that the put happens immediately.
+Ack.  Thanks for fixing this.
 
-Alan Stern
 
+> ---
+>  drivers/platform/x86/Kconfig |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 4bc72d0..c0be866 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -356,10 +356,9 @@ config EEEPC_LAPTOP
+>  	depends on INPUT
+>  	depends on EXPERIMENTAL
+>  	depends on RFKILL || RFKILL = n
+> +	depends on HOTPLUG_PCI
+>  	select BACKLIGHT_CLASS_DEVICE
+>  	select HWMON
+> -	select HOTPLUG
+> -	select HOTPLUG_PCI if PCI
+>  	---help---
+>  	  This driver supports the Fn-Fx keys on Eee PC laptops.
+>  
+
+
+-- 
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
