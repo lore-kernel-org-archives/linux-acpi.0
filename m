@@ -1,49 +1,46 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 0/9 v2] ACPI: remove .start() and .stop() methods
-Date: Mon, 29 Jun 2009 14:32:36 -0600
-Message-ID: <200906291432.36773.bjorn.helgaas@hp.com>
-References: <20090622204016.32761.47464.stgit@bob.kio> <20090625110604.B02E.E1E9C6FF@jp.fujitsu.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [PATCH, v3] eeepc-laptop: Fix build failure with HOTPLUG_PCI && !SYSFS (was: [git pull request] ACPI & driver patches for 2.6.31-rc1)
+Date: Mon, 29 Jun 2009 22:43:50 +0200
+Message-ID: <20090629204350.GA8253@uranus.ravnborg.org>
+References: <alpine.LFD.2.00.0906260025380.20608@localhost.localdomain> <20090629080754.GA28336@elte.hu> <20090629081016.GA31398@elte.hu> <20090629081339.GA321@elte.hu> <alpine.LFD.2.00.0906291135550.5716@localhost.localdomain> <20090629193406.GA30774@elte.hu>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:21996 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755AbZF2UdJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 16:33:09 -0400
-In-Reply-To: <20090625110604.B02E.E1E9C6FF@jp.fujitsu.com>
+Received: from pfepa.post.tele.dk ([195.41.46.235]:59492 "EHLO
+	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514AbZF2Ulb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 16:41:31 -0400
 Content-Disposition: inline
+In-Reply-To: <20090629193406.GA30774@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, Vegard Nossum <vegard.nossum@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, "H. Peter Anvin" <hpa@zytor.com>, Corentin Chary <corentincj@iksaif.net>, Randy Dunlap <randy.dunlap@oracle.com>, Matthew Garrett <mjg@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Wednesday 24 June 2009 8:09:07 pm Yasunori Goto wrote:
-> > From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > 
-> > These patches remove several .start() methods (by folding them into
-> > .add() methods) and a .stop() method (by folding it into .remove()).
-> > There are no remaining .stop() methods, so I also removed it from
-> > the driver_ops structure.
-> > 
-> > This simplifies the ACPI driver structure and will make it easier to
-> > support hotplug in the Linux/ACPI core.
-> > 
-> > They also remove the KOBJ_ONLINE and KOBJ_OFFLINE events generated
-> > by the processor driver for CPU hotplug events.  As far as I know,
-> > these events are unused.
-> > 
-> > I don't have a way to test most of these changes, unfortunately, so
-> > I'd welcome any feedback or testing reports.
+On Mon, Jun 29, 2009 at 09:34:06PM +0200, Ingo Molnar wrote:
 > 
-> Hi.
+> * Len Brown <lenb@kernel.org> wrote:
 > 
-> I could make a time to test this patch set.
-> It works well on my box. :-)
+> > Thanks for fixing this config, Ingo.
+> > 
+> > I agree, our build system can handle "depends",
+> > but "select" does not deliver on what it advertises,
+> > making it a trap for programmers.
 > 
-> Tested-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+> Hm, this portion of Kconfig is a trap in a way indeed - on the other 
+> hand it is also a useful tool and the simplistic approach to 
+> disallow select altogether is a step backwards.
+> 
+> IIRC either Vegard or Steve has come up with a patch series that 
+> improved Kconfig to warn about problem selects while still allowing 
+> the simple ones. That would deflect most of the bad uses while still 
+> allowing the good uses. Not sure what happened to that series.
 
-Thanks a lot for testing these.  I appreciate it!
+Steve came up with a patch that warned about problematic select
+only in a defconfig. It did not warn properly for all the problematic
+selects.
+I ran (as usual) out of time last time I looked :-(
+I would likely need a full day or two to come up with somthing,
+but these days finding an hour is not easy.
 
-Bjorn
+	Sam
