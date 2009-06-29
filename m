@@ -1,80 +1,111 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH] eeepc-laptop: don't touch the pci slot if it was claimed
- by a different driver
-Date: Mon, 29 Jun 2009 14:27:56 +0100
-Message-ID: <4A48C15C.3000509@tuffmail.co.uk>
-References: <1245990020-20455-1-git-send-email-lenb@kernel.org>	 <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com> <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
+Date: Mon, 29 Jun 2009 16:09:23 +0200
+Message-ID: <200906291609.24394.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906282237180.11984-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:63121 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759143AbZF2N16 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 09:27:58 -0400
-Received: by ewy6 with SMTP id 6so5623872ewy.37
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2009 06:28:00 -0700 (PDT)
-In-Reply-To: <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:43936 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751906AbZF2OJQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Jun 2009 10:09:16 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906282237180.11984-100000@netrider.rowland.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-The whole point of registering as a PCI hotplug driver was to prevent
-conflict with pciehp.  At the moment it happens to work because
-eeepc-laptop is loaded first, but it doesn't work the other way round.
-If pciehp is loaded first then we fail to claim the slot - we need to
-respect this and not handle hotplug events.
+On Monday 29 June 2009, Alan Stern wrote:
+> On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
+> 
+> > > The original version of __cancel_work_timer is not safe to use
+> > > in_interrupt.  If it is called from a handler whose IRQ interrupted
+> > > delayed_work_timer_fn, it can loop indefinitely.
+> > 
+> > Right, I overlooked that.
+> > 
+> > > Therefore I added a check; if it finds that the work_struct is currently
+> > > being enqueued and it is running in_interrupt, it gives up right away.
+> > 
+> > Hmm, it doesn't do the work_clear_pending(work) in that case, so we allow
+> > the work to be queued and run?
+> 
+> Yes.  That's better than leaving the work queued but with the "pending" 
+> flag cleared.  :-)
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
----
+So there still is a problem, I'm afraid (details below).
 
-IMO this is not an urgent patch - it's not a regression from 2.6.30. 
-Given the number of other changes, I'd be happier if it could be held
-back for 2.6.32.
+> >  Out of couriosity, what the caller is supposed
+> > to do then?
+> 
+> In the case of cancel_work, this is a simple race.  The work_struct was
+> being submitted at the same time as the cancellation occurred.  The end
+> result is the same as if the submission had been slightly later: The
+> work is on the queue and it will run.  If the caller can guarantee that 
+> the work is not in the process of being submitted (as described in the 
+> kerneldoc) then this situation will never arise.
+> 
+> In the case of cancel_delayed_work, things are more complicated.  If
+> the cancellation had occurred a little earlier, it would have
+> deactivated the timer.  If it had occurred a little later, it would
+> have removed the item from the workqueue.  But since it arrived at
+> exactly the wrong time -- while the timer routine is enqueuing the work
+> -- there's nothing it can do.  The caller has to cope as best he can.
+> 
+> For runtime PM this isn't a big issue.  The only delayed work we have
+> is a delayed autosuspend request.  These things get cancelled when:
+> 
+> 	pm_runtime_suspend runs synchronously.  That happens in
+> 	process context so we're okay.
+> 
+> 	pm_runtime_suspend_atomic (not yet written!) is called.
 
- drivers/platform/x86/eeepc-laptop.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+This is going to be added in a separate patch.
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 76dc3d9..faedee5 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -664,15 +664,20 @@ static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
- static void eeepc_hotplug_work(struct work_struct *work)
- {
- 	struct pci_dev *dev;
--	struct pci_bus *bus = pci_find_bus(0, 1);
--	bool blocked;
-+	struct pci_bus *bus;
-+	bool blocked = eeepc_wlan_rfkill_blocked();
-+
-+	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
- 
-+	if (ehotk->hotplug_slot == NULL)
-+		return;
-+
-+	bus = pci_find_bus(0, 1);
- 	if (!bus) {
- 		pr_warning("Unable to find PCI bus 1?\n");
- 		return;
- 	}
- 
--	blocked = eeepc_wlan_rfkill_blocked();
- 	if (!blocked) {
- 		dev = pci_get_slot(bus, 0);
- 		if (dev) {
-@@ -693,8 +698,6 @@ static void eeepc_hotplug_work(struct work_struct *work)
- 			pci_dev_put(dev);
- 		}
- 	}
--
--	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
- }
- 
- static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
--- 
-1.6.3.2
+> 	If the cancellation fails, we'll have to return an error.
+> 	The suspend will happen later, when the work item runs.
+> 	Ultimately, the best we can do is recommend that people
+> 	don't mix pm_request_suspend with pm_runtime_suspend_atomic.
 
+Well, not only in that cases and in fact this is where the actual problem is.
 
+Namely, pm_request_suspend() and pm_request_resume() have to cancel any
+pending requests in a reliable way so that the work struct can be used safely
+after they've returned.
 
+Assume for example that there's a suspend request pending while
+pm_request_resume() is being called.  pm_request_resume() uses
+cancel_delayed_work() to kill off the request, but that's in interrupt and it
+happens to return -1.  Now, there's pm_runtime_put_atomic() right after that
+which attempts to queue up an idle notification request before the
+delayed suspend request has a chance to run and bad things happen.
+
+So, it seems, pm_request_resume() can't kill suspend requests by itself
+and instead it has to queue up resume requests for this purpose, which
+brings us right back to the problem of two requests queued up at a time
+(a delayed suspend request and a resume request that is supposed to cancel it).
+
+Nevertheless, using your workqueue patch we can still simplify things quite a
+bit, so I think it's worth doing anyway.
+
+> Which reminds me...  The way you've got things set up, 
+> pm_runtime_put_atomic queues an idle notification, right?  That's 
+> a little inconsistent with the naming of the other routines.
+> 
+> Instead, pm_runtime_put_atomic should be a version of pm_runtime_put
+> that can safely be called in an atomic context -- it implies that it
+> will call the runtime_notify callback while holding the spinlock.  The
+> routine to queue an idle-notify request should be called something like
+> pm_request_put -- although that name isn't so great because it sounds 
+> like the put gets deferred instead of the notification.
+
+There can be pm_request_put() and pm_request_put_sync(), for example.
+Or pm_request_put_async() and pm_request_put(), depending on which version is
+going to be used more often.
+
+Thanks,
+Rafael
