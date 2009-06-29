@@ -1,109 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6)
-Date: Mon, 29 Jun 2009 20:25:14 +0200
-Message-ID: <200906292025.15142.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906291259320.17436-100000@iolanthe.rowland.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] eeepc-laptop: don't touch the pci slot if it was
+	claimed by a different driver
+Date: Mon, 29 Jun 2009 20:22:06 +0100
+Message-ID: <20090629192206.GA7811@srcf.ucam.org>
+References: <1245990020-20455-1-git-send-email-lenb@kernel.org> <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com> <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com> <4A48C15C.3000509@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45622 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750860AbZF2SZB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jun 2009 14:25:01 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906291259320.17436-100000@iolanthe.rowland.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:34714 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758254AbZF2TWI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 15:22:08 -0400
 Content-Disposition: inline
+In-Reply-To: <4A48C15C.3000509@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Corentin Chary <corentincj@iksaif.net>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>
 
-On Monday 29 June 2009, Alan Stern wrote:
-> On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
+On Mon, Jun 29, 2009 at 02:27:56PM +0100, Alan Jenkins wrote:
+> The whole point of registering as a PCI hotplug driver was to prevent
+> conflict with pciehp.  At the moment it happens to work because
+> eeepc-laptop is loaded first, but it doesn't work the other way round.
+> If pciehp is loaded first then we fail to claim the slot - we need to
+> respect this and not handle hotplug events.
 > 
-> > Theoretically, we are, but practically we want to be able to use
-> > pm_runtime_put() (the asynchronous version) after a pm_runtime_resume()
-> > that found the device operational, but that would result in queuing a request
-> > using the same work structure that is used by the pending suspend request.
-> > Don't you see a problem here?
-> 
-> This is a different situation.  pm_runtime_resume does have the luxury 
-> of killing the suspend request, and it should do so.
+> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
 
-I should have said pm_request_resume(), sorry.
-
-> Let's think about it this way.  Why does a driver call
-> pm_request_resume in the first place?  Because an interrupt handler or
-> spinlocked region wants to do some I/O, so the device has to
-> be active.
-
-Right.
-
-> But when will it do the I/O?  If the device is currently suspended, the
-> driver can do the I/O at the end of its runtime_resume callback.  But
-> if the status is RPM_ACTIVE, the callback won't be invoked, so the
-> interrupt handler will have to do the I/O directly.  The same is true
-> for RPM_IDLE.
-
-I still agree.
-
-> Except for one problem: In RPM_IDLE, a suspend might occur at any time.  
-> (In theory the same thing could happen in RPM_ACTIVE.)  To prevent
-> this, the driver can call pm_runtime_get before pm_request_resume.  
-> When the I/O is all finished, it calls pm_request_put.
-
-At which point pm_request_put() tries to queue up an idle notification that
-uses the same work_struct as the pending suspend request.  Not good.
-
-> If the work routine starts running before the pm_request_put, it will 
-> see that the counter is positive so it will set the status back to 
-> RPM_ACTIVE.  Then the put will queue an idle notification.  If the work 
-> routine hasn't started running before the pm_request_put then the 
-> status will remain RPM_IDLE all along.
-> 
-> Regardless, it's not necessary for pm_request_resume to kill the 
-> suspend request.  And even if it did, the driver would still need to 
-> implement both pathways for doing the I/O.
-
-IMO one can think of pm_request_resume() as a top half of pm_runtime_resume().
-Thus, it should either queue up a request to run pm_runtime_resume() or leave
-the status as though pm_runtime_resume() ran.  Anything else would be
-internally inconsistent.  So, if pm_runtime_resume() cancels pending suspend
-requests, pm_request_resume() should do the same or the other way around.
-
-Now, arguably, ignoring pending suspend requests is somewhat easier from
-the core's point of view, but it may not be so for drivers.
-
-> > > As long as the behavior is documented, I think it will be okay for
-> > > pm_request_resume not to cancel a pending suspend request.
-> > 
-> > I could agree with that, but what about pm_runtime_resume() happening after
-> > a suspend request has been scheduled?  Should it also ignore the pending
-> > suspend request?
-> 
-> It could, but probably it shouldn't.
-
-So, IMO, pm_request_resume() shouldn't as well.
-
-> > In which case it would be consistent to allow to schedule suspends even though
-> > the resume counter is greater than 0.
-> 
-> True enough, although I'm not sure there's a good reason for it.  You 
-> certainly can increment the resume counter after scheduling a suspend 
-> request -- the effect would be the same.
-
-Yes, it would.
-
-My point is that the core should always treat pending suspend requests in the
-same way.  If they are canceled by pm_runtime_resume(), then
-pm_request_resume() should also cancel them and it shouldn't be possible
-to schedule a suspend request when the resume counter is greater than 0.
-In turn, if they are ignored by pm_runtime_resume(), then pm_request_resume()
-should also ignore them and there's no point to prevent pm_request_suspend()
-from scheduling a suspend request if the resume counter is greater than 0.
-
-Any other type of behavior has a potential to confuse driver writers.
-
-Best,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
