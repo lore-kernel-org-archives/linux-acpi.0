@@ -1,104 +1,80 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
-Date: Mon, 29 Jun 2009 10:54:55 +0800
-Message-ID: <20090629025455.GA20614@sli10-desk.sh.intel.com>
-References: <20090624041354.GA15936@sli10-desk.sh.intel.com> <1245825558.19816.1861.camel@twins> <20090624074703.GA28458@sli10-desk.sh.intel.com> <1245830585.31755.11.camel@twins> <20090624082112.GA20844@sli10-desk.sh.intel.com> <20090626181623.GF7717@dirshya.in.ibm.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update] PM: Introduce core framework for run-time PM of
+ I/O devices (rev. 6)
+Date: Sun, 28 Jun 2009 23:05:41 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906282237180.11984-100000@netrider.rowland.org>
+References: <200906290215.39517.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57274 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763AbZF2Cyy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Jun 2009 22:54:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20090626181623.GF7717@dirshya.in.ibm.com>
+Received: from netrider.rowland.org ([192.131.102.5]:40390 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751936AbZF2DFi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jun 2009 23:05:38 -0400
+In-Reply-To: <200906290215.39517.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "andi@firstfloor.org" <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Sat, Jun 27, 2009 at 02:16:23AM +0800, Vaidyanathan Srinivasan wrote:
-> * Shaohua Li <shaohua.li@intel.com> [2009-06-24 16:21:12]:
+On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
+
+> > The original version of __cancel_work_timer is not safe to use
+> > in_interrupt.  If it is called from a handler whose IRQ interrupted
+> > delayed_work_timer_fn, it can loop indefinitely.
 > 
-> > On Wed, Jun 24, 2009 at 04:03:05PM +0800, Peter Zijlstra wrote:
-> > > On Wed, 2009-06-24 at 15:47 +0800, Shaohua Li wrote:
-> > > > On Wed, Jun 24, 2009 at 02:39:18PM +0800, Peter Zijlstra wrote:
-> > > > > On Wed, 2009-06-24 at 12:13 +0800, Shaohua Li wrote:
-> > > > > > This patch supports the processor aggregator device. When OS gets one ACPI
-> > > > > > notification, the driver will idle some number of cpus.
-> > > > > > 
-> > > > > > To make CPU idle, the patch will create power saving thread. Scheduler
-> > > > > > will migrate the thread to preferred CPU. The thread has max priority and
-> > > > > > has SCHED_RR policy, so it can occupy one CPU. To save power, the thread will
-> > > > > > keep calling C-state instruction. Routine power_saving_thread() is the entry
-> > > > > > of the thread.
-> > > > > > 
-> > > > > > To avoid starvation, the thread will sleep 5% time for every second
-> > > > > > (current RT scheduler has threshold to avoid starvation, but if other
-> > > > > > CPUs are idle, the CPU can borrow CPU timer from other, so makes the mechanism
-> > > > > > not work here)
-> > > > > > 
-> > > > > > This approach (to force CPU idle) should hasn't impact to scheduler and tasks
-> > > > > > with affinity still can get chance to run even the tasks run on idled cpu. Any
-> > > > > > comments/suggestions are welcome.
-> > > > > 
-> > > > > > +static int power_saving_thread(void *data)
-> > > > > > +{
-> > > > > > +	struct sched_param param = {.sched_priority = MAX_RT_PRIO - 1};
-> > > > > > +	int do_sleep;
-> > > > > > +
-> > > > > > +	/*
-> > > > > > +	 * we just create a RT task to do power saving. Scheduler will migrate
-> > > > > > +	 * the task to any CPU.
-> > > > > > +	 */
-> > > > > > +	sched_setscheduler(current, SCHED_RR, &param);
-> > > > > > +
-> > > > > 
-> > > > > This is crazy and wrong.
-> > > > > 
-> > > > > 1) cpusets can be so configured as to not have the full machine in a
-> > > > > single load-balance domain, eg. the above comment about the scheduler is
-> > > > > false.
-> > > > Assume user will not assign such thread to a cpuset, if yes, it's user's
-> > > > wrong.
-> > > 
-> > > No its user policy, and esp on large machines cpusets are very useful.
-> > > The kernel not taking that into account is simply not an option.
-> > > 
-> > > Any thermal facility that doesn't take cpusets into account, or worse
-> > > destroys user policy (the hotplug road), is a full stop in my book.
-> > > 
-> > > Is similar to the saying the customer is always right, sure the admin
-> > > can indeed configure the machine so that any thermal policy is indeed
-> > > doomed to fail, and in that case I would print some warnings into syslog
-> > > and let the machine die of thermal overload -- not our problem.
-> > > 
-> > > The thing is, the admin configures it in a way, and then expects it to
-> > > work like that. If any random event can void the guarantees what good
-> > > are they?
-> > > 
-> > > Now, if ACPI-4.0 is so broken that it simply cannot support a sane
-> > > thermal model, then I suggest we simply not support this feature and
-> > > hope they will grow clue for 4.1 and try again next time.
-> > The assumption is user not assigns power saving thread to a specific cpuset.
-> > I thought the assumption is feasible, user can assign threads they care about
-> > to a cpuset, but not all.
-> > Power saving thread stays at the top cpuset, so it still has chance to run on any
-> > cpus. If power saving thread runs on a cpu, the tasks on the cpu still have chance
-> > to run (at least 0.05s), so it does not completely break user policy.
+> Right, I overlooked that.
 > 
-> How do we handle interrupts and timers during this interval?  You seem
-> to disable interrupts and hold the cpu at idle for 0.95 sec.  It may
-> cause timeouts and overflows for network interrupts right?
-The x86 mwait/monitor instruction can detect interrupt and complete execution
-even interrupt is disabled, so this isn't an issue.
+> > Therefore I added a check; if it finds that the work_struct is currently
+> > being enqueued and it is running in_interrupt, it gives up right away.
+> 
+> Hmm, it doesn't do the work_clear_pending(work) in that case, so we allow
+> the work to be queued and run?
 
-> Next issue is halting sibling threads belonging to a core at the same
-> time to have any power/thermal benefit.  Who does the coordination for
-> forced idle in this approach?
-Nobody does the coordination. Halt some threads even they belong to a core
-is the best we can provide now. For future, if the scheduler approach really
-works, we will happily use it.
+Yes.  That's better than leaving the work queued but with the "pending" 
+flag cleared.  :-)
 
-Thanks,
-Shaohua
+>  Out of couriosity, what the caller is supposed
+> to do then?
+
+In the case of cancel_work, this is a simple race.  The work_struct was
+being submitted at the same time as the cancellation occurred.  The end
+result is the same as if the submission had been slightly later: The
+work is on the queue and it will run.  If the caller can guarantee that 
+the work is not in the process of being submitted (as described in the 
+kerneldoc) then this situation will never arise.
+
+In the case of cancel_delayed_work, things are more complicated.  If
+the cancellation had occurred a little earlier, it would have
+deactivated the timer.  If it had occurred a little later, it would
+have removed the item from the workqueue.  But since it arrived at
+exactly the wrong time -- while the timer routine is enqueuing the work
+-- there's nothing it can do.  The caller has to cope as best he can.
+
+For runtime PM this isn't a big issue.  The only delayed work we have
+is a delayed autosuspend request.  These things get cancelled when:
+
+	pm_runtime_suspend runs synchronously.  That happens in
+	process context so we're okay.
+
+	pm_runtime_suspend_atomic (not yet written!) is called.
+	If the cancellation fails, we'll have to return an error.
+	The suspend will happen later, when the work item runs.
+	Ultimately, the best we can do is recommend that people
+	don't mix pm_request_suspend with pm_runtime_suspend_atomic.
+
+
+Which reminds me...  The way you've got things set up, 
+pm_runtime_put_atomic queues an idle notification, right?  That's 
+a little inconsistent with the naming of the other routines.
+
+Instead, pm_runtime_put_atomic should be a version of pm_runtime_put
+that can safely be called in an atomic context -- it implies that it
+will call the runtime_notify callback while holding the spinlock.  The
+routine to queue an idle-notify request should be called something like
+pm_request_put -- although that name isn't so great because it sounds 
+like the put gets deferred instead of the notification.
+
+Alan Stern
+
+
