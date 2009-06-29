@@ -1,32 +1,77 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] eeepc-laptop: don't touch the pci slot if it was
-	claimed by a different driver
-Date: Mon, 29 Jun 2009 20:22:06 +0100
-Message-ID: <20090629192206.GA7811@srcf.ucam.org>
-References: <1245990020-20455-1-git-send-email-lenb@kernel.org> <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com> <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com> <4A48C15C.3000509@tuffmail.co.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [patch update] PM: Introduce core framework for
+ run-time PM of I/O devices (rev. 6)
+Date: Mon, 29 Jun 2009 15:25:57 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0906291504050.17436-100000@iolanthe.rowland.org>
+References: <200906292025.15142.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34714 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758254AbZF2TWI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 15:22:08 -0400
-Content-Disposition: inline
-In-Reply-To: <4A48C15C.3000509@tuffmail.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200906292025.15142.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Corentin Chary <corentincj@iksaif.net>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>
 
-On Mon, Jun 29, 2009 at 02:27:56PM +0100, Alan Jenkins wrote:
-> The whole point of registering as a PCI hotplug driver was to prevent
-> conflict with pciehp.  At the moment it happens to work because
-> eeepc-laptop is loaded first, but it doesn't work the other way round.
-> If pciehp is loaded first then we fail to claim the slot - we need to
-> respect this and not handle hotplug events.
+On Mon, 29 Jun 2009, Rafael J. Wysocki wrote:
+
+> IMO one can think of pm_request_resume() as a top half of pm_runtime_resume().
+
+Normal top halves don't trigger before the circumstances are
+appropriate.  For example, if you enable remote wakeup on a USB device,
+it won't send a wakeup signal before it has been powered down.  A
+driver calling pm_request_resume while the device is still resumed is
+like a USB device sending a wakeup request while it is still powered
+up.  So IMO the analogy with top halves isn't a good one.
+
+> Thus, it should either queue up a request to run pm_runtime_resume() or leave
+> the status as though pm_runtime_resume() ran.  Anything else would be
+> internally inconsistent.  So, if pm_runtime_resume() cancels pending suspend
+> requests, pm_request_resume() should do the same or the other way around.
 > 
-> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> Now, arguably, ignoring pending suspend requests is somewhat easier from
+> the core's point of view, but it may not be so for drivers.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+The argument I gave in the previous email demonstrates that it doesn't
+make any difference to drivers.  Either way, they have to use two I/O
+pathways, they have to do a pm_runtime_get before pm_request_resume,
+and they have to do a pm_request_put after the I/O is done.
+
+Of course, this is all somewhat theoretical.  I still don't know of any 
+actual drivers that do the equivalent of pm_request_resume.
+
+> My point is that the core should always treat pending suspend requests in the
+> same way.  If they are canceled by pm_runtime_resume(), then
+> pm_request_resume() should also cancel them and it shouldn't be possible
+> to schedule a suspend request when the resume counter is greater than 0.
+> In turn, if they are ignored by pm_runtime_resume(), then pm_request_resume()
+> should also ignore them and there's no point to prevent pm_request_suspend()
+> from scheduling a suspend request if the resume counter is greater than 0.
+> 
+> Any other type of behavior has a potential to confuse driver writers.
+
+Another possible approach you could take when the call to
+cancel_delayed_work fails (which should be rare) is to turn on RPM_WAKE
+in addition to RPM_IDLE and leave the suspend request queued.  When
+__pm_runtime_suspend sees both flags are set, it should abort and set
+the status directly back to RPM_ACTIVE.  At that time the idle
+notifications can start up again.
+
+Is this any better?  I can't see how drivers would care, though.
+
+Alan Stern
+
+P.S.: What do you think should happen if there's a delayed suspend
+request pending, then pm_request_resume is called (and it leaves the
+request queued), and then someone calls pm_runtime_suspend?  You've got
+two pending requests and a synchronous call all active at the same
+time!
