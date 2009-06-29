@@ -1,71 +1,80 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH 1/8] eeepc-laptop: Register as a pci-hotplug device
-Date: Mon, 29 Jun 2009 13:44:24 +0100
-Message-ID: <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com>
-References: <1245990020-20455-1-git-send-email-lenb@kernel.org>
-	 <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH] eeepc-laptop: don't touch the pci slot if it was claimed
+ by a different driver
+Date: Mon, 29 Jun 2009 14:27:56 +0100
+Message-ID: <4A48C15C.3000509@tuffmail.co.uk>
+References: <1245990020-20455-1-git-send-email-lenb@kernel.org>	 <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com> <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:41824 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbZF2Muc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 08:50:32 -0400
-Received: by fxm18 with SMTP id 18so936395fxm.37
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2009 05:50:34 -0700 (PDT)
-In-Reply-To: <6af05c22969dce2776375953131b56e9f4282848.1245989983.git.len.brown@intel.com>
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:63121 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759143AbZF2N16 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2009 09:27:58 -0400
+Received: by ewy6 with SMTP id 6so5623872ewy.37
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2009 06:28:00 -0700 (PDT)
+In-Reply-To: <9b2b86520906290544g2f5d1da9m8539a5a6f67cf33c@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Corentin Chary <corentincj@iksaif.net>
 Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Randy Dunlap <randy.dunlap@oracle.com>
 
-On 6/26/09, Len Brown <lenb@kernel.org> wrote:
-> From: Corentin Chary <corentincj@iksaif.net>
->
-> The eee contains a logically (but not physically) hotpluggable PCIe slot.
-> Currently this is handled by adding or removing the PCI device in response
-> to rfkill events, but if a user has forced pciehp to bind to it (with the
-> force=1 argument) then both drivers will try to handle the event and
-> hilarity (in the form of oopses) will ensue. This can be avoided by having
-> eee-laptop register the slot as a hotplug slot. Only one of pciehp and
-> eee-laptop will successfully register this, avoiding the problem.
->
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> Tested-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
+The whole point of registering as a PCI hotplug driver was to prevent
+conflict with pciehp.  At the moment it happens to work because
+eeepc-laptop is loaded first, but it doesn't work the other way round.
+If pciehp is loaded first then we fail to claim the slot - we need to
+respect this and not handle hotplug events.
 
-Actually this only solves half the problem.
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+---
 
-> +	result = eeepc_setup_pci_hotplug();
-> +	/*
-> +	 * If we get -EBUSY then something else is handling the PCI hotplug -
-> +	 * don't fail in this case
-> +	 */
-> +	if (result == -EBUSY)
-> +		return 0;
-> +	else if (result)
-> +		goto pci_fail;
-> +
->  	return 0;
+IMO this is not an urgent patch - it's not a regression from 2.6.30. 
+Given the number of other changes, I'd be happier if it could be held
+back for 2.6.32.
 
-It works fine if eeepc-laptop is loaded first, preventing pciehp from
-messing with the hardware.  But it doesn't stop eeepc-laptop from
-messing with the hardware if pciehp is loaded first.  In that case,
-eeepc-laptop fails to register as a PCI hotplug device, but it still
-messes with the hardware.
+ drivers/platform/x86/eeepc-laptop.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-I have tested this - if I do
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 76dc3d9..faedee5 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -664,15 +664,20 @@ static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
+ static void eeepc_hotplug_work(struct work_struct *work)
+ {
+ 	struct pci_dev *dev;
+-	struct pci_bus *bus = pci_find_bus(0, 1);
+-	bool blocked;
++	struct pci_bus *bus;
++	bool blocked = eeepc_wlan_rfkill_blocked();
++
++	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
+ 
++	if (ehotk->hotplug_slot == NULL)
++		return;
++
++	bus = pci_find_bus(0, 1);
+ 	if (!bus) {
+ 		pr_warning("Unable to find PCI bus 1?\n");
+ 		return;
+ 	}
+ 
+-	blocked = eeepc_wlan_rfkill_blocked();
+ 	if (!blocked) {
+ 		dev = pci_get_slot(bus, 0);
+ 		if (dev) {
+@@ -693,8 +698,6 @@ static void eeepc_hotplug_work(struct work_struct *work)
+ 			pci_dev_put(dev);
+ 		}
+ 	}
+-
+-	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
+ }
+ 
+ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+-- 
+1.6.3.2
 
-modprobe -r eeepc-laptop
-modprobe pciehp pciehp_force=1
-modprobe eeepc-laptop
 
-and press the wireless-toggle key a couple of times, I get a lovely
-set of oopses and a non-responsive system.
 
-Thanks
-Alan
