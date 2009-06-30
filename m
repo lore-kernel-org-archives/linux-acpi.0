@@ -1,149 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC] Run-time PM framework (was: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6))
-Date: Wed, 1 Jul 2009 00:30:12 +0200
-Message-ID: <200907010030.13775.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0906301027540.3049-100000@iolanthe.rowland.org>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH] PNPACPI: Enable PNPACPI _PSx Support, v3
+Date: Tue, 30 Jun 2009 16:03:14 -0700
+Message-ID: <20090630230314.GD2634@kroah.com>
+References: <49D101DA.50201@gmx.net> <200904021510.37517.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53209 "EHLO ogre.sisk.pl"
+Received: from kroah.org ([198.145.64.141]:56480 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752342AbZF3WaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jun 2009 18:30:03 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0906301027540.3049-100000@iolanthe.rowland.org>
+	id S1758593AbZF3XLD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2009 19:11:03 -0400
 Content-Disposition: inline
+In-Reply-To: <200904021510.37517.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Witold Szczeponik <Witold.Szczeponik@gmx.net>, stable@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, abelay@mit.edu, bjorn.helgaas@hp.com
 
-On Tuesday 30 June 2009, Alan Stern wrote:
-... 
-> That's enough to give you the general idea.  I think this design is 
-> a lot cleaner than the current one.
+On Thu, Apr 02, 2009 at 03:10:36PM +0200, Thomas Renninger wrote:
+> Hi,
+> 
+> I remember a bug (serial device not working)
+> related to serial and docking on Lenovo.
+> I wonder whether this could be related to this fix.
+> 
+> This one also looks worth adding to stable kernel, at least
+> after 2.6.30 does not show regressions for a while.
+> 
+> On Monday 30 March 2009 19:31:06 Witold Szczeponik wrote:
+> > Subject: Enable PNPACPI _PSx Support, v3
+> > 
+> > 
+> > (This is an update to the patch presented earlier in
+> > http://lkml.org/lkml/2008/12/8/284, with new error handling.)
+> > 
+> > This patch sets the power of PnP ACPI devices to D0 when they
+> > are activated and to D3 when they are disabled.  The latter is
+> > in correspondence with the ACPI 3.0 specification, whereas the
+> > former is added in order to be able to power up a device after
+> > it has been previously disabled (or when booting up a system).
+> > (As a consequence, the patch makes the PnP ACPI code more ACPI
+> > compliant.)
+> > 
+> > Section 6.2.2 of the ACPI Specification (at least versions 1.0b
+> > and 3.0a) states: "Prior to running this control method [_DIS],
+> > the OS[PM] will have already put the device in the D3 state."
+> > Unfortunately, there is no clear statement as to when to put
+> > a device in the D0 state. :-( Therefore, the patch executes the
+> > method calls as _PS3/_DIS and _SRS/_PS0. What is clear: "If the
+> > device is disabled, _SRS enables the device at the specified
+> > resources." (From the ACPI 3.0a Specification.)
+> > 
+> > The patch fixes a problem with some IBM ThinkPads (at least the
+> > 600E and the 600X) where the serial ports have a dedicated
+> > power source that needs to be brought up before the serial port
+> > can be used.  Without this patch, the serial port is enabled
+> > but has no power. (In the past, the tpctl utility had to be
+> > utilized to turn on the power, but support for this feature
+> > stopped with version 5.9 as it did not support the more recent
+> > kernel versions.)
+> > 
+> > The error handlers that handle any errors that can occur during
+> > the power up/power down phases return the error codes to the
+> > caller directly.  Comments welcome! :-)
+> > 
+> > No regressions were observed on hardware that does not require
+> > this patch.
+> > 
+> > The patch is applied against 2.6.27.x.
+> > 
+> > 
+> > Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+> CC: stable@kernel.org
+> ...
 
-Well, I'm not really happy with starting over, but if you think we should do
-that, then let's do it.
+What specific git commit id in Linus's tree is this?
 
-I think we both agree that the callbacks, ->runtime_idle(), ->runtime_suspend()
-and ->runtime_resume() make sense.  Now, the role of the framework, IMO, is to
-provide a mechanism by which it is possible:
-(1) to schedule a delayed execution of ->runtime_suspend(), possibly from
-    interrupt context,
-(2) to schedule execution of ->runtime_resume() or ->runtime_idle(), possibly
-    from interrupt context,
-(3) to execute ->runtime_suspend() or ->runtime_resume() directly in a
-    synchronous way (I'm not sure about ->runtime_idle())
-_and_ to ensure that these callbacks will be executed when it makes sense.
-There's no other point, because the core has no information to make choices,
-it can only prevent wrong things from happening, if possible.
+thanks,
 
-I think you will agree that the users of the framework should be able to
-prevent ->runtime_suspend() from being called and that's what the usage counter
-is for.  Also, IMO it should be impossible to execute ->runtime_idle(), via the
-framework, when the usage counter is nonzero.
-
-BTW, I don't think resume_count is the best name; it used to be in the version
-of my patch where it was automatically incremented when ->runtime_resume() was
-about to called.  usage_count is probably better.
-
-Next, I think that the framework should refuse to call ->runtime_suspend() and
-->runtime_idle() if the children of the device are not suspended and the
-"ignore children" flag is unset.  The counter of unsuspended children is used
-for that.  I think the rule should be that it is decremented for the parent
-whenever ->runtime_suspend() is called for a child and it is incremented
-for the parent whenever ->runtime_resume() is called for a child.
-
-Now, the question is what rules should apply to the ordering and possible
-simultaneous execution of ->runtime_idle(), ->runtime_suspend() and
-->runtime_resume().  I think the following rules make sense:
-
-  * It is forbidden to run ->runtime_suspend() twice in a row.
-
-  * It is forbidden to run ->runtime_suspend() in parallel with another instance
-    of ->runtime_suspend().
-
-  * It is forbidden to run ->runtime_resume() twice in a row.
-
-  * It is forbidden to run ->runtime_resume() in parallel with another instance
-    of ->runtime_resume().
-
-  * It is allowed to run ->runtime_suspend() after ->runtime_resume() or after
-    ->runtime_idle(), but the latter case is preferred. 
-
-  * It is allowed to run ->runtime_resume() after ->runtime_suspend().
-
-  * It is forbidden to run ->runtime_resume() after ->runtime_idle().
-
-  * It is forbidden to run ->runtime_suspend() and ->runtime_resume() in
-    parallel with each other.
-
-  * It is forbidden to run ->runtime_idle() twice in a row.
-
-  * It is forbidden to run ->runtime_idle() in parallel with another instance
-    of ->runtime_idle().
-
-  * It is forbidden to run ->runtime_idle() after ->runtime_suspend().
-
-  * It is allowed to run ->runtime_idle() after ->runtime_resume().
-
-  * It is allowed to execute ->runtime_suspend() or ->runtime_resume() when
-    ->runtime_idle() is running.  In particular, it is allowed to (indirectly)
-    call ->runtime_suspend() from within ->runtime_idle().
-
-  * It is forbidden to execute ->runtime_idle() when ->runtime_resume() or
-    ->runtime_suspend() is running.
-
-  * If ->runtime_resume() is about to be called immediately after
-    ->runtime_suspend(), the execution of ->runtime_suspend() should be
-    prevented from happening, if possible, in which case the execution of
-    ->runtime_resume() shouldn't happen.
-
-  * If ->runtime_suspend() is about to be called immediately after
-    ->runtime_resume(), the execution of ->runtime_resume() should be
-    prevented from happening, if possible, in which case the execution of
-    ->runtime_suspend() shouldn't happen.
-
-[Are there any more rules related to these callbacks we should take into
-account?]
-
-Next, if we agree about the rules above, the question is what helper functions
-should be provided by the core allowing these rules to be followed
-automatically and what error codes should be returned by them in case it
-wasn't possible to proceed without breaking the rules.
-
-IMO, it is reasonable to provide:
-
-  * pm_schedule_suspend(dev, delay) - schedule the execution of
-    ->runtime_suspend(dev) after delay.
-
-  * pm_runtime_suspend(dev) - execute ->runtime_suspend(dev) right now.
-
-  * pm_runtime_resume(dev) - execute ->runtime_resume(dev) right now.
-
-  * pm_request_resume(dev) - put a request to execute ->runtime_resume(dev)
-    into the run-time PM workqueue.
-
-  * pm_runtime_get(dev) - increment the device's usage counter.
-
-  * pm_runtime_put(dev) - decrement the device's usage counter.
-
-  * pm_runtime_idle(dev) - execute ->runtime_idle(dev) right now if the usage
-    counter is zero and all of the device's children are suspended (or the
-    "ignore children" flag is set).
-
-  * pm_request_idle(dev) - put a request to execute ->runtime_idle(dev)
-    into the run-time PM workqueue.  The usage counter and children will be
-    checked immediately before executing ->runtime_idle(dev).
-
-I'm not sure if it is really necessary to combine pm_runtime_idle() or
-pm_request_idle() with pm_runtime_put().  At least right now I don't see any
-real value of that.
-
-I also am not sure what error codes should be returned by the above helper
-functions and in what conditions.
-
-Thanks,
-Rafael
+greg k-h
