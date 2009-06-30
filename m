@@ -1,251 +1,149 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 2/2] Add a driver for the Winbond WPCD376I IR
- functionality.
-Date: Tue, 30 Jun 2009 14:23:45 -0700
-Message-ID: <20090630142345.58e97b50.akpm@linux-foundation.org>
-References: <1246079912-17619-1-git-send-email-david@hardeman.nu>
-	<1246079912-17619-3-git-send-email-david@hardeman.nu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC] Run-time PM framework (was: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices (rev. 6))
+Date: Wed, 1 Jul 2009 00:30:12 +0200
+Message-ID: <200907010030.13775.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0906301027540.3049-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1246079912-17619-3-git-send-email-david@hardeman.nu>
-Sender: linux-input-owner@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org, david@hardeman.nu
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:53209 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbZF3WaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2009 18:30:03 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0906301027540.3049-100000@iolanthe.rowland.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-On Sat, 27 Jun 2009 07:18:32 +0200
-David H__rdeman <david@hardeman.nu> wrote:
+On Tuesday 30 June 2009, Alan Stern wrote:
+... 
+> That's enough to give you the general idea.  I think this design is 
+> a lot cleaner than the current one.
 
-> This patch adds a driver for the the Consumer IR (CIR) functionality
-> of the Winbond WPCD376I chipset (found on e.g. Intel DG45FC
-> motherboards).
-> 
-> Changes since the driver was last posted to the list:
-> o Homebrew dprintk -> dev_dbg
-> o Some magic values changed to defines
-> o Fixed a bug where the wake-ir-command mask/value would not be
->   written properly
-> o Fixed the use of the invert parameter both for wake and normal
->   IR reception.
-> 
->
-> ...
->
-> +static void
-> +wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
-> +{
-> +	u8 val;
-> +
-> +	val = inb(addr);
-> +	val = ((val & ~mask) | (bits & mask));
-> +	outb(val, addr);
-> +}
+Well, I'm not really happy with starting over, but if you think we should do
+that, then let's do it.
 
-What locking prevents the races which could occur here?
+I think we both agree that the callbacks, ->runtime_idle(), ->runtime_suspend()
+and ->runtime_resume() make sense.  Now, the role of the framework, IMO, is to
+provide a mechanism by which it is possible:
+(1) to schedule a delayed execution of ->runtime_suspend(), possibly from
+    interrupt context,
+(2) to schedule execution of ->runtime_resume() or ->runtime_idle(), possibly
+    from interrupt context,
+(3) to execute ->runtime_suspend() or ->runtime_resume() directly in a
+    synchronous way (I'm not sure about ->runtime_idle())
+_and_ to ensure that these callbacks will be executed when it makes sense.
+There's no other point, because the core has no information to make choices,
+it can only prevent wrong things from happening, if possible.
 
-Whatever it is, it would be good to document that here in a code
-comment.
+I think you will agree that the users of the framework should be able to
+prevent ->runtime_suspend() from being called and that's what the usage counter
+is for.  Also, IMO it should be impossible to execute ->runtime_idle(), via the
+framework, when the usage counter is nonzero.
 
->
-> ...
->
-> +static u8
-> +wbcir_revbyte(u8 byte)
-> +{
-> +	byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xAA);
-> +	byte = ((byte >> 2) & 0x33) | ((byte << 2) & 0xCC);
-> +	return (byte >> 4) | (byte<<4);
-> +}
+BTW, I don't think resume_count is the best name; it used to be in the version
+of my patch where it was automatically incremented when ->runtime_resume() was
+about to called.  usage_count is probably better.
 
-Can this use the facilities in include/linux/bitrev.h?
+Next, I think that the framework should refuse to call ->runtime_suspend() and
+->runtime_idle() if the children of the device are not suspended and the
+"ignore children" flag is unset.  The counter of unsuspended children is used
+for that.  I think the rule should be that it is decremented for the parent
+whenever ->runtime_suspend() is called for a child and it is incremented
+for the parent whenever ->runtime_resume() is called for a child.
 
-> +static u8
-> +wbcir_to_rc6cells(u8 val)
-> +{
-> +	u8 coded = 0x00;
-> +	int i;
-> +
-> +	val &= 0x0F;
-> +	for (i = 0; i < 4; i++) {
-> +		if (val & 0x01)
-> +			coded |= 0x02 << (i * 2);
-> +		else
-> +			coded |= 0x01 << (i * 2);
-> +		val >>= 1;
-> +	}
-> +
-> +	return coded;
-> +}
+Now, the question is what rules should apply to the ordering and possible
+simultaneous execution of ->runtime_idle(), ->runtime_suspend() and
+->runtime_resume().  I think the following rules make sense:
 
-geeze, what does that do?
+  * It is forbidden to run ->runtime_suspend() twice in a row.
 
-Code needs comments..
+  * It is forbidden to run ->runtime_suspend() in parallel with another instance
+    of ->runtime_suspend().
 
->
-> ...
->
-> +static int
-> +wbcir_getkeycode(struct input_dev *dev, int sscancode, int *keycode)
-> +{
-> +	unsigned int scancode = (unsigned int)sscancode;
+  * It is forbidden to run ->runtime_resume() twice in a row.
 
-unneeded cast.
+  * It is forbidden to run ->runtime_resume() in parallel with another instance
+    of ->runtime_resume().
 
-> +	struct wbcir_data *data = input_get_drvdata(dev);
-> +
-> +	if (scancode < 0 || scancode > 0xFFFFFFFF)
+  * It is allowed to run ->runtime_suspend() after ->runtime_resume() or after
+    ->runtime_idle(), but the latter case is preferred. 
 
-Neither of the comparisons in this expression can ever be true.
+  * It is allowed to run ->runtime_resume() after ->runtime_suspend().
 
-> +		return -EINVAL;
-> +
-> +	*keycode = (int)wbcir_do_getkeycode(data, (u32)scancode);
+  * It is forbidden to run ->runtime_resume() after ->runtime_idle().
 
-uneeded casts.
+  * It is forbidden to run ->runtime_suspend() and ->runtime_resume() in
+    parallel with each other.
 
-Something has gone wrong with the types here.  Where does the fault lie
-- this driver, or input core?
+  * It is forbidden to run ->runtime_idle() twice in a row.
 
-> +	return 0;
-> +}
-> +
-> +static int
-> +wbcir_setkeycode(struct input_dev *dev, int sscancode, int keycode)
-> +{
-> +	struct wbcir_data *data = input_get_drvdata(dev);
-> +	struct wbcir_keyentry *keyentry;
-> +	struct wbcir_keyentry *new_keyentry;
-> +	unsigned long flags;
-> +	unsigned int old_keycode = KEY_RESERVED;
-> +	unsigned int scancode = (unsigned int)sscancode;
-> +
-> +	if (scancode < 0 || scancode > 0xFFFFFFFF)
+  * It is forbidden to run ->runtime_idle() in parallel with another instance
+    of ->runtime_idle().
 
-various dittoes.
+  * It is forbidden to run ->runtime_idle() after ->runtime_suspend().
 
-> +		return -EINVAL;
-> +
-> +	if (keycode < 0 || keycode > KEY_MAX)
-> +		return -EINVAL;
-> +
-> +	new_keyentry = kmalloc(sizeof(*new_keyentry), GFP_KERNEL);
-> +	if (!new_keyentry)
-> +		return -ENOMEM;
-> +
-> +	write_lock_irqsave(&keytable_lock, flags);
-> +
-> +	list_for_each_entry(keyentry, &data->keytable, list) {
-> +		if (keyentry->key.scancode != scancode)
-> +			continue;
-> +
-> +		old_keycode = keyentry->key.keycode;
-> +		keyentry->key.keycode = keycode;
-> +
-> +		if (keyentry->key.keycode == KEY_RESERVED) {
-> +			list_del(&keyentry->list);
-> +			kfree(keyentry);
-> +		}
-> +
-> +		break;
-> +	}
-> +
-> +	set_bit(keycode, dev->keybit);
-> +
-> +	if (old_keycode == KEY_RESERVED) {
-> +		new_keyentry->key.scancode = (u32)scancode;
-> +		new_keyentry->key.keycode = (unsigned int)keycode;
-> +		list_add(&new_keyentry->list, &data->keytable);
-> +	} else {
-> +		kfree(new_keyentry);
-> +		clear_bit(old_keycode, dev->keybit);
-> +		list_for_each_entry(keyentry, &data->keytable, list) {
-> +			if (keyentry->key.keycode == old_keycode) {
-> +				set_bit(old_keycode, dev->keybit);
-> +				break;
-> +			}
-> +		}
-> +	}
-> +
-> +	write_unlock_irqrestore(&keytable_lock, flags);
-> +	return 0;
-> +}
-> +
-> +static void
-> +wbcir_keyup(unsigned long cookie)
+  * It is allowed to run ->runtime_idle() after ->runtime_resume().
 
-It would be useful to add a comment telling the reader that this is a
-timer-handler function.
+  * It is allowed to execute ->runtime_suspend() or ->runtime_resume() when
+    ->runtime_idle() is running.  In particular, it is allowed to (indirectly)
+    call ->runtime_suspend() from within ->runtime_idle().
 
-> +{
-> +	struct wbcir_data *data = (struct wbcir_data *)cookie;
-> +	unsigned long flags;
-> +
-> +	/*
-> +	 * data->keyup_jiffies is used to prevent a race condition if a
-> +	 * hardware interrupt occurs at this point and the keyup timer
-> +	 * event is moved further into the future as a result.
-> +	 */
+  * It is forbidden to execute ->runtime_idle() when ->runtime_resume() or
+    ->runtime_suspend() is running.
 
-hm.  I don't see what the race is, nor how the comparison fixes it.  If
-I _did_ understand this, perhaps I could suggest alternative fixes. 
-But I don't so I can't.  Oh well.
+  * If ->runtime_resume() is about to be called immediately after
+    ->runtime_suspend(), the execution of ->runtime_suspend() should be
+    prevented from happening, if possible, in which case the execution of
+    ->runtime_resume() shouldn't happen.
 
-> +	spin_lock_irqsave(&wbcir_lock, flags);
-> +
-> +	if (time_is_after_eq_jiffies(data->keyup_jiffies) && data->keypressed) {
-> +		data->keypressed = 0;
-> +		led_trigger_event(data->rxtrigger, LED_OFF);
-> +		input_report_key(data->input_dev, data->last_keycode, 0);
-> +		input_sync(data->input_dev);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&wbcir_lock, flags);
-> +}
-> +
->
-> ...
->
-> +static void
-> +add_irdata_bit(struct wbcir_data *data, int set)
-> +{
-> +	if (set)
-> +		data->irdata[data->irdata_count / 8] |=
-> +			0x01 << (data->irdata_count % 8);
+  * If ->runtime_suspend() is about to be called immediately after
+    ->runtime_resume(), the execution of ->runtime_resume() should be
+    prevented from happening, if possible, in which case the execution of
+    ->runtime_suspend() shouldn't happen.
 
-Can/should this use generic___set_le_bit() or similar, rather than
-open-coding it?
+[Are there any more rules related to these callbacks we should take into
+account?]
 
-> +	data->irdata_count++;
-> +}
-> +
-> +/* Gets count bits of irdata */
-> +static u16
-> +get_bits(struct wbcir_data *data, int count)
-> +{
-> +	u16 val = 0x0;
-> +
-> +	if (data->irdata_count - data->irdata_off < count) {
-> +		data->irdata_error = 1;
-> +		return 0x0;
-> +	}
-> +
-> +	while (count > 0) {
-> +		val <<= 1;
-> +		if (data->irdata[data->irdata_off / 8] &
-> +		    (0x01 << (data->irdata_off % 8)))
-> +			val |= 0x1;
+Next, if we agree about the rules above, the question is what helper functions
+should be provided by the core allowing these rules to be followed
+automatically and what error codes should be returned by them in case it
+wasn't possible to proceed without breaking the rules.
 
-ditto
+IMO, it is reasonable to provide:
 
-> +		count--;
-> +		data->irdata_off++;
-> +	}
-> +
-> +	return val;
-> +}
-> +
->
-> ...
->
+  * pm_schedule_suspend(dev, delay) - schedule the execution of
+    ->runtime_suspend(dev) after delay.
 
+  * pm_runtime_suspend(dev) - execute ->runtime_suspend(dev) right now.
+
+  * pm_runtime_resume(dev) - execute ->runtime_resume(dev) right now.
+
+  * pm_request_resume(dev) - put a request to execute ->runtime_resume(dev)
+    into the run-time PM workqueue.
+
+  * pm_runtime_get(dev) - increment the device's usage counter.
+
+  * pm_runtime_put(dev) - decrement the device's usage counter.
+
+  * pm_runtime_idle(dev) - execute ->runtime_idle(dev) right now if the usage
+    counter is zero and all of the device's children are suspended (or the
+    "ignore children" flag is set).
+
+  * pm_request_idle(dev) - put a request to execute ->runtime_idle(dev)
+    into the run-time PM workqueue.  The usage counter and children will be
+    checked immediately before executing ->runtime_idle(dev).
+
+I'm not sure if it is really necessary to combine pm_runtime_idle() or
+pm_request_idle() with pm_runtime_put().  At least right now I don't see any
+real value of that.
+
+I also am not sure what error codes should be returned by the above helper
+functions and in what conditions.
+
+Thanks,
+Rafael
