@@ -1,31 +1,59 @@
-From: Dunhill Award =?iso-8859-1?B?qTIwMDk=?= <flingins@rrohio.com>
-Subject: Payment Depertment
-Date: Tue, 30 Jun 2009 4:44:09 -0500
-Message-ID: <7h9gbp$dlijt7@rrcs-agw-01b.hrndva.rr.com>
-Reply-To: dunhilloffice333@rocketmail.com
+From: "Jan Beulich" <JBeulich@novell.com>
+Subject: [PATCH] acpi: fix parameter declaration of acpi_get_node()
+Date: Tue, 30 Jun 2009 12:24:35 +0100
+Message-ID: <4A4A1213020000780000832D@vpn.id2.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-commlb.mail.rr.com ([71.74.57.9]:39034 "EHLO
-	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755AbZF3JoI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2009 05:44:08 -0400
+Received: from vpn.id2.novell.com ([195.33.99.129]:45832 "EHLO
+	vpn.id2.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbZF3Loh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2009 07:44:37 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Iinfo@co.uk
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-You have been approved for a lump sum payment of  =A3750.000.00  GBP,  =
-in this Year Dunhill Products Promotion, Please fill the form below and=
- send it to our payment department with the  contact given below.
-Contact Email(dunhillreg.333@gmail.com)
+The function expects an acpi_handle, not a pointer to one.
 
-1.Full Name:..............
-2.Full Address:...........
-3.Occupation:.............
-4.Country:................
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+
+---
+ drivers/acpi/numa.c  |    2 +-
+ include/linux/acpi.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+--- linux-2.6.31-rc1/drivers/acpi/numa.c	2009-06-10 05:05:27.000000000 +0200
++++ 2.6.31-rc1-acpi-get-node/drivers/acpi/numa.c	2009-05-04 11:39:30.000000000 +0200
+@@ -316,7 +316,7 @@ int acpi_get_pxm(acpi_handle h)
+ 	return -1;
+ }
+ 
+-int acpi_get_node(acpi_handle *handle)
++int acpi_get_node(acpi_handle handle)
+ {
+ 	int pxm, node = -1;
+ 
+--- linux-2.6.31-rc1/include/linux/acpi.h	2009-06-26 17:49:59.000000000 +0200
++++ 2.6.31-rc1-acpi-get-node/include/linux/acpi.h	2009-05-04 11:39:30.000000000 +0200
+@@ -226,13 +226,13 @@ extern int acpi_osi_setup(char *str);
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ int acpi_get_pxm(acpi_handle handle);
+-int acpi_get_node(acpi_handle *handle);
++int acpi_get_node(acpi_handle handle);
+ #else
+ static inline int acpi_get_pxm(acpi_handle handle)
+ {
+ 	return 0;
+ }
+-static inline int acpi_get_node(acpi_handle *handle)
++static inline int acpi_get_node(acpi_handle handle)
+ {
+ 	return 0;
+ }
+
+
+
