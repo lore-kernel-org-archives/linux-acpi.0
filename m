@@ -1,59 +1,57 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Subject: [PATCH] acpi: fix parameter declaration of acpi_get_node()
-Date: Tue, 30 Jun 2009 12:24:35 +0100
-Message-ID: <4A4A1213020000780000832D@vpn.id2.novell.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [RESEND] [PATCH 1/3] ACPI: battery: Fix CONFIG_ACPI_SYSFS_POWER=n
+Date: Tue, 30 Jun 2009 15:35:05 +0100
+Message-ID: <4A4A2299.8060401@tuffmail.co.uk>
+References: <4A4A219C.2020802@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vpn.id2.novell.com ([195.33.99.129]:45832 "EHLO
-	vpn.id2.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbZF3Loh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2009 07:44:37 -0400
-Content-Disposition: inline
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:56709 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757586AbZF3OfF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2009 10:35:05 -0400
+Received: by ewy6 with SMTP id 6so228703ewy.37
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2009 07:35:07 -0700 (PDT)
+In-Reply-To: <4A4A219C.2020802@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-The function expects an acpi_handle, not a pointer to one.
+Disabling CONFIG_ACPI_SYSFS_POWER changes the behaviour of
+acpi_battery_update().  It will call acpi_battery_get_info()
+even if the battery is not present.  I haven't noticed this
+causing any problem, but it does look like a bad idea.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+CC: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
- drivers/acpi/numa.c  |    2 +-
- include/linux/acpi.h |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/battery.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
---- linux-2.6.31-rc1/drivers/acpi/numa.c	2009-06-10 05:05:27.000000000 +0200
-+++ 2.6.31-rc1-acpi-get-node/drivers/acpi/numa.c	2009-05-04 11:39:30.000000000 +0200
-@@ -316,7 +316,7 @@ int acpi_get_pxm(acpi_handle h)
- 	return -1;
- }
- 
--int acpi_get_node(acpi_handle *handle)
-+int acpi_get_node(acpi_handle handle)
- {
- 	int pxm, node = -1;
- 
---- linux-2.6.31-rc1/include/linux/acpi.h	2009-06-26 17:49:59.000000000 +0200
-+++ 2.6.31-rc1-acpi-get-node/include/linux/acpi.h	2009-05-04 11:39:30.000000000 +0200
-@@ -226,13 +226,13 @@ extern int acpi_osi_setup(char *str);
- 
- #ifdef CONFIG_ACPI_NUMA
- int acpi_get_pxm(acpi_handle handle);
--int acpi_get_node(acpi_handle *handle);
-+int acpi_get_node(acpi_handle handle);
- #else
- static inline int acpi_get_pxm(acpi_handle handle)
- {
- 	return 0;
- }
--static inline int acpi_get_node(acpi_handle *handle)
-+static inline int acpi_get_node(acpi_handle handle)
- {
- 	return 0;
- }
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 58b4517..908edce 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -501,13 +501,13 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	result = acpi_battery_get_status(battery);
+ 	if (result)
+ 		return result;
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+ 	if (!acpi_battery_present(battery)) {
++#ifdef CONFIG_ACPI_SYSFS_POWER
+ 		sysfs_remove_battery(battery);
++#endif
+ 		battery->update_time = 0;
+ 		return 0;
+ 	}
+-#endif
+ 	if (!battery->update_time ||
+ 	    old_present != acpi_battery_present(battery)) {
+ 		result = acpi_battery_get_info(battery);
+-- 
+1.6.3.2
 
 
 
