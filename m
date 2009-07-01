@@ -1,153 +1,106 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 2/2] Add a driver for the Winbond WPCD376I IR
- functionality.
-Date: Wed, 1 Jul 2009 11:06:16 -0700
-Message-ID: <20090701110616.60c05a5d.akpm@linux-foundation.org>
-References: <1246079912-17619-1-git-send-email-david@hardeman.nu>
-	<1246079912-17619-3-git-send-email-david@hardeman.nu>
-	<20090630142345.58e97b50.akpm@linux-foundation.org>
-	<35c700707581a42af21dd9edc82a5e84.squirrel@www.hardeman.nu>
+From: Hector Martin <hector@marcansoft.com>
+Subject: [PATCH] Work around negative s16 battery current on Acer
+Date: Wed, 01 Jul 2009 20:20:41 +0200
+Message-ID: <4A4BA8F9.9070803@marcansoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <35c700707581a42af21dd9edc82a5e84.squirrel@www.hardeman.nu>
-Sender: linux-input-owner@vger.kernel.org
-To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org
+Content-Type: multipart/mixed;
+ boundary="------------040603090503000706090101"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from marcansoft.com ([80.68.93.119]:59188 "EHLO smtp.marcansoft.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752815AbZGAS31 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2009 14:29:27 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Wed, 1 Jul 2009 09:47:46 +0200 (CEST)
-David H__rdeman <david@hardeman.nu> wrote:
+This is a multi-part message in MIME format.
+--------------040603090503000706090101
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> >> +	struct wbcir_data *data = input_get_drvdata(dev);
-> >> +
-> >> +	if (scancode < 0 || scancode > 0xFFFFFFFF)
-> >
-> > Neither of the comparisons in this expression can ever be true.
-> 
-> Didn't know if I could be certain that int is always 32 bit on all
-> platforms which use/might use the chip...can I?
+My Acer Aspire 8930G laptop reports the battery current as a 16-bit
+signed negative when it is charging. It also reports it as 0x10000 when
+the current is 0. This patch adds a quirk for this which takes the
+absolute value of the reported current cast to an s16. This is a DSDT
+bug present in the latest BIOS revision (the EC register is 16 bits
+signed and the DSDT attempts to take the 16-bit two's complement of
+this, which works for discharge but not charge. It also breaks zero
+values because a 32-bit register is used and the high bits aren't thrown
+away).
 
-Yep, int and unsigned int are always 32-bit.
+I've enabled this for all Acer systems which report in mA units. This
+should be safe since it won't break compliant systems unless they report
+a current above 32A, which is insane.
 
-It's not a big deal at all - the compiler will optimise the tests away
-completely.  The tests may have some value as code commentary, and they
-provide robustness should someone change the type of `scancode'.
+-- 
+Hector Martin (hector@marcansoft.com)
+Public Key: http://www.marcansoft.com/marcan.asc
 
-> >> +		return -EINVAL;
-> >> +
-> >> +	*keycode = (int)wbcir_do_getkeycode(data, (u32)scancode);
-> >
-> > uneeded casts.
-> >
-> > Something has gone wrong with the types here.  Where does the fault lie
-> > - this driver, or input core?
-> 
-> Two issues:
-> 
-> a) the input layer API confused me
-> 
-> include/linux/input.h provides:
-> 
-> struct input_event {
->          struct timeval time;
->          __u16 type;
->          __u16 code;
->          __s32 value;
-> };
-> 
-> (keycode is an unsigned 16 bit integer)
-> 
-> int input_get_keycode(struct input_dev *dev, int scancode, int *keycode);
-> int input_set_keycode(struct input_dev *dev, int scancode, int keycode);
-> 
-> (keycode is an int)
-> 
-> static inline void input_report_key(struct input_dev *dev,
->                                     unsigned int code,
->                                     int value)
-> {
->         input_event(dev, EV_KEY, code, !!value);
-> }
-> 
-> (keycode is an uint)
-> 
-> 
-> b) 32 bit scancodes
-> 
-> I wanted to use 32 bit scancodes in my driver since the largest IR message
-> supported by the driver is RC6 mode 6A which can potentially have a 1 + 15
-> bits "customer" field + 8 bits address + 8 bits command = 32 bits.
-> 
-> Casting the int scancode passed to input_[get__set]_keycode to an uint and
-> assuming it would be at least 32 bits on all platforms using the chip was
-> the best solution I could come up with without changing the input API.
 
-erp.  Hopefully this is all something which Dmitry can help us with.
+--------------040603090503000706090101
+Content-Type: text/plain;
+ name="acpi-battery-acer-rate-quirk.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="acpi-battery-acer-rate-quirk.patch"
 
-> >> +{
-> >> +        struct wbcir_data *data = (struct wbcir_data *)cookie;
-> >> +        unsigned long flags;
-> >> +
-> >> +        /*
-> >> +         * data->keyup_jiffies is used to prevent a race condition if a
-> >> +         * hardware interrupt occurs at this point and the keyup timer
-> >> +         * event is moved further into the future as a result.
-> >> +         */
-> >
-> >hm.  I don't see what the race is, nor how the comparison fixes it.  If
-> >I _did_ understand this, perhaps I could suggest alternative fixes.
-> >But I don't so I can't.  Oh well.
-> 
-> When the interrupt service routine detects an IR command it reports a
-> keydown event and sets a timer to report a keyup event in the future if no
-> repeated ir messages are detected (in which case the timer-driven keyup
-> should be pushed further into the future to allow the input core to do its
-> auto-repeat-handling magic).
-> 
-> What I wanted to protect against was something like this:
-> 
-> Thread 1                        Thread 2
-> --------                        --------
-> ISR called, grabs
-> wbcir_lock, reports
-> keydown for key X,
-> sets up keyup timer,
-> releases lock, exits
-> 
->                     (many ms later)
-> 
->                                 keyup timer function called
->                                 and preempted before grabbing
->                                 wbcir_lock
-> 
-> ISR called, grabs wbcir_lock,
-> notices a repeat event for
-> key X, pushes the keyup timer
-> further into the future using
-> mod_timer (thus reenabling the
-> timer), releases lock, exits
->                                 keyup timer function grabs
->                                 wbcir_lock, reports keyup,
->                                 exits.
->                     (many ms later)
-> 
->                                 keyup timer function called *again*,
->                                 reports keyup, exits.
-> 
-> The result would be (if I understood the timer implementation correctly)
-> that a keyup event is reported immediately after the second ISR even
-> though the "first" timer function call should have been cancelled/pushed
-> further into the future at that point.
-> 
-> Does this make any sense? :)
+Signed-off-by: Hector Martin <hector@marcansoft.com>
+--- linux/drivers/acpi/battery.c.old	2009-07-01 19:17:33.000000000 +0200
++++ linux/drivers/acpi/battery.c	2009-07-01 19:52:43.000000000 +0200
+@@ -84,6 +84,10 @@
+ 
+ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+ 
++/* For buggy DSDTs that report negative 16-bit values for either charging
++ * or discharging and/or report 0 as 65536 due to bad math.
++ */
++#define QUIRK_SIGNED16_CURRENT 0x0001
+ 
+ struct acpi_battery {
+ 	struct mutex lock;
+@@ -111,6 +115,7 @@
+ 	int state;
+ 	int power_unit;
+ 	u8 alarm_present;
++	long quirks;
+ };
+ 
+ #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
+@@ -387,6 +392,10 @@
+ 				 state_offsets, ARRAY_SIZE(state_offsets));
+ 	battery->update_time = jiffies;
+ 	kfree(buffer.pointer);
++
++	if (battery->quirks & QUIRK_SIGNED16_CURRENT)
++		battery->current_now = abs((s16)battery->current_now);
++
+ 	return result;
+ }
+ 
+@@ -492,6 +501,14 @@
+ }
+ #endif
+ 
++static void acpi_battery_quirks(struct acpi_battery *battery)
++{
++	battery->quirks = 0;
++	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
++		battery->quirks |= QUIRK_SIGNED16_CURRENT;
++	}
++}
++
+ static int acpi_battery_update(struct acpi_battery *battery)
+ {
+ 	int result, old_present = acpi_battery_present(battery);
+@@ -510,6 +527,7 @@
+ 		result = acpi_battery_get_info(battery);
+ 		if (result)
+ 			return result;
++		acpi_battery_quirks(battery);
+ 		acpi_battery_init_alarm(battery);
+ 	}
+ #ifdef CONFIG_ACPI_SYSFS_POWER
 
-yes.  The timer will be rescheduledin the scenario which you describe.
-
-Here's my problem: often when I ask a question about some code, what I
-_really_ mean is "if I didn't understand this code today, others
-probably won't understand it when reading it a year from now.  Hence it
-perhaps needs additional commentary to prevent this".  But I tire of
-complaining about code comments ;)
-
+--------------040603090503000706090101--
