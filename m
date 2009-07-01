@@ -1,130 +1,190 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
- acpi_os_validate_address interface"
-Date: Wed, 01 Jul 2009 10:29:51 +0800
-Message-ID: <1246415391.24831.30.camel@minggr.sh.intel.com>
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: [PATCH 2/2] Add a driver for the Winbond WPCD376I IR
+     functionality.
+Date: Wed, 1 Jul 2009 09:47:46 +0200 (CEST)
+Message-ID: <35c700707581a42af21dd9edc82a5e84.squirrel@www.hardeman.nu>
+References: <1246079912-17619-1-git-send-email-david@hardeman.nu>
+    <1246079912-17619-3-git-send-email-david@hardeman.nu>
+    <20090630142345.58e97b50.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16849 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752342AbZGAC2U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jun 2009 22:28:20 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20090630142345.58e97b50.akpm@linux-foundation.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-    Revert "ACPICA: Remove obsolete acpi_os_validate_address interface"
-    
-    This reverts commit f9ca058430333c9a24c5ca926aa445125f88df18.
-    
-    The quick fix of bug 13620 would be to revert the change.
-    http://bugzilla.kernel.org/show_bug.cgi?id=13620
-    
-    Also, see the commit df92e695998e1bc6e426a840eb86d6d1ee87e2a5
-    "ACPI: track opregion names to avoid driver resource conflicts."
-    
-    But there are problems we need to address:
-    
-    1. We need to enhance the mechanism of avoiding driver resource conflicts
-       to base a "resource" on Field definitions instead of Operation Region definitions.
-    
-    2. For dynamic region, we need an interface to call when an operation region (field) is deleted,
-       in order to delete it from the resource list.
-    
-    3. If the same region is created and added to resource list over and over again,
-       this is have the potential to be a memory leak by growing the list every time
-    
-    CC: Thomas Renninger <trenn@suse.de>
-    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-    Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/acpica/acobject.h |    1 +
- drivers/acpi/acpica/dsopcode.c |   24 ++++++++++++++++++++++++
- drivers/acpi/acpica/exfldio.c  |    6 ++++++
- include/acpi/acpiosxf.h        |    4 ++++
- 4 files changed, 35 insertions(+), 0 deletions(-)
+On Tue, June 30, 2009 23:23, Andrew Morton wrote:
+> On Sat, 27 Jun 2009 07:18:32 +0200
+> David Härdeman <david@hardeman.nu> wrote:
+>> +static void
+>> +wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
+>> +{
+>> +	u8 val;
+>> +
+>> +	val = inb(addr);
+>> +	val = ((val & ~mask) | (bits & mask));
+>> +	outb(val, addr);
+>> +}
+>
+> What locking prevents the races which could occur here?
+>
+> Whatever it is, it would be good to document that here in a code
+> comment.
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index 544dcf8..eb6f038 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -97,6 +97,7 @@
- #define AOPOBJ_OBJECT_INITIALIZED   0x08
- #define AOPOBJ_SETUP_COMPLETE       0x10
- #define AOPOBJ_SINGLE_DATUM         0x20
-+#define AOPOBJ_INVALID              0x40	/* Used if host OS won't allow an op_region address */
- 
- /******************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index 584d766..b79978f 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -397,6 +397,30 @@ acpi_status acpi_ds_get_region_arguments(union acpi_operand_object *obj_desc)
- 	status = acpi_ds_execute_arguments(node, acpi_ns_get_parent_node(node),
- 					   extra_desc->extra.aml_length,
- 					   extra_desc->extra.aml_start);
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
-+	/* Validate the region address/length via the host OS */
-+
-+	status = acpi_os_validate_address(obj_desc->region.space_id,
-+					  obj_desc->region.address,
-+					  (acpi_size) obj_desc->region.length,
-+					  acpi_ut_get_node_name(node));
-+
-+	if (ACPI_FAILURE(status)) {
-+		/*
-+		 * Invalid address/length. We will emit an error message and mark
-+		 * the region as invalid, so that it will cause an additional error if
-+		 * it is ever used. Then return AE_OK.
-+		 */
-+		ACPI_EXCEPTION((AE_INFO, status,
-+				"During address validation of OpRegion [%4.4s]",
-+				node->name.ascii));
-+		obj_desc->common.flags |= AOPOBJ_INVALID;
-+		status = AE_OK;
-+	}
-+
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index d4075b8..6687be1 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -113,6 +113,12 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
- 		}
- 	}
- 
-+	/* Exit if Address/Length have been disallowed by the host OS */
-+
-+	if (rgn_desc->common.flags & AOPOBJ_INVALID) {
-+		return_ACPI_STATUS(AE_AML_ILLEGAL_ADDRESS);
-+	}
-+
- 	/*
- 	 * Exit now for SMBus address space, it has a non-linear address space
- 	 * and the request cannot be directly validated
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 3e79859..ab0b85c 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -242,6 +242,10 @@ acpi_os_derive_pci_id(acpi_handle rhandle,
- acpi_status acpi_os_validate_interface(char *interface);
- acpi_status acpi_osi_invalidate(char* interface);
- 
-+acpi_status
-+acpi_os_validate_address(u8 space_id, acpi_physical_address address,
-+			 acpi_size length, char *name);
-+
- u64 acpi_os_get_timer(void);
- 
- acpi_status acpi_os_signal(u32 function, void *info);
+I should probably clarify the comment in "struct wbcir_data" to mention
+that wbcir_lock is supposed to protect registers against race conditions.
+
+>>
+>> ...
+>>
+>> +static u8
+>> +wbcir_revbyte(u8 byte)
+>> +{
+>> +	byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xAA);
+>> +	byte = ((byte >> 2) & 0x33) | ((byte << 2) & 0xCC);
+>> +	return (byte >> 4) | (byte<<4);
+>> +}
+>
+> Can this use the facilities in include/linux/bitrev.h?
+
+Yes, I grep:ed for a suitable function but must have missed it, thanks for
+pointing it out.
+
+>> +	struct wbcir_data *data = input_get_drvdata(dev);
+>> +
+>> +	if (scancode < 0 || scancode > 0xFFFFFFFF)
+>
+> Neither of the comparisons in this expression can ever be true.
+
+Didn't know if I could be certain that int is always 32 bit on all
+platforms which use/might use the chip...can I?
+
+>> +		return -EINVAL;
+>> +
+>> +	*keycode = (int)wbcir_do_getkeycode(data, (u32)scancode);
+>
+> uneeded casts.
+>
+> Something has gone wrong with the types here.  Where does the fault lie
+> - this driver, or input core?
+
+Two issues:
+
+a) the input layer API confused me
+
+include/linux/input.h provides:
+
+struct input_event {
+         struct timeval time;
+         __u16 type;
+         __u16 code;
+         __s32 value;
+};
+
+(keycode is an unsigned 16 bit integer)
+
+int input_get_keycode(struct input_dev *dev, int scancode, int *keycode);
+int input_set_keycode(struct input_dev *dev, int scancode, int keycode);
+
+(keycode is an int)
+
+static inline void input_report_key(struct input_dev *dev,
+                                    unsigned int code,
+                                    int value)
+{
+        input_event(dev, EV_KEY, code, !!value);
+}
+
+(keycode is an uint)
+
+
+b) 32 bit scancodes
+
+I wanted to use 32 bit scancodes in my driver since the largest IR message
+supported by the driver is RC6 mode 6A which can potentially have a 1 + 15
+bits "customer" field + 8 bits address + 8 bits command = 32 bits.
+
+Casting the int scancode passed to input_[get¦set]_keycode to an uint and
+assuming it would be at least 32 bits on all platforms using the chip was
+the best solution I could come up with without changing the input API.
+
+>> +{
+>> +        struct wbcir_data *data = (struct wbcir_data *)cookie;
+>> +        unsigned long flags;
+>> +
+>> +        /*
+>> +         * data->keyup_jiffies is used to prevent a race condition if a
+>> +         * hardware interrupt occurs at this point and the keyup timer
+>> +         * event is moved further into the future as a result.
+>> +         */
+>
+>hm.  I don't see what the race is, nor how the comparison fixes it.  If
+>I _did_ understand this, perhaps I could suggest alternative fixes.
+>But I don't so I can't.  Oh well.
+
+When the interrupt service routine detects an IR command it reports a
+keydown event and sets a timer to report a keyup event in the future if no
+repeated ir messages are detected (in which case the timer-driven keyup
+should be pushed further into the future to allow the input core to do its
+auto-repeat-handling magic).
+
+What I wanted to protect against was something like this:
+
+Thread 1                        Thread 2
+--------                        --------
+ISR called, grabs
+wbcir_lock, reports
+keydown for key X,
+sets up keyup timer,
+releases lock, exits
+
+                    (many ms later)
+
+                                keyup timer function called
+                                and preempted before grabbing
+                                wbcir_lock
+
+ISR called, grabs wbcir_lock,
+notices a repeat event for
+key X, pushes the keyup timer
+further into the future using
+mod_timer (thus reenabling the
+timer), releases lock, exits
+                                keyup timer function grabs
+                                wbcir_lock, reports keyup,
+                                exits.
+                    (many ms later)
+
+                                keyup timer function called *again*,
+                                reports keyup, exits.
+
+The result would be (if I understood the timer implementation correctly)
+that a keyup event is reported immediately after the second ISR even
+though the "first" timer function call should have been cancelled/pushed
+further into the future at that point.
+
+Does this make any sense? :)
+
+>> +static void
+>> +add_irdata_bit(struct wbcir_data *data, int set)
+>> +{
+>> +	if (set)
+>> +		data->irdata[data->irdata_count / 8] |=
+>> +			0x01 << (data->irdata_count % 8);
+>
+> Can/should this use generic___set_le_bit() or similar, rather than
+> open-coding it?
+
+Will look into it...
+
+You also had various code-comment objections which I'll take care of.
+
+Thanks for the prompt review.
+
+Regards,
+David
 
 
