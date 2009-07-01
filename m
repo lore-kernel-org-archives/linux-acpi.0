@@ -1,95 +1,62 @@
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: [PATCH 1/2] ACPI: reintroduce acpi_device_ops .shutdown method
-Date: Wed, 1 Jul 2009 10:20:59 +0200 (CEST)
-Message-ID: <737c7bd0a2f550d21d45b347d018a1ac.squirrel@www.hardeman.nu>
-References: <1246079912-17619-1-git-send-email-david@hardeman.nu>
-    <1246079912-17619-2-git-send-email-david@hardeman.nu>
-    <20090630141047.c8c79b0b.akpm@linux-foundation.org>
-    <200906301711.34074.bjorn.helgaas@hp.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete acpi_os_validate_address interface"
+Date: Wed, 1 Jul 2009 10:56:35 +0200
+Message-ID: <200907011056.36545.trenn@suse.de>
+References: <1246415391.24831.30.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:32909 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752952AbZGAIU4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2009 04:20:56 -0400
-In-Reply-To: <200906301711.34074.bjorn.helgaas@hp.com>
+Received: from cantor2.suse.de ([195.135.220.15]:40082 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751890AbZGAI4e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2009 04:56:34 -0400
+In-Reply-To: <1246415391.24831.30.camel@minggr.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org, Len Brown <lenb@kernel.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, July 1, 2009 01:11, Bjorn Helgaas wrote:
-> On Tuesday 30 June 2009 3:10:47 pm Andrew Morton wrote:
->> On Sat, 27 Jun 2009 07:18:31 +0200
->> David H=E4rdeman <david@hardeman.nu> wrote:
->>>
->>> This reintroduces the .shutdown method which is used by the
->>> winbond-cir driver. A normal revert wasn't possible since there
->>> had been other changes to include/acpi/acpi_bus.h since.
->>
->> Len, Bjorn: is this OK?  Or is there some other mechanism which the
->> driver should have used?
->
-> I'm on vacation and don't have time to read the new winbond driver
-> right now, but maybe it could be changed so that wbcir_shutdown()
-> is an internal function called by wbcir_suspend() (as it is already)
-> and wbcir_remove().
+Hi Lin,
 
-I didn't want to call wbcir_shutdown from wbcir_remove since wbcir_remo=
-ve
-is called on rmmod and the wbcir_shutdown method programs the chip so t=
-hat
-wake-on-a-specific-ir-command is enabled (and I imagine that people wou=
-ld
-expect rmmod to disable the hardware completely). I will clarify the
-function names a bit in the next version of the patch...
+thanks for adding me.
+This is not "that" sever, but IMO this one should also be submitted
+to 2.6.30 stable kernels as it is a riskless revert of a patch
+fixing a regression.
 
-As far as I could understand from my testing, the acpi .suspend method =
-is
-not called during shutdown which is why I needed to hook into both
-=2Esuspend and .shutdown separately.
+On Wednesday 01 July 2009 04:29:51 Lin Ming wrote:
+>     Revert "ACPICA: Remove obsolete acpi_os_validate_address interface"
+>     
+>     This reverts commit f9ca058430333c9a24c5ca926aa445125f88df18.
+>     
+>     The quick fix of bug 13620 would be to revert the change.
+>     http://bugzilla.kernel.org/show_bug.cgi?id=13620
+>     
+>     Also, see the commit df92e695998e1bc6e426a840eb86d6d1ee87e2a5
+>     "ACPI: track opregion names to avoid driver resource conflicts."
+>     
+>     But there are problems we need to address:
+>     
+>     1. We need to enhance the mechanism of avoiding driver resource
+>     conflicts
+>        to base a "resource" on Field definitions instead of Operation Region
+>        definitions.
+Good idea, this could avoid some false positive detected region conflicts.
+>     
+>     2. For dynamic region, we need an interface to call when an operation
+>     region (field) is deleted,
+>        in order to delete it from the resource list.
+>     
+>     3. If the same region is created and added to resource list over and
+>     over again,
+>        this is have the potential to be a memory leak by growing the list
+>        every time
+Region or field or both?
+How can this happen, can you show a little ASL snippet or explain this a bit 
+more detailed, please. I do not fully understand what is meant in 3.
 
-> I hate to re-introduce .shutdown when it's only used by a single
-> driver.  That makes me think either we have a bunch of drivers that
-> are buggy because they *should* have .shutdown methods but don't,
-> or the single user of .shutdown doesn't have a real dependency on it.
+Thanks,
 
-I think this single user does have a real dependency because of its
-wake-from-poweroff and wake-from-suspend capability. But I could be
-mistaken...
-
-> The winbond driver does not use any ACPI-specific functionality, so
-> it might be simpler to write it as a PNP driver (which would depend
-> on PNPACPI, of course).
-
-As far as I could tell from a quick look at include/linux/pnp.h, a
-pnp_driver doesn't seem to have any .shutdown methods either, so I'm no=
-t
-sure how it would help?
-
-(On a related note, it seems inconsistent to me that platform_driver ha=
-s a
-=2Eshutdown method while pnp_driver and acpi_driver doesn't.)
-
-If you disagree with acpi_driver regaining the .shutdown method I guess
-the only options are to use register_reboot_notifier or to rewrite the
-driver as a platform_driver (Alan Cox seemed to suggest earlier that th=
-e
-driver was not a good fit for a platform driver).
-
-> Nice looking driver, by the way.  Even from a cursory glance it's
-> obvious that you've taken a lot of care with it.
-
-Thank you, and have a nice vacation.
-
-Regards,
-David
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Thomas
