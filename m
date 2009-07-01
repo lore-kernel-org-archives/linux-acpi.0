@@ -1,115 +1,127 @@
-From: Hector Martin <hector@marcansoft.com>
-Subject: Re: [PATCH] Work around negative s16 battery current on Acer
-Date: Wed, 01 Jul 2009 22:19:16 +0200
-Message-ID: <4A4BC4C4.1030407@marcansoft.com>
-References: <4A4BA8F9.9070803@marcansoft.com> <20090701112958.1d24e06f.akpm@linux-foundation.org> <4A4BAD0C.9020302@suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete acpi_os_validate_address interface"
+Date: Wed, 1 Jul 2009 23:19:52 +0200
+Message-ID: <200907012319.53021.trenn@suse.de>
+References: <1246415391.24831.30.camel@minggr.sh.intel.com> <200907011135.26370.trenn@suse.de> <4911F71203A09E4D9981D27F9D8308582EA03B4A@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070100060808020906070103"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from marcansoft.com ([80.68.93.119]:53814 "EHLO smtp.marcansoft.com"
+Received: from cantor.suse.de ([195.135.220.2]:39935 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751700AbZGAUTQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2009 16:19:16 -0400
-In-Reply-To: <4A4BAD0C.9020302@suse.de>
+	id S1752741AbZGAVTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2009 17:19:30 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308582EA03B4A@orsmsx503.amr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, jdelvare@suse.de
 
-This is a multi-part message in MIME format.
---------------070100060808020906070103
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+On Wednesday 01 July 2009 05:29:57 pm Moore, Robert wrote:
+> >-----Original Message-----
+> >From: Thomas Renninger [mailto:trenn@suse.de]
+> >Sent: Wednesday, July 01, 2009 2:35 AM
+> >To: Lin, Ming M
+> >Cc: Len Brown; Moore, Robert; Zhao, Yakui; linux-acpi
+> >Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
+> >acpi_os_validate_address interface"
+> >
+> >On Wednesday 01 July 2009 11:23:38 Lin Ming wrote:
+> >> On Wed, 2009-07-01 at 16:56 +0800, Thomas Renninger wrote:
+> >> > Hi Lin,
+> >> >
+> >> > thanks for adding me.
+> >> > This is not "that" sever, but IMO this one should also be submitted
+> >> > to 2.6.30 stable kernels as it is a riskless revert of a patch
+> >> > fixing a regression.
+> >> >
+> >> > On Wednesday 01 July 2009 04:29:51 Lin Ming wrote:
+> >> > >     Revert "ACPICA: Remove obsolete acpi_os_validate_address
+> >
+> >interface"
+> >
+> >> > >     This reverts commit f9ca058430333c9a24c5ca926aa445125f88df18.
+> >> > >
+> >> > >     The quick fix of bug 13620 would be to revert the change.
+> >> > >     http://bugzilla.kernel.org/show_bug.cgi?id=13620
+> >> > >
+> >> > >     Also, see the commit df92e695998e1bc6e426a840eb86d6d1ee87e2a5
+> >> > >     "ACPI: track opregion names to avoid driver resource conflicts."
+> >> > >
 
-Alexey Starikovskiy wrote:
-> Andrew Morton пишет:
->> On Wed, 01 Jul 2009 20:20:41 +0200
->> acpi_battery has no field `current_now' in 2.6.30 or 2.6.31-rc1.  Which
->> kernel version are you patching here?
+< Cut out some badly formatted text >
 
-2.6.29. Guess I got unlucky.
+Jean, for you info: We have two problems here, not sure you saw this:
+1) The acpica method to tell the os which IO addresses might get used got reverted,
+     thus the acpi_enforce_resources=strict/lax/no functionality does not exist any more.
+2) Our, or say may part of the acpi_enforce_resources= implementation introduces a
+     sever memleak. Opregion declarations can be inside of functions and can be called
+     again and again. The list I introduced may increase forever if often called ACPI functions
+     include OpRegion declarations...
+> >> For example, the dynamic region which defined in a method,
+> >>
+> >> Method(m000)
+> >> {
+> >> 	OperationRegion (xxxx, SystemMemory, 0xFED11000, 0xFF)
+> >> 	.....
+> >> }
+> >>
+> >> If method m000 is called multiple times, then the region xxxx will be
+> >> inserted to the resource list again and again.
+> >>
+> >> So we need item 2 above to delete the dynamic region from the resource
+> >> list.
+> >
+> >Ouch, I thought OperationRegions must be declared in global namespace.
+> >I agree, we have a memleak and this looks rather sever.
 
->> Also, I wonder if we need a quirk.  Is a "negative" value _ever_
->> correct?  If not, could we do the negation unconditionally?
+An idea for a quick fix which may be suitable for stable kernels (without
+checking acpica code..):
+Is it easily possible to check whether the Opregion is declared in global
+namespace or inside a method at the place where acpi_os_validate_address is called
+from acpica?
+In the latter case it should not be called and we avoid the memleak and
+could still detect most i2c/smbus/hwmon devices conflicts.
 
-> The problem is that the variable is s64 and not "negative" value is
-> related to s16 portion of it.
-> It's possible to do this only for "current" mode, in "power" mode values
-> of "negative" s16 range may be valid positive values.
+> >Grmpfl, that makes the resource conflict checking even more ugly.
+> >Thanks for spotting this,
+> >
+> >     Thomas
+>
+> OperationRegions/Fields can be dynamically created/deleted in two ways:
+> 1) Control method execution
+> 2) Dynamic ACPI table load/unload (for example, hotplug)
+>
+> So, in order to track this, the resource list must also be dynamic, with
+> the ability to add and delete entries.
+>
+> It begins to sound like the resource list is becoming a "mini-namespace"
+> that consists of only ACPI field objects. Might it not be more efficient to
+> simply query the existing ACPI namespace when you need to? A walk_namespace
+> for field objects would give you the same information as the resource list,
+> and it is automatically guaranteed to be current.
+>
+> However, the may be some more fundamental issues. I have not looked at
+> exactly how the resource list is used, but since the list is dynamic, if
+> the worry concerns address collisions between a driver and the AML
+> interpreter, it may not be enough to simply check for this at the time the
+> driver is loaded. You would really need to check before *every* I/O or
+> memory access. Which does not sound feasible.
+>
+> I guess that I would like to understand the exact issue(s) that are behind
+> the creation of the resource list in the first place. AFAIK, any AML code
+> that reads/writes to operation regions usually assumes exclusive access to
+> these regions. The ACPI Global Lock is used when exclusive access cannot be
+> assumed.
 
-Exactly. This is why I further qualified the quirk so it operates for
-Acer machines in current (mA) mode only. Currents >32767mA are insane,
-but powers >32767mW are not.
+Thinking a bit more about this problem is probably a good idea.
+The resource checking  always was a workaround which may avoid loading of
+drivers because Opregion declarations may never get used.
+When I looked at DSDTs I had the problem that BIOSes declare all kind of
+things like overlapping and double declarations. I initially wanted to
+add things somehow to:
+/proc/iomem and /proc/ioports, but I finally didn't see a way to do that.
 
-The value is nominally a signed 32-bit int as follows:
->=0: charge current
--1: unknown
-
-(The spec defines this in unsigned terms but the result is the same).
-
-The problem here is that my laptop erroneously reports charging currents
-as (65536 - current). Interpreting this as a signed 16-bit int yields
-the correct signed value, which can then be abs()ed.
-
-The only addition that I'd imagine might make sense would be to check
-for current_now != -1 before applying the 16-bit trick, since 32-bit
-signed -1 is a valid value that means "unknown current". This does not
-conflict with 16-bit -1 because the 16-bits are not sign-extended so
--1mA reports as 65535, not -1. Attached new patch with this change.
-
-For reference, the DSDT does something like this:
-
-s32 current_now;
-
-current_now = (EC_BAT_CURRENT_HIGH<<8) | EC_BAT_CURRENT_LOW;
-current_now = (0xFFFF - current_now) + 1;
-
-The "homebrew" two's complement negation attempts to make discharge
-currents positive but also makes charge currents negative. It's also
-completely wrong for 32-bit quantities, which is what we're dealing with
-here.
-
-
--- 
-Hector Martin (hector@marcansoft.com)
-Public Key: http://www.marcansoft.com/marcan.asc
-
-
---------------070100060808020906070103
-Content-Type: text/plain;
- name="acpi-battery-acer-rate-quirk.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="acpi-battery-acer-rate-quirk.patch"
-
-U2lnbmVkLW9mZi1ieTogSGVjdG9yIE1hcnRpbiA8aGVjdG9yQG1hcmNhbnNvZnQuY29tPgot
-LS0gbGludXgvZHJpdmVycy9hY3BpL2JhdHRlcnkuYy5vbGQJMjAwOS0wNy0wMSAxOToxNzoz
-My4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4L2RyaXZlcnMvYWNwaS9iYXR0ZXJ5LmMJMjAw
-OS0wNy0wMSAxOTo1Mjo0My4wMDAwMDAwMDAgKzAyMDAKQEAgLTg0LDYgKzg0LDEwIEBACiAK
-IE1PRFVMRV9ERVZJQ0VfVEFCTEUoYWNwaSwgYmF0dGVyeV9kZXZpY2VfaWRzKTsKIAorLyog
-Rm9yIGJ1Z2d5IERTRFRzIHRoYXQgcmVwb3J0IG5lZ2F0aXZlIDE2LWJpdCB2YWx1ZXMgZm9y
-IGVpdGhlciBjaGFyZ2luZworICogb3IgZGlzY2hhcmdpbmcgYW5kL29yIHJlcG9ydCAwIGFz
-IDY1NTM2IGR1ZSB0byBiYWQgbWF0aC4KKyAqLworI2RlZmluZSBRVUlSS19TSUdORUQxNl9D
-VVJSRU5UIDB4MDAwMQogCiBzdHJ1Y3QgYWNwaV9iYXR0ZXJ5IHsKIAlzdHJ1Y3QgbXV0ZXgg
-bG9jazsKQEAgLTExMSw2ICsxMTUsNyBAQAogCWludCBzdGF0ZTsKIAlpbnQgcG93ZXJfdW5p
-dDsKIAl1OCBhbGFybV9wcmVzZW50OworCWxvbmcgcXVpcmtzOwogfTsKIAogI2RlZmluZSB0
-b19hY3BpX2JhdHRlcnkoeCkgY29udGFpbmVyX29mKHgsIHN0cnVjdCBhY3BpX2JhdHRlcnks
-IGJhdCk7CkBAIC0zODcsNiArMzkyLDEwIEBACiAJCQkJIHN0YXRlX29mZnNldHMsIEFSUkFZ
-X1NJWkUoc3RhdGVfb2Zmc2V0cykpOwogCWJhdHRlcnktPnVwZGF0ZV90aW1lID0gamlmZmll
-czsKIAlrZnJlZShidWZmZXIucG9pbnRlcik7CisKKwlpZiAoKGJhdHRlcnktPnF1aXJrcyAm
-IFFVSVJLX1NJR05FRDE2X0NVUlJFTlQpICYmIGJhdHRlcnktPmN1cnJlbnRfbm93ICE9IC0x
-KQorCQliYXR0ZXJ5LT5jdXJyZW50X25vdyA9IGFicygoczE2KWJhdHRlcnktPmN1cnJlbnRf
-bm93KTsKKwogCXJldHVybiByZXN1bHQ7CiB9CiAKQEAgLTQ5Miw2ICs1MDEsMTQgQEAKIH0K
-ICNlbmRpZgogCitzdGF0aWMgdm9pZCBhY3BpX2JhdHRlcnlfcXVpcmtzKHN0cnVjdCBhY3Bp
-X2JhdHRlcnkgKmJhdHRlcnkpCit7CisJYmF0dGVyeS0+cXVpcmtzID0gMDsKKwlpZiAoZG1p
-X25hbWVfaW5fdmVuZG9ycygiQWNlciIpICYmIGJhdHRlcnktPnBvd2VyX3VuaXQpIHsKKwkJ
-YmF0dGVyeS0+cXVpcmtzIHw9IFFVSVJLX1NJR05FRDE2X0NVUlJFTlQ7CisJfQorfQorCiBz
-dGF0aWMgaW50IGFjcGlfYmF0dGVyeV91cGRhdGUoc3RydWN0IGFjcGlfYmF0dGVyeSAqYmF0
-dGVyeSkKIHsKIAlpbnQgcmVzdWx0LCBvbGRfcHJlc2VudCA9IGFjcGlfYmF0dGVyeV9wcmVz
-ZW50KGJhdHRlcnkpOwpAQCAtNTEwLDYgKzUyNyw3IEBACiAJCXJlc3VsdCA9IGFjcGlfYmF0
-dGVyeV9nZXRfaW5mbyhiYXR0ZXJ5KTsKIAkJaWYgKHJlc3VsdCkKIAkJCXJldHVybiByZXN1
-bHQ7CisJCWFjcGlfYmF0dGVyeV9xdWlya3MoYmF0dGVyeSk7CiAJCWFjcGlfYmF0dGVyeV9p
-bml0X2FsYXJtKGJhdHRlcnkpOwogCX0KICNpZmRlZiBDT05GSUdfQUNQSV9TWVNGU19QT1dF
-Ugo=
---------------070100060808020906070103--
+    Thomas
