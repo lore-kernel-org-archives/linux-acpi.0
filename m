@@ -1,100 +1,130 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/2] ACPI: reintroduce acpi_device_ops .shutdown method
-Date: Tue, 30 Jun 2009 17:11:32 -0600
-Message-ID: <200906301711.34074.bjorn.helgaas@hp.com>
-References: <1246079912-17619-1-git-send-email-david@hardeman.nu> <1246079912-17619-2-git-send-email-david@hardeman.nu> <20090630141047.c8c79b0b.akpm@linux-foundation.org>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
+ acpi_os_validate_address interface"
+Date: Wed, 01 Jul 2009 10:29:51 +0800
+Message-ID: <1246415391.24831.30.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20090630141047.c8c79b0b.akpm@linux-foundation.org>
-Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David =?iso-8859-1?q?H=E4rdeman?= <david@hardeman.nu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:16849 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbZGAC2U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2009 22:28:20 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, Zhao Yakui <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tuesday 30 June 2009 3:10:47 pm Andrew Morton wrote:
-> On Sat, 27 Jun 2009 07:18:31 +0200
-> David H__rdeman <david@hardeman.nu> wrote:
-> 
-> > This reintroduces the .shutdown method which is used by the
-> > winbond-cir driver. A normal revert wasn't possible since there
-> > had been other changes to include/acpi/acpi_bus.h since.
-> > 
-> > Signed-off-by: David H__rdeman <david@hardeman.nu>
-> > ---
-> >  drivers/acpi/scan.c     |   12 ++++++++++++
-> >  include/acpi/acpi_bus.h |    2 ++
-> >  2 files changed, 14 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 781435d..c94ab13 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -464,10 +464,22 @@ static int acpi_device_remove(struct device * dev)
-> >  	return 0;
-> >  }
-> >  
-> > +static void acpi_device_shutdown(struct device *dev)
-> > +{
-> > +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> > +	struct acpi_driver *acpi_drv = acpi_dev->driver;
-> > +
-> > +	if (acpi_drv && acpi_drv->ops.shutdown)
-> > +		acpi_drv->ops.shutdown(acpi_dev);
-> > +
-> > +	return ;
-> > +}
-> > +
-> >  struct bus_type acpi_bus_type = {
-> >  	.name		= "acpi",
-> >  	.suspend	= acpi_device_suspend,
-> >  	.resume		= acpi_device_resume,
-> > +	.shutdown	= acpi_device_shutdown,
-> >  	.match		= acpi_bus_match,
-> >  	.probe		= acpi_device_probe,
-> >  	.remove		= acpi_device_remove,
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index c65e4ce..52da89a 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -96,6 +96,7 @@ typedef int (*acpi_op_resume) (struct acpi_device * device);
-> >  typedef int (*acpi_op_bind) (struct acpi_device * device);
-> >  typedef int (*acpi_op_unbind) (struct acpi_device * device);
-> >  typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
-> > +typedef int (*acpi_op_shutdown) (struct acpi_device * device);
-> >  
-> >  struct acpi_bus_ops {
-> >  	u32 acpi_op_add:1;
-> > @@ -112,6 +113,7 @@ struct acpi_device_ops {
-> >  	acpi_op_bind bind;
-> >  	acpi_op_unbind unbind;
-> >  	acpi_op_notify notify;
-> > +	acpi_op_shutdown shutdown;
-> >  };
-> >  
-> >  #define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
-> 
-> Len, Bjorn: is this OK?  Or is there some other mechanism which the
-> driver should have used?
+    Revert "ACPICA: Remove obsolete acpi_os_validate_address interface"
+    
+    This reverts commit f9ca058430333c9a24c5ca926aa445125f88df18.
+    
+    The quick fix of bug 13620 would be to revert the change.
+    http://bugzilla.kernel.org/show_bug.cgi?id=13620
+    
+    Also, see the commit df92e695998e1bc6e426a840eb86d6d1ee87e2a5
+    "ACPI: track opregion names to avoid driver resource conflicts."
+    
+    But there are problems we need to address:
+    
+    1. We need to enhance the mechanism of avoiding driver resource conflicts
+       to base a "resource" on Field definitions instead of Operation Region definitions.
+    
+    2. For dynamic region, we need an interface to call when an operation region (field) is deleted,
+       in order to delete it from the resource list.
+    
+    3. If the same region is created and added to resource list over and over again,
+       this is have the potential to be a memory leak by growing the list every time
+    
+    CC: Thomas Renninger <trenn@suse.de>
+    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+    Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/acpica/acobject.h |    1 +
+ drivers/acpi/acpica/dsopcode.c |   24 ++++++++++++++++++++++++
+ drivers/acpi/acpica/exfldio.c  |    6 ++++++
+ include/acpi/acpiosxf.h        |    4 ++++
+ 4 files changed, 35 insertions(+), 0 deletions(-)
 
-I'm on vacation and don't have time to read the new winbond driver
-right now, but maybe it could be changed so that wbcir_shutdown()
-is an internal function called by wbcir_suspend() (as it is already)
-and wbcir_remove().
+diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
+index 544dcf8..eb6f038 100644
+--- a/drivers/acpi/acpica/acobject.h
++++ b/drivers/acpi/acpica/acobject.h
+@@ -97,6 +97,7 @@
+ #define AOPOBJ_OBJECT_INITIALIZED   0x08
+ #define AOPOBJ_SETUP_COMPLETE       0x10
+ #define AOPOBJ_SINGLE_DATUM         0x20
++#define AOPOBJ_INVALID              0x40	/* Used if host OS won't allow an op_region address */
+ 
+ /******************************************************************************
+  *
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 584d766..b79978f 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -397,6 +397,30 @@ acpi_status acpi_ds_get_region_arguments(union acpi_operand_object *obj_desc)
+ 	status = acpi_ds_execute_arguments(node, acpi_ns_get_parent_node(node),
+ 					   extra_desc->extra.aml_length,
+ 					   extra_desc->extra.aml_start);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Validate the region address/length via the host OS */
++
++	status = acpi_os_validate_address(obj_desc->region.space_id,
++					  obj_desc->region.address,
++					  (acpi_size) obj_desc->region.length,
++					  acpi_ut_get_node_name(node));
++
++	if (ACPI_FAILURE(status)) {
++		/*
++		 * Invalid address/length. We will emit an error message and mark
++		 * the region as invalid, so that it will cause an additional error if
++		 * it is ever used. Then return AE_OK.
++		 */
++		ACPI_EXCEPTION((AE_INFO, status,
++				"During address validation of OpRegion [%4.4s]",
++				node->name.ascii));
++		obj_desc->common.flags |= AOPOBJ_INVALID;
++		status = AE_OK;
++	}
++
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index d4075b8..6687be1 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -113,6 +113,12 @@ acpi_ex_setup_region(union acpi_operand_object *obj_desc,
+ 		}
+ 	}
+ 
++	/* Exit if Address/Length have been disallowed by the host OS */
++
++	if (rgn_desc->common.flags & AOPOBJ_INVALID) {
++		return_ACPI_STATUS(AE_AML_ILLEGAL_ADDRESS);
++	}
++
+ 	/*
+ 	 * Exit now for SMBus address space, it has a non-linear address space
+ 	 * and the request cannot be directly validated
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 3e79859..ab0b85c 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -242,6 +242,10 @@ acpi_os_derive_pci_id(acpi_handle rhandle,
+ acpi_status acpi_os_validate_interface(char *interface);
+ acpi_status acpi_osi_invalidate(char* interface);
+ 
++acpi_status
++acpi_os_validate_address(u8 space_id, acpi_physical_address address,
++			 acpi_size length, char *name);
++
+ u64 acpi_os_get_timer(void);
+ 
+ acpi_status acpi_os_signal(u32 function, void *info);
 
-I hate to re-introduce .shutdown when it's only used by a single
-driver.  That makes me think either we have a bunch of drivers that
-are buggy because they *should* have .shutdown methods but don't,
-or the single user of .shutdown doesn't have a real dependency on it.
 
-The winbond driver does not use any ACPI-specific functionality, so
-it might be simpler to write it as a PNP driver (which would depend
-on PNPACPI, of course).
-
-Nice looking driver, by the way.  Even from a cursory glance it's
-obvious that you've taken a lot of care with it.
-
-Bjorn
