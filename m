@@ -1,44 +1,79 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: EC
-Date: Thu, 2 Jul 2009 15:34:34 +0800
-Message-ID: <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
-References: <76780B19A496DC4B80439008DAD7076C03453A5BFC@PDSMSX501.ccr.corp.intel.com>
- <4A4C51AF.8080206@suse.de>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: EC
+Date: Thu, 02 Jul 2009 11:45:13 +0400
+Message-ID: <4A4C6589.4070108@suse.de>
+References: <76780B19A496DC4B80439008DAD7076C03453A5BFC@PDSMSX501.ccr.corp.intel.com> <4A4C51AF.8080206@suse.de> <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45098 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751046AbZGBHfl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2009 03:35:41 -0400
-In-Reply-To: <4A4C51AF.8080206@suse.de>
-Content-Language: en-US
+Received: from charybdis-ext.suse.de ([195.135.221.2]:51030 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753109AbZGBHpN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2009 03:45:13 -0400
+In-Reply-To: <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
+To: "Li, Shaohua" <shaohua.li@intel.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IEFsZXhleSBTdGFyaWtvdnNr
-aXkgW21haWx0bzphc3Rhcmlrb3Zza2l5QHN1c2UuZGVdDQo+U2VudDogVGh1cnNkYXksIEp1bHkg
-MDIsIDIwMDkgMjoyMSBQTQ0KPlRvOiBMaSwgU2hhb2h1YQ0KPkNjOiBsZW5iQGtlcm5lbC5vcmc7
-IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+U3ViamVjdDogUmU6IEVDDQo+DQo+TGksIFNo
-YW9odWEg0L/QuNGI0LXRgjoNCj4+IEhpLA0KPj4gUHJlZW1wdCBpc24ndCBkaXNhYmxlZCBiZXR3
-ZWVuIGVjX2J1cnN0X2VuYWJsZSgpL2VjX2J1cnN0X2Rpc2FibGUoKSwgc28NCj5pdCdzIHZlcnkg
-bGlrZWx5IHRoZXJlIGlzIGEgcHJlZW1wdGlvbiBiZXR3ZWVuIHRoZW0gYW5kIG1ha2UgdGhlIHRp
-bWluZw0KPmZvciBidXJzdCBtb2RlIG5vdCBjb21wbHkgd2l0aCBBQ1BJIHNwZWMgKDQwMG1zIGZv
-ciBmaXJzdCBhY2Nlc3MgYW5kIDUwbXMNCj5mb3Igc3Vic2VxdWVudCBhY2Nlc3MpLg0KPj4NCj4+
-IFdlIGhhdmUgYSBzeXN0ZW0gd2l0aCBicm9rZW4gRUMgYW5kIHRoZSBCSU9TIGVuZ2luZWVyIGlk
-ZW50aWZpZWQgaXQncw0KPnRoZSB0aW1pbmcgaXNzdWUuDQo+PiBXaGF0J3MgdGhlIGp1ZGdtZW50
-IHdoeSBMaW51eCBkb2Vzbid0IGNvbXBseSB3aXRoIEFDUEkgc3BlYz8NCj4NCj5QbGVhc2UgZGlz
-YWJsZSBlY19idXJzdF8qIGFuZCBjaGVjayBhZ2Fpbi4gSnVkZ2VtZW50IGlzIHRoYXQgZWNfYnVy
-c3RfKiBpcw0KPmlycmVsZXZhbnQgdG8gdGhlIHByb3RvY29sLg0KV2hhdCBkaWQgeW91IGFib3V0
-ICdpcnJlbGV2YW50IHRvIHRoZSBwcm90b2NvbCc/IFRoaXMgaXMgd2hhdCB0aGUgc3BlYyBkZWZp
-bmVzLg0KDQo+V2hhdCBwbGF0Zm9ybSBhbmQgd2hhdCBvdGhlciBzeW1wdG9tcyBkbyB5b3UgaGF2
-ZT8gSG93IGV4YWN0bHkgdGhpcyBFQyBpcw0KPmJyb2tlbj8NClRoZSB0ZW1wZXJhdHVyZSBpcyB3
-cm9uZyB3aGVuIHdlIGdldCBpdCBmcm9tIHJlYWRpbmcgRUMuIFRoZSBCSU9TIGVuZ2luZWVyIG1l
-YXN1cmVkDQpBIGxvdCBvZiBFQyB0aW1lb3V0IGluIEVDIGZpcm13YXJlLCBhbmQgdGhleSBtZWFz
-dXJlZCB0aGUgdGltaW5nIGhvdyBMaW51eCBhY2Nlc3Nlcw0KRUMuIFRoZSBkYXRhIHRoZXkgY2Fw
-dHVyZWQgaW4gb3NjaWxsb3Njb3BlIHNob3dzIExpbnV4IGhhcyBsb25nIGRlbGF5IHRvIGFjY2Vz
-cw0KRWMgd2l0aCBidXJzdCBtb2RlIGVuYWJsZWQsIHRoaXMgb2NjdXJzIG1vcmUgb2Z0ZW4gd2hl
-biBhbm90aGVyIGFwcGxpY2F0aW9uIGlzIHJ1bm5pbmcuDQoNClRoYW5rcywNClNoYW9odWENCg==
+Li, Shaohua =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>=20
+>> -----Original Message-----
+>> From: Alexey Starikovskiy [mailto:astarikovskiy@suse.de]
+>> Sent: Thursday, July 02, 2009 2:21 PM
+>> To: Li, Shaohua
+>> Cc: lenb@kernel.org; linux-acpi@vger.kernel.org
+>> Subject: Re: EC
+>>
+>> Li, Shaohua =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>>> Hi,
+>>> Preempt isn't disabled between ec_burst_enable()/ec_burst_disable()=
+, so
+>> it's very likely there is a preemption between them and make the tim=
+ing
+>> for burst mode not comply with ACPI spec (400ms for first access and=
+ 50ms
+>> for subsequent access).
+>>> We have a system with broken EC and the BIOS engineer identified it=
+'s
+>> the timing issue.
+>>> What's the judgment why Linux doesn't comply with ACPI spec?
+>> Please disable ec_burst_* and check again. Judgement is that ec_burs=
+t_* is
+>> irrelevant to the protocol.
+> What did you about 'irrelevant to the protocol'? This is what the spe=
+c defines.
+I mean, that EC may drop out of burst mode if timeout happens, and it s=
+hould not change
+the flow of reads and writes to EC (the protocol). More, EC should work=
+ properly even if
+we do not enter burst mode at all (my suggestion to disable calls to bu=
+rst functions).=20
+>=20
+>> What platform and what other symptoms do you have? How exactly this =
+EC is
+>> broken?
+> The temperature is wrong when we get it from reading EC. The BIOS eng=
+ineer measured
+> A lot of EC timeout in EC firmware, and they measured the timing how =
+Linux accesses
+> EC. The data they captured in oscilloscope shows Linux has long delay=
+ to access
+> Ec with burst mode enabled, this occurs more often when another appli=
+cation is running.
+Do they have any document about implemented EC timeouts? State diagram?=
+ Other than burst timeout, do they have any other timeouts? What happen=
+s if they get timeout, do they abort transaction? What do they write in=
+ status register?
+Do they send GPE? Please collect as much as you can, I was looking for =
+such info for a very long time.
+
+Thanks,
+Alex.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
