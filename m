@@ -1,61 +1,44 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
- acpi_os_validate_address interface"
-Date: Wed, 1 Jul 2009 23:42:38 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308582EA5E7E2@orsmsx503.amr.corp.intel.com>
-References: <1246415391.24831.30.camel@minggr.sh.intel.com>
-	 <alpine.LFD.2.00.0907012202580.19077@localhost.localdomain>
- <1246516045.3326.0.camel@minggr.sh.intel.com>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: EC
+Date: Thu, 2 Jul 2009 15:34:34 +0800
+Message-ID: <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
+References: <76780B19A496DC4B80439008DAD7076C03453A5BFC@PDSMSX501.ccr.corp.intel.com>
+ <4A4C51AF.8080206@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:55237 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:45098 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750946AbZGBGmi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2009 02:42:38 -0400
-In-Reply-To: <1246516045.3326.0.camel@minggr.sh.intel.com>
+	id S1751046AbZGBHfl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2009 03:35:41 -0400
+In-Reply-To: <4A4C51AF.8080206@suse.de>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lin, Ming M" <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Before we start extending the existing mechanisms, I think we need to really think about a better solution.
-
-Since there already appears to be a workaround for the problem, then this should give us some time to analyze this.
-
->-----Original Message-----
->From: Lin, Ming M
->Sent: Wednesday, July 01, 2009 11:27 PM
->To: Len Brown
->Cc: Thomas Renninger; Moore, Robert; Zhao, Yakui; linux-acpi
->Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
->acpi_os_validate_address interface"
->
->On Thu, 2009-07-02 at 10:03 +0800, Len Brown wrote:
->> I can't apply a patch that adds a known memory leak,
->> even if it removes a conflict between drivers.
->>
->> The reason is that there is a workaround for the driver conflict,
->> but no workaround for the memory leak.
->
->Here is a prototype simple patch, please review to see if it is the
->right way to go.
->
->1) add a new field "count" to struct acpi_res_list.
->
->   When inserting, if the region(addr, len) is already in the resource
->   list, we just increase "count", otherwise, the region is inserted
->   with count=1.
->
->   When deleting, the "count" is decreased, if it's decreased to 0,
->   the region is deleted from the resource list.
->
->   With "count", the region with same address and length can only be
->   inserted to the resource list once, so prevent potential memory leak.
->
->2) add a new function acpi_os_invalidate_address, which is called when
->   region is deleted.
->
-
+DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IEFsZXhleSBTdGFyaWtvdnNr
+aXkgW21haWx0bzphc3Rhcmlrb3Zza2l5QHN1c2UuZGVdDQo+U2VudDogVGh1cnNkYXksIEp1bHkg
+MDIsIDIwMDkgMjoyMSBQTQ0KPlRvOiBMaSwgU2hhb2h1YQ0KPkNjOiBsZW5iQGtlcm5lbC5vcmc7
+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+U3ViamVjdDogUmU6IEVDDQo+DQo+TGksIFNo
+YW9odWEg0L/QuNGI0LXRgjoNCj4+IEhpLA0KPj4gUHJlZW1wdCBpc24ndCBkaXNhYmxlZCBiZXR3
+ZWVuIGVjX2J1cnN0X2VuYWJsZSgpL2VjX2J1cnN0X2Rpc2FibGUoKSwgc28NCj5pdCdzIHZlcnkg
+bGlrZWx5IHRoZXJlIGlzIGEgcHJlZW1wdGlvbiBiZXR3ZWVuIHRoZW0gYW5kIG1ha2UgdGhlIHRp
+bWluZw0KPmZvciBidXJzdCBtb2RlIG5vdCBjb21wbHkgd2l0aCBBQ1BJIHNwZWMgKDQwMG1zIGZv
+ciBmaXJzdCBhY2Nlc3MgYW5kIDUwbXMNCj5mb3Igc3Vic2VxdWVudCBhY2Nlc3MpLg0KPj4NCj4+
+IFdlIGhhdmUgYSBzeXN0ZW0gd2l0aCBicm9rZW4gRUMgYW5kIHRoZSBCSU9TIGVuZ2luZWVyIGlk
+ZW50aWZpZWQgaXQncw0KPnRoZSB0aW1pbmcgaXNzdWUuDQo+PiBXaGF0J3MgdGhlIGp1ZGdtZW50
+IHdoeSBMaW51eCBkb2Vzbid0IGNvbXBseSB3aXRoIEFDUEkgc3BlYz8NCj4NCj5QbGVhc2UgZGlz
+YWJsZSBlY19idXJzdF8qIGFuZCBjaGVjayBhZ2Fpbi4gSnVkZ2VtZW50IGlzIHRoYXQgZWNfYnVy
+c3RfKiBpcw0KPmlycmVsZXZhbnQgdG8gdGhlIHByb3RvY29sLg0KV2hhdCBkaWQgeW91IGFib3V0
+ICdpcnJlbGV2YW50IHRvIHRoZSBwcm90b2NvbCc/IFRoaXMgaXMgd2hhdCB0aGUgc3BlYyBkZWZp
+bmVzLg0KDQo+V2hhdCBwbGF0Zm9ybSBhbmQgd2hhdCBvdGhlciBzeW1wdG9tcyBkbyB5b3UgaGF2
+ZT8gSG93IGV4YWN0bHkgdGhpcyBFQyBpcw0KPmJyb2tlbj8NClRoZSB0ZW1wZXJhdHVyZSBpcyB3
+cm9uZyB3aGVuIHdlIGdldCBpdCBmcm9tIHJlYWRpbmcgRUMuIFRoZSBCSU9TIGVuZ2luZWVyIG1l
+YXN1cmVkDQpBIGxvdCBvZiBFQyB0aW1lb3V0IGluIEVDIGZpcm13YXJlLCBhbmQgdGhleSBtZWFz
+dXJlZCB0aGUgdGltaW5nIGhvdyBMaW51eCBhY2Nlc3Nlcw0KRUMuIFRoZSBkYXRhIHRoZXkgY2Fw
+dHVyZWQgaW4gb3NjaWxsb3Njb3BlIHNob3dzIExpbnV4IGhhcyBsb25nIGRlbGF5IHRvIGFjY2Vz
+cw0KRWMgd2l0aCBidXJzdCBtb2RlIGVuYWJsZWQsIHRoaXMgb2NjdXJzIG1vcmUgb2Z0ZW4gd2hl
+biBhbm90aGVyIGFwcGxpY2F0aW9uIGlzIHJ1bm5pbmcuDQoNClRoYW5rcywNClNoYW9odWENCg==
