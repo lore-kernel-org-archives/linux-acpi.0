@@ -1,112 +1,224 @@
-From: Jean Delvare <jdelvare@suse.de>
+From: Thomas Renninger <trenn@suse.de>
 Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete acpi_os_validate_address interface"
-Date: Thu, 2 Jul 2009 10:30:58 +0200
-Message-ID: <200907021030.58401.jdelvare@suse.de>
-References: <1246415391.24831.30.camel@minggr.sh.intel.com> <4911F71203A09E4D9981D27F9D8308582EA03B4A@orsmsx503.amr.corp.intel.com> <200907012319.53021.trenn@suse.de>
+Date: Thu, 2 Jul 2009 12:12:32 +0200
+Message-ID: <200907021212.32994.trenn@suse.de>
+References: <1246415391.24831.30.camel@minggr.sh.intel.com> <alpine.LFD.2.00.0907012202580.19077@localhost.localdomain> <1246516045.3326.0.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51024 "EHLO mx2.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:56634 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692AbZGBIa4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2009 04:30:56 -0400
-In-Reply-To: <200907012319.53021.trenn@suse.de>
+	id S1754182AbZGBKMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2009 06:12:31 -0400
+In-Reply-To: <1246516045.3326.0.camel@minggr.sh.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Lin, Ming M" <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Le mercredi 01 juillet 2009, Thomas Renninger a =E9crit=A0:
-> On Wednesday 01 July 2009 05:29:57 pm Moore, Robert wrote:
-> > >-----Original Message-----
-> > >From: Thomas Renninger [mailto:trenn@suse.de]
-> > >Ouch, I thought OperationRegions must be declared in global namesp=
-ace.
-> > >I agree, we have a memleak and this looks rather sever.
->=20
-> An idea for a quick fix which may be suitable for stable kernels (wit=
-hout
-> checking acpica code..):
-> Is it easily possible to check whether the Opregion is declared in gl=
-obal
-> namespace or inside a method at the place where acpi_os_validate_addr=
-ess is called
-> from acpica?
-> In the latter case it should not be called and we avoid the memleak a=
-nd
-> could still detect most i2c/smbus/hwmon devices conflicts.
+On Thursday 02 July 2009 08:27:25 Lin Ming wrote:
+> On Thu, 2009-07-02 at 10:03 +0800, Len Brown wrote: 
+> > I can't apply a patch that adds a known memory leak,
+> > even if it removes a conflict between drivers.
+> > 
+> > The reason is that there is a workaround for the driver conflict,
+> > but no workaround for the memory leak.
+> 
+> Here is a prototype simple patch, please review to see if it is the
+> right way to go.
+> 
+> 1) add a new field "count" to struct acpi_res_list.
+> 
+>    When inserting, if the region(addr, len) is already in the resource 
+>    list, we just increase "count", otherwise, the region is inserted 
+>    with count=1.
+> 
+>    When deleting, the "count" is decreased, if it's decreased to 0,
+>    the region is deleted from the resource list.
+> 
+>    With "count", the region with same address and length can only be 
+>    inserted to the resource list once, so prevent potential memory leak.
+Is the counting really needed?
+An OpRegion inside a method should get deleted when the function is exited
+and acpi_os_invalidate_address will get called.
 
-Can't you just walk the list before you add an entry, and if the
-entry is already present, do not add it again?
+I like it. Thanks for looking into that!
 
-> > >Grmpfl, that makes the resource conflict checking even more ugly.
-> > >Thanks for spotting this,
-> > >
-> > >     Thomas
-> >
-> > OperationRegions/Fields can be dynamically created/deleted in two w=
-ays:
-> > 1) Control method execution
-> > 2) Dynamic ACPI table load/unload (for example, hotplug)
-> >
-> > So, in order to track this, the resource list must also be dynamic,=
- with
-> > the ability to add and delete entries.
-> >
-> > It begins to sound like the resource list is becoming a "mini-names=
-pace"
-> > that consists of only ACPI field objects. Might it not be more effi=
-cient to
-> > simply query the existing ACPI namespace when you need to? A walk_n=
-amespace
-> > for field objects would give you the same information as the resour=
-ce list,
-> > and it is automatically guaranteed to be current.
-> >
-> > However, the may be some more fundamental issues. I have not looked=
- at
-> > exactly how the resource list is used, but since the list is dynami=
-c, if
-> > the worry concerns address collisions between a driver and the AML
-> > interpreter, it may not be enough to simply check for this at the t=
-ime the
-> > driver is loaded. You would really need to check before *every* I/O=
- or
-> > memory access. Which does not sound feasible.
+   Thomas
+> 
+> 2) add a new function acpi_os_invalidate_address, which is called when 
+>    region is deleted. 
+> 
+> 
+> diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+> index bc17103..96e26e7 100644
+> --- a/drivers/acpi/acpica/utdelete.c
+> +++ b/drivers/acpi/acpica/utdelete.c
+> @@ -215,6 +215,12 @@ static void acpi_ut_delete_internal_obj(union 
+acpi_operand_object *object)
+>  		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+>  				  "***** Region %p\n", object));
+>  
+> +		/* Invalidate the region address/length via the host OS */
+> +
+> +		acpi_os_invalidate_address(object->region.space_id,
+> +					  object->region.address,
+> +					  (acpi_size) object->region.length);
+> +
+>  		second_desc = acpi_ns_get_secondary_object(object);
+>  		if (second_desc) {
+>  			/*
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 7167071..620a65a 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -88,6 +88,7 @@ struct acpi_res_list {
+>  	char name[5];   /* only can have a length of 4 chars, make use of this
+>  			   one instead of res->name, no need to kalloc then */
+>  	struct list_head resource_list;
+> +	int count;
+>  };
+>  
+>  static LIST_HEAD(resource_list_head);
+> @@ -1333,6 +1334,88 @@ acpi_os_validate_interface (char *interface)
+>  	return AE_SUPPORT;
+>  }
+>  
+> +static inline int acpi_res_list_add(struct acpi_res_list *res)
+> +{
+> +	struct acpi_res_list *res_list_elem;
+> +
+> +	list_for_each_entry(res_list_elem, &resource_list_head,
+> +			    resource_list) {
+> +
+> +		if (res->resource_type == res_list_elem->resource_type &&
+> +		    res->start == res_list_elem->start &&
+> +		    res->end == res_list_elem->end) {
+> +
+> +			/*
+> +			 * The Region(addr,len) already exist in the list,
+> +			 * just increase the count
+> +			 */
+> +
+> +			res_list_elem->count++;
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	res->count = 1;
+> +	list_add(&res->resource_list, &resource_list_head);
+> +	return 1;
+> +}
+> +
+> +static inline void acpi_res_list_del(struct acpi_res_list *res)
+> +{
+> +	struct acpi_res_list *res_list_elem;
+> +
+> +	list_for_each_entry(res_list_elem, &resource_list_head,
+> +			    resource_list) {
+> +
+> +		if (res->resource_type == res_list_elem->resource_type &&
+> +		    res->start == res_list_elem->start &&
+> +		    res->end == res_list_elem->end) {
+> +
+> +			/*
+> +			 * If the res count is decreased to 0, remove and free it
+> +			 */
+> +
+> +			if (--res_list_elem->count == 0) {
+> +				list_del(&res_list_elem->resource_list);
+> +				kfree(res_list_elem);
+> +			}
+> +			return;
+> +		}
+> +	}
+> +}
+> +
+> +acpi_status
+> +acpi_os_invalidate_address(
+> +    u8                   space_id,
+> +    acpi_physical_address   address,
+> +    acpi_size               length)
+> +{
+> +	struct acpi_res_list res;
+> +
+> +	switch (space_id) {
+> +	case ACPI_ADR_SPACE_SYSTEM_IO:
+> +	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+> +		/* Only interference checks against SystemIO and SytemMemory
+> +		   are needed */
+> +		res.start = address;
+> +		res.end = address + length - 1;
+> +		res.resource_type = space_id;
+> +		spin_lock(&acpi_res_lock);
+> +		acpi_res_list_del(&res);
+> +		spin_unlock(&acpi_res_lock);
+> +		break;
+> +	case ACPI_ADR_SPACE_PCI_CONFIG:
+> +	case ACPI_ADR_SPACE_EC:
+> +	case ACPI_ADR_SPACE_SMBUS:
+> +	case ACPI_ADR_SPACE_CMOS:
+> +	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
+> +	case ACPI_ADR_SPACE_DATA_TABLE:
+> +	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> +		break;
+> +	}
+> +	return AE_OK;
+> +}
+> +
+>  
+/******************************************************************************
+>   *
+>   * FUNCTION:    acpi_os_validate_address
+> @@ -1357,6 +1440,7 @@ acpi_os_validate_address (
+>      char *name)
+>  {
+>  	struct acpi_res_list *res;
+> +	int added;
+>  	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
+>  		return AE_OK;
+>  
+> @@ -1374,14 +1458,17 @@ acpi_os_validate_address (
+>  		res->end = address + length - 1;
+>  		res->resource_type = space_id;
+>  		spin_lock(&acpi_res_lock);
+> -		list_add(&res->resource_list, &resource_list_head);
+> +		added = acpi_res_list_add(res);
+>  		spin_unlock(&acpi_res_lock);
+> -		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
+> -			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+> +		pr_debug("%s %s resource: start: 0x%llx, end: 0x%llx, "
+> +			 "name: %s\n", added ? "Added" : "Already exist",
+> +			 (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+>  			 ? "SystemIO" : "System Memory",
+>  			 (unsigned long long)res->start,
+>  			 (unsigned long long)res->end,
+>  			 res->name);
+> +		if (!added)
+> +			kfree(res);
+>  		break;
+>  	case ACPI_ADR_SPACE_PCI_CONFIG:
+>  	case ACPI_ADR_SPACE_EC:
+> diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+> index ab0b85c..14d40bf 100644
+> --- a/include/acpi/acpiosxf.h
+> +++ b/include/acpi/acpiosxf.h
+> @@ -246,6 +246,10 @@ acpi_status
+>  acpi_os_validate_address(u8 space_id, acpi_physical_address address,
+>  			 acpi_size length, char *name);
+>  
+> +acpi_status
+> +acpi_os_invalidate_address(u8 space_id, acpi_physical_address address,
+> +			 acpi_size length);
+> +
+>  u64 acpi_os_get_timer(void);
+>  
+>  acpi_status acpi_os_signal(u32 function, void *info);
+> 
+> 
+> 
 
-This is indeed not feasible, the cost would be much too high. Not to
-mention it would still be racy by design.
 
-Please remember that Thomas' code was meant to solve real-world
-problems which had been there for long and nobody else was able to
-solve so far. It wasn't meant to be bullet-proof, it was not perfect,
-but it did help in practice.
-
-> > I guess that I would like to understand the exact issue(s) that are=
- behind
-> > the creation of the resource list in the first place. AFAIK, any AM=
-L code
-> > that reads/writes to operation regions usually assumes exclusive ac=
-cess to
-> > these regions. The ACPI Global Lock is used when exclusive access c=
-annot be
-> > assumed.
-
-I could change the affected native drivers to take the ACPI Global
-Lock if needed. But what guarantees that the ACPI code which accesses
-the device in question is taking the ACPI Global Lock too? It can
-only work if everybody plays the game. My understanding was that most
-ACPI implementation did not take the ACPI Global Lock when accessing
-the devices and thus this approach wouldn't work in practice. Was I
-wrong?
-
---=20
-Jean Delvare
-Suse L3
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
