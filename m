@@ -1,64 +1,39 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: mmotm 2009-06-30-12-50 uploaded
-Date: Thu, 02 Jul 2009 16:21:05 -0400
-Message-ID: <30563.1246566065@turing-police.cc.vt.edu>
-References: <200906301951.n5UJpUSY013305@imap1.linux-foundation.org> <6719.1246562163@turing-police.cc.vt.edu>
-            <20090702124726.a253f13d.akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] Work around negative s16 battery current on Acer
+Date: Thu, 2 Jul 2009 15:56:42 -0700
+Message-ID: <20090702155642.0d55ee57.akpm@linux-foundation.org>
+References: <4A4BA8F9.9070803@marcansoft.com>
+	<20090701112958.1d24e06f.akpm@linux-foundation.org>
+	<4A4C2EDC.6070209@marcansoft.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1246566065_2896P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from turing-police.cc.vt.edu ([128.173.14.107]:58097 "EHLO
-	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752229AbZGBU1c (ORCPT
-	<RFC822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2009 16:27:32 -0400
-In-Reply-To: Your message of "Thu, 02 Jul 2009 12:47:26 PDT."
-             <20090702124726.a253f13d.akpm@linux-foundation.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57159 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754812AbZGBW5y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2009 18:57:54 -0400
+In-Reply-To: <4A4C2EDC.6070209@marcansoft.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Rusty Russell <rusty@rustcorp.com.au>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Hector Martin <hector@marcansoft.com>
+Cc: astarikovskiy@suse.de, lenb@kernel.org, linux-acpi@vger.kernel.org
 
---==_Exmh_1246566065_2896P
-Content-Type: text/plain; charset=us-ascii
+On Thu, 02 Jul 2009 05:51:56 +0200
+Hector Martin <hector@marcansoft.com> wrote:
 
-On Thu, 02 Jul 2009 12:47:26 PDT, Andrew Morton said:
-
-> apart from having a crappy title, linux-next's
+> Andrew Morton wrote:
+> > acpi_battery has no field `current_now' in 2.6.30 or 2.6.31-rc1.  Which
+> > kernel version are you patching here?
 > 
-> : commit f29876421ec11f7d66f3d982219ef3af9bcccf32
-> : Author: Rusty Russell <rusty@rustcorp.com.au>
-> : AuthorDate: Wed Jul 1 12:37:19 2009 +1000
-> : Commit: Stephen Rothwell <sfr@canb.auug.org.au>
-> : CommitDate: Wed Jul 1 12:37:19 2009 +1000
-> :
-> : misc:work_on_cpu-acpi
-> :
-> 
-> causes get_throttling() to newly be called from an IPI, and lockdep doesn't
-> like irq-disabled interrupt handlers doing local_irq_enable().
-> 
-> 
-> If we rely upon these functions only ever being called from
-> smp_call_function_single(), and if smp_call_function_single() is
-> correctly implemented, we should be able to do this:
+> Updated patch for 2.6.30 attached. current_now got renamed to rate_now.
 
-I'll take a leap of faith on the "correctly implemented" part.  However,
-I admit I'm probably going to wait till Len or somebody agrees on the
-"only calledf from function_single()" part being correct before test-driving
-the patch...
+The patch has no changelog.
 
---==_Exmh_1246566065_2896P
-Content-Type: application/pgp-signature
+We could go fishing through the mailing list to find the original
+changelog, but perhaps it is no longer accurate.  Or we could type in a
+new changelog but that also has accuracy problems.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+So please always resend the full changelog (possibly after revising it)
+with each version of a patch.
 
-iD8DBQFKTRawcC3lWbTT17ARAgmuAKDOIPw0qPP+dy8JuCOIeZIjcSmSqgCgsmUz
-W89Q9WCP0/Y4GWyAnRtuzDQ=
-=QuBg
------END PGP SIGNATURE-----
-
---==_Exmh_1246566065_2896P--
