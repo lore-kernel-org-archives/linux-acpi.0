@@ -1,108 +1,245 @@
-From: Hector Martin <hector@marcansoft.com>
-Subject: Re: [PATCH] Work around negative s16 battery current on Acer (take
- 3)
-Date: Fri, 03 Jul 2009 01:46:28 +0200
-Message-ID: <4A4D46D4.7060101@marcansoft.com>
-References: <4A4BA8F9.9070803@marcansoft.com>	<20090701112958.1d24e06f.akpm@linux-foundation.org>	<4A4C2EDC.6070209@marcansoft.com> <20090702155642.0d55ee57.akpm@linux-foundation.org>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
+ acpi_os_validate_address interface"
+Date: Fri, 03 Jul 2009 09:30:09 +0800
+Message-ID: <1246584609.11875.20.camel@minggr.sh.intel.com>
+References: <1246415391.24831.30.camel@minggr.sh.intel.com>
+	 <alpine.LFD.2.00.0907012202580.19077@localhost.localdomain>
+	 <1246516045.3326.0.camel@minggr.sh.intel.com>
+	 <200907021212.32994.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from marcansoft.com ([80.68.93.119]:53695 "EHLO smtp.marcansoft.com"
+Received: from mga02.intel.com ([134.134.136.20]:47115 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752314AbZGBXq3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2009 19:46:29 -0400
-In-Reply-To: <20090702155642.0d55ee57.akpm@linux-foundation.org>
+	id S1752817AbZGCB2r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2009 21:28:47 -0400
+In-Reply-To: <200907021212.32994.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Andrew Morton wrote:
-> So please always resend the full changelog (possibly after revising 
-> it) with each version of a patch.
-Trying again then. Hope I nailed the right Thunderbird options this time
-for optimal patch submission.
+On Thu, 2009-07-02 at 18:12 +0800, Thomas Renninger wrote:
+> On Thursday 02 July 2009 08:27:25 Lin Ming wrote:
+> > On Thu, 2009-07-02 at 10:03 +0800, Len Brown wrote: 
+> > > I can't apply a patch that adds a known memory leak,
+> > > even if it removes a conflict between drivers.
+> > > 
+> > > The reason is that there is a workaround for the driver conflict,
+> > > but no workaround for the memory leak.
+> > 
+> > Here is a prototype simple patch, please review to see if it is the
+> > right way to go.
+> > 
+> > 1) add a new field "count" to struct acpi_res_list.
+> > 
+> >    When inserting, if the region(addr, len) is already in the resource 
+> >    list, we just increase "count", otherwise, the region is inserted 
+> >    with count=1.
+> > 
+> >    When deleting, the "count" is decreased, if it's decreased to 0,
+> >    the region is deleted from the resource list.
+> > 
+> >    With "count", the region with same address and length can only be 
+> >    inserted to the resource list once, so prevent potential memory leak.
+> Is the counting really needed?
+> An OpRegion inside a method should get deleted when the function is exited
+> and acpi_os_invalidate_address will get called.
 
+I was considering maybe some strange BIOS defines a region in a method
+with the same address and length of the global region, as below
 
-Acer Aspire 8930G laptops (and possibly others) report the battery
-current as a 16-bit signed negative when it is charging. It also reports
-it as 0x10000 when the current is 0. This patch adds a quirk for this
-which takes the absolute value of the reported current cast to an s16.
-This is a DSDT bug present in the latest BIOS revision (the EC register
-is 16 bits signed and the DSDT attempts to take the 16-bit two's
-complement of this, which works for discharge but not charge. It also
-breaks zero values because a 32-bit register is used and the high bits
-aren't thrown away).
+OperationRegion (reg1, SystemMemory, 0xFED11000, 0xFF)
 
-I've enabled this for all Acer systems which report in mA units. This
-should be safe since it won't break compliant systems unless they report
-a current above 32A, which is insane. The patch also detects the valid
-32-bit value -1, which indicates unknown status, and does not attempt
-the fix in that case (note that this does not conflict with 16-bit -1,
-which is 65535 as read normally and gets translated to 1mA).
+Method(m000)
+{
+    OperationRegion (xxxx, SystemMemory, 0xFED11000, 0xFF)
+    ....
+}
 
-Signed-off-by: Hector Martin <hector@marcansoft.com>
---- linux-2.6.30/drivers/acpi/battery.c.old	2009-07-02 04:04:52.000000000 +0200
-+++ linux-2.6.30/drivers/acpi/battery.c	2009-07-02 04:07:20.000000000 +0200
-@@ -85,6 +85,10 @@ static const struct acpi_device_id batte
- 
- MODULE_DEVICE_TABLE(acpi, battery_device_ids);
- 
-+/* For buggy DSDTs that report negative 16-bit values for either charging
-+ * or discharging current and/or report 0 as 65536 due to bad math.
-+ */
-+#define QUIRK_SIGNED16_CURRENT 0x0001
- 
- struct acpi_battery {
- 	struct mutex lock;
-@@ -112,6 +116,7 @@ struct acpi_battery {
- 	int state;
- 	int power_unit;
- 	u8 alarm_present;
-+	long quirks;
- };
- 
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
-@@ -390,6 +395,11 @@ static int acpi_battery_get_state(struct
- 				 state_offsets, ARRAY_SIZE(state_offsets));
- 	battery->update_time = jiffies;
- 	kfree(buffer.pointer);
-+
-+	if ((battery->quirks & QUIRK_SIGNED16_CURRENT) &&
-+	    battery->rate_now != -1)
-+		battery->rate_now = abs((s16)battery->rate_now);
-+
- 	return result;
- }
- 
-@@ -495,6 +505,14 @@ static void sysfs_remove_battery(struct 
- }
- #endif
- 
-+static void acpi_battery_quirks(struct acpi_battery *battery)
-+{
-+	battery->quirks = 0;
-+	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
-+		battery->quirks |= QUIRK_SIGNED16_CURRENT;
-+	}
-+}
-+
- static int acpi_battery_update(struct acpi_battery *battery)
- {
- 	int result, old_present = acpi_battery_present(battery);
-@@ -513,6 +531,7 @@ static int acpi_battery_update(struct ac
- 		result = acpi_battery_get_info(battery);
- 		if (result)
- 			return result;
-+		acpi_battery_quirks(battery);
- 		acpi_battery_init_alarm(battery);
- 	}
- #ifdef CONFIG_ACPI_SYSFS_POWER
+Although, this is a really seldom case, 
+but with the counting it would be more safe.
 
+Lin Ming
 
-
--- 
-Hector Martin (hector@marcansoft.com)
-Public Key: http://www.marcansoft.com/marcan.asc
+> 
+> I like it. Thanks for looking into that!
+> 
+>    Thomas
+> > 
+> > 2) add a new function acpi_os_invalidate_address, which is called when 
+> >    region is deleted. 
+> > 
+> > 
+> > diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+> > index bc17103..96e26e7 100644
+> > --- a/drivers/acpi/acpica/utdelete.c
+> > +++ b/drivers/acpi/acpica/utdelete.c
+> > @@ -215,6 +215,12 @@ static void acpi_ut_delete_internal_obj(union 
+> acpi_operand_object *object)
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+> >  				  "***** Region %p\n", object));
+> >  
+> > +		/* Invalidate the region address/length via the host OS */
+> > +
+> > +		acpi_os_invalidate_address(object->region.space_id,
+> > +					  object->region.address,
+> > +					  (acpi_size) object->region.length);
+> > +
+> >  		second_desc = acpi_ns_get_secondary_object(object);
+> >  		if (second_desc) {
+> >  			/*
+> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> > index 7167071..620a65a 100644
+> > --- a/drivers/acpi/osl.c
+> > +++ b/drivers/acpi/osl.c
+> > @@ -88,6 +88,7 @@ struct acpi_res_list {
+> >  	char name[5];   /* only can have a length of 4 chars, make use of this
+> >  			   one instead of res->name, no need to kalloc then */
+> >  	struct list_head resource_list;
+> > +	int count;
+> >  };
+> >  
+> >  static LIST_HEAD(resource_list_head);
+> > @@ -1333,6 +1334,88 @@ acpi_os_validate_interface (char *interface)
+> >  	return AE_SUPPORT;
+> >  }
+> >  
+> > +static inline int acpi_res_list_add(struct acpi_res_list *res)
+> > +{
+> > +	struct acpi_res_list *res_list_elem;
+> > +
+> > +	list_for_each_entry(res_list_elem, &resource_list_head,
+> > +			    resource_list) {
+> > +
+> > +		if (res->resource_type == res_list_elem->resource_type &&
+> > +		    res->start == res_list_elem->start &&
+> > +		    res->end == res_list_elem->end) {
+> > +
+> > +			/*
+> > +			 * The Region(addr,len) already exist in the list,
+> > +			 * just increase the count
+> > +			 */
+> > +
+> > +			res_list_elem->count++;
+> > +			return 0;
+> > +		}
+> > +	}
+> > +
+> > +	res->count = 1;
+> > +	list_add(&res->resource_list, &resource_list_head);
+> > +	return 1;
+> > +}
+> > +
+> > +static inline void acpi_res_list_del(struct acpi_res_list *res)
+> > +{
+> > +	struct acpi_res_list *res_list_elem;
+> > +
+> > +	list_for_each_entry(res_list_elem, &resource_list_head,
+> > +			    resource_list) {
+> > +
+> > +		if (res->resource_type == res_list_elem->resource_type &&
+> > +		    res->start == res_list_elem->start &&
+> > +		    res->end == res_list_elem->end) {
+> > +
+> > +			/*
+> > +			 * If the res count is decreased to 0, remove and free it
+> > +			 */
+> > +
+> > +			if (--res_list_elem->count == 0) {
+> > +				list_del(&res_list_elem->resource_list);
+> > +				kfree(res_list_elem);
+> > +			}
+> > +			return;
+> > +		}
+> > +	}
+> > +}
+> > +
+> > +acpi_status
+> > +acpi_os_invalidate_address(
+> > +    u8                   space_id,
+> > +    acpi_physical_address   address,
+> > +    acpi_size               length)
+> > +{
+> > +	struct acpi_res_list res;
+> > +
+> > +	switch (space_id) {
+> > +	case ACPI_ADR_SPACE_SYSTEM_IO:
+> > +	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+> > +		/* Only interference checks against SystemIO and SytemMemory
+> > +		   are needed */
+> > +		res.start = address;
+> > +		res.end = address + length - 1;
+> > +		res.resource_type = space_id;
+> > +		spin_lock(&acpi_res_lock);
+> > +		acpi_res_list_del(&res);
+> > +		spin_unlock(&acpi_res_lock);
+> > +		break;
+> > +	case ACPI_ADR_SPACE_PCI_CONFIG:
+> > +	case ACPI_ADR_SPACE_EC:
+> > +	case ACPI_ADR_SPACE_SMBUS:
+> > +	case ACPI_ADR_SPACE_CMOS:
+> > +	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
+> > +	case ACPI_ADR_SPACE_DATA_TABLE:
+> > +	case ACPI_ADR_SPACE_FIXED_HARDWARE:
+> > +		break;
+> > +	}
+> > +	return AE_OK;
+> > +}
+> > +
+> >  
+> /******************************************************************************
+> >   *
+> >   * FUNCTION:    acpi_os_validate_address
+> > @@ -1357,6 +1440,7 @@ acpi_os_validate_address (
+> >      char *name)
+> >  {
+> >  	struct acpi_res_list *res;
+> > +	int added;
+> >  	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
+> >  		return AE_OK;
+> >  
+> > @@ -1374,14 +1458,17 @@ acpi_os_validate_address (
+> >  		res->end = address + length - 1;
+> >  		res->resource_type = space_id;
+> >  		spin_lock(&acpi_res_lock);
+> > -		list_add(&res->resource_list, &resource_list_head);
+> > +		added = acpi_res_list_add(res);
+> >  		spin_unlock(&acpi_res_lock);
+> > -		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
+> > -			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+> > +		pr_debug("%s %s resource: start: 0x%llx, end: 0x%llx, "
+> > +			 "name: %s\n", added ? "Added" : "Already exist",
+> > +			 (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+> >  			 ? "SystemIO" : "System Memory",
+> >  			 (unsigned long long)res->start,
+> >  			 (unsigned long long)res->end,
+> >  			 res->name);
+> > +		if (!added)
+> > +			kfree(res);
+> >  		break;
+> >  	case ACPI_ADR_SPACE_PCI_CONFIG:
+> >  	case ACPI_ADR_SPACE_EC:
+> > diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+> > index ab0b85c..14d40bf 100644
+> > --- a/include/acpi/acpiosxf.h
+> > +++ b/include/acpi/acpiosxf.h
+> > @@ -246,6 +246,10 @@ acpi_status
+> >  acpi_os_validate_address(u8 space_id, acpi_physical_address address,
+> >  			 acpi_size length, char *name);
+> >  
+> > +acpi_status
+> > +acpi_os_invalidate_address(u8 space_id, acpi_physical_address address,
+> > +			 acpi_size length);
+> > +
+> >  u64 acpi_os_get_timer(void);
+> >  
+> >  acpi_status acpi_os_signal(u32 function, void *info);
+> > 
+> > 
+> > 
+> 
+> 
 
