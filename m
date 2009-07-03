@@ -1,245 +1,62 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH] ACPICA: Revert "ACPICA: Remove obsolete
- acpi_os_validate_address interface"
-Date: Fri, 03 Jul 2009 09:30:09 +0800
-Message-ID: <1246584609.11875.20.camel@minggr.sh.intel.com>
-References: <1246415391.24831.30.camel@minggr.sh.intel.com>
-	 <alpine.LFD.2.00.0907012202580.19077@localhost.localdomain>
-	 <1246516045.3326.0.camel@minggr.sh.intel.com>
-	 <200907021212.32994.trenn@suse.de>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: EC
+Date: Fri, 3 Jul 2009 09:44:50 +0800
+Message-ID: <76780B19A496DC4B80439008DAD7076C03453A5E98@PDSMSX501.ccr.corp.intel.com>
+References: <76780B19A496DC4B80439008DAD7076C03453A5BFC@PDSMSX501.ccr.corp.intel.com>
+ <4A4C51AF.8080206@suse.de>
+ <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
+ <4A4C6589.4070108@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47115 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:44974 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752817AbZGCB2r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2009 21:28:47 -0400
-In-Reply-To: <200907021212.32994.trenn@suse.de>
+	id S1751475AbZGCBpX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2009 21:45:23 -0400
+In-Reply-To: <4A4C6589.4070108@suse.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, "Zhao, Yakui" <yakui.zhao@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2009-07-02 at 18:12 +0800, Thomas Renninger wrote:
-> On Thursday 02 July 2009 08:27:25 Lin Ming wrote:
-> > On Thu, 2009-07-02 at 10:03 +0800, Len Brown wrote: 
-> > > I can't apply a patch that adds a known memory leak,
-> > > even if it removes a conflict between drivers.
-> > > 
-> > > The reason is that there is a workaround for the driver conflict,
-> > > but no workaround for the memory leak.
-> > 
-> > Here is a prototype simple patch, please review to see if it is the
-> > right way to go.
-> > 
-> > 1) add a new field "count" to struct acpi_res_list.
-> > 
-> >    When inserting, if the region(addr, len) is already in the resource 
-> >    list, we just increase "count", otherwise, the region is inserted 
-> >    with count=1.
-> > 
-> >    When deleting, the "count" is decreased, if it's decreased to 0,
-> >    the region is deleted from the resource list.
-> > 
-> >    With "count", the region with same address and length can only be 
-> >    inserted to the resource list once, so prevent potential memory leak.
-> Is the counting really needed?
-> An OpRegion inside a method should get deleted when the function is exited
-> and acpi_os_invalidate_address will get called.
-
-I was considering maybe some strange BIOS defines a region in a method
-with the same address and length of the global region, as below
-
-OperationRegion (reg1, SystemMemory, 0xFED11000, 0xFF)
-
-Method(m000)
-{
-    OperationRegion (xxxx, SystemMemory, 0xFED11000, 0xFF)
-    ....
-}
-
-Although, this is a really seldom case, 
-but with the counting it would be more safe.
-
-Lin Ming
-
-> 
-> I like it. Thanks for looking into that!
-> 
->    Thomas
-> > 
-> > 2) add a new function acpi_os_invalidate_address, which is called when 
-> >    region is deleted. 
-> > 
-> > 
-> > diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
-> > index bc17103..96e26e7 100644
-> > --- a/drivers/acpi/acpica/utdelete.c
-> > +++ b/drivers/acpi/acpica/utdelete.c
-> > @@ -215,6 +215,12 @@ static void acpi_ut_delete_internal_obj(union 
-> acpi_operand_object *object)
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
-> >  				  "***** Region %p\n", object));
-> >  
-> > +		/* Invalidate the region address/length via the host OS */
-> > +
-> > +		acpi_os_invalidate_address(object->region.space_id,
-> > +					  object->region.address,
-> > +					  (acpi_size) object->region.length);
-> > +
-> >  		second_desc = acpi_ns_get_secondary_object(object);
-> >  		if (second_desc) {
-> >  			/*
-> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > index 7167071..620a65a 100644
-> > --- a/drivers/acpi/osl.c
-> > +++ b/drivers/acpi/osl.c
-> > @@ -88,6 +88,7 @@ struct acpi_res_list {
-> >  	char name[5];   /* only can have a length of 4 chars, make use of this
-> >  			   one instead of res->name, no need to kalloc then */
-> >  	struct list_head resource_list;
-> > +	int count;
-> >  };
-> >  
-> >  static LIST_HEAD(resource_list_head);
-> > @@ -1333,6 +1334,88 @@ acpi_os_validate_interface (char *interface)
-> >  	return AE_SUPPORT;
-> >  }
-> >  
-> > +static inline int acpi_res_list_add(struct acpi_res_list *res)
-> > +{
-> > +	struct acpi_res_list *res_list_elem;
-> > +
-> > +	list_for_each_entry(res_list_elem, &resource_list_head,
-> > +			    resource_list) {
-> > +
-> > +		if (res->resource_type == res_list_elem->resource_type &&
-> > +		    res->start == res_list_elem->start &&
-> > +		    res->end == res_list_elem->end) {
-> > +
-> > +			/*
-> > +			 * The Region(addr,len) already exist in the list,
-> > +			 * just increase the count
-> > +			 */
-> > +
-> > +			res_list_elem->count++;
-> > +			return 0;
-> > +		}
-> > +	}
-> > +
-> > +	res->count = 1;
-> > +	list_add(&res->resource_list, &resource_list_head);
-> > +	return 1;
-> > +}
-> > +
-> > +static inline void acpi_res_list_del(struct acpi_res_list *res)
-> > +{
-> > +	struct acpi_res_list *res_list_elem;
-> > +
-> > +	list_for_each_entry(res_list_elem, &resource_list_head,
-> > +			    resource_list) {
-> > +
-> > +		if (res->resource_type == res_list_elem->resource_type &&
-> > +		    res->start == res_list_elem->start &&
-> > +		    res->end == res_list_elem->end) {
-> > +
-> > +			/*
-> > +			 * If the res count is decreased to 0, remove and free it
-> > +			 */
-> > +
-> > +			if (--res_list_elem->count == 0) {
-> > +				list_del(&res_list_elem->resource_list);
-> > +				kfree(res_list_elem);
-> > +			}
-> > +			return;
-> > +		}
-> > +	}
-> > +}
-> > +
-> > +acpi_status
-> > +acpi_os_invalidate_address(
-> > +    u8                   space_id,
-> > +    acpi_physical_address   address,
-> > +    acpi_size               length)
-> > +{
-> > +	struct acpi_res_list res;
-> > +
-> > +	switch (space_id) {
-> > +	case ACPI_ADR_SPACE_SYSTEM_IO:
-> > +	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-> > +		/* Only interference checks against SystemIO and SytemMemory
-> > +		   are needed */
-> > +		res.start = address;
-> > +		res.end = address + length - 1;
-> > +		res.resource_type = space_id;
-> > +		spin_lock(&acpi_res_lock);
-> > +		acpi_res_list_del(&res);
-> > +		spin_unlock(&acpi_res_lock);
-> > +		break;
-> > +	case ACPI_ADR_SPACE_PCI_CONFIG:
-> > +	case ACPI_ADR_SPACE_EC:
-> > +	case ACPI_ADR_SPACE_SMBUS:
-> > +	case ACPI_ADR_SPACE_CMOS:
-> > +	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
-> > +	case ACPI_ADR_SPACE_DATA_TABLE:
-> > +	case ACPI_ADR_SPACE_FIXED_HARDWARE:
-> > +		break;
-> > +	}
-> > +	return AE_OK;
-> > +}
-> > +
-> >  
-> /******************************************************************************
-> >   *
-> >   * FUNCTION:    acpi_os_validate_address
-> > @@ -1357,6 +1440,7 @@ acpi_os_validate_address (
-> >      char *name)
-> >  {
-> >  	struct acpi_res_list *res;
-> > +	int added;
-> >  	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
-> >  		return AE_OK;
-> >  
-> > @@ -1374,14 +1458,17 @@ acpi_os_validate_address (
-> >  		res->end = address + length - 1;
-> >  		res->resource_type = space_id;
-> >  		spin_lock(&acpi_res_lock);
-> > -		list_add(&res->resource_list, &resource_list_head);
-> > +		added = acpi_res_list_add(res);
-> >  		spin_unlock(&acpi_res_lock);
-> > -		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
-> > -			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-> > +		pr_debug("%s %s resource: start: 0x%llx, end: 0x%llx, "
-> > +			 "name: %s\n", added ? "Added" : "Already exist",
-> > +			 (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-> >  			 ? "SystemIO" : "System Memory",
-> >  			 (unsigned long long)res->start,
-> >  			 (unsigned long long)res->end,
-> >  			 res->name);
-> > +		if (!added)
-> > +			kfree(res);
-> >  		break;
-> >  	case ACPI_ADR_SPACE_PCI_CONFIG:
-> >  	case ACPI_ADR_SPACE_EC:
-> > diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-> > index ab0b85c..14d40bf 100644
-> > --- a/include/acpi/acpiosxf.h
-> > +++ b/include/acpi/acpiosxf.h
-> > @@ -246,6 +246,10 @@ acpi_status
-> >  acpi_os_validate_address(u8 space_id, acpi_physical_address address,
-> >  			 acpi_size length, char *name);
-> >  
-> > +acpi_status
-> > +acpi_os_invalidate_address(u8 space_id, acpi_physical_address address,
-> > +			 acpi_size length);
-> > +
-> >  u64 acpi_os_get_timer(void);
-> >  
-> >  acpi_status acpi_os_signal(u32 function, void *info);
-> > 
-> > 
-> > 
-> 
-> 
-
+Pj4+IExpLCBTaGFvaHVhINC/0LjRiNC10YI6DQo+Pj4+IEhpLA0KPj4+PiBQcmVlbXB0IGlzbid0
+IGRpc2FibGVkIGJldHdlZW4gZWNfYnVyc3RfZW5hYmxlKCkvZWNfYnVyc3RfZGlzYWJsZSgpLA0K
+PnNvDQo+Pj4gaXQncyB2ZXJ5IGxpa2VseSB0aGVyZSBpcyBhIHByZWVtcHRpb24gYmV0d2VlbiB0
+aGVtIGFuZCBtYWtlIHRoZSB0aW1pbmcNCj4+PiBmb3IgYnVyc3QgbW9kZSBub3QgY29tcGx5IHdp
+dGggQUNQSSBzcGVjICg0MDBtcyBmb3IgZmlyc3QgYWNjZXNzIGFuZA0KPjUwbXMNCj4+PiBmb3Ig
+c3Vic2VxdWVudCBhY2Nlc3MpLg0KPj4+PiBXZSBoYXZlIGEgc3lzdGVtIHdpdGggYnJva2VuIEVD
+IGFuZCB0aGUgQklPUyBlbmdpbmVlciBpZGVudGlmaWVkIGl0J3MNCj4+PiB0aGUgdGltaW5nIGlz
+c3VlLg0KPj4+PiBXaGF0J3MgdGhlIGp1ZGdtZW50IHdoeSBMaW51eCBkb2Vzbid0IGNvbXBseSB3
+aXRoIEFDUEkgc3BlYz8NCj4+PiBQbGVhc2UgZGlzYWJsZSBlY19idXJzdF8qIGFuZCBjaGVjayBh
+Z2Fpbi4gSnVkZ2VtZW50IGlzIHRoYXQgZWNfYnVyc3RfKg0KPmlzDQo+Pj4gaXJyZWxldmFudCB0
+byB0aGUgcHJvdG9jb2wuDQo+PiBXaGF0IGRpZCB5b3UgYWJvdXQgJ2lycmVsZXZhbnQgdG8gdGhl
+IHByb3RvY29sJz8gVGhpcyBpcyB3aGF0IHRoZSBzcGVjDQo+ZGVmaW5lcy4NCj5JIG1lYW4sIHRo
+YXQgRUMgbWF5IGRyb3Agb3V0IG9mIGJ1cnN0IG1vZGUgaWYgdGltZW91dCBoYXBwZW5zLCBhbmQg
+aXQNCj5zaG91bGQgbm90IGNoYW5nZQ0KPnRoZSBmbG93IG9mIHJlYWRzIGFuZCB3cml0ZXMgdG8g
+RUMgKHRoZSBwcm90b2NvbCkuIE1vcmUsIEVDIHNob3VsZCB3b3JrDQo+cHJvcGVybHkgZXZlbiBp
+Zg0KPndlIGRvIG5vdCBlbnRlciBidXJzdCBtb2RlIGF0IGFsbCAobXkgc3VnZ2VzdGlvbiB0byBk
+aXNhYmxlIGNhbGxzIHRvIGJ1cnN0DQo+ZnVuY3Rpb25zKS4NCj4+DQo+Pj4gV2hhdCBwbGF0Zm9y
+bSBhbmQgd2hhdCBvdGhlciBzeW1wdG9tcyBkbyB5b3UgaGF2ZT8gSG93IGV4YWN0bHkgdGhpcyBF
+Qw0KPmlzDQo+Pj4gYnJva2VuPw0KPj4gVGhlIHRlbXBlcmF0dXJlIGlzIHdyb25nIHdoZW4gd2Ug
+Z2V0IGl0IGZyb20gcmVhZGluZyBFQy4gVGhlIEJJT1MNCj5lbmdpbmVlciBtZWFzdXJlZA0KPj4g
+QSBsb3Qgb2YgRUMgdGltZW91dCBpbiBFQyBmaXJtd2FyZSwgYW5kIHRoZXkgbWVhc3VyZWQgdGhl
+IHRpbWluZyBob3cNCj5MaW51eCBhY2Nlc3Nlcw0KPj4gRUMuIFRoZSBkYXRhIHRoZXkgY2FwdHVy
+ZWQgaW4gb3NjaWxsb3Njb3BlIHNob3dzIExpbnV4IGhhcyBsb25nIGRlbGF5IHRvDQo+YWNjZXNz
+DQo+PiBFYyB3aXRoIGJ1cnN0IG1vZGUgZW5hYmxlZCwgdGhpcyBvY2N1cnMgbW9yZSBvZnRlbiB3
+aGVuIGFub3RoZXINCj5hcHBsaWNhdGlvbiBpcyBydW5uaW5nLg0KPkRvIHRoZXkgaGF2ZSBhbnkg
+ZG9jdW1lbnQgYWJvdXQgaW1wbGVtZW50ZWQgRUMgdGltZW91dHM/IFN0YXRlIGRpYWdyYW0/DQo+
+T3RoZXIgdGhhbiBidXJzdCB0aW1lb3V0LCBkbyB0aGV5IGhhdmUgYW55IG90aGVyIHRpbWVvdXRz
+PyBXaGF0IGhhcHBlbnMgaWYNCj50aGV5IGdldCB0aW1lb3V0LCBkbyB0aGV5IGFib3J0IHRyYW5z
+YWN0aW9uPyBXaGF0IGRvIHRoZXkgd3JpdGUgaW4gc3RhdHVzDQo+cmVnaXN0ZXI/DQo+RG8gdGhl
+eSBzZW5kIEdQRT8gUGxlYXNlIGNvbGxlY3QgYXMgbXVjaCBhcyB5b3UgY2FuLCBJIHdhcyBsb29r
+aW5nIGZvcg0KPnN1Y2ggaW5mbyBmb3IgYSB2ZXJ5IGxvbmcgdGltZS4NClRoZXkgc2FpZCBpZiBi
+dXJzdCB0aW1lb3V0LCB0aGVuIGEgR1BFIHdpbGwgZmlyZS4gT1Mgc2hvdWxkIGNoZWNrIHRoZSBi
+dXJzdCBiaXQgaW4gc3RhdHVzIHJlZyB0byBrbm93IGlmIEVDIGlzIGluIGJ1cnN0IG1vZGUuIElm
+IG5vdCwgb3MgbWlnaHQgcmVpc3N1ZSBidXJzdCBlbmFibGUgYXMgYSByZXRyeS4NCg0KVGhleSBk
+b24ndCBoYXZlIGFueSBkb2N1bWVudCB0byBzaGFyZSB3aXRoIHVzLiBJZiB5b3UgaGF2ZSBvdGhl
+ciBxdWVzdGlvbnMsIHBsZWFzZSBsZXQgbWUga25vdywgYnV0IHBsZWFzZSBnaXZlIGRldGFpbCBx
+dWVzdGlvbnMgc28gSSBjYW4gZm9yd2FyZCB0aGVtIHRvIEVDIGZpcm13YXJlIGVuZ2luZWVyLiBU
+aGlzIGlzIGEgZ29vZCBjaGFuY2UgZm9yIHVzIHRvIG1ha2UgRUMgYmV0dGVyLiANCg0KVGhhbmtz
+LA0KU2hhb2h1YQ0K
