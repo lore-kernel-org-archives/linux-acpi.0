@@ -1,62 +1,39 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: EC
-Date: Fri, 3 Jul 2009 09:44:50 +0800
-Message-ID: <76780B19A496DC4B80439008DAD7076C03453A5E98@PDSMSX501.ccr.corp.intel.com>
-References: <76780B19A496DC4B80439008DAD7076C03453A5BFC@PDSMSX501.ccr.corp.intel.com>
- <4A4C51AF.8080206@suse.de>
- <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
- <4A4C6589.4070108@suse.de>
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Subject: Reminder for feature dev->power.power_state removal date July 2007
+Date: Fri, 03 Jul 2009 07:36:48 +0530
+Message-ID: <1246586808.2530.8.camel@jaswinder.satnam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:44974 "EHLO mga14.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:41779 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475AbZGCBpX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2009 21:45:23 -0400
-In-Reply-To: <4A4C6589.4070108@suse.de>
-Content-Language: en-US
+	id S1756238AbZGCCSB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2009 22:18:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>, linux-acpi <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Pj4+IExpLCBTaGFvaHVhINC/0LjRiNC10YI6DQo+Pj4+IEhpLA0KPj4+PiBQcmVlbXB0IGlzbid0
-IGRpc2FibGVkIGJldHdlZW4gZWNfYnVyc3RfZW5hYmxlKCkvZWNfYnVyc3RfZGlzYWJsZSgpLA0K
-PnNvDQo+Pj4gaXQncyB2ZXJ5IGxpa2VseSB0aGVyZSBpcyBhIHByZWVtcHRpb24gYmV0d2VlbiB0
-aGVtIGFuZCBtYWtlIHRoZSB0aW1pbmcNCj4+PiBmb3IgYnVyc3QgbW9kZSBub3QgY29tcGx5IHdp
-dGggQUNQSSBzcGVjICg0MDBtcyBmb3IgZmlyc3QgYWNjZXNzIGFuZA0KPjUwbXMNCj4+PiBmb3Ig
-c3Vic2VxdWVudCBhY2Nlc3MpLg0KPj4+PiBXZSBoYXZlIGEgc3lzdGVtIHdpdGggYnJva2VuIEVD
-IGFuZCB0aGUgQklPUyBlbmdpbmVlciBpZGVudGlmaWVkIGl0J3MNCj4+PiB0aGUgdGltaW5nIGlz
-c3VlLg0KPj4+PiBXaGF0J3MgdGhlIGp1ZGdtZW50IHdoeSBMaW51eCBkb2Vzbid0IGNvbXBseSB3
-aXRoIEFDUEkgc3BlYz8NCj4+PiBQbGVhc2UgZGlzYWJsZSBlY19idXJzdF8qIGFuZCBjaGVjayBh
-Z2Fpbi4gSnVkZ2VtZW50IGlzIHRoYXQgZWNfYnVyc3RfKg0KPmlzDQo+Pj4gaXJyZWxldmFudCB0
-byB0aGUgcHJvdG9jb2wuDQo+PiBXaGF0IGRpZCB5b3UgYWJvdXQgJ2lycmVsZXZhbnQgdG8gdGhl
-IHByb3RvY29sJz8gVGhpcyBpcyB3aGF0IHRoZSBzcGVjDQo+ZGVmaW5lcy4NCj5JIG1lYW4sIHRo
-YXQgRUMgbWF5IGRyb3Agb3V0IG9mIGJ1cnN0IG1vZGUgaWYgdGltZW91dCBoYXBwZW5zLCBhbmQg
-aXQNCj5zaG91bGQgbm90IGNoYW5nZQ0KPnRoZSBmbG93IG9mIHJlYWRzIGFuZCB3cml0ZXMgdG8g
-RUMgKHRoZSBwcm90b2NvbCkuIE1vcmUsIEVDIHNob3VsZCB3b3JrDQo+cHJvcGVybHkgZXZlbiBp
-Zg0KPndlIGRvIG5vdCBlbnRlciBidXJzdCBtb2RlIGF0IGFsbCAobXkgc3VnZ2VzdGlvbiB0byBk
-aXNhYmxlIGNhbGxzIHRvIGJ1cnN0DQo+ZnVuY3Rpb25zKS4NCj4+DQo+Pj4gV2hhdCBwbGF0Zm9y
-bSBhbmQgd2hhdCBvdGhlciBzeW1wdG9tcyBkbyB5b3UgaGF2ZT8gSG93IGV4YWN0bHkgdGhpcyBF
-Qw0KPmlzDQo+Pj4gYnJva2VuPw0KPj4gVGhlIHRlbXBlcmF0dXJlIGlzIHdyb25nIHdoZW4gd2Ug
-Z2V0IGl0IGZyb20gcmVhZGluZyBFQy4gVGhlIEJJT1MNCj5lbmdpbmVlciBtZWFzdXJlZA0KPj4g
-QSBsb3Qgb2YgRUMgdGltZW91dCBpbiBFQyBmaXJtd2FyZSwgYW5kIHRoZXkgbWVhc3VyZWQgdGhl
-IHRpbWluZyBob3cNCj5MaW51eCBhY2Nlc3Nlcw0KPj4gRUMuIFRoZSBkYXRhIHRoZXkgY2FwdHVy
-ZWQgaW4gb3NjaWxsb3Njb3BlIHNob3dzIExpbnV4IGhhcyBsb25nIGRlbGF5IHRvDQo+YWNjZXNz
-DQo+PiBFYyB3aXRoIGJ1cnN0IG1vZGUgZW5hYmxlZCwgdGhpcyBvY2N1cnMgbW9yZSBvZnRlbiB3
-aGVuIGFub3RoZXINCj5hcHBsaWNhdGlvbiBpcyBydW5uaW5nLg0KPkRvIHRoZXkgaGF2ZSBhbnkg
-ZG9jdW1lbnQgYWJvdXQgaW1wbGVtZW50ZWQgRUMgdGltZW91dHM/IFN0YXRlIGRpYWdyYW0/DQo+
-T3RoZXIgdGhhbiBidXJzdCB0aW1lb3V0LCBkbyB0aGV5IGhhdmUgYW55IG90aGVyIHRpbWVvdXRz
-PyBXaGF0IGhhcHBlbnMgaWYNCj50aGV5IGdldCB0aW1lb3V0LCBkbyB0aGV5IGFib3J0IHRyYW5z
-YWN0aW9uPyBXaGF0IGRvIHRoZXkgd3JpdGUgaW4gc3RhdHVzDQo+cmVnaXN0ZXI/DQo+RG8gdGhl
-eSBzZW5kIEdQRT8gUGxlYXNlIGNvbGxlY3QgYXMgbXVjaCBhcyB5b3UgY2FuLCBJIHdhcyBsb29r
-aW5nIGZvcg0KPnN1Y2ggaW5mbyBmb3IgYSB2ZXJ5IGxvbmcgdGltZS4NClRoZXkgc2FpZCBpZiBi
-dXJzdCB0aW1lb3V0LCB0aGVuIGEgR1BFIHdpbGwgZmlyZS4gT1Mgc2hvdWxkIGNoZWNrIHRoZSBi
-dXJzdCBiaXQgaW4gc3RhdHVzIHJlZyB0byBrbm93IGlmIEVDIGlzIGluIGJ1cnN0IG1vZGUuIElm
-IG5vdCwgb3MgbWlnaHQgcmVpc3N1ZSBidXJzdCBlbmFibGUgYXMgYSByZXRyeS4NCg0KVGhleSBk
-b24ndCBoYXZlIGFueSBkb2N1bWVudCB0byBzaGFyZSB3aXRoIHVzLiBJZiB5b3UgaGF2ZSBvdGhl
-ciBxdWVzdGlvbnMsIHBsZWFzZSBsZXQgbWUga25vdywgYnV0IHBsZWFzZSBnaXZlIGRldGFpbCBx
-dWVzdGlvbnMgc28gSSBjYW4gZm9yd2FyZCB0aGVtIHRvIEVDIGZpcm13YXJlIGVuZ2luZWVyLiBU
-aGlzIGlzIGEgZ29vZCBjaGFuY2UgZm9yIHVzIHRvIG1ha2UgRUMgYmV0dGVyLiANCg0KVGhhbmtz
-LA0KU2hhb2h1YQ0K
+Hello Pavel,
+
+What:   dev->power.power_state
+When:   July 2007
+Why:    Broken design for runtime control over driver power states, confusing
+        driver-internal runtime power management with:  mechanisms to support
+        system-wide sleep state transitions; event codes that distinguish
+        different phases of swsusp "sleep" transitions; and userspace policy
+        inputs.  This framework was never widely used, and most attempts to
+        use it were broken.  Drivers should instead be exposing domain-specific
+        interfaces either to kernel or to userspace.
+Who:    Pavel Machek <pavel@suse.cz>
+
+If you are facing any issue regarding feature removal kindly update the
+"Documentation/feature-removal-schedule.txt" like what you are waiting
+for.
+
+Thanks,
+--
+JSR
+
+http://userweb.kernel.org/~jaswinder/
+
