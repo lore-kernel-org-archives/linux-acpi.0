@@ -1,67 +1,54 @@
-From: yakui <yakui.zhao@intel.com>
-Subject: [Patch 2/2]:ACPI: Ingore the memory block with zero block size in
-	course of memory hotplug
-Date: Fri, 03 Jul 2009 10:50:28 +0800
-Message-ID: <1246589428.18688.88.camel@localhost.localdomain>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: mmotm 2009-06-30-12-50 uploaded
+Date: Fri, 03 Jul 2009 06:25:32 -0400
+Message-ID: <4976.1246616732@turing-police.cc.vt.edu>
+References: <200906301951.n5UJpUSY013305@imap1.linux-foundation.org> <6719.1246562163@turing-police.cc.vt.edu>
+            <20090702124726.a253f13d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; boundary="==_Exmh_1246616732_3932P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:31927 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbZGCCtd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2009 22:49:33 -0400
+Received: from turing-police.cc.vt.edu ([128.173.14.107]:54031 "EHLO
+	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756369AbZGCK0b (ORCPT
+	<RFC822;linux-acpi@vger.kernel.org>); Fri, 3 Jul 2009 06:26:31 -0400
+In-Reply-To: Your message of "Thu, 02 Jul 2009 12:47:26 PDT."
+             <20090702124726.a253f13d.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, Rusty Russell <rusty@rustcorp.com.au>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+--==_Exmh_1246616732_3932P
+Content-Type: text/plain; charset=us-ascii
 
-If the memory block size is zero, ignore it and don't do the memory hotplug
-flowchart. Otherwise it will complain the following warning message:
-  >System RAM resource 0 - ffffffffffffffff cannot be added
+On Thu, 02 Jul 2009 12:47:26 PDT, Andrew Morton said:
+> On Thu, 02 Jul 2009 15:16:03 -0400
+> Valdis.Kletnieks@vt.edu wrote:
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- drivers/acpi/acpi_memhotplug.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+> > [    0.657296] WARNING: at kernel/lockdep.c:2143 trace_hardirqs_on_caller+0xc7/0x145()
 
-Index: linux-2.6/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/acpi_memhotplug.c	2009-07-03 10:22:22.000000000 +0800
-+++ linux-2.6/drivers/acpi/acpi_memhotplug.c	2009-07-03 10:36:07.000000000 +0800
-@@ -242,7 +242,12 @@
- 			num_enabled++;
- 			continue;
- 		}
--
-+		/*
-+		 * If the memory block size is zero, please ignore it.
-+		 * Don't try to do the following memory hotplug flowchart.
-+		 */
-+		if (!info->length)
-+			continue;
- 		if (node < 0)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
- 
-@@ -257,8 +262,15 @@
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return -EINVAL;
- 	}
--
--	return result;
-+	/*
-+	 * Sometimes the memory device will contain several memory blocks.
-+	 * When one memory block is hot-added to the system memory, it will
-+	 * be regarded as a success.
-+	 * Otherwise if the last memory block can't be hot-added to the system
-+	 * memory, it will be failure and the memory device can't be bound with
-+	 * driver.
-+	 */
-+	return 0;
- }
- 
- static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
+> If we rely upon these functions only ever being called from
+> smp_call_function_single(), and if smp_call_function_single() is
+> correctly implemented, we should be able to do this:
+> 
+> --- a/drivers/acpi/processor_throttling.c~a
+> +++ a/drivers/acpi/processor_throttling.c
 
+That does seem to have scared the warning into hiding - I'm not seeing it
+anymore in -mmotm0702.  Thanks.
 
+--==_Exmh_1246616732_3932P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFKTdyccC3lWbTT17ARAmT+AJ9Zv5DmWAwaksXGGv1IrEJfclggnACffRiu
+5mrBVYsS/ygV2OtLYCQBFhM=
+=eH/4
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1246616732_3932P--
