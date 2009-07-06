@@ -1,90 +1,34 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: Re: 2.6.30: hibernation/swsusp lockup due to acpi-cpufreq
-Date: Mon, 06 Jul 2009 15:16:11 -0700
-Message-ID: <1246918571.11545.73.camel@localhost.localdomain>
-References: <cNOy0-5C5-23@gated-at.bofh.it> <200907042329.04926.rjw@sisk.pl>
-	 <1246915230.11545.61.camel@localhost.localdomain>
-	 <200907062339.18578.rjw@sisk.pl>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
+Date: Tue, 7 Jul 2009 01:43:46 +0200
+Message-ID: <20090706234346.GA8072@basil.fritz.box>
+References: <20090624041354.GA15936@sli10-desk.sh.intel.com> <1245825558.19816.1861.camel@twins> <20090624074703.GA28458@sli10-desk.sh.intel.com> <1245830585.31755.11.camel@twins> <20090624082112.GA20844@sli10-desk.sh.intel.com> <20090626181623.GF7717@dirshya.in.ibm.com> <20090629025455.GA20614@sli10-desk.sh.intel.com> <20090706180312.GC26831@dirshya.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37804 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753651AbZGFWSC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Jul 2009 18:18:02 -0400
-In-Reply-To: <200907062339.18578.rjw@sisk.pl>
+Received: from one.firstfloor.org ([213.235.205.2]:39151 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769AbZGFXns (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2009 19:43:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20090706180312.GC26831@dirshya.in.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Michael Witten <mfwitten@gmail.com>, Johannes Stezenbach <js@sig21.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "andi@firstfloor.org" <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
 
-On Mon, 2009-07-06 at 14:39 -0700, Rafael J. Wysocki wrote:
-> On Monday 06 July 2009, Pallipadi, Venkatesh wrote:
-> > On Sat, 2009-07-04 at 14:29 -0700, Rafael J. Wysocki wrote:
-> > > On Saturday 04 July 2009, Michael Witten wrote:
-> > > > On Tue, 16 Jun 2009 23:39:59 +0200, Rafael J. Wysocki wrote
-> > > > (http://www.spinics.net/lists/linux-acpi/msg22661.html):
-> > > > 
-> > > > > In fact, we need to do this entire thing differently.
-> > > > > 
-> > > > > The basic problem is that cpufreq_suspend() is a sysdev thing, so it will 
-> > > > > always be called with iterrupts off and *only* for CPU0.  So, it looks like
-> > > > > the majority of things we do there is just unnecessary (at least).
-> > > > 
-> > > > What's the status? This bug is driving me nuts.
+On Mon, Jul 06, 2009 at 11:33:12PM +0530, Vaidyanathan Srinivasan wrote:
 > > > 
-> > > Unfortunately, still unresolved.
-> > 
-> > Looked at this a bit more from acpi cpufreq angle.
+> > > How do we handle interrupts and timers during this interval?  You seem
+> > > to disable interrupts and hold the cpu at idle for 0.95 sec.  It may
+> > > cause timeouts and overflows for network interrupts right?
+> > The x86 mwait/monitor instruction can detect interrupt and complete execution
+> > even interrupt is disabled, so this isn't an issue.
 > 
-> Thanks!
-> 
-> > But, I feel the patch that Johannes had here
-> > http://lkml.indiana.edu/hypermail/linux/kernel/0906.2/00335.html
-> > is the right fix as we do the same saving and restoring of flags on SMP
-> > when cpu==this_cpu. This change will make code in UP same as that in SMP
-> > with 1 CPU active.
-> 
-> Andrew didn't like this patch IIRC.
-> 
-> > We can avoid the driver->get call from cpufreq_suspend for the drivers
-> > that do not do any freq changes in their suspend methods. But, then we
-> > will hit this same problem in cpufreq_resume() path and there we do want
-> > to check for adjust_jiffies for all drivers as long as CONSTANT_LOOPS is
-> > not set.
-> 
-> Why do we need to call that driver->get from cpufreq_suspend() in the first
-> place?  We know we are on CPU0, there are no any other CPUs active and
-> interrupts are disabled, so why do we need to care for any races?
-> 
+> Cool, this will save a lot of trouble :)
 
-cpufreq core is trying to get the current frequency on the CPU and call
-adjust_jiffies(). Both in suspend and resume. Looks like it is needed
-only for some systems on suspend path, as the driver suspend routine may
-change freq. But, it is probably needed for most of the systems on
-resume time as CPU may come up with different freq.
-It doesn't care about races. Problem is that ->get method used here is
-same as the one used in normal system working state. In system working
-state, ->get has to get the frequency from proper CPU using
-smp_call_function and int enabled.
+This is only available in newer Intel CPUs. 
 
-I thought Andrew was worried about SMP case. But, we already do this in
-SMP case
-kernel/smp.c:smp_call_function_single()
-        if (cpu == this_cpu) {
-                local_irq_save(flags);
-                func(info);
-                local_irq_restore(flags);
-        } else {
-
-That patch changes
-kernel/up.c:smp_call_function_single()
-        local_irq_disable();
-        (func)(info);
-        local_irq_enable();
-to add save and restore flags.
-
-Thanks,
-Venki
-
+-Andi
+-- 
+ak@linux.intel.com -- Speaking for myself only.
