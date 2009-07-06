@@ -1,52 +1,59 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch update] PM: Introduce core framework for run-time PM of I/O devices
-Date: Mon, 6 Jul 2009 10:28:27 +0200
-Message-ID: <20090706082827.GA26142@atrey.karlin.mff.cuni.cz>
-References: <200906140023.36147.rjw@sisk.pl> <200906150057.32424.rjw@sisk.pl> <20090624150400.GG1784@ucw.cz> <200906272352.42022.rjw@sisk.pl>
+From: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
+Date: Mon, 6 Jul 2009 23:33:12 +0530
+Message-ID: <20090706180312.GC26831@dirshya.in.ibm.com>
+References: <20090624041354.GA15936@sli10-desk.sh.intel.com> <1245825558.19816.1861.camel@twins> <20090624074703.GA28458@sli10-desk.sh.intel.com> <1245830585.31755.11.camel@twins> <20090624082112.GA20844@sli10-desk.sh.intel.com> <20090626181623.GF7717@dirshya.in.ibm.com> <20090629025455.GA20614@sli10-desk.sh.intel.com>
+Reply-To: svaidy@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58435 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603AbZGFI2Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2009 04:28:24 -0400
+Received: from e23smtp09.au.ibm.com ([202.81.31.142]:34427 "EHLO
+	e23smtp09.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751748AbZGFSDr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2009 14:03:47 -0400
+Received: from d23relay02.au.ibm.com (d23relay02.au.ibm.com [202.81.31.244])
+	by e23smtp09.au.ibm.com (8.13.1/8.13.1) with ESMTP id n673rOSC031843
+	for <linux-acpi@vger.kernel.org>; Tue, 7 Jul 2009 13:53:24 +1000
+Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
+	by d23relay02.au.ibm.com (8.13.8/8.13.8/NCO v9.2) with ESMTP id n66I3lhq1282224
+	for <linux-acpi@vger.kernel.org>; Tue, 7 Jul 2009 04:03:47 +1000
+Received: from d23av02.au.ibm.com (loopback [127.0.0.1])
+	by d23av02.au.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id n66I3kth030498
+	for <linux-acpi@vger.kernel.org>; Tue, 7 Jul 2009 04:03:47 +1000
 Content-Disposition: inline
-In-Reply-To: <200906272352.42022.rjw@sisk.pl>
+In-Reply-To: <20090629025455.GA20614@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Magnus Damm <damm@igel.co.jp>, linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "andi@firstfloor.org" <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
 
-> On Wednesday 24 June 2009, Pavel Machek wrote:
-> > Hi!
+* Shaohua Li <shaohua.li@intel.com> [2009-06-29 10:54:55]:
+
+[snip]
+
 > > 
-> > 
-> > > +2. Run-time PM Helper Functions and Device Fields
-> > > +
-> > > +The following helper functions are defined in drivers/base/power/runtime.c
-> > > +and include/linux/pm_runtime.h:
-> > > +
-> > > +* void pm_runtime_init(struct device *dev);
-> > > +* void pm_runtime_enable(struct device *dev);
-> > > +* void pm_runtime_disable(struct device *dev);
-> > > +* int pm_runtime_suspend(struct device *dev);
-> > > +* void pm_request_suspend(struct device *dev, unsigned long delay);
-> > > +* int pm_runtime_resume(struct device *dev);
-> > > +* void pm_request_resume(struct device *dev);
-> > > +* void pm_cancel_runtime_suspend(struct device *dev);
-> > > +* void pm_cancel_runtime_resume(struct device *dev);
-> > > +* void pm_suspend_check_children(struct device *dev, bool enable);
-> > 
-> > Those *s look confusingly like pointers. Remove them?
-> 
-> From the doc?  OK, I can use another character. :-)
+> > How do we handle interrupts and timers during this interval?  You seem
+> > to disable interrupts and hold the cpu at idle for 0.95 sec.  It may
+> > cause timeouts and overflows for network interrupts right?
+> The x86 mwait/monitor instruction can detect interrupt and complete execution
+> even interrupt is disabled, so this isn't an issue.
 
-Yes. I suggest # :-)
+Cool, this will save a lot of trouble :)
+ 
+> > Next issue is halting sibling threads belonging to a core at the same
+> > time to have any power/thermal benefit.  Who does the coordination for
+> > forced idle in this approach?
+> Nobody does the coordination. Halt some threads even they belong to a core
+> is the best we can provide now. For future, if the scheduler approach really
+> works, we will happily use it.
 
-> 
-> Best,
-> Rafael
+Do you have some indicative data to show that arbitrary force-idling
+of hardware threads reduce power and heat?  It will be very good if
+this works without coordination among siblings.  Basically what you
+are saying is that running one or two of the force-idle threads in
+a 16-thread system provides significant reduction in power even
+without explicit methods to ensure that they idle sibling threads
+belonging to same core.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--Vaidy
+
