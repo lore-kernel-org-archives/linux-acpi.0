@@ -1,42 +1,31 @@
-From: "Universitetet i Oslo (UiO)" <info@uio.no>
-Subject: ATTENTION:
-Date: Tue, 7 Jul 2009 10:43:16 +0200 (CEST)
-Message-ID: <47552.41.220.75.3.1246956196.squirrel@webmail.verat.net>
-Reply-To: account.unitq12@gmail.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.31-rc2: Reported regressions from 2.6.30
+Date: Tue, 7 Jul 2009 13:36:51 +0200
+Message-ID: <200907071336.53308.rjw@sisk.pl>
+References: <35kKlbXMqWN.A.RXD.D0oUKB@chimera> <200907070325.51439.andres@anarazel.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from olc-14.verat.net ([62.108.127.40]:57130 "EHLO olc-14.verat.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732AbZGGIzA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Jul 2009 04:55:00 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <200907070325.51439.andres@anarazel.de>
+Content-Disposition: inline
+Sender: linux-scsi-owner@vger.kernel.org
+To: Andres Freund <andres@anarazel.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-ATTENTION:
+On Tuesday 07 July 2009, Andres Freund wrote:
+> Hi Rafael,
+> 
+> On Tuesday 07 July 2009 01:42:09 Rafael J. Wysocki wrote:
+> > If you know of any other unresolved regressions from 2.6.30, please let me
+> > know either and I'll add them to the list.  Also, please let me know if any
+> > of the entries below are invalid.
+> There is also http://lkml.org/lkml/2009/6/30/398 : Soft-Lockup/Race in 
+> networking in 2.6.31-rc1+195 (possibly caused by netem)
 
-Denne posten er =E5 informere alle v=E5re [Uio.no] brukere at webmail
-konto har blitt kompromittert av spammere ved =E5 f=E5 tilgang til din =
-webmail
-konto og har brukt den til ulovlige internett-aktiviteter. Du er
-bedt om =E5 gi din n=E5v=E6rende p=E5loggings-IDen for at vi nullstille=
-r
-din webpostkontoen passord umiddelbart =E5 aviod misbruk av kontoen.
+Thanks, added to the list.
 
-* E-postadresse:
-* Gjeldende passord:
-* Future Passord:
-
-Du skal bli kontaktet med et nytt passord ved ferdigstillelse, og du er
-anbefales =E5 gi informasjonen ovenfor eller kontoen din vil bli
-avbrutt av misbruk team.
-
-Takk for at du bruker Uio.no Webmail!
-Uio.no Vedlikehold Team.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Rafael
