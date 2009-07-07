@@ -1,40 +1,67 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PATCH] fix thinkpad-acpi regression on 2.6.27+
-Date: Tue,  7 Jul 2009 20:09:48 -0300
-Message-ID: <1247008190-29419-1-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 1/2] thinkpad-acpi: disable broken bay and dock subdrivers
+Date: Tue,  7 Jul 2009 20:09:49 -0300
+Message-ID: <1247008190-29419-2-git-send-email-hmh@hmh.eng.br>
+References: <1247008190-29419-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54636 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:35459 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752064AbZGGXJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753635AbZGGXJ6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2009 19:09:58 -0400
+In-Reply-To: <1247008190-29419-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, stable@kernel.org
 
+Currently, the ThinkPad-ACPI bay and dock drivers are completely
+broken, and cause a NULL pointer derreference in kernel mode (and,
+therefore, an OOPS) when they try to issue events (i.e. on dock,
+undock, bay ejection, etc).
 
-Len,
+OTOH, the standard ACPI dock driver can handle the hotplug bays and
+docks of the ThinkPads just fine (including batteries) as of 2.6.27.
+In fact, it does a much better job of it than thinkpad-acpi ever did.
 
-This small patchset fixes a regression that causes OOPSes on the ACPI
-core during bay or dock operations when thinkpad-acpi is loaded and
-allowed to bind to the dock or bay nodes.
+It is just not worth the hassle to find a way to fix this crap without
+breaking the (deprecated) thinkpad-acpi dock/bay ABI.  This is old,
+deprecated code that sees little testing or use.
 
-This is not a very common configuration, which explains why I only heard
-of it very recently.  Most users prefer the generic ACPI dock/bay driver
-for good reasons (and I am one of them :P ), and most of the time,
-thinkpad-acpi loads later so it doesn't get to bind to the bay node.
+As a quick fix suitable for -stable backports, mark the thinkpad-acpi
+bay and dock subdrivers as BROKEN in Kconfig.  The dead code will be
+removed by a later patch.
 
-Please send at least the first patch (but preferably both) to Linus to
-fix the issue in mainline.  If it is too late for the second patch, I
-will resubmit it for the next merge window.
+This fixes bugzilla #13669, and should be applied to 2.6.27 and later.
 
-The stable team should get the first patch, which makes sure the broken
-features are normally disabled in a minimalistic way.
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Reported-by: Joerg Platte <jplatte@naasa.net>
+Cc: stable@kernel.org
+---
+ drivers/platform/x86/Kconfig |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Thank you.
-
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 46dad12..6335f63 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -281,6 +281,7 @@ config THINKPAD_ACPI_DOCK
+ 	bool "Legacy Docking Station Support"
+ 	depends on THINKPAD_ACPI
+ 	depends on ACPI_DOCK=n
++	depends on BROKEN
+ 	default n
+ 	---help---
+ 	  Allows the thinkpad_acpi driver to handle docking station events.
+@@ -294,7 +295,8 @@ config THINKPAD_ACPI_DOCK
+ config THINKPAD_ACPI_BAY
+ 	bool "Legacy Removable Bay Support"
+ 	depends on THINKPAD_ACPI
+-	default y
++	depends on BROKEN
++	default n
+ 	---help---
+ 	  Allows the thinkpad_acpi driver to handle removable bays.  It will
+ 	  electrically disable the device in the bay, and also generate
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.6.2.4
+
