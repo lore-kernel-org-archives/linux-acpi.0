@@ -1,34 +1,42 @@
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
-Date: Tue, 07 Jul 2009 10:26:20 +0200
-Message-ID: <1246955180.8143.112.camel@twins>
-References: <20090624041354.GA15936@sli10-desk.sh.intel.com>
-	 <1245825558.19816.1861.camel@twins>
-	 <20090624074703.GA28458@sli10-desk.sh.intel.com>
-	 <1245830585.31755.11.camel@twins>
-	 <alpine.LFD.2.00.0906241239440.20716@localhost.localdomain>
-	 <1246002370.31755.187.camel@twins>
-	 <alpine.LFD.2.00.0906261209370.4148@localhost.localdomain>
-	 <20090630080229.GA23296@sli10-desk.sh.intel.com>
+From: "Universitetet i Oslo (UiO)" <info@uio.no>
+Subject: ATTENTION:
+Date: Tue, 7 Jul 2009 10:43:16 +0200 (CEST)
+Message-ID: <47552.41.220.75.3.1246956196.squirrel@webmail.verat.net>
+Reply-To: account.unitq12@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from viefep16-int.chello.at ([62.179.121.36]:60268 "EHLO
-	viefep16-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754808AbZGGI2I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2009 04:28:08 -0400
-In-Reply-To: <20090630080229.GA23296@sli10-desk.sh.intel.com>
+Received: from olc-14.verat.net ([62.108.127.40]:57130 "EHLO olc-14.verat.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750732AbZGGIzA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Jul 2009 04:55:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "svaidy@linux.vnet.ibm.com" <svaidy@linux.vnet.ibm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "andi@firstfloor.org" <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
 
-On Tue, 2009-06-30 at 16:02 +0800, Shaohua Li wrote:
-> Peter/Len,
-> is it ok to push the driver to 2.6.31? It's driver specific and
-> should not impact others.
+ATTENTION:
 
-I still think this is utterly the wrong thing to do, therefore I will
-not ack this.
+Denne posten er =E5 informere alle v=E5re [Uio.no] brukere at webmail
+konto har blitt kompromittert av spammere ved =E5 f=E5 tilgang til din =
+webmail
+konto og har brukt den til ulovlige internett-aktiviteter. Du er
+bedt om =E5 gi din n=E5v=E6rende p=E5loggings-IDen for at vi nullstille=
+r
+din webpostkontoen passord umiddelbart =E5 aviod misbruk av kontoen.
 
+* E-postadresse:
+* Gjeldende passord:
+* Future Passord:
+
+Du skal bli kontaktet med et nytt passord ved ferdigstillelse, og du er
+anbefales =E5 gi informasjonen ovenfor eller kontoen din vil bli
+avbrutt av misbruk team.
+
+Takk for at du bruker Uio.no Webmail!
+Uio.no Vedlikehold Team.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
