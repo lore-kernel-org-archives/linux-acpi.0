@@ -1,70 +1,45 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [PATCH]new ACPI processor driver to force CPUs idle
-Date: Mon, 6 Jul 2009 17:50:50 -0700
-Message-ID: <7E82351C108FA840AB1866AC776AEC4669D00076@orsmsx505.amr.corp.intel.com>
-References: <20090624041354.GA15936@sli10-desk.sh.intel.com>
- <1245825558.19816.1861.camel@twins>
- <20090624074703.GA28458@sli10-desk.sh.intel.com>
- <1245830585.31755.11.camel@twins>
- <20090624082112.GA20844@sli10-desk.sh.intel.com>
- <20090626181623.GF7717@dirshya.in.ibm.com>
- <20090629025455.GA20614@sli10-desk.sh.intel.com>
- <20090706180312.GC26831@dirshya.in.ibm.com>
- <20090706234346.GA8072@basil.fritz.box>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: EC
+Date: Tue, 7 Jul 2009 09:21:55 +0800
+Message-ID: <76780B19A496DC4B80439008DAD7076C0345426343@PDSMSX501.ccr.corp.intel.com>
+References: <76780B19A496DC4B80439008DAD7076C03453A5BFC@PDSMSX501.ccr.corp.intel.com>
+ <4A4C51AF.8080206@suse.de>
+ <76780B19A496DC4B80439008DAD7076C03453A5CB9@PDSMSX501.ccr.corp.intel.com>
+ <4A4C6589.4070108@suse.de>
+ <76780B19A496DC4B80439008DAD7076C03453A5E98@PDSMSX501.ccr.corp.intel.com>
+ <4A4D6CDA.7060206@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56902 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:14389 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752902AbZGGAs2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2009 20:48:28 -0400
-In-Reply-To: <20090706234346.GA8072@basil.fritz.box>
+	id S1755422AbZGGBWy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 Jul 2009 21:22:54 -0400
+In-Reply-To: <4A4D6CDA.7060206@suse.de>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: "Li, Shaohua" <shaohua.li@intel.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
- 
-
->-----Original Message-----
->From: Andi Kleen [mailto:andi@firstfloor.org] 
->Sent: Monday, July 06, 2009 4:44 PM
->To: Vaidyanathan Srinivasan
->Cc: Li, Shaohua; Peter Zijlstra; linux-acpi@vger.kernel.org; 
->tglx@linutronix.de; lenb@kernel.org; Pallipadi, Venkatesh; 
->andi@firstfloor.org; Ingo Molnar
->Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
->
->On Mon, Jul 06, 2009 at 11:33:12PM +0530, Vaidyanathan 
->Srinivasan wrote:
->> > > 
->> > > How do we handle interrupts and timers during this 
->interval?  You seem
->> > > to disable interrupts and hold the cpu at idle for 0.95 
->sec.  It may
->> > > cause timeouts and overflows for network interrupts right?
->> > The x86 mwait/monitor instruction can detect interrupt and 
->complete execution
->> > even interrupt is disabled, so this isn't an issue.
->> 
->> Cool, this will save a lot of trouble :)
->
->This is only available in newer Intel CPUs. 
->
-
-This is present in Intel Core/Core 2 and beyond.
-Shaohua's patch is checking for this in init path
-
-> 
-> +	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
-> +	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK))
-> +		return;
->
-
-and -EINVALing when the feature is not present. So,
-that will disable the feature on older CPUs.
-
-Thanks,
-Venki
+QWxleCwNCkkgZ290IHNvbWUgcmVwbHksIHBsZWFzZSBsZXQgbWUga25vdyBpZiB5b3UgaGF2ZSBv
+dGhlciBxdWVzdGlvbnM6DQoxLiBPbiBidXJzdCB0aW1lb3V0Og0KQTogdGhlIGRyaXZlciBzaG91
+bGQgc2VuZCBvcHRpb25hbCBBQ1BJIE5vcm1hbCBtb2RlIChEaXNhYmxlIGJ1cnN0KSBjb21tYW5k
+IGFuZCB0aGVuIHNlbmQgdGhlIGJ1cnN0IGVuYWJsZSBjb21tYW5kIGZvbGxvd2VkIGJ5IHRoZSBy
+ZWFkL3dyaXRlDQoNCjIuIGlmIGJ1cnN0IHRpbWVvdXQsIGRvZXMgRUMgZmlybXdhcmUgYWJvcnQg
+Y3VycmVudCByZWFkL3dyaXRlIHRyYW5zYWN0aW9uPw0KQTogWWVzLiBJZiB0aGUgdGltZW91dCBv
+Y2N1cnMgYmVmb3JlIEtTQyByZWNlaXZlcyB0aGUgY29tbWFuZCBhbmQgYWxsIHRoZSBkYXRhIGJ5
+dGVzLCBFQyBhYm9ydHMgdGhlIHRyYW5zYWN0aW9uIGFuZCBnb2VzIGJhY2sgdG8gbm9ybWFsIG1v
+ZGUuDQoNCjMuIHdoYXQncyB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIGJ1cnN0IG1vZGUgYW5kIG5v
+bi1idXJzdCBtb2RlIGZyb20gdGhlIEVDIGZpcm13YXJlIHBvaW50IG9mIHZpZXc/DQpBOiBJbiBi
+dXJzdCBtb2RlLCBFQyBnb2VzIGludG8gYSBzcGVjaWFsIG1vZGUgd2hlcmUgaXQgZGlzYWJsZXMg
+aW50ZXJydXB0cyBhbmQgcnVubmluZyBhbGwgdGhlIHRhc2tzIGV4Y2VwdCByZXNwb25kaW5nIHRv
+IE9TUE0gY29tbWFuZHMuDQoNCjQuIEVDIGRvZXNuJ3QgYWxsb3cgdXMgdG8gY2xlYW4gdXAgR1BF
+IHN0YXR1cyBiaXQsIGFzIHNvb24gYXMgd2Ugc2V0IGVuYWJsZSBiaXQgKGF0IHRoZSBlbmQgb2Yg
+aW50ZXJydXB0IGhhbmRsZXIpLCBpdCBmaXJlcyBuZXcgaW50ZXJydXB0LCBob3cgdG8gYXZvaWQg
+c3VjaCBjYXNlPyBXZSBzYXcgRUMgaW50ZXJydXB0IHN0b3JtIGluIGEgbG90IG9mIHN5c3RlbXMu
+DQpBOiBFQyBnZW5lcmF0ZXMgU0NJIGZvciBldmVyeSBPQkYgb3IgSUJGLiBJdCBhbHNvIGdlbmVy
+YXRlcyBTQ0kgZXZlbiB3aGVuIEVDIGRpc2VuZ2FnZSB0aGUgYnVyc3QuIFRoZSBkcml2ZXIgc2hv
+dWxkIGNoZWNrIHRoZSBCVVJTVF9NT0RFIGJpdCBpbiBTVEFUVVMgcmVnaXN0ZXIgb24gZXZlcnkg
+U0NJIHRvIHNlZSBpZiBpdCBpcyBpbiBidXJzdCBtb2RlIG9yIG5vdC4NCg==
