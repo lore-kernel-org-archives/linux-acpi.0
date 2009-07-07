@@ -1,41 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Bug #13471] Loading parport_pc kills the keyboard if ACPI is enabled
-Date: Tue,  7 Jul 2009 02:00:41 +0200 (CEST)
-Message-ID: <bXZeuxPQAWE.A.LqH.1ApUKB@chimera>
-References: <tSdKBEwEOhE.A.2wF.s_oUKB@chimera>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: [PATCH]new ACPI processor driver to force CPUs idle
+Date: Mon, 6 Jul 2009 17:50:50 -0700
+Message-ID: <7E82351C108FA840AB1866AC776AEC4669D00076@orsmsx505.amr.corp.intel.com>
+References: <20090624041354.GA15936@sli10-desk.sh.intel.com>
+ <1245825558.19816.1861.camel@twins>
+ <20090624074703.GA28458@sli10-desk.sh.intel.com>
+ <1245830585.31755.11.camel@twins>
+ <20090624082112.GA20844@sli10-desk.sh.intel.com>
+ <20090626181623.GF7717@dirshya.in.ibm.com>
+ <20090629025455.GA20614@sli10-desk.sh.intel.com>
+ <20090706180312.GC26831@dirshya.in.ibm.com>
+ <20090706234346.GA8072@basil.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58121 "EHLO ogre.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:56902 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757314AbZGGAIg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2009 20:08:36 -0400
-In-Reply-To: <tSdKBEwEOhE.A.2wF.s_oUKB@chimera>
-Content-Disposition: inline
+	id S1752902AbZGGAs2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2009 20:48:28 -0400
+In-Reply-To: <20090706234346.GA8072@basil.fritz.box>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Kernel Testers List <kernel-testers@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, =?utf-8?q?Ozan=20=C3=87a=C4=9Flayan?= <ozan@pardus.org.tr>
+To: Andi Kleen <andi@firstfloor.org>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "lenb@kernel.org" <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>
 
-This message has been generated automatically as a part of a report
-of regressions introduced between 2.6.29 and 2.6.30.
+ 
 
-The following bug entry is on the current list of known regressions
-introduced between 2.6.29 and 2.6.30.  Please verify if it still should
-be listed and let me know (either way).
+>-----Original Message-----
+>From: Andi Kleen [mailto:andi@firstfloor.org] 
+>Sent: Monday, July 06, 2009 4:44 PM
+>To: Vaidyanathan Srinivasan
+>Cc: Li, Shaohua; Peter Zijlstra; linux-acpi@vger.kernel.org; 
+>tglx@linutronix.de; lenb@kernel.org; Pallipadi, Venkatesh; 
+>andi@firstfloor.org; Ingo Molnar
+>Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
+>
+>On Mon, Jul 06, 2009 at 11:33:12PM +0530, Vaidyanathan 
+>Srinivasan wrote:
+>> > > 
+>> > > How do we handle interrupts and timers during this 
+>interval?  You seem
+>> > > to disable interrupts and hold the cpu at idle for 0.95 
+>sec.  It may
+>> > > cause timeouts and overflows for network interrupts right?
+>> > The x86 mwait/monitor instruction can detect interrupt and 
+>complete execution
+>> > even interrupt is disabled, so this isn't an issue.
+>> 
+>> Cool, this will save a lot of trouble :)
+>
+>This is only available in newer Intel CPUs. 
+>
 
+This is present in Intel Core/Core 2 and beyond.
+Shaohua's patch is checking for this in init path
 
-Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=3D13471
-Subject		: Loading parport_pc kills the keyboard if ACPI is enabled
-Submitter	: Ozan =C3=87a=C4=9Flayan <ozan@pardus.org.tr>
-Date		: 2009-06-04 9:12 (33 days old)
-References	: http://marc.info/?l=3Dlinux-kernel&m=3D124410667532558&w=3D=
-4
+> 
+> +	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
+> +	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK))
+> +		return;
+>
 
+and -EINVALing when the feature is not present. So,
+that will disable the feature on older CPUs.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Venki
