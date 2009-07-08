@@ -1,45 +1,41 @@
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Subject: [PATCH 35/44] includecheck fix: include/acpi, acpi_bus.h
-Date: Wed, 08 Jul 2009 21:17:38 +0530
-Message-ID: <1247068058.4382.96.camel@ht.satnam>
-References: <1247063308.4382.12.camel@ht.satnam>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 1/2] ACPI: reintroduce acpi_device_ops .shutdown method
+Date: Wed, 8 Jul 2009 10:52:19 -0600
+Message-ID: <200907081052.20142.bjorn.helgaas@hp.com>
+References: <1246079912-17619-1-git-send-email-david@hardeman.nu> <200906301711.34074.bjorn.helgaas@hp.com> <737c7bd0a2f550d21d45b347d018a1ac.squirrel@www.hardeman.nu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53251 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759196AbZGHQFk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jul 2009 12:05:40 -0400
-In-Reply-To: <1247063308.4382.12.camel@ht.satnam>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <737c7bd0a2f550d21d45b347d018a1ac.squirrel@www.hardeman.nu>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: David =?iso-8859-1?q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, LKML <linux-kernel@vger.kernel.org>
 
+On Wednesday 01 July 2009 02:20:59 am David H=E4rdeman wrote:
+> On Wed, July 1, 2009 01:11, Bjorn Helgaas wrote:
+> > The winbond driver does not use any ACPI-specific functionality, so
+> > it might be simpler to write it as a PNP driver (which would depend
+> > on PNPACPI, of course).
+>=20
+> As far as I could tell from a quick look at include/linux/pnp.h, a
+> pnp_driver doesn't seem to have any .shutdown methods either, so I'm =
+not
+> sure how it would help?
 
-fix the following 'make includecheck' warning:
+PNPACPI parses the device resources for you, so you could get rid
+of the _CRS stuff in your driver.
 
-  include/acpi/acpi_bus.h: linux/device.h is included more than once.
+The only reason PNP and ACPI don't have .shutdown is because nobody
+has needed it yet.  If you need it (and it sounds like you do), I
+think the cleanest thing would be to add it to PNP and turn your
+driver into a PNP driver.
 
-Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
----
- include/acpi/acpi_bus.h |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index c65e4ce..2d8f6ef 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -356,7 +356,6 @@ void acpi_remove_dir(struct acpi_device *);
- /*
-  * Bind physical devices with ACPI devices
-  */
--#include <linux/device.h>
- struct acpi_bus_type {
- 	struct list_head list;
- 	struct bus_type *bus;
--- 
-1.6.0.6
-
-
-
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
