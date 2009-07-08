@@ -1,54 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH] PM: Introduce core framework for run-time PM of I/O devices (rev. 8)
-Date: Wed, 8 Jul 2009 23:29:50 +0200
-Message-ID: <200907082329.51795.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0907081707090.22618-100000@iolanthe.rowland.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 08/12] SFI, x86: hook e820() for memory map initialization
+Date: Wed, 08 Jul 2009 14:37:08 -0700
+Message-ID: <4A551184.1020707@zytor.com>
+References: <1247026438-20891-1-git-send-email-lenb@kernel.org> <5bf6b3c7c08a76ea8dc52e9e07728c2958938952.1247025117.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42605 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754867AbZGHV3f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jul 2009 17:29:35 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0907081707090.22618-100000@iolanthe.rowland.org>
-Content-Disposition: inline
+Received: from terminus.zytor.com ([198.137.202.10]:52432 "EHLO
+	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755833AbZGHViH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2009 17:38:07 -0400
+In-Reply-To: <5bf6b3c7c08a76ea8dc52e9e07728c2958938952.1247025117.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Magnus Damm <magnus.damm@gmail.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+To: Len Brown <lenb@kernel.org>
+Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
 
-On Wednesday 08 July 2009, Alan Stern wrote:
-> On Wed, 8 Jul 2009, Rafael J. Wysocki wrote:
+This bothers me... we keep saying that memory map initialization belongs
+to the boot loader, and yet we keep doing the opposite.  This isn't just
+an arbitrary difference, either: it is pretty essential to being able to
+use the early range allocator safely.
+
+	-hpa
+
+
+Len Brown wrote:
+> From: Feng Tang <feng.tang@intel.com>
 > 
-> > > I thought you wanted to avoid this sort of complication.
-> > 
-> > I did, but there might be some benefits.  For example, the timer and the work
-> > structure provided by dev.power can be used for scheduling such operations
-> > if they are defined at the core level.
-> > 
-> > Suppose your device has 3 low power states D1 - D3 (like PCI) and you want it
-> > to go into D1 first, then, after a delay, to D2 and finally, again after a
-> > delay, to D3.  Of course, if there's a resume in the meantime, it should cancel
-> > whichever transition is in progress.
-> > 
-> > pm_runtime_suspend() can be used for the first transition, but the bus type or
-> > driver will have to provide its own mechanics for going down to D2 and D3,
-> > which must be synchronized with its ->runtime_resume().  That might be tricky
-> > and the core already has what's necessary (well, almost).
+> Signed-off-by: Feng Tang <feng.tang@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  arch/x86/kernel/e820.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 > 
-> Maybe we can provide a way for drivers to set up their own timer 
-> callback or work routine for use while the status is RPM_SUSPENDED.
+> diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+> index c4ca89d..e399d0e 100644
+> --- a/arch/x86/kernel/e820.c
+> +++ b/arch/x86/kernel/e820.c
+> @@ -20,6 +20,7 @@
+>  #include <linux/pfn.h>
+>  #include <linux/suspend.h>
+>  #include <linux/firmware-map.h>
+> +#include <linux/sfi.h>
+>  
+>  #include <asm/pgtable.h>
+>  #include <asm/page.h>
+> @@ -1437,6 +1438,10 @@ char *__init default_machine_specific_memory_setup(void)
+>  	  < 0) {
+>  		u64 mem_size;
+>  
+> +		/* if SFI mmap table exists, use SFI to setup e820 mmap */
+> +		if (!sfi_init_memory_map())
+> +			return "SFI";
+> +
+>  		/* compare results from other methods and take the greater */
+>  		if (boot_params.alt_mem_k
+>  		    < boot_params.screen_info.ext_mem_k) {
 
-Agreed.
-
-Anyway, I don't think it's really necessary in the Magnus' usage case, as
-you pointed out earlier in this thread, so I think we can consider it as
-something to add in future.
-
-The current patch is already more that 1200 lines and there's some
-documentation to add, so I wouldn't like to make it any bigger. :-)
-
-Best,
-Rafael
