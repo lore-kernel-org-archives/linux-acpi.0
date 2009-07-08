@@ -1,67 +1,42 @@
-From: Hector Martin <hector@marcansoft.com>
-Subject: [PATCH] disable _BQC/_BCQ if it returns invalid values
-Date: Wed, 08 Jul 2009 22:16:22 +0200
-Message-ID: <4A54FE96.2030407@marcansoft.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH] PM: Introduce core framework for run-time PM of
+ I/O devices (rev. 8)
+Date: Wed, 8 Jul 2009 17:09:08 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0907081707090.22618-100000@iolanthe.rowland.org>
+References: <200907082155.40903.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from marcansoft.com ([80.68.93.119]:49212 "EHLO smtp.marcansoft.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756220AbZGHUQ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jul 2009 16:16:26 -0400
+Received: from iolanthe.rowland.org ([192.131.102.54]:35930 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754768AbZGHVJJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2009 17:09:09 -0400
+In-Reply-To: <200907082155.40903.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Magnus Damm <magnus.damm@gmail.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
 
-Validate the result of the _BQC or _BCQ method when querying the current
-backlight level. If the value is out of range, the support for this
-method is disabled. This does not break functionality as long as the
-hardware doesn't touch the backlight level on it own, since the driver
-will just use the last cached value.
+On Wed, 8 Jul 2009, Rafael J. Wysocki wrote:
 
-Acer Aspire 8930G with BIOS v1.10 (latest) has this issue.
+> > I thought you wanted to avoid this sort of complication.
+> 
+> I did, but there might be some benefits.  For example, the timer and the work
+> structure provided by dev.power can be used for scheduling such operations
+> if they are defined at the core level.
+> 
+> Suppose your device has 3 low power states D1 - D3 (like PCI) and you want it
+> to go into D1 first, then, after a delay, to D2 and finally, again after a
+> delay, to D3.  Of course, if there's a resume in the meantime, it should cancel
+> whichever transition is in progress.
+> 
+> pm_runtime_suspend() can be used for the first transition, but the bus type or
+> driver will have to provide its own mechanics for going down to D2 and D3,
+> which must be synchronized with its ->runtime_resume().  That might be tricky
+> and the core already has what's necessary (well, almost).
 
-Signed-off-by: Hector Martin <hector@marcansoft.com>
---- linux-2.6.30/drivers/acpi/video.c	2009-07-08 22:04:54.000000000 +0200
-+++ linux-2.6.30-mod/drivers/acpi/video.c	2009-07-08 22:12:19.000000000 +0200
-@@ -602,15 +605,29 @@ acpi_video_device_lcd_get_level_current(
- 						NULL, level);
- 		if (ACPI_SUCCESS(status)) {
- 			if (device->brightness->flags._BQC_use_index) {
-+				if (*level >= (device->brightness->count - 2)) {
-+					ACPI_WARNING((AE_INFO,
-+						"%s is broken (returned %llu)",
-+						buf, *level));
-+					device->cap._BQC = device->cap._BCQ = 0;
-+					*level = device->brightness->curr;
-+					return 0;
-+				}
- 				if (device->brightness->flags._BCL_reversed)
- 					*level = device->brightness->count
- 								 - 3 - (*level);
- 				*level = device->brightness->levels[*level + 2];
- 
- 			}
--			*level += bqc_offset_aml_bug_workaround;
--			device->brightness->curr = *level;
--			return 0;
-+			if (*level > 100) {
-+				ACPI_WARNING((AE_INFO, "%s is broken "
-+					"(returned %llu)", buf, *level));
-+				device->cap._BQC = device->cap._BCQ = 0;
-+			} else {
-+				*level += bqc_offset_aml_bug_workaround;
-+				device->brightness->curr = *level;
-+				return 0;
-+			}
- 		} else {
- 			/* Fixme:
- 			 * should we return an error or ignore this failure?
+Maybe we can provide a way for drivers to set up their own timer 
+callback or work routine for use while the status is RPM_SUSPENDED.
 
-
--- 
-Hector Martin (hector@marcansoft.com)
-Public Key: http://www.marcansoft.com/marcan.asc
+Alan Stern
 
