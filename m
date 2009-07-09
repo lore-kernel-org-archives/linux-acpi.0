@@ -1,73 +1,84 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] disable _BQC/_BCQ if it returns invalid values
-Date: Thu, 09 Jul 2009 08:57:31 +0800
-Message-ID: <1247101051.15520.194.camel@rzhang-dt>
-References: <4A54FE96.2030407@marcansoft.com>
+From: Feng Tang <feng.tang@intel.com>
+Subject: Re: [PATCH 08/12] SFI, x86: hook e820() for memory map
+ initialization
+Date: Thu, 9 Jul 2009 09:11:41 +0800
+Message-ID: <20090709091141.19652887@feng-desktop>
+References: <1247026438-20891-1-git-send-email-lenb@kernel.org>
+	<5bf6b3c7c08a76ea8dc52e9e07728c2958938952.1247025117.git.len.brown@intel.com>
+	<4A551184.1020707@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:31885 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:36567 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755470AbZGIA4o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jul 2009 20:56:44 -0400
-In-Reply-To: <4A54FE96.2030407@marcansoft.com>
+	id S1756166AbZGIBNx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jul 2009 21:13:53 -0400
+In-Reply-To: <4A551184.1020707@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hector Martin <hector@marcansoft.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Len Brown <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-On Thu, 2009-07-09 at 04:16 +0800, Hector Martin wrote:
-> Validate the result of the _BQC or _BCQ method when querying the current
-> backlight level. If the value is out of range, the support for this
-> method is disabled. This does not break functionality as long as the
-> hardware doesn't touch the backlight level on it own, since the driver
-> will just use the last cached value.
+On Thu, 9 Jul 2009 05:37:08 +0800
+"H. Peter Anvin" <hpa@zytor.com> wrote:
+
+> This bothers me... we keep saying that memory map initialization
+> belongs to the boot loader, and yet we keep doing the opposite.  This
+> isn't just an arbitrary difference, either: it is pretty essential to
+> being able to use the early range allocator safely.
 > 
-> Acer Aspire 8930G with BIOS v1.10 (latest) has this issue.
-> 
-> Signed-off-by: Hector Martin <hector@marcansoft.com>
-> --- linux-2.6.30/drivers/acpi/video.c	2009-07-08 22:04:54.000000000 +0200
-> +++ linux-2.6.30-mod/drivers/acpi/video.c	2009-07-08 22:12:19.000000000 +0200
-> @@ -602,15 +605,29 @@ acpi_video_device_lcd_get_level_current(
->  						NULL, level);
->  		if (ACPI_SUCCESS(status)) {
->  			if (device->brightness->flags._BQC_use_index) {
-> +				if (*level >= (device->brightness->count - 2)) {
-> +					ACPI_WARNING((AE_INFO,
-> +						"%s is broken (returned %llu)",
-> +						buf, *level));
-> +					device->cap._BQC = device->cap._BCQ = 0;
-> +					*level = device->brightness->curr;
-> +					return 0;
-> +				}
->  				if (device->brightness->flags._BCL_reversed)
->  					*level = device->brightness->count
->  								 - 3 - (*level);
->  				*level = device->brightness->levels[*level + 2];
->  
->  			}
-> -			*level += bqc_offset_aml_bug_workaround;
-> -			device->brightness->curr = *level;
-> -			return 0;
-> +			if (*level > 100) {
-> +				ACPI_WARNING((AE_INFO, "%s is broken "
-> +					"(returned %llu)", buf, *level));
-_BQC returns a value larger than 100?
-is this true on your laptop?
+> 	-hpa
 
-thanks,
-rui
+Hi hpa,
 
-> +				device->cap._BQC = device->cap._BCQ = 0;
-> +			} else {
-> +				*level += bqc_offset_aml_bug_workaround;
-> +				device->brightness->curr = *level;
-> +				return 0;
-> +			}
->  		} else {
->  			/* Fixme:
->  			 * should we return an error or ignore this failure?
+I understand your concern, and I've added that code into our boot loader
+for Moosrestown which sets up a e820 memory table in boot parameters by 
+parsing SFI table. 
+
+The reason we still keep this piece of code is to be compatible with old
+version boot loaders which may not know SFI info yet. And
+sfi_init_memory_map() only get called when kernel can't find an e820 table
+in boot parameters.
+
+Anyway, I think we can remove the code if it really breaks the rule.
+
+Thanks,
+Feng
+
 > 
 > 
-
+> Len Brown wrote:
+> > From: Feng Tang <feng.tang@intel.com>
+> > 
+> > Signed-off-by: Feng Tang <feng.tang@intel.com>
+> > Signed-off-by: Len Brown <len.brown@intel.com>
+> > ---
+> >  arch/x86/kernel/e820.c |    5 +++++
+> >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+> > index c4ca89d..e399d0e 100644
+> > --- a/arch/x86/kernel/e820.c
+> > +++ b/arch/x86/kernel/e820.c
+> > @@ -20,6 +20,7 @@
+> >  #include <linux/pfn.h>
+> >  #include <linux/suspend.h>
+> >  #include <linux/firmware-map.h>
+> > +#include <linux/sfi.h>
+> >  
+> >  #include <asm/pgtable.h>
+> >  #include <asm/page.h>
+> > @@ -1437,6 +1438,10 @@ char *__init
+> > default_machine_specific_memory_setup(void) < 0) {
+> >  		u64 mem_size;
+> >  
+> > +		/* if SFI mmap table exists, use SFI to setup e820
+> > mmap */
+> > +		if (!sfi_init_memory_map())
+> > +			return "SFI";
+> > +
+> >  		/* compare results from other methods and take the
+> > greater */ if (boot_params.alt_mem_k
+> >  		    < boot_params.screen_info.ext_mem_k) {
+> 
