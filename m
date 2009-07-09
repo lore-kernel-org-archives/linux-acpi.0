@@ -1,84 +1,36 @@
-From: Feng Tang <feng.tang@intel.com>
-Subject: Re: [PATCH 08/12] SFI, x86: hook e820() for memory map
- initialization
-Date: Thu, 9 Jul 2009 09:11:41 +0800
-Message-ID: <20090709091141.19652887@feng-desktop>
-References: <1247026438-20891-1-git-send-email-lenb@kernel.org>
-	<5bf6b3c7c08a76ea8dc52e9e07728c2958938952.1247025117.git.len.brown@intel.com>
-	<4A551184.1020707@zytor.com>
+From: Hector Martin <hector@marcansoft.com>
+Subject: Re: [PATCH] disable _BQC/_BCQ if it returns invalid values
+Date: Thu, 09 Jul 2009 03:27:23 +0200
+Message-ID: <4A55477B.9080909@marcansoft.com>
+References: <4A54FE96.2030407@marcansoft.com> <1247101051.15520.194.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36567 "EHLO mga09.intel.com"
+Received: from marcansoft.com ([80.68.93.119]:51449 "EHLO smtp.marcansoft.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166AbZGIBNx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jul 2009 21:13:53 -0400
-In-Reply-To: <4A551184.1020707@zytor.com>
+	id S1756545AbZGIB11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jul 2009 21:27:27 -0400
+In-Reply-To: <1247101051.15520.194.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 9 Jul 2009 05:37:08 +0800
-"H. Peter Anvin" <hpa@zytor.com> wrote:
+Zhang Rui wrote:
+> _BQC returns a value larger than 100?
+> is this true on your laptop?
 
-> This bothers me... we keep saying that memory map initialization
-> belongs to the boot loader, and yet we keep doing the opposite.  This
-> isn't just an arbitrary difference, either: it is pretty essential to
-> being able to use the early range allocator safely.
-> 
-> 	-hpa
+Yes, it returns random garbage. It is completely broken. There's an if()
+in the ASL that disables the entire method (including no valid return
+value) when a certain EC SRAM register is 0. The backlight code also
+constantly clears this register. I suppose the EC should theoretically
+set it at some point, but it doesn't (at least not reliably). In any
+case, _BQC isn't needed here since the hardware doesn't change the
+screen brightness autonomously, and disabling the method as soon as it
+misbehaves works just fine.
 
-Hi hpa,
+-- 
+Hector Martin (hector@marcansoft.com)
+Public Key: http://www.marcansoft.com/marcan.asc
 
-I understand your concern, and I've added that code into our boot loader
-for Moosrestown which sets up a e820 memory table in boot parameters by 
-parsing SFI table. 
-
-The reason we still keep this piece of code is to be compatible with old
-version boot loaders which may not know SFI info yet. And
-sfi_init_memory_map() only get called when kernel can't find an e820 table
-in boot parameters.
-
-Anyway, I think we can remove the code if it really breaks the rule.
-
-Thanks,
-Feng
-
-> 
-> 
-> Len Brown wrote:
-> > From: Feng Tang <feng.tang@intel.com>
-> > 
-> > Signed-off-by: Feng Tang <feng.tang@intel.com>
-> > Signed-off-by: Len Brown <len.brown@intel.com>
-> > ---
-> >  arch/x86/kernel/e820.c |    5 +++++
-> >  1 files changed, 5 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-> > index c4ca89d..e399d0e 100644
-> > --- a/arch/x86/kernel/e820.c
-> > +++ b/arch/x86/kernel/e820.c
-> > @@ -20,6 +20,7 @@
-> >  #include <linux/pfn.h>
-> >  #include <linux/suspend.h>
-> >  #include <linux/firmware-map.h>
-> > +#include <linux/sfi.h>
-> >  
-> >  #include <asm/pgtable.h>
-> >  #include <asm/page.h>
-> > @@ -1437,6 +1438,10 @@ char *__init
-> > default_machine_specific_memory_setup(void) < 0) {
-> >  		u64 mem_size;
-> >  
-> > +		/* if SFI mmap table exists, use SFI to setup e820
-> > mmap */
-> > +		if (!sfi_init_memory_map())
-> > +			return "SFI";
-> > +
-> >  		/* compare results from other methods and take the
-> > greater */ if (boot_params.alt_mem_k
-> >  		    < boot_params.screen_info.ext_mem_k) {
-> 
