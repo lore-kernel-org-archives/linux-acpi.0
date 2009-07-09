@@ -1,55 +1,88 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 08/12] SFI, x86: hook e820() for memory map initialization
-Date: Wed, 08 Jul 2009 20:57:43 -0700
-Message-ID: <4A556AB7.6000209@zytor.com>
-References: <1247026438-20891-1-git-send-email-lenb@kernel.org>	<5bf6b3c7c08a76ea8dc52e9e07728c2958938952.1247025117.git.len.brown@intel.com>	<4A551184.1020707@zytor.com> <20090709091141.19652887@feng-desktop>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: DMI year "00" + ACPI [was: DMI: fix dmi_get_year year parsing]
+Date: Thu, 09 Jul 2009 09:12:17 +0200
+Message-ID: <4A559851.5030302@gmail.com>
+References: <1246998990-9594-1-git-send-email-jirislaby@gmail.com> <4A5440BA.6070409@marco.de> <4A5442AD.1080402@gmail.com> <4A5444BD.1090905@marco.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:39015 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755551AbZGID6t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2009 23:58:49 -0400
-In-Reply-To: <20090709091141.19652887@feng-desktop>
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:55325 "EHLO
+	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757398AbZGIHMX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jul 2009 03:12:23 -0400
+In-Reply-To: <4A5444BD.1090905@marco.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Tang <feng.tang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: Matthias Pfaller <leo@marco.de>
+Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Feng Tang wrote:
+On 07/08/2009 09:03 AM, Matthias Pfaller wrote:
+> Jiri Slaby wrote:
+>> On 07/08/2009 08:46 AM, Matthias Pfaller wrote:
+>>> Jiri Slaby wrote:
+>>>> Don't guess a year number base. Use 10 instead, since year may
+>>>> be 2-digit starting with 0, so that we would end up in base equal
+>>>> to 8.
+>>>>
+>>>> Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+>>>> Reported-by: Matthias Pfaller <leo@marco.de>
+>>>> ---
+>>>>  drivers/firmware/dmi_scan.c |    2 +-
+>>>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+>>>> index 6071078..8fe0f6e 100644
+>>>> --- a/drivers/firmware/dmi_scan.c
+>>>> +++ b/drivers/firmware/dmi_scan.c
+>>>> @@ -611,7 +611,7 @@ int dmi_get_year(int field)
+>>>>          return 0;
+>>>>  
+>>>>      s += 1;
+>>>> -    year = simple_strtoul(s, NULL, 0);
+>>>> +    year = simple_strtoul(s, NULL, 10);
+>>>>      if (year && year < 100) {    /* 2-digit year */
+>>>>          year += 1900;
+>>>>          if (year < 1996)    /* no dates < spec 1.0 */
+>>> I just noticed, that this is not enough, because this will still fail
+>>> for xxx/xx/00. I suggest the following patch:
+>>
+>> Actually the patch below is not correct. Standard says consider xx/xx/yy
+>> as 19yy, not 20yy.
+>>
+>> BTW. the patch above is not useful, reporting 1908 and 1909 as a year is
+>> almost the same as 1900.
 > 
-> Hi hpa,
-> 
-> I understand your concern, and I've added that code into our boot loader
-> for Moosrestown which sets up a e820 memory table in boot parameters by 
-> parsing SFI table. 
-> 
-> The reason we still keep this piece of code is to be compatible with old
-> version boot loaders which may not know SFI info yet. And
-> sfi_init_memory_map() only get called when kernel can't find an e820 table
-> in boot parameters.
-> 
-> Anyway, I think we can remove the code if it really breaks the rule.
-> 
-> Thanks,
-> Feng
-> 
+> Sorry, I don't understand.
 
-What I'm concerned about is that we will want to be able to use the
-range allocator, which relies on the e820 memory map, extremely early
-during boot.  In the EFI case, we allow (*optionally*) to fill in
-additional information from the EFI map after initial boot, but we still
-require memory ranges in the initial map (they can, however, be a subset
-of the available memory.)
+Nevermind, you're right. Both patches are OK, however we might hit a
+regression with 00/00/00 entries so that acpi gets unintentionally armed
+now for them (ACPI checks year == 0). I don't know if it's worth it. Any
+ideas?
 
-I'm really concerned about saying "well, it works now" and tying
-ourselves into an interface that we cannot support in the long term
-(read: we'll be stuck with it.)
-
-	-hpa
-
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+>>> --- drivers/firmware/dmi_scan.c.bak     Wed Jul  8 02:42:04 2009
+>>> +++ drivers/firmware/dmi_scan.c Wed Jul  8 02:42:17 2009
+>>> @@ -360,12 +360,15 @@
+>>>                 return 0;
+>>>
+>>>         s += 1;
+>>> -       year = simple_strtoul(s, NULL, 0);
+>>> -       if (year && year < 100) {       /* 2-digit year */
+>>> -               year += 1900;
+>>> -               if (year < 1996)        /* no dates < spec 1.0 */
+>>> -                       year += 100;
+>>> +       if (s[0] == '0' && s[1] == '0' && s[2] == '\0') {
+>>> +               year = 2000;
+>>> +       } else {
+>>> +               year = simple_strtoul(s, NULL, 10);
+>>> +               if (year && year < 100) {       /* 2-digit year */
+>>> +                       year += 1900;
+>>> +                       if (year < 1996)        /* no dates < spec
+>>> 1.0 */
+>>> +                               year += 100;
+>>> +               }
+>>>         }
+>>> -
+>>>         return year;
+>>>  }
 
