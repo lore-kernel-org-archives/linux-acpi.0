@@ -1,17 +1,17 @@
 From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 07/12] SFI: add x86 support
-Date: Fri, 10 Jul 2009 08:37:26 +0200
-Message-ID: <20090710063726.GF22218@elte.hu>
-References: <8e4a93858bce74ed3080dd607aa471023f1a2737.1247025117.git.len.brown@intel.com> <4676b1fee4cae65c678754fbdecae626ac161b81.1247025117.git.len.brown@intel.com>
+Subject: Re: [PATCH 04/12] SFI: create include/linux/sfi.h
+Date: Fri, 10 Jul 2009 08:48:45 +0200
+Message-ID: <20090710064845.GG22218@elte.hu>
+References: <8e4a93858bce74ed3080dd607aa471023f1a2737.1247025117.git.len.brown@intel.com> <56f1291c60859b65ac62521e7fe4b82e73205ef6.1247025117.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:40060 "EHLO mx2.mail.elte.hu"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:39478 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750885AbZGJGhk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jul 2009 02:37:40 -0400
+	id S1750786AbZGJGtJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jul 2009 02:49:09 -0400
 Content-Disposition: inline
-In-Reply-To: <4676b1fee4cae65c678754fbdecae626ac161b81.1247025117.git.len.brown@intel.com>
+In-Reply-To: <56f1291c60859b65ac62521e7fe4b82e73205ef6.1247025117.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -22,396 +22,275 @@ Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, 
 
 > From: Feng Tang <feng.tang@intel.com>
 > 
-> arch/x86/kernel/sfi.c serves the dual-purpose of supporting the
-> SFI core with arch specific code, as well as a home for the
-> arch-specific code that uses SFI.
+> include/linux/include/sfi.h defines everything that customers
+> of SFI need to know in order to use the SFI suport in the kernel.
+> 
+> The primary API is sfi_table_parse(), where a driver or another part
+> of the kernel can supply a handler to parse the named table.
+> 
+> sfi.h also includes the currently defined table signatures and table formats.
 > 
 > Signed-off-by: Feng Tang <feng.tang@intel.com>
 > Signed-off-by: Len Brown <len.brown@intel.com>
 > ---
->  arch/x86/kernel/Makefile |    1 +
->  arch/x86/kernel/sfi.c    |  284 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/sfi/sfi_core.c   |    2 +-
->  3 files changed, 286 insertions(+), 1 deletions(-)
->  create mode 100644 arch/x86/kernel/sfi.c
+>  include/linux/sfi.h |  198 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 198 insertions(+), 0 deletions(-)
+>  create mode 100644 include/linux/sfi.h
 > 
-> diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
-> index 6c327b8..e430123 100644
-> --- a/arch/x86/kernel/Makefile
-> +++ b/arch/x86/kernel/Makefile
-> @@ -53,6 +53,7 @@ obj-y				+= step.o
->  obj-$(CONFIG_STACKTRACE)	+= stacktrace.o
->  obj-y				+= cpu/
->  obj-y				+= acpi/
-> +obj-$(CONFIG_SFI)		+= sfi.o
->  obj-y				+= reboot.o
->  obj-$(CONFIG_MCA)		+= mca_32.o
->  obj-$(CONFIG_X86_MSR)		+= msr.o
-> diff --git a/arch/x86/kernel/sfi.c b/arch/x86/kernel/sfi.c
+> diff --git a/include/linux/sfi.h b/include/linux/sfi.h
 > new file mode 100644
-> index 0000000..a96ea0f
+> index 0000000..f00f4da
 > --- /dev/null
-> +++ b/arch/x86/kernel/sfi.c
-> @@ -0,0 +1,284 @@
+> +++ b/include/linux/sfi.h
+> @@ -0,0 +1,198 @@
+> +/* sfi.h Simple Firmware Interface */
+> +
 > +/*
-> + *  sfi.c - SFI Boot Support (refer acpi/boot.c)
+> + * Copyright (C) 2009, Intel Corp.
+> + * All rights reserved.
 > + *
-> + *  Copyright (C) 2008-2009	Intel Corporation
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions, and the following disclaimer,
+> + *    without modification.
+> + * 2. Redistributions in binary form must reproduce at minimum a disclaimer
+> + *    substantially similar to the "NO WARRANTY" disclaimer below
+> + *    ("Disclaimer") and any redistribution must be conditioned upon
+> + *    including a substantially similar Disclaimer requirement for further
+> + *    binary redistribution.
+> + * 3. Neither the names of the above-listed copyright holders nor the names
+> + *    of any contributors may be used to endorse or promote products derived
+> + *    from this software without specific prior written permission.
 > + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + * Alternatively, this software may be distributed under the terms of the
+> + * GNU General Public License ("GPL") version 2 as published by the Free
+> + * Software Foundation.
 > + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + * NO WARRANTY
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
+> + * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+> + * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+> + * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+> + * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+> + * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+> + * POSSIBILITY OF SUCH DAMAGES.
 > + */
 > +
-> +#define KMSG_COMPONENT "SFI"
-> +#define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+> +#ifndef _LINUX_SFI_H
+> +#define _LINUX_SFI_H
 > +
-> +#include <linux/bootmem.h>
-> +#include <linux/cpumask.h>
-> +#include <linux/module.h>
-> +#include <linux/acpi.h>
-> +#include <linux/init.h>
-> +#include <linux/efi.h>
-> +#include <linux/irq.h>
-> +#include <linux/sfi.h>
-> +#include <linux/io.h>
-> +
-> +#include <asm/io_apic.h>
-> +#include <asm/pgtable.h>
-> +#include <asm/mpspec.h>
-> +#include <asm/setup.h>
-> +#include <asm/apic.h>
-> +#include <asm/e820.h>
-> +
-> +#ifdef CONFIG_X86_LOCAL_APIC
-> +static unsigned long sfi_lapic_addr __initdata = APIC_DEFAULT_PHYS_BASE;
-> +#endif
-> +
-> +#ifdef CONFIG_X86_IO_APIC
-> +static struct mp_ioapic_routing {
-> +	int	gsi_base;
-> +	int	gsi_end;
-> +} mp_ioapic_routing[MAX_IO_APICS];
-> +#endif
-> +
-> +static __init struct sfi_table_simple *sfi_early_find_syst(void)
-> +{
-> +	unsigned long i;
-> +	char *pchar = (char *)SFI_SYST_SEARCH_BEGIN;
-> +
-> +	/* SFI spec defines the SYST starts at a 16-byte boundary */
-> +	for (i = 0; SFI_SYST_SEARCH_BEGIN + i < SFI_SYST_SEARCH_END; i += 16) {
-> +		if (!strncmp(SFI_SIG_SYST, pchar, SFI_SIGNATURE_SIZE))
-> +			return (struct sfi_table_simple *)
-> +					(SFI_SYST_SEARCH_BEGIN + i);
-> +
-> +		pchar += 16;
-> +	}
+> +/* Table signatures reserved by the SFI specification */
+> +#define SFI_SIG_SYST		"SYST"
+> +#define SFI_SIG_FREQ		"FREQ"
+> +#define SFI_SIG_IDLE		"IDLE"
+> +#define SFI_SIG_CPUS		"CPUS"
+> +#define SFI_SIG_MTMR		"MTMR"
+> +#define SFI_SIG_MRTC		"MRTC"
+> +#define SFI_SIG_MMAP		"MMAP"
+> +#define SFI_SIG_APIC		"APIC"
+> +#define SFI_SIG_XSDT		"XSDT"
+> +#define SFI_SIG_WAKE		"WAKE"
+> +#define SFI_SIG_SPIB		"SPIB"
+> +#define SFI_SIG_I2CB		"I2CB"
+> +#define SFI_SIG_GPEM		"GPEM"
 
-Hm, this loop seems a bit confused about how it wants to iterate 
-over a range of addresses.
+Sidenote: these strings, if used in different places, might be 
+instantiated in a duplicated way, bloating the kernel a tiny bit. It 
+might be better to do an intermediate const array and return 
+elements of them.
 
-SFI_SYST_SEARCH_BEGIN and END should probably have a void * basic 
-type, which would allow a _much_ cleaner loop like this:
+> +
+> +#define SFI_ACPI_TABLE		(1 << 0)
+> +#define SFI_NORMAL_TABLE	(1 << 1)
+> +
+> +#define SFI_SIGNATURE_SIZE	4
+> +#define SFI_OEM_ID_SIZE		6
+> +#define SFI_OEM_TABLE_ID_SIZE	8
+> +
+> +#define SFI_SYST_SEARCH_BEGIN		0x000E0000
+> +#define SFI_SYST_SEARCH_END		0x000FFFFF
 
-static __init struct sfi_table_simple *sfi_early_find_syst(void)
-{
-	/* SFI spec defines the SYST starts at a 16-byte boundary */
-	for (p = SFI_SYST_SEARCH_BEGIN; p < SFI_SYST_SEARCH_END, p += 16) {
-		if (!strncmp(SFI_SIG_SYST, p, SFI_SIGNATURE_SIZE))
-			return p;
-	}
-	return NULL;
-}
+(see my suggestion about the proper type of these in my other mail)
 
-And this is a general observation for the other patches as well: if 
-you anywhere do a C type cast please double check whether you really 
-need to do it. In 90% of the cases it's a sign of some badness, in 
-99% of the cases it's a source of fragility, and in 99.9% of the 
-cases it can be avoided by restructuring the code.
-
-I saw a handful of other cases where it's really avoidable.
-
+> +
+> +#define SFI_GET_NUM_ENTRIES(ptable, entry_type) \
+> +	((ptable->header.length - sizeof(struct sfi_table_header)) / \
+> +	(sizeof(entry_type)))
 > +/*
-> + * called in a early boot phase before the paging table is created,
-> + * setup a mmap table in e820 format
+> + * Table structures must be byte-packed to match the SFI specification,
+> + * as they are provided by the BIOS.
 > + */
-> +int __init sfi_init_memory_map(void)
-> +{
-> +	struct sfi_table_simple *syst, *mmapt;
-> +	struct sfi_mem_entry *mentry;
-> +	unsigned long long start, end, size;
-> +	int i, num, type, tbl_cnt;
-> +	u64 *pentry;
-> +
-> +	if (sfi_disabled)
-> +		return -1;
-> +
-> +	/* first search the syst table */
+> +struct sfi_table_header {
+> +	char	signature[SFI_SIGNATURE_SIZE];
+> +	u32	length;
+> +	u8	revision;
+> +	u8	checksum;
 
-Nit: s/syst/SYST in the comment text - to stay in line with how we 
-refer to these firmware tables.
+These could be abbreviated with common terms:
 
-> +	syst = sfi_early_find_syst();
-> +	if (!syst)
-> +		return -1;
-> +
-> +	tbl_cnt = (syst->header.length - sizeof(struct sfi_table_header)) /
-> +			sizeof(u64);
+ s/signature/sig
+ s/length/len
+ s/revision/rev
+ s/checksum/csum
 
-We have a helper for this, SFI_GET_NUM_ENTRIES(), please use it as 
-SFI_GET_NUM_ENTRIES(syst, u64) or so.
+> +	char	oem_id[SFI_OEM_ID_SIZE];
+> +	char	oem_table_id[SFI_OEM_TABLE_ID_SIZE];
+> +} __packed;
+> +
+> +struct sfi_table_simple {
+> +	struct sfi_table_header		header;
+> +	u64				pentry[1];
+> +} __packed;
+> +
+> +/* comply with UEFI spec 2.1 */
+> +struct sfi_mem_entry {
+> +	u32	type;
+> +	u64	phy_start;
 
-> +	pentry = syst->pentry;
-> +
-> +	/* walk through the syst to search the mmap table */
-> +	mmapt = NULL;
-> +	for (i = 0; i < tbl_cnt; i++) {
-> +		if (!strncmp(SFI_SIG_MMAP, (char *)(u32)*pentry, 4)) {
-> +			mmapt = (struct sfi_table_simple *)(u32)*pentry;
-> +			break;
-> +		}
-> +		pentry++;
-> +	}
+s/phy_start/phys_start
 
-This loop does a double type cast - which already shows that we do 
-something weird here. Firstly, this will trigger a warning on 64-bit 
-builds. Secondly, it's cast twice - to different target types.
+> +	u64	vir_start;
 
-Thirdly, the double cast itself discards the high 32 bits of the 
-value. This is pretty bad as it allows the firmware to pass in some 
-bogus value there and we could build a dependency on it.
+s/vir_start/virt_start
 
-> +	if (!mmapt) {
-> +		pr_warning("could not find a valid memory map table\n");
-> +		return -1;
-> +	}
+> +	u64	pages;
+> +	u64	attrib;
+> +} __packed;
 > +
-> +	/* refer copy_e820_memory() */
-> +	num = SFI_GET_NUM_ENTRIES(mmapt, struct sfi_mem_entry);
-> +	mentry = (struct sfi_mem_entry *)mmapt->pentry;
-> +	for (i = 0; i < num; i++) {
-> +		start = mentry->phy_start;
-> +		size = mentry->pages << PAGE_SHIFT;
-> +		end = start + size;
-> +
-> +		if (start > end)
-> +			return -1;
-> +
-> +		pr_debug("start = 0x%08x end = 0x%08x type = %d\n",
-> +			(u32)start, (u32)end, mentry->type);
+> +struct sfi_cpu_table_entry {
+> +	u32	apicid;
 
-DEBUG is not defined at the top of the file so this is dead code.
+s/apicid/apic_id
 
-> +		/* translate SFI mmap type to E820 map type */
-> +		switch (mentry->type) {
-> +		case EFI_CONVENTIONAL_MEMORY:
-> +			type = E820_RAM;
-> +			break;
-> +		case EFI_UNUSABLE_MEMORY:
-> +			type = E820_UNUSABLE;
-> +			break;
-> +		default:
-> +			type = E820_RESERVED;
-> +		}
-> +
-> +		e820_add_region(start, size, type);
-> +		mentry++;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_X86_LOCAL_APIC
-> +void __init mp_sfi_register_lapic_address(unsigned long address)
-> +{
-> +	mp_lapic_addr = address;
-> +	set_fixmap_nocache(FIX_APIC_BASE, mp_lapic_addr);
+(i realize that apicid is still the commonly used one in arch/x86, 
+but that's not a reason to continue that bad practice with new 
+code.)
 
-Please put newlines after local variable definition blocks.
+> +} __packed;
+> +
+> +struct sfi_cstate_table_entry {
+> +	u32	hint;		/* MWAIT hint */
+> +	u32	latency;	/* latency in ms */
+> +} __packed;
+> +
+> +struct sfi_apic_table_entry {
+> +	u64	phy_addr;	/* phy base addr for APIC reg */
 
+s/phy_addr/phys_addr
+
+> +} __packed;
 > +
-> +	if (boot_cpu_physical_apicid == -1U)
-> +		boot_cpu_physical_apicid = read_apic_id();
+> +struct sfi_freq_table_entry {
+> +	u32	freq;
+
+is this in Hz or in kHz? (should be reflected in the name: say 
+freq_khz)
+
+I suspect it's HZ here - but that's not unambiguous - often cpufreq 
+settings are in khz.
+
+> +	u32	latency;	/* transition latency in ms */
+> +	u32	ctrl_val;	/* value to write to PERF_CTL */
+
+PERF_CTL is an u64 MSR.
+
+> +} __packed;
 > +
-> +	pr_debug("Boot CPU = %d\n", boot_cpu_physical_apicid);
-> +}
+> +struct sfi_wake_table_entry {
+> +	u64 phy_addr;	/* pointer to where the wake vector locates */
+
+s/phy_addr/phys_addr
+
+> +} __packed;
 > +
-> +/* All CPUs enumerated by SFI must be present and enabled */
-> +void __cpuinit mp_sfi_register_lapic(u8 id)
-> +{
-> +	int boot_cpu = 0;
+> +struct sfi_timer_table_entry {
+> +	u64	phy_addr;	/* phy base addr for the timer */
+
+s/phy_addr/phys_addr
+
+> +	u32	freq;		/* in HZ */
+
+So we limit frequency to ~4 GHz?
+
+> +	u32	irq;
+> +} __packed;
 > +
-> +	if (MAX_APICS - id <= 0) {
-> +		pr_warning("Processor #%d invalid (max %d)\n",
-> +			id, MAX_APICS);
-> +		return;
-> +	}
+> +struct sfi_rtc_table_entry {
+> +	u64	phy_addr;	/* phy base addr for the RTC */
+
+s/phy_addr/phys_addr
+
+> +	u32	irq;
+> +} __packed;
 > +
-> +	if (id == boot_cpu_physical_apicid)
-> +		boot_cpu = 1;
-> +	pr_info("registering lapic[%d]\n", id);
+> +struct sfi_spi_table_entry {
+> +	u16	host_num;	/* attached to host 0, 1...*/
+> +	u16	cs;		/* chip select */
+> +	u16	irq_info;
+> +	char	name[16];
+> +	u8	dev_info[10];
+> +} __packed;
 > +
-> +	generic_processor_info(id, GET_APIC_VERSION(apic_read(APIC_LVR)));
-> +}
+> +struct sfi_i2c_table_entry {
+> +	u16	host_num;
+> +	u16	addr;		/* slave addr */
+> +	u16	irq_info;
+> +	char	name[16];
+> +	u8	dev_info[10];
+> +} __packed;
 > +
-> +static int __init sfi_parse_cpus(struct sfi_table_header *table)
-> +{
-> +	struct sfi_table_simple *sb;
-> +	struct sfi_cpu_table_entry *pentry;
-> +	int i;
-> +	int cpu_num;
+> +struct sfi_gpe_table_entry {
+> +	u16	logical_id;	/* logical id */
+> +	u16	phy_id;		/* physical GPE id */
+
+s/phy_id/phys_id
+
+> +} __packed;
 > +
-> +	sb = (struct sfi_table_simple *)table;
-> +	cpu_num = SFI_GET_NUM_ENTRIES(sb, struct sfi_cpu_table_entry);
-> +	pentry = (struct sfi_cpu_table_entry *)sb->pentry;
 > +
-> +	for (i = 0; i < cpu_num; i++) {
-> +		mp_sfi_register_lapic(pentry->apicid);
-> +		pentry++;
-> +	}
+> +typedef int (*sfi_table_handler) (struct sfi_table_header *table);
 > +
-> +	smp_found_config = 1;
-> +	return 0;
-> +}
-> +#endif /* CONFIG_X86_LOCAL_APIC */
-> +
-> +#ifdef	CONFIG_X86_IO_APIC
+> +#ifdef	CONFIG_SFI
 
 (stray tab.)
 
-> +void __init mp_sfi_register_ioapic(u8 id, u32 paddr)
+> +extern int __init sfi_init_memory_map(void);
+> +extern void __init sfi_init(void);
+> +extern int __init sfi_platform_init(void);
+> +extern void __init sfi_init_late(void);
+> +
+> +int sfi_table_parse(char *signature, char *oem_id, char *oem_table_id,
+> +			uint flag, sfi_table_handler handler);
+
+some prototypes come with externs ... some without. Please use one 
+variant.
+
+> +
+> +extern int sfi_disabled;
+> +static inline void disable_sfi(void)
 > +{
-> +	int idx = 0;
-> +	int tmpid;
-> +	static u32 gsi_base;
-
-I think this static variable should be outside of this function - so 
-that it's apparent at a glance that it persists.
-
-> +
-> +	if (nr_ioapics >= MAX_IO_APICS) {
-> +		pr_err("ERROR: Max # of I/O APICs (%d) exceeded "
-> +			"(found %d)\n", MAX_IO_APICS, nr_ioapics);
-> +		panic("Recompile kernel with bigger MAX_IO_APICS!\n");
-
-We should fail more gracefully here i think - print a warning and 
-continue. The system might not boot ... or it might, with a few 
-devices not operational.
-
-> +	}
-> +	if (!paddr) {
-> +		pr_warning("WARNING: Bogus (zero) I/O APIC address"
-> +			" found in MADT table, skipping!\n");
-> +		return;
-> +	}
-> +
-> +	idx = nr_ioapics;
-> +
-> +	mp_ioapics[idx].type = MP_IOAPIC;
-> +	mp_ioapics[idx].flags = MPC_APIC_USABLE;
-> +	mp_ioapics[idx].apicaddr = paddr;
-> +
-> +	set_fixmap_nocache(FIX_IO_APIC_BASE_0 + idx, paddr);
-> +	tmpid = uniq_ioapic_id(id);
-> +	if (tmpid == -1)
-> +		return;
-> +
-> +	mp_ioapics[idx].apicid = tmpid;
-> +#ifdef CONFIG_X86_32
-> +	mp_ioapics[idx].apicver = io_apic_get_version(idx);
-> +#else
-> +	mp_ioapics[idx].apicver = 0;
-> +#endif
-
-Why is this define needed? io_apic_get_version() exists on 64-bit as 
-well.
-
-> +
-> +	/*
-> +	 * Build basic GSI lookup table to facilitate gsi->io_apic lookups
-> +	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
-> +	 */
-> +	mp_ioapic_routing[idx].gsi_base = gsi_base;
-> +	mp_ioapic_routing[idx].gsi_end = gsi_base +
-> +		io_apic_get_redir_entries(idx);
-> +	gsi_base = mp_ioapic_routing[idx].gsi_end + 1;
-> +
-> +	pr_info("IOAPIC[%d]: apic_id %d, version %d, address 0x%x, "
-> +		"GSI %d-%d\n",
-> +		idx, mp_ioapics[idx].apicid,
-> +		mp_ioapics[idx].apicver, (u32)mp_ioapics[idx].apicaddr,
-> +		mp_ioapic_routing[idx].gsi_base,
-> +		mp_ioapic_routing[idx].gsi_end);
-> +
-> +	nr_ioapics++;
+> +	sfi_disabled = 1;
 > +}
 > +
-> +static int __init sfi_parse_ioapic(struct sfi_table_header *table)
+> +#else /* !CONFIG_SFI */
+> +
+> +static inline int sfi_init_memory_map(void)
 > +{
-> +	struct sfi_table_simple *sb;
-> +	struct sfi_apic_table_entry *pentry;
-> +	int i, num;
-> +
-> +	sb = (struct sfi_table_simple *)table;
-> +	num = SFI_GET_NUM_ENTRIES(sb, struct sfi_apic_table_entry);
-> +	pentry = (struct sfi_apic_table_entry *)sb->pentry;
-> +
-> +	for (i = 0; i < num; i++) {
-> +		mp_sfi_register_ioapic(i, pentry->phy_addr);
-> +		pentry++;
-> +	}
-> +
-> +	WARN(pic_mode, KERN_WARNING
-> +		"SFI: pic_mod shouldn't be 1 when IOAPIC table is present\n");
-> +	pic_mode = 0;
-> +	return 0;
+> +	return -1;
 > +}
-> +#endif /* CONFIG_X86_IO_APIC */
 > +
-> +/*
-> + * sfi_platform_init(): register lapics & io-apics
-> + */
-> +int __init sfi_platform_init(void)
+> +static inline void sfi_init(void)
 > +{
-> +#ifdef CONFIG_X86_LOCAL_APIC
-> +	mp_sfi_register_lapic_address(sfi_lapic_addr);
-> +	sfi_table_parse(SFI_SIG_CPUS, NULL, NULL, 0, sfi_parse_cpus);
-> +#endif
-> +#ifdef CONFIG_X86_IO_APIC
-> +	sfi_table_parse(SFI_SIG_APIC, NULL, NULL, 0, sfi_parse_ioapic);
+> +	return;
+> +}
 
-General comment: sfi_table_parse() has these pointless NULL, NULL, 0 
-portions 90% of the uses i've seen. They are the 'any match' key for 
-table parsing.
-
-Combined with the struct table_key suggestion i made in the other 
-reply, we could have this define:
-
-#define SFI_ANY_KEY { .signature = NULL, .oem_id = NULL, .oem_table_id = 0 }
-
-and write those 'any match' lines as:
-
-	sfi_table_parse(SFI_SIG_CPUS, SFI_ANY_KEY, sfi_parse_cpus);
-
-which is _far_ more readable and more extensible as well. (it is 
-trivial to extend such a design with a new key field - while with 
-the current open-coded structure it's far more invasive to do such a 
-change.)
+no need for that return.
 
 Thanks,
 
