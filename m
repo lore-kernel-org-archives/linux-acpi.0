@@ -1,155 +1,133 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 3/3] PCI Hotplug: convert acpi_pci_detect_ejectable() to take
-	an acpi_handle
-Date: Fri, 10 Jul 2009 13:42:48 -0600
-Message-ID: <20090710194248.30165.64398.stgit@bob.kio>
-References: <20090710193601.30165.62311.stgit@bob.kio>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH]new ACPI processor driver to force CPUs idle
+Date: Fri, 10 Jul 2009 15:47:42 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907101534310.9103@localhost.localdomain>
+References: <20090624041354.GA15936@sli10-desk.sh.intel.com>
+ <1245825558.19816.1861.camel@twins>
+ <20090624074703.GA28458@sli10-desk.sh.intel.com>
+ <1245830585.31755.11.camel@twins>
+ <alpine.LFD.2.00.0906241239440.20716@localhost.localdomain>
+ <1246002370.31755.187.camel@twins>
+ <alpine.LFD.2.00.0906261209370.4148@localhost.localdomain>
+ <20090626184203.GG7717@dirshya.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:27809 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757007AbZGJTmt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jul 2009 15:42:49 -0400
-In-Reply-To: <20090710193601.30165.62311.stgit@bob.kio>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:43833 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbZGJTsQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jul 2009 15:48:16 -0400
+Received: from localhost.localdomain ([64.140.212.33])
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KML00L030BL22Z1@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 10 Jul 2009 14:47:51 -0500 (CDT)
+In-reply-to: <20090626184203.GG7717@dirshya.in.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jbarnes@virtuousgeek.org, lenb@kernel.org
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "andi@firstfloor.org" <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>
 
-acpi_pci_detect_ejectable() goes through effort to convert its
-struct pci_bus arg to an acpi_handle, but every time we use this
-interface, we already have the handle available.
 
-So let's just use the handle instead of converting back and forth.
+> > > Hmm, would fully idling a socket not be more efficient (throughput wise)
+> > > than forcing everybody into P states?
+> > 
+> > Nope.
+> > 
+> > Low Frequency Mode (LFM), aka Pn - the deepest P-state,
+> > is the lowest energy/instruction because it is this highest
+> > frequency available at the lowest voltage that can still
+> > retire instructions.
+> 
+> This is true if you want to retire instructions.  But in case you want
+> to stop retiring instructions and hold cores in idle, then idling
+> complete package will be more efficient right?
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
----
 
- drivers/pci/hotplug/acpi_pcihp.c   |    9 +++------
- drivers/pci/hotplug/acpiphp_glue.c |   32 +++++++++++---------------------
- drivers/pci/hotplug/pciehp_acpi.c  |    5 +++--
- include/linux/pci_hotplug.h        |    2 +-
- 4 files changed, 18 insertions(+), 30 deletions(-)
+No.  Efficiency = Work/Energy
+Thus if Work=0, then Efficiency=0.
 
-diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-index eb15958..80af75c 100644
---- a/drivers/pci/hotplug/acpi_pcihp.c
-+++ b/drivers/pci/hotplug/acpi_pcihp.c
-@@ -500,18 +500,15 @@ check_hotplug(acpi_handle handle, u32 lvl, void *context, void **rv)
- 
- /**
-  * acpi_pci_detect_ejectable - check if the PCI bus has ejectable slots
-- * @pbus - PCI bus to scan
-+ * @handle - handle of the PCI bus to scan
-  *
-  * Returns 1 if the PCI bus has ACPI based ejectable slots, 0 otherwise.
-  */
--int acpi_pci_detect_ejectable(struct pci_bus *pbus)
-+int acpi_pci_detect_ejectable(acpi_handle handle)
- {
--	acpi_handle handle;
- 	int found = 0;
- 
--	if (!(handle = acpi_pci_get_bridge_handle(pbus)))
--		return 0;
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
- 			    check_hotplug, (void *)&found, NULL);
- 	return found;
- }
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index de4afc6..680c336 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -62,21 +62,6 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus);
- static void acpiphp_set_hpp_values(acpi_handle handle, struct pci_bus *bus);
- static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *context);
- 
--static struct pci_bus *pci_bus_from_handle(acpi_handle handle)
--{
--	struct pci_bus *pbus;
--
--	if (acpi_is_root_bridge(handle)) {
--		struct acpi_pci_root *root = acpi_pci_find_root(handle);
--		pbus = root->bus;
--	} else {
--		struct pci_dev *pdev = acpi_get_pci_dev(handle);
--		pbus = pdev->subordinate;
--		pci_dev_put(pdev);
--	}
--	return pbus;
--}
--
- /* callback routine to check for the existence of a pci dock device */
- static acpi_status
- is_pci_dock_device(acpi_handle handle, u32 lvl, void *context, void **rv)
-@@ -278,11 +263,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- /* see if it's worth looking at this bridge */
- static int detect_ejectable_slots(acpi_handle handle)
- {
--	int found;
--	struct pci_bus *pbus;
--
--	pbus = pci_bus_from_handle(handle);
--	found = acpi_pci_detect_ejectable(pbus);
-+	int found = acpi_pci_detect_ejectable(handle);
- 	if (!found) {
- 		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
- 				    is_pci_dock_device, (void *)&found, NULL);
-@@ -1363,7 +1344,16 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
- /* Program resources in newly inserted bridge */
- static int acpiphp_configure_bridge (acpi_handle handle)
- {
--	struct pci_bus *bus = pci_bus_from_handle(handle);
-+	struct pci_bus *bus;
-+
-+	if (acpi_is_root_bridge(handle)) {
-+		struct acpi_pci_root *root = acpi_pci_find_root(handle);
-+		bus = root->bus;
-+	} else {
-+		struct pci_dev *pdev = acpi_get_pci_dev(handle);
-+		bus = pdev->subordinate;
-+		pci_dev_put(pdev);
-+	}
- 
- 	pci_bus_size_bridges(bus);
- 	pci_bus_assign_resources(bus);
-diff --git a/drivers/pci/hotplug/pciehp_acpi.c b/drivers/pci/hotplug/pciehp_acpi.c
-index 9604801..0c6aa99 100644
---- a/drivers/pci/hotplug/pciehp_acpi.c
-+++ b/drivers/pci/hotplug/pciehp_acpi.c
-@@ -47,7 +47,7 @@ int pciehp_acpi_slot_detection_check(struct pci_dev *dev)
- {
- 	if (slot_detection_mode != PCIEHP_DETECT_ACPI)
- 		return 0;
--	if (acpi_pci_detect_ejectable(dev->subordinate))
-+	if (acpi_pci_detect_ejectable(dev->dev.archdata.acpi_handle))
- 		return 0;
- 	return -ENODEV;
- }
-@@ -94,7 +94,8 @@ static int __init dummy_probe(struct pcie_device *dev)
- 			dup_slot_id++;
- 	}
- 	list_add_tail(&slot->slot_list, &dummy_slots);
--	if (!acpi_slot_detected && acpi_pci_detect_ejectable(pbus))
-+	if (!acpi_slot_detected &&
-+		acpi_pci_detect_ejectable(pbus->self->dev.archdata.acpi_handle))
- 		acpi_slot_detected = 1;
- 	return -ENODEV;         /* dummy driver always returns error */
- }
-diff --git a/include/linux/pci_hotplug.h b/include/linux/pci_hotplug.h
-index 4391741..43394fc 100644
---- a/include/linux/pci_hotplug.h
-+++ b/include/linux/pci_hotplug.h
-@@ -230,7 +230,7 @@ extern acpi_status acpi_get_hp_params_from_firmware(struct pci_bus *bus,
- 				struct hotplug_params *hpp);
- int acpi_get_hp_hw_control_from_firmware(struct pci_dev *dev, u32 flags);
- int acpi_pci_check_ejectable(struct pci_bus *pbus, acpi_handle handle);
--int acpi_pci_detect_ejectable(struct pci_bus *pbus);
-+int acpi_pci_detect_ejectable(acpi_handle handle);
- #endif
- #endif
- 
+>  Atleast you will need
+> to idle all the sibling threads at the same time to save power in
+> a core.
+
+Yes.  Both HT siblings need to be idled in a core
+for it to significantly reduce power.
+
+> > That is why it is the first method used -- it returns the
+> > highest power_savings/performance_impact.
+> 
+> Depending on what is running in the system, force idling cores may
+> help reduce average power as compared to running all cores at lowest
+> P-state.
+
+The workloads that we've measured show that reducing p-states
+has a smaller impact to average performance than idling cores.
+
+> > The power and thermal monitoring are out-of-band in the platform,
+> > so Linux is not (currently) part of a closed control loop.
+> > However, Linux is part of the control, and the loop is indeed closed:-)
+> 
+> The more we could include Linux in the control loop, we can better
+> react to the situation with least performance impact.
+
+Some vendors prever to control things in-band,
+some prefer to control them out-of-band.
+
+I'm agnostic.  Vendors should be free to provision, and customers
+should be free to run systems in the way that they choose.
+
+> > > The thing I'm thinking off is vaidy's load-balancer changes that take an
+> > > overload packing argument.
+> > > 
+> > > If we can couple that to the ACPI driver in a closed feedback loop we
+> > > have automagic tuning.
+> > 
+> > I think that those changes are probably fancier than we need for
+> > this simple mechanism right now -- though if they ended up being different
+> > ways to use the same code in the long run, that would be fine.
+> 
+> I agree that the load-balancer approach is more complex and has
+> challenges.
+
+The main challenge of the load-balancer approach is
+that it it not available to be shipped today.
+
+> But it does have long term benefits because we can
+> utilise the scheduler's knowledge of system topology and current
+> system load to arrive at what is best.
+
+> > > Some integration with P states might be interesting to think about. But
+> > > as it stands getting that load-balancer placement stuff fixed seems like
+> > > enough fun ;-)
+> > 
+> > I think that we already have an issue with scheduler vs P-states,
+> > as the scheduler is handing out buckets of time assuming that 
+> > they are all equal.  However, a high-frequency bucket is more valuable
+> > than a low frequency bucket.  So probably the scheduler should be tracking
+> > cycles rather than time...
+> > 
+> > But that is independent of the forced-idle thread issue at hand.
+> > 
+> > We'd like to ship the forced-idle thread as a self-contained driver,
+> > if possilbe.  Because that would enable us to easily back-port it
+> > to some enterprise releases that want the feature.  So if we can
+> > implement this such that it is functional with existing scheduler
+> > facilities, that would be get us by.  If the scheduler evolves
+> > and provides a more optimal mechanism in the future, then that is
+> > great, as long as we don't have to wait for that to provide
+> > the basic version of the feature.
+> 
+> ok, so if you want a solution that would work on older distros also,
+> then your choices are limited.  For backports, perhaps this module
+> will work, but should not be a baseline solution for future.
+
+The current driver receives the number of cpu's to idle from
+the system, and spawns that many forced-idle threads.
+
+When Linux has a method better than spawning forced-idle-threads,
+we'll gladly update the driver to us it...
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
