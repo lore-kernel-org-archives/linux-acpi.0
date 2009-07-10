@@ -1,39 +1,96 @@
-From: Andres Freund <andres@anarazel.de>
-Subject: Re: 2.6.31-rc2: Reported regressions from 2.6.30
-Date: Fri, 10 Jul 2009 04:10:37 +0200
-Message-ID: <200907100410.37506.andres@anarazel.de>
-References: <35kKlbXMqWN.A.RXD.D0oUKB@chimera> <200907070325.51439.andres@anarazel.de> <1247190417.7306.2.camel@merlyn>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: 2.6.30 oops with acpi/button
+Date: Fri, 10 Jul 2009 10:57:44 +0800
+Message-ID: <1247194664.3568.13.camel@localhost.localdomain>
+References: <alpine.LRH.2.00.0907090806560.5445@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.anarazel.de ([217.115.131.40]:49424 "EHLO smtp.anarazel.de"
+Received: from mga02.intel.com ([134.134.136.20]:16558 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751017AbZGJCKn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Jul 2009 22:10:43 -0400
-In-Reply-To: <1247190417.7306.2.camel@merlyn>
+	id S1751072AbZGJC5H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Jul 2009 22:57:07 -0400
+In-Reply-To: <alpine.LRH.2.00.0907090806560.5445@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Dykstra <john.dykstra1@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Eric Sesterhenn <eric.sesterhenn@lsexperts.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+To: "Stephen J. Gowdy" <gowdy@cern.ch>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi John, Hi Rafael,
+On Thu, 2009-07-09 at 16:29 +0800, Stephen J. Gowdy wrote:
+> Hi Len & Bjorn,
+>  	I've not had time to go back to it but with 2.6.30 I get an oops=20
+> when I close the lid on my HP Compaq 6910p laptop. I see you removed =
+some=20
+> null pointer checks.. perhaps tha tis why? Here is the oops extracted=
+ from=20
+> my log file. If you want me to test a patch let me know. I'm about to=
+ try=20
+> 2.6.30.1 but I don't see anything in the ChangeLog that is likely to =
+make=20
+> a difference.
+>  	I've gone back to 2.6.29.4 where it is fine. I tried unloading the=20
+> "button" module first but in that case my laptop locked up without an=
+=20
+> oops. No flashing num/caps lock or anything, just froze when I close =
+the=20
+> lid. The version of button.c from 2.6.29.4  doesn't compile in the 2.=
+6.30=20
+> tree;
+>=20
+> drivers/acpi/button.c: In function =E2=80=98acpi_button_add_fs=E2=80=99=
+:
+> drivers/acpi/button.c:203: error: =E2=80=98struct proc_dir_entry=E2=80=
+=99 has no member=20
+> named =E2=80=98owner=E2=80=99
+> drivers/acpi/button.c:208: error: =E2=80=98struct proc_dir_entry=E2=80=
+=99 has no member=20
+> named =E2=80=98owner=E2=80=99
+> drivers/acpi/button.c: In function =E2=80=98acpi_button_init=E2=80=99=
+:
+> drivers/acpi/button.c:525: error: =E2=80=98struct proc_dir_entry=E2=80=
+=99 has no member=20
+> named =E2=80=98owner=E2=80=99
+The proc_dir_entry::owner member is removed after the following commit
+is shipped:
+    commit 99b76233803beab302123d243eea9e41149804f3
+Author: Alexey Dobriyan <adobriyan@gmail.com>
+Date:   Wed Mar 25 22:48:06 2009 +0300
 
-On Friday 10 July 2009 03:46:57 John Dykstra wrote:
-> On Tue, 2009-07-07 at 03:25 +0200, Andres Freund wrote:
-> > There is also http://lkml.org/lkml/2009/6/30/398 : Soft-Lockup/Race
-> > in
-> > networking in 2.6.31-rc1+195 (possibly caused by netem)
->
-> There is some similarity between this soft lockup and the one reported
-> in http://www.spinics.net/lists/netdev/msg100957.html.  In both, the
-> process is doing both sends and receives on raw sockets.
-The issue turned out to be a hrtimer bug - i dont see anything like it in your 
-trace. If you still want to test the fix, its 
-de907e8432b08f2d5966c36e0747e97c0e596810 in -tip (or 
-http://lkml.org/lkml/2009/7/9/150)
+    proc 2/2: remove struct proc_dir_entry::owner
 
-Rafael: In case youre reading this, I guess you can mark that bug as resolved.
+It seems that the owner member is already removed in the button driver.
+Why does the above issue still exist?
 
-Andres
+Will you please try the latest kernel and see whether the issue still
+exists?
+
+=46or the LID oops issue on the HP6910P, will you please enable
+"CONFIG_DRM_I915_KMS" in kernel configuration and see whether the issue
+still exists? This had better be done in the latest kernel(for example:
+2.6.31-rc1/2)
+
+thanks.
+   Yakui
+
+>=20
+>  	Any ideas?
+>=20
+>=20
+>  						regards,
+>=20
+>  						Stephen.
+>=20
+> --=20
+>   /------------------------------------+-------------------------\
+> |Stephen J. Gowdy                     | CERN       Office: 8-1-11|
+> |http://cern.ch/gowdy/                | CH-1211 Geneva 23        |
+> |                                     | Switzerland              |
+> |EMail: gowdy@cern.ch                 | Tel: +41 76 487 2215     |
+>   \------------------------------------+-------------------------/
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
