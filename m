@@ -1,36 +1,57 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 06/12] ACPI, x86: remove ACPI dependency on some
-	IO-APIC routines
-Date: Fri, 10 Jul 2009 08:51:42 +0200
-Message-ID: <20090710065142.GH22218@elte.hu>
-References: <8e4a93858bce74ed3080dd607aa471023f1a2737.1247025117.git.len.brown@intel.com> <bf8ea7cda3ad3f287f1c9164d366a94eae07a4a5.1247025117.git.len.brown@intel.com>
+From: Feng Tang <feng.tang@intel.com>
+Subject: Re: [PATCH 11/12] SFI, PCI: Hook MMCONFIG
+Date: Fri, 10 Jul 2009 15:17:53 +0800
+Message-ID: <20090710151753.05848348@feng-desktop>
+References: <8e4a93858bce74ed3080dd607aa471023f1a2737.1247025117.git.len.brown@intel.com>
+	<24fe646fcbbd9049850de4ac57cf6a67846b38c4.1247025117.git.len.brown@intel.com>
+	<20090710055229.GD22218@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:45082 "EHLO mx2.mail.elte.hu"
+Received: from mga09.intel.com ([134.134.136.24]:12556 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861AbZGJGwD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jul 2009 02:52:03 -0400
-Content-Disposition: inline
-In-Reply-To: <bf8ea7cda3ad3f287f1c9164d366a94eae07a4a5.1247025117.git.len.brown@intel.com>
+	id S1750722AbZGJHTV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jul 2009 03:19:21 -0400
+In-Reply-To: <20090710055229.GD22218@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, "x86@kernel.org" <x86@kernel.org>, "sfi-devel@simplefirmware.org" <sfi-devel@simplefirmware.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
+On Fri, 10 Jul 2009 13:52:29 +0800
+Ingo Molnar <mingo@elte.hu> wrote:
 
-* Len Brown <lenb@kernel.org> wrote:
-
-> From: Feng Tang <feng.tang@intel.com>
 > 
-> Both ACPI and SFI x86 systems will use these io_apic routines:
+> > @@ -606,7 +607,9 @@ static void __init __pci_mmcfg_init(int early)
+> >  	}
+> >  
+> >  	if (!known_bridge)
+> > -		acpi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+> > +		if (acpi_table_parse(ACPI_SIG_MCFG,
+> > pci_parse_mcfg))
+> > +			sfi_acpi_table_parse(ACPI_SIG_MCFG, NULL,
+> > NULL, 0,
+> > +				pci_parse_mcfg);
 > 
-> uniq_ioapic_id(u8 id);
+> Please introduce one common/generic helper:
+> 
+> 		x86_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+> 
+> and do the fallback in that helper. We generally want to try ACPI 
+> first, SFI second. That helper makes it easier to add such fallback 
+> in other places as well, and will de-uglify the above code as well.
+>
 
-While touching this code please also fix the misnomer:
+Should we have a new acpi_sfi.c or .h to contain all these helper functions?
+I think it is not appropriate to put it to either ACPI or SFI code.
 
- s/uniq_ioapic_id/unique_ioapic_id
+Also, ACPI and SFI code under arch/x86/kernel have lots of similar code
+in cpu/io-apic parsing, we thought about extracting these sharable codes
+out and move them to apic.c/io_apic.c, but don't know if this will
+uglify current apic/ioapic code? how do you think about it?
 
 Thanks,
-
-	Ingo
+Feng 
+ 
+> 	Ingo
