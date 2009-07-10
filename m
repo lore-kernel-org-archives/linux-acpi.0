@@ -1,81 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH] PM: Introduce core framework for
-	run-time PM of	I/O devices (rev. 8)
-Date: Fri, 10 Jul 2009 01:22:40 +0200
-Message-ID: <20090709232239.GG1469@ucw.cz>
-References: <200907060252.12755.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/2] Winbond driver as PNP
+Date: Fri, 10 Jul 2009 10:01:21 -0600
+Message-ID: <200907101001.22122.bjorn.helgaas@hp.com>
+References: <1246079912-17619-1-git-send-email-david@hardeman.nu> <200907091538.21685.bjorn.helgaas@hp.com> <11512ed726f2d6754f46e76c7db191a8.squirrel@www.hardeman.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:41031 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401AbZGJQBZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jul 2009 12:01:25 -0400
+In-Reply-To: <11512ed726f2d6754f46e76c7db191a8.squirrel@www.hardeman.nu>
 Content-Disposition: inline
-In-Reply-To: <200907060252.12755.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@infradead.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David =?iso-8859-1?q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, jbarnes@virtuousgeek.org, Len Brown <lenb@kernel.org>
 
-hi!
+On Friday 10 July 2009 01:55:27 am David H=E4rdeman wrote:
+> On Thu, July 9, 2009 23:38, Bjorn Helgaas wrote:
+> > Here are two sample patches to show you what I was suggesting.  The=
+se
+> > apply on top of the two Winbond patches currently in -mm.
+>=20
+> Thanks, great service :)
+>=20
+> I'll test the patches as soon as I have time and access to the hardwa=
+re.
+>=20
+> One question though, the resulting patch series (if AKPM merges these
+> patches in addition to the existing ones and drops the patch adding
+> .shutdown to acpi_driver) will be git bisect unfriendly.
+>=20
+> Should I roll two new patches instead to replace the three patches
+> currently in -mm?
 
-> +/**
-> + * Device run-time power management request types.
-> + *
-> + * RPM_REQ_NONE		Do nothing.
-> + *
-> + * RPM_REQ_IDLE		Run the device bus type's ->runtime_idle() callback
-> + *
-> + * RPM_REQ_SUSPEND	Run the device bus type's ->runtime_suspend() callback
-> + *
-> + * RPM_REQ_RESUME	Run the device bus type's ->runtime_resume() callback
-> + */
-> +
-> +enum rpm_request {
-> +	RPM_REQ_NONE = 0,
-> +	RPM_REQ_IDLE,
-> +	RPM_REQ_SUSPEND,
-> +	RPM_REQ_RESUME,
-> +};
-> +
->  struct dev_pm_info {
->  	pm_message_t		power_state;
-> -	unsigned		can_wakeup:1;
-> -	unsigned		should_wakeup:1;
-> +	unsigned int		can_wakeup:1;
-> +	unsigned int		should_wakeup:1;
->  	enum dpm_state		status;		/* Owned by the PM core */
-> -#ifdef	CONFIG_PM_SLEEP
-> +#ifdef CONFIG_PM_SLEEP
->  	struct list_head	entry;
->  #endif
-> +#ifdef CONFIG_PM_RUNTIME
-> +	struct timer_list	suspend_timer;
-> +	unsigned long		timer_expires;
-> +	struct work_struct	work;
-> +	wait_queue_head_t	wait_queue;
-> +	spinlock_t		lock;
-> +	atomic_t		usage_count;
-> +	atomic_t		child_count;
-> +	unsigned int		ignore_children:1;
-> +	unsigned int		runtime_disabled:1;
-> +	unsigned int		runtime_failure:1;
-> +	unsigned int		idle_notification:1;
-> +	unsigned int		request_pending:1;
-> +	unsigned int		deferred_resume:1;
-> +	enum rpm_request	request;
-> +	enum rpm_status		runtime_status;
+If you like the approach and it works, I would take the latter
+approach (replace the three patches with two new ones -- e.g.,
+add-pnp-shutdown-method and add-winbond-pnp-driver).  I don't
+think we have to worry about bisectability until they show up
+in a git tree.
 
-runtime_status seems to be accessed outside spinlocks. Should it be of
-type atomic_t?
-
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
