@@ -1,80 +1,182 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH v2 for 2.6.32] SFI - Simple Firmware Interface support
-Date: Sat, 11 Jul 2009 10:26:49 +0200
-Message-ID: <20090711082649.GB11522@elte.hu>
-References: <1247026438-20891-1-git-send-email-lenb@kernel.org> <20090710051848.GB22218@elte.hu> <alpine.LFD.2.00.0907102059320.4088@localhost.localdomain>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [BISECTED] HP G7000 battery disappears after suspend
+Date: Sat, 11 Jul 2009 10:42:51 +0100
+Message-ID: <4A585E9B.10509@tuffmail.co.uk>
+References: <61b223ba0907081216q3813c8f0n677bcce8b24ae52c@mail.gmail.com> <200907092211.31250.rjw@sisk.pl> <61b223ba0907100144g14b89e71l2dc8301d4c56f9c4@mail.gmail.com> <200907101846.16800.bzolnier@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:46433 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752007AbZGKI1H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Jul 2009 04:27:07 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0907102059320.4088@localhost.localdomain>
+Received: from ey-out-1920.google.com ([74.125.78.145]:48591 "EHLO
+	ey-out-1920.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559AbZGKJm4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Jul 2009 05:42:56 -0400
+In-Reply-To: <200907101846.16800.bzolnier@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pavel Machek <pavel@ucw.cz>
 
+Bartlomiej Zolnierkiewicz wrote:
+> On Friday 10 July 2009 10:44:15 Alan Jenkins wrote:
+>   
+>> 2009/7/9 Rafael J. Wysocki <rjw@sisk.pl>:
+>>     
+>>> On Thursday 09 July 2009, Alan Jenkins wrote:
+>>>       
+>>>> 2009/7/8 Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>:
+>>>>         
+>>>>> On Wednesday 08 July 2009 21:41:17 Rafael J. Wysocki wrote:
+>>>>>           
+>>>>>> On Wednesday 08 July 2009, Alan Jenkins wrote:
+>>>>>>             
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> I've borrowed this laptop for a few days.  Linux works pretty well,
+>>>>>>> but I found a problem on newer kernels.  After suspend it claims the
+>>>>>>> battery has been removed.  E.g. /proc/acpi/battery/BAT0/state claims
+>>>>>>> the battery is not present (but it is).
+>>>>>>>
+>>>>>>> I've attached acpidump and dmidecode output at
+>>>>>>> <http://bugzilla.kernel.org/show_bug.cgi?id=13745>.  I still have
+>>>>>>> access to the laptop for further tests, but only until Friday.
+>>>>>>>
+>>>>>>> I bisected it to the commit below.  Manually reverting the patch fixes
+>>>>>>> the problem (in both 2.6.30 and 2.6.31-rc2).
+>>>>>>>               
+>>>>>> Well, the commit below can't be reverted, because that would cause the boxes
+>>>>>> it fixed to stop working.
+>>>>>>
+>>>>>> Now, the only case this patch can make any difference is when the BIOS doesn't
+>>>>>> set SCI_EN before returning control the the kernel, which quite evidently is a
+>>>>>> BIOS bug.  The fact that the battery doesn't work with this patch applied means
+>>>>>> that the BIOS not only doesn't set SCI_EN, but also expects it to remain unset,
+>>>>>> which is insane.
+>>>>>>
+>>>>>> IMO this is a "won't fix", sorry.
+>>>>>>             
+>>>>> Lets be pragmatic here..
+>>>>>
+>>>>> Besides this is a regression and we are already handling some such insane
+>>>>> systems in STR case.  Moreover sending SMI ACPI_ENABLE command may result in
+>>>>> some things happening behind our back and not only setting of SCI_EN bit..
+>>>>>
+>>>>> PS Looking at the set_sci_en_on_resume quirk history it seems that if we are
+>>>>> lucky we may may fix another issue (screaming IRQ one) at the same time :)
+>>>>>
+>>>>> Alan, could you try this patch?
+>>>>>
+>>>>> ---
+>>>>> debug patch (needs to have both CONFIG_SUSPEND=y & CONFIG_HIBERNATION=y)
+>>>>>
+>>>>>  drivers/acpi/sleep.c |   13 ++++++++++++-
+>>>>>  1 file changed, 12 insertions(+), 1 deletion(-)
+>>>>>
+>>>>> Index: b/drivers/acpi/sleep.c
+>>>>> ===================================================================
+>>>>> --- a/drivers/acpi/sleep.c
+>>>>> +++ b/drivers/acpi/sleep.c
+>>>>> @@ -383,6 +383,14 @@ static struct dmi_system_id __initdata a
+>>>>>                },
+>>>>>        },
+>>>>>        {
+>>>>> +       .callback = init_set_sci_en_on_resume,
+>>>>> +       .ident = "Hewlett-Packard HP G7000 Notebook PC",
+>>>>> +       .matches = {
+>>>>> +               DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>>>> +               DMI_MATCH(DMI_PRODUCT_NAME, "HP G7000 Notebook PC"),
+>>>>> +               },
+>>>>> +       },
+>>>>> +       {
+>>>>>        .callback = init_old_suspend_ordering,
+>>>>>        .ident = "Panasonic CF51-2L",
+>>>>>        .matches = {
+>>>>>           
+>>>> Thanks for coding this up for me in full.  It works, the battery now
+>>>> survives, and it does indeed remove the IRQ warning.
+>>>>         
+>>> Great, thanks for testing, Bart, thanks for the patch!
+>>>
+>>> Len, can you add the Bart's patch to your 2.6.31 queue, please?
+>>>
+>>>       
+>>>> I didn't test the hibernation hunk.  I have hibernation set up, but
+>>>> there is a different problem (not a regression).  I don't have much
+>>>> more time to investigate on this laptop, so I don't expect to get it
+>>>> fixed.  But here are some details anyway :-).
+>>>>
+>>>> When I run s2disk, it writes the image out, and then instantly
+>>>> resumes.  It doesn't seem to read the image, but neither does the
+>>>> kernel report an error:
+>>>>
+>>>> [  491.088802] ACPI: Preparing to enter system sleep state S4
+>>>> [  491.090498] PM: Saving platform NVS memory
+>>>> [  491.094638] Disabling non-boot CPUs ...
+>>>> [  491.094867] PM: Creating hibernation image:
+>>>> [  491.096015] PM: Need to copy 114990 pages
+>>>> [  491.096015] PM: Normal pages needed: 114990 + 1024 + 22, available
+>>>> pages: 144595
+>>>> [  491.096015] PM: Hibernation image created (114990 pages copied)
+>>>> [  491.096015] ACPI: Waking up from system sleep state S4
+>>>>
+>>>> It happens on 2.6.24-23-generic, 2.6.30, and 2.6.30-rc2.
+>>>>         
+>>> Hmm.  Interesting.
+>>>
+>>> I _guess_ this problem is ACPI-related as well.  You can try putting
+>>> 'shutdown method = shutdown' into /etc/suspend.conf (or whatever the s2disk's
+>>> configuration file is on your system).
+>>>       
+>> That doesn't change anything.
+>>
+>>     
+>>> If possible, it would be interesting to see if that also happens if
+>>> 'echo disk > /sys/power/state' is used to trigger hibernation instead of
+>>> s2disk.   In particular when booted with init=/bin/bash.
+>>>       
+>> That worked, even though I didn't use init=/bin/bash.
+>>
+>> If it matters, I'm using a swap file on an NTFS partition.  [The
+>> system was installed by Ubuntu "Wubi" (i.e. using Windows partition
+>> and bootloader), but I had to set up both uswsusp and kernel swsusp
+>> myself.  pm-hibernate refuses to work; I don't think it knows about
+>> swap files].
+>>
+>> I noticed an error message, I'm not sure if it's relevant or not.
+>>
+>> Suspending using this method, I see two lines of ATA errors on the
+>> console when suspending.  They appear to be post-snapshot - they don't
+>> appear in the log - but it looks like the same error happens on resume
+>> too.  s2disk generates the same error on resume as well.
+>>
+>> [  192.247475] sd 0:0:0:0: [sda] Starting disk
+>> [  192.340428] ata4.00: ACPI cmd ef/03:0c:00:00:00:a0 filtered out
+>> [  192.340432] ata4.00: ACPI cmd ef/03:22:00:00:00:a0 filtered out
+>> [  192.372314] ata4.00: configured for MWDMA2
+>> [  192.640075] ata1: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+>> [  192.642338] ata1.00: ACPI cmd ef/10:03:00:00:00:a0 filtered out
+>> [  192.644365] ata1.00: ACPI cmd ef/10:03:00:00:00:a0 filtered out
+>> [  192.644381] ata1.00: configured for UDMA/100
+>> * [  192.660076] ata1: exception Emask 0x10 SAct 0x0 SErr 0x0 action 0x9 t4
+>> * [  192.660079] ata1: irq_stat 0x00400040, connection status changed
+>> [  192.663198] ata1.00: configured for UDMA/100
+>> [  192.663201] ata1: EH complete
+>>
+>> The lines marked with * are the ones that appear on the console during
+>> suspend.  This happens on both 2.6.31-rc2 and 2.6.30.
+>>     
+>
+> BTW Did you have a chance to test the second part of the original patch?
+>
+> [ Rafal, what do we want to do with it?  It seems logical to have the same
+>   behavior w.r.t. SCI_EN bit both when leaving S3 and S4 but I haven't yet
+>   verified this with the spec (is the ACPI is enabled on leaving the state
+>   assumption also valid for S4 or only for S0-S3?) and the change itself
+>   would require some more time in linux-next if we decide to go this way.. ]
+>   
 
-* Len Brown <lenb@kernel.org> wrote:
+I got hibernation working without the second part (and the battery was 
+fine).  I'll try that hunk today and see if it breaks.  Right now the 
+machine's in Windows, recovering from me letting it run out of battery :-).
 
-> 
-> > 
-> > > Feng Tang (10):
-> > >       SFI, x86: add CONFIG_SFI
-> > >       SFI: document boot param "sfi=off"
-> > >       SFI: create include/linux/sfi.h
-> > >       SFI: add core support
-> > >       ACPI, x86: remove ACPI dependency on some IO-APIC routines
-> > >       SFI: add x86 support
-> > >       SFI, x86: hook e820() for memory map initialization
-> > >       SFI: Enable SFI to parse ACPI tables
-> > >       SFI, PCI: Hook MMCONFIG
-> > >       SFI: add boot-time initialization hooks
-> > 
-> > Now that commit quality is all the rage, let me point out a 
-> > (trivial) detail that could be improved: patch title capitalization. 
-> > 
-> > In particular for commits touching arch/x86/ we try to standardize 
-> > on capitalizing the word after the 'x86: ' tag. But in the above 
-> > titles the capitalization is mixed-case:
-> > 
-> >  [aligned vertically for easier readability ]
-> > 
-> > >       SFI, x86:  add CONFIG_SFI
-> > >       SFI:       document boot param "sfi=off"
-> > >       SFI:       create include/linux/sfi.h
-> > >       SFI:       add core support
-> > >       ACPI, x86: remove ACPI dependency on some IO-APIC routines
-> > >       SFI:       add x86 support
-> > >       SFI, x86:  hook e820() for memory map initialization
-> > >       SFI:       Enable SFI to parse ACPI tables
-> > >       SFI, PCI:  Hook MMCONFIG
-> > >       SFI:       add boot-time initialization hooks
-> > 
-> > So it would be more consistent to have:
-> > 
-> > >       SFI, x86:  Add CONFIG_SFI
-> > >       SFI:       Document boot param "sfi=off"
-> > >       SFI:       Create include/linux/sfi.h
-> > >       SFI:       Add core support
-> > >       ACPI, x86: Remove ACPI dependency on some IO-APIC routines
-> > >       SFI:       Add x86 support
-> > >       SFI, x86:  Hook e820() for memory map initialization
-> > >       SFI:       Enable SFI to parse ACPI tables
-> > >       SFI, PCI:  Hook MMCONFIG
-> > >       SFI:       Add boot-time initialization hooks
-> > 
-> > ( Capitalizing like that has the added (minor) benefit of making it 
-> >   slightly easier to read these titles - the 'real' natural language 
-> >   sentence portion of the title begins with a capital letter. )
-> 
-> Ingo,
-> While I really do appreciate your attention to detail,
-> a little time off might be good for you:-)
-
-No objections on my part ;-)
-
-	Ingo
+Alan
