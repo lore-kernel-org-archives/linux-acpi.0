@@ -1,90 +1,40 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 1/3] backlight: Allow drivers to update the core, and generate events on changes
-Date: Mon, 13 Jul 2009 21:41:23 +0100
-Message-ID: <1247517685-7719-1-git-send-email-mjg@redhat.com>
+Subject: [PATCH 2/3] ACPI: Update the backlight state when we change brightness
+Date: Mon, 13 Jul 2009 21:41:24 +0100
+Message-ID: <1247517685-7719-2-git-send-email-mjg@redhat.com>
+References: <1247517685-7719-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:58752 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:58754 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755600AbZGMUlf (ORCPT
+	with ESMTP id S1755725AbZGMUlf (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2009 16:41:35 -0400
+In-Reply-To: <1247517685-7719-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, rui.zhang@intel.com, corentincj@iksaif.net, Matthew Garrett <mjg@redhat.com>
 
-Certain hardware will send us events when the backlight brightness
-changes. Add a function to update the value in the core, and
-additionally send a uevent so that userspace can pop up appropriate
-UI. The uevents are flagged depending on whether the update originated
-in the kernel or from userspace, making it easier to only display UI
-at the appropriate time.
+Trigger a status update when we change the brightness in the driver, thus
+allowing userspace to present appropriate UI.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/video/backlight/backlight.c |   23 +++++++++++++++++++++++
- include/linux/backlight.h           |    1 +
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ drivers/acpi/video.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
-index 157057c..98ab76c 100644
---- a/drivers/video/backlight/backlight.c
-+++ b/drivers/video/backlight/backlight.c
-@@ -120,6 +120,7 @@ static ssize_t backlight_store_brightness(struct device *dev,
- {
- 	int rc;
- 	struct backlight_device *bd = to_backlight_device(dev);
-+	char *envp[] = { "SOURCE=userspace", NULL };
- 	unsigned long brightness;
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 8851315..d7219f6 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1960,6 +1960,8 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
  
- 	rc = strict_strtoul(buf, 0, &brightness);
-@@ -142,6 +143,8 @@ static ssize_t backlight_store_brightness(struct device *dev,
- 	}
- 	mutex_unlock(&bd->ops_lock);
+ 	result = acpi_video_device_lcd_set_level(device, level_next);
  
-+	kobject_uevent_env(&bd->dev.kobj, KOBJ_CHANGE, envp);
++	backlight_force_update(device->backlight);
 +
- 	return rc;
- }
- 
-@@ -214,6 +217,26 @@ static struct device_attribute bl_device_attributes[] = {
- };
- 
- /**
-+ * backlight_force_update - tell the backlight subsystem that hardware state
-+ *   has changed
-+ * @bd: the backlight device to update
-+ *
-+ * Updates the internal state of the backlight in response to a hardware event,
-+ * and generate a uevent to notify userspace
-+ */
-+void backlight_force_update(struct backlight_device *bd)
-+{
-+	char *envp[] = { "SOURCE=kernel", NULL };
-+
-+	mutex_lock(&bd->ops_lock);
-+	if (bd->ops && bd->ops->get_brightness)
-+		bd->props.brightness = bd->ops->get_brightness(bd);
-+	mutex_unlock(&bd->ops_lock);
-+	kobject_uevent_env(&bd->dev.kobj, KOBJ_CHANGE, envp);
-+}
-+EXPORT_SYMBOL(backlight_force_update);
-+
-+/**
-  * backlight_device_register - create and register a new object of
-  *   backlight_device class.
-  * @name: the name of the new object(must be the same as the name of the
-diff --git a/include/linux/backlight.h b/include/linux/backlight.h
-index 79ca2da..8298c43 100644
---- a/include/linux/backlight.h
-+++ b/include/linux/backlight.h
-@@ -100,6 +100,7 @@ static inline void backlight_update_status(struct backlight_device *bd)
- extern struct backlight_device *backlight_device_register(const char *name,
- 	struct device *dev, void *devdata, struct backlight_ops *ops);
- extern void backlight_device_unregister(struct backlight_device *bd);
-+extern void backlight_force_update(struct backlight_device *bd);
- 
- #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
- 
+ out:
+ 	if (result)
+ 		printk(KERN_ERR PREFIX "Failed to switch the brightness\n");
 -- 
 1.6.2.5
 
