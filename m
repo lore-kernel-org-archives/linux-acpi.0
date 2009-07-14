@@ -1,42 +1,51 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 2/3] ACPI: Update the backlight state when we change brightness
-Date: Tue, 14 Jul 2009 17:06:03 +0100
-Message-ID: <1247587564-27737-2-git-send-email-mjg@redhat.com>
-References: <1247587564-27737-1-git-send-email-mjg@redhat.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH 0/3] ACPI/PCI Hotplug: acpiphp cleanup
+Date: Tue, 14 Jul 2009 12:27:31 -0700
+Message-ID: <20090714122731.1ebea158@jbarnes-g45>
+References: <20090710193601.30165.62311.stgit@bob.kio>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42231 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754687AbZGNQGP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jul 2009 12:06:15 -0400
-In-Reply-To: <1247587564-27737-1-git-send-email-mjg@redhat.com>
+Received: from outbound-mail-21.bluehost.com ([69.89.21.16]:40579 "HELO
+	outbound-mail-21.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755752AbZGNT1e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Jul 2009 15:27:34 -0400
+In-Reply-To: <20090710193601.30165.62311.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, rui.zhang@intel.com, corentincj@iksaif.net, Matthew Garrett <mjg@redhat.com>
+To: Alex Chiang <achiang@hp.com>
+Cc: lenb@kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Trigger a status update when we change the brightness in the driver, thus
-allowing userspace to present appropriate UI.
+On Fri, 10 Jul 2009 13:42:33 -0600
+Alex Chiang <achiang@hp.com> wrote:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/video.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+> Hi Len, Jesse,
+> 
+> I'd like to have this patch series considered for the current release
+> because it clarifies some usage of the new interface
+> acpi_get_pci_dev() that was also introduced in this release cycle.
+> 
+> The short story is, acpi_get_pci_dev() doesn't always return a struct
+> pci_dev, because a PCI root bridge may not have an associated pci_dev
+> on platforms with non-materialized root bridges.
+> 
+> See this patch for more:
+> 
+> 	http://patchwork.kernel.org/patch/32613/
+> 
+> I had to export acpi_pci_root to accomplish my goal, but it did result
+> in a nice net cleanup in acpiphp.
+> 
+> It should probably go through Jesse's tree, but needs Len's ACK for
+> the acpi_pci_root bit.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 8851315..2c906c7 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1960,6 +1960,10 @@ acpi_video_switch_brightness(struct acpi_video_device *device, int event)
- 
- 	result = acpi_video_device_lcd_set_level(device, level_next);
- 
-+	if (!result)
-+		backlight_force_update(device->backlight,
-+				       BACKLIGHT_UPDATE_HOTKEY);
-+
- out:
- 	if (result)
- 		printk(KERN_ERR PREFIX "Failed to switch the brightness\n");
+Haven't heard from Len yet, but I'm a bit nervous about adding this to
+for-linus.  We already have a fix upstream for the acpi_get_pci_dev
+issue right?  So there's no hurry on this set of (nice) cleanups is
+there?
+
+Thanks,
 -- 
-1.6.2.5
-
+Jesse Barnes, Intel Open Source Technology Center
