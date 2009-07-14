@@ -1,7 +1,7 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
 Subject: Re: [PATCH 0/3] ACPI/PCI Hotplug: acpiphp cleanup
-Date: Tue, 14 Jul 2009 13:32:39 -0700
-Message-ID: <20090714133239.070e976c@jbarnes-g45>
+Date: Tue, 14 Jul 2009 13:33:42 -0700
+Message-ID: <20090714133342.1337d839@jbarnes-g45>
 References: <20090710193601.30165.62311.stgit@bob.kio>
 	<20090714122731.1ebea158@jbarnes-g45>
 	<20090714200431.GC15021@ldl.fc.hp.com>
@@ -77,13 +77,13 @@ Alex Chiang <achiang@hp.com> wrote:
 > 
 > Would you like me to do that and resubmit? I'd still need an ACK
 > from Len re: acpi_pci_root...
-> 
-> Thanks.
-> 
-> /ac
-> 
-> 
 
+How about I actually send a reply this time...
 
+No you don't need to re-submit; assuming Len comes back quickly we can
+put this into my for-linus branch. Len, we just need your ack to apply
+this series.
+
+Thanks,
 -- 
 Jesse Barnes, Intel Open Source Technology Center
