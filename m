@@ -1,124 +1,36 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 1/2] acpi: don't free non-existant backlight in acpi
-	video module
-Date: Tue, 14 Jul 2009 09:45:29 +0800
-Message-ID: <1247535929.5771.12.camel@rzhang-dt>
-References: <1247381251-27031-1-git-send-email-keithp@keithp.com>
-	 <20090713164143.035152be.akpm@linux-foundation.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
+	generate events on changes
+Date: Tue, 14 Jul 2009 02:53:26 +0100
+Message-ID: <20090714015326.GA9044@srcf.ucam.org>
+References: <1247517685-7719-1-git-send-email-mjg@redhat.com> <1247533128.3704.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:60507 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752562AbZGNBok (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Jul 2009 21:44:40 -0400
-In-Reply-To: <20090713164143.035152be.akpm@linux-foundation.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:60004 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275AbZGNBxa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2009 21:53:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1247533128.3704.9.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "keithp@keithp.com" <keithp@keithp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: ykzhao <yakui.zhao@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "corentincj@iksaif.net" <corentincj@iksaif.net>
 
-On Tue, 2009-07-14 at 07:41 +0800, Andrew Morton wrote:
-> > acpi: don't free non-existant backlight in acpi video module
-> 
-> "existent" :)
-> 
-> On Sat, 11 Jul 2009 23:47:31 -0700
-> keithp@keithp.com wrote:
-> 
-> > From: Keith Packard <keithp@keithp.com>
-> > 
-> > acpi_video_put_one_device was attempting to remove sysfs entries and
-> > unregister a backlight device without first checking that said backlight
-> > device structure had been created.
-> > 
-> > Signed-off-by: Keith Packard <keithp@keithp.com>
-> > ---
-> >  drivers/acpi/video.c |    7 +++++--
-> >  1 files changed, 5 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > index 8851315..60ea984 100644
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -2004,8 +2004,11 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
-> >  	status = acpi_remove_notify_handler(device->dev->handle,
-> >  					    ACPI_DEVICE_NOTIFY,
-> >  					    acpi_video_device_notify);
-> > -	sysfs_remove_link(&device->backlight->dev.kobj, "device");
-> > -	backlight_device_unregister(device->backlight);
-> > +	if (device->backlight) {
-> > +		sysfs_remove_link(&device->backlight->dev.kobj, "device");
-> > +		backlight_device_unregister(device->backlight);
-> > +		device->backlight = NULL;
-> > +	}
-> >  	if (device->cdev) {
-> >  		sysfs_remove_link(&device->dev->dev.kobj,
-> >  				  "thermal_cooling");
-> 
-> um, OK.
-> 
-> Under which circumstances was this observed?
-> 
-Only part of the ACPI video devices support backlight switching.
-device->backlight is NULL for many ACPI video devices, like, CRT, TV,
-DVI, etc.
+On Tue, Jul 14, 2009 at 08:58:48AM +0800, ykzhao wrote:
 
-> For symmetry we could instead test acpi_video_backlight_support() here.
-> 
-No.
-device->backlight is NULL for the devices that declare to support
-backlight control while provides INVALID ACPI backlight control methods.
+> It will be better to send the event to user space only when the
+> brightness is updated successfully.
 
-> The patch assumes that someone initially zeroed device->backlight.  Is
-> that true and reliable?
+That guarantees that we have to read back the brightness, which may be 
+expensive on some hardware.
 
-yes.
+> It seems that the acpi video driver will send the ACPI event to user
+> space when updating the brightness. 
+> Is it necessary to send the udev-event again?
 
->   If so, is the 
-> 
-> 	memset(&device->cap, 0, sizeof(device->cap));
-> 
-> in acpi_video_device_find_cap() needed?
-> 
-right. IMO, we can remove this.
-patch attached.
+Yes. There's no reason to special-case the ACPI driver.
 
-thanks,
-rui
-
-
-device->cap and video->cap is zerod initially so we don't need
-to clear it again.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video.c |    4 ----
- 1 file changed, 4 deletions(-)
-
-Index: linux-2.6/drivers/acpi/video.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -934,9 +934,6 @@ static void acpi_video_device_find_cap(s
- {
- 	acpi_handle h_dummy1;
- 
--
--	memset(&device->cap, 0, sizeof(device->cap));
--
- 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_ADR", &h_dummy1))) {
- 		device->cap._ADR = 1;
- 	}
-@@ -1039,7 +1036,6 @@ static void acpi_video_bus_find_cap(stru
- {
- 	acpi_handle h_dummy1;
- 
--	memset(&video->cap, 0, sizeof(video->cap));
- 	if (ACPI_SUCCESS(acpi_get_handle(video->device->handle, "_DOS", &h_dummy1))) {
- 		video->cap._DOS = 1;
- 	}
-
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
