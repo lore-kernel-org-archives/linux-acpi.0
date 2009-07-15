@@ -1,53 +1,61 @@
-From: Richard Purdie <rpurdie@rpsys.net>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
 	generate events on changes
-Date: Wed, 15 Jul 2009 09:22:33 +0100
-Message-ID: <1247646153.6248.3.camel@dax.rpnet.com>
+Date: Wed, 15 Jul 2009 16:38:25 +0800
+Message-ID: <1247647105.26272.99.camel@rzhang-dt>
 References: <1247517685-7719-1-git-send-email-mjg@redhat.com>
 	 <1247574573.23871.8.camel@dax.rpnet.com>
 	 <1247644518.26272.88.camel@rzhang-dt>
+	 <1247646153.6248.3.camel@dax.rpnet.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dan.rpsys.net ([93.97.175.187]:64332 "EHLO dan.rpsys.net"
+Received: from mga11.intel.com ([192.55.52.93]:43399 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752196AbZGOI0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jul 2009 04:26:13 -0400
-In-Reply-To: <1247644518.26272.88.camel@rzhang-dt>
+	id S1752970AbZGOIhh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jul 2009 04:37:37 -0400
+In-Reply-To: <1247646153.6248.3.camel@dax.rpnet.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
+To: Richard Purdie <rpurdie@rpsys.net>
 Cc: Matthew Garrett <mjg@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "corentincj@iksaif.net" <corentincj@iksaif.net>
 
-On Wed, 2009-07-15 at 15:55 +0800, Zhang Rui wrote:
-> > Also, are "userspace" and "kernel" as meaningful as they could be?
-> Would
-> > "sysfs" and "hwkeys" make more sense and allow for other future hardware
-> > differences? Perhaps someone will tie the backlight to an ambient light
-> > sensor for example...
+On Wed, 2009-07-15 at 16:22 +0800, Richard Purdie wrote:
+> On Wed, 2009-07-15 at 15:55 +0800, Zhang Rui wrote:
+> > > Also, are "userspace" and "kernel" as meaningful as they could be?
+> > Would
+> > > "sysfs" and "hwkeys" make more sense and allow for other future hardware
+> > > differences? Perhaps someone will tie the backlight to an ambient light
+> > > sensor for example...
+> > > 
 > > 
+> > Hah, I just finished a patch to introduce the ACPI als driver.
+> > 
+> > I'm not quite familiar with the status of ALS support in Linux kernel.
+> > and here is my questions,
+> > I don't think we have a generic sysfs driver for ALS, i.e. ALS class
+> > device, right?
+> > do you guys think it's reasonable to have one?
 > 
-> Hah, I just finished a patch to introduce the ACPI als driver.
+> We don't have one that I'm aware of.
 > 
-> I'm not quite familiar with the status of ALS support in Linux kernel.
-> and here is my questions,
-> I don't think we have a generic sysfs driver for ALS, i.e. ALS class
-> device, right?
-> do you guys think it's reasonable to have one?
+> The first question is what information and configuration options are we
+> likely to have with ALS sensors? If its just a light level reading, the
+> input subsystem is ideally suited for sharing that. Is there
+> configuration we need to expose?
+> 
+For an ACPI ALS device, only these two are mandatory
+1. the current ambient light illuminance.
+2. A list of luminance mappings, including the "display luminance
+adjustment" and "ambient light illuminance", which can be used by OS to
+determine the ambient light policy.
 
-We don't have one that I'm aware of.
+IMO, the ALS driver should just export these info to user space, and we
+can do the display backlight adjustment in user space,
+via /sys/class/backlight.
 
-The first question is what information and configuration options are we
-likely to have with ALS sensors? If its just a light level reading, the
-input subsystem is ideally suited for sharing that. Is there
-configuration we need to expose?
+thanks,
+rui
 
-Cheers,
-
-Richard
-
--- 
-Richard Purdie
-Intel Open Source Technology Centre
 
