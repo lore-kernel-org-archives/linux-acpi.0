@@ -1,68 +1,111 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 7/8] ACPI battery: support device async resume
-Date: Wed, 15 Jul 2009 15:38:42 +0800
-Message-ID: <1247643522.26272.82.camel@rzhang-dt>
+Subject: [PATCH 4/8] introduce device async suspend
+Date: Wed, 15 Jul 2009 15:38:40 +0800
+Message-ID: <1247643520.26272.81.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:20638 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:46564 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753126AbZGOHiC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jul 2009 03:38:02 -0400
+	id S1753130AbZGOHh7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jul 2009 03:37:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
 
-ACPI battery supports device async actions.
+introduce device async suspend.
 
-Create an async domain for every ACPI battery device,
-so that ACPI battery can be suspended/resumed/shutdown asynchronously.
+If boot option "device_async_action" is added,
+devices can be suspended asynchronously.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/battery.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/base/power/main.c |    6 +++++-
+ include/linux/async_dev.h |    3 ++-
+ drivers/base/async_dev.c        |   13 ++++++++++++-
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
-Index: linux-2.6/drivers/acpi/battery.c
+Index: linux-2.6/drivers/base/power/main.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/battery.c
-+++ linux-2.6/drivers/acpi/battery.c
-@@ -829,6 +829,17 @@ static int acpi_battery_add(struct acpi_
- 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
- 	device->driver_data = battery;
- 	mutex_init(&battery->lock);
-+
-+	/*
-+	 * dev_async_register must be called before any of its child
-+	 * device being registered, i.e. power supply sysfs class device.
-+	 */
-+	result = dev_async_register(&device->dev, DEV_ASYNC_RESUME);
-+	if (result) {
-+		kfree(battery);
-+		return result;
-+	}
-+
- 	acpi_battery_update(battery);
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 	result = acpi_battery_add_fs(device);
-@@ -841,6 +852,7 @@ static int acpi_battery_add(struct acpi_
- #ifdef CONFIG_ACPI_PROCFS_POWER
- 		acpi_battery_remove_fs(device);
- #endif
-+		dev_async_unregister(&device->dev);
- 		kfree(battery);
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -24,6 +24,7 @@
+ #include <linux/resume-trace.h>
+ #include <linux/rwsem.h>
+ #include <linux/interrupt.h>
++#include <linux/async_dev.h>
+ 
+ #include "../base.h"
+ #include "power.h"
+@@ -678,7 +679,8 @@ static int dpm_suspend(pm_message_t stat
+ 		get_device(dev);
+ 		mutex_unlock(&dpm_list_mtx);
+ 
+-		error = device_suspend(dev, state);
++		error = dev_async_schedule(dev, device_suspend, &state,
++						DEV_ASYNC_SUSPEND);
+ 
+ 		mutex_lock(&dpm_list_mtx);
+ 		if (error) {
+@@ -693,6 +695,8 @@ static int dpm_suspend(pm_message_t stat
  	}
- 	return result;
-@@ -859,6 +871,7 @@ static int acpi_battery_remove(struct ac
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 	sysfs_remove_battery(battery);
- #endif
-+	dev_async_unregister(&device->dev);
- 	mutex_destroy(&battery->lock);
- 	kfree(battery);
- 	return 0;
+ 	list_splice(&list, dpm_list.prev);
+ 	mutex_unlock(&dpm_list_mtx);
++
++	dev_async_synchronization();
+ 	return error;
+ }
+ 
+Index: linux-2.6/drivers/base/async_dev.c
+===================================================================
+--- linux-2.6.orig/drivers/base/async_dev.c
++++ linux-2.6/drivers/base/async_dev.c
+@@ -17,6 +17,8 @@
+ static LIST_HEAD(dev_async_list);
+ static int dev_async_enabled;
+ 
++typedef int (*dev_async_suspend)(struct device *, pm_message_t);
++
+ struct dev_async_context {
+ 	struct device *dev;
+ 	void *data;
+@@ -27,10 +29,19 @@ struct dev_async_context {
+ static int dev_action(struct device *dev, void *func,
+ 			void *data, int type)
+ {
++	int error = 0;
++
+ 	if (!func)
+ 		return -EINVAL;
+ 
+-	return 0;
++	switch (type) {
++	case DEV_ASYNC_SUSPEND:
++		error = ((dev_async_suspend)func)(dev, *((pm_message_t *)data));
++		break;
++	default:
++		return -EINVAL;
++	}
++	return error;
+ }
+ 
+ static void dev_async_action(void *data, async_cookie_t cookie)
+Index: linux-2.6/include/linux/async_dev.h
+===================================================================
+--- linux-2.6.orig/include/linux/async_dev.h
++++ linux-2.6/include/linux/async_dev.h
+@@ -28,7 +28,8 @@ struct dev_async_struct {
+ 	async_cookie_t cookie;
+ };
+ 
+-#define DEV_ASYNC_ACTIONS_ALL	0
++#define DEV_ASYNC_SUSPEND	1
++#define DEV_ASYNC_ACTIONS_ALL	DEV_ASYNC_SUSPEND
+ 
+ extern int dev_async_schedule(struct device *, void *,
+ 			void *, int);
 
 
