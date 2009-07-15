@@ -1,86 +1,76 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [linux-pm] [PATCH 2/8] introduce the device async action
-	mechanism
-Date: Wed, 15 Jul 2009 02:31:44 +0200
-Message-ID: <20090715003144.GD2360@ucw.cz>
-References: <1247643516.26272.77.camel@rzhang-dt>
+Subject: Re: [PATCH 8/8] i8042: support device async suspend & shutdown
+Date: Wed, 15 Jul 2009 02:37:16 +0200
+Message-ID: <20090715003716.GE2360@ucw.cz>
+References: <1247643522.26272.83.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60681 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51879 "EHLO
 	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420AbZGOPcj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jul 2009 11:32:39 -0400
+	with ESMTP id S1755523AbZGOPh4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jul 2009 11:37:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1247643516.26272.77.camel@rzhang-dt>
+In-Reply-To: <1247643522.26272.83.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>
 
-On Wed 2009-07-15 15:38:36, Zhang Rui wrote:
-> Introduce the device async action mechanism.
+On Wed 2009-07-15 15:38:42, Zhang Rui wrote:
 > 
-> In order to speed up Linux suspend/resume/shutdown process,
-> we introduce the device async action mechanism that allow devices
-> to suspend/resume/shutdown asynchronously.
+> i8042 controller support device async actions.
 > 
-> The basic idea is that,
-> if the suspend/resume/shutdown process of a device set,
-> including a root device and its child devices, are independent of
-> other devices, we create an async domain for this device set,
-> and make them suspend/resume/shutdown asynchronously.
+> If boot option "dev_async_action" is added,
+> i8042 controller and its child devices can be
+> suspended/resumed/shutdown asynchronously.
 > 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/base/Makefile     |    3 
->  drivers/base/async_dev.c  |  180 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/async_dev.h |   40 ++++++++++
->  include/linux/device.h    |    2 
->  4 files changed, 224 insertions(+), 1 deletion(-)
+>  drivers/input/serio/i8042.c |   10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
 > 
-> Index: linux-2.6/include/linux/async_dev.h
+> Index: linux-2.6/drivers/input/serio/i8042.c
 > ===================================================================
-> --- /dev/null
-> +++ linux-2.6/include/linux/async_dev.h
-> @@ -0,0 +1,40 @@
-> +/*
-> + * async_dev.h: function calls for device async actions
-> + *
-> + * (C) Copyright 2009 Intel Corporation
-> + * Author: Zhang Rui <rui.zhang@intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; version 2
-> + * of the License.
-> + */
+> --- linux-2.6.orig/drivers/input/serio/i8042.c
+> +++ linux-2.6/drivers/input/serio/i8042.c
+> @@ -1284,14 +1284,21 @@ static int __init i8042_init(void)
+>  		goto err_unregister_driver;
+>  	}
+>  
+> -	err = platform_device_add(i8042_platform_device);
+> +	err = dev_async_register(&i8042_platform_device->dev,
+> +			DEV_ASYNC_SUSPEND | DEV_ASYNC_SHUTDOWN);
+>  	if (err)
+>  		goto err_free_device;
+>  
+> +	err = platform_device_add(i8042_platform_device);
+> +	if (err)
+> +		goto err_dev_async_unregister;
 > +
-> +#ifndef _ASYNC_DEV_H_
-> +#define _ASYNC_DEV_H_
-> +
-> +#include <linux/types.h>
-> +#include <linux/list.h>
-> +#include <linux/async.h>
-> +#include <linux/device.h>
-> +#include <linux/pm.h>
-> +
-> +struct dev_async_struct {
-> +	struct device *dev;
-> +	int type;
-> +	/* Synchronization Domain for device async actions */
-> +	struct list_head domain;
-> +	struct list_head node;
-> +	async_cookie_t cookie;
-> +};
-> +
-> +#define DEV_ASYNC_ACTIONS_ALL	0
-> +
-> +extern int dev_async_schedule(struct device *, void *,
-> +			void *, int);
-> +extern void dev_async_synchronization(void);
+>  	panic_blink = i8042_panic_blink;
+>  
+>  	return 0;
+>  
+> + err_dev_async_unregister:
+> +	dev_async_unregister(&i8042_platform_device->dev);
 
-'_synchronize' to be consistent with schedule?
+
+>   err_free_device:
+>  	platform_device_put(i8042_platform_device);
+>   err_unregister_driver:
+> @@ -1304,6 +1311,7 @@ static int __init i8042_init(void)
+>  
+>  static void __exit i8042_exit(void)
+>  {
+> +	dev_async_unregister(&i8042_platform_device->dev);
+>  	platform_device_unregister(i8042_platform_device);
+>  	platform_driver_unregister(&i8042_driver);
+>  	i8042_platform_exit();
+
+Could we get the core to do async_unregister during device_unregister?
+
+Or maybe better, just add flags during device_add?
 
 -- 
 (english) http://www.livejournal.com/~pavelmachek
