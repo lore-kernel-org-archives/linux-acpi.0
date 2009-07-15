@@ -1,105 +1,60 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/8] hook device async mechanism in device core
-Date: Wed, 15 Jul 2009 15:38:37 +0800
-Message-ID: <1247643517.26272.78.camel@rzhang-dt>
+Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
+	generate events on changes
+Date: Wed, 15 Jul 2009 15:55:18 +0800
+Message-ID: <1247644518.26272.88.camel@rzhang-dt>
+References: <1247517685-7719-1-git-send-email-mjg@redhat.com>
+	 <1247574573.23871.8.camel@dax.rpnet.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15075 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:41979 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753086AbZGOHhw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jul 2009 03:37:52 -0400
+	id S1752966AbZGOHy3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jul 2009 03:54:29 -0400
+In-Reply-To: <1247574573.23871.8.camel@dax.rpnet.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: Matthew Garrett <mjg@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "corentincj@iksaif.net" <corentincj@iksaif.net>
 
+On Tue, 2009-07-14 at 20:29 +0800, Richard Purdie wrote:
+> On Mon, 2009-07-13 at 21:41 +0100, Matthew Garrett wrote:
+> > Certain hardware will send us events when the backlight brightness
+> > changes. Add a function to update the value in the core, and
+> > additionally send a uevent so that userspace can pop up appropriate
+> > UI. The uevents are flagged depending on whether the update originated
+> > in the kernel or from userspace, making it easier to only display UI
+> > at the appropriate time.
+> 
+> This looks good and I like the idea. 
+> 
+> My main concern is that we don't start getting bug reports of 'missing'
+> events and have clearly defined expectations of when we see what kind of
+> events. For example, should an event be emitted when low battery causes
+> the backlight to be limited? How about console blanking events turning
+> off the backlight? Are there any other occasions we should be emitting
+> change events and do we need to audit other drivers?
+> 
+> I did look to see if we could integrate this more into the backlight
+> core but that doesn't look to be possible unfortunately, at least not
+> without changing the drivers which these patches start.
+> 
+> Also, are "userspace" and "kernel" as meaningful as they could be? Would
+> "sysfs" and "hwkeys" make more sense and allow for other future hardware
+> differences? Perhaps someone will tie the backlight to an ambient light
+> sensor for example...
+> 
 
-Hook the device async mechanism in driver core.
-A device inherits its parent's async domain when it's created.
+Hah, I just finished a patch to introduce the ACPI als driver.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/base/async_dev.c |   22 ++++++++++++++++++----
- drivers/base/core.c      |    9 +++++++++
- 2 files changed, 27 insertions(+), 4 deletions(-)
+I'm not quite familiar with the status of ALS support in Linux kernel.
+and here is my questions,
+I don't think we have a generic sysfs driver for ALS, i.e. ALS class
+device, right?
+do you guys think it's reasonable to have one?
 
-Index: linux-2.6/drivers/base/core.c
-===================================================================
---- linux-2.6.orig/drivers/base/core.c
-+++ linux-2.6/drivers/base/core.c
-@@ -899,6 +899,13 @@ int device_add(struct device *dev)
- 	if (parent)
- 		set_dev_node(dev, dev_to_node(parent));
- 
-+	/* inherit parent's async domain */
-+	if (parent && parent->dev_async)
-+		if (!dev->dev_async)
-+			dev->dev_async = parent->dev_async;
-+		else
-+			dev_err(dev, "multiple dev async actions registered\n");
-+
- 	/* first, register with generic layer. */
- 	/* we require the name to be set before, and pass NULL */
- 	error = kobject_add(&dev->kobj, dev->kobj.parent, NULL);
-@@ -984,6 +991,7 @@ done:
- 	kobject_uevent(&dev->kobj, KOBJ_REMOVE);
- 	kobject_del(&dev->kobj);
-  Error:
-+	dev->dev_async = NULL;
- 	cleanup_device_parent(dev);
- 	if (parent)
- 		put_device(parent);
-@@ -1100,6 +1108,7 @@ void device_del(struct device *dev)
- 	if (platform_notify_remove)
- 		platform_notify_remove(dev);
- 	kobject_uevent(&dev->kobj, KOBJ_REMOVE);
-+	dev->dev_async = NULL;
- 	cleanup_device_parent(dev);
- 	kobject_del(&dev->kobj);
- 	put_device(parent);
-Index: linux-2.6/drivers/base/async_dev.c
-===================================================================
---- linux-2.6.orig/drivers/base/async_dev.c
-+++ linux-2.6/drivers/base/async_dev.c
-@@ -105,6 +105,13 @@ void dev_async_synchronization(void)
- 	return;
- }
- 
-+static int dev_match(struct device *dev, void *data)
-+{
-+	dev_err(dev->parent, "Child device %s is registered before "
-+		"dev->dev_async being initialized", dev_name(dev));
-+	return 1;
-+}
-+
- /**
-  * device_async_register - register a device that supports async actions
-  * @dev: Device.
-@@ -123,12 +130,19 @@ int dev_async_register(struct device *de
- 		return -EINVAL;
- 
- 	if (dev->dev_async) {
--		if (dev->dev_async->dev == dev) {
--			printk(KERN_ERR "device already registered\n");
--			return -EEXIST;
--		}
-+		/* multiple async domains for a single device not supported */
-+		dev_err(dev, "async domain already registered\n");
-+		return -EEXIST;
- 	}
- 
-+	/*
-+	 * dev_async_register must be called before any of its child devices
-+	 * being registered to the driver model.
-+	 */
-+	if (dev->p)
-+		if (device_find_child(dev, NULL, dev_match))
-+			return -EINVAL;
-+
- 	if (!(DEV_ASYNC_ACTIONS_ALL & type))
- 	/* check for unsupported async actions */
- 		return -EINVAL;
-
+thanks,
+rui
 
