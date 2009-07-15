@@ -1,104 +1,51 @@
-From: David Gaarenstroom <david.gaarenstroom@gmail.com>
-Subject: [PATCH] Add C1 Idle time accounting for powertop/AMD C1E
-Date: Wed, 15 Jul 2009 22:10:04 +0200
-Message-ID: <9783dadb0907151310w5debaa67t8660b2bc81b0ffc6@mail.gmail.com>
+From: Hector Martin <hector@marcansoft.com>
+Subject: Re: [PATCH -mm] ACPI video: only one ACPI bus video device is allowed
+ for one VGA controller
+Date: Wed, 15 Jul 2009 23:59:36 +0200
+Message-ID: <4A5E5148.808@marcansoft.com>
+References: <1247649488.26272.106.camel@rzhang-dt> <20090715143103.GB22098@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015175d09f018d968046ec42484
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:39828 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756027AbZGOUKG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jul 2009 16:10:06 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so746065qwh.37
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2009 13:10:05 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-
---0015175d09f018d968046ec42484
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from marcansoft.com ([80.68.93.119]:55651 "EHLO smtp.marcansoft.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751286AbZGOV7j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jul 2009 17:59:39 -0400
+In-Reply-To: <20090715143103.GB22098@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-According to MAINTAINERS I should send this here...
+Henrique de Moraes Holschuh wrote:
+> On Wed, 15 Jul 2009, Zhang Rui wrote:
+>> Only one ACPI video bus device for a VGA controller.
+>>
+>> Some buggy BIOS exports multiple ACPI video bus devices for the same
+>> VGA controller, and multiple backlight control methods as well.
+>> This messes up the ACPI video backlight control.
+>> http://bugzilla.kernel.org/show_bug.cgi?id=13577
+>>
+>> With this patch applied, only the first ACPI video bus device
+>> under a PCI device node is bind to ACPI video driver.
+>>
+>> The questions is that, we never notice this kind of devices before,
+>> thus I'm not sure this won't break any laptops.
+> 
+> Laptops often have more than one video bus device, and you _have_ to choose
+> the one that is _active_ (which might not be the first one you find).  This
+> is done on laptops that can have either discrete or in-chipset graphics, for
+> example.  I have seen it in several thinkpad models.
 
-Quite a while ago, after I bought my AMD notebook, I found out
-powertop did not fully work on newer AMD processors, because these
-processors only support C1E idling and not C2/C3. After a some
-digging, I came across a patch that adds C1E idle state accounting, in
-order to get Intels' "powertop" working. I am unsure about who
-originally wrote it, nor could I find out whether this patch has been
-send to a Linux mailing list previously and how it was received
-(forgive me if I overlooked it).
+The video subsystem already picks only graphics devices that actually
+exist in the PCI bus. The issue here is that there are two ACPI
+"subdevices" under one address reference to a PCI device (which exists),
+and both have backlight functionality. I am not aware of any standard
+method to distinguish between such devices - I'd say it's probably yet
+another DSDT bug.
 
-I have been using/syncing the patch ever since, up to the latest git.
-(I must admit I did it a bit blindly however, because I am still
-unsure about the necessity of the first two changes in
-"acpi_processor_get_power_info" at all...)
+-- 
+Hector Martin (hector@marcansoft.com)
+Public Key: http://www.marcansoft.com/marcan.asc
 
-Since I haven't found any post mentioning the original patch, I hereby
-send my most recent version of it. Hopefully this patch or its
-intention can be reviewed and get submitted, because I really like
-using powertop and know others do too...
-
-Greetings,
-David G
-
---0015175d09f018d968046ec42484
-Content-Type: text/x-diff; charset=US-ASCII; name="processor_idle_C1_accounting.patch"
-Content-Disposition: attachment;
-	filename="processor_idle_C1_accounting.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fx4l12lu1
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfaWRsZS5jIGIvZHJpdmVycy9hY3Bp
-L3Byb2Nlc3Nvcl9pZGxlLmMKaW5kZXggMGVmYTU5ZS4uMzU2ZWVjYiAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9hY3BpL3Byb2Nlc3Nvcl9pZGxlLmMKKysrIGIvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9p
-ZGxlLmMKQEAgLTI3MSw4ICsyNzEsMTEgQEAgc3RhdGljIGludCBhY3BpX3Byb2Nlc3Nvcl9nZXRf
-cG93ZXJfaW5mb19mYWR0KHN0cnVjdCBhY3BpX3Byb2Nlc3NvciAqcHIpCiAJaWYgKCFwcikKIAkJ
-cmV0dXJuIC1FSU5WQUw7CiAKKwkvKiBOZXdlciBkdWFsLWNvcmUgQ1BVcyB1c2UgQzFFIGluc3Rl
-YWQgb2YgQzIgYW5kIEMzIGFuZAorCSAqIHVzdWFsbHkgZG8gbm90IGhhdmUgX0NTVCBkZWZpbml0
-aW9ucyBvciBQQkxLIGVudHJpZXMuCisJICogQUNQSSBzcGVjaWZpY2F0aW9uIGFsbG93cyBmb3Ig
-dGhhdCBzbyByZXR1cm4gemVybyBoZXJlICovCiAJaWYgKCFwci0+cGJsaykKLQkJcmV0dXJuIC1F
-Tk9ERVY7CisJCXJldHVybiAwOwogCiAJLyogaWYgaW5mbyBpcyBvYnRhaW5lZCBmcm9tIHBibGsv
-ZmFkdCwgdHlwZSBlcXVhbHMgc3RhdGUgKi8KIAlwci0+cG93ZXIuc3RhdGVzW0FDUElfU1RBVEVf
-QzJdLnR5cGUgPSBBQ1BJX1NUQVRFX0MyOwpAQCAtMzEyLDYgKzMxNSwxMSBAQCBzdGF0aWMgaW50
-IGFjcGlfcHJvY2Vzc29yX2dldF9wb3dlcl9pbmZvX2RlZmF1bHQoc3RydWN0IGFjcGlfcHJvY2Vz
-c29yICpwcikKIAkJcHItPnBvd2VyLnN0YXRlc1tBQ1BJX1NUQVRFX0MxXS50eXBlID0gQUNQSV9T
-VEFURV9DMTsKIAkJcHItPnBvd2VyLnN0YXRlc1tBQ1BJX1NUQVRFX0MxXS52YWxpZCA9IDE7CiAJ
-CXByLT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9DMV0uZW50cnlfbWV0aG9kID0gQUNQSV9DU1RB
-VEVfSEFMVDsKKwkJc25wcmludGYocHItPnBvd2VyLnN0YXRlc1tBQ1BJX1NUQVRFX0MxXS5kZXNj
-LCBBQ1BJX0NYX0RFU0NfTEVOLCAiQUNQSSBITFQiKTsKKwkJaWYgKCFwci0+cG93ZXIuc3RhdGVz
-W0FDUElfU1RBVEVfQzFdLmxhdGVuY3kpCisJCQlwci0+cG93ZXIuc3RhdGVzW0FDUElfU1RBVEVf
-QzFdLmxhdGVuY3kgPSAxOworCQlpZiAoIXByLT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9DMV0u
-cG93ZXIpCisJCQlwci0+cG93ZXIuc3RhdGVzW0FDUElfU1RBVEVfQzFdLnBvd2VyID0gMTAwMDsK
-IAl9CiAJLyogdGhlIEMwIHN0YXRlIG9ubHkgZXhpc3RzIGFzIGEgZmlsbGVyIGluIG91ciBhcnJh
-eSAqLwogCXByLT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9DMF0udmFsaWQgPSAxOwpAQCAtNjUz
-LDI0ICs2NjEsMjMgQEAgc3RhdGljIGludCBhY3BpX3Byb2Nlc3Nvcl9nZXRfcG93ZXJfaW5mbyhz
-dHJ1Y3QgYWNwaV9wcm9jZXNzb3IgKnByKQogCW1lbXNldChwci0+cG93ZXIuc3RhdGVzLCAwLCBz
-aXplb2YocHItPnBvd2VyLnN0YXRlcykpOwogCiAJcmVzdWx0ID0gYWNwaV9wcm9jZXNzb3JfZ2V0
-X3Bvd2VyX2luZm9fY3N0KHByKTsKLQlpZiAocmVzdWx0ID09IC1FTk9ERVYpCi0JCXJlc3VsdCA9
-IGFjcGlfcHJvY2Vzc29yX2dldF9wb3dlcl9pbmZvX2ZhZHQocHIpOwotCiAJaWYgKHJlc3VsdCkK
-LQkJcmV0dXJuIHJlc3VsdDsKKwkJcmVzdWx0ID0gYWNwaV9wcm9jZXNzb3JfZ2V0X3Bvd2VyX2lu
-Zm9fZmFkdChwcik7CiAKKwkvKiBObyB2YWxpZCBfQ1NUIGFuZCBGQURULCBidXQgQzEgbXVzdCBi
-ZSBzdXBwb3J0ZWQsCisJICogc28gaGVyZSB3ZSBnbyAqLwogCWFjcGlfcHJvY2Vzc29yX2dldF9w
-b3dlcl9pbmZvX2RlZmF1bHQocHIpOwogCiAJcHItPnBvd2VyLmNvdW50ID0gYWNwaV9wcm9jZXNz
-b3JfcG93ZXJfdmVyaWZ5KHByKTsKIAogCS8qCi0JICogaWYgb25lIHN0YXRlIG9mIHR5cGUgQzIg
-b3IgQzMgaXMgYXZhaWxhYmxlLCBtYXJrIHRoaXMKKwkgKiBpZiBvbmUgc3RhdGUgb2YgdHlwZSBD
-MShlKSwgQzIgb3IgQzMgaXMgYXZhaWxhYmxlLCBtYXJrIHRoaXMKIAkgKiBDUFUgYXMgYmVpbmcg
-ImlkbGUgbWFuYWdlYWJsZSIKIAkgKi8KIAlmb3IgKGkgPSAxOyBpIDwgQUNQSV9QUk9DRVNTT1Jf
-TUFYX1BPV0VSOyBpKyspIHsKIAkJaWYgKHByLT5wb3dlci5zdGF0ZXNbaV0udmFsaWQpIHsKIAkJ
-CXByLT5wb3dlci5jb3VudCA9IGk7Ci0JCQlpZiAocHItPnBvd2VyLnN0YXRlc1tpXS50eXBlID49
-IEFDUElfU1RBVEVfQzIpCisJCQlpZiAocHItPnBvd2VyLnN0YXRlc1tpXS50eXBlID49IEFDUElf
-U1RBVEVfQzEpCiAJCQkJcHItPmZsYWdzLnBvd2VyID0gMTsKIAkJfQogCX0KQEAgLTgyMSw2ICs4
-MjgsNyBAQCBzdGF0aWMgaW50IGFjcGlfaWRsZV9lbnRlcl9jMShzdHJ1Y3QgY3B1aWRsZV9kZXZp
-Y2UgKmRldiwKIHsKIAlrdGltZV90ICBrdDEsIGt0MjsKIAlzNjQgaWRsZV90aW1lOworCXM2NCBz
-bGVlcF90aWNrcyA9IDA7CiAJc3RydWN0IGFjcGlfcHJvY2Vzc29yICpwcjsKIAlzdHJ1Y3QgYWNw
-aV9wcm9jZXNzb3JfY3ggKmN4ID0gY3B1aWRsZV9nZXRfc3RhdGVkYXRhKHN0YXRlKTsKIApAQCAt
-ODQ0LDEwICs4NTIsMTQgQEAgc3RhdGljIGludCBhY3BpX2lkbGVfZW50ZXJfYzEoc3RydWN0IGNw
-dWlkbGVfZGV2aWNlICpkZXYsCiAJa3QyID0ga3RpbWVfZ2V0X3JlYWwoKTsKIAlpZGxlX3RpbWUg
-PSAga3RpbWVfdG9fdXMoa3RpbWVfc3ViKGt0Miwga3QxKSk7CiAKKwlzbGVlcF90aWNrcyA9IHVz
-X3RvX3BtX3RpbWVyX3RpY2tzKGlkbGVfdGltZSk7CisKIAlsb2NhbF9pcnFfZW5hYmxlKCk7CisK
-IAljeC0+dXNhZ2UrKzsKLQlsYXBpY190aW1lcl9zdGF0ZV9icm9hZGNhc3QocHIsIGN4LCAwKTsK
-IAorCWxhcGljX3RpbWVyX3N0YXRlX2Jyb2FkY2FzdChwciwgY3gsIDApOworCWN4LT50aW1lICs9
-IHNsZWVwX3RpY2tzOwogCXJldHVybiBpZGxlX3RpbWU7CiB9CiAK
---0015175d09f018d968046ec42484--
