@@ -1,54 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH -mm] ACPI video: only one ACPI bus video device is
- allowed for one VGA controller
-Date: Wed, 15 Jul 2009 11:31:03 -0300
-Message-ID: <20090715143103.GB22098@khazad-dum.debian.net>
-References: <1247649488.26272.106.camel@rzhang-dt>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/8] device async action mechanism
+Date: Wed, 15 Jul 2009 02:29:16 +0200
+Message-ID: <20090715002916.GC2360@ucw.cz>
+References: <1247643512.26272.74.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:37679 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753307AbZGOObI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jul 2009 10:31:08 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59302 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755202AbZGOP3z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jul 2009 11:29:55 -0400
 Content-Disposition: inline
-In-Reply-To: <1247649488.26272.106.camel@rzhang-dt>
+In-Reply-To: <1247643512.26272.74.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, hector@marcansoft.com
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>
 
-On Wed, 15 Jul 2009, Zhang Rui wrote:
-> Only one ACPI video bus device for a VGA controller.
-> 
-> Some buggy BIOS exports multiple ACPI video bus devices for the same
-> VGA controller, and multiple backlight control methods as well.
-> This messes up the ACPI video backlight control.
-> http://bugzilla.kernel.org/show_bug.cgi?id=13577
-> 
-> With this patch applied, only the first ACPI video bus device
-> under a PCI device node is bind to ACPI video driver.
-> 
-> The questions is that, we never notice this kind of devices before,
-> thus I'm not sure this won't break any laptops.
+Hi!
 
-Laptops often have more than one video bus device, and you _have_ to choose
-the one that is _active_ (which might not be the first one you find).  This
-is done on laptops that can have either discrete or in-chipset graphics, for
-example.  I have seen it in several thinkpad models.
+I notice you are still ccing my @suse.cz address. That one no longer
+works :-(. 
 
-There is also the new class of laptops that have *both* discrete and
-in-chipset GPUs and can switch them at runtime (well, Linux can't cope with
-it yet and ends up requiring the switch to be done in BIOS setup screen,
-AFAIK, but I hope that changes someday).  I never looked at the DSDT of one
-of these to know how it looks like, but it would make sense that the ACPI
-video driver would have to be able to bind to more than one display device,
-and drive them separately, and do the right thing when the device is
-hotplugged/hotunplugged (or activated/deactivated)...
+> this is the patch set I made to speed up the device
+> suspend/resume/shutdown process.
+> 
+> A new mechanism called Device Async Actions is introduced in this patch set.
+> The basic idea is that,
+> 1. device declares to support certain kinds of device async action,
+>    like suspend, resume, shutdown, etc.
+> 2. a async domain is create for this device
+> 3. the child device inherits the async domain
+> 4. devices in the same domain suspend/resume/shutdown asynchronously with
+>    the other devices.
+> 
+> Currently, in order to make sure that it won't bring any side effects,
+> I only convert the ACPI battery and i8042 to use this framework, which reduces
+> 0.5s+ S3 time(suspend time plus resume time)???, from 7.0s to less than 6.5s.
+> and about 0.5s shutdown time in my test.
+
+Hmm, 7seconds is still quite long. What hw is that?
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
