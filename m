@@ -1,81 +1,53 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH -mm] ACPI video: only one ACPI bus video device is
-	allowed for one VGA controller
-Date: Thu, 16 Jul 2009 10:37:59 +0800
-Message-ID: <1247711879.26272.186.camel@rzhang-dt>
-References: <1247649488.26272.106.camel@rzhang-dt>
-	 <20090715143103.GB22098@khazad-dum.debian.net>
-	 <4A5E5148.808@marcansoft.com>
+Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
+	generate events on changes
+Date: Thu, 16 Jul 2009 10:39:34 +0800
+Message-ID: <1247711974.26272.190.camel@rzhang-dt>
+References: <1247517685-7719-1-git-send-email-mjg@redhat.com>
+	 <1247574573.23871.8.camel@dax.rpnet.com>
+	 <1247644518.26272.88.camel@rzhang-dt>
+	 <1247646153.6248.3.camel@dax.rpnet.com>
+	 <1247647105.26272.99.camel@rzhang-dt>
+	 <1247649089.20241.5.camel@dax.rpnet.com>
+	 <20090715135808.GA19054@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:6777 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:49020 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757074AbZGPChK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jul 2009 22:37:10 -0400
-In-Reply-To: <4A5E5148.808@marcansoft.com>
+	id S1757074AbZGPCio (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jul 2009 22:38:44 -0400
+In-Reply-To: <20090715135808.GA19054@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hector Martin <hector@marcansoft.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "corentincj@iksaif.net" <corentincj@iksaif.net>
 
-On Thu, 2009-07-16 at 05:59 +0800, Hector Martin wrote:
-> Henrique de Moraes Holschuh wrote:
-> > On Wed, 15 Jul 2009, Zhang Rui wrote:
-> >> Only one ACPI video bus device for a VGA controller.
-> >>
-> >> Some buggy BIOS exports multiple ACPI video bus devices for the sa=
-me
-> >> VGA controller, and multiple backlight control methods as well.
-> >> This messes up the ACPI video backlight control.
-> >> http://bugzilla.kernel.org/show_bug.cgi?id=3D13577
-> >>
-> >> With this patch applied, only the first ACPI video bus device
-> >> under a PCI device node is bind to ACPI video driver.
-> >>
-> >> The questions is that, we never notice this kind of devices before=
-,
-> >> thus I'm not sure this won't break any laptops.
-> >=20
-> > Laptops often have more than one video bus device, and you _have_ t=
-o choose
-> > the one that is _active_ (which might not be the first one you find=
-).  This
-> > is done on laptops that can have either discrete or in-chipset grap=
-hics, for
-> > example.  I have seen it in several thinkpad models.
->=20
-> The video subsystem already picks only graphics devices that actually
-> exist in the PCI bus. The issue here is that there are two ACPI
-> "subdevices" under one address reference to a PCI device (which exist=
-s),
-> and both have backlight functionality.
+On Wed, 2009-07-15 at 21:58 +0800, Matthew Garrett wrote:
+> On Wed, Jul 15, 2009 at 10:11:29AM +0100, Richard Purdie wrote:
+> 
+> > So there are basically two values we're ever interested in at a given
+> > point in time. The current ambient light reading and the corresponding
+> > display luminance adjustment. Both of those could just be exposed as an
+> > input device really?
+> 
+> The alternative would be hwmon, I guess.
 
-right.
-=46or example,
-here is a laptop with both an integrated graphics (\_SB.PCI0.GFX0) and
-an external graphics (\_SB.PCI0.NVDI)
-we can find which one is active, NVDI or GFX0, and ignore the inactive
-one.
+you mean convert an ACPI ALS device to a hwmon device?
 
-But the bug that I want to fix in this patch is that,
-there are two ACPI video bus devices
-\_SB.PCI0.GFX0.VID1
-=EF=BB=BF\_SB.PCI0.GFX0.VID2
-both are active because PCI device GFX0 exists, and ACPI tries to bind
-all these two devices to ACPI video driver.
-it's meaningless to have two ACPI video bus device for one VGA
-controller, right?
-and it messes up the backlight controller because notifications are sen=
-t
-to both VID1 and VID2 when brightness hotkey is pressed.
+> 
+> > Agreed, userspace should be where policy is decided. Having a standalone
+> > module which connected the two together with a "default" policy might be
+> > acceptable too though? If userspace then wants to handle things it just
+> > makes sure the module is not loaded.
+> 
+> You want smoothing even in a default policy, and doing that well might 
+> be a bit much for the kernel?
+> 
+sorry, I don't understand.
+do you mean that there should be a default policy in the kernel?
 
 thanks,
 rui
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
