@@ -1,34 +1,38 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: Need ACPI table examples
-Date: Thu, 16 Jul 2009 10:11:49 -0700
-Message-ID: <4911F71203A09E4D9981D27F9D8308582ECF6AD9@orsmsx503.amr.corp.intel.com>
+From: Michal Schmidt <mschmidt@redhat.com>
+Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
+ generate events on changes
+Date: Thu, 16 Jul 2009 23:33:12 +0200
+Message-ID: <20090716233312.3586f9a5@hammerfall>
+References: <1247587564-27737-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53217 "EHLO mga09.intel.com"
+Received: from mx2.redhat.com ([66.187.237.31]:59752 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932801AbZGPRLv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jul 2009 13:11:51 -0400
-Content-Language: en-US
+	id S932869AbZGPVk5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jul 2009 17:40:57 -0400
+In-Reply-To: <1247587564-27737-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "acpi@linux.intel.com" <acpi@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Devel@acpica.org" <Devel@acpica.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, rui.zhang@intel.com, corentincj@iksaif.net, Matthew Garrett <mjg@redhat.com>
 
-We are implementing support for new ACPI 4.0 tables in ACPICA, and we need examples of the new tables to help implement and test the disassembler support and related headers.
+Dne Tue, 14 Jul 2009 17:06:02 +0100 Matthew Garrett napsal:
+> +static void backlight_generate_event(struct backlight_device *bd,
+> +				     enum backlight_update_reason
+> reason) +{
+> +	char *envp[2];
+> +
+> +	switch (reason) {
+> +	case BACKLIGHT_UPDATE_SYSFS:
+> +		envp[0] = "SOURCE=sysfs";
+> +		break;
+> +	case BACKLIGHT_UPDATE_HOTKEY:
+> +		envp[0] = "SOURCE=hotkey";
+> +		break;
+> +	default:
+> +		envp[0] = "SORUCE=unknown";
 
-If you have any examples of the tables below, we would appreciate it if you would send them. Any format is acceptable. Please mail to me.
+There's a typo here. s/SORUCE/SOURCE/
 
-Thanks,
-Bob
-
-
-Tables needed:
-
-IVRS
-MSCT
-UEFI
-WAET
-WDAT
-WDRT
-
+Michal
