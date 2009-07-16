@@ -1,118 +1,37 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2/8] introduce the device async action mechanism
-Date: Thu, 16 Jul 2009 10:05:10 +0800
-Message-ID: <1247709910.26272.159.camel@rzhang-dt>
-References: <1247643516.26272.77.camel@rzhang-dt>
-	 <20090715060006.71c2e2b6@infradead.org>
+Subject: Re: [PATCH 0/8] device async action mechanism
+Date: Thu, 16 Jul 2009 10:14:43 +0800
+Message-ID: <1247710483.26272.170.camel@rzhang-dt>
+References: <1247643512.26272.74.camel@rzhang-dt>
+	 <87ocrm6xeq.fsf@basil.nowhere.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757032AbZGPCEZ@vger.kernel.org>
-In-Reply-To: <20090715060006.71c2e2b6@infradead.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757140AbZGPCOK@vger.kernel.org>
+In-Reply-To: <87ocrm6xeq.fsf@basil.nowhere.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, arjan@linux.intel.com, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2009-07-15 at 21:00 +0800, Arjan van de Ven wrote:
-> On Wed, 15 Jul 2009 15:38:36 +0800
-> Zhang Rui <rui.zhang@intel.com> wrote:
+On Wed, 2009-07-15 at 18:41 +0800, Andi Kleen wrote:
+> Zhang Rui <rui.zhang@intel.com> writes:
+> >
+> > Currently, in order to make sure that it won't bring any side effec=
+ts,
+> > I only convert the ACPI battery and i8042 to use this framework, wh=
+ich reduces
+> > 0.5s+ S3 time(suspend time plus resume time)=C3=AF=C2=BB=C2=BF, fro=
+m 7.0s to less than 6.5s.
 >=20
-> > Introduce the device async action mechanism.
-> >=20
-> > In order to speed up Linux suspend/resume/shutdown process,
-> > we introduce the device async action mechanism that allow devices
-> > to suspend/resume/shutdown asynchronously.
-> >=20
-> > The basic idea is that,
-> > if the suspend/resume/shutdown process of a device set,
-> > including a root device and its child devices, are independent of
-> > other devices, we create an async domain for this device set,
-> > and make them suspend/resume/shutdown asynchronously.
+> 10.5s+ was intended I guess?
 >=20
-> Hi,
->=20
-> I have some concerns about having an async domain per device(group)
-> rather than having one async domain for all of this,=20
+what do you mean?
 
-=EF=BB=BFwe create an async domain ONLY if we are sure that the device =
-group is
-independent with the other devices.
-
-and IMO, using multiple async domains brings real device async actions.
-=46or example, in S3 resume case, there are two device groups:
-device group1: device1, device2, device3
-device group2: device4, device5, device6
-
-If they share the global domain, we may get:=EF=BB=BF
-device group1: device1(cookie 1), device2(cookie 4), device3(cookie 5)
-device group2: device4(cookie 2), device5(cookie 3), device6(cookie 6)
-
-this is not real asynchronous resume because
-device3 needs to call async_synchronize_cookie(5) before resume itself.
-which means that device4 and device5 must be resumed before device3.
-
-But if multiple async domain is used, we get:
-=EF=BB=BFdevice group1: device1(cookie 1), device2(cookie 2), device3(c=
-ookie 3)
-device group2: device4(cookie 1), device5(cookie 2), device6(cookie 3)
-
-device group1 and group2 can be resumed asynchronously.
-
-
-Another example, in my previous test,
-1. sata controller. takes 0.4s to resume.
-2. usb, including uchi and ehci controller takes 1.4s to resume
-3. ACPI battery takes 0.3s to resume.
-3. all the other devices take 0.2s to resume.
-
-sata, usb and ACPI battery are independent device groups.
-If we use multiple async domains, we can reduce the total device resume
-time from 2.3s to a little more than 1.4s because there are a lot of
-sleep in usb resume process.
-But if we share the global async domain, the total resume time can only
-be reduced to about 2.1s because sata, usb and ACPI battery are actuall=
-y
-resumed synchronously.
-
-
-> I would
-> strongly suggest going to one global domain, so that it becomes
-> more practical to just wait for all async actions like this...
-> which you need to do during suspend for sure.
->=20
-We can use multiple async domains, even in the suspend case, on the
-premise of the device group being independent of ANY other devices.
-=46or example, this is what I get after patch 8/8 is applied.
-BTW: actions 1 stands for suspend here.
-[  498.891337] device event8 actions 1 started
-[  498.891339] device event8 actions 1 done
-[  498.891344] device mouse3 actions 1 started
-[  498.891345] device mouse3 actions 1 done
-[  498.891349] device input17 actions 1 started
-[  498.891350] device input17 actions 1 done
-[  498.891354] device event7 actions 1 started
-[  498.891355] device event7 actions 1 done
-[  498.891359] device mouse2 actions 1 started
-[  498.891360] device mouse2 actions 1 done
-[  498.891364] device input16 actions 1 started
-[  498.891365] device input16 actions 1 done
-[  498.992052] device serio4 actions 1 started
-[  498.992054] device serio4 actions 1 done
-[  498.992058] device serio3 actions 1 started
-[  498.992060] device serio3 actions 1 done
-[  498.992064] device serio2 actions 1 started
-[  499.411877] device serio2 actions 1 done
-[  499.454733] device serio1 actions 1 started
-[  499.454734] device serio1 actions 1 done
-[  499.454739] device event1 actions 1 started
-[  499.454740] device event1 actions 1 done
-[  499.454744] device input1 actions 1 started
-[  499.454746] device input1 actions 1 done
-[  499.454750] device serio0 actions 1 started
-[  499.456052] device i8042 actions 1 started
-[  499.556054] device serio0 actions 1 done
-[  499.556748] device i8042 actions 1 done
+the kernel device suspend time is reduced from 3.2s to 2.8s after
+applying this patch set in my test box.
+And I get more optimistic numbers on another laptop, an Eeepc 901,
+from about 2s to 1.6s. And the shutdown time is also reduced 0.4s.
 
 thanks,
 rui
