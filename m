@@ -1,68 +1,34 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [Intel-gfx] [PATCH 3/4] drm/i915: use ACPI LID status for LVDS
- ->detect hook
-Date: Thu, 16 Jul 2009 09:32:17 -0700
-Message-ID: <20090716093217.431e733b@jbarnes-g45>
-References: <1247695886-18432-1-git-send-email-jbarnes@virtuousgeek.org>
-	<1247695886-18432-4-git-send-email-jbarnes@virtuousgeek.org>
-	<1247709284.4113.50.camel@localhost.localdomain>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: Need ACPI table examples
+Date: Thu, 16 Jul 2009 10:11:49 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D8308582ECF6AD9@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-mail-138.bluehost.com ([67.222.39.28]:52017 "HELO
-	outbound-mail-138.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932549AbZGPQcU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jul 2009 12:32:20 -0400
-In-Reply-To: <1247709284.4113.50.camel@localhost.localdomain>
+Received: from mga09.intel.com ([134.134.136.24]:53217 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932801AbZGPRLv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jul 2009 13:11:51 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "acpi@linux.intel.com" <acpi@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Devel@acpica.org" <Devel@acpica.org>
 
-On Thu, 16 Jul 2009 09:54:44 +0800
-ykzhao <yakui.zhao@intel.com> wrote:
+We are implementing support for new ACPI 4.0 tables in ACPICA, and we need examples of the new tables to help implement and test the disassembler support and related headers.
 
-> On Thu, 2009-07-16 at 06:11 +0800, Jesse Barnes wrote:
-> > We can't load or hotplug detect LVDS like we can other outputs, but
-> > if there's a lid device present we can use it as a proxy.  This
-> > allows the LFP state to be determined at ->detect time, making
-> > configurations requiring manual intervention today "just work"
-> > assuming the lid device status is correct.
-> It is ok that the LID status is to decide whether the LVDS is
-> connected/disconnected.
-> 
-> But on some boxes the initial LID status is incorrect. It reports that
-> LID is closed although it is open.
->     For example: 
->     http://bugzilla.kernel.org/show_bug.cgi?id=5809
->     http://bugzilla.kernel.org/show_bug.cgi?id=13263
->     http://bugzilla.kernel.org/show_bug.cgi?id=5904
->     https://bugs.launchpad.net/ubuntu/+bug/34389
-> Maybe this feature is not supported on the above laptops. That means
-> that LVDS is always connected regardless of LID status.
-> 
-> At the same time on some boxes there is no ACPI LID event when the LID
-> is reopened. In such case we can't send the hotplug event to user
-> space when the LID is reopened. How about disable this feature on
-> such box? For example: Aspire One.
-> 
-> 
-> I have another issue about the hotplug event.
-> On some boxes it will continue to report the LID event  when the LID
-> is closed. In such case we had better not send the hotplug event to
-> user space. Otherwise the user space will receive too many hotplug
-> event about LVDS. For example:
->      http://bugzilla.kernel.org/show_bug.cgi?id=10485
->      http://bugzilla.kernel.org/show_bug.cgi?id=5853
-> 
-> So it will be better that the feature of hotplug/LID status is not
-> supported on such boxes.
+If you have any examples of the tables below, we would appreciate it if you would send them. Any format is acceptable. Please mail to me.
 
-Yeah those are all good points; thanks for the list of bugs.  Any
-suggestions on how to do a blacklist?  Is there an ACPI or DMI
-identifier we could use?
+Thanks,
+Bob
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+
+Tables needed:
+
+IVRS
+MSCT
+UEFI
+WAET
+WDAT
+WDRT
+
