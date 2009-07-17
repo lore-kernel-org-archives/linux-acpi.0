@@ -1,78 +1,94 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [Intel-gfx] [PATCH 3/4] drm/i915: use ACPI LID status for LVDS
-	->detect hook
-Date: Fri, 17 Jul 2009 09:44:11 +0800
-Message-ID: <1247795051.4113.76.camel@localhost.localdomain>
-References: <1247695886-18432-1-git-send-email-jbarnes@virtuousgeek.org>
-	 <1247695886-18432-4-git-send-email-jbarnes@virtuousgeek.org>
-	 <1247709284.4113.50.camel@localhost.localdomain>
-	 <20090716093217.431e733b@jbarnes-g45>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 8/8] i8042: support device async suspend &
+	shutdown
+Date: Fri, 17 Jul 2009 09:51:28 +0800
+Message-ID: <1247795488.26272.227.camel@rzhang-dt>
+References: <1247643522.26272.83.camel@rzhang-dt>
+	<20090715003716.GE2360@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26974 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933497AbZGQBnX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jul 2009 21:43:23 -0400
-In-Reply-To: <20090716093217.431e733b@jbarnes-g45>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20090715003716.GE2360@ucw.cz>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, 2009-07-17 at 00:32 +0800, Jesse Barnes wrote:
-> On Thu, 16 Jul 2009 09:54:44 +0800
-> ykzhao <yakui.zhao@intel.com> wrote:
+On Wed, 2009-07-15 at 08:37 +0800, Pavel Machek wrote:
+> On Wed 2009-07-15 15:38:42, Zhang Rui wrote:
+> > 
+> > i8042 controller support device async actions.
+> > 
+> > If boot option "dev_async_action" is added,
+> > i8042 controller and its child devices can be
+> > suspended/resumed/shutdown asynchronously.
+> > 
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/input/serio/i8042.c |   10 +++++++++-
+> >  1 file changed, 9 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux-2.6/drivers/input/serio/i8042.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/input/serio/i8042.c
+> > +++ linux-2.6/drivers/input/serio/i8042.c
+> > @@ -1284,14 +1284,21 @@ static int __init i8042_init(void)
+> >  		goto err_unregister_driver;
+> >  	}
+> >  
+> > -	err = platform_device_add(i8042_platform_device);
+> > +	err = dev_async_register(&i8042_platform_device->dev,
+> > +			DEV_ASYNC_SUSPEND | DEV_ASYNC_SHUTDOWN);
+> >  	if (err)
+> >  		goto err_free_device;
+> >  
+> > +	err = platform_device_add(i8042_platform_device);
+> > +	if (err)
+> > +		goto err_dev_async_unregister;
+> > +
+> >  	panic_blink = i8042_panic_blink;
+> >  
+> >  	return 0;
+> >  
+> > + err_dev_async_unregister:
+> > +	dev_async_unregister(&i8042_platform_device->dev);
 > 
-> > On Thu, 2009-07-16 at 06:11 +0800, Jesse Barnes wrote:
-> > > We can't load or hotplug detect LVDS like we can other outputs, but
-> > > if there's a lid device present we can use it as a proxy.  This
-> > > allows the LFP state to be determined at ->detect time, making
-> > > configurations requiring manual intervention today "just work"
-> > > assuming the lid device status is correct.
-> > It is ok that the LID status is to decide whether the LVDS is
-> > connected/disconnected.
-> > 
-> > But on some boxes the initial LID status is incorrect. It reports that
-> > LID is closed although it is open.
-> >     For example: 
-> >     http://bugzilla.kernel.org/show_bug.cgi?id=5809
-> >     http://bugzilla.kernel.org/show_bug.cgi?id=13263
-> >     http://bugzilla.kernel.org/show_bug.cgi?id=5904
-> >     https://bugs.launchpad.net/ubuntu/+bug/34389
-> > Maybe this feature is not supported on the above laptops. That means
-> > that LVDS is always connected regardless of LID status.
-> > 
-> > At the same time on some boxes there is no ACPI LID event when the LID
-> > is reopened. In such case we can't send the hotplug event to user
-> > space when the LID is reopened. How about disable this feature on
-> > such box? For example: Aspire One.
-> > 
-> > 
-> > I have another issue about the hotplug event.
-> > On some boxes it will continue to report the LID event  when the LID
-> > is closed. In such case we had better not send the hotplug event to
-> > user space. Otherwise the user space will receive too many hotplug
-> > event about LVDS. For example:
-> >      http://bugzilla.kernel.org/show_bug.cgi?id=10485
-> >      http://bugzilla.kernel.org/show_bug.cgi?id=5853
-> > 
-> > So it will be better that the feature of hotplug/LID status is not
-> > supported on such boxes.
 > 
-> Yeah those are all good points; thanks for the list of bugs.  Any
-> suggestions on how to do a blacklist?  Is there an ACPI or DMI
-> identifier we could use?
-How about not register the lid notifier callback function for the boxes
-that fall into the backlist?
-And the LVDS detection will always return connected when there is no LID
-notifier callback.
-
-Sorry that there is no dmidecode for the above laptops. I will ask the
-bug reporter to attach them.
-
-Thanks.
-   Yakui
+> >   err_free_device:
+> >  	platform_device_put(i8042_platform_device);
+> >   err_unregister_driver:
+> > @@ -1304,6 +1311,7 @@ static int __init i8042_init(void)
+> >  
+> >  static void __exit i8042_exit(void)
+> >  {
+> > +	dev_async_unregister(&i8042_platform_device->dev);
+> >  	platform_device_unregister(i8042_platform_device);
+> >  	platform_driver_unregister(&i8042_driver);
+> >  	i8042_platform_exit();
 > 
+> Could we get the core to do async_unregister during device_unregister?
+> 
+yes, we can.
+I think it's a little strange that drivers need to invoke
+dev_async_register to register an async device group, but don't need to
+call dev_async_unregister to unregister it.
 
+> Or maybe better, just add flags during device_add?
+> 
+Many devices don't know if they support async actions or not during
+device initialization time, like PCI and ACPI devices.
+If we want to create an async group for a PCI device, we have to call
+dev_async_register in the specified PCI device driver, rather than in
+the PCI bus scan stage.
+
+thanks,
+rui
