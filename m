@@ -1,52 +1,62 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] laptop_panel.brightness_in_hardware: add all Asus
-	laptops
-Date: Thu, 16 Jul 2009 23:27:03 +0100
-Message-ID: <20090716222703.GA24437@srcf.ucam.org>
-References: <4A49D305.1040703@tuffmail.co.uk> <71cd59b00906300231yf2d3657tb5c5945f5aae0e7b@mail.gmail.com> <20090708095111.GA8471@srcf.ucam.org> <61b223ba0907080336i313232cco216c9c647a2e9247@mail.gmail.com> <20090708104300.GA10269@srcf.ucam.org> <4A5FA837.9050300@tuffmail.co.uk>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Need ACPI table examples
+Date: Fri, 17 Jul 2009 08:59:31 +0800
+Message-ID: <1247792371.26272.207.camel@rzhang-dt>
+References: <4911F71203A09E4D9981D27F9D8308582ECF6AD9@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:55088 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933449AbZGPW1J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jul 2009 18:27:09 -0400
-Content-Disposition: inline
-In-Reply-To: <4A5FA837.9050300@tuffmail.co.uk>
+Received: from mga11.intel.com ([192.55.52.93]:58010 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751593AbZGQA6l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jul 2009 20:58:41 -0400
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308582ECF6AD9@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: hal@lists.freedesktop.org, Corentin Chary <corentin.chary@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "acpi@linux.intel.com" <acpi@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, "Devel@acpica.org" <Devel@acpica.org>
 
-On Thu, Jul 16, 2009 at 11:22:47PM +0100, Alan Jenkins wrote:
+On Fri, 2009-07-17 at 01:11 +0800, Moore, Robert wrote:
+> We are implementing support for new ACPI 4.0 tables in ACPICA, and we need examples of the new tables to help implement and test the disassembler support and related headers.
+> 
+> If you have any examples of the tables below, we would appreciate it if you would send them. Any format is acceptable. Please mail to me.
+> 
+> Thanks,
+> Bob
+> 
+> 
+> Tables needed:
+> 
+> IVRS
+> MSCT
+> UEFI
+> WAET
+> WDAT
+> WDRT
+> 
 
-> I just saw the patch to generate uevents for the acpi video driver. It  
-> looks like it still generates KEY_BRIGHTNESSDOWN. Are you planning a  
-> followup patch, to suppress the input events when  
-> brightness_switch_enabled == 1?
+# find -name WDRT*
+./13529/WDRT.dsl
+./9879/WDRT.dat
+./13417/WDRT.dsl
+./11135/WDRT.dsl
+# find -name WDAT*
+./13263/WDAT.dsl
+./13023/WDAT.dsl
+./13410/WDAT.dsl
 
-I didn't want to change the behaviour of the driver with existing 
-userspace, but yes, I agree that that's the correct behaviour. To make 
-it consistent with everything else it should probably also default to 
-brightness_switch_enabled = 0 (and we ship it that way in Fedora), but 
-again, compatibility.
+I don't find any other tables
 
-> Equally, w.r.t patch 3, I don't think eeepc-laptop, should generate  
-> brightness events on the *input* device anymore.
+the number here stands for the bugzilla entry in bugzilla.kernel.org.
+you can get the acpidump there. :)
 
-Right.
+thanks,
+rui
 
-> The rationale is that KEY_BRIGHTNESSDOWN is a user request to increase  
-> brightness. In these cases, the firmware/driver has already increased  
-> the brightness. We've notified userspace via the backlight device. So we  
-> shouldn't pass the request on to userspace; it has already been acted  
-> upon. If we still generate KEY_BRIGHTNESS*, userspace has to guess  
-> whether or not the change has already been applied. If there is too much  
-> latency, it guesses wrong :-(.
 
-Absolutely. The other thing that needs doing is for dell-laptop to 
-consume the brightness keys, or alternatively for us to remap them on 
-Dells. Right now (in the worst case) we're getting two sets of them.
+> _______________________________________________
+> acpi mailing list
+> acpi@linux.intel.com
+> http://linux.intel.com/mailman/listinfo/acpi
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
