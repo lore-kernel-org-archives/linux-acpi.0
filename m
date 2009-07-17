@@ -1,196 +1,320 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 1/2] ACPICA: Factor out user callback function from namespace
-	walk
-Date: Fri, 17 Jul 2009 11:27:21 -0600
-Message-ID: <20090717172721.24968.92501.stgit@bob.kio>
+Subject: [PATCH 2/2] ACPICA: Support both preorder and postorder namespace
+	walks
+Date: Fri, 17 Jul 2009 11:27:26 -0600
+Message-ID: <20090717172726.24968.87065.stgit@bob.kio>
 References: <20090717172248.24968.31911.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:35135 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933899AbZGQR1V (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jul 2009 13:27:21 -0400
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:7214 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934069AbZGQR10 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jul 2009 13:27:26 -0400
 In-Reply-To: <20090717172248.24968.31911.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-This patch factors out the code to call a user callback function while
-walking the namespace.  This makes the "tree navigation" part of the
-walk more visible and will make it easier to add a postorder callback.
+We need to handle device addition in preorder (so we add a new device
+before any children), but device removal in postorder (so we remove any
+children before removing the parent).
+
+The callback from AcpiWalkNamespace() is done in preorder.  This patch adds
+a new AcpiWalkNamespace2() that takes both preorder and a postorder
+callbacks.
 
 This patch may be used under either the GPL v2 or the BSD-style license
 used for the Intel ACPICA.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/acpica/nswalk.c |  130 ++++++++++++++++++++++--------------------
- 1 files changed, 68 insertions(+), 62 deletions(-)
+ drivers/acpi/acpica/acnamesp.h |    9 +++
+ drivers/acpi/acpica/nswalk.c   |  106 ++++++++++++++++++++++++++++++++++++----
+ drivers/acpi/acpica/nsxfeval.c |   41 +++++++++++----
+ include/acpi/acpixf.h          |    8 +++
+ 4 files changed, 141 insertions(+), 23 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
+index 94cdc2b..cb3a34f 100644
+--- a/drivers/acpi/acpica/acnamesp.h
++++ b/drivers/acpi/acpica/acnamesp.h
+@@ -99,6 +99,15 @@ acpi_ns_walk_namespace(acpi_object_type type,
+ 		       acpi_walk_callback user_function,
+ 		       void *context, void **return_value);
+ 
++acpi_status
++acpi_ns_walk_namespace2(acpi_object_type type,
++			acpi_handle start_object,
++			u32 max_depth,
++			u32 flags,
++			acpi_walk_callback pre_user_function,
++			acpi_walk_callback post_user_function,
++			void *context, void **return_value);
++
+ struct acpi_namespace_node *acpi_ns_get_next_node(struct acpi_namespace_node
+ 						  *parent,
+ 						  struct acpi_namespace_node
 diff --git a/drivers/acpi/acpica/nswalk.c b/drivers/acpi/acpica/nswalk.c
-index 35539df..572a181 100644
+index 572a181..4b01550 100644
 --- a/drivers/acpi/acpica/nswalk.c
 +++ b/drivers/acpi/acpica/nswalk.c
-@@ -156,6 +156,60 @@ struct acpi_namespace_node *acpi_ns_get_next_node_typed(acpi_object_type type,
- 	return (NULL);
- }
+@@ -168,6 +168,10 @@ acpi_call_user_function(acpi_object_type type,
+ 	acpi_status status;
+ 	acpi_status mutex_status;
  
-+static acpi_status
-+acpi_call_user_function(acpi_object_type type,
-+			u32 flags,
-+			acpi_walk_callback user_function,
-+			struct acpi_namespace_node *node,
-+			u32 level,
-+			void *context,
-+			void **return_value)
-+{
-+	acpi_status status;
-+	acpi_status mutex_status;
-+
-+	/*
-+	 * Ignore all temporary namespace nodes (created during control
-+	 * method execution) unless told otherwise. These temporary nodes
-+	 * can cause a race condition because they can be deleted during
-+	 * the execution of the user function (if the namespace is
-+	 * unlocked before invocation of the user function.) Only the
-+	 * debugger namespace dump will examine the temporary nodes.
-+	 */
-+	if ((node->flags & ANOBJ_TEMPORARY) &&
-+	    !(flags & ACPI_NS_WALK_TEMP_NODES)) {
-+		return (AE_CTRL_DEPTH);
-+	}
-+
-+	/* Type must match requested type unless we want ACPI_TYPE_ANY */
-+
-+	if (node->type != type && type != ACPI_TYPE_ANY) {
++	if (!user_function) {
 +		return (AE_OK);
 +	}
 +
-+	/*
-+	 * Found a matching node, invoke the user callback function.
-+	 * Unlock the namespace if flag is set.
-+	 */
-+	if (flags & ACPI_NS_WALK_UNLOCK) {
-+		mutex_status = acpi_ut_release_mutex (ACPI_MTX_NAMESPACE);
-+		if (ACPI_FAILURE(mutex_status)) {
-+			return (mutex_status);
-+		}
-+	}
-+
-+	status = user_function(node, level, context, return_value);
-+
-+	if (flags & ACPI_NS_WALK_UNLOCK) {
-+		mutex_status = acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE);
-+		if (ACPI_FAILURE(mutex_status)) {
-+			return (mutex_status);
-+		}
-+	}
-+
-+	return (status);
-+}
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ns_walk_namespace
-@@ -195,7 +249,6 @@ acpi_ns_walk_namespace(acpi_object_type type,
- 		       void *context, void **return_value)
+ 	/*
+ 	 * Ignore all temporary namespace nodes (created during control
+ 	 * method execution) unless told otherwise. These temporary nodes
+@@ -219,8 +223,11 @@ acpi_call_user_function(acpi_object_type type,
+  *              max_depth           - Depth to which search is to reach
+  *              Flags               - Whether to unlock the NS before invoking
+  *                                    the callback routine
+- *              user_function       - Called when an object of "Type" is found
+- *              Context             - Passed to user function
++ *              pre_user_function   - Called in preorder when an object of
++ *				      "Type" is found
++ *              post_user_function  - Called in postorder when an object of
++ *				      "Type" is found
++ *              Context             - Passed to user functions
+  *              return_value        - from the user_function if terminated early.
+  *                                    Otherwise, returns NULL.
+  * RETURNS:     Status
+@@ -241,12 +248,13 @@ acpi_call_user_function(acpi_object_type type,
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_ns_walk_namespace(acpi_object_type type,
+-		       acpi_handle start_node,
+-		       u32 max_depth,
+-		       u32 flags,
+-		       acpi_walk_callback user_function,
+-		       void *context, void **return_value)
++acpi_ns_walk_namespace2(acpi_object_type type,
++		        acpi_handle start_node,
++		        u32 max_depth,
++		        u32 flags,
++		        acpi_walk_callback pre_user_function,
++		        acpi_walk_callback post_user_function,
++		        void *context, void **return_value)
  {
  	acpi_status status;
--	acpi_status mutex_status;
  	struct acpi_namespace_node *child_node;
- 	struct acpi_namespace_node *parent_node;
- 	acpi_object_type child_type;
-@@ -229,75 +282,28 @@ acpi_ns_walk_namespace(acpi_object_type type,
- 		child_node = acpi_ns_get_next_node(parent_node, child_node);
+@@ -283,7 +291,7 @@ acpi_ns_walk_namespace(acpi_object_type type,
  		if (child_node) {
  
--			/* Found next child, get the type if we are not searching for ANY */
-+			status = acpi_call_user_function(type, flags,
-+					user_function, child_node, level,
-+					context, return_value);
+ 			status = acpi_call_user_function(type, flags,
+-					user_function, child_node, level,
++					pre_user_function, child_node, level,
+ 					context, return_value);
  
--			if (type != ACPI_TYPE_ANY) {
--				child_type = child_node->type;
--			}
-+			switch (status) {
-+			case AE_OK:
-+			case AE_CTRL_DEPTH:
- 
--			/*
--			 * Ignore all temporary namespace nodes (created during control
--			 * method execution) unless told otherwise. These temporary nodes
--			 * can cause a race condition because they can be deleted during
--			 * the execution of the user function (if the namespace is
--			 * unlocked before invocation of the user function.) Only the
--			 * debugger namespace dump will examine the temporary nodes.
--			 */
--			if ((child_node->flags & ANOBJ_TEMPORARY) &&
--			    !(flags & ACPI_NS_WALK_TEMP_NODES)) {
--				status = AE_CTRL_DEPTH;
--			}
--
--			/* Type must match requested type */
--
--			else if (child_type == type) {
--				/*
--				 * Found a matching node, invoke the user callback function.
--				 * Unlock the namespace if flag is set.
--				 */
--				if (flags & ACPI_NS_WALK_UNLOCK) {
--					mutex_status =
--					    acpi_ut_release_mutex
--					    (ACPI_MTX_NAMESPACE);
--					if (ACPI_FAILURE(mutex_status)) {
--						return_ACPI_STATUS
--						    (mutex_status);
--					}
--				}
--
--				status =
--				    user_function(child_node, level, context,
--						  return_value);
--
--				if (flags & ACPI_NS_WALK_UNLOCK) {
--					mutex_status =
--					    acpi_ut_acquire_mutex
--					    (ACPI_MTX_NAMESPACE);
--					if (ACPI_FAILURE(mutex_status)) {
--						return_ACPI_STATUS
--						    (mutex_status);
--					}
--				}
--
--				switch (status) {
--				case AE_OK:
--				case AE_CTRL_DEPTH:
-+				/* Just keep going */
-+				break;
- 
--					/* Just keep going */
--					break;
-+			case AE_CTRL_TERMINATE:
- 
--				case AE_CTRL_TERMINATE:
-+				/* Exit now, with OK status */
- 
--					/* Exit now, with OK status */
-+				return_ACPI_STATUS(AE_OK);
- 
--					return_ACPI_STATUS(AE_OK);
-+			default:
- 
--				default:
-+				/* All others are valid exceptions */
- 
--					/* All others are valid exceptions */
--
--					return_ACPI_STATUS(status);
--				}
-+				return_ACPI_STATUS(status);
+ 			switch (status) {
+@@ -320,16 +328,79 @@ acpi_ns_walk_namespace(acpi_object_type type,
+ 					level++;
+ 					parent_node = child_node;
+ 					child_node = NULL;
++				} else {
++
++					/*
++					 * This node has no children, so visit
++					 * it in postorder before going back
++					 * upwards.
++					 */
++
++					status = acpi_call_user_function(type, flags,
++						post_user_function, child_node, level,
++						context, return_value);
++
++					switch (status) {
++					case AE_OK:
++					case AE_CTRL_DEPTH:
++
++						/* Just keep going */
++						break;
++
++					case AE_CTRL_TERMINATE:
++
++						/* Exit now, with OK status */
++
++						return_ACPI_STATUS(AE_OK);
++
++					default:
++
++						/* All others are valid exceptions */
++
++						return_ACPI_STATUS(status);
++					}
+ 				}
  			}
- 
+ 		} else {
  			/*
+-			 * No more children of this node (acpi_ns_get_next_node failed), go
+-			 * back upwards in the namespace tree to the node's parent.
++			 * No more children of this node (acpi_ns_get_next_node failed),
++			 * call the postorder user function and go back upwards in the
++			 * namespace tree to the node's parent.
+ 			 */
+ 			level--;
+ 			child_node = parent_node;
+ 			parent_node = acpi_ns_get_parent_node(parent_node);
++
++			/*
++			 * We don't visit the starting node in preorder, so
++			 * don't visit it in postorder either.
++			 */
++
++			if (level > 0) {
++				status = acpi_call_user_function(type, flags,
++					post_user_function, child_node, level,
++					context, return_value);
++
++				switch (status) {
++				case AE_OK:
++				case AE_CTRL_DEPTH:
++
++					/* Just keep going */
++					break;
++
++				case AE_CTRL_TERMINATE:
++
++					/* Exit now, with OK status */
++
++					return_ACPI_STATUS(AE_OK);
++
++				default:
++
++					/* All others are valid exceptions */
++
++					return_ACPI_STATUS(status);
++				}
++			}
+ 		}
+ 	}
+ 
+@@ -337,3 +408,16 @@ acpi_ns_walk_namespace(acpi_object_type type,
+ 
+ 	return_ACPI_STATUS(AE_OK);
+ }
++
++acpi_status
++acpi_ns_walk_namespace(acpi_object_type type,
++		       acpi_handle start_node,
++		       u32 max_depth,
++		       u32 flags,
++		       acpi_walk_callback user_function,
++		       void *context, void **return_value)
++{
++	return acpi_ns_walk_namespace2(type, start_node, max_depth, flags,
++				       user_function, NULL,
++				       context, return_value);
++}
+diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
+index daf4ad3..2cc5ce4 100644
+--- a/drivers/acpi/acpica/nsxfeval.c
++++ b/drivers/acpi/acpica/nsxfeval.c
+@@ -428,13 +428,16 @@ static void acpi_ns_resolve_references(struct acpi_evaluate_info *info)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_walk_namespace
++ * FUNCTION:    acpi_walk_namespace2
+  *
+  * PARAMETERS:  Type                - acpi_object_type to search for
+  *              start_object        - Handle in namespace where search begins
+  *              max_depth           - Depth to which search is to reach
+- *              user_function       - Called when an object of "Type" is found
+- *              Context             - Passed to user function
++ *              pre_user_function   - Called in preorder when an object of
++ *				      "Type" is found
++ *              post_user_function  - Called in postorder when an object of
++ *				      "Type" is found
++ *              Context             - Passed to user functions
+  *              return_value        - Location where return value of
+  *                                    user_function is put if terminated early
+  *
+@@ -457,11 +460,12 @@ static void acpi_ns_resolve_references(struct acpi_evaluate_info *info)
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_walk_namespace(acpi_object_type type,
+-		    acpi_handle start_object,
+-		    u32 max_depth,
+-		    acpi_walk_callback user_function,
+-		    void *context, void **return_value)
++acpi_walk_namespace2(acpi_object_type type,
++		     acpi_handle start_object,
++		     u32 max_depth,
++		     acpi_walk_callback pre_user_function,
++		     acpi_walk_callback post_user_function,
++		     void *context, void **return_value)
+ {
+ 	acpi_status status;
+ 
+@@ -469,7 +473,8 @@ acpi_walk_namespace(acpi_object_type type,
+ 
+ 	/* Parameter validation */
+ 
+-	if ((type > ACPI_TYPE_LOCAL_MAX) || (!max_depth) || (!user_function)) {
++	if ((type > ACPI_TYPE_LOCAL_MAX) || (!max_depth) ||
++	    ((!pre_user_function) && (!post_user_function))) {
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+ 
+@@ -500,9 +505,10 @@ acpi_walk_namespace(acpi_object_type type,
+ 		goto unlock_and_exit;
+ 	}
+ 
+-	status = acpi_ns_walk_namespace(type, start_object, max_depth,
+-					ACPI_NS_WALK_UNLOCK, user_function,
+-					context, return_value);
++	status = acpi_ns_walk_namespace2(type, start_object, max_depth,
++					 ACPI_NS_WALK_UNLOCK, pre_user_function,
++					 post_user_function,
++					 context, return_value);
+ 
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+ 
+@@ -511,6 +517,17 @@ acpi_walk_namespace(acpi_object_type type,
+ 	return_ACPI_STATUS(status);
+ }
+ 
++acpi_status
++acpi_walk_namespace(acpi_object_type type,
++		    acpi_handle start_object,
++		    u32 max_depth,
++		    acpi_walk_callback user_function,
++		    void *context, void **return_value)
++{
++	return acpi_walk_namespace2(type, start_object, max_depth,
++				    user_function, NULL, context, return_value);
++}
++
+ ACPI_EXPORT_SYMBOL(acpi_walk_namespace)
+ 
+ /*******************************************************************************
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 82ec6a3..8404879 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -157,6 +157,14 @@ acpi_walk_namespace(acpi_object_type type,
+ 		    void *context, void **return_value);
+ 
+ acpi_status
++acpi_walk_namespace2(acpi_object_type type,
++		     acpi_handle start_object,
++		     u32 max_depth,
++		     acpi_walk_callback pre_user_function,
++		     acpi_walk_callback post_user_function,
++		     void *context, void **return_value);
++
++acpi_status
+ acpi_get_devices(const char *HID,
+ 		 acpi_walk_callback user_function,
+ 		 void *context, void **return_value);
 
