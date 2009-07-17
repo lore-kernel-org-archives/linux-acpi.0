@@ -1,128 +1,87 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/8] introduce the device async action mechanism
-Date: Fri, 17 Jul 2009 03:11:59 +0200
-Message-ID: <200907170312.00006.rjw@sisk.pl>
-References: <1247643516.26272.77.camel@rzhang-dt> <20090715060006.71c2e2b6@infradead.org> <1247709910.26272.159.camel@rzhang-dt>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [Intel-gfx] [PATCH 2/4] drm/i915: force mode set at lid open
+	time
+Date: Fri, 17 Jul 2009 09:34:41 +0800
+Message-ID: <1247794481.4113.67.camel@localhost.localdomain>
+References: <1247695886-18432-1-git-send-email-jbarnes@virtuousgeek.org>
+	 <1247695886-18432-3-git-send-email-jbarnes@virtuousgeek.org>
+	 <1247708173.4113.35.camel@localhost.localdomain>
+	 <20090716093045.3cd7123d@jbarnes-g45>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36829 "EHLO ogre.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:8099 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752718AbZGQBMB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jul 2009 21:12:01 -0400
-In-Reply-To: <1247709910.26272.159.camel@rzhang-dt>
-Content-Disposition: inline
+	id S933497AbZGQBdx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jul 2009 21:33:53 -0400
+In-Reply-To: <20090716093045.3cd7123d@jbarnes-g45>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday 16 July 2009, Zhang Rui wrote:
-> On Wed, 2009-07-15 at 21:00 +0800, Arjan van de Ven wrote:
-> > On Wed, 15 Jul 2009 15:38:36 +0800
-> > Zhang Rui <rui.zhang@intel.com> wrote:
-> >=20
-> > > Introduce the device async action mechanism.
-> > >=20
-> > > In order to speed up Linux suspend/resume/shutdown process,
-> > > we introduce the device async action mechanism that allow devices
-> > > to suspend/resume/shutdown asynchronously.
-> > >=20
-> > > The basic idea is that,
-> > > if the suspend/resume/shutdown process of a device set,
-> > > including a root device and its child devices, are independent of
-> > > other devices, we create an async domain for this device set,
-> > > and make them suspend/resume/shutdown asynchronously.
-> >=20
-> > Hi,
-> >=20
-> > I have some concerns about having an async domain per device(group)
-> > rather than having one async domain for all of this,=20
->=20
-> =EF=BB=BFwe create an async domain ONLY if we are sure that the devic=
-e group is
-> independent with the other devices.
->=20
-> and IMO, using multiple async domains brings real device async action=
-s.
-> For example, in S3 resume case, there are two device groups:
-> device group1: device1, device2, device3
-> device group2: device4, device5, device6
->=20
-> If they share the global domain, we may get:=EF=BB=BF
-> device group1: device1(cookie 1), device2(cookie 4), device3(cookie 5=
-)
-> device group2: device4(cookie 2), device5(cookie 3), device6(cookie 6=
-)
->=20
-> this is not real asynchronous resume because
-> device3 needs to call async_synchronize_cookie(5) before resume itsel=
-f.
-> which means that device4 and device5 must be resumed before device3.
->=20
-> But if multiple async domain is used, we get:
-> =EF=BB=BFdevice group1: device1(cookie 1), device2(cookie 2), device3=
-(cookie 3)
-> device group2: device4(cookie 1), device5(cookie 2), device6(cookie 3=
-)
->=20
-> device group1 and group2 can be resumed asynchronously.
->=20
->=20
-> Another example, in my previous test,
-> 1. sata controller. takes 0.4s to resume.
-> 2. usb, including uchi and ehci controller takes 1.4s to resume
-> 3. ACPI battery takes 0.3s to resume.
-> 3. all the other devices take 0.2s to resume.
->=20
-> sata, usb and ACPI battery are independent device groups.
-> If we use multiple async domains, we can reduce the total device resu=
-me
-> time from 2.3s to a little more than 1.4s because there are a lot of
-> sleep in usb resume process.
-> But if we share the global async domain, the total resume time can on=
-ly
-> be reduced to about 2.1s because sata, usb and ACPI battery are actua=
-lly
-> resumed synchronously.
+On Fri, 2009-07-17 at 00:30 +0800, Jesse Barnes wrote:
+> On Thu, 16 Jul 2009 09:36:13 +0800
+> ykzhao <yakui.zhao@intel.com> wrote:
+> 
+> > On Thu, 2009-07-16 at 06:11 +0800, Jesse Barnes wrote:
+> > > Some laptop platforms will disable pipes and/or planes at lid close
+> > > time and not restore them when the lid is opened again.  So catch
+> > > the lid event, and if the lid was opened, force a mode restore.
+> > Why is it necessary to force a mode restore when the LID is reopened?
+> > Do you mean that the pipes/planes are disabled automatically by BIOS
+> > when the LID is closed? 
+> 
+> Yes, maybe I need to make that clearer in the changelog.
+> 
+> > If so, maybe it will be better that this feature is limited to some
+> > boxes. It is unnecessary to add this feature for all the laptops.
+> 
+> The downside of doing that is that we'll always be playing catch up,
+> adding quirks for machines as problems are discovered, as opposed to
+> everything "just working" out of the box.  A whitelist might be better,
+> but really forcing a mode set at open isn't expensive, and with some
+> care in our mode setting routines, need not flicker at all.
+thanks for the detailed explanation.
+I understand it.
+> 
+> > Is it enough to mark the LVDS as disconnected/connected according to
+> > the LID status? And this is done by user-space tool.
+> 
+> Not sure what you mean here...
+What I said is that we can send the hotplug event to user space. And
+then the user space tool can set the mode for LVDS. 
+    Of course the LVDS status is marked as disconnected/connected in
+course of LVDS detection.
+> 
+> > > diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+> > > index 39b393d..5873865 100644
+> > > --- a/drivers/gpu/drm/Kconfig
+> > > +++ b/drivers/gpu/drm/Kconfig
+> > > @@ -86,6 +86,7 @@ config DRM_I915
+> > >  	select FB_CFB_COPYAREA
+> > >  	select FB_CFB_IMAGEBLIT
+> > >  	select FB
+> > > +	select ACPI_BUTTON
+> > How about 
+> >   +	  select ACPI_BUTTON if ACPI
+> 
+> Yeah I saw your other comments too about non-ACPI configs.  I have a
+> hard time caring about them though; so much depends on ACPI these days
+> that disabling it is just a bad idea.  But I guess it's not too much
+> trouble to make this work w/o.
+If someone disable the CONFIG_ACPI in kernel configuration, maybe it
+will fail in the kernel compilation.
 
-Well, first, I'm not really sure that using the async _boot_ infrastruc=
-ture for
-that is a good choice.  During suspend-resume we know dependencies betw=
-een
-devices beforehand, at least in theory, so we can use them.
+Sometimes the box will be booted with ACPI disabled. In such case the
+LID device is not initialized. When we call the function of
+acpi_lid_open, we will access the uninitialized variable. It will be
+incorrect.
 
-In particular, we have to make sure that parent devices will not be sus=
-pended
-until all of their children have been suspended and children devices wi=
-ll not
-be resumed before the parents.  The current code handles this quite
-efficiently, so I wonder what you're going to do not to break it.
+In fact it will be very easy to add this check.
+Thanks.
 
-Second, you seem to think that it only makes sense to execute ->suspend=
-()
-and ->resume() asynchronously (or in parallel), while for example in th=
-e case
-of PCI ->suspend_noirq() and ->resume_noirq() also contain code that
-potentially can take quite some time to execute.
+> 
+> Thanks,
 
-=46inally, I don't really understand what the code in the $subject patc=
-h is
-supposed to do.  In particular, what's the purpose of dev_action()?
-It only seems to check if func is not NULL right now.  Also, you define
-DEV_ASYNC_ACTIONS_ALL as 0, so the condition
-if (!(DEV_ASYNC_ACTIONS_ALL & type)) in dev_async_register() is always
-satisfied.  There are more things like that in this patch, not to menti=
-on
-excessive return statements and passing function pointers as (void *).
-
-Can we please discuss this thoroughly before any new patches are sent?
-
-Best,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
