@@ -1,48 +1,34 @@
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS acpi file patterns?
-Date: Tue, 21 Jul 2009 10:57:49 -0700
-Message-ID: <1248199069.31365.260.camel@Joe-Laptop.home>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: next: sfi build fails when !CONFIG_ACPI
+Date: Thu, 16 Jul 2009 21:46:15 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907162145140.3531@sony-vgn-z540>
+References: <a4423d670907160148n66760052wbef60e4a2c3c7941@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:1947 "EHLO
-	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754389AbZGUR6t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jul 2009 13:58:49 -0400
+Received: from mail.globalsuite.net ([69.46.103.200]:36111 "HELO
+	mail.globalsuite.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754461AbZGUSV2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jul 2009 14:21:28 -0400
+In-Reply-To: <a4423d670907160148n66760052wbef60e4a2c3c7941@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: linux-next <linux-next@vger.kernel.org>, Feng Tang <feng.tang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Len.
+> drivers/sfi/sfi_core.c: In function 'sfi_init':
+> drivers/sfi/sfi_core.c:346: error: 'acpi_disabled' undeclared (first
+> use in this function)
+> drivers/sfi/sfi_core.c:346: error: (Each undeclared identifier is
+> reported only once
+> drivers/sfi/sfi_core.c:346: error: for each function it appears in.)
+> 
+> 
+> $ grep ACPI .config
+> # Power management and ACPI options
 
-Should the ACPI file patterns be extended to include
-any of these or any other additional patterns?
+It builds for me.
+Please send me the complete failing .config
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 5befb1c..fc13a0a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -248,16 +248,19 @@ F:	drivers/platform/x86/acer-wmi.c
- ACPI
- P:	Len Brown
- M:	lenb@kernel.org
- L:	linux-acpi@vger.kernel.org
- W:	http://www.lesswatts.org/projects/acpi/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
- S:	Supported
-+F:	Documentation/acpi/
-+F:	arch/x86/kernel/acpi/
- F:	drivers/acpi/
- F:	drivers/pnp/pnpacpi/
-+F:	include/acpi/
- F:	include/linux/acpi.h
- 
- ACPI BATTERY DRIVERS
- P:	Alexey Starikovskiy
- M:	astarikovskiy@suse.de
- L:	linux-acpi@vger.kernel.org
- W:	http://www.lesswatts.org/projects/acpi/
-
-
+thanks,
+Len Brown, Intel Open Source Technology Center
