@@ -1,40 +1,20 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: [PATCH] Document ACPI_NUMA component in
-	Documentation/acpi/debug.txt
-Date: Fri, 17 Jul 2009 22:41:44 +0200
-Message-ID: <20090717204144.GA607@basil.fritz.box>
+From: Anderson Moore <mikejohnson@bellnet.ca>
+Subject: **WINNER**
+Date: Sat, 18 Jul 2009 4:54:15 -0400
+Message-ID: <20090718085422.WEJ8518.tomts35-srv.bellnexxia.net@toip37-bus.srvr.bell.ca>
+Reply-To: amoore0@ymail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:58789 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757180AbZGQUlq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jul 2009 16:41:46 -0400
-Content-Disposition: inline
+Received: from tomts35-srv.bellnexxia.net ([209.226.175.109]:45815 "EHLO
+	tomts35-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753674AbZGRIyX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Jul 2009 04:54:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: info@pbl.co.uk
 
-Document ACPI_NUMA component in Documentation/acpi/debug.txt
+1,000,000.00 GBP has been award to you in PBL promo. Send your details. Names,Address,Country
 
-The numerical hole suggests there is one more component
-missing, but I didn't find it on a quick grep.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-
----
- Documentation/acpi/debug.txt |    1 +
- 1 file changed, 1 insertion(+)
-
-Index: linux-2.6.31-rc3-ak/Documentation/acpi/debug.txt
-===================================================================
---- linux-2.6.31-rc3-ak.orig/Documentation/acpi/debug.txt
-+++ linux-2.6.31-rc3-ak/Documentation/acpi/debug.txt
-@@ -63,6 +63,7 @@ shows the supported mask values, current
-     ACPI_MEMORY_DEVICE_COMPONENT    0x08000000
-     ACPI_VIDEO_COMPONENT            0x10000000
-     ACPI_PROCESSOR_COMPONENT        0x20000000
-+    ACPI_NUMA                       0x80000000
- 
- debug_level
- -----------
