@@ -1,141 +1,39 @@
-From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH v2] acpi-video: Fix integer overflow and possible kernel stack trashing
-Date: Sun, 19 Jul 2009 13:53:31 +0200
-Message-ID: <200907191353.32181.mb@bu3sch.de>
+From: Dan Carpenter <error27@gmail.com>
+Subject: double unlock in bt_rfkill_poll()
+Date: Sun, 19 Jul 2009 14:47:30 +0300 (EAT)
+Message-ID: <alpine.DEB.2.00.0907171544100.12306@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bu3sch.de ([62.75.166.246]:60454 "EHLO vs166246.vserver.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753333AbZGSLyL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Jul 2009 07:54:11 -0400
-Content-Disposition: inline
+Received: from an-out-0708.google.com ([209.85.132.244]:24633 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753417AbZGSMpk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2009 08:45:40 -0400
+Received: by an-out-0708.google.com with SMTP id d40so2728231and.1
+        for <linux-acpi@vger.kernel.org>; Sun, 19 Jul 2009 05:45:39 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This patch fixes a possible kernel crash through stack trashing triggered
-by an integer overflow. If count passed from userspace is (size_t)-1lu, the
-range check will overflow and return false. So the copy_from_user() will
-end up attempting to copy 0xFFFFFFFF (or 0xFFFFFFFFFFFFFFFF) bytes to the kernel stack.
-Of course the copy will fail at some point, because we can't allocate a buffer that big.
-But it will copy as much as it can and then return with an -EFAULT.
-This means the userspace process writing to this proc file controls
-the kernel stack.
+Hello,
 
-This is probably not useable for a privilege escalation, because the proc file s
-have permissions (S_IFREG | S_IRUGO | S_IWUSR). So only root will be able to crash the machine.
+My source checker tool (http://repo.or.cz/w/smatch.git) found an issue in 
+bt_rfkill_poll().  I don't know the correct way to fix this.
 
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: stable@kernel.org
+We unlock on line 337 and again on line 342.
 
----
+drivers/platform/x86/toshiba_acpi.c
+   334          hci_result = hci_get_radio_state(&value);
+   335          if (hci_result != HCI_SUCCESS) {
+   336                  /* Can't do anything useful */
+   337                  mutex_unlock(&dev->mutex);
+   338          }
+   339  
+   340          new_rfk_state = value;
+   341  
+   342          mutex_unlock(&dev->mutex);
 
-version 2: Fix more functions with similar bugs.
+regards,
+dan carpenter
 
-This patch is completely untested, because I do not have a machine with acpi-video.
 
----
- drivers/acpi/video.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- linux-2.6.orig/drivers/acpi/video.c
-+++ linux-2.6/drivers/acpi/video.c
-@@ -1185,21 +1185,21 @@ acpi_video_device_write_state(struct fil
- 			      const char __user * buffer,
- 			      size_t count, loff_t * data)
- {
- 	int status;
- 	struct seq_file *m = file->private_data;
- 	struct acpi_video_device *dev = m->private;
- 	char str[12] = { 0 };
- 	u32 state = 0;
- 
- 
--	if (!dev || count + 1 > sizeof str)
-+	if (!dev || count >= sizeof str)
- 		return -EINVAL;
- 
- 	if (copy_from_user(str, buffer, count))
- 		return -EFAULT;
- 
- 	str[count] = 0;
- 	state = simple_strtoul(str, NULL, 0);
- 	state &= ((1ul << 31) | (1ul << 30) | (1ul << 0));
- 
- 	status = acpi_video_device_set_state(dev, state);
-@@ -1242,21 +1242,21 @@ acpi_video_device_write_brightness(struc
- 				   const char __user * buffer,
- 				   size_t count, loff_t * data)
- {
- 	struct seq_file *m = file->private_data;
- 	struct acpi_video_device *dev = m->private;
- 	char str[5] = { 0 };
- 	unsigned int level = 0;
- 	int i;
- 
- 
--	if (!dev || !dev->brightness || count + 1 > sizeof str)
-+	if (!dev || !dev->brightness || count >= sizeof str)
- 		return -EINVAL;
- 
- 	if (copy_from_user(str, buffer, count))
- 		return -EFAULT;
- 
- 	str[count] = 0;
- 	level = simple_strtoul(str, NULL, 0);
- 
- 	if (level > 100)
- 		return -EFAULT;
-@@ -1524,21 +1524,21 @@ acpi_video_bus_write_POST(struct file *f
- 			  const char __user * buffer,
- 			  size_t count, loff_t * data)
- {
- 	int status;
- 	struct seq_file *m = file->private_data;
- 	struct acpi_video_bus *video = m->private;
- 	char str[12] = { 0 };
- 	unsigned long long opt, options;
- 
- 
--	if (!video || count + 1 > sizeof str)
-+	if (!video || count >= sizeof str)
- 		return -EINVAL;
- 
- 	status = acpi_video_bus_POST_options(video, &options);
- 	if (!ACPI_SUCCESS(status))
- 		return -EINVAL;
- 
- 	if (copy_from_user(str, buffer, count))
- 		return -EFAULT;
- 
- 	str[count] = 0;
-@@ -1564,21 +1564,21 @@ acpi_video_bus_write_DOS(struct file *fi
- 			 const char __user * buffer,
- 			 size_t count, loff_t * data)
- {
- 	int status;
- 	struct seq_file *m = file->private_data;
- 	struct acpi_video_bus *video = m->private;
- 	char str[12] = { 0 };
- 	unsigned long opt;
- 
- 
--	if (!video || count + 1 > sizeof str)
-+	if (!video || count >= sizeof str)
- 		return -EINVAL;
- 
- 	if (copy_from_user(str, buffer, count))
- 		return -EFAULT;
- 
- 	str[count] = 0;
- 	opt = strtoul(str, NULL, 0);
- 	if (opt > 7)
- 		return -EFAULT;
- 
-
--- 
-Greetings, Michael.
