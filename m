@@ -1,39 +1,44 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [RFT] hp-wmi: improved rfkill support for wifi
-Date: Sun, 19 Jul 2009 21:08:58 +0200
-Message-ID: <8db1092f0907191208m12bcaa5ev3c5606e6e3eb87bd@mail.gmail.com>
-References: <4A61FE7D.9080409@tuffmail.co.uk>
-	 <8db1092f0907181155h3d603a17q11815b9f174ac333@mail.gmail.com>
-	 <4A623490.50305@tuffmail.co.uk>
-	 <8db1092f0907190028o334371d7g798c1e8cb9a5744b@mail.gmail.com>
-	 <4A635618.3070507@tuffmail.co.uk>
-	 <8db1092f0907191110p2d3c2c45je61bda6365ed1468@mail.gmail.com>
-	 <20090719182533.GA11496@srcf.ucam.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/8] introduce the device async action mechanism
+Date: Mon, 20 Jul 2009 00:16:58 +0200
+Message-ID: <20090719221658.GL26511@elf.ucw.cz>
+References: <1247643516.26272.77.camel@rzhang-dt> <20090715060006.71c2e2b6@infradead.org> <1247709910.26272.159.camel@rzhang-dt> <200907170312.00006.rjw@sisk.pl> <1247798643.26272.275.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f228.google.com ([209.85.218.228]:64068 "EHLO
-	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847AbZGSTJA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2009 15:09:00 -0400
-In-Reply-To: <20090719182533.GA11496@srcf.ucam.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44100 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664AbZGSWSu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2009 18:18:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1247798643.26272.275.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Frans Pop <elendil@planet.nl>, Larry Finger <Larry.Finger@lwfinger.net>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 
-2009/7/19 Matthew Garrett <mjg59@srcf.ucam.org>:
-> On Sun, Jul 19, 2009 at 08:10:23PM +0200, Maciej Rutecki wrote:
->
->> LED from wifi/bluetooth button sometimes flashing(!)
->
-> The LED will flash if wifi is enabled and bluetooth isn't.
->
+Hi!
 
-Thanks. I didn't know about it.
+> >  During suspend-resume we know dependencies between
+> > devices beforehand, at least in theory, so we can use them.
+> > 
+> that's why I use multiple async domains. :)
+> One domain for a device group.
+> 
+> > In particular, we have to make sure that parent devices will not be suspended
+> > until all of their children have been suspended and children devices will not
+> > be resumed before the parents.
+> 
+> that's not enough.
+> ???For examples,
+> ACPI battery and EC are independent devices, but EC must be resumed
+> before battery because battery driver may access some EC address space
+> during resume time.
 
-Regards
+Yes, but those dependencies should be pulled from driver tree, not
+adding separate dependencies infrastructure.
+
+								Pavel
 -- 
-Maciej Rutecki
-http://www.maciek.unixy.pl
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
