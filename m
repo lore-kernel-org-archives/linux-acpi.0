@@ -1,16 +1,16 @@
 From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH] acpi-video: Fix integer overflow and possible kernel stack trashing
-Date: Sun, 19 Jul 2009 13:36:38 +0200
-Message-ID: <200907191336.38261.mb@bu3sch.de>
+Subject: [PATCH v2] acpi-video: Fix integer overflow and possible kernel stack trashing
+Date: Sun, 19 Jul 2009 13:53:31 +0200
+Message-ID: <200907191353.32181.mb@bu3sch.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bu3sch.de ([62.75.166.246]:58631 "EHLO vs166246.vserver.de"
+Received: from bu3sch.de ([62.75.166.246]:60454 "EHLO vs166246.vserver.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753285AbZGSLhO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Jul 2009 07:37:14 -0400
+	id S1753333AbZGSLyL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Jul 2009 07:54:11 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -26,19 +26,21 @@ But it will copy as much as it can and then return with an -EFAULT.
 This means the userspace process writing to this proc file controls
 the kernel stack.
 
-This is probably not useable for a privilege escalation, because the proc file
-has permissions (S_IFREG | S_IRUGO | S_IWUSR). So only root will be able to crash the machine.
+This is probably not useable for a privilege escalation, because the proc file s
+have permissions (S_IFREG | S_IRUGO | S_IWUSR). So only root will be able to crash the machine.
 
 Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Cc: stable@kernel.org
 
 ---
 
+version 2: Fix more functions with similar bugs.
+
 This patch is completely untested, because I do not have a machine with acpi-video.
 
 ---
- drivers/acpi/video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/video.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 --- linux-2.6.orig/drivers/acpi/video.c
 +++ linux-2.6/drivers/acpi/video.c
@@ -65,6 +67,75 @@ This patch is completely untested, because I do not have a machine with acpi-vid
  	state &= ((1ul << 31) | (1ul << 30) | (1ul << 0));
  
  	status = acpi_video_device_set_state(dev, state);
+@@ -1242,21 +1242,21 @@ acpi_video_device_write_brightness(struc
+ 				   const char __user * buffer,
+ 				   size_t count, loff_t * data)
+ {
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_video_device *dev = m->private;
+ 	char str[5] = { 0 };
+ 	unsigned int level = 0;
+ 	int i;
+ 
+ 
+-	if (!dev || !dev->brightness || count + 1 > sizeof str)
++	if (!dev || !dev->brightness || count >= sizeof str)
+ 		return -EINVAL;
+ 
+ 	if (copy_from_user(str, buffer, count))
+ 		return -EFAULT;
+ 
+ 	str[count] = 0;
+ 	level = simple_strtoul(str, NULL, 0);
+ 
+ 	if (level > 100)
+ 		return -EFAULT;
+@@ -1524,21 +1524,21 @@ acpi_video_bus_write_POST(struct file *f
+ 			  const char __user * buffer,
+ 			  size_t count, loff_t * data)
+ {
+ 	int status;
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_video_bus *video = m->private;
+ 	char str[12] = { 0 };
+ 	unsigned long long opt, options;
+ 
+ 
+-	if (!video || count + 1 > sizeof str)
++	if (!video || count >= sizeof str)
+ 		return -EINVAL;
+ 
+ 	status = acpi_video_bus_POST_options(video, &options);
+ 	if (!ACPI_SUCCESS(status))
+ 		return -EINVAL;
+ 
+ 	if (copy_from_user(str, buffer, count))
+ 		return -EFAULT;
+ 
+ 	str[count] = 0;
+@@ -1564,21 +1564,21 @@ acpi_video_bus_write_DOS(struct file *fi
+ 			 const char __user * buffer,
+ 			 size_t count, loff_t * data)
+ {
+ 	int status;
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_video_bus *video = m->private;
+ 	char str[12] = { 0 };
+ 	unsigned long opt;
+ 
+ 
+-	if (!video || count + 1 > sizeof str)
++	if (!video || count >= sizeof str)
+ 		return -EINVAL;
+ 
+ 	if (copy_from_user(str, buffer, count))
+ 		return -EFAULT;
+ 
+ 	str[count] = 0;
+ 	opt = strtoul(str, NULL, 0);
+ 	if (opt > 7)
+ 		return -EFAULT;
+ 
 
 -- 
 Greetings, Michael.
