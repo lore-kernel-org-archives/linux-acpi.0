@@ -1,282 +1,169 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
 Subject: Re: [RFT] hp-wmi: improved rfkill support for wifi
-Date: Sun, 19 Jul 2009 18:21:28 +0100
-Message-ID: <4A635618.3070507@tuffmail.co.uk>
-References: <4A61FE7D.9080409@tuffmail.co.uk> <8db1092f0907181155h3d603a17q11815b9f174ac333@mail.gmail.com> <4A623490.50305@tuffmail.co.uk> <8db1092f0907190028o334371d7g798c1e8cb9a5744b@mail.gmail.com>
+Date: Sun, 19 Jul 2009 20:10:23 +0200
+Message-ID: <8db1092f0907191110p2d3c2c45je61bda6365ed1468@mail.gmail.com>
+References: <4A61FE7D.9080409@tuffmail.co.uk>
+	 <8db1092f0907181155h3d603a17q11815b9f174ac333@mail.gmail.com>
+	 <4A623490.50305@tuffmail.co.uk>
+	 <8db1092f0907190028o334371d7g798c1e8cb9a5744b@mail.gmail.com>
+	 <4A635618.3070507@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:64512 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754751AbZGSRVe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2009 13:21:34 -0400
-In-Reply-To: <8db1092f0907190028o334371d7g798c1e8cb9a5744b@mail.gmail.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:33172 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754751AbZGSSK0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2009 14:10:26 -0400
+In-Reply-To: <4A635618.3070507@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Cc: Matthew Garrett <mjg@redhat.com>, Frans Pop <elendil@planet.nl>, Larry Finger <Larry.Finger@lwfinger.net>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Maciej Rutecki wrote:
-> 2009/7/18 Alan Jenkins <alan-jenkins@tuffmail.co.uk>:
-> [...]
->   
->> I'll try extending this to bluetooth and wwan as Matthew suggested.  If
->> you have time to run "acpidump" and send me the output, that would help
->>     
+2009/7/19 Alan Jenkins <alan-jenkins@tuffmail.co.uk>:
+> Maciej Rutecki wrote:
+>> 2009/7/18 Alan Jenkins <alan-jenkins@tuffmail.co.uk>:
+>> [...]
+>>
+>>> I'll try extending this to bluetooth and wwan as Matthew suggested.=
+ =C2=A0If
+>>> you have time to run "acpidump" and send me the output, that would =
+help
+>>>
+>>
+>> acpidump in attachment.
+>>
 >
-> acpidump in attachment.
->   
+> Heh, I got lucky borrowing the G7000. =C2=A0Your acpidump is much les=
+s human
+> readable, and Matthews lot is the same. =C2=A0I gave up looking for t=
+he right
+> bits.
+>
+> So I had to guess :-). =C2=A0The interface seems nicely structured, s=
+o I
+> generalized my changes and applied them to the other rfkill devices.
+> Patch follows - apply on top of the first one.
+>
+> Now if you disable bluetooth in the Windows driver and reboot to linu=
+x,
+> you should find it stays disabled.
+>
 
-Heh, I got lucky borrowing the G7000.  Your acpidump is much less human
-readable, and Matthews lot is the same.  I gave up looking for the right
-bits.
+2.6.31-rc3+ patches:
+http://lkml.org/lkml/2009/7/18/131
+http://lkml.org/lkml/2009/7/10/339
+http://lkml.org/lkml/2009/7/19/57
 
-So I had to guess :-).  The interface seems nicely structured, so I
-generalized my changes and applied them to the other rfkill devices. 
-Patch follows - apply on top of the first one.
+Disable bluetooth and wireless in Windows XP
+When modprobe hp-wmi during boot:
+[    9.648259] input: HP WMI hotkeys as /class/input/input8
+[    9.664468] Platform driver 'hp-wmi' needs updating - please use dev=
+_pm_ops
+[    9.707352] ------------[ cut here ]------------
+[    9.708007] Kernel BUG at f80763b7 [verbose debug info unavailable]
+[    9.708007] invalid opcode: 0000 [#1] SMP
+[    9.708007] last sysfs file: /sys/class/input/input8/modalias
+[    9.708007] Modules linked in: hp_wmi(+) fuse sbp2 loop arc4 ecb
+iwl3945 iwlcore snd_hda_codec_si3054 firmware_class pcmcia
+snd_hda_codec_analog mac80211 snd_hda_intel snd_hda_codec led_class
+snd_pcm_oss snd_mixer_oss snd_pcm snd_seq_dummy snd_seq_oss
+snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer
+snd_seq_device uhci_hcd cfg80211 ehci_hcd yenta_socket snd ohci1394
+b44 rsrc_nonstatic rfkill usbcore intel_agp psmouse ieee1394 ssb
+rtc_cmos pcmcia_core video agpgart mii soundcore serio_raw backlight
+rtc_core output rtc_lib snd_page_alloc ac evdev fan button battery sg
+[    9.708007]
+[    9.708007] Pid: 1544, comm: modprobe Not tainted (2.6.31-rc3 #1)
+HP Compaq nx6310 (EY501ES#AKD)
+[    9.708007] EIP: 0060:[<f80763b7>] EFLAGS: 00010202 CPU: 0
+[    9.708007] EIP is at rfkill_init_sw_state+0x57/0x70 [rfkill]
+[    9.708007] EAX: f65ad800 EBX: f65ad800 ECX: 00000008 EDX: 00000001
+[    9.708007] ESI: 00000001 EDI: 0c0c0c2b EBP: f65b3de0 ESP: f65b3dd4
+[    9.708007]  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+[    9.708007] Process modprobe (pid: 1544, ti=3Df65b2000 task=3Df7155d=
+00
+task.ti=3Df65b2000)
+[    9.708007] Stack:
+[    9.708007]  00000000 f6b94308 0c0c0c2b f65b3e00 f8efa18f f8ef68d8
+00000001 f6b94300
+[    9.708007] <0> ffffffed f6b94308 f8ef74dc f65b3e08 c02f38f1
+f65b3e30 c02f28ad 00000000
+[    9.708007] <0> 00000000 f6b94300 f6b94308 f65b3e30 f8ef74dc
+f6b94308 f6b94308 f65b3e40
+[    9.708007] Call Trace:
+[    9.708007]  [<f8efa18f>] ? hp_wmi_bios_setup+0x18f/0x211 [hp_wmi]
+[    9.708007]  [<c02f38f1>] ? platform_drv_probe+0x11/0x20
+[    9.708007]  [<c02f28ad>] ? driver_probe_device+0x6d/0x180
+[    9.708007]  [<c02f2aa9>] ? __device_attach+0x49/0x60
+[    9.708007]  [<c02f1eb3>] ? bus_for_each_drv+0x53/0x80
+[    9.708007]  [<c02f2b6b>] ? device_attach+0x6b/0x70
+[    9.708007]  [<c02f2a60>] ? __device_attach+0x0/0x60
+[    9.708007]  [<c02f1cb7>] ? bus_attach_device+0x47/0x70
+[    9.708007]  [<c02f04ce>] ? device_add+0x4fe/0x640
+[    9.708007]  [<c026bad2>] ? kobject_set_name_vargs+0x62/0x70
+[    9.708007]  [<c02f4265>] ? platform_device_add+0x145/0x190
+[    9.708007]  [<c02f43f4>] ? platform_device_alloc+0x54/0x70
+[    9.708007]  [<f8efa211>] ? hp_wmi_init+0x0/0x1aa [hp_wmi]
+[    9.708007]  [<f8efa3a7>] ? hp_wmi_init+0x196/0x1aa [hp_wmi]
+[    9.708007]  [<c010112f>] ? do_one_initcall+0x2f/0x150
+[    9.708007]  [<c017d6d7>] ? tracepoint_module_notify+0x37/0x40
+[    9.708007]  [<c0151b0d>] ? notifier_call_chain+0x2d/0x60
+[    9.708007]  [<c0151f12>] ? __blocking_notifier_call_chain+0x52/0x60
+[    9.708007]  [<c016421f>] ? sys_init_module+0xaf/0x1f0
+[    9.708007]  [<c0102ec4>] ? sysenter_do_call+0x12/0x22
+[    9.708007] Code: 02 83 c1 02 84 d2 75 1c f7 d1 21 c1 89 4b 0c c6
+43 15 01 89 fa 89 d8 e8 98 2f 35 c8 5b 5e 5f c9 c3 8d 76 00 09 c1 89
+4b 0c eb e4 <0f> 0b eb fe 90 8d 74 26 00 0f 0b eb fe 8d b6 00 00 00 00
+8d bf
+[    9.708007] EIP: [<f80763b7>] rfkill_init_sw_state+0x57/0x70
+[rfkill] SS:ESP 0068:f65b3dd4
+[   10.413477] ---[ end trace 15451c5b7e8810a1 ]---
 
-Now if you disable bluetooth in the Windows driver and reboot to linux,
-you should find it stays disabled.
+Try enable bluetooth and wireless:
+root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill  list
+0: phy0: Wireless LAN
+        Soft blocked: yes
+        Hard blocked: yes
+1: hp-wifi: Wireless LAN
+        Soft blocked: yes
+        Hard blocked: no
+root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill  unblock 0
+root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill  list
+0: phy0: Wireless LAN
+        Soft blocked: no
+        Hard blocked: yes
+1: hp-wifi: Wireless LAN
+        Soft blocked: yes
+        Hard blocked: no
+root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill  unblock 1
+root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill  list
+0: phy0: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+1: hp-wifi: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+=09
+=09
+root@gumis:/sys/class/rfkill# ls
+rfkill0  rfkill1
+root@gumis:/sys/class/rfkill# cat rfkill0/state
+1
+root@gumis:/sys/class/rfkill# cat rfkill1/state
+1
 
-Alan
+Bluetooth still doesn't work. I can enable wifi.
 
---------------------------------------------------------------------------
-diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-index 517ac47..43eb30e 100644
---- a/drivers/platform/x86/hp-wmi.c
-+++ b/drivers/platform/x86/hp-wmi.c
-@@ -51,6 +51,12 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
- #define HPWMI_WIRELESS_QUERY 0x5
- #define HPWMI_HOTKEY_QUERY 0xc
- 
-+enum hp_wmi_radio {
-+	HPWMI_WIFI = 0,
-+	HPWMI_BLUETOOTH = 1,
-+	HPWMI_WWAN = 2,
-+};
-+
- static int __init hp_wmi_bios_setup(struct platform_device *device);
- static int __exit hp_wmi_bios_remove(struct platform_device *device);
- static int hp_wmi_resume_handler(struct platform_device *device);
-@@ -170,8 +176,8 @@ static int hp_wmi_tablet_state(void)
- 
- static int hp_wmi_set_block(void *data, bool blocked)
- {
--	unsigned long b = (unsigned long) data;
--	int query = BIT(b + 8) | ((!blocked) << b);
-+	enum hp_wmi_radio r = (enum hp_wmi_radio) data;
-+	int query = BIT(r + 8) | ((!blocked) << r);
- 
- 	return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, query);
- }
-@@ -180,41 +186,23 @@ static const struct rfkill_ops hp_wmi_rfkill_ops = {
- 	.set_block = hp_wmi_set_block,
- };
- 
--static bool hp_wmi_wifi_sw_state(void)
--{
--	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
--
--	if (wireless & 0x200)
--		return false;
--	else
--		return true;
--}
--
--static bool hp_wmi_wifi_hw_state(void)
-+static bool hp_wmi_get_sw_state(enum hp_wmi_radio r)
- {
- 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
-+	int mask = 0x200 << (r * 8);
- 
--	if (wireless & 0x800)
-+	if (wireless & mask)
- 		return false;
- 	else
- 		return true;
- }
- 
--static bool hp_wmi_bluetooth_state(void)
-+static bool hp_wmi_get_hw_state(enum hp_wmi_radio r)
- {
- 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
-+	int mask = 0x800 << (r * 8);
- 
--	if (wireless & 0x10000)
--		return false;
--	else
--		return true;
--}
--
--static bool hp_wmi_wwan_state(void)
--{
--	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
--
--	if (wireless & 0x1000000)
-+	if (wireless & mask)
- 		return false;
- 	else
- 		return true;
-@@ -339,50 +327,55 @@ static void hp_wmi_notify(u32 value, void *context)
- 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
- 	static struct key_entry *key;
- 	union acpi_object *obj;
-+	int eventcode;
- 
- 	wmi_get_event_data(value, &response);
- 
- 	obj = (union acpi_object *)response.pointer;
- 
--	if (obj && obj->type == ACPI_TYPE_BUFFER && obj->buffer.length == 8) {
--		int eventcode = *((u8 *) obj->buffer.pointer);
--		if (eventcode == 0x4)
--			eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
--							 0);
--		key = hp_wmi_get_entry_by_scancode(eventcode);
--		if (key) {
--			switch (key->type) {
--			case KE_KEY:
--				input_report_key(hp_wmi_input_dev,
--						 key->keycode, 1);
--				input_sync(hp_wmi_input_dev);
--				input_report_key(hp_wmi_input_dev,
--						 key->keycode, 0);
--				input_sync(hp_wmi_input_dev);
--				break;
--			}
--		} else if (eventcode == 0x1) {
--			input_report_switch(hp_wmi_input_dev, SW_DOCK,
--					    hp_wmi_dock_state());
--			input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
--					    hp_wmi_tablet_state());
-+	if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 8) {
-+		printk(KERN_INFO "HP WMI: Unknown response received\n");
-+		return;
-+	}
-+
-+	eventcode = *((u8 *) obj->buffer.pointer);
-+	if (eventcode == 0x4)
-+		eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
-+						0);
-+	key = hp_wmi_get_entry_by_scancode(eventcode);
-+	if (key) {
-+		switch (key->type) {
-+		case KE_KEY:
-+			input_report_key(hp_wmi_input_dev,
-+					 key->keycode, 1);
-+			input_sync(hp_wmi_input_dev);
-+			input_report_key(hp_wmi_input_dev,
-+					 key->keycode, 0);
- 			input_sync(hp_wmi_input_dev);
--		} else if (eventcode == 0x5) {
--			if (wifi_rfkill)
--				rfkill_set_states(wifi_rfkill,
--						  hp_wmi_wifi_sw_state(),
--						  hp_wmi_wifi_hw_state());
--			if (bluetooth_rfkill)
--				rfkill_set_sw_state(bluetooth_rfkill,
--						    hp_wmi_bluetooth_state());
--			if (wwan_rfkill)
--				rfkill_set_sw_state(wwan_rfkill,
--						    hp_wmi_wwan_state());
--		} else
--			printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
--			       eventcode);
-+			break;
-+		}
-+	} else if (eventcode == 0x1) {
-+		input_report_switch(hp_wmi_input_dev, SW_DOCK,
-+				    hp_wmi_dock_state());
-+		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
-+				    hp_wmi_tablet_state());
-+		input_sync(hp_wmi_input_dev);
-+	} else if (eventcode == 0x5) {
-+		if (wifi_rfkill)
-+			rfkill_set_states(wifi_rfkill,
-+					  hp_wmi_get_sw_state(HPWMI_WIFI),
-+					  hp_wmi_get_hw_state(HPWMI_WIFI));
-+		if (bluetooth_rfkill)
-+			rfkill_set_states(bluetooth_rfkill,
-+					  hp_wmi_get_sw_state(HPWMI_BLUETOOTH),
-+					  hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
-+		if (wwan_rfkill)
-+			rfkill_set_states(wwan_rfkill,
-+					  hp_wmi_get_sw_state(HPWMI_WWAN),
-+					  hp_wmi_get_hw_state(HPWMI_WWAN));
- 	} else
--		printk(KERN_INFO "HP WMI: Unknown response received\n");
-+		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
-+			eventcode);
- }
- 
- static int __init hp_wmi_input_setup(void)
-@@ -461,11 +454,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
- 		wifi_rfkill = rfkill_alloc("hp-wifi", &device->dev,
- 					   RFKILL_TYPE_WLAN,
- 					   &hp_wmi_rfkill_ops,
--					   (void *) 0);
-+					   (void *) HPWMI_WIFI);
- 		rfkill_init_sw_state(wifi_rfkill,
--				     hp_wmi_wifi_sw_state());
-+				     hp_wmi_get_sw_state(HPWMI_WIFI));
- 		rfkill_set_hw_state(wifi_rfkill,
--				    hp_wmi_wifi_hw_state());
-+				    hp_wmi_get_hw_state(HPWMI_WIFI));
- 		err = rfkill_register(wifi_rfkill);
- 		if (err)
- 			goto register_wifi_error;
-@@ -475,8 +468,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
- 		bluetooth_rfkill = rfkill_alloc("hp-bluetooth", &device->dev,
- 						RFKILL_TYPE_BLUETOOTH,
- 						&hp_wmi_rfkill_ops,
--						(void *) 1);
--		err = rfkill_register(bluetooth_rfkill);
-+						(void *) HPWMI_BLUETOOTH);
-+		rfkill_init_sw_state(wifi_rfkill,
-+				     hp_wmi_get_sw_state(HPWMI_BLUETOOTH));
-+		rfkill_set_hw_state(wifi_rfkill,
-+				    hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
- 		if (err)
- 			goto register_bluetooth_error;
- 	}
-@@ -485,7 +481,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
- 		wwan_rfkill = rfkill_alloc("hp-wwan", &device->dev,
- 					   RFKILL_TYPE_WWAN,
- 					   &hp_wmi_rfkill_ops,
--					   (void *) 2);
-+					   (void *) HPWMI_WWAN);
-+		rfkill_init_sw_state(wifi_rfkill,
-+				     hp_wmi_get_sw_state(HPWMI_WWAN));
-+		rfkill_set_hw_state(wifi_rfkill,
-+				    hp_wmi_get_hw_state(HPWMI_WWAN));
- 		err = rfkill_register(wwan_rfkill);
- 		if (err)
- 			goto register_wwan_err;
-@@ -541,9 +541,21 @@ static int hp_wmi_resume_handler(struct platform_device *device)
- 			    hp_wmi_tablet_state());
- 	input_sync(hp_wmi_input_dev);
- 
--	rfkill_set_states(wifi_rfkill,
--			  hp_wmi_wifi_sw_state(),
--			  hp_wmi_wifi_hw_state());
-+	if (wifi_rfkill) {
-+		rfkill_set_states(wifi_rfkill,
-+				  hp_wmi_get_sw_state(HPWMI_WIFI),
-+				  hp_wmi_get_hw_state(HPWMI_WIFI));
-+	}
-+	if (bluetooth_rfkill) {
-+		rfkill_set_states(bluetooth_rfkill,
-+				  hp_wmi_get_sw_state(HPWMI_BLUETOOTH),
-+				  hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
-+	}
-+	if (wwan_rfkill) {
-+		rfkill_set_states(wwan_rfkill,
-+				  hp_wmi_get_sw_state(HPWMI_WWAN),
-+				  hp_wmi_get_hw_state(HPWMI_WWAN));
-+	}
- 
- 	return 0;
- }
+LED from wifi/bluetooth button sometimes flashing(!)
 
-
+Regards
+--=20
+Maciej Rutecki
+http://www.maciek.unixy.pl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
