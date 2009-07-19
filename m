@@ -1,106 +1,70 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [RFT] hp-wmi: improved rfkill support for wifi
-Date: Sun, 19 Jul 2009 10:15:32 +0200
-Message-ID: <8db1092f0907190115l6c55df77o47ae40c20b04c2a6@mail.gmail.com>
-References: <4A61FE7D.9080409@tuffmail.co.uk>
-	 <8db1092f0907181155h3d603a17q11815b9f174ac333@mail.gmail.com>
-	 <4A623490.50305@tuffmail.co.uk>
-	 <71cd59b00907181437l6ef362ejc345818a5197a6c4@mail.gmail.com>
+From: Michael Buesch <mb@bu3sch.de>
+Subject: [PATCH] acpi-video: Fix integer overflow and possible kernel stack trashing
+Date: Sun, 19 Jul 2009 13:36:38 +0200
+Message-ID: <200907191336.38261.mb@bu3sch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f228.google.com ([209.85.218.228]:61061 "EHLO
-	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116AbZGSIPe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2009 04:15:34 -0400
-In-Reply-To: <71cd59b00907181437l6ef362ejc345818a5197a6c4@mail.gmail.com>
+Received: from bu3sch.de ([62.75.166.246]:58631 "EHLO vs166246.vserver.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753285AbZGSLhO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Jul 2009 07:37:14 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Matthew Garrett <mjg@redhat.com>, Frans Pop <elendil@planet.nl>, Larry Finger <Larry.Finger@lwfinger.net>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-2009/7/18 Corentin Chary <corentin.chary@gmail.com>:
->> Linux can also do enabling "by software". =C2=A0At the moment, you n=
-eed to
->> download and compile a utility to poke /dev/rfkill. =C2=A0I wouldn't=
- bother
->> testing it, because I didn't change that bit :-).
->
-> Utility is here
-> http://git.sipsolutions.net/?p=3Drfkill.git
-> And a patch to restore write access to /sys/class/rfkill/*/state file=
- is here
-> http://lkml.org/lkml/2009/7/10/339
+This patch fixes a possible kernel crash through stack trashing triggered
+by an integer overflow. If count passed from userspace is (size_t)-1lu, the
+range check will overflow and return false. So the copy_from_user() will
+end up attempting to copy 0xFFFFFFFF (or 0xFFFFFFFFFFFFFFFF) bytes to the kernel stack.
+Of course the copy will fail at some point, because we can't allocate a buffer that big.
+But it will copy as much as it can and then return with an -EFAULT.
+This means the userspace process writing to this proc file controls
+the kernel stack.
 
-Great tool.
+This is probably not useable for a privilege escalation, because the proc file
+has permissions (S_IFREG | S_IRUGO | S_IWUSR). So only root will be able to crash the machine.
 
-Block bluetooth:
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill block 3
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
-0: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: yes
-        Hard blocked: no
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: stable@kernel.org
 
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill unblock 3
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
-0: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-5: hci0: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
+---
 
-Block wireless:
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill block 0
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
-0: phy0: Wireless LAN
-        Soft blocked: yes
-        Hard blocked: no
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-5: hci0: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill unblock 0
-root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
-0: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-5: hci0: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-=09
-Works very nice on my laptop
+This patch is completely untested, because I do not have a machine with acpi-video.
 
-Thanks!
---=20
-Maciej Rutecki
-http://www.maciek.unixy.pl
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+ drivers/acpi/video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -1185,21 +1185,21 @@ acpi_video_device_write_state(struct fil
+ 			      const char __user * buffer,
+ 			      size_t count, loff_t * data)
+ {
+ 	int status;
+ 	struct seq_file *m = file->private_data;
+ 	struct acpi_video_device *dev = m->private;
+ 	char str[12] = { 0 };
+ 	u32 state = 0;
+ 
+ 
+-	if (!dev || count + 1 > sizeof str)
++	if (!dev || count >= sizeof str)
+ 		return -EINVAL;
+ 
+ 	if (copy_from_user(str, buffer, count))
+ 		return -EFAULT;
+ 
+ 	str[count] = 0;
+ 	state = simple_strtoul(str, NULL, 0);
+ 	state &= ((1ul << 31) | (1ul << 30) | (1ul << 0));
+ 
+ 	status = acpi_video_device_set_state(dev, state);
+
+-- 
+Greetings, Michael.
