@@ -1,314 +1,415 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Subject: Re: [RFT] hp-wmi: improved rfkill support for wifi
-Date: Mon, 20 Jul 2009 21:54:54 +0200
-Message-ID: <8db1092f0907201254m2be66477k6ec2f447bfad9f73@mail.gmail.com>
-References: <4A61FE7D.9080409@tuffmail.co.uk>
-	 <8db1092f0907181155h3d603a17q11815b9f174ac333@mail.gmail.com>
-	 <4A623490.50305@tuffmail.co.uk>
-	 <8db1092f0907190028o334371d7g798c1e8cb9a5744b@mail.gmail.com>
-	 <4A635618.3070507@tuffmail.co.uk>
-	 <8db1092f0907191110p2d3c2c45je61bda6365ed1468@mail.gmail.com>
-	 <4A6364DF.3040303@tuffmail.co.uk>
-	 <8db1092f0907191208i6fcdf519r8204be542e95bbe4@mail.gmail.com>
-	 <4A64A50D.5040401@tuffmail.co.uk>
+Date: Mon, 20 Jul 2009 21:08:41 +0100
+Message-ID: <4A64CEC9.8020402@tuffmail.co.uk>
+References: <4A61FE7D.9080409@tuffmail.co.uk>	 <8db1092f0907181155h3d603a17q11815b9f174ac333@mail.gmail.com>	 <4A623490.50305@tuffmail.co.uk>	 <8db1092f0907190028o334371d7g798c1e8cb9a5744b@mail.gmail.com>	 <4A635618.3070507@tuffmail.co.uk>	 <8db1092f0907191110p2d3c2c45je61bda6365ed1468@mail.gmail.com>	 <4A6364DF.3040303@tuffmail.co.uk>	 <8db1092f0907191208i6fcdf519r8204be542e95bbe4@mail.gmail.com>	 <4A64A50D.5040401@tuffmail.co.uk> <8db1092f0907201254m2be66477k6ec2f447bfad9f73@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750922AbZGTTy6@vger.kernel.org>
-In-Reply-To: <4A64A50D.5040401@tuffmail.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Matthew Garrett <mjg@redhat.com>, Frans Pop <elendil@planet.nl>, Larry Finger <Larry.Finger@lwfinger.net>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:41991 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753086AbZGTUIr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2009 16:08:47 -0400
+In-Reply-To: <8db1092f0907201254m2be66477k6ec2f447bfad9f73@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: Matthew Garrett <mjg@redhat.com>, Frans Pop <elendil@planet.nl>, Larry Finger <Larry.Finger@lwfinger.net>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-MjAwOS83LzIwIEFsYW4gSmVua2lucyA8YWxhbi1qZW5raW5zQHR1ZmZtYWlsLmNvLnVrPjoKPgo+
-IC4uLmFuZCBoZXJlJ3MgdGhlIHZlcnNpb24gdGhhdCByZW1lbWJlcnMgdG8gcmVnaXN0ZXIgdGhl
-IGJsdWV0b290aC4gwqBJCj4gcmV2aWV3ZWQgdGhlIHBhdGNoIGFnYWluOyBob3BlZnVsbHkgdGhh
-dCdzIHRoZSBsYXN0IGR1bWIgZXJyb3IuClsuLi5dCgoyLjYuMzEtcmMzKyBwYXRjaGVzOgpodHRw
-Oi8vbGttbC5vcmcvbGttbC8yMDA5LzcvMTgvMTMxCmh0dHA6Ly9sa21sLm9yZy9sa21sLzIwMDkv
-Ny8xMC8zMzkKKyBwYXRjaCBiZWxvdzoKCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0v
-eDg2L2hwLXdtaS5jIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvaHAtd21pLmMKPiBpbmRleCA1MTdh
-YzQ3Li5hZGIyNmQzIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L2hwLXdtaS5j
-Cj4gKysrIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvaHAtd21pLmMKPiBAQCAtNTEsNiArNTEsMTIg
-QEAgTU9EVUxFX0FMSUFTKCJ3bWk6NUZCN0YwMzQtMkM2My00NWU5LUJFOTEtM0Q0NEUyQzcwN0U0
-Iik7Cj4gwqAjZGVmaW5lIEhQV01JX1dJUkVMRVNTX1FVRVJZIDB4NQo+IMKgI2RlZmluZSBIUFdN
-SV9IT1RLRVlfUVVFUlkgMHhjCj4KPiArZW51bSBocF93bWlfcmFkaW8gewo+ICsgwqAgwqAgwqAg
-SFBXTUlfV0lGSSA9IDAsCj4gKyDCoCDCoCDCoCBIUFdNSV9CTFVFVE9PVEggPSAxLAo+ICsgwqAg
-wqAgwqAgSFBXTUlfV1dBTiA9IDIsCj4gK307Cj4gKwo+IMKgc3RhdGljIGludCBfX2luaXQgaHBf
-d21pX2Jpb3Nfc2V0dXAoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqZGV2aWNlKTsKPiDCoHN0YXRp
-YyBpbnQgX19leGl0IGhwX3dtaV9iaW9zX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpk
-ZXZpY2UpOwo+IMKgc3RhdGljIGludCBocF93bWlfcmVzdW1lX2hhbmRsZXIoc3RydWN0IHBsYXRm
-b3JtX2RldmljZSAqZGV2aWNlKTsKPiBAQCAtMTcwLDggKzE3Niw4IEBAIHN0YXRpYyBpbnQgaHBf
-d21pX3RhYmxldF9zdGF0ZSh2b2lkKQo+Cj4gwqBzdGF0aWMgaW50IGhwX3dtaV9zZXRfYmxvY2so
-dm9pZCAqZGF0YSwgYm9vbCBibG9ja2VkKQo+IMKgewo+IC0gwqAgwqAgwqAgdW5zaWduZWQgbG9u
-ZyBiID0gKHVuc2lnbmVkIGxvbmcpIGRhdGE7Cj4gLSDCoCDCoCDCoCBpbnQgcXVlcnkgPSBCSVQo
-YiArIDgpIHwgKCghYmxvY2tlZCkgPDwgYik7Cj4gKyDCoCDCoCDCoCBlbnVtIGhwX3dtaV9yYWRp
-byByID0gKGVudW0gaHBfd21pX3JhZGlvKSBkYXRhOwo+ICsgwqAgwqAgwqAgaW50IHF1ZXJ5ID0g
-QklUKHIgKyA4KSB8ICgoIWJsb2NrZWQpIDw8IHIpOwo+Cj4gwqAgwqAgwqAgwqByZXR1cm4gaHBf
-d21pX3BlcmZvcm1fcXVlcnkoSFBXTUlfV0lSRUxFU1NfUVVFUlksIDEsIHF1ZXJ5KTsKPiDCoH0K
-PiBAQCAtMTgwLDQxICsxODYsMjMgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCByZmtpbGxfb3BzIGhw
-X3dtaV9yZmtpbGxfb3BzID0gewo+IMKgIMKgIMKgIMKgLnNldF9ibG9jayA9IGhwX3dtaV9zZXRf
-YmxvY2ssCj4gwqB9Owo+Cj4gLXN0YXRpYyBib29sIGhwX3dtaV93aWZpX3N3X3N0YXRlKHZvaWQp
-Cj4gK3N0YXRpYyBib29sIGhwX3dtaV9nZXRfc3dfc3RhdGUoZW51bSBocF93bWlfcmFkaW8gcikK
-PiDCoHsKPiDCoCDCoCDCoCDCoGludCB3aXJlbGVzcyA9IGhwX3dtaV9wZXJmb3JtX3F1ZXJ5KEhQ
-V01JX1dJUkVMRVNTX1FVRVJZLCAwLCAwKTsKPiArIMKgIMKgIMKgIGludCBtYXNrID0gMHgyMDAg
-PDwgKHIgKiA4KTsKPgo+IC0gwqAgwqAgwqAgaWYgKHdpcmVsZXNzICYgMHgyMDApCj4gKyDCoCDC
-oCDCoCBpZiAod2lyZWxlc3MgJiBtYXNrKQo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgcmV0dXJu
-IGZhbHNlOwo+IMKgIMKgIMKgIMKgZWxzZQo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgcmV0dXJu
-IHRydWU7Cj4gwqB9Cj4KPiAtc3RhdGljIGJvb2wgaHBfd21pX3dpZmlfaHdfc3RhdGUodm9pZCkK
-PiArc3RhdGljIGJvb2wgaHBfd21pX2dldF9od19zdGF0ZShlbnVtIGhwX3dtaV9yYWRpbyByKQo+
-IMKgewo+IMKgIMKgIMKgIMKgaW50IHdpcmVsZXNzID0gaHBfd21pX3BlcmZvcm1fcXVlcnkoSFBX
-TUlfV0lSRUxFU1NfUVVFUlksIDAsIDApOwo+ICsgwqAgwqAgwqAgaW50IG1hc2sgPSAweDgwMCA8
-PCAociAqIDgpOwo+Cj4gLSDCoCDCoCDCoCBpZiAod2lyZWxlc3MgJiAweDgwMCkKPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIHJldHVybiBmYWxzZTsKPiAtIMKgIMKgIMKgIGVsc2UKPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIHJldHVybiB0cnVlOwo+IC19Cj4gLQo+IC1zdGF0aWMgYm9vbCBocF93
-bWlfYmx1ZXRvb3RoX3N0YXRlKHZvaWQpCj4gLXsKPiAtIMKgIMKgIMKgIGludCB3aXJlbGVzcyA9
-IGhwX3dtaV9wZXJmb3JtX3F1ZXJ5KEhQV01JX1dJUkVMRVNTX1FVRVJZLCAwLCAwKTsKPiAtCj4g
-LSDCoCDCoCDCoCBpZiAod2lyZWxlc3MgJiAweDEwMDAwKQo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgcmV0dXJuIGZhbHNlOwo+IC0gwqAgwqAgwqAgZWxzZQo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgcmV0dXJuIHRydWU7Cj4gLX0KPiAtCj4gLXN0YXRpYyBib29sIGhwX3dtaV93d2FuX3N0YXRl
-KHZvaWQpCj4gLXsKPiAtIMKgIMKgIMKgIGludCB3aXJlbGVzcyA9IGhwX3dtaV9wZXJmb3JtX3F1
-ZXJ5KEhQV01JX1dJUkVMRVNTX1FVRVJZLCAwLCAwKTsKPiAtCj4gLSDCoCDCoCDCoCBpZiAod2ly
-ZWxlc3MgJiAweDEwMDAwMDApCj4gKyDCoCDCoCDCoCBpZiAod2lyZWxlc3MgJiBtYXNrKQo+IMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgcmV0dXJuIGZhbHNlOwo+IMKgIMKgIMKgIMKgZWxzZQo+IMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgcmV0dXJuIHRydWU7Cj4gQEAgLTMzOSw1MCArMzI3LDU1IEBA
-IHN0YXRpYyB2b2lkIGhwX3dtaV9ub3RpZnkodTMyIHZhbHVlLCB2b2lkICpjb250ZXh0KQo+IMKg
-IMKgIMKgIMKgc3RydWN0IGFjcGlfYnVmZmVyIHJlc3BvbnNlID0geyBBQ1BJX0FMTE9DQVRFX0JV
-RkZFUiwgTlVMTCB9Owo+IMKgIMKgIMKgIMKgc3RhdGljIHN0cnVjdCBrZXlfZW50cnkgKmtleTsK
-PiDCoCDCoCDCoCDCoHVuaW9uIGFjcGlfb2JqZWN0ICpvYmo7Cj4gKyDCoCDCoCDCoCBpbnQgZXZl
-bnRjb2RlOwo+Cj4gwqAgwqAgwqAgwqB3bWlfZ2V0X2V2ZW50X2RhdGEodmFsdWUsICZyZXNwb25z
-ZSk7Cj4KPiDCoCDCoCDCoCDCoG9iaiA9ICh1bmlvbiBhY3BpX29iamVjdCAqKXJlc3BvbnNlLnBv
-aW50ZXI7Cj4KPiAtIMKgIMKgIMKgIGlmIChvYmogJiYgb2JqLT50eXBlID09IEFDUElfVFlQRV9C
-VUZGRVIgJiYgb2JqLT5idWZmZXIubGVuZ3RoID09IDgpIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIGludCBldmVudGNvZGUgPSAqKCh1OCAqKSBvYmotPmJ1ZmZlci5wb2ludGVyKTsKPiAtIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGlmIChldmVudGNvZGUgPT0gMHg0KQo+IC0gwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgZXZlbnRjb2RlID0gaHBfd21pX3BlcmZvcm1fcXVlcnkoSFBX
-TUlfSE9US0VZX1FVRVJZLCAwLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAwKTsKPiAt
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIGtleSA9IGhwX3dtaV9nZXRfZW50cnlfYnlfc2NhbmNvZGUo
-ZXZlbnRjb2RlKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChrZXkpIHsKPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN3aXRjaCAoa2V5LT50eXBlKSB7Cj4gLSDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBjYXNlIEtFX0tFWToKPiAtIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlucHV0X3JlcG9ydF9rZXkoaHBfd21p
-X2lucHV0X2RldiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKga2V5LT5rZXljb2RlLCAxKTsKPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlucHV0X3N5bmMoaHBfd21p
-X2lucHV0X2Rldik7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCBpbnB1dF9yZXBvcnRfa2V5KGhwX3dtaV9pbnB1dF9kZXYsCj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oGtleS0+a2V5Y29kZSwgMCk7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCBpbnB1dF9zeW5jKGhwX3dtaV9pbnB1dF9kZXYpOwo+IC0gwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9IGVsc2UgaWYg
-KGV2ZW50Y29kZSA9PSAweDEpIHsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IGlucHV0X3JlcG9ydF9zd2l0Y2goaHBfd21pX2lucHV0X2RldiwgU1dfRE9DSywKPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IGhwX3dtaV9kb2NrX3N0YXRlKCkpOwo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgaW5wdXRfcmVwb3J0X3N3aXRjaChocF93bWlfaW5wdXRfZGV2LCBTV19UQUJMRVRfTU9ERSwK
-PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIGhwX3dtaV90YWJsZXRfc3RhdGUoKSk7Cj4gKyDCoCDCoCDCoCBpZiAoIW9iaiB8
-fCBvYmotPnR5cGUgIT0gQUNQSV9UWVBFX0JVRkZFUiB8fCBvYmotPmJ1ZmZlci5sZW5ndGggIT0g
-OCkgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcHJpbnRrKEtFUk5fSU5GTyAiSFAgV01JOiBV
-bmtub3duIHJlc3BvbnNlIHJlY2VpdmVkXG4iKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHJl
-dHVybjsKPiArIMKgIMKgIMKgIH0KPiArCj4gKyDCoCDCoCDCoCBldmVudGNvZGUgPSAqKCh1OCAq
-KSBvYmotPmJ1ZmZlci5wb2ludGVyKTsKPiArIMKgIMKgIMKgIGlmIChldmVudGNvZGUgPT0gMHg0
-KQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZXZlbnRjb2RlID0gaHBfd21pX3BlcmZvcm1fcXVl
-cnkoSFBXTUlfSE9US0VZX1FVRVJZLCAwLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgMCk7Cj4gKyDCoCDCoCDC
-oCBrZXkgPSBocF93bWlfZ2V0X2VudHJ5X2J5X3NjYW5jb2RlKGV2ZW50Y29kZSk7Cj4gKyDCoCDC
-oCDCoCBpZiAoa2V5KSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzd2l0Y2ggKGtleS0+dHlw
-ZSkgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSBLRV9LRVk6Cj4gKyDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpbnB1dF9yZXBvcnRfa2V5KGhwX3dtaV9pbnB1dF9kZXYs
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoGtleS0+a2V5Y29kZSwgMSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCBpbnB1dF9zeW5jKGhwX3dtaV9pbnB1dF9kZXYpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgaW5wdXRfcmVwb3J0X2tleShocF93bWlfaW5wdXRfZGV2LAo+ICsgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBr
-ZXktPmtleWNvZGUsIDApOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgaW5w
-dXRfc3luYyhocF93bWlfaW5wdXRfZGV2KTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0gZWxz
-ZSBpZiAoZXZlbnRjb2RlID09IDB4NSkgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgaWYgKHdpZmlfcmZraWxsKQo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgcmZraWxsX3NldF9zdGF0ZXMod2lmaV9yZmtpbGwsCj4gLSDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCBocF93bWlfd2lmaV9zd19zdGF0ZSgpLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaHBfd21p
-X3dpZmlfaHdfc3RhdGUoKSk7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBp
-ZiAoYmx1ZXRvb3RoX3Jma2lsbCkKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIHJma2lsbF9zZXRfc3dfc3RhdGUoYmx1ZXRvb3RoX3Jma2lsbCwKPiAtIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9ibHVldG9vdGhfc3RhdGUoKSk7Cj4gLSDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAod3dhbl9yZmtpbGwpCj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZmtpbGxfc2V0X3N3X3N0YXRlKHd3YW5f
-cmZraWxsLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaHBfd21pX3d3YW5fc3RhdGUoKSk7Cj4gLSDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCB9IGVsc2UKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIHByaW50ayhLRVJOX0lORk8gIkhQIFdNSTogVW5rbm93biBrZXkgcHJlc3NlZCAtICV4
-XG4iLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBldmVu
-dGNvZGUpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4gKyDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4gKyDCoCDCoCDCoCB9IGVsc2UgaWYgKGV2ZW50Y29kZSA9
-PSAweDEpIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlucHV0X3JlcG9ydF9zd2l0Y2goaHBf
-d21pX2lucHV0X2RldiwgU1dfRE9DSywKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9kb2NrX3N0YXRlKCkpOwo+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgaW5wdXRfcmVwb3J0X3N3aXRjaChocF93bWlfaW5wdXRfZGV2LCBTV19UQUJM
-RVRfTU9ERSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGhwX3dtaV90YWJsZXRfc3RhdGUoKSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBp
-bnB1dF9zeW5jKGhwX3dtaV9pbnB1dF9kZXYpOwo+ICsgwqAgwqAgwqAgfSBlbHNlIGlmIChldmVu
-dGNvZGUgPT0gMHg1KSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAod2lmaV9yZmtpbGwp
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZmtpbGxfc2V0X3N0YXRlcyh3
-aWZpX3Jma2lsbCwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9nZXRfc3dfc3RhdGUoSFBXTUlfV0lGSSksCj4gKyDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCBocF93bWlfZ2V0X2h3X3N0YXRlKEhQV01JX1dJRkkpKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIGlmIChibHVldG9vdGhfcmZraWxsKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgcmZraWxsX3NldF9zdGF0ZXMoYmx1ZXRvb3RoX3Jma2lsbCwKPiArIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9n
-ZXRfc3dfc3RhdGUoSFBXTUlfQkxVRVRPT1RIKSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9nZXRfaHdfc3RhdGUo
-SFBXTUlfQkxVRVRPT1RIKSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAod3dhbl9yZmtp
-bGwpCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZmtpbGxfc2V0X3N0YXRl
-cyh3d2FuX3Jma2lsbCwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9nZXRfc3dfc3RhdGUoSFBXTUlfV1dBTiksCj4g
-KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCBocF93bWlfZ2V0X2h3X3N0YXRlKEhQV01JX1dXQU4pKTsKPiDCoCDCoCDCoCDCoH0gZWxz
-ZQo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgcHJpbnRrKEtFUk5fSU5GTyAiSFAgV01JOiBVbmtu
-b3duIHJlc3BvbnNlIHJlY2VpdmVkXG4iKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHByaW50
-ayhLRVJOX0lORk8gIkhQIFdNSTogVW5rbm93biBrZXkgcHJlc3NlZCAtICV4XG4iLAo+ICsgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZXZlbnRjb2RlKTsKPiDCoH0KPgo+IMKgc3Rh
-dGljIGludCBfX2luaXQgaHBfd21pX2lucHV0X3NldHVwKHZvaWQpCj4gQEAgLTQ2MSwxMSArNDU0
-LDExIEBAIHN0YXRpYyBpbnQgX19pbml0IGhwX3dtaV9iaW9zX3NldHVwKHN0cnVjdCBwbGF0Zm9y
-bV9kZXZpY2UgKmRldmljZSkKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHdpZmlfcmZraWxsID0g
-cmZraWxsX2FsbG9jKCJocC13aWZpIiwgJmRldmljZS0+ZGV2LAo+IMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFJGS0lMTF9UWVBF
-X1dMQU4sCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgJmhwX3dtaV9yZmtpbGxfb3BzLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAodm9pZCAqKSAwKTsK
-PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgKHZvaWQgKikgSFBXTUlfV0lGSSk7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBy
-ZmtpbGxfaW5pdF9zd19zdGF0ZSh3aWZpX3Jma2lsbCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgaHBfd21pX3dpZmlfc3dfc3RhdGUoKSk7
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oGhwX3dtaV9nZXRfc3dfc3RhdGUoSFBXTUlfV0lGSSkpOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgcmZraWxsX3NldF9od19zdGF0ZSh3aWZpX3Jma2lsbCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV93aWZpX2h3X3N0YXRlKCkp
-Owo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-aHBfd21pX2dldF9od19zdGF0ZShIUFdNSV9XSUZJKSk7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqBlcnIgPSByZmtpbGxfcmVnaXN0ZXIod2lmaV9yZmtpbGwpOwo+IMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgaWYgKGVycikKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGdvdG8g
-cmVnaXN0ZXJfd2lmaV9lcnJvcjsKPiBAQCAtNDc1LDcgKzQ2OCwxMSBAQCBzdGF0aWMgaW50IF9f
-aW5pdCBocF93bWlfYmlvc19zZXR1cChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpkZXZpY2UpCj4g
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBibHVldG9vdGhfcmZraWxsID0gcmZraWxsX2FsbG9jKCJo
-cC1ibHVldG9vdGgiLCAmZGV2aWNlLT5kZXYsCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBSRktJTExfVFlQRV9C
-TFVFVE9PVEgsCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAmaHBfd21pX3Jma2lsbF9vcHMsCj4gLSDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCAodm9pZCAqKSAxKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICh2b2lkICopIEhQV01JX0JMVUVUT09U
-SCk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZmtpbGxfaW5pdF9zd19zdGF0ZShibHVldG9v
-dGhfcmZraWxsLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqBocF93bWlfZ2V0X3N3X3N0YXRlKEhQV01JX0JMVUVUT09USCkpOwo+ICsgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgcmZraWxsX3NldF9od19zdGF0ZShibHVldG9vdGhfcmZraWxsLAo+
-ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaHBf
-d21pX2dldF9od19zdGF0ZShIUFdNSV9CTFVFVE9PVEgpKTsKPiDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoGVyciA9IHJma2lsbF9yZWdpc3RlcihibHVldG9vdGhfcmZraWxsKTsKPiDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoGlmIChlcnIpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqBnb3RvIHJlZ2lzdGVyX2JsdWV0b290aF9lcnJvcjsKPiBAQCAtNDg1LDcgKzQ4MiwxMSBAQCBz
-dGF0aWMgaW50IF9faW5pdCBocF93bWlfYmlvc19zZXR1cChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
-ICpkZXZpY2UpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB3d2FuX3Jma2lsbCA9IHJma2lsbF9h
-bGxvYygiaHAtd3dhbiIsICZkZXZpY2UtPmRldiwKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBSRktJTExfVFlQRV9XV0FOLAo+
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgICZocF93bWlfcmZraWxsX29wcywKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKHZvaWQgKikgMik7Cj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCh2b2lkICopIEhQV01JX1dXQU4pOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmZraWxsX2lu
-aXRfc3dfc3RhdGUod3dhbl9yZmtpbGwsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGhwX3dtaV9nZXRfc3dfc3RhdGUoSFBXTUlfV1dBTikp
-Owo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmZraWxsX3NldF9od19zdGF0ZSh3d2FuX3Jma2ls
-bCwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IGhwX3dtaV9nZXRfaHdfc3RhdGUoSFBXTUlfV1dBTikpOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgZXJyID0gcmZraWxsX3JlZ2lzdGVyKHd3YW5fcmZraWxsKTsKPiDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoGlmIChlcnIpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBnb3Rv
-IHJlZ2lzdGVyX3d3YW5fZXJyOwo+IEBAIC01NDEsOSArNTQyLDE4IEBAIHN0YXRpYyBpbnQgaHBf
-d21pX3Jlc3VtZV9oYW5kbGVyKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRldmljZSkKPiDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGhwX3dtaV90YWJsZXRfc3RhdGUo
-KSk7Cj4gwqAgwqAgwqAgwqBpbnB1dF9zeW5jKGhwX3dtaV9pbnB1dF9kZXYpOwo+Cj4gLSDCoCDC
-oCDCoCByZmtpbGxfc2V0X3N0YXRlcyh3aWZpX3Jma2lsbCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV93aWZpX3N3X3N0YXRlKCksCj4gLSDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBocF93bWlfd2lmaV9od19zdGF0ZSgpKTsKPiArIMKg
-IMKgIMKgIGlmICh3aWZpX3Jma2lsbCkKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHJma2lsbF9z
-ZXRfc3RhdGVzKHdpZmlfcmZraWxsLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgaHBfd21pX2dldF9zd19zdGF0ZShIUFdNSV9XSUZJKSwKPiArIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhwX3dtaV9nZXRf
-aHdfc3RhdGUoSFBXTUlfV0lGSSkpOwo+ICsgwqAgwqAgwqAgaWYgKGJsdWV0b290aF9yZmtpbGwp
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZmtpbGxfc2V0X3N0YXRlcyhibHVldG9vdGhfcmZr
-aWxsLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-aHBfd21pX2dldF9zd19zdGF0ZShIUFdNSV9CTFVFVE9PVEgpLAo+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaHBfd21pX2dldF9od19zdGF0ZShIUFdN
-SV9CTFVFVE9PVEgpKTsKPiArIMKgIMKgIMKgIGlmICh3d2FuX3Jma2lsbCkKPiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIHJma2lsbF9zZXRfc3RhdGVzKHd3YW5fcmZraWxsLAo+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaHBfd21pX2dldF9zd19zdGF0
-ZShIUFdNSV9XV0FOKSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIGhwX3dtaV9nZXRfaHdfc3RhdGUoSFBXTUlfV1dBTikpOwo+Cj4gwqAgwqAgwqAg
-wqByZXR1cm4gMDsKPiDCoH0KPgo+Cj4KCnJvb3RAZ3VtaXM6L2hvbWUvbWFjaWVrL3pyb2RlbGth
-L3Jma2lsbC9yZmtpbGwjIC4vcmZraWxsIGxpc3QKMDogcGh5MDogV2lyZWxlc3MgTEFOCiAgICAg
-ICAgU29mdCBibG9ja2VkOiB5ZXMKICAgICAgICBIYXJkIGJsb2NrZWQ6IHllcwoxOiBocC13aWZp
-OiBXaXJlbGVzcyBMQU4KICAgICAgICBTb2Z0IGJsb2NrZWQ6IHllcwogICAgICAgIEhhcmQgYmxv
-Y2tlZDogbm8KMjogaHAtYmx1ZXRvb3RoOiBCbHVldG9vdGgKICAgICAgICBTb2Z0IGJsb2NrZWQ6
-IHllcwogICAgICAgIEhhcmQgYmxvY2tlZDogbm8Kcm9vdEBndW1pczovaG9tZS9tYWNpZWsvenJv
-ZGVsa2EvcmZraWxsL3Jma2lsbCMgLi9yZmtpbGwgdW5ibG9jayAwCnJvb3RAZ3VtaXM6L2hvbWUv
-bWFjaWVrL3pyb2RlbGthL3Jma2lsbC9yZmtpbGwjIC4vcmZraWxsIGxpc3QKMDogcGh5MDogV2ly
-ZWxlc3MgTEFOCiAgICAgICAgU29mdCBibG9ja2VkOiBubwogICAgICAgIEhhcmQgYmxvY2tlZDog
-eWVzCjE6IGhwLXdpZmk6IFdpcmVsZXNzIExBTgogICAgICAgIFNvZnQgYmxvY2tlZDogeWVzCiAg
-ICAgICAgSGFyZCBibG9ja2VkOiBubwoyOiBocC1ibHVldG9vdGg6IEJsdWV0b290aAogICAgICAg
-IFNvZnQgYmxvY2tlZDogeWVzCiAgICAgICAgSGFyZCBibG9ja2VkOiBubwpyb290QGd1bWlzOi9o
-b21lL21hY2llay96cm9kZWxrYS9yZmtpbGwvcmZraWxsIyAuL3Jma2lsbCB1bmJsb2NrIDEKcm9v
-dEBndW1pczovaG9tZS9tYWNpZWsvenJvZGVsa2EvcmZraWxsL3Jma2lsbCMgLi9yZmtpbGwgbGlz
-dAowOiBwaHkwOiBXaXJlbGVzcyBMQU4KICAgICAgICBTb2Z0IGJsb2NrZWQ6IG5vCiAgICAgICAg
-SGFyZCBibG9ja2VkOiBubwoxOiBocC13aWZpOiBXaXJlbGVzcyBMQU4KICAgICAgICBTb2Z0IGJs
-b2NrZWQ6IG5vCiAgICAgICAgSGFyZCBibG9ja2VkOiBubwoyOiBocC1ibHVldG9vdGg6IEJsdWV0
-b290aAogICAgICAgIFNvZnQgYmxvY2tlZDogeWVzCiAgICAgICAgSGFyZCBibG9ja2VkOiBubwpy
-b290QGd1bWlzOi9ob21lL21hY2llay96cm9kZWxrYS9yZmtpbGwvcmZraWxsIyAuL3Jma2lsbCB1
-bmJsb2NrIDIKcm9vdEBndW1pczovaG9tZS9tYWNpZWsvenJvZGVsa2EvcmZraWxsL3Jma2lsbCMg
-Li9yZmtpbGwgbGlzdAowOiBwaHkwOiBXaXJlbGVzcyBMQU4KICAgICAgICBTb2Z0IGJsb2NrZWQ6
-IG5vCiAgICAgICAgSGFyZCBibG9ja2VkOiBubwoxOiBocC13aWZpOiBXaXJlbGVzcyBMQU4KICAg
-ICAgICBTb2Z0IGJsb2NrZWQ6IG5vCiAgICAgICAgSGFyZCBibG9ja2VkOiBubwoyOiBocC1ibHVl
-dG9vdGg6IEJsdWV0b290aAogICAgICAgIFNvZnQgYmxvY2tlZDogbm8KICAgICAgICBIYXJkIGJs
-b2NrZWQ6IG5vCjM6IGhjaTA6IEJsdWV0b290aAogICAgICAgIFNvZnQgYmxvY2tlZDogeWVzCiAg
-ICAgICAgSGFyZCBibG9ja2VkOiBubwpyb290QGd1bWlzOi9ob21lL21hY2llay96cm9kZWxrYS9y
-ZmtpbGwvcmZraWxsIyAuL3Jma2lsbCB1bmJsb2NrIDMKcm9vdEBndW1pczovaG9tZS9tYWNpZWsv
-enJvZGVsa2EvcmZraWxsL3Jma2lsbCMgLi9yZmtpbGwgbGlzdAowOiBwaHkwOiBXaXJlbGVzcyBM
-QU4KICAgICAgICBTb2Z0IGJsb2NrZWQ6IG5vCiAgICAgICAgSGFyZCBibG9ja2VkOiBubwoxOiBo
-cC13aWZpOiBXaXJlbGVzcyBMQU4KICAgICAgICBTb2Z0IGJsb2NrZWQ6IG5vCiAgICAgICAgSGFy
-ZCBibG9ja2VkOiBubwoyOiBocC1ibHVldG9vdGg6IEJsdWV0b290aAogICAgICAgIFNvZnQgYmxv
-Y2tlZDogbm8KICAgICAgICBIYXJkIGJsb2NrZWQ6IG5vCjM6IGhjaTA6IEJsdWV0b290aAogICAg
-ICAgIFNvZnQgYmxvY2tlZDogbm8KICAgICAgICBIYXJkIGJsb2NrZWQ6IG5vCnJvb3RAZ3VtaXM6
-L2hvbWUvbWFjaWVrL3pyb2RlbGthL3Jma2lsbC9yZmtpbGwjIGhjaWNvbmZpZwpoY2kwOiAgIFR5
-cGU6IFVTQgogICAgICAgIEJEIEFkZHJlc3M6IDAwOjE2OjQxOjg4OkEwOjFCIEFDTCBNVFU6IDEw
-MTc6OCBTQ08gTVRVOiA2NDo4CiAgICAgICAgRE9XTgogICAgICAgIFJYIGJ5dGVzOjMxOCBhY2w6
-MCBzY286MCBldmVudHM6NiBlcnJvcnM6MAogICAgICAgIFRYIGJ5dGVzOjI3IGFjbDowIHNjbzow
-IGNvbW1hbmRzOjkgZXJyb3JzOjAKCldvcmtzIE9LLiBUaGFua3MgOi0pCgpEdXJpbmcgY29tcGls
-ZSBJIGhhdmUgZ290OgpDQyBbTV0gIGRyaXZlcnMvcGxhdGZvcm0veDg2L2hwLXdtaS5vCmRyaXZl
-cnMvcGxhdGZvcm0veDg2L2hwLXdtaS5jOiBJbiBmdW5jdGlvbiDigJhocF93bWlfYmlvc19zZXR1
-cOKAmToKZHJpdmVycy9wbGF0Zm9ybS94ODYvaHAtd21pLmM6NDYwOiB3YXJuaW5nOiBpZ25vcmlu
-ZyByZXR1cm4gdmFsdWUgb2YK4oCYcmZraWxsX3NldF9od19zdGF0ZeKAmSwgZGVjbGFyZWQgd2l0
-aCBhdHRyaWJ1dGUgd2Fybl91bnVzZWRfcmVzdWx0CmRyaXZlcnMvcGxhdGZvcm0veDg2L2hwLXdt
-aS5jOjQ3NDogd2FybmluZzogaWdub3JpbmcgcmV0dXJuIHZhbHVlIG9mCuKAmHJma2lsbF9zZXRf
-aHdfc3RhdGXigJksIGRlY2xhcmVkIHdpdGggYXR0cmlidXRlIHdhcm5fdW51c2VkX3Jlc3VsdApk
-cml2ZXJzL3BsYXRmb3JtL3g4Ni9ocC13bWkuYzo0ODg6IHdhcm5pbmc6IGlnbm9yaW5nIHJldHVy
-biB2YWx1ZSBvZgrigJhyZmtpbGxfc2V0X2h3X3N0YXRl4oCZLCBkZWNsYXJlZCB3aXRoIGF0dHJp
-YnV0ZSB3YXJuX3VudXNlZF9yZXN1bHQKCnJvb3RAZ3VtaXM6L2hvbWUvbWFjaWVrIyBnY2MgLXYK
-VXNpbmcgYnVpbHQtaW4gc3BlY3MuClRhcmdldDogaTQ4Ni1saW51eC1nbnUKQ29uZmlndXJlZCB3
-aXRoOiAuLi9zcmMvY29uZmlndXJlIC12IC0td2l0aC1wa2d2ZXJzaW9uPSdEZWJpYW4KNC4zLjMt
-MTMnIC0td2l0aC1idWd1cmw9ZmlsZTovLy91c3Ivc2hhcmUvZG9jL2djYy00LjMvUkVBRE1FLkJ1
-Z3MKLS1lbmFibGUtbGFuZ3VhZ2VzPWMsYysrLGZvcnRyYW4sb2JqYyxvYmotYysrIC0tcHJlZml4
-PS91c3IKLS1lbmFibGUtc2hhcmVkIC0tZW5hYmxlLW11bHRpYXJjaCAtLXdpdGgtc3lzdGVtLXps
-aWIKLS1saWJleGVjZGlyPS91c3IvbGliIC0td2l0aG91dC1pbmNsdWRlZC1nZXR0ZXh0Ci0tZW5h
-YmxlLXRocmVhZHM9cG9zaXggLS1lbmFibGUtbmxzCi0td2l0aC1neHgtaW5jbHVkZS1kaXI9L3Vz
-ci9pbmNsdWRlL2MrKy80LjMgLS1wcm9ncmFtLXN1ZmZpeD0tNC4zCi0tZW5hYmxlLWNsb2NhbGU9
-Z251IC0tZW5hYmxlLWxpYnN0ZGN4eC1kZWJ1ZyAtLWVuYWJsZS1vYmpjLWdjCi0tZW5hYmxlLW1w
-ZnIgLS1lbmFibGUtdGFyZ2V0cz1hbGwgLS13aXRoLXR1bmU9Z2VuZXJpYwotLWVuYWJsZS1jaGVj
-a2luZz1yZWxlYXNlIC0tYnVpbGQ9aTQ4Ni1saW51eC1nbnUgLS1ob3N0PWk0ODYtbGludXgtZ251
-Ci0tdGFyZ2V0PWk0ODYtbGludXgtZ251ClRocmVhZCBtb2RlbDogcG9zaXgKZ2NjIHZlcnNpb24g
-NC4zLjMgKERlYmlhbiA0LjMuMy0xMykKClJlZ2FyZHMKLS0gCk1hY2llaiBSdXRlY2tpCmh0dHA6
-Ly93d3cubWFjaWVrLnVuaXh5LnBsCg==
+Maciej Rutecki wrote:
+> 2009/7/20 Alan Jenkins <alan-jenkins@tuffmail.co.uk>:
+>  =20
+>> ...and here's the version that remembers to register the bluetooth. =
+ I
+>> reviewed the patch again; hopefully that's the last dumb error.
+>>    =20
+> [...]
+>
+> 2.6.31-rc3+ patches:
+> http://lkml.org/lkml/2009/7/18/131
+> http://lkml.org/lkml/2009/7/10/339
+> + patch below:
+>
+>  =20
+>> diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp=
+-wmi.c
+>> index 517ac47..adb26d3 100644
+>> --- a/drivers/platform/x86/hp-wmi.c
+>> +++ b/drivers/platform/x86/hp-wmi.c
+>> @@ -51,6 +51,12 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C=
+707E4");
+>>  #define HPWMI_WIRELESS_QUERY 0x5
+>>  #define HPWMI_HOTKEY_QUERY 0xc
+>>
+>> +enum hp_wmi_radio {
+>> +       HPWMI_WIFI =3D 0,
+>> +       HPWMI_BLUETOOTH =3D 1,
+>> +       HPWMI_WWAN =3D 2,
+>> +};
+>> +
+>>  static int __init hp_wmi_bios_setup(struct platform_device *device)=
+;
+>>  static int __exit hp_wmi_bios_remove(struct platform_device *device=
+);
+>>  static int hp_wmi_resume_handler(struct platform_device *device);
+>> @@ -170,8 +176,8 @@ static int hp_wmi_tablet_state(void)
+>>
+>>  static int hp_wmi_set_block(void *data, bool blocked)
+>>  {
+>> -       unsigned long b =3D (unsigned long) data;
+>> -       int query =3D BIT(b + 8) | ((!blocked) << b);
+>> +       enum hp_wmi_radio r =3D (enum hp_wmi_radio) data;
+>> +       int query =3D BIT(r + 8) | ((!blocked) << r);
+>>
+>>        return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, query);
+>>  }
+>> @@ -180,41 +186,23 @@ static const struct rfkill_ops hp_wmi_rfkill_o=
+ps =3D {
+>>        .set_block =3D hp_wmi_set_block,
+>>  };
+>>
+>> -static bool hp_wmi_wifi_sw_state(void)
+>> +static bool hp_wmi_get_sw_state(enum hp_wmi_radio r)
+>>  {
+>>        int wireless =3D hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0=
+, 0);
+>> +       int mask =3D 0x200 << (r * 8);
+>>
+>> -       if (wireless & 0x200)
+>> +       if (wireless & mask)
+>>                return false;
+>>        else
+>>                return true;
+>>  }
+>>
+>> -static bool hp_wmi_wifi_hw_state(void)
+>> +static bool hp_wmi_get_hw_state(enum hp_wmi_radio r)
+>>  {
+>>        int wireless =3D hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0=
+, 0);
+>> +       int mask =3D 0x800 << (r * 8);
+>>
+>> -       if (wireless & 0x800)
+>> -               return false;
+>> -       else
+>> -               return true;
+>> -}
+>> -
+>> -static bool hp_wmi_bluetooth_state(void)
+>> -{
+>> -       int wireless =3D hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, =
+0, 0);
+>> -
+>> -       if (wireless & 0x10000)
+>> -               return false;
+>> -       else
+>> -               return true;
+>> -}
+>> -
+>> -static bool hp_wmi_wwan_state(void)
+>> -{
+>> -       int wireless =3D hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, =
+0, 0);
+>> -
+>> -       if (wireless & 0x1000000)
+>> +       if (wireless & mask)
+>>                return false;
+>>        else
+>>                return true;
+>> @@ -339,50 +327,55 @@ static void hp_wmi_notify(u32 value, void *con=
+text)
+>>        struct acpi_buffer response =3D { ACPI_ALLOCATE_BUFFER, NULL =
+};
+>>        static struct key_entry *key;
+>>        union acpi_object *obj;
+>> +       int eventcode;
+>>
+>>        wmi_get_event_data(value, &response);
+>>
+>>        obj =3D (union acpi_object *)response.pointer;
+>>
+>> -       if (obj && obj->type =3D=3D ACPI_TYPE_BUFFER && obj->buffer.=
+length =3D=3D 8) {
+>> -               int eventcode =3D *((u8 *) obj->buffer.pointer);
+>> -               if (eventcode =3D=3D 0x4)
+>> -                       eventcode =3D hp_wmi_perform_query(HPWMI_HOT=
+KEY_QUERY, 0,
+>> -                                                        0);
+>> -               key =3D hp_wmi_get_entry_by_scancode(eventcode);
+>> -               if (key) {
+>> -                       switch (key->type) {
+>> -                       case KE_KEY:
+>> -                               input_report_key(hp_wmi_input_dev,
+>> -                                                key->keycode, 1);
+>> -                               input_sync(hp_wmi_input_dev);
+>> -                               input_report_key(hp_wmi_input_dev,
+>> -                                                key->keycode, 0);
+>> -                               input_sync(hp_wmi_input_dev);
+>> -                               break;
+>> -                       }
+>> -               } else if (eventcode =3D=3D 0x1) {
+>> -                       input_report_switch(hp_wmi_input_dev, SW_DOC=
+K,
+>> -                                           hp_wmi_dock_state());
+>> -                       input_report_switch(hp_wmi_input_dev, SW_TAB=
+LET_MODE,
+>> -                                           hp_wmi_tablet_state());
+>> +       if (!obj || obj->type !=3D ACPI_TYPE_BUFFER || obj->buffer.l=
+ength !=3D 8) {
+>> +               printk(KERN_INFO "HP WMI: Unknown response received\=
+n");
+>> +               return;
+>> +       }
+>> +
+>> +       eventcode =3D *((u8 *) obj->buffer.pointer);
+>> +       if (eventcode =3D=3D 0x4)
+>> +               eventcode =3D hp_wmi_perform_query(HPWMI_HOTKEY_QUER=
+Y, 0,
+>> +                                               0);
+>> +       key =3D hp_wmi_get_entry_by_scancode(eventcode);
+>> +       if (key) {
+>> +               switch (key->type) {
+>> +               case KE_KEY:
+>> +                       input_report_key(hp_wmi_input_dev,
+>> +                                        key->keycode, 1);
+>> +                       input_sync(hp_wmi_input_dev);
+>> +                       input_report_key(hp_wmi_input_dev,
+>> +                                        key->keycode, 0);
+>>                        input_sync(hp_wmi_input_dev);
+>> -               } else if (eventcode =3D=3D 0x5) {
+>> -                       if (wifi_rfkill)
+>> -                               rfkill_set_states(wifi_rfkill,
+>> -                                                 hp_wmi_wifi_sw_sta=
+te(),
+>> -                                                 hp_wmi_wifi_hw_sta=
+te());
+>> -                       if (bluetooth_rfkill)
+>> -                               rfkill_set_sw_state(bluetooth_rfkill=
+,
+>> -                                                   hp_wmi_bluetooth=
+_state());
+>> -                       if (wwan_rfkill)
+>> -                               rfkill_set_sw_state(wwan_rfkill,
+>> -                                                   hp_wmi_wwan_stat=
+e());
+>> -               } else
+>> -                       printk(KERN_INFO "HP WMI: Unknown key presse=
+d - %x\n",
+>> -                              eventcode);
+>> +                       break;
+>> +               }
+>> +       } else if (eventcode =3D=3D 0x1) {
+>> +               input_report_switch(hp_wmi_input_dev, SW_DOCK,
+>> +                                   hp_wmi_dock_state());
+>> +               input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE=
+,
+>> +                                   hp_wmi_tablet_state());
+>> +               input_sync(hp_wmi_input_dev);
+>> +       } else if (eventcode =3D=3D 0x5) {
+>> +               if (wifi_rfkill)
+>> +                       rfkill_set_states(wifi_rfkill,
+>> +                                         hp_wmi_get_sw_state(HPWMI_=
+WIFI),
+>> +                                         hp_wmi_get_hw_state(HPWMI_=
+WIFI));
+>> +               if (bluetooth_rfkill)
+>> +                       rfkill_set_states(bluetooth_rfkill,
+>> +                                         hp_wmi_get_sw_state(HPWMI_=
+BLUETOOTH),
+>> +                                         hp_wmi_get_hw_state(HPWMI_=
+BLUETOOTH));
+>> +               if (wwan_rfkill)
+>> +                       rfkill_set_states(wwan_rfkill,
+>> +                                         hp_wmi_get_sw_state(HPWMI_=
+WWAN),
+>> +                                         hp_wmi_get_hw_state(HPWMI_=
+WWAN));
+>>        } else
+>> -               printk(KERN_INFO "HP WMI: Unknown response received\=
+n");
+>> +               printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n=
+",
+>> +                       eventcode);
+>>  }
+>>
+>>  static int __init hp_wmi_input_setup(void)
+>> @@ -461,11 +454,11 @@ static int __init hp_wmi_bios_setup(struct pla=
+tform_device *device)
+>>                wifi_rfkill =3D rfkill_alloc("hp-wifi", &device->dev,
+>>                                           RFKILL_TYPE_WLAN,
+>>                                           &hp_wmi_rfkill_ops,
+>> -                                          (void *) 0);
+>> +                                          (void *) HPWMI_WIFI);
+>>                rfkill_init_sw_state(wifi_rfkill,
+>> -                                    hp_wmi_wifi_sw_state());
+>> +                                    hp_wmi_get_sw_state(HPWMI_WIFI)=
+);
+>>                rfkill_set_hw_state(wifi_rfkill,
+>> -                                   hp_wmi_wifi_hw_state());
+>> +                                   hp_wmi_get_hw_state(HPWMI_WIFI))=
+;
+>>                err =3D rfkill_register(wifi_rfkill);
+>>                if (err)
+>>                        goto register_wifi_error;
+>> @@ -475,7 +468,11 @@ static int __init hp_wmi_bios_setup(struct plat=
+form_device *device)
+>>                bluetooth_rfkill =3D rfkill_alloc("hp-bluetooth", &de=
+vice->dev,
+>>                                                RFKILL_TYPE_BLUETOOTH=
+,
+>>                                                &hp_wmi_rfkill_ops,
+>> -                                               (void *) 1);
+>> +                                               (void *) HPWMI_BLUET=
+OOTH);
+>> +               rfkill_init_sw_state(bluetooth_rfkill,
+>> +                                    hp_wmi_get_sw_state(HPWMI_BLUET=
+OOTH));
+>> +               rfkill_set_hw_state(bluetooth_rfkill,
+>> +                                   hp_wmi_get_hw_state(HPWMI_BLUETO=
+OTH));
+>>                err =3D rfkill_register(bluetooth_rfkill);
+>>                if (err)
+>>                        goto register_bluetooth_error;
+>> @@ -485,7 +482,11 @@ static int __init hp_wmi_bios_setup(struct plat=
+form_device *device)
+>>                wwan_rfkill =3D rfkill_alloc("hp-wwan", &device->dev,
+>>                                           RFKILL_TYPE_WWAN,
+>>                                           &hp_wmi_rfkill_ops,
+>> -                                          (void *) 2);
+>> +                                          (void *) HPWMI_WWAN);
+>> +               rfkill_init_sw_state(wwan_rfkill,
+>> +                                    hp_wmi_get_sw_state(HPWMI_WWAN)=
+);
+>> +               rfkill_set_hw_state(wwan_rfkill,
+>> +                                   hp_wmi_get_hw_state(HPWMI_WWAN))=
+;
+>>                err =3D rfkill_register(wwan_rfkill);
+>>                if (err)
+>>                        goto register_wwan_err;
+>> @@ -541,9 +542,18 @@ static int hp_wmi_resume_handler(struct platfor=
+m_device *device)
+>>                            hp_wmi_tablet_state());
+>>        input_sync(hp_wmi_input_dev);
+>>
+>> -       rfkill_set_states(wifi_rfkill,
+>> -                         hp_wmi_wifi_sw_state(),
+>> -                         hp_wmi_wifi_hw_state());
+>> +       if (wifi_rfkill)
+>> +               rfkill_set_states(wifi_rfkill,
+>> +                                 hp_wmi_get_sw_state(HPWMI_WIFI),
+>> +                                 hp_wmi_get_hw_state(HPWMI_WIFI));
+>> +       if (bluetooth_rfkill)
+>> +               rfkill_set_states(bluetooth_rfkill,
+>> +                                 hp_wmi_get_sw_state(HPWMI_BLUETOOT=
+H),
+>> +                                 hp_wmi_get_hw_state(HPWMI_BLUETOOT=
+H));
+>> +       if (wwan_rfkill)
+>> +               rfkill_set_states(wwan_rfkill,
+>> +                                 hp_wmi_get_sw_state(HPWMI_WWAN),
+>> +                                 hp_wmi_get_hw_state(HPWMI_WWAN));
+>>
+>>        return 0;
+>>  }
+>>
+>>
+>>
+>>    =20
+>
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
+> 0: phy0: Wireless LAN
+>         Soft blocked: yes
+>         Hard blocked: yes
+> 1: hp-wifi: Wireless LAN
+>         Soft blocked: yes
+>         Hard blocked: no
+> 2: hp-bluetooth: Bluetooth
+>         Soft blocked: yes
+>         Hard blocked: no
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill unblock 0
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
+> 0: phy0: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: yes
+> 1: hp-wifi: Wireless LAN
+>         Soft blocked: yes
+>         Hard blocked: no
+> 2: hp-bluetooth: Bluetooth
+>         Soft blocked: yes
+>         Hard blocked: no
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill unblock 1
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
+> 0: phy0: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: no
+> 1: hp-wifi: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: no
+> 2: hp-bluetooth: Bluetooth
+>         Soft blocked: yes
+>         Hard blocked: no
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill unblock 2
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
+> 0: phy0: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: no
+> 1: hp-wifi: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: no
+> 2: hp-bluetooth: Bluetooth
+>         Soft blocked: no
+>         Hard blocked: no
+> 3: hci0: Bluetooth
+>         Soft blocked: yes
+>         Hard blocked: no
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill unblock 3
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# ./rfkill list
+> 0: phy0: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: no
+> 1: hp-wifi: Wireless LAN
+>         Soft blocked: no
+>         Hard blocked: no
+> 2: hp-bluetooth: Bluetooth
+>         Soft blocked: no
+>         Hard blocked: no
+> 3: hci0: Bluetooth
+>         Soft blocked: no
+>         Hard blocked: no
+> root@gumis:/home/maciek/zrodelka/rfkill/rfkill# hciconfig
+> hci0:   Type: USB
+>         BD Address: 00:16:41:88:A0:1B ACL MTU: 1017:8 SCO MTU: 64:8
+>         DOWN
+>         RX bytes:318 acl:0 sco:0 events:6 errors:0
+>         TX bytes:27 acl:0 sco:0 commands:9 errors:0
+>
+> Works OK. Thanks :-)
+>
+> During compile I have got:
+> CC [M]  drivers/platform/x86/hp-wmi.o
+> drivers/platform/x86/hp-wmi.c: In function =E2=80=98hp_wmi_bios_setup=
+=E2=80=99:
+> drivers/platform/x86/hp-wmi.c:460: warning: ignoring return value of
+> =E2=80=98rfkill_set_hw_state=E2=80=99, declared with attribute warn_u=
+nused_result
+> drivers/platform/x86/hp-wmi.c:474: warning: ignoring return value of
+> =E2=80=98rfkill_set_hw_state=E2=80=99, declared with attribute warn_u=
+nused_result
+> drivers/platform/x86/hp-wmi.c:488: warning: ignoring return value of
+> =E2=80=98rfkill_set_hw_state=E2=80=99, declared with attribute warn_u=
+nused_result
+>  =20
+
+The attribute is wrong, I've already submitted a patch to remove it.
+
+I'll combine this patch with the previous one and submit it tomorrow.
+
+Thanks again
+Alan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
