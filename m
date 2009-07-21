@@ -1,181 +1,256 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: mmotm 2009-07-16-14-32 - sudden OOPS at boot in ACPI code
-Date: Tue, 21 Jul 2009 13:33:59 +0800
-Message-ID: <1248154439.1852.49.camel@minggr.sh.intel.com>
-References: <200907162134.n6GLY2kt019816@imap1.linux-foundation.org>
-	 <9078.1248144738@turing-police.cc.vt.edu>
-	 <Pine.LNX.4.64.0907210418420.15680@sister.anvils>
-	 <d3f22a0907202225v66c6535dg27d54e1158e7df7a@mail.gmail.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH] hp-wmi: improve rfkill support
+Date: Tue, 21 Jul 2009 12:14:01 +0100
+Message-ID: <4A65A2F9.1060509@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54906 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752544AbZGUFd4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Jul 2009 01:33:56 -0400
-In-Reply-To: <d3f22a0907202225v66c6535dg27d54e1158e7df7a@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755209AbZGULOM@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Cc: Valdis.Kletnieks@vt.edu, Andrew Morton <akpm@linux-foundation.org>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
 
+1) Add support for reading the hardware blocked state.  Previously
+   we read a combination of the hardware and software blocked states,
+   reporting it as the software blocked state.  This caused some
+   confusing behaviour.
 
-> From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-> Date: Tue, Jul 21, 2009 at 11:33 AM
-> Subject: Re: mmotm 2009-07-16-14-32 - sudden OOPS at boot in ACPI code
-> To: Valdis.Kletnieks@vt.edu
-> Cc: Andrew Morton <akpm@linux-foundation.org>, Bob Moore
-> <robert.moore@intel.com>, Len Brown <lenb@kernel.org>,
-> linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-> 
-> 
-> On Mon, 20 Jul 2009, Valdis.Kletnieks@vt.edu wrote:
-> > On Thu, 16 Jul 2009 14:34:02 PDT, akpm@linux-foundation.org said:
-> > > The mm-of-the-moment snapshot 2009-07-16-14-32 has been uploaded to
-> >
-> > Dies a horrid death during early boot. Dell Latitude D820, and this graphics:
-> >
-> > 01:00.0 VGA compatible controller: nVidia Corporation G72M [Quadro NVS 110M/GeForce Go 7300] (rev a1)
-> 
-> Oh yes, I was getting just the same with Intel graphics (i915);
-> but promptly forgot about it once I'd a workaround in place,
-> and moved on to other things, sorry.
-> 
-> >
-> > Traceback (hand-copied from a very crappy cell-phone picture)
-> >
-> > strcmp+0x4/0x1f
-> > acpi_device+probe+0xac/0x13e
-> > driver_probe_device+0xc9/0x14e
-> > __driver_attach+0x58/0x7c
-> > ? __driver_attach+0x58/0x7c
-> > ? __driver_attach+0x58/0x7c
-> > bus_for_each_dev+0x54/0x89
-> > driver_attach+0x19/0x1b
-> > bus_add_driver+0xv4/0x1fe
-> > driver_register+0xb7/0x128
-> > ? acpi_video_init+0x0/0x17
-> > acpi_bus_register_driver+0x3e/0x42
-> > acpi_video_register+0x42/0x6e
-> > acpi_video_init+0x15/0x17
-> > do_one_initcall+0x56/0x130
-> >
-> > Analysis shows it's the following code from (inlined) acpi_device_install_notify_handler
-> >
-> > static int acpi_device_install_notify_handler(struct acpi_device *device)
-> > {
-> >         acpi_status status;
-> >         char *hid;
-> >
-> >         hid = acpi_device_hid(device);
-> >         if (!strcmp(hid, ACPI_BUTTON_HID_POWERF))
-> >
-> > but we never check if hid is non-trash before feeding it to strcmp.  Looks
-> > like something in this linux-next commit is involved:
-> >
-> > commit ed444824932d2a563858d82ec1ea29b0aa775e91
-> > Author: Bob Moore <robert.moore@intel.com>
-> > Date:   Mon Jun 29 13:39:29 2009 +0800
-> >
-> > I suspect something in acpi_get_object_info() is going astray, causing
-> > acpi_device_set_id() to set the ->pnp.hardware_id to NULL in this code:
-> >
-> >         if (hid) {
-> >                 device->pnp.hardware_id = ACPI_ALLOCATE_ZEROED(strlen (hid) + 1);
-> >                 if (device->pnp.hardware_id) {
-> >                         strcpy(device->pnp.hardware_id, hid);
-> >                         device->flags.hardware_id = 1;
-> >                 }
-> >         } else
-> >                 device->pnp.hardware_id = NULL;
-> >
-> > The else clause is new in this commit.
-> 
-> I think pnp.hardware_id has changed from being a builtin array to
-> an allocated pointer: so before there was always a zeroed array to
+2) The software state is persistent, mark it as such.
 
-Yes, pnp.hardware_id and pnp.unique_id are now allocated pointer.
-We made the change for acpi_get_object_info interface.
+3) Check rfkill in the resume handler.  Both the hard and soft
+   blocked states may change over hibernation.
 
-> strcmp against, whereas now there's a NULL pointer if you come to
-> use acpi_device_install_notify_handler() "too early".
-> 
-> Patch that works for me at the bottom.
-
-Yes, 
-your patch can workaround the problem in
-acpi_device_install_notify_handler.
-
-But there are other places call strcmp to compare HID/UID.
-So we'd better fix acpi_device_hid/_uid as below,
-
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 6e83a68..6c64366 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -188,8 +188,8 @@ struct acpi_device_pnp {
- 
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
- #define acpi_device_adr(d)	((d)->pnp.bus_address)
--#define acpi_device_hid(d)	((d)->pnp.hardware_id)
--#define acpi_device_uid(d)	((d)->pnp.unique_id)
-+#define acpi_device_hid(d)	((d)->pnp.hardware_id ? (d)->pnp.hardware_id : "\0")
-+#define acpi_device_uid(d)	((d)->pnp.unique_id ? (d)->pnp.unique_id : "\0")
- #define acpi_device_name(d)	((d)->pnp.device_name)
- #define acpi_device_class(d)	((d)->pnp.device_class)
- 
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
 ---
-Thanks,
-Lin Ming
 
-> 
-> >
-> > Looking at the old code, it *may* be that the ACPI code on my laptop is just
-> > busticated and/or there's no _HID method for the graphics card, and the old
-> > code Just Happened To Work in previous kernels because ->pnp.hardware_id
-> > wouldn't actually get set *at all* in acpi_device_set_id, so we'd get random
-> > stale data that was bogus, but didn't give strcmp() indigestion...
-> >
-> > Any wisdom on debugging this further (including how to tell if the ACPI
-> > tables have a sane _HID method for the graphics card) would be appreciated...
-> >
-> > Or is the correct fix in fact to just add a 'if (!hid) return -EINVAL;' to
-> > acpi_device_install_notify_handler()?
-> 
-> [PATCH mmotm] acpi: work around NULL hardware_id
-> 
-> Work around NULL pnp.hardware_id in acpi_device_install_notify_handler()
-> when probing video device.
-> 
-> Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-> ---
-> Signoff provided to handle the unlikely event that this hack
-> is actually the right fix!
-> 
->  drivers/acpi/scan.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- mmotm/drivers/acpi/scan.c   2009-07-17 12:53:20.000000000 +0100
-> +++ linux/drivers/acpi/scan.c   2009-07-17 21:19:10.000000000 +0100
-> @@ -376,12 +376,12 @@ static int acpi_device_install_notify_ha
->        char *hid;
-> 
->        hid = acpi_device_hid(device);
-> -       if (!strcmp(hid, ACPI_BUTTON_HID_POWERF))
-> +       if (hid && !strcmp(hid, ACPI_BUTTON_HID_POWERF))
->                status =
->                    acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
->                                                     acpi_device_notify_fixed,
->                                                     device);
-> -       else if (!strcmp(hid, ACPI_BUTTON_HID_SLEEPF))
-> +       else if (hid && !strcmp(hid, ACPI_BUTTON_HID_SLEEPF))
->                status =
->                    acpi_install_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
->                                                     acpi_device_notify_fixed,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+This code is the combination of two patches tested by Maciej.
+There are no changes to that code, only an updated changelog.
 
+I tested wifi on the G7000.  Maciej tested wifi and bluetooth.
+wwan is as yet untested; we are assuming the interface follows
+the same pattern as wifi and bluetooth.
+
+ drivers/platform/x86/hp-wmi.c |  139 +++++++++++++++++++++++++----------------
+ 1 files changed, 84 insertions(+), 55 deletions(-)
+
+diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+index ca50856..adb26d3 100644
+--- a/drivers/platform/x86/hp-wmi.c
++++ b/drivers/platform/x86/hp-wmi.c
+@@ -51,6 +51,12 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
+ #define HPWMI_WIRELESS_QUERY 0x5
+ #define HPWMI_HOTKEY_QUERY 0xc
+ 
++enum hp_wmi_radio {
++	HPWMI_WIFI = 0,
++	HPWMI_BLUETOOTH = 1,
++	HPWMI_WWAN = 2,
++};
++
+ static int __init hp_wmi_bios_setup(struct platform_device *device);
+ static int __exit hp_wmi_bios_remove(struct platform_device *device);
+ static int hp_wmi_resume_handler(struct platform_device *device);
+@@ -170,8 +176,8 @@ static int hp_wmi_tablet_state(void)
+ 
+ static int hp_wmi_set_block(void *data, bool blocked)
+ {
+-	unsigned long b = (unsigned long) data;
+-	int query = BIT(b + 8) | ((!blocked) << b);
++	enum hp_wmi_radio r = (enum hp_wmi_radio) data;
++	int query = BIT(r + 8) | ((!blocked) << r);
+ 
+ 	return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, query);
+ }
+@@ -180,31 +186,23 @@ static const struct rfkill_ops hp_wmi_rfkill_ops = {
+ 	.set_block = hp_wmi_set_block,
+ };
+ 
+-static bool hp_wmi_wifi_state(void)
++static bool hp_wmi_get_sw_state(enum hp_wmi_radio r)
+ {
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
++	int mask = 0x200 << (r * 8);
+ 
+-	if (wireless & 0x100)
++	if (wireless & mask)
+ 		return false;
+ 	else
+ 		return true;
+ }
+ 
+-static bool hp_wmi_bluetooth_state(void)
++static bool hp_wmi_get_hw_state(enum hp_wmi_radio r)
+ {
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
++	int mask = 0x800 << (r * 8);
+ 
+-	if (wireless & 0x10000)
+-		return false;
+-	else
+-		return true;
+-}
+-
+-static bool hp_wmi_wwan_state(void)
+-{
+-	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+-
+-	if (wireless & 0x1000000)
++	if (wireless & mask)
+ 		return false;
+ 	else
+ 		return true;
+@@ -329,49 +327,55 @@ static void hp_wmi_notify(u32 value, void *context)
+ 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	static struct key_entry *key;
+ 	union acpi_object *obj;
++	int eventcode;
+ 
+ 	wmi_get_event_data(value, &response);
+ 
+ 	obj = (union acpi_object *)response.pointer;
+ 
+-	if (obj && obj->type == ACPI_TYPE_BUFFER && obj->buffer.length == 8) {
+-		int eventcode = *((u8 *) obj->buffer.pointer);
+-		if (eventcode == 0x4)
+-			eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
+-							 0);
+-		key = hp_wmi_get_entry_by_scancode(eventcode);
+-		if (key) {
+-			switch (key->type) {
+-			case KE_KEY:
+-				input_report_key(hp_wmi_input_dev,
+-						 key->keycode, 1);
+-				input_sync(hp_wmi_input_dev);
+-				input_report_key(hp_wmi_input_dev,
+-						 key->keycode, 0);
+-				input_sync(hp_wmi_input_dev);
+-				break;
+-			}
+-		} else if (eventcode == 0x1) {
+-			input_report_switch(hp_wmi_input_dev, SW_DOCK,
+-					    hp_wmi_dock_state());
+-			input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
+-					    hp_wmi_tablet_state());
++	if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 8) {
++		printk(KERN_INFO "HP WMI: Unknown response received\n");
++		return;
++	}
++
++	eventcode = *((u8 *) obj->buffer.pointer);
++	if (eventcode == 0x4)
++		eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
++						0);
++	key = hp_wmi_get_entry_by_scancode(eventcode);
++	if (key) {
++		switch (key->type) {
++		case KE_KEY:
++			input_report_key(hp_wmi_input_dev,
++					 key->keycode, 1);
++			input_sync(hp_wmi_input_dev);
++			input_report_key(hp_wmi_input_dev,
++					 key->keycode, 0);
+ 			input_sync(hp_wmi_input_dev);
+-		} else if (eventcode == 0x5) {
+-			if (wifi_rfkill)
+-				rfkill_set_sw_state(wifi_rfkill,
+-						    hp_wmi_wifi_state());
+-			if (bluetooth_rfkill)
+-				rfkill_set_sw_state(bluetooth_rfkill,
+-						    hp_wmi_bluetooth_state());
+-			if (wwan_rfkill)
+-				rfkill_set_sw_state(wwan_rfkill,
+-						    hp_wmi_wwan_state());
+-		} else
+-			printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
+-			       eventcode);
++			break;
++		}
++	} else if (eventcode == 0x1) {
++		input_report_switch(hp_wmi_input_dev, SW_DOCK,
++				    hp_wmi_dock_state());
++		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
++				    hp_wmi_tablet_state());
++		input_sync(hp_wmi_input_dev);
++	} else if (eventcode == 0x5) {
++		if (wifi_rfkill)
++			rfkill_set_states(wifi_rfkill,
++					  hp_wmi_get_sw_state(HPWMI_WIFI),
++					  hp_wmi_get_hw_state(HPWMI_WIFI));
++		if (bluetooth_rfkill)
++			rfkill_set_states(bluetooth_rfkill,
++					  hp_wmi_get_sw_state(HPWMI_BLUETOOTH),
++					  hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
++		if (wwan_rfkill)
++			rfkill_set_states(wwan_rfkill,
++					  hp_wmi_get_sw_state(HPWMI_WWAN),
++					  hp_wmi_get_hw_state(HPWMI_WWAN));
+ 	} else
+-		printk(KERN_INFO "HP WMI: Unknown response received\n");
++		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
++			eventcode);
+ }
+ 
+ static int __init hp_wmi_input_setup(void)
+@@ -450,7 +454,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 		wifi_rfkill = rfkill_alloc("hp-wifi", &device->dev,
+ 					   RFKILL_TYPE_WLAN,
+ 					   &hp_wmi_rfkill_ops,
+-					   (void *) 0);
++					   (void *) HPWMI_WIFI);
++		rfkill_init_sw_state(wifi_rfkill,
++				     hp_wmi_get_sw_state(HPWMI_WIFI));
++		rfkill_set_hw_state(wifi_rfkill,
++				    hp_wmi_get_hw_state(HPWMI_WIFI));
+ 		err = rfkill_register(wifi_rfkill);
+ 		if (err)
+ 			goto register_wifi_error;
+@@ -460,7 +468,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 		bluetooth_rfkill = rfkill_alloc("hp-bluetooth", &device->dev,
+ 						RFKILL_TYPE_BLUETOOTH,
+ 						&hp_wmi_rfkill_ops,
+-						(void *) 1);
++						(void *) HPWMI_BLUETOOTH);
++		rfkill_init_sw_state(bluetooth_rfkill,
++				     hp_wmi_get_sw_state(HPWMI_BLUETOOTH));
++		rfkill_set_hw_state(bluetooth_rfkill,
++				    hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
+ 		err = rfkill_register(bluetooth_rfkill);
+ 		if (err)
+ 			goto register_bluetooth_error;
+@@ -470,7 +482,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 		wwan_rfkill = rfkill_alloc("hp-wwan", &device->dev,
+ 					   RFKILL_TYPE_WWAN,
+ 					   &hp_wmi_rfkill_ops,
+-					   (void *) 2);
++					   (void *) HPWMI_WWAN);
++		rfkill_init_sw_state(wwan_rfkill,
++				     hp_wmi_get_sw_state(HPWMI_WWAN));
++		rfkill_set_hw_state(wwan_rfkill,
++				    hp_wmi_get_hw_state(HPWMI_WWAN));
+ 		err = rfkill_register(wwan_rfkill);
+ 		if (err)
+ 			goto register_wwan_err;
+@@ -526,6 +542,19 @@ static int hp_wmi_resume_handler(struct platform_device *device)
+ 			    hp_wmi_tablet_state());
+ 	input_sync(hp_wmi_input_dev);
+ 
++	if (wifi_rfkill)
++		rfkill_set_states(wifi_rfkill,
++				  hp_wmi_get_sw_state(HPWMI_WIFI),
++				  hp_wmi_get_hw_state(HPWMI_WIFI));
++	if (bluetooth_rfkill)
++		rfkill_set_states(bluetooth_rfkill,
++				  hp_wmi_get_sw_state(HPWMI_BLUETOOTH),
++				  hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
++	if (wwan_rfkill)
++		rfkill_set_states(wwan_rfkill,
++				  hp_wmi_get_sw_state(HPWMI_WWAN),
++				  hp_wmi_get_hw_state(HPWMI_WWAN));
++
+ 	return 0;
+ }
+ 
+-- 
+1.6.3.2
