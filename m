@@ -1,121 +1,107 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v2 2/2] PCI Hotplug: acpiphp: get pci_bus from acpi handle correctly
-Date: Mon, 20 Jul 2009 14:55:43 -0600
-Message-ID: <200907201455.44959.bjorn.helgaas@hp.com>
-References: <20090714204823.18933.40768.stgit@bob.kio> <20090714205333.18933.73027.stgit@bob.kio>
+From: Valdis.Kletnieks@vt.edu
+Subject: mmotm 2009-07-16-14-32 - sudden OOPS at boot in ACPI code
+Date: Mon, 20 Jul 2009 22:52:18 -0400
+Message-ID: <9078.1248144738@turing-police.cc.vt.edu>
+References: <200907162134.n6GLY2kt019816@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: multipart/signed; boundary="==_Exmh_1248144738_4185P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:37089 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbZGTUzr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2009 16:55:47 -0400
-In-Reply-To: <20090714205333.18933.73027.stgit@bob.kio>
-Content-Disposition: inline
+Received: from turing-police.cc.vt.edu ([128.173.14.107]:50856 "EHLO
+	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754168AbZGUCxs (ORCPT
+	<RFC822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2009 22:53:48 -0400
+In-Reply-To: Your message of "Thu, 16 Jul 2009 14:34:02 PDT."
+             <200907162134.n6GLY2kt019816@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: jbarnes@virtuousgeek.org, lenb@kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 14 July 2009 02:53:33 pm Alex Chiang wrote:
-> We cannot simply call acpi_get_pci_dev() on any random ACPI handle
-> and hope that it works, because a PCI root bridge may not have
-> an associated struct pci_dev.
-> 
-> This is allowed per the PCI specification, and is referred to as a
-> non-materialized bridge.
-> 
-> So, depending on the type of PCI bridge that the handle points to,
-> use the appropriate interface to return the struct pci_bus correctly.
-> 
-> Signed-off-by: Alex Chiang <achiang@hp.com>
-> ---
-> 
->  drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++-----------
->  1 files changed, 16 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 0cb0f83..fa4658b 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -62,6 +62,21 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus);
->  static void acpiphp_set_hpp_values(acpi_handle handle, struct pci_bus *bus);
->  static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *context);
->  
-> +static struct pci_bus *pci_bus_from_handle(acpi_handle handle)
-> +{
-> +	struct pci_bus *pbus;
-> +
-> +	if (acpi_is_root_bridge(handle)) {
-> +		struct acpi_pci_root *root = acpi_pci_find_root(handle);
-> +		pbus = root->bus;
-> +	} else {
-> +		struct pci_dev *pdev = acpi_get_pci_dev(handle);
-> +		pbus = pdev->subordinate;
-> +		pci_dev_put(pdev);
-> +	}
-> +	return pbus;
+--==_Exmh_1248144738_4185P
+Content-Type: text/plain; charset=us-ascii
 
-I worry that acpi_is_root_bridge() merely checks the device IDs of
-"handle", which isn't quite the same as checking whether the pci_root
-driver has claimed "handle".
+On Thu, 16 Jul 2009 14:34:02 PDT, akpm@linux-foundation.org said:
+> The mm-of-the-moment snapshot 2009-07-16-14-32 has been uploaded to
 
-Are you confident that it's safe to move the pci_dev_put(), so it is
-released before configuring the bridge?
+Dies a horrid death during early boot. Dell Latitude D820, and this graphics:
 
-What do you think about something like this (even though the get/put
-is still a little clunky):
+01:00.0 VGA compatible controller: nVidia Corporation G72M [Quadro NVS 110M/GeForce Go 7300] (rev a1)
 
-	struct pci_dev *dev = NULL;
+Traceback (hand-copied from a very crappy cell-phone picture)
 
-	root = acpi_pci_find_root(handle);
-	if (root)
-		bus = root->bus;
-	else {
-		dev = acpi_get_pci_dev(handle);
-		if (dev)
-			bus = pdev->subordinate;
-		else {
-			err("cannot get PCI domain and bus number for bridge\n");
-			return -EINVAL;
-		}
-	}
+strcmp+0x4/0x1f
+acpi_device+probe+0xac/0x13e
+driver_probe_device+0xc9/0x14e
+__driver_attach+0x58/0x7c
+? __driver_attach+0x58/0x7c
+? __driver_attach+0x58/0x7c
+bus_for_each_dev+0x54/0x89
+driver_attach+0x19/0x1b
+bus_add_driver+0xv4/0x1fe
+driver_register+0xb7/0x128
+? acpi_video_init+0x0/0x17
+acpi_bus_register_driver+0x3e/0x42
+acpi_video_register+0x42/0x6e
+acpi_video_init+0x15/0x17
+do_one_initcall+0x56/0x130
 
-	pci_bus_size_bridges(bus);
-	...
-	if (dev)
-		pci_dev_put(dev);
-	return 0;
+Analysis shows it's the following code from (inlined) acpi_device_install_notify_handler
 
-> +}
-> +
->  /* callback routine to check for the existence of a pci dock device */
->  static acpi_status
->  is_pci_dock_device(acpi_handle handle, u32 lvl, void *context, void **rv)
-> @@ -1387,16 +1402,7 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
->  /* Program resources in newly inserted bridge */
->  static int acpiphp_configure_bridge (acpi_handle handle)
->  {
-> -	struct pci_dev *dev;
-> -	struct pci_bus *bus;
-> -
-> -	dev = acpi_get_pci_dev(handle);
-> -	if (!dev) {
-> -		err("cannot get PCI domain and bus number for bridge\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	bus = dev->bus;
-> +	struct pci_bus *bus = pci_bus_from_handle(handle);
->  
->  	pci_bus_size_bridges(bus);
->  	pci_bus_assign_resources(bus);
-> @@ -1404,7 +1410,6 @@ static int acpiphp_configure_bridge (acpi_handle handle)
->  	acpiphp_set_hpp_values(handle, bus);
->  	pci_enable_bridges(bus);
->  	acpiphp_configure_ioapics(handle);
-> -	pci_dev_put(dev);
->  	return 0;
->  }
+static int acpi_device_install_notify_handler(struct acpi_device *device)
+{
+        acpi_status status;
+        char *hid;
+
+        hid = acpi_device_hid(device);
+        if (!strcmp(hid, ACPI_BUTTON_HID_POWERF))
+
+but we never check if hid is non-trash before feeding it to strcmp.  Looks
+like something in this linux-next commit is involved:
+
+commit ed444824932d2a563858d82ec1ea29b0aa775e91
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Mon Jun 29 13:39:29 2009 +0800
+
+I suspect something in acpi_get_object_info() is going astray, causing
+acpi_device_set_id() to set the ->pnp.hardware_id to NULL in this code:
+
+        if (hid) {
+                device->pnp.hardware_id = ACPI_ALLOCATE_ZEROED(strlen (hid) + 1);
+                if (device->pnp.hardware_id) {
+                        strcpy(device->pnp.hardware_id, hid);
+                        device->flags.hardware_id = 1;
+                }
+        } else
+                device->pnp.hardware_id = NULL;
+
+The else clause is new in this commit.
+
+Looking at the old code, it *may* be that the ACPI code on my laptop is just
+busticated and/or there's no _HID method for the graphics card, and the old
+code Just Happened To Work in previous kernels because ->pnp.hardware_id
+wouldn't actually get set *at all* in acpi_device_set_id, so we'd get random
+stale data that was bogus, but didn't give strcmp() indigestion...
+
+Any wisdom on debugging this further (including how to tell if the ACPI
+tables have a sane _HID method for the graphics card) would be appreciated...
+
+Or is the correct fix in fact to just add a 'if (!hid) return -EINVAL;' to
+acpi_device_install_notify_handler()?
+
+
+
+--==_Exmh_1248144738_4185P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFKZS1icC3lWbTT17ARAmYFAJ9T+MK3vLcB0K84L338yq5VHbGMqQCg3g/C
+PzqP9kdWnkhEBm5ZruLbBbY=
+=L948
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1248144738_4185P--
