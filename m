@@ -1,62 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PM: Introduce core framework for run-time PM of I/O devices (rev. 10)
-Date: Wed, 22 Jul 2009 17:01:49 +0200
-Message-ID: <200907221701.50449.rjw@sisk.pl>
+Subject: [PATCH update] PM: Introduce core framework for run-time PM of I/O devices (rev. 11)
+Date: Wed, 22 Jul 2009 21:10:46 +0200
+Message-ID: <200907222110.47701.rjw@sisk.pl>
+References: <200907221701.50449.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39190 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40154 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601AbZGVPBf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Jul 2009 11:01:35 -0400
+	id S1751759AbZGVTKj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jul 2009 15:10:39 -0400
+In-Reply-To: <200907221701.50449.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Magnus Damm <magnus.damm@gmail.com>
-Cc: Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Magnus Damm <magnus.damm@gmail.com>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-Hi,
+On Wednesday 22 July 2009, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> Below is rev. 10 of the run-time PM framework patch.
+> 
+> The most visible change from the previous one is that the documentation is now
+> present again. :-)
+> 
+> Second, there's a check in pm_runtime_add() that will only increment the
+> parent's counter of 'active' children if the device current status is not
+> 'suspended'.
+> 
+> Comments welcome.
 
-Below is rev. 10 of the run-time PM framework patch.
+One more fix.
 
-The most visible change from the previous one is that the documentation is now
-present again. :-)
-
-Second, there's a check in pm_runtime_add() that will only increment the
-parent's counter of 'active' children if the device current status is not
-'suspended'.
-
-Comments welcome.
+I noticed that it might be invalid to increment the parent's power.child_count
+in pm_runtime_add() even with the check added previously.  For this reason I
+changed the initial power.runtime_status to RPM_SUSPENDED, which made
+pm_runtime_add() redundant and which should allow us to avoid the problem
+with increasing power.child_count at a wrong time.
 
 Best,
 Rafael
 
-
 ---
 From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: PM: Introduce core framework for run-time PM of I/O devices (rev. 10)
+Subject: PM: Introduce core framework for run-time PM of I/O devices (rev. 11)
 
 Introduce a core framework for run-time power management of I/O
 devices.  Add device run-time PM fields to 'struct dev_pm_info'
 and device run-time PM callbacks to 'struct dev_pm_ops'.  Introduce
 a run-time PM workqueue and define some device run-time PM helper
-functions at the core level.
+functions at the core level.  Document all these things.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- Documentation/power/runtime_pm.txt |  341 +++++++++++++
+ Documentation/power/runtime_pm.txt |  340 +++++++++++++
  drivers/base/dd.c                  |    7 
  drivers/base/power/Makefile        |    1 
- drivers/base/power/main.c          |   22 
+ drivers/base/power/main.c          |   20 
  drivers/base/power/power.h         |   11 
- drivers/base/power/runtime.c       |  959 +++++++++++++++++++++++++++++++++++++
+ drivers/base/power/runtime.c       |  946 +++++++++++++++++++++++++++++++++++++
  include/linux/pm.h                 |  102 +++
- include/linux/pm_runtime.h         |  113 ++++
+ include/linux/pm_runtime.h         |  111 ++++
  kernel/power/Kconfig               |   14 
  kernel/power/main.c                |   17 
- 10 files changed, 1576 insertions(+), 11 deletions(-)
+ 10 files changed, 1558 insertions(+), 11 deletions(-)
 
 Index: linux-2.6/kernel/power/Kconfig
 ===================================================================
@@ -271,7 +281,7 @@ Index: linux-2.6/drivers/base/power/runtime.c
 ===================================================================
 --- /dev/null
 +++ linux-2.6/drivers/base/power/runtime.c
-@@ -0,0 +1,959 @@
+@@ -0,0 +1,946 @@
 +/*
 + * drivers/base/power/runtime.c - Helper functions for device run-time PM
 + *
@@ -1003,13 +1013,13 @@ Index: linux-2.6/drivers/base/power/runtime.c
 +		spin_lock_irq(&parent->power.lock);
 +
 +		/*
-+		 * It is invalid to put an active child under a suspended parent
-+		 * that has run-time PM enabled and the 'power.ignore_children'
-+		 * flag unset.
++		 * It is invalid to put an active child under a parent that is
++		 * not active, has run-time PM enabled and the
++		 * 'power.ignore_children' flag unset.
 +		 */
 +		if (!parent->power.disable_depth
-+		    && parent->power.runtime_status == RPM_SUSPENDED
-+		    && !parent->power.ignore_children) {
++		    && !parent->power.ignore_children
++		    && parent->power.runtime_status != RPM_ACTIVE) {
 +			error = -EBUSY;
 +		} else {
 +			if (dev->power.runtime_status == RPM_SUSPENDED)
@@ -1173,7 +1183,7 @@ Index: linux-2.6/drivers/base/power/runtime.c
 +{
 +	spin_lock_init(&dev->power.lock);
 +
-+	dev->power.runtime_status = RPM_ACTIVE;
++	dev->power.runtime_status = RPM_SUSPENDED;
 +	dev->power.idle_notification = false;
 +
 +	dev->power.disable_depth = 1;
@@ -1199,35 +1209,22 @@ Index: linux-2.6/drivers/base/power/runtime.c
 +}
 +
 +/**
-+ * pm_runtime_add - Update run-time PM fields of a device while adding it.
-+ * @dev: Device object being added to device hierarchy.
-+ */
-+void pm_runtime_add(struct device *dev)
-+{
-+	if (!dev->parent)
-+		return;
-+
-+	spin_lock_irq(&dev->power.lock);
-+
-+	if (dev->power.runtime_status != RPM_SUSPENDED)
-+		atomic_inc(&dev->parent->power.child_count);
-+
-+	spin_unlock_irq(&dev->power.lock);
-+}
-+
-+/**
 + * pm_runtime_remove - Prepare for removing a device from device hierarchy.
 + * @dev: Device object being removed from device hierarchy.
 + */
 +void pm_runtime_remove(struct device *dev)
 +{
-+	struct device *parent = dev->parent;
-+
 +	pm_runtime_disable(dev);
 +
-+	if (dev->power.runtime_status != RPM_SUSPENDED && parent) {
-+		atomic_add_unless(&parent->power.child_count, -1, 0);
-+		if (!parent->power.ignore_children)
++	if (dev->power.runtime_status == RPM_ACTIVE) {
++		struct device *parent = dev->parent;
++
++		/*
++		 * Change the status back to 'suspended' to match the initial
++		 * status.
++		 */
++		pm_runtime_set_suspended(dev);
++		if (parent && !parent->power.ignore_children)
 +			pm_request_idle(parent);
 +	}
 +}
@@ -1235,7 +1232,7 @@ Index: linux-2.6/include/linux/pm_runtime.h
 ===================================================================
 --- /dev/null
 +++ linux-2.6/include/linux/pm_runtime.h
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,111 @@
 +/*
 + * pm_runtime.h - Device run-time power management helper functions.
 + *
@@ -1255,7 +1252,6 @@ Index: linux-2.6/include/linux/pm_runtime.h
 +extern struct workqueue_struct *pm_wq;
 +
 +extern void pm_runtime_init(struct device *dev);
-+extern void pm_runtime_add(struct device *dev);
 +extern void pm_runtime_remove(struct device *dev);
 +extern int pm_runtime_idle(struct device *dev);
 +extern int pm_runtime_suspend(struct device *dev);
@@ -1293,7 +1289,6 @@ Index: linux-2.6/include/linux/pm_runtime.h
 +#else /* !CONFIG_PM_RUNTIME */
 +
 +static inline void pm_runtime_init(struct device *dev) {}
-+static inline void pm_runtime_add(struct device *dev) {}
 +static inline void pm_runtime_remove(struct device *dev) {}
 +static inline int pm_runtime_idle(struct device *dev) { return -ENOSYS; }
 +static inline int pm_runtime_suspend(struct device *dev) { return -ENOSYS; }
@@ -1378,16 +1373,7 @@ Index: linux-2.6/drivers/base/power/main.c
   *	device_pm_lock - lock the list of active devices used by the PM core
   */
  void device_pm_lock(void)
-@@ -89,6 +100,8 @@ void device_pm_add(struct device *dev)
- 
- 	list_add_tail(&dev->power.entry, &dpm_list);
- 	mutex_unlock(&dpm_list_mtx);
-+
-+	pm_runtime_add(dev);
- }
- 
- /**
-@@ -105,6 +118,8 @@ void device_pm_remove(struct device *dev
+@@ -105,6 +116,8 @@ void device_pm_remove(struct device *dev
  	mutex_lock(&dpm_list_mtx);
  	list_del_init(&dev->power.entry);
  	mutex_unlock(&dpm_list_mtx);
@@ -1396,7 +1382,7 @@ Index: linux-2.6/drivers/base/power/main.c
  }
  
  /**
-@@ -512,6 +527,7 @@ static void dpm_complete(pm_message_t st
+@@ -512,6 +525,7 @@ static void dpm_complete(pm_message_t st
  			mutex_unlock(&dpm_list_mtx);
  
  			device_complete(dev, state);
@@ -1404,7 +1390,7 @@ Index: linux-2.6/drivers/base/power/main.c
  
  			mutex_lock(&dpm_list_mtx);
  		}
-@@ -757,11 +773,15 @@ static int dpm_prepare(pm_message_t stat
+@@ -757,11 +771,15 @@ static int dpm_prepare(pm_message_t stat
  		dev->power.status = DPM_PREPARING;
  		mutex_unlock(&dpm_list_mtx);
  
@@ -1505,7 +1491,7 @@ Index: linux-2.6/Documentation/power/runtime_pm.txt
 ===================================================================
 --- /dev/null
 +++ linux-2.6/Documentation/power/runtime_pm.txt
-@@ -0,0 +1,341 @@
+@@ -0,0 +1,340 @@
 +Run-time Power Management Framework for I/O Devices
 +
 +(C) 2009 Rafael J. Wysocki <rjw@sisk.pl>, Novell Inc.
@@ -1699,7 +1685,8 @@ Index: linux-2.6/Documentation/power/runtime_pm.txt
 +
 +  unsigned int disable_depth;
 +    - used for disabling the helper funcions (they work normally if this is
-+      equal to zero)
++      equal to zero); the initial value of it is 1 (i.e. run-time PM is
++      initially disabled for all devices)
 +
 +  unsigned int runtime_failure;
 +    - if set, there was a fatal error (one of the callbacks returned error code
@@ -1726,7 +1713,9 @@ Index: linux-2.6/Documentation/power/runtime_pm.txt
 +      suspended"
 +
 +  enum rpm_status runtime_status;
-+    - the run-time PM status of the device
++    - the run-time PM status of the device; this field's initial value is
++      RPM_SUSPENDED, which means that each device is initially regarded by the
++      PM core as 'suspended', regardless of its real hardware status
 +
 +All of the above fields are members of the 'power' member of 'struct device'.
 +
@@ -1737,10 +1726,6 @@ Index: linux-2.6/Documentation/power/runtime_pm.txt
 +
 +  void pm_runtime_init(struct device *dev);
 +    - initialize the device run-time PM fields in 'struct dev_pm_info'
-+
-+  void pm_runtime_add(struct device *dev);
-+    - prepare the device run-time PM fields for adding the device to device
-+      hierarchy
 +
 +  void pm_runtime_remove(struct device *dev);
 +    - make sure that the run-time PM of the device will be disabled after
@@ -1826,7 +1811,7 @@ Index: linux-2.6/Documentation/power/runtime_pm.txt
 +      children as appropriate (it is only valid to use this function if
 +      'power.runtime_failure' is set or 'power.disable_depth' is greater than
 +      zero); it will fail and return error code if the device has a parent
-+      which is suspended and the 'power.ignore_children' flag of which is unset
++      which is not active and the 'power.ignore_children' flag of which is unset
 +
 +  void pm_runtime_set_suspended(struct device *dev);
 +    - clear the device's 'power.runtime_error' flag, set the device's run-time
