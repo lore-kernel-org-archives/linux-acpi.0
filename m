@@ -1,140 +1,132 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: next: sfi build fails when !CONFIG_ACPI
-Date: Thu, 23 Jul 2009 07:53:51 -0700
-Message-ID: <20090723075351.ca41bc81.randy.dunlap@oracle.com>
-References: <a4423d670907160148n66760052wbef60e4a2c3c7941@mail.gmail.com>
-	<20090722150617.13c24350.randy.dunlap@oracle.com>
-	<20090723163322.615e1f8e@feng-desktop>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: [PATCH] hp-wmi: improve rfkill support
+Date: Thu, 23 Jul 2009 17:31:45 +0200
+Message-ID: <8db1092f0907230831w1255d0bey951342fb61b67c1e@mail.gmail.com>
+References: <4A65A2F9.1060509@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20090723163322.615e1f8e@feng-desktop>
-Sender: linux-next-owner@vger.kernel.org
-To: Feng Tang <feng.tang@intel.com>
-Cc: Alexander Beregalov <a.beregalov@gmail.com>, linux-next <linux-next@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:54938 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792AbZGWPbq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2009 11:31:46 -0400
+In-Reply-To: <4A65A2F9.1060509@tuffmail.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Matthew Garrett <mjg@redhat.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Thu, 23 Jul 2009 16:33:22 +0800 Feng Tang wrote:
+2009/7/21 Alan Jenkins <alan-jenkins@tuffmail.co.uk>:
+> 1) Add support for reading the hardware blocked state. =C2=A0Previous=
+ly
+> =C2=A0 we read a combination of the hardware and software blocked sta=
+tes,
+> =C2=A0 reporting it as the software blocked state. =C2=A0This caused =
+some
+> =C2=A0 confusing behaviour.
+>
+> 2) The software state is persistent, mark it as such.
+>
+> 3) Check rfkill in the resume handler. =C2=A0Both the hard and soft
+> =C2=A0 blocked states may change over hibernation.
+>
+> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
 
-> On Thu, 23 Jul 2009 06:06:17 +0800
-> Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> 
-> > On Thu, 16 Jul 2009 12:48:01 +0400 Alexander Beregalov wrote:
-> > 
-> > > Hi
-> > > 
-> > > drivers/sfi/sfi_core.c: In function 'sfi_init':
-> > > drivers/sfi/sfi_core.c:346: error: 'acpi_disabled' undeclared (first
-> > > use in this function)
-> > > drivers/sfi/sfi_core.c:346: error: (Each undeclared identifier is
-> > > reported only once
-> > > drivers/sfi/sfi_core.c:346: error: for each function it appears in.)
-> > > 
-> > > 
-> > > $ grep ACPI .config
-> > > # Power management and ACPI options
-> > > --
-> > 
-> > next-20090722 still fails on x86_32 when SFI=y & ACPI=n:
-> > 
-> > arch/x86/pci/mmconfig_32.c:34: error: invalid use of undefined type
-> > 'struct acpi_mcfg_allocation' arch/x86/pci/mmconfig_32.c:34: error:
-> > dereferencing pointer to incomplete type
-> > arch/x86/pci/mmconfig_32.c:35: error: dereferencing pointer to
-> > incomplete type arch/x86/pci/mmconfig_32.c:36: error: dereferencing
-> > pointer to incomplete type arch/x86/pci/mmconfig_32.c:37: error:
-> > dereferencing pointer to incomplete type
-> > arch/x86/pci/mmconfig_32.c:38: error: dereferencing pointer to
-> > incomplete type
-> > 
-> > config is attached.
-> Hi Randy,
-> 
-> Thanks for the catch. Could you try the following patch? thanks!
+It's this patch is added to -rc4? I one case I have strange behaviour.
 
-Works for me.  Thanks.
+Before disable by button:
+root@gumis:/home/maciek/Desktop# rfkill list
+2: hp-wifi: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+3: hp-bluetooth: Bluetooth
+        Soft blocked: no
+        Hard blocked: no
+16: hci0: Bluetooth
+        Soft blocked: no
+        Hard blocked: no
+17: phy7: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+=09
+Disable by button:
+root@gumis:/home/maciek/Desktop# rfkill list
+2: hp-wifi: Wireless LAN
+        Soft blocked: yes
+        Hard blocked: no
+3: hp-bluetooth: Bluetooth
+        Soft blocked: yes
+        Hard blocked: no
+17: phy7: Wireless LAN
+        Soft blocked: no
+        Hard blocked: yes
+=09
+I do s2disk. After resume from suspend to disk (still disabled by butto=
+n):
+root@gumis:/home/maciek/Desktop# rfkill list
+2: hp-wifi: Wireless LAN
+        Soft blocked: yes
+        Hard blocked: no
+3: hp-bluetooth: Bluetooth
+        Soft blocked: yes
+        Hard blocked: no
+18: phy8: Wireless LAN
+        Soft blocked: no
+        Hard blocked: yes
+=09
+Try enable by button:
+root@gumis:/home/maciek/Desktop# rfkill list
+2: hp-wifi: Wireless LAN
+        Soft blocked: yes
+        Hard blocked: no
+3: hp-bluetooth: Bluetooth
+        Soft blocked: yes
+        Hard blocked: no
+18: phy8: Wireless LAN
+        Soft blocked: no
+        Hard blocked: yes
+=09
+Nothing change (LED, wireless and bluetooth don't work). To enable it
+I use this script rfkill.sh (I must use rfkill program):
 
+#!/bin/sh
+PROGRAM=3D/usr/local/sbin/rfkill
+WIFI=3D`$PROGRAM list | grep -E 'Wireless|Bluetooth' | cut -d  ':' -f 1=
+`
 
-> - Feng
-> 
-> diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-> index 25a0d9f..e89bf33 100644
-> --- a/arch/x86/pci/mmconfig-shared.c
-> +++ b/arch/x86/pci/mmconfig-shared.c
-> @@ -557,15 +557,15 @@ static int __init pci_parse_mcfg(struct acpi_table_header *header)
->  		i -= sizeof(struct acpi_mcfg_allocation);
->  	};
->  	if (pci_mmcfg_config_num == 0) {
-> -		printk(KERN_ERR PREFIX "MMCONFIG has no entries\n");
-> +		printk(KERN_ERR "PCI: MMCONFIG has no entries\n");
->  		return -ENODEV;
->  	}
->  
->  	config_size = pci_mmcfg_config_num * sizeof(*pci_mmcfg_config);
->  	pci_mmcfg_config = kmalloc(config_size, GFP_KERNEL);
->  	if (!pci_mmcfg_config) {
-> -		printk(KERN_WARNING PREFIX
-> -		       "No memory for MCFG config tables\n");
-> +		printk(KERN_WARNING
-> +		       "PCI: No memory for MCFG config tables\n");
->  		return -ENOMEM;
->  	}
->  
-> @@ -576,8 +576,8 @@ static int __init pci_parse_mcfg(struct acpi_table_header *header)
->  	for (i = 0; i < pci_mmcfg_config_num; ++i) {
->  		if ((pci_mmcfg_config[i].address > 0xFFFFFFFF) &&
->  		    !acpi_mcfg_64bit_base_addr) {
-> -			printk(KERN_ERR PREFIX
-> -			       "MMCONFIG not in low 4GB of memory\n");
-> +			printk(KERN_ERR
-> +			       "PCI: MMCONFIG not in low 4GB of memory\n");
->  			kfree(pci_mmcfg_config);
->  			pci_mmcfg_config_num = 0;
->  			return -ENODEV;
-> @@ -609,7 +609,9 @@ static void __init __pci_mmcfg_init(int early)
->  	if (!known_bridge)
->  		x86_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
->  
-> +#ifdef CONFIG_ACPI
->  	pci_mmcfg_reject_broken(early);
-> +#endif
->  
->  	if ((pci_mmcfg_config_num == 0) ||
->  	    (pci_mmcfg_config == NULL) ||
-> diff --git a/arch/x86/pci/mmconfig_32.c b/arch/x86/pci/mmconfig_32.c
-> index 8b2d561..f10a7e9 100644
-> --- a/arch/x86/pci/mmconfig_32.c
-> +++ b/arch/x86/pci/mmconfig_32.c
-> @@ -11,9 +11,9 @@
->  
->  #include <linux/pci.h>
->  #include <linux/init.h>
-> -#include <linux/acpi.h>
->  #include <asm/e820.h>
->  #include <asm/pci_x86.h>
-> +#include <acpi/acpi.h>
->  
->  /* Assume systems with more busses have correct MCFG */
->  #define mmcfg_virt_addr ((void __iomem *) fix_to_virt(FIX_PCIE_MCFG))
-> diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
-> index 356d0a2..3c645bb 100644
-> --- a/include/linux/sfi_acpi.h
-> +++ b/include/linux/sfi_acpi.h
-> @@ -50,8 +50,10 @@ extern int sfi_acpi_table_parse(char *signature, char *oem_id,
->  static inline int x86_table_parse(char *signature,
->  				int (*handler)(struct acpi_table_header *))
->  {
-> +#ifdef CONFIG_ACPI
->  	if (!acpi_table_parse(signature, handler))
->  		return 0;
-> +#endif
->  
->  	return sfi_acpi_table_parse(signature, NULL, NULL, handler);
->  }
+for DEVICE in $WIFI; do
+  echo $DEVICE
+  $PROGRAM unblock $DEVICE
+done
 
+Then works OK:
+root@gumis:/home/maciek/Desktop# ./rfkill.sh
+2
+3
+18
+root@gumis:/home/maciek/Desktop# rfkill list
+2: hp-wifi: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+3: hp-bluetooth: Bluetooth
+        Soft blocked: no
+        Hard blocked: no
+18: phy8: Wireless LAN
+        Soft blocked: no
+        Hard blocked: no
+19: hci0: Bluetooth
+        Soft blocked: no
+        Hard blocked: no
+=09
+It's normal behaviour?
 
----
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
+--=20
+Maciej Rutecki
+http://www.maciek.unixy.pl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
