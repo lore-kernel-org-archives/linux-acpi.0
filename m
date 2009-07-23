@@ -1,117 +1,77 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: [PATCH] hp-wmi: improve rfkill support
-Date: Thu, 23 Jul 2009 21:36:14 +0200
-Message-ID: <8db1092f0907231236x54972749p9f535f696c9b008f@mail.gmail.com>
-References: <4A65A2F9.1060509@tuffmail.co.uk>
-	 <8db1092f0907230831w1255d0bey951342fb61b67c1e@mail.gmail.com>
-	 <4A68AB8F.9020609@tuffmail.co.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Generic events for wake up from S1-S4
+Date: Thu, 23 Jul 2009 23:27:59 +0200
+Message-ID: <200907232328.03566.rjw@sisk.pl>
+References: <43e72e890907150851m69cd2de6lfb71596fbfac30e6@mail.gmail.com> <20090723195114.GR28158@elf.ucw.cz> <20090723201050.GD19369@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f228.google.com ([209.85.218.228]:37283 "EHLO
-	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713AbZGWTgS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2009 15:36:18 -0400
-In-Reply-To: <4A68AB8F.9020609@tuffmail.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754586AbZGWV1j@vger.kernel.org>
+In-Reply-To: <20090723201050.GD19369@khazad-dum.debian.net>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Pavel Machek <pavel@ucw.cz>, "Luis R. Rodriguez" <mcgrof@gmail.com>, linux-kernel@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, "John W. Linville" <linville@tuxdriver.com>, Jouni Malinen <j@w1.fi>, linux-wireless <linux-wireless@vger.kernel.org>, Stephen Chen <Stephen.Chen@atheros.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Matthew Garrett <mjg@redhat.com>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-2009/7/23 Alan Jenkins <alan-jenkins@tuffmail.co.uk>:
+On Thursday 23 July 2009, Henrique de Moraes Holschuh wrote:
+> On Thu, 23 Jul 2009, Pavel Machek wrote:
+> > On Thu 2009-07-23 16:45:22, Henrique de Moraes Holschuh wrote:
+> > > On Thu, 23 Jul 2009, Pavel Machek wrote:
+> > > > > > Note that the "why" is unreliable by design. Network driver will
+> > > > > > ignore WoL during run-time, right?
+> > > > > 
+> > > > > "Why" is unrealible?  I don't follow your reasoning.  It should be as
+> > > > > reliable as "who"...
+> > > > 
+> > > > See above. The wakeup events race with each other.
+> > > 
+> > > We deliver them all.  It is that simple.  The rest is up to userspace.
+> > 
+> > Ok, but then we should not be talking about wake up events,
+> > but... events.
+> > 
+> > Like "lid opened", "wake packet came", ... . And deliver them even
+> > when they happen during run-time. That's okay with me.
+> 
+> Well, we *already* deliver "lid opened" when the lid is opened, regardless
+> of it waking up the computer or not.  But we are missing a way to deliver
+> other classes of wakeup events.
+> 
+> I know of at least these (incomplete list):
+> 
+> 1. network-initiated wakeup
+>    a. wired
+>    b. wireless
+>    c. long-range wireless
+> 
+> 2. platform health/condition alarms
+>    a. battery alarm (two levels, warning and emergency)
+>    b. thermal alarm (two levels, warning and emergency)
+>    (we need these as generic alarms, not just reason-for-wakeup)
+> 
+> 3. device (or device tree) hotplug/hotunplug
+>    a. hotunplug request or notification
+>       (we deliver the request/notification, but we don't know we should
+>       go back to sleep, so all we are missing is the reason-for-wakeup
+>       event)
+> 
+> 4. management
+>    a. wake-up/power on clock
+>    b. remote management command (IMPI, etc)
+>    c. intrusion alarm
+>    d. theft alarm
+> 
+> None of those have a standard interface to notify userspace of the reason of
+> the wake up AFAIK.  Many of these want a generic event interface to be
+> delivered not just as reason-for-wakeup, but also as runtime events.
+> 
+> And I guess we should also tell userspace what state we are waking up from
+> (S5 clean state, S5/S4 hibernation, S3), sometimes it matters.
 
->
-> That's a bug. =C2=A0You're saying this is in -rc4, without applying m=
-y patch?
+Agreed, and same for the above.
 
-Yes
+So, what in your opinion would be the best way to expose this information?
 
->
-> I think I know exactly what is happening. =C2=A0Apply my patch, and i=
-t will go
-> away :-).
-
-Yes. I add Your patch to -rc4 and rfkill works OK:
-Enable by button:
-root@gumis:/home/maciek# rfkill list
-0: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-1: hci0: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-
-Disable by button:
-root@gumis:/home/maciek# rfkill list
-0: phy0: Wireless LAN
-        Soft blocked: no
-        Hard blocked: yes
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-
-After resume from s2disk:
-root@gumis:/home/maciek# rfkill list
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-4: phy1: Wireless LAN
-        Soft blocked: no
-        Hard blocked: yes
-
-(are some differences after and before s2disk)
-
-Enable by button:
-root@gumis:/home/maciek# rfkill list
-2: hp-wifi: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-3: hp-bluetooth: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-4: phy1: Wireless LAN
-        Soft blocked: no
-        Hard blocked: no
-5: hci0: Bluetooth
-        Soft blocked: no
-        Hard blocked: no
-
-And wifi/bluetooth works without manual enable. Thanks.
-
->
-> I'm not sure this is a new bug though. =C2=A0It might be triggered by=
- the big
-> rfkill rewrite, but I don't see how that could happen. =C2=A0Can you =
-confirm if
-> this happens in 2.6.30?
-
-2.6.30 works OK
-
->
-> Thanks
-> Alan
->
-
-
-Regards
---=20
-Maciej Rutecki
-http://www.maciek.unixy.pl
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
