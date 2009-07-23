@@ -1,51 +1,99 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v3 0/2] export acpi_pci_root to find pci_bus correctly
-Date: Thu, 23 Jul 2009 17:02:55 -0600
-Message-ID: <20090723230026.4247.12759.stgit@bob.kio>
+Subject: [PATCH v3 1/2] ACPI: export acpi_pci_root and friends
+Date: Thu, 23 Jul 2009 17:03:00 -0600
+Message-ID: <20090723230300.4247.75347.stgit@bob.kio>
+References: <20090723230026.4247.12759.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:13735 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753862AbZGWXEY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2009 19:04:24 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090723230026.4247.12759.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
 To: jbarnes@virtuousgeek.org, lenb@kernel.org
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-pci@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-This is v3 of a patch series that:
+We can simplify ACPI drivers if we can tell whether a handle is an
+ACPI PCI root or not.
 
-	a) exports struct acpi_pci_root
-	b) fixes an assumption in acpiphp about finding struct pci_bus
-
-It's a minimal fix that's aimed at -rc5, as (b) fixes an assumption
-introduced in -rc1.
-
-I'll send the rest of the cleanups for linux-next later, after doing
-some more testing.
-
-Original thread here:
-	http://thread.gmane.org/gmane.linux.kernel.pci/5080
-
-v2 -> v3:
-	- don't depend on acpi_is_root_bridge (Bjorn Helgaas)
-
-v1 -> v2:
-	- fixed build error in acpi_pci_root
-	- reduced patch series in scope to be much smaller
-
-
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
-Alex Chiang (2):
-      ACPI: export acpi_pci_root and friends
-      PCI Hotplug: acpiphp: get pci_bus from acpi handle correctly
+ drivers/acpi/pci_root.c |   17 ++---------------
+ include/acpi/acpi_bus.h |   16 ++++++++++++++++
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
-
- drivers/acpi/pci_root.c            |   17 ++---------------
- drivers/pci/hotplug/acpiphp_glue.c |   28 +++++++++++++++++-----------
- include/acpi/acpi_bus.h            |   16 ++++++++++++++++
- 3 files changed, 35 insertions(+), 26 deletions(-)
-
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 55b5b90..31b961c 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -61,20 +61,6 @@ static struct acpi_driver acpi_pci_root_driver = {
+ 		},
+ };
+ 
+-struct acpi_pci_root {
+-	struct list_head node;
+-	struct acpi_device *device;
+-	struct pci_bus *bus;
+-	u16 segment;
+-	u8 bus_nr;
+-
+-	u32 osc_support_set;	/* _OSC state of support bits */
+-	u32 osc_control_set;	/* _OSC state of control bits */
+-	u32 osc_control_qry;	/* the latest _OSC query result */
+-
+-	u32 osc_queried:1;	/* has _OSC control been queried? */
+-};
+-
+ static LIST_HEAD(acpi_pci_roots);
+ 
+ static struct acpi_pci_driver *sub_driver;
+@@ -317,7 +303,7 @@ static acpi_status acpi_pci_osc_support(struct acpi_pci_root *root, u32 flags)
+ 	return status;
+ }
+ 
+-static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
++struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+ {
+ 	struct acpi_pci_root *root;
+ 
+@@ -327,6 +313,7 @@ static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+ 	}
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(acpi_pci_find_root);
+ 
+ struct acpi_handle_node {
+ 	struct list_head node;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index c65e4ce..c3ace75 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -369,10 +369,26 @@ int register_acpi_bus_type(struct acpi_bus_type *);
+ int unregister_acpi_bus_type(struct acpi_bus_type *);
+ struct device *acpi_get_physical_device(acpi_handle);
+ 
++struct acpi_pci_root {
++	struct list_head node;
++	struct acpi_device * device;
++	struct acpi_pci_id id;
++	struct pci_bus *bus;
++	u16 segment;
++	u8 bus_nr;
++
++	u32 osc_support_set;	/* _OSC state of support bits */
++	u32 osc_control_set;	/* _OSC state of control bits */
++	u32 osc_control_qry;	/* the latest _OSC query result */
++
++	u32 osc_queried:1;	/* has _OSC control been queried? */
++};
++
+ /* helper */
+ acpi_handle acpi_get_child(acpi_handle, acpi_integer);
+ int acpi_is_root_bridge(acpi_handle);
+ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
++struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
+ #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
+ 
+ #ifdef CONFIG_PM_SLEEP
