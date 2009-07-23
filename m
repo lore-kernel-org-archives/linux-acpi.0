@@ -1,68 +1,72 @@
-From: Alexander Beregalov <a.beregalov@gmail.com>
-Subject: Re: next: sfi build fails when !CONFIG_ACPI
-Date: Thu, 23 Jul 2009 15:28:29 +0400
-Message-ID: <a4423d670907230428g48cd2b70wf3d26d2c1378503f@mail.gmail.com>
-References: <a4423d670907160148n66760052wbef60e4a2c3c7941@mail.gmail.com>
-	 <alpine.LFD.2.00.0907162145140.3531@sony-vgn-z540>
-	 <a4423d670907170657o2c68c479j9b4810af5adad29f@mail.gmail.com>
-	 <a4423d670907230143l78f324dewefa4cb8990ef4266@mail.gmail.com>
-	 <20090723181525.475692d3@feng-desktop>
+From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: Re: early_ioremap messages with old ASUS board
+Date: Thu, 23 Jul 2009 07:39:12 -0700
+Message-ID: <86802c440907230739ufe30b4cocc4b16faacc009c4@mail.gmail.com>
+References: <1248351634.7237.32.camel@fnki-nb00130>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754003AbZGWL2c@vger.kernel.org>
-In-Reply-To: <20090723181525.475692d3@feng-desktop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Feng Tang <feng.tang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-next <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=000e0cd4860c8aa81c046f607393
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.26]:50229 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432AbZGWOjN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2009 10:39:13 -0400
+In-Reply-To: <1248351634.7237.32.camel@fnki-nb00130>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jens Rosenboom <jens@leia.mcbone.net>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Len
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-2009/7/23 Feng Tang <feng.tang@intel.com>:
-> On Thu, 23 Jul 2009 16:43:30 +0800
-> Alexander Beregalov <a.beregalov@gmail.com> wrote:
->
->> 2009/7/17 Alexander Beregalov <a.beregalov@gmail.com>:
->> > 2009/7/17 Len Brown <lenb@kernel.org>:
->> >>> drivers/sfi/sfi_core.c: In function 'sfi_init':
->> >>> drivers/sfi/sfi_core.c:346: error: 'acpi_disabled' undeclared
->> >>> (first use in this function)
->> >>> drivers/sfi/sfi_core.c:346: error: (Each undeclared identifier i=
-s
->> >>> reported only once
->> >>> drivers/sfi/sfi_core.c:346: error: for each function it appears
->> >>> in.)
->> >>>
->> >>>
->> >>> $ grep ACPI .config
->> >>> # Power management and ACPI options
->> >>
->> >> It builds for me.
->> >> Please send me the complete failing .config
->> >
->> > Attached (x86_64)
->>
->> Still fails for me in the same way,
->> X86_64
->> next-20090723
->
-> sorry for the late response, please try the following patch:
-It obviously works. Thanks
+--000e0cd4860c8aa81c046f607393
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
->
-> diff --git a/drivers/sfi/sfi_core.c b/drivers/sfi/sfi_core.c
-> index 62e2f98..fa66824 100644
-> --- a/drivers/sfi/sfi_core.c
-> +++ b/drivers/sfi/sfi_core.c
-> @@ -361,9 +361,6 @@ static __init int sfi_find_syst(void)
->
-> =C2=A0void __init sfi_init(void)
-> =C2=A0{
-> - =C2=A0 =C2=A0 =C2=A0 if (!acpi_disabled)
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 disable_sfi();
-> -
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (sfi_disabled)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return;
->
-> Thanks,
-> Feng
->
+please try attached ...
+
+YH
+
+--000e0cd4860c8aa81c046f607393
+Content-Type: text/x-diff; charset=US-ASCII; name="acpi_processor.patch"
+Content-Disposition: attachment; filename="acpi_processor.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fxhl7sc70
+
+W1BBVENIXSBhY3BpOiBkb24ndCBjYWxsIGFjcGlfcHJvY2Vzc29yX2luaXQgaWYgYWNwaSBpcyBk
+aXNhYmxlZAoKSmVucyByZXBvcnRlZCBlYXJseV9pb3JlbWFwIG1lc3NhZ2VzIHdpdGggb2xkIEFT
+VVMgYm9hcmQuLi4KCj4gWyAgICAxLjUwNzQ2MV0gcGNpIDAwMDA6MDA6MDkuMDogRmlybXdhcmUg
+bGVmdCBlMTAwIGludGVycnVwdHMgZW5hYmxlZDsKPiBkaXNhYmxpbmcKPiBbICAgIDEuNTMyNzc4
+XSBlYXJseV9pb3JlbWFwKDNmZmZkMDgwLCAwMDAwMDA1YykgWzBdID0+IFBpZDogMSwgY29tbToK
+PiBzd2FwcGVyIE5vdCB0YWludGVkIDIuNi4zMS1yYzQgIzM2Cj4gWyAgICAxLjU2MTAwN10gQ2Fs
+bCBUcmFjZToKPiBbICAgIDEuNTY4NjM4XSAgWzxjMTM2ZTQ4Yj5dID8gcHJpbnRrKzB4MTgvMHgx
+ZAo+IFsgICAgMS41ODE3MzRdICBbPGMxNTUxM2ZmPl0gX19lYXJseV9pb3JlbWFwKzB4NzQvMHgx
+ZTkKPiBbICAgIDEuNTk2ODk4XSAgWzxjMTU1MTVhYT5dIGVhcmx5X2lvcmVtYXArMHgxYS8weDFj
+Cj4gWyAgICAxLjYxMTI3MF0gIFs8YzE1NGExODc+XSBfX2FjcGlfbWFwX3RhYmxlKzB4MTgvMHgx
+YQo+IFsgICAgMS42MjY0NTFdICBbPGMxMzVhN2Y4Pl0gYWNwaV9vc19tYXBfbWVtb3J5KzB4MWQv
+MHgyNQo+IFsgICAgMS42NDIxMjldICBbPGMxMTk0NTljPl0gYWNwaV90Yl92ZXJpZnlfdGFibGUr
+MHgyMC8weDQ5Cj4gWyAgICAxLjY1ODMyMV0gIFs8YzExOTNlNTA+XSBhY3BpX2dldF90YWJsZV93
+aXRoX3NpemUrMHg1My8weGExCj4gWyAgICAxLjY3NTU1M10gIFs8YzExOTNlYWU+XSBhY3BpX2dl
+dF90YWJsZSsweDEwLzB4MTUKPiBbICAgIDEuNjkwMTkyXSAgWzxjMTU1Y2MxOT5dIGFjcGlfcHJv
+Y2Vzc29yX2luaXQrMHgyMy8weGFiCj4gWyAgICAxLjcwNjEyNl0gIFs8YzEwMDEwNDM+XSBkb19v
+bmVfaW5pdGNhbGwrMHgzMy8weDE4MAo+IFsgICAgMS43MjEyNzldICBbPGMxNTVjYmY2Pl0gPyBh
+Y3BpX3Byb2Nlc3Nvcl9pbml0KzB4MC8weGFiCj4gWyAgICAxLjczNzQ3OV0gIFs8YzEwNjg5M2E+
+XSA/IHJlZ2lzdGVyX2lycV9wcm9jKzB4YWEvMHhjMAo+IFsgICAgMS43NTM0MTFdICBbPGMxMDY4
+OWI3Pl0gPyBpbml0X2lycV9wcm9jKzB4NjcvMHg4MAo+IFsgICAgMS43NjgzMTZdICBbPGMxNTQw
+NWU3Pl0ga2VybmVsX2luaXQrMHgxMjAvMHgxNzYKPiBbICAgIDEuNzgyNjc4XSAgWzxjMTU0MDRj
+Nz5dID8ga2VybmVsX2luaXQrMHgwLzB4MTc2Cj4gWyAgICAxLjc5NzA2Ml0gIFs8YzEwMDM4Yjc+
+XSBrZXJuZWxfdGhyZWFkX2hlbHBlcisweDcvMHgxMAo+IFsgICAgMS44MTI5ODRdIDAwMDAwMDgw
+ICsgZmZlMDAwMDAKCnRoYXQgaXMgcmF0aGVyIGxhdGVyLgphY3BpX2dibF9wZXJtYW5lbnRfbW1h
+cCBzaG91bGQgYmUgc2V0IGluIGFjcGlfZWFybHlfaW5pdCgpCmlmIGFjcGkgaXMgbm90IGRpc2Fi
+bGVkCgphbmQgd2UgaGF2ZQo+IFsgICAgMC4wMDAwMDBdIEFTVVMgUDJCLURTIGRldGVjdGVkOiBm
+b3JjZSB1c2Ugb2YgYWNwaT1odAoKanVzdCBkb24ndCBsb2FkIGFjcGlfcHJvY2Vzc29yX2luaXQu
+Li4KClJlcG9ydGVkLWJ5OiBKZW5zIFJvc2VuYm9vbSA8amVuc0BsZWlhLm1jYm9uZS5uZXQ+ClNp
+Z25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9yZz4KCmRpZmYgLS1naXQg
+YS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2NvcmUuYyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3Jf
+Y29yZS5jCmluZGV4IDNiY2VmODIuLjAyNTlmMjcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9w
+cm9jZXNzb3JfY29yZS5jCisrKyBiL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfY29yZS5jCkBAIC0x
+MTM1LDYgKzExMzUsOSBAQCBzdGF0aWMgaW50IF9faW5pdCBhY3BpX3Byb2Nlc3Nvcl9pbml0KHZv
+aWQpCiB7CiAJaW50IHJlc3VsdCA9IDA7CiAKKwlpZiAoYWNwaV9kaXNhYmxlZCkKKwkJcmV0dXJu
+IDA7CisKIAltZW1zZXQoJmVycmF0YSwgMCwgc2l6ZW9mKGVycmF0YSkpOwogCiAjaWZkZWYgQ09O
+RklHX1NNUApAQCAtMTE4Myw2ICsxMTg2LDkgQEAgb3V0X3Byb2M6CiAKIHN0YXRpYyB2b2lkIF9f
+ZXhpdCBhY3BpX3Byb2Nlc3Nvcl9leGl0KHZvaWQpCiB7CisJaWYgKGFjcGlfZGlzYWJsZWQpCisJ
+CXJldHVybjsKKwogCWFjcGlfcHJvY2Vzc29yX3BwY19leGl0KCk7CiAKIAlhY3BpX3RoZXJtYWxf
+Y3B1ZnJlcV9leGl0KCk7Cg==
+--000e0cd4860c8aa81c046f607393--
