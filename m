@@ -1,88 +1,117 @@
-From: "Luis R. Rodriguez" <mcgrof@gmail.com>
-Subject: Re: Generic events for wake up from S1-S4
-Date: Fri, 24 Jul 2009 08:25:49 -0700
-Message-ID: <43e72e890907240825l2181297ejb4e1b55ff5e811ef@mail.gmail.com>
-References: <43e72e890907150851m69cd2de6lfb71596fbfac30e6@mail.gmail.com>
-	<20090723195114.GR28158@elf.ucw.cz> <20090723201050.GD19369@khazad-dum.debian.net>
-	<200907232328.03566.rjw@sisk.pl> <1248396826.3556.26.camel@localhost.localdomain>
-	<20090724133903.GA18827@khazad-dum.debian.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH v3 1/2] ACPI: export acpi_pci_root and friends
+Date: Fri, 24 Jul 2009 10:35:39 -0600
+Message-ID: <200907241035.40074.bjorn.helgaas@hp.com>
+References: <20090723230026.4247.12759.stgit@bob.kio> <20090723230300.4247.75347.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:39437 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178AbZGXP0K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2009 11:26:10 -0400
-In-Reply-To: <20090724133903.GA18827@khazad-dum.debian.net>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:35225 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753358AbZGXQfl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2009 12:35:41 -0400
+In-Reply-To: <20090723230300.4247.75347.stgit@bob.kio>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ykzhao <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, "John W. Linville" <linville@tuxdriver.com>, Jouni Malinen <j@w1.fi>, linux-wireless <linux-wireless@vger.kernel.org>, Stephen Chen <Stephen.Chen@atheros.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Alex Chiang <achiang@hp.com>
+Cc: jbarnes@virtuousgeek.org, lenb@kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Jul 24, 2009 at 6:39 AM, Henrique de Moraes
-Holschuh<hmh@hmh.eng.br> wrote:
-> On Fri, 24 Jul 2009, ykzhao wrote:
->> > > Well, we *already* deliver "lid opened" when the lid is opened, =
-regardless
->> > > of it waking up the computer or not. =C2=A0But we are missing a =
-way to deliver
->> > > other classes of wakeup events.
->> > >
->> > > I know of at least these (incomplete list):
->> > >
->> > > 1. network-initiated wakeup
->> > > =C2=A0 =C2=A0a. wired
->> > > =C2=A0 =C2=A0b. wireless
->> > > =C2=A0 =C2=A0c. long-range wireless
->> > >
->> > > 2. platform health/condition alarms
->> > > =C2=A0 =C2=A0a. battery alarm (two levels, warning and emergency=
-)
->> > > =C2=A0 =C2=A0b. thermal alarm (two levels, warning and emergency=
-)
->> > > =C2=A0 =C2=A0(we need these as generic alarms, not just reason-f=
-or-wakeup)
->> > >
->> > > 3. device (or device tree) hotplug/hotunplug
->> > > =C2=A0 =C2=A0a. hotunplug request or notification
->> > > =C2=A0 =C2=A0 =C2=A0 (we deliver the request/notification, but w=
-e don't know we should
->> > > =C2=A0 =C2=A0 =C2=A0 go back to sleep, so all we are missing is =
-the reason-for-wakeup
->> > > =C2=A0 =C2=A0 =C2=A0 event)
->> > >
->> > > 4. management
->> > > =C2=A0 =C2=A0a. wake-up/power on clock
->> > > =C2=A0 =C2=A0b. remote management command (IMPI, etc)
->> > > =C2=A0 =C2=A0c. intrusion alarm
->> > > =C2=A0 =C2=A0d. theft alarm
->> > >
->> > > None of those have a standard interface to notify userspace of t=
-he reason of
->> > > the wake up AFAIK. =C2=A0Many of these want a generic event inte=
-rface to be
->> > > delivered not just as reason-for-wakeup, but also as runtime eve=
-nts.
->> > >
->> > > And I guess we should also tell userspace what state we are waki=
-ng up from
->> > > (S5 clean state, S5/S4 hibernation, S3), sometimes it matters.
->> >
->> > Agreed, and same for the above.
->> >
->> > So, what in your opinion would be the best way to expose this info=
-rmation?
->
-> Frankly? =C2=A0It needs to be an easy-to-extend ABI, and the only one=
- that cames
-> to mind right now are uevents.
+On Thursday 23 July 2009 05:03:00 pm Alex Chiang wrote:
+> We can simplify ACPI drivers if we can tell whether a handle is an
+> ACPI PCI root or not.
+> 
+> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Signed-off-by: Alex Chiang <achiang@hp.com>
 
-That sounds like a great idea.
+Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-  Luis
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+> 
+>  drivers/acpi/pci_root.c |   17 ++---------------
+>  include/acpi/acpi_bus.h |   16 ++++++++++++++++
+>  2 files changed, 18 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 55b5b90..31b961c 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -61,20 +61,6 @@ static struct acpi_driver acpi_pci_root_driver = {
+>  		},
+>  };
+>  
+> -struct acpi_pci_root {
+> -	struct list_head node;
+> -	struct acpi_device *device;
+> -	struct pci_bus *bus;
+> -	u16 segment;
+> -	u8 bus_nr;
+> -
+> -	u32 osc_support_set;	/* _OSC state of support bits */
+> -	u32 osc_control_set;	/* _OSC state of control bits */
+> -	u32 osc_control_qry;	/* the latest _OSC query result */
+> -
+> -	u32 osc_queried:1;	/* has _OSC control been queried? */
+> -};
+> -
+>  static LIST_HEAD(acpi_pci_roots);
+>  
+>  static struct acpi_pci_driver *sub_driver;
+> @@ -317,7 +303,7 @@ static acpi_status acpi_pci_osc_support(struct acpi_pci_root *root, u32 flags)
+>  	return status;
+>  }
+>  
+> -static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+> +struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+>  {
+>  	struct acpi_pci_root *root;
+>  
+> @@ -327,6 +313,7 @@ static struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+>  	}
+>  	return NULL;
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_pci_find_root);
+>  
+>  struct acpi_handle_node {
+>  	struct list_head node;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index c65e4ce..c3ace75 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -369,10 +369,26 @@ int register_acpi_bus_type(struct acpi_bus_type *);
+>  int unregister_acpi_bus_type(struct acpi_bus_type *);
+>  struct device *acpi_get_physical_device(acpi_handle);
+>  
+> +struct acpi_pci_root {
+> +	struct list_head node;
+> +	struct acpi_device * device;
+> +	struct acpi_pci_id id;
+> +	struct pci_bus *bus;
+> +	u16 segment;
+> +	u8 bus_nr;
+> +
+> +	u32 osc_support_set;	/* _OSC state of support bits */
+> +	u32 osc_control_set;	/* _OSC state of control bits */
+> +	u32 osc_control_qry;	/* the latest _OSC query result */
+> +
+> +	u32 osc_queried:1;	/* has _OSC control been queried? */
+> +};
+> +
+>  /* helper */
+>  acpi_handle acpi_get_child(acpi_handle, acpi_integer);
+>  int acpi_is_root_bridge(acpi_handle);
+>  acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
+> +struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
+>  #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
+>  
+>  #ifdef CONFIG_PM_SLEEP
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
