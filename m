@@ -1,62 +1,88 @@
-From: Johannes Berg <johannes@sipsolutions.net>
+From: "Luis R. Rodriguez" <mcgrof@gmail.com>
 Subject: Re: Generic events for wake up from S1-S4
-Date: Fri, 24 Jul 2009 16:49:16 +0200
-Message-ID: <1248446956.32151.0.camel@johannes.local>
+Date: Fri, 24 Jul 2009 08:25:49 -0700
+Message-ID: <43e72e890907240825l2181297ejb4e1b55ff5e811ef@mail.gmail.com>
 References: <43e72e890907150851m69cd2de6lfb71596fbfac30e6@mail.gmail.com>
-	 <20090723195114.GR28158@elf.ucw.cz>
-	 <20090723201050.GD19369@khazad-dum.debian.net>
-	 <200907232328.03566.rjw@sisk.pl>
-	 <1248396826.3556.26.camel@localhost.localdomain>
-	 <20090724133903.GA18827@khazad-dum.debian.net>
+	<20090723195114.GR28158@elf.ucw.cz> <20090723201050.GD19369@khazad-dum.debian.net>
+	<200907232328.03566.rjw@sisk.pl> <1248396826.3556.26.camel@localhost.localdomain>
+	<20090724133903.GA18827@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-k3uMWwkqwgmLBnwDG77h"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xc.sipsolutions.net ([83.246.72.84]:42361 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbZGXOta (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2009 10:49:30 -0400
+Received: from qw-out-2122.google.com ([74.125.92.24]:39437 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178AbZGXP0K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2009 11:26:10 -0400
 In-Reply-To: <20090724133903.GA18827@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ykzhao <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, "Luis R. Rodriguez" <mcgrof@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "John W. Linville" <linville@tuxdriver.com>, Jouni Malinen <j@w1.fi>, linux-wireless <linux-wireless@vger.kernel.org>, Stephen Chen <Stephen.Chen@atheros.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Cc: ykzhao <yakui.zhao@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, "John W. Linville" <linville@tuxdriver.com>, Jouni Malinen <j@w1.fi>, linux-wireless <linux-wireless@vger.kernel.org>, Stephen Chen <Stephen.Chen@atheros.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
+On Fri, Jul 24, 2009 at 6:39 AM, Henrique de Moraes
+Holschuh<hmh@hmh.eng.br> wrote:
+> On Fri, 24 Jul 2009, ykzhao wrote:
+>> > > Well, we *already* deliver "lid opened" when the lid is opened, =
+regardless
+>> > > of it waking up the computer or not. =C2=A0But we are missing a =
+way to deliver
+>> > > other classes of wakeup events.
+>> > >
+>> > > I know of at least these (incomplete list):
+>> > >
+>> > > 1. network-initiated wakeup
+>> > > =C2=A0 =C2=A0a. wired
+>> > > =C2=A0 =C2=A0b. wireless
+>> > > =C2=A0 =C2=A0c. long-range wireless
+>> > >
+>> > > 2. platform health/condition alarms
+>> > > =C2=A0 =C2=A0a. battery alarm (two levels, warning and emergency=
+)
+>> > > =C2=A0 =C2=A0b. thermal alarm (two levels, warning and emergency=
+)
+>> > > =C2=A0 =C2=A0(we need these as generic alarms, not just reason-f=
+or-wakeup)
+>> > >
+>> > > 3. device (or device tree) hotplug/hotunplug
+>> > > =C2=A0 =C2=A0a. hotunplug request or notification
+>> > > =C2=A0 =C2=A0 =C2=A0 (we deliver the request/notification, but w=
+e don't know we should
+>> > > =C2=A0 =C2=A0 =C2=A0 go back to sleep, so all we are missing is =
+the reason-for-wakeup
+>> > > =C2=A0 =C2=A0 =C2=A0 event)
+>> > >
+>> > > 4. management
+>> > > =C2=A0 =C2=A0a. wake-up/power on clock
+>> > > =C2=A0 =C2=A0b. remote management command (IMPI, etc)
+>> > > =C2=A0 =C2=A0c. intrusion alarm
+>> > > =C2=A0 =C2=A0d. theft alarm
+>> > >
+>> > > None of those have a standard interface to notify userspace of t=
+he reason of
+>> > > the wake up AFAIK. =C2=A0Many of these want a generic event inte=
+rface to be
+>> > > delivered not just as reason-for-wakeup, but also as runtime eve=
+nts.
+>> > >
+>> > > And I guess we should also tell userspace what state we are waki=
+ng up from
+>> > > (S5 clean state, S5/S4 hibernation, S3), sometimes it matters.
+>> >
+>> > Agreed, and same for the above.
+>> >
+>> > So, what in your opinion would be the best way to expose this info=
+rmation?
+>
+> Frankly? =C2=A0It needs to be an easy-to-extend ABI, and the only one=
+ that cames
+> to mind right now are uevents.
 
---=-k3uMWwkqwgmLBnwDG77h
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+That sounds like a great idea.
 
-On Fri, 2009-07-24 at 10:39 -0300, Henrique de Moraes Holschuh wrote:
-
-> ACPI notifications are hard to extend, I think.  Please correct me if I a=
-m
-> wrong.
-
-ACPI is the wrong place anyway, since it's fundamentally platform
-dependent. Unlike the rest of suspend and wake functionality.
-
-johannes
-
---=-k3uMWwkqwgmLBnwDG77h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABAgAGBQJKacnoAAoJEODzc/N7+QmaSScP/R7Y3kpqY/fbBkNKBopqkkpE
-eEmGWiYd31VOMMVlcyjQYCogkTc1m7u5PDou7s3pFyqS+Aq8ypFbCsYKuoZRzFFg
-69lUr7hLyyHBF7Bb/CwoXAVsoSqdwUvCG0eHLK86KjYnzYurhd//oJq/yXzZbQfz
-XmzoUZJk6cFLR4cZ8ZYsPIHfdJi7k3wFulcl1CGRqBvdJt0JdR1wz8c7M5ieMDJN
-TER0JsXzkuuPd6i4eqNhOi47y8BeC5JrTXcw5RitxnRFwdd5mAvRpf43eTkdWnZq
-y2AiJ0wfSYeTNXVZM5Fc9wOpzWYKcK3BD1YaRtFad5lYS5CK8njCX/yI3yl4PI2g
-+H7x5Ur/YikUIHtTg70qNGj/HQ7XoeRqOGIVPP2uo5EJlBWgVrwlGvLLdrzB5eO1
-ejhW4mMQo01T0EFz/E0L1l/ptSRE7GOcXuub258Md8SCX8qxHilFVSebRGP/GreC
-voc4gKMOlVE+yXvyBEAcJgz6O5YU/f1HHrRRtLU2JzI9KVO/mVc7fBGsXNU/TIuK
-WK9JW9BdrzVjshk6HjP9SheOjGCPlEZVeN9dXUbAHiJW3sErOo8m6OKo66UDAiDd
-MZvfqvIRz/qfNGxMXSR9l4mfskzg/fkDxkuR1uf0rdjnwi4bgzV82J+9ZErabd3J
-CIYyGQg0Nta9kejlVpoc
-=92Uq
------END PGP SIGNATURE-----
-
---=-k3uMWwkqwgmLBnwDG77h--
-
+  Luis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
