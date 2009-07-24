@@ -1,68 +1,50 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V2 4/4] i8042: support async suspend and shutdown
-Date: Fri, 24 Jul 2009 11:02:12 +0800
-Message-ID: <1248404532.2670.112.camel@rzhang-dt>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [Patch] CPUFREQ: Add the suspend/resume flag to avoid smp_call
+	in cpufreq_suspend/resume
+Date: Fri, 24 Jul 2009 13:18:59 +0800
+Message-ID: <1248412739.3556.52.camel@localhost.localdomain>
+References: <1248399463.3556.30.camel@localhost.localdomain>
+	 <20090724014918.GA8854@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>
-Cc: dtor@mail.ru, Arjan van de Ven <arjan@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:63467 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750883AbZGXFSa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jul 2009 01:18:30 -0400
+In-Reply-To: <20090724014918.GA8854@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+On Fri, 2009-07-24 at 09:49 +0800, Dave Jones wrote:
+> On Fri, Jul 24, 2009 at 09:37:43AM +0800, ykzhao wrote:
+>  > Subject: [CPUFREQ]: Add the suspend/resume flag to avoid smp_call in cpufreq_suspend/resume 
+>  > From: Zhao Yakui <yakui.zhao@intel.com>
+>  > 
+>  > Only CPU0 is available in course of cpufreq_suspend/resume.
+>  > So it is unnecessary to do the smp_call for getting the current
+>  > cpufreq.
+>  > 
+>  > Add a flag of suspend/resume to avoid the smp_call in course of
+>  > cpufreq_suspend/resume.
+>  > 
+>  > http://bugzilla.kernel.org/show_bug.cgi?id=13781
+>  > http://bugzilla.kernel.org/show_bug.cgi?id=13269
+>  > 
+>  > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+>  > Tested-by: Christian Casteyde<casteyde.christian@free.fr>
+> 
+> All this goes away if we just made that suspend/resume code
+> conditional on powerpc as previously discussed.
+Do you mean that this issue exists on powerpc platform?
+How to resolve this issue on the Powerpc according to the discussion?
+Where can I get the patch?
+thanks.
+> 
+> We don't need any of it on x86 afaict
+> 
+> 	Dave
 
-i8042 controller support device async actions.
-
-If boot option "dev_async_action" is added,
-i8042 controller and its child devices can be
-suspended/shutdown asynchronously.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/input/serio/i8042.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/input/serio/i8042.c
-===================================================================
---- linux-2.6.orig/drivers/input/serio/i8042.c
-+++ linux-2.6/drivers/input/serio/i8042.c
-@@ -1285,14 +1285,21 @@ static int __init i8042_init(void)
- 		goto err_unregister_driver;
- 	}
- 
--	err = platform_device_add(i8042_platform_device);
-+	err = dev_async_register(&i8042_platform_device->dev,
-+			DEV_ASYNC_SUSPEND | DEV_ASYNC_SHUTDOWN);
- 	if (err)
- 		goto err_free_device;
- 
-+	err = platform_device_add(i8042_platform_device);
-+	if (err)
-+		goto err_dev_async_unregister;
-+
- 	panic_blink = i8042_panic_blink;
- 
- 	return 0;
- 
-+ err_dev_async_unregister:
-+	dev_async_unregister(&i8042_platform_device->dev);
-  err_free_device:
- 	platform_device_put(i8042_platform_device);
-  err_unregister_driver:
-@@ -1305,6 +1312,7 @@ static int __init i8042_init(void)
- 
- static void __exit i8042_exit(void)
- {
-+	dev_async_unregister(&i8042_platform_device->dev);
- 	platform_device_unregister(i8042_platform_device);
- 	platform_driver_unregister(&i8042_driver);
- 	i8042_platform_exit();
