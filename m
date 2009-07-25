@@ -1,47 +1,31 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH v3 2/2] PCI Hotplug: acpiphp: get pci_bus from acpi
-	handle correctly
-Date: Fri, 24 Jul 2009 17:58:47 -0600
-Message-ID: <20090724235847.GD21376@ldl.fc.hp.com>
-References: <20090723230026.4247.12759.stgit@bob.kio> <20090723230305.4247.81288.stgit@bob.kio> <20090724143827.31b4c37d@jbarnes-g45>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: [PATCH 0/2] ACPI 4.0 power meter
+Date: Fri, 24 Jul 2009 17:43:22 -0700
+Message-ID: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:7789 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754395AbZGXX6r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2009 19:58:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20090724143827.31b4c37d@jbarnes-g45>
+Received: from e34.co.us.ibm.com ([32.97.110.152]:53419 "EHLO
+	e34.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbZGYAfs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2009 20:35:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jesse.barnes@intel.com>
-Cc: lenb@kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-* Jesse Barnes <jesse.barnes@intel.com>:
-> On Thu, 23 Jul 2009 17:03:05 -0600
-> Alex Chiang <achiang@hp.com> wrote:
-> 
-> > We cannot simply call acpi_get_pci_dev() on any random ACPI handle
-> > and hope that it works, because a PCI root bridge may not have
-> > an associated struct pci_dev.
-> > 
-> > This is allowed per the PCI specification, and is referred to as a
-> > non-materialized bridge.
-> > 
-> > So, depending on the type of PCI bridge that the handle points to,
-> > use the appropriate interface to return the struct pci_bus correctly.
-> > 
-> > Signed-off-by: Alex Chiang <achiang@hp.com>
-> > ---
-> 
-> I put these in my linux-next branch, just because I'm really
-> conservative about the current release.
-> 
-> If we hear of boxes in the wild getting bitten by the non-materialized
-> bit, we can push this set back to stable.
+Hi all,
 
-Sounds good, thanks Jesse.
+This is a two-part patchset.  The first patch extends the hwmon sysfs interface
+to include power capping features and extra data about the accuracy and
+internal operation of the power meter.  The second patch implements a hwmon
+driver for ACPI 4.0 compliant power meters that uses the expanded sysfs
+interface.  I don't have an example DSDT from any actual piece of hardware, but
+I can send some sample ASL code that I've been using to outfit kvm with a power
+meter if anyone requests it.
 
-/ac
+(I suppose it could be integrated into the kernel source tree as some sort of
+test case?)
 
+--D
