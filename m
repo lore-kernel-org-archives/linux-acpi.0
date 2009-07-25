@@ -1,74 +1,46 @@
 From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Subject: [PATCH] acpi: fix NULL pointer dereference in acpi_ex_release_mutex()
-Date: Sat, 25 Jul 2009 18:01:18 +0200
-Message-ID: <200907251801.19482.bzolnier@gmail.com>
+Subject: [PATCH] acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
+Date: Sat, 25 Jul 2009 18:24:30 +0200
+Message-ID: <200907251824.31074.bzolnier@gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f228.google.com ([209.85.218.228]:36348 "EHLO
-	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbZGYQEL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Jul 2009 12:04:11 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752121AbZGYQ1t@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dan Carpenter <error27@gmail.com>, corbet@lwn.net, eteo@redhat.com
+List-Id: linux-acpi@vger.kernel.org
 
 From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Subject: [PATCH] acpi: fix NULL pointer dereference in acpi_ex_release_mutex()
+Subject: [PATCH] acpi: remove superfluous NULL pointer check from acpi_processor_get_throttling_info()
 
 >From Dan's list:
 
-drivers/acpi/acpica/exmutex.c +397 acpi_ex_release_mutex(40) warning: variable derefenced before check 'walk_state->thread'
+drivers/acpi/processor_throttling.c +1139 acpi_processor_get_throttling_info(11) warning: variable derefenced before check 'pr'
 
-Reorder the code to make it check for walk_state->thread existence before
-accessing walk_state->thread->thread_id and fix the comment while at it.
+acpi_processor_get_throttling_info() is never called with pr == NULL.
 
 Reported-by: Dan Carpenter <error27@gmail.com>
 Cc: corbet@lwn.net
 Cc: eteo@redhat.com
 Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 ---
-2.6.31 material
+ drivers/acpi/processor_throttling.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
- drivers/acpi/acpica/exmutex.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
-
-Index: b/drivers/acpi/acpica/exmutex.c
+Index: b/drivers/acpi/processor_throttling.c
 ===================================================================
---- a/drivers/acpi/acpica/exmutex.c
-+++ b/drivers/acpi/acpica/exmutex.c
-@@ -375,6 +375,14 @@ acpi_ex_release_mutex(union acpi_operand
- 		return_ACPI_STATUS(AE_AML_MUTEX_NOT_ACQUIRED);
- 	}
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -1135,9 +1135,6 @@ int acpi_processor_get_throttling_info(s
+ 			  pr->throttling.duty_offset,
+ 			  pr->throttling.duty_width));
  
-+	/* must have a valid thread */
-+	if (!walk_state->thread) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Cannot release Mutex [%4.4s], null thread info",
-+			    acpi_ut_get_node_name(obj_desc->mutex.node)));
-+		return_ACPI_STATUS(AE_AML_INTERNAL);
-+	}
-+
- 	/*
- 	 * The Mutex is owned, but this thread must be the owner.
- 	 * Special case for Global Lock, any thread can release
-@@ -392,15 +400,6 @@ acpi_ex_release_mutex(union acpi_operand
- 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
- 	}
- 
--	/* Must have a valid thread ID */
--
--	if (!walk_state->thread) {
--		ACPI_ERROR((AE_INFO,
--			    "Cannot release Mutex [%4.4s], null thread info",
--			    acpi_ut_get_node_name(obj_desc->mutex.node)));
--		return_ACPI_STATUS(AE_AML_INTERNAL);
--	}
+-	if (!pr)
+-		return -EINVAL;
 -
  	/*
- 	 * The sync level of the mutex must be equal to the current sync level. In
- 	 * other words, the current level means that at least one mutex at that
+ 	 * Evaluate _PTC, _TSS and _TPC
+ 	 * They must all be present or none of them can be used.
