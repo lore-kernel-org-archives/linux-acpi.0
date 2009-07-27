@@ -1,157 +1,56 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
-	meters
-Date: Mon, 27 Jul 2009 14:45:55 +0800
-Message-ID: <1248677155.2670.132.camel@rzhang-dt>
-References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
-	 <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
+From: Andreas Mohr <andi@lisas.de>
+Subject: Re: Dynamic configure max_cstate
+Date: Mon, 27 Jul 2009 09:33:38 +0200
+Message-ID: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+References: <1248672613.2560.604.camel@ymzhang>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753712AbZG0Gpk@vger.kernel.org>
-In-Reply-To: <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754242AbZG0Hdj@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1248672613.2560.604.camel@ymzhang>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, Darrick,
+Hi,
 
-great job. :)
-comments in-line.
+> When running a fio workload, I found sometimes cpu C state has
+> big impact on the result. Mostly, fio is a disk I/O workload
+> which doesn't spend much time with cpu, so cpu switch to C2/C3
+> freqently and the latency is big.
 
-On Sat, 2009-07-25 at 08:43 +0800, Darrick J. Wong wrote:
-> +/* Handle ACPI event notifications */
-> +static void acpi_power_meter_notify(struct acpi_device *device, u32 =
-event)
-> +{
-> +       struct acpi_power_meter_resource *resource;
-> +       int res;
-> +
-> +       if (!device || !acpi_driver_data(device))
-> +               return;
-> +
-> +       resource =3D acpi_driver_data(device);
-> +
-> +       mutex_lock(&resource->lock);
-> +       switch (event) {
-> +       case METER_NOTIFY_CONFIG:
-> +               res =3D read_capabilities(resource);
-> +               if (res)
-> +                       break;
-> +
-> +               remove_attrs(resource);
-> +               setup_attrs(resource);
-> +               break;
-> +       case METER_NOTIFY_TRIP:
-> +               update_meter(resource);
-> +               break;
-> +       case METER_NOTIFY_CAP:
-> +               update_cap(resource);
-> +               break;
-> +       case METER_NOTIFY_INTERVAL:
-> +               update_avg_interval(resource);
-> +               break;
-> +       case METER_NOTIFY_CAPPING:
-> +               dev_info(&device->dev, "Capping in progress.\n");
-> +               break;
-> +       default:
-> +               BUG();
-> +       }
-> +       mutex_unlock(&resource->lock);
-> +}
+Rather than inventing ways to limit ACPI Cx state usefulness, we should
+perhaps be thinking of what's wrong here.
 
-we should at least send a netlink event for an ACPI power meter
-notification, shouldn't we?
+And your complaint might just fit into a thought I had recently:
+are we actually taking ACPI Cx exit latency into account, for timers???
 
-> +
-> +static int acpi_power_meter_add(struct acpi_device *device)
-> +{
-> +       int res;
-> +       struct acpi_power_meter_resource *resource;
-> +
-> +       if (!device)
-> +               return -EINVAL;
-> +
-> +       resource =3D kzalloc(sizeof(struct acpi_power_meter_resource)=
-,
-> +                          GFP_KERNEL);
-> +       if (!resource)
-> +               return -ENOMEM;
-> +
-> +       resource->sensors_valid =3D 0;
-> +       resource->acpi_dev =3D device;
-> +       mutex_init(&resource->lock);
-> +       strcpy(acpi_device_name(device), ACPI_POWER_METER_DEVICE_NAME=
-);
-> +       strcpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
-> +       device->driver_data =3D resource;
-> +
-> +       res =3D read_capabilities(resource);
-> +       if (res)
-> +               goto exit_free;
-> +
-> +       resource->trip[0] =3D resource->trip[1] =3D -1;
-> +
-> +       res =3D setup_attrs(resource);
-> +       if (res)
-> +               goto exit_free;
-> +
-> +       resource->hwmon_dev =3D hwmon_device_register(&device->dev);
-> +       if (IS_ERR(resource->hwmon_dev)) {
-> +               res =3D PTR_ERR(resource->hwmon_dev);
-> +               goto exit_remove;
-> +       }
-> +
+If we program a timer to fire at some point, then it is quite imaginable
+that any ACPI Cx exit latency due to the CPU being idle at that moment
+could add to actual timer trigger time significantly.
 
-we should create the hwmon sysfs I/F for the hwmon device,
-i.e. add the hwmon attributes
-under /sys/devices/LINUXSYS:00/.../ACPI000D:00/hwmon0/
-rather than =EF=BB=BF/sys/devices/LINUXSYS:00/.../ACPI000D:00/
+To combat this, one would need to tweak the timer expiration time
+to include the exit latency. But of course once the CPU is running
+again, one would need to re-add the latency amount (read: reprogram the
+timer hardware, ugh...) to prevent the timer from firing too early.
 
-> +       res =3D 0;
-> +       goto exit;
-> +
-> +exit_remove:
-> +       remove_attrs(resource);
-> +exit_free:
-> +       kfree(resource);
-> +exit:
-> +       return res;
-> +}
-> +
-> +
-> +static int __init acpi_power_meter_init(void)
-> +{
-> +       int result;
-> +
-	  if (acpi_disable)
-		return -ENODEV;
+Given that one would need to reprogram timer hardware quite often,
+I don't know whether taking Cx exit latency into account is feasible.
+OTOH analysis of the single next timer value and actual hardware reprogramming
+would have to be done only once (in ACPI sleep and wake paths each),
+thus it might just turn out to be very beneficial after all
+(minus prolonging ACPI Cx path activity and thus aggravating CPU power
+savings, of course).
 
-> +       result =3D acpi_bus_register_driver(&acpi_power_meter_driver)=
-;
-> +       if (result < 0)
-> +               return -ENODEV;
-> +
-> +       return 0;
-> +}
-> +
-> +static void __exit acpi_power_meter_exit(void)
-> +{
-> +       acpi_bus_unregister_driver(&acpi_power_meter_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
-> +MODULE_DESCRIPTION("ACPI 4.0 power meter driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(acpi_power_meter_init);
-> +module_exit(acpi_power_meter_exit);
->=20
-plus, _PMD is not supported in this driver, right?
-I agree with Yakui that we can create some ACPI device sysfs attributes
-besides the hwmon ones. e.g. exporting devices measured by the current
-ACPI power meter device to user space.
+Arjan mentioned examples of maybe 10us for C2 and 185us for C3/C4 in an
+article.
 
-thanks,
-rui
+OTOH even 185us is only 0.185ms, which, when compared to disk seek
+latency (around 7ms still, except for SSD), doesn't seem to be all that much.
+Or what kind of ballpark figure do you have for percentage of I/O
+deterioration?
+I'm wondering whether we might have an even bigger problem with disk I/O
+related to this than just the raw ACPI exit latency value itself.
+
+Andreas Mohr
