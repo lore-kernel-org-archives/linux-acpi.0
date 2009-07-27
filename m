@@ -1,36 +1,157 @@
-From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Subject: Dynamic configure max_cstate
-Date: Mon, 27 Jul 2009 13:30:13 +0800
-Message-ID: <1248672613.2560.604.camel@ymzhang>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
+	meters
+Date: Mon, 27 Jul 2009 14:45:55 +0800
+Message-ID: <1248677155.2670.132.camel@rzhang-dt>
+References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
+	 <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:23979 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752613AbZG0FaE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2009 01:30:04 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753712AbZG0Gpk@vger.kernel.org>
+In-Reply-To: <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
-Cc: yakui_zhao <yakui.zhao@intel.com>
 
-When running a fio workload, I found sometimes cpu C state has
-big impact on the result. Mostly, fio is a disk I/O workload
-which doesn't spend much time with cpu, so cpu switch to C2/C3
-freqently and the latency is big.
+Hi, Darrick,
 
-If I start kernel with idle=poll or processor.max_cstate=1,
-the result is quite good. Consider a scenario that machine is
-busy at daytime and free at night. Could we add a dynamic
-configuration interface for processor.max_cstate or something
-similiar with sysfs? So user applications could change the
-max_cstate dynamically? For example, we could add a new
-parameter to function cpuidle_governor->select to mark the
-highest c state.
+great job. :)
+comments in-line.
 
-Any idea?
+On Sat, 2009-07-25 at 08:43 +0800, Darrick J. Wong wrote:
+> +/* Handle ACPI event notifications */
+> +static void acpi_power_meter_notify(struct acpi_device *device, u32 =
+event)
+> +{
+> +       struct acpi_power_meter_resource *resource;
+> +       int res;
+> +
+> +       if (!device || !acpi_driver_data(device))
+> +               return;
+> +
+> +       resource =3D acpi_driver_data(device);
+> +
+> +       mutex_lock(&resource->lock);
+> +       switch (event) {
+> +       case METER_NOTIFY_CONFIG:
+> +               res =3D read_capabilities(resource);
+> +               if (res)
+> +                       break;
+> +
+> +               remove_attrs(resource);
+> +               setup_attrs(resource);
+> +               break;
+> +       case METER_NOTIFY_TRIP:
+> +               update_meter(resource);
+> +               break;
+> +       case METER_NOTIFY_CAP:
+> +               update_cap(resource);
+> +               break;
+> +       case METER_NOTIFY_INTERVAL:
+> +               update_avg_interval(resource);
+> +               break;
+> +       case METER_NOTIFY_CAPPING:
+> +               dev_info(&device->dev, "Capping in progress.\n");
+> +               break;
+> +       default:
+> +               BUG();
+> +       }
+> +       mutex_unlock(&resource->lock);
+> +}
 
-Yanmin
+we should at least send a netlink event for an ACPI power meter
+notification, shouldn't we?
 
+> +
+> +static int acpi_power_meter_add(struct acpi_device *device)
+> +{
+> +       int res;
+> +       struct acpi_power_meter_resource *resource;
+> +
+> +       if (!device)
+> +               return -EINVAL;
+> +
+> +       resource =3D kzalloc(sizeof(struct acpi_power_meter_resource)=
+,
+> +                          GFP_KERNEL);
+> +       if (!resource)
+> +               return -ENOMEM;
+> +
+> +       resource->sensors_valid =3D 0;
+> +       resource->acpi_dev =3D device;
+> +       mutex_init(&resource->lock);
+> +       strcpy(acpi_device_name(device), ACPI_POWER_METER_DEVICE_NAME=
+);
+> +       strcpy(acpi_device_class(device), ACPI_POWER_METER_CLASS);
+> +       device->driver_data =3D resource;
+> +
+> +       res =3D read_capabilities(resource);
+> +       if (res)
+> +               goto exit_free;
+> +
+> +       resource->trip[0] =3D resource->trip[1] =3D -1;
+> +
+> +       res =3D setup_attrs(resource);
+> +       if (res)
+> +               goto exit_free;
+> +
+> +       resource->hwmon_dev =3D hwmon_device_register(&device->dev);
+> +       if (IS_ERR(resource->hwmon_dev)) {
+> +               res =3D PTR_ERR(resource->hwmon_dev);
+> +               goto exit_remove;
+> +       }
+> +
 
+we should create the hwmon sysfs I/F for the hwmon device,
+i.e. add the hwmon attributes
+under /sys/devices/LINUXSYS:00/.../ACPI000D:00/hwmon0/
+rather than =EF=BB=BF/sys/devices/LINUXSYS:00/.../ACPI000D:00/
+
+> +       res =3D 0;
+> +       goto exit;
+> +
+> +exit_remove:
+> +       remove_attrs(resource);
+> +exit_free:
+> +       kfree(resource);
+> +exit:
+> +       return res;
+> +}
+> +
+> +
+> +static int __init acpi_power_meter_init(void)
+> +{
+> +       int result;
+> +
+	  if (acpi_disable)
+		return -ENODEV;
+
+> +       result =3D acpi_bus_register_driver(&acpi_power_meter_driver)=
+;
+> +       if (result < 0)
+> +               return -ENODEV;
+> +
+> +       return 0;
+> +}
+> +
+> +static void __exit acpi_power_meter_exit(void)
+> +{
+> +       acpi_bus_unregister_driver(&acpi_power_meter_driver);
+> +}
+> +
+> +MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
+> +MODULE_DESCRIPTION("ACPI 4.0 power meter driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +module_init(acpi_power_meter_init);
+> +module_exit(acpi_power_meter_exit);
+>=20
+plus, _PMD is not supported in this driver, right?
+I agree with Yakui that we can create some ACPI device sysfs attributes
+besides the hwmon ones. e.g. exporting devices measured by the current
+ACPI power meter device to user space.
+
+thanks,
+rui
