@@ -1,54 +1,14 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 6/12] drivers/platform/x86: Correct redundant test
-Date: Mon, 27 Jul 2009 18:14:11 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0907271813490.2682@ask.diku.dk>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753273AbZG0QTe@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+From: vivianofferplc013@mchsi.com
+Subject: (unknown)
+Date: Mon, 27 Jul 2009 16:23:28 +0000
+Message-ID: <072720091623.22303.4A6DD48000049FB90000571F223045151403010CD2079C080C03BFCCCECF0C049F9D0A000001020E07900790__35715.4793142856$1248711917$gmane$org@mchsi.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sccmmhc92.asp.att.net ([204.127.203.212]:52202 "EHLO
+	sccmmhc92.asp.att.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001AbZG0QYU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2009 12:24:20 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+This is a Financial Service Announcement, we offer loan to all in need,ranging from $5000 to $800,000.00 USD. Our interest rate is 3% and our service and terms are dependable. any interested person should apply via email:lapoloanlender@gmail.com
 
-device and acpi_driver_data(device) were tested just a few lines above.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@r exists@
-local idexpression x;
-expression E;
-@@
-
-if (x == NULL || ...) { ... when forall
-   return ...; }
-... when != \(x=E\|x--\|x++\|--x\|++x\|x-=E\|x+=E\|x|=E\|x&=E\|&x\)
-(
-*x == NULL
-|
-*x != NULL
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/platform/x86/fujitsu-laptop.c          |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index 218b9a1..5306901 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
- 
- 	fujitsu = acpi_driver_data(device);
- 
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
--
- 	fujitsu->acpi_handle = NULL;
- 
- 	return 0;
