@@ -1,29 +1,54 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI: add driver for SMBus Control Method Interface
-Date: Mon, 27 Jul 2009 13:10:29 +0100
-Message-ID: <20090727121029.GA4150@srcf.ucam.org>
-References: <20090715060219.GA30514@crane-desktop> <20090727030559.GA23792@crane-desktop>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 6/12] drivers/platform/x86: Correct redundant test
+Date: Mon, 27 Jul 2009 18:14:11 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0907271813490.2682@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:33641 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837AbZG0MKc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2009 08:10:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20090727030559.GA23792@crane-desktop>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753273AbZG0QTe@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Cai, Crane" <crane.cai@amd.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: len.brown@intel.com
 
-On Mon, Jul 27, 2009 at 11:05:59AM +0800, Cai, Crane wrote:
-> Hi,
-> 
-> Could some one tell me whether this patch can be applied?
+From: Julia Lawall <julia@diku.dk>
 
-It should go through Len, but I haven't heard from him in a couple of 
-weeks. I've Cc:ed him so he'll notice it when he's around.
+device and acpi_driver_data(device) were tested just a few lines above.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+A simplified version of the semantic match that finds this problem is as
+follows: (http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@r exists@
+local idexpression x;
+expression E;
+@@
+
+if (x == NULL || ...) { ... when forall
+   return ...; }
+... when != \(x=E\|x--\|x++\|--x\|++x\|x-=E\|x+=E\|x|=E\|x&=E\|&x\)
+(
+*x == NULL
+|
+*x != NULL
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/platform/x86/fujitsu-laptop.c          |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+index 218b9a1..5306901 100644
+--- a/drivers/platform/x86/fujitsu-laptop.c
++++ b/drivers/platform/x86/fujitsu-laptop.c
+@@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
+ 
+ 	fujitsu = acpi_driver_data(device);
+ 
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+ 	fujitsu->acpi_handle = NULL;
+ 
+ 	return 0;
