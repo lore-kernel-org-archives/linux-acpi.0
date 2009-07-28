@@ -1,30 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
- meters
-Date: Mon, 27 Jul 2009 21:25:54 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0907272124110.4445@localhost.localdomain>
-References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
- <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [Patch] CPUFREQ: Add the suspend/resume flag to avoid smp_call
+	in cpufreq_suspend/resume
+Date: Tue, 28 Jul 2009 09:40:12 +0800
+Message-ID: <1248745212.3556.74.camel@localhost.localdomain>
+References: <1248399463.3556.30.camel@localhost.localdomain>
+	 <20090724014918.GA8854@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:48391 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbZG1B0G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2009 21:26:06 -0400
-In-reply-to: <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
+Received: from mga02.intel.com ([134.134.136.20]:9196 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750930AbZG1Bjy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jul 2009 21:39:54 -0400
+In-Reply-To: <20090724014918.GA8854@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: Dave Jones <davej@redhat.com>
+Cc: "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Darrick,
-On the system you are planning to run this on...
-Are the power meters in the processor, or elsewhere?
+On Fri, 2009-07-24 at 09:49 +0800, Dave Jones wrote:
+> On Fri, Jul 24, 2009 at 09:37:43AM +0800, ykzhao wrote:
+>  > Subject: [CPUFREQ]: Add the suspend/resume flag to avoid smp_call in cpufreq_suspend/resume 
+>  > From: Zhao Yakui <yakui.zhao@intel.com>
+>  > 
+>  > Only CPU0 is available in course of cpufreq_suspend/resume.
+>  > So it is unnecessary to do the smp_call for getting the current
+>  > cpufreq.
+>  > 
+>  > Add a flag of suspend/resume to avoid the smp_call in course of
+>  > cpufreq_suspend/resume.
+>  > 
+>  > http://bugzilla.kernel.org/show_bug.cgi?id=13781
+>  > http://bugzilla.kernel.org/show_bug.cgi?id=13269
+>  > 
+>  > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+>  > Tested-by: Christian Casteyde<casteyde.christian@free.fr>
+> 
+> All this goes away if we just made that suspend/resume code
+> conditional on powerpc as previously discussed.
+Hi, Dave
+    Will you please point out what we should do to fix the issue son x86
+similar to that on powerpc?
+    
+    Is the patch mentioned already shipped in upstream kernel?
 
-If they are the ones in the processor, I'd rather that
-Linux use a native model-specific driver to access those
-registers and not use ACPI.
+thanks.
+> 
+> We don't need any of it on x86 afaict
+> 
+> 	Dave
 
-thanks,
-Len Brown, Intel Open Source Technology Center
