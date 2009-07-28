@@ -1,70 +1,31 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 03/12] SFI: document boot param "sfi=off"
-Date: Tue, 28 Jul 2009 13:24:02 -0600
-Message-ID: <200907281324.03237.bjorn.helgaas@hp.com>
-References: <1247026438-20891-1-git-send-email-lenb@kernel.org> <57dac60d76c191e3bd72f186833fac01e4c5f8f1.1247025117.git.len.brown@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Dynamic configure max_cstate
+Date: Tue, 28 Jul 2009 15:25:12 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907281522290.16740@localhost.localdomain>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+ <1248748935.2560.669.camel@ymzhang>
+ <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:14842 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812AbZG1TYH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 15:24:07 -0400
-In-Reply-To: <57dac60d76c191e3bd72f186833fac01e4c5f8f1.1247025117.git.len.brown@intel.com>
-Content-Disposition: inline
+Received: from vms173001pub.verizon.net ([206.46.173.1]:21004 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730AbZG1TZ1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 15:25:27 -0400
+In-reply-to: <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
-
-On Tuesday 07 July 2009 10:13:49 pm Len Brown wrote:
-> From: Feng Tang <feng.tang@intel.com>
-> 
-> "sfi=off" is analogous to "acpi=off"
-> 
-> In practice, "sfi=off" isn't likely to be very useful, for
-> 1. SFI is used only when ACPI is not available
-> 2. Today's SFI systems are not legacy PC-compatible
-> 
-> ie. "sfi=off" on an ACPI-platform is a NO-OP,
-> and "sfi=off" on an SFI-platform will likely result in boot failure.
-> 
-> Signed-off-by: Feng Tang <feng.tang@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  Documentation/kernel-parameters.txt |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
-
-I think the documentation update should be part of the patch
-that changes the functionality, so the doc always matches the
-code.
-
-Bjorn
-
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> index d77fbd8..68337e6 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -92,6 +92,7 @@ parameter is applicable:
->  	SECURITY Different security models are enabled.
->  	SELINUX SELinux support is enabled.
->  	SERIAL	Serial support is enabled.
-> +	SFI	Simple Firmware Interface
->  	SH	SuperH architecture is enabled.
->  	SMP	The kernel is an SMP kernel.
->  	SPARC	Sparc architecture is enabled.
-> @@ -2162,6 +2163,10 @@ and is between 256 and 4096 characters. It is defined in the file
->  			If enabled at boot time, /selinux/disable can be used
->  			later to disable prior to initial policy load.
->  
-> +	sfi=		[SFI,X86] Simple Firmware Interface
-> +			Format: { "off" }
-> +			off -- disable SFI
-> +
->  	serialnumber	[BUGS=X86-32]
->  
->  	shapers=	[NET]
+To: Corrado Zoccolo <czoccolo@gmail.com>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Andreas Mohr <andi@lisas.de>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
 
+> Entering a deep C state can cause strange things to timers: some of
+> them, especially tsc, become unreliable.
+
+The Nehalem family CPU has a non-stop constant-frequency TSC.
+
+The measurements that Yanmin quotes show that the TSC
+is the lowest overhead timesource in the system.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
