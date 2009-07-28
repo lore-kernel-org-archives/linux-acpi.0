@@ -1,52 +1,44 @@
-From: Paulo Marques <pmarques@grupopie.com>
-Subject: Re: [PATCH 6/12] drivers/platform/x86: Correct redundant test
-Date: Tue, 28 Jul 2009 18:52:42 +0100
-Message-ID: <4A6F3AEA.7090102@grupopie.com>
-References: <Pine.LNX.4.64.0907271813490.2682@ask.diku.dk>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [PATCH] PNPACPI: Enable PNPACPI _PSx Support, v3
+Date: Tue, 28 Jul 2009 12:15:41 -0700
+Message-ID: <20090728191541.GB25665@kroah.com>
+References: <49D101DA.50201@gmx.net>
+ <200904021510.37517.trenn@suse.de>
+ <20090630230314.GD2634@kroah.com>
+ <4A53AAD1.1050308@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bipbip.grupopie.com ([195.23.16.24]:37214 "EHLO
-	bipbip.grupopie.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755358AbZG1SYf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 14:24:35 -0400
-In-Reply-To: <Pine.LNX.4.64.0907271813490.2682@ask.diku.dk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753422AbZG1TTn@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4A53AAD1.1050308@gmx.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Cc: Thomas Renninger <trenn@suse.de>, stable@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, abelay@mit.edu, bjorn.helgaas@hp.com
 List-Id: linux-acpi@vger.kernel.org
-To: Julia Lawall <julia@diku.dk>
-Cc: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Julia Lawall wrote:
-> [...]
-> ---
->  drivers/platform/x86/fujitsu-laptop.c          |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
+On Tue, Jul 07, 2009 at 10:06:41PM +0200, Witold Szczeponik wrote:
+> Greg KH wrote:
 > 
-> diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-> index 218b9a1..5306901 100644
-> --- a/drivers/platform/x86/fujitsu-laptop.c
-> +++ b/drivers/platform/x86/fujitsu-laptop.c
-> @@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
->  
->  	fujitsu = acpi_driver_data(device);
->  
-> -	if (!device || !acpi_driver_data(device))
-> -		return -EINVAL;
-> -
+> [snip]
+> 
+> > 
+> > What specific git commit id in Linus's tree is this?
+> > 
+> > thanks,
+> > 
+> > greg k-h
+> > 
+> 
+> Hi Greg,
+> 
+> the git commit id of this patch would be 
+> 6328a57401dc5f5cf9931738eb7268fcd8058c49, but the patch triggered a 
+> regression which is described in 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13243 and which was fixed in 
+> 19bde778c1fd2574cc020a618d7d576f260271ca.
 
-Shouldn't this still do a:
+Ok, I've queued up both of these for the next .27 stable release.
 
-   if (!fujitsu)
-     return -EINVAL;
+thanks,
 
-to avoid dereferencing a NULL pointer below?
-
->  	fujitsu->acpi_handle = NULL;
->  
->  	return 0;
-
--- 
-Paulo Marques - www.grupopie.com
-
-"All I ask is a chance to prove that money can't make me happy."
+greg k-h
