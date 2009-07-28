@@ -1,57 +1,41 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Dynamic configure max_cstate
-Date: Tue, 28 Jul 2009 15:47:13 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0907281532120.16740@localhost.localdomain>
-References: <1248672613.2560.604.camel@ymzhang>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
+Date: Tue, 28 Jul 2009 21:51:09 +0200
+Message-ID: <71cd59b00907281251k7fc6cf7fga433531572394b99@mail.gmail.com>
+References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:38956 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbZG1TrT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 15:47:19 -0400
-In-reply-to: <1248672613.2560.604.camel@ymzhang>
+Received: from mail-fx0-f216.google.com ([209.85.220.216]:47500 "EHLO
+	mail-fx0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750848AbZG1TvK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 15:51:10 -0400
+Received: by fxm12 with SMTP id 12so270186fxm.37
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2009 12:51:10 -0700 (PDT)
+In-Reply-To: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, yakui_zhao <yakui.zhao@intel.com>, Arjan van de Ven <arjan@infradead.org>
+To: linux acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, acpi4asus-user@lists.sourceforge.net
 
-> When running a fio workload, I found sometimes cpu C state has
-> big impact on the result. Mostly, fio is a disk I/O workload
-> which doesn't spend much time with cpu, so cpu switch to C2/C3
-> freqently and the latency is big.
-> 
-> If I start kernel with idle=poll or processor.max_cstate=1,
-> the result is quite good. Consider a scenario that machine is
-> busy at daytime and free at night. Could we add a dynamic
-> configuration interface for processor.max_cstate or something
-> similiar with sysfs? So user applications could change the
-> max_cstate dynamically? For example, we could add a new
-> parameter to function cpuidle_governor->select to mark the
-> highest c state.
+On Fri, Jul 24, 2009 at 9:34 AM, Corentin Chary<corentin.chary@gmail.com> wrote:
+> Hi,
+> I'm working on Illimunated keyboard for some new Asus U50VG,
+> There is some kind of backlight for the keyboard:
+> http://forum.amtech.com.vn/attachments/reviews-zone/16272d1245751662-laptop-asus-u50vg-con-sot-moi-cua-asus-p1010643.jpg
+> There is 4 level of brightness.
+>
+> I've found the ACPI to control that, but I'm not sure if I should
+> register it as a led or as a backlight.
+>
+> Any Idea ?
+>
+> Thanks
 
-max_cstate is a debug param.  It isn't a run-time API and never will be.
-User-space shouldn't need to know or care about C-states,
-and if it appears it needs to, then we have a bug we need to fix.
+No answers.
+I think I'll implement that as a backlight, because it is a backlight
+even if it's not for a screen.
 
-The interface in Documentation/power/pm_qos_interface.txt
-is supposed to handle this.  Though if the underlying code
-is not noticing IO interrupts, then it can't help.
-
-Another thing to look at is processor.latency_factor
-which you can change at run-time in
-/sys/module/processor/parameters/latency_factor
-
-We multiply the advertised exit latency by this
-before deciding to enter a C-state.  The concept
-is that ACPI reports a performance number, but what
-we really want is a power break-even.  Anyway,
-we know the default mulitple is too low, and will be
-raising it shortly.
-
-Of course if the current code is not predicting any
-IO interrupts on your IO-only workload, this, like
-pm_qos, will not help.
-
-cheers,
--Len Brown, Intel Open Source Technology Center
+-- 
+Corentin Chary
+http://xf.iksaif.net - http://uffs.org
