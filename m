@@ -1,59 +1,103 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 9/9] drivers/acpi: correct error-handling code
-Date: Tue, 28 Jul 2009 17:56:35 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0907281756010.28189@ask.diku.dk>
+From: Andreas Mohr <andi@lisas.de>
+Subject: ok, now would this be useful? (Re: Dynamic configure max_cstate)
+Date: Tue, 28 Jul 2009 19:35:33 +0200
+Message-ID: <20090728173533.GA27055@rhlx01.hs-esslingen.de>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de> <1248748935.2560.669.camel@ymzhang> <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com> <1248771635.2560.682.camel@ymzhang> <20090728101135.GA22358@rhlx01.hs-esslingen.de> <20090728140308.GA17543@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:35764 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754555AbZG1P4l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2009 11:56:41 -0400
+Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:39819 "EHLO
+	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730AbZG1Rfd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 13:35:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20090728140308.GA17543@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Andreas Mohr <andi@lisas.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+On Tue, Jul 28, 2009 at 04:03:08PM +0200, Andreas Mohr wrote:
+> Still, an average of +8.16% during 5 test runs each should be quite some incentive,
+> and once there's a proper "idle latency skipping during expected I/O replies"
+> even with idle/wakeup code path reinstated we should hopefully be able to keep
+> some 5% improvement in disk access.
 
-backlight_device_register may return an ERR_PTR value rather than a valid
-pointer.
+I went ahead and created a small and VERY dirty test for this.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+In kernel/pm_qos_params.c I added
 
-// <smpl>
-@@
-identifier fld,fld1;
-expression x,E;
-@@
+static bool io_reply_is_expected;
 
- x = backlight_device_register(...)
-  ... when != x = E
-      when != &x
-      when != x->fld1
-(
-  ((IS_ERR(x))||...)
-|
-*  x->fld
-)
-// </smpl>
+bool io_reply_expected(void)
+{
+  return io_reply_is_expected;
+}
+EXPORT_SYMBOL_GPL(io_reply_expected);
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
+void set_io_reply_expected(bool expected)
+{
+  io_reply_is_expected = expected;
+}
+EXPORT_SYMBOL_GPL(set_io_reply_expected);
 
----
- drivers/acpi/video.c                |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 8851315..29788db 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -982,6 +982,8 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 		sprintf(name, "acpi_video%d", count++);
- 		device->backlight = backlight_device_register(name,
- 			NULL, device, &acpi_backlight_ops);
-+		if (IS_ERR(device->backlight))
-+			return;
- 		device->backlight->props.max_brightness = device->brightness->count-3;
- 		kfree(name);
- 
+
+Then in drivers/ata/libata-core.c I added
+
+extern bool set_io_reply_expected();
+
+and updated it to
+
+	set_io_reply_expected(1);
+	rc = wait_for_completion_timeout(&wait, msecs_to_jiffies(timeout));
+	set_io_reply_expected(0);
+
+	ata_port_flush_task(ap);
+
+
+Then I changed ./drivers/cpuidle/governors/menu.c
+(make sure you're using the menu governor!) to use
+
+extern bool io_reply_expected(void);
+
+and updated
+
+	if (io_reply_expected())
+		data->expected_us = 10;
+	else {
+	/* determine the expected residency time */
+	data->expected_us =
+		(u32) ktime_to_ns(tick_nohz_get_sleep_length()) / 1000;
+	}
+
+Rebuilt, rebootloadered ;), rebooted, and then booting and disk operation
+_seemed_ to be snappier (I'm damn sure the hdd seek noise
+is a bit higher-pitched ;).
+And it's exactly seeks which should be shorter-intervalled now,
+since the system triggers a hdd operation and then is forced to wait (idle)
+until the seeking is done.
+
+bonnie test results (of patched kernel vs. kernel with set_io_reply_expected() muted)
+seem to support this, but then a "time make bzImage" (of newly rebooted box each)
+showed inconsistent results again and a much higher sample rate (with reboots each)
+would be needed to really confirm this.
+
+I'd expect improvements to be in the 3% to 4% range, at most, but still,
+compared to the yield of other kernel patches this ain't nothing.
+
+Now the question becomes whether one should implement such an improvement and especially, how.
+Perhaps the io reply decision making should be folded into the tick_nohz_get_sleep_length()
+function (or rather create a higher-level "expected sleep length" function which consults both
+tick_nohz_get_sleep_length() and io reply mechanism).
+And another important detail is that my current hack completely ignores per-cpu operation
+and thus causes suboptimal power savings of _all_ cpus,
+not just the one waiting for the I/O reply (i.e., we should properly take into account
+cpu affinity settings of the reply interrupt).
+And of course it would probably be best to create a mechanism which stores a record of average
+responsiveness delays of various block devices and then derive a maximum
+idle wakeup latency value from this to request.
+
+Does anyone else have thoughts on this or benchmark numbers which would support this?
+
+Andreas Mohr
