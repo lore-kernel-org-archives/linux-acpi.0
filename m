@@ -1,44 +1,70 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [PATCH] PNPACPI: Enable PNPACPI _PSx Support, v3
-Date: Tue, 28 Jul 2009 12:15:41 -0700
-Message-ID: <20090728191541.GB25665@kroah.com>
-References: <49D101DA.50201@gmx.net>
- <200904021510.37517.trenn@suse.de>
- <20090630230314.GD2634@kroah.com>
- <4A53AAD1.1050308@gmx.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 03/12] SFI: document boot param "sfi=off"
+Date: Tue, 28 Jul 2009 13:24:02 -0600
+Message-ID: <200907281324.03237.bjorn.helgaas@hp.com>
+References: <1247026438-20891-1-git-send-email-lenb@kernel.org> <57dac60d76c191e3bd72f186833fac01e4c5f8f1.1247025117.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753422AbZG1TTn@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:14842 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812AbZG1TYH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 15:24:07 -0400
+In-Reply-To: <57dac60d76c191e3bd72f186833fac01e4c5f8f1.1247025117.git.len.brown@intel.com>
 Content-Disposition: inline
-In-Reply-To: <4A53AAD1.1050308@gmx.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: Thomas Renninger <trenn@suse.de>, stable@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, abelay@mit.edu, bjorn.helgaas@hp.com
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
 
-On Tue, Jul 07, 2009 at 10:06:41PM +0200, Witold Szczeponik wrote:
-> Greg KH wrote:
+On Tuesday 07 July 2009 10:13:49 pm Len Brown wrote:
+> From: Feng Tang <feng.tang@intel.com>
 > 
-> [snip]
+> "sfi=off" is analogous to "acpi=off"
 > 
-> > 
-> > What specific git commit id in Linus's tree is this?
-> > 
-> > thanks,
-> > 
-> > greg k-h
-> > 
+> In practice, "sfi=off" isn't likely to be very useful, for
+> 1. SFI is used only when ACPI is not available
+> 2. Today's SFI systems are not legacy PC-compatible
 > 
-> Hi Greg,
+> ie. "sfi=off" on an ACPI-platform is a NO-OP,
+> and "sfi=off" on an SFI-platform will likely result in boot failure.
 > 
-> the git commit id of this patch would be 
-> 6328a57401dc5f5cf9931738eb7268fcd8058c49, but the patch triggered a 
-> regression which is described in 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13243 and which was fixed in 
-> 19bde778c1fd2574cc020a618d7d576f260271ca.
+> Signed-off-by: Feng Tang <feng.tang@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  Documentation/kernel-parameters.txt |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 
-Ok, I've queued up both of these for the next .27 stable release.
+I think the documentation update should be part of the patch
+that changes the functionality, so the doc always matches the
+code.
 
-thanks,
+Bjorn
 
-greg k-h
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index d77fbd8..68337e6 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -92,6 +92,7 @@ parameter is applicable:
+>  	SECURITY Different security models are enabled.
+>  	SELINUX SELinux support is enabled.
+>  	SERIAL	Serial support is enabled.
+> +	SFI	Simple Firmware Interface
+>  	SH	SuperH architecture is enabled.
+>  	SMP	The kernel is an SMP kernel.
+>  	SPARC	Sparc architecture is enabled.
+> @@ -2162,6 +2163,10 @@ and is between 256 and 4096 characters. It is defined in the file
+>  			If enabled at boot time, /selinux/disable can be used
+>  			later to disable prior to initial policy load.
+>  
+> +	sfi=		[SFI,X86] Simple Firmware Interface
+> +			Format: { "off" }
+> +			off -- disable SFI
+> +
+>  	serialnumber	[BUGS=X86-32]
+>  
+>  	shapers=	[NET]
+
+
