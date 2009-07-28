@@ -1,97 +1,97 @@
-From: Andreas Mohr <andi@lisas.de>
-Subject: Re: Dynamic configure max_cstate
-Date: Tue, 28 Jul 2009 16:03:08 +0200
-Message-ID: <20090728140308.GA17543@rhlx01.hs-esslingen.de>
-References: <20090727073338.GA12669@rhlx01.hs-esslingen.de> <1248748935.2560.669.camel@ymzhang> <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com> <1248771635.2560.682.camel@ymzhang> <20090728101135.GA22358@rhlx01.hs-esslingen.de>
+From: "Langsdorf, Mark" <mark.langsdorf@amd.com>
+Subject: RE: [PATCH] powernow-k8: don't load powernow-k8 driver whenacpi=off
+Date: Tue, 28 Jul 2009 09:47:42 -0500
+Message-ID: <6453C3CB8E2B3646B0D020C112613273036209FC@sausexmb4.amd.com>
+References: <1248315070.2670.16.camel@rzhang-dt> <200907231209.13343.trenn@suse.de> <1248758657.2670.137.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:57483 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343AbZG1ODJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 10:03:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20090728101135.GA22358@rhlx01.hs-esslingen.de>
+Received: from outbound-dub.frontbridge.com ([213.199.154.16]:13555 "EHLO
+	IE1EHSOBE003.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334AbZG1Orx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 10:47:53 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <1248758657.2670.137.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>
+Cc: davej@redhat.com, linux-acpi <linux-acpi@vger.kernel.org>, cpufreq@vger.kernel.org, Len Brown <lenb@kernel.org>, howl.nsp@gmail.com
 
-On Tue, Jul 28, 2009 at 12:11:35PM +0200, Andreas Mohr wrote:
-> As a very quick test, I tried a
-> while :; do :; done
-> loop in shell and renicing shell to 19 (to keep my CPU out of ACPI idle),
-> but bonnie -s 100 results initially looked promising yet turned out to
-> be inconsistent. The real way to test this would be idle=poll.
-> My test system was Athlon XP with /proc/acpi/processor/CPU0/power
-> latencies of 000 and 100 (the maximum allowed value, BTW) for C1/C2.
+ 
 
-OK, I just tested it properly.
-Rebooted, did 5 bonnie -s 100 with ACPI idle, rebooted and did another 5
-bonnie -s 100 with idle=poll, results:
+> -----Original Message-----
+> From: Zhang Rui [mailto:rui.zhang@intel.com] 
+> Sent: Tuesday, July 28, 2009 12:24 AM
+> To: Thomas Renninger
+> Cc: davej@redhat.com; linux-acpi; cpufreq@vger.kernel.org; 
+> Len Brown; howl.nsp@gmail.com; Langsdorf, Mark
+> Subject: Re: [PATCH] powernow-k8: don't load powernow-k8 
+> driver whenacpi=off
+> 
+> On Thu, 2009-07-23 at 18:09 +0800, Thomas Renninger wrote:
+> > On Thursday 23 July 2009 04:11:10 Zhang Rui wrote:
+> > > when acpi=off, powernow-k8 driver is still loaded, and fails with
+> > > a firmware bug warning message.
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=13695#c5
+> > > 
+> > > this is misleading,
+> > > we should not load powernow-k8 driver when acpi=off.
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=13695
+> > 
+> > Maybe this one is better:
+> >   - It allows these special, deprecated PSB BIOS structure
+> >     use in acpi=off case
+> >   - It complains that powernow-k8 won't work without ACPI, instead
+> >     of complaining about the BIOS missing _PSS ACPI structures
+> >     (in acpi=off case).
+> > 
+> > Compile tested on latest 2.6.31-rc2.
+> > 
+> >    Thomas
+> > 
+> > ----
+> > CPUFREQ: Avoid powernow-k8 BIOS complains when acpi=off
+> > 
+> >   - It still allows these special, deprecated PSB BIOS structure
+> >     use in acpi=off case
+> >   - It complains that powernow-k8 won't work without ACPI, instead
+> >     of complaining about the BIOS missing _PSS ACPI structures
+> >     (in acpi=off case).
+> > 
+> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
+Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
 
-$ cat bonnie_ACPI_* /tmp/line bonnie_poll_*
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 20084 95.3 19037  9.5 12286  4.7 18074 99.6 581752 96.6 28792.3 93.6
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 19235 93.5 24591 11.8 13916  4.3 17934 99.8 604429 100.3 27993.8 98.0
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 17221 86.3 30591 16.1 15404  5.4 18689 99.3 593296 92.7 28146.0 98.5
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 20254 99.3 110095 55.9 15722  6.1 17901 99.5 601185 99.8 28675.5 100.4
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 18274 88.5 106909 53.2 10614  4.1 18759 99.7 598833 99.4 28461.6 92.5
-========
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 15274 98.2 20206  9.7 17286  7.3 18055 99.4 608112 101.0 28424.0 99.5
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 20545 99.1 25332 12.6 16392  6.1 17957 99.4 606706 100.7 27906.8 90.7
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 20482 99.2 30907 13.6 17585  6.2 17867 99.1 608090 101.0 27919.1 97.7
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 20863 99.4 138383 66.2 18945  7.6 17938 99.5 581421 96.5 27094.6 94.8
-              -------Sequential Output-------- ---Sequential Input-- --Random--
-              -Per Char- --Block--- -Rewrite-- -Per Char- --Block--- --Seeks---
-Machine    MB K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU K/sec %CPU  /sec %CPU
-       1* 100 20821 98.8 156821 70.4 11536  4.4 18747 99.0 603556 100.2 27677.8 96.9
+> > ---
+> >  arch/x86/kernel/cpu/cpufreq/powernow-k8.c |    6 +++++-
+> >  1 file changed, 5 insertions(+), 1 deletion(-)
+> > 
+> > Index: 
+> cpufreq_governor_cleanups/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+> > ===================================================================
+> > --- 
+> cpufreq_governor_cleanups.orig/arch/x86/kernel/cpu/cpufreq/pow
+> ernow-k8.c
+> > +++ 
+> cpufreq_governor_cleanups/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+> > @@ -1286,7 +1286,11 @@ static int __cpuinit powernowk8_cpu_init
+> >  		 * an UP version, and is deprecated by AMD.
+> >  		 */
+> >  		if (num_online_cpus() != 1) {
+> > -			printk_once(ACPI_PSS_BIOS_BUG_MSG);
+> > +			if (acpi_disabled)
+> > +				printk_once(KERN_WARN PFX
+> > +					    "ACPI disabled, exiting\n");
+> > +			else
+> > +				printk_once(ACPI_PSS_BIOS_BUG_MSG);
+> >  			goto err_out;
+> >  		}
+> >  		if (pol->cpu != 0) {
+> > 
+> 
+> 
+> 
 
-
-And these values (cumulative) result in:
-
-         ACPI		poll
-Per Char 95068		97985		+3.06%
-Block   291223		371649		+27.62%
-Rewrite	67942		81744		+20.31%
-Per Char 91357		90564		-0.87%
-Block  2979495		3007885		+0.95%
-RndSeek	142069.2	139022.3	-2.1%
-				average: +8.16%
-
-Now the question is how much is due to idle state entry/exit latency
-and how much is due to ACPI idle/wakeup code path execution.
-
-Still, an average of +8.16% during 5 test runs each should be quite some incentive,
-and once there's a proper "idle latency skipping during expected I/O replies"
-even with idle/wakeup code path reinstated we should hopefully be able to keep
-some 5% improvement in disk access.
-
-Andreas Mohr
