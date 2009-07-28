@@ -1,36 +1,30 @@
-From: "Cai, Crane" <crane.cai@amd.com>
-Subject: Re: [PATCH] ACPI: add driver for SMBus Control Method Interface
-Date: Tue, 28 Jul 2009 07:45:30 +0800
-Message-ID: <20090727234530.GB12622@crane-desktop>
-References: <20090715060219.GA30514@crane-desktop> <20090727030559.GA23792@crane-desktop> <20090727121029.GA4150@srcf.ucam.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
+ meters
+Date: Mon, 27 Jul 2009 21:25:54 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907272124110.4445@localhost.localdomain>
+References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com>
+ <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-dub.frontbridge.com ([213.199.154.16]:57835 "EHLO
-	IE1EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587AbZG0Xpt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2009 19:45:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20090727121029.GA4150@srcf.ucam.org>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:48391 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015AbZG1B0G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2009 21:26:06 -0400
+In-reply-to: <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-Thanks.
+Hi Darrick,
+On the system you are planning to run this on...
+Are the power meters in the processor, or elsewhere?
 
-On Mon, Jul 27, 2009 at 01:10:29PM +0100, Matthew Garrett wrote:
-> On Mon, Jul 27, 2009 at 11:05:59AM +0800, Cai, Crane wrote:
-> > Hi,
-> > 
-> > Could some one tell me whether this patch can be applied?
-> 
-> It should go through Len, but I haven't heard from him in a couple of 
-> weeks. I've Cc:ed him so he'll notice it when he's around.
-> 
-> -- 
-> Matthew Garrett | mjg59@srcf.ucam.org
+If they are the ones in the processor, I'd rather that
+Linux use a native model-specific driver to access those
+registers and not use ACPI.
 
--- 
-Best Regards,
-- Crane
-
+thanks,
+Len Brown, Intel Open Source Technology Center
