@@ -1,43 +1,51 @@
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 Subject: Re: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external control
  operation interface for domain0 ACPI parser
-Date: Wed, 29 Jul 2009 09:43:50 -0700
-Message-ID: <4A707C46.2060405@goop.org>
-References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com> <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com>
+Date: Wed, 29 Jul 2009 09:50:09 -0700
+Message-ID: <4A707DC1.9070708@goop.org>
+References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com> <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com> <4D05DB80B95B23498C72C700BD6C2E0B315D65B6@pdsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from claw.goop.org ([74.207.240.146]:35585 "EHLO claw.goop.org"
+Received: from claw.goop.org ([74.207.240.146]:50884 "EHLO claw.goop.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755663AbZG2Qnv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jul 2009 12:43:51 -0400
-In-Reply-To: <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com>
+	id S1755423AbZG2QuK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jul 2009 12:50:10 -0400
+In-Reply-To: <4D05DB80B95B23498C72C700BD6C2E0B315D65B6@pdsmsx502.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: "Yu, Ke" <ke.yu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
+To: "Yu, Ke" <ke.yu@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
 
-On 07/28/09 21:14, Brown, Len wrote:
-> Does somebody expect all this dom0 stuff to really live
-> in the upstream linux kernel source tree?
+On 07/28/09 23:20, Yu, Ke wrote:
+> Your question is reasonable. there is also debate here before. People discuss if it is possible to add acpica stuff to xen hypervisor and let xen control the acpi completely. Unfortunately, this will lead dilemma here, i.e. some devices are controlled by dom0 and also need acpi info, e.g. battery, thermal, etc. and pci hotplug in dom0 is another example. Tian Kevin has detail description on this issue in the attached mail.
 >   
 
-The control domain (dom0) patches are held up by a very specific set of
-concerns that I'm working on now.  I don't think there's any fundamental
-reason it won't make it in at some point, and there's no reason not to
-lay the groundwork in the meantime.
+What would happen if we special-cased dom0 VCPUs to be bound 1:1 to
+PCPUs.  Would that simplify this stuff?  Wouldn't that make CPU control
+equivalent to battery, fan, etc?
 
-These acpi patches are very useful, but not essential functionality. 
-I'd like to see them evolve along lines that are acceptable to everyone
-before making a serious push upstream.
-
-> s/extcntl/xen/ to make it clear why this code exists --
-> or is there an expected "external control" other than Xen?
+> On the other hand, the dom0 acpica approach has other benefit, i.e. current linux acpica stuff is pretty mature and has numerous bug fix. Leveraging acpica in linux kernel is more practical.
 >   
 
-I dislike making Xen-specific changes.  Ideally we can find a way to fit
-these changes into some other abstraction which already exists, or if
-added would be useful to more than one user.
+My understanding is that all that code is supposed to be
+kernel-independent.  We could lift all that code as-is, write some new
+kernel interface shims and shove it all into Xen.   But I don't know if
+that solves any more problems than it causes.
+
+>> s/extcntl/xen/ to make it clear why this code exists --
+>> or is there an expected "external control" other than Xen?
+>>
+>> -Len
+>>     
+>
+> Ok, I can try this. BTW, besides this naming change, do you have other comment on the code? So that I can make it more clean.
+>   
+
+I don't think that's a good idea.  If we need to do that, then there's a
+deeper design problem we need to address.  (And, if nothing else, people
+have become hypersensitive to naked Xen-specific code references in
+non-Xen files, and I'm tired of having those arguments.)
 
     J
