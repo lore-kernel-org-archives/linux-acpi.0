@@ -1,48 +1,70 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Dynamic configure max_cstate
-Date: Tue, 28 Jul 2009 20:17:09 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0907282014030.17102@localhost.localdomain>
-References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH 6/12] drivers/platform/x86: Correct redundant test
+Date: Wed, 29 Jul 2009 10:20:21 +0930 (CST)
+Message-ID: <200907290050.n6T0oL0o024740@mercury.physics.adelaide.edu.au>
+References: <4A6F3AEA.7090102@grupopie.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:57297 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753299AbZG2ARc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 20:17:32 -0400
-In-reply-to: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:39802 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751023AbZG2Auz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jul 2009 20:50:55 -0400
+In-Reply-To: <4A6F3AEA.7090102@grupopie.com> from "Paulo Marques" at Jul 28, 2009 06:52:42 PM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Paulo Marques <pmarques@grupopie.com>
+Cc: Julia Lawall <julia@diku.dk>, jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
+Hi guys
 
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-On Mon, 27 Jul 2009, Andreas Mohr wrote:
-
-> Hi,
+> Julia Lawall wrote:
+> > [...]
+> > ---
+> >  drivers/platform/x86/fujitsu-laptop.c          |    3 ---
+> >  1 files changed, 0 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+> > index 218b9a1..5306901 100644
+> > --- a/drivers/platform/x86/fujitsu-laptop.c
+> > +++ b/drivers/platform/x86/fujitsu-laptop.c
+> > @@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
+> >  
+> >  	fujitsu = acpi_driver_data(device);
+> >  
+> > -	if (!device || !acpi_driver_data(device))
+> > -		return -EINVAL;
+> > -
 > 
-> > When running a fio workload, I found sometimes cpu C state has
-> > big impact on the result. Mostly, fio is a disk I/O workload
-> > which doesn't spend much time with cpu, so cpu switch to C2/C3
-> > freqently and the latency is big.
+> Shouldn't this still do a:
 > 
-> Rather than inventing ways to limit ACPI Cx state usefulness, we should
-> perhaps be thinking of what's wrong here.
+>    if (!fujitsu)
+>      return -EINVAL;
 > 
-> And your complaint might just fit into a thought I had recently:
-> are we actually taking ACPI Cx exit latency into account, for timers???
+> to avoid dereferencing a NULL pointer below?
 
-Yes.
-menu_select() calls tick_nohz_get_sleep_length() specifically
-to compare the expiration of the next timer vs. the expected sleep length.
+Hmm, yes it should.  Well spotted.  And I'm not certain how the duplicate
+test on "device" got in there in the first place.  I suspect it came about
+due to some structural changes made a few versions ago and I failed to
+notice that the second check became redundant.
 
-The problem here is likely that the expected sleep length
-is shorter than expected, for IO interrupts are not timers...
-Thus we add long deep C-state wakeup time to the IO interrupt latency...
+So, combining this with the above patch we should instead do
 
--Len Brown, Intel Open Source Technology Center
+Signed-off-by: jwoithe@physics.adelaide.edu.au <Jonathan Woithe>
 
+--- a/drivers/platform/x86/fujitsu-laptop.c	2009-06-12 19:51:45.333234000 +0930
++++ b/drivers/platform/x86/fujitsu-laptop.c	2009-07-29 10:14:30.610249941 +0930
+@@ -745,7 +745,7 @@ static int acpi_fujitsu_remove(struct ac
+ 
+ 	fujitsu = acpi_driver_data(device);
+ 
+-	if (!device || !acpi_driver_data(device))
++	if (!fujitsu)
+ 		return -EINVAL;
+ 
+ 	fujitsu->acpi_handle = NULL;
+
+Regards
+  jonathan
