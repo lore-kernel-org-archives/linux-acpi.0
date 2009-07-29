@@ -1,97 +1,81 @@
 From: Julia Lawall <julia@diku.dk>
-Subject: Re: [PATCH 9/9] drivers/acpi: correct error-handling code
-Date: Wed, 29 Jul 2009 04:20:32 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0907290420120.16543@ask.diku.dk>
-References: <Pine.LNX.4.64.0907281756010.28189@ask.diku.dk>
- <1248828809.2670.144.camel@rzhang-dt>
+Subject: Re: [PATCH 6/12] drivers/platform/x86: Correct redundant test
+Date: Wed, 29 Jul 2009 04:22:51 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0907290422121.16543@ask.diku.dk>
+References: <200907290050.n6T0oL0o024740@mercury.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-511516320-1931889447-1248834032=:16543"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:46977 "EHLO mgw1.diku.dk"
+Received: from mgw2.diku.dk ([130.225.96.92]:39609 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753725AbZG2CWK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2009 22:22:10 -0400
-In-Reply-To: <1248828809.2670.144.camel@rzhang-dt>
+	id S1755930AbZG2CYK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jul 2009 22:24:10 -0400
+In-Reply-To: <200907290050.n6T0oL0o024740@mercury.physics.adelaide.edu.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: Paulo Marques <pmarques@grupopie.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, 29 Jul 2009, Jonathan Woithe wrote:
 
----511516320-1931889447-1248834032=:16543
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-
-On Wed, 29 Jul 2009, Zhang Rui wrote:
-
-> On Tue, 2009-07-28 at 23:56 +0800, Julia Lawall wrote:
-> > From: Julia Lawall <julia@diku.dk>
-> > 
-> > backlight_device_register may return an ERR_PTR value rather than a valid
-> > pointer.
-> > 
-> > A simplified version of the semantic match that finds this problem is as
-> > follows: (http://coccinelle.lip6.fr/)
+> Hi guys
 > 
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
+> > Julia Lawall wrote:
+> > > [...]
+> > > ---
+> > >  drivers/platform/x86/fujitsu-laptop.c          |    3 ---
+> > >  1 files changed, 0 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+> > > index 218b9a1..5306901 100644
+> > > --- a/drivers/platform/x86/fujitsu-laptop.c
+> > > +++ b/drivers/platform/x86/fujitsu-laptop.c
+> > > @@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
+> > >  
+> > >  	fujitsu = acpi_driver_data(device);
+> > >  
+> > > -	if (!device || !acpi_driver_data(device))
+> > > -		return -EINVAL;
+> > > -
 > > 
-> > ---
-> >  drivers/acpi/video.c                |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > Shouldn't this still do a:
 > > 
-> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > index 8851315..29788db 100644
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -982,6 +982,8 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
-> >  		sprintf(name, "acpi_video%d", count++);
-> >  		device->backlight = backlight_device_register(name,
-> >  			NULL, device, &acpi_backlight_ops);
-> > +		if (IS_ERR(device->backlight))
-> > +			return;
+> >    if (!fujitsu)
+> >      return -EINVAL;
+> > 
+> > to avoid dereferencing a NULL pointer below?
 > 
-> we should kfree(name) here.
+> Hmm, yes it should.  Well spotted.  And I'm not certain how the duplicate
+> test on "device" got in there in the first place.  I suspect it came about
+> due to some structural changes made a few versions ago and I failed to
+> notice that the second check became redundant.
 
-Yes, good point.
+If you are going to check fujitsu afterwards, then I think there is no 
+need to test the result of acpi_driver_data before.
 
-thanks,
 julia
 
-> >  		device->backlight->props.max_brightness = device->brightness->count-3;
-> >  		kfree(name);
+ 
+> So, combining this with the above patch we should instead do
 > 
-> how about this one?
+> Signed-off-by: jwoithe@physics.adelaide.edu.au <Jonathan Woithe>
 > 
-> ÿÿbacklight_device_register may return an ERR_PTR value rather than a valid
-> pointer.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/acpi/video.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/video.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/video.c
-> +++ linux-2.6/drivers/acpi/video.c
-> @@ -982,8 +982,10 @@ static void acpi_video_device_find_cap(s
->  		sprintf(name, "acpi_video%d", count++);
->  		device->backlight = backlight_device_register(name,
->  			NULL, device, &acpi_backlight_ops);
-> -		device->backlight->props.max_brightness = device->brightness->count-3;
->  		kfree(name);
-> +		if (IS_ERR(device->backlight))
-> +			return;
-> +		device->backlight->props.max_brightness = device->brightness->count-3;
+> --- a/drivers/platform/x86/fujitsu-laptop.c	2009-06-12 19:51:45.333234000 +0930
+> +++ b/drivers/platform/x86/fujitsu-laptop.c	2009-07-29 10:14:30.610249941 +0930
+> @@ -745,7 +745,7 @@ static int acpi_fujitsu_remove(struct ac
 >  
->  		result = sysfs_create_link(&device->backlight->dev.kobj,
->  					   &device->dev->dev.kobj, "device");
-> 
-> 
-> 
+>  	fujitsu = acpi_driver_data(device);
 >  
+> -	if (!device || !acpi_driver_data(device))
+> +	if (!fujitsu)
+>  		return -EINVAL;
+>  
+>  	fujitsu->acpi_handle = NULL;
 > 
+> Regards
+>   jonathan
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
----511516320-1931889447-1248834032=:16543--
