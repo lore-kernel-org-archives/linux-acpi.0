@@ -1,91 +1,86 @@
-From: Andreas Mohr <andi@lisas.de>
+From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
 Subject: Re: Dynamic configure max_cstate
-Date: Wed, 29 Jul 2009 10:00:37 +0200
-Message-ID: <20090729080037.GA1113@rhlx01.hs-esslingen.de>
-References: <20090727073338.GA12669@rhlx01.hs-esslingen.de> <alpine.LFD.2.00.0907282014030.17102@localhost.localdomain>
+Date: Wed, 29 Jul 2009 16:20:58 +0800
+Message-ID: <1248855658.2560.710.camel@ymzhang>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+	 <1248748935.2560.669.camel@ymzhang>
+	 <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com>
+	 <1248771635.2560.682.camel@ymzhang>
+	 <20090728101135.GA22358@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:50835 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbZG2IAh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2009 04:00:37 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0907282014030.17102@localhost.localdomain>
+Received: from mga09.intel.com ([134.134.136.24]:4300 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751581AbZG2IUu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jul 2009 04:20:50 -0400
+In-Reply-To: <20090728101135.GA22358@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andreas Mohr <andi@lisas.de>, "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Andreas Mohr <andi@lisas.de>
+Cc: Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi,
-
-On Tue, Jul 28, 2009 at 08:17:09PM -0400, Len Brown wrote:
-> > And your complaint might just fit into a thought I had recently:
-> > are we actually taking ACPI Cx exit latency into account, for timers???
+On Tue, 2009-07-28 at 12:11 +0200, Andreas Mohr wrote:
+> Hi,
 > 
-> Yes.
-> menu_select() calls tick_nohz_get_sleep_length() specifically
-> to compare the expiration of the next timer vs. the expected sleep length.
+> On Tue, Jul 28, 2009 at 05:00:35PM +0800, Zhang, Yanmin wrote:
+> > I tried different clocksources. For exmaple, I could get a better (30%) result with
+> > hpet. With hpet, cpu utilization is about 5~8%. Function hpet_read uses too much cpu
+> > time. With tsc, cpu utilization is about 2~3%. I think more cpu utilization causes fewer
+> > C state transitions.
+> > 
+> > With idle=poll, the result is about 10% better than the one of hpet. If using idle=poll,
+> > I didn't find result difference among different clocksources.
 > 
-> The problem here is likely that the expected sleep length
-> is shorter than expected, for IO interrupts are not timers...
-> Thus we add long deep C-state wakeup time to the IO interrupt latency...
+> IOW, this seems to clearly point to ACPI Cx causing it.
+> 
+> Both Corrado and me have been thinking that one should try skipping all
+> bigger-latency ACPI Cx states whenever there's an ongoing I/O request where an
+> immediate reply interrupt is expected.
+That's a good idea.
 
-Well, but... the code does not work according to my idea about this.
-The code currently checks against the expected sleep length and throws away
-any large exit latencies that don't fit.
-What I was thinking how to handle this is entirely different (and,
-frankly, I'm not sure whether it would have any advantage, but still):
-actively _subtract_ the idle exit latency from the timer expiration
-time (i.e., reprogram the timer on idle entry and again on idle exit if
-not expired yet) to make sure that the timer fires correctly
-despite having to handle the idle exit, too.
-
-OTOH while this might allow deeper Cx states, it's most likely a weaker
-solution than the current implementation, since it requires up to two
-times additional timer reprogramming.
-And additionally taking into account I/O-inflicted idle exit can be
-implemented pretty easily alongside the existing tick_nohz_get_sleep_length()
-mechanism.
-
-The code still causes some additional uneasiness such as:
-tick_nohz_get_sleep_length() returns dev->next_event - now,
-but pushed through all the ACPI latency hardware-wise)
-the actual timer appearance after cpu wakeup might be
-entirely random, there should be a feedback mechanism which
-measures when a timer was expected and when it then _actually_ turned up,
-to cancel out the delay effects of ACPI idle entry/exit.
-
-== i.e. we seem to be calculating these things on what we _think_ the
-machine is doing, not on what we _know_ about its previous behaviour ==
-- since we don't have a feedback loop...
-IMHO this is an important missing element here, if such a feedback loop
-was implemented, then timer wakeups would be much more precise,
-which incidentally would result in improved machine performance.
-(CC Thomas)
-
-
-And spinning this a bit further - let me guess (I didn't check it)
-that hard realtime users are always quick to disable ACPI Cx completely?
-With such a mechanism they shouldn't need to, since the timer is
-programmed according to _actual_ CPU wakeup time, not when we _think_
-it might wakeup.
-(CC Ingo)
-
-
-I just realized that such a feedback loop (resulting in possibly
-early-programmed timers) would then need my timer reprogramming
-mechanism again (after ACPI idle exit), to avoid early timer trigger.
-However ultimately I think it might turn out to be a much better solution
-to precisely _determine_ timer fireing than to simply statically, mechanically
-(blindly!) pre-set the time around which a timer "might be expected to be fired".
+> 
+> I've been investigating this a bit, and interesting parts would perhaps include
+>   . kernel/pm_qos_params.c
+>   . drivers/cpuidle/governors/menu.c (which acts on the ACPI _cx state
+> structs as configured by drivers/acpi/processor_idle.c)
+>   . and e.g. the wait_for_completion_timeout() part in drivers/ata/libata-core.c
+>     (or other sources in case of other disk I/O mechanisms)
+> 
+> One way to do some quick (and dirty!!) testing would be to set a flag
+> before calling wait_for_completion_timeout() and testing for this flag in
+> drivers/cpuidle/governors/menu.c and then skip deeper Cx states
+> conditionally.
+> 
+> As a very quick test, I tried a
+> while :; do :; done
+> loop in shell and renicing shell to 19 (to keep my CPU out of ACPI idle),
+> but bonnie -s 100 results initially looked promising yet turned out to
+> be inconsistent. The real way to test this would be idle=poll.
+> My test system was Athlon XP with /proc/acpi/processor/CPU0/power
+> latencies of 000 and 100 (the maximum allowed value, BTW) for C1/C2.
+> 
+> If the wait_for_completion_timeout() flag testing turns out to help,
+> then one might intend to use the pm_qos infrastructure to indicate
+> these conditions, however it might be too bloated for such a
+> purpose, a relatively simple (read: fast) boolean flag mechanism
+> could be better.
+> 
+> Plus one could then create a helper function which figures out a
+> "pretty fast" Cx state (independent of specific latency times!).
+> But when introducing this mechanism, take care to not ignore the
+> requirements defined by pm_qos settings!
+> 
+> Oh, and about the places which submit I/O requests where one would have to
+> flag this: are they in any way correlated with the scheduler I/O wait
+> value? Would the I/O wait mechanism be a place to more easily and centrally
+> indicate that we're waiting for a request to come back in "very soon"?
+> OTOH I/O requests may have vastly differing delay expectations,
+> thus specifically only short-term expected I/O replies should be flagged,
+> otherwise we're wasting lots of ACPI deep idle opportunities.
+Another issue is we might submit I/O request on cpu A, but the corresponding
+interrupt is sent to cpu B. It's common. So the SOFTIRQ on cpu B would send
+an IPI to cpu A to schedule process to run on cpu A to finish the I/O.
 
 
-An annoyingly simple sentence to phrase the current situation:
-"With ACPI idle configured, high-res timers aren't."
-
-
-Or am I wrong and the current implementation is already doing all this
-already? Didn't see that though...
-
-Andreas Mohr
