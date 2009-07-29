@@ -1,70 +1,95 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH 6/12] drivers/platform/x86: Correct redundant test
-Date: Wed, 29 Jul 2009 10:20:21 +0930 (CST)
-Message-ID: <200907290050.n6T0oL0o024740@mercury.physics.adelaide.edu.au>
-References: <4A6F3AEA.7090102@grupopie.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 9/9] drivers/acpi: correct error-handling code
+Date: Wed, 29 Jul 2009 08:53:29 +0800
+Message-ID: <1248828809.2670.144.camel@rzhang-dt>
+References: <Pine.LNX.4.64.0907281756010.28189@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:39802 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751023AbZG2Auz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2009 20:50:55 -0400
-In-Reply-To: <4A6F3AEA.7090102@grupopie.com> from "Paulo Marques" at Jul 28, 2009 06:52:42 PM
+Received: from mga02.intel.com ([134.134.136.20]:8659 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750961AbZG2AxU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jul 2009 20:53:20 -0400
+In-Reply-To: <Pine.LNX.4.64.0907281756010.28189@ask.diku.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paulo Marques <pmarques@grupopie.com>
-Cc: Julia Lawall <julia@diku.dk>, jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Julia Lawall <julia@diku.dk>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 
-Hi guys
+On Tue, 2009-07-28 at 23:56 +0800, Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
+>=20
+> backlight_device_register may return an ERR_PTR value rather than a v=
+alid
+> pointer.
+>=20
+> A simplified version of the semantic match that finds this problem is=
+ as
+> follows: (http://coccinelle.lip6.fr/)
 
-> Julia Lawall wrote:
-> > [...]
-> > ---
-> >  drivers/platform/x86/fujitsu-laptop.c          |    3 ---
-> >  1 files changed, 0 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-> > index 218b9a1..5306901 100644
-> > --- a/drivers/platform/x86/fujitsu-laptop.c
-> > +++ b/drivers/platform/x86/fujitsu-laptop.c
-> > @@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
-> >  
-> >  	fujitsu = acpi_driver_data(device);
-> >  
-> > -	if (!device || !acpi_driver_data(device))
-> > -		return -EINVAL;
-> > -
-> 
-> Shouldn't this still do a:
-> 
->    if (!fujitsu)
->      return -EINVAL;
-> 
-> to avoid dereferencing a NULL pointer below?
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+>=20
+> ---
+>  drivers/acpi/video.c                |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 8851315..29788db 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -982,6 +982,8 @@ static void acpi_video_device_find_cap(struct acp=
+i_video_device *device)
+>  		sprintf(name, "acpi_video%d", count++);
+>  		device->backlight =3D backlight_device_register(name,
+>  			NULL, device, &acpi_backlight_ops);
+> +		if (IS_ERR(device->backlight))
+> +			return;
 
-Hmm, yes it should.  Well spotted.  And I'm not certain how the duplicate
-test on "device" got in there in the first place.  I suspect it came about
-due to some structural changes made a few versions ago and I failed to
-notice that the second check became redundant.
+we should kfree(name) here.
 
-So, combining this with the above patch we should instead do
+>  		device->backlight->props.max_brightness =3D device->brightness->co=
+unt-3;
+>  		kfree(name);
 
-Signed-off-by: jwoithe@physics.adelaide.edu.au <Jonathan Woithe>
+how about this one?
 
---- a/drivers/platform/x86/fujitsu-laptop.c	2009-06-12 19:51:45.333234000 +0930
-+++ b/drivers/platform/x86/fujitsu-laptop.c	2009-07-29 10:14:30.610249941 +0930
-@@ -745,7 +745,7 @@ static int acpi_fujitsu_remove(struct ac
- 
- 	fujitsu = acpi_driver_data(device);
- 
--	if (!device || !acpi_driver_data(device))
-+	if (!fujitsu)
- 		return -EINVAL;
- 
- 	fujitsu->acpi_handle = NULL;
+=EF=BB=BFbacklight_device_register may return an ERR_PTR value rather t=
+han a valid
+pointer.
 
-Regards
-  jonathan
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/video.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/acpi/video.c
++++ linux-2.6/drivers/acpi/video.c
+@@ -982,8 +982,10 @@ static void acpi_video_device_find_cap(s
+ 		sprintf(name, "acpi_video%d", count++);
+ 		device->backlight =3D backlight_device_register(name,
+ 			NULL, device, &acpi_backlight_ops);
+-		device->backlight->props.max_brightness =3D device->brightness->coun=
+t-3;
+ 		kfree(name);
++		if (IS_ERR(device->backlight))
++			return;
++		device->backlight->props.max_brightness =3D device->brightness->coun=
+t-3;
+=20
+ 		result =3D sysfs_create_link(&device->backlight->dev.kobj,
+ 					   &device->dev->dev.kobj, "device");
+
+
+
+=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
