@@ -1,51 +1,48 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: Re: [PATCH 6/12] drivers/platform/x86: Correct redundant test
-Date: Tue, 28 Jul 2009 22:11:14 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0907282207590.2267@ask.diku.dk>
-References: <Pine.LNX.4.64.0907271813490.2682@ask.diku.dk> <4A6F3AEA.7090102@grupopie.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Dynamic configure max_cstate
+Date: Tue, 28 Jul 2009 20:17:09 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907282014030.17102@localhost.localdomain>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:52400 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387AbZG1UMS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2009 16:12:18 -0400
-In-Reply-To: <4A6F3AEA.7090102@grupopie.com>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:57297 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753299AbZG2ARc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2009 20:17:32 -0400
+In-reply-to: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paulo Marques <pmarques@grupopie.com>
-Cc: jwoithe@physics.adelaide.edu.au, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Andreas Mohr <andi@lisas.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Tue, 28 Jul 2009, Paulo Marques wrote:
 
-> Julia Lawall wrote:
-> > [...]
-> > ---
-> >  drivers/platform/x86/fujitsu-laptop.c          |    3 ---
-> >  1 files changed, 0 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-> > index 218b9a1..5306901 100644
-> > --- a/drivers/platform/x86/fujitsu-laptop.c
-> > +++ b/drivers/platform/x86/fujitsu-laptop.c
-> > @@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct acpi_device *device, int type)
-> >  
-> >  	fujitsu = acpi_driver_data(device);
-> >  
-> > -	if (!device || !acpi_driver_data(device))
-> > -		return -EINVAL;
-> > -
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+On Mon, 27 Jul 2009, Andreas Mohr wrote:
+
+> Hi,
 > 
-> Shouldn't this still do a:
+> > When running a fio workload, I found sometimes cpu C state has
+> > big impact on the result. Mostly, fio is a disk I/O workload
+> > which doesn't spend much time with cpu, so cpu switch to C2/C3
+> > freqently and the latency is big.
 > 
->    if (!fujitsu)
->      return -EINVAL;
+> Rather than inventing ways to limit ACPI Cx state usefulness, we should
+> perhaps be thinking of what's wrong here.
+> 
+> And your complaint might just fit into a thought I had recently:
+> are we actually taking ACPI Cx exit latency into account, for timers???
 
-acpi_driver_data just accesses a field of its argument.  Is there a worry 
-that from one call to the next it could have a different value?
+Yes.
+menu_select() calls tick_nohz_get_sleep_length() specifically
+to compare the expiration of the next timer vs. the expected sleep length.
 
-Perhaps it would be better to first test !device, then initialize fujitsu, 
-and then test the result of fujitsu?  The acpi_driver_data, which might 
-someday do something more complicated, would only be called once.
+The problem here is likely that the expected sleep length
+is shorter than expected, for IO interrupts are not timers...
+Thus we add long deep C-state wakeup time to the IO interrupt latency...
 
-julia
+-Len Brown, Intel Open Source Technology Center
+
