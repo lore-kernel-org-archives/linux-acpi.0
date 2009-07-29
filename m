@@ -1,50 +1,74 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: [Bug 13865] Can only resume with HP_WMI selected on compaq nc6000 when 4c395bdd3f2ca8f7e8efad881e16071182c3b8ca is reverted
-Date: Wed, 29 Jul 2009 23:31:32 +0200
-Message-ID: <200907292331.34214.elendil@planet.nl>
-References: <bug-13865-10028@http.bugzilla.kernel.org/> <200907292257.41573.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: bind workqueues to CPU 0 to avoid SMI corruption
+Date: Wed, 29 Jul 2009 15:54:25 -0600
+Message-ID: <20090729215425.23674.80263.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml104.kpnxchange.com ([195.121.3.8]:59184 "EHLO
-	CPSMTPM-EML104.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753768AbZG2Vbf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:31:35 -0400
-In-Reply-To: <200907292257.41573.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:26368 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752821AbZG2Vy0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2009 17:54:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: cedric@belbone.be
-Cc: bugzilla-daemon@bugzilla.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 
-On Wednesday 29 July 2009, Rafael J. Wysocki wrote:
-> On Wednesday 29 July 2009, you wrote:
-> > Just for testing I enabled HP_WMI. But from then, I could not resume
-> > anymore. I just reverted the last git commit on the
-> > 'drivers/platform/x86/hp-wmi.c' code
-> > (4c395bdd3f2ca8f7e8efad881e16071182c3b8ca) and now I can resume. The
-> > problem still persists on .31-rc serie
->
-> Frans, that's something for you to take care of.
+On some machines, a software-initiated SMI causes corruption unless the
+SMI runs on CPU 0.  An SMI can be initiated by any AML, but typically it's
+done in GPE-related methods that are run via workqueues, so we can avoid
+the known corruption cases by binding the workqueues to CPU 0.
 
-I'll at least give it a try.
+References:
+    http://bugzilla.kernel.org/show_bug.cgi?id=13751
+    https://bugs.launchpad.net/bugs/157171
+    https://bugs.launchpad.net/bugs/157691
 
-Cedric, as a start, can you please provide the output of the following 
-commands after the system is booted and with hp-wmi loaded:
-$ grep . /sys/devices/platform/hp-wmi/*
-$ ls -l /dev/input/*
-$ cat /proc/bus/input/devices
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ drivers/acpi/osl.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-Does an unload and reload of the module work correctly? What gets output 
-in dmesg by that?
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 7167071..5691f16 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -189,11 +189,36 @@ acpi_status __init acpi_os_initialize(void)
+ 	return AE_OK;
+ }
+ 
++static void bind_to_cpu0(struct work_struct *work)
++{
++	set_cpus_allowed(current, cpumask_of_cpu(0));
++	kfree(work);
++}
++
++static void bind_workqueue(struct workqueue_struct *wq)
++{
++	struct work_struct *work;
++
++	work = kzalloc(sizeof(struct work_struct), GFP_KERNEL);
++	INIT_WORK(work, bind_to_cpu0);
++	queue_work(wq, work);
++}
++
+ acpi_status acpi_os_initialize1(void)
+ {
++	/*
++	 * On some machines, a software-initiated SMI causes corruption unless
++	 * the SMI runs on CPU 0.  An SMI can be initiated by any AML, but
++	 * typically it's done in GPE-related methods that are run via
++	 * workqueues, so we can avoid the known corruption cases by binding
++	 * the workqueues to CPU 0.
++	 */
+ 	kacpid_wq = create_singlethread_workqueue("kacpid");
++	bind_workqueue(kacpid_wq);
+ 	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
++	bind_workqueue(kacpi_notify_wq);
+ 	kacpi_hotplug_wq = create_singlethread_workqueue("kacpi_hotplug");
++	bind_workqueue(kacpi_hotplug_wq);
+ 	BUG_ON(!kacpid_wq);
+ 	BUG_ON(!kacpi_notify_wq);
+ 	BUG_ON(!kacpi_hotplug_wq);
 
-The strange thing is that the resume function does not do anything that's 
-not also done in hp_wmi_input_setup(). The only thing I can think of is 
-that we might need to test for wmi_has_guid(HPWMI_EVENT_GUID) because 
-that model simply does not support input events.
-
-Cheers,
-FJP
