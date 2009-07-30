@@ -1,79 +1,40 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [Bug 13865] [PATCH] hp-wmi: check that an input device exists in resume handler
-Date: Thu, 30 Jul 2009 12:42:05 +0200
-Message-ID: <200907301242.07973.elendil@planet.nl>
-References: <bug-13865-10028@http.bugzilla.kernel.org/> <200907292257.41573.rjw@sisk.pl>
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: Re: [PATCH] fujitsu-laptop: remove superfluous NULL pointer checks
+Date: Thu, 30 Jul 2009 13:12:47 +0200
+Message-ID: <200907301312.48132.bzolnier@gmail.com>
+References: <200907300743.n6U7hnK6000821@mercury.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml110.kpnxchange.com ([195.121.3.14]:51295 "EHLO
-	CPSMTPM-EML110.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752602AbZG3KmJ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Jul 2009 06:42:09 -0400
-In-Reply-To: <200907292257.41573.rjw@sisk.pl>
+Received: from mail-fx0-f210.google.com ([209.85.220.210]:32922 "EHLO
+	mail-fx0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbZG3MLD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 08:11:03 -0400
+In-Reply-To: <200907300743.n6U7hnK6000821@mercury.physics.adelaide.edu.au>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: bugzilla-daemon@bugzilla.kernel.org, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, =?utf-8?q?C=C3=A9dric_Godin?= <cedric@belbone.be>
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan Carpenter <error27@gmail.com>, corbet@lwn.net, eteo@redhat.com, Julia Lawall <julia@diku.dk>
 
-On Wednesday 29 July 2009, Rafael J. Wysocki wrote:
-> On Wednesday 29 July 2009, you wrote:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=3D13865
-> >
-> > Just for testing I enabled HP_WMI. But from then, I could not resum=
-e
-> > anymore. I just reverted the last git commit on the
-> > 'drivers/platform/x86/hp-wmi.c' code
-> > (4c395bdd3f2ca8f7e8efad881e16071182c3b8ca) and now I can resume. Th=
-e
-> > problem still persists on .31-rc serie
 
-Here's the final patch, tested by C=C3=A9dric. (And properly against ma=
-inline.)
+Hi,
 
-=46rom: Frans Pop <elendil@planet.nl>
-Subject: hp-wmi: check that an input device exists in resume handler
+On Thursday 30 July 2009 09:43:49 Jonathan Woithe wrote:
+> Hi Bart
+> 
+> > From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+> > Subject: [PATCH] fujitsu-laptop: remove superfluous NULL pointer checks
+> > 
+> > This takes care of the following entries from Dan's list:
+> > 
+> > drivers/platform/x86/fujitsu-laptop.c +327 set_lcd_level(13) warning: variable derefenced before check 'fujitsu'
+> > drivers/platform/x86/fujitsu-laptop.c +358 set_lcd_level_alt(13) warning: variable derefenced before check 'fujitsu'
+> 
+> I'd rather keep the test for a non-null fujitsu in there, but obviously it's
+> kind of pointless doing it after the first dereference.  Since this fixup
+> overlaps with the one previously discussed with Julia I've taken the liberty
 
-Some systems may not support input events, or registering the input
-handler may have failed. So check that an input device exists before
-trying to set the docking and tablet mode state during resume.
-
-=46ixes: http://bugzilla.kernel.org/show_bug.cgi?id=3D13865
-
-Reported-and-tested-by: C=C3=A9dric Godin <cedric@belbone.be>
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-
-diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wm=
-i.c
-index ca50856..a2ad53e 100644
---- a/drivers/platform/x86/hp-wmi.c
-+++ b/drivers/platform/x86/hp-wmi.c
-@@ -520,11 +520,13 @@ static int hp_wmi_resume_handler(struct platform_=
-device *device)
- 	 * the input layer will only actually pass it on if the state
- 	 * changed.
- 	 */
--
--	input_report_switch(hp_wmi_input_dev, SW_DOCK, hp_wmi_dock_state());
--	input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
--			    hp_wmi_tablet_state());
--	input_sync(hp_wmi_input_dev);
-+	if (hp_wmi_input_dev) {
-+		input_report_switch(hp_wmi_input_dev, SW_DOCK,
-+				    hp_wmi_dock_state());
-+		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
-+				    hp_wmi_tablet_state());
-+		input_sync(hp_wmi_input_dev);
-+	}
-=20
- 	return 0;
- }
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+They are on top of Julia's patch (sorry I forgot to mention it)..
