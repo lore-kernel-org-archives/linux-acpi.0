@@ -1,68 +1,85 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [Bug 13865] Can only resume with HP_WMI selected on compaq nc6000 when 4c395bdd3f2ca8f7e8efad881e16071182c3b8ca is reverted
-Date: Thu, 30 Jul 2009 00:57:47 +0200
-Message-ID: <200907300057.48669.elendil@planet.nl>
-References: <bug-13865-10028@http.bugzilla.kernel.org/> <200907292257.41573.rjw@sisk.pl> <200907292331.34214.elendil@planet.nl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI: bind workqueues to CPU 0 to avoid SMI corruption
+Date: Thu, 30 Jul 2009 08:59:59 +0800
+Message-ID: <1248915599.2670.151.camel@rzhang-dt>
+References: <20090729215425.23674.80263.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Cpsmtpm-eml106.kpnxchange.com ([195.121.3.10]:60242 "EHLO
-	CPSMTPM-EML106.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753038AbZG2W5u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:57:50 -0400
-In-Reply-To: <200907292331.34214.elendil@planet.nl>
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:29397 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754875AbZG3BAB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jul 2009 21:00:01 -0400
+In-Reply-To: <20090729215425.23674.80263.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: cedric@belbone.be, linux-kernel@vger.kernel.org
-Cc: bugzilla-daemon@bugzilla.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday 29 July 2009, Frans Pop wrote:
-> The strange thing is that the resume function does not do anything
-> that's not also done in hp_wmi_input_setup(). The only thing I can
-> think of is that we might need to test for
-> wmi_has_guid(HPWMI_EVENT_GUID) because that model simply does not
-> support input events.
+On Thu, 2009-07-30 at 05:54 +0800, Bjorn Helgaas wrote:
+> On some machines, a software-initiated SMI causes corruption unless the
+> SMI runs on CPU 0.  An SMI can be initiated by any AML, but typically it's
+> done in GPE-related methods that are run via workqueues, so we can avoid
+> the known corruption cases by binding the workqueues to CPU 0.
+> 
+> References:
+>     http://bugzilla.kernel.org/show_bug.cgi?id=13751
+>     https://bugs.launchpad.net/bugs/157171
+>     https://bugs.launchpad.net/bugs/157691
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-If that is the problem, the following patch will hopefully fix it.
-This patch is against .31-rc4 but will need only minor changes to
-apply against .30.
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-Subject: hp-wmi: check that an input device exists in resume handler
+> ---
+>  drivers/acpi/osl.c |   25 +++++++++++++++++++++++++
+>  1 files changed, 25 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 7167071..5691f16 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -189,11 +189,36 @@ acpi_status __init acpi_os_initialize(void)
+>  	return AE_OK;
+>  }
+>  
+> +static void bind_to_cpu0(struct work_struct *work)
+> +{
+> +	set_cpus_allowed(current, cpumask_of_cpu(0));
+> +	kfree(work);
+> +}
+> +
+> +static void bind_workqueue(struct workqueue_struct *wq)
+> +{
+> +	struct work_struct *work;
+> +
+> +	work = kzalloc(sizeof(struct work_struct), GFP_KERNEL);
+> +	INIT_WORK(work, bind_to_cpu0);
+> +	queue_work(wq, work);
+> +}
+> +
+>  acpi_status acpi_os_initialize1(void)
+>  {
+> +	/*
+> +	 * On some machines, a software-initiated SMI causes corruption unless
+> +	 * the SMI runs on CPU 0.  An SMI can be initiated by any AML, but
+> +	 * typically it's done in GPE-related methods that are run via
+> +	 * workqueues, so we can avoid the known corruption cases by binding
+> +	 * the workqueues to CPU 0.
+> +	 */
+>  	kacpid_wq = create_singlethread_workqueue("kacpid");
+> +	bind_workqueue(kacpid_wq);
+>  	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
+> +	bind_workqueue(kacpi_notify_wq);
+>  	kacpi_hotplug_wq = create_singlethread_workqueue("kacpi_hotplug");
+> +	bind_workqueue(kacpi_hotplug_wq);
+>  	BUG_ON(!kacpid_wq);
+>  	BUG_ON(!kacpi_notify_wq);
+>  	BUG_ON(!kacpi_hotplug_wq);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Some systems may not support input events, or registering the input
-handler may have failed. So check that an input device exists before
-trying to set the docking and tablet mode state during resume.
-
-Fixes: http://bugzilla.kernel.org/show_bug.cgi?id=13865
-
-Reported-by: cedric@belbone.be
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-
-diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-index 369bd43..63c9214 100644
---- a/drivers/platform/x86/hp-wmi.c
-+++ b/drivers/platform/x86/hp-wmi.c
-@@ -540,11 +540,13 @@ static int hp_wmi_resume_handler(struct device *device)
- 	 * the input layer will only actually pass it on if the state
- 	 * changed.
- 	 */
--
--	input_report_switch(hp_wmi_input_dev, SW_DOCK, hp_wmi_dock_state());
--	input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
--			    hp_wmi_tablet_state());
--	input_sync(hp_wmi_input_dev);
-+	if (hp_wmi_input_dev) {
-+		input_report_switch(hp_wmi_input_dev, SW_DOCK,
-+				    hp_wmi_dock_state());
-+		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
-+				    hp_wmi_tablet_state());
-+		input_sync(hp_wmi_input_dev);
-+	}
- 
- 	if (wifi_rfkill)
- 		rfkill_set_states(wifi_rfkill,
