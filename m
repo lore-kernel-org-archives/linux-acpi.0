@@ -1,63 +1,43 @@
-From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: [Bugme-new] [Bug 13879] New: Bluetooth stops working after s3
- suspend/resume
-Date: Thu, 30 Jul 2009 14:27:33 -0700
-Message-ID: <20090730142733.b05a95ed.akpm@linux-foundation.org>
-References: <bug-13879-10286@http.bugzilla.kernel.org/>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external control
+ operation interface for domain0 ACPI parser
+Date: Thu, 30 Jul 2009 15:04:52 -0700
+Message-ID: <4A721904.7040406@goop.org>
+References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com> <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com> <4D05DB80B95B23498C72C700BD6C2E0B315D671A@pdsmsx502.ccr.corp.intel.com> <alpine.LFD.2.00.0907301204260.17818@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bug-13879-10286-V0hAGp6uBxO456/isadD/XN4h3HLQggn@public.gmane.org/>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, pi3mm3-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from claw.goop.org ([74.207.240.146]:33882 "EHLO claw.goop.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751828AbZG3WEw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Jul 2009 18:04:52 -0400
+In-Reply-To: <alpine.LFD.2.00.0907301204260.17818@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Yu, Ke" <ke.yu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
 
+On 07/30/09 09:29, Len Brown wrote:
+> Unclear that the power management partitioning between xen hypervisor
+> and dom0 is fully baked.
+>
+> Uncear (to me) what xen is doing internally with these power management 
+> objects, and how that differs from what Linux would do.
+>   
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
+Yes.  The key thing is that Xen is the only entity which really knows
+about physical CPUs and how they're being used, and so is the only thing
+which can correctly apply the chosen policy.  If any particular guest
+domain did it, it would only take into account that particular domain's
+CPU use, and ignore everyone else (or have the extra complexity of
+extracting system-wide usage from Xen then applying that to its own policy).
 
-(added lots of cc's)
+If I understand correctly, the code currently relies on Linux running
+the _PSD method with its AML interpreter, and then feeding the results
+to Xen as it doesn't have an AML interpreter.  And putting AML into Xen
+would be an all-or-nothing proposition, because the entity which runs
+AML maintains a lot of state which can't be separated between Xen and
+Linux, and can't be shared.
 
-On Thu, 30 Jul 2009 15:30:31 GMT
-bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
-
-> http://bugzilla.kernel.org/show_bug.cgi?id=13879
-> 
->            Summary: Bluetooth stops working after s3 suspend/resume
->            Product: Drivers
->            Version: 2.5
->     Kernel Version: 2.6.30-gentoo-r1
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Bluetooth
->         AssignedTo: drivers_bluetooth-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
->         ReportedBy: pi3mm3-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
->                 CC: acpi_platform-drivers-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
->         Regression: No
-> 
-> 
-> Created an attachment (id=22540)
->  --> (http://bugzilla.kernel.org/attachment.cgi?id=22540)
-> dmesg output
-> 
-> Distribution: Gentoo 2008.0 64bit
-> Hardware Environment: notebook Toshiba Portege M750
-> Software Environment: desktop with gnome-2.24.3, udev-141 and dbus-1.2.3
-> Problem Description: After an S3 cycle the hci0 device disappears.
-> 
-> The only way I found to wake it up is:
-> 1) patch drivers/platform/x86/toshiba_acpi.c module with the Experimental
-> Toshiba Acpi Driver
-> (http://memebeam.org/free-software/toshiba_acpi/toshiba_acpi-dev_toshiba_test5-linux_2.6.29.patch)
-> 2) run as root "toshset -bluetooth on" (http://schwieters.org/toshset/).
-> 
-
-hm, what's all that stuff in
-http://memebeam.org/free-software/toshiba_acpi/ and who wrote it and
-should we be merging it into mainline?
+    J
