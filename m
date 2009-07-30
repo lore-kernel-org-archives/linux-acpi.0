@@ -1,59 +1,70 @@
 From: Len Brown <lenb@kernel.org>
 Subject: RE: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external
  control operation interface for domain0 ACPI parser
-Date: Thu, 30 Jul 2009 11:37:16 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0907301121080.17818@localhost.localdomain>
+Date: Thu, 30 Jul 2009 12:00:41 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907301139530.17818@localhost.localdomain>
 References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com>
  <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com>
  <4D05DB80B95B23498C72C700BD6C2E0B315D65B6@pdsmsx502.ccr.corp.intel.com>
+ <4A707DC1.9070708@goop.org>
+ <4D05DB80B95B23498C72C700BD6C2E0B315D6A67@pdsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:33250 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963AbZG3Php (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 11:37:45 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:33212 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003AbZG3QA5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 12:00:57 -0400
 Received: from localhost.localdomain ([64.140.212.33])
- by vms173001.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KNL00BB8Q26VYX1@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 30 Jul 2009 10:37:20 -0500 (CDT)
-In-reply-to: <4D05DB80B95B23498C72C700BD6C2E0B315D65B6@pdsmsx502.ccr.corp.intel.com>
+ with ESMTPA id <0KNL00FMZR56YPD3@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 30 Jul 2009 11:00:48 -0500 (CDT)
+In-reply-to: <4D05DB80B95B23498C72C700BD6C2E0B315D6A67@pdsmsx502.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Yu, Ke" <ke.yu@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>, "Tian, Kevin" <kevin.tian@intel.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
 
-> >So the xen hypervizor is responsible for power management decisions,
-> >but it doesn't know how to talk to the power management
-> >controls in the platform?
-> >
-> >Why is that a good idea?
+> >My understanding is that all that code is supposed to be
+> >kernel-independent.  We could lift all that code as-is, write some new
+> >kernel interface shims and shove it all into Xen.   But I don't know if
+> >that solves any more problems than it causes.
+
+Many have incorporated ACPICA into their OS, from BeOS to BSD, 
+Solaris to Linux.  And I'm not going to tell you that you can't
+do the same and make the xen hypervisor into an OS that knows
+about both policy and the hardware it is running on.
+
+However, ACPI != all the ACPI code in Linux.  ACPICA is the
+stuff in the drivers/acpi/acpica directory, and nothing else
+(asside from a few header files outside that directory)
+
+Also, I'm not sure the OS you build will be competitive with
+other OS's when you're done.
+
+> >>> s/extcntl/xen/ to make it clear why this code exists --
+> >>> or is there an expected "external control" other than Xen?
+...
+> >I don't think that's a good idea.  If we need to do that, then there's a
+> >deeper design problem we need to address.  (And, if nothing else, people
+> >have become hypersensitive to naked Xen-specific code references in
+> >non-Xen files, and I'm tired of having those arguments.)
 > 
-> Your question is reasonable. there is also debate here before. People discuss if it is possible to add acpica stuff to xen hypervisor and let xen control the acpi completely. Unfortunately, this will lead dilemma here, i.e. some devices are controlled by dom0 and also need acpi info, e.g. battery, thermal, etc. and pci hotplug in dom0 is another example. Tian Kevin has detail description on this issue in the attached mail.
-> 
-> On the other hand, the dom0 acpica approach has other benefit, i.e. current linux acpica stuff is pretty mature and has numerous bug fix. Leveraging acpica in linux kernel is more practical.
+> Can you explain what the deeper design problem is?
 
-I agree with Kevin that it would be a mistake to put ACPI both into
-both dom0 and the hypervisor.  Frankly, on many levels, ACPI was
-designed with Windows in mind, and the further an OS strays from
-how Windows does things, the less likely you'll run well on many 
-systems.  Obviously, Xen looks nothing like windows, or any other OS,
-for it seems to have not one division between implementation and
-policy, but multiple...
+Obfuscating the code by calling a Xen-specific abstraction
+"extcntl" instead of "xen" will not fly.
 
-So I have a fundamental lack of understanding of the logic
-behind the partitioning behind the hypervisor and dom0.
-Maybe somebody explain it to me in terms that I'll understand?
+Jeremy's desire to create and use generic abstractions that have multliple 
+users is a good thing.  It simply does not apply here.
 
-It reminds me of the partitioning between the Mach microkernel
-and the "user-space OS personality, eg Unix".  This looked really neat
-in proposals for funding and academic papers, but in reality it turned
-out to have little value other than employing programmers to
-re-invent the wheel, only to discover that the original round
-wheel was better than the square one that they produced...
+I have no objection to having a xen-specific hook being called xen_*
+To do otherwise would be a dis-service to future maintainers of the code.
 
--Len Brown, Intel Open Source Technology Center
+thanks,
+Len Brown, Intel Open Source Technology Center.
+
 
 
 
