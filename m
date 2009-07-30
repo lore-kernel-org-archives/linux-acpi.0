@@ -1,43 +1,51 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [Bug 13865] [PATCH] hp-wmi: check that an input device exists
-	in resume handler
-Date: Thu, 30 Jul 2009 13:37:11 +0100
-Message-ID: <20090730123711.GB14127@srcf.ucam.org>
-References: <bug-13865-10028@http.bugzilla.kernel.org/> <200907292257.41573.rjw@sisk.pl> <200907301242.07973.elendil@planet.nl>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external
+ control operation interface for domain0 ACPI parser
+Date: Thu, 30 Jul 2009 08:03:42 -0700
+Message-ID: <E87738D94A6AD54789B5B8D1BAEB06CC5C745D5838@azsmsx503.amr.corp.intel.com>
+References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com>
+ <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com>
+ <4A707C46.2060405@goop.org>
+ <4D05DB80B95B23498C72C700BD6C2E0B315D6A4F@pdsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:48572 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859AbZG3MhV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 08:37:21 -0400
-Content-Disposition: inline
-In-Reply-To: <200907301242.07973.elendil@planet.nl>
+Received: from mga01.intel.com ([192.55.52.88]:60312 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750759AbZG3PDv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 11:03:51 -0400
+In-Reply-To: <4D05DB80B95B23498C72C700BD6C2E0B315D6A4F@pdsmsx502.ccr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, bugzilla-daemon@bugzilla.kernel.org, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, =?iso-8859-1?Q?C=E9dric?= Godin <cedric@belbone.be>
+To: "Yu, Ke" <ke.yu@intel.com>, Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
 
-On Thu, Jul 30, 2009 at 12:42:05PM +0200, Frans Pop wrote:
-> From: Frans Pop <elendil@planet.nl>
-> Subject: hp-wmi: check that an input device exists in resume handler
->=20
-> Some systems may not support input events, or registering the input
-> handler may have failed. So check that an input device exists before
-> trying to set the docking and tablet mode state during resume.
->=20
-> Fixes: http://bugzilla.kernel.org/show_bug.cgi?id=3D13865
->=20
-> Reported-and-tested-by: C=E9dric Godin <cedric@belbone.be>
-> Signed-off-by: Frans Pop <elendil@planet.nl>
-> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Acked-by: Matthew Garrett <mjg@redhat.com>
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> s/extcntl/xen/ to make it clear why this code exists --
+>>> or is there an expected "external control" other than Xen?
+>>>
+>>
+>>I dislike making Xen-specific changes.  Ideally we can find a 
+>way to fit
+>>these changes into some other abstraction which already exists, or if
+>>added would be useful to more than one user.
+>
+>
+>The "external logic" is the way we trying to make it a generic 
+>abstraction, but right now I cannot told who would be the 
+>external entity except xen. Maybe in the future if other 
+>software want to leverage linux acpica, they would also use it.
+>
+>If people has other idea on the abstraction, I would be happy 
+>to hear that.
+>
+>BTW, Len, do you think the hook this patch adds to the acpi 
+>subsystem is OK, regardless its name being "xen" or "extcntl"?
+
+Call it xen when xen is the only user.
+When you have a 2nd user, call it something more general.
+
+-Len
+
