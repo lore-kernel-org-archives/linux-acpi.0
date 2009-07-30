@@ -1,48 +1,31 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPI: bind workqueues to CPU 0 to avoid SMI corruption
-Date: Thu, 30 Jul 2009 11:06:48 -0600
-Message-ID: <200907301106.48593.bjorn.helgaas@hp.com>
-References: <20090729215425.23674.80263.stgit@bob.kio> <20090730024300.GA30451@sli10-desk.sh.intel.com>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external control
+ operation interface for domain0 ACPI parser
+Date: Thu, 30 Jul 2009 10:23:04 -0700
+Message-ID: <4A71D6F8.9040007@goop.org>
+References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com> <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com> <4D05DB80B95B23498C72C700BD6C2E0B315D65B6@pdsmsx502.ccr.corp.intel.com> <4A707DC1.9070708@goop.org> <4D05DB80B95B23498C72C700BD6C2E0B315D6A67@pdsmsx502.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:29625 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbZG3RGu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 13:06:50 -0400
-In-Reply-To: <20090730024300.GA30451@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from claw.goop.org ([74.207.240.146]:60959 "EHLO claw.goop.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751899AbZG3RXF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Jul 2009 13:23:05 -0400
+In-Reply-To: <4D05DB80B95B23498C72C700BD6C2E0B315D6A67@pdsmsx502.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Yu, Ke" <ke.yu@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
 
-On Wednesday 29 July 2009 08:43:00 pm Shaohua Li wrote:
-> On Thu, Jul 30, 2009 at 05:54:25AM +0800, Bjorn Helgaas wrote:
-> > On some machines, a software-initiated SMI causes corruption unless the
-> > SMI runs on CPU 0.  An SMI can be initiated by any AML, but typically it's
-> > done in GPE-related methods that are run via workqueues, so we can avoid
-> > the known corruption cases by binding the workqueues to CPU 0.
-> > 
-> > References:
-> >     http://bugzilla.kernel.org/show_bug.cgi?id=13751
-> >     https://bugs.launchpad.net/bugs/157171
-> >     https://bugs.launchpad.net/bugs/157691
-> Good job! Since any AML code can invoke a SMI, I wonder if all ACPICA should be
-> limited to run on CPU 0?
+On 07/30/09 02:18, Yu, Ke wrote:
+> Can you explain what the deeper design problem is?
+>   
 
-I did look into doing that, but I didn't see an easy way to do it.
+I don't know.  It may be that ACPI and Xen-style virtualization
+fundimentally have designs which can't easily co-exist, and it is
+unavoidable.  I'm simply saying there appears to be a problem because
+the need to put a Xen-specific hook in a piece of generic code is
+generally a symptom of a design problem.
 
-My first thought was that we could do a set_cpus_allowed() in
-acpi_ex_enter_interpreter() and restore in acpi_ex_exit_interpreter().
-But of course, those are ACPI CA functions, so to do it without an
-ACPI CA change would mean some kind of hook in acpi_os_wait_semaphore(),
-and there, we don't know *which* semaphore means "enter interpreter".
-
-So I gave up for now.  But if somebody has a smarter idea, I agree
-that it would be nice to at least have the option to run all AML on
-CPU 0.
-
-Bjorn
+    J
