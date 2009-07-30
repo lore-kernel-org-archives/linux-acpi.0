@@ -1,41 +1,59 @@
-From: "Yu, Ke" <ke.yu@intel.com>
-Subject: RE: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external
- control operation interface for domain0 ACPI parser
-Date: Thu, 30 Jul 2009 16:59:20 +0800
-Message-ID: <4D05DB80B95B23498C72C700BD6C2E0B315D6A4F@pdsmsx502.ccr.corp.intel.com>
-References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com>
- <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com>
- <4A707C46.2060405@goop.org>
+From: =?UTF-8?B?Q8OpZHJpYyBHb2Rpbg==?= <cedric@belbone.be>
+Subject: Re: [Bug 13865] Can only resume with HP_WMI selected on compaq nc6000
+ when 4c395bdd3f2ca8f7e8efad881e16071182c3b8ca is reverted
+Date: Thu, 30 Jul 2009 11:20:24 +0200
+Message-ID: <4A7165D8.8060705@belbone.be>
+References: <bug-13865-10028@http.bugzilla.kernel.org/> <200907292257.41573.rjw@sisk.pl> <200907292331.34214.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:15495 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751565AbZG3JBD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 05:01:03 -0400
-In-Reply-To: <4A707C46.2060405@goop.org>
-Content-Language: en-US
+Received: from mailrelay006.isp.belgacom.be ([195.238.6.172]:56811 "EHLO
+	mailrelay006.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750924AbZG3JUZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Jul 2009 05:20:25 -0400
+In-Reply-To: <200907292331.34214.elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
+To: Frans Pop <elendil@planet.nl>
+Cc: bugzilla-daemon@bugzilla.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
->> s/extcntl/xen/ to make it clear why this code exists --
->> or is there an expected "external control" other than Xen?
->>
+Frans Pop wrote:
+> On Wednesday 29 July 2009, Rafael J. Wysocki wrote:
+>   
+>> On Wednesday 29 July 2009, you wrote:
+>>     
+>>> Just for testing I enabled HP_WMI. But from then, I could not resume
+>>> anymore. I just reverted the last git commit on the
+>>> 'drivers/platform/x86/hp-wmi.c' code
+>>> (4c395bdd3f2ca8f7e8efad881e16071182c3b8ca) and now I can resume. The
+>>> problem still persists on .31-rc serie
+>>>       
+>> Frans, that's something for you to take care of.
+>>     
 >
->I dislike making Xen-specific changes.  Ideally we can find a way to fit
->these changes into some other abstraction which already exists, or if
->added would be useful to more than one user.
+> I'll at least give it a try.
 >
->    J
+> Cedric, as a start, can you please provide the output of the following 
+> commands after the system is booted and with hp-wmi loaded:
+> $ grep . /sys/devices/platform/hp-wmi/*
+> $ ls -l /dev/input/*
+> $ cat /proc/bus/input/devices
+>
+> Does an unload and reload of the module work correctly? What gets output 
+> in dmesg by that?
+>
+> The strange thing is that the resume function does not do anything that's 
+> not also done in hp_wmi_input_setup(). The only thing I can think of is 
+> that we might need to test for wmi_has_guid(HPWMI_EVENT_GUID) because 
+> that model simply does not support input events.
+>
+> Cheers,
+> FJP
+>   
+I tested your patch (from buzilla) and now I can resume.
 
-The "external logic" is the way we trying to make it a generic abstraction, but right now I cannot told who would be the external entity except xen. Maybe in the future if other software want to leverage linux acpica, they would also use it.
+Thanks ! You have my tested-by ;-)
 
-If people has other idea on the abstraction, I would be happy to hear that.
-
-BTW, Len, do you think the hook this patch adds to the acpi subsystem is OK, regardless its name being "xen" or "extcntl"?
-
-Best Regards
-Ke
+PS: I suppose you don't need this infos anymore ?
