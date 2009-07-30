@@ -1,311 +1,41 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH] fujitsu-laptop: consolidated fixes (NULL pointer checks, [un]registration fixes, etc)
-Date: Thu, 30 Jul 2009 17:25:22 +0930 (CST)
-Message-ID: <200907300755.n6U7tM4e001263@mercury.physics.adelaide.edu.au>
-References: <200907292214.31038.bzolnier@gmail.com>
+From: "Yu, Ke" <ke.yu@intel.com>
+Subject: RE: [Xen-devel] [PATCH][pvops_dom0][2/4] Introduce the external
+ control operation interface for domain0 ACPI parser
+Date: Thu, 30 Jul 2009 16:59:20 +0800
+Message-ID: <4D05DB80B95B23498C72C700BD6C2E0B315D6A4F@pdsmsx502.ccr.corp.intel.com>
+References: <4D05DB80B95B23498C72C700BD6C2E0B315D64CC@pdsmsx502.ccr.corp.intel.com>
+ <E87738D94A6AD54789B5B8D1BAEB06CC5C744C68C2@azsmsx503.amr.corp.intel.com>
+ <4A707C46.2060405@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:47545 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750759AbZG3Hzw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Jul 2009 03:55:52 -0400
-In-Reply-To: <200907292214.31038.bzolnier@gmail.com> from "Bartlomiej Zolnierkiewicz" at Jul 29, 2009 10:14:30 PM
+Received: from mga09.intel.com ([134.134.136.24]:15495 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751565AbZG3JBD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 05:01:03 -0400
+In-Reply-To: <4A707C46.2060405@goop.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dan Carpenter <error27@gmail.com>, corbet@lwn.net, eteo@redhat.com, Julia Lawall <julia@diku.dk>
+To: Jeremy Fitzhardinge <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Tian, Kevin" <kevin.tian@intel.com>
 
-Hi all
+>> s/extcntl/xen/ to make it clear why this code exists --
+>> or is there an expected "external control" other than Xen?
+>>
+>
+>I dislike making Xen-specific changes.  Ideally we can find a way to fit
+>these changes into some other abstraction which already exists, or if
+>added would be useful to more than one user.
+>
+>    J
 
-This patch consolidates the two patches posted by Bartlomiej Zolnierkiewicz
-and the NULL pointer patch which came out of a discussion with Julia Lawall.
-Some additional NULL pointer check tidy-ups have also been done.
+The "external logic" is the way we trying to make it a generic abstraction, but right now I cannot told who would be the external entity except xen. Maybe in the future if other software want to leverage linux acpica, they would also use it.
 
-To summarise:
+If people has other idea on the abstraction, I would be happy to hear that.
 
-* Take care of the following entries from Dan's list:
+BTW, Len, do you think the hook this patch adds to the acpi subsystem is OK, regardless its name being "xen" or "extcntl"?
 
-  drivers/platform/x86/fujitsu-laptop.c +327 set_lcd_level(13) warning:       
-    variable derefenced before check 'fujitsu'
-  drivers/platform/x86/fujitsu-laptop.c +358 set_lcd_level_alt(13) warning:   
-    variable derefenced before check 'fujitsu'
-
-* Move led_classdev_unregister() calls from fujitsu_cleanup() to
-  acpi_fujitsu_hotkey_remove().
-
-* Fix ordering in fujitsu_cleanup().
-
-* Fix backlight_device_register() failure handling in fujitsu_init().
-
-* Add missing sysfs group removal on failure to fujitsu_init().
-
-* Add input device unregistering on failure to acpi_fujitsu_add()
-  and acpi_fujitsu_hotkey_add().
-
-* Add input device unregistering/freeing to acpi_fujitsu_remove()   
-  and acpi_fujitsu_hotkey_remove() (also remove superfluous 'device'
-  and 'acpi_driver_data(device)' checks while at it).
-
-* Do few minor cleanups.
-
-* Fix some additional NULL pointer checks which should occur before the 
-  initial dereference.
-
-Patch is relative to linux-acpi-2.6.git head.
-
-
-Reported-by: Dan Carpenter <error27@gmail.com>
-Cc: corbet@lwn.net
-Cc: eteo@redhat.com
-Cc: Julia Lawall <julia@diku.dk>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-
---- a/drivers/platform/x86/fujitsu-laptop.c	2009-07-30 16:30:55.455795000 +0930
-+++ b/drivers/platform/x86/fujitsu-laptop.c	2009-07-30 16:48:45.542784340 +0930
-@@ -70,7 +70,7 @@
- #include <linux/leds.h>
- #endif
- 
--#define FUJITSU_DRIVER_VERSION "0.5.0"
-+#define FUJITSU_DRIVER_VERSION "0.6.0"
- 
- #define FUJITSU_LCD_N_LEVELS 8
- 
-@@ -321,10 +321,7 @@ static int set_lcd_level(int level)
- 	vdbg_printk(FUJLAPTOP_DBG_TRACE, "set lcd level via SBLL [%d]\n",
- 		    level);
- 
--	if (level < 0 || level >= fujitsu->max_brightness)
--		return -EINVAL;
--
--	if (!fujitsu)
-+	if (!fujitsu || level < 0 || level >= fujitsu->max_brightness)
- 		return -EINVAL;
- 
- 	status = acpi_get_handle(fujitsu->acpi_handle, "SBLL", &handle);
-@@ -352,10 +349,7 @@ static int set_lcd_level_alt(int level)
- 	vdbg_printk(FUJLAPTOP_DBG_TRACE, "set lcd level via SBL2 [%d]\n",
- 		    level);
- 
--	if (level < 0 || level >= fujitsu->max_brightness)
--		return -EINVAL;
--
--	if (!fujitsu)
-+	if (!fujitsu || level < 0 || level >= fujitsu->max_brightness)
- 		return -EINVAL;
- 
- 	status = acpi_get_handle(fujitsu->acpi_handle, "SBL2", &handle);
-@@ -697,7 +691,7 @@ static int acpi_fujitsu_add(struct acpi_
- 	result = acpi_bus_get_power(fujitsu->acpi_handle, &state);
- 	if (result) {
- 		printk(KERN_ERR "Error reading power state\n");
--		goto end;
-+		goto err_unregister_input_dev;
- 	}
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
-@@ -728,25 +722,31 @@ static int acpi_fujitsu_add(struct acpi_
- 
- 	return result;
- 
--end:
-+err_unregister_input_dev:
-+	input_unregister_device(input);
- err_free_input_dev:
- 	input_free_device(input);
- err_stop:
--
- 	return result;
- }
- 
- static int acpi_fujitsu_remove(struct acpi_device *device, int type)
- {
- 	struct fujitsu_t *fujitsu = NULL;
-+	struct input_dev *input = NULL;
- 
--	if (!device || !acpi_driver_data(device))
-+	if (!device)
- 		return -EINVAL;
- 
--	fujitsu = acpi_driver_data(device);
--
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
-+        fujitsu = acpi_driver_data(device);
-+        if (!fujitsu)
-+        	return -EINVAL;
-+        input = fujitsu->input;
-+
-+        if (input) {
-+		input_unregister_device(input);
-+		input_free_device(input);
-+	}
- 
- 	fujitsu->acpi_handle = NULL;
- 
-@@ -871,7 +871,7 @@ static int acpi_fujitsu_hotkey_add(struc
- 	result = acpi_bus_get_power(fujitsu_hotkey->acpi_handle, &state);
- 	if (result) {
- 		printk(KERN_ERR "Error reading power state\n");
--		goto end;
-+		goto err_unregister_input_dev;
- 	}
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
-@@ -911,7 +911,7 @@ static int acpi_fujitsu_hotkey_add(struc
- 	printk(KERN_INFO "fujitsu-laptop: BTNI: [0x%x]\n",
- 		call_fext_func(FUNC_BUTTONS, 0x0, 0x0, 0x0));
- 
--	#ifdef CONFIG_LEDS_CLASS
-+#ifdef CONFIG_LEDS_CLASS
- 	if (call_fext_func(FUNC_LEDS, 0x0, 0x0, 0x0) & LOGOLAMP_POWERON) {
- 		result = led_classdev_register(&fujitsu->pf_device->dev,
- 						&logolamp_led);
-@@ -934,33 +934,50 @@ static int acpi_fujitsu_hotkey_add(struc
- 			"LED handler for keyboard lamps, error %i\n", result);
- 		}
- 	}
--	#endif
-+#endif
- 
- 	return result;
- 
--end:
-+err_unregister_input_dev:
-+	input_unregister_device(input);
- err_free_input_dev:
- 	input_free_device(input);
- err_free_fifo:
- 	kfifo_free(fujitsu_hotkey->fifo);
- err_stop:
--
- 	return result;
- }
- 
- static int acpi_fujitsu_hotkey_remove(struct acpi_device *device, int type)
- {
- 	struct fujitsu_hotkey_t *fujitsu_hotkey = NULL;
-+	struct input_dev *input = NULL;
- 
--	if (!device || !acpi_driver_data(device))
-+	if (!device)
- 		return -EINVAL;
--
- 	fujitsu_hotkey = acpi_driver_data(device);
-+	if (!fujitsu_hotkey)
-+		return -EINVAL;
- 
--	fujitsu_hotkey->acpi_handle = NULL;
-+	input = fujitsu_hotkey->input;
-+
-+#ifdef CONFIG_LEDS_CLASS
-+	if (fujitsu_hotkey->logolamp_registered)
-+		led_classdev_unregister(&logolamp_led);
-+
-+	if (fujitsu_hotkey->kblamps_registered)
-+		led_classdev_unregister(&kblamps_led);
-+#endif
-+
-+	if (input) {
-+		input_unregister_device(input);
-+		input_free_device(input);
-+	}
- 
- 	kfifo_free(fujitsu_hotkey->fifo);
- 
-+	fujitsu_hotkey->acpi_handle = NULL;
-+
- 	return 0;
- }
- 
-@@ -1130,8 +1147,11 @@ static int __init fujitsu_init(void)
- 		fujitsu->bl_device =
- 			backlight_device_register("fujitsu-laptop", NULL, NULL,
- 						  &fujitsubl_ops);
--		if (IS_ERR(fujitsu->bl_device))
--			return PTR_ERR(fujitsu->bl_device);
-+		if (IS_ERR(fujitsu->bl_device)) {
-+			ret = PTR_ERR(fujitsu->bl_device);
-+			fujitsu->bl_device = NULL;
-+			goto fail_sysfs_group;
-+		}
- 		max_brightness = fujitsu->max_brightness;
- 		fujitsu->bl_device->props.max_brightness = max_brightness - 1;
- 		fujitsu->bl_device->props.brightness = fujitsu->brightness_level;
-@@ -1171,32 +1191,22 @@ static int __init fujitsu_init(void)
- 	return 0;
- 
- fail_hotkey1:
--
- 	kfree(fujitsu_hotkey);
--
- fail_hotkey:
--
- 	platform_driver_unregister(&fujitsupf_driver);
--
- fail_backlight:
--
- 	if (fujitsu->bl_device)
- 		backlight_device_unregister(fujitsu->bl_device);
--
-+fail_sysfs_group:
-+	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
-+			   &fujitsupf_attribute_group);
- fail_platform_device2:
--
- 	platform_device_del(fujitsu->pf_device);
--
- fail_platform_device1:
--
- 	platform_device_put(fujitsu->pf_device);
--
- fail_platform_driver:
--
- 	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
--
- fail_acpi:
--
- 	kfree(fujitsu);
- 
- 	return ret;
-@@ -1204,28 +1214,23 @@ fail_acpi:
- 
- static void __exit fujitsu_cleanup(void)
- {
--	#ifdef CONFIG_LEDS_CLASS
--	if (fujitsu_hotkey->logolamp_registered != 0)
--		led_classdev_unregister(&logolamp_led);
-+	acpi_bus_unregister_driver(&acpi_fujitsu_hotkey_driver);
- 
--	if (fujitsu_hotkey->kblamps_registered != 0)
--		led_classdev_unregister(&kblamps_led);
--	#endif
-+	kfree(fujitsu_hotkey);
- 
--	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
--			   &fujitsupf_attribute_group);
--	platform_device_unregister(fujitsu->pf_device);
- 	platform_driver_unregister(&fujitsupf_driver);
-+
- 	if (fujitsu->bl_device)
- 		backlight_device_unregister(fujitsu->bl_device);
- 
--	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
-+	sysfs_remove_group(&fujitsu->pf_device->dev.kobj,
-+			   &fujitsupf_attribute_group);
- 
--	kfree(fujitsu);
-+	platform_device_unregister(fujitsu->pf_device);
- 
--	acpi_bus_unregister_driver(&acpi_fujitsu_hotkey_driver);
-+	acpi_bus_unregister_driver(&acpi_fujitsu_driver);
- 
--	kfree(fujitsu_hotkey);
-+	kfree(fujitsu);
- 
- 	printk(KERN_INFO "fujitsu-laptop: driver unloaded.\n");
- }
+Best Regards
+Ke
