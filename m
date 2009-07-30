@@ -1,40 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [Bug 13865] [PATCH] hp-wmi: check that an input device exists in
- resume handler
-Date: Thu, 30 Jul 2009 17:17:11 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0907301716160.17818@localhost.localdomain>
-References: <bug-13865-10028@http.bugzilla.kernel.org/>
- <200907292257.41573.rjw@sisk.pl> <200907301242.07973.elendil@planet.nl>
- <20090730123711.GB14127@srcf.ucam.org>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [Bugme-new] [Bug 13879] New: Bluetooth stops working after s3
+ suspend/resume
+Date: Thu, 30 Jul 2009 14:27:33 -0700
+Message-ID: <20090730142733.b05a95ed.akpm@linux-foundation.org>
+References: <bug-13879-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_AK1O+UZWLTncwx0ASWY4IQ)"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:50449 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431AbZG3VRZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 17:17:25 -0400
-In-reply-to: <20090730123711.GB14127@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <bug-13879-10286-V0hAGp6uBxO456/isadD/XN4h3HLQggn@public.gmane.org/>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, bugme-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org, pi3mm3-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Frans Pop <elendil@planet.nl>, "Rafael J. Wysocki" <rjw@sisk.pl>, bugzilla-daemon@bugzilla.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, =?ISO-8859-15?Q?C=E9dric_Godin?= <cedric@belbone.be>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---Boundary_(ID_AK1O+UZWLTncwx0ASWY4IQ)
-Content-type: TEXT/PLAIN; charset=iso-8859-1
-Content-transfer-encoding: 8BIT
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
 
-> > Reported-and-tested-by: Cédric Godin <cedric@belbone.be>
-> > Signed-off-by: Frans Pop <elendil@planet.nl>
-> > Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+(added lots of cc's)
 
-> Acked-by: Matthew Garrett <mjg@redhat.com>
+On Thu, 30 Jul 2009 15:30:31 GMT
+bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
 
-Applied -- and i'll put it on my queue for 2.6.30.stable.
+> http://bugzilla.kernel.org/show_bug.cgi?id=13879
+> 
+>            Summary: Bluetooth stops working after s3 suspend/resume
+>            Product: Drivers
+>            Version: 2.5
+>     Kernel Version: 2.6.30-gentoo-r1
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: Bluetooth
+>         AssignedTo: drivers_bluetooth-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+>         ReportedBy: pi3mm3-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+>                 CC: acpi_platform-drivers-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+>         Regression: No
+> 
+> 
+> Created an attachment (id=22540)
+>  --> (http://bugzilla.kernel.org/attachment.cgi?id=22540)
+> dmesg output
+> 
+> Distribution: Gentoo 2008.0 64bit
+> Hardware Environment: notebook Toshiba Portege M750
+> Software Environment: desktop with gnome-2.24.3, udev-141 and dbus-1.2.3
+> Problem Description: After an S3 cycle the hci0 device disappears.
+> 
+> The only way I found to wake it up is:
+> 1) patch drivers/platform/x86/toshiba_acpi.c module with the Experimental
+> Toshiba Acpi Driver
+> (http://memebeam.org/free-software/toshiba_acpi/toshiba_acpi-dev_toshiba_test5-linux_2.6.29.patch)
+> 2) run as root "toshset -bluetooth on" (http://schwieters.org/toshset/).
+> 
 
-thanks,
-Len Brown, Intel Open Source Technology Center
-
---Boundary_(ID_AK1O+UZWLTncwx0ASWY4IQ)--
+hm, what's all that stuff in
+http://memebeam.org/free-software/toshiba_acpi/ and who wrote it and
+should we be merging it into mainline?
