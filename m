@@ -1,60 +1,62 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 07/19] ACPI: save device_type in acpi_device
-Date: Fri, 31 Jul 2009 15:37:09 -0600
-Message-ID: <20090731213709.29930.57436.stgit@bob.kio>
+Subject: [PATCH 08/19] ACPI: use device_type rather than comparing HID
+Date: Fri, 31 Jul 2009 15:37:14 -0600
+Message-ID: <20090731213714.29930.80577.stgit@bob.kio>
 References: <20090731213501.29930.39957.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:43727 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832AbZGaVhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 17:37:09 -0400
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:45097 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160AbZGaVhP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 17:37:15 -0400
 In-Reply-To: <20090731213501.29930.39957.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-Most uses of the ACPI bus device_type (ACPI_BUS_TYPE_DEVICE,
-ACPI_BUS_TYPE_POWER, etc) are during device initialization, but
-we do need it later for notify handler installation, since that
-is different for fixed hardware devices vs. namespace devices.
-
-This patch saves the device_type in the acpi_device structure,
-so we can check that rather than comparing against the _HID string.
+Check the acpi_device device_type rather than the HID.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c     |    1 +
- include/acpi/acpi_bus.h |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/acpi/scan.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index aade372..b386589 100644
+index b386589..f563360 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -1188,6 +1188,7 @@ acpi_add_single_object(struct acpi_device **child,
- 		return -ENOMEM;
- 	}
+@@ -374,15 +374,13 @@ static acpi_status acpi_device_notify_fixed(void *data)
+ static int acpi_device_install_notify_handler(struct acpi_device *device)
+ {
+ 	acpi_status status;
+-	char *hid;
  
-+	device->device_type = type;
- 	device->handle = handle;
- 	device->parent = parent;
- 	device->bus_ops = *ops; /* workround for not call .start */
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 79a6c5e..b145270 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -266,7 +266,8 @@ struct acpi_device_wakeup {
- /* Device */
+-	hid = acpi_device_hid(device);
+-	if (!strcmp(hid, ACPI_BUTTON_HID_POWERF))
++	if (device->device_type == ACPI_BUS_TYPE_POWER_BUTTON)
+ 		status =
+ 		    acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
+ 						     acpi_device_notify_fixed,
+ 						     device);
+-	else if (!strcmp(hid, ACPI_BUTTON_HID_SLEEPF))
++	else if (device->device_type == ACPI_BUS_TYPE_SLEEP_BUTTON)
+ 		status =
+ 		    acpi_install_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
+ 						     acpi_device_notify_fixed,
+@@ -400,10 +398,10 @@ static int acpi_device_install_notify_handler(struct acpi_device *device)
  
- struct acpi_device {
--	acpi_handle handle;
-+	int device_type;
-+	acpi_handle handle;		/* no handle for fixed hardware */
- 	struct acpi_device *parent;
- 	struct list_head children;
- 	struct list_head node;
+ static void acpi_device_remove_notify_handler(struct acpi_device *device)
+ {
+-	if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_POWERF))
++	if (device->device_type == ACPI_BUS_TYPE_POWER_BUTTON)
+ 		acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
+ 						acpi_device_notify_fixed);
+-	else if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_SLEEPF))
++	else if (device->device_type == ACPI_BUS_TYPE_SLEEP_BUTTON)
+ 		acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
+ 						acpi_device_notify_fixed);
+ 	else
 
