@@ -1,75 +1,107 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 19/19] ACPI: handle re-enumeration,
-	when acpi_devices might already exist
-Date: Fri, 31 Jul 2009 15:38:10 -0600
-Message-ID: <20090731213810.29930.29434.stgit@bob.kio>
-References: <20090731213501.29930.39957.stgit@bob.kio>
+Subject: Re: [PATCH] ACPI: bind workqueues to CPU 0 to avoid SMI corruption
+Date: Fri, 31 Jul 2009 16:47:39 -0600
+Message-ID: <200907311647.39902.bjorn.helgaas@hp.com>
+References: <20090729215425.23674.80263.stgit@bob.kio> <1248915599.2670.151.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:2434 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753073AbZGaViy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 17:38:54 -0400
-In-Reply-To: <20090731213501.29930.39957.stgit@bob.kio>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:3845 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751165AbZGaWrm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 18:47:42 -0400
+In-Reply-To: <1248915599.2670.151.camel@rzhang-dt>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-acpi_bus_scan() traverses the namespace to enumerate devices and uses
-acpi_add_single_object() to create acpi_devices.  When the platform
-notifies us of a hot-plug event, we need to traverse part of the namespace
-again to figure out what appeared or disappeared.  (We don't yet call
-acpi_bus_scan() during hot-plug, but I plan to do that in the future.)
+On Wednesday 29 July 2009 06:59:59 pm Zhang Rui wrote:
+> On Thu, 2009-07-30 at 05:54 +0800, Bjorn Helgaas wrote:
+> > On some machines, a software-initiated SMI causes corruption unless the
+> > SMI runs on CPU 0.  An SMI can be initiated by any AML, but typically it's
+> > done in GPE-related methods that are run via workqueues, so we can avoid
+> > the known corruption cases by binding the workqueues to CPU 0.
+> > 
+> > References:
+> >     http://bugzilla.kernel.org/show_bug.cgi?id=13751
+> >     https://bugs.launchpad.net/bugs/157171
+> >     https://bugs.launchpad.net/bugs/157691
+> > 
+> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-This patch makes acpi_add_single_object() notice when we already have
-an acpi_device, so we don't need to make a new one.
+In addition to the reports above, I think it's likely this patch
+will fix the problems reported below:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- drivers/acpi/scan.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+  http://bugzilla.kernel.org/show_bug.cgi?id=13412
+  http://bugzilla.kernel.org/show_bug.cgi?id=11259
+  http://bugzilla.kernel.org/show_bug.cgi?id=12328
+  http://bugzilla.kernel.org/show_bug.cgi?id=12106
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c078390..87d3df4 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1354,10 +1354,10 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 				      void *context, void **return_value)
- {
- 	struct acpi_bus_ops *ops = context;
--	struct acpi_device *device = NULL;
--	acpi_status status;
- 	int type;
- 	unsigned long long sta;
-+	struct acpi_device *device;
-+	acpi_status status;
- 	int result;
- 
- 	result = acpi_bus_type_and_status(handle, &type, &sta);
-@@ -1368,13 +1368,16 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 	    !(sta & ACPI_STA_DEVICE_FUNCTIONING))
- 		return AE_CTRL_DEPTH;
- 
--	if (ops->acpi_op_add)
--		status = acpi_add_single_object(&device, handle, type, sta,
--						ops);
--	else
--		status = acpi_bus_get_device(handle, &device);
-+	/*
-+	 * We may already have an acpi_device from a previous enumeration.  If
-+	 * so, we needn't add it again, but we may still have to start it.
-+	 */
-+	device = NULL;
-+	acpi_bus_get_device(handle, &device);
-+	if (ops->acpi_op_add && !device)
-+		acpi_add_single_object(&device, handle, type, sta, ops);
- 
--	if (ACPI_FAILURE(status))
-+	if (!device)
- 		return AE_CTRL_DEPTH;
- 
- 	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
+I think we should consider this patch for 2.6.31.
+
+(Rafael, 13751 is on your "2.6.29 -> 2.6.30" regression list.
+I actually think it's been around much longer than that, but
+there seem to be many things that affect whether it manifests.)
+
+Bjorn
+
+> > ---
+> >  drivers/acpi/osl.c |   25 +++++++++++++++++++++++++
+> >  1 files changed, 25 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> > index 7167071..5691f16 100644
+> > --- a/drivers/acpi/osl.c
+> > +++ b/drivers/acpi/osl.c
+> > @@ -189,11 +189,36 @@ acpi_status __init acpi_os_initialize(void)
+> >  	return AE_OK;
+> >  }
+> >  
+> > +static void bind_to_cpu0(struct work_struct *work)
+> > +{
+> > +	set_cpus_allowed(current, cpumask_of_cpu(0));
+> > +	kfree(work);
+> > +}
+> > +
+> > +static void bind_workqueue(struct workqueue_struct *wq)
+> > +{
+> > +	struct work_struct *work;
+> > +
+> > +	work = kzalloc(sizeof(struct work_struct), GFP_KERNEL);
+> > +	INIT_WORK(work, bind_to_cpu0);
+> > +	queue_work(wq, work);
+> > +}
+> > +
+> >  acpi_status acpi_os_initialize1(void)
+> >  {
+> > +	/*
+> > +	 * On some machines, a software-initiated SMI causes corruption unless
+> > +	 * the SMI runs on CPU 0.  An SMI can be initiated by any AML, but
+> > +	 * typically it's done in GPE-related methods that are run via
+> > +	 * workqueues, so we can avoid the known corruption cases by binding
+> > +	 * the workqueues to CPU 0.
+> > +	 */
+> >  	kacpid_wq = create_singlethread_workqueue("kacpid");
+> > +	bind_workqueue(kacpid_wq);
+> >  	kacpi_notify_wq = create_singlethread_workqueue("kacpi_notify");
+> > +	bind_workqueue(kacpi_notify_wq);
+> >  	kacpi_hotplug_wq = create_singlethread_workqueue("kacpi_hotplug");
+> > +	bind_workqueue(kacpi_hotplug_wq);
+> >  	BUG_ON(!kacpid_wq);
+> >  	BUG_ON(!kacpi_notify_wq);
+> >  	BUG_ON(!kacpi_hotplug_wq);
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
 
