@@ -1,33 +1,40 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [Bugme-new] [Bug 13879] New: Bluetooth stops working after s3
-	suspend/resume
-Date: Thu, 30 Jul 2009 23:24:39 +0100
-Message-ID: <20090730222439.GA25462@srcf.ucam.org>
-References: <bug-13879-10286@http.bugzilla.kernel.org/> <20090730142733.b05a95ed.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] dell-laptop: Fix rfkill state queries
+Date: Fri, 31 Jul 2009 03:25:38 +0100
+Message-ID: <1249007138-27354-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43749 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:47478 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751678AbZG3WYm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 18:24:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20090730142733.b05a95ed.akpm@linux-foundation.org>
+	with ESMTP id S1751557AbZGaCZs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 22:25:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-bluetooth@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, pi3mm3@gmail.com, "John W. Linville" <linville@tuxdriver.com>, Johannes Berg <johannes@sipsolutions.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: linux-acpi@vger.kernel.org
+Cc: johannes@sipsolutions.net, linux-wireless@vger.kernel.org, timg@tpi.com, Matthew Garrett <mjg@redhat.com>
 
-On Thu, Jul 30, 2009 at 02:27:33PM -0700, Andrew Morton wrote:
+The current code in dell-laptop is confused about the hardware rfkill
+state. Fix it up such that it's always reported correctly.
 
-> hm, what's all that stuff in
-> http://memebeam.org/free-software/toshiba_acpi/ and who wrote it and
-> should we be merging it into mainline?
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/platform/x86/dell-laptop.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Still waiting for someone to just do the right thing and add rfkill 
-support to the Toshiba driver. I'm actually considering a complete 
-rewrite - the existing code's grown kind of organically, and support for 
-modern kernel features has been rather bolted onto the side.
-
+diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
+index 74909c4..9061111 100644
+--- a/drivers/platform/x86/dell-laptop.c
++++ b/drivers/platform/x86/dell-laptop.c
+@@ -197,8 +197,8 @@ static void dell_rfkill_query(struct rfkill *rfkill, void *data)
+ 	dell_send_request(&buffer, 17, 11);
+ 	status = buffer.output[1];
+ 
+-	if (status & BIT(bit))
+-		rfkill_set_hw_state(rfkill, !!(status & BIT(16)));
++	rfkill_set_sw_state(rfkill, !!(status & BIT(bit)));
++	rfkill_set_hw_state(rfkill, !(status & BIT(16)));
+ }
+ 
+ static const struct rfkill_ops dell_rfkill_ops = {
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.2.5
+
