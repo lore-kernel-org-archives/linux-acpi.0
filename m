@@ -1,52 +1,63 @@
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan-caicS1wCkhO6A22drWdTBw@public.gmane.org>
-Subject: Re: [Bug #13471] Loading parport_pc kills the keyboard if ACPI is
- enabled
-Date: Fri, 31 Jul 2009 18:08:24 +0300
-Message-ID: <4A7308E8.1000200@pardus.org.tr>
-References: <DizPU9GBfHF.A.kgF.iWObKB@chimera>	<H5-1lZIIeYK.A.dWH.9XObKB@chimera> <20090731151417.568094e5@lxorguk.ukuu.org.uk>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Dynamic configure max_cstate
+Date: Fri, 31 Jul 2009 11:14:05 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0907311059560.5528@localhost.localdomain>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+ <1248748935.2560.669.camel@ymzhang>
+ <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com>
+ <1248771635.2560.682.camel@ymzhang>
+ <20090728101135.GA22358@rhlx01.hs-esslingen.de> <4A726844.7040505@gmail.com>
+ <1249024006.2560.735.camel@ymzhang>
+ <20090731080728.GA25049@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090731151417.568094e5-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:62077 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774AbZGaPOf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 11:14:35 -0400
+In-reply-to: <20090731080728.GA25049@rhlx01.hs-esslingen.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andreas Mohr <andi@lisas.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Robert Hancock <hancockrwd@gmail.com>, Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
 
-Alan Cox wrote:
-> On Sun, 26 Jul 2009 22:45:29 +0200 (CEST)
-> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
->
->   
->> This message has been generated automatically as a part of a report
->> of regressions introduced between 2.6.29 and 2.6.30.
->>
->> The following bug entry is on the current list of known regressions
->> introduced between 2.6.29 and 2.6.30.  Please verify if it still should
->> be listed and let me know (either way).
->>     
->
->
-> Ozan - can you confirm it broke between 2.6.29 (ie you tested 2.6.29),
-> and 2.6.30-rc1. If so I have an idea what is going on
->   
+> And in addition to this, we should also take into account (read: skip)
+> any idle states which kill busmaster DMA completely
+> (in case of busmaster DMA I/O activities, that is).
 
->From my last comment on bugzilla.kernel.org:
+It isn't so simple.
+This is system specific.
 
-"I tried with 2.6.30.1 but the problem still persists. I really don't have time
-to bisect it, but I can help with any other debugging outputs. I also started
-think that my board could somehow be faulty as no other people complains about
-a similar issue.
+In the old days, a c3-type C-state would lock down the bus
+in order to assure no DMA could pass by to memory
+before the processor could wake up to snoop.
 
-Finally, it seems that the problem is available with 2.6.28, so the starting
-point is still fuzzy to me. I remember that the keyboard was working OK with
-2.6.29_rc7 but now it's not.
+Then a few years ago the hardware would allow us to
+enter C3-type C-states, but transparently "pop-up"
+into C2 to retire the snoop activity without ever
+waking the processor to C0.  This was good b/c
+it was more efficient than waking to C0, but bad
+b/c the OS could not easily tell if it actually
+got the C3 time it requested, or if it was actually
+spending a bunch of time demoted to C2...
 
-Maybe we should drop this report from the regression list."
+In the most recent hardware, the core's cache is flushed
+in deep C-states so that the core need not be woken
+at all to snoop DMA activity.
 
+Indeed, Yanmin's Nehalem box advertises two C3-type C-states,
+but in reality, Nehalem doesn't have _any_ C3-type C-states,
+only C2-type.  The BIOS advertises C3-type C-states
+to not break the installed base, which uses the presence
+of C3-type C-states to work around the broken LAPIC timer.
 
-Monday I'll have access to the computer. I'll build and try to find the last working version.
-Meanwhile, I'd like to hear about your possible finding.
+I think the issue at hand on the system at hand is waking
+up the processor in response to an IO interrupt break events.
+ie. Linux doees a good job with timer interrupts, but
+isn't so smart about using IO interrupts for demoting
+C-states.  Arjan is looking at fixing this.
 
-Thanks,
+cheers,
+Len Brown, Intel Opoen Source TEchnology Center
+
