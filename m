@@ -1,169 +1,83 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 2/2] dell-laptop: Trigger rfkill updates on wifi toggle switch press
-Date: Fri, 31 Jul 2009 03:26:47 +0100
-Message-ID: <1249007207-27392-2-git-send-email-mjg@redhat.com>
-References: <1249007207-27392-1-git-send-email-mjg@redhat.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: Dynamic configure max_cstate
+Date: Thu, 30 Jul 2009 21:43:00 -0600
+Message-ID: <4A726844.7040505@gmail.com>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de> <1248748935.2560.669.camel@ymzhang> <4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com> <1248771635.2560.682.camel@ymzhang> <20090728101135.GA22358@rhlx01.hs-esslingen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:47483 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479AbZGaC0z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 22:26:55 -0400
-In-Reply-To: <1249007207-27392-1-git-send-email-mjg@redhat.com>
+Received: from an-out-0708.google.com ([209.85.132.240]:39991 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948AbZGaDnF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2009 23:43:05 -0400
+In-Reply-To: <20090728101135.GA22358@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, Matthew Garrett <mjg@redhat.com>
+To: Andreas Mohr <andi@lisas.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>, Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Dell hardware sends the rfkill hardware killswitch event via the keyboard
-controller, even if it's a physical toggle switch on the side of the
-machine. Add support for catching the input event and updating the rfkill
-state, allowing userspace to receive notifications that the change has
-occurred.
+On 07/28/2009 04:11 AM, Andreas Mohr wrote:
+> Hi,
+>
+> On Tue, Jul 28, 2009 at 05:00:35PM +0800, Zhang, Yanmin wrote:
+>> I tried different clocksources. For exmaple, I could get a better (30%) result with
+>> hpet. With hpet, cpu utilization is about 5~8%. Function hpet_read uses too much cpu
+>> time. With tsc, cpu utilization is about 2~3%. I think more cpu utilization causes fewer
+>> C state transitions.
+>>
+>> With idle=poll, the result is about 10% better than the one of hpet. If using idle=poll,
+>> I didn't find result difference among different clocksources.
+>
+> IOW, this seems to clearly point to ACPI Cx causing it.
+>
+> Both Corrado and me have been thinking that one should try skipping all
+> bigger-latency ACPI Cx states whenever there's an ongoing I/O request where an
+> immediate reply interrupt is expected.
+>
+> I've been investigating this a bit, and interesting parts would perhaps include
+>    . kernel/pm_qos_params.c
+>    . drivers/cpuidle/governors/menu.c (which acts on the ACPI _cx state
+> structs as configured by drivers/acpi/processor_idle.c)
+>    . and e.g. the wait_for_completion_timeout() part in drivers/ata/libata-core.c
+>      (or other sources in case of other disk I/O mechanisms)
+>
+> One way to do some quick (and dirty!!) testing would be to set a flag
+> before calling wait_for_completion_timeout() and testing for this flag in
+> drivers/cpuidle/governors/menu.c and then skip deeper Cx states
+> conditionally.
+>
+> As a very quick test, I tried a
+> while :; do :; done
+> loop in shell and renicing shell to 19 (to keep my CPU out of ACPI idle),
+> but bonnie -s 100 results initially looked promising yet turned out to
+> be inconsistent. The real way to test this would be idle=poll.
+> My test system was Athlon XP with /proc/acpi/processor/CPU0/power
+> latencies of 000 and 100 (the maximum allowed value, BTW) for C1/C2.
+>
+> If the wait_for_completion_timeout() flag testing turns out to help,
+> then one might intend to use the pm_qos infrastructure to indicate
+> these conditions, however it might be too bloated for such a
+> purpose, a relatively simple (read: fast) boolean flag mechanism
+> could be better.
+>
+> Plus one could then create a helper function which figures out a
+> "pretty fast" Cx state (independent of specific latency times!).
+> But when introducing this mechanism, take care to not ignore the
+> requirements defined by pm_qos settings!
+>
+> Oh, and about the places which submit I/O requests where one would have to
+> flag this: are they in any way correlated with the scheduler I/O wait
+> value? Would the I/O wait mechanism be a place to more easily and centrally
+> indicate that we're waiting for a request to come back in "very soon"?
+> OTOH I/O requests may have vastly differing delay expectations,
+> thus specifically only short-term expected I/O replies should be flagged,
+> otherwise we're wasting lots of ACPI deep idle opportunities.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/platform/x86/dell-laptop.c |  100 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 100 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
-index 74909c4..71a4149 100644
---- a/drivers/platform/x86/dell-laptop.c
-+++ b/drivers/platform/x86/dell-laptop.c
-@@ -22,6 +22,7 @@
- #include <linux/rfkill.h>
- #include <linux/power_supply.h>
- #include <linux/acpi.h>
-+#include <linux/input.h>
- #include "../../firmware/dcdbas.h"
- 
- #define BRIGHTNESS_TOKEN 0x7d
-@@ -206,6 +207,16 @@ static const struct rfkill_ops dell_rfkill_ops = {
- 	.query = dell_rfkill_query,
- };
- 
-+static void dell_rfkill_update(void)
-+{
-+	if (wifi_rfkill)
-+		dell_rfkill_query(wifi_rfkill, (void *)1);
-+	if (bluetooth_rfkill)
-+		dell_rfkill_query(bluetooth_rfkill, (void *)2);
-+	if (wwan_rfkill)
-+		dell_rfkill_query(wwan_rfkill, (void *)3);
-+}
-+
- static int dell_setup_rfkill(void)
- {
- 	struct calling_interface_buffer buffer;
-@@ -310,6 +321,90 @@ static struct backlight_ops dell_ops = {
- 	.update_status  = dell_send_intensity,
- };
- 
-+static const struct input_device_id dell_input_ids[] = {
-+	{
-+		.bustype = 0x11,
-+		.vendor = 0x01,
-+		.product = 0x01,
-+		.version = 0xab41,
-+		.flags = INPUT_DEVICE_ID_MATCH_BUS |
-+			 INPUT_DEVICE_ID_MATCH_VENDOR |
-+			 INPUT_DEVICE_ID_MATCH_PRODUCT |
-+			 INPUT_DEVICE_ID_MATCH_VERSION
-+	},
-+	{ },
-+};
-+
-+static bool dell_input_filter(struct input_handle *handle, unsigned int type,
-+			     unsigned int code, int value)
-+{
-+	if (type == EV_KEY && code == KEY_WLAN && value == 1) {
-+		dell_rfkill_update();
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void dell_input_event(struct input_handle *handle, unsigned int type,
-+			     unsigned int code, int value)
-+{
-+}
-+
-+static int dell_input_connect(struct input_handler *handler,
-+			      struct input_dev *dev,
-+			      const struct input_device_id *id)
-+{
-+	struct input_handle *handle;
-+	int error;
-+
-+	handle = kzalloc(sizeof(struct input_handle), GFP_KERNEL);
-+	if (!handle)
-+		return -ENOMEM;
-+
-+	handle->dev = dev;
-+	handle->handler = handler;
-+	handle->name = "dell-laptop";
-+
-+	error = input_register_handle(handle);
-+	if (error)
-+		goto err_free_handle;
-+
-+	error = input_open_device(handle);
-+	if (error)
-+		goto err_unregister_handle;
-+
-+	error = input_filter_device(handle);
-+	if (error)
-+		goto err_close_handle;
-+
-+	return 0;
-+
-+err_close_handle:
-+	input_close_device(handle);
-+err_unregister_handle:
-+	input_unregister_handle(handle);
-+err_free_handle:
-+	kfree(handle);
-+	return error;
-+}
-+
-+static void dell_input_disconnect(struct input_handle *handle)
-+{
-+	input_close_device(handle);
-+	input_unregister_handle(handle);
-+	kfree(handle);
-+}
-+
-+static struct input_handler dell_input_handler = {
-+	.name = "dell-laptop",
-+	.filter = dell_input_filter,
-+	.event = dell_input_event,
-+	.connect = dell_input_connect,
-+	.disconnect = dell_input_disconnect,
-+	.id_table = dell_input_ids,
-+};
-+
- static int __init dell_init(void)
- {
- 	struct calling_interface_buffer buffer;
-@@ -333,6 +428,10 @@ static int __init dell_init(void)
- 		goto out;
- 	}
- 
-+	if (input_register_handler(&dell_input_handler))
-+		printk(KERN_INFO
-+		       "dell-laptop: Could not register input filter\n");
-+
- #ifdef CONFIG_ACPI
- 	/* In the event of an ACPI backlight being available, don't
- 	 * register the platform controller.
-@@ -388,6 +487,7 @@ static void __exit dell_exit(void)
- 		rfkill_unregister(bluetooth_rfkill);
- 	if (wwan_rfkill)
- 		rfkill_unregister(wwan_rfkill);
-+	input_unregister_handler(&dell_input_handler);
- }
- 
- module_init(dell_init);
--- 
-1.6.2.5
-
+Did the results show a big difference in performance between maximum C2 
+and maximum C3? Thing with C3 is that it likely will have some 
+interference with bus-master DMA activity as the CPU has to wake up at 
+least partially before the SATA controller can complete DMA operations, 
+which will likely stall the controller for some period of time. There 
+would be an argument for avoiding going into deep C-states which can't 
+handle snooping while IO is in progress and DMA will shortly be occurring..
