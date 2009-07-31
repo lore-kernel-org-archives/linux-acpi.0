@@ -1,48 +1,72 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [Bug #13471] Loading parport_pc kills the keyboard if ACPI is
- enabled
-Date: Fri, 31 Jul 2009 16:17:35 +0100
-Message-ID: <20090731161735.6a94ad9c@lxorguk.ukuu.org.uk>
-References: <DizPU9GBfHF.A.kgF.iWObKB@chimera>
-	<H5-1lZIIeYK.A.dWH.9XObKB@chimera>
-	<20090731151417.568094e5@lxorguk.ukuu.org.uk>
-	<4A7308E8.1000200@pardus.org.tr>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: Dynamic configure max_cstate
+Date: Fri, 31 Jul 2009 10:37:05 -0700
+Message-ID: <7E82351C108FA840AB1866AC776AEC466D56BA7A@orsmsx505.amr.corp.intel.com>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+	<1248748935.2560.669.camel@ymzhang>
+	<4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com>
+	<1248771635.2560.682.camel@ymzhang>
+	<20090728101135.GA22358@rhlx01.hs-esslingen.de>	<4A726844.7040505@gmail.com>
+ <1249024006.2560.735.camel@ymzhang>
+	<20090731080728.GA25049@rhlx01.hs-esslingen.de>
+ <87prbg3ohq.fsf@basil.nowhere.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:57543 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751621AbZGaPQ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 11:16:59 -0400
-In-Reply-To: <4A7308E8.1000200@pardus.org.tr>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752764AbZGaReI@vger.kernel.org>
+In-Reply-To: <87prbg3ohq.fsf@basil.nowhere.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>, "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Robert Hancock <hancockrwd@gmail.com>, Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ozan =?UTF-8?B?w4dhxJ9sYXlhbg==?= <ozan@pardus.org.tr>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-O> Finally, it seems that the problem is available with 2.6.28, so the starting
-> point is still fuzzy to me. I remember that the keyboard was working OK with
-> 2.6.29_rc7 but now it's not.
-> 
-> Maybe we should drop this report from the regression list."
-> 
-> 
-> Monday I'll have access to the computer. I'll build and try to find the last working version.
-> Meanwhile, I'd like to hear about your possible finding.
+ 
 
-There have been few changes to parport_pc but one thing recent changed
-the probe for SuperIO chips via low addresses and that could be
-interfering.
+>-----Original Message-----
+>From: Andi Kleen [mailto:andi@firstfloor.org] 
+>Sent: Friday, July 31, 2009 7:40 AM
+>To: Zhang, Yanmin
+>Cc: Robert Hancock; Corrado Zoccolo; LKML; 
+>linux-acpi@vger.kernel.org; Pallipadi, Venkatesh
+>Subject: Re: Dynamic configure max_cstate
+>
+>Andreas Mohr <andi@lisas.de> writes:
+>
+>> Instead we should strive for a far-reaching _generic_ mechanism
+>> which gathers average latencies of various I/O activities/devices
+>> and then uses some formula to determine the maximum (not 
+>necessarily ACPI)
+>> idle latency that we're willing to endure (e.g. average 
+>device I/O reply latency
+>> divided by 10 or so).
+>
+>The interrupt heuristics in the menu cpuidle governour are already
+>attempting this, based on interrupt rates (or rather
+>wakeup rates) which are supposed to roughly correspond with IO rates
+>and scheduling events together.
+>
+>Apparently that doesn't work in this case. The challenge would
+>be to find out why and improve the menu algorithm to deal with it.
+>I doubt a completely new mechanism is needed or makes sense.
+>
 
-commit e2434dc1c19412639dd047a4d4eff8ed0e5d0d50
-Author: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
-Date:   Mon Jun 22 16:51:49 2009 +0100
+Yes. cpuidle's attempt at guessing the interrupt rate is not working here.
+I got this test running on a test system here and looks like its not just
+the cpuidle that causes problems here.
+I am still collecting more data, but from what I have right now, this is what I see:
+- cpuidle and deep C-state usage reduces the performance here, as has been
+discussed in this thread.
+- cpufreq ondemand governor also has a problem with the workload, as it runs the
+CPU mostly at lower freq (as CPU utilization is hardly over 20%) and switching the
+cpus to high frequency increases the performance.
+- It also depends on where fio and the ahci interrupt handler runs. Looks like,
+for maximum performance, they have to run on different CPUs sharing the caches.
 
-changed the behaviour slightly (hence asking about which release if it
-was a recent breakage). Its also a code area with very few changes so if
-you can find which one worked last, you should be able to transplant that
-parport_pc into 2.6.current and see if its parport or acpi triggered
-breakage.
+So, getting this workload to give best performance by default will be a
+major challenge :-). Another thing that will be interesting to look at is
+performance/power for this workload and I haven't ventured into that
+territory yet.
 
-Alan
+Thanks,
+Venki
