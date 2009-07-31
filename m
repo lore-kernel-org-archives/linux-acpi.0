@@ -1,70 +1,50 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH update] PM: Introduce core framework for run-time PM of
-	I/O devices (rev. 11)
-Date: Fri, 31 Jul 2009 23:32:13 +0900
-Message-ID: <aec7e5c30907310732u35faa15fpab070025f596463e@mail.gmail.com>
-References: <200907221701.50449.rjw@sisk.pl> <200907222110.47701.rjw@sisk.pl>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: Dynamic configure max_cstate
+Date: Fri, 31 Jul 2009 16:40:01 +0200
+Message-ID: <87prbg3ohq.fsf@basil.nowhere.org>
+References: <20090727073338.GA12669@rhlx01.hs-esslingen.de>
+	<1248748935.2560.669.camel@ymzhang>
+	<4e5e476b0907280020x242d9ef7gfa05c3d7b66f941f@mail.gmail.com>
+	<1248771635.2560.682.camel@ymzhang>
+	<20090728101135.GA22358@rhlx01.hs-esslingen.de>
+	<4A726844.7040505@gmail.com> <1249024006.2560.735.camel@ymzhang>
+	<20090731080728.GA25049@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:14676 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbZGaOcN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 10:32:13 -0400
-In-Reply-To: <200907222110.47701.rjw@sisk.pl>
+Received: from one.firstfloor.org ([213.235.205.2]:55792 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbZGaOkF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 10:40:05 -0400
+In-Reply-To: <20090731080728.GA25049@rhlx01.hs-esslingen.de> (Andreas Mohr's message of "Fri, 31 Jul 2009 10:07:28 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Robert Hancock <hancockrwd@gmail.com>, Corrado Zoccolo <czoccolo@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, venkatesh.pallipadi@intel.com
 
-Hi Rafail
+Andreas Mohr <andi@lisas.de> writes:
 
-[Runtime PM v11]
+> Instead we should strive for a far-reaching _generic_ mechanism
+> which gathers average latencies of various I/O activities/devices
+> and then uses some formula to determine the maximum (not necessarily ACPI)
+> idle latency that we're willing to endure (e.g. average device I/O reply latency
+> divided by 10 or so).
 
-Thanks for your work on this. The code is getting better and better.
-I've just finished posting a bunch of patches related to v11 of your
-Runtime PM patch. Basically everything seems fine except a few minor
-details and the code below: =3D)
+The interrupt heuristics in the menu cpuidle governour are already
+attempting this, based on interrupt rates (or rather
+wakeup rates) which are supposed to roughly correspond with IO rates
+and scheduling events together.
 
-On Thu, Jul 23, 2009 at 4:10 AM, Rafael J. Wysocki<rjw@sisk.pl> wrote:
-> On Wednesday 22 July 2009, Rafael J. Wysocki wrote:
-> Index: linux-2.6/drivers/base/dd.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/base/dd.c
-> +++ linux-2.6/drivers/base/dd.c
-> @@ -23,6 +23,7 @@
-> =A0#include <linux/kthread.h>
-> =A0#include <linux/wait.h>
-> =A0#include <linux/async.h>
-> +#include <linux/pm_runtime.h>
->
-> =A0#include "base.h"
-> =A0#include "power/power.h"
-> @@ -202,7 +203,9 @@ int driver_probe_device(struct device_dr
-> =A0 =A0 =A0 =A0pr_debug("bus: '%s': %s: matched device %s with driver=
- %s\n",
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 drv->bus->name, __func__, dev_name(de=
-v), drv->name);
->
-> + =A0 =A0 =A0 pm_runtime_get_noresume(dev);
-> =A0 =A0 =A0 =A0ret =3D really_probe(dev, drv);
-> + =A0 =A0 =A0 pm_runtime_put_noidle(dev);
->
-> =A0 =A0 =A0 =A0return ret;
-> =A0}
+Apparently that doesn't work in this case. The challenge would
+be to find out why and improve the menu algorithm to deal with it.
+I doubt a completely new mechanism is needed or makes sense.
 
-This creates problems when drivers want to performing runtime resume
-from within probe(). For more details please have a look at "[PATCH
-04/04] video: Runtime PM hack for SuperH LCDC driver".
+> And in addition to this, we should also take into account (read: skip)
+> any idle states which kill busmaster DMA completely
+> (in case of busmaster DMA I/O activities, that is)
 
-Cheers,
+This is already done.
 
-/ magnus
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Andi
+-- 
+ak@linux.intel.com -- Speaking for myself only.
