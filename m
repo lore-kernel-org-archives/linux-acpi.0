@@ -1,34 +1,56 @@
 From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: [PATCH 0/4] fujitsu-laptop: clean-ups and fixes
-Date: Fri, 31 Jul 2009 18:10:21 +0930 (CST)
-Message-ID: <200907310840.n6V8eLlA006715@mercury.physics.adelaide.edu.au>
+Subject: [PATCH 1/4] fujitsu-laptop: Correct redundant test
+Date: Fri, 31 Jul 2009 18:12:00 +0930 (CST)
+Message-ID: <200907310842.n6V8g0vI006725@mercury.physics.adelaide.edu.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:60369 "EHLO
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:51309 "EHLO
 	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751300AbZGaIkh (ORCPT
+	by vger.kernel.org with ESMTP id S1751330AbZGaImI (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Jul 2009 04:40:37 -0400
+	Fri, 31 Jul 2009 04:42:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-kernel@vger.kernel.org, julia@diku.dk, bzolnier@gmail.com
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-kernel@vger.kernel.org, julia@diku.dk, bzolnier@gmail.com, kernel-janitors@vger.kernel.org
 
-[PATCH 0/4] fujitsu-laptop: clean-ups and fixes
+From: Julia Lawall <julia@diku.dk>
 
-This patch series against fujitsu-laptop contains corrections to NULL
-pointer tests, removal of redundant tests, fixes to the driver
-registration/unregistration and other minor cleanups.
+device and acpi_driver_data(device) were tested just a few lines above.
 
-The patches have been sourced from various authors - credits appear in the
-individual patches.
+A simplified version of the semantic match that finds this problem is as
+follows: (http://www.emn.fr/x-info/coccinelle/)
 
-Please consider applying to linux-acpi.
+// <smpl> 
+@r exists@
+local idexpression x;
+expression E;
+@@
 
+if (x == NULL || ...) { ... when forall
+   return ...; }
+.. when != \(x=E\|x--\|x++\|--x\|++x\|x-=E\|x+=E\|x|=E\|x&=E\|&x\)
+(
+*x == NULL
+|
+*x != NULL
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Regards
-  jonathan
-
+--- a/drivers/platform/x86/fujitsu-laptop.c	2009-07-31 16:55:09.389775000 +0930
++++ b/drivers/platform/x86/fujitsu-laptop.c	2009-07-31 17:13:01.160777027 +0930
+@@ -745,9 +745,6 @@ static int acpi_fujitsu_remove(struct ac
+ 
+ 	fujitsu = acpi_driver_data(device);
+ 
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+ 	fujitsu->acpi_handle = NULL;
+ 
+ 	return 0;
