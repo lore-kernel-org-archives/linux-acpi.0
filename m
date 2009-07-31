@@ -1,98 +1,120 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 15/19] ACPI: identify device tree root by null parent pointer,
-	not ACPI_BUS_TYPE
-Date: Fri, 31 Jul 2009 15:37:49 -0600
-Message-ID: <20090731213749.29930.48586.stgit@bob.kio>
+Subject: [PATCH 17/19] ACPI: add acpi_bus_get_status_handle()
+Date: Fri, 31 Jul 2009 15:38:00 -0600
+Message-ID: <20090731213800.29930.73396.stgit@bob.kio>
 References: <20090731213501.29930.39957.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:2358 "EHLO
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:2377 "EHLO
 	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800AbZGaViq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 17:38:46 -0400
+	with ESMTP id S1753305AbZGaVit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2009 17:38:49 -0400
 In-Reply-To: <20090731213501.29930.39957.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-We can identify the root of the ACPI device tree by the fact that it
-has no parent.  This is simpler than passing around ACPI_BUS_TYPE_SYSTEM
-and will help remove special treatment of the device tree root.
+Add acpi_bus_get_status_handle() so we can get the status of a namespace
+object before building a struct acpi_device.
 
-Currently, we add the root by hand with ACPI_BUS_TYPE_SYSTEM.  If we
-traverse the tree treating the root as just another device and use
-acpi_get_type(), the root shows up as ACPI_TYPE_DEVICE.
+This removes a use of "device->flags.dynamic_status", a cached indicator of
+whether _STA exists.  It seems simpler and more reliable to just evaluate
+_STA and catch AE_NOT_FOUND errors.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c     |   18 +++++++++++-------
- include/acpi/acpi_bus.h |    1 -
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/acpi/bus.c      |   49 +++++++++++++++++++++--------------------------
+ include/acpi/acpi_bus.h |    2 ++
+ 2 files changed, 24 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index b97b2ad..c0736f6 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -950,10 +950,12 @@ static void acpi_device_get_busid(struct acpi_device *device)
- 	 * The device's Bus ID is simply the object name.
- 	 * TBD: Shouldn't this value be unique (within the ACPI namespace)?
- 	 */
--	switch (device->device_type) {
--	case ACPI_BUS_TYPE_SYSTEM:
-+	if (!device->parent) {
- 		strcpy(device->pnp.bus_id, "ACPI");
--		break;
-+		return;
-+	}
-+
-+	switch (device->device_type) {
- 	case ACPI_BUS_TYPE_POWER_BUTTON:
- 		strcpy(device->pnp.bus_id, "PWRF");
- 		break;
-@@ -1031,6 +1033,11 @@ static void acpi_device_set_id(struct acpi_device *device)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 2876fc7..e2e922d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -93,36 +93,33 @@ int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
  
- 	switch (device->device_type) {
- 	case ACPI_BUS_TYPE_DEVICE:
-+		if (!device->parent) {
-+			hid = ACPI_SYSTEM_HID;
-+			break;
-+		}
-+
- 		status = acpi_get_object_info(device->handle, &buffer);
- 		if (ACPI_FAILURE(status)) {
- 			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __func__);
-@@ -1068,9 +1075,6 @@ static void acpi_device_set_id(struct acpi_device *device)
- 	case ACPI_BUS_TYPE_PROCESSOR:
- 		hid = ACPI_PROCESSOR_OBJECT_HID;
- 		break;
--	case ACPI_BUS_TYPE_SYSTEM:
--		hid = ACPI_SYSTEM_HID;
--		break;
- 	case ACPI_BUS_TYPE_THERMAL:
- 		hid = ACPI_THERMAL_HID;
- 		break;
-@@ -1599,7 +1603,7 @@ int __init acpi_scan_init(void)
- 	 * Create the root device in the bus's device tree
- 	 */
- 	result = acpi_add_single_object(&acpi_root, ACPI_ROOT_OBJECT,
--					ACPI_BUS_TYPE_SYSTEM, &ops);
-+					ACPI_BUS_TYPE_DEVICE, &ops);
- 	if (result)
- 		goto Done;
+ EXPORT_SYMBOL(acpi_bus_get_device);
  
+-int acpi_bus_get_status(struct acpi_device *device)
++acpi_status acpi_bus_get_status_handle(acpi_handle handle,
++				       unsigned long long *sta)
+ {
+-	acpi_status status = AE_OK;
+-	unsigned long long sta = 0;
+-
++	acpi_status status;
+ 
+-	if (!device)
+-		return -EINVAL;
++	status = acpi_evaluate_integer(handle, "_STA", NULL, sta);
++	if (ACPI_SUCCESS(status))
++		return AE_OK;
+ 
+-	/*
+-	 * Evaluate _STA if present.
+-	 */
+-	if (device->flags.dynamic_status) {
+-		status =
+-		    acpi_evaluate_integer(device->handle, "_STA", NULL, &sta);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
+-		STRUCT_TO_INT(device->status) = (int)sta;
++	if (status == AE_NOT_FOUND) {
++		*sta = ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
++		       ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
++		return AE_OK;
+ 	}
++	return status;
++}
+ 
+-	/*
+-	 * According to ACPI spec some device can be present and functional
+-	 * even if the parent is not present but functional.
+-	 * In such conditions the child device should not inherit the status
+-	 * from the parent.
+-	 */
+-	else
+-		STRUCT_TO_INT(device->status) =
+-		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
+-		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
++int acpi_bus_get_status(struct acpi_device *device)
++{
++	acpi_status status;
++	unsigned long long sta;
++
++	status = acpi_bus_get_status_handle(device->handle, &sta);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	STRUCT_TO_INT(device->status) = (int) sta;
+ 
+ 	if (device->status.functional && !device->status.present) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
+@@ -134,10 +131,8 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+ 			  device->pnp.bus_id,
+ 			  (u32) STRUCT_TO_INT(device->status)));
+-
+ 	return 0;
+ }
+-
+ EXPORT_SYMBOL(acpi_bus_get_status);
+ 
+ void acpi_bus_private_data_handler(acpi_handle handle,
 diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index b145270..edca7d5 100644
+index edca7d5..26be825 100644
 --- a/include/acpi/acpi_bus.h
 +++ b/include/acpi/acpi_bus.h
-@@ -72,7 +72,6 @@ enum acpi_bus_device_type {
- 	ACPI_BUS_TYPE_POWER,
- 	ACPI_BUS_TYPE_PROCESSOR,
- 	ACPI_BUS_TYPE_THERMAL,
--	ACPI_BUS_TYPE_SYSTEM,
- 	ACPI_BUS_TYPE_POWER_BUTTON,
- 	ACPI_BUS_TYPE_SLEEP_BUTTON,
- 	ACPI_BUS_DEVICE_TYPE_COUNT
+@@ -326,6 +326,8 @@ extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
+ 
+ int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device);
+ void acpi_bus_data_handler(acpi_handle handle, u32 function, void *context);
++acpi_status acpi_bus_get_status_handle(acpi_handle handle,
++				       unsigned long long *sta);
+ int acpi_bus_get_status(struct acpi_device *device);
+ int acpi_bus_get_power(acpi_handle handle, int *state);
+ int acpi_bus_set_power(acpi_handle handle, int state);
 
