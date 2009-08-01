@@ -1,56 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: bind workqueues to CPU 0 to avoid SMI corruption
-Date: Sat, 1 Aug 2009 13:01:33 +0200
-Message-ID: <200908011301.34111.rjw@sisk.pl>
-References: <20090729215425.23674.80263.stgit@bob.kio> <1248915599.2670.151.camel@rzhang-dt> <200907311647.39902.bjorn.helgaas@hp.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
+Date: Sat, 01 Aug 2009 12:19:02 +0100
+Message-ID: <4A7424A6.5080703@tuffmail.co.uk>
+References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>	 <71cd59b00907281251k7fc6cf7fga433531572394b99@mail.gmail.com>	 <20090728200449.GA16330@srcf.ucam.org> <71cd59b00908010340m2b48d581n4c8cb470921e4652@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34363 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750863AbZHALA6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 1 Aug 2009 07:00:58 -0400
-In-Reply-To: <200907311647.39902.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:40308 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbZHALTG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Aug 2009 07:19:06 -0400
+Received: by ewy10 with SMTP id 10so2034802ewy.37
+        for <linux-acpi@vger.kernel.org>; Sat, 01 Aug 2009 04:19:05 -0700 (PDT)
+In-Reply-To: <71cd59b00908010340m2b48d581n4c8cb470921e4652@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net
 
-On Saturday 01 August 2009, Bjorn Helgaas wrote:
-> On Wednesday 29 July 2009 06:59:59 pm Zhang Rui wrote:
-> > On Thu, 2009-07-30 at 05:54 +0800, Bjorn Helgaas wrote:
-> > > On some machines, a software-initiated SMI causes corruption unless the
-> > > SMI runs on CPU 0.  An SMI can be initiated by any AML, but typically it's
-> > > done in GPE-related methods that are run via workqueues, so we can avoid
-> > > the known corruption cases by binding the workqueues to CPU 0.
-> > > 
-> > > References:
-> > >     http://bugzilla.kernel.org/show_bug.cgi?id=13751
-> > >     https://bugs.launchpad.net/bugs/157171
-> > >     https://bugs.launchpad.net/bugs/157691
-> > > 
-> > > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > 
-> > Acked-by: Zhang Rui <rui.zhang@intel.com>
-> 
-> In addition to the reports above, I think it's likely this patch
-> will fix the problems reported below:
-> 
->   http://bugzilla.kernel.org/show_bug.cgi?id=13412
->   http://bugzilla.kernel.org/show_bug.cgi?id=11259
->   http://bugzilla.kernel.org/show_bug.cgi?id=12328
->   http://bugzilla.kernel.org/show_bug.cgi?id=12106
-> 
-> I think we should consider this patch for 2.6.31.
-> 
-> (Rafael, 13751 is on your "2.6.29 -> 2.6.30" regression list.
-> I actually think it's been around much longer than that, but
-> there seem to be many things that affect whether it manifests.)
+Corentin Chary wrote:
+> On Tue, Jul 28, 2009 at 10:04 PM, Matthew Garrett<mjg59@srcf.ucam.org> wrote:
+>   
+>> On Tue, Jul 28, 2009 at 09:51:09PM +0200, Corentin Chary wrote:
+>>
+>>     
+>>> No answers.
+>>> I think I'll implement that as a backlight, because it is a backlight
+>>> even if it's not for a screen.
+>>>       
+>> I believe the SMC driver for the Apples does it via LED, so it might
+>> make sense to be consistent with that.
+>>
+>> --
+>> Matthew Garrett | mjg59@srcf.ucam.org
+>>
+>>     
+>
+> So it will be a led.
+>   
 
-I've dropped it from the list, thanks.
+I think you should also match the LED name used by the apple driver.  As
+far as I know it's the only sensible way for userspace to identify the
+LED.  The SMC driver uses "smc::kbd_backlight",  so something like
+"eeepc::kbd_backlight".
 
-Best,
-Rafael
+> There is another problem, Fn+F3/F4 generate ACPI events
+>
+> Fn+F3 : hotkey ATKD 000000c5 00000000
+> Fn+F4 : hotkey ATKD 000000c4 00000000
+>
+> Fn+F3: decreases keyboard brightness
+> Fn+F4: increases keyboard brightness
+>
+> Should we handle these events with acpi scripts or directly in the driver ?
+> IMHO it can be done directly in the driver, like LCD On/Off keys.
+>   
+
+Here's my opinion based on no experience and 10 minutes with google :-).
+
+Userspace should take charge of changing the brightness.  It would be
+good to generate input events (KEY_KBDILLUMUP etc) as well though.
+
+Hopefully hald-addon-generic-kbd-backlight already responds to
+KEY_KBDILLUM*.  If so, then one could use Hal along with an FDI file
+like the apple one
+(<http://lists.freedesktop.org/archives/hal/2008-October/012360.html>). 
+That's close to what we should ultimately be aiming for, except for the
+specific match on "smc::kbd_backlight".  It would be great to just have
+one rule matching on *::kbd_backlight.
+
+Alan
