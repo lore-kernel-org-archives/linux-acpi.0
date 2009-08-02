@@ -1,58 +1,76 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
-Date: Sun, 2 Aug 2009 09:20:00 +0200
-Message-ID: <71cd59b00908020020p1f672529mf3cd403526005ed5@mail.gmail.com>
-References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
-	<71cd59b00908010850w1e9b4d6p733481a4fba892e7@mail.gmail.com>
-	<9b2b86520908010930n4b47c6c2uc5608ae7d81b0b6b@mail.gmail.com>
-	<200908011921.23990.danny.kukawka@web.de>
-	<9b2b86520908011243r47f39f14t3ef991180927274a@mail.gmail.com>
+From: Michael Buesch <mb@bu3sch.de>
+Subject: Re: [PATCH 3/4] thinkpad-acpi: Avoid heap buffer overrun
+Date: Sun, 2 Aug 2009 11:53:06 +0200
+Message-ID: <200908021153.06769.mb@bu3sch.de>
+References: <1249139060-15392-1-git-send-email-hmh@hmh.eng.br> <200908011754.51077.mb@bu3sch.de> <20090802015012.GA14889@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <hal-bounces@lists.freedesktop.org>
-In-Reply-To: <9b2b86520908011243r47f39f14t3ef991180927274a@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
-	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/hal>
-List-Post: <mailto:hal@lists.freedesktop.org>
-List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
-	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
-Sender: hal-bounces@lists.freedesktop.org
-Errors-To: hal-bounces@lists.freedesktop.org
-To: Danny Kukawka <danny.kukawka@web.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, acpi4asus-user@lists.sourceforge.net, Alan Jenkins <sourcejedi.lkml@googlemail.com>, hal@lists.freedesktop.org, linux acpi <linux-acpi@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bu3sch.de ([62.75.166.246]:57978 "EHLO vs166246.vserver.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751946AbZHBJxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Aug 2009 05:53:35 -0400
+In-Reply-To: <20090802015012.GA14889@khazad-dum.debian.net>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, stable@kernel.org
 
->> see:
->> http://cgit.freedesktop.org/~dkukawka/hal/commit/?id=3Dc900d0e5012b1dd0e=
-0fa6e20fd0d92a59b3de093
+On Sunday 02 August 2009 03:50:12 Henrique de Moraes Holschuh wrote:
+> > Note that it turns out this is not a real-life bug after all.
+> > The VFS code checks count for signedness (high bit set) and bails
+> > out if this is the case.
+> > Well, it might probably be a good idea to restrict the count range to
+> > something sane here anyway, so...
+> 
+> It is a good idea to restrict the maximum size to something sane anyway.
+> 
+> But the commit message needs to be fixed if there is no security hole.
+> 
+> Anyway, in which function and file is the VFS code that restricts the
+> maximum size?
+> 
 
-It's not my hardware either, but I can try to create a fake
-kbd_keyboard led to test that.
+Well there are two things. It happens that access_ok() on x86 does such a
+check. It does _not_ do this on all arches, but as a thinkpad is x86...
+And there are sanity checks in fs/read_write.c:
 
-> Don't you also need to set "keyboard_backlight.num_levels"? =A0According
-> to Documentation/leds-class.txt, valid led values are 0-255, so I
-> expect num_levels should be set to 256.
+208 /*
+209  * rw_verify_area doesn't like huge counts. We limit
+210  * them to something that fits in "int" so that others
+211  * won't have to do range checks all the time.
+212  */
+213 #define MAX_RW_COUNT (INT_MAX & PAGE_CACHE_MASK)
+214 
+215 int rw_verify_area(int read_write, struct file *file, loff_t *ppos, size_t count)
+216 {
+217         struct inode *inode;
+218         loff_t pos;
+219         int retval = -EINVAL;
+220 
+221         inode = file->f_path.dentry->d_inode;
+222         if (unlikely((ssize_t) count < 0))
+223                 return retval;
+224         pos = *ppos;
+225         if (unlikely((pos < 0) || (loff_t) (pos + count) < 0))
+226                 return retval;
+227 
+228         if (unlikely(inode->i_flock && mandatory_lock(inode))) {
+229                 retval = locks_mandatory_area(
+230                         read_write == READ ? FLOCK_VERIFY_READ : FLOCK_VERIFY_WRITE,
+231                         inode, file, pos, count);
+232                 if (retval < 0)
+233                         return retval;
+234         }
+235         retval = security_file_permission(file,
+236                                 read_write == READ ? MAY_READ : MAY_WRITE);
+237         if (retval)
+238                 return retval;
+239         return count > MAX_RW_COUNT ? MAX_RW_COUNT : count;
+240 }
 
-Valid led values are between 0 and max_brightness (like for backlight I thi=
-nk).
-I think the led addon should set keyboard_backlight.num_levels to
-max_brightness (+1 ?).
-
-> Yuck... I think the backlight interface is better in that it exports
-> the available granularity. =A0But I guess all one really wants is "on"
-> and "off", with finer adjustment being either automatic (light sensor)
-> or buried as a config option.
-
-On the Asus U50 there is 3 levels (+ off), and keys to change the brightnes=
-s.
-And the user want to use all the backlight levels with the Fn+F3/F4 keys.
-
-
-
--- =
-
-Corentin Chary
-http://xf.iksaif.net - http://uffs.org
+-- 
+Greetings, Michael.
