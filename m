@@ -1,224 +1,161 @@
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 3/8] eeepc-laptop: fix ordering of init and exit functions
-Date: Sun, 02 Aug 2009 16:56:12 +0100
-Message-ID: <4A75B71C.7030202@tuffmail.co.uk>
+Subject: [PATCH 4/8] eeepc-laptop: make input device a child of the platform
+ device
+Date: Sun, 02 Aug 2009 16:56:29 +0100
+Message-ID: <4A75B72D.7060807@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mail-ew0-f214.google.com ([209.85.219.214]:35842 "EHLO
 	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840AbZHBP4O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2009 11:56:14 -0400
-Received: by ewy10 with SMTP id 10so2535576ewy.37
-        for <linux-acpi@vger.kernel.org>; Sun, 02 Aug 2009 08:56:14 -0700 (PDT)
+	with ESMTP id S1752862AbZHBP4a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2009 11:56:30 -0400
+Received: by mail-ew0-f214.google.com with SMTP id 10so2535576ewy.37
+        for <linux-acpi@vger.kernel.org>; Sun, 02 Aug 2009 08:56:31 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Corentin Chary <corentin.chary@gmail.com>
 Cc: acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-1. input and backlight devices were registered after acpi notifications
-   are enabled.  This left a window where eeepc_hotk_notify() might
-   find these devices in an inconsistent (half-initialized) state.
+Sysfs showed the ehotk input device as a "virtual" device - lies!
+The input device is provided by a physical device, the eeepc platform.
 
--> Move all device registration into eeepc_hotk_add(), which is called
-   before enabling acpi notifications.
+This requires that we move the creation of the input device to come
+after platform device is created.  Input initialization is moved from
+ehotk_check() [sic] to a new function called eeepc_input_init().  This
+brings the input device into line with the other eeepc-laptop devices.
 
-
-2. input and backlight devices were unregistered before acpi
-   notifications are disabled.  This left a window where
-   eeepc_hotk_notify() might find these devices in an inconsistent
-   (half-destroyed) state.
-
--> Move all device unregistration into eeepc_hotk_remove(), which is
-   called after disabling acpi notifications.
-
-
-3. The acpi driver was not freed if an error occured further down in
-   eeepc_laptop_init().
-
--> The rest of eeepc_laptop_init() has been moved to eeepc_hotk_add(),
-   so this is no longer a problem.
-
-
-4. The acpi driver was unregistered before the platform driver.  This
-   left a window where a sysfs access could attempt to read the ehotk
-   structure after it had been freed by eeepc_hotk_remove().
-
--> The acpi driver is now unregistered as the last step in
-   eeepc_laptop_exit(), so this is no longer a problem.
+Also, refuse to load if we fail to register the input device.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
- drivers/platform/x86/eeepc-laptop.c |  120 +++++++++++++++++------------------
- 1 files changed, 59 insertions(+), 61 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   70 ++++++++++++++++++++--------------
+ 1 files changed, 41 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 8dd86f7..cf47d1c 100644
+index cf47d1c..298dac9 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -847,44 +847,6 @@ error_slot:
- 	return ret;
- }
+@@ -579,7 +579,6 @@ static void cmsg_quirks(void)
  
--static int eeepc_hotk_add(struct acpi_device *device)
--{
--	int result;
--
--	if (!device)
--		 return -EINVAL;
--	pr_notice(EEEPC_HOTK_NAME "\n");
--	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
--	if (!ehotk)
--		return -ENOMEM;
--	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
--	ehotk->handle = device->handle;
--	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
--	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
--	device->driver_data = ehotk;
--	ehotk->device = device;
--	result = eeepc_hotk_check();
--	if (result)
--		goto ehotk_fail;
--
--	return 0;
--
-- ehotk_fail:
--	kfree(ehotk);
--	ehotk = NULL;
--
--	return result;
--}
--
--static int eeepc_hotk_remove(struct acpi_device *device, int type)
--{
--	if (!device || !acpi_driver_data(device))
--		 return -EINVAL;
--
--	kfree(ehotk);
--	return 0;
--}
--
- static int eeepc_hotk_resume(struct acpi_device *device)
+ static int eeepc_hotk_check(void)
  {
- 	if (ehotk->wlan_rfkill) {
-@@ -1066,19 +1028,6 @@ static void eeepc_hwmon_exit(void)
- 	eeepc_hwmon_device = NULL;
- }
- 
--static void __exit eeepc_laptop_exit(void)
--{
--	eeepc_backlight_exit();
--	eeepc_rfkill_exit();
--	eeepc_input_exit();
--	eeepc_hwmon_exit();
--	acpi_bus_unregister_driver(&eeepc_hotk_driver);
--	sysfs_remove_group(&platform_device->dev.kobj,
--			   &platform_attribute_group);
--	platform_device_unregister(platform_device);
--	platform_driver_unregister(&platform_driver);
--}
--
- static int eeepc_new_rfkill(struct rfkill **rfkill,
- 			    const char *name, struct device *dev,
- 			    enum rfkill_type type, int cm)
-@@ -1193,21 +1142,27 @@ static int eeepc_hwmon_init(struct device *dev)
- 	return result;
- }
- 
--static int __init eeepc_laptop_init(void)
-+static int eeepc_hotk_add(struct acpi_device *device)
- {
- 	struct device *dev;
+-	const struct key_entry *key;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
  	int result;
  
--	if (acpi_disabled)
--		return -ENODEV;
--	result = acpi_bus_register_driver(&eeepc_hotk_driver);
--	if (result < 0)
--		return result;
--	if (!ehotk) {
--		acpi_bus_unregister_driver(&eeepc_hotk_driver);
--		return -ENODEV;
--	}
-+	if (!device)
-+		 return -EINVAL;
-+	pr_notice(EEEPC_HOTK_NAME "\n");
-+	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
-+	if (!ehotk)
-+		return -ENOMEM;
-+	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
-+	ehotk->handle = device->handle;
-+	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
-+	device->driver_data = ehotk;
-+	ehotk->device = device;
- 
-+	result = eeepc_hotk_check();
-+	if (result)
-+		goto fail_check;
- 	eeepc_enable_camera();
- 
- 	/* Register platform stuff */
-@@ -1246,6 +1201,7 @@ static int __init eeepc_laptop_init(void)
- 		goto fail_rfkill;
- 
- 	return 0;
-+
- fail_rfkill:
- 	eeepc_hwmon_exit();
- fail_hwmon:
-@@ -1261,8 +1217,50 @@ fail_platform_device1:
- 	platform_driver_unregister(&platform_driver);
- fail_platform_driver:
- 	eeepc_input_exit();
-+fail_check:
-+	kfree(ehotk);
-+
+@@ -604,31 +603,6 @@ static int eeepc_hotk_check(void)
+ 			pr_info("Get control methods supported: 0x%x\n",
+ 				ehotk->cm_supported);
+ 		}
+-		ehotk->inputdev = input_allocate_device();
+-		if (!ehotk->inputdev) {
+-			pr_info("Unable to allocate input device\n");
+-			return 0;
+-		}
+-		ehotk->inputdev->name = "Asus EeePC extra buttons";
+-		ehotk->inputdev->phys = EEEPC_HOTK_FILE "/input0";
+-		ehotk->inputdev->id.bustype = BUS_HOST;
+-		ehotk->inputdev->getkeycode = eeepc_getkeycode;
+-		ehotk->inputdev->setkeycode = eeepc_setkeycode;
+-
+-		for (key = eeepc_keymap; key->type != KE_END; key++) {
+-			switch (key->type) {
+-			case KE_KEY:
+-				set_bit(EV_KEY, ehotk->inputdev->evbit);
+-				set_bit(key->keycode, ehotk->inputdev->keybit);
+-				break;
+-			}
+-		}
+-		result = input_register_device(ehotk->inputdev);
+-		if (result) {
+-			pr_info("Unable to register input device\n");
+-			input_free_device(ehotk->inputdev);
+-			return 0;
+-		}
+ 	} else {
+ 		pr_err("Hotkey device not present, aborting\n");
+ 		return -EINVAL;
+@@ -1142,6 +1116,40 @@ static int eeepc_hwmon_init(struct device *dev)
  	return result;
  }
  
-+static int eeepc_hotk_remove(struct acpi_device *device, int type)
++static int eeepc_input_init(struct device *dev)
 +{
-+	if (!device || !acpi_driver_data(device))
-+		 return -EINVAL;
-+
-+	eeepc_backlight_exit();
-+	eeepc_rfkill_exit();
-+	eeepc_input_exit();
-+	eeepc_hwmon_exit();
-+	sysfs_remove_group(&platform_device->dev.kobj,
-+			   &platform_attribute_group);
-+	platform_device_unregister(platform_device);
-+	platform_driver_unregister(&platform_driver);
-+
-+	kfree(ehotk);
-+	return 0;
-+}
-+
-+static int __init eeepc_laptop_init(void)
-+{
++	const struct key_entry *key;
 +	int result;
 +
-+	if (acpi_disabled)
-+		return -ENODEV;
-+	result = acpi_bus_register_driver(&eeepc_hotk_driver);
-+	if (result < 0)
++	ehotk->inputdev = input_allocate_device();
++	if (!ehotk->inputdev) {
++		pr_info("Unable to allocate input device\n");
++		return -ENOMEM;
++	}
++	ehotk->inputdev->name = "Asus EeePC extra buttons";
++	ehotk->inputdev->dev.parent = dev;
++	ehotk->inputdev->phys = EEEPC_HOTK_FILE "/input0";
++	ehotk->inputdev->id.bustype = BUS_HOST;
++	ehotk->inputdev->getkeycode = eeepc_getkeycode;
++	ehotk->inputdev->setkeycode = eeepc_setkeycode;
++
++	for (key = eeepc_keymap; key->type != KE_END; key++) {
++		switch (key->type) {
++		case KE_KEY:
++			set_bit(EV_KEY, ehotk->inputdev->evbit);
++			set_bit(key->keycode, ehotk->inputdev->keybit);
++			break;
++		}
++	}
++	result = input_register_device(ehotk->inputdev);
++	if (result) {
++		pr_info("Unable to register input device\n");
++		input_free_device(ehotk->inputdev);
 +		return result;
-+	if (!ehotk) {
-+		acpi_bus_unregister_driver(&eeepc_hotk_driver);
-+		return -ENODEV;
 +	}
 +	return 0;
 +}
 +
-+static void __exit eeepc_laptop_exit(void)
-+{
-+	acpi_bus_unregister_driver(&eeepc_hotk_driver);
-+}
+ static int eeepc_hotk_add(struct acpi_device *device)
+ {
+ 	struct device *dev;
+@@ -1162,7 +1170,7 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 
+ 	result = eeepc_hotk_check();
+ 	if (result)
+-		goto fail_check;
++		goto fail_platform_driver;
+ 	eeepc_enable_camera();
+ 
+ 	/* Register platform stuff */
+@@ -1192,6 +1200,10 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ 		pr_info("Backlight controlled by ACPI video "
+ 			"driver\n");
+ 
++	result = eeepc_input_init(dev);
++	if (result)
++		goto fail_input;
 +
- module_init(eeepc_laptop_init);
- module_exit(eeepc_laptop_exit);
+ 	result = eeepc_hwmon_init(dev);
+ 	if (result)
+ 		goto fail_hwmon;
+@@ -1205,6 +1217,8 @@ static int eeepc_hotk_add(struct acpi_device *device)
+ fail_rfkill:
+ 	eeepc_hwmon_exit();
+ fail_hwmon:
++	eeepc_input_exit();
++fail_input:
+ 	eeepc_backlight_exit();
+ fail_backlight:
+ 	sysfs_remove_group(&platform_device->dev.kobj,
+@@ -1216,8 +1230,6 @@ fail_platform_device2:
+ fail_platform_device1:
+ 	platform_driver_unregister(&platform_driver);
+ fail_platform_driver:
+-	eeepc_input_exit();
+-fail_check:
+ 	kfree(ehotk);
+ 
+ 	return result;
 -- 
 1.6.3.2
 
