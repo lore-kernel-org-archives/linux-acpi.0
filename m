@@ -1,120 +1,157 @@
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 1/8] eeepc-laptop: use a mutex to serialize pci hotplug (resume
- vs. notify)
-Date: Sun, 02 Aug 2009 16:55:00 +0100
-Message-ID: <4A75B6D4.3050702@tuffmail.co.uk>
+Subject: [PATCH 2/8] eeepc-laptop: fix pci hotplug race on load and unload
+Date: Sun, 02 Aug 2009 16:55:39 +0100
+Message-ID: <4A75B6FB.8030503@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:47998 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840AbZHBPzC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2009 11:55:02 -0400
-Received: by mail-ew0-f214.google.com with SMTP id 10so2535091ewy.37
-        for <linux-acpi@vger.kernel.org>; Sun, 02 Aug 2009 08:55:02 -0700 (PDT)
+Received: from ey-out-2122.google.com ([74.125.78.24]:14002 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834AbZHBPzl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2009 11:55:41 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so821482eyd.37
+        for <linux-acpi@vger.kernel.org>; Sun, 02 Aug 2009 08:55:41 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Corentin Chary <corentin.chary@gmail.com>
 Cc: acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Commit d0265f0 "eeepc-laptop: fix hot-unplug on resume" used a workqueue
-to protect pci hotplug against multiple simultaneous calls during
-resume.  It seems to work, but a mutex would be more appropriate.
+Wifi rfkill state changes can race with pci hotplug cleanup.  A simple
+fix is to refresh the hotplug state just before deregistering the pci
+hotplug slot.
 
-This is in preparation to fix the potential pci hotplug race on unload.
+There is also potential for a hotplug notification to fire too early
+during setup, while the structures it uses are still being initialised.
+(This could only happen if the BIOS performs hotplug itself; a bug
+triggered by removing the battery while hibernated).  Avoid this by
+registering the notifier later.  The same refresh mechanism is used
+to handle rfkill state changes which can now race with registration.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
- drivers/platform/x86/eeepc-laptop.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   77 ++++++++++++++++++++--------------
+ 1 files changed, 45 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 69d73ed..1790103 100644
+index 1790103..8dd86f7 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -143,7 +143,7 @@ struct eeepc_hotk {
- 	struct rfkill *bluetooth_rfkill;
- 	struct rfkill *wwan3g_rfkill;
- 	struct hotplug_slot *hotplug_slot;
--	struct work_struct hotplug_work;
-+	struct mutex hotplug_lock;
- };
- 
- /* The actual device the driver binds to */
-@@ -661,7 +661,7 @@ static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
- 	return 0;
- }
- 
--static void eeepc_hotplug_work(struct work_struct *work)
-+static void eeepc_rfkill_hotplug(void)
- {
- 	struct pci_dev *dev;
+@@ -667,37 +667,37 @@ static void eeepc_rfkill_hotplug(void)
  	struct pci_bus *bus;
-@@ -669,13 +669,15 @@ static void eeepc_hotplug_work(struct work_struct *work)
+ 	bool blocked = eeepc_wlan_rfkill_blocked();
  
- 	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
+-	rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
++	if (ehotk->wlan_rfkill)
++		rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
  
-+	mutex_lock(&ehotk->hotplug_lock);
-+
- 	if (ehotk->hotplug_slot == NULL)
--		return;
-+		goto out_unlock;
+ 	mutex_lock(&ehotk->hotplug_lock);
  
- 	bus = pci_find_bus(0, 1);
- 	if (!bus) {
- 		pr_warning("Unable to find PCI bus 1?\n");
--		return;
-+		goto out_unlock;
- 	}
- 
- 	if (!blocked) {
-@@ -683,7 +685,7 @@ static void eeepc_hotplug_work(struct work_struct *work)
- 		if (dev) {
- 			/* Device already present */
- 			pci_dev_put(dev);
--			return;
-+			goto out_unlock;
+-	if (ehotk->hotplug_slot == NULL)
+-		goto out_unlock;
+-
+-	bus = pci_find_bus(0, 1);
+-	if (!bus) {
+-		pr_warning("Unable to find PCI bus 1?\n");
+-		goto out_unlock;
+-	}
+-
+-	if (!blocked) {
+-		dev = pci_get_slot(bus, 0);
+-		if (dev) {
+-			/* Device already present */
+-			pci_dev_put(dev);
++	if (ehotk->hotplug_slot) {
++		bus = pci_find_bus(0, 1);
++		if (!bus) {
++			pr_warning("Unable to find PCI bus 1?\n");
+ 			goto out_unlock;
  		}
- 		dev = pci_scan_single_device(bus, 0);
- 		if (dev) {
-@@ -698,6 +700,9 @@ static void eeepc_hotplug_work(struct work_struct *work)
- 			pci_dev_put(dev);
+-		dev = pci_scan_single_device(bus, 0);
+-		if (dev) {
+-			pci_bus_assign_resources(bus);
+-			if (pci_bus_add_device(dev))
+-				pr_err("Unable to hotplug wifi\n");
+-		}
+-	} else {
+-		dev = pci_get_slot(bus, 0);
+-		if (dev) {
+-			pci_remove_bus_device(dev);
+-			pci_dev_put(dev);
++
++		if (!blocked) {
++			dev = pci_get_slot(bus, 0);
++			if (dev) {
++				/* Device already present */
++				pci_dev_put(dev);
++				goto out_unlock;
++			}
++			dev = pci_scan_single_device(bus, 0);
++			if (dev) {
++				pci_bus_assign_resources(bus);
++				if (pci_bus_add_device(dev))
++					pr_err("Unable to hotplug wifi\n");
++			}
++		} else {
++			dev = pci_get_slot(bus, 0);
++			if (dev) {
++				pci_remove_bus_device(dev);
++				pci_dev_put(dev);
++			}
  		}
  	}
-+
-+out_unlock:
-+	mutex_unlock(&ehotk->hotplug_lock);
- }
  
- static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
-@@ -705,7 +710,7 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
- 	if (event != ACPI_NOTIFY_BUS_CHECK)
- 		return;
- 
--	schedule_work(&ehotk->hotplug_work);
-+	eeepc_rfkill_hotplug();
- }
- 
- static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
-@@ -896,7 +901,7 @@ static int eeepc_hotk_resume(struct acpi_device *device)
- 
- 		rfkill_set_sw_state(ehotk->wlan_rfkill, wlan != 1);
- 
--		schedule_work(&ehotk->hotplug_work);
-+		eeepc_rfkill_hotplug();
- 	}
- 
- 	if (ehotk->bluetooth_rfkill)
-@@ -1097,7 +1102,7 @@ static int eeepc_rfkill_init(struct device *dev)
+@@ -1029,14 +1029,22 @@ static void eeepc_rfkill_exit(void)
  {
- 	int result = 0;
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+-	if (ehotk->wlan_rfkill)
++	if (ehotk->wlan_rfkill) {
+ 		rfkill_unregister(ehotk->wlan_rfkill);
++		ehotk->wlan_rfkill = NULL;
++	}
++	/*
++	 * Refresh pci hotplug in case the rfkill state was changed after
++	 * eeepc_unregister_rfkill_notifier()
++	 */
++	eeepc_rfkill_hotplug();
++	if (ehotk->hotplug_slot)
++		pci_hp_deregister(ehotk->hotplug_slot);
++
+ 	if (ehotk->bluetooth_rfkill)
+ 		rfkill_unregister(ehotk->bluetooth_rfkill);
+ 	if (ehotk->wwan3g_rfkill)
+ 		rfkill_unregister(ehotk->wwan3g_rfkill);
+-	if (ehotk->hotplug_slot)
+-		pci_hp_deregister(ehotk->hotplug_slot);
+ }
  
--	INIT_WORK(&ehotk->hotplug_work, eeepc_hotplug_work);
-+	mutex_init(&ehotk->hotplug_lock);
+ static void eeepc_input_exit(void)
+@@ -1104,9 +1112,6 @@ static int eeepc_rfkill_init(struct device *dev)
  
- 	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
- 	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
+ 	mutex_init(&ehotk->hotplug_lock);
+ 
+-	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
+-	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
+-
+ 	result = eeepc_new_rfkill(&ehotk->wlan_rfkill,
+ 				  "eeepc-wlan", dev,
+ 				  RFKILL_TYPE_WLAN, CM_ASL_WLAN);
+@@ -1136,6 +1141,14 @@ static int eeepc_rfkill_init(struct device *dev)
+ 	if (result == -EBUSY)
+ 		result = 0;
+ 
++	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P6");
++	eeepc_register_rfkill_notifier("\\_SB.PCI0.P0P7");
++	/*
++	 * Refresh pci hotplug in case the rfkill state was changed during
++	 * setup.
++	 */
++	eeepc_rfkill_hotplug();
++
+ exit:
+ 	if (result && result != -ENODEV)
+ 		eeepc_rfkill_exit();
 -- 
 1.6.3.2
 
