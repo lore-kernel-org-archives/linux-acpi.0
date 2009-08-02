@@ -1,62 +1,55 @@
-From: Michael Brunner <mibru@gmx.de>
-Subject: [PATCH] thermal_sys: check get_temp return value
-Date: Sun, 2 Aug 2009 14:06:52 +0200
-Message-ID: <20090802140652.16effa08@mail.gmx.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 15/19] ACPI: identify device tree root by null parent
+ pointer, not ACPI_BUS_TYPE
+Date: Sun, 2 Aug 2009 10:44:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908021042440.3293@sony-vgn-z540>
+References: <20090731213501.29930.39957.stgit@bob.kio> <20090731213749.29930.48586.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752695AbZHBMG4@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rui.zhang@intel.com, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from s-utl02-sjpop.stsn.net ([72.254.0.202]:9401 "HELO
+	s-utl02-sjpop.stsn.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752144AbZHBOtt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2009 10:49:49 -0400
+In-Reply-To: <20090731213749.29930.48586.stgit@bob.kio>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org
 
-The return value of the get_temp function is not checked when doing a
-thermal zone update. This may lead to a critical shutdown if get_temp
-fails and the content of the temp variable is incorrectly set higher
-than the critical trip point.
-This has been observed on a system with incorrect ACPI implementation
-where the corresponding methods were not serialized and therefore
-sometimes triggered ACPI errors (AE_ALREADY_EXISTS). The following
-critical shutdowns indicated a temperature of 2097 C, which was
-obviously wrong.
+On Fri, 31 Jul 2009, Bjorn Helgaas wrote:
 
-The patch adds a return value check that jumps over all trip point
-evaluations printing a warning if get_temp fails. The trip points are
-evaluated again on the next polling interval with successful get_temp
-execution.
+> We can identify the root of the ACPI device tree by the fact that it
+> has no parent.  This is simpler than passing around ACPI_BUS_TYPE_SYSTEM
+> and will help remove special treatment of the device tree root.
+> 
+> Currently, we add the root by hand with ACPI_BUS_TYPE_SYSTEM.  If we
+> traverse the tree treating the root as just another device and use
+> acpi_get_type(), the root shows up as ACPI_TYPE_DEVICE.
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
+>  drivers/acpi/scan.c     |   18 +++++++++++-------
+>  include/acpi/acpi_bus.h |    1 -
+>  2 files changed, 11 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index b97b2ad..c0736f6 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -950,10 +950,12 @@ static void acpi_device_get_busid(struct acpi_device *device)
+>  	 * The device's Bus ID is simply the object name.
+>  	 * TBD: Shouldn't this value be unique (within the ACPI namespace)?
+>  	 */
+> -	switch (device->device_type) {
+> -	case ACPI_BUS_TYPE_SYSTEM:
+> +	if (!device->parent) {
 
-Signed-off-by: Michael Brunner <mibru@gmx.de>
+it is just a style thing, but i probably would
+use a macro for this, such as ACPI_IS_ROOT(device)
+to make the code read easier to the un-initiated.
 
----
+thanks,
+-Len Brown, Intel Open Source Technology Center
 
- drivers/thermal/thermal_sys.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 0a69672..4e83c29 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -953,7 +953,12 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
- 
- 	mutex_lock(&tz->lock);
- 
--	tz->ops->get_temp(tz, &temp);
-+	if (tz->ops->get_temp(tz, &temp)) {
-+		/* get_temp failed - retry it later */
-+		printk(KERN_WARNING PREFIX "failed to read out thermal zone "
-+		       "%d\n", tz->id);
-+		goto leave;
-+	}
- 
- 	for (count = 0; count < tz->trips; count++) {
- 		tz->ops->get_trip_type(tz, count, &trip_type);
-@@ -1005,6 +1010,8 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
- 					    THERMAL_TRIPS_NONE);
- 
- 	tz->last_temperature = temp;
-+
-+      leave:
- 	if (tz->passive)
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
- 	else if (tz->polling_delay)
