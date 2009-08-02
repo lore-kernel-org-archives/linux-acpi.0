@@ -1,76 +1,101 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
-Date: Sat, 1 Aug 2009 20:47:03 +0100
-Message-ID: <9b2b86520908011247g6341866cu7da61504a6477683@mail.gmail.com>
-References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
-	 <71cd59b00908010850w1e9b4d6p733481a4fba892e7@mail.gmail.com>
-	 <9b2b86520908010930n4b47c6c2uc5608ae7d81b0b6b@mail.gmail.com>
-	 <200908011921.23990.danny.kukawka@web.de>
-	 <9b2b86520908011243r47f39f14t3ef991180927274a@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 3/4] thinkpad-acpi: Avoid heap buffer overrun
+Date: Sat, 1 Aug 2009 22:50:12 -0300
+Message-ID: <20090802015012.GA14889@khazad-dum.debian.net>
+References: <1249139060-15392-1-git-send-email-hmh@hmh.eng.br>
+ <1249139060-15392-4-git-send-email-hmh@hmh.eng.br>
+ <200908011754.51077.mb@bu3sch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:59579 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089AbZHATrE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Aug 2009 15:47:04 -0400
-Received: by bwz19 with SMTP id 19so1760157bwz.37
-        for <linux-acpi@vger.kernel.org>; Sat, 01 Aug 2009 12:47:03 -0700 (PDT)
-In-Reply-To: <9b2b86520908011243r47f39f14t3ef991180927274a@mail.gmail.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:51826 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751479AbZHBBuP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Aug 2009 21:50:15 -0400
+Content-Disposition: inline
+In-Reply-To: <200908011754.51077.mb@bu3sch.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Kukawka <danny.kukawka@web.de>
-Cc: hal@lists.freedesktop.org, Corentin Chary <corentin.chary@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, acpi4asus-user@lists.sourceforge.net, linux acpi <linux-acpi@vger.kernel.org>
+To: Michael Buesch <mb@bu3sch.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, stable@kernel.org
 
-On 8/1/09, Alan Jenkins <sourcejedi.lkml@googlemail.com> wrote:
-> On 8/1/09, Danny Kukawka <danny.kukawka@web.de> wrote:
->> On Samstag, 1. August 2009, Alan Jenkins wrote:
->>> I
->>> think the idea is to use an FDI file to match our LED device (or
->>> possibly create it as a hal device... I'm still really fuzzy on hal),
->>> and then mark it as having the "keyboard_backlight" capability.
->>
->> No, it wouldn't work this way. At least not with the current key.
->>
->> I changed the led addon in my repo to check if a led has
->> leds.function=kbd_backlight and provide then the
->> org.freedesktop.Hal.Device.KeyboardBacklight interface instead of
->> org.freedesktop.Hal.Device.Leds. Please check if this helps.
->>
->> see:
->> http://cgit.freedesktop.org/~dkukawka/hal/commit/?id=c900d0e5012b1dd0e0fa6e20fd0d92a59b3de093
->>
->> [...]
->>> > I believe that we need a keyboard backlight addon that respond to
->>> > KEY_KBDILLUM*
->>> > and update the corresponding /sys/class/vendor:color:kbd_backlight.
->>>
->>> Oops, thats not the addons job.  It's for something like the gnome
->>> power manager.  It looks like g-p-m already picks up the device with a
->>> "keyboard_backlight" capability, and react to keyboard brightness key
->>> events.
->>
->> Correct. It's not the job of the addon to react on keyevents. This is up
->> to
->> a
->> desktop application which listen to the events and call then the
->> interface.
->> The same way it work for e.g. the brightness of your laptop panel.
->>
->> Danny
->
-> Thanks!  It's not my hardware, but I think I see an issue:
->
-> Don't you also need to set "keyboard_backlight.num_levels"?  According
-> to Documentation/leds-class.txt, valid led values are 0-255, so I
-> expect num_levels should be set to 256.
->
-> Yuck... I think the backlight interface is better in that it exports
-> the available granularity.
-^
-Sorry, to avoid confusion I was moaning about the _kernel_ backlight
-interface.  Apologies for being obscure.
+On Sat, 01 Aug 2009, Michael Buesch wrote:
+> On Saturday 01 August 2009 17:04:19 Henrique de Moraes Holschuh wrote:
+> > From: Michael Buesch <mb@bu3sch.de>
+> > 
+> > Avoid a heap buffer overrun triggered by an integer overflow of the
+> > userspace controlled "count" variable.
+> > 
+> > If userspace passes in a "count" of (size_t)-1l, the kmalloc size will
+> > overflow to ((size_t)-1l + 2) = 1, so only one byte will be allocated.
+> > However, copy_from_user() will attempt to copy 0xFFFFFFFF (or
+> > 0xFFFFFFFFFFFFFFFF on 64bit) bytes to the buffer.
+> > 
+> > A possible testcase could look like this:
+> > 
+> > #include <stdio.h>
+> > #include <stdlib.h>
+> > #include <unistd.h>
+> > #include <fcntl.h>
+> > 
+> > int main(int argc, char **argv)
+> > {
+> > 	int fd;
+> > 	char c;
+> > 
+> > 	if (argc != 2) {
+> > 		printf("Usage: %s /proc/acpi/ibm/filename\n", argv[0]);
+> > 		return 1;
+> > 	}
+> > 	fd = open(argv[1], O_RDWR);
+> > 	if (fd < 0) {
+> > 		printf("Could not open proc file\n");
+> > 		return 1;
+> > 	}
+> > 	write(fd, &c, (size_t)-1l);
+> > }
+> > 
+> > We avoid the integer overrun by putting an arbitrary limit on the count.
+> > PAGE_SIZE sounds like a sane limit.
+> > 
+> > (note: this bug exists at least since kernel 2.6.12...)
+> > 
+> > Signed-off-by: Michael Buesch <mb@bu3sch.de>
+> > Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> > Cc: stable@kernel.org
+> > ---
+> >  drivers/platform/x86/thinkpad_acpi.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+> > index 27d68e7..18f9ee6 100644
+> > --- a/drivers/platform/x86/thinkpad_acpi.c
+> > +++ b/drivers/platform/x86/thinkpad_acpi.c
+> > @@ -766,6 +766,8 @@ static int dispatch_procfs_write(struct file *file,
+> >  
+> >  	if (!ibm || !ibm->write)
+> >  		return -EINVAL;
+> > +	if (count > PAGE_SIZE - 2)
+> > +		return -EINVAL;
+> >  
+> >  	kernbuf = kmalloc(count + 2, GFP_KERNEL);
+> >  	if (!kernbuf)
+> 
+> Note that it turns out this is not a real-life bug after all.
+> The VFS code checks count for signedness (high bit set) and bails
+> out if this is the case.
+> Well, it might probably be a good idea to restrict the count range to
+> something sane here anyway, so...
 
-Thanks again
-Alan
+It is a good idea to restrict the maximum size to something sane anyway.
+
+But the commit message needs to be fixed if there is no security hole.
+
+Anyway, in which function and file is the VFS code that restricts the
+maximum size?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
