@@ -1,29 +1,44 @@
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Subject: Re: WMI module autoloading (for hp-wmi, dell-wmi, tc1100-wmi)
-Date: Mon, 3 Aug 2009 20:08:11 +0100
-Message-ID: <200908032008.12387.carlos@strangeworlds.co.uk>
-References: <4A76C1B8.6080000@tuffmail.co.uk>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
+	meters
+Date: Mon, 3 Aug 2009 13:48:18 -0700
+Message-ID: <20090803204817.GA14694@plum>
+References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com> <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com> <1248659067.3556.70.camel@localhost.localdomain>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754368AbZHCTI0@vger.kernel.org>
-In-Reply-To: <4A76C1B8.6080000@tuffmail.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e5.ny.us.ibm.com ([32.97.182.145]:37494 "EHLO e5.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753459AbZHCUsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Aug 2009 16:48:19 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
+In-Reply-To: <1248659067.3556.70.camel@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ykzhao <yakui.zhao@intel.com>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Monday 03 August 2009 11:53:44 Alan Jenkins wrote:
-> Would it be possible to add the auto-load support on it's own?  Is it
-> just a matter of someone taking the time to cherry-pick the auto-loading
-> bits from the original patch, and test the result?
+On Mon, Jul 27, 2009 at 09:44:27AM +0800, ykzhao wrote:
+> On Sat, 2009-07-25 at 08:43 +0800, Darrick J. Wong wrote:
+> > This driver exposes ACPI 4.0 compliant power meters as hardware monitoring
+> > devices.
+> It seems OK to me. But it seems that some attributes can't be obtained
+> by using the hwmon sys I/F.
+>    a. Can we add a sys I/F that can exports the Power meter capability?
+> display all the content of _PMC as what we have done in battery
 
-Yes. I started on this a while ago, but never quite finished.
+Are you talking about all 17 fields of the _PMC return value?  Or specifically
+the feature bit field "Supported Capabilities"?  The feature bits control
+whether or not the corresponding sysfs attributes even show up, and the other
+fields (except the string data) are all there.  I suppose it would be useful to
+display the OEM data too...
 
--Carlos
--- 
-E-Mail: carlos@strangeworlds.co.uk
-Web: strangeworlds.co.uk
-GPG Key ID: 0x23EE722D
+>    b. Add a sys I/F that displays the name of device list measured by
+> the power meter if there exists the _PMD object.
+
+As soon as I figure out how to do that. :)
+
+Sorry for the slow response as I was mountain climbing = no Internet.
+
+--D
