@@ -1,50 +1,29 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] input: Add support for filtering input events
-Date: Mon, 3 Aug 2009 10:04:51 -0700
-Message-ID: <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net>
-References: <1249007207-27392-1-git-send-email-mjg@redhat.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: WMI module autoloading (for hp-wmi, dell-wmi, tc1100-wmi)
+Date: Mon, 3 Aug 2009 20:08:11 +0100
+Message-ID: <200908032008.12387.carlos@strangeworlds.co.uk>
+References: <4A76C1B8.6080000@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:13675 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755432AbZHCRFA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Aug 2009 13:05:00 -0400
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754368AbZHCTI0@vger.kernel.org>
+In-Reply-To: <4A76C1B8.6080000@tuffmail.co.uk>
 Content-Disposition: inline
-In-Reply-To: <1249007207-27392-1-git-send-email-mjg@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 
-Hi Matthew,
+On Monday 03 August 2009 11:53:44 Alan Jenkins wrote:
+> Would it be possible to add the auto-load support on it's own?  Is it
+> just a matter of someone taking the time to cherry-pick the auto-loading
+> bits from the original patch, and test the result?
 
-On Fri, Jul 31, 2009 at 03:26:46AM +0100, Matthew Garrett wrote:
-> Devices occasionally use the keyboard controller to send hardware
-> notifications that should be handled by the kernel rather than userspace.
-> These can be handled in kernel by registering an input handler, but the
-> event will still bubble up to userspace where it may cause confusion. This
-> patch adds support for the kernel to register filters, allowing it to
-> indicate that the event should be consumed by the hardware-specific driver
-> rather than passed to other input handlers. The assumption is that, as this
-> is hardware specific, there should be no need to have more than one filter -
-> similarly, if an input device is grabbed, we assume that people know what
-> they're doing and don't pass it to the filter.
-> 
+Yes. I started on this a while ago, but never quite finished.
 
-I don't think this is the proper layer to do the filtering, the filter
-should be done in i8042, not input core. The way you done it would kill
-any possibility of user assigning KEY_WLAN to a spare key on his or her
-keyboard and using it to control wireless cards that are not hardwired.
-
-I would accept the patch that would add a filter in the form
-
-	bool (*i8042_fillter)(unsigned char data, unsigned int flags,
-			struct serio *port);
-
-I don't think we'd need to chain them into a list or something, one hook
-should be enough since I don't expect we'll have several platform
-drivers loaded on one box.
-
+-Carlos
 -- 
-Dmitry
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
