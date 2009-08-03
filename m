@@ -1,78 +1,104 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH update] PM: Introduce core framework for run-time PM of I/O devices (rev. 11)
-Date: Mon, 3 Aug 2009 17:15:18 +0200
-Message-ID: <200908031715.19302.rjw@sisk.pl>
-References: <200907221701.50449.rjw@sisk.pl> <200907312053.17914.rjw@sisk.pl> <aec7e5c30908022026t2fa8f328s27424073c9ff560b@mail.gmail.com>
+From: "Luis R. Rodriguez" <mcgrof-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.31-rc5: Reported regressions 2.6.29 -> 2.6.30
+Date: Mon, 3 Aug 2009 08:16:39 -0700
+Message-ID: <43e72e890908030816n187cda20keda2c9ba1b15a89c@mail.gmail.com>
+References: <upey9ZSfnaF.A.-oE.rpgdKB@chimera>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42096 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932301AbZHCPOn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Aug 2009 11:14:43 -0400
-In-Reply-To: <aec7e5c30908022026t2fa8f328s27424073c9ff560b@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <upey9ZSfnaF.A.-oE.rpgdKB@chimera>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, rootkit85-whZMOeQn8C0@public.gmane.org
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-On Monday 03 August 2009, Magnus Damm wrote:
-> Hi again Rafael,
+Here are the wireless ones:
 
-Hi,
+On Sun, Aug 2, 2009 at 12:06 PM, Rafael J. Wysocki<rjw-KKrjLPT3xs0@public.gmane.org> wrote:
 
-> On Sat, Aug 1, 2009 at 3:53 AM, Rafael J. Wysocki<rjw@sisk.pl> wrote:
-> > On Friday 31 July 2009, Magnus Damm wrote:
-> >> [Runtime PM v11]
-> 
-> >> > @@ -202,7 +203,9 @@ int driver_probe_device(struct device_dr
-> >> >        pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
-> >> >                 drv->bus->name, __func__, dev_name(dev), drv->name);
-> >> >
-> >> > +       pm_runtime_get_noresume(dev);
-> >> >        ret = really_probe(dev, drv);
-> >> > +       pm_runtime_put_noidle(dev);
-> >> >
-> >> >        return ret;
-> >> >  }
-> >>
-> >> This creates problems when drivers want to performing runtime resume
-> >> from within probe(). For more details please have a look at "[PATCH
-> >> 04/04] video: Runtime PM hack for SuperH LCDC driver".
-> >
-> > Ah, I see.  You'd like to call pm_runtime_get_sync() from .probe(), but that
-> > sees the usage counter different from zero and exits immediately.
-> 
-> Exactly.
-> 
-> > OTOH, I think we should prevent suspends from racing with .probe() at the core
-> > level.  Hmm.
-> 
-> Doesn't it make more sense to allow runtime suspend and resume to
-> happen after the pm_runtime_enable() call? What case are you trying to
-> protect against?
+> Unresolved regressions
+> ----------------------
+>
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D13898
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : Intel 3945ABG - problems on 2.6=
+=2E30.X
+> Submitter =C2=A0 =C2=A0 =C2=A0 : dienet <dienet-IjDXvh/HVVUAvxtiuMwx3w@public.gmane.org>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-07-31 15:17 (3 d=
+ays old)
+> References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel&m=
+=3D124905346729959&w=3D4
 
-If runtime PM is enabled before .probe() and then .probe() itself doesn't
-use pm_runtime_get_*(), then theory it is possible to have ->runtime_suspend()
-called while .probe() is running and there's no synchronization between the
-two.  So, we prevent ->runtime_suspend() from being called while .proble()
-is running with the help of the usage counter.
 
-> > One possible approach could be to call pm_runtime_resume() from
-> > sh_mobile_lcdc_probe() instead of pm_runtime_put_noidle().  Then, the platform
-> > code will have a chance to turn the device on and the later pm_runtime_get*()
-> > and pm_runtime_put*() calls will be balanced.  Of course, in that case the
-> > pm_runtime_get_noresume() in sh_mobile_lcdc_probe() won't be necessary any
-> > more.  Am I overlooking anything?
-> 
-> So for drivers that want to access hardware from .probe(), calling
-> pm_runtime_resume() after pm_runtime_enable() in should be enough?
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D13638
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : rt2870 driver is broken for (so=
+me) cards
+> Submitter =C2=A0 =C2=A0 =C2=A0 : jakob gruber <jakob.gruber@kabelnet.=
+at>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-06-27 17:33 (37 =
+days old)
 
-Yes, that should be sufficient (as long as the pm_runtime_resume() is
-successful).
 
-Best,
-Rafael
+
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D13581
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : ath9k doesn't work with newer k=
+ernels
+> Submitter =C2=A0 =C2=A0 =C2=A0 : Matteo <rootkit85-whZMOeQn8C0@public.gmane.org>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-06-19 12:04 (45 =
+days old)
+
+Issue looks more like a the user has rfkill enabled rather than a
+driver issue. Waiting on user feedback since 2009-07-27.
+
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D13362
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : rt2x00: slow wifi with correct =
+basic rate bitmap
+> Submitter =C2=A0 =C2=A0 =C2=A0 : Alejandro Riveira <ariveira-Re5JQEeQqe8@public.gmane.org=
+m>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-05-22 13:32 (73 =
+days old)
+
+
+
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D13337
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : [post 2.6.29 regression] hang d=
+uring suspend of b44/b43 modules
+> Submitter =C2=A0 =C2=A0 =C2=A0 : Tomas Janousek <tomi-YoqI/XImC7s@public.gmane.org>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-05-18 10:59 (77 =
+days old)
+> Handled-By =C2=A0 =C2=A0 =C2=A0: Johannes Berg <johannes@sipsolutions=
+=2Enet>
+> Patch =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 : http://patchwork.kernel.or=
+g/patch/37837/
+
+
+> Bug-Entry =C2=A0 =C2=A0 =C2=A0 : http://bugzilla.kernel.org/show_bug.=
+cgi?id=3D13319
+> Subject =C2=A0 =C2=A0 =C2=A0 =C2=A0 : Page allocation failures with b=
+43 and p54usb
+> Submitter =C2=A0 =C2=A0 =C2=A0 : Larry Finger <Larry.Finger@lwfinger.=
+net>
+> Date =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0: 2009-04-29 21:01 (96 =
+days old)
+> References =C2=A0 =C2=A0 =C2=A0: http://marc.info/?l=3Dlinux-kernel&m=
+=3D124103897101088&w=3D4
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0http://=
+lkml.org/lkml/2009/6/7/136
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0http://=
+lkml.org/lkml/2009/7/26/213
+> Handled-By =C2=A0 =C2=A0 =C2=A0: Johannes Berg <johannes@sipsolutions=
+=2Enet>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0David R=
+ientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> Patch =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 : http://patchwork.kernel.or=
+g/patch/37655/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireles=
+s" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
