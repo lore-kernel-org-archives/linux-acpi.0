@@ -1,367 +1,140 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 2/3 RFC] ALS: introduce ALS sysfs class
-Date: Mon, 03 Aug 2009 17:11:15 +0800
-Message-ID: <1249290675.2670.253.camel@rzhang-dt>
+Subject: [PATCH 3/3 RFC] ACPI: introduce ACPI ALS sysfs I/F
+Date: Mon, 03 Aug 2009 17:11:26 +0800
+Message-ID: <1249290686.2670.254.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:23721 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754385AbZHCJLd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Aug 2009 05:11:33 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754617AbZHCJLr@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, "Zhang, Rui" <rui.zhang@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-
-Introduce ALS sysfs class device.
-
-ALS sysfs class device provides a standard sysfs interface
-for Ambient Light Sensor devices.
-
-Only two sysfs I/F are introduced currently.
-/sys/class/als/alsX/illuminance:
-	indicates the amount of light incident upon a specified surface area.
-/sys/class/als/alsX/mappings:
-	exports ambient light illuminance to display luminance mappings
-	that can be used by an OS to calibrate its ambient light policy
-	for a given sensor configuration.
-	The OS can use this information to extrapolate an ALS response curve
-	- noting that these values may be treated differently depending on the
-	OS implementation but should be used in some form to calibrate ALS policy.
+introduce ACPI ALS sysfs I/F.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/Kconfig         |    2 
- drivers/Makefile        |    1 
- drivers/als/Kconfig     |   10 ++
- drivers/als/Makefile    |    5 +
- drivers/als/als_sys.c   |  206 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/als_sys.h |   55 ++++++++++++
- 6 files changed, 279 insertions(+)
+ drivers/acpi/Kconfig |    1 
+ drivers/acpi/als.c   |   53 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 49 insertions(+), 5 deletions(-)
 
-Index: linux-2.6/drivers/Kconfig
+Index: linux-2.6/drivers/acpi/Kconfig
 ===================================================================
---- linux-2.6.orig/drivers/Kconfig
-+++ linux-2.6/drivers/Kconfig
-@@ -62,6 +62,8 @@ source "drivers/power/Kconfig"
+--- linux-2.6.orig/drivers/acpi/Kconfig
++++ linux-2.6/drivers/acpi/Kconfig
+@@ -336,6 +336,7 @@ config ACPI_SBS
+ config ACPI_ALS
+ 	tristate "Ambient Light Sensor driver"
+ 	depends on X86
++	select ALS
+ 	help
+ 	  This driver supports the ACPI Ambient Light Sensor.
  
- source "drivers/hwmon/Kconfig"
- 
-+source "drivers/als/Kconfig"
-+
- source "drivers/thermal/Kconfig"
- 
- source "drivers/watchdog/Kconfig"
-Index: linux-2.6/drivers/Makefile
+Index: linux-2.6/drivers/acpi/als.c
 ===================================================================
---- linux-2.6.orig/drivers/Makefile
-+++ linux-2.6/drivers/Makefile
-@@ -76,6 +76,7 @@ obj-$(CONFIG_PPS)		+= pps/
- obj-$(CONFIG_W1)		+= w1/
- obj-$(CONFIG_POWER_SUPPLY)	+= power/
- obj-$(CONFIG_HWMON)		+= hwmon/
-+obj-$(CONFIG_ALS)		+= als/
- obj-$(CONFIG_THERMAL)		+= thermal/
- obj-$(CONFIG_WATCHDOG)		+= watchdog/
- obj-$(CONFIG_PHONE)		+= telephony/
-Index: linux-2.6/drivers/als/Kconfig
-===================================================================
---- /dev/null
-+++ linux-2.6/drivers/als/Kconfig
-@@ -0,0 +1,10 @@
-+#
-+# Ambient Light Sensor sysfs device configuration
-+#
-+
-+menuconfig ALS
-+	tristate "Ambient Light Sensor sysfs device"
-+	help
-+	  This framework provides a generic sysfs I/F for Ambient Light
-+	  Sensor devices.
-+	  If you want this support, you should say Y or M here.
-Index: linux-2.6/drivers/als/Makefile
-===================================================================
---- /dev/null
-+++ linux-2.6/drivers/als/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for sensor chip drivers.
-+#
-+
-+obj-$(CONFIG_ALS)		+= als_sys.o
-Index: linux-2.6/drivers/als/als_sys.c
-===================================================================
---- /dev/null
-+++ linux-2.6/drivers/als/als_sys.c
-@@ -0,0 +1,206 @@
-+/*
-+ *  als_sys.c - Ambient Light Sensor Sysfs support.
-+ *
-+ *  Copyright (C) 2009 Intel Corp
-+ *  Copyright (C) 2009 Zhang Rui <rui.zhang@intel.com>
-+ *
-+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
+--- linux-2.6.orig/drivers/acpi/als.c
++++ linux-2.6/drivers/acpi/als.c
+@@ -26,6 +26,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
 +#include <linux/als_sys.h>
-+
-+MODULE_AUTHOR("Zhang Rui");
-+MODULE_DESCRIPTION("Ambient Light Sensor sysfs support");
-+MODULE_LICENSE("GPL");
-+
-+#define PREFIX "ALS: "
-+
-+/* sys I/F for Ambient Light Sensor */
-+
-+#define to_als_device(dev) container_of(dev, struct als_device, device)
-+
-+static ssize_t
-+desc_show(struct device *dev, struct device_attribute *attr, char *buf)
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -75,11 +76,6 @@ struct als_cap {
+ 	u8 _ALP:1;
+ };
+ 
+-struct als_mapping {
+-	int adjustment;
+-	int illuminance;
+-};
+-
+ struct acpi_als {
+ 	struct acpi_device *device;
+ 	struct als_cap cap;
+@@ -87,6 +83,7 @@ struct acpi_als {
+ 	int chromaticity;
+ 	int temperature;
+ 	int polling;
++	struct als_device *als;
+ 	int count;
+ 	struct als_mapping *mappings;
+ };
+@@ -281,6 +278,35 @@ static int acpi_als_find_cap(struct acpi
+ }
+ 
+ /* --------------------------------------------------------------------------
++				ALS sysfs I/F
++   -------------------------------------------------------------------------- */
++static int get_illuminance(struct als_device *als_sys)
 +{
-+	struct als_device *als = to_als_device(dev);
-+
-+	return sprintf(buf, "%s\n", als->desc ? als->desc : "N/A");
-+}
-+
-+static ssize_t
-+illuminance_show(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct als_device *als = to_als_device(dev);
++	struct acpi_als *als = als_sys->devdata;
 +	int result;
 +
-+	if (!als->ops->get_illuminance)
-+		return -EPERM;
-+
-+	result = als->ops->get_illuminance(als);
-+	if (result)
-+		return result;
-+
-+	if (!als->illuminance)
-+		return sprintf(buf, "Illuminance below the supported range\n");
-+	else if (als->illuminance == -1)
-+		return sprintf(buf, "Illuminance above the supported range\n");
-+	else if (als->illuminance < -1)
-+		return -ERANGE;
-+	else
-+		return sprintf(buf, "%d\n", als->illuminance);
-+}
-+
-+static ssize_t
-+mappings_show(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct als_device *als = to_als_device(dev);
-+	int count;
-+	int result;
-+
-+	if (!als->ops->get_mappings)
-+		return -EPERM;
-+
-+	result = als->ops->get_mappings(als);
-+	if (result)
-+		return result;
-+
-+	result = sprintf(buf, "Illuminance	Adjustment\n");
-+	for (count = 0; count < als->count; count++) {
-+		result += sprintf(buf + result, "%11d\t",
-+				  als->mappings[count].illuminance);
-+		result += sprintf(buf + result, "%10d\n",
-+				  als->mappings[count].adjustment);
-+	}
-+
++	result = acpi_als_get_illuminance(als);
++	if (!result)
++		als_sys->illuminance = als->illuminance;
 +	return result;
 +}
 +
-+static DEVICE_ATTR(desc, 0444, desc_show, NULL);
-+static DEVICE_ATTR(illuminance, 0444, illuminance_show, NULL);
-+static DEVICE_ATTR(mappings, 0444, mappings_show, NULL);
-+
-+static void als_release(struct device *dev)
++static int get_mappings(struct als_device *als_sys)
 +{
-+	struct als_device *als = to_als_device(dev);
++	struct acpi_als *als = als_sys->devdata;
 +
-+	if (als->desc)
-+		kfree(als->desc);
-+	kfree(als);
++	als_sys->count = als->count;
++	als_sys->mappings = als->mappings;
++
++	return 0;
 +}
 +
-+static struct class als_class = {
-+	.name = "als",
-+	.dev_release = als_release,
++struct als_device_ops acpi_als_ops = {
++	.get_illuminance = get_illuminance,
++	.get_mappings = get_mappings,
 +};
 +
-+/**
-+ * als_device_register - register a new Ambient Light Sensor class device
-+ * @ops:	standard ALS devices callbacks.
-+ * @devdata:	device private data.
-+ */
-+struct als_device *als_device_register(struct als_device_ops *ops,
-+				       char *desc, void *devdata)
-+{
-+	struct als_device *als;
-+	static int als_id;
-+	int result;
-+
-+	if (!ops || !ops->get_illuminance || !ops->get_mappings)
-+		return ERR_PTR(-EINVAL);
-+
-+	als = kzalloc(sizeof(struct als_device), GFP_KERNEL);
-+	if (!als)
-+		return ERR_PTR(-ENOMEM);
-+
-+	als->ops = ops;
-+	als->device.class = &als_class;
-+	als->devdata = devdata;
-+	if (desc) {
-+		als->desc = kzalloc(strlen(desc), GFP_KERNEL);
-+		if (!als->desc) {
-+			kfree(als);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+		strcpy(als->desc, desc);
-+	}
-+	als->id = als_id++;
-+	dev_set_name(&als->device, "als%d", als->id);
-+	result = device_register(&als->device);
-+	if (result) {
-+		if (als->desc)
-+			kfree(als->desc);
-+		kfree(als);
-+		return ERR_PTR(result);
++/* --------------------------------------------------------------------------
+ 				 Driver Model
+    -------------------------------------------------------------------------- */
+ 
+@@ -316,7 +342,9 @@ static void acpi_als_notify(struct acpi_
+ static int acpi_als_add(struct acpi_device *device)
+ {
+ 	int result = 0;
++	acpi_status status;
+ 	struct acpi_als *als = NULL;
++	struct acpi_buffer name = { ACPI_ALLOCATE_BUFFER, NULL };
+ 
+ 	if (!device)
+ 		return -EINVAL;
+@@ -346,6 +374,20 @@ static int acpi_als_add(struct acpi_devi
+ 	acpi_als_get_color_chromaticity(als);
+ 	acpi_als_get_polling(als);
+ 
++	status = acpi_get_name(als->device->handle, ACPI_FULL_PATHNAME, &name);
++	if (ACPI_FAILURE(status)) {
++		result = -ENODEV;
++		goto end;
 +	}
 +
-+	/* sys I/F */
-+	result = device_create_file(&als->device, &dev_attr_illuminance);
-+	if (result)
-+		goto unregister_device;
++	als->als = als_device_register(&acpi_als_ops, name.pointer, als);
++	if (IS_ERR(als->als)) {
++		result = -ENODEV;
++		if (als->mappings)
++			kfree(als->mappings);
++	}
 +
-+	result = device_create_file(&als->device, &dev_attr_mappings);
-+	if (result)
-+		goto unregister_device;
-+
-+	result = device_create_file(&als->device, &dev_attr_desc);
-+	if (result)
-+		goto unregister_device;
-+
-+	return als;
-+
-+unregister_device:
-+	device_unregister(&als->device);
-+	return ERR_PTR(result);
-+}
-+
-+EXPORT_SYMBOL(als_device_register);
-+
-+/**
-+ * als_device_unregister - removes the registered ALS device
-+ * @als:	the ALS device to remove.
-+ */
-+void als_device_unregister(struct als_device *als)
-+{
-+	if (!als)
-+		return;
-+
-+	device_remove_file(&als->device, &dev_attr_desc);
-+	device_remove_file(&als->device, &dev_attr_mappings);
-+	device_remove_file(&als->device, &dev_attr_illuminance);
-+
-+	device_unregister(&als->device);
-+	return;
-+}
-+
-+EXPORT_SYMBOL(als_device_unregister);
-+
-+static int __init als_init(void)
-+{
-+	return class_register(&als_class);
-+}
-+
-+static void __exit als_exit(void)
-+{
-+	class_unregister(&als_class);
-+}
-+
-+subsys_initcall(als_init);
-+module_exit(als_exit);
-Index: linux-2.6/include/linux/als_sys.h
-===================================================================
---- /dev/null
-+++ linux-2.6/include/linux/als_sys.h
-@@ -0,0 +1,55 @@
-+/*
-+ *  als.h  ($Revision: 0 $)
-+ *
-+ *  Copyright (C) 2009  Intel Corp
-+ *  Copyright (C) 2009  Zhang Rui <rui.zhang@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#ifndef __ALS_SYS_H__
-+#define __ALS_SYS_H__
-+
-+#include <linux/device.h>
-+
-+struct als_device;
-+
-+struct als_mapping {
-+	int illuminance;
-+	int adjustment;
-+};
-+
-+struct als_device_ops {
-+	int (*get_mappings) (struct als_device *);
-+	int (*get_illuminance) (struct als_device *);
-+};
-+
-+struct als_device {
-+	int id;
-+	int illuminance;
-+	struct device device;
-+	struct als_device_ops *ops;
-+	void *devdata;
-+	int count;
-+	struct als_mapping *mappings;
-+	char *desc;
-+};
-+
-+struct als_device *als_device_register(struct als_device_ops *, char *, void *);
-+void als_device_unregister(struct als_device *);
-+
-+#endif /* __ALS_SYS_H__ */
-
-
++	kfree(name.pointer);
+ end:
+ 	if (result)
+ 		kfree(als);
+@@ -378,6 +420,7 @@ static int acpi_als_remove(struct acpi_d
+ 	if (!als)
+ 		return -EINVAL;
+ 
++	als_device_unregister(als->als);
+ 	if (als->mappings)
+ 		kfree(als->mappings);
+ 	kfree(als);
