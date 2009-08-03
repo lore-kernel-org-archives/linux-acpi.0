@@ -1,54 +1,50 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.31-rc5: Reported regressions from 2.6.30
-Date: Mon, 3 Aug 2009 18:09:58 +0200
-Message-ID: <200908031810.00505.rjw@sisk.pl>
-References: <Su1q3S6JjyO.A.jeB.hcgdKB@chimera> <alpine.LFD.2.01.0908021456430.3352@localhost.localdomain> <20090803143108.GA12041@cmpxchg.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 1/2] input: Add support for filtering input events
+Date: Mon, 3 Aug 2009 10:04:51 -0700
+Message-ID: <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net>
+References: <1249007207-27392-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090803143108.GA12041-druUgvl0LCNAfugRpC6u6w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:13675 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755432AbZHCRFA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Aug 2009 13:05:00 -0400
 Content-Disposition: inline
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Mikael Pettersson <mikpe-1zs4UD6AkMk@public.gmane.org>
+In-Reply-To: <1249007207-27392-1-git-send-email-mjg@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 
-On Monday 03 August 2009, Johannes Weiner wrote:
-> On Sun, Aug 02, 2009 at 03:22:01PM -0700, Linus Torvalds wrote:
-> 
-> > > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13815
-> > > Subject		: emacs -nw compilation doesn't show the error message
-> > > Submitter	: Aneesh Kumar K.V <aneesh.kumar-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> > > Date		: 2009-07-23 06:22 (11 days old)
-> > > First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=d945cb9cce20ac7143c2de8d88b187f62db99bdc
-> > 
-> > Same old pty bug, same fix: commit e043e42bdb.
-> > 
-> > > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13813
-> > > Subject		: Hangups in n_tty_read()
-> > > Submitter	: Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>
-> > > Date		: 2009-07-16 18:48 (18 days old)
-> > > References	: http://marc.info/?l=linux-kernel&m=124777019920579&w=4
-> > 
-> > Hmm. Worth testing that same fix, although the symptoms here are not 
-> > exactly the same.
-> 
-> Hm, I had no debugging enabled, but I think a silent hang in
-> 
-> 	pty_write()
-> 	  tty_flip_buffer_push()
-> 	    flush_to_ldisc()
-> 
-> can cause the receiving side
-> 
-> 	tty_read()
-> 	  n_tty_read()
-> 
-> to wait forever for updates.  I haven't looked closely.  It seems to
-> be gone with your latest master in any case.
+Hi Matthew,
 
-Thanks, closed (in fact I closed it earlier already).
+On Fri, Jul 31, 2009 at 03:26:46AM +0100, Matthew Garrett wrote:
+> Devices occasionally use the keyboard controller to send hardware
+> notifications that should be handled by the kernel rather than userspace.
+> These can be handled in kernel by registering an input handler, but the
+> event will still bubble up to userspace where it may cause confusion. This
+> patch adds support for the kernel to register filters, allowing it to
+> indicate that the event should be consumed by the hardware-specific driver
+> rather than passed to other input handlers. The assumption is that, as this
+> is hardware specific, there should be no need to have more than one filter -
+> similarly, if an input device is grabbed, we assume that people know what
+> they're doing and don't pass it to the filter.
+> 
 
-Rafael
+I don't think this is the proper layer to do the filtering, the filter
+should be done in i8042, not input core. The way you done it would kill
+any possibility of user assigning KEY_WLAN to a spare key on his or her
+keyboard and using it to control wireless cards that are not hardwired.
+
+I would accept the patch that would add a filter in the form
+
+	bool (*i8042_fillter)(unsigned char data, unsigned int flags,
+			struct serio *port);
+
+I don't think we'd need to chain them into a list or something, one hook
+should be enough since I don't expect we'll have several platform
+drivers loaded on one box.
+
+-- 
+Dmitry
