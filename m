@@ -1,50 +1,74 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Bad _BQC behaviour on Packard Bell Easynot BG-45
-Date: Mon, 03 Aug 2009 08:51:29 +0800
-Message-ID: <1249260689.2670.181.camel@rzhang-dt>
-References: <d7ead6de0906090819h177b7495xaa98dd062abf1f62@mail.gmail.com>
-	 <1244600682.9076.71.camel@rzhang-dt>
-	 <d7ead6de0907310616p3c3cc4a4qd64bb1fb26394686@mail.gmail.com>
+Subject: Re: [PATCH] thermal_sys: check get_temp return value
+Date: Mon, 03 Aug 2009 09:07:08 +0800
+Message-ID: <1249261628.2670.184.camel@rzhang-dt>
+References: <20090802140652.16effa08@mail.gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:1405 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:59734 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750698AbZHCAvq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Aug 2009 20:51:46 -0400
-In-Reply-To: <d7ead6de0907310616p3c3cc4a4qd64bb1fb26394686@mail.gmail.com>
+	id S1751498AbZHCBH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Aug 2009 21:07:29 -0400
+In-Reply-To: <20090802140652.16effa08@mail.gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vladimir 'phcoder' Serbinenko <phcoder@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Michael Brunner <mibru@gmx.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, 2009-07-31 at 21:16 +0800, Vladimir 'phcoder' Serbinenko wrote:
-> On Wed, Jun 10, 2009 at 4:24 AM, Zhang Rui<rui.zhang@intel.com> wrote:
-> > On Tue, 2009-06-09 at 23:19 +0800, Vladimir 'phcoder' Serbinenko wrote:
-> >> Hello. On the following model
-> >>       Manufacturer: Packard Bell BV
-> >>       Product Name: EasyNote_BG45-U-001CH
-> >> BQC returns a value between 0 and 15 but the brightness levels are
-> >> between 0 and 8. I could make a table of correspondance however I find
-> >> it too inflexible. So I propose the following patch which disables BQC
-> >> if it behaves badly
-> >>
-> > the patch seems good.
-> > could you please send the acpidump of your laptop so that we can see if
-> > there is any chance that we can enable the brightness control on this
-> > laptop?
-> >
-> Is there any reason why this patch haven't been comitted?
+On Sun, 2009-08-02 at 20:06 +0800, Michael Brunner wrote:
+> The return value of the get_temp function is not checked when doing a
+> thermal zone update. This may lead to a critical shutdown if get_temp
+> fails and the content of the temp variable is incorrectly set higher
+> than the critical trip point.
+> This has been observed on a system with incorrect ACPI implementation
+> where the corresponding methods were not serialized and therefore
+> sometimes triggered ACPI errors (AE_ALREADY_EXISTS). The following
+> critical shutdowns indicated a temperature of 2097 C, which was
+> obviously wrong.
+> 
+> The patch adds a return value check that jumps over all trip point
+> evaluations printing a warning if get_temp fails. The trip points are
+> evaluated again on the next polling interval with successful get_temp
+> execution.
+> 
+> Signed-off-by: Michael Brunner <mibru@gmx.de>
+> 
+good catch, Michael. :)
 
-well, len is on vacation.
-he'll be back by this week. :)
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-> > thanks,
-> > rui
-> >
-> >
+> ---
 > 
+>  drivers/thermal/thermal_sys.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
 > 
-> 
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 0a69672..4e83c29 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -953,7 +953,12 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>  
+>  	mutex_lock(&tz->lock);
+>  
+> -	tz->ops->get_temp(tz, &temp);
+> +	if (tz->ops->get_temp(tz, &temp)) {
+> +		/* get_temp failed - retry it later */
+> +		printk(KERN_WARNING PREFIX "failed to read out thermal zone "
+> +		       "%d\n", tz->id);
+> +		goto leave;
+> +	}
+>  
+>  	for (count = 0; count < tz->trips; count++) {
+>  		tz->ops->get_trip_type(tz, count, &trip_type);
+> @@ -1005,6 +1010,8 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>  					    THERMAL_TRIPS_NONE);
+>  
+>  	tz->last_temperature = temp;
+> +
+> +      leave:
+>  	if (tz->passive)
+>  		thermal_zone_device_set_polling(tz, tz->passive_delay);
+>  	else if (tz->polling_delay)
 
