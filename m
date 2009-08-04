@@ -1,56 +1,42 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS
-	devices
-Date: Tue, 4 Aug 2009 15:21:29 +0200
-Message-ID: <20090804132129.GH18974@elf.ucw.cz>
-References: <1249290657.2670.250.camel@rzhang-dt>
+Subject: Re: [PATCH V2 4/4] i8042: support async suspend and shutdown
+Date: Tue, 4 Aug 2009 15:46:09 +0200
+Message-ID: <20090804134609.GK18974@elf.ucw.cz>
+References: <1248404532.2670.112.camel@rzhang-dt> <20090724071411.GB10760@elf.ucw.cz> <1249291590.2670.263.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42737 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755500AbZHDNVh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Aug 2009 09:21:37 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754269AbZHDNqS@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1249290657.2670.250.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1249291590.2670.263.camel@rzhang-dt>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Greg KH <greg@kroah.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon 2009-08-03 17:10:57, Zhang Rui wrote:
-> Hi, all,
+
+> > >  	panic_blink = i8042_panic_blink;
+> > >  
+> > >  	return 0;
+> > >  
+> > > + err_dev_async_unregister:
+> > > +	dev_async_unregister(&i8042_platform_device->dev);
+> > >   err_free_device:
+> > >  	platform_device_put(i8042_platform_device);
+> > >   err_unregister_driver:
+> > 
+> > I still do not like the interface: manually unregistering seems to be
+> > ugly & error prone.
+> > 
+> hmm, yes, we can check device->dev_async and unregister it in driver
+> core, at device_unregister time.
 > 
-> This is the patch set I made to introduce ACPI ALS device driver
-> and a generic sysfs I/F for all the ALS devices, like ACPI ALS,
-> platform ALS, etc.
-> 
-> Patch 01 introduces the ACPI ALS device driver.
-> 
-> Patch 02 introduces ALS sysfs class.
-> 	Two sysfs I/F are created for each ALS device.
->   /sys/class/als/alsX/illuminance:
-> 	the amount of light incident upon a specified surface area.
->   /sys/class/als/alsX/mappings:
-> 	ambient light illuminance to display luminance mappings
-> 	that can be used by an OS to calibrate its ambient light policy
-> 	this is what I got on a test box:
-> 	cat /sys/class/als/als0/mappings
-> 	???Illuminance	Adjustment
-> 	          0	       70
-> 	         10	       73
-> 	         80	       85
-> 	        300	      100
-> 	       1000	      150
+> then I think we should rename the interfaces to:
+> device_enable_async_action(dev, type),
+> and device_disable_async_action(dev)
+> so that they are more like driver core helper functions.
+> what do you think?
 
-There's one value per file for sysfs... You should definitely have the
-header. 
-
-Is there chance to already return adjusted values, avoiding this
-uglyness?
-
-Plus I'd say Documentation/ file is needed.
-
+Yes, that would be nicer.
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
