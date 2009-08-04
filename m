@@ -1,289 +1,110 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2 2/4] introduce the device async action mechanism
-Date: Mon, 3 Aug 2009 23:26:02 +0200
-Message-ID: <200908032326.03731.rjw@sisk.pl>
-References: <1248404524.2670.110.camel@rzhang-dt>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other
+	ALS	devices
+Date: Tue, 04 Aug 2009 09:12:23 +0800
+Message-ID: <1249348343.3556.120.camel@localhost.localdomain>
+References: <1249290657.2670.250.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43724 "EHLO ogre.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:21131 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752627AbZHCVZZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Aug 2009 17:25:25 -0400
-In-Reply-To: <1248404524.2670.110.camel@rzhang-dt>
-Content-Disposition: inline
+	id S1753368AbZHDBLc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Aug 2009 21:11:32 -0400
+In-Reply-To: <1249290657.2670.250.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, dtor@mail.ru
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>
 
-On Friday 24 July 2009, Zhang Rui wrote:
-> Introduce Device Async Action Mechanism
-> 
-> In order to speed up Linux suspend/resume/shutdown process,
-> we introduce the device async action mechanism that allow devices
-> to suspend/resume/shutdown asynchronously.
-> 
-> The basic idea is that,
-> if the suspend/resume/shutdown process of a device group,
-> including a root device and its child devices, are independent of
-> other devices, we create an async domain for this device group,
-> and make them suspend/resume/shutdown asynchronously.    
-> 
-> Note that DEV_ASYNC_RESUME is different from DEV_ASYNC_SUSPEND and
-> DEV_ASYNC_SHUTDOWN.
-> In resume case, all the parents are resumed first.
-> deferred resuming of the child devices won't break anything.
-> So it's easy to find out a device group that supports DEV_ASYNC_RESUME.
-> 
-> In suspend/shutdown case, child devices should be suspended/shutdown
-> before the parents. But deferred suspend/shutdown may break this rule.
-> so for a device groups that supports DEV_ASYNC_SUSPEND&DEV_ASYNC_SHUTDOWN,
-> the root device of this device async group must NOT depend on its parents.
-> i.e. it's fully functional without its parents.
-> e.g. I create a device async group for i8042 controller in patch 4,
-> and the parent of i8042 controller device is the "platform" device under
-> sysfs root device.
+On Mon, 2009-08-03 at 17:10 +0800, Zhang Rui wrote:
+> Hi, all,
+>=20
+> This is the patch set I made to introduce ACPI ALS device driver
+> and a generic sysfs I/F for all the ALS devices, like ACPI ALS,
+> platform ALS, etc.
+>=20
+> Patch 01 introduces the ACPI ALS device driver.
+Great jobs.
+But I still have two questions about the patch set.
+1. _ALP polling method
+   This optional object returns the recommended polling frequency for
+the ambient sensor. And OSPM can use the recommended polling frequency
+to poll the ambient sensor.
+   Of course the spec 9.2.6 also says that the use of polling is allowe=
+d
+but strongly discouraged by this specification. In such case we had
+better not use the polling frequency. Instead it will totally depend on
+the async notification event.
+   Can some message be printed that the polling frequency is depreciate=
+d
+when the _ALP is not zero?
+  =20
+2. what is the ALS policy and how to use it?
+   The main purpose of ambient sensor is to adjust the brightness
+according to the current luminance environment. From this patch set it
+seems that this will be done in user space. But it is not very clear ho=
+w
+to adjust the brightness based on the current luminance.=20
+   Can we describe it more clearly?
+ =20
+ =20
+Another  little issue is the memory leak in the patch 1.
+When it receives the notification event(0x82), it will re-evaluate the
+mapping between brightness and luminance. The memory space occupied by
+previous mapping should be freed.
 
-For general comments, please refer to my reply to the [0/4] message.  Some
-coding-related remarks are below.
+Thanks.
+   =20
+  =20
+>=20
+> Patch 02 introduces ALS sysfs class.
+> 	Two sysfs I/F are created for each ALS device.
+>   /sys/class/als/alsX/illuminance:
+> 	the amount of light incident upon a specified surface area.
+>   /sys/class/als/alsX/mappings:
+> 	ambient light illuminance to display luminance mappings
+> 	that can be used by an OS to calibrate its ambient light policy
+> 	this is what I got on a test box:
+> 	cat /sys/class/als/als0/mappings
+> 	=EF=BB=BFIlluminance	Adjustment
+> 	          0	       70
+> 	         10	       73
+> 	         80	       85
+> 	        300	      100
+> 	       1000	      150
+> =EF=BB=BF	 - noting that =EF=BB=BFdisplay luminance adjustment values=
+ are specified
+> 	using relative percentages in order simplify the means by which
+> 	these adjustments are applied in lieu of changes to the user=E2=80=99=
+s
+> 	display brightness preference.
+>=20
+> Patch 03 introduces the generic sysfs I/F for ACPI ALS devices.
+>=20
+> Patch 02/03 are RFC patches because I'm not sure if these sysfs I/F a=
+re
+> generic enough for other ALS devices, and if there is any attribute t=
+hat
+> I missed.
+> For example, ACPI ALS has some optional properties like ambient light
+> temperature and ambient light color chromaticity, but I'm not sure if
+> they should be exported to user spaces via ALS sysfs class.
+>=20
+> Any comments are welcome.
+>=20
+> thanks,
+> rui
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  drivers/base/Makefile     |    3 
->  drivers/base/async_dev.c  |  199 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/base/core.c       |   35 ++++++--
->  drivers/base/power/main.c |   24 +++++
->  include/linux/async_dev.h |   47 ++++++++++
->  include/linux/device.h    |    2 
->  6 files changed, 298 insertions(+), 12 deletions(-)
-> 
-> Index: linux-2.6/drivers/base/Makefile
-> ===================================================================
-> --- linux-2.6.orig/drivers/base/Makefile
-> +++ linux-2.6/drivers/base/Makefile
-> @@ -3,7 +3,8 @@
->  obj-y			:= core.o sys.o bus.o dd.o \
->  			   driver.o class.o platform.o \
->  			   cpu.o firmware.o init.o map.o devres.o \
-> -			   attribute_container.o transport_class.o
-> +			   attribute_container.o transport_class.o \
-> +			   async_dev.o
->  obj-y			+= power/
->  obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
->  obj-$(CONFIG_ISA)	+= isa.o
-> Index: linux-2.6/drivers/base/async_dev.c
-> ===================================================================
-> --- /dev/null
-> +++ linux-2.6/drivers/base/async_dev.c
-> @@ -0,0 +1,199 @@
-> +/*
-> + * async_dev.c: Device asynchronous functions
-> + *
-> + * (C) Copyright 2009 Intel Corporation
-> + * Author: Zhang Rui <rui.zhang@intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; version 2
-> + * of the License.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/async.h>
-> +#include <linux/async_dev.h>
-> +
-> +static LIST_HEAD(dev_async_list);
-> +static int dev_async_enabled;
-> +
-> +struct dev_async_context {
-> +	struct device *dev;
-> +	void *data;
-> +	void *func;
-> +};
-
-Please, _please_ don't use (void * ) for passing function pointers.  IMO doing
-that is fundamentally wrong.
-
-> +static int dev_action(struct device *dev, dev_async_func func,
-> +			void *data)
-> +{
-> +	int error = 0;
-> +
-> +	if (!func || !dev)
-> +		return -EINVAL;
-> +
-> +	error = func(dev, data);
-> +
-> +	return error;
-> +}
-
-Hmm, what about:
-
-+		return func && dev ? func(dev, data) : -EINVAL;
-
-That gives you a one-liner, doesn't it?
-
-> +static void dev_async_action(void *data, async_cookie_t cookie)
-> +{
-> +	int error;
-> +	struct dev_async_context *context = data;
-> +
-> +	context->dev->dev_async->cookie = cookie;
-> +	async_synchronize_cookie_domain(cookie,
-> +					 &context->dev->dev_async->domain);
-> +
-> +	error =	dev_action(context->dev, context->func, context->data);
-> +	if (error)
-> +		printk(KERN_ERR "PM: Device %s async action failed: error %d\n",
-> +			dev_name(context->dev), error);
-> +
-> +	kfree(context);
-> +}
-> +
-> +/**
-> + * dev_async_schedule - async execution of device actions.
-> + * @dev: Device.
-> + * @func: device callback function.
-> + * @data: data.
-> + * @type: the type of device async actions.
-> + */
-> +int dev_async_schedule(struct device *dev, dev_async_func func,
-> +			void *data, int type)
-> +{
-> +	struct dev_async_context *context;
-> +
-> +	if (!func || !dev)
-> +		return -EINVAL;
-> +
-> +	if (!(type & DEV_ASYNC_ACTIONS_ALL))
-> +		return -EINVAL;
-> +
-> +	if (!dev_async_enabled || !dev->dev_async)
-> +		return dev_action(dev, func, data);
-> +
-> +	/* device doesn't support the current async action */
-> +	if (!(dev->dev_async->type & type))
-> +		return dev_action(dev, func, data);
-> +
-> +	context = kzalloc(sizeof(struct dev_async_context), GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	context->dev = dev;
-> +	context->data = data;
-> +	context->func = func;
-> +	async_schedule_domain(dev_async_action, context,
-> +			       &dev->dev_async->domain);
-> +	return 0;
-> +}
-> +
-> +/**
-> + * device_async_synchronization - sync point for all the async actions
-> + * @dev: Device.
-> + *
-> + * wait until all the async actions are done.
-> + */
-> +void dev_async_synchronization(void)
-> +{
-> +	struct dev_async_struct *pos;
-> +
-> +	list_for_each_entry(pos, &dev_async_list, node)
-> +	    async_synchronize_full_domain(&pos->domain);
-> +
-> +	return;
-
-What the return statement is for?
-
-> +}
-> +
-> +static int dev_match(struct device *dev, void *data)
-> +{
-> +	dev_err(dev->parent, "Child device %s is registered before "
-> +		"dev->dev_async being initialized", dev_name(dev));
-> +	return 1;
-> +}
-> +
-> +/**
-> + * device_async_register - register a device that supports async actions
-> + * @dev: Device.
-> + * @type: the kind of dev async actions that supported
-> + *
-> + * Register a device that supports a certain kind of dev async actions.
-> + * Create a synchrolization Domain for this device and share with all its
-> + * child devices.
-> + */
-> +int dev_async_register(struct device *dev, int type)
-> +{
-> +	if (!dev_async_enabled)
-> +		return 0;
-> +
-> +	if (!dev)
-> +		return -EINVAL;
-> +
-> +	if (dev->dev_async) {
-> +		/* multiple async domains for a single device not supported */
-> +		dev_err(dev, "async domain already registered\n");
-> +		return -EEXIST;
-> +	}
-> +
-> +	/*
-> +	 * dev_async_register must be called before any of its child devices
-> +	 * being registered to the driver model.
-> +	 */
-> +	if (dev->p)
-> +		if (device_find_child(dev, NULL, dev_match)) {
-> +			dev_err(dev, "Can not register device async domain\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +	/* check for unsupported async actions */
-> +	if (!(type & DEV_ASYNC_ACTIONS_ALL)) {
-> +		dev_err(dev, "unsupported async action %x registered\n", type);
-> +		return -EINVAL;
-> +	}
-> +
-> +	dev->dev_async = kzalloc(sizeof(struct dev_async_struct), GFP_KERNEL);
-> +	if (!dev->dev_async)
-> +		return -ENOMEM;
-> +
-> +	INIT_LIST_HEAD(&dev->dev_async->domain);
-> +	dev->dev_async->dev = dev;
-> +	dev->dev_async->type = type;
-> +	list_add_tail(&dev->dev_async->node, &dev_async_list);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dev_async_register);
-> +
-> +/**
-> + * device_async_unregister - unregister a device that supports async actions
-> + * @dev: Device.
-> + *
-> + * Unregister a device that supports async actions.
-> + * And delete async action Domain at the same time.
-> + */
-> +void dev_async_unregister(struct device *dev)
-> +{
-> +	if (!dev_async_enabled)
-> +		return;
-> +
-> +	if (!dev->dev_async)
-> +		return;
-> +
-> +	if (dev->dev_async->dev != dev)
-> +		return;
-> +
-> +	list_del(&dev->dev_async->node);
-> +	kfree(dev->dev_async);
-> +	dev->dev_async = NULL;
-> +	return;
-
-And here?
-
-Well, it looks like my comments to the previous version of the patch were
-silently ignored. :-(
-
-Best,
-Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
