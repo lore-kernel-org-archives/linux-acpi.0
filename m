@@ -1,43 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] input: Add support for filtering input events
-Date: Tue, 4 Aug 2009 11:01:58 +0100
-Message-ID: <20090804100158.GA14530@srcf.ucam.org>
-References: <1249007207-27392-1-git-send-email-mjg@redhat.com> <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net>
+From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan-caicS1wCkhO6A22drWdTBw@public.gmane.org>
+Subject: Re: [Bug #13471] Loading parport_pc kills the keyboard if ACPI is
+ enabled
+Date: Tue, 04 Aug 2009 14:33:02 +0300
+Message-ID: <4A781C6E.7040900@pardus.org.tr>
+References: <DizPU9GBfHF.A.kgF.iWObKB@chimera>	<H5-1lZIIeYK.A.dWH.9XObKB@chimera>	<20090731151417.568094e5@lxorguk.ukuu.org.uk>	<4A7308E8.1000200@pardus.org.tr> <20090731161735.6a94ad9c@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:58134 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932637AbZHDKCA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Aug 2009 06:02:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090731161735.6a94ad9c-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 
-On Mon, Aug 03, 2009 at 10:04:51AM -0700, Dmitry Torokhov wrote:
+Alan Cox wrote On 31-07-2009 18:17:
+> There have been few changes to parport_pc but one thing recent changed
+> the probe for SuperIO chips via low addresses and that could be
+> interfering.
+>
+> commit e2434dc1c19412639dd047a4d4eff8ed0e5d0d50
+> Author: Jens Rottmann <JRottmann-pZAVvlj+WpoXz/+GnIZSFIQuADTiUCJX@public.gmane.org>
+> Date:   Mon Jun 22 16:51:49 2009 +0100
+>
+> changed the behaviour slightly (hence asking about which release if it
+> was a recent breakage). Its also a code area with very few changes so if
+> you can find which one worked last, you should be able to transplant that
+> parport_pc into 2.6.current and see if its parport or acpi triggered
+> breakage.
+>   
 
-> I don't think this is the proper layer to do the filtering, the filter
-> should be done in i8042, not input core. The way you done it would kill
-> any possibility of user assigning KEY_WLAN to a spare key on his or her
-> keyboard and using it to control wireless cards that are not hardwired.
+I've tested on 2.6.30.4 which has apparently this commit, no changes.
 
-Ok, that seems fine.
+I've booted into Ubuntu 8.10 which has 2.6.28. The keyboard was working
+correctly eventhough parport_pc was loaded. I removed and re-probed and
+the keyboard is gone.
 
-> I would accept the patch that would add a filter in the form
-> 
-> 	bool (*i8042_fillter)(unsigned char data, unsigned int flags,
-> 			struct serio *port);
-> 
-> I don't think we'd need to chain them into a list or something, one hook
-> should be enough since I don't expect we'll have several platform
-> drivers loaded on one box.
+I've set BIOS settings to default, nope.
 
-So filter on the raw i8042 data rather than after any processing? 
-Wouldn't this require some level of state machine in the driver using 
-this functionality?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I'll try bisecting when I find the last-good/first-bad kernel version.
