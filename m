@@ -1,47 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
-Date: Tue, 4 Aug 2009 20:44:40 +0200
-Message-ID: <200908042044.41170.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH] ACPI: pci_slot.ko wants a 64-bit _SUN
+Date: Tue, 4 Aug 2009 14:44:17 -0600
+Message-ID: <20090804204417.GA26918@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933277AbZHDSo2@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755316AbZHDUoU@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
+To: lenb@kernel.org
+Cc: chad.smith@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 04 August 2009, Alan Stern wrote:
-> On Tue, 4 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > Not only that.  I'd like to simplify the design, because IMO using one async
-> > domain would be much more straightforward than using multiple ones.
-> 
-> > If I understand the async framework correctly, the domains are only used for
-> > synchronization, ie. if you want to wait for a group of async operations to
-> > complete, you can put them all into one domain and then call
-> > async_synchronize_full_domain() to wait for them all together.
-> > 
-> > You don't need multiple domains to run multiple things in parallel.
-> 
-> There's a basic confusion going on here.
-> 
-> Rui is using "async domain" to mean a collection of devices which 
-> will be suspended or resumed serially.  Different domains run in 
-> parallel.
-> 
-> Rafael is using "async domain" to mean a collection of devices which 
-> will be suspended or resumed in parallel.  Different domains run 
-> serially.
-> 
-> Once that is cleared up, you should be able to communicate a little 
-> better...  :-)
+Similar to commit b6adc195 (PCI hotplug: acpiphp wants a 64-bit
+_SUN), pci_slot.ko reads and creates sysfs directories based on
+the _SUN method.
 
-Well, I tried to follow the naming convention of kernel/async.c.
+Certain HP platforms return 64 bits in _SUN. This change to
+pci_slot.ko allows us to see the correct sysfs directories.
 
-Best,
-Rafael
+Reported-by: Chad Smith <chad.smith@hp.com>
+Cc: stable@kernel.org
+Signed-off-by: Alex Chiang <achiang@hp.com>
+---
+Stable team, this should be backported to all kernels in the
+stable series.
+
+---
+diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+index 12158e0..ab40e06 100644
+--- a/drivers/acpi/pci_slot.c
++++ b/drivers/acpi/pci_slot.c
+@@ -57,7 +57,7 @@ ACPI_MODULE_NAME("pci_slot");
+ 				MY_NAME , ## arg);		\
+ 	} while (0)
+ 
+-#define SLOT_NAME_SIZE 20		/* Inspired by #define in acpiphp.h */
++#define SLOT_NAME_SIZE 21		/* Inspired by #define in acpiphp.h */
+ 
+ struct acpi_pci_slot {
+ 	acpi_handle root_handle;	/* handle of the root bridge */
+@@ -149,7 +149,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		return AE_OK;
+ 	}
+ 
+-	snprintf(name, sizeof(name), "%u", (u32)sun);
++	snprintf(name, sizeof(name), "%llu", sun);
+ 	pci_slot = pci_create_slot(pci_bus, device, name, NULL);
+ 	if (IS_ERR(pci_slot)) {
+ 		err("pci_create_slot returned %ld\n", PTR_ERR(pci_slot));
