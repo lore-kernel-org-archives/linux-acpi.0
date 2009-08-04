@@ -1,56 +1,45 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS devices
-Date: Tue, 04 Aug 2009 13:24:24 -0400
-Message-ID: <19631.1249406664@turing-police.cc.vt.edu>
-References: <1249290657.2670.250.camel@rzhang-dt> <20090804132129.GH18974@elf.ucw.cz>
-            <20090804151042.GA20276@kroah.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
+Date: Tue, 4 Aug 2009 13:33:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
+References: <200908041821.26578.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1249406664_4151P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933145AbZHDRZd@vger.kernel.org>
-In-Reply-To: Your message of "Tue, 04 Aug 2009 08:10:42 PDT."
-             <20090804151042.GA20276@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:46864 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932873AbZHDRd4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Aug 2009 13:33:56 -0400
+In-Reply-To: <200908041821.26578.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
 
---==_Exmh_1249406664_4151P
-Content-Type: text/plain; charset=us-ascii
+On Tue, 4 Aug 2009, Rafael J. Wysocki wrote:
 
-On Tue, 04 Aug 2009 08:10:42 PDT, Greg KH said:
-> On Tue, Aug 04, 2009 at 03:21:29PM +0200, Pavel Machek wrote:
-> > On Mon 2009-08-03 17:10:57, Zhang Rui wrote:
+> Not only that.  I'd like to simplify the design, because IMO using one async
+> domain would be much more straightforward than using multiple ones.
 
-> > > 	cat /sys/class/als/als0/mappings
-> > > 	???Illuminance	Adjustment
-> > > 	          0	       70
-> > > 	         10	       73
-> > > 	         80	       85
-> > > 	        300	      100
-> > > 	       1000	      150
-> > 
-> > There's one value per file for sysfs... You should definitely have the
-> > header. 
+> If I understand the async framework correctly, the domains are only used for
+> synchronization, ie. if you want to wait for a group of async operations to
+> complete, you can put them all into one domain and then call
+> async_synchronize_full_domain() to wait for them all together.
 > 
-> No, no "header", just don't do this, it's not allowed. Again,
-> one-value-per-sysfs-file is the rule, please do not violate it.
+> You don't need multiple domains to run multiple things in parallel.
 
-What's the intended sysfs solution here, then? Make 'mappings' a directory,
-and populate it with files called 0, 10, 80, 300, 1000, each with one number
-in them?
+There's a basic confusion going on here.
 
---==_Exmh_1249406664_4151P
-Content-Type: application/pgp-signature
+Rui is using "async domain" to mean a collection of devices which 
+will be suspended or resumed serially.  Different domains run in 
+parallel.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+Rafael is using "async domain" to mean a collection of devices which 
+will be suspended or resumed in parallel.  Different domains run 
+serially.
 
-iD8DBQFKeG7IcC3lWbTT17ARAikQAJ9glOcEz+mjAUyhqyrpCnwzeceSCgCg5K00
-4mFzLaxtgxRvJascRwKWlyw=
-=Ko4l
------END PGP SIGNATURE-----
+Once that is cleared up, you should be able to communicate a little 
+better...  :-)
 
---==_Exmh_1249406664_4151P--
+Alan Stern
+
