@@ -1,53 +1,47 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS
- devices
-Date: Tue, 4 Aug 2009 10:36:27 -0700
-Message-ID: <20090804173627.GA23848@kroah.com>
-References: <1249290657.2670.250.camel@rzhang-dt>
- <20090804132129.GH18974@elf.ucw.cz>
- <20090804151042.GA20276@kroah.com>
- <19631.1249406664@turing-police.cc.vt.edu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
+Date: Tue, 4 Aug 2009 20:44:40 +0200
+Message-ID: <200908042044.41170.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:39851 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932885AbZHDRly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Aug 2009 13:41:54 -0400
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933277AbZHDSo2@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
 Content-Disposition: inline
-In-Reply-To: <19631.1249406664@turing-police.cc.vt.edu>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
 List-Id: linux-acpi@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu
-Cc: Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tue, Aug 04, 2009 at 01:24:24PM -0400, Valdis.Kletnieks@vt.edu wrote:
-> On Tue, 04 Aug 2009 08:10:42 PDT, Greg KH said:
-> > On Tue, Aug 04, 2009 at 03:21:29PM +0200, Pavel Machek wrote:
-> > > On Mon 2009-08-03 17:10:57, Zhang Rui wrote:
+On Tuesday 04 August 2009, Alan Stern wrote:
+> On Tue, 4 Aug 2009, Rafael J. Wysocki wrote:
 > 
-> > > > 	cat /sys/class/als/als0/mappings
-> > > > 	???Illuminance	Adjustment
-> > > > 	          0	       70
-> > > > 	         10	       73
-> > > > 	         80	       85
-> > > > 	        300	      100
-> > > > 	       1000	      150
-> > > 
-> > > There's one value per file for sysfs... You should definitely have the
-> > > header. 
+> > Not only that.  I'd like to simplify the design, because IMO using one async
+> > domain would be much more straightforward than using multiple ones.
+> 
+> > If I understand the async framework correctly, the domains are only used for
+> > synchronization, ie. if you want to wait for a group of async operations to
+> > complete, you can put them all into one domain and then call
+> > async_synchronize_full_domain() to wait for them all together.
 > > 
-> > No, no "header", just don't do this, it's not allowed. Again,
-> > one-value-per-sysfs-file is the rule, please do not violate it.
+> > You don't need multiple domains to run multiple things in parallel.
 > 
-> What's the intended sysfs solution here, then? Make 'mappings' a directory,
-> and populate it with files called 0, 10, 80, 300, 1000, each with one number
-> in them?
+> There's a basic confusion going on here.
+> 
+> Rui is using "async domain" to mean a collection of devices which 
+> will be suspended or resumed serially.  Different domains run in 
+> parallel.
+> 
+> Rafael is using "async domain" to mean a collection of devices which 
+> will be suspended or resumed in parallel.  Different domains run 
+> serially.
+> 
+> Once that is cleared up, you should be able to communicate a little 
+> better...  :-)
 
-That's one acceptable solution.  Or how about files in this directory
-called "mapping_0", "mapping_10", and so on, containing the adjustment
-value?
+Well, I tried to follow the naming convention of kernel/async.c.
 
-thanks,
-
-greg k-h
+Best,
+Rafael
