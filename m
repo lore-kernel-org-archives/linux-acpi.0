@@ -1,92 +1,117 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] acpi: don't call acpi_processor_init if acpi is
-	disabled
-Date: Wed, 5 Aug 2009 10:29:42 +0200
-Message-ID: <20090805082942.GE1810@elte.hu>
-References: <1248351634.7237.32.camel@fnki-nb00130> <86802c440907230739ufe30b4cocc4b16faacc009c4@mail.gmail.com> <1248773808.6757.4.camel@fnki-nb00130> <20090804122859.GD4367@elte.hu> <4A793BCF.8040001@kernel.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: a backlight issue
+Date: Wed, 5 Aug 2009 14:50:27 +0200
+Message-ID: <200908051450.27970.trenn@suse.de>
+References: <1245895749.7266.70.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:44937 "EHLO mx2.mail.elte.hu"
+Received: from cantor.suse.de ([195.135.220.2]:36239 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933355AbZHEIaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Aug 2009 04:30:08 -0400
+	id S933733AbZHEMua (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Aug 2009 08:50:30 -0400
+In-Reply-To: <1245895749.7266.70.camel@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <4A793BCF.8040001@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Jens Rosenboom <jens@mcbone.net>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: yakui_zhao <yakui.zhao@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, rpurdie@linux.intel.com, jbarnes@virtuousgeek.org, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+
+Hi,
+
+while looking out for latest work in this area:
+ACPI vs vendor vs KMS kernel backlight concurrency
+I saw this one and even late, it looks like the appropriate mail to
+answer as Yakui nicely describes the problem here...
+
+On Thursday 25 June 2009 04:09:09 yakui_zhao wrote:
+> Hi, Len
+>     
+>     On some boxes there is neither generic ACPI backlight I/F nor
+> platform backlight I/F. That means that the backlight brightness can't
+> be changed by using sys backlight I/F. But the backlight brightness can
+> be changed by using the driver backlight I/F. For example: on the box
+> based on intel-integrated graphics card the backlight brightness can
+> also be changed by using the LBB register in pci device. 
+>     Can the graphics driver register the sys backlight I/F so that we
+> can change the backlight by using sys I/F? 
+>     
+>     If the graphics driver can also register the backlight I/F, it seems
+> that we can register three types of backlight I/F.
+>     a. generic ACPI backlight I/F. This is registered by acpi video
+> driver.
+>     b. platform backlight I/F. This is registered by the platform driver
+>     c. graphics backlight I/F. This can be registered by the graphics
+> driver.
+> 
+>     As there exist three types of backlight I/F, how can we make the
+> coordination among the three backlight I/F? In fact only one backlight
+> I/f is enough for user to change the brightness.
+> 
+> Rui provides a propose that use the backlight manager to choose the
+> appropriate the backlight I/F. 
+>     backlight manager only exports one single I/F to users, like:
+> ----|
+>     |----brightness
+>     |----actual_brightness
+>     |----max_brightness
+>     |----...
+>     |----mode
+> and it supports multiple modes, e.g.
+> 1. generic ---ACPI
+> 2. platform---platform drivers
+> 3. legacy-----i915
+> 
+> The sysfs backlight manager always chooses the mode with highest
+> priority (generic > platform > legacy), and call the respective
+> callbacks when backlight is changed.
+> For example, the backlight manager switches to the "generic" mode from
+> "legacy" mode automatically when ACPI video driver is loaded at runtime.
+>   
+>    How about the above propose?
+If I understand this right every machine/BIOS does either provide:
+  - generic ACPI funcs
+  - vendor specific BIOS interface (served by oem-laptop.ko drivers)
+
+It's just that for some vendors the latter is not implemented (due to lack
+of specifications), is that right?
+
+In any case, what about this solution:
+
+If in KMS drivers backlight switching method is implemented
+and can register for the generic backlight driver, it should always be
+disabled by default. Instead, KMS drivers should export a simple
+"backlight_enable" file somewhere in sysfs. If userspace doesn't
+find a sysfs backlight interface, it can do:
+echo 1 >/sys/path_to_graphics_card/backlight_enable
+and a backlight sysfs interface should pop up on success.
+
+That would be similar to current xorg driver approach which do try
+to take over if no backlight sysfs interface found.
+
+     Thomas
+
+BTW: Which mailinglist would be appropriate to reach KMS developers?
+
+> BTW: now in the video driver only one of acpi generic backlight I/F and
+> platform backlight I/F is registered. That means that the acpi generic
+> backlight I/F is preferred if it exists. Of course we can switch to the
+> platform backlight I/F by adding the boot option of
+> "acpi_backlight=vendor".  In summary, the platform driver will check
+> whether the acpi generic backlight is supported before registering the
+> platform backlight I/F.
+> 
+> 
+> Thanks.
+> 
+>    
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
-* Yinghai Lu <yinghai@kernel.org> wrote:
-
-> 
-> Jens reported early_ioremap messages with old ASUS board...
-> 
-> > [    1.507461] pci 0000:00:09.0: Firmware left e100 interrupts enabled;
-> > disabling
-> > [    1.532778] early_ioremap(3fffd080, 0000005c) [0] => Pid: 1, comm:
-> > swapper Not tainted 2.6.31-rc4 #36
-> > [    1.561007] Call Trace:
-> > [    1.568638]  [<c136e48b>] ? printk+0x18/0x1d
-> > [    1.581734]  [<c15513ff>] __early_ioremap+0x74/0x1e9
-> > [    1.596898]  [<c15515aa>] early_ioremap+0x1a/0x1c
-> > [    1.611270]  [<c154a187>] __acpi_map_table+0x18/0x1a
-> > [    1.626451]  [<c135a7f8>] acpi_os_map_memory+0x1d/0x25
-> > [    1.642129]  [<c119459c>] acpi_tb_verify_table+0x20/0x49
-> > [    1.658321]  [<c1193e50>] acpi_get_table_with_size+0x53/0xa1
-> > [    1.675553]  [<c1193eae>] acpi_get_table+0x10/0x15
-> > [    1.690192]  [<c155cc19>] acpi_processor_init+0x23/0xab
-> > [    1.706126]  [<c1001043>] do_one_initcall+0x33/0x180
-> > [    1.721279]  [<c155cbf6>] ? acpi_processor_init+0x0/0xab
-> > [    1.737479]  [<c106893a>] ? register_irq_proc+0xaa/0xc0
-> > [    1.753411]  [<c10689b7>] ? init_irq_proc+0x67/0x80
-> > [    1.768316]  [<c15405e7>] kernel_init+0x120/0x176
-> > [    1.782678]  [<c15404c7>] ? kernel_init+0x0/0x176
-> > [    1.797062]  [<c10038b7>] kernel_thread_helper+0x7/0x10
-> > [    1.812984] 00000080 + ffe00000
-> 
-> that is rather later.
-> acpi_gbl_permanent_mmap should be set in acpi_early_init()
-> if acpi is not disabled
-> 
-> and we have
-> > [    0.000000] ASUS P2B-DS detected: force use of acpi=ht
-> 
-> just don't load acpi_processor_init...
-> 
-> Reported-and-tested-by: Jens Rosenboom <jens@leia.mcbone.net>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> ---
->  drivers/acpi/processor_core.c |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> Index: linux-2.6/drivers/acpi/processor_core.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/processor_core.c
-> +++ linux-2.6/drivers/acpi/processor_core.c
-> @@ -1137,6 +1137,9 @@ static int __init acpi_processor_init(vo
->  {
->  	int result = 0;
->  
-> +	if (acpi_disabled)
-> +		return 0;
-> +
->  	memset(&errata, 0, sizeof(errata));
->  
->  #ifdef CONFIG_SMP
-> @@ -1185,6 +1188,9 @@ out_proc:
->  
->  static void __exit acpi_processor_exit(void)
->  {
-> +	if (acpi_disabled)
-> +		return;
-> +
->  	acpi_processor_ppc_exit();
->  
-
-Acked-by: Ingo Molnar <mingo@elte.hu>
-
-	Ingo
