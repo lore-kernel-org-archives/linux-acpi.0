@@ -1,117 +1,79 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: a backlight issue
-Date: Wed, 5 Aug 2009 14:50:27 +0200
-Message-ID: <200908051450.27970.trenn@suse.de>
-References: <1245895749.7266.70.camel@localhost.localdomain>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS devices
+Date: Wed, 05 Aug 2009 12:10:31 -0400
+Message-ID: <19291.1249488631@turing-police.cc.vt.edu>
+References: <1249290657.2670.250.camel@rzhang-dt> <20090804132129.GH18974@elf.ucw.cz> <20090804151042.GA20276@kroah.com> <19631.1249406664@turing-police.cc.vt.edu> <20090804173627.GA23848@kroah.com>
+            <1249434292.2670.388.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-6"
+Content-Type: multipart/signed; boundary="==_Exmh_1249488631_3824P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:36239 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933733AbZHEMua (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Aug 2009 08:50:30 -0400
-In-Reply-To: <1245895749.7266.70.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from turing-police.cc.vt.edu ([128.173.14.107]:57302 "EHLO
+	turing-police.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755744AbZHEQLp (ORCPT
+	<RFC822;linux-acpi@vger.kernel.org>); Wed, 5 Aug 2009 12:11:45 -0400
+In-Reply-To: Your message of "Wed, 05 Aug 2009 09:04:52 +0800."
+             <1249434292.2670.388.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yakui_zhao <yakui.zhao@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, rpurdie@linux.intel.com, jbarnes@virtuousgeek.org, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Greg KH <greg@kroah.com>, Pavel Machek <pavel@ucw.cz>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi,
+--==_Exmh_1249488631_3824P
+Content-Type: text/plain; charset=us-ascii
 
-while looking out for latest work in this area:
-ACPI vs vendor vs KMS kernel backlight concurrency
-I saw this one and even late, it looks like the appropriate mail to
-answer as Yakui nicely describes the problem here...
+On Wed, 05 Aug 2009 09:04:52 +0800, Zhang Rui said:
+> On Wed, 2009-08-05 at 01:36 +0800, Greg KH wrote:
+> > On Tue, Aug 04, 2009 at 01:24:24PM -0400, Valdis.Kletnieks@vt.edu wrote:
+> > > On Tue, 04 Aug 2009 08:10:42 PDT, Greg KH said:
+> > > > On Tue, Aug 04, 2009 at 03:21:29PM +0200, Pavel Machek wrote:
+> > > > > On Mon 2009-08-03 17:10:57, Zhang Rui wrote:
+> > > 
+> > > > > > 	cat /sys/class/als/als0/mappings
+> > > > > > 	???Illuminance	Adjustment
+> > > > > > 	          0	       70
+> > > > > > 	         10	       73
+> > > > > > 	         80	       85
+> > > > > > 	        300	      100
+> > > > > > 	       1000	      150
+> > > > > 
+> > > > > There's one value per file for sysfs... You should definitely have th
+e
+> > > > > header. 
+> > > > 
+> > > > No, no "header", just don't do this, it's not allowed. Again,
+> > > > one-value-per-sysfs-file is the rule, please do not violate it.
+> > > 
+> > > What's the intended sysfs solution here, then? Make 'mappings' a directory,
+> > > and populate it with files called 0, 10, 80, 300, 1000, each with one number
+> > > in them?
+> > 
+> > That's one acceptable solution.  Or how about files in this directory
+> > called "mapping_0", "mapping_10", and so on, containing the adjustment
+> > value?
+> > 
+> great. that's what I'm going to do.
+> refreshed patch will be sent out later. :)
 
-On Thursday 25 June 2009 04:09:09 yakui_zhao wrote:
-> Hi, Len
->     
->     On some boxes there is neither generic ACPI backlight I/F nor
-> platform backlight I/F. That means that the backlight brightness can't
-> be changed by using sys backlight I/F. But the backlight brightness can
-> be changed by using the driver backlight I/F. For example: on the box
-> based on intel-integrated graphics card the backlight brightness can
-> also be changed by using the LBB register in pci device. 
->     Can the graphics driver register the sys backlight I/F so that we
-> can change the backlight by using sys I/F? 
->     
->     If the graphics driver can also register the backlight I/F, it seems
-> that we can register three types of backlight I/F.
->     a. generic ACPI backlight I/F. This is registered by acpi video
-> driver.
->     b. platform backlight I/F. This is registered by the platform driver
->     c. graphics backlight I/F. This can be registered by the graphics
-> driver.
-> 
->     As there exist three types of backlight I/F, how can we make the
-> coordination among the three backlight I/F? In fact only one backlight
-> I/f is enough for user to change the brightness.
-> 
-> Rui provides a propose that use the backlight manager to choose the
-> appropriate the backlight I/F. 
->     backlight manager only exports one single I/F to users, like:
-> ----|
->     |----brightness
->     |----actual_brightness
->     |----max_brightness
->     |----...
->     |----mode
-> and it supports multiple modes, e.g.
-> 1. generic ---ACPI
-> 2. platform---platform drivers
-> 3. legacy-----i915
-> 
-> The sysfs backlight manager always chooses the mode with highest
-> priority (generic > platform > legacy), and call the respective
-> callbacks when backlight is changed.
-> For example, the backlight manager switches to the "generic" mode from
-> "legacy" mode automatically when ACPI video driver is loaded at runtime.
->   
->    How about the above propose?
-If I understand this right every machine/BIOS does either provide:
-  - generic ACPI funcs
-  - vendor specific BIOS interface (served by oem-laptop.ko drivers)
+Hmm. whether to call the files mapping_0, mapping_10 etc or mapping/0, mapping/10
+etc probably depends on how nailed-down the 0,10,80,300,100 is - are those
+numbers carved in stone, or are we better off defining the API as "directory
+mapping, and files for whatever values the hardware happens to cough up?"
 
-It's just that for some vendors the latter is not implemented (due to lack
-of specifications), is that right?
+Not a biggie either way, it's going to be a readdir()/filter/open()/close()
+loop either way, just different details for the readdir() and entry filtering...
 
-In any case, what about this solution:
+--==_Exmh_1249488631_3824P
+Content-Type: application/pgp-signature
 
-If in KMS drivers backlight switching method is implemented
-and can register for the generic backlight driver, it should always be
-disabled by default. Instead, KMS drivers should export a simple
-"backlight_enable" file somewhere in sysfs. If userspace doesn't
-find a sysfs backlight interface, it can do:
-echo 1 >/sys/path_to_graphics_card/backlight_enable
-and a backlight sysfs interface should pop up on success.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
-That would be similar to current xorg driver approach which do try
-to take over if no backlight sysfs interface found.
+iD8DBQFKea73cC3lWbTT17ARAqdHAKCVOIEF8eJwxV0wcBMe1L7NoOtbrACeMDtl
+KdpSKieO4Pl3G2P9l+a8sbw=
+=ug77
+-----END PGP SIGNATURE-----
 
-     Thomas
-
-BTW: Which mailinglist would be appropriate to reach KMS developers?
-
-> BTW: now in the video driver only one of acpi generic backlight I/F and
-> platform backlight I/F is registered. That means that the acpi generic
-> backlight I/F is preferred if it exists. Of course we can switch to the
-> platform backlight I/F by adding the boot option of
-> "acpi_backlight=vendor".  In summary, the platform driver will check
-> whether the acpi generic backlight is supported before registering the
-> platform backlight I/F.
-> 
-> 
-> Thanks.
-> 
->    
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+--==_Exmh_1249488631_3824P--
