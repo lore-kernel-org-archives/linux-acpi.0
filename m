@@ -1,44 +1,81 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] input: Add support for filtering input events
-Date: Tue, 4 Aug 2009 21:49:22 -0700
-Message-ID: <20090805044923.6AE71526EA5@mailhub.coreip.homeip.net>
-References: <1249007207-27392-1-git-send-email-mjg@redhat.com> <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net> <20090804100158.GA14530@srcf.ucam.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] acpi: don't call acpi_processor_init if acpi is disabled
+Date: Wed, 05 Aug 2009 00:59:11 -0700
+Message-ID: <4A793BCF.8040001@kernel.org>
+References: <1248351634.7237.32.camel@fnki-nb00130> <86802c440907230739ufe30b4cocc4b16faacc009c4@mail.gmail.com> <1248773808.6757.4.camel@fnki-nb00130> <20090804122859.GD4367@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090804100158.GA14530@srcf.ucam.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933763AbZHEIBG@vger.kernel.org>
+In-Reply-To: <20090804122859.GD4367@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Rosenboom <jens@mcbone.net>, Yinghai Lu <yhlu.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 04, 2009 at 11:01:58AM +0100, Matthew Garrett wrote:
-> On Mon, Aug 03, 2009 at 10:04:51AM -0700, Dmitry Torokhov wrote:
-> 
-> > I don't think this is the proper layer to do the filtering, the filter
-> > should be done in i8042, not input core. The way you done it would kill
-> > any possibility of user assigning KEY_WLAN to a spare key on his or her
-> > keyboard and using it to control wireless cards that are not hardwired.
-> 
-> Ok, that seems fine.
-> 
-> > I would accept the patch that would add a filter in the form
-> > 
-> > 	bool (*i8042_fillter)(unsigned char data, unsigned int flags,
-> > 			struct serio *port);
-> > 
-> > I don't think we'd need to chain them into a list or something, one hook
-> > should be enough since I don't expect we'll have several platform
-> > drivers loaded on one box.
-> 
-> So filter on the raw i8042 data rather than after any processing? 
-> Wouldn't this require some level of state machine in the driver using 
-> this functionality?
-> 
 
-Yes, but it should not be too complex - with laptops you can be pretty
-much sure keyboard is in translated set 2 mode.
+Jens reported early_ioremap messages with old ASUS board...
 
--- 
-Dmitry
+> [    1.507461] pci 0000:00:09.0: Firmware left e100 interrupts enabled;
+> disabling
+> [    1.532778] early_ioremap(3fffd080, 0000005c) [0] => Pid: 1, comm:
+> swapper Not tainted 2.6.31-rc4 #36
+> [    1.561007] Call Trace:
+> [    1.568638]  [<c136e48b>] ? printk+0x18/0x1d
+> [    1.581734]  [<c15513ff>] __early_ioremap+0x74/0x1e9
+> [    1.596898]  [<c15515aa>] early_ioremap+0x1a/0x1c
+> [    1.611270]  [<c154a187>] __acpi_map_table+0x18/0x1a
+> [    1.626451]  [<c135a7f8>] acpi_os_map_memory+0x1d/0x25
+> [    1.642129]  [<c119459c>] acpi_tb_verify_table+0x20/0x49
+> [    1.658321]  [<c1193e50>] acpi_get_table_with_size+0x53/0xa1
+> [    1.675553]  [<c1193eae>] acpi_get_table+0x10/0x15
+> [    1.690192]  [<c155cc19>] acpi_processor_init+0x23/0xab
+> [    1.706126]  [<c1001043>] do_one_initcall+0x33/0x180
+> [    1.721279]  [<c155cbf6>] ? acpi_processor_init+0x0/0xab
+> [    1.737479]  [<c106893a>] ? register_irq_proc+0xaa/0xc0
+> [    1.753411]  [<c10689b7>] ? init_irq_proc+0x67/0x80
+> [    1.768316]  [<c15405e7>] kernel_init+0x120/0x176
+> [    1.782678]  [<c15404c7>] ? kernel_init+0x0/0x176
+> [    1.797062]  [<c10038b7>] kernel_thread_helper+0x7/0x10
+> [    1.812984] 00000080 + ffe00000
+
+that is rather later.
+acpi_gbl_permanent_mmap should be set in acpi_early_init()
+if acpi is not disabled
+
+and we have
+> [    0.000000] ASUS P2B-DS detected: force use of acpi=ht
+
+just don't load acpi_processor_init...
+
+Reported-and-tested-by: Jens Rosenboom <jens@leia.mcbone.net>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ drivers/acpi/processor_core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+Index: linux-2.6/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/processor_core.c
++++ linux-2.6/drivers/acpi/processor_core.c
+@@ -1137,6 +1137,9 @@ static int __init acpi_processor_init(vo
+ {
+ 	int result = 0;
+ 
++	if (acpi_disabled)
++		return 0;
++
+ 	memset(&errata, 0, sizeof(errata));
+ 
+ #ifdef CONFIG_SMP
+@@ -1185,6 +1188,9 @@ out_proc:
+ 
+ static void __exit acpi_processor_exit(void)
+ {
++	if (acpi_disabled)
++		return;
++
+ 	acpi_processor_ppc_exit();
+ 
+ 	acpi_thermal_cpufreq_exit();
