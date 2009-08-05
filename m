@@ -1,140 +1,75 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V2 0/4] introduce device async actions
-	mechanism
-Date: Wed, 05 Aug 2009 10:24:08 +0800
-Message-ID: <1249439048.2670.454.camel@rzhang-dt>
-References: <1248404514.2670.107.camel@rzhang-dt>
-	<200908032318.35070.rjw@sisk.pl> <1249356937.2670.335.camel@rzhang-dt>
-	<200908041821.26578.rjw@sisk.pl>
+Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS
+	devices
+Date: Wed, 05 Aug 2009 08:55:55 +0800
+Message-ID: <1249433755.2670.379.camel@rzhang-dt>
+References: <1249290657.2670.250.camel@rzhang-dt>
+	 <20090804132129.GH18974@elf.ucw.cz>  <20090804151042.GA20276@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200908041821.26578.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "dtor@mail.ru" <dtor@mail.ru>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:60056 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752153AbZHEE2t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Aug 2009 00:28:49 -0400
+In-Reply-To: <20090804151042.GA20276@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-T24gV2VkLCAyMDA5LTA4LTA1IGF0IDAwOjIxICswODAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToKPiBPbiBUdWVzZGF5IDA0IEF1Z3VzdCAyMDA5LCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiBPbiBU
-dWUsIDIwMDktMDgtMDQgYXQgMDU6MTggKzA4MDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOgo+
-ID4gPiBPbiBGcmlkYXkgMjQgSnVseSAyMDA5LCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiA+ID4gSGks
-Cj4gPiA+IAo+ID4gPiBIaSwKPiA+ID4gCj4gPiA+ID4gdGhpcyBpcyB0aGUgcGF0Y2ggc2V0IEkg
-bWFkZSB0byBzcGVlZCB1cCB0aGUgZGV2aWNlCj4gPiA+ID4gc3VzcGVuZC9yZXN1bWUvc2h1dGRv
-d24gcHJvY2Vzcy4KPiA+ID4gPiAKPiA+ID4gPiBBIG5ldyBtZWNoYW5pc20gY2FsbGVkIERldmlj
-ZSBBc3luYyBBY3Rpb25zIGlzIGludHJvZHVjZWQKPiA+ID4gPiBpbiB0aGlzIHBhdGNoIHNldC4K
-PiA+ID4gCj4gPiA+IFdlbGwsIEknbSBub3Qgc3VyZSB3ZSdsbCBuZWVkIHRoYXQuCj4gPiA+IAo+
-ID4gPiA+IFRoZSBiYXNpYyBpZGVhIGlzIHRoYXQsCj4gPiA+ID4gaWYgdGhlIHN1c3BlbmQvcmVz
-dW1lL3NodXRkb3duIHByb2Nlc3Mgb2YgYSBkZXZpY2UgZ3JvdXAsIGluY2x1ZGluZwo+ID4gPiA+
-IGEgcm9vdCBkZXZpY2UgYW5kIGl0cyBjaGlsZCBkZXZpY2VzLCBhcmUgaW5kZXBlbmRlbnQgb2Yg
-b3RoZXIgZGV2aWNlcywKPiA+ID4gPiB3ZSBjcmVhdGUgYW4gYXN5bmMgZG9tYWluIGZvciB0aGlz
-IGRldmljZSBncm91cCwKPiA+ID4gPiBhbmQgbWFrZSB0aGVtIHN1c3BlbmQvcmVzdW1lL3NodXRk
-b3duIGFzeW5jaHJvbm91c2x5LiAgICAKPiA+ID4gCj4gPiA+IEkgZG9uJ3QgcmVhbGx5IHRoaW5r
-IHRoaXMgaXMgdGhlIHJpZ2h0IGFwcHJvYWNoLiAgSU1PLCB3ZSBzaG91bGQgcmF0aGVyIHRyeSB0
-bwo+ID4gPiBpZGVudGlmeSBncm91cHMgb2YgZGV2aWNlcyBmb3Igd2hpY2ggdGhlIFBNIGNhbGxi
-YWNrcyAoZm9yZ2V0IGFib3V0IC5zaHV0ZG93bigpCj4gPiA+IGZvciBub3cpIGNhbiBiZSBleGVj
-dXRlZCBpbiBwYXJhbGxlbC4KPiA+IAo+ID4gaGFoLCBJIHNlZS4KPiA+IFlvdSB3YW50IHRvIGV4
-ZWN1dGUgYXMgbW9yZSBQTSBjYWxsYmFja3Pvu78gYXQgb25lIHRpbWUgYXMgcG9zc2libGUsCj4g
-PiByaWdodD8KPiAKPiBOb3Qgb25seSB0aGF0LiAgSSdkIGxpa2UgdG8gc2ltcGxpZnkgdGhlIGRl
-c2lnbiwgYmVjYXVzZSBJTU8gdXNpbmcgb25lIGFzeW5jCj4gZG9tYWluIHdvdWxkIGJlIG11Y2gg
-bW9yZSBzdHJhaWdodGZvcndhcmQgdGhhbiB1c2luZyBtdWx0aXBsZSBvbmVzLgo+IApzb21ldGhp
-bmcgbGlrZSB0aGlzPwoKMS4gZGV2aWNlIHN1c3BlbmQvcmVzdW1lIGFyZSBzcGxpdCBpbnRvIHNl
-dmVyYWwgc3RhZ2VzLiBBbmQgdGhlIFBNCmNhbGxiYWNrcyBvZiBldmVyeSBkZXZpY2Ugc2hvdWxk
-IGJlIHB1dCBpbnRvIG9uZSBvZiB0aGVzZSBzdGFnZS4KCjIuIHJ1biBhbGwgdGhlIFBNIGNhbGxi
-YWNrcyBpbiBjdXJyZW50IHN0YWdlIGFzeW5jaHJvbm91c2x5LCBpbiB0aGUKZ2xvYmFsIGRvbWFp
-bi4KCjMuIHJ1biBhc3luY19zeW5jaHJvbml6ZV9mdWxsIHRvIGZpbmlzaCB0aGUgY3VycmVudCBz
-dGF0ZS4KCjQuIHN0YWdlKyssIGFuZCBnb3RvIHN0ZXAgMi4KCj4gPiBJJ20gYWZyYWlkIHRoaXMg
-d29uJ3QgYnJpbmcgYXMgbWFueSBiZW5lZml0cyBhcyBpdCBsb29rcyBsaWtlIGJlY2F1c2UKPiA+
-IG1vc3Qgb2YgdGhlIHN1c3BlbmQvcmVzdW1lIHRpbWUgaXMgY29zdCBvbiBzZXZlcmFsIHNwZWNp
-ZmllZCBkZXZpY2VzLgo+IAo+IFRoYXQgc2hvdWxkbid0IG1hdHRlci4gIEFzIGxvbmcgYXMgdGhl
-cmUncyBvbmUgZHJpdmVyIHRoYXQgd2FpdHMgbG9uZyBlbm91Z2gKPiBmb3IgdGhlIG90aGVycycg
-ZGV2aWNlcyB0byBiZSBoYW5kbGVkIHdoaWxlIGl0J3Mgd2FpdGluZywgd2UgYXJlIG5vdCBnb2lu
-Zwo+IHRvIGJlIGh1cnQgYnkgdGhpcyBhbmQgdGhlIGRlc2lnbiBpcyBnb2luZyB0byBiZSBzaW1w
-bGVyIElNTy4KPiAKPiA+IFRha2UgdGhlIGRtZXNnIEkgYXR0YWNoZWQgZm9yIGV4YW1wbGUuCj4g
-PiAKPiA+IHRvdGFsIGRldmljZSBzdXNwZW5kIHRpbWUgaXMgMS41MzJzLgo+ID4gc2VyaW8yCQkw
-LjQwN3MKPiA+IHNkIDAuMC4wLjAJMC40NTJzCj4gPiBzZXJpbzAJCTAuMTAzcwo+ID4gMGIuNC4y
-CQkwLjExNHMKPiA+IDAwLjFmLjIJCTAuMDgwcwo+ID4gMDAuMTkuMAkJMC4wNzJzCj4gPiBhbGwg
-dGhlIG90aGVycwkwLjMwNHMKPiA+IAo+ID4gdG90YWwgZGV2aWNlIHJlc3VtZSB0aW1lIGlzIDIu
-ODk5cwo+ID4gUE5QMEMwQTowMChiYXQpCTAuODk2cwo+ID4gMDAuMTkuMAkJMC4wNTZzCj4gPiAw
-Yi40LjAJCTAuMTM5cwo+ID4gMGIuMS4xCQkwLjA2NHMKPiA+IHVzYjEJCTAuMDUycwo+ID4gdXNi
-MgkJMC4wNTFzCj4gPiB1c2IzCQkwLjA0MnMKPiA+IHVzYjgJCTAuMjQ4cwo+ID4gc2QgMC4wLjAu
-MAkwLjExOHMKPiA+IHVzYiAzLTEJCTAuMjYxcwo+ID4gdXNiIDgtMQkJMC41MTFzCj4gPiBhbGwg
-dGhlIG90aGVycwkwLjQ2MXMKPiA+IAo+ID4gV2UgY2FuIHNlZSB0aGF0IHRoZXNlIHNldmVyYWwg
-ZGV2aWNlcyB0YWtlIDgwJX44NSUgc3VzcGVuZC9yZXN1bWUgdGltZSwKPiA+IHdoaWxlIGFsbCB0
-aGUgb3RoZXIgKG5lYXJseSA1MDApIGRldmljZXMgdGFrZSAyMCUuCj4gCj4gT0ssIHNvIGl0IGRv
-ZXNuJ3QgbWF0dGVyIGhvdyB3ZSBydW4gdGhlIHN1c3BlbmQvcmVzdW1lIG9mIHRoZSA1MDAgJ2Zh
-c3QnCj4gZGV2aWNlcyBhcyBsb25nIGFzIGl0IGRvZXNuJ3QgdGFrZSBtb3JlIHRoYW4gMC44OTZz
-IHRvdGFsLiAgSW4gcGFydGljdWxhciwgaXQKPiBzZWVtcyB3ZSBjYW4gZG8gdGhhdCBpbiBwYXJh
-bGxlbCBqdXN0IGZpbmUuCj4gCj4gPiBSdW5uaW5nIGEgbG90IGRldmljZSBQTSBjYWxsYmFja3Mg
-YXQgb25lIHRpbWUgaXMgbm90IGVxdWFsIHRvIHNhdmluZyBhCj4gPiBsb3QgdGltZSBpZiB0aGUg
-ZGV2aWNlcyBsaXN0ZWQgYWJvdmUgc3RpbGwgcnVuIHN5bmNocm9ub3VzbHkuCj4gPiAKPiA+IFNv
-IEkgdGhpbmsgdGhlIGtleSBwb2ludCB0byBzcGVlZCB1cCBzdXNwZW5kL3Jlc3VtZSBpcyB0byBp
-bnZva2UgdGhlIFBNCj4gPiBjYWxsYmFja3Mgb2YgdGhlc2UgZGV2aWNlcyBhc3luY2hyb25vdXNs
-eS4KPiA+IEFuZCBJIHVzZSB0aGUgYXN5bmNocm9ub3VzIGZ1bmN0aW9ucyBmb3IgdHdvIHJlYXNv
-bnMuCj4gPiAxLiBkZXZpY2VzIHdpdGggZGVwZW5kZW5jeSBhcmUgaW4gdGhlIHNhbWUgYXN5bmNo
-cm9ub3VzIGRvbWFpbiBzbyB0aGF0Cj4gPiAgICB0aGVpciBQTSBjYWxsYmFja3MgcnVuIGluLW9y
-ZGVyLgo+ID4g77u/Mi4gUE0gY2FsbGJhY2tzIG9mIHRoZSBkZXZpY2VzIHdpdGhvdXQgYW55IGRl
-cGVuZGVuY3kgcnVuCj4gPiBhc3luY2hyb25vdXNseQo+ID4gICAgYnkgdXNpbmcgZGlmZmVyZW50
-IGFzeW5jaHJvbm91cyBkb21haW5zLgo+IAo+IElmIEkgdW5kZXJzdGFuZCB0aGUgYXN5bmMgZnJh
-bWV3b3JrIGNvcnJlY3RseSwgdGhlIGRvbWFpbnMgYXJlIG9ubHkgdXNlZCBmb3IKPiBzeW5jaHJv
-bml6YXRpb24sIGllLiBpZiB5b3Ugd2FudCB0byB3YWl0IGZvciBhIGdyb3VwIG9mIGFzeW5jIG9w
-ZXJhdGlvbnMgdG8KPiBjb21wbGV0ZSwgeW91IGNhbiBwdXQgdGhlbSBhbGwgaW50byBvbmUgZG9t
-YWluIGFuZCB0aGVuIGNhbGwKPiBhc3luY19zeW5jaHJvbml6ZV9mdWxsX2RvbWFpbigpIHRvIHdh
-aXQgZm9yIHRoZW0gYWxsIHRvZ2V0aGVyLgo+IAp5ZXMsIHlvdSdyZSByaWdodC4KcGxlYXNlIGln
-bm9yZSBteSBwcmV2aW91cyByZXBseSBpbiB0aGlzIHRocmVhZC4KCj4gWW91IGRvbid0IG5lZWQg
-bXVsdGlwbGUgZG9tYWlucyB0byBydW4gbXVsdGlwbGUgdGhpbmdzIGluIHBhcmFsbGVsLgo+IAo+
-ID4gPiBPbmUgc3VjaCBncm91cCBpcyBsZWFmIGRldmljZXMsIGllLgo+ID4gPiBkZXZpY2VzIHRo
-YXQgaGF2ZSBubyBjaGlsZHJlbi4gIE9mIGNvdXJzZSwgc29tZSBvZiB0aGVtIHdpbGwgZGVwZW5k
-IG9mIHRoZQo+ID4gPiBvdGhlciBpbmRpcmVjdGx5LCBzbyB3ZSBzaG91bGQgbWFrZSBpdCBwb3Nz
-aWJsZSB0byBkZWNsYXJlIChpbiB0aGUgZHJpdmVyKQo+ID4gPiB3aGV0aGVyIHRoZSBkZXZpY2Ug
-Y2FuIGJlIHN1c3BlbmRlZC9yZXN1bWVkIGFzeW5jaHJvbm91c2x5IGFuZCB1c2UgdGhlCj4gPiA+
-IGZvbGxvd2luZyBsb2dpYyAoYXQgdGhlIGNvcmUgbGV2ZWwpLCBpbiBwc2V1ZG8gY29kZToKPiA+
-ID4gCj4gPiA+IGlmIChoYXNfbm9fY2hpbGRyZW4oZGV2KSAmJiBhc3luY2hyb25vdXNfc3VzcGVu
-ZF9yZXN1bWVfYWxsb3dlZChkZXYpKQo+ID4gPiAgICAgYXN5bmNfcmVzdW1lKGRldik7Cj4gPiA+
-IGVsc2UKPiA+ID4gICAgIHJlc3VtZShkZXYpOwo+ID4gPiAKPiA+ID4gYW5kIGFuYWxvZ291c2x5
-IGZvciBzdXNwZW5kLiAgVGhlbiwgd2UgY2FuIGVhc2lseSB1c2Ugb25lIGFzeW5jIGRvbWFpbiBm
-b3IgYWxsCj4gPiA+IG9mIHRoZXNlIGRldmljZXMuCj4gPiAKPiA+ID4gTGF0ZXIsIHdlIGNhbiBh
-ZGQgYXN5bmMgZG9tYWlucyBmb3IgZGV2aWNlcyB0aGF0IGhhdmUgY2hpbGRyZW4sIGJ1dCBjYW4g
-YmUKPiA+ID4gc3VzcGVuZGVkIGFuZCB3b2tlbiB1cCBpbiBwYXJhbGxlbCB3aXRoIGVhY2ggb3Ro
-ZXIuCj4gPiA+ICAgSU9XLCBJIHRoaW5rIHRoZSBhc3luYwo+ID4gPiBkb21haW5zIHNob3VsZCBz
-cGFuIHRoZSBsZXZlbHMgcmF0aGVyIHRoYW4gYnJhbmNoZXMgb2YgdGhlIGRldmljZQo+ID4gPiB0
-cmVlLgo+ID4gPiAKPiA+IAo+ID4gSG1tLCBhcyBJIHNhaWQgYWJvdmUsCj4gPiB0aGlzIGFwcHJv
-YWNoIHdvcmtzIG9ubHkgaWYgd2UgY2FuIG1ha2Ugc3VyZSB0aGF0IHRoZSBzcGVjaWZpZWQgZGV2
-aWNlcwo+ID4gYXJlIHB1dCBpbiB0aGUgc2FtZSBhc3luYyBkb21haW4sIGkuZS4gcnVuIGluIHBh
-cmFsbGVsLgo+IAo+IFN1cmUgYW5kIHRoYXQncyB0aGUgcG9pbnQuCj4gCj4gRm9yIHN0YXJ0ZXJz
-LCBsZXQncyBwdXQgYWxsIGRldmljZXMgKG9yIHJhdGhlciBkcml2ZXJzKSB3aXRob3V0IGFueQo+
-IGRlcGVuZGVuY2llcwoKeW91IHN0aWxsIG1lYW4gdGhlIGxlYWYgZGV2aWNlcyBoZXJlLCBkb24n
-dCB5b3U/Cgo+ICBpbnRvIG9uZSBhc3luYyBkb21haW4gYW5kIGNhbGwgc3VzcGVuZC9yZXN1bWUg
-Zm9yIHRoZW0gdXNpbmcgdGhlCj4gYXN5bmMgZnJhbWV3b3JrICh0aGV5IHdpbGwgYmUgc3VzcGVu
-ZGVkL3Jlc3VtZWQgaW4gcGFyYWxsZWwgd2l0aCBlYWNoIG90aGVyIGFzCj4gd2VsbCBhcyBpbiBw
-YXJhbGxlbCB3aXRoIHRoZSByZXN0KS4gIFRoZW4sIGxldCdzIGNhbGwKPiBhc3luY19zeW5jaHJv
-bml6ZV9mdWxsX2RvbWFpbigpIGZvciB0aGF0IGRvbWFpbiB3aGVuIHdlJ3ZlIGZpbmlzaGVkIGV4
-ZWN1dGluZwo+IGFsbCBvZiB0aGUgc3VzcGVuZC9yZXN1bWUgY2FsbGJhY2tzLgo+IApyaWdodC4K
-YnV0IEknbSBhZnJhaWQgaXQncyBub3QgZWFzeSB0byBmaW5kIGEgZ3JvdXAgb2Ygbm9uLWxlYWYg
-ZGV2aWNlcyB3aXRob3V0IGFueQpkZXBlbmRlbmN5LgoKPiBXZSBjYW4gZWFzaWx5IGRvIHN1Y2gg
-YSB0aGluZyBmb3IgZWFjaCBwaGFzZSBvZiBzdXNwZW5kL3Jlc3VtZQo+ICBvciBoaWJlcm5hdGlv
-bgo+IHdpdGhvdXQgY2F1c2luZyBhbnkgcHJvYmxlbXMgdG8gaGFwcGVuIElNTywgYXMgbG9uZyBh
-cyB0aGUgJ2FzeW5jJyBkcml2ZXJzCj4gcmVhbGx5IGhhdmUgbm8gZGVwZW5kZW5jaWVzLgo+IApz
-dXJlLCB0aGUgcHJvcG9zYWwgaXMgZ29vZC4KQnV0IG15IGNvbmNlcm4gaXMgaG93IHRvIGZpbmQg
-b3V0IHRoZXNlIGFzeW5jIGRvbWFpbnM/IGkuZS4gaG93IHRvIGZpbmQKb3V0IGdyb3VwcyBvZiBk
-ZXZpY2VzIHdpdGhvdXQgZGVwZW5kZW5jeSBzbyB0aGF0IHdlIGNhbiBzdXNwZW5kL3Jlc3VtZQpk
-ZXZpY2VzIGluIHRoZSBzYW1lIGdyb3VwIGluIHBhcmFsbGVsPwoKWW91IHNhaWQgdGhhdCDvu790
-aGUgYXN5bmMgZG9tYWlucyBzaG91bGQgc3BhbiB0aGUgbGV2ZWxzIHJhdGhlciB0aGFuCmJyYW5j
-aGVzIG9mIHRoZSBkZXZpY2UgdHJlZS4KZG8geW91IG1lYW4gc3VzcGVuZC9yZXN1bWUgYWxsIHRo
-ZSBkZXZpY2VzIGluIHRoZSBzYW1lIGxldmVsIGluCnBhcmFsbGVsPwoKPiA+IGFyZSB0aGVyZSBh
-bnkgcHJvdG90eXBlIHBhdGNoZXMgYXZhaWxhYmxlPwo+IAo+IE5vLCBiZWNhdXNlIEkgZGlkbid0
-IGhhdmUgdGhlIHRpbWUgdG8gcHJlcGFyZSBhbnkuICBJZiB5b3UgZ2l2ZSBtZSBhIGNvdXBsZSBv
-Zgo+IGRheXMsIEkgY2FuIHdyaXRlIHNvbWV0aGluZy4gIEkgdGhpbmsuCj4gClN1cmUuIGRvbid0
-IGZvcmdldCB0byBDQyBtZSB3aGVuIHlvdSBzZW5kIHRoZW0gb3V0LgoKdGhhbmtzLApydWkKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LXBtIG1h
-aWxpbmcgbGlzdApsaW51eC1wbUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xp
-c3RzLmxpbnV4LWZvdW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtcG0=
+On Tue, 2009-08-04 at 23:10 +0800, Greg KH wrote:
+> On Tue, Aug 04, 2009 at 03:21:29PM +0200, Pavel Machek wrote:
+> > On Mon 2009-08-03 17:10:57, Zhang Rui wrote:
+> > > Hi, all,
+> > >=20
+> > > This is the patch set I made to introduce ACPI ALS device driver
+> > > and a generic sysfs I/F for all the ALS devices, like ACPI ALS,
+> > > platform ALS, etc.
+> > >=20
+> > > Patch 01 introduces the ACPI ALS device driver.
+> > >=20
+> > > Patch 02 introduces ALS sysfs class.
+> > > 	Two sysfs I/F are created for each ALS device.
+> > >   /sys/class/als/alsX/illuminance:
+> > > 	the amount of light incident upon a specified surface area.
+> > >   /sys/class/als/alsX/mappings:
+> > > 	ambient light illuminance to display luminance mappings
+> > > 	that can be used by an OS to calibrate its ambient light policy
+> > > 	this is what I got on a test box:
+> > > 	cat /sys/class/als/als0/mappings
+> > > 	???Illuminance	Adjustment
+> > > 	          0	       70
+> > > 	         10	       73
+> > > 	         80	       85
+> > > 	        300	      100
+> > > 	       1000	      150
+> >=20
+> > There's one value per file for sysfs... You should definitely have =
+the
+> > header.=20
+>=20
+> No, no "header", just don't do this, it's not allowed. Again,
+> one-value-per-sysfs-file is the rule, please do not violate it.
+>=20
+Okay.
+how about=20
+=EF=BB=BF/sys/class/als/als0/mapping{0, 1, ...}/illuminance
+and=20
+=EF=BB=BF=EF=BB=BF/sys/class/als/als0/mapping{0, 1, ...}/adjustment
+
+> > Plus I'd say Documentation/ file is needed.
+>=20
+> It's required for any new sysfs file being added to the kernel.
+>=20
+Okay, I'll add the document file.
+
+thanks,
+rui
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
