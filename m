@@ -1,73 +1,140 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
-Date: Wed, 05 Aug 2009 09:47:31 +0800
-Message-ID: <1249436851.2670.422.camel@rzhang-dt>
-References: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
+Subject: Re: [PATCH V2 0/4] introduce device async actions
+	mechanism
+Date: Wed, 05 Aug 2009 10:24:08 +0800
+Message-ID: <1249439048.2670.454.camel@rzhang-dt>
+References: <1248404514.2670.107.camel@rzhang-dt>
+	<200908032318.35070.rjw@sisk.pl> <1249356937.2670.335.camel@rzhang-dt>
+	<200908041821.26578.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46984 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932872AbZHEBsW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Aug 2009 21:48:22 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0908041330040.3102-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200908041821.26578.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "dtor@mail.ru" <dtor@mail.ru>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
 
-On Wed, 2009-08-05 at 01:33 +0800, Alan Stern wrote:
-> On Tue, 4 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > Not only that.  I'd like to simplify the design, because IMO using one async
-> > domain would be much more straightforward than using multiple ones.
-> 
-> > If I understand the async framework correctly, the domains are only used for
-> > synchronization, ie. if you want to wait for a group of async operations to
-> > complete, you can put them all into one domain and then call
-> > async_synchronize_full_domain() to wait for them all together.
-> > 
-> > You don't need multiple domains to run multiple things in parallel.
-> 
-> There's a basic confusion going on here.
-> 
-> Rui is using "async domain" to mean a collection of devices which 
-> will be suspended or resumed serially.  Different domains run in 
-> parallel.
-> 
-> Rafael is using "async domain" to mean a collection of devices which 
-> will be suspended or resumed in parallel.  Different domains run 
-> serially.
-> 
-cool, thanks for stating the confusion so clearly, Alan. :)
-
-Hi, Rafael,
-
-maybe there is still some confusions about my proposal.
-
-I re-read kernel/async.c file, and notice that Arjan calls the domain as
-*_synchronization_* domain. sorry I use the wrong word before.
-
-And I use the synchronization domains just to keep devices dependency.
-
-First, the general idea is to suspend/resume those slow devices in
-parallel. So we don't suspend/resume them synchronously, instead, we
-move these actions to the global domain.
-
-Then, I found that these actions can not be run asynchronously because
-they depend on other devices.
-For example, sd depends on SATA controller, we should make sure the PM
-callbacks of sd and ahci sata controller are run serially. so a
-synchronization domain is created for them.
-This is how multiple synchronization domains come from in this proposal.
-
-thanks,
-rui
-
-> Once that is cleared up, you should be able to communicate a little 
-> better...  :-)
-> 
-> Alan Stern
-> 
-
+T24gV2VkLCAyMDA5LTA4LTA1IGF0IDAwOjIxICswODAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
+ZToKPiBPbiBUdWVzZGF5IDA0IEF1Z3VzdCAyMDA5LCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiBPbiBU
+dWUsIDIwMDktMDgtMDQgYXQgMDU6MTggKzA4MDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOgo+
+ID4gPiBPbiBGcmlkYXkgMjQgSnVseSAyMDA5LCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiA+ID4gSGks
+Cj4gPiA+IAo+ID4gPiBIaSwKPiA+ID4gCj4gPiA+ID4gdGhpcyBpcyB0aGUgcGF0Y2ggc2V0IEkg
+bWFkZSB0byBzcGVlZCB1cCB0aGUgZGV2aWNlCj4gPiA+ID4gc3VzcGVuZC9yZXN1bWUvc2h1dGRv
+d24gcHJvY2Vzcy4KPiA+ID4gPiAKPiA+ID4gPiBBIG5ldyBtZWNoYW5pc20gY2FsbGVkIERldmlj
+ZSBBc3luYyBBY3Rpb25zIGlzIGludHJvZHVjZWQKPiA+ID4gPiBpbiB0aGlzIHBhdGNoIHNldC4K
+PiA+ID4gCj4gPiA+IFdlbGwsIEknbSBub3Qgc3VyZSB3ZSdsbCBuZWVkIHRoYXQuCj4gPiA+IAo+
+ID4gPiA+IFRoZSBiYXNpYyBpZGVhIGlzIHRoYXQsCj4gPiA+ID4gaWYgdGhlIHN1c3BlbmQvcmVz
+dW1lL3NodXRkb3duIHByb2Nlc3Mgb2YgYSBkZXZpY2UgZ3JvdXAsIGluY2x1ZGluZwo+ID4gPiA+
+IGEgcm9vdCBkZXZpY2UgYW5kIGl0cyBjaGlsZCBkZXZpY2VzLCBhcmUgaW5kZXBlbmRlbnQgb2Yg
+b3RoZXIgZGV2aWNlcywKPiA+ID4gPiB3ZSBjcmVhdGUgYW4gYXN5bmMgZG9tYWluIGZvciB0aGlz
+IGRldmljZSBncm91cCwKPiA+ID4gPiBhbmQgbWFrZSB0aGVtIHN1c3BlbmQvcmVzdW1lL3NodXRk
+b3duIGFzeW5jaHJvbm91c2x5LiAgICAKPiA+ID4gCj4gPiA+IEkgZG9uJ3QgcmVhbGx5IHRoaW5r
+IHRoaXMgaXMgdGhlIHJpZ2h0IGFwcHJvYWNoLiAgSU1PLCB3ZSBzaG91bGQgcmF0aGVyIHRyeSB0
+bwo+ID4gPiBpZGVudGlmeSBncm91cHMgb2YgZGV2aWNlcyBmb3Igd2hpY2ggdGhlIFBNIGNhbGxi
+YWNrcyAoZm9yZ2V0IGFib3V0IC5zaHV0ZG93bigpCj4gPiA+IGZvciBub3cpIGNhbiBiZSBleGVj
+dXRlZCBpbiBwYXJhbGxlbC4KPiA+IAo+ID4gaGFoLCBJIHNlZS4KPiA+IFlvdSB3YW50IHRvIGV4
+ZWN1dGUgYXMgbW9yZSBQTSBjYWxsYmFja3Pvu78gYXQgb25lIHRpbWUgYXMgcG9zc2libGUsCj4g
+PiByaWdodD8KPiAKPiBOb3Qgb25seSB0aGF0LiAgSSdkIGxpa2UgdG8gc2ltcGxpZnkgdGhlIGRl
+c2lnbiwgYmVjYXVzZSBJTU8gdXNpbmcgb25lIGFzeW5jCj4gZG9tYWluIHdvdWxkIGJlIG11Y2gg
+bW9yZSBzdHJhaWdodGZvcndhcmQgdGhhbiB1c2luZyBtdWx0aXBsZSBvbmVzLgo+IApzb21ldGhp
+bmcgbGlrZSB0aGlzPwoKMS4gZGV2aWNlIHN1c3BlbmQvcmVzdW1lIGFyZSBzcGxpdCBpbnRvIHNl
+dmVyYWwgc3RhZ2VzLiBBbmQgdGhlIFBNCmNhbGxiYWNrcyBvZiBldmVyeSBkZXZpY2Ugc2hvdWxk
+IGJlIHB1dCBpbnRvIG9uZSBvZiB0aGVzZSBzdGFnZS4KCjIuIHJ1biBhbGwgdGhlIFBNIGNhbGxi
+YWNrcyBpbiBjdXJyZW50IHN0YWdlIGFzeW5jaHJvbm91c2x5LCBpbiB0aGUKZ2xvYmFsIGRvbWFp
+bi4KCjMuIHJ1biBhc3luY19zeW5jaHJvbml6ZV9mdWxsIHRvIGZpbmlzaCB0aGUgY3VycmVudCBz
+dGF0ZS4KCjQuIHN0YWdlKyssIGFuZCBnb3RvIHN0ZXAgMi4KCj4gPiBJJ20gYWZyYWlkIHRoaXMg
+d29uJ3QgYnJpbmcgYXMgbWFueSBiZW5lZml0cyBhcyBpdCBsb29rcyBsaWtlIGJlY2F1c2UKPiA+
+IG1vc3Qgb2YgdGhlIHN1c3BlbmQvcmVzdW1lIHRpbWUgaXMgY29zdCBvbiBzZXZlcmFsIHNwZWNp
+ZmllZCBkZXZpY2VzLgo+IAo+IFRoYXQgc2hvdWxkbid0IG1hdHRlci4gIEFzIGxvbmcgYXMgdGhl
+cmUncyBvbmUgZHJpdmVyIHRoYXQgd2FpdHMgbG9uZyBlbm91Z2gKPiBmb3IgdGhlIG90aGVycycg
+ZGV2aWNlcyB0byBiZSBoYW5kbGVkIHdoaWxlIGl0J3Mgd2FpdGluZywgd2UgYXJlIG5vdCBnb2lu
+Zwo+IHRvIGJlIGh1cnQgYnkgdGhpcyBhbmQgdGhlIGRlc2lnbiBpcyBnb2luZyB0byBiZSBzaW1w
+bGVyIElNTy4KPiAKPiA+IFRha2UgdGhlIGRtZXNnIEkgYXR0YWNoZWQgZm9yIGV4YW1wbGUuCj4g
+PiAKPiA+IHRvdGFsIGRldmljZSBzdXNwZW5kIHRpbWUgaXMgMS41MzJzLgo+ID4gc2VyaW8yCQkw
+LjQwN3MKPiA+IHNkIDAuMC4wLjAJMC40NTJzCj4gPiBzZXJpbzAJCTAuMTAzcwo+ID4gMGIuNC4y
+CQkwLjExNHMKPiA+IDAwLjFmLjIJCTAuMDgwcwo+ID4gMDAuMTkuMAkJMC4wNzJzCj4gPiBhbGwg
+dGhlIG90aGVycwkwLjMwNHMKPiA+IAo+ID4gdG90YWwgZGV2aWNlIHJlc3VtZSB0aW1lIGlzIDIu
+ODk5cwo+ID4gUE5QMEMwQTowMChiYXQpCTAuODk2cwo+ID4gMDAuMTkuMAkJMC4wNTZzCj4gPiAw
+Yi40LjAJCTAuMTM5cwo+ID4gMGIuMS4xCQkwLjA2NHMKPiA+IHVzYjEJCTAuMDUycwo+ID4gdXNi
+MgkJMC4wNTFzCj4gPiB1c2IzCQkwLjA0MnMKPiA+IHVzYjgJCTAuMjQ4cwo+ID4gc2QgMC4wLjAu
+MAkwLjExOHMKPiA+IHVzYiAzLTEJCTAuMjYxcwo+ID4gdXNiIDgtMQkJMC41MTFzCj4gPiBhbGwg
+dGhlIG90aGVycwkwLjQ2MXMKPiA+IAo+ID4gV2UgY2FuIHNlZSB0aGF0IHRoZXNlIHNldmVyYWwg
+ZGV2aWNlcyB0YWtlIDgwJX44NSUgc3VzcGVuZC9yZXN1bWUgdGltZSwKPiA+IHdoaWxlIGFsbCB0
+aGUgb3RoZXIgKG5lYXJseSA1MDApIGRldmljZXMgdGFrZSAyMCUuCj4gCj4gT0ssIHNvIGl0IGRv
+ZXNuJ3QgbWF0dGVyIGhvdyB3ZSBydW4gdGhlIHN1c3BlbmQvcmVzdW1lIG9mIHRoZSA1MDAgJ2Zh
+c3QnCj4gZGV2aWNlcyBhcyBsb25nIGFzIGl0IGRvZXNuJ3QgdGFrZSBtb3JlIHRoYW4gMC44OTZz
+IHRvdGFsLiAgSW4gcGFydGljdWxhciwgaXQKPiBzZWVtcyB3ZSBjYW4gZG8gdGhhdCBpbiBwYXJh
+bGxlbCBqdXN0IGZpbmUuCj4gCj4gPiBSdW5uaW5nIGEgbG90IGRldmljZSBQTSBjYWxsYmFja3Mg
+YXQgb25lIHRpbWUgaXMgbm90IGVxdWFsIHRvIHNhdmluZyBhCj4gPiBsb3QgdGltZSBpZiB0aGUg
+ZGV2aWNlcyBsaXN0ZWQgYWJvdmUgc3RpbGwgcnVuIHN5bmNocm9ub3VzbHkuCj4gPiAKPiA+IFNv
+IEkgdGhpbmsgdGhlIGtleSBwb2ludCB0byBzcGVlZCB1cCBzdXNwZW5kL3Jlc3VtZSBpcyB0byBp
+bnZva2UgdGhlIFBNCj4gPiBjYWxsYmFja3Mgb2YgdGhlc2UgZGV2aWNlcyBhc3luY2hyb25vdXNs
+eS4KPiA+IEFuZCBJIHVzZSB0aGUgYXN5bmNocm9ub3VzIGZ1bmN0aW9ucyBmb3IgdHdvIHJlYXNv
+bnMuCj4gPiAxLiBkZXZpY2VzIHdpdGggZGVwZW5kZW5jeSBhcmUgaW4gdGhlIHNhbWUgYXN5bmNo
+cm9ub3VzIGRvbWFpbiBzbyB0aGF0Cj4gPiAgICB0aGVpciBQTSBjYWxsYmFja3MgcnVuIGluLW9y
+ZGVyLgo+ID4g77u/Mi4gUE0gY2FsbGJhY2tzIG9mIHRoZSBkZXZpY2VzIHdpdGhvdXQgYW55IGRl
+cGVuZGVuY3kgcnVuCj4gPiBhc3luY2hyb25vdXNseQo+ID4gICAgYnkgdXNpbmcgZGlmZmVyZW50
+IGFzeW5jaHJvbm91cyBkb21haW5zLgo+IAo+IElmIEkgdW5kZXJzdGFuZCB0aGUgYXN5bmMgZnJh
+bWV3b3JrIGNvcnJlY3RseSwgdGhlIGRvbWFpbnMgYXJlIG9ubHkgdXNlZCBmb3IKPiBzeW5jaHJv
+bml6YXRpb24sIGllLiBpZiB5b3Ugd2FudCB0byB3YWl0IGZvciBhIGdyb3VwIG9mIGFzeW5jIG9w
+ZXJhdGlvbnMgdG8KPiBjb21wbGV0ZSwgeW91IGNhbiBwdXQgdGhlbSBhbGwgaW50byBvbmUgZG9t
+YWluIGFuZCB0aGVuIGNhbGwKPiBhc3luY19zeW5jaHJvbml6ZV9mdWxsX2RvbWFpbigpIHRvIHdh
+aXQgZm9yIHRoZW0gYWxsIHRvZ2V0aGVyLgo+IAp5ZXMsIHlvdSdyZSByaWdodC4KcGxlYXNlIGln
+bm9yZSBteSBwcmV2aW91cyByZXBseSBpbiB0aGlzIHRocmVhZC4KCj4gWW91IGRvbid0IG5lZWQg
+bXVsdGlwbGUgZG9tYWlucyB0byBydW4gbXVsdGlwbGUgdGhpbmdzIGluIHBhcmFsbGVsLgo+IAo+
+ID4gPiBPbmUgc3VjaCBncm91cCBpcyBsZWFmIGRldmljZXMsIGllLgo+ID4gPiBkZXZpY2VzIHRo
+YXQgaGF2ZSBubyBjaGlsZHJlbi4gIE9mIGNvdXJzZSwgc29tZSBvZiB0aGVtIHdpbGwgZGVwZW5k
+IG9mIHRoZQo+ID4gPiBvdGhlciBpbmRpcmVjdGx5LCBzbyB3ZSBzaG91bGQgbWFrZSBpdCBwb3Nz
+aWJsZSB0byBkZWNsYXJlIChpbiB0aGUgZHJpdmVyKQo+ID4gPiB3aGV0aGVyIHRoZSBkZXZpY2Ug
+Y2FuIGJlIHN1c3BlbmRlZC9yZXN1bWVkIGFzeW5jaHJvbm91c2x5IGFuZCB1c2UgdGhlCj4gPiA+
+IGZvbGxvd2luZyBsb2dpYyAoYXQgdGhlIGNvcmUgbGV2ZWwpLCBpbiBwc2V1ZG8gY29kZToKPiA+
+ID4gCj4gPiA+IGlmIChoYXNfbm9fY2hpbGRyZW4oZGV2KSAmJiBhc3luY2hyb25vdXNfc3VzcGVu
+ZF9yZXN1bWVfYWxsb3dlZChkZXYpKQo+ID4gPiAgICAgYXN5bmNfcmVzdW1lKGRldik7Cj4gPiA+
+IGVsc2UKPiA+ID4gICAgIHJlc3VtZShkZXYpOwo+ID4gPiAKPiA+ID4gYW5kIGFuYWxvZ291c2x5
+IGZvciBzdXNwZW5kLiAgVGhlbiwgd2UgY2FuIGVhc2lseSB1c2Ugb25lIGFzeW5jIGRvbWFpbiBm
+b3IgYWxsCj4gPiA+IG9mIHRoZXNlIGRldmljZXMuCj4gPiAKPiA+ID4gTGF0ZXIsIHdlIGNhbiBh
+ZGQgYXN5bmMgZG9tYWlucyBmb3IgZGV2aWNlcyB0aGF0IGhhdmUgY2hpbGRyZW4sIGJ1dCBjYW4g
+YmUKPiA+ID4gc3VzcGVuZGVkIGFuZCB3b2tlbiB1cCBpbiBwYXJhbGxlbCB3aXRoIGVhY2ggb3Ro
+ZXIuCj4gPiA+ICAgSU9XLCBJIHRoaW5rIHRoZSBhc3luYwo+ID4gPiBkb21haW5zIHNob3VsZCBz
+cGFuIHRoZSBsZXZlbHMgcmF0aGVyIHRoYW4gYnJhbmNoZXMgb2YgdGhlIGRldmljZQo+ID4gPiB0
+cmVlLgo+ID4gPiAKPiA+IAo+ID4gSG1tLCBhcyBJIHNhaWQgYWJvdmUsCj4gPiB0aGlzIGFwcHJv
+YWNoIHdvcmtzIG9ubHkgaWYgd2UgY2FuIG1ha2Ugc3VyZSB0aGF0IHRoZSBzcGVjaWZpZWQgZGV2
+aWNlcwo+ID4gYXJlIHB1dCBpbiB0aGUgc2FtZSBhc3luYyBkb21haW4sIGkuZS4gcnVuIGluIHBh
+cmFsbGVsLgo+IAo+IFN1cmUgYW5kIHRoYXQncyB0aGUgcG9pbnQuCj4gCj4gRm9yIHN0YXJ0ZXJz
+LCBsZXQncyBwdXQgYWxsIGRldmljZXMgKG9yIHJhdGhlciBkcml2ZXJzKSB3aXRob3V0IGFueQo+
+IGRlcGVuZGVuY2llcwoKeW91IHN0aWxsIG1lYW4gdGhlIGxlYWYgZGV2aWNlcyBoZXJlLCBkb24n
+dCB5b3U/Cgo+ICBpbnRvIG9uZSBhc3luYyBkb21haW4gYW5kIGNhbGwgc3VzcGVuZC9yZXN1bWUg
+Zm9yIHRoZW0gdXNpbmcgdGhlCj4gYXN5bmMgZnJhbWV3b3JrICh0aGV5IHdpbGwgYmUgc3VzcGVu
+ZGVkL3Jlc3VtZWQgaW4gcGFyYWxsZWwgd2l0aCBlYWNoIG90aGVyIGFzCj4gd2VsbCBhcyBpbiBw
+YXJhbGxlbCB3aXRoIHRoZSByZXN0KS4gIFRoZW4sIGxldCdzIGNhbGwKPiBhc3luY19zeW5jaHJv
+bml6ZV9mdWxsX2RvbWFpbigpIGZvciB0aGF0IGRvbWFpbiB3aGVuIHdlJ3ZlIGZpbmlzaGVkIGV4
+ZWN1dGluZwo+IGFsbCBvZiB0aGUgc3VzcGVuZC9yZXN1bWUgY2FsbGJhY2tzLgo+IApyaWdodC4K
+YnV0IEknbSBhZnJhaWQgaXQncyBub3QgZWFzeSB0byBmaW5kIGEgZ3JvdXAgb2Ygbm9uLWxlYWYg
+ZGV2aWNlcyB3aXRob3V0IGFueQpkZXBlbmRlbmN5LgoKPiBXZSBjYW4gZWFzaWx5IGRvIHN1Y2gg
+YSB0aGluZyBmb3IgZWFjaCBwaGFzZSBvZiBzdXNwZW5kL3Jlc3VtZQo+ICBvciBoaWJlcm5hdGlv
+bgo+IHdpdGhvdXQgY2F1c2luZyBhbnkgcHJvYmxlbXMgdG8gaGFwcGVuIElNTywgYXMgbG9uZyBh
+cyB0aGUgJ2FzeW5jJyBkcml2ZXJzCj4gcmVhbGx5IGhhdmUgbm8gZGVwZW5kZW5jaWVzLgo+IApz
+dXJlLCB0aGUgcHJvcG9zYWwgaXMgZ29vZC4KQnV0IG15IGNvbmNlcm4gaXMgaG93IHRvIGZpbmQg
+b3V0IHRoZXNlIGFzeW5jIGRvbWFpbnM/IGkuZS4gaG93IHRvIGZpbmQKb3V0IGdyb3VwcyBvZiBk
+ZXZpY2VzIHdpdGhvdXQgZGVwZW5kZW5jeSBzbyB0aGF0IHdlIGNhbiBzdXNwZW5kL3Jlc3VtZQpk
+ZXZpY2VzIGluIHRoZSBzYW1lIGdyb3VwIGluIHBhcmFsbGVsPwoKWW91IHNhaWQgdGhhdCDvu790
+aGUgYXN5bmMgZG9tYWlucyBzaG91bGQgc3BhbiB0aGUgbGV2ZWxzIHJhdGhlciB0aGFuCmJyYW5j
+aGVzIG9mIHRoZSBkZXZpY2UgdHJlZS4KZG8geW91IG1lYW4gc3VzcGVuZC9yZXN1bWUgYWxsIHRo
+ZSBkZXZpY2VzIGluIHRoZSBzYW1lIGxldmVsIGluCnBhcmFsbGVsPwoKPiA+IGFyZSB0aGVyZSBh
+bnkgcHJvdG90eXBlIHBhdGNoZXMgYXZhaWxhYmxlPwo+IAo+IE5vLCBiZWNhdXNlIEkgZGlkbid0
+IGhhdmUgdGhlIHRpbWUgdG8gcHJlcGFyZSBhbnkuICBJZiB5b3UgZ2l2ZSBtZSBhIGNvdXBsZSBv
+Zgo+IGRheXMsIEkgY2FuIHdyaXRlIHNvbWV0aGluZy4gIEkgdGhpbmsuCj4gClN1cmUuIGRvbid0
+IGZvcmdldCB0byBDQyBtZSB3aGVuIHlvdSBzZW5kIHRoZW0gb3V0LgoKdGhhbmtzLApydWkKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LXBtIG1h
+aWxpbmcgbGlzdApsaW51eC1wbUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xp
+c3RzLmxpbnV4LWZvdW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtcG0=
