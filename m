@@ -1,57 +1,66 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS
-	devices
-Date: Thu, 6 Aug 2009 11:52:58 +0200
-Message-ID: <20090806095258.GA31370@elf.ucw.cz>
-References: <1249290657.2670.250.camel@rzhang-dt> <20090804132129.GH18974@elf.ucw.cz> <1249434170.2670.386.camel@rzhang-dt> <20090805161931.GA9749@elf.ucw.cz> <1249522879.2670.480.camel@rzhang-dt> <20090806071353.GB21847@elf.ucw.cz> <1249548430.2670.517.camel@rzhang-dt>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
+Date: Thu, 6 Aug 2009 12:07:12 +0200
+Message-ID: <200908061207.12450.corentin.chary@gmail.com>
+References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
+	<9b2b86520908011243r47f39f14t3ef991180927274a@mail.gmail.com>
+	<71cd59b00908020020p1f672529mf3cd403526005ed5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38415 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933AbZHFJxF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2009 05:53:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1249548430.2670.517.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <hal-bounces@lists.freedesktop.org>
+In-Reply-To: <71cd59b00908020020p1f672529mf3cd403526005ed5@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/hal>
+List-Post: <mailto:hal@lists.freedesktop.org>
+List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
+Sender: hal-bounces@lists.freedesktop.org
+Errors-To: hal-bounces@lists.freedesktop.org
+To: Danny Kukawka <danny.kukawka@web.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, acpi4asus-user@lists.sourceforge.net, Alan Jenkins <sourcejedi.lkml@googlemail.com>, hal@lists.freedesktop.org, linux acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Greg KH <greg@kroah.com>
 
-Hi!
+On Sunday 02 August 2009 09:20:00 Corentin Chary wrote:
+> >> see:
+> >> http://cgit.freedesktop.org/~dkukawka/hal/commit/?id=c900d0e5012b1dd0e0f
+> >>a6e20fd0d92a59b3de093
+>
+> It's not my hardware either, but I can try to create a fake
+> kbd_keyboard led to test that.
+>
+> > Don't you also need to set "keyboard_backlight.num_levels"?  According
+> > to Documentation/leds-class.txt, valid led values are 0-255, so I
+> > expect num_levels should be set to 256.
+>
+> Valid led values are between 0 and max_brightness (like for backlight I
+> think). I think the led addon should set keyboard_backlight.num_levels to
+> max_brightness (+1 ?).
+>
+> > Yuck... I think the backlight interface is better in that it exports
+> > the available granularity.  But I guess all one really wants is "on"
+> > and "off", with finer adjustment being either automatic (light sensor)
+> > or buried as a config option.
+>
+> On the Asus U50 there is 3 levels (+ off), and keys to change the
+> brightness. And the user want to use all the backlight levels with the
+> Fn+F3/F4 keys.
 
-> > Yes, so just export
-> > 
-> > ALS exports
-> > 1. the current ambient light illuminance
-> > 2. the current mapped ambient light illuminance
-> > 
-> In fact, only one attribute is enough.
+Hi Danny,
+I was trying to add keyboard_backlight.num_levels support for your modified 
+led-addon. But there is something I don't understand :- 
+keyboard_backlight.num_levels is used in:
+- examples/light_sensors_and_keyboard_backlight.py
+- fdi/policy/10osvendor/10-macbookpro-utils.fdi
+- kde/solid/hal/halpower.cpp
+But it is not defined in doc/spec/hal-spec-properties.xml.
 
-Good. (I thought you would want to export the 1) too, mainly for debugging).
+Should I make another patch to fix hal-spec-properties ?
 
-> The ALS driver can query the current illuminance, parse the mapping and
-> only export the display luminance adjustment values to user space.
-
-> then user space just needs to
-> 1. set a brightness level as the base point
-> 2. get the display adjustment value and calculate a proper brightness
-> level at any time.
-> 
-> this is easier, but it makes me feel that this doesn't look like an
-> _ALS_ device any more.
-> We still should export some ALS properties to user space, shouldn't
-> we?
-
-Why? Just because ACPI specs is ugly does not mean we should make
-Linux ugly, too. Please just use suggestion above.
-
-> Could you please look at the documentation about ALS sysfs class in the
-> patch I sent out just now, and comment on that one please? thanks!
-
-I did. The interface is too ugly to live.
-								Pavel
+Thanks,
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Corentin Chary
+http://xf.iksaif.net - http://uffs.org
