@@ -1,45 +1,45 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC PATCH V2 1/2] introduce ALS sysfs class
-Date: Thu, 6 Aug 2009 11:56:02 -0700
-Message-ID: <20090806185602.GC28664@kroah.com>
-References: <1249547498.2670.499.camel@rzhang-dt>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/2] input: Add support for filtering input events
+Date: Thu, 6 Aug 2009 16:18:08 -0300
+Message-ID: <20090806191808.GE15867@khazad-dum.debian.net>
+References: <1249007207-27392-1-git-send-email-mjg@redhat.com>
+ <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net>
+ <20090804100158.GA14530@srcf.ucam.org>
+ <20090805044923.6AE71526EA5@mailhub.coreip.homeip.net>
+ <20090806124910.GA15867@khazad-dum.debian.net>
+ <20090806144817.6E610526EA5@mailhub.coreip.homeip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756509AbZHFS6R@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1249547498.2670.499.camel@rzhang-dt>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "Valdis.Kletnieks@vt.edu" <Valdis.Kletnieks@vt.edu>
+In-Reply-To: <20090806144817.6E610526EA5@mailhub.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 06, 2009 at 04:31:38PM +0800, Zhang Rui wrote:
-> +#define PREFIX "ALS: "
+On Thu, 06 Aug 2009, Dmitry Torokhov wrote:
+> >But don't we have a crapload of implementation weirdness work-
+> >arounds in the
+> >i8042 drivers, including some for problems with the raw protocol
+> >itself?  We
+> >wouldn't want to duplicate THAT...
+> 
+> There actually not many quirks there, once we identified all ports
+> on i8042; mostly we need to deal with keys not sending release
+> events.
+> 
+> >will the filter be placed somewhere that
+> >doesn't have to deal with that kind of bogosity?
+> 
+> The problem with doing this on input core level is that we don't
 
-This is not used.
+It doesn't have to be on the input core, it could be on i8042, but the
+hook should be AFTER i8042 did all the processing and cleanup that we
+want to take place...
 
-> +	/* sys I/F */
-> +	result = device_create_file(&als->device, &dev_attr_illuminance);
-> +	if (result)
-> +		goto unregister_device;
-> +
-> +	result = device_create_file(&als->device, &dev_attr_desc);
-> +	if (result)
-> +		goto unregister_device;
-
-These should be default attributes for the device, that way they get
-created before userspace is told the device is there, removing any race
-conditions you will have otherwise.
-
-> +
-> +	return als;
-> +
-> +unregister_device:
-> +	device_unregister(&als->device);
-> +	return ERR_PTR(result);
-
-And you weren't cleaning up the file if the second one failed.
-
-thanks,
-
-greg k-h
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
