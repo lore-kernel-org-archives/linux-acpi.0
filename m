@@ -1,61 +1,73 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: a backlight issue
-Date: Thu, 6 Aug 2009 15:38:38 +0200
-Message-ID: <200908061538.39238.trenn@suse.de>
-References: <1245895749.7266.70.camel@localhost.localdomain> <200908051450.27970.trenn@suse.de> <20090806125552.GB15867@khazad-dum.debian.net>
-Mime-Version: 1.0
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 1/2] input: Add support for filtering input events
+Date: Thu, 6 Aug 2009 07:48:08 -0700
+Message-ID: <20090806144817.6E610526EA5@mailhub.coreip.homeip.net>
+References: <1249007207-27392-1-git-send-email-mjg@redhat.com> <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net> <20090804100158.GA14530@srcf.ucam.org> <20090805044923.6AE71526EA5@mailhub.coreip.homeip.net> <20090806124910.GA15867@khazad-dum.debian.net>
+Mime-Version: 1.0 (iPhone Mail 7A341)
 Content-Type: text/plain;
-  charset="iso-8859-1"
+	charset=us-ascii;
+	format=flowed;
+	delsp=yes
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59307 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755870AbZHFNil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Aug 2009 09:38:41 -0400
-In-Reply-To: <20090806125552.GB15867@khazad-dum.debian.net>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20090806124910.GA15867@khazad-dum.debian.net>
+Sender: linux-input-owner@vger.kernel.org
 To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: yakui_zhao <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rpurdie@linux.intel.com, jbarnes@virtuousgeek.org, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 06 August 2009 14:55:52 Henrique de Moraes Holschuh wrote:
-> On Wed, 05 Aug 2009, Thomas Renninger wrote:
-> > If in KMS drivers backlight switching method is implemented
-> > and can register for the generic backlight driver, it should always
-> > be
-> > disabled by default. Instead, KMS drivers should export a simple
-> > "backlight_enable" file somewhere in sysfs. If userspace doesn't
-> > find a sysfs backlight interface, it can do:
-> > echo 1 >/sys/path_to_graphics_card/backlight_enable
-> > and a backlight sysfs interface should pop up on success.
-> 
-> IMO, we already have an in-kernel selector of the backlight control
-> method for mutually-exclusive backlight control strategies.
-You mean the ACPI vs native driver detection?
+On Aug 6, 2009, at 5:49 AM, Henrique de Moraes Holschuh  
+<hmh@hmh.eng.br> wrote:
 
-> We should use that, and if it is complete/good enough to add the KMS
-> scenario, improve it.
-You mean if it is *not* complete/good enough?
+> On Tue, 04 Aug 2009, Dmitry Torokhov wrote:
+>> On Tue, Aug 04, 2009 at 11:01:58AM +0100, Matthew Garrett wrote:
+>>> On Mon, Aug 03, 2009 at 10:04:51AM -0700, Dmitry Torokhov wrote:
+>>>> I don't think this is the proper layer to do the filtering, the  
+>>>> filter
+>>>> should be done in i8042, not input core. The way you done it  
+>>>> would kill
+>>>> any possibility of user assigning KEY_WLAN to a spare key on his  
+>>>> or her
+>>>> keyboard and using it to control wireless cards that are not  
+>>>> hardwired.
+>>>
+>>> Ok, that seems fine.
+>>>
+>>>> I would accept the patch that would add a filter in the form
+>>>>
+>>>>    bool (*i8042_fillter)(unsigned char data, unsigned int flags,
+>>>>            struct serio *port);
+>>>>
+>>>> I don't think we'd need to chain them into a list or something,  
+>>>> one hook
+>>>> should be enough since I don't expect we'll have several platform
+>>>> drivers loaded on one box.
+>>>
+>>> So filter on the raw i8042 data rather than after any processing?
+>>> Wouldn't this require some level of state machine in the driver  
+>>> using
+>>> this functionality?
+>>
+>> Yes, but it should not be too complex - with laptops you can be  
+>> pretty
+>> much sure keyboard is in translated set 2 mode.
+>
+> But don't we have a crapload of implementation weirdness work- 
+> arounds in the
+> i8042 drivers, including some for problems with the raw protocol  
+> itself?  We
+> wouldn't want to duplicate THAT...
 
-KMS popping in as a third kernel backlight provider makes things really
-complicated for the kernel to choose the right thing.
-Getting this prio:
-1. generic ---ACPI
-2. platform---platform drivers
-3. legacy-----i915
-solved in kernel automatically you need something like Rui/Yakui 
-suggested:
-  - Let KMS register first as I expect it will always initialize first
-  - Let ACPI or platform driver unregister KMS backlight interface
-    and take over
-You never know when userspace plans to load the native drivers.
-This complexity for a normally not needed fallback (ACPI or native 
-drivers should be available) is complicated and error-prone.
-This complexity should really be put to userspace where it's easy 
-(three lines in bash) to solve, like I suggested above.
+There actually not many quirks there, once we identified all ports on  
+i8042; mostly we need to deal with keys not sending release events.
 
-Maybe someone has another, easier idea to perfectly solve this 
-automatically in kernel, I do not see it.
+> will the filter be placed somewhere that
+> doesn't have to deal with that kind of bogosity?
 
-    Thomas
+The problem with doing this on input core level is that we don't  
+always even have a keycode, nor do we want one. For example my d630  
+sends some crap through keyboard serio port when it is unhappy with  
+power adapter...
+
+-- 
+Dmitry
