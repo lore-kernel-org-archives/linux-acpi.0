@@ -1,246 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/9] acerhdf: fix fan control for AOA150 model
-Date: Thu, 06 Aug 2009 15:57:52 -0700
-Message-ID: <200908062257.n76MvrRa024247@imap1.linux-foundation.org>
+Subject: [patch 1/9] acpi battery: work around negative s16 battery current on Acer
+Date: Thu, 06 Aug 2009 15:57:48 -0700
+Message-ID: <200908062257.n76Mvm4P024072@imap1.linux-foundation.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755690AbZHFW7G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2009 18:59:06 -0400
+	by vger.kernel.org with ESMTP id S1756431AbZHFW7K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2009 18:59:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, petkovbb@googlemail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, hector@marcansoft.com, astarikovskiy@suse.de
 
-From: Peter Feuerer <peter@piie.net>
+From: Hector Martin <hector@marcansoft.com>
 
-- Apply Borislav Petkov's patch (convert the fancmd[] array to a real
-  struct thus disambiguating command handling and making code more
-  readable.)
+Acer Aspire 8930G laptops (and possibly others) report the battery current
+as a 16-bit signed negative when it is charging.  It also reports it as
+0x10000 when the current is 0.  This patch adds a quirk for this which
+takes the absolute value of the reported current cast to an s16.  This is
+a DSDT bug present in the latest BIOS revision (the EC register is 16 bits
+signed and the DSDT attempts to take the 16-bit two's complement of this,
+which works for discharge but not charge.  It also breaks zero values
+because a 32-bit register is used and the high bits aren't thrown away).
 
-- Add BIOS product to BIOS table as AOA110 and AOA150 have different
-  register values
+I've enabled this for all Acer systems which report in mA units.  This
+should be safe since it won't break compliant systems unless they report a
+current above 32A, which is insane.  The patch also detects the valid
+32-bit value -1, which indicates unknown status, and does not attempt the
+fix in that case (note that this does not conflict with 16-bit -1, which
+is 65535 as read normally and gets translated to 1mA).
 
-- Add force_product parameter to allow forcing different product
-
-- fix linker warning caused by "acerhdf_drv" not being named
-  "acerhdf_driver"
-
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Borislav Petkov <petkovbb@googlemail.com>
+Signed-off-by: Hector Martin <hector@marcansoft.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   97 +++++++++++++++++++++----------
- 1 file changed, 66 insertions(+), 31 deletions(-)
+ drivers/acpi/battery.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-fix-fan-control-for-aoa150-model drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-fix-fan-control-for-aoa150-model
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
+diff -puN drivers/acpi/battery.c~acpi-battery-work-around-negative-s16-battery-current-on-acer drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~acpi-battery-work-around-negative-s16-battery-current-on-acer
++++ a/drivers/acpi/battery.c
+@@ -85,6 +85,10 @@ static const struct acpi_device_id batte
  
--#define DRV_VER "0.5.13"
-+#define DRV_VER "0.5.16"
+ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
  
- /*
-  * According to the Atom N270 datasheet,
-@@ -90,6 +90,7 @@ static unsigned int fanoff = 58;
- static unsigned int verbose;
- static unsigned int fanstate = ACERHDF_FAN_AUTO;
- static char force_bios[16];
-+static char force_product[16];
- static unsigned int prev_interval;
- struct thermal_zone_device *thz_dev;
- struct thermal_cooling_device *cl_dev;
-@@ -107,34 +108,58 @@ module_param(verbose, uint, 0600);
- MODULE_PARM_DESC(verbose, "Enable verbose dmesg output");
- module_param_string(force_bios, force_bios, 16, 0);
- MODULE_PARM_DESC(force_bios, "Force BIOS version and omit BIOS check");
-+module_param_string(force_product, force_product, 16, 0);
-+MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
-+
-+/*
-+ * cmd_off: to switch the fan completely off / to check if the fan is off
-+ *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
-+ *		the fan speed depending on the temperature
++/* For buggy DSDTs that report negative 16-bit values for either charging
++ * or discharging current and/or report 0 as 65536 due to bad math.
 + */
-+struct fancmd {
-+	u8 cmd_off;
-+	u8 cmd_auto;
-+};
++#define QUIRK_SIGNED16_CURRENT 0x0001
  
- /* BIOS settings */
- struct bios_settings_t {
- 	const char *vendor;
-+	const char *product;
- 	const char *version;
- 	unsigned char fanreg;
- 	unsigned char tempreg;
--	unsigned char fancmd[2]; /* fan off and auto commands */
-+	struct fancmd cmd;
+ struct acpi_battery {
+ 	struct mutex lock;
+@@ -112,6 +116,7 @@ struct acpi_battery {
+ 	int state;
+ 	int power_unit;
+ 	u8 alarm_present;
++	long quirks;
  };
  
- /* Register addresses and values for different BIOS versions */
- static const struct bios_settings_t bios_tbl[] = {
--	{"Acer", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
--	{"Acer", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
--	{"Acer", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
--	{"Acer", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
--	{"Acer", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
--	{"Acer", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
--	{"Gateway", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
--	{"Packard Bell", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
--	{"", "", 0, 0, {0, 0} }
-+	/* AOA110 */
-+	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
-+	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
-+	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
-+	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
-+	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
-+	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
-+	/* AOA150 */
-+	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
-+	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
-+	/* special BIOS / other */
-+	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
-+	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
-+	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
-+	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
-+	/* pewpew-terminator */
-+	{"", "", "", 0, 0, {0, 0} }
- };
- 
- static const struct bios_settings_t *bios_cfg __read_mostly;
- 
--
- static int acerhdf_get_temp(int *temp)
- {
- 	u8 read_temp;
-@@ -150,13 +175,14 @@ static int acerhdf_get_temp(int *temp)
- static int acerhdf_get_fanstate(int *state)
- {
- 	u8 fan;
--	bool tmp;
- 
- 	if (ec_read(bios_cfg->fanreg, &fan))
- 		return -EINVAL;
- 
--	tmp = (fan == bios_cfg->fancmd[ACERHDF_FAN_OFF]);
--	*state = tmp ? ACERHDF_FAN_OFF : ACERHDF_FAN_AUTO;
-+	if (fan != bios_cfg->cmd.cmd_off)
-+		*state = ACERHDF_FAN_AUTO;
-+	else
-+		*state = ACERHDF_FAN_OFF;
- 
- 	return 0;
- }
-@@ -175,7 +201,8 @@ static void acerhdf_change_fanstate(int 
- 		state = ACERHDF_FAN_AUTO;
- 	}
- 
--	cmd = bios_cfg->fancmd[state];
-+	cmd = (state == ACERHDF_FAN_OFF) ? bios_cfg->cmd.cmd_off
-+					 : bios_cfg->cmd.cmd_auto;
- 	fanstate = state;
- 
- 	ec_write(bios_cfg->fanreg, cmd);
-@@ -437,7 +464,7 @@ static int acerhdf_remove(struct platfor
- 	return 0;
- }
- 
--struct platform_driver acerhdf_drv = {
-+static struct platform_driver acerhdf_driver = {
- 	.driver = {
- 		.name = "acerhdf",
- 		.owner = THIS_MODULE,
-@@ -454,32 +481,40 @@ static int acerhdf_check_hardware(void)
- {
- 	char const *vendor, *version, *product;
- 	int i;
-+	unsigned long prod_len = 0;
- 
- 	/* get BIOS data */
- 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
- 	version = dmi_get_system_info(DMI_BIOS_VERSION);
- 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
- 
+ #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
+@@ -390,6 +395,11 @@ static int acpi_battery_get_state(struct
+ 				 state_offsets, ARRAY_SIZE(state_offsets));
+ 	battery->update_time = jiffies;
+ 	kfree(buffer.pointer);
 +
- 	pr_info("Acer Aspire One Fan driver, v.%s\n", DRV_VER);
++	if ((battery->quirks & QUIRK_SIGNED16_CURRENT) &&
++	    battery->rate_now != -1)
++		battery->rate_now = abs((s16)battery->rate_now);
++
+ 	return result;
+ }
  
--	if (!force_bios[0]) {
--		if (strncmp(product, "AO", 2)) {
--			pr_err("no Aspire One hardware found\n");
--			return -EINVAL;
--		}
--	} else {
--		pr_info("forcing BIOS version: %s\n", version);
-+	if (force_bios[0]) {
- 		version = force_bios;
-+		pr_info("forcing BIOS version: %s\n", version);
- 		kernelmode = 0;
- 	}
+@@ -495,6 +505,14 @@ static void sysfs_remove_battery(struct 
+ }
+ #endif
  
-+	if (force_product[0]) {
-+		product = force_product;
-+		pr_info("forcing BIOS product: %s\n", product);
-+		kernelmode = 0;
++static void acpi_battery_quirks(struct acpi_battery *battery)
++{
++	battery->quirks = 0;
++	if (dmi_name_in_vendors("Acer") && battery->power_unit) {
++		battery->quirks |= QUIRK_SIGNED16_CURRENT;
 +	}
++}
 +
-+	prod_len = strlen(product);
-+
- 	if (verbose)
- 		pr_info("BIOS info: %s %s, product: %s\n",
- 			vendor, version, product);
- 
- 	/* search BIOS version and vendor in BIOS settings table */
- 	for (i = 0; bios_tbl[i].version[0]; i++) {
--		if (!strcmp(bios_tbl[i].vendor, vendor) &&
-+		if (strlen(bios_tbl[i].product) >= prod_len &&
-+		    !strncmp(bios_tbl[i].product, product,
-+			   strlen(bios_tbl[i].product)) &&
-+		    !strcmp(bios_tbl[i].vendor, vendor) &&
- 		    !strcmp(bios_tbl[i].version, version)) {
- 			bios_cfg = &bios_tbl[i];
- 			break;
-@@ -487,8 +522,8 @@ static int acerhdf_check_hardware(void)
- 	}
- 
- 	if (!bios_cfg) {
--		pr_err("unknown (unsupported) BIOS version %s/%s, "
--			"please report, aborting!\n", vendor, version);
-+		pr_err("unknown (unsupported) BIOS version %s/%s/%s, "
-+			"please report, aborting!\n", vendor, product, version);
- 		return -EINVAL;
- 	}
- 
-@@ -509,7 +544,7 @@ static int acerhdf_register_platform(voi
+ static int acpi_battery_update(struct acpi_battery *battery)
  {
- 	int err = 0;
- 
--	err = platform_driver_register(&acerhdf_drv);
-+	err = platform_driver_register(&acerhdf_driver);
- 	if (err)
- 		return err;
- 
-@@ -525,7 +560,7 @@ static void acerhdf_unregister_platform(
- 		return;
- 
- 	platform_device_del(acerhdf_dev);
--	platform_driver_unregister(&acerhdf_drv);
-+	platform_driver_unregister(&acerhdf_driver);
- }
- 
- static int acerhdf_register_thermal(void)
+ 	int result, old_present = acpi_battery_present(battery);
+@@ -513,6 +531,7 @@ static int acpi_battery_update(struct ac
+ 		result = acpi_battery_get_info(battery);
+ 		if (result)
+ 			return result;
++		acpi_battery_quirks(battery);
+ 		acpi_battery_init_alarm(battery);
+ 	}
+ #ifdef CONFIG_ACPI_SYSFS_POWER
 _
