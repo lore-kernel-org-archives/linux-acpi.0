@@ -1,134 +1,94 @@
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Subject: [PATCH] acpi: fix acpi_device_{install,remove}_notify_handler() for _HID-less devices
-Date: Thu, 6 Aug 2009 21:41:52 +0200
-Message-ID: <200908062141.52501.bzolnier@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: a backlight issue
+Date: Thu, 6 Aug 2009 16:50:32 -0300
+Message-ID: <20090806195032.GF15867@khazad-dum.debian.net>
+References: <1245895749.7266.70.camel@localhost.localdomain>
+ <200908051450.27970.trenn@suse.de>
+ <20090806125552.GB15867@khazad-dum.debian.net>
+ <200908061538.39238.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756590AbZHFTmU@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:60615 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756084AbZHFTug (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2009 15:50:36 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <200908061538.39238.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: yakui_zhao <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rpurdie@linux.intel.com, jbarnes@virtuousgeek.org, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Subject: [PATCH] acpi: fix acpi_device_{install,remove}_notify_handler() for _HID-less devices
+On Thu, 06 Aug 2009, Thomas Renninger wrote:
+> On Thursday 06 August 2009 14:55:52 Henrique de Moraes Holschuh wrote:
+> > On Wed, 05 Aug 2009, Thomas Renninger wrote:
+> > > If in KMS drivers backlight switching method is implemented
+> > > and can register for the generic backlight driver, it should always
+> > > be
+> > > disabled by default. Instead, KMS drivers should export a simple
+> > > "backlight_enable" file somewhere in sysfs. If userspace doesn't
+> > > find a sysfs backlight interface, it can do:
+> > > echo 1 >/sys/path_to_graphics_card/backlight_enable
+> > > and a backlight sysfs interface should pop up on success.
+> > 
+> > IMO, we already have an in-kernel selector of the backlight control
+> > method for mutually-exclusive backlight control strategies.
+> You mean the ACPI vs native driver detection?
 
-The buffer pointer returned by acpi_device_hid() should be considered
-as valid IFF device->flags.hardware_id flag is set (== device supports
-_HID method).
+Yes. 
 
-This is not a problem currently (cause we use static buffers) but after
-commit ed444824932d2a563858d82ec1ea29b0aa775e91 ("ACPICA: Major update
-for acpi_get_object_info external interface") ->pnp.hardware_id will
-be NULL for ACPI video devices which don't support _HID method (i.e.
-the one in Asus Eee 901 w/ BIOSes 1202 and the latest 2103) resulting
-in an OOPS and non-working Xorg (as observed with Ubuntu 9.10 UNR).
+> > We should use that, and if it is complete/good enough to add the KMS
+> > scenario, improve it.
+> You mean if it is *not* complete/good enough?
 
-ACPI: Video Device [VGA] (multi-head: yes  rom: no  post: no)
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<c0302101>] strcmp+0x11/0x30
-*pde = 00000000 
-Oops: 0000 [#1] SMP 
-last sysfs file: /sys/devices/LNXSYSTM:00/modalias
-Modules linked in: video(+) output eeepc_laptop(+)
+Yes, sorry about that.
 
-Pid: 249, comm: modprobe Not tainted (2.6.31-rc5-next-20090806-eee #49) 901
-EIP: 0060:[<c0302101>] EFLAGS: 00010296 CPU: 0
-EIP is at strcmp+0x11/0x30
-EAX: 00000000 EBX: f70ea000 ECX: 00000082 EDX: c063d4a5
-ESI: 00000000 EDI: c063d4a5 EBP: f6a1be14 ESP: f6a1be0c
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process modprobe (pid: 249, ti=f6a1a000 task=f6a15300 task.ti=f6a1a000)
-Stack:
- 00000000 00000000 f6a1be30 c033073e f70ea1e4 f8051550 ffffffed f70ea1e4
-<0> f8051618 f6a1be58 c0388ba9 f6a1be50 c03305bf f804fc2c 00000286 f6a1be58
-<0> f70ea1e4 f8051618 f70ea218 f6a1be6c c0388d31 00000000 f6a1be78 f8051618
-Call Trace:
- [<c033073e>] ? acpi_device_probe+0x9c/0x11e
- [<c0388ba9>] ? driver_probe_device+0x69/0x170
- [<c03305bf>] ? acpi_match_device_ids+0x52/0x76
- [<c0388d31>] ? __driver_attach+0x81/0x90
- [<c038844b>] ? bus_for_each_dev+0x5b/0x80
- [<c03305fd>] ? acpi_device_remove+0x0/0xa5
- [<c0388a59>] ? driver_attach+0x19/0x20
- [<c0388cb0>] ? __driver_attach+0x0/0x90
- [<c0387def>] ? bus_add_driver+0x1bf/0x280
- [<c03305fd>] ? acpi_device_remove+0x0/0xa5
- [<c0388fb5>] ? driver_register+0x75/0x160
- [<c021e5d3>] ? proc_mkdir_mode+0x33/0x50
- [<c0331c1a>] ? acpi_bus_register_driver+0x3a/0x3c
- [<f804f1ad>] ? acpi_video_register+0x36/0x61 [video]
- [<f805407a>] ? acpi_video_init+0x69/0x6b [video]
- [<f8054011>] ? acpi_video_init+0x0/0x6b [video]
- [<c010112b>] ? do_one_initcall+0x2b/0x160
- [<c019283f>] ? tracepoint_module_notify+0x2f/0x40
- [<c05216bd>] ? notifier_call_chain+0x2d/0x70
- [<c015bf4d>] ? __blocking_notifier_call_chain+0x4d/0x60
- [<c016e772>] ? sys_init_module+0xb2/0x1f0
- [<c010303c>] ? sysenter_do_call+0x12/0x28
-Code: 8b 45 f0 8b 5d f4 8b 75 f8 8b 7d fc 89 ec 5d c3 8d 76 00 8d bc 27 00 00 00 00 55 89 e5 83 ec 08 89 34 24 89 c6 89 7c 24 04 89 d7 <ac> ae 75 08 84 c0 75 f8 31 c0 eb 04 19 c0 0c 01 8b 34 24 8b 7c 
-EIP: [<c0302101>] strcmp+0x11/0x30 SS:ESP 0068:f6a1be0c
-CR2: 0000000000000000
----[ end trace 618b66b50ec5e42a ]---
+> KMS popping in as a third kernel backlight provider makes things really
+> complicated for the kernel to choose the right thing.
+> Getting this prio:
+> 1. generic ---ACPI
+> 2. platform---platform drivers
+> 3. legacy-----i915
+> solved in kernel automatically you need something like Rui/Yakui 
+> suggested:
+>   - Let KMS register first as I expect it will always initialize first
+>   - Let ACPI or platform driver unregister KMS backlight interface
+>     and take over
+> You never know when userspace plans to load the native drivers.
 
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
----
-This fixes a month long -next regression.
+Or unload them, which should be fully supported...
 
-Len, could this (or an equivalent fix) go into 2.6.31 so we will
-never see the regression upstream and -next will fix itself..?
+> This complexity for a normally not needed fallback (ACPI or native 
+> drivers should be available) is complicated and error-prone.
 
- drivers/acpi/scan.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+More error-prone than OpRegion and the SMM mess from hell on most laptops?
 
-Index: b/drivers/acpi/scan.c
-===================================================================
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -375,13 +375,17 @@ static int acpi_device_install_notify_ha
- 	acpi_status status;
- 	char *hid;
- 
--	hid = acpi_device_hid(device);
--	if (!strcmp(hid, ACPI_BUTTON_HID_POWERF))
-+	if (device->flags.hardware_id)
-+		hid = acpi_device_hid(device);
-+	else
-+		hid = NULL;
-+
-+	if (hid && !strcmp(hid, ACPI_BUTTON_HID_POWERF))
- 		status =
- 		    acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
- 						     acpi_device_notify_fixed,
- 						     device);
--	else if (!strcmp(hid, ACPI_BUTTON_HID_SLEEPF))
-+	else if (hid && !strcmp(hid, ACPI_BUTTON_HID_SLEEPF))
- 		status =
- 		    acpi_install_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
- 						     acpi_device_notify_fixed,
-@@ -399,10 +403,17 @@ static int acpi_device_install_notify_ha
- 
- static void acpi_device_remove_notify_handler(struct acpi_device *device)
- {
--	if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_POWERF))
-+	char *hid;
-+
-+	if (device->flags.hardware_id)
-+		hid = acpi_device_hid(device);
-+	else
-+		hid = NULL;
-+
-+	if (hid && !strcmp(hid, ACPI_BUTTON_HID_POWERF))
- 		acpi_remove_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,
- 						acpi_device_notify_fixed);
--	else if (!strcmp(acpi_device_hid(device), ACPI_BUTTON_HID_SLEEPF))
-+	else if (hid && !strcmp(hid, ACPI_BUTTON_HID_SLEEPF))
- 		acpi_remove_fixed_event_handler(ACPI_EVENT_SLEEP_BUTTON,
- 						acpi_device_notify_fixed);
- 	else
+> This complexity should really be put to userspace where it's easy 
+> (three lines in bash) to solve, like I suggested above.
+> 
+> Maybe someone has another, easier idea to perfectly solve this 
+> automatically in kernel, I do not see it.
+
+I do, but I don't know if it is a better solution.  In its "purest" form it
+would be:  Teach the backlight core to have backlight domains and add a
+backlight domain controler there.
+
+You get KMS, platform drivers taking care of the main LVDS screen, and ACPI
+on a single domain, let the kernel select ACPI by default or a different one
+by command line, and let userspace change it through sysfs.
+
+Drivers need some change to actually just register their backlight hooks
+(plus hooks for "activate driver" and "deactivate driver", which are new)
+with the backlight domain controller instead of a full backlight
+device/class.  Other backlight drivers just register their own device using
+the existing API.
+
+Now, is that a better solution? I don't know.  But it is more user-friendly
+than what we have now, and more powerful.  It is also more complex.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
