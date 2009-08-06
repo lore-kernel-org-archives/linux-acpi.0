@@ -1,63 +1,62 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
-Date: Thu, 6 Aug 2009 13:59:48 +0200
-Message-ID: <71cd59b00908060459y56448912od7f8914f3b44de0e@mail.gmail.com>
-References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
-	 <71cd59b00908020020p1f672529mf3cd403526005ed5@mail.gmail.com>
-	 <200908061207.12450.corentin.chary@gmail.com>
-	 <200908061248.40340.danny.kukawka@web.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/2] input: Add support for filtering input events
+Date: Thu, 6 Aug 2009 09:49:10 -0300
+Message-ID: <20090806124910.GA15867@khazad-dum.debian.net>
+References: <1249007207-27392-1-git-send-email-mjg@redhat.com>
+ <20090803170453.F0DF9526EA5@mailhub.coreip.homeip.net>
+ <20090804100158.GA14530@srcf.ucam.org>
+ <20090805044923.6AE71526EA5@mailhub.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f228.google.com ([209.85.220.228]:39237 "EHLO
-	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754432AbZHFL7t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2009 07:59:49 -0400
-Received: by fxm28 with SMTP id 28so688074fxm.17
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2009 04:59:48 -0700 (PDT)
-In-Reply-To: <200908061248.40340.danny.kukawka@web.de>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:55329 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753016AbZHFMtV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2009 08:49:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20090805044923.6AE71526EA5@mailhub.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Kukawka <danny.kukawka@web.de>
-Cc: hal@lists.freedesktop.org, Matthew Garrett <mjg59@srcf.ucam.org>, acpi4asus-user@lists.sourceforge.net, Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux acpi <linux-acpi@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
 
-On Thu, Aug 6, 2009 at 12:48 PM, Danny Kukawka<danny.kukawka@web.de> wrote:
-> On Donnerstag, 6. August 2009, Corentin Chary wrote:
->> Hi Danny,
->> I was trying to add keyboard_backlight.num_levels support for your modified
->> led-addon. But there is something I don't understand :-
->> keyboard_backlight.num_levels is used in:
->> - examples/light_sensors_and_keyboard_backlight.py
->> - fdi/policy/10osvendor/10-macbookpro-utils.fdi
->> - kde/solid/hal/halpower.cpp
->> But it is not defined in doc/spec/hal-spec-properties.xml.
->>
->> Should I make another patch to fix hal-spec-properties ?
->
-> Can you please provide a "grep . */*" from /sys/class/leds/ with the affected
-> device? If I read the kernel doc for leds (which this device is), we don't
-> need a num_levels for it:
->
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/leds-class.txt;h=6399557cdab3d6542a0feea0c0cd2c6b2af5ffad;hb=HEAD
->
-> "... The brightness file will set the brightness of the LED (taking a value
-> 0-255). Most LEDs don't have hardware brightness support so will just be
-> turned on for non-zero brightness settings. ..."
->
+On Tue, 04 Aug 2009, Dmitry Torokhov wrote:
+> On Tue, Aug 04, 2009 at 11:01:58AM +0100, Matthew Garrett wrote:
+> > On Mon, Aug 03, 2009 at 10:04:51AM -0700, Dmitry Torokhov wrote:
+> > > I don't think this is the proper layer to do the filtering, the filter
+> > > should be done in i8042, not input core. The way you done it would kill
+> > > any possibility of user assigning KEY_WLAN to a spare key on his or her
+> > > keyboard and using it to control wireless cards that are not hardwired.
+> > 
+> > Ok, that seems fine.
+> > 
+> > > I would accept the patch that would add a filter in the form
+> > > 
+> > > 	bool (*i8042_fillter)(unsigned char data, unsigned int flags,
+> > > 			struct serio *port);
+> > > 
+> > > I don't think we'd need to chain them into a list or something, one hook
+> > > should be enough since I don't expect we'll have several platform
+> > > drivers loaded on one box.
+> > 
+> > So filter on the raw i8042 data rather than after any processing? 
+> > Wouldn't this require some level of state machine in the driver using 
+> > this functionality?
+> 
+> Yes, but it should not be too complex - with laptops you can be pretty
+> much sure keyboard is in translated set 2 mode.
 
-The documentation is probably out of date, the led class provide
-a max_brightness file. 255 is the default value, but it can be overridden.
+But don't we have a crapload of implementation weirdness work-arounds in the
+i8042 drivers, including some for problems with the raw protocol itself?  We
+wouldn't want to duplicate THAT...  will the filter be placed somewhere that
+doesn't have to deal with that kind of bogosity?
 
-See: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/leds/led-class.c;h=f2cc13d76810f457c752d6f92f53759980f465ea;hb=HEAD#l76
+With laptops, you can be sure that 99% of the time, the i8042 is just
+firmware running inside the EC, and subject to a LOT MORE bugs and
+incompetence than an emulated i8042 inside the chipset would be...
 
-leds-dac124s085.c define it to 0xFFF for example.
-And asus-laptop will soon use 3 as max_brightness for asus::kbd_backlight.
-
-But still, it seems that examples/light_sensors_and_keyboard_backlight.py
-and others are using something that is not defined in hal-spec-properties.
-
-Thanks,
 -- 
-Corentin Chary
-http://xf.iksaif.net - http://uffs.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
