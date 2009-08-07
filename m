@@ -1,107 +1,60 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: a backlight issue
-Date: Fri, 7 Aug 2009 10:25:30 +0200
-Message-ID: <200908071025.31793.trenn@suse.de>
-References: <1245895749.7266.70.camel@localhost.localdomain> <200908061538.39238.trenn@suse.de> <20090806195032.GF15867@khazad-dum.debian.net>
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: Re: [PATCH] acpi: fix acpi_device_{install,remove}_notify_handler() for _HID-less devices
+Date: Fri, 7 Aug 2009 15:09:17 +0200
+Message-ID: <200908071509.17402.bzolnier@gmail.com>
+References: <200908062141.52501.bzolnier@gmail.com> <1249606433.7301.23.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:47880 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755314AbZHGIZe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Aug 2009 04:25:34 -0400
-In-Reply-To: <20090806195032.GF15867@khazad-dum.debian.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756177AbZHGNKO@vger.kernel.org>
+In-Reply-To: <1249606433.7301.23.camel@minggr.sh.intel.com>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: yakui_zhao <yakui.zhao@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, rpurdie@linux.intel.com, jbarnes@virtuousgeek.org, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg@redhat.com>
 
-On Thursday 06 August 2009 21:50:32 Henrique de Moraes Holschuh wrote:
-> On Thu, 06 Aug 2009, Thomas Renninger wrote:
-> > On Thursday 06 August 2009 14:55:52 Henrique de Moraes Holschuh wrote:
-> > > On Wed, 05 Aug 2009, Thomas Renninger wrote:
-> > > > If in KMS drivers backlight switching method is implemented
-> > > > and can register for the generic backlight driver, it should always
-> > > > be
-> > > > disabled by default. Instead, KMS drivers should export a simple
-> > > > "backlight_enable" file somewhere in sysfs. If userspace doesn't
-> > > > find a sysfs backlight interface, it can do:
-> > > > echo 1 >/sys/path_to_graphics_card/backlight_enable
-> > > > and a backlight sysfs interface should pop up on success.
-> > > 
-> > > IMO, we already have an in-kernel selector of the backlight control
-> > > method for mutually-exclusive backlight control strategies.
-> > You mean the ACPI vs native driver detection?
-> 
-> Yes. 
-> 
-> > > We should use that, and if it is complete/good enough to add the KMS
-> > > scenario, improve it.
-> > You mean if it is *not* complete/good enough?
-> 
-> Yes, sorry about that.
-> 
-> > KMS popping in as a third kernel backlight provider makes things really
-> > complicated for the kernel to choose the right thing.
-> > Getting this prio:
-> > 1. generic ---ACPI
-> > 2. platform---platform drivers
-> > 3. legacy-----i915
-> > solved in kernel automatically you need something like Rui/Yakui 
-> > suggested:
-> >   - Let KMS register first as I expect it will always initialize first
-> >   - Let ACPI or platform driver unregister KMS backlight interface
-> >     and take over
-> > You never know when userspace plans to load the native drivers.
-> 
-> Or unload them, which should be fully supported...
-> 
-> > This complexity for a normally not needed fallback (ACPI or native 
-> > drivers should be available) is complicated and error-prone.
-> 
-> More error-prone than OpRegion and the SMM mess from hell on most laptops?
-> 
-> > This complexity should really be put to userspace where it's easy 
-> > (three lines in bash) to solve, like I suggested above.
-> > 
-> > Maybe someone has another, easier idea to perfectly solve this 
-> > automatically in kernel, I do not see it.
-> 
-> I do, but I don't know if it is a better solution.  In its "purest" form it
-> would be:  Teach the backlight core to have backlight domains and add a
-> backlight domain controler there.
-> 
-> You get KMS, platform drivers taking care of the main LVDS screen, and ACPI
-> on a single domain, let the kernel select ACPI by default or a different one
-> by command line, and let userspace change it through sysfs.
-> 
-> Drivers need some change to actually just register their backlight hooks
-> (plus hooks for "activate driver" and "deactivate driver", which are new)
-> with the backlight domain controller instead of a full backlight
-> device/class.  Other backlight drivers just register their own device using
-> the existing API.
-> 
-> Now, is that a better solution? I don't know.
-I don't think so. It sounds like quite some code/complexity that needs to be
-added for no functional enhancement.
-This is all about solving the complexity in kernel or in userspace.
-As it is *much* easier in userspace, I'd go that way.
 
-> But it is more user-friendly than what we have now, and more powerful.
-Why is it more powerful?
-It's about solving the problem in kernel or in userspace, while userspace
-might have additional info for choosing the right thing.
-> It is also more complex.
-Which is a very strong argument.
+Hi,
 
-   Thomas
+On Friday 07 August 2009 02:53:53 Lin Ming wrote:
+> On Fri, 2009-08-07 at 03:41 +0800, Bartlomiej Zolnierkiewicz wrote:
+> > From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+> > Subject: [PATCH] acpi: fix acpi_device_{install,remove}_notify_handler() for _HID-less devices
+> 
+> Hi,
+> 
+> The patch in -mm tree titled
+> "acpi-fix-null-bug-for-hid-uid-string-2.patch"
+> has fixed this regression.
+> Would you please give it a try?
+> 
+> The patch attached below.
+> 
+> Subject: acpi: fix NULL bug for HID/UID string
+> From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+> 
+> acpi_device->pnp.hardware_id and unique_id are now allocated pointers,
+> replacing the previous arrays.  acpi_device_install_notify_handler()
+> oopsed on the NULL hid when probing the video device, and perhaps other
+> uses are vulnerable too.  So initialize those pointers to empty strings
+> when there is no hid or uid.  Also, free hardware_id and unique_id when
+> when acpi_device is going to be freed.
+> 
+> Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-BTW: How would several graphics cards/monitors and switching between them
-be handled currently or in future?
-I once had such a machine and IIRC you ended up in double steps using generic
-ACPI backlight funcs on both graphics cards. When I saw the two active ACPI
-graphics devices I was happy that this was the only related defect and
-silently ignored it :)
+Hugh's patch also fixes the problem and I like it more than mine version
+(BTW mmotm still contains older acpi-fix-null-bug-for-hid-uid-string.patch
+not acpi-fix-null-bug-for-hid-uid-string-2.patch).
+
+Andrew, could mmotm be somehow integrated with -next (the above bug was
+fixed in mmotm two weeks ago already)?  If you're worried about affecting
+-next's quality, worry not, it really can't be much worse than it is now
+(at least we would have all outstanding patches really in the one place)..
+
+Thanks,
+Bart
