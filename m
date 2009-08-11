@@ -1,181 +1,318 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V2 0/4] introduce device async actions
-	mechanism
-Date: Tue, 11 Aug 2009 14:22:03 +0800
-Message-ID: <1249971723.7853.37.camel@rzhang-dt>
-References: <1248404514.2670.107.camel@rzhang-dt>
-	<200908041821.26578.rjw@sisk.pl> <1249439048.2670.454.camel@rzhang-dt>
-	<200908080222.03172.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
+Date: Tue, 11 Aug 2009 17:34:58 +0200
+Message-ID: <200908111734.58949.rjw@sisk.pl>
+References: <1248404514.2670.107.camel@rzhang-dt> <200908080222.03172.rjw@sisk.pl> <1249971723.7853.37.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200908080222.03172.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "dtor@mail.ru" <dtor@mail.ru>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@linux.intel.com>
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:54084 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751086AbZHKPeV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Aug 2009 11:34:21 -0400
+In-Reply-To: <1249971723.7853.37.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
 
-T24gU2F0LCAyMDA5LTA4LTA4IGF0IDA4OjIyICswODAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToKPiA+ID4KPiA+IHNvbWV0aGluZyBsaWtlIHRoaXM/Cj4gPgo+ID4gMS4gZGV2aWNlIHN1c3Bl
-bmQvcmVzdW1lIGFyZSBzcGxpdCBpbnRvIHNldmVyYWwgc3RhZ2VzLiBBbmQgdGhlIFBNCj4gPiBj
-YWxsYmFja3Mgb2YgZXZlcnkgZGV2aWNlIHNob3VsZCBiZSBwdXQgaW50byBvbmUgb2YgdGhlc2Ug
-c3RhZ2UuCj4gCj4gVGhhdCdzIGNvcnJlY3QuCj4gCj4gPiAyLiBydW4gYWxsIHRoZSBQTSBjYWxs
-YmFja3MgaW4gY3VycmVudCBzdGFnZSBhc3luY2hyb25vdXNseSwgaW4gdGhlCj4gPiBnbG9iYWwg
-ZG9tYWluLgo+IAo+IFllcywgZXhjZXB0IHRoYXQgbm90IGFsbCBvZiB0aGUgUE0gY2FsbGJhY2tz
-IGF0IGdpdmVuIHN0YWdlIG1heSBiZSBydW4gaW4KPiBwYXJhbGxlbCB3aXRoIGVhY2ggb3RoZXIu
-Cj4gCgpObywgZXZlcnkgUE0gY2FsbGJhY2tzIGluIHRoZSBzYW1lIHN0YWdlIHNob3VsZCBiZSBy
-dW4gaW4gcGFyYWxsZWwsCm9yIGVsc2Ugd2UgbmVlZCB0byB1c2UgdGhlIGFzeW5jIGNvb2tpZXMg
-dG8gaGFuZGxlIHRoZSBkZXZpY2UKZGVwZW5kZW5jeSwgcmlnaHQ/CklmIHRoaXMgaXMgdHJ1ZSwg
-SSdtIGFmcmFpZCB3ZSBjYW4gbm90IGRvIFJFQUwgYXN5bmNocm9ub3VzIHJlc3VtZSBpbiBhCmNl
-cnRhaW4gc3RhZ2UuCgpGb3IgZXhhbXBsZSwKZGV2aWNlIDMgZGVwZW5kcyBvbiBkZXZpY2UgMiwg
-ZGV2aWNlIDIgZGVwZW5kcyBvbiBkZXZpY2UgMS4KZGV2aWNlIDYgZGVwZW5kcyBvbiBkZXZpY2Ug
-NSwgZGV2aWNlIDUgZGVwZW5kcyBvbiBkZXZpY2UgNC4KZGV2aWNlIDEsMiwzIGFuZCBkZXZpY2Ug
-NCw1LDYgY2FuIHJlc3VtZSBpbiBwYXJhbGxlbC4KCu+7v0lmIHRoZXkgc2hhcmUgdGhlIGdsb2Jh
-bCBkb21haW4sIHdlIG1heSBnZXQ677u/CmRldmljZTEoY29va2llIDEpLCBkZXZpY2UyKGNvb2tp
-ZSA0KSwgZGV2aWNlMyhjb29raWUgNSkKZGV2aWNlNChjb29raWUgMiksIGRldmljZTUoY29va2ll
-IDMpLCBkZXZpY2U2KGNvb2tpZSA2KQoKdGhpcyBpcyBub3QgcmVhbCBhc3luY2hyb25vdXMgcmVz
-dW1lIGJlY2F1c2UKZGV2aWNlMyBuZWVkcyB0byBjYWxsIGFzeW5jX3N5bmNocm9uaXplX2Nvb2tp
-ZSg1KSBiZWZvcmUgcmVzdW1lIGl0c2VsZi4Kd2hpY2ggbWVhbnMgdGhhdCBkZXZpY2U0IGFuZCBk
-ZXZpY2U1IG11c3QgYmUgcmVzdW1lZCBiZWZvcmUgZGV2aWNlMy4KCndoaWxlIHRoaXMgaXMgbm90
-IGEgcHJvYmxlbSBpZiBtdWx0aXBsZSBhc3luYyBkb21haW4gaXMgdXNlZCwKZG9tYWluMTogZGV2
-aWNlMShjb29raWUgMSksIGRldmljZTIoY29va2llIDIpLCBkZXZpY2UzKGNvb2tpZSAzKQpkb21h
-aW4yOiBkZXZpY2U0KGNvb2tpZSAxKSwgZGV2aWNlNShjb29raWUgMiksIGRldmljZTYoY29va2ll
-IDMpCgo+IEdlbmVyYWxseSBzcGVha2luZywgaXQgc2hvdWxkIGJlIHBvc3NpYmxlIHRvIGRpdmlk
-ZSB0aGUgZGV2aWNlIHRyZWUgaW50bwo+IGxheWVycywgd2hlcmUgZWFjaCBsYXllciBjb250YWlu
-cyBkZXZpY2VzIGZvciB3aGljaCB0aGUgUE0gY2FsbGJhY2tzIGNhbiBiZQo+IGV4ZWN1dGVkIGlu
-IHBhcmFsbGVsIGFuZCB3aGVyZSB0aGUgUE0gY2FsbGJhY2tzIGZyb20gbGF5ZXIgMSBzaG91bGQg
-YmUgZXhlY3V0ZWQKPiBiZWZvcmUgdGhlIFBNIGNhbGxiYWNrcyBmcm9tIGxheWVyIDIgYW5kIHNv
-IG9uLgo+IAp5ZXMuCgo+IE5vdyB0aGUgcXVlc3Rpb24gaXMgaG93IHRvIGRldGVybWluZSB3aGlj
-aCBsYXllciB0byBwdXQgZ2l2ZW4gZGV2aWNlIGludG8uCgpyaWdodC4KTXkgY29uY2VybiBpcyB0
-aGF0IHdlIGNhbiBub3QgZmluZCBzdWNoIGdlbmVyaWMgbGF5ZXJzIGV4Y2VwdCB0aGUgbGVhZgpk
-ZXZpY2UsIGVzcGVjaWFsbHkgd2Ugc2hvdWxkIG1ha2Ugc3VyZSB0aGF0CjEuIGFsbCB0aGUgZGV2
-aWNlcyBpbiB0aGUgc2FtZSBsYXllciBDQU4gcnVuIGluIHBhcmFsbGVsCjIuIGFsbCB0aGUgc2xv
-dyBkZXZpY2VzIGFyZSBwdXQgaW50byB0aGUgc2FtZSBsYXllcgoKPiBPZiBjb3Vyc2UgdGhlIGxl
-YWYgZGV2aWNlcyB3aXRoIG5vIGRlcGVuZGVuY2llcyBhbmQgdGhlIG90aGVyIGRldmljZXMgaXMg
-dGhlCj4gc2ltcGxlc3QgcG9zc2libGUgd2F5IG9mIGRpdmlkaW5nIGRldmljZXMgaW50byBzdWNo
-IGxheWVycywgYnV0IGluIHByaW5jaXBsZQo+IGl0IHNob3VsZCBiZSBwb3NzaWJsZSB0byBpZGVu
-dGlmeSBtb3JlIGxheWVycy4KPiAKSSdtIG5vdCBzdXJlLgoKPiBBbHRlcm5hdGl2ZWx5IHdlIGNh
-biBpZGVudGlmeSBicmFuY2hlcyBvZiB0aGUgZGV2aWNlIHRyZWUgdGhhdCBjYW4gYmUgaGFuZGxl
-ZAo+IGluIHBhcmFsbGVsLCB3aGljaCBJIHRoaW5rIHdhcyB5b3VyIGlkZWEsIHdhc24ndCBpdD8g
-IEl0IGFsc28gbWlnaHQgd29yaywgYnV0Cj4gZm9yIHRoaXMgcHVycG9zZSB3ZSdkIGhhdmUgdG8g
-ZGl2aWRlIGRwbV9saXN0IGludG8gc2V2ZXJhbCBsaXN0cyBhbmQgY2FsbAo+IGRwbV9yZXN1bWUo
-KSBldGMuIGZvciB0aGVtIGluIHBhcmFsbGVsLiAgU2VlbXMgZG9hYmxlIHRvby4KPiAKeWVzLgpJ
-IGtub3cgdGhpcyBwcm9wb3NhbCBpcyBub3QgZ2VuZXJpYyBlbm91Z2gsIGJ1dCBmb3J0dW5hdGVs
-eSB3ZSBkb24ndApuZWVkIHRvIGlkZW50aWZ5IHRoZSBicmFuY2hlcyBmb3IgYWxsIHRoZSBkZXZp
-Y2VzLCBuZWl0aGVyLgpCZWNhdXNlIHNldmVyYWwgU0xPVyBkZXZpY2VzIGNvc3QgbW9zdCBvZiB0
-aGUgc3VzcGVuZC9yZXN1bWUgdGltZSwgYW5kCndlIGNhbiBmb2N1cyBvbiB0aGVzZSBkZXZpY2Vz
-IG9ubHkuIDopCgo+ID4gMy4gcnVuIGFzeW5jX3N5bmNocm9uaXplX2Z1bGwgdG8gZmluaXNoIHRo
-ZSBjdXJyZW50IHN0YXRlLgo+IAo+IFllcy4KPiAKPiA+IDQuIHN0YWdlKyssIGFuZCBnb3RvIHN0
-ZXAgMi4KPiAKPiBTb21ldGhpbmcgbGlrZSB0aGlzLgo+IAo+ID4gPiA+IEknbSBhZnJhaWQgdGhp
-cyB3b24ndCBicmluZyBhcyBtYW55IGJlbmVmaXRzIGFzIGl0IGxvb2tzIGxpa2UgYmVjYXVzZQo+
-ID4gPiA+IG1vc3Qgb2YgdGhlIHN1c3BlbmQvcmVzdW1lIHRpbWUgaXMgY29zdCBvbiBzZXZlcmFs
-IHNwZWNpZmllZCBkZXZpY2VzLgo+ID4gPgo+ID4gPiBUaGF0IHNob3VsZG4ndCBtYXR0ZXIuICBB
-cyBsb25nIGFzIHRoZXJlJ3Mgb25lIGRyaXZlciB0aGF0IHdhaXRzIGxvbmcgZW5vdWdoCj4gPiA+
-IGZvciB0aGUgb3RoZXJzJyBkZXZpY2VzIHRvIGJlIGhhbmRsZWQgd2hpbGUgaXQncyB3YWl0aW5n
-LCB3ZSBhcmUgbm90IGdvaW5nCj4gPiA+IHRvIGJlIGh1cnQgYnkgdGhpcyBhbmQgdGhlIGRlc2ln
-biBpcyBnb2luZyB0byBiZSBzaW1wbGVyIElNTy4KPiA+ID4KPiA+ID4gPiBUYWtlIHRoZSBkbWVz
-ZyBJIGF0dGFjaGVkIGZvciBleGFtcGxlLgo+ID4gPiA+Cj4gPiA+ID4gdG90YWwgZGV2aWNlIHN1
-c3BlbmQgdGltZSBpcyAxLjUzMnMuCj4gPiA+ID4gc2VyaW8yICAgICAgICAgICAgMC40MDdzCj4g
-PiA+ID4gc2QgMC4wLjAuMCAgICAgICAgMC40NTJzCj4gPiA+ID4gc2VyaW8wICAgICAgICAgICAg
-MC4xMDNzCj4gPiA+ID4gMGIuNC4yICAgICAgICAgICAgMC4xMTRzCj4gPiA+ID4gMDAuMWYuMiAg
-ICAgICAgICAgMC4wODBzCj4gPiA+ID4gMDAuMTkuMCAgICAgICAgICAgMC4wNzJzCj4gPiA+ID4g
-YWxsIHRoZSBvdGhlcnMgICAgMC4zMDRzCj4gPiA+ID4KPiA+ID4gPiB0b3RhbCBkZXZpY2UgcmVz
-dW1lIHRpbWUgaXMgMi44OTlzCj4gPiA+ID4gUE5QMEMwQTowMChiYXQpICAgMC44OTZzCj4gPiA+
-ID4gMDAuMTkuMCAgICAgICAgICAgMC4wNTZzCj4gPiA+ID4gMGIuNC4wICAgICAgICAgICAgMC4x
-MzlzCj4gPiA+ID4gMGIuMS4xICAgICAgICAgICAgMC4wNjRzCj4gPiA+ID4gdXNiMSAgICAgICAg
-ICAgICAgMC4wNTJzCj4gPiA+ID4gdXNiMiAgICAgICAgICAgICAgMC4wNTFzCj4gPiA+ID4gdXNi
-MyAgICAgICAgICAgICAgMC4wNDJzCj4gPiA+ID4gdXNiOCAgICAgICAgICAgICAgMC4yNDhzCj4g
-PiA+ID4gc2QgMC4wLjAuMCAgICAgICAgMC4xMThzCj4gPiA+ID4gdXNiIDMtMSAgICAgICAgICAg
-MC4yNjFzCj4gPiA+ID4gdXNiIDgtMSAgICAgICAgICAgMC41MTFzCj4gPiA+ID4gYWxsIHRoZSBv
-dGhlcnMgICAgMC40NjFzCj4gPiA+ID4KPiA+ID4gPiBXZSBjYW4gc2VlIHRoYXQgdGhlc2Ugc2V2
-ZXJhbCBkZXZpY2VzIHRha2UgODAlfjg1JSBzdXNwZW5kL3Jlc3VtZSB0aW1lLAo+ID4gPiA+IHdo
-aWxlIGFsbCB0aGUgb3RoZXIgKG5lYXJseSA1MDApIGRldmljZXMgdGFrZSAyMCUuCj4gPiA+Cj4g
-PiA+IE9LLCBzbyBpdCBkb2Vzbid0IG1hdHRlciBob3cgd2UgcnVuIHRoZSBzdXNwZW5kL3Jlc3Vt
-ZSBvZiB0aGUgNTAwICdmYXN0Jwo+ID4gPiBkZXZpY2VzIGFzIGxvbmcgYXMgaXQgZG9lc24ndCB0
-YWtlIG1vcmUgdGhhbiAwLjg5NnMgdG90YWwuICBJbiBwYXJ0aWN1bGFyLCBpdAo+ID4gPiBzZWVt
-cyB3ZSBjYW4gZG8gdGhhdCBpbiBwYXJhbGxlbCBqdXN0IGZpbmUuCj4gPiA+Cj4gPiA+ID4gUnVu
-bmluZyBhIGxvdCBkZXZpY2UgUE0gY2FsbGJhY2tzIGF0IG9uZSB0aW1lIGlzIG5vdCBlcXVhbCB0
-byBzYXZpbmcgYQo+ID4gPiA+IGxvdCB0aW1lIGlmIHRoZSBkZXZpY2VzIGxpc3RlZCBhYm92ZSBz
-dGlsbCBydW4gc3luY2hyb25vdXNseS4KPiA+ID4gPgo+ID4gPiA+IFNvIEkgdGhpbmsgdGhlIGtl
-eSBwb2ludCB0byBzcGVlZCB1cCBzdXNwZW5kL3Jlc3VtZSBpcyB0byBpbnZva2UgdGhlIFBNCj4g
-PiA+ID4gY2FsbGJhY2tzIG9mIHRoZXNlIGRldmljZXMgYXN5bmNocm9ub3VzbHkuCj4gPiA+ID4g
-QW5kIEkgdXNlIHRoZSBhc3luY2hyb25vdXMgZnVuY3Rpb25zIGZvciB0d28gcmVhc29ucy4KPiA+
-ID4gPiAxLiBkZXZpY2VzIHdpdGggZGVwZW5kZW5jeSBhcmUgaW4gdGhlIHNhbWUgYXN5bmNocm9u
-b3VzIGRvbWFpbiBzbyB0aGF0Cj4gPiA+ID4gICAgdGhlaXIgUE0gY2FsbGJhY2tzIHJ1biBpbi1v
-cmRlci4KPiA+ID4gPiDvu78yLiBQTSBjYWxsYmFja3Mgb2YgdGhlIGRldmljZXMgd2l0aG91dCBh
-bnkgZGVwZW5kZW5jeSBydW4KPiA+ID4gPiBhc3luY2hyb25vdXNseQo+ID4gPiA+ICAgIGJ5IHVz
-aW5nIGRpZmZlcmVudCBhc3luY2hyb25vdXMgZG9tYWlucy4KPiA+ID4KPiA+ID4gSWYgSSB1bmRl
-cnN0YW5kIHRoZSBhc3luYyBmcmFtZXdvcmsgY29ycmVjdGx5LCB0aGUgZG9tYWlucyBhcmUgb25s
-eSB1c2VkIGZvcgo+ID4gPiBzeW5jaHJvbml6YXRpb24sIGllLiBpZiB5b3Ugd2FudCB0byB3YWl0
-IGZvciBhIGdyb3VwIG9mIGFzeW5jIG9wZXJhdGlvbnMgdG8KPiA+ID4gY29tcGxldGUsIHlvdSBj
-YW4gcHV0IHRoZW0gYWxsIGludG8gb25lIGRvbWFpbiBhbmQgdGhlbiBjYWxsCj4gPiA+IGFzeW5j
-X3N5bmNocm9uaXplX2Z1bGxfZG9tYWluKCkgdG8gd2FpdCBmb3IgdGhlbSBhbGwgdG9nZXRoZXIu
-Cj4gPiA+Cj4gPiB5ZXMsIHlvdSdyZSByaWdodC4KPiA+IHBsZWFzZSBpZ25vcmUgbXkgcHJldmlv
-dXMgcmVwbHkgaW4gdGhpcyB0aHJlYWQuCj4gPgo+ID4gPiBZb3UgZG9uJ3QgbmVlZCBtdWx0aXBs
-ZSBkb21haW5zIHRvIHJ1biBtdWx0aXBsZSB0aGluZ3MgaW4gcGFyYWxsZWwuCj4gPiA+Cj4gPiA+
-ID4gPiBPbmUgc3VjaCBncm91cCBpcyBsZWFmIGRldmljZXMsIGllLgo+ID4gPiA+ID4gZGV2aWNl
-cyB0aGF0IGhhdmUgbm8gY2hpbGRyZW4uICBPZiBjb3Vyc2UsIHNvbWUgb2YgdGhlbSB3aWxsIGRl
-cGVuZCBvZiB0aGUKPiA+ID4gPiA+IG90aGVyIGluZGlyZWN0bHksIHNvIHdlIHNob3VsZCBtYWtl
-IGl0IHBvc3NpYmxlIHRvIGRlY2xhcmUgKGluIHRoZSBkcml2ZXIpCj4gPiA+ID4gPiB3aGV0aGVy
-IHRoZSBkZXZpY2UgY2FuIGJlIHN1c3BlbmRlZC9yZXN1bWVkIGFzeW5jaHJvbm91c2x5IGFuZCB1
-c2UgdGhlCj4gPiA+ID4gPiBmb2xsb3dpbmcgbG9naWMgKGF0IHRoZSBjb3JlIGxldmVsKSwgaW4g
-cHNldWRvIGNvZGU6Cj4gPiA+ID4gPgo+ID4gPiA+ID4gaWYgKGhhc19ub19jaGlsZHJlbihkZXYp
-ICYmIGFzeW5jaHJvbm91c19zdXNwZW5kX3Jlc3VtZV9hbGxvd2VkKGRldikpCj4gPiA+ID4gPiAg
-ICAgYXN5bmNfcmVzdW1lKGRldik7Cj4gPiA+ID4gPiBlbHNlCj4gPiA+ID4gPiAgICAgcmVzdW1l
-KGRldik7Cj4gPiA+ID4gPgo+ID4gPiA+ID4gYW5kIGFuYWxvZ291c2x5IGZvciBzdXNwZW5kLiAg
-VGhlbiwgd2UgY2FuIGVhc2lseSB1c2Ugb25lIGFzeW5jIGRvbWFpbiBmb3IgYWxsCj4gPiA+ID4g
-PiBvZiB0aGVzZSBkZXZpY2VzLgo+ID4gPiA+Cj4gPiA+ID4gPiBMYXRlciwgd2UgY2FuIGFkZCBh
-c3luYyBkb21haW5zIGZvciBkZXZpY2VzIHRoYXQgaGF2ZSBjaGlsZHJlbiwgYnV0IGNhbiBiZQo+
-ID4gPiA+ID4gc3VzcGVuZGVkIGFuZCB3b2tlbiB1cCBpbiBwYXJhbGxlbCB3aXRoIGVhY2ggb3Ro
-ZXIuCj4gPiA+ID4gPiAgIElPVywgSSB0aGluayB0aGUgYXN5bmMKPiA+ID4gPiA+IGRvbWFpbnMg
-c2hvdWxkIHNwYW4gdGhlIGxldmVscyByYXRoZXIgdGhhbiBicmFuY2hlcyBvZiB0aGUgZGV2aWNl
-Cj4gPiA+ID4gPiB0cmVlLgo+ID4gPiA+ID4KPiA+ID4gPgo+ID4gPiA+IEhtbSwgYXMgSSBzYWlk
-IGFib3ZlLAo+ID4gPiA+IHRoaXMgYXBwcm9hY2ggd29ya3Mgb25seSBpZiB3ZSBjYW4gbWFrZSBz
-dXJlIHRoYXQgdGhlIHNwZWNpZmllZCBkZXZpY2VzCj4gPiA+ID4gYXJlIHB1dCBpbiB0aGUgc2Ft
-ZSBhc3luYyBkb21haW4sIGkuZS4gcnVuIGluIHBhcmFsbGVsLgo+ID4gPgo+ID4gPiBTdXJlIGFu
-ZCB0aGF0J3MgdGhlIHBvaW50Lgo+ID4gPgo+ID4gPiBGb3Igc3RhcnRlcnMsIGxldCdzIHB1dCBh
-bGwgZGV2aWNlcyAob3IgcmF0aGVyIGRyaXZlcnMpIHdpdGhvdXQgYW55Cj4gPiA+IGRlcGVuZGVu
-Y2llcwo+ID4KPiA+IHlvdSBzdGlsbCBtZWFuIHRoZSBsZWFmIGRldmljZXMgaGVyZSwgZG9uJ3Qg
-eW91Pwo+IAo+IFllcy4KPiAKPiA+ID4gIGludG8gb25lIGFzeW5jIGRvbWFpbiBhbmQgY2FsbCBz
-dXNwZW5kL3Jlc3VtZSBmb3IgdGhlbSB1c2luZyB0aGUKPiA+ID4gYXN5bmMgZnJhbWV3b3JrICh0
-aGV5IHdpbGwgYmUgc3VzcGVuZGVkL3Jlc3VtZWQgaW4gcGFyYWxsZWwgd2l0aCBlYWNoIG90aGVy
-IGFzCj4gPiA+IHdlbGwgYXMgaW4gcGFyYWxsZWwgd2l0aCB0aGUgcmVzdCkuICBUaGVuLCBsZXQn
-cyBjYWxsCj4gPiA+IGFzeW5jX3N5bmNocm9uaXplX2Z1bGxfZG9tYWluKCkgZm9yIHRoYXQgZG9t
-YWluIHdoZW4gd2UndmUgZmluaXNoZWQgZXhlY3V0aW5nCj4gPiA+IGFsbCBvZiB0aGUgc3VzcGVu
-ZC9yZXN1bWUgY2FsbGJhY2tzLgo+ID4gPgo+ID4gcmlnaHQuCj4gPiBidXQgSSdtIGFmcmFpZCBp
-dCdzIG5vdCBlYXN5IHRvIGZpbmQgYSBncm91cCBvZiBub24tbGVhZiBkZXZpY2VzIHdpdGhvdXQg
-YW55Cj4gPiBkZXBlbmRlbmN5Lgo+ID4KPiA+ID4gV2UgY2FuIGVhc2lseSBkbyBzdWNoIGEgdGhp
-bmcgZm9yIGVhY2ggcGhhc2Ugb2Ygc3VzcGVuZC9yZXN1bWUKPiA+ID4gIG9yIGhpYmVybmF0aW9u
-Cj4gPiA+IHdpdGhvdXQgY2F1c2luZyBhbnkgcHJvYmxlbXMgdG8gaGFwcGVuIElNTywgYXMgbG9u
-ZyBhcyB0aGUgJ2FzeW5jJyBkcml2ZXJzCj4gPiA+IHJlYWxseSBoYXZlIG5vIGRlcGVuZGVuY2ll
-cy4KPiA+ID4KPiA+IHN1cmUsIHRoZSBwcm9wb3NhbCBpcyBnb29kLgo+ID4gQnV0IG15IGNvbmNl
-cm4gaXMgaG93IHRvIGZpbmQgb3V0IHRoZXNlIGFzeW5jIGRvbWFpbnM/IGkuZS4gaG93IHRvIGZp
-bmQKPiA+IG91dCBncm91cHMgb2YgZGV2aWNlcyB3aXRob3V0IGRlcGVuZGVuY3kgc28gdGhhdCB3
-ZSBjYW4gc3VzcGVuZC9yZXN1bWUKPiA+IGRldmljZXMgaW4gdGhlIHNhbWUgZ3JvdXAgaW4gcGFy
-YWxsZWw/Cj4gPgo+ID4gWW91IHNhaWQgdGhhdCDvu790aGUgYXN5bmMgZG9tYWlucyBzaG91bGQg
-c3BhbiB0aGUgbGV2ZWxzIHJhdGhlciB0aGFuCj4gPiBicmFuY2hlcyBvZiB0aGUgZGV2aWNlIHRy
-ZWUuCj4gPiBkbyB5b3UgbWVhbiBzdXNwZW5kL3Jlc3VtZSBhbGwgdGhlIGRldmljZXMgaW4gdGhl
-IHNhbWUgbGV2ZWwgaW4KPiA+IHBhcmFsbGVsPwo+ID4KPiA+ID4gPiBhcmUgdGhlcmUgYW55IHBy
-b3RvdHlwZSBwYXRjaGVzIGF2YWlsYWJsZT8KPiA+ID4KPiA+ID4gTm8sIGJlY2F1c2UgSSBkaWRu
-J3QgaGF2ZSB0aGUgdGltZSB0byBwcmVwYXJlIGFueS4gIElmIHlvdSBnaXZlIG1lIGEgY291cGxl
-IG9mCj4gPiA+IGRheXMsIEkgY2FuIHdyaXRlIHNvbWV0aGluZy4gIEkgdGhpbmsuCj4gPiA+Cj4g
-PiBTdXJlLiBkb24ndCBmb3JnZXQgdG8gQ0MgbWUgd2hlbiB5b3Ugc2VuZCB0aGVtIG91dC4KPiAK
-PiBPSywgdGhlIHBhdGNoIGJlbG93IGlsbHVzdHJhdGVzIG15IGlkZWEsIGJ1dCBpdCdzIG9ubHkg
-ZG9uZSBmb3IgImxlYWYgZGV2aWNlcwo+IHdpdGggbm8gZGVwZW5kZW5jaWVzIiBhbmQgIm90aGVy
-IGRldmljZXMiLgoKSG1tLCB0aGUgcGF0Y2ggb25seSB3b3JrcyBmb3IgdGhlICJvdGhlciBkZXZp
-Y2VzIiAoaTgwNDIgYW5kIEFDUEkKYmF0dGVyeSksIHdoaWNoIGFyZSBhbHNvIGxlYWYgZGV2aWNl
-cyBhdCB0aGUgc2FtZSB0aW1lLgpTbyB0aGUgcGF0Y2ggZG9lc24ndCBpbnZva2UgYW55IGFzeW5j
-IGZ1bmN0aW9ucy4KCnRoYW5rcywKcnVpCgo+ICAgSXQgb25seSBjb250YWlucyB0aGUgcmVzdW1l
-IHBhcnQKPiB3aGljaCBpcyBzaW1wbGVyIHRvIGltcGxlbWVudC4KPiAKCgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtcG0gbWFpbGluZyBsaXN0
-CmxpbnV4LXBtQGxpc3RzLmxpbnV4LWZvdW5kYXRpb24ub3JnCmh0dHBzOi8vbGlzdHMubGludXgt
-Zm91bmRhdGlvbi5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1wbQ==
+On Tuesday 11 August 2009, Zhang Rui wrote:
+> On Sat, 2009-08-08 at 08:22 +0800, Rafael J. Wysocki wrote:
+> > > >
+> > > something like this?
+> > >
+> > > 1. device suspend/resume are split into several stages. And the P=
+M
+> > > callbacks of every device should be put into one of these stage.
+> >=20
+> > That's correct.
+> >=20
+> > > 2. run all the PM callbacks in current stage asynchronously, in t=
+he
+> > > global domain.
+> >=20
+> > Yes, except that not all of the PM callbacks at given stage may be =
+run in
+> > parallel with each other.
+> >=20
+>=20
+> No, every PM callbacks in the same stage should be run in parallel,
+> or else we need to use the async cookies to handle the device
+> dependency, right?
+
+No.  We can use some other synchronization mechanisms for this purpose,=
+ such
+as completions or wait queues.  I have an idea how to do that in a simp=
+le way
+and I'm going to post some patches implementing it shortly (after I've =
+tested
+them for a while).
+
+> If this is true, I'm afraid we can not do REAL asynchronous resume in=
+ a
+> certain stage.
+>=20
+> For example,
+> device 3 depends on device 2, device 2 depends on device 1.
+> device 6 depends on device 5, device 5 depends on device 4.
+> device 1,2,3 and device 4,5,6 can resume in parallel.
+>=20
+> =EF=BB=BFIf they share the global domain, we may get:=EF=BB=BF
+> device1(cookie 1), device2(cookie 4), device3(cookie 5)
+> device4(cookie 2), device5(cookie 3), device6(cookie 6)
+>=20
+> this is not real asynchronous resume because
+> device3 needs to call async_synchronize_cookie(5) before resume itsel=
+f.
+> which means that device4 and device5 must be resumed before device3.
+
+Not really.  I don't think we need to rely on the cookies.
+
+> while this is not a problem if multiple async domain is used,
+> domain1: device1(cookie 1), device2(cookie 2), device3(cookie 3)
+> domain2: device4(cookie 1), device5(cookie 2), device6(cookie 3)
+>=20
+> > Generally speaking, it should be possible to divide the device tree=
+ into
+> > layers, where each layer contains devices for which the PM callback=
+s can be
+> > executed in parallel and where the PM callbacks from layer 1 should=
+ be executed
+> > before the PM callbacks from layer 2 and so on.
+> >=20
+> yes.
+>=20
+> > Now the question is how to determine which layer to put given devic=
+e into.
+>=20
+> right.
+> My concern is that we can not find such generic layers except the lea=
+f
+> device, especially we should make sure that
+> 1. all the devices in the same layer CAN run in parallel
+> 2. all the slow devices are put into the same layer
+
+In fact, we don't need the layers at all.  The only thing we have to as=
+sure is
+that, during resume, the devices given device depends on will be handle=
+d
+before we start to handle this particular device (inversely during susp=
+end).
+
+Please note that we're not even allowed to start executing the device's
+resume callback before the callbacks of the devices it depends on have
+returned (the same applies to the suspend callbacks, but the other way =
+around).
+
+> > Of course the leaf devices with no dependencies and the other devic=
+es is the
+> > simplest possible way of dividing devices into such layers, but in =
+principle
+> > it should be possible to identify more layers.
+> >=20
+> I'm not sure.
+>=20
+> > Alternatively we can identify branches of the device tree that can =
+be handled
+> > in parallel, which I think was your idea, wasn't it?  It also might=
+ work, but
+> > for this purpose we'd have to divide dpm_list into several lists an=
+d call
+> > dpm_resume() etc. for them in parallel.  Seems doable too.
+> >=20
+> yes.
+> I know this proposal is not generic enough, but fortunately we don't
+> need to identify the branches for all the devices, neither.
+> Because several SLOW devices cost most of the suspend/resume time, an=
+d
+> we can focus on these devices only. :)
+
+That would have been suboptimal IMO.
+
+> > > 3. run async_synchronize_full to finish the current state.
+> >=20
+> > Yes.
+> >=20
+> > > 4. stage++, and goto step 2.
+> >=20
+> > Something like this.
+> >=20
+> > > > > I'm afraid this won't bring as many benefits as it looks like=
+ because
+> > > > > most of the suspend/resume time is cost on several specified =
+devices.
+> > > >
+> > > > That shouldn't matter.  As long as there's one driver that wait=
+s long enough
+> > > > for the others' devices to be handled while it's waiting, we ar=
+e not going
+> > > > to be hurt by this and the design is going to be simpler IMO.
+> > > >
+> > > > > Take the dmesg I attached for example.
+> > > > >
+> > > > > total device suspend time is 1.532s.
+> > > > > serio2            0.407s
+> > > > > sd 0.0.0.0        0.452s
+> > > > > serio0            0.103s
+> > > > > 0b.4.2            0.114s
+> > > > > 00.1f.2           0.080s
+> > > > > 00.19.0           0.072s
+> > > > > all the others    0.304s
+> > > > >
+> > > > > total device resume time is 2.899s
+> > > > > PNP0C0A:00(bat)   0.896s
+> > > > > 00.19.0           0.056s
+> > > > > 0b.4.0            0.139s
+> > > > > 0b.1.1            0.064s
+> > > > > usb1              0.052s
+> > > > > usb2              0.051s
+> > > > > usb3              0.042s
+> > > > > usb8              0.248s
+> > > > > sd 0.0.0.0        0.118s
+> > > > > usb 3-1           0.261s
+> > > > > usb 8-1           0.511s
+> > > > > all the others    0.461s
+> > > > >
+> > > > > We can see that these several devices take 80%~85% suspend/re=
+sume time,
+> > > > > while all the other (nearly 500) devices take 20%.
+> > > >
+> > > > OK, so it doesn't matter how we run the suspend/resume of the 5=
+00 'fast'
+> > > > devices as long as it doesn't take more than 0.896s total.  In =
+particular, it
+> > > > seems we can do that in parallel just fine.
+> > > >
+> > > > > Running a lot device PM callbacks at one time is not equal to=
+ saving a
+> > > > > lot time if the devices listed above still run synchronously.
+> > > > >
+> > > > > So I think the key point to speed up suspend/resume is to inv=
+oke the PM
+> > > > > callbacks of these devices asynchronously.
+> > > > > And I use the asynchronous functions for two reasons.
+> > > > > 1. devices with dependency are in the same asynchronous domai=
+n so that
+> > > > >    their PM callbacks run in-order.
+> > > > > =EF=BB=BF2. PM callbacks of the devices without any dependenc=
+y run
+> > > > > asynchronously
+> > > > >    by using different asynchronous domains.
+> > > >
+> > > > If I understand the async framework correctly, the domains are =
+only used for
+> > > > synchronization, ie. if you want to wait for a group of async o=
+perations to
+> > > > complete, you can put them all into one domain and then call
+> > > > async_synchronize_full_domain() to wait for them all together.
+> > > >
+> > > yes, you're right.
+> > > please ignore my previous reply in this thread.
+> > >
+> > > > You don't need multiple domains to run multiple things in paral=
+lel.
+> > > >
+> > > > > > One such group is leaf devices, ie.
+> > > > > > devices that have no children.  Of course, some of them wil=
+l depend of the
+> > > > > > other indirectly, so we should make it possible to declare =
+(in the driver)
+> > > > > > whether the device can be suspended/resumed asynchronously =
+and use the
+> > > > > > following logic (at the core level), in pseudo code:
+> > > > > >
+> > > > > > if (has_no_children(dev) && asynchronous_suspend_resume_all=
+owed(dev))
+> > > > > >     async_resume(dev);
+> > > > > > else
+> > > > > >     resume(dev);
+> > > > > >
+> > > > > > and analogously for suspend.  Then, we can easily use one a=
+sync domain for all
+> > > > > > of these devices.
+> > > > >
+> > > > > > Later, we can add async domains for devices that have child=
+ren, but can be
+> > > > > > suspended and woken up in parallel with each other.
+> > > > > >   IOW, I think the async
+> > > > > > domains should span the levels rather than branches of the =
+device
+> > > > > > tree.
+> > > > > >
+> > > > >
+> > > > > Hmm, as I said above,
+> > > > > this approach works only if we can make sure that the specifi=
+ed devices
+> > > > > are put in the same async domain, i.e. run in parallel.
+> > > >
+> > > > Sure and that's the point.
+> > > >
+> > > > For starters, let's put all devices (or rather drivers) without=
+ any
+> > > > dependencies
+> > >
+> > > you still mean the leaf devices here, don't you?
+> >=20
+> > Yes.
+> >=20
+> > > >  into one async domain and call suspend/resume for them using t=
+he
+> > > > async framework (they will be suspended/resumed in parallel wit=
+h each other as
+> > > > well as in parallel with the rest).  Then, let's call
+> > > > async_synchronize_full_domain() for that domain when we've fini=
+shed executing
+> > > > all of the suspend/resume callbacks.
+> > > >
+> > > right.
+> > > but I'm afraid it's not easy to find a group of non-leaf devices =
+without any
+> > > dependency.
+> > >
+> > > > We can easily do such a thing for each phase of suspend/resume
+> > > >  or hibernation
+> > > > without causing any problems to happen IMO, as long as the 'asy=
+nc' drivers
+> > > > really have no dependencies.
+> > > >
+> > > sure, the proposal is good.
+> > > But my concern is how to find out these async domains? i.e. how t=
+o find
+> > > out groups of devices without dependency so that we can suspend/r=
+esume
+> > > devices in the same group in parallel?
+> > >
+> > > You said that =EF=BB=BFthe async domains should span the levels r=
+ather than
+> > > branches of the device tree.
+> > > do you mean suspend/resume all the devices in the same level in
+> > > parallel?
+> > >
+> > > > > are there any prototype patches available?
+> > > >
+> > > > No, because I didn't have the time to prepare any.  If you give=
+ me a couple of
+> > > > days, I can write something.  I think.
+> > > >
+> > > Sure. don't forget to CC me when you send them out.
+> >=20
+> > OK, the patch below illustrates my idea, but it's only done for "le=
+af devices
+> > with no dependencies" and "other devices".
+>=20
+> Hmm, the patch only works for the "other devices" (i8042 and ACPI
+> battery), which are also leaf devices at the same time.
+> So the patch doesn't invoke any async functions.
+
+Yes, it does.  At least for ACPI battery, which is a leaf device (I hav=
+e
+tested it).
+
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
