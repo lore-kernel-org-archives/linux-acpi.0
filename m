@@ -1,108 +1,27 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
-Date: Wed, 12 Aug 2009 01:17:27 +0200
-Message-ID: <200908120117.27961.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908111438230.5845-100000@iolanthe.rowland.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH]AC/DC notifier
+Date: Wed, 12 Aug 2009 00:49:09 +0100
+Message-ID: <20090811234909.GA30174@srcf.ucam.org>
+References: <200908111515.42635.mark.langsdorf@amd.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55492 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753430AbZHKXRM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Aug 2009 19:17:12 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0908111438230.5845-100000@iolanthe.rowland.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:45187 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932150AbZHKXtO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Aug 2009 19:49:14 -0400
+Content-Disposition: inline
+In-Reply-To: <200908111515.42635.mark.langsdorf@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
+To: Mark Langsdorf <mark.langsdorf@amd.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.tippett@amd.com, samuel.li@amd.com
 
-On Tuesday 11 August 2009, Alan Stern wrote:
-> On Tue, 11 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > > The general algorithm for maximum parallelism goes as follows: Start by
-> > > resuming (in parallel) all the devices which don't depend on anything
-> > > else.  Each time a resume finishes, you go on to resume (in parallel)
-> > > all the devices which depend only on resumed devices and which haven't
-> > > yet started to resume.
-> > > 
-> > > As described, this can require a large number of threads.  It also
-> > > requires detailed knowledge of which devices depend on others, which we
-> > > don't have.
-> > 
-> > It's even more complicated than that.
-> > 
-> > Assume we have 7 devices, A-G, such that A is the parent of B and C,
-> > B is the parent of D and E, and C is the parent of F and G.  Assume in addition
-> > that the PM dependencies between the devices are fully reflected by the
-> > device tree structure (ie. there are no dependencies that aren't reflected
-> > parent-child relationships) and that B and G take 0.5 s to resume while the
-> > others take < 1 ms each.  So, the total sequential resume time is
-> > 2 s + O(1 ms).
-> > 
-> > Now, if we used the above algorithm, we'd first resume DEFG which would take
-> > 1 s because of G, then we'd resume BC which would take 1 s because of B and
-> > the total resume time is again 2 s + O(1 ms).
-> 
-> (You probably mean "suspend" instead of "resume".)
+On Tue, Aug 11, 2009 at 03:15:42PM -0500, Mark Langsdorf wrote:
+> Add an ACPI event notifier for AC/DC connect/disconnect events.
 
-Yes, I got it the other way around here, sorry.
+Not that I inherently disagree with this, but what's it likely to be 
+used for?
 
-> No, you misunderstood my description.  We'd start out by suspending
-> DEFG.  DEF will finish quickly, at which time we would start suspending 
-> B because all its dependencies are satisfied.  When G finishes we would 
-> start suspending C.  When B and C are both finished, we would suspend 
-> A.  Total time would be about 1 s because B would be started shortly 
-> after G.
-
-Ah, OK.
-
-> > However, one can observe that B doesn't need to wait for G to resume, because
-> > they are independent of each other.  So, we can resume BDE in parallel with
-> > CFG, while of course DE have to wait for B and so on, but this way we can
-> > theoretically reduce the total resume time to 1 s + O(1 ms).
-> > 
-> > The question is how to do that and it seems to me that we can use completions
-> > for this purpose.  Namely, add a completion to each device with the following
-> > rules:
-> > 1) all completions are reset before dpm_resume(),
-> > 2) before executing the ->resume() callback for device D, we wait for the
-> >    completion of the D's parent,
-> > 3) we complete the D's completion after executing its ->resume() callback.
-> > Also, the items executed in parallel are now the "wait for the parent's
-> > completion, run our callback and complete our completion" things.
-> 
-> Yes, that's essentially what I described.
-
-Good.
-
-> > At first sight I don't see anything fundamentally wrong with this approach.
-> 
-> Nothing fundamentally wrong.  The problems come in the details.  Most
-> notably, the dependencies that are not reflected in the tree structure.
-> 
-> In practice, rather than completions I'd recommend using a pool of
-> threads together with a single wait queue and a list of devices which
-> _might_ be ready.  Initially this list can contain every device.
-> 
-> Each time a thread wakes up it scans the list, removing devices that
-> aren't actually ready yet (i.e., the dependencies aren't satisfied).  
-> If it doesn't find any devices that are ready, it goes back to sleep.  
-> When it finds a device that _is_ ready, it wakes up another thread and
-> invokes the callback.  When the callback is done, the thread adds to
-> the list all devices that depend on the one just finished.  Then it
-> goes back to scanning the list.
-
-That looks quite complicated at first sight, but asynchronous resume with
-completions can be done in a relatively simple patch.  I've got one, so
-tomorow I'll post it for further discussion.
-
-Thanks,
-Rafael
-
-
-PS
-Did you have a chance to look at rev. 15 of the runtime PM patch
-(http://patchwork.kernel.org/patch/40306/)?
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
