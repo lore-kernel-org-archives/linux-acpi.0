@@ -1,78 +1,31 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
-Date: Wed, 12 Aug 2009 23:43:20 +0200
-Message-ID: <200908122343.20554.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908121702520.23954-100000@iolanthe.rowland.org>
+Subject: Re: acpi_ex_system_memory_space_handler oops
+Date: Wed, 12 Aug 2009 23:46:33 +0200
+Message-ID: <200908122346.33626.rjw@sisk.pl>
+References: <20090812201034.GA2983@localdomain.by>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751610AbZHLVmu@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908121702520.23954-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60101 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751559AbZHLVpq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Aug 2009 17:45:46 -0400
+In-Reply-To: <20090812201034.GA2983@localdomain.by>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday 12 August 2009, Alan Stern wrote:
-> On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
+On Wednesday 12 August 2009, Sergey Senozhatsky wrote:
+> Hello,
 > 
-> > Hi,
-> > 
-> > The following patches introduce a mechanism allowing us to execute device
-> > drivers' suspend and resume callbacks asynchronously during system sleep
-> > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
-> > message.
-> > 
-> > Comments welcome.
+> Kernel oopses on early boot stages (boots normally with boot_delay=10).
 > 
-> I get the idea.  Not bad.
+> rc5-git8
+> eip: acpi_ex_system_memory_space_handler+0x75/0x22f
 
-Thanks!
+Do I assume correctly that it didn't happen before?
 
-> Have you tried it in a serious way?  For example, turning on the
-> async_suspend flag for every device?
-
-No, I've only tested it with a few selected drivers.  I'm going to try the
-"async everyone" scenario, though.
-
-> In one way it isn't as efficient as it could be.  You fire off a bunch
-> of async threads and then make many of them wait for parent or child
-> devices.  They could be doing useful work instead.
-
-I kind of agree, but then the patches would be more complicated.
-
-> It would be interesting to invent a way of representing explicitly the 
-> non-tree dependencies -- assuming there aren't too many of them!  (I 
-> can just hear the TI guys hollering about power and timer domains...)
-
-I have an idea.
-
-Every such dependency involves two devices, one of which is a "master"
-and the second of which is a "slave", meaning that the "slave" have to be
-suspended before the "master" and cannot be resumed before it.  In principle
-we could give each device two lists of "dependency objects", one containing
-"dependency objects" where the device is the "master" and the other containing
-"dependency objects" where the device is the "slave".  Then, each "dependency
-object" could be represented as
-
-struct pm_connection {
-    struct device *master;
-    struct list_head master_hook;
-    struct device *slave;
-    struct list_head slave_hook;
-};
-
-Add some locking, helpers for adding / removing "dependency objects" etc.
-and it should work.  Instead of checking the parent, walk the list of
-"masters", instead of walking the list of children, walk the list of "slaves".
-
-The core could create those objects for parent-child relationships
-automatically, the other ones would have to be added by platforms / bus types /
-drivers etc.
-
-This approach has a problem that it's prone to adding circular dependencies by
-mistake, but then I think it would apply to any other approach just as well.
-
-Best,
 Rafael
