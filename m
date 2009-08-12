@@ -1,53 +1,30 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
-Date: Wed, 12 Aug 2009 22:10:35 +0200
-Message-ID: <200908122210.35591.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908120958200.2955-100000@iolanthe.rowland.org>
+Subject: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
+Date: Wed, 12 Aug 2009 22:18:13 +0200
+Message-ID: <200908122218.13975.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754517AbZHLUKK@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908120958200.2955-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:59778 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753904AbZHLUVq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Aug 2009 16:21:46 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pm <linux-pm@lists.linux-foundation.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>
 
-On Wednesday 12 August 2009, Alan Stern wrote:
-> On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > That looks quite complicated at first sight, but asynchronous resume with
-> > completions can be done in a relatively simple patch.  I've got one, so
-> > tomorow I'll post it for further discussion.
-> 
-> Okay.  I would think that managing the threads would account for most 
-> of the complexity in either implementation, but I'll wait to see how 
-> your approach works out.
-> 
-> > Thanks,
-> > Rafael
-> > 
-> > 
-> > PS
-> > Did you have a chance to look at rev. 15 of the runtime PM patch
-> > (http://patchwork.kernel.org/patch/40306/)?
-> 
-> Yes, sorry for not getting back to you.  It looks okay.
-> 
-> The one thing I'm not sure of is the pm_runtime_put_noidle calls in 
-> driver_probe_device and __device_release_driver.  It seems that we 
-> should always call pm_runtime_put regardless of whether the probe 
-> succeeds or not.
+Hi,
 
-Did you mean pm_runtime_put_sync()?
+The following patches introduce a mechanism allowing us to execute device
+drivers' suspend and resume callbacks asynchronously during system sleep
+transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
+message.
 
-> For example, the USB stack is set up to suspend devices that don't have
-> a driver (this is handled at the bus subsystem level).  But if probing
-> failed, there wouldn't be any idle callback and so the suspend wouldn't
-> take place.
-
-OK, I'll make this change.
+Comments welcome.
 
 Thanks,
 Rafael
+
