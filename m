@@ -1,47 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
-Date: Wed, 12 Aug 2009 23:18:12 +0200
-Message-ID: <200908122318.12145.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908121633220.23954-100000@iolanthe.rowland.org>
+Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
+Date: Wed, 12 Aug 2009 23:43:20 +0200
+Message-ID: <200908122343.20554.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908121702520.23954-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751256AbZHLVRV@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908121633220.23954-100000@iolanthe.rowland.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751610AbZHLVmu@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.0908121702520.23954-100000@iolanthe.rowland.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 On Wednesday 12 August 2009, Alan Stern wrote:
 > On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
 > 
-> > > The one thing I'm not sure of is the pm_runtime_put_noidle calls in 
-> > > driver_probe_device and __device_release_driver.  It seems that we 
-> > > should always call pm_runtime_put regardless of whether the probe 
-> > > succeeds or not.
+> > Hi,
 > > 
-> > Did you mean pm_runtime_put_sync()?
-> 
-> Yes.  I haven't used the new code yet so the names don't stick in my 
-> mind.
-> 
-> > > For example, the USB stack is set up to suspend devices that don't have
-> > > a driver (this is handled at the bus subsystem level).  But if probing
-> > > failed, there wouldn't be any idle callback and so the suspend wouldn't
-> > > take place.
+> > The following patches introduce a mechanism allowing us to execute device
+> > drivers' suspend and resume callbacks asynchronously during system sleep
+> > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
+> > message.
 > > 
-> > OK, I'll make this change.
+> > Comments welcome.
 > 
-> Thanks.  Now I just have to figure out the best way to convert USB over 
-> to the new framework...
+> I get the idea.  Not bad.
 
-:-)
+Thanks!
 
-On a second thought, though, would it be a good idea to add
-pm_runtime_get_noresume() / pm_runtime_put_sync() around the bus_for_each_drv()
-in device_attach()?  That would prevent us from resuming-suspending the device
-on each failing probe.
+> Have you tried it in a serious way?  For example, turning on the
+> async_suspend flag for every device?
 
+No, I've only tested it with a few selected drivers.  I'm going to try the
+"async everyone" scenario, though.
+
+> In one way it isn't as efficient as it could be.  You fire off a bunch
+> of async threads and then make many of them wait for parent or child
+> devices.  They could be doing useful work instead.
+
+I kind of agree, but then the patches would be more complicated.
+
+> It would be interesting to invent a way of representing explicitly the 
+> non-tree dependencies -- assuming there aren't too many of them!  (I 
+> can just hear the TI guys hollering about power and timer domains...)
+
+I have an idea.
+
+Every such dependency involves two devices, one of which is a "master"
+and the second of which is a "slave", meaning that the "slave" have to be
+suspended before the "master" and cannot be resumed before it.  In principle
+we could give each device two lists of "dependency objects", one containing
+"dependency objects" where the device is the "master" and the other containing
+"dependency objects" where the device is the "slave".  Then, each "dependency
+object" could be represented as
+
+struct pm_connection {
+    struct device *master;
+    struct list_head master_hook;
+    struct device *slave;
+    struct list_head slave_hook;
+};
+
+Add some locking, helpers for adding / removing "dependency objects" etc.
+and it should work.  Instead of checking the parent, walk the list of
+"masters", instead of walking the list of children, walk the list of "slaves".
+
+The core could create those objects for parent-child relationships
+automatically, the other ones would have to be added by platforms / bus types /
+drivers etc.
+
+This approach has a problem that it's prone to adding circular dependencies by
+mistake, but then I think it would apply to any other approach just as well.
+
+Best,
 Rafael
