@@ -1,79 +1,43 @@
-From: Forest Bond <forest@alittletooquiet.net>
-Subject: Re: acpi-cpufreq; Intel Johnstown (Atom N270)
-Date: Thu, 13 Aug 2009 15:09:02 -0400
-Message-ID: <20090813190902.GD9385@alittletooquiet.net>
-References: <20090813172556.GB9385@alittletooquiet.net> <20090813182908.GC9385@alittletooquiet.net> <20090813190741.GA7808@redhat.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
+Date: Thu, 13 Aug 2009 23:10:26 +0200
+Message-ID: <200908132310.26539.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908131435490.8368-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ieNMXl1Fr3cevapt"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from storm.alittletooquiet.net ([67.23.28.199]:43385 "EHLO
-	storm.alittletooquiet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959AbZHMTJC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 15:09:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20090813190741.GA7808@redhat.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:36459 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753317AbZHMVJp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Aug 2009 17:09:45 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0908131435490.8368-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
-Cc: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 
+On Thursday 13 August 2009, Alan Stern wrote:
+> On Thu, 13 Aug 2009, Rafael J. Wysocki wrote:
+> 
+> > > If the set of pm_connection objects is reasonably small then the
+> > > master_hook and slave_hook aren't needed; you can just read through the
+> > > entire list.  Leaving out parent-child connections, which we already
+> > > know, would help shrink the set.
+> > 
+> > Do you mean a global list for the entire system?  I'm not sure if that wouldn't
+> > hurt performance (please note that it also affects runtime PM).
+> 
+> It doesn't have to affect runtime PM.  That is, for runtime PM we can 
+> make the bus subsystems responsible for enforcing the dependencies.
 
---ieNMXl1Fr3cevapt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Since the runtime PM framework takes the parent-child relationships into
+accout, I think it should also follow the "master"-"slave" dependencies if they
+are represented at the core level.
 
-Hi,
-
-On Thu, Aug 13, 2009 at 03:07:41PM -0400, Dave Jones wrote:
-> On Thu, Aug 13, 2009 at 02:29:08PM -0400, Forest Bond wrote:
->  > Hi,
->  >=20
->  > On Thu, Aug 13, 2009 at 01:25:57PM -0400, Forest Bond wrote:
->  > > I'm using an Intel Johnstown board with an Atom N270 processor.  Per=
-formance
->  > > seems to improve dramatically with acpi-cpufreq loaded.  This caught=
- me by
->  > > surprise.  I had assumed that without loading acpi-cpufreq the CPU w=
-ould be
->  > > running at its maximum speed all the time.
->  >=20
->  > I ran some tests to get some numbers.  My findings indicate that before
->  > acpi-cpufreq is loaded the CPU is running at 800MHz even though /proc/=
-cpuinfo
->  > indicates 1.6GHz.
->=20
-> if no cpufreq modules have been loaded, the CPU will be running at whatev=
-er
-> p-state the BIOS programmed it to start up at. In your case for some reas=
-on, that's
-> the 'slow' speed.=20
-
-Okay, that's what I figured.
-
-Looks like there's some BIOS settings that may have an effect.  I'll play w=
-ith
-those.
+Still, at this point the question really is how many off-tree dependencies
+there are, because the best way to represent them will follow from that.
 
 Thanks,
-Forest
---=20
-Forest Bond
-http://www.alittletooquiet.net
-http://www.pytagsfs.org
-
---ieNMXl1Fr3cevapt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFKhGTORO4fQQdv5AwRAuMgAJsH/fA4cPTpdlwDEPuLG04R3FbEQQCgsN2E
-t4c6xj/hqKP6YYekYr+IwfU=
-=vC0p
------END PGP SIGNATURE-----
-
---ieNMXl1Fr3cevapt--
+Rafael
