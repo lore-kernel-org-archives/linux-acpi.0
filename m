@@ -1,148 +1,130 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
-Date: Thu, 13 Aug 2009 16:18:29 +0800
-Message-ID: <1250151509.2906.61.camel@rzhang-dt>
-References: <Pine.LNX.4.44L0.0908121702520.23954-100000@iolanthe.rowland.org>
-	 <200908122343.20554.rjw@sisk.pl>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: Re: acpi_ex_system_memory_space_handler oops
+Date: Thu, 13 Aug 2009 11:34:26 +0300
+Message-ID: <20090813083426.GB3283@localdomain.by>
+References: <20090812201034.GA2983@localdomain.by>
+ <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36065 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752935AbZHMITh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Aug 2009 04:19:37 -0400
-In-Reply-To: <200908122343.20554.rjw@sisk.pl>
+Received: from qw-out-2122.google.com ([74.125.92.26]:57644 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752878AbZHMIbM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 04:31:12 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 2009-08-13 at 05:43 +0800, Rafael J. Wysocki wrote:
-> On Wednesday 12 August 2009, Alan Stern wrote:
-> > On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
-> >=20
-> > > Hi,
-> > >=20
-> > > The following patches introduce a mechanism allowing us to execut=
-e device
-> > > drivers' suspend and resume callbacks asynchronously during syste=
-m sleep
-> > > transitions, such as suspend to RAM.  The idea is explained in th=
-e [1/1] patch
-> > > message.
-> > >=20
-> > > Comments welcome.
-> >=20
-> > I get the idea.  Not bad.
->=20
-> Thanks!
->=20
-> > Have you tried it in a serious way?  For example, turning on the
-> > async_suspend flag for every device?
->=20
-> No, I've only tested it with a few selected drivers.  I'm going to tr=
-y the
-> "async everyone" scenario, though.
->=20
-> > In one way it isn't as efficient as it could be.  You fire off a bu=
-nch
-> > of async threads and then make many of them wait for parent or chil=
-d
-> > devices.  They could be doing useful work instead.
->=20
-=EF=BB=BF=EF=BB=BFare you talking about this scenario, or I find anothe=
-r problem of this
-approach:
-there is a part of dpm_list, dev1->dev_aaa->...->dev_bbb->dev2
 
-dev2 is dev1's first child.
-dev1 resume takes 1s
-dev_aaa~dev_bbb resume takes 0.1s.
+--AqsLC8rIMeq19msA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-if we call =EF=BB=BFdevice_enable_async_suspend(dev1, true) in order to=
- resume
-device1 asynchronously, the real asynchronous resume only happens
-between dev1 and dev_aaa to dev_bbb because dev2 needs to wait until
-dev1 resume finished.
-
-so kernel schedules dev1 resume in an async thread first, and then take=
-s
-0.1s to finish the dev_aaa to dev_bbb resume, and then sleep 0.9s
-
-> I kind of agree, but then the patches would be more complicated.
+On (08/12/09 20:18), Len Brown wrote:
+> > Kernel oopses on early boot stages (boots normally with boot_delay=3D10=
+).
 >=20
-The problem is that we need to invoke device_resume for every device
-synchronously.
-I wonder if we can make the child devices inherit the
-parent's =EF=BB=BFdev->power.async_suspend flag, so that devices that n=
-eed to
-wait are resumed asynchronously, i.e. we never wait/sleep when parsing
-the dpm_list.
+> > rc5-git8
+>=20
+> Please find which kernel this failure starts in.
+> Start by testing 2.6.30.stable so we can tell  =20
+> if this is a regression in the current RC.     =20
+>
+OK... I'll try to bisect. It'll take time.=20
+I consider 7 successfull boots to mark that kernel is ok (it may be wrong).
 
-this doesn't bring too much benefit in suspend case but it can speed up
-the resume process a lot.
+-git8
+maxcpus=3D1
++ + + + + + +
 
-Of cause, this is not a problem if we turn on the async_suspend flag fo=
-r
-every device.
+acpi_serialize=3D1
++ -
 
-> > It would be interesting to invent a way of representing explicitly =
-the=20
-> > non-tree dependencies -- assuming there aren't too many of them!  (=
-I=20
-> > can just hear the TI guys hollering about power and timer domains..=
-=2E)
->=20
-> I have an idea.
->=20
-> Every such dependency involves two devices, one of which is a "master=
-"
-> and the second of which is a "slave", meaning that the "slave" have t=
-o be
-> suspended before the "master" and cannot be resumed before it.  In pr=
-inciple
-> we could give each device two lists of "dependency objects", one cont=
-aining
-> "dependency objects" where the device is the "master" and the other c=
-ontaining
-> "dependency objects" where the device is the "slave".  Then, each "de=
-pendency
-> object" could be represented as
->=20
-> struct pm_connection {
->     struct device *master;
->     struct list_head master_hook;
->     struct device *slave;
->     struct list_head slave_hook;
-> };
->=20
-> Add some locking, helpers for adding / removing "dependency objects" =
-etc.
-> and it should work.  Instead of checking the parent, walk the list of
-> "masters", instead of walking the list of children, walk the list of =
-"slaves".
->=20
-> The core could create those objects for parent-child relationships
-> automatically, the other ones would have to be added by platforms / b=
-us types /
-> drivers etc.
->=20
-=EF=BB=BFthis sounds great. :)
+boot_delay=3D1
++ + + + + + +
 
-thanks,
-rui
+boot_delay=3D0
++ + -
 
-> This approach has a problem that it's prone to adding circular depend=
-encies by
-> mistake, but then I think it would apply to any other approach just a=
-s well.
+vga=3D791
++ + + + + + +
+
+=20
+> What is the difference between the two dmesg?
+> they have the same cmdline, neither has boot_delay,
+> and neither dmesg shows the oops.
+>
+boot params are the same. Both kernels booted successfully. There are no oo=
+pses in syslog (I guess 0.21 is
+too early for logd to start).
+
+The only difference (which I find suspicious) is around 0.21 second:
+[    0.205668] ACPI Error (dswload-0790): [PCFG] Namespace lookup failure, =
+AE_ALREADY_EXISTS
+[    0.205899] ACPI Exception: AE_ALREADY_EXISTS, During name lookup/catalo=
+g 20090521 psloop-227
+[    0.206124] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+SB_.RBPE] (Node f7017678), AE_ALREADY_EXISTS
+[    0.206417] ACPI: Marking method RBPE as Serialized because of AE_ALREAD=
+Y_EXISTS error
+[    0.206773] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+SB_.PCI0.P0P4.XCRD._STA] (Node f7015648), AE_ALREADY_EXISTS
+[    0.207070] ACPI: Marking method _STA as Serialized because of AE_ALREAD=
+Y_EXISTS error
+[    0.207326] ACPI Error (uteval-0256): Method execution failed [\_SB_.PCI=
+0.P0P4.XCRD._STA] (Node f7015648), AE_ALREADY_EXISTS
+[    0.213503] ACPI Error: Could not map memory at 0000000000000000, size 0=
+ 20090521 exregion-173
+[    0.213734] ACPI Exception: AE_NO_MEMORY, Returned by Handler for [Syste=
+mMemory] 20090521 evregion-424
+[    0.213963] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+SB_.RBPE] (Node f7017678), AE_NO_MEMORY
+[    0.214286] ACPI Error (psparse-0537): Method parse/execution failed [\_=
+GPE._L01] (Node f701d198), AE_NO_MEMORY
+[    0.214616] ACPI Exception: AE_NO_MEMORY, while evaluating GPE method [_=
+L01] 20090521 evgpe-568
+
+
+> The fact that boot_delay=3D10 makes the problem go away
+> suggests some sort of race condition. =20
+I think it is.
+
+> Is 10 the smallest value of printk_time that works, or is it a random val=
+ue?
 >=20
-> Best,
-> Rafael
+No. 1 is the smallest.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Do you still see the oops with CONFIG_PRINTK_TIME=3Dn?
+>=20
+Yes.
+
+> Do you still see the oops with maxcpus=3D1?
+>=20
+No.
+
+> Do you still see the oops with "acpi_serialize=3D1"?
+>=20
+Yes.
+
+	Sergey
+--AqsLC8rIMeq19msA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iJwEAQECAAYFAkqD0BIACgkQfKHnntdSXjRZ0QQA5BEfZ8djejvheriyx6fOCuL5
+/UZ8ba1jD6XzK5cuOH7FuMsGW3STFz9rNf23KD7AGIGCTBmHrhTSS+FJfbw1G9MW
+kRGyfLTu06XBEWNg9PUgFmrZJPIhuBzyPrt2+rWmkmGu0OPSZ1ShcE1pDDCNTNAi
+qkrXkVO5zfJY8Kc8Lm8=
+=APL+
+-----END PGP SIGNATURE-----
+
+--AqsLC8rIMeq19msA--
