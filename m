@@ -1,35 +1,148 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Regression in ACPI in 2.6.31-rc5
-Date: Wed, 12 Aug 2009 23:53:15 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain>
-References: <200908072333.24631.storm@sys49152.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
+Date: Thu, 13 Aug 2009 16:18:29 +0800
+Message-ID: <1250151509.2906.61.camel@rzhang-dt>
+References: <Pine.LNX.4.44L0.0908121702520.23954-100000@iolanthe.rowland.org>
+	 <200908122343.20554.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:28233 "EHLO
-	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbZHMDxT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Aug 2009 23:53:19 -0400
-In-reply-to: <200908072333.24631.storm@sys49152.net>
+Received: from mga02.intel.com ([134.134.136.20]:36065 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752935AbZHMITh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Aug 2009 04:19:37 -0400
+In-Reply-To: <200908122343.20554.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 
-> I had two drivers stop working in 2.6.31 that were working fine in 2.6.30. 
-> They are iwlagn and sky2. If i pass acpi=off to the kernel, they work as 
-> expected.
+On Thu, 2009-08-13 at 05:43 +0800, Rafael J. Wysocki wrote:
+> On Wednesday 12 August 2009, Alan Stern wrote:
+> > On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
+> >=20
+> > > Hi,
+> > >=20
+> > > The following patches introduce a mechanism allowing us to execut=
+e device
+> > > drivers' suspend and resume callbacks asynchronously during syste=
+m sleep
+> > > transitions, such as suspend to RAM.  The idea is explained in th=
+e [1/1] patch
+> > > message.
+> > >=20
+> > > Comments welcome.
+> >=20
+> > I get the idea.  Not bad.
+>=20
+> Thanks!
+>=20
+> > Have you tried it in a serious way?  For example, turning on the
+> > async_suspend flag for every device?
+>=20
+> No, I've only tested it with a few selected drivers.  I'm going to tr=
+y the
+> "async everyone" scenario, though.
+>=20
+> > In one way it isn't as efficient as it could be.  You fire off a bu=
+nch
+> > of async threads and then make many of them wait for parent or chil=
+d
+> > devices.  They could be doing useful work instead.
+>=20
+=EF=BB=BF=EF=BB=BFare you talking about this scenario, or I find anothe=
+r problem of this
+approach:
+there is a part of dpm_list, dev1->dev_aaa->...->dev_bbb->dev2
 
-the bug report for this issue is here:
-http://bugzilla.kernel.org/show_bug.cgi?id=13940
+dev2 is dev1's first child.
+dev1 resume takes 1s
+dev_aaa~dev_bbb resume takes 0.1s.
 
-is it possible to bisect which commit between 2.6.30 and 2.6.31-rc5
-caused this regression?
+if we call =EF=BB=BFdevice_enable_async_suspend(dev1, true) in order to=
+ resume
+device1 asynchronously, the real asynchronous resume only happens
+between dev1 and dev_aaa to dev_bbb because dev2 needs to wait until
+dev1 resume finished.
 
-Please attach the dmesg from the working 2.6.30
-and the acpi=off 2.6.31 to the bug report so i can compare
-them to the failing 2.6.31
+so kernel schedules dev1 resume in an async thread first, and then take=
+s
+0.1s to finish the dev_aaa to dev_bbb resume, and then sleep 0.9s
+
+> I kind of agree, but then the patches would be more complicated.
+>=20
+The problem is that we need to invoke device_resume for every device
+synchronously.
+I wonder if we can make the child devices inherit the
+parent's =EF=BB=BFdev->power.async_suspend flag, so that devices that n=
+eed to
+wait are resumed asynchronously, i.e. we never wait/sleep when parsing
+the dpm_list.
+
+this doesn't bring too much benefit in suspend case but it can speed up
+the resume process a lot.
+
+Of cause, this is not a problem if we turn on the async_suspend flag fo=
+r
+every device.
+
+> > It would be interesting to invent a way of representing explicitly =
+the=20
+> > non-tree dependencies -- assuming there aren't too many of them!  (=
+I=20
+> > can just hear the TI guys hollering about power and timer domains..=
+=2E)
+>=20
+> I have an idea.
+>=20
+> Every such dependency involves two devices, one of which is a "master=
+"
+> and the second of which is a "slave", meaning that the "slave" have t=
+o be
+> suspended before the "master" and cannot be resumed before it.  In pr=
+inciple
+> we could give each device two lists of "dependency objects", one cont=
+aining
+> "dependency objects" where the device is the "master" and the other c=
+ontaining
+> "dependency objects" where the device is the "slave".  Then, each "de=
+pendency
+> object" could be represented as
+>=20
+> struct pm_connection {
+>     struct device *master;
+>     struct list_head master_hook;
+>     struct device *slave;
+>     struct list_head slave_hook;
+> };
+>=20
+> Add some locking, helpers for adding / removing "dependency objects" =
+etc.
+> and it should work.  Instead of checking the parent, walk the list of
+> "masters", instead of walking the list of children, walk the list of =
+"slaves".
+>=20
+> The core could create those objects for parent-child relationships
+> automatically, the other ones would have to be added by platforms / b=
+us types /
+> drivers etc.
+>=20
+=EF=BB=BFthis sounds great. :)
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+rui
 
+> This approach has a problem that it's prone to adding circular depend=
+encies by
+> mistake, but then I think it would apply to any other approach just a=
+s well.
+>=20
+> Best,
+> Rafael
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
