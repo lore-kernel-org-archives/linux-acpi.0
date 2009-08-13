@@ -1,17 +1,17 @@
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Subject: Re: acpi_ex_system_memory_space_handler oops
-Date: Thu, 13 Aug 2009 15:46:47 +0300
-Message-ID: <20090813124647.GA19195@localdomain.by>
+Date: Thu, 13 Aug 2009 16:43:39 +0300
+Message-ID: <20090813134339.GA5660@localdomain.by>
 References: <20090812201034.GA2983@localdomain.by>
  <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
+	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:5340 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352AbZHMMne (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 08:43:34 -0400
+Received: from mail-yw0-f193.google.com ([209.85.211.193]:53300 "EHLO
+	mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313AbZHMNk1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 09:40:27 -0400
 Content-Disposition: inline
 In-Reply-To: <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -20,25 +20,18 @@ To: Len Brown <lenb@kernel.org>
 Cc: Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
---Dxnq1zWXvFF0Q93v
+--liOOAslEiF7prFVr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-> Looks like regression is in the current RC.
+rc5-git0
+FAIL
 
-Looks like it isn't. On 17th reboot rc5-git0 crashed.
-(I'll recompile and try more.)
-I think bisecting here is kind of senseless. You never know how much reboot=
-s you need.
-Simple delay (like vga=3D791) - and everything is ok. We need to come up wi=
-th something=20
-more clever, I guess.
-
-Any thougths?
+rc4-got0
+seems to be ok (after 15 reboots).
 
 	Sergey
---Dxnq1zWXvFF0Q93v
+--liOOAslEiF7prFVr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -46,11 +39,11 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.9 (GNU/Linux)
 
-iJwEAQECAAYFAkqECzcACgkQfKHnntdSXjRzxAQAwSiILqK8tSW586mdem1FZefu
-gYnqzwagUI7YmSyRwrtXYJMNo0jBsMSSoEm9wHuCk3euMKaNSa9HugGVtZGtKW3a
-i30UVWCHtFI84DATrGckMDIjwGDq3NgO7SsAhC/CA4RAtkUbuTsiPYn+tDRwc2V3
-jGc7tEVrynri3CkunvA=
-=iZvp
+iJwEAQECAAYFAkqEGIsACgkQfKHnntdSXjS25AP/VMnEM/orQlpa6aYQVK+sa+Dz
+0/CMzLhtrpKjBF0C6d1uQ1TCAR8BdsvSS4xCSJB8uxgE2m+C0DfG1/6Z/9nhW12t
+6NvJTlod77+nB7vjjSrDnmODgN7ceTyJMF1u2Y/6rZCWg2kTKnbJVXOlITShDY2y
+bW4SCu6Ry2G2X9VQHdw=
+=trgh
 -----END PGP SIGNATURE-----
 
---Dxnq1zWXvFF0Q93v--
+--liOOAslEiF7prFVr--
