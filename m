@@ -1,49 +1,52 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Re: acpi_ex_system_memory_space_handler oops
-Date: Thu, 13 Aug 2009 16:43:39 +0300
-Message-ID: <20090813134339.GA5660@localdomain.by>
-References: <20090812201034.GA2983@localdomain.by>
- <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
+From: Chuck Ebbert <cebbert@redhat.com>
+Subject: Re: [PATCH 0/3]: Discard reserved PXM bits for SRAT v1
+Date: Thu, 13 Aug 2009 09:38:46 -0400
+Message-ID: <20090813093846.6acbbf57@dhcp-100-2-144.bos.redhat.com>
+References: <20090518093352.GC15531@tpkurt2.garloff.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.211.193]:53300 "EHLO
-	mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313AbZHMNk1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 09:40:27 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754608AbZHMNsF@vger.kernel.org>
+In-Reply-To: <20090518093352.GC15531@tpkurt2.garloff.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kurt Garloff <garloff@suse.de>
+Cc: Linux kernel list <linux-kernel@vger.kernel.org>, Norbert Eicker <N.Eicker@fz-juelich.de>, Greg Kroah-Hartman <GregKH@suse.de>, Alexey Starikovskiy <AStarikovskiy@suse.cz>, Len Brown <LenB@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Mon, 18 May 2009 11:33:52 +0200
+Kurt Garloff <garloff@suse.de> wrote:
 
---liOOAslEiF7prFVr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Hi,
+> 
+> ACPI specification says that the OS must disregard reserved bits.
+> The x86_64 SRAT parser does not discard the upper 24 bits of the
+> proximity_domain (pxm) in the acpi_srat_mem_affinity entries for
+> SRAT v1 tables. (v2 has 32 bits wide fields.)
+> This can lead to problems with poor BIOS implementations that failed
+> to set resreved bytes to zero. (The ACPI spec is a bit vague here
+> unfortunately.)
+> 
+> This was also inconsistent: On x86-64 (srat_64.c), the 
+> _cpu_affinity does only use the low 8 bits of pxm, while the
+> full 32 bits of _mem_affinity are consumed.
+> In srat_32.c (x86), only 8bits are used (which is OK, a 32bit system
+> with >256 PXMs does not seem reasonable at all).
+> On ia64, the support of more than 8 bits was consistent between
+> mem and cpu affinity entries, however it dependent on "sn2" platform.
+> 
+> The patch series has the following goals:
+> * Make the kernel support consistently 8bits or 32bits for the
+>   proximity domain
+> * Make this dependent on the SRAT version; v1 => 8bits, v2 => 32bits.
+> 
+> Overview over the patches:
+> - [1/3] Store the SRAT table version value in acpi_srat_revision 
+> - [2/3] x86-64: Discard the upper 24 bits in mem_affinity if rev <= 1
+>         and use upper 24bits in cpu_affinity if rev >= 2
+> - [3/3] ia64: Also use upper 8/24bits if rev >= 2 (but leave logic to
+>         enable on sn2 as well -- I don't know if sn2 reports v1 or v2
+>         SRAT) Also add two __init decls in ia64 pxm accessors.
+> 
 
-rc5-git0
-FAIL
-
-rc4-got0
-seems to be ok (after 15 reboots).
-
-	Sergey
---liOOAslEiF7prFVr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iJwEAQECAAYFAkqEGIsACgkQfKHnntdSXjS25AP/VMnEM/orQlpa6aYQVK+sa+Dz
-0/CMzLhtrpKjBF0C6d1uQ1TCAR8BdsvSS4xCSJB8uxgE2m+C0DfG1/6Z/9nhW12t
-6NvJTlod77+nB7vjjSrDnmODgN7ceTyJMF1u2Y/6rZCWg2kTKnbJVXOlITShDY2y
-bW4SCu6Ry2G2X9VQHdw=
-=trgh
------END PGP SIGNATURE-----
-
---liOOAslEiF7prFVr--
+Did this patchset get lost or something? I don't see it anywhere, not even
+in the ACPI 'testing' tree...
