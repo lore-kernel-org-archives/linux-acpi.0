@@ -1,64 +1,36 @@
-From: Forest Bond <forest@alittletooquiet.net>
-Subject: acpi-cpufreq; Intel Johnstown (Atom N270)
-Date: Thu, 13 Aug 2009 13:25:57 -0400
-Message-ID: <20090813172556.GB9385@alittletooquiet.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH V2 0/4] introduce device async actions mechanism
+Date: Thu, 13 Aug 2009 19:53:10 +0200
+Message-ID: <200908131953.10819.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908131028370.2940-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="K8nIJk4ghYZn606h"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from storm.alittletooquiet.net ([67.23.28.199]:58179 "EHLO
-	storm.alittletooquiet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561AbZHMRbq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 13:31:46 -0400
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:35667 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754463AbZHMRwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Aug 2009 13:52:31 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0908131028370.2940-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "dtor@mail.ru" <dtor@mail.ru>
 
+On Thursday 13 August 2009, Alan Stern wrote:
+> On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
+> 
+> > On a second thought, though, would it be a good idea to add
+> > pm_runtime_get_noresume() / pm_runtime_put_sync() around the bus_for_each_drv()
+> > in device_attach()?  That would prevent us from resuming-suspending the device
+> > on each failing probe.
+> 
+> Good idea.  But don't remove the existing code in driver_probe_device.
 
---K8nIJk4ghYZn606h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sure.
 
-Hi,
-
-I'm using an Intel Johnstown board with an Atom N270 processor.  Performance
-seems to improve dramatically with acpi-cpufreq loaded.  This caught me by
-surprise.  I had assumed that without loading acpi-cpufreq the CPU would be
-running at its maximum speed all the time.
-
-I have a few questions:
-
-* Is it normal for performance to improve with acpi-cpufreq loaded?
-* /proc/cpuinfo always reports the CPU's maximum clock speed when acpi-cpuf=
-req
-  is not loaded, which seems to be inconsistent with my performance
-  observations.  Does that seem normal?
-* Does acpi-cpufreq impact performance in any way besides controlling CPU
-  frequency?
-* What governs CPU frequency when acpi-cpufreq is not loaded?
-
-Any input would be appreciated.
+OK, I'll make this change and post rev. 16 shortly.
 
 Thanks,
-Forest
---=20
-Forest Bond
-http://www.alittletooquiet.net
-http://www.pytagsfs.org
-
---K8nIJk4ghYZn606h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFKhEykRO4fQQdv5AwRAqlQAJ9mcAmqIpdKiTHqnnM1y3x68y8XJACeKpsd
-KyLCuNop8mhhtkyXmkxrZHI=
-=wqwQ
------END PGP SIGNATURE-----
-
---K8nIJk4ghYZn606h--
+Rafael
