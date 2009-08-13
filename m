@@ -1,65 +1,116 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
-Date: Thu, 13 Aug 2009 10:45:57 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908131031060.2940-100000@iolanthe.rowland.org>
-References: <200908122343.20554.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 9/9] acpi: fix NULL bug for HID/UID string
+Date: Thu, 13 Aug 2009 09:55:02 -0600
+Message-ID: <200908130955.03393.bjorn.helgaas@hp.com>
+References: <200908062257.n76MvuCr024266@imap1.linux-foundation.org> <Pine.LNX.4.64.0908070012490.11170@sister.anvils>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:37330 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753826AbZHMOp7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 10:45:59 -0400
-In-Reply-To: <200908122343.20554.rjw@sisk.pl>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:22056 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754158AbZHMPzD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Aug 2009 11:55:03 -0400
+In-Reply-To: <Pine.LNX.4.64.0908070012490.11170@sister.anvils>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
+To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: akpm@linux-foundation.org, lenb@kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com, Valdis.Kletnieks@vt.edu, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>Lin Ming <ming.m.lin@intel.com>
 
-On Wed, 12 Aug 2009, Rafael J. Wysocki wrote:
-
-> I have an idea.
+On Thursday 06 August 2009 05:18:12 pm Hugh Dickins wrote:
+> It's up to Len to choose, but I thought we preferred...
 > 
-> Every such dependency involves two devices, one of which is a "master"
-> and the second of which is a "slave", meaning that the "slave" have to be
-> suspended before the "master" and cannot be resumed before it.  In principle
-> we could give each device two lists of "dependency objects", one containing
-> "dependency objects" where the device is the "master" and the other containing
-> "dependency objects" where the device is the "slave".  Then, each "dependency
-> object" could be represented as
+> From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
 > 
-> struct pm_connection {
->     struct device *master;
->     struct list_head master_hook;
->     struct device *slave;
->     struct list_head slave_hook;
-> };
+> acpi_device->pnp.hardware_id and unique_id are now allocated pointers,
+> replacing the previous arrays.  acpi_device_install_notify_handler()
+> oopsed on the NULL hid when probing the video device, 
+
+I'm sorry I wasn't aware of the acpi_device_install_notify_handler()
+issue until just now, since I added the code that oopses (46ec8598fd).
+
+I recently posted patches that removed the dependency on the HID
+in this path:
+
+  http://marc.info/?l=linux-acpi&m=124907623701270&w=2
+
+I thought Len said they had been applied to acpi-test, but I don't
+see them there.
+
+But I don't object to Hugh's patch, since it might be useful for other
+paths.
+
+Bjorn
+
+
+> and perhaps other 
+> uses are vulnerable too.  So initialize those pointers to empty strings
+> when there is no hid or uid.  Also, free hardware_id and unique_id when
+> when acpi_device is going to be freed.
 > 
-> Add some locking, helpers for adding / removing "dependency objects" etc.
-> and it should work.  Instead of checking the parent, walk the list of
-> "masters", instead of walking the list of children, walk the list of "slaves".
-
-If the set of pm_connection objects is reasonably small then the
-master_hook and slave_hook aren't needed; you can just read through the
-entire list.  Leaving out parent-child connections, which we already
-know, would help shrink the set.
-
-The layout of the pm_connection objects could then be improved
-slightly.  Each object could contain a variable-sized array of device
-pointers together with two integers, M and S.  The first M pointers
-would be masters and the remaining S pointers would be slaves.  This
-could be useful when, for example, a large number of devices all depend
-on one particular power device.
-
-> The core could create those objects for parent-child relationships
-> automatically, the other ones would have to be added by platforms / bus types /
-> drivers etc.
+> Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> ---
 > 
-> This approach has a problem that it's prone to adding circular dependencies by
-> mistake, but then I think it would apply to any other approach just as well.
+>  drivers/acpi/scan.c |   20 ++++++++++++--------
+>  1 file changed, 12 insertions(+), 8 deletions(-)
+> 
+> --- mmotm/drivers/acpi/scan.c	2009-07-17 12:53:20.000000000 +0100
+> +++ linux/drivers/acpi/scan.c	2009-07-27 18:01:32.000000000 +0100
+> @@ -309,6 +309,10 @@ static void acpi_device_release(struct d
+>  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>  
+>  	kfree(acpi_dev->pnp.cid_list);
+> +	if (acpi_dev->flags.hardware_id)
+> +		kfree(acpi_dev->pnp.hardware_id);
+> +	if (acpi_dev->flags.unique_id)
+> +		kfree(acpi_dev->pnp.unique_id);
+>  	kfree(acpi_dev);
+>  }
+>  
+> @@ -1144,8 +1148,9 @@ static void acpi_device_set_id(struct ac
+>  			strcpy(device->pnp.hardware_id, hid);
+>  			device->flags.hardware_id = 1;
+>  		}
+> -	} else
+> -		device->pnp.hardware_id = NULL;
+> +	}
+> +	if (!device->flags.hardware_id)
+> +		device->pnp.hardware_id = "";
+>  
+>  	if (uid) {
+>  		device->pnp.unique_id = ACPI_ALLOCATE_ZEROED(strlen (uid) + 1);
+> @@ -1153,8 +1158,9 @@ static void acpi_device_set_id(struct ac
+>  			strcpy(device->pnp.unique_id, uid);
+>  			device->flags.unique_id = 1;
+>  		}
+> -	} else
+> -		device->pnp.unique_id = NULL;
+> +	}
+> +	if (!device->flags.unique_id)
+> +		device->pnp.unique_id = "";
+>  
+>  	if (cid_list || cid_add) {
+>  		struct acpica_device_id_list *list;
+> @@ -1369,10 +1375,8 @@ acpi_add_single_object(struct acpi_devic
+>  end:
+>  	if (!result)
+>  		*child = device;
+> -	else {
+> -		kfree(device->pnp.cid_list);
+> -		kfree(device);
+> -	}
+> +	else
+> +		acpi_device_release(&device->dev);
+>  
+>  	return result;
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Yes.  In theory we could detect such cycles at runtime, but it's 
-probably not worth the effort.
-
-Alan Stern
 
