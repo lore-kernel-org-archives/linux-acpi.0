@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/11] SFI: create linux/sfi.h
-Date: Fri, 14 Aug 2009 16:38:11 -0400
-Message-ID: <4a07603b5073c06f55fe6db7966c820c9082c6ea.1250281826.git.len.brown@intel.com>
+Subject: [PATCH 09/11] SFI: add capability to parse ACPI tables
+Date: Fri, 14 Aug 2009 16:38:13 -0400
+Message-ID: <a955f53d46c3f61803fede27bf90835487fbe456.1250281826.git.len.brown@intel.com>
 References: <1250282295-25216-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:40525 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753215AbZHNUkt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2009 16:40:49 -0400
+Received: from vms173015pub.verizon.net ([206.46.173.15]:41264 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267AbZHNUkw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2009 16:40:52 -0400
 In-reply-to: <1250282295-25216-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0763223ab0ef5c0016b7a179c1acccaabbefea02.1250281826.git.len.brown@intel.com>
 References: <0763223ab0ef5c0016b7a179c1acccaabbefea02.1250281826.git.len.brown@intel.com>
@@ -18,28 +18,216 @@ Cc: Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Feng Tang <feng.tang@intel.com>
 
-include/linux/include/sfi.h defines everything that customers
-of SFI need to know in order to use the SFI suport in the kernel.
+Extend SFI to access standard ACPI tables.
+(eg. the PCI MCFG) using sfi_acpi_table_parse().
 
-The primary API is sfi_table_parse(), where a driver or another part
-of the kernel can supply a handler to parse the named table.
+Note that this is _not_ a hybrid ACPI + SFI mode.
+The platform boots in either ACPI mode or SFI mode.
 
-sfi.h also includes the currently defined table signatures and table
-formats.
+SFI runs only with acpi_disabled=1, which can be set
+at build-time via CONFIG_ACPI=n, or at boot time by
+the failure to find ACPI platform support.
+
+So this extension simply allows SFI-platforms to
+re-use existing standard table formats that happen to
+be defined to live in ACPI envelopes.
 
 Signed-off-by: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/linux/sfi.h |  206 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 206 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/sfi.h
+ drivers/sfi/sfi_acpi.c   |  175 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/sfi_acpi.h |   93 ++++++++++++++++++++++++
+ 2 files changed, 268 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/sfi/sfi_acpi.c
+ create mode 100644 include/linux/sfi_acpi.h
 
-diff --git a/include/linux/sfi.h b/include/linux/sfi.h
+diff --git a/drivers/sfi/sfi_acpi.c b/drivers/sfi/sfi_acpi.c
 new file mode 100644
-index 0000000..9a6f760
+index 0000000..34aba30
 --- /dev/null
-+++ b/include/linux/sfi.h
-@@ -0,0 +1,206 @@
++++ b/drivers/sfi/sfi_acpi.c
+@@ -0,0 +1,175 @@
++/* sfi_acpi.c Simple Firmware Interface - ACPI extensions */
++
++/*
++
++  This file is provided under a dual BSD/GPLv2 license.  When using or
++  redistributing this file, you may do so under either license.
++
++  GPL LICENSE SUMMARY
++
++  Copyright(c) 2009 Intel Corporation. All rights reserved.
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of version 2 of the GNU General Public License as
++  published by the Free Software Foundation.
++
++  This program is distributed in the hope that it will be useful, but
++  WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++  The full GNU General Public License is included in this distribution
++  in the file called LICENSE.GPL.
++
++  BSD LICENSE
++
++  Copyright(c) 2009 Intel Corporation. All rights reserved.
++
++  Redistribution and use in source and binary forms, with or without
++  modification, are permitted provided that the following conditions
++  are met:
++
++    * Redistributions of source code must retain the above copyright
++      notice, this list of conditions and the following disclaimer.
++    * Redistributions in binary form must reproduce the above copyright
++      notice, this list of conditions and the following disclaimer in
++      the documentation and/or other materials provided with the
++      distribution.
++    * Neither the name of Intel Corporation nor the names of its
++      contributors may be used to endorse or promote products derived
++      from this software without specific prior written permission.
++
++  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++*/
++
++#define KMSG_COMPONENT "SFI"
++#define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
++
++#include <linux/kernel.h>
++#include <acpi/acpi.h>
++
++#include <linux/sfi.h>
++#include "sfi_core.h"
++
++/*
++ * SFI can access ACPI-defined tables via an optional ACPI XSDT.
++ *
++ * This allows re-use, and avoids re-definition, of standard tables.
++ * For example, the "MCFG" table is defined by PCI, reserved by ACPI,
++ * and is expected to be present many SFI-only systems.
++ */
++
++static struct acpi_table_xsdt *xsdt_va __read_mostly;
++
++#define XSDT_GET_NUM_ENTRIES(ptable, entry_type) \
++	((ptable->header.length - sizeof(struct acpi_table_header)) / \
++	(sizeof(entry_type)))
++
++static inline struct sfi_table_header *acpi_to_sfi_th(
++				struct acpi_table_header *th)
++{
++	return (struct sfi_table_header *)th;
++}
++
++static inline struct acpi_table_header *sfi_to_acpi_th(
++				struct sfi_table_header *th)
++{
++	return (struct acpi_table_header *)th;
++}
++
++/*
++ * sfi_acpi_parse_xsdt()
++ *
++ * Parse the ACPI XSDT for later access by sfi_acpi_table_parse().
++ */
++static int __init sfi_acpi_parse_xsdt(struct sfi_table_header *th)
++{
++	struct sfi_table_key key = SFI_ANY_KEY;
++	int tbl_cnt, i;
++	void *ret;
++
++	xsdt_va = (struct acpi_table_xsdt *)th;
++	tbl_cnt = XSDT_GET_NUM_ENTRIES(xsdt_va, u64);
++	for (i = 0; i < tbl_cnt; i++) {
++		ret = sfi_check_table(xsdt_va->table_offset_entry[i], &key);
++		if (IS_ERR(ret)) {
++			disable_sfi();
++			return -1;
++		}
++	}
++
++	return 0;
++}
++
++int __init sfi_acpi_init(void)
++{
++	struct sfi_table_key xsdt_key = { .sig = SFI_SIG_XSDT };
++
++	sfi_table_parse(SFI_SIG_XSDT, NULL, NULL, sfi_acpi_parse_xsdt);
++
++	/* Only call the get_table to keep the table mapped */
++	xsdt_va = (struct acpi_table_xsdt *)sfi_get_table(&xsdt_key);
++	return 0;
++}
++
++static struct acpi_table_header *sfi_acpi_get_table(struct sfi_table_key *key)
++{
++	u32 tbl_cnt, i;
++	void *ret;
++
++	tbl_cnt = XSDT_GET_NUM_ENTRIES(xsdt_va, u64);
++	for (i = 0; i < tbl_cnt; i++) {
++		ret = sfi_check_table(xsdt_va->table_offset_entry[i], key);
++		if (!IS_ERR(ret) && ret)
++			return sfi_to_acpi_th(ret);
++	}
++
++	return NULL;
++}
++
++static void sfi_acpi_put_table(struct acpi_table_header *table)
++{
++	sfi_put_table(acpi_to_sfi_th(table));
++}
++
++/*
++ * sfi_acpi_table_parse()
++ *
++ * Find specified table in XSDT, run handler on it and return its return value
++ */
++int sfi_acpi_table_parse(char *signature, char *oem_id, char *oem_table_id,
++			int(*handler)(struct acpi_table_header *))
++{
++	struct acpi_table_header *table = NULL;
++	struct sfi_table_key key;
++	int ret = 0;
++
++	if (sfi_disabled)
++		return -1;
++
++	key.sig = signature;
++	key.oem_id = oem_id;
++	key.oem_table_id = oem_table_id;
++
++	table = sfi_acpi_get_table(&key);
++	if (!table)
++		return -EINVAL;
++
++	ret = handler(table);
++	sfi_acpi_put_table(table);
++	return ret;
++}
+diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
+new file mode 100644
+index 0000000..c4a5a8c
+--- /dev/null
++++ b/include/linux/sfi_acpi.h
+@@ -0,0 +1,93 @@
 +/* sfi.h Simple Firmware Interface */
 +
 +/*
@@ -98,154 +286,41 @@ index 0000000..9a6f760
 +
 +*/
 +
-+#ifndef _LINUX_SFI_H
-+#define _LINUX_SFI_H
-+
-+/* Table signatures reserved by the SFI specification */
-+#define SFI_SIG_SYST		"SYST"
-+#define SFI_SIG_FREQ		"FREQ"
-+#define SFI_SIG_IDLE		"IDLE"
-+#define SFI_SIG_CPUS		"CPUS"
-+#define SFI_SIG_MTMR		"MTMR"
-+#define SFI_SIG_MRTC		"MRTC"
-+#define SFI_SIG_MMAP		"MMAP"
-+#define SFI_SIG_APIC		"APIC"
-+#define SFI_SIG_XSDT		"XSDT"
-+#define SFI_SIG_WAKE		"WAKE"
-+#define SFI_SIG_SPIB		"SPIB"
-+#define SFI_SIG_I2CB		"I2CB"
-+#define SFI_SIG_GPEM		"GPEM"
-+
-+#define SFI_SIGNATURE_SIZE	4
-+#define SFI_OEM_ID_SIZE		6
-+#define SFI_OEM_TABLE_ID_SIZE	8
-+
-+#define SFI_SYST_SEARCH_BEGIN		0x000E0000
-+#define SFI_SYST_SEARCH_END		0x000FFFFF
-+
-+#define SFI_GET_NUM_ENTRIES(ptable, entry_type) \
-+	((ptable->header.len - sizeof(struct sfi_table_header)) / \
-+	(sizeof(entry_type)))
-+/*
-+ * Table structures must be byte-packed to match the SFI specification,
-+ * as they are provided by the BIOS.
-+ */
-+struct sfi_table_header {
-+	char	sig[SFI_SIGNATURE_SIZE];
-+	u32	len;
-+	u8	rev;
-+	u8	csum;
-+	char	oem_id[SFI_OEM_ID_SIZE];
-+	char	oem_table_id[SFI_OEM_TABLE_ID_SIZE];
-+} __packed;
-+
-+struct sfi_table_simple {
-+	struct sfi_table_header		header;
-+	u64				pentry[1];
-+} __packed;
-+
-+/* Comply with UEFI spec 2.1 */
-+struct sfi_mem_entry {
-+	u32	type;
-+	u64	phys_start;
-+	u64	virt_start;
-+	u64	pages;
-+	u64	attrib;
-+} __packed;
-+
-+struct sfi_cpu_table_entry {
-+	u32	apic_id;
-+} __packed;
-+
-+struct sfi_cstate_table_entry {
-+	u32	hint;		/* MWAIT hint */
-+	u32	latency;	/* latency in ms */
-+} __packed;
-+
-+struct sfi_apic_table_entry {
-+	u64	phys_addr;	/* phy base addr for APIC reg */
-+} __packed;
-+
-+struct sfi_freq_table_entry {
-+	u32	freq_mhz;	/* in MHZ */
-+	u32	latency;	/* transition latency in ms */
-+	u32	ctrl_val;	/* value to write to PERF_CTL */
-+} __packed;
-+
-+struct sfi_wake_table_entry {
-+	u64	phys_addr;	/* pointer to where the wake vector locates */
-+} __packed;
-+
-+struct sfi_timer_table_entry {
-+	u64	phys_addr;	/* phy base addr for the timer */
-+	u32	freq_hz;	/* in HZ */
-+	u32	irq;
-+} __packed;
-+
-+struct sfi_rtc_table_entry {
-+	u64	phys_addr;	/* phy base addr for the RTC */
-+	u32	irq;
-+} __packed;
-+
-+struct sfi_spi_table_entry {
-+	u16	host_num;	/* attached to host 0, 1...*/
-+	u16	cs;		/* chip select */
-+	u16	irq_info;
-+	char	name[16];
-+	u8	dev_info[10];
-+} __packed;
-+
-+struct sfi_i2c_table_entry {
-+	u16	host_num;
-+	u16	addr;		/* slave addr */
-+	u16	irq_info;
-+	char	name[16];
-+	u8	dev_info[10];
-+} __packed;
-+
-+struct sfi_gpe_table_entry {
-+	u16	logical_id;	/* logical id */
-+	u16	phys_id;	/* physical GPE id */
-+} __packed;
-+
-+
-+typedef int (*sfi_table_handler) (struct sfi_table_header *table);
++#ifndef _LINUX_SFI_ACPI_H
++#define _LINUX_SFI_ACPI_H
 +
 +#ifdef CONFIG_SFI
-+extern void __init sfi_init(void);
-+extern int __init sfi_platform_init(void);
-+extern void __init sfi_init_late(void);
-+extern int sfi_table_parse(char *signature, char *oem_id, char *oem_table_id,
-+				sfi_table_handler handler);
++#include <acpi/acpi.h>		/* struct acpi_table_header */
 +
-+extern int sfi_disabled;
-+static inline void disable_sfi(void)
++extern int sfi_acpi_table_parse(char *signature, char *oem_id,
++				char *oem_table_id,
++				int (*handler)(struct acpi_table_header *));
++
++static inline int acpi_sfi_table_parse(char *signature,
++				int (*handler)(struct acpi_table_header *))
 +{
-+	sfi_disabled = 1;
-+}
++	if (!acpi_table_parse(signature, handler))
++		return 0;
 +
++	return sfi_acpi_table_parse(signature, NULL, NULL, handler);
++}
 +#else /* !CONFIG_SFI */
 +
-+static inline void sfi_init(void)
-+{
-+}
-+
-+static inline void sfi_init_late(void)
-+{
-+}
-+
-+#define sfi_disabled	0
-+
-+static inline int sfi_table_parse(char *signature, char *oem_id,
-+					char *oem_table_id,
-+					sfi_table_handler handler)
++static inline int sfi_acpi_table_parse(char *signature, char *oem_id,
++				char *oem_table_id,
++				int (*handler)(struct acpi_table_header *))
 +{
 +	return -1;
 +}
 +
++static inline int acpi_sfi_table_parse(char *signature,
++				int (*handler)(struct acpi_table_header *))
++{
++	return acpi_table_parse(signature, handler);
++}
 +#endif /* !CONFIG_SFI */
 +
-+#endif /*_LINUX_SFI_H*/
++#endif /*_LINUX_SFI_ACPI_H*/
 -- 
 1.6.0.6
 
