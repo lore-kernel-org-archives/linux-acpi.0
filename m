@@ -1,38 +1,28 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH][ACPI] AC/DC notifier
-Date: Fri, 14 Aug 2009 18:32:33 +0200
-Message-ID: <20090814163233.GC1626@ucw.cz>
-References: <FFAE0590FF35E441901B67BD8BA62E950245ABD9@storexmb3.amd.com> <20090812005532.GA31003@srcf.ucam.org>
+Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
+Date: Fri, 14 Aug 2009 18:33:10 +0200
+Message-ID: <20090814163310.GE1626@ucw.cz>
+References: <200908122218.13975.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755086AbZHOQUw@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60892 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754457AbZHOQV2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Aug 2009 12:21:28 -0400
 Content-Disposition: inline
-In-Reply-To: <20090812005532.GA31003@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Tippett, Matthew" <Matthew.Tippett@amd.com>, "Langsdorf, Mark" <mark.langsdorf@amd.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Li, Samuel" <Samuel.Li@amd.com>
+In-Reply-To: <200908122218.13975.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>
 
-On Wed 2009-08-12 01:55:32, Matthew Garrett wrote:
-> On Tue, Aug 11, 2009 at 08:51:49PM -0400, Tippett, Matthew wrote:
-> 
-> >    From a graphics perspective (your area of expertise), this will allow KMS
-> >    drivers to do some more intelligent actions based on the ac/dc state. 
-> >    Some examples of this could be improving the power consumption of the
-> >    graphics hardware through adapting clock memory/engine settings for
-> >    reduced power consumption, reducing refresh rate of the display to reduce
-> >    scanout memory access, adjusting backlight brightness, etc.
-> 
-> Right. As you say, my concern is that most of this should belong in 
-> userspace. Where we risk hardware damage there's an obvious argument for 
-> doing this in kernel, but we should ensure that that's limited to 
-> whatever coarse-grain handling is absolutely required rather than doing 
-> things like touching display brightness.
+> The following patches introduce a mechanism allowing us to execute device
+> drivers' suspend and resume callbacks asynchronously during system sleep
+> transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
+> message.
 
-Yep... Some may want to save power even when AC is online -- like when
-running on UPS. Some may want max performmance even on battery. 
-								Pavel 
-
+it looks sane to me... Not too long and nice code :-)
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
