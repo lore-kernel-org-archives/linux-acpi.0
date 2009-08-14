@@ -1,52 +1,35 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Re: acpi_ex_system_memory_space_handler oops
-Date: Fri, 14 Aug 2009 15:48:05 +0300
-Message-ID: <20090814124805.GA3209@localdomain.by>
-References: <20090812201034.GA2983@localdomain.by>
- <alpine.LFD.2.00.0908122009170.22946@localhost.localdomain>
- <20090813124647.GA19195@localdomain.by>
- <1250217283.2987.16.camel@minggr.sh.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 0/3] PM: Asynchronous suspend and resume
+Date: Fri, 14 Aug 2009 10:45:31 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908141044220.2987-100000@iolanthe.rowland.org>
+References: <200908132353.54902.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:44710 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756700AbZHNMvH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2009 08:51:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1250217283.2987.16.camel@minggr.sh.intel.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:46870 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932114AbZHNOpa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2009 10:45:30 -0400
+In-Reply-To: <200908132353.54902.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 
+On Thu, 13 Aug 2009, Rafael J. Wysocki wrote:
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > No, I've only tested it with a few selected drivers.  I'm going to try the
+> > "async everyone" scenario, though.
+> 
+> On HP nx6325 booted with init=/bin/bash it doesn't pass the
+> 'echo devices > /sys/power/pm_test && echo mem > /sys/power/state' test.
+> 
+> The suspend part actually seems to work, but the resume part crashes
+> miserably.
 
-On (08/14/09 10:34), Lin Ming wrote:
-> Could you please help to locate the line of code that causes oops, as
-> below?
->=20
-Is it possible that we are dereferencing freed pointer?
+Any details?  Can you tell where it crashes?
 
-	Sergey
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Maybe I'll try it here just to see what happens...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Alan Stern
 
-iJwEAQECAAYFAkqFXQUACgkQfKHnntdSXjRUbQP/WQg4YxwyY+8fHMWzsOV8hRcV
-Tz8O9ZoLWEFcAyjNTfU5MR3f2NSe41FfIpUhvyGBe/ND64/0ixGeVv0GB4gTKs/y
-aiftsrHwgWbEnN5XQd/t/XCehBUlvpEXO0y45f2YuDDy/QtUpOvqRrUrDw+vAQFR
-r0/oj3aax0NBi5KsfDE=
-=bSgb
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
