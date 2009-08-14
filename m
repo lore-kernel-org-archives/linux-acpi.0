@@ -1,45 +1,85 @@
-From: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Subject: Re: [patch 9/9] acpi: fix NULL bug for HID/UID string
-Date: Fri, 14 Aug 2009 21:36:23 +0100 (BST)
-Message-ID: <Pine.LNX.4.64.0908142131330.3918@sister.anvils>
-References: <200908062257.n76MvuCr024266@imap1.linux-foundation.org>
- <200908141044.51799.bjorn.helgaas@hp.com> <Pine.LNX.4.64.0908141854110.15176@sister.anvils>
- <200908141408.40960.bjorn.helgaas@hp.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 06/11] SFI: Simple Firmware Interface - MAINTAINERS, Kconfig
+Date: Fri, 14 Aug 2009 16:38:10 -0400
+Message-ID: <792b9487f859c9fa3756adafa7ad1778c0c46e99.1250281826.git.len.brown@intel.com>
+References: <1250282295-25216-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mk-filter-2-a-1.mail.uk.tiscali.com ([212.74.100.53]:56992 "EHLO
-	mk-filter-2-a-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750868AbZHNUgt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Aug 2009 16:36:49 -0400
-In-Reply-To: <200908141408.40960.bjorn.helgaas@hp.com>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:60781 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053AbZHNUk2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2009 16:40:28 -0400
+In-reply-to: <1250282295-25216-1-git-send-email-lenb@kernel.org>
+In-reply-to: <0763223ab0ef5c0016b7a179c1acccaabbefea02.1250281826.git.len.brown@intel.com>
+References: <0763223ab0ef5c0016b7a179c1acccaabbefea02.1250281826.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Lin Ming <ming.m.lin@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+To: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
-On Fri, 14 Aug 2009, Bjorn Helgaas wrote:
-> 
-> Likely the same issue as Valdis saw, but I don't see the actual
-> problem yet.  If it's convenient, the patch below might shed a
-> little light.
+From: Len Brown <len.brown@intel.com>
 
-Here's an extract from dmesg with that patch applied on top:
+CONFIG_SFI=y enables the kernel to boot and run optimally
+on platforms that support the Simple Firmware Interface.
 
-Linux agpgart interface v0.103
-agpgart-intel 0000:00:00.0: Intel 965GM Chipset
-agpgart-intel 0000:00:00.0: detected 7676K stolen memory
-agpgart-intel 0000:00:00.0: AGP aperture is 256M @ 0xd0000000
-[drm] Initialized drm 1.1.0 20060810
-pci 0000:00:02.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-pci 0000:00:02.0: setting latency timer to 64
-pci 0000:00:02.0: irq 28 for MSI/MSI-X
-acpi device:05: registered as cooling_device2
-input: Video Bus as /devices/LNXSYSTM:00/device:00/PNP0A08:00/device:02/input/input3
-ACPI: Video Device [GFX0] (multi-head: yes  rom: no  post: no)
-ACPI: binding driver [video] to device [GFX0]
-ACPI: install notify handler for device:02, no HID!
-[drm] Initialized i915 1.6.0 20080730 for 0000:00:02.0 on minor 0
+Thanks to Jacob Pan for prototyping the initial Linux SFI support,
+and to Feng Tang for Linux bring-up and debug both in emulation
+and on Moorestown hardware.
 
-Hugh
+See http://simplefirmware.org for more information on SFI.
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ MAINTAINERS         |   12 ++++++++++++
+ drivers/sfi/Kconfig |   17 +++++++++++++++++
+ 2 files changed, 29 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/sfi/Kconfig
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b1114cf..d6d6fc8 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4561,6 +4561,18 @@ L:	linux-pci@vger.kernel.org
+ S:	Supported
+ F:	drivers/pci/hotplug/shpchp*
+ 
++SIMPLE FIRMWARE INTERFACE (SFI)
++P:	Len Brown
++M:	lenb@kernel.org
++L:	sfi-devel@simplefirmware.org
++W:	http://simplefirmware.org/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-sfi-2.6.git
++S:	Supported
++F:	arch/x86/kernel/*sfi*
++F:	drivers/sfi/
++F:	include/linux/sfi*.h
++
++
+ SIMTEC EB110ATX (Chalice CATS)
+ P:	Ben Dooks
+ M:	Vincent Sanders <support@simtec.co.uk>
+diff --git a/drivers/sfi/Kconfig b/drivers/sfi/Kconfig
+new file mode 100644
+index 0000000..dd11512
+--- /dev/null
++++ b/drivers/sfi/Kconfig
+@@ -0,0 +1,17 @@
++#
++# SFI Configuration
++#
++
++menuconfig SFI
++	bool "SFI (Simple Firmware Interface) Support"
++	---help---
++	The Simple Firmware Interface (SFI) provides a lightweight method
++	for platform firmware to pass information to the operating system
++	via static tables in memory.  Kernel SFI support is required to
++	boot on SFI-only platforms.  Currently, all SFI-only platforms are
++	based on the 2nd generation Intel Atom processor platform,
++	code-named Moorestown.
++
++	For more information, see http://simplefirmware.org
++
++	Say 'Y' here to enable the kernel to boot on SFI-only platforms.
+-- 
+1.6.0.6
+
