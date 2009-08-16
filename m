@@ -1,68 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 2/3] PM: Asynchronous suspend of devices
-Date: Sat, 15 Aug 2009 23:04:59 +0200
-Message-ID: <200908152304.59881.rjw@sisk.pl>
-References: <200908122218.13975.rjw@sisk.pl> <200908122221.20568.rjw@sisk.pl> <20090814163509.GK1626@ucw.cz>
+From: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>
+Subject: Re: Regression in ACPI in 2.6.31-rc5
+Date: Sun, 16 Aug 2009 04:00:03 +0100
+Message-ID: <200908160400.03391.storm@sys49152.net>
+References: <200908072333.24631.storm@sys49152.net> <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43285 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752204AbZHOVEb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Aug 2009 17:04:31 -0400
-In-Reply-To: <20090814163509.GK1626@ucw.cz>
+Received: from ey-out-2122.google.com ([74.125.78.27]:8887 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753739AbZHPDCL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Aug 2009 23:02:11 -0400
+In-Reply-To: <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday 14 August 2009, Pavel Machek wrote:
-> > @@ -659,26 +674,61 @@ static pm_message_t resume_event(pm_mess
-> >  }
-> >  
-> >  /**
-> > - *	device_suspend_noirq - Shut down one device (late suspend).
-> > - *	@dev:	Device.
-> > - *	@state: PM transition of the system being carried out.
-> > + * __device_suspend_noirq - Execute a "late" suspend callback for given device.
-> > + * @dev: Device to suspend.
-> > + * @state: PM transition of the system being carried out.
-> 
-> >   *
-> > - *	This is called with interrupts off and only a single CPU running.
-> 
-> that still looks like useful comment... why delete it?
+On Thursday 13 August 2009, Len Brown wrote:
+> > I had two drivers stop working in 2.6.31 that were working fine in
+> > 2.6.30. They are iwlagn and sky2. If i pass acpi=off to the kernel, they
+> > work as expected.
+>
+> the bug report for this issue is here:
+> http://bugzilla.kernel.org/show_bug.cgi?id=13940
+>
+> is it possible to bisect which commit between 2.6.30 and 2.6.31-rc5
+> caused this regression?
 
-Because it's not valid any more.
+git bisect tells me that commit 5d423ccd7ba4285f1084e91b26805e1d0ae978ed 
+(x86/pci: remove rounding quirk from e820_setup_gap()) caused the problem.
 
-> > + * The driver of the device won't receive interrupts while this function is
-> > + * being executed.
-> >   */
-> > @@ -696,13 +746,19 @@ int dpm_suspend_noirq(pm_message_t state
-> >  	suspend_device_irqs();
-> >  	mutex_lock(&dpm_list_mtx);
-> >  	list_for_each_entry_reverse(dev, &dpm_list, power.entry) {
-> > +		dev->power.status = DPM_OFF_IRQ;
-> >  		error = device_suspend_noirq(dev, state);
-> >  		if (error) {
-> >  			pm_dev_err(dev, state, " late", error);
-> > +			dev->power.status = DPM_OFF;
-> > +			break;
-> > +		}
-> > +		if (async_error) {
-> > +			error = async_error;
-> >  			break;
-> 
-> async_error is 'interesting'. How does locking work in noirq case?
+I built a kernel based on HEAD with that commit reverted and both drivers 
+work.
 
-It's racy, a little bit. :-)
-
-If two async drivers return errors exactly at the same time, one of them will
-win the race, but it doesn't really matter which one wins as long as
-async_error is different from zero as a result.  And it will be, since it's
-an 'int' and the integrity of these is guaranteed.
-
-Thanks,
-Rafael
