@@ -1,24 +1,57 @@
-From: Michael Lestoquoy <mlestoquoy@gmail.com>
-Subject: acpi
-Date: Mon, 17 Aug 2009 13:53:06 +0200
-Message-ID: <7dffe7470908170453h45d298b9he453a64f282e6208@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH] thinkpad-acpi: don't ask about brightness_mode for fw. 1V and 1R
+Date: Sun, 16 Aug 2009 13:30:21 -0300
+Message-ID: <1250440221-8185-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:61795 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469AbZHQLxG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Aug 2009 07:53:06 -0400
-Received: by fxm11 with SMTP id 11so2228375fxm.39
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Aug 2009 04:53:06 -0700 (PDT)
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55901 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751069AbZHQMjz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Aug 2009 08:39:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-ACPI: EC: Look up EC in DSDT
-ACPI: BIOS _OSI(Linux) query ignored
-ACPI: DMI System Vendor: Dell Inc.
-ACPI: DMI Product Name: PowerEdge 2970
-ACPI: DMI Product Version:
-ACPI: DMI Board Name: 0CY813
+X40 (firmware 1V) and T41 (firmware 1R) have been confirmed to work
+well with the new defaults, so we can stop pestering people to confirm
+that fact.
+
+For now, whitelist just these two firmware types.  It is best to have
+at least one more firmware type confirmed for Radeon 9xxx and Intel
+GMA-2 ThinkPads before removing the confirmation requests entirely.
+
+Reported-by: Robert de Rooy <robert.de.rooy@gmail.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/platform/x86/thinkpad_acpi.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 0acc0c9..df5364c 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -5627,16 +5627,16 @@ static const struct tpacpi_quirk brightness_quirk_table[] __initconst = {
+ 	/* Models with ATI GPUs known to require ECNVRAM mode */
+ 	TPACPI_Q_IBM('1', 'Y', TPACPI_BRGHT_Q_EC),	/* T43/p ATI */
+ 
+-	/* Models with ATI GPUs (waiting confirmation) */
+-	TPACPI_Q_IBM('1', 'R', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
++	/* Models with ATI GPUs that can use ECNVRAM */
++	TPACPI_Q_IBM('1', 'R', TPACPI_BRGHT_Q_EC),
+ 	TPACPI_Q_IBM('1', 'Q', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
+ 	TPACPI_Q_IBM('7', '6', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
+ 	TPACPI_Q_IBM('7', '8', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
+ 
+-	/* Models with Intel Extreme Graphics 2 (waiting confirmation) */
++	/* Models with Intel Extreme Graphics 2 */
++	TPACPI_Q_IBM('1', 'U', TPACPI_BRGHT_Q_NOEC),
+ 	TPACPI_Q_IBM('1', 'V', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
+ 	TPACPI_Q_IBM('1', 'W', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
+-	TPACPI_Q_IBM('1', 'U', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
+ 
+ 	/* Models with Intel GMA900 */
+ 	TPACPI_Q_IBM('7', '0', TPACPI_BRGHT_Q_NOEC),	/* T43, R52 */
+-- 
+1.6.3.3
+
