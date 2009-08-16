@@ -1,29 +1,67 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [2.6.31-rc6] ACPI region conflict regression...
-Date: Sun, 16 Aug 2009 11:35:03 +0100
-Message-ID: <20090816103503.GA3073@srcf.ucam.org>
-References: <6278d2220908160259v38c34c4ck6db2853ae886492@mail.gmail.com>
+From: Oleksiy Protas <elfy.ua@gmail.com>
+Subject: acpi_idle_enter_bm & mwait_idle
+Date: Sun, 16 Aug 2009 14:52:46 +0300
+Message-ID: <200908161452.53264.elfy.ua@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart2131852.84mvYpj87X";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:36176 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164AbZHPKfD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Aug 2009 06:35:03 -0400
-Content-Disposition: inline
-In-Reply-To: <6278d2220908160259v38c34c4ck6db2853ae886492@mail.gmail.com>
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:51789 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753703AbZHPLwQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Aug 2009 07:52:16 -0400
+Received: by bwz22 with SMTP id 22so1840499bwz.18
+        for <linux-acpi@vger.kernel.org>; Sun, 16 Aug 2009 04:52:16 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel J Blueman <daniel.blueman@gmail.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, Aug 16, 2009 at 10:59:38AM +0100, Daniel J Blueman wrote:
+--nextPart2131852.84mvYpj87X
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-> Is there a way to relax this, or does it require adding
-> acpi_bus_register_driver(struct acpi_driver) and the needed code this
-> late in the game?
+Hello,
 
-acpi_enforce_resources=lax
+I am sorry for bugging you guys here, but I've got a question and I think i=
+t=20
+best fits here. I have an Acer laptop, namely TravelMate 5320 with a Linux =
+OS=20
+(uname -a gives: Linux seagull 2.6.30-gentoo-r4 #4 Sat Aug 15 01:29:44 EEST=
+=20
+2009 i686 Intel(R) Celeron(R) CPU 550 @ 2.00GHz GenuineIntel GNU/Linux). Wh=
+at=20
+I'm observing are regular streak of system unreponsiveness. Performance=20
+monitors show an activity of  high-nice processes during these periods.=20
+OProfile gives ~24% time eaten by apci_idle_enter_bm() with ACPI enabled an=
+d=20
+35% time by mwait_idle() with acpi=3Doff, regardless of streak presence or =
+just=20
+smooth operating time. My question is how can I debug more indepth to see=20
+what's happening and what the named functions do so I can or can't blame th=
+em=20
+for unusable system. Thanks in advance.
+=2D-=20
+Oleksiy Protas=20
+National University =ABKyiv-Mohyla Academy=BB
+Institute of Molecular Biology and Genetics, Ukraine
+This message is signed. You can obtain a public key to verify it here:
+http://minsky.surfnet.nl:11371/pks/lookup?op=3Dget&search=3D0x81B636D4F015B=
+7EC
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--nextPart2131852.84mvYpj87X
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.11 (GNU/Linux)
+
+iEYEABECAAYFAkqH8xUACgkQgbY21PAVt+wjRgCeLWRzW7vvXJ4PYCSX/6li/DhK
+bEUAoIrn3S/vDytQBrxEzicN2jr78tQy
+=Bs+S
+-----END PGP SIGNATURE-----
+
+--nextPart2131852.84mvYpj87X--
