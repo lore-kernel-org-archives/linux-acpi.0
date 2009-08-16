@@ -1,37 +1,60 @@
-From: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>
-Subject: Re: Regression in ACPI in 2.6.31-rc5
-Date: Sun, 16 Aug 2009 04:00:03 +0100
-Message-ID: <200908160400.03391.storm@sys49152.net>
-References: <200908072333.24631.storm@sys49152.net> <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain>
+From: Willy Tarreau <w@1wt.eu>
+Subject: Re: [PATCH]AC/DC notifier
+Date: Sun, 16 Aug 2009 09:40:08 +0200
+Message-ID: <20090816074008.GA11624@1wt.eu>
+References: <FFAE0590FF35E441901B67BD8BA62E950245ABD9@storexmb3.amd.com> <20090812005532.GA31003@srcf.ucam.org> <20090814163233.GC1626@ucw.cz>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:8887 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739AbZHPDCL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Aug 2009 23:02:11 -0400
-In-Reply-To: <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain>
+Received: from 1wt.eu ([62.212.114.60]:44368 "EHLO 1wt.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750899AbZHPHqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Aug 2009 03:46:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20090814163233.GC1626@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Tippett, Matthew" <Matthew.Tippett@amd.com>, "Langsdorf, Mark" <mark.langsdorf@amd.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Li, Samuel" <Samuel.Li@amd.com>
 
-On Thursday 13 August 2009, Len Brown wrote:
-> > I had two drivers stop working in 2.6.31 that were working fine in
-> > 2.6.30. They are iwlagn and sky2. If i pass acpi=off to the kernel, they
-> > work as expected.
->
-> the bug report for this issue is here:
-> http://bugzilla.kernel.org/show_bug.cgi?id=13940
->
-> is it possible to bisect which commit between 2.6.30 and 2.6.31-rc5
-> caused this regression?
+On Fri, Aug 14, 2009 at 06:32:33PM +0200, Pavel Machek wrote:
+> On Wed 2009-08-12 01:55:32, Matthew Garrett wrote:
+> > On Tue, Aug 11, 2009 at 08:51:49PM -0400, Tippett, Matthew wrote:
+> > 
+> > >    From a graphics perspective (your area of expertise), this will allow KMS
+> > >    drivers to do some more intelligent actions based on the ac/dc state. 
+> > >    Some examples of this could be improving the power consumption of the
+> > >    graphics hardware through adapting clock memory/engine settings for
+> > >    reduced power consumption, reducing refresh rate of the display to reduce
+> > >    scanout memory access, adjusting backlight brightness, etc.
+> > 
+> > Right. As you say, my concern is that most of this should belong in 
+> > userspace. Where we risk hardware damage there's an obvious argument for 
+> > doing this in kernel, but we should ensure that that's limited to 
+> > whatever coarse-grain handling is absolutely required rather than doing 
+> > things like touching display brightness.
+> 
+> Yep... Some may want to save power even when AC is online -- like when
+> running on UPS. Some may want max performmance even on battery. 
 
-git bisect tells me that commit 5d423ccd7ba4285f1084e91b26805e1d0ae978ed 
-(x86/pci: remove rounding quirk from e820_setup_gap()) caused the problem.
+Wholeheartly agreed. IMHO, there's absolutely no relation between power
+source and the expected performance. It's really frustrating when your
+laptop becomes a snail on battery, as well as it's annoying to hear it
+sound like a hairdryer when plugged to mains. This should only be the
+user's choice. Mine automatically adjusts its frequency on demand,
+regardless of the power source, which provides me with the best
+experience. I think that all the tricks used to save power when running
+on battery were invented by laptop makers to artificially show longer
+lasting eventhough the machine sometimes becomes barely usable. For
+instance, some of them dim the backlight so that you can't read anything
+in full light, so you need a power prolongator to use them outside !
 
-I built a kernel based on HEAD with that commit reverted and both drivers 
-work.
+Also, with the new trend of laptops making use of huge power-hungry 3D
+graphic chips which suck all the juice out of your battery in less than
+two hours doing nothing, you'd better run at full speed when on battery
+to save energy for CPU-bound tasks, because eventhough the CPU eats more
+power, you significantly reduce the run time, thus the static consumption
+(GPU, backlight, hard disk, ...).
+
+Willy
 
