@@ -1,57 +1,215 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] thinkpad-acpi: don't ask about brightness_mode for fw. 1V and 1R
-Date: Sun, 16 Aug 2009 13:30:21 -0300
-Message-ID: <1250440221-8185-1-git-send-email-hmh@hmh.eng.br>
+From: Frans Pop <elendil@planet.nl>
+Subject: [PATCH 1/2] ACPI processor: force throttling state when BIOS returns incorrect value
+Date: Mon, 17 Aug 2009 14:43:34 +0200
+Message-ID: <200908171443.35622.elendil@planet.nl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55901 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751069AbZHQMjz (ORCPT
+Received: from cpsmtpm-eml102.kpnxchange.com ([195.121.3.6]:61638 "EHLO
+	CPSMTPM-EML102.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750926AbZHQMng (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Aug 2009 08:39:55 -0400
+	Mon, 17 Aug 2009 08:43:36 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, lenb@intel.com, rui.zhang@intel.com
 
-X40 (firmware 1V) and T41 (firmware 1R) have been confirmed to work
-well with the new defaults, so we can stop pestering people to confirm
-that fact.
+If the BIOS reports an invalid throttling state (which seems to be
+fairly common after system boot), a reset is done to state T0.
+Because of a check in acpi_processor_get_throttling_ptc(), the reset
+never actually gets executed, which results in the error reoccurring
+on every access of for example /proc/acpi/processor/CPU0/throttling.
 
-For now, whitelist just these two firmware types.  It is best to have
-at least one more firmware type confirmed for Radeon 9xxx and Intel
-GMA-2 ThinkPads before removing the confirmation requests entirely.
+Add a 'force' option to acpi_processor_set_throttling() to ensure
+the reset really takes effect.
 
-Reported-by: Robert de Rooy <robert.de.rooy@gmail.com>
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+http://bugzilla.kernel.org/show_bug.cgi?id=13389
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 0acc0c9..df5364c 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -5627,16 +5627,16 @@ static const struct tpacpi_quirk brightness_quirk_table[] __initconst = {
- 	/* Models with ATI GPUs known to require ECNVRAM mode */
- 	TPACPI_Q_IBM('1', 'Y', TPACPI_BRGHT_Q_EC),	/* T43/p ATI */
- 
--	/* Models with ATI GPUs (waiting confirmation) */
--	TPACPI_Q_IBM('1', 'R', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
-+	/* Models with ATI GPUs that can use ECNVRAM */
-+	TPACPI_Q_IBM('1', 'R', TPACPI_BRGHT_Q_EC),
- 	TPACPI_Q_IBM('1', 'Q', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
- 	TPACPI_Q_IBM('7', '6', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
- 	TPACPI_Q_IBM('7', '8', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
- 
--	/* Models with Intel Extreme Graphics 2 (waiting confirmation) */
-+	/* Models with Intel Extreme Graphics 2 */
-+	TPACPI_Q_IBM('1', 'U', TPACPI_BRGHT_Q_NOEC),
- 	TPACPI_Q_IBM('1', 'V', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
- 	TPACPI_Q_IBM('1', 'W', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
--	TPACPI_Q_IBM('1', 'U', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
- 
- 	/* Models with Intel GMA900 */
- 	TPACPI_Q_IBM('7', '0', TPACPI_BRGHT_Q_NOEC),	/* T43, R52 */
--- 
-1.6.3.3
+This patch, together with the next one, fixes a regression introduced in
+2.6.30, listed on the regression list. They have been available for 2.5
+months now in bugzilla, but have not been picked up, despite various
+reminders and without any reason given.
 
+Google shows that numerous people are hitting this issue. The issue is in
+itself relatively minor, but the bug in the code is clear.
+
+The patches have been in all mu kernels and today testing has shown that
+throttling works correctly with the patches applied when the system
+overheats (http://bugzilla.kernel.org/show_bug.cgi?id=13918#c14).
+
+Cheers,
+FJP
+
+diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
+index 39838c6..31adda1 100644
+--- a/drivers/acpi/processor_thermal.c
++++ b/drivers/acpi/processor_thermal.c
+@@ -66,7 +66,7 @@ static int acpi_processor_apply_limit(struct acpi_processor *pr)
+ 		if (pr->limit.thermal.tx > tx)
+ 			tx = pr->limit.thermal.tx;
+ 
+-		result = acpi_processor_set_throttling(pr, tx);
++		result = acpi_processor_set_throttling(pr, tx, false);
+ 		if (result)
+ 			goto end;
+ 	}
+@@ -421,12 +421,12 @@ processor_set_cur_state(struct thermal_cooling_device *cdev,
+ 
+ 	if (state <= max_pstate) {
+ 		if (pr->flags.throttling && pr->throttling.state)
+-			result = acpi_processor_set_throttling(pr, 0);
++			result = acpi_processor_set_throttling(pr, 0, false);
+ 		cpufreq_set_cur_state(pr->id, state);
+ 	} else {
+ 		cpufreq_set_cur_state(pr->id, max_pstate);
+ 		result = acpi_processor_set_throttling(pr,
+-				state - max_pstate);
++				state - max_pstate, false);
+ 	}
+ 	return result;
+ }
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 2275437..841be4e 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -62,7 +62,8 @@ struct throttling_tstate {
+ #define THROTTLING_POSTCHANGE      (2)
+ 
+ static int acpi_processor_get_throttling(struct acpi_processor *pr);
+-int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
++int acpi_processor_set_throttling(struct acpi_processor *pr,
++						int state, bool force);
+ 
+ static int acpi_processor_update_tsd_coord(void)
+ {
+@@ -361,7 +362,7 @@ int acpi_processor_tstate_has_changed(struct acpi_processor *pr)
+ 		 */
+ 		target_state = throttling_limit;
+ 	}
+-	return acpi_processor_set_throttling(pr, target_state);
++	return acpi_processor_set_throttling(pr, target_state, false);
+ }
+ 
+ /*
+@@ -842,7 +843,7 @@ static int acpi_processor_get_throttling_ptc(struct acpi_processor *pr)
+ 			ACPI_WARNING((AE_INFO,
+ 				"Invalid throttling state, reset"));
+ 			state = 0;
+-			ret = acpi_processor_set_throttling(pr, state);
++			ret = acpi_processor_set_throttling(pr, state, true);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -915,7 +916,7 @@ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
+ }
+ 
+ static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
+-					      int state)
++					      int state, bool force)
+ {
+ 	u32 value = 0;
+ 	u32 duty_mask = 0;
+@@ -930,7 +931,7 @@ static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
+ 	if (!pr->flags.throttling)
+ 		return -ENODEV;
+ 
+-	if (state == pr->throttling.state)
++	if (!force && (state == pr->throttling.state))
+ 		return 0;
+ 
+ 	if (state < pr->throttling_platform_limit)
+@@ -988,7 +989,7 @@ static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
+ }
+ 
+ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
+-					     int state)
++					     int state, bool force)
+ {
+ 	int ret;
+ 	acpi_integer value;
+@@ -1002,7 +1003,7 @@ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
+ 	if (!pr->flags.throttling)
+ 		return -ENODEV;
+ 
+-	if (state == pr->throttling.state)
++	if (!force && (state == pr->throttling.state))
+ 		return 0;
+ 
+ 	if (state < pr->throttling_platform_limit)
+@@ -1018,7 +1019,8 @@ static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
+ 	return 0;
+ }
+ 
+-int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
++int acpi_processor_set_throttling(struct acpi_processor *pr,
++						int state, bool force)
+ {
+ 	cpumask_var_t saved_mask;
+ 	int ret = 0;
+@@ -1070,7 +1072,7 @@ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
+ 		/* FIXME: use work_on_cpu() */
+ 		set_cpus_allowed_ptr(current, cpumask_of(pr->id));
+ 		ret = p_throttling->acpi_processor_set_throttling(pr,
+-						t_state.target_state);
++						t_state.target_state, force);
+ 	} else {
+ 		/*
+ 		 * When the T-state coordination is SW_ALL or HW_ALL,
+@@ -1103,7 +1105,7 @@ int acpi_processor_set_throttling(struct acpi_processor *pr, int state)
+ 			set_cpus_allowed_ptr(current, cpumask_of(i));
+ 			ret = match_pr->throttling.
+ 				acpi_processor_set_throttling(
+-				match_pr, t_state.target_state);
++				match_pr, t_state.target_state, force);
+ 		}
+ 	}
+ 	/*
+@@ -1201,7 +1203,7 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Disabling throttling (was T%d)\n",
+ 				  pr->throttling.state));
+-		result = acpi_processor_set_throttling(pr, 0);
++		result = acpi_processor_set_throttling(pr, 0, false);
+ 		if (result)
+ 			goto end;
+ 	}
+@@ -1307,7 +1309,7 @@ static ssize_t acpi_processor_write_throttling(struct file *file,
+ 	if (strcmp(tmpbuf, charp) != 0)
+ 		return -EINVAL;
+ 
+-	result = acpi_processor_set_throttling(pr, state_val);
++	result = acpi_processor_set_throttling(pr, state_val, false);
+ 	if (result)
+ 		return result;
+ 
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index baf1e0a..740ac3a 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -174,7 +174,7 @@ struct acpi_processor_throttling {
+ 	cpumask_var_t shared_cpu_map;
+ 	int (*acpi_processor_get_throttling) (struct acpi_processor * pr);
+ 	int (*acpi_processor_set_throttling) (struct acpi_processor * pr,
+-					      int state);
++					      int state, bool force);
+ 
+ 	u32 address;
+ 	u8 duty_offset;
+@@ -321,7 +321,8 @@ static inline int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+ /* in processor_throttling.c */
+ int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr);
+-extern int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
++extern int acpi_processor_set_throttling(struct acpi_processor *pr,
++					 int state, bool force);
+ extern const struct file_operations acpi_processor_throttling_fops;
+ extern void acpi_processor_throttling_init(void);
+ /* in processor_idle.c */
