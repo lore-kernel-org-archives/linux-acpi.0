@@ -1,97 +1,296 @@
 From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: [PATCH 1/3] Add known supported Dell Mini series laptops to compal-laptop
-Date: Mon, 17 Aug 2009 18:27:34 -0500
-Message-ID: <4A89E766.5040600@dell.com>
+Subject: [PATCH 3/3] Drop platform sysfs support
+Date: Mon, 17 Aug 2009 18:27:39 -0500
+Message-ID: <4A89E76B.5070204@dell.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="------------enig6B1842A0038EDB9405183FFB"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932659AbZHQX0z@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: cezary.jackiewicz@gmail.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+ boundary="------------enig59DB6BB6599E5577D383709D"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ausxipps301.us.dell.com ([143.166.148.223]:49227 "EHLO
+	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932510AbZHQX05 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Aug 2009 19:26:57 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, cezary.jackiewicz@gmail.com
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig6B1842A0038EDB9405183FFB
+--------------enig59DB6BB6599E5577D383709D
 Content-Type: multipart/mixed;
- boundary="------------040102060404020909060500"
+ boundary="------------020003080702070007000703"
 
 This is a multi-part message in MIME format.
---------------040102060404020909060500
+--------------020003080702070007000703
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-This adds the system information as matched by DMI tables for laptops
-I've verified can work with compal-laptop.
+With rfkill support being added, the platform support is no longer
+necessary.  Standard rfkill interfaces can be used to administer the box
+now.
 --=20
 Mario Limonciello
 *Dell | Linux Engineering*
 mario_limonciello@dell.com
 
---------------040102060404020909060500
+--------------020003080702070007000703
 Content-Type: text/x-patch;
- name="01_detect_dell.diff"
+ name="03_drop_platform_stuff.diff"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline;
- filename="01_detect_dell.diff"
+ filename="03_drop_platform_stuff.diff"
 
---- drivers/platform/x86/compal-laptop.c.old	2009-08-17 06:27:52.73178692=
-8 -0500
-+++ drivers/platform/x86//compal-laptop.c	2009-08-17 06:29:31.199787056 -=
-0500
-@@ -311,6 +311,39 @@
- 		},
- 		.callback =3D dmi_check_cb
- 	},
-+	{
-+		.ident =3D "Dell Mini 9",
-+		.matches =3D {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 910"),
-+		},
-+		.callback =3D dmi_check_cb
-+	},
-+	{
-+		.ident =3D "Dell Mini 10",
-+		.matches =3D {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 1010"),
-+		},
-+		.callback =3D dmi_check_cb
-+	},
-+	{
-+		.ident =3D "Dell Mini 10v",
-+		.matches =3D {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 1011"),
-+		},
-+		.callback =3D dmi_check_cb
-+	},
-+	{
-+		.ident =3D "Dell Inspiron 1010",
-+		.matches =3D {
-+                        DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+                        DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 1110"),
-+		},
-+		.callback =3D dmi_check_cb
-+	},
-+
- 	{ }
- };
+--- drivers/platform/x86/compal-laptop.c.old	2009-08-17 07:02:15.01283662=
+5 -0500
++++ drivers/platform/x86/compal-laptop.c	2009-08-17 07:03:03.925633380 -0=
+500
+@@ -26,13 +26,6 @@
+ /*
+  * comapl-laptop.c - Compal laptop support.
+  *
+- * This driver exports a few files in /sys/devices/platform/compal-lapto=
+p/:
+- *
+- *   wlan - wlan subsystem state: contains 0 or 1 (rw)
+- *
+- *   bluetooth - Bluetooth subsystem state: contains 0 or 1 (rw)
+- *
+- *   raw - raw value taken from embedded controller register (ro)
+  *
+  * In addition to these platform device attributes the driver
+  * registers itself in the Linux backlight control subsystem and is
+@@ -174,67 +167,6 @@
+ 	return ret;
+ }
 =20
-@@ -404,3 +437,7 @@
- MODULE_ALIAS("dmi:*:rnIFL91:rvrIFT00:*");
- MODULE_ALIAS("dmi:*:rnJFL92:rvrIFT00:*");
- MODULE_ALIAS("dmi:*:rnIFT00:rvrIFT00:*");
-+MODULE_ALIAS("dmi:*:svnDellInc.:pnInspiron910:*");
-+MODULE_ALIAS("dmi:*:svnDellInc.:pnInspiron1010:*");
-+MODULE_ALIAS("dmi:*:svnDellInc.:pnInspiron1011:*");
-+MODULE_ALIAS("dmi:*:svnDellInc.:pnInspiron1110:*");
+-static int set_wlan_state(int state)
+-{
+-	u8 result, value;
+-
+-	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+-
+-	if ((result & KILLSWITCH_MASK) =3D=3D 0)
+-		return -EINVAL;
+-	else {
+-		if (state)
+-			value =3D (u8) (result | WLAN_MASK);
+-		else
+-			value =3D (u8) (result & ~WLAN_MASK);
+-		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
+-	}
+-
+-	return 0;
+-}
+-
+-static int set_bluetooth_state(int state)
+-{
+-	u8 result, value;
+-
+-	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+-
+-	if ((result & KILLSWITCH_MASK) =3D=3D 0)
+-		return -EINVAL;
+-	else {
+-		if (state)
+-			value =3D (u8) (result | BT_MASK);
+-		else
+-			value =3D (u8) (result & ~BT_MASK);
+-		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
+-	}
+-
+-	return 0;
+-}
+-
+-static int get_wireless_state(int *wlan, int *bluetooth)
+-{
+-	u8 result;
+-
+-	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+-
+-	if (wlan) {
+-		if ((result & KILLSWITCH_MASK) =3D=3D 0)
+-			*wlan =3D 0;
+-		else
+-			*wlan =3D result & WLAN_MASK;
+-	}
+-
+-	if (bluetooth) {
+-		if ((result & KILLSWITCH_MASK) =3D=3D 0)
+-			*bluetooth =3D 0;
+-		else
+-			*bluetooth =3D (result & BT_MASK) >> 1;
+-	}
+-
+-	return 0;
+-}
+-
+ /* Backlight device stuff */
+=20
+ static int bl_get_brightness(struct backlight_device *b)
+@@ -255,96 +187,6 @@
+=20
+ static struct backlight_device *compalbl_device;
+=20
+-/* Platform device */
+-
+-static ssize_t show_wlan(struct device *dev,
+-	struct device_attribute *attr, char *buf)
+-{
+-	int ret, enabled;
+-
+-	ret =3D get_wireless_state(&enabled, NULL);
+-	if (ret < 0)
+-		return ret;
+-
+-	return sprintf(buf, "%i\n", enabled);
+-}
+-
+-static ssize_t show_raw(struct device *dev,
+-	struct device_attribute *attr, char *buf)
+-{
+-	u8 result;
+-
+-	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+-
+-	return sprintf(buf, "%i\n", result);
+-}
+-
+-static ssize_t show_bluetooth(struct device *dev,
+-	struct device_attribute *attr, char *buf)
+-{
+-	int ret, enabled;
+-
+-	ret =3D get_wireless_state(NULL, &enabled);
+-	if (ret < 0)
+-		return ret;
+-
+-	return sprintf(buf, "%i\n", enabled);
+-}
+-
+-static ssize_t store_wlan_state(struct device *dev,
+-	struct device_attribute *attr, const char *buf, size_t count)
+-{
+-	int state, ret;
+-
+-	if (sscanf(buf, "%i", &state) !=3D 1 || (state < 0 || state > 1))
+-		return -EINVAL;
+-
+-	ret =3D set_wlan_state(state);
+-	if (ret < 0)
+-		return ret;
+-
+-	return count;
+-}
+-
+-static ssize_t store_bluetooth_state(struct device *dev,
+-	struct device_attribute *attr, const char *buf, size_t count)
+-{
+-	int state, ret;
+-
+-	if (sscanf(buf, "%i", &state) !=3D 1 || (state < 0 || state > 1))
+-		return -EINVAL;
+-
+-	ret =3D set_bluetooth_state(state);
+-	if (ret < 0)
+-		return ret;
+-
+-	return count;
+-}
+-
+-static DEVICE_ATTR(bluetooth, 0644, show_bluetooth, store_bluetooth_stat=
+e);
+-static DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan_state);
+-static DEVICE_ATTR(raw, 0444, show_raw, NULL);
+-
+-static struct attribute *compal_attributes[] =3D {
+-	&dev_attr_bluetooth.attr,
+-	&dev_attr_wlan.attr,
+-	&dev_attr_raw.attr,
+-	NULL
+-};
+-
+-static struct attribute_group compal_attribute_group =3D {
+-	.attrs =3D compal_attributes
+-};
+-
+-static struct platform_driver compal_driver =3D {
+-	.driver =3D {
+-		.name =3D "compal-laptop",
+-		.owner =3D THIS_MODULE,
+-	}
+-};
+-
+-static struct platform_device *compal_device;
+-
+ /* Initialization */
+=20
+ static int dmi_check_cb(const struct dmi_system_id *id)
+@@ -454,49 +296,16 @@
+ 		compalbl_device =3D backlight_device_register("compal-laptop", NULL, N=
+ULL,
+ 							    &compalbl_ops);
+ 		if (IS_ERR(compalbl_device))
+-			return PTR_ERR(compalbl_device);
++			goto fail_backlight;
+=20
+ 		compalbl_device->props.max_brightness =3D COMPAL_LCD_LEVEL_MAX-1;
+ 	}
+=20
+-	ret =3D platform_driver_register(&compal_driver);
+-	if (ret)
+-		goto fail_backlight;
+-
+-	/* Register platform stuff */
+-
+-	compal_device =3D platform_device_alloc("compal-laptop", -1);
+-	if (!compal_device) {
+-		ret =3D -ENOMEM;
+-		goto fail_platform_driver;
+-	}
+-
+-	ret =3D platform_device_add(compal_device);
+-	if (ret)
+-		goto fail_platform_device1;
+-
+-	ret =3D sysfs_create_group(&compal_device->dev.kobj,
+-		&compal_attribute_group);
+-	if (ret)
+-		goto fail_platform_device2;
+-
+ 	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
+ 		" successfully loaded.\n");
+=20
+ 	return 0;
+=20
+-fail_platform_device2:
+-
+-	platform_device_del(compal_device);
+-
+-fail_platform_device1:
+-
+-	platform_device_put(compal_device);
+-
+-fail_platform_driver:
+-
+-	platform_driver_unregister(&compal_driver);
+-
+ fail_backlight:
+=20
+ 	backlight_device_unregister(compalbl_device);
+@@ -514,9 +323,6 @@
+ static void __exit compal_cleanup(void)
+ {
+=20
+-	sysfs_remove_group(&compal_device->dev.kobj, &compal_attribute_group);
+-	platform_device_unregister(compal_device);
+-	platform_driver_unregister(&compal_driver);
+ 	backlight_device_unregister(compalbl_device);
+ 	if (wifi_rfkill)
+ 		rfkill_unregister(wifi_rfkill);
 
---------------040102060404020909060500--
+--------------020003080702070007000703--
 
---------------enig6B1842A0038EDB9405183FFB
+--------------enig59DB6BB6599E5577D383709D
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -100,9 +299,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.9 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEARECAAYFAkqJ52YACgkQ2CrZjkA73YufUgCcDzQQofbgHdmyWntRZBwL0Ta9
-HhoAn2E3HyeOWvxt5a5fePT/+Id2OEz4
-=N+ge
+iEYEARECAAYFAkqJ52sACgkQ2CrZjkA73YsGjgCfUgdkzKrQzY4xToRyhbVU309H
+yaAAnj4IZSKGYOhV9juORk1xq5wG+vzA
+=wKgk
 -----END PGP SIGNATURE-----
 
---------------enig6B1842A0038EDB9405183FFB--
+--------------enig59DB6BB6599E5577D383709D--
