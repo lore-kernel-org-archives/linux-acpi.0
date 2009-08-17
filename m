@@ -1,70 +1,98 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 00/11] SFI: Simple Firmware Interface - v3
-Date: Mon, 17 Aug 2009 12:06:28 +0200
-Message-ID: <20090817100628.GA21498@elte.hu>
-References: <1250282295-25216-1-git-send-email-lenb@kernel.org>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: Re: acpi_ex_system_memory_space_handler oops
+Date: Mon, 17 Aug 2009 14:30:59 +0300
+Message-ID: <20090817113059.GA3245@localdomain.by>
+References: <20090812201034.GA2983@localdomain.by>
+ <1250498613.28336.68.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:51013 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750842AbZHQKGg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Aug 2009 06:06:36 -0400
+Received: from an-out-0708.google.com ([209.85.132.248]:24116 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757720AbZHQL1j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Aug 2009 07:27:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1250282295-25216-1-git-send-email-lenb@kernel.org>
+In-Reply-To: <1250498613.28336.68.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
 
-* Len Brown <lenb@kernel.org> wrote:
+--Dxnq1zWXvFF0Q93v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Changes since v2:
-> 
->  re-based to v2.6.31-rc6
-> 
->  included here some patches from the ACPI tree
->    that prepare for SFI
-> 
->  deleted MMAP table parsing code
->    It isn't needed in the kernel, since on all known SFI boxes today,
->    the booter parses this table for us.
-> 
->  fixed some build issues, generally related to CONFIG_ACPI=n
-> 
->  various cosmetic changes in response to v2 code review
-> 
-> What is left to do:
-> 
->  x86_32 can set CONFIG_PCI_MMCONFIG=y when
->  SFI=y and ACPI=n, but x86_64 can not, yet.
-> 
->  A number of drivers will use SFI and will provide
->  their own table parsers, but those will come later.
+On (08/17/09 16:43), Lin Ming wrote:
+> On Thu, 2009-08-13 at 04:10 +0800, Sergey Senozhatsky wrote:
+> > [    0.205668] ACPI Error (dswload-0790): [PCFG] Namespace lookup failu=
+re, AE_ALREADY_EXISTS
+> > [    0.205899] ACPI Exception: AE_ALREADY_EXISTS, During name lookup/ca=
+talog 20090521 psloop-227
+> > [    0.206124] ACPI Error (psparse-0537): Method parse/execution failed=
+ [\_SB_.RBPE] (Node f7017678), AE_ALREADY_EXISTS
+> > [    0.206417] ACPI: Marking method RBPE as Serialized because of AE_AL=
+READY_EXISTS error
+> > [    0.206773] ACPI Error (psparse-0537): Method parse/execution failed=
+ [\_SB_.PCI0.P0P4.XCRD._STA] (Node f7015648), AE_ALREADY_EXISTS
+> > [    0.207070] ACPI: Marking method _STA as Serialized because of AE_AL=
+READY_EXISTS error
+> > [    0.207326] ACPI Error (uteval-0256): Method execution failed [\_SB_=
+=2EPCI0.P0P4.XCRD._STA] (Node f7015648), AE_ALREADY_EXISTS
+> > [    0.213503] ACPI Error: Could not map memory at 0000000000000000, si=
+ze 0 20090521 exregion-173
+> > [    0.213734] ACPI Exception: AE_NO_MEMORY, Returned by Handler for [S=
+ystemMemory] 20090521 evregion-424
+> > [    0.213963] ACPI Error (psparse-0537): Method parse/execution failed=
+ [\_SB_.RBPE] (Node f7017678), AE_NO_MEMORY
+> > [    0.214286] ACPI Error (psparse-0537): Method parse/execution failed=
+ [\_GPE._L01] (Node f701d198), AE_NO_MEMORY
+> > [    0.214616] ACPI Exception: AE_NO_MEMORY, while evaluating GPE metho=
+d [_L01] 20090521 evgpe-568
+> > [    0.216428] PCI: MCFG area at e0000000 reserved in ACPI motherboard =
+resources
+> > [    0.216523] PCI: updated MCFG configuration 0: base e0000000 segment=
+ 0 buses 0 - 63
+> > [    0.216627] PCI: Using MMCONFIG for extended config space
+>=20
+> Hi, Sergey
+>
+Hi, Lin
+=20
+> 2. Debug kernel patch
+>=20
+> Currently, we exit the interpreter when setup region, because it may
+> execute control methods, such as _REG.
+>=20
+> The attached debug kernel patch (region-debug.patch) don't exit the
+> interpreter if the region is temporary, namely, it is defined inside a
+> method.
+>=20
 
-Ok, this iteration is even nicer.
+rc6-git2
+25 successful reboots.
 
-  Reviewed-by: Ingo Molnar <mingo@elte.hu>
+I'll need some more time to test against rc5.
 
-A patch technical request/suggestion. I guess you'd like to keep 
-these bits in the ACPI tree, so that you can test it and merge it 
-with ongoing ACPI changes, right?
+/*should I also test DSDT in case region-debug.patch fixed the problem?*/
 
-That would be fine to me for all the arch/x86/ touching patches, 
-except for this one:
+	Sergey
 
- [PATCH 05/11] ACPI, x86: expose some IO-APIC routines when CONFIG_ACPI=n
+--Dxnq1zWXvFF0Q93v
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-I'd like to pick this one up into tip:x86/apic, because there's 
-ongoing work in this area. (also, by the looks of it, i'd not be 
-surprised if this patch needed some testing. This is fragile code 
-with quirky Kconfig dependencies.)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-I can create a standalone topic for this (based on .31-rc6), 
-containing this single commit, which you could pull into the ACPI 
-tree? That way we both can have this commit and nobody is held up, 
-and both trees can be pushed to Linus in the .32 merge window, 
-independently of each other.
+iJwEAQECAAYFAkqJP3MACgkQfKHnntdSXjQ2/AP9EnHEEkKG4m0t3HvSvB3GHBZo
+2iWnIfhoUtopCtYmH1Q59miTQOcDEvCkJ1t4+lnFpO2Z6KmtlLJGfmRd1yvqKiGR
+dgjjLI1h+34fGDvoimUNArANVFMdv26BZGytQgT6x8Jp82Pa4Cwx9dn6tsvSgJX0
+0AIn+1WX16VrRSEoy5M=
+=f1hc
+-----END PGP SIGNATURE-----
 
-	Ingo
+--Dxnq1zWXvFF0Q93v--
