@@ -1,30 +1,68 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
-	in driver
-Date: Tue, 18 Aug 2009 21:45:08 +0100
-Message-ID: <20090818204508.GA886@srcf.ucam.org>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan> <20090304120439.GA31850@khazad-dum.debian.net> <1250625730.2257.11.camel@hidalgo> <20090818201002.GA32638@srcf.ucam.org> <1250627230.2257.15.camel@hidalgo>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
+Date: Tue, 18 Aug 2009 22:08:14 +0100
+Message-ID: <9b2b86520908181408v5f7875b6sea31d8d95cc08c0b@mail.gmail.com>
+References: <4A89E768.7010207@dell.com>
+	 <1250558643.30166.109.camel@localhost.localdomain>
+	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>
+	 <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>
+	 <4A8AE459.8060102@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1250627230.2257.15.camel@hidalgo>
-Sender: linux-input-owner@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: Ali Abdallah <aliov@xfce.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Peter Hutterer <peter.hutterer@redhat.com>, linux-acpi <linux-acpi@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, linux-input <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752238AbZHRVIQ@vger.kernel.org>
+In-Reply-To: <4A8AE459.8060102@dell.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mario Limonciello <mario_limonciello@dell.com>
+Cc: "johannes@sipsolutions.net" <johannes@sipsolutions.net>, Marcel Holtmann <marcel@holtmann.org>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 18, 2009 at 10:27:10PM +0200, Yves-Alexis Perez wrote:
-> On mar, 2009-08-18 at 21:10 +0100, Matthew Garrett wrote:
-> > 
-> > > It seems that this patch is still not in master?
-> > 
-> > Correct. We can't change the existing semantics without breaking 
-> > existing userspace applications.
-> 
-> Hmh ok, but is it planned?
+On 8/18/09, Mario Limonciello <mario_limonciello@dell.com> wrote:
+> Hi Alan & Marcel:
+>
+> Alan Jenkins wrote:
+>> Also, you're missing the calls to rfkill_destroy() here.
+>>
+>> Whew, I think that's everything.  I hope you find the feedback useful,
+>> despite it being a little fragmented.
+>>
+>>
+> Thanks for all the feedback.  I think i've addressed all of the concerns
+> that were pointed out.  I appreciate the pointer to scripts/cleanpatch,
+> that does significantly help in finding whitespace problems that the
+> naked eye just browses over.
+>
+> I'm attaching the updated patch (sorry, git send-email seems to still
+> not be very graceful with line breaks when the SMTP implementation is
+> exchange from what i've seen)
 
-No. We'd break userspace.
+> +static void compal_rfkill_poll(struct rfkill *rfkill, void *data)
+> +{
+> +	unsigned long radio = (unsigned long) data;
+> +	u8 result;
+> +	bool hw_blocked;
+> +	bool sw_blocked;
+> +
+> +	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+> +
+> +	hw_blocked = !(result & KILLSWITCH_MASK);
+> +	sw_blocked = (!hw_blocked && !(result & radio));
+> +
+> +	rfkill_set_states(rfkill, sw_blocked, hw_blocked);
+> +}
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I assume you have good reason for having sw_block depend on hw_block.
+I.e. you can't read sw_blocked while hw_blocked is set, right?
+
+If KILLSWITCH is toggled on and off, will the hardware "forget" any
+prior soft-blocks?
+
+It would also be nice to know if hardware/firmware ever changes
+sw_blocked, e.g. in response to a button press.
+
+Johannes, I think I'm confusing myself here.  Can you have a look at
+this code?  I remember the rfkill rewrite was designed to help with
+something like this, but I don't know how exactly.
+
+Thanks
+Alan
