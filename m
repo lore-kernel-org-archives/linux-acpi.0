@@ -1,59 +1,87 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
-Date: Tue, 18 Aug 2009 09:59:22 +0800
-Message-ID: <1250560762.5351.44.camel@rzhang-dt>
+Subject: Re: [RFC][PATCH 5/7] PM: Asynchronous suspend and resume of PCI
+	devices
+Date: Tue, 18 Aug 2009 14:57:08 +0800
+Message-ID: <1250578628.5351.64.camel@rzhang-dt>
 References: <200908122218.13975.rjw@sisk.pl>
-	 <200908170215.21173.rjw@sisk.pl>
+	 <200908170215.21173.rjw@sisk.pl>  <200908170220.18874.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28289 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:36075 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996AbZHRCAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Aug 2009 22:00:55 -0400
-In-Reply-To: <200908170215.21173.rjw@sisk.pl>
+	id S1751590AbZHRG6n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Aug 2009 02:58:43 -0400
+In-Reply-To: <200908170220.18874.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-hmm,
-what are these patches based on?
-I tried an 2.6.31-rc6 kernel together with your run-time PM patch (rev.
-17) but still failed.
+On Mon, 2009-08-17 at 08:20 +0800, Rafael J. Wysocki wrote:
+> Set async_suspend for all PCI devices and PCIe port services.
+>=20
+=EF=BB=BFAlan said that we can not break the resume order of the uhci/e=
+hci host
+controllers on some platforms.
+
+=46or example,
+00:1a.0 USB Controller: Intel Corporation 82801H (ICH8 Family) USB UHCI
+Controller #4 (rev 02)
+00:1a.1 USB Controller: Intel Corporation 82801H (ICH8 Family) USB UHCI
+Controller #5 (rev 02)
+00:1a.7 USB Controller: Intel Corporation 82801H (ICH8 Family) USB2 EHC=
+I
+Controller #2 (rev 02)
+00:1a.7 must be resumed after 00:1a.0 and 00:1a.1
+
+please refer to this thread:
+http://marc.info/?l=3Dlinux-acpi&m=3D122996117918188&w=3D2
+
+So I'm afraid we can not suspend/resume the PCI devices in parallel,
+unless we add this off-tree dependency at the same time.
 
 thanks,
 rui
+> ---
+>  drivers/input/serio/i8042.c     |    2 ++
+>  drivers/pci/pci.c               |    2 ++
+>  drivers/pci/pcie/portdrv_core.c |    1 +
+>  3 files changed, 5 insertions(+)
+>=20
+> Index: linux-2.6/drivers/pci/pci.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-2.6.orig/drivers/pci/pci.c
+> +++ linux-2.6/drivers/pci/pci.c
+> @@ -1409,6 +1409,8 @@ void pci_pm_init(struct pci_dev *dev)
+>  	} else {
+>  		dev->pme_support =3D 0;
+>  	}
+> +
+> +	device_enable_async_suspend(&dev->dev, true);
+>  }
+> =20
+>  /**
+> Index: linux-2.6/drivers/pci/pcie/portdrv_core.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-2.6.orig/drivers/pci/pcie/portdrv_core.c
+> +++ linux-2.6/drivers/pci/pcie/portdrv_core.c
+> @@ -280,6 +280,7 @@ static void pcie_device_init(struct pci_
+>  	dev_set_name(device, "%s:pcie%02x",
+>  		 pci_name(parent), get_descriptor_id(port_type, service_type));
+>  	device->parent =3D &parent->dev;
+> +	device_enable_async_suspend(device, true);
+>  }
+> =20
+>  /**
 
-On Mon, 2009-08-17 at 08:15 +0800, Rafael J. Wysocki wrote:
-> On Wednesday 12 August 2009, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > The following patches introduce a mechanism allowing us to execute device
-> > drivers' suspend and resume callbacks asynchronously during system sleep
-> > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
-> > message.
-> 
-> Changes:
-> 
-> * Added [1/7] that fixes kerneldoc comments in drivers/base/power/main.c
->   (this is a 2.6.32 candidate).
-> 
-> * Added [2/7] adding a framework for representing PM link (idea described
->   in the patch message).
-> 
-> * [3/7] is the async resume patch (idea described in the patch message).
-> 
-> * [4/7] is the async suspend patch.
-> 
-> * [5/7] - [7/7] set async_suspend for devices in a few selected subsystems.
-> 
-> The patches have been tested on HP nx6325.
-> 
-> Comments welcome.
-> 
-> Thanks,
-> Rafael
-> 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
