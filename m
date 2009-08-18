@@ -1,58 +1,69 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC][PATCH 7/7] PM: Asynchronous suspend and resume of i8042
-Date: Tue, 18 Aug 2009 15:03:30 +0800
-Message-ID: <1250579010.5351.69.camel@rzhang-dt>
-References: <200908122218.13975.rjw@sisk.pl>
-	 <200908170215.21173.rjw@sisk.pl>  <200908170221.34885.rjw@sisk.pl>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: Re: acpi_ex_system_memory_space_handler oops
+Date: Tue, 18 Aug 2009 10:13:59 +0300
+Message-ID: <20090818071359.GA3713@localdomain.by>
+References: <20090812201034.GA2983@localdomain.by>
+ <1250498613.28336.68.camel@minggr.sh.intel.com>
+ <20090817113059.GA3245@localdomain.by>
+ <d3f22a0908170622x7dd9ce73m5c3ea86406cc9935@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6490 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170AbZHRHFE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Aug 2009 03:05:04 -0400
-In-Reply-To: <200908170221.34885.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752794AbZHRHKl@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <d3f22a0908170622x7dd9ce73m5c3ea86406cc9935@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lin Ming <lin@minggr.cn>
+Cc: Lin Ming <ming.m.lin@intel.com>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-On Mon, 2009-08-17 at 08:21 +0800, Rafael J. Wysocki wrote:
-> Set async_suspend for i8042.
+
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On (08/17/09 21:22), Lin Ming wrote:
+> > rc6-git2
+> > 25 successful reboots.
+> >
+> > I'll need some more time to test against rc5.
+> >
+> > /*should I also test DSDT in case region-debug.patch fixed the problem?=
+*/
 >=20
-it's the psmouse reset that takes the 0.4 seconds during suspend.
-=EF=BB=BFso we should call device_enable_async_suspend for the psmouse =
-serio
-device in psmouse-base.c
-
-Or invoking device_enable_async_suspend for every serio device in
-serio.c, as the keyboard also takes about 0.2s to suspend.
-
-thanks,
-rui
-> ---
->  drivers/input/serio/i8042.c |    2 ++
->  1 file changed, 2 insertions(+)
+> Yes, please also help to test the custome DSDT.
+> region-debug.patch is just a debug patch.
+> We need to root cause the problem clearly and then work out a clean solut=
+ion.
 >=20
-> Index: linux-2.6/drivers/input/serio/i8042.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/input/serio/i8042.c
-> +++ linux-2.6/drivers/input/serio/i8042.c
-> @@ -1289,6 +1289,8 @@ static int __init i8042_init(void)
->  	if (err)
->  		goto err_free_device;
-> =20
-> +	device_enable_async_suspend(&i8042_platform_device->dev, true);
-> +
->  	panic_blink =3D i8042_panic_blink;
-> =20
->  	return 0;
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi, Lin
+Looks like DSDT didn't solve the problem (oops on 4th reboot).
+
+So:
+region-debug.patch	+
+DSDT			-
+
+/* Is that possible? */
+
+Should I Cc rui.zhang@intel.com?
+
+	Sergey
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iJwEAQECAAYFAkqKVLcACgkQfKHnntdSXjQdbwP/bed9mCj98LEhpyIy5P8SbWFN
+60Wn8mnZqTKGw2Q9kIETcZH46jzAmYEWTYqtLcrQAjGW8giLExEdHMh6fKZIxvTF
+0nyZpY5eKbvT2ZS4nz5AD+XnOgiJxi6Px8tPFv/SSlQgdnp1wrEjslx9poxFnYJq
+EgKLbBAsXyqjodCq1FA=
+=GV4N
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
