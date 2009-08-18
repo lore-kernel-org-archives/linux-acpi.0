@@ -1,40 +1,67 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
-	in driver
-Date: Tue, 18 Aug 2009 21:10:02 +0100
-Message-ID: <20090818201002.GA32638@srcf.ucam.org>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan> <20090304120439.GA31850@khazad-dum.debian.net> <1250625730.2257.11.camel@hidalgo>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
+Date: Tue, 18 Aug 2009 16:22:07 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908181606520.2653-100000@iolanthe.rowland.org>
+References: <200908182156.30320.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1250625730.2257.11.camel@hidalgo>
-Sender: linux-input-owner@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:53082 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751515AbZHRUWG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 16:22:06 -0400
+In-Reply-To: <200908182156.30320.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-On Tue, Aug 18, 2009 at 10:02:10PM +0200, Yves-Alexis Perez wrote:
+On Tue, 18 Aug 2009, Rafael J. Wysocki wrote:
 
-> It seems that this patch is still not in master?
-
-Correct. We can't change the existing semantics without breaking 
-existing userspace applications.
-
-> Currently (on debian unstable), input-events reports on my T61:
+> > Also, I think a better approach to the async execution would not
+> > require adding a struct completion to each device and making each async
+> > thread wait for the completion to be signalled.  Instead, have a single
+> > master thread (i.e., the thread doing the suspend) monitor the
+> > dependencies and have it farm the devices out to async threads as they
+> > become ready to be suspended or resumed.
 > 
-> KEY_SLEEP for Fn+F4
-> KEY_SUSPEND for Fn+F12
->
-> which kind-of breaks xfce4-power-manager, where SLEEP and SUSPEND both
-> suspend to ram, so I don't have any way to hibernate. Changing xfpm
-> doesn't seem like a good idea if the way to go is to use SUSPEND for
-> STR, HIBERNATE for STD and SLEEP for either.
+> Do you mean that the master thread should check the dependencies
+> _before_ executing, for example, __device_resume() and execute it
+> asynchronously only if they are already satisfied?  In that case we might lose
+> the opportunity to save some time.
+
+That's almost what I mean.  The master thread should keep track of the 
+state of all the devices.  Each time a suspend or resume completes, the 
+master thread should determine which devices now have all their 
+dependencies satisfied as a result, and should asynchronously execute 
+__device_resume() for each one of them.
+
+> For example, assume devices A and B depend on C. Say that normally, A would be
+> handled before B, so if C hasn't finished yet, the A's callback will be
+> executed synchronously.  Now, if both A and B take time T to complete the
+> callback and C finishes dT after we've called A synchronously, we'll lose the
+> chance to save T - dT by handling A and B in parallel.
+
+No, that's not what I mean.  Until C is finished, the master thread
+will sleep.  When C finishes the master thread will wake up, note that
+A and B can now be resumed, fire off two async threads to resume them, 
+and go back to sleep.
+
+> The master thread might chose another device for asynchronous execution, but
+> then it should revisit A and B and that still is going to be suboptimal
+> time-wise in some specific situations (eg. A and B are the last two devices to
+> handle).
 > 
-> So what's the status for this?
+> > Finally, devices that don't have async_suspend set should implicitly 
+> > depend on everything that comes after them (for suspend) or before them 
+> > (for resume) in the device list.
+> 
+> They do, through dpm_list.
 
-KEY_SLEEP is suspend to RAM, KEY_SUSPEND is suspend to disk. xfpm should 
-be changed to match.
+Do they?  I didn't read the code closely enough to tell.  This
+requirement should of course be met by whichever scheme we end up
+using.  I mentioned it because it provides a simple way of including 
+synchronous operations in an async framework.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alan Stern
+
