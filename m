@@ -1,45 +1,216 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: Re: [PATCH v2] acpi_power_meter: hwmon driver for ACPI 4.0 power
-	meters
-Date: Tue, 18 Aug 2009 09:24:05 -0700
-Message-ID: <20090818162405.GB10233@tux1.beaverton.ibm.com>
-References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com> <20090725004335.20709.52288.stgit@elm3a70.beaverton.ibm.com> <alpine.LFD.2.00.0907272124110.4445@localhost.localdomain> <20090803205812.GC14694@plum> <20090806204255.GD14694@plum> <20090817150558.3468426b.akpm@linux-foundation.org>
-Reply-To: djwong@us.ibm.com
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
+Date: Tue, 18 Aug 2009 12:26:49 -0500
+Message-ID: <4A8AE459.8060102@dell.com>
+References: <4A89E768.7010207@dell.com>	 <1250558643.30166.109.camel@localhost.localdomain>	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com> <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758025AbZHRQYI@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090817150558.3468426b.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig636105176039FD4839FF816F"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ausc60pc101.us.dell.com ([143.166.85.206]:14383 "EHLO
+	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754999AbZHRR0I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 13:26:08 -0400
+In-Reply-To: <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Aug 17, 2009 at 03:05:58PM -0700, Andrew Morton wrote:
-> > +	if (ACPI_FAILURE(status)) {
-> > +		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PAI"));
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (data)
-> > +		return -EINVAL;
-> 
-> I find this test of `data' inexplicable.  Is it just me, or do we need
-> a comment here?
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig636105176039FD4839FF816F
+Content-Type: multipart/mixed;
+ boundary="------------000307070207010402050108"
 
-ACPI spec says that the _PAI method passes back 0 on success.  I guess I'll
-reroll the patch with a comment stating that.
+This is a multi-part message in MIME format.
+--------------000307070207010402050108
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> > +	if (ACPI_FAILURE(status)) {
-> > +		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _SHL"));
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (data)
-> > +		return -EINVAL;
-> 
-> ditto.
+Hi Alan & Marcel:
 
-Ditto.
+Alan Jenkins wrote:
+> Also, you're missing the calls to rfkill_destroy() here.
+>
+> Whew, I think that's everything.  I hope you find the feedback useful,
+> despite it being a little fragmented.
+>
+>  =20
+Thanks for all the feedback.  I think i've addressed all of the concerns
+that were pointed out.  I appreciate the pointer to scripts/cleanpatch,
+that does significantly help in finding whitespace problems that the
+naked eye just browses over.
 
---D
+I'm attaching the updated patch (sorry, git send-email seems to still
+not be very graceful with line breaks when the SMTP implementation is
+exchange from what i've seen)
+--=20
+Mario Limonciello
+*Dell | Linux Engineering*
+mario_limonciello@dell.com
+
+--------------000307070207010402050108
+Content-Type: text/x-patch;
+ name="02_add_rfkill_support.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="02_add_rfkill_support.diff"
+
+--- compal-laptop.old	2009-08-18 00:17:43.056669380 -0500
++++ compal-laptop.c	2009-08-18 01:23:33.485833067 -0500
+@@ -52,6 +52,7 @@
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+ #include <linux/autoconf.h>
++#include <linux/rfkill.h>
+=20
+ #define COMPAL_DRIVER_VERSION "0.2.6"
+=20
+@@ -64,6 +65,10 @@
+ #define WLAN_MASK	0x01
+ #define BT_MASK 	0x02
+=20
++static struct rfkill *wifi_rfkill;
++static struct rfkill *bt_rfkill;
++static struct platform_device *compal_device;
++
+ static int force;
+ module_param(force, bool, 0);
+ MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
+@@ -89,6 +94,86 @@
+ 	return (int) result;
+ }
+=20
++static void compal_rfkill_poll(struct rfkill *rfkill, void *data)
++{
++	unsigned long radio =3D (unsigned long) data;
++	u8 result;
++	bool hw_blocked;
++	bool sw_blocked;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	hw_blocked =3D !(result & KILLSWITCH_MASK);
++	sw_blocked =3D (!hw_blocked && !(result & radio));
++
++	rfkill_set_states(rfkill, sw_blocked, hw_blocked);
++}
++
++static int compal_rfkill_set(void *data, bool blocked)
++{
++	unsigned long radio =3D (unsigned long) data;
++	u8 result, value;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	if ((result & KILLSWITCH_MASK) =3D=3D 0)
++		return -EINVAL;
++
++	if (!blocked)
++		value =3D (u8) (result | radio);
++	else
++		value =3D (u8) (result & ~radio);
++	ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
++
++	return 0;
++}
++
++static const struct rfkill_ops compal_rfkill_ops =3D {
++	.poll =3D compal_rfkill_poll,
++	.set_block =3D compal_rfkill_set,
++};
++
++static int setup_rfkill(void)
++{
++	int ret;
++
++	wifi_rfkill =3D rfkill_alloc("compal-wifi", &compal_device->dev,=20
++				RFKILL_TYPE_WLAN, &compal_rfkill_ops,=20
++				(void *) WLAN_MASK);
++	if (!wifi_rfkill) {
++		ret =3D -ENOMEM;
++		goto err_wifi;
++	}
++	ret =3D rfkill_register(wifi_rfkill);
++	if (ret) {
++		rfkill_unregister(wifi_rfkill);
++		goto err_wifi;
++	}
++
++	bt_rfkill =3D rfkill_alloc("compal-bluetooth", &compal_device->dev,=20
++				RFKILL_TYPE_BLUETOOTH, &compal_rfkill_ops,=20
++				(void *) BT_MASK);
++	if (!bt_rfkill) {
++		ret =3D -ENOMEM;
++		goto err_bt;
++	}
++	ret =3D rfkill_register(bt_rfkill);
++	if (ret) {
++		rfkill_unregister(bt_rfkill);
++		goto err_bt;
++	}
++
++	return 0;
++
++err_bt:
++	rfkill_destroy(bt_rfkill);
++
++err_wifi:
++	rfkill_destroy(wifi_rfkill);
++
++	return ret;
++}
++
+ static int set_wlan_state(int state)
+ {
+ 	u8 result, value;
+@@ -258,8 +343,6 @@
+ 	}
+ };
+=20
+-static struct platform_device *compal_device;
+-
+ /* Initialization */
+=20
+ static int dmi_check_cb(const struct dmi_system_id *id)
+@@ -389,6 +472,10 @@
+ 	if (ret)
+ 		goto fail_platform_device2;
+=20
++	ret =3D setup_rfkill();
++	if (ret)
++		printk(KERN_WARNING "compal-laptop: Unable to setup rfkill\n");
++
+ 	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
+ 		" successfully loaded.\n");
+=20
+@@ -420,6 +507,10 @@
+ 	platform_device_unregister(compal_device);
+ 	platform_driver_unregister(&compal_driver);
+ 	backlight_device_unregister(compalbl_device);
++	rfkill_unregister(wifi_rfkill);
++	rfkill_destroy(wifi_rfkill);
++	rfkill_unregister(bt_rfkill);
++	rfkill_destroy(bt_rfkill);
+=20
+ 	printk(KERN_INFO "compal-laptop: driver unloaded.\n");
+ }
+
+--------------000307070207010402050108--
+
+--------------enig636105176039FD4839FF816F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkqK5FkACgkQ2CrZjkA73YtPTwCgjrt13H+uT32DfODJfgLKR/x5
+t1IAn1QfxJn1goQOTBWEmDGG+Nqug+6Q
+=8tVx
+-----END PGP SIGNATURE-----
+
+--------------enig636105176039FD4839FF816F--
