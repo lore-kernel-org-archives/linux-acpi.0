@@ -1,95 +1,89 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+From: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
 Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
-Date: Tue, 18 Aug 2009 22:17:03 +0100
-Message-ID: <9b2b86520908181417j26cf4c73i9a5acaa41ee11f6@mail.gmail.com>
+Date: Tue, 18 Aug 2009 23:31:03 +0200
+Message-ID: <1250631063.16393.14.camel@johannes.local>
 References: <4A89E768.7010207@dell.com>
 	 <1250558643.30166.109.camel@localhost.localdomain>
 	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>
 	 <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>
 	 <4A8AE459.8060102@dell.com>
+	 <9b2b86520908181408v5f7875b6sea31d8d95cc08c0b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:45637 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbZHRVRE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 17:17:04 -0400
-In-Reply-To: <4A8AE459.8060102@dell.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-0VC1sEJhQN+4gmH6espD"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9b2b86520908181408v5f7875b6sea31d8d95cc08c0b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Jenkins <sourcejedi.lkml-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Cc: Mario Limonciello <mario_limonciello-8PEkshWhKlo@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mario Limonciello <mario_limonciello@dell.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 8/18/09, Mario Limonciello <mario_limonciello@dell.com> wrote:
-> Hi Alan & Marcel:
->
-> Alan Jenkins wrote:
->> Also, you're missing the calls to rfkill_destroy() here.
->>
->> Whew, I think that's everything.  I hope you find the feedback useful,
->> despite it being a little fragmented.
->>
->>
-> Thanks for all the feedback.  I think i've addressed all of the concerns
-> that were pointed out.  I appreciate the pointer to scripts/cleanpatch,
-> that does significantly help in finding whitespace problems that the
-> naked eye just browses over.
 
-I think you've addressed most of the comments on your first patch.
-There are still problems with the error handling though.
+--=-0VC1sEJhQN+4gmH6espD
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-+static int setup_rfkill(void)
-+{
-+	int ret;
-+
-+	wifi_rfkill = rfkill_alloc("compal-wifi", &compal_device->dev,
-+				RFKILL_TYPE_WLAN, &compal_rfkill_ops,
-+				(void *) WLAN_MASK);
-+	if (!wifi_rfkill) {
-+		ret = -ENOMEM;
-+		goto err_wifi;
-+	}
-+	ret = rfkill_register(wifi_rfkill);
-+	if (ret) {
-+		rfkill_unregister(wifi_rfkill);
-+		goto err_wifi;
-+	}
+Hi everyone,
 
-If you fail to register an rfkill device, you don't need to unregister
-that rfkill device...
+> > I'm attaching the updated patch (sorry, git send-email seems to still
+> > not be very graceful with line breaks when the SMTP implementation is
+> > exchange from what i've seen)
+>=20
+> > +static void compal_rfkill_poll(struct rfkill *rfkill, void *data)
+> > +{
+> > +	unsigned long radio =3D (unsigned long) data;
+> > +	u8 result;
+> > +	bool hw_blocked;
+> > +	bool sw_blocked;
+> > +
+> > +	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+> > +
+> > +	hw_blocked =3D !(result & KILLSWITCH_MASK);
+> > +	sw_blocked =3D (!hw_blocked && !(result & radio));
+> > +
+> > +	rfkill_set_states(rfkill, sw_blocked, hw_blocked);
+> > +}
+>=20
+> I assume you have good reason for having sw_block depend on hw_block.
+> I.e. you can't read sw_blocked while hw_blocked is set, right?
+>=20
+> If KILLSWITCH is toggled on and off, will the hardware "forget" any
+> prior soft-blocks?
 
-+
-+	bt_rfkill = rfkill_alloc("compal-bluetooth", &compal_device->dev,
-+				RFKILL_TYPE_BLUETOOTH, &compal_rfkill_ops,
-+				(void *) BT_MASK);
-+	if (!bt_rfkill) {
-+		ret = -ENOMEM;
-+		goto err_bt;
-+	}
-+	ret = rfkill_register(bt_rfkill);
-+	if (ret) {
-+		rfkill_unregister(bt_rfkill);
-+		goto err_bt;
-+	}
+That's a bit strange indeed, but I haven't seen the rest of the code.
 
-and the same applies here
+Does the 'soft block' bit change based on user input, like pressing a
+button?
 
-+
-+	return 0;
-+
-+err_bt:
-+	rfkill_destroy(bt_rfkill);
-+
+If not, you shouldn't poll that bit at all, but just set it based on
+what rfkill gives you as the return value of set_hw_state().
 
-... but you *do* need to unregister wifi_rfkill here, before you go on
-to destroy it.
+hth,
+johannes
 
-+err_wifi:
-+	rfkill_destroy(wifi_rfkill);
-+
-+	return ret;
-+}
+--=-0VC1sEJhQN+4gmH6espD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-Regards
-Alan
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABAgAGBQJKix2TAAoJEODzc/N7+Qma1iAP/jsIAhJyN+f43o1KZwYQLkNw
++U1A/tgPlE3PWKyRqVsdzcm34cbQ2FYQd4ojTgaXEMOs8hz4SS+Tj+6tVS6485QA
+jWfUB+DkBYjeW95o/qD0duH+raKtH3mCBTdJMuYRkSM/YOXs9rIIKxrR8xqowjVJ
+lYAmsJNEMJrHlQFhXttWH6FnEkz7+W9adS2BmJp3/253ARZ4MylmtG0g1p9Ly2gg
+nNCqjZeUqRA+VR0/1Nxjt3VmdyBv8VN8BSOAPK52tODrJpv8tsnlHltEWhIGi/Qc
+NCaGD5lBURkomslQqLhzAEPtEhCYI3VZU5A03drpsp3bCqsd8PIjXhO9V0/B5Yi5
+PpqvQpc1nN3E5FIE1zroZcI7baW5ZpwpKhPfhcGHhwQ2b+jSMI+r1HC0b+viG5/8
+JFiELJ5eIvct0wOCkpgHNGpi/JJjauaUASHBC7pNGHwOTeuBi4uF98cgYRopF91p
+gfV4Gv59lfw5KpjSklO/OudmnjXd+AwZQF8zHjjs2s5QyRXQey41AQ/RIhfZacNj
+BT7KOJwEGt83BNAKoqEuwX0w5QnYnnsSyqBgxAlEep+SHw/coKIL9yhKAfOm6w+F
+FUPVyYTjaYGUcNZEo1BGaYUYNt9EojYNEIV75A2agvu3gRI3MlFBtEtzdSmu5nM7
+3CcFzlkfTSWf1b7ZemRV
+=Duc8
+-----END PGP SIGNATURE-----
+
+--=-0VC1sEJhQN+4gmH6espD--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
