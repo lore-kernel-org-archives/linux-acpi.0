@@ -1,68 +1,103 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
-Date: Tue, 18 Aug 2009 10:04:45 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908180954210.2995-100000@iolanthe.rowland.org>
-References: <200908170215.21173.rjw@sisk.pl>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
+Date: Tue, 18 Aug 2009 15:52:18 +0100
+Message-ID: <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>
+References: <4A89E768.7010207@dell.com>
+	 <1250558643.30166.109.camel@localhost.localdomain>
+	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:59257 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752164AbZHROEo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 10:04:44 -0400
-In-Reply-To: <200908170215.21173.rjw@sisk.pl>
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:64681 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbZHROwS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 10:52:18 -0400
+In-Reply-To: <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: Mario Limonciello <mario_limonciello@dell.com>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 17 Aug 2009, Rafael J. Wysocki wrote:
+On 8/18/09, Alan Jenkins <sourcejedi.lkml@googlemail.com> wrote:
+> On 8/18/09, Marcel Holtmann <marcel@holtmann.org> wrote:
+>> Hi Mario,
+>
+> ...
+>
+>>> +static int setup_rfkill(void)
+>>> +{
+>>> +       int ret;
+>>> +
+>>> +       wifi_rfkill = rfkill_alloc("compal-wifi", NULL,
+>>> RFKILL_TYPE_WLAN,
+>>> +                                       &compal_rfkill_ops, (void *)
+>>> WLAN_MASK);
+>>> +       if (!wifi_rfkill) {
+>>> +               ret = -ENOMEM;
+>>> +               goto err_wifi;
+>>> +       }
+>>> +       ret = rfkill_register(wifi_rfkill);
+>>> +       if (ret)
+>>> +               goto err_wifi;
+>>> +
+>>> +       bluetooth_rfkill = rfkill_alloc("compal-bluetooth", NULL,
+>>> RFKILL_TYPE_BLUETOOTH,
+>>> +                                       &compal_rfkill_ops, (void *)
+>>> BT_MASK);
+>>> +       if (!bluetooth_rfkill) {
+>>> +               ret = -ENOMEM;
+>>> +               goto err_bt;
+>>> +       }
+>>> +       ret = rfkill_register(bluetooth_rfkill);
+>>> +       if (ret)
+>>> +               goto err_bt;
+>>> +
+>>> +       return 0;
+>>> +err_bt:
+>>> +       rfkill_destroy(bluetooth_rfkill);
+>>> +       if (bluetooth_rfkill)
+>>> +               rfkill_unregister(bluetooth_rfkill);
+>>> +err_wifi:
+>>> +       rfkill_destroy(wifi_rfkill);
+>>> +       if (wifi_rfkill)
+>>> +               rfkill_unregister(wifi_rfkill);
+>>
+>> I don't understand how this is not a potential NULL pointer dereference.
+>> There might some good luck that the pointer is still valid at that time,
+>> but I highly doubt it. So please unregister before destory.
+>
+> Wrong as well :-).
+>
+> If you fail to register wifi_rfkill, you should *only* call
+> rfkill_destroy().  So I think it should look like this:
+>
+> +       if (wifi_rfkill)
+> +               rfkill_unregister(wifi_rfkill);
+> +err_wifi:
+> +       rfkill_destroy(wifi_rfkill);
+>
+> ...
+>
+>>> @@ -420,6 +518,10 @@
+>>>         platform_device_unregister(compal_device);
+>>>         platform_driver_unregister(&compal_driver);
+>>>         backlight_device_unregister(compalbl_device);
+>>> +       if (wifi_rfkill)
+>>> +               rfkill_unregister(wifi_rfkill);
+>>> +       if (bluetooth_rfkill)
+>>> +               rfkill_unregister(bluetooth_rfkill);
+>>
+>> Same here. It should never ever succeeded in the first place. You can
+>> call it conditionally.
+>
+> They're already called conditionally.  I assume you mean unconditionally
+> here.
 
-> On Wednesday 12 August 2009, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > The following patches introduce a mechanism allowing us to execute device
-> > drivers' suspend and resume callbacks asynchronously during system sleep
-> > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
-> > message.
-> 
-> Changes:
-> 
-> * Added [1/7] that fixes kerneldoc comments in drivers/base/power/main.c
->   (this is a 2.6.32 candidate).
-> 
-> * Added [2/7] adding a framework for representing PM link (idea described
->   in the patch message).
-> 
-> * [3/7] is the async resume patch (idea described in the patch message).
-> 
-> * [4/7] is the async suspend patch.
-> 
-> * [5/7] - [7/7] set async_suspend for devices in a few selected subsystems.
-> 
-> The patches have been tested on HP nx6325.
-> 
-> Comments welcome.
+Also, you're missing the calls to rfkill_destroy() here.
 
-I'm not sure about the design of these things.  How much do we care 
-about wasting memory?  Your scheme allocates six pointers for every 
-dependency, plus four pointers for every device.  It's possible to 
-reduce this considerably, especially if the parent-child dependencies 
-aren't stored explicitly.
+Whew, I think that's everything.  I hope you find the feedback useful,
+despite it being a little fragmented.
 
-If you decide to keep this scheme, you should make pm_link_add() check 
-for duplicate dependencies before adding them.
-
-Also, I think a better approach to the async execution would not
-require adding a struct completion to each device and making each async
-thread wait for the completion to be signalled.  Instead, have a single
-master thread (i.e., the thread doing the suspend) monitor the
-dependencies and have it farm the devices out to async threads as they
-become ready to be suspended or resumed.
-
-Finally, devices that don't have async_suspend set should implicitly 
-depend on everything that comes after them (for suspend) or before them 
-(for resume) in the device list.
-
-Alan Stern
-
+Regards
+Alan
