@@ -1,84 +1,55 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC][PATCH 5/7] PM: Asynchronous suspend and resume of PCI
-	devices
-Date: Tue, 18 Aug 2009 14:57:08 +0800
-Message-ID: <1250578628.5351.64.camel@rzhang-dt>
+Subject: Re: [RFC][PATCH 7/7] PM: Asynchronous suspend and resume of i8042
+Date: Tue, 18 Aug 2009 15:03:30 +0800
+Message-ID: <1250579010.5351.69.camel@rzhang-dt>
 References: <200908122218.13975.rjw@sisk.pl>
-	 <200908170215.21173.rjw@sisk.pl>  <200908170220.18874.rjw@sisk.pl>
+	 <200908170215.21173.rjw@sisk.pl>  <200908170221.34885.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36075 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:6490 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751590AbZHRG6n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Aug 2009 02:58:43 -0400
-In-Reply-To: <200908170220.18874.rjw@sisk.pl>
+	id S1752170AbZHRHFE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Aug 2009 03:05:04 -0400
+In-Reply-To: <200908170221.34885.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-On Mon, 2009-08-17 at 08:20 +0800, Rafael J. Wysocki wrote:
-> Set async_suspend for all PCI devices and PCIe port services.
+On Mon, 2009-08-17 at 08:21 +0800, Rafael J. Wysocki wrote:
+> Set async_suspend for i8042.
 >=20
-=EF=BB=BFAlan said that we can not break the resume order of the uhci/e=
-hci host
-controllers on some platforms.
+it's the psmouse reset that takes the 0.4 seconds during suspend.
+=EF=BB=BFso we should call device_enable_async_suspend for the psmouse =
+serio
+device in psmouse-base.c
 
-=46or example,
-00:1a.0 USB Controller: Intel Corporation 82801H (ICH8 Family) USB UHCI
-Controller #4 (rev 02)
-00:1a.1 USB Controller: Intel Corporation 82801H (ICH8 Family) USB UHCI
-Controller #5 (rev 02)
-00:1a.7 USB Controller: Intel Corporation 82801H (ICH8 Family) USB2 EHC=
-I
-Controller #2 (rev 02)
-00:1a.7 must be resumed after 00:1a.0 and 00:1a.1
-
-please refer to this thread:
-http://marc.info/?l=3Dlinux-acpi&m=3D122996117918188&w=3D2
-
-So I'm afraid we can not suspend/resume the PCI devices in parallel,
-unless we add this off-tree dependency at the same time.
+Or invoking device_enable_async_suspend for every serio device in
+serio.c, as the keyboard also takes about 0.2s to suspend.
 
 thanks,
 rui
 > ---
->  drivers/input/serio/i8042.c     |    2 ++
->  drivers/pci/pci.c               |    2 ++
->  drivers/pci/pcie/portdrv_core.c |    1 +
->  3 files changed, 5 insertions(+)
+>  drivers/input/serio/i8042.c |    2 ++
+>  1 file changed, 2 insertions(+)
 >=20
-> Index: linux-2.6/drivers/pci/pci.c
+> Index: linux-2.6/drivers/input/serio/i8042.c
 > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/pci/pci.c
-> +++ linux-2.6/drivers/pci/pci.c
-> @@ -1409,6 +1409,8 @@ void pci_pm_init(struct pci_dev *dev)
->  	} else {
->  		dev->pme_support =3D 0;
->  	}
+> --- linux-2.6.orig/drivers/input/serio/i8042.c
+> +++ linux-2.6/drivers/input/serio/i8042.c
+> @@ -1289,6 +1289,8 @@ static int __init i8042_init(void)
+>  	if (err)
+>  		goto err_free_device;
+> =20
+> +	device_enable_async_suspend(&i8042_platform_device->dev, true);
 > +
-> +	device_enable_async_suspend(&dev->dev, true);
->  }
+>  	panic_blink =3D i8042_panic_blink;
 > =20
->  /**
-> Index: linux-2.6/drivers/pci/pcie/portdrv_core.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.orig/drivers/pci/pcie/portdrv_core.c
-> +++ linux-2.6/drivers/pci/pcie/portdrv_core.c
-> @@ -280,6 +280,7 @@ static void pcie_device_init(struct pci_
->  	dev_set_name(device, "%s:pcie%02x",
->  		 pci_name(parent), get_descriptor_id(port_type, service_type));
->  	device->parent =3D &parent->dev;
-> +	device_enable_async_suspend(device, true);
->  }
-> =20
->  /**
+>  	return 0;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
