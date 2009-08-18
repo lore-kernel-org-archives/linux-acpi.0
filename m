@@ -1,290 +1,100 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH 3/3] Drop platform sysfs support
-Date: Tue, 18 Aug 2009 12:48:46 -0500
-Message-ID: <4A8AE97E.9050604@dell.com>
-References: <4A89E76B.5070204@dell.com>	 <9b2b86520908180143t4b25c1f7hd78cd4b4333c4ab4@mail.gmail.com>	 <1250589285.5150.1.camel@localhost.localdomain> <9b2b86520908180623i4e7ce5cv9a4cd6b1704a0e5f@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
+Date: Tue, 18 Aug 2009 21:56:30 +0200
+Message-ID: <200908182156.30320.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908180954210.2995-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig876B07C481C61A2029DB961B"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932719AbZHRRsH@vger.kernel.org>
-In-Reply-To: <9b2b86520908180623i4e7ce5cv9a4cd6b1704a0e5f@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, cezary.jackiewicz@gmail.com
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55686 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751336AbZHRTzs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Aug 2009 15:55:48 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0908180954210.2995-100000@iolanthe.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig876B07C481C61A2029DB961B
-Content-Type: multipart/mixed;
- boundary="------------000904010606010808080406"
+On Tuesday 18 August 2009, Alan Stern wrote:
+> On Mon, 17 Aug 2009, Rafael J. Wysocki wrote:
+> 
+> > On Wednesday 12 August 2009, Rafael J. Wysocki wrote:
+> > > Hi,
+> > > 
+> > > The following patches introduce a mechanism allowing us to execute device
+> > > drivers' suspend and resume callbacks asynchronously during system sleep
+> > > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
+> > > message.
+> > 
+> > Changes:
+> > 
+> > * Added [1/7] that fixes kerneldoc comments in drivers/base/power/main.c
+> >   (this is a 2.6.32 candidate).
+> > 
+> > * Added [2/7] adding a framework for representing PM link (idea described
+> >   in the patch message).
+> > 
+> > * [3/7] is the async resume patch (idea described in the patch message).
+> > 
+> > * [4/7] is the async suspend patch.
+> > 
+> > * [5/7] - [7/7] set async_suspend for devices in a few selected subsystems.
+> > 
+> > The patches have been tested on HP nx6325.
+> > 
+> > Comments welcome.
+> 
+> I'm not sure about the design of these things.  How much do we care 
+> about wasting memory?
 
-This is a multi-part message in MIME format.
---------------000904010606010808080406
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Not much.
 
-Hi Alan:
+> Your scheme allocates six pointers for every dependency, plus four pointers
+> for every device.
 
-Alan Jenkins wrote:
->
-> Ok.  I wasn't sure that userspace was allowed to rely on that, but I
-> re-read Documentation/ABI/testing/sysfs-devices and I see now that it
-> can be allowed.
->
-> Some of these issues with the compal-laptop work may come from copying
-> dell-laptop.  dell-laptop is the only driver which creates rfkill
-> devices without a parent device.  In fact, it doesn't even create a
-> platform device :-).
->
-> I'll try sending a patch or two to clean up dell-laptop.  I don't have
-> the hardware but it should be pretty mechanical, almost a copy+paste
-> job from a "good" driver.
->
->  =20
-Yeah, a lot of  the source for the design issues here were from copying
-bits out of dell-laptop.  I've made adjustments to this third patch to
-only drop the sysfs attributes but still create the platform device.
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
+Yes, it does.
 
---------------000904010606010808080406
-Content-Type: text/x-patch;
- name="03_drop_sysfs_stuff.diff"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
- filename="03_drop_sysfs_stuff.diff"
+> It's possible to reduce this considerably, especially if the parent-child
+> dependencies aren't stored explicitly.
 
---- a/drivers/platform/x86/compal-laptop.c.old	2009-08-18 01:39:12.864668=
-371 -0500
-+++ b/drivers/platform/x86/compal-laptop.c	2009-08-18 01:42:41.715047544 =
--0500
-@@ -26,17 +26,8 @@
- /*
-  * comapl-laptop.c - Compal laptop support.
-  *
-- * This driver exports a few files in /sys/devices/platform/compal-lapto=
-p/:
-- *
-- *   wlan - wlan subsystem state: contains 0 or 1 (rw)
-- *
-- *   bluetooth - Bluetooth subsystem state: contains 0 or 1 (rw)
-- *
-- *   raw - raw value taken from embedded controller register (ro)
-- *
-- * In addition to these platform device attributes the driver
-- * registers itself in the Linux backlight control subsystem and is
-- * available to userspace under /sys/class/backlight/compal-laptop/.
-+ * The driver registers itself with the rfkill subsystem and
-+ * the Linux backlight control subsystem.
-  *
-  * This driver might work on other laptops produced by Compal. If you
-  * want to try it you can pass force=3D1 as argument to the module which=
+Yes, at the expense of increased complexity and reduced performance.
 
-@@ -174,67 +165,6 @@
- 	return ret;
- }
-=20
--static int set_wlan_state(int state)
--{
--	u8 result, value;
--
--	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
--
--	if ((result & KILLSWITCH_MASK) =3D=3D 0)
--		return -EINVAL;
--	else {
--		if (state)
--			value =3D (u8) (result | WLAN_MASK);
--		else
--			value =3D (u8) (result & ~WLAN_MASK);
--		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
--	}
--
--	return 0;
--}
--
--static int set_bluetooth_state(int state)
--{
--	u8 result, value;
--
--	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
--
--	if ((result & KILLSWITCH_MASK) =3D=3D 0)
--		return -EINVAL;
--	else {
--		if (state)
--			value =3D (u8) (result | BT_MASK);
--		else
--			value =3D (u8) (result & ~BT_MASK);
--		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
--	}
--
--	return 0;
--}
--
--static int get_wireless_state(int *wlan, int *bluetooth)
--{
--	u8 result;
--
--	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
--
--	if (wlan) {
--		if ((result & KILLSWITCH_MASK) =3D=3D 0)
--			*wlan =3D 0;
--		else
--			*wlan =3D result & WLAN_MASK;
--	}
--
--	if (bluetooth) {
--		if ((result & KILLSWITCH_MASK) =3D=3D 0)
--			*bluetooth =3D 0;
--		else
--			*bluetooth =3D (result & BT_MASK) >> 1;
--	}
--
--	return 0;
--}
--
- /* Backlight device stuff */
-=20
- static int bl_get_brightness(struct backlight_device *b)
-@@ -255,86 +185,6 @@
-=20
- static struct backlight_device *compalbl_device;
-=20
--/* Platform device */
--
--static ssize_t show_wlan(struct device *dev,
--	struct device_attribute *attr, char *buf)
--{
--	int ret, enabled;
--
--	ret =3D get_wireless_state(&enabled, NULL);
--	if (ret < 0)
--		return ret;
--
--	return sprintf(buf, "%i\n", enabled);
--}
--
--static ssize_t show_raw(struct device *dev,
--	struct device_attribute *attr, char *buf)
--{
--	u8 result;
--
--	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
--
--	return sprintf(buf, "%i\n", result);
--}
--
--static ssize_t show_bluetooth(struct device *dev,
--	struct device_attribute *attr, char *buf)
--{
--	int ret, enabled;
--
--	ret =3D get_wireless_state(NULL, &enabled);
--	if (ret < 0)
--		return ret;
--
--	return sprintf(buf, "%i\n", enabled);
--}
--
--static ssize_t store_wlan_state(struct device *dev,
--	struct device_attribute *attr, const char *buf, size_t count)
--{
--	int state, ret;
--
--	if (sscanf(buf, "%i", &state) !=3D 1 || (state < 0 || state > 1))
--		return -EINVAL;
--
--	ret =3D set_wlan_state(state);
--	if (ret < 0)
--		return ret;
--
--	return count;
--}
--
--static ssize_t store_bluetooth_state(struct device *dev,
--	struct device_attribute *attr, const char *buf, size_t count)
--{
--	int state, ret;
--
--	if (sscanf(buf, "%i", &state) !=3D 1 || (state < 0 || state > 1))
--		return -EINVAL;
--
--	ret =3D set_bluetooth_state(state);
--	if (ret < 0)
--		return ret;
--
--	return count;
--}
--
--static DEVICE_ATTR(bluetooth, 0644, show_bluetooth, store_bluetooth_stat=
-e);
--static DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan_state);
--static DEVICE_ATTR(raw, 0444, show_raw, NULL);
--
--static struct attribute *compal_attributes[] =3D {
--	&dev_attr_bluetooth.attr,
--	&dev_attr_wlan.attr,
--	&dev_attr_raw.attr,
--	NULL
--};
--
--static struct attribute_group compal_attribute_group =3D {
--	.attrs =3D compal_attributes
--};
-=20
- static struct platform_driver compal_driver =3D {
- 	.driver =3D {
-@@ -475,11 +325,6 @@
- 	if (ret)
- 		goto fail_platform_device1;
-=20
--	ret =3D sysfs_create_group(&compal_device->dev.kobj,
--		&compal_attribute_group);
--	if (ret)
--		goto fail_platform_device2;
--
- 	ret =3D setup_rfkill();
- 	if (ret)
- 		printk(KERN_WARNING "compal-laptop: Unable to setup rfkill\n");
-@@ -489,10 +334,6 @@
-=20
- 	return 0;
-=20
--fail_platform_device2:
--
--	platform_device_del(compal_device);
--
- fail_platform_device1:
-=20
- 	platform_device_put(compal_device);
-@@ -511,7 +352,6 @@
- static void __exit compal_cleanup(void)
- {
-=20
--	sysfs_remove_group(&compal_device->dev.kobj, &compal_attribute_group);
- 	platform_device_unregister(compal_device);
- 	platform_driver_unregister(&compal_driver);
- 	backlight_device_unregister(compalbl_device);
+> If you decide to keep this scheme, you should make pm_link_add() check 
+> for duplicate dependencies before adding them.
 
---------------000904010606010808080406--
+That's correct.
 
---------------enig876B07C481C61A2029DB961B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> Also, I think a better approach to the async execution would not
+> require adding a struct completion to each device and making each async
+> thread wait for the completion to be signalled.  Instead, have a single
+> master thread (i.e., the thread doing the suspend) monitor the
+> dependencies and have it farm the devices out to async threads as they
+> become ready to be suspended or resumed.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Do you mean that the master thread should check the dependencies
+_before_ executing, for example, __device_resume() and execute it
+asynchronously only if they are already satisfied?  In that case we might lose
+the opportunity to save some time.
 
-iEYEARECAAYFAkqK6X4ACgkQ2CrZjkA73YvoPACglTsAotD23bobQXRpGaKo/nAn
-OLIAnjk4G8LX/7XZK1Z47WRa3+exN4Eu
-=xj92
------END PGP SIGNATURE-----
+For example, assume devices A and B depend on C. Say that normally, A would be
+handled before B, so if C hasn't finished yet, the A's callback will be
+executed synchronously.  Now, if both A and B take time T to complete the
+callback and C finishes dT after we've called A synchronously, we'll lose the
+chance to save T - dT by handling A and B in parallel.
 
---------------enig876B07C481C61A2029DB961B--
+The master thread might chose another device for asynchronous execution, but
+then it should revisit A and B and that still is going to be suboptimal
+time-wise in some specific situations (eg. A and B are the last two devices to
+handle).
+
+> Finally, devices that don't have async_suspend set should implicitly 
+> depend on everything that comes after them (for suspend) or before them 
+> (for resume) in the device list.
+
+They do, through dpm_list.
+
+Thanks,
+Rafael
