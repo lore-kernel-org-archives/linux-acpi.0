@@ -1,59 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
-Date: Wed, 19 Aug 2009 00:33:23 +0200
-Message-ID: <200908190033.23502.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908181606520.2653-100000@iolanthe.rowland.org>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH 1/2] hwmon: Enhance the sysfs API for power meters.
+Date: Tue, 18 Aug 2009 16:32:47 -0700
+Message-ID: <20090818233247.GC10233@tux1.beaverton.ibm.com>
+References: <20090725004322.20709.96804.stgit@elm3a70.beaverton.ibm.com> <20090725004328.20709.57712.stgit@elm3a70.beaverton.ibm.com> <20090807180906.GD1728@ucw.cz> <20090808174020.GA29600@tux1.beaverton.ibm.com> <20090808214830.GC24153@elf.ucw.cz> <20090810211211.GB30815@tux1.beaverton.ibm.com> <20090812115653.GJ24339@elf.ucw.cz>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56120 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751353AbZHRWco (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Aug 2009 18:32:44 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0908181606520.2653-100000@iolanthe.rowland.org>
+Received: from e35.co.us.ibm.com ([32.97.110.153]:50515 "EHLO
+	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173AbZHRXcv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 19:32:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20090812115653.GJ24339@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-acpi <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On Tuesday 18 August 2009, Alan Stern wrote:
-> On Tue, 18 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > > Also, I think a better approach to the async execution would not
-> > > require adding a struct completion to each device and making each async
-> > > thread wait for the completion to be signalled.  Instead, have a single
-> > > master thread (i.e., the thread doing the suspend) monitor the
-> > > dependencies and have it farm the devices out to async threads as they
-> > > become ready to be suspended or resumed.
-> > 
-> > Do you mean that the master thread should check the dependencies
-> > _before_ executing, for example, __device_resume() and execute it
-> > asynchronously only if they are already satisfied?  In that case we might lose
-> > the opportunity to save some time.
-> 
-> That's almost what I mean.  The master thread should keep track of the 
-> state of all the devices.  Each time a suspend or resume completes, the 
-> master thread should determine which devices now have all their 
-> dependencies satisfied as a result, and should asynchronously execute 
-> __device_resume() for each one of them.
-> 
-> > For example, assume devices A and B depend on C. Say that normally, A would be
-> > handled before B, so if C hasn't finished yet, the A's callback will be
-> > executed synchronously.  Now, if both A and B take time T to complete the
-> > callback and C finishes dT after we've called A synchronously, we'll lose the
-> > chance to save T - dT by handling A and B in parallel.
-> 
-> No, that's not what I mean.  Until C is finished, the master thread
-> will sleep.  When C finishes the master thread will wake up, note that
-> A and B can now be resumed, fire off two async threads to resume them, 
-> and go back to sleep.
+On Wed, Aug 12, 2009 at 01:56:54PM +0200, Pavel Machek wrote:
 
-There's a problem that for safety reasons I maintain the ordering of dpm_list
-and the callbacks are scheduled for async execution in the same order in
-which they would have been executed synchronously.  If were to change this,
-we'd have to be _very_ careful.
+> Is netlink right interface for that? Perhaps /sys files should be
+> pollable?
 
-Thanks,
-Rafael
+Since the ACPI meter receives ACPI events, it seems logical to me that these
+events should be passed through to ACPI clients.  It also seems logical that
+hwmon clients shouldn't have to know about ACPI netlink sockets either, so
+I'll combine them both and see what popular consensus thinks of that. :)
+
+Therefore, I updated the patch to make the appropriate sysfs files pollable,
+and the hwmon sysfs documentation to state that they can be polled.
+
+> > So it goes with ACPI.  Given that things like Node Manager and Active Energy
+> > Manager claim to be able to control power use, I would guess that it is
+> > generally likely that a power monitoring system would take action on its own to
+> > cut power use, and not necessarily bothering to tell the OS exactly what it's
+> > doing.
+> 
+> I guess this needs to be clarified/documented properly because it
+> should go anywhere near mainline.
+
+Ok, I'll clarify the documentation to say that those two scenarios are
+possible, and to contact the machine vendor for details.
+
+--D
