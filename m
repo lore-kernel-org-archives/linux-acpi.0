@@ -1,47 +1,68 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 5/7] PM: Asynchronous suspend and resume of PCI
- devices
-Date: Tue, 18 Aug 2009 09:47:40 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908180947080.2995-100000@iolanthe.rowland.org>
-References: <1250578628.5351.64.camel@rzhang-dt>
+Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
+Date: Tue, 18 Aug 2009 10:04:45 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908180954210.2995-100000@iolanthe.rowland.org>
+References: <200908170215.21173.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758941AbZHRNrm@vger.kernel.org>
-In-Reply-To: <1250578628.5351.64.camel@rzhang-dt>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:59257 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752164AbZHROEo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 10:04:44 -0400
+In-Reply-To: <200908170215.21173.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-On Tue, 18 Aug 2009, Zhang Rui wrote:
+On Mon, 17 Aug 2009, Rafael J. Wysocki wrote:
 
-> On Mon, 2009-08-17 at 08:20 +0800, Rafael J. Wysocki wrote:
-> > Set async_suspend for all PCI devices and PCIe port services.
-> >=20
-> =EF=BB=BFAlan said that we can not break the resume order of the uhci=
-/ehci host
-> controllers on some platforms.
->=20
-> For example,
-> 00:1a.0 USB Controller: Intel Corporation 82801H (ICH8 Family) USB UH=
-CI
-> Controller #4 (rev 02)
-> 00:1a.1 USB Controller: Intel Corporation 82801H (ICH8 Family) USB UH=
-CI
-> Controller #5 (rev 02)
-> 00:1a.7 USB Controller: Intel Corporation 82801H (ICH8 Family) USB2 E=
-HCI
-> Controller #2 (rev 02)
-> 00:1a.7 must be resumed after 00:1a.0 and 00:1a.1
->=20
-> please refer to this thread:
-> http://marc.info/?l=3Dlinux-acpi&m=3D122996117918188&w=3D2
->=20
-> So I'm afraid we can not suspend/resume the PCI devices in parallel,
-> unless we add this off-tree dependency at the same time.
+> On Wednesday 12 August 2009, Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > The following patches introduce a mechanism allowing us to execute device
+> > drivers' suspend and resume callbacks asynchronously during system sleep
+> > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
+> > message.
+> 
+> Changes:
+> 
+> * Added [1/7] that fixes kerneldoc comments in drivers/base/power/main.c
+>   (this is a 2.6.32 candidate).
+> 
+> * Added [2/7] adding a framework for representing PM link (idea described
+>   in the patch message).
+> 
+> * [3/7] is the async resume patch (idea described in the patch message).
+> 
+> * [4/7] is the async suspend patch.
+> 
+> * [5/7] - [7/7] set async_suspend for devices in a few selected subsystems.
+> 
+> The patches have been tested on HP nx6325.
+> 
+> Comments welcome.
 
-It's okay for testing.  The dependency is needed mostly for=20
-resume-from-hibernation.
+I'm not sure about the design of these things.  How much do we care 
+about wasting memory?  Your scheme allocates six pointers for every 
+dependency, plus four pointers for every device.  It's possible to 
+reduce this considerably, especially if the parent-child dependencies 
+aren't stored explicitly.
+
+If you decide to keep this scheme, you should make pm_link_add() check 
+for duplicate dependencies before adding them.
+
+Also, I think a better approach to the async execution would not
+require adding a struct completion to each device and making each async
+thread wait for the completion to be signalled.  Instead, have a single
+master thread (i.e., the thread doing the suspend) monitor the
+dependencies and have it farm the devices out to async threads as they
+become ready to be suspended or resumed.
+
+Finally, devices that don't have async_suspend set should implicitly 
+depend on everything that comes after them (for suspend) or before them 
+(for resume) in the device list.
 
 Alan Stern
+
