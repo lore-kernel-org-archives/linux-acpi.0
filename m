@@ -1,46 +1,42 @@
 From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
-Date: Tue, 18 Aug 2009 09:33:03 +0100
-Message-ID: <9b2b86520908180133r3f5ddd7ev8a345832f2785abc@mail.gmail.com>
-References: <4A89E768.7010207@dell.com>
-	 <1250558643.30166.109.camel@localhost.localdomain>
+Subject: Re: [PATCH 3/3] Drop platform sysfs support
+Date: Tue, 18 Aug 2009 09:43:36 +0100
+Message-ID: <9b2b86520908180143t4b25c1f7hd78cd4b4333c4ab4@mail.gmail.com>
+References: <4A89E76B.5070204@dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:36253 "EHLO
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:45603 "EHLO
 	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149AbZHRIdD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 04:33:03 -0400
-In-Reply-To: <1250558643.30166.109.camel@localhost.localdomain>
+	with ESMTP id S1750886AbZHRIng (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 04:43:36 -0400
+In-Reply-To: <4A89E76B.5070204@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: Mario Limonciello <mario_limonciello@dell.com>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mario Limonciello <mario_limonciello@dell.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, cezary.jackiewicz@gmail.com
 
-On 8/18/09, Marcel Holtmann <marcel@holtmann.org> wrote:
-> Hi Mario,
-
-...
-
->> +static void compal_rfkill_query(struct rfkill *rfkill, void *data)
->> +{
->> +       unsigned long radio = (unsigned long) data;
->> +       u8 result;
->> +       bool blocked;
->> +
->> +       ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
->> +
->> +       if ((result & KILLSWITCH_MASK) == 0)
->> +               blocked = 1;
->> +        else if (radio == WLAN_MASK)
->> +               blocked = !(result & WLAN_MASK);
+On 8/18/09, Mario Limonciello <mario_limonciello@dell.com> wrote:
+> With rfkill support being added, the platform support is no longer
+> necessary.  Standard rfkill interfaces can be used to administer the box
+> now.
+> --
+> Mario Limonciello
+> *Dell | Linux Engineering*
+> mario_limonciello@dell.com
 >
-> You are using spaces instead of tabs here.
 
-Btw Mario, scripts/checkpatch.pl is a good way to check for whitespace
-errors and a bunch of other trivia.  So human patch review can
-concentrate on the important stuff :-).
+-static struct platform_device *compal_device;
+
+I don't think this is the right way to go.  I don't object to removing
+the sysfs attributes, but the platform device can still be useful as a
+parent device to the rfkill and backlight devices.  (See my earlier
+comment on the use of rfkill_allocate()).
+
+In practice I suspect it makes no difference that the rfkill and
+backlight devices are exported as virtual devices with no physical
+parent.  I just don't think it's "right" :-).
 
 Thanks
 Alan
