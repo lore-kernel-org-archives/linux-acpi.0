@@ -1,100 +1,31 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
-Date: Tue, 18 Aug 2009 21:56:30 +0200
-Message-ID: <200908182156.30320.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908180954210.2995-100000@iolanthe.rowland.org>
+Subject: Re: [RFC][PATCH 7/7] PM: Asynchronous suspend and resume of i8042
+Date: Tue, 18 Aug 2009 21:57:53 +0200
+Message-ID: <200908182157.53283.rjw@sisk.pl>
+References: <200908122218.13975.rjw@sisk.pl> <200908170221.34885.rjw@sisk.pl> <1250579010.5351.69.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55686 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751336AbZHRTzs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Aug 2009 15:55:48 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0908180954210.2995-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751624AbZHRT47@vger.kernel.org>
+In-Reply-To: <1250579010.5351.69.camel@rzhang-dt>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
 
-On Tuesday 18 August 2009, Alan Stern wrote:
-> On Mon, 17 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > On Wednesday 12 August 2009, Rafael J. Wysocki wrote:
-> > > Hi,
-> > > 
-> > > The following patches introduce a mechanism allowing us to execute device
-> > > drivers' suspend and resume callbacks asynchronously during system sleep
-> > > transitions, such as suspend to RAM.  The idea is explained in the [1/1] patch
-> > > message.
-> > 
-> > Changes:
-> > 
-> > * Added [1/7] that fixes kerneldoc comments in drivers/base/power/main.c
-> >   (this is a 2.6.32 candidate).
-> > 
-> > * Added [2/7] adding a framework for representing PM link (idea described
-> >   in the patch message).
-> > 
-> > * [3/7] is the async resume patch (idea described in the patch message).
-> > 
-> > * [4/7] is the async suspend patch.
-> > 
-> > * [5/7] - [7/7] set async_suspend for devices in a few selected subsystems.
-> > 
-> > The patches have been tested on HP nx6325.
-> > 
-> > Comments welcome.
-> 
-> I'm not sure about the design of these things.  How much do we care 
-> about wasting memory?
+On Tuesday 18 August 2009, Zhang Rui wrote:
+> On Mon, 2009-08-17 at 08:21 +0800, Rafael J. Wysocki wrote:
+> > Set async_suspend for i8042.
+> >=20
+> it's the psmouse reset that takes the 0.4 seconds during suspend.
+> =EF=BB=BFso we should call device_enable_async_suspend for the psmous=
+e serio
+> device in psmouse-base.c
+>=20
+> Or invoking device_enable_async_suspend for every serio device in
+> serio.c, as the keyboard also takes about 0.2s to suspend.
 
-Not much.
-
-> Your scheme allocates six pointers for every dependency, plus four pointers
-> for every device.
-
-Yes, it does.
-
-> It's possible to reduce this considerably, especially if the parent-child
-> dependencies aren't stored explicitly.
-
-Yes, at the expense of increased complexity and reduced performance.
-
-> If you decide to keep this scheme, you should make pm_link_add() check 
-> for duplicate dependencies before adding them.
-
-That's correct.
-
-> Also, I think a better approach to the async execution would not
-> require adding a struct completion to each device and making each async
-> thread wait for the completion to be signalled.  Instead, have a single
-> master thread (i.e., the thread doing the suspend) monitor the
-> dependencies and have it farm the devices out to async threads as they
-> become ready to be suspended or resumed.
-
-Do you mean that the master thread should check the dependencies
-_before_ executing, for example, __device_resume() and execute it
-asynchronously only if they are already satisfied?  In that case we might lose
-the opportunity to save some time.
-
-For example, assume devices A and B depend on C. Say that normally, A would be
-handled before B, so if C hasn't finished yet, the A's callback will be
-executed synchronously.  Now, if both A and B take time T to complete the
-callback and C finishes dT after we've called A synchronously, we'll lose the
-chance to save T - dT by handling A and B in parallel.
-
-The master thread might chose another device for asynchronous execution, but
-then it should revisit A and B and that still is going to be suboptimal
-time-wise in some specific situations (eg. A and B are the last two devices to
-handle).
-
-> Finally, devices that don't have async_suspend set should implicitly 
-> depend on everything that comes after them (for suspend) or before them 
-> (for resume) in the device list.
-
-They do, through dpm_list.
+Yes we can do that.  I'll test that later today.
 
 Thanks,
 Rafael
