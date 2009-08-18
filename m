@@ -1,74 +1,120 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
-Date: Tue, 18 Aug 2009 22:01:11 +0200
-Message-ID: <200908182201.11489.rjw@sisk.pl>
-References: <200908122218.13975.rjw@sisk.pl> <200908170215.21173.rjw@sisk.pl> <1250579793.5351.79.camel@rzhang-dt>
+From: Yves-Alexis Perez <corsac@debian.org>
+Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
+ in driver
+Date: Tue, 18 Aug 2009 22:02:10 +0200
+Message-ID: <1250625730.2257.11.camel@hidalgo>
+References: <1235992429.3858.58.camel@hughsie-work.lan>
+	 <20090302112400.GA2356@khazad-dum.debian.net>
+	 <1236164049.3936.17.camel@hughsie-work.lan>
+	 <20090304120439.GA31850@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-q/e1y43b7Ujj7GgUU+Qf"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55724 "EHLO ogre.sisk.pl"
+Received: from smtp4-g21.free.fr ([212.27.42.4]:54796 "EHLO smtp4-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751007AbZHRUA2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2009 16:00:28 -0400
-In-Reply-To: <1250579793.5351.79.camel@rzhang-dt>
+	id S1751275AbZHRUDJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Aug 2009 16:03:09 -0400
+In-Reply-To: <20090304120439.GA31850@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, mjg <mjg@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
 
-On Tuesday 18 August 2009, Zhang Rui wrote:
-> On Mon, 2009-08-17 at 08:15 +0800, Rafael J. Wysocki wrote:
-> > On Wednesday 12 August 2009, Rafael J. Wysocki wrote:
-> > > Hi,
-> > >=20
-> > > The following patches introduce a mechanism allowing us to execut=
-e device
-> > > drivers' suspend and resume callbacks asynchronously during syste=
-m sleep
-> > > transitions, such as suspend to RAM.  The idea is explained in th=
-e [1/1] patch
-> > > message.
+
+--=-q/e1y43b7Ujj7GgUU+Qf
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On mer, 2009-03-04 at 09:04 -0300, Henrique de Moraes Holschuh wrote:
+> On Wed, 04 Mar 2009, Richard Hughes wrote:
+> > >From d3ce499f80ba7526e83e7b16f85124ccf77ac1f4 Mon Sep 17 00:00:00 2001
+> > From: Richard Hughes <richard@hughsie.com>
+> > Date: Wed, 4 Mar 2009 10:51:52 +0000
+> > Subject: thinkpad-acpi: use correct key names for sleep keys in driver
 > >=20
-> > Changes:
+> > Use the new key KEY_HIBERNATE and correct the use of KEY_SUSPEND.
 > >=20
-> > * Added [1/7] that fixes kerneldoc comments in drivers/base/power/m=
-ain.c
-> >   (this is a 2.6.32 candidate).
+> > KEY_HIBERNATE is used when the decal on the key indicates sleep to disk=
+,
+> > KEY_SUSPEND is used when the decal indicates sleep to memory, and
+> > KEY_SLEEP is used when the sleep type is unknown or unspecified
 > >=20
-> > * Added [2/7] adding a framework for representing PM link (idea des=
-cribed
-> >   in the patch message).
+> > We've already converted Xorg, HAL, and most of userspace to use the sam=
+e names.
 > >=20
-> > * [3/7] is the async resume patch (idea described in the patch mess=
-age).
+> > With this patch, the sleep keys can be labeled consistently all the way
+> > through the stack. More patches to other device drivers are to follow.
 > >=20
-> > * [4/7] is the async suspend patch.
-> >=20
-> > * [5/7] - [7/7] set async_suspend for devices in a few selected sub=
-systems.
-> >=20
-> > The patches have been tested on HP nx6325.
-> >=20
-> I tried this patch set and it does work. :)
-> But unfortunately it doesn't save too much time.
+> > Signed-off-by: Richard Hughes <hughsient@gmail.com>
 >=20
-> I still think that the child device should inherit its parent's
-> async_suspend flag to do the asynchronous resume more efficiently.
+> Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+It seems that this patch is still not in master?
+
+Currently (on debian unstable), input-events reports on my T61:
+
+KEY_SLEEP for Fn+F4
+KEY_SUSPEND for Fn+F12
+
+which kind-of breaks xfce4-power-manager, where SLEEP and SUSPEND both
+suspend to ram, so I don't have any way to hibernate. Changing xfpm
+doesn't seem like a good idea if the way to go is to use SUSPEND for
+STR, HIBERNATE for STD and SLEEP for either.
+
+So what's the status for this?
+
 >=20
-> or at least we should provide such an interface
-> in =EF=BB=BFdrivers/base/power/common.c, so that device can tell the =
-device core
-> to inherit this flag if there is no off-tree dependency.
+> > ---
+> >  drivers/platform/x86/thinkpad_acpi.c |    8 ++++----
+> >  1 files changed, 4 insertions(+), 4 deletions(-)
+> >=20
+> > diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x8=
+6/thinkpad_acpi.c
+> > index bcbc051..d89015d 100644
+> > --- a/drivers/platform/x86/thinkpad_acpi.c
+> > +++ b/drivers/platform/x86/thinkpad_acpi.c
+> > @@ -2241,9 +2241,9 @@ static int __init hotkey_init(struct ibm_init_str=
+uct *iibm)
+> >  	 */
+> >  	static u16 ibm_keycode_map[] __initdata =3D {
+> >  		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+> > -		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SLEEP,
+> > +		KEY_FN_F1,	KEY_FN_F2,	KEY_COFFEE,	KEY_SUSPEND,
+> >  		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
+> > -		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
+> > +		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_HIBERNATE,
+> > =20
+> >  		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
+> >  		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+> > @@ -2277,9 +2277,9 @@ static int __init hotkey_init(struct ibm_init_str=
+uct *iibm)
+> >  	};
+> >  	static u16 lenovo_keycode_map[] __initdata =3D {
+> >  		/* Scan Codes 0x00 to 0x0B: ACPI HKEY FN+F1..F12 */
+> > -		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SLEEP,
+> > +		KEY_FN_F1,	KEY_COFFEE,	KEY_BATTERY,	KEY_SUSPEND,
+> >  		KEY_WLAN,	KEY_FN_F6, KEY_SWITCHVIDEOMODE, KEY_FN_F8,
+> > -		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_SUSPEND,
+> > +		KEY_FN_F9,	KEY_FN_F10,	KEY_FN_F11,	KEY_HIBERNATE,
+> > =20
+> >  		/* Scan codes 0x0C to 0x1F: Other ACPI HKEY hot keys */
+> >  		KEY_UNKNOWN,	/* 0x0C: FN+BACKSPACE */
+>=20
+>=20
+Cheers,
+--=20
+Yves-Alexis
 
-Well, I'd prefer to identify all of the off-tree dependencies that have=
- to be
-taken into account and handle all devices asynchronously.
+--=-q/e1y43b7Ujj7GgUU+Qf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkqLCLwACgkQTUTAIMXAW65GWQCfbF0KRqNiNog+FA5CWtZION4/
+K7EAoJbgmOA+mDc5Aq7T26y+dBy/A1E6
+=O2pv
+-----END PGP SIGNATURE-----
+
+--=-q/e1y43b7Ujj7GgUU+Qf--
