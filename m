@@ -1,31 +1,246 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC] [PATCH v3 1/2] introduce ALS sysfs class
-Date: Wed, 19 Aug 2009 09:01:44 -0700
-Message-ID: <20090819160144.GB1020@kroah.com>
-References: <1250671229.17853.51.camel@rzhang-dt>
+From: Mario Limonciello <mario_limonciello-8PEkshWhKlo@public.gmane.org>
+Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
+Date: Wed, 19 Aug 2009 11:46:36 -0500
+Message-ID: <4A8C2C6C.2020007@dell.com>
+References: <4A89E768.7010207@dell.com>	 <1250558643.30166.109.camel@localhost.localdomain>	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>	 <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>	 <4A8AE459.8060102@dell.com>	 <9b2b86520908181408v5f7875b6sea31d8d95cc08c0b@mail.gmail.com>	 <1250631063.16393.14.camel@johannes.local>  <4A8B246D.7050004@dell.com> <1250672475.25419.7.camel@johannes.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752754AbZHSQJT@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1250671229.17853.51.camel@rzhang-dt>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig2575055CE8844968B0CA0188"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1250672475.25419.7.camel-YfaajirXv2244ywRPIzf9A@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Cc: Alan Jenkins <sourcejedi.lkml-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 19, 2009 at 04:40:29PM +0800, Zhang Rui wrote:
-> --- /dev/null
-> +++ linux-2.6/Documentation/ABI/testing/sysfs-class-als
-> @@ -0,0 +1,137 @@
-> +Ambient Light Sensor Sysfs driver How To
-> +=========================
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig2575055CE8844968B0CA0188
+Content-Type: multipart/mixed;
+ boundary="------------000501090302000407000407"
 
-<snip>
+This is a multi-part message in MIME format.
+--------------000501090302000407000407
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-While this is a nice document, it does not follow the standard that the
-files in Documentation/ABI/ should be in.  Can you please read
-Documentation/ABI/README and convert the file to follow that?
+Hi Johannes:
 
-thanks,
+Thanks for looking.
 
-greg k-h
+Johannes Berg wrote:
+> Ah, heh, thanks Alan for pointing out there was a patch here :)
+>
+>  =20
+>
+> I don't quite understand the "| radio" bit since that seems to be the
+> soft kill bit according to rfkill_set()?
+>  =20
+Yeah you're right, this bit was unnecessary.  I pulled it out.
+> Anyhow, here you reject the request to set the soft bit. I suspect you
+> could let it go through but it would only change the soft bit in the
+> BIOS, nothing else really.
+>
+> Two options:
+> 1) You can let it go though, in that case do that, and remove the sw
+>    block stuff from poll() completely.
+>
+> 2) You can't let it go through. In this case, you need to leave set as
+>    it is, but implement poll like this:
+>
+> 	sw_block =3D rfkill_set_hw_state(rfkill, hw_blocked);
+> 	compal_rfkill_set(data, sw_block);
+>
+> so that when the user soft-blocks the device while hard-blocked, the
+> soft block is still honoured after pushing the button on the laptop.
+>
+>  =20
+OK, the second option sounds more desirable, so I've implemented that.
+
+--=20
+Mario Limonciello
+*Dell | Linux Engineering*
+mario_limonciello-8PEkshWhKlo@public.gmane.org
+
+--------------000501090302000407000407
+Content-Type: text/x-patch;
+ name="02_add_rfkill_support.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="02_add_rfkill_support.diff"
+
+=46rom 5f5dc9c1adf041418c6dd273cd4ee83d5ae96e74 Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <Mario_Limonciello-DYMqY+WieiM@public.gmane.org>
+Date: Wed, 19 Aug 2009 11:41:27 -0500
+Subject: [PATCH 2/3] Add rfkill support to compal-laptop
+
+Signed-off-by: Mario Limonciello <Mario_Limonciello-DYMqY+WieiM@public.gmane.org>
+Reviewed-by: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+---
+ drivers/platform/x86/compal-laptop.c |   91 ++++++++++++++++++++++++++++=
++++++-
+ 1 files changed, 89 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/=
+compal-laptop.c
+index 11003bb..d997de5 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -52,6 +52,7 @@
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+ #include <linux/autoconf.h>
++#include <linux/rfkill.h>
+=20
+ #define COMPAL_DRIVER_VERSION "0.2.6"
+=20
+@@ -64,6 +65,10 @@
+ #define WLAN_MASK	0x01
+ #define BT_MASK 	0x02
+=20
++static struct rfkill *wifi_rfkill;
++static struct rfkill *bt_rfkill;
++static struct platform_device *compal_device;
++
+ static int force;
+ module_param(force, bool, 0);
+ MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
+@@ -89,6 +94,82 @@ static int get_lcd_level(void)
+ 	return (int) result;
+ }
+=20
++static int compal_rfkill_set(void *data, bool blocked)
++{
++	unsigned long radio =3D (unsigned long) data;
++	u8 result, value;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	if ((result & KILLSWITCH_MASK) =3D=3D 0)
++		return -EINVAL;
++
++	if (!blocked)
++		value =3D (u8) (result | radio);
++	else
++		value =3D (u8) (result & ~radio);
++	ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
++
++	return 0;
++}
++
++static void compal_rfkill_poll(struct rfkill *rfkill, void *data)
++{
++	u8 result;
++	bool hw_blocked;
++	bool sw_blocked;
++
++	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
++
++	hw_blocked =3D !(result & KILLSWITCH_MASK);
++	sw_blocked =3D rfkill_set_hw_state(rfkill, hw_blocked);
++	compal_rfkill_set(data,sw_blocked);
++}
++
++static const struct rfkill_ops compal_rfkill_ops =3D {
++	.poll =3D compal_rfkill_poll,
++	.set_block =3D compal_rfkill_set,
++};
++
++static int setup_rfkill(void)
++{
++	int ret;
++
++	wifi_rfkill =3D rfkill_alloc("compal-wifi", &compal_device->dev,
++				RFKILL_TYPE_WLAN, &compal_rfkill_ops,
++				(void *) WLAN_MASK);
++	if (!wifi_rfkill)
++		return -ENOMEM;
++
++	ret =3D rfkill_register(wifi_rfkill);
++	if (ret)
++		goto err_wifi;
++
++	bt_rfkill =3D rfkill_alloc("compal-bluetooth", &compal_device->dev,
++				RFKILL_TYPE_BLUETOOTH, &compal_rfkill_ops,
++				(void *) BT_MASK);
++	if (!bt_rfkill) {
++		ret =3D -ENOMEM;
++		goto err_allocate_bt;
++	}
++	ret =3D rfkill_register(bt_rfkill);
++	if (ret)
++		goto err_register_bt;
++
++	return 0;
++
++err_register_bt:
++	rfkill_destroy(bt_rfkill);
++
++err_allocate_bt:
++	rfkill_unregister(wifi_rfkill);
++
++err_wifi:
++	rfkill_destroy(wifi_rfkill);
++
++	return ret;
++}
++
+ static int set_wlan_state(int state)
+ {
+ 	u8 result, value;
+@@ -258,8 +339,6 @@ static struct platform_driver compal_driver =3D {
+ 	}
+ };
+=20
+-static struct platform_device *compal_device;
+-
+ /* Initialization */
+=20
+ static int dmi_check_cb(const struct dmi_system_id *id)
+@@ -356,6 +435,10 @@ static int __init compal_init(void)
+ 	if (ret)
+ 		goto fail_platform_device2;
+=20
++	ret =3D setup_rfkill();
++	if (ret)
++		printk(KERN_WARNING "compal-laptop: Unable to setup rfkill\n");
++
+ 	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
+ 		" successfully loaded.\n");
+=20
+@@ -387,6 +470,10 @@ static void __exit compal_cleanup(void)
+ 	platform_device_unregister(compal_device);
+ 	platform_driver_unregister(&compal_driver);
+ 	backlight_device_unregister(compalbl_device);
++	rfkill_unregister(wifi_rfkill);
++	rfkill_destroy(wifi_rfkill);
++	rfkill_unregister(bt_rfkill);
++	rfkill_destroy(bt_rfkill);
+=20
+ 	printk(KERN_INFO "compal-laptop: driver unloaded.\n");
+ }
+--=20
+1.6.3.3
+
+
+--------------000501090302000407000407--
+
+--------------enig2575055CE8844968B0CA0188
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkqMLGwACgkQ2CrZjkA73Yu0gACeMgUrMOa31WzD/2PwR2PArWII
+dacAnRS/uB4amCL2Z8pjP0nsAbwG9Cjf
+=Ckqe
+-----END PGP SIGNATURE-----
+
+--------------enig2575055CE8844968B0CA0188--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
