@@ -1,61 +1,60 @@
-From: Johannes Berg <johannes@sipsolutions.net>
+From: Mario Limonciello <mario_limonciello@dell.com>
 Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
-Date: Wed, 19 Aug 2009 20:42:56 +0200
-Message-ID: <1250707376.8073.4.camel@johannes.local>
-References: <1250706969-10382-1-git-send-email-Mario_Limonciello@Dell.com>
+Date: Wed, 19 Aug 2009 13:47:22 -0500
+Message-ID: <4A8C48BA.1000009@dell.com>
+References: <1250706969-10382-1-git-send-email-Mario_Limonciello@Dell.com> <1250707376.8073.4.camel@johannes.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-nYXA9SiGEd7OD+CwqUNb"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753005AbZHSSn2@vger.kernel.org>
-In-Reply-To: <1250706969-10382-1-git-send-email-Mario_Limonciello@Dell.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mario Limonciello <Mario_Limonciello@Dell.com>
-Cc: cezary.jackiewicz@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigB6BB6021364367E83410BC28"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:49413 "EHLO
+	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486AbZHSSql (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 14:46:41 -0400
+In-Reply-To: <1250707376.8073.4.camel@johannes.local>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: cezary.jackiewicz@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org
 
-
---=-nYXA9SiGEd7OD+CwqUNb
-Content-Type: text/plain
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigB6BB6021364367E83410BC28
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2009-08-19 at 13:36 -0500, Mario Limonciello wrote:
-> Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
-> Reviewed-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Johannes:
 
-> +	ret =3D setup_rfkill();
-> +	if (ret)
-> +		goto fail_rfkill;
-> +
->  	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
->  		" successfully loaded.\n");
-> =20
->  	return 0;
-> =20
-> +fail_rfkill:
->  fail_platform_device2:
+Johannes Berg wrote:
+> On Wed, 2009-08-19 at 13:36 -0500, Mario Limonciello wrote:
+>  =20
+>
+>  =20
+>
+> Isn't that missing sysfs_remove_group()?
+>
+> johannes
+>  =20
+The third patch in the (updated) series is dropping the sysfs bits, so
+sysfs_remove_group is removed there.
+--=20
+Mario Limonciello
+*Dell | Linux Engineering*
+mario_limonciello@dell.com
 
-Isn't that missing sysfs_remove_group()?
 
-johannes
-
---=-nYXA9SiGEd7OD+CwqUNb
+--------------enigB6BB6021364367E83410BC28
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iQIcBAABAgAGBQJKjEetAAoJEODzc/N7+QmaD/IP/jOs9tXj4Iw4h5kLh2UNKAS6
-n16HcvOKu4EvK/01ag9iCUUxvmbqWvQcN3tv+taTgRpDD8L3Huh355PycoNzN18c
-HbDOp/QYPV0c8YNeLjXH3sHOCwINrp9i8SwW2d5mqE4xocLnV/y9qXRHkYbKWgJG
-IUc0oOf9xC1h/6LuEfKL7OZcG3RyMucPc9nu9hufcmiAx1b/4t7FwuHN4FA7Lyat
-ew+5rhcUiiq/HkUPWUe9S+bso5QmG3KIXn1J0yRuBzWoV9KhqGxKCSccrGL7Size
-EtfJqG3EbGC5dBcoj2NQDBORYuTeZbkdbMUAhs6nP0YaQIJKHe3qy/kvx1mf1JRr
-Q0X4hWg9BiEYl6W3+TEhoi0PCrCeQ/CzY/8aQZ2wriQhEdf7njhsG+Zyop5gW5jY
-pxS2nDArtDYIwQXnsFOfdreZV5wsY9KvZBWuUOiToo+YMdH5OD22zKzanTHtFiNL
-LqlR8pD/OKgZVkrVAkMcb2hDIWzm9xJISAsMdrsgNyID2jAG/3VPI2dXCTGg1g0h
-VU7NnK+Xa/rhTJ3UhUsfYgfahsTaYf5TdmoYDf3ojTZwqzrcXAkWoAwG6UERg69g
-AE2i6QhFazgM9IceHoZsY2ffi/NyemLeO+Wby2VQJ8oRb7z267OJWOT2pvAVWPeb
-qDPYCK9P6VStp8Z6TA3u
-=qCmr
+iEYEARECAAYFAkqMSLoACgkQ2CrZjkA73YsU6QCgkOtaczvK4YUYRZ0wVPIDa3nu
+Ph4An0md7zA/kWObwbWk6od0dTAn9cDJ
+=yUa8
 -----END PGP SIGNATURE-----
 
---=-nYXA9SiGEd7OD+CwqUNb--
+--------------enigB6BB6021364367E83410BC28--
