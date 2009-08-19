@@ -1,376 +1,611 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 4/5]PCIe native PME support
-Date: Wed, 19 Aug 2009 15:24:19 +0800
-Message-ID: <1250666659.23178.119.camel@sli10-desk.sh.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC] [PATCH v3 1/2] introduce ALS sysfs class
+Date: Wed, 19 Aug 2009 16:40:29 +0800
+Message-ID: <1250671229.17853.51.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21003 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:52729 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751497AbZHSHYU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Aug 2009 03:24:20 -0400
+	id S1750770AbZHSImP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Aug 2009 04:42:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.osdl.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, mjg59 <mjg59@srcf.ucam.org>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Greg KH <greg@kroah.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 
+=EF=BB=BFIntroduce ALS sysfs class device.
 
-PCIe defines a native PME detection mechanism. When a PCIe endpoint
-invokes PME, PCIe root port has a set of regisets to detect the
-endpoint's bus/device/function number and root port will send out
-interrupt when PME is received. After getting interrupt, OS can identify
-which device invokes PME according to such information. See PCIe
-spec for detail. This patch implements this feature.
+ALS sysfs class device provides a standard sysfs interface
+for Ambient Light Sensor devices.
 
+please read Documentation/ABI/testing/sysfs-class-als for detailed sysf=
+s
+designs.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/pci/pcie/Kconfig  |    7 +
- drivers/pci/pcie/Makefile |    2 
- drivers/pci/pcie/npme.c   |  300 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci_regs.h  |    1 
- 4 files changed, 310 insertions(+)
+ Documentation/ABI/testing/sysfs-class-als |  137 ++++++++++++++++
+ drivers/Kconfig                           |    2=20
+ drivers/Makefile                          |    1=20
+ drivers/als/Kconfig                       |   10 +
+ drivers/als/Makefile                      |    5=20
+ drivers/als/als_sys.c                     |  256 +++++++++++++++++++++=
++++++++++
+ include/linux/als_sys.h                   |   57 ++++++
+ 7 files changed, 468 insertions(+)
 
-Index: linux/drivers/pci/pcie/Kconfig
-===================================================================
---- linux.orig/drivers/pci/pcie/Kconfig	2009-08-19 13:43:18.000000000 +0800
-+++ linux/drivers/pci/pcie/Kconfig	2009-08-19 14:34:00.000000000 +0800
-@@ -46,3 +46,10 @@ config PCIEASPM_DEBUG
- 	help
- 	  This enables PCI Express ASPM debug support. It will add per-device
- 	  interface to control ASPM.
+Index: linux-2.6/drivers/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/Kconfig
++++ linux-2.6/drivers/Kconfig
+@@ -62,6 +62,8 @@ source "drivers/power/Kconfig"
+=20
+ source "drivers/hwmon/Kconfig"
+=20
++source "drivers/als/Kconfig"
 +
-+config PCIENPME
-+	bool "PCIE Native PME support(Experimental)"
-+	depends on PCIEPORTBUS && EXPERIMENTAL
+ source "drivers/thermal/Kconfig"
+=20
+ source "drivers/watchdog/Kconfig"
+Index: linux-2.6/drivers/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux-2.6.orig/drivers/Makefile
++++ linux-2.6/drivers/Makefile
+@@ -76,6 +76,7 @@ obj-$(CONFIG_PPS)		+=3D pps/
+ obj-$(CONFIG_W1)		+=3D w1/
+ obj-$(CONFIG_POWER_SUPPLY)	+=3D power/
+ obj-$(CONFIG_HWMON)		+=3D hwmon/
++obj-$(CONFIG_ALS)		+=3D als/
+ obj-$(CONFIG_THERMAL)		+=3D thermal/
+ obj-$(CONFIG_WATCHDOG)		+=3D watchdog/
+ obj-$(CONFIG_PHONE)		+=3D telephony/
+Index: linux-2.6/drivers/als/Kconfig
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/drivers/als/Kconfig
+@@ -0,0 +1,10 @@
++#
++# Ambient Light Sensor sysfs device configuration
++#
++
++menuconfig ALS
++	tristate "Ambient Light Sensor sysfs device"
 +	help
-+	  This enables PCI Express Native PME Reporting.
++	  This framework provides a generic sysfs interface for
++	  Ambient Light Sensor devices.
++	  If you want this support, you should say Y or M here.
+Index: linux-2.6/drivers/als/Makefile
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/drivers/als/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for sensor chip drivers.
++#
 +
-Index: linux/drivers/pci/pcie/Makefile
-===================================================================
---- linux.orig/drivers/pci/pcie/Makefile	2009-08-19 13:43:18.000000000 +0800
-+++ linux/drivers/pci/pcie/Makefile	2009-08-19 14:34:00.000000000 +0800
-@@ -11,3 +11,5 @@ obj-$(CONFIG_PCIEPORTBUS)	+= pcieportdrv
- 
- # Build PCI Express AER if needed
- obj-$(CONFIG_PCIEAER)		+= aer/
-+
-+obj-$(CONFIG_PCIENPME) += npme.o
-Index: linux/drivers/pci/pcie/npme.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux/drivers/pci/pcie/npme.c	2009-08-19 14:34:00.000000000 +0800
-@@ -0,0 +1,300 @@
++obj-$(CONFIG_ALS)		+=3D als_sys.o
+Index: linux-2.6/drivers/als/als_sys.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/drivers/als/als_sys.c
+@@ -0,0 +1,256 @@
 +/*
-+ * PCIE Native PME support
++ *  als_sys.c - Ambient Light Sensor Sysfs support.
 + *
-+ * Copyright (C) 2007 - 2008 Intel Corp
-+ *  Shaohua Li <shaohua.li@intel.com>
++ *  Copyright (C) 2009 Intel Corp
++ *  Copyright (C) 2009 Zhang Rui <rui.zhang@intel.com>
 + *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
++ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modi=
+fy
++ *  it under the terms of the GNU General Public License as published =
+by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, bu=
+t
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License =
+along
++ *  with this program; if not, write to the Free Software Foundation, =
+Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~~~
 + */
 +
 +#include <linux/module.h>
-+#include <linux/pci.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
 +#include <linux/device.h>
-+#include <linux/pcieport_if.h>
-+#include <linux/acpi.h>
-+#include <linux/pci-acpi.h>
++#include <linux/err.h>
++#include <linux/als_sys.h>
 +
-+static int disabled;
-+module_param(disabled, bool, 0);
-+static int force = 1;
-+module_param(force, bool, 0);
-+
-+struct npme_data {
-+	spinlock_t lock;
-+	struct pcie_device *dev;
-+	struct work_struct work;
-+	u16 bdf; /* device which invokes PME */
-+	int exit;
-+};
-+
-+static inline void npme_enable_pme(struct pci_dev *pdev, bool enable)
-+{
-+	int pos;
-+	u16 rtctl;
-+
-+	pos = pci_find_capability(pdev, PCI_CAP_ID_EXP);
-+
-+	pci_read_config_word(pdev, pos + PCI_EXP_RTCTL, &rtctl);
-+	if (!enable)
-+		rtctl &= ~PCI_EXP_RTCTL_PMEIE;
-+	else
-+		rtctl |= PCI_EXP_RTCTL_PMEIE;
-+	pci_write_config_word(pdev, pos + PCI_EXP_RTCTL, rtctl);
-+}
-+
-+static inline void npme_clear_pme(struct pci_dev *pdev)
-+{
-+	int pos;
-+	u32 rtsta;
-+
-+	pos = pci_find_capability(pdev, PCI_CAP_ID_EXP);
-+
-+	pci_read_config_dword(pdev, pos + PCI_EXP_RTSTA, &rtsta);
-+	rtsta |= PCI_EXP_RTSTA_PME;
-+	pci_write_config_dword(pdev, pos + PCI_EXP_RTSTA, rtsta);
-+}
-+
-+static bool npme_pme_target(struct pci_dev *target)
-+{
-+	bool ret = false;
-+	if (target->dev.bus->pm && target->dev.bus->pm->wakeup_event)
-+		ret = target->dev.bus->pm->wakeup_event(&target->dev);
-+	return ret;
-+}
-+
-+static void npme_work_handle(struct work_struct *work)
-+{
-+	struct npme_data *data = container_of(work, struct npme_data, work);
-+	struct pcie_device *dev = data->dev;
-+	unsigned long flags;
-+	struct pci_dev *target;
-+	bool has_dev = false;
-+
-+	target = pci_get_bus_and_slot(data->bdf >> 8, data->bdf & 0xff);
-+	/* PCIe-PCI bridge might change bdf to (secondary bus numer, 0, 0) */
-+	if (!target && (data->bdf & 0xff) == 0) {
-+		struct pci_bus *bus;
-+
-+		bus = pci_find_bus(pci_domain_nr(dev->port->bus),
-+			data->bdf >> 8);
-+		if (bus) {
-+			target = bus->self;
-+			if (!target->is_pcie || target->pcie_type !=
-+					PCI_EXP_TYPE_PCI_BRIDGE)
-+				target = NULL;
-+		}
-+		if (target)
-+			pci_dev_get(target);
-+	}
-+
-+	if (target)
-+		has_dev = npme_pme_target(target);
-+	else
-+		printk(KERN_ERR"Can't find device %02d:%d.%d which invokes PME\n",
-+			data->bdf >> 8, PCI_SLOT(data->bdf),
-+			PCI_FUNC(data->bdf));
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+	/* clear pending PME */
-+	npme_clear_pme(dev->port);
-+	/* reenable native PME */
-+	if (!data->exit)
-+		npme_enable_pme(dev->port, true);
-+
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	if (!has_dev)
-+		printk(KERN_ERR"Spurious Native PME interrupt %d received\n",
-+			dev->irq);
-+
-+	if (target)
-+		pci_dev_put(target);
-+}
-+
-+static irqreturn_t npme_irq(int irq, void *context)
-+{
-+	int pos;
-+	struct pci_dev *pdev;
-+	u32 rtsta;
-+	struct npme_data *data;
-+	unsigned long flags;
-+
-+	pdev = ((struct pcie_device *)context)->port;
-+	data = get_service_data((struct pcie_device *)context);
-+
-+	pos = pci_find_capability(pdev, PCI_CAP_ID_EXP);
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+	pci_read_config_dword(pdev, pos + PCI_EXP_RTSTA, &rtsta);
-+	if (!(rtsta & PCI_EXP_RTSTA_PME)) {
-+		spin_unlock_irqrestore(&data->lock, flags);
-+		return IRQ_NONE;
-+	}
-+
-+	data->bdf = (u16)rtsta;
-+
-+	/* disable PME to avoid interrupt flood */
-+	npme_enable_pme(pdev, false);
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	schedule_work(&data->work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+#ifdef CONFIG_ACPI
-+static int npme_osc_setup(struct pcie_device *pciedev)
-+{
-+	acpi_status status = AE_NOT_FOUND;
-+	struct pci_dev *pdev = pciedev->port;
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&pdev->dev);
-+
-+	if (!handle)
-+		return -EINVAL;
-+	status = acpi_pci_osc_control_set(handle,
-+			OSC_PCI_EXPRESS_PME_CONTROL |
-+			OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-+
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_DEBUG "Native PME service couldn't init device "
-+			"%s - %s\n", dev_name(&pciedev->device),
-+			(status == AE_SUPPORT || status == AE_NOT_FOUND) ?
-+			"no _OSC support" : "Run ACPI _OSC fails");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+#else
-+static inline int npme_osc_setup(struct pcie_device *pciedev)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static int __devinit npme_probe(struct pcie_device *dev)
-+{
-+	struct pci_dev *pdev;
-+	int status;
-+	struct npme_data *data;
-+
-+	if (npme_osc_setup(dev) && !force)
-+		return -EINVAL;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+	spin_lock_init(&data->lock);
-+	INIT_WORK(&data->work, npme_work_handle);
-+	data->dev = dev;
-+	set_service_data(dev, data);
-+
-+	pdev = dev->port;
-+
-+	/* clear pending PME */
-+	npme_clear_pme(pdev);
-+
-+	status = request_irq(dev->irq, npme_irq, IRQF_SHARED, "npme", dev);
-+	if (status) {
-+		kfree(data);
-+		return status;
-+	}
-+
-+	/* enable PME interrupt */
-+	npme_enable_pme(pdev, true);
-+
-+	return 0;
-+}
-+
-+static void npme_remove(struct pcie_device *dev)
-+{
-+	struct pci_dev *pdev;
-+	unsigned long flags;
-+	struct npme_data *data = get_service_data(dev);
-+
-+	pdev = dev->port;
-+
-+	/* disable PME interrupt */
-+	spin_lock_irqsave(&data->lock, flags);
-+	data->exit = 1;
-+	npme_enable_pme(pdev, false);
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	flush_scheduled_work();
-+	free_irq(dev->irq, dev);
-+
-+	/* clear pending PME */
-+	npme_clear_pme(pdev);
-+
-+	set_service_data(dev, NULL);
-+	kfree(data);
-+}
-+
-+static int npme_suspend(struct pcie_device *dev)
-+{
-+	struct pci_dev *pdev;
-+	struct npme_data *data;
-+	unsigned long flags;
-+
-+	pdev = dev->port;
-+	data = get_service_data(dev);
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+	/* disable PME to avoid further interrupt */
-+	npme_enable_pme(pdev, false);
-+
-+	/* clear pending PME */
-+	npme_clear_pme(pdev);
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	return 0;
-+}
-+
-+static int npme_resume(struct pcie_device *dev)
-+{
-+	struct pci_dev *pdev = dev->port;
-+	unsigned long flags;
-+	struct npme_data *data = get_service_data(dev);
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+	npme_clear_pme(pdev);
-+	npme_enable_pme(pdev, true);
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	return 0;
-+}
-+
-+static struct pcie_port_service_driver npme_driver = {
-+	.name		= "npme",
-+	.port_type 	= PCIE_RC_PORT,
-+	.service 	= PCIE_PORT_SERVICE_PME,
-+
-+	.probe		= npme_probe,
-+	.remove		= npme_remove,
-+	.suspend	= npme_suspend,
-+	.resume		= npme_resume,
-+};
-+
-+static int __init npme_service_init(void)
-+{
-+	if (disabled)
-+		return -EINVAL;
-+	return pcie_port_service_register(&npme_driver);
-+}
-+
-+static void __exit npme_service_exit(void)
-+{
-+	pcie_port_service_unregister(&npme_driver);
-+}
-+
-+module_init(npme_service_init);
-+module_exit(npme_service_exit);
-+
-+MODULE_AUTHOR("Shaohua Li<shaohua.li@intel.com>");
++MODULE_AUTHOR("Zhang Rui");
++MODULE_DESCRIPTION("Ambient Light Sensor sysfs support");
 +MODULE_LICENSE("GPL");
-Index: linux/include/linux/pci_regs.h
-===================================================================
---- linux.orig/include/linux/pci_regs.h	2009-08-19 13:43:18.000000000 +0800
-+++ linux/include/linux/pci_regs.h	2009-08-19 14:34:00.000000000 +0800
-@@ -485,6 +485,7 @@
- #define  PCI_EXP_RTCTL_CRSSVE	0x10	/* CRS Software Visibility Enable */
- #define PCI_EXP_RTCAP		30	/* Root Capabilities */
- #define PCI_EXP_RTSTA		32	/* Root Status */
-+#define  PCI_EXP_RTSTA_PME	0x10000 /* PME status */
- #define PCI_EXP_DEVCAP2		36	/* Device Capabilities 2 */
- #define  PCI_EXP_DEVCAP2_ARI	0x20	/* Alternative Routing-ID */
- #define PCI_EXP_DEVCTL2		40	/* Device Control 2 */
++
++struct als_mapping_item {
++	struct kobject kobj;
++	int index;
++	struct list_head node;
++};
++
++/* sys I/F for Ambient Light Sensor */
++
++#define to_als_device(dev) container_of(dev, struct als_device, device=
+)
++
++static ssize_t
++desc_show(struct device *dev, struct device_attribute *attr, char *buf=
+)
++{
++	struct als_device *als =3D to_als_device(dev);
++
++	return sprintf(buf, "%s\n", als->desc ? als->desc : "N/A");
++}
++
++static ssize_t
++illuminance_show(struct device *dev, struct device_attribute *attr, ch=
+ar *buf)
++{
++	struct als_device *als =3D to_als_device(dev);
++	int illuminance;
++	int result;
++
++	result =3D als->ops->get_illuminance(als, &illuminance);
++	if (result)
++		return result;
++
++	if (!illuminance)
++		return sprintf(buf, "Illuminance below the supported range\n");
++	else if (illuminance =3D=3D -1)
++		return sprintf(buf, "Illuminance above the supported range\n");
++	else if (illuminance < -1)
++		return -ERANGE;
++	else
++		return sprintf(buf, "%d\n", illuminance);
++}
++
++static struct device_attribute als_attrs[] =3D {
++	__ATTR(desc, 0444, desc_show, NULL),
++	__ATTR(illuminance, 0444, illuminance_show, NULL),
++	__ATTR_NULL,
++};
++
++static void als_release(struct device *dev)
++{
++	struct als_device *als =3D to_als_device(dev);
++	struct als_mapping_item *pos, *n;
++
++	if (als->desc)
++		kfree(als->desc);
++	list_for_each_entry_safe(pos, n, &als->mappings, node){
++		list_del(&pos->node);
++		kfree(pos);
++	}
++	kfree(als);
++}
++
++static struct class als_class =3D {
++	.name =3D "als",
++	.dev_release =3D als_release,
++	.dev_attrs =3D als_attrs,
++};
++
++#define ATTR(_name, _mode)      \
++	struct attribute als_##_name##_attr =3D {               \
++	.name =3D __stringify(_name), .mode =3D _mode, \
++	};
++
++static ATTR(illuminance, 0444);
++static ATTR(adjustment, 0444);
++
++static struct attribute * als_mapping_attrs[] =3D {
++	&als_illuminance_attr,
++	&als_adjustment_attr,
++	NULL,
++};
++
++static ssize_t show_mapping_info(struct kobject *kobj,
++				       struct attribute *attr, char *buf)
++{
++	struct device *dev =3D container_of(kobj->parent, struct device, kobj=
+);
++	struct als_device *als =3D to_als_device(dev);
++	int index, illuminance, adjustment;
++	int result;
++
++	if (!sscanf(kobj->name, "mapping%d", &index))
++		return -EINVAL;
++
++	result =3D als->ops->get_mapping_info(als, index, &illuminance, &adju=
+stment);
++	if (result)
++		return result;
++
++	return sprintf(buf, "%u\n", (attr =3D=3D &als_illuminance_attr) ? ill=
+uminance : adjustment);
++}
++
++static struct sysfs_ops als_mapping_info_ops =3D {
++	.show =3D show_mapping_info,
++	.store =3D NULL,
++};
++
++static struct kobj_type als_mapping_ktype =3D {
++	.sysfs_ops =3D &als_mapping_info_ops,
++	.default_attrs =3D als_mapping_attrs,
++};
++
++/**
++ * als_device_update_mappings - update the ambient light illuminance t=
+o
++ * 				display luminance adjustment mappings
++ */
++int als_device_update_mappings(struct als_device *als, int count)
++{
++	int old_count =3D als->count;
++	int i;
++	struct als_mapping_item *pos, *next;
++	int result;
++
++	als->count =3D count;
++	if (old_count =3D=3D als->count)
++		return 0;
++
++	mutex_lock(&als->lock);
++	if (als->count > old_count)
++		for (i =3D old_count; i < als->count; i++) {
++			pos =3D kzalloc(sizeof(struct als_mapping_item), GFP_KERNEL);
++			if (!pos)
++				return -ENOMEM;
++
++			pos->index =3D i;
++			result =3D kobject_init_and_add(&pos->kobj, &als_mapping_ktype,
++					&als->device.kobj, "mapping%d", pos->index);
++			if (result)
++				break;
++			list_add_tail(&pos->node, &als->mappings);
++		}
++	else
++		list_for_each_entry_safe(pos, next, &als->mappings, node) {
++			if (pos->index < als->count)
++				continue;
++			list_del(&pos->node);
++			kobject_put(&pos->kobj);
++			kfree(pos);
++		}
++
++	if (result)
++		als->count =3D i;
++	mutex_unlock(&als->lock);
++	return 0;
++}
++
++EXPORT_SYMBOL(als_device_update_mappings);
++
++/**
++ * als_device_register - register a new Ambient Light Sensor class dev=
+ice
++ * @ops:	standard ALS devices callbacks.
++ * @devdata:	device private data.
++ */
++struct als_device *als_device_register(struct als_device_ops *ops,
++				       char *desc, void *devdata)
++{
++	struct als_device *als;
++	static int als_id;
++	int result;
++
++	if (!ops || !ops->get_illuminance)
++		return ERR_PTR(-EINVAL);
++
++	als =3D kzalloc(sizeof(struct als_device), GFP_KERNEL);
++	if (!als)
++		return ERR_PTR(-ENOMEM);
++
++	als->ops =3D ops;
++	als->device.class =3D &als_class;
++	als->devdata =3D devdata;
++	als->id =3D als_id++;
++	INIT_LIST_HEAD(&als->mappings);
++	mutex_init(&als->lock);
++	if (desc) {
++		als->desc =3D kzalloc(strlen(desc), GFP_KERNEL);
++		if (!als->desc) {
++			kfree(als);
++			return ERR_PTR(-ENOMEM);
++		}
++		strcpy(als->desc, desc);
++	}
++	dev_set_name(&als->device, "als%d", als->id);
++	result =3D device_register(&als->device);
++	if (result) {
++		if (als->desc)
++			kfree(als->desc);
++		kfree(als);
++		return ERR_PTR(result);
++	}
++
++	return als;
++}
++
++EXPORT_SYMBOL(als_device_register);
++
++/**
++ * als_device_unregister - removes the registered ALS device
++ * @als:	the ALS device to remove.
++ */
++void als_device_unregister(struct als_device *als)
++{
++	device_unregister(&als->device);
++}
++
++EXPORT_SYMBOL(als_device_unregister);
++
++static int __init als_init(void)
++{
++	return class_register(&als_class);
++}
++
++static void __exit als_exit(void)
++{
++	class_unregister(&als_class);
++}
++
++subsys_initcall(als_init);
++module_exit(als_exit);
+Index: linux-2.6/include/linux/als_sys.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/include/linux/als_sys.h
+@@ -0,0 +1,57 @@
++/*
++ *  als.h  ($Revision: 0 $)
++ *
++ *  Copyright (C) 2009  Intel Corp
++ *  Copyright (C) 2009  Zhang Rui <rui.zhang@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~~~
++ *  This program is free software; you can redistribute it and/or modi=
+fy
++ *  it under the terms of the GNU General Public License as published =
+by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, bu=
+t
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License =
+along
++ *  with this program; if not, write to the Free Software Foundation, =
+Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~~~~~
++ */
++
++#ifndef __ALS_SYS_H__
++#define __ALS_SYS_H__
++
++#include <linux/device.h>
++
++struct als_device;
++
++struct als_device_ops {
++	int (*get_illuminance) (struct als_device *, int *);
++	int (*get_mapping_info) (struct als_device *, int, int *, int *);
++};
++
++struct als_mapping {
++	int illuminance;
++	int adjustment;
++};
++
++struct als_device {
++	int id;
++	int illuminance;
++	struct device device;
++	struct als_device_ops *ops;
++	void *devdata;
++	char *desc;
++	int count;
++	struct list_head mappings;
++	struct mutex lock;
++};
++
++int als_device_update_mappings(struct als_device *, int);
++struct als_device *als_device_register(struct als_device_ops *, char *=
+, void *);
++void als_device_unregister(struct als_device *);
++
++#endif /* __ALS_SYS_H__ */
+Index: linux-2.6/Documentation/ABI/testing/sysfs-class-als
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- /dev/null
++++ linux-2.6/Documentation/ABI/testing/sysfs-class-als
+@@ -0,0 +1,137 @@
++Ambient Light Sensor Sysfs driver How To
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
++
++Written by Zhang Rui <rui.zhang@intel.com>
++
++Updated: 6 August 2009
++
++Copyright (c)  2009 Intel Corporation
++
++0. Introduction
++
++The generic Ambient Light Sensor sysfs provides a standard interface f=
+or ALS devices.
++
++User space can use this interface to get the status of the ambient lig=
+ht environment
++the system is currently in, and get the ambient light illuminance to d=
+isplay luminance
++mappings to calibrate its ambient light policy for a given sensor conf=
+iguration.
++
++An intelligent ALS application can make ambient light decisions based =
+on inputs
++from these ALS attributes and adjust the LVDS brightness levels.
++
++[0-N]	denotes any positive number starting from 0 to N
++
++Two acronyms that used in this HOW TO only:
++ALI	ambient light illuminace
++DLA	display luminance adjustment (or display brightness adjustment)
++
++1. Ambient Light Sensor sysfs driver interface functions
++
++1.1 struct als_device *als_device_register(struct als_device_ops *ops,=
+ char *desc, void *devdata)
++
++	This interface function adds a new ALS device to
++	/sys/class/als folder as als[0-*].
++
++	ops:	thermal zone device call-backs.
++		.get_illuminance: get the current ALI.
++		.get_mappings_count: get the number of ALI to DLA mappings.
++		.get_mapping_info: get the info of a specified ALI to DLA mapping.
++	desc:	a description of the ALS device.
++	devdata:device private data
++
++1.2 void als_device_unregister(struct als_device *als)
++
++	This interface function removes the ALS device.
++	It deletes the corresponding entry form /sys/class/als folder.
++
++1.3 int als_device_update_mappings(struct als_device *als)
++
++	This interface updates the ALI to DLA mappings.
++	This is usually invoked by the native ALS driver when it detects a ma=
+pping change.
++
++2. sysfs attributes structure
++
++RO	read only value
++RW	read/write value
++
++ALS sysfs attributes will be represented under /sys/class/als.
++
++/sys/class/als/als[0-*]:
++	|-----desc:			Strings which describes the ALS device
++	|-----illuminance:		Current ALI
++	|-----mapping[0-*]:
++		|-----illuminance:	ALI threshold when an DLA is needed
++		|-----adjustment:	how to do the DLA when the threshold is hit
++
++***********************************
++* Ambient Light Sendor attributes *
++***********************************
++
++desc				Strings which descibes the current ALS.
++				This is given by native ALS driver as part of registration.
++				e.g: "acpi_als" for ACPI ALS devices.
++				RO
++				Required
++
++illuminance			Current ALI reported by native ALS driver
++				Unit: lux (lumens per square meter)
++				RO
++				Required
++
++mapping[0-*]			represent one item of the ALI to DLA mappings.
++
++mapping[0-*]/illuminance	ALI threshold when an DLA is needed
++				RO
++
++mapping[0-*]/adjustment		a relative percentages in order simplify the =
+means
++				by which these adjustments are applied in lieu of
++				changes to the user=E2=80=99s display brightness preference.
++				A value of 100 is used to indicate no (0%) display
++				brightness adjustment.
++				Values less than 100 indicate a negative adjustment
++				(dimming); values greater than 100 indicate a positive
++				adjustment (brightening).
++				RO
++
++3. How to implement ALS control in user space
++
++To implement the ALS control, including both ALI detection and Backlig=
+ht
++adjustment, interactions between backlight driver and als driver are n=
+eeded.
++It's ugly to implement such a driver in Linux kernel.
++A user space application is preferred in this case.
++
++Below is a simple example of how to do ALS management in user space.
++
++This is the ACPI backlight sysfs I/F
++/sys/class/backlight/acpi_video0:
++	|-----brightness	6
++	|-----actual_brightness	6
++	|-----max_brightness	10
++
++And this is the ACPI ALS sysfs I/F
++/sys/class/als/als0:
++	|-----illuminance		500
++	|-----mapping[0]
++		|-----illuminance	0
++		|-----adjustment	50
++	|-----mapping[1]
++		|-----illuminance	200
++		|-----adjustment	70
++	|-----mapping[2]
++		|-----illuminance	600
++		|-----adjustment	100
++	|-----mapping[3]
++		|-----illuminance	900
++		|-----adjustment	125
++	|-----mapping[4]
++		|-----illuminance	1200
++		|-----adjustment	150
++
++If user thinks that brightness level 6 is good enough for him when ALI=
+ is 600,
++he can set brightness 6 as the user=E2=80=99s display brightness prefe=
+rence.
++When user goes to the basement with the laptop and the ALI changes to =
+200,
++the ALS application knows that it should do a -25% display brightness
++adjustment, i.e. changes the backlight to 4.
++And when the laptop is used outdoors, where the ALI reaches 1200,
++the ALS application should do a +50% adjustment,
++i.e. run "echo 9 > /sys/class/backlight/acpi_video0/brightness".
++
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
