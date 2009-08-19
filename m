@@ -1,124 +1,148 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 5/5] acpi-based wakeup event detection
-Date: Wed, 19 Aug 2009 15:24:21 +0800
-Message-ID: <1250666661.23178.120.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 3/5] implement .wakeup_event in PCI bus level
+Date: Wed, 19 Aug 2009 15:24:16 +0800
+Message-ID: <1250666656.23178.118.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:16829 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:22714 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751455AbZHSHYX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Aug 2009 03:24:23 -0400
+	id S1751423AbZHSHYQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Aug 2009 03:24:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.osdl.org>
+To: linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, mjg59 <mjg59@srcf.ucam.org>
 
+Add an implementation how to detect wakeup event for PCI bus level. PCI device
+can invoke PME and platform or PCIe native approach can collect the PME and
+reports to OS. OS should identify exactly which device invokes PME as several
+devices can share interrupts.
 
-In ACPI platform, if native PME isn't enabled, GPE is used to report wakeup event.
+In platform approach (ACPI in this case), some BIOS give exact device which
+invokes PME but others doesn't. 
+In PCIe native approach, if PME source device is a pcie endpoint, the device
+is the exact PME source. If the device is root port or pcie-to-pci bridge,
+we need scan the hierarchy under the device.
+
+To identify PME source, the patch does:
+1. if the source is a pci device, the device is the only source for PME
+2. if the source is a bridge, scan the hierarchy under the bridge. Several
+devices under the bridge could be the source.
+
+
 ---
- drivers/acpi/Kconfig        |    9 ++++++
- drivers/acpi/bus.c          |   15 +++++++++++
- drivers/acpi/sleep/wakeup.c |   60 ++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h     |    4 ++
- 4 files changed, 88 insertions(+)
+ drivers/pci/pci-driver.c |   90 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 90 insertions(+)
 
-Index: linux/drivers/acpi/Kconfig
+Index: linux/drivers/pci/pci-driver.c
 ===================================================================
---- linux.orig/drivers/acpi/Kconfig	2009-08-05 11:00:06.000000000 +0800
-+++ linux/drivers/acpi/Kconfig	2009-08-19 10:07:05.000000000 +0800
-@@ -45,6 +45,15 @@ config ACPI_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
- 
-+config ACPI_GPE_WAKEUP
-+	bool "ACPI wakeup event support"
-+	depends on PM_SLEEP && EXPERIMENTAL
-+	help
-+	  Enable ACPI to detect wakeup event. For example, PCI device can
-+	  invoke PME, and in ACPI platform, the PME will invoke a GPE. With
-+	  the option, we can detect which device invokes wakeup event.
-+
-+
- config ACPI_PROCFS
- 	bool "Deprecated /proc/acpi files"
- 	depends on PROC_FS
-Index: linux/drivers/acpi/wakeup.c
-===================================================================
---- linux.orig/drivers/acpi/wakeup.c	2009-07-24 11:31:05.000000000 +0800
-+++ linux/drivers/acpi/wakeup.c	2009-08-19 10:16:27.000000000 +0800
-@@ -124,6 +124,63 @@ void acpi_disable_wakeup_device(u8 sleep
- 	}
+--- linux.orig/drivers/pci/pci-driver.c	2009-08-19 13:43:18.000000000 +0800
++++ linux/drivers/pci/pci-driver.c	2009-08-19 13:50:29.000000000 +0800
+@@ -570,6 +570,95 @@ static void pci_pm_complete(struct devic
+ 		drv->pm->complete(dev);
  }
  
-+#ifdef CONFIG_ACPI_GPE_WAKEUP
-+static int acpi_gpe_pme_check(struct acpi_device *dev)
++/*
++ * Called when dev is suspected to invoke a wakeup event
++ * */
++static bool pci_handle_one_wakeup_event(struct pci_dev *pdev)
 +{
-+	struct device *ldev;
++	int pme_pos = pdev->pm_cap;
++	struct pci_driver *drv = pdev->driver;
++	u16 pmcsr;
++	bool spurious = false;
 +
-+	ldev = acpi_get_physical_device(dev->handle);
-+	if (!ldev)
-+		return -ENODEV;
++	if (pme_pos == 0) {
++		/*
++		 * Some USB devices haven't PME, but have specific registers to
++		 * control wakeup
++		 */
++		goto out;
++	}
++
++	/* clear PME status and disable PME to avoid interrupt flood */
++	pci_read_config_word(pdev, pme_pos + PCI_PM_CTRL, &pmcsr);
++	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
++		return false;
++	/* I see spurious PME here, just ignore it for now */
++	if (!(pmcsr & PCI_PM_CTRL_PME_ENABLE))
++		spurious = true;
++	else
++		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
++	pmcsr |= PCI_PM_CTRL_PME_STATUS;
++	pci_write_config_word(pdev, pme_pos + PCI_PM_CTRL, pmcsr);
++
++	if (spurious)
++		return false;
++	return true;
++out:
++	if (drv && drv->driver.pm && drv->driver.pm->wakeup_event)
++		return drv->driver.pm->wakeup_event(&pdev->dev);
++	return false;
++}
++
++static bool pci_pm_wakeup_event(struct device *dev)
++{
++	bool ret;
++	struct pci_dev *tmp = NULL, *target = to_pci_dev(dev);
++	int domain_nr, bus_start, bus_end;
++
 +	/*
-+	 * AML code might already clear the event, so ignore the return value.
-+	 * Actually we can't correctly detect which device invokes GPE if the
-+	 * event is cleared.
-+	 */
-+	if (ldev->bus->pm && ldev->bus->pm->wakeup_event)
-+		ldev->bus->pm->wakeup_event(ldev);
++	 * @target could be a bridge or a device.
++	 * PCIe native PME case:
++	 *   @target is device - @target must be the exact device invoking PME
++	 *   @target is a root port or pcie-pci bridge - should scan legacy pci
++	 *	devices under the bridge
++	 * ACPI GPE case:
++	 *   @target is device - AML code could clear PME status before this
++	 *	routine is called, so we can't detect if @target invokes PME.
++	 *	Let's trust AML code
++	 *   @target is bridge - scan devices under the bridge
++	 * So: if target is device, trust the device invokes PME. If target is
++	 * bridge, scan devices under the bridge and only trust device invokes
++	 * PME which we can detect
++	 **/
++	ret = pci_handle_one_wakeup_event(target);
++	if (!target->subordinate || (target->is_pcie &&
++	    target->pcie_type != PCI_EXP_TYPE_ROOT_PORT &&
++	    target->pcie_type != PCI_EXP_TYPE_PCI_BRIDGE)) {
++		/* always trust the device invokes PME even we can't detect */
++		device_receive_wakeup_event(&target->dev);
++		return true;
++	}
 +
-+	put_device(ldev);
-+	return 0;
-+}
-+
-+static int acpi_gpe_pme_handler(struct notifier_block *nb,
-+	unsigned long type, void *data)
-+{
-+	int ret;
-+	acpi_handle handle = data;
-+	struct acpi_device *dev;
-+
-+	if (type != ACPI_NOTIFY_DEVICE_WAKE)
-+		return NOTIFY_DONE;
-+
-+	if (acpi_bus_get_device(handle, &dev))
-+		return NOTIFY_DONE;
-+
-+	ret = acpi_gpe_pme_check(dev);
-+
-+	acpi_disable_gpe(dev->wakeup.gpe_device, dev->wakeup.gpe_number);
-+
-+	/* FIXME: spurious interrupt, disables it? */
 +	if (ret)
-+		printk(KERN_ERR"Spurious GPE %d detected\n",
-+			dev->wakeup.gpe_number);
++		device_receive_wakeup_event(&target->dev);
 +
-+	return NOTIFY_OK;
++	/* scan devices under the bridge */
++	domain_nr = pci_domain_nr(target->bus);
++	bus_start = target->subordinate->secondary;
++	bus_end = target->subordinate->subordinate;
++	while ((tmp = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, tmp)) != NULL) {
++		if (pci_domain_nr(tmp->bus) == domain_nr &&
++		   tmp->bus->number >= bus_start &&
++		   tmp->bus->number <= bus_end) {
++			if (pci_handle_one_wakeup_event(tmp)) {
++				ret = true;
++				device_receive_wakeup_event(&tmp->dev);
++			}
++		}
++	}
++	return ret;
 +}
 +
-+static struct notifier_block acpi_gpe_pme_nb = {
-+	.notifier_call = acpi_gpe_pme_handler,
-+};
-+
-+static void acpi_init_gpe_pme(void)
-+{
-+	register_acpi_bus_notifier(&acpi_gpe_pme_nb);
-+}
-+#else
-+static inline void acpi_init_gpe_pme(void) {}
-+#endif
-+
- int __init acpi_wakeup_device_init(void)
- {
- 	struct list_head *node, *next;
-@@ -144,5 +201,7 @@ int __init acpi_wakeup_device_init(void)
- 		dev->wakeup.state.enabled = 1;
- 	}
- 	mutex_unlock(&acpi_device_lock);
-+
-+	acpi_init_gpe_pme();
- 	return 0;
- }
+ #ifdef CONFIG_SUSPEND
+ 
+ static int pci_pm_suspend(struct device *dev)
+@@ -925,6 +1014,7 @@ struct dev_pm_ops pci_dev_pm_ops = {
+ 	.thaw_noirq = pci_pm_thaw_noirq,
+ 	.poweroff_noirq = pci_pm_poweroff_noirq,
+ 	.restore_noirq = pci_pm_restore_noirq,
++	.wakeup_event = pci_pm_wakeup_event,
+ };
+ 
+ #define PCI_PM_OPS_PTR	(&pci_dev_pm_ops)
 
 
