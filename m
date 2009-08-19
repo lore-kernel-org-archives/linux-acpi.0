@@ -1,132 +1,70 @@
 From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH 0/8] eeepc-laptop fixes
-Date: Wed, 19 Aug 2009 17:51:13 +0100
-Message-ID: <9b2b86520908190951v7c1eebabmf72319812d9ceec1@mail.gmail.com>
-References: <4A75B6C6.3020805@tuffmail.co.uk>
-	 <71cd59b00908021018x3b4c0af2jde2ccf0218befa2f@mail.gmail.com>
-	 <9b2b86520908180844p55bf64fdl46acdb550f2b2d51@mail.gmail.com>
-	 <9b2b86520908190435h4fccec67n35af93e884a0d79@mail.gmail.com>
-	 <71cd59b00908190728v19cf45ana9fdd0c71f656e9a@mail.gmail.com>
+Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
+Date: Wed, 19 Aug 2009 17:57:33 +0100
+Message-ID: <9b2b86520908190957n276230bauc3064635e5d5f492@mail.gmail.com>
+References: <4A89E768.7010207@dell.com>
+	 <1250558643.30166.109.camel@localhost.localdomain>
+	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>
+	 <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>
+	 <4A8AE459.8060102@dell.com>
+	 <9b2b86520908181408v5f7875b6sea31d8d95cc08c0b@mail.gmail.com>
+	 <1250631063.16393.14.camel@johannes.local> <4A8B246D.7050004@dell.com>
+	 <1250672475.25419.7.camel@johannes.local> <4A8C2C6C.2020007@dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:46009 "EHLO
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:59010 "EHLO
 	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874AbZHSQvR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 12:51:17 -0400
-Received: by bwz19 with SMTP id 19so4879696bwz.37
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Aug 2009 09:51:14 -0700 (PDT)
-In-Reply-To: <71cd59b00908190728v19cf45ana9fdd0c71f656e9a@mail.gmail.com>
+	with ESMTP id S1750837AbZHSQ5d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 12:57:33 -0400
+In-Reply-To: <4A8C2C6C.2020007@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Mario Limonciello <mario_limonciello@dell.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Marcel Holtmann <marcel@holtmann.org>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
 
-On 8/19/09, Corentin Chary <corentin.chary@gmail.com> wrote:
-> Hi,
-> Thanks for the review.
-> There is more documentation patchs in acpi4asus and asus-laptop
-> branches as well, maybe you can review them too ?
+On 8/19/09, Mario Limonciello <mario_limonciello@dell.com> wrote:
+> Hi Johannes:
+>
+> Thanks for looking.
+>
+> Johannes Berg wrote:
+>> Ah, heh, thanks Alan for pointing out there was a patch here :)
+>>
+>>
+>>
+>> I don't quite understand the "| radio" bit since that seems to be the
+>> soft kill bit according to rfkill_set()?
+>>
+> Yeah you're right, this bit was unnecessary.  I pulled it out.
+>> Anyhow, here you reject the request to set the soft bit. I suspect you
+>> could let it go through but it would only change the soft bit in the
+>> BIOS, nothing else really.
+>>
+>> Two options:
+>> 1) You can let it go though, in that case do that, and remove the sw
+>>    block stuff from poll() completely.
+>>
+>> 2) You can't let it go through. In this case, you need to leave set as
+>>    it is, but implement poll like this:
+>>
+>> 	sw_block = rfkill_set_hw_state(rfkill, hw_blocked);
+>> 	compal_rfkill_set(data, sw_block);
+>>
+>> so that when the user soft-blocks the device while hard-blocked, the
+>> soft block is still honoured after pushing the button on the laptop.
+>>
+>>
+> OK, the second option sounds more desirable, so I've implemented that.
 
-<homer>Mmm, documentation
+I think the first option is more _desirable_, it's more a matter of
+whether it can work well on this hardware.
 
-
-Generic sysfs ABI docs:
-
-I assume you will CC Richard Purdie on the generic sysfs docs which
-include his address.
-
-The versions/dates don't look right - the backlight and lcd interfaces
-were introduced a long time before 2.6.29.
-
-I know the backlight device is well used.  IMO it should go under
-"stable" instead of "testing".  I don't know whether the other two
-deserve similar treatment.  They're certainly simple enough that we
-can expect them to remain stable.
-
-The backlight doc could also use "Users: HAL".
-
-It would be nice to update Documentation/leds-class.txt at the same
-time, since it still says the maximum brightness value is fixed at
-255.
-
-> +               You can change triggers in a similar manner to the way an IO scheduler
-> +               is chosen . Trigger specific parameters can appear in
-
-There's a stray space here, before the full stop on the second line.
-
-The backlight and led docs are well overdue, I think these will be very welcome.
-
-acpi4asus / asus-laptop:
-
-I wouldn't call /sys/devices/platform/asus-laptop/infos a sysfs abi
-:-P.  I don't think it should be documented as such (but feel free to
-mention it in Documentation/laptops/asus-laptop.txt.
-
-"Mixing types, expressing multiple lines of data, and doing fancy
-formatting of data is heavily frowned upon. Doing these things may get
-you publically humiliated and your code rewritten without notice."
-
-I don't see any typos in the ABI.  Other than that, no comment.
-
-> + This driver provides support for extra features of ACPI-compatible ASUS laptops.
-> + It may also support some MEDION, JVC or VICTOR laptops (such as MEDION 9675 or
-> + VICTOR XP7210 for example). It makes all the extra buttons generate standard
-> + ACPI events that go through /proc/acpi/events, and (on some models) adds support
-> + for changing the display brightness and output, switching the LCD backlight on
-> + and off, and most importantly, allows you to blink those fancy LEDs intended for
-> + reporting mail and wireless status.
-
-You mention ACPI events, perhaps you should mention input events here as well.
-
-> + This driver superseed the old asus_acpi driver.
-
-*supercedes
-
-> +  Kernel 2.6.X sources, configured for you computer, with ACPI support.
-
-s/you/your/
-
-> + - GPS enable and disable
-> + - video output switching
-> + - Ambient Light Sensor on and off
-
-s/video/Video
-
-> +  That's all, now, all the events generated by the hotkeys of your laptop
-> +  should be reported in your /proc/acpi/event entry. You can check it, if you
-> +  are root, by doing a "cat /proc/acpi/event" and pressing those hotkeys, you
-> +  should see them appear. You won't be able to open /proc/acpi/event if it is
-> +  already opened by another program, so check if you haven't a daemon running
-> +  (like acpid), before reporting a bug :)
-
-Hmm, most people do run acpid so this is not too helpful :). I would
-mention acpi_listen.
-
-> +  You can modify LEDs be echoing values to /sys/class/leds/asus:*/brightness :
-> +    echo 1 >  /sys/class/leds/asus:mail/brightness
-
-asus::mail.  There should be two colons, I think.
-
-> +  will switch the mail LED on ...
-
-Just one full stop please.
-
-> +  You can as well know if they are on/off by reading their content and use
-> +  kernel triggers like ide-disk or heartbeat.
-
-s/as well/also/
-
-> +            wapf: WAPF defines the behavior of the Fn+Fx wlan key
-> +                  The significance of values is yet to be found, but
-> +                  most of the time:
-> +                  - 0x0 will do nothing
-> +                  - 0x1 will allow to control the device with Fn+Fx key.
-> +                  - 0x4 will send an ACPI event (0x88) while pressing the Fn+Fx key
-> +                  - 0x5 like 0x1 or 0x4
-
-It would be good to know what the default value is.
+In case 2), the radio will be unblocked for a short period between the
+button-press, and the next poll() call.  But 1) won't work if the
+hardware "forgets" the soft block when the hard block is toggled on
+and off.
 
 Regards
 Alan
