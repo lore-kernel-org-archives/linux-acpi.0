@@ -1,45 +1,40 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [RFC][PATCH 1/7] PM: Update kerneldoc comments in drivers/base/power/main.c
-Date: Wed, 19 Aug 2009 15:00:47 -0700
-Message-ID: <4A8C760F.9040003@oracle.com>
-References: <200908122218.13975.rjw@sisk.pl> <200908170215.21173.rjw@sisk.pl> <200908170216.38401.rjw@sisk.pl> <200908192357.31358.rjw@sisk.pl>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [RFC][PATCH 1/7] PM: Update kerneldoc comments in
+ drivers/base/power/main.c
+Date: Wed, 19 Aug 2009 15:06:26 -0700
+Message-ID: <20090819220626.GA28558@suse.de>
+References: <200908122218.13975.rjw@sisk.pl>
+ <200908170215.21173.rjw@sisk.pl>
+ <200908170216.38401.rjw@sisk.pl>
+ <200908192357.31358.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:64402 "EHLO
-	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbZHSWCS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 18:02:18 -0400
+Received: from cantor.suse.de ([195.135.220.2]:36353 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752348AbZHSWIB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Aug 2009 18:08:01 -0400
+Content-Disposition: inline
 In-Reply-To: <200908192357.31358.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Greg KH <gregkh@suse.de>, Randy Dunlap <randy.dunlap@oracle.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Randy Dunlap <randy.dunlap@oracle.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>
 
-Rafael J. Wysocki wrote:
+On Wed, Aug 19, 2009 at 11:57:31PM +0200, Rafael J. Wysocki wrote:
 > On Monday 17 August 2009, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rjw@sisk.pl>
->> Subject: PM: Update kerneldoc comments in drivers/base/power/main.c
->>
->> The kerneldoc comments in drivers/base/power/main.c are generally
->> outdated and some of them don't describe the functions very
->> accurately.  Update them and standardize the format to use spaces
->> instead of tabs.
->>
->> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > Subject: PM: Update kerneldoc comments in drivers/base/power/main.c
+> > 
+> > The kerneldoc comments in drivers/base/power/main.c are generally
+> > outdated and some of them don't describe the functions very
+> > accurately.  Update them and standardize the format to use spaces
+> > instead of tabs.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 > 
 > Any objections to this patch from anyone?  Greg, Alan, Randy?
 
-Nope, it's good.  Thanks.
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-
-
-> Best,
-> Rafael
-> 
-> 
->> ---
->>  drivers/base/power/main.c |  169 ++++++++++++++++++++++------------------------
->>  1 file changed, 84 insertions(+), 85 deletions(-)
+Looks good to me:
+	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 
