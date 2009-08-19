@@ -1,69 +1,54 @@
-From: Ali Abdallah <aliov@xfce.org>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
- in driver
-Date: Wed, 19 Aug 2009 11:18:30 +0200
-Message-ID: <4A8BC366.9070108@xfce.org>
-References: <1235992429.3858.58.camel@hughsie-work.lan>	 <20090302112400.GA2356@khazad-dum.debian.net>	 <1236164049.3936.17.camel@hughsie-work.lan>	 <20090304120439.GA31850@khazad-dum.debian.net>	 <1250625730.2257.11.camel@hidalgo>  <20090818201002.GA32638@srcf.ucam.org> <1250627230.2257.15.camel@hidalgo>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH 1/2] eeepc-laptop: fix rfkill memory leak on unload
+Date: Wed, 19 Aug 2009 10:38:57 +0100
+Message-ID: <4A8BC831.8050708@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:9372 "EHLO
+Received: from ey-out-2122.google.com ([74.125.78.26]:25819 "EHLO
 	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbZHSJVj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 05:21:39 -0400
-In-Reply-To: <1250627230.2257.15.camel@hidalgo>
+	with ESMTP id S1751527AbZHSJjA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 05:39:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: Matthew Garrett <mjg@redhat.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, Peter Hutterer <peter.hutterer@redhat.com>, linux-acpi <linux-acpi@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, linux-input <linux-input@vger.kernel.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Yves-Alexis Perez wrote:
-> On mar, 2009-08-18 at 21:10 +0100, Matthew Garrett wrote:
->   
->>> It seems that this patch is still not in master?
->>>       
->> Correct. We can't change the existing semantics without breaking 
->> existing userspace applications.
->>     
->
-> Hmh ok, but is it planned?
->   
->>> Currently (on debian unstable), input-events reports on my T61:
->>>
->>> KEY_SLEEP for Fn+F4
->>> KEY_SUSPEND for Fn+F12
->>>
->>> which kind-of breaks xfce4-power-manager, where SLEEP and SUSPEND
->>>       
->> both
->>     
->>> suspend to ram, so I don't have any way to hibernate. Changing xfpm
->>> doesn't seem like a good idea if the way to go is to use SUSPEND for
->>> STR, HIBERNATE for STD and SLEEP for either.
->>>
->>> So what's the status for this?
->>>       
->> KEY_SLEEP is suspend to RAM, KEY_SUSPEND is suspend to disk. xfpm should 
->> be changed to match.
->>
->>     
-> Ok, I'm CC:ing the developer to let him know.
->
-> Cheers,
->
->   
+rfkill_unregister() should always be followed by rfkill_destroy()
 
-Dunno if i should ask the question here, now gpm relies completely on X 
-to map these buttons, in X there is:
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+---
+ drivers/platform/x86/eeepc-laptop.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-HAVE_XF86XK_SLEEP  (Suspend).
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 1c94860..36d613b 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -981,6 +981,7 @@ static void eeepc_rfkill_exit(void)
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+ 	if (ehotk->wlan_rfkill) {
+ 		rfkill_unregister(ehotk->wlan_rfkill);
++		rfkill_destroy(ehotk->wlan_rfkill);
+ 		ehotk->wlan_rfkill = NULL;
+ 	}
+ 	/*
+@@ -991,10 +992,14 @@ static void eeepc_rfkill_exit(void)
+ 	if (ehotk->hotplug_slot)
+ 		pci_hp_deregister(ehotk->hotplug_slot);
+ 
+-	if (ehotk->bluetooth_rfkill)
++	if (ehotk->bluetooth_rfkill) {
+ 		rfkill_unregister(ehotk->bluetooth_rfkill);
+-	if (ehotk->wwan3g_rfkill)
++		rfkill_destroy(ehotk->bluetooth_rfkill);
++	}
++	if (ehotk->wwan3g_rfkill) {
+ 		rfkill_unregister(ehotk->wwan3g_rfkill);
++		rfkill_destroy(ehotk->wwan3g_rfkill);
++	}
+ }
+ 
 
-HAVE_XF86XK_HIBERNATE
-HAVE_XF86XK_SUSPEND
 
-As i understood These two buttons are suspend two disk, okay, so they 
-should have the same keycode right?, or can they be two different keys?
-
-Cheers And thanks,
-Ali.
