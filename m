@@ -1,71 +1,61 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
+From: Johannes Berg <johannes@sipsolutions.net>
 Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
-Date: Wed, 19 Aug 2009 13:39:23 -0500
-Message-ID: <4A8C46DB.8040904@dell.com>
-References: <4A89E768.7010207@dell.com>	 <1250558643.30166.109.camel@localhost.localdomain>	 <9b2b86520908180044l72cb8642j6256e246662f7971@mail.gmail.com>	 <9b2b86520908180752k66feda09rf9034a96ac6ef470@mail.gmail.com>	 <4A8AE459.8060102@dell.com>	 <9b2b86520908181408v5f7875b6sea31d8d95cc08c0b@mail.gmail.com>	 <1250631063.16393.14.camel@johannes.local>  <4A8B246D.7050004@dell.com>	 <1250672475.25419.7.camel@johannes.local>  <4A8C2C6C.2020007@dell.com> <1250702012.8073.1.camel@johannes.local>
+Date: Wed, 19 Aug 2009 20:42:56 +0200
+Message-ID: <1250707376.8073.4.camel@johannes.local>
+References: <1250706969-10382-1-git-send-email-Mario_Limonciello@Dell.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig5A57CF88BCAD1AC6B4DB370D"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752876AbZHSSin@vger.kernel.org>
-In-Reply-To: <1250702012.8073.1.camel@johannes.local>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-nYXA9SiGEd7OD+CwqUNb"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753005AbZHSSn2@vger.kernel.org>
+In-Reply-To: <1250706969-10382-1-git-send-email-Mario_Limonciello@Dell.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johannes Berg <johannes@sipsolutions.net>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, Marcel Holtmann <marcel@holtmann.org>, cezary.jackiewicz@gmail.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
+To: Mario Limonciello <Mario_Limonciello@Dell.com>
+Cc: cezary.jackiewicz@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig5A57CF88BCAD1AC6B4DB370D
-Content-Type: text/plain; charset=ISO-8859-1
+
+--=-nYXA9SiGEd7OD+CwqUNb
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-Johannes:
+On Wed, 2009-08-19 at 13:36 -0500, Mario Limonciello wrote:
+> Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
+> Reviewed-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Johannes Berg wrote:
-> Hi Mario,
->
-> First, let me say I agree with Alan, the option 1 is more desirable if
-> possible to do with the hardware. But this looks ok from an rfkill POV
-> now, except there's a small bug:
->
->  =20
-It looks like option 1 works properly on my hardware, so I've switched
-the other code around.
->
-> That doesn't error out, so
->
->  =20
->
-> this will crash without NULL checks.
->
-> (and you have to explicitly assign NULL in setup_rfkill() too, when
-> bluetooth fails and wifi is freed)
->
->  =20
-OK, i've cleaned that up to just error out on the module if rfkill
-doesn't get initialized right.
-> johannes
->  =20
-I've resent separately, and think I have git send-email working, so
-hopefully won't have to attach in the future.
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
+> +	ret =3D setup_rfkill();
+> +	if (ret)
+> +		goto fail_rfkill;
+> +
+>  	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
+>  		" successfully loaded.\n");
+> =20
+>  	return 0;
+> =20
+> +fail_rfkill:
+>  fail_platform_device2:
 
+Isn't that missing sysfs_remove_group()?
 
---------------enig5A57CF88BCAD1AC6B4DB370D
+johannes
+
+--=-nYXA9SiGEd7OD+CwqUNb
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEARECAAYFAkqMRtsACgkQ2CrZjkA73YsZhgCgm+ZhkjIR2LMEVe0Oqr3Ziyxr
-SJkAnRYT316wWHMYM6pzJ8eTnnysGqRw
-=1+Ll
+iQIcBAABAgAGBQJKjEetAAoJEODzc/N7+QmaD/IP/jOs9tXj4Iw4h5kLh2UNKAS6
+n16HcvOKu4EvK/01ag9iCUUxvmbqWvQcN3tv+taTgRpDD8L3Huh355PycoNzN18c
+HbDOp/QYPV0c8YNeLjXH3sHOCwINrp9i8SwW2d5mqE4xocLnV/y9qXRHkYbKWgJG
+IUc0oOf9xC1h/6LuEfKL7OZcG3RyMucPc9nu9hufcmiAx1b/4t7FwuHN4FA7Lyat
+ew+5rhcUiiq/HkUPWUe9S+bso5QmG3KIXn1J0yRuBzWoV9KhqGxKCSccrGL7Size
+EtfJqG3EbGC5dBcoj2NQDBORYuTeZbkdbMUAhs6nP0YaQIJKHe3qy/kvx1mf1JRr
+Q0X4hWg9BiEYl6W3+TEhoi0PCrCeQ/CzY/8aQZ2wriQhEdf7njhsG+Zyop5gW5jY
+pxS2nDArtDYIwQXnsFOfdreZV5wsY9KvZBWuUOiToo+YMdH5OD22zKzanTHtFiNL
+LqlR8pD/OKgZVkrVAkMcb2hDIWzm9xJISAsMdrsgNyID2jAG/3VPI2dXCTGg1g0h
+VU7NnK+Xa/rhTJ3UhUsfYgfahsTaYf5TdmoYDf3ojTZwqzrcXAkWoAwG6UERg69g
+AE2i6QhFazgM9IceHoZsY2ffi/NyemLeO+Wby2VQJ8oRb7z267OJWOT2pvAVWPeb
+qDPYCK9P6VStp8Z6TA3u
+=qCmr
 -----END PGP SIGNATURE-----
 
---------------enig5A57CF88BCAD1AC6B4DB370D--
+--=-nYXA9SiGEd7OD+CwqUNb--
