@@ -1,55 +1,30 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 4/5] dell-laptop: add __init to init functions
-Date: Wed, 19 Aug 2009 15:06:50 +0100
-Message-ID: <1250690811-21203-4-git-send-email-alan-jenkins@tuffmail.co.uk>
-References: <4A8C0623.8030808@tuffmail.co.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 5/5] dell-laptop: poll the rfkill hard-block
+Date: Wed, 19 Aug 2009 15:13:22 +0100
+Message-ID: <20090819141322.GA15937@srcf.ucam.org>
+References: <4A8C0623.8030808@tuffmail.co.uk> <1250690811-21203-5-git-send-email-alan-jenkins@tuffmail.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fallback-out2.mxes.net ([216.86.168.191]:47015 "EHLO
-	fallback-in2.mxes.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752559AbZHSOMG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 10:12:06 -0400
-In-Reply-To: <4A8C0623.8030808@tuffmail.co.uk>
+Received: from cavan.codon.org.uk ([93.93.128.6]:48995 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751915AbZHSON2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 10:13:28 -0400
+Content-Disposition: inline
+In-Reply-To: <1250690811-21203-5-git-send-email-alan-jenkins@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mjg@redhat.com
-Cc: marcel@holtmann.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: marcel@holtmann.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
----
- drivers/platform/x86/dell-laptop.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+On Wed, Aug 19, 2009 at 03:06:51PM +0100, Alan Jenkins wrote:
+> This is controlled by a hardware switch, so we should poll it in order
+> to pick up changes.  (There does not appear to be an interrupt or any
+> other notification mechanism).
 
-diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
-index a13a9f7..250c4b1 100644
---- a/drivers/platform/x86/dell-laptop.c
-+++ b/drivers/platform/x86/dell-laptop.c
-@@ -82,7 +82,7 @@ static const struct dmi_system_id __initdata dell_device_table[] = {
- 	{ }
- };
- 
--static void parse_da_table(const struct dmi_header *dm)
-+static void __init parse_da_table(const struct dmi_header *dm)
- {
- 	/* Final token is a terminator, so we don't want to copy it */
- 	int tokens = (dm->length-11)/sizeof(struct calling_interface_token)-1;
-@@ -111,7 +111,7 @@ static void parse_da_table(const struct dmi_header *dm)
- 	da_num_tokens += tokens;
- }
- 
--static void find_tokens(const struct dmi_header *dm, void *dummy)
-+static void __init find_tokens(const struct dmi_header *dm, void *dummy)
- {
- 	switch (dm->type) {
- 	case 0xd4: /* Indexed IO */
-@@ -214,7 +214,7 @@ static const struct rfkill_ops dell_rfkill_ops = {
- 	.query = dell_rfkill_query,
- };
- 
--static int dell_setup_rfkill(void)
-+static int __init dell_setup_rfkill(void)
- {
- 	struct calling_interface_buffer buffer;
- 	int status;
+With the exception of this one they all look fine - I'm moving house 
+next week and won't have access to any Dell hardware for over a month, 
+so if anyone else could confirm that these work that would be excellent.
+
 -- 
-1.6.3.2
-
+Matthew Garrett | mjg59@srcf.ucam.org
