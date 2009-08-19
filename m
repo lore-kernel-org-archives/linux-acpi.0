@@ -1,81 +1,40 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 6/5] dell-laptop: remove duplicate Kconfig entry under drivers/misc
-Date: Wed, 19 Aug 2009 15:44:10 +0100
-Message-ID: <4A8C0FBA.50502@tuffmail.co.uk>
-References: <4A8C0623.8030808@tuffmail.co.uk> <1250690811-21203-5-git-send-email-alan-jenkins@tuffmail.co.uk> <20090819141322.GA15937@srcf.ucam.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
+Date: Wed, 19 Aug 2009 10:49:30 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908191044060.3001-100000@iolanthe.rowland.org>
+References: <1250666651.23178.116.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:45040 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbZHSOoP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 10:44:15 -0400
-In-Reply-To: <20090819141322.GA15937@srcf.ucam.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:50872 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751952AbZHSOt3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 10:49:29 -0400
+In-Reply-To: <1250666651.23178.116.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: marcel@holtmann.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, mjg59 <mjg59@srcf.ucam.org>
 
-Matthew Garrett wrote:
-> On Wed, Aug 19, 2009 at 03:06:51PM +0100, Alan Jenkins wrote:
->   
->> This is controlled by a hardware switch, so we should poll it in order
->> to pick up changes.  (There does not appear to be an interrupt or any
->> other notification mechanism).
->>     
->
-> With the exception of this one they all look fine - I'm moving house 
-> next week and won't have access to any Dell hardware for over a month, 
-> so if anyone else could confirm that these work that would be excellent.
->
->   
+On Wed, 19 Aug 2009, Shaohua Li wrote:
 
-Ok, thanks!
+> Introduce .wakeup_event(). When a device gets a wakeup event,
+> the callback is called. The callback usually should check if the device
+> really invokes wakeup event and disable wakeup event if yes.
+> 
+> Usually driver should does nothing in the op as bus can handle it. But in some
+> cases, like pci bus, UHCI controller doesn't use standard PME registers for
+> wakeup, instead of using special approach. In this case, UHCI controller driver
+> should implement this op.
 
-Here's something else I just noticed.  I was able to test this one myself.
+I don't understand the reason behind this.  Doesn't this sort of thing
+belong in the bus and platform code, not in the PM core?  (In the case
+of UHCI, it should be handled by the platform, in the same way as
+remote wakeup gets enabled before the suspend.)
 
-----------------------------------------------------------------------
->From 7efa12d3ea8bb70897358b4a87f8dedce9b78cca Mon Sep 17 00:00:00 2001
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Date: Wed, 19 Aug 2009 15:32:17 +0100
-Subject: [PATCH] dell-laptop: remove duplicate Kconfig entry under drivers/misc
+Drivers don't have to be involved at all.  When a wakeup signal is 
+detected, the driver's runtime_resume method should get called -- 
+nothing more is needed.
 
-This showed up as an unselectable option when using xconfig and
-searching for "dell".  It must been overlooked when dell-laptop
-was moved to drivers/platform/x86.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
----
- drivers/misc/Kconfig |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 68ab39d..22414c5 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -210,19 +210,6 @@ config SGI_GRU_DEBUG
- 	This option enables addition debugging code for the SGI GRU driver. If
- 	you are unsure, say N.
- 
--config DELL_LAPTOP
--	tristate "Dell Laptop Extras (EXPERIMENTAL)"
--	depends on X86
--	depends on DCDBAS
--	depends on EXPERIMENTAL
--	depends on BACKLIGHT_CLASS_DEVICE
--	depends on RFKILL
--	depends on POWER_SUPPLY
--	default n
--	---help---
--	This driver adds support for rfkill and backlight control to Dell
--	laptops.
--
- config ISL29003
- 	tristate "Intersil ISL29003 ambient light sensor"
- 	depends on I2C && SYSFS
--- 
-1.6.3.2
-
-
+Alan Stern
 
