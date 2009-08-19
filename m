@@ -1,174 +1,69 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 0/8] eeepc-laptop fixes
-Date: Wed, 19 Aug 2009 20:55:42 +0200
-Message-ID: <71cd59b00908191155j1da07678w4d17a47d591d1aea@mail.gmail.com>
-References: <4A75B6C6.3020805@tuffmail.co.uk>
-	 <71cd59b00908021018x3b4c0af2jde2ccf0218befa2f@mail.gmail.com>
-	 <9b2b86520908180844p55bf64fdl46acdb550f2b2d51@mail.gmail.com>
-	 <9b2b86520908190435h4fccec67n35af93e884a0d79@mail.gmail.com>
-	 <71cd59b00908190728v19cf45ana9fdd0c71f656e9a@mail.gmail.com>
-	 <9b2b86520908190951v7c1eebabmf72319812d9ceec1@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 1/2] ACPI processor: force throttling state when BIOS
+ returns incorrect value
+Date: Wed, 19 Aug 2009 11:58:55 -0700
+Message-ID: <20090819115855.193ea8bb.akpm@linux-foundation.org>
+References: <200908171443.35622.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:41174 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059AbZHSSzm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2009 14:55:42 -0400
-Received: by bwz19 with SMTP id 19so4942841bwz.37
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Aug 2009 11:55:42 -0700 (PDT)
-In-Reply-To: <9b2b86520908190951v7c1eebabmf72319812d9ceec1@mail.gmail.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44797 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752049AbZHSTA0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Aug 2009 15:00:26 -0400
+In-Reply-To: <200908171443.35622.elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@intel.com, rui.zhang@intel.com, stable@kernel.org
 
-On Wed, Aug 19, 2009 at 6:51 PM, Alan
-Jenkins<sourcejedi.lkml@googlemail.com> wrote:
-> On 8/19/09, Corentin Chary <corentin.chary@gmail.com> wrote:
->> Hi,
->> Thanks for the review.
->> There is more documentation patchs in acpi4asus and asus-laptop
->> branches as well, maybe you can review them too ?
->
-> <homer>Mmm, documentation
->
->
-> Generic sysfs ABI docs:
->
-> I assume you will CC Richard Purdie on the generic sysfs docs which
-> include his address.
->
-> The versions/dates don't look right - the backlight and lcd interface=
-s
-> were introduced a long time before 2.6.29.
->
-> I know the backlight device is well used. =A0IMO it should go under
-> "stable" instead of "testing". =A0I don't know whether the other two
-> deserve similar treatment. =A0They're certainly simple enough that we
-> can expect them to remain stable.
->
-> The backlight doc could also use "Users: HAL".
->
-> It would be nice to update Documentation/leds-class.txt at the same
-> time, since it still says the maximum brightness value is fixed at
-> 255.
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 You can change triggers in a similar m=
-anner to the way an IO scheduler
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 is chosen . Trigger specific parameter=
-s can appear in
->
-> There's a stray space here, before the full stop on the second line.
->
-> The backlight and led docs are well overdue, I think these will be ve=
-ry welcome.
->
-> acpi4asus / asus-laptop:
->
-> I wouldn't call /sys/devices/platform/asus-laptop/infos a sysfs abi
-> :-P. =A0I don't think it should be documented as such (but feel free =
-to
-> mention it in Documentation/laptops/asus-laptop.txt.
->
-> "Mixing types, expressing multiple lines of data, and doing fancy
-> formatting of data is heavily frowned upon. Doing these things may ge=
-t
-> you publically humiliated and your code rewritten without notice."
->
-> I don't see any typos in the ABI. =A0Other than that, no comment.
->
->> + This driver provides support for extra features of ACPI-compatible=
- ASUS laptops.
->> + It may also support some MEDION, JVC or VICTOR laptops (such as ME=
-DION 9675 or
->> + VICTOR XP7210 for example). It makes all the extra buttons generat=
-e standard
->> + ACPI events that go through /proc/acpi/events, and (on some models=
-) adds support
->> + for changing the display brightness and output, switching the LCD =
-backlight on
->> + and off, and most importantly, allows you to blink those fancy LED=
-s intended for
->> + reporting mail and wireless status.
->
-> You mention ACPI events, perhaps you should mention input events here=
- as well.
->
->> + This driver superseed the old asus_acpi driver.
->
-> *supercedes
->
->> + =A0Kernel 2.6.X sources, configured for you computer, with ACPI su=
-pport.
->
-> s/you/your/
->
->> + - GPS enable and disable
->> + - video output switching
->> + - Ambient Light Sensor on and off
->
-> s/video/Video
->
->> + =A0That's all, now, all the events generated by the hotkeys of you=
-r laptop
->> + =A0should be reported in your /proc/acpi/event entry. You can chec=
-k it, if you
->> + =A0are root, by doing a "cat /proc/acpi/event" and pressing those =
-hotkeys, you
->> + =A0should see them appear. You won't be able to open /proc/acpi/ev=
-ent if it is
->> + =A0already opened by another program, so check if you haven't a da=
-emon running
->> + =A0(like acpid), before reporting a bug :)
->
-> Hmm, most people do run acpid so this is not too helpful :). I would
-> mention acpi_listen.
->
->> + =A0You can modify LEDs be echoing values to /sys/class/leds/asus:*=
-/brightness :
->> + =A0 =A0echo 1 > =A0/sys/class/leds/asus:mail/brightness
->
-> asus::mail. =A0There should be two colons, I think.
->
->> + =A0will switch the mail LED on ...
->
-> Just one full stop please.
->
->> + =A0You can as well know if they are on/off by reading their conten=
-t and use
->> + =A0kernel triggers like ide-disk or heartbeat.
->
-> s/as well/also/
->
->> + =A0 =A0 =A0 =A0 =A0 =A0wapf: WAPF defines the behavior of the Fn+F=
-x wlan key
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0The significance of values is y=
-et to be found, but
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0most of the time:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0- 0x0 will do nothing
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0- 0x1 will allow to control the=
- device with Fn+Fx key.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0- 0x4 will send an ACPI event (=
-0x88) while pressing the Fn+Fx key
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0- 0x5 like 0x1 or 0x4
->
-> It would be good to know what the default value is.
->
-> Regards
-> Alan
->
+(cc stable)
 
+On Mon, 17 Aug 2009 14:43:34 +0200 Frans Pop <elendil@planet.nl> wrote:
 
-Wow, thanks for the extensive review, I'll fix that when I'm back (next=
- week).
+> If the BIOS reports an invalid throttling state (which seems to be
+> fairly common after system boot), a reset is done to state T0.
+> Because of a check in acpi_processor_get_throttling_ptc(), the reset
+> never actually gets executed, which results in the error reoccurring
+> on every access of for example /proc/acpi/processor/CPU0/throttling.
+> 
+> Add a 'force' option to acpi_processor_set_throttling() to ensure
+> the reset really takes effect.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13389
+> 
+> Signed-off-by: Frans Pop <elendil@planet.nl>
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 
---=20
-Corentin Chary
-http://xf.iksaif.net - http://uffs.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unfortunately there are changes in linux-next which make this patch
+inapplicable in non-trivial ways.
+
+So we'll be needing one flavour of the patch for 2.6.30.x and 2.6.31.x
+(the patch you just sent) and a different flavour for 2.6.32.
+
+Or we preempt the pending linux-next changes and jam these patches into the
+tree first.
+
+>
+> This patch, together with the next one, fixes a regression introduced in
+> 2.6.30, listed on the regression list. They have been available for 2.5
+> months now in bugzilla, but have not been picked up, despite various
+> reminders and without any reason given.
+> 
+> Google shows that numerous people are hitting this issue. The issue is in
+> itself relatively minor, but the bug in the code is clear.
+> 
+> The patches have been in all mu kernels and today testing has shown that
+> throttling works correctly with the patches applied when the system
+> overheats (http://bugzilla.kernel.org/show_bug.cgi?id=13918#c14).
+
+OK, that sucks.
+
+Guys, what happened here?  Fixing regressions surely is our number one
+hair-on-fire priority, yet the ACPI developers have found other things
+to be doing for two and a half months and now we have a mess on our
+hands.
+
+Did this just fall through the cracks or is there some problem?
