@@ -1,36 +1,47 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
-Date: Thu, 20 Aug 2009 08:40:51 +0100
-Message-ID: <20090820074050.GA30288@srcf.ucam.org>
-References: <1250666651.23178.116.camel@sli10-desk.sh.intel.com> <20090819115210.GC12216@srcf.ucam.org> <20090820032450.GD26357@sli10-desk.sh.intel.com>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH 2/3] Add rfkill support to compal-laptop
+Date: Thu, 20 Aug 2009 09:52:44 +0100
+Message-ID: <9b2b86520908200152m28daa816ib8c54a423e63ca1a@mail.gmail.com>
+References: <1250706969-10382-1-git-send-email-Mario_Limonciello@Dell.com>
+	 <1250707376.8073.4.camel@johannes.local> <4A8C48BA.1000009@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:39617 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406AbZHTHlC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 03:41:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20090820032450.GD26357@sli10-desk.sh.intel.com>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:63317 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751991AbZHTIwo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 04:52:44 -0400
+In-Reply-To: <4A8C48BA.1000009@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>
+To: Mario Limonciello <mario_limonciello@dell.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>, cezary.jackiewicz@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org
 
-On Thu, Aug 20, 2009 at 11:24:50AM +0800, Shaohua Li wrote:
-> On Wed, Aug 19, 2009 at 07:52:10PM +0800, Matthew Garrett wrote:
-> > I'm not averse to the general concept, but I'm not entirely sold on it 
-> > being necessary. All the hardware I'm aware of will send non-PME events 
-> > as a notification on a specific device. Under what circumstances will we 
-> > get a wakeup GPE for a non-PME device without knowing which device 
-> > should be woken?
-> Below code is gotten from a laptop (samsung-x10), the PCIB is the PCI bridge.
-> We can't guarantee the device which gets a wakeup event notification is really
-> the device which invokes the wakeup event.
+On 8/19/09, Mario Limonciello <mario_limonciello@dell.com> wrote:
+> Johannes:
+>
+> Johannes Berg wrote:
+>> On Wed, 2009-08-19 at 13:36 -0500, Mario Limonciello wrote:
+>>
+>>
+>>
+>>
+>> Isn't that missing sysfs_remove_group()?
+>>
+>> johannes
+>>
+> The third patch in the (updated) series is dropping the sysfs bits, so
+> sysfs_remove_group is removed there.
 
-_L0B will only be triggered if a PME is generated, so we'll be able to 
-determine which device generated the wakeup by looking at the PME 
-registers.
+That's not ideal.  Each patch should stand on its own; it's bad form
+to introduce a bug in one patch and fix it in the next one.  Even
+something obscure like omitting to free the sysfs group when
+setup_rfkill() fails.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I would suggest merging these two patches into one. That would avoid
+adding sysfs_remove_group() in this patch, just to remove it in the
+next one.  It also avoids the question in this patch, of what happens
+to the rfkill interface if you write to the sysfs file.
+
+Alan
