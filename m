@@ -1,47 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
-Date: Thu, 20 Aug 2009 15:42:46 +0100
-Message-ID: <20090820144246.GA4229@srcf.ucam.org>
-References: <20090820141436.GA3722@srcf.ucam.org> <Pine.LNX.4.44L0.0908201034340.3048-100000@iolanthe.rowland.org>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [Bug #13940] iwlagn and sky2 stopped working, ACPI-related
+Date: Thu, 20 Aug 2009 16:59:37 +0200
+Message-ID: <200908201659.37112.rjw@sisk.pl>
+References: <jCYznkTxcLB.A.EPH.eNIjKB@chimera> <ADSuNT6McuD.A.74.DOIjKB@chimera> <200908200054.36939.storm@sys49152.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:53702 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754734AbZHTOmz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 10:42:55 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.0908201034340.3048-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200908200054.36939.storm-cOTmPFJTJjbk1uMJSBkQmQ@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ricardo Jorge da Fonseca Marques Ferreira <storm-cOTmPFJTJjbk1uMJSBkQmQ@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, Aug 20, 2009 at 10:38:15AM -0400, Alan Stern wrote:
-> On Thu, 20 Aug 2009, Matthew Garrett wrote:
-> > Pretty much the same as PME events on PCI - a GPE is generated, an SCI 
-> > raised, the ACPI interpreter executes the code that's in the ACPI 
-> > tables, that generates a notification event on the appropriate UHCI 
-> > device, we live happily ever after.
-> 
-> What happens after the notification event is generated?  That is, what
-> functions get called?  I'm not at all familiar with this part of the
-> kernel.
+On Thursday 20 August 2009, Ricardo Jorge da Fonseca Marques Ferreira wrote:
+> Yes, 2.6.31-rc6 still has the bug.
 
-The notification will be sent to whichever code has registered a 
-notification handler for that device. In my patches that means it'll 
-arrive in the PCI layer (if it's a PCI device) and then call 
-pci_runtime_resume on the appropriate device.
+Thanks for the update.
 
-> If the wakeup signal isn't squelched at the source, as part of the
-> event handling, will we get an interrupt storm?  Will the uhci-hcd 
-> resume routine be able to handle this or does it need to be done 
-> earlier?  In other words, do we need special-purpose code in the PCI 
-> layer to handler it?
+Rafael
 
-No, nothing special needs to be done at the PCI level. It seems that 
-(for Intel at least) there's no need to do anything special at the UHCI 
-level either.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> On Wednesday 19 August 2009, Rafael J. Wysocki wrote:
+> > This message has been generated automatically as a part of a report
+> > of recent regressions.
+> > 
+> > The following bug entry is on the current list of known regressions
+> > from 2.6.30.  Please verify if it still should be listed and let me know
+> > (either way).
+> > 
+> > 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13940
+> > Subject		: iwlagn and sky2 stopped working, ACPI-related
+> > Submitter	: Ricardo Jorge da Fonseca Marques Ferreira <storm-cOTmPFJTJjbk1uMJSBkQmQ@public.gmane.org>
+> > Date		: 2009-08-07 22:33 (13 days old)
+> > References	: http://marc.info/?l=linux-kernel&m=124968457731107&w=4
