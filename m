@@ -1,48 +1,31 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
-Date: Thu, 20 Aug 2009 10:11:19 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908201004100.3048-100000@iolanthe.rowland.org>
-References: <20090820030423.GA26357@sli10-desk.sh.intel.com>
+Date: Thu, 20 Aug 2009 15:14:36 +0100
+Message-ID: <20090820141436.GA3722@srcf.ucam.org>
+References: <20090820030423.GA26357@sli10-desk.sh.intel.com> <Pine.LNX.4.44L0.0908201004100.3048-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42478 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754356AbZHTOLU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 10:11:20 -0400
-In-Reply-To: <20090820030423.GA26357@sli10-desk.sh.intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:57148 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754205AbZHTOOt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 10:14:49 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0908201004100.3048-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, mjg59 <mjg59@srcf.ucam.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, 20 Aug 2009, Shaohua Li wrote:
+On Thu, Aug 20, 2009 at 10:11:19AM -0400, Alan Stern wrote:
 
-> > I don't understand the reason behind this.  Doesn't this sort of thing
-> > belong in the bus and platform code, not in the PM core?  (In the case
-> > of UHCI, it should be handled by the platform, in the same way as
-> > remote wakeup gets enabled before the suspend.)
-> > 
-> > Drivers don't have to be involved at all.  When a wakeup signal is 
-> > detected, the driver's runtime_resume method should get called -- 
-> > nothing more is needed.
-> The only case is UHCI in my mind. Because UHCI has non-standard wakeup event
-> register.
+> How is the wakeup event received?  Maybe for this one type of device a 
+> PCI quirk will solve the problem.
 
-That's an oversimplification.  _Some_ (I think) of _Intel's_ UHCI
-implementations have a non-standard wakeup event register.
+Pretty much the same as PME events on PCI - a GPE is generated, an SCI 
+raised, the ACPI interpreter executes the code that's in the ACPI 
+tables, that generates a notification event on the appropriate UHCI 
+device, we live happily ever after.
 
-> If BIOS doesn't handle it correctly (for example, not clear the wakeup
-> event after a GPE), we will keep see the wakeup event. And the bus/platform
-> level has no knowledge to handle such event.
-
-How is the wakeup event received?  Maybe for this one type of device a 
-PCI quirk will solve the problem.
-
-Or if that doesn't work, code can be added to uhci-hcd to turn off the
-non-standard wakeup register as part of the resume routine.  (The
-problem here is that the resume routine runs in process context so it
-has to be called after the wakeup event handler has returned.)
-
-Alan Stern
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
