@@ -1,40 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.31-rc6-git5: Reported regressions from 2.6.30
-Date: Thu, 20 Aug 2009 23:28:24 +0200
-Message-ID: <200908202328.24252.rjw@sisk.pl>
-References: <jCYznkTxcLB.A.EPH.eNIjKB@chimera> <1250801571.7176.10.camel@Maple>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
+ meters
+Date: Thu, 20 Aug 2009 16:47:41 -0700
+Message-ID: <20090820164741.707b0340.akpm@linux-foundation.org>
+References: <20090818234757.2004.88017.stgit@elm3a70.beaverton.ibm.com>
+	<20090818234810.2004.13573.stgit@elm3a70.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755478AbZHTV1f@vger.kernel.org>
-In-Reply-To: <1250801571.7176.10.camel@Maple>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Dykstra <john.dykstra1@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39116 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932119AbZHTXuY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Aug 2009 19:50:24 -0400
+In-Reply-To: <20090818234810.2004.13573.stgit@elm3a70.beaverton.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: djwong@us.ibm.com, lenb@kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com, pavel@ucw.cz
 
-On Thursday 20 August 2009, John Dykstra wrote:
-> On Wed, 2009-08-19 at 22:20 +0200, Rafael J. Wysocki wrote:
-> > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=14002
-> > Subject         : WARNING: at net/ipv4/af_inet.c:154
-> > inet_sock_destruct+0x164/0x1c0()
-> > Submitter       : Ralf Hildebrandt <ralf.hildebrandt@charite.de>
-> > Date            : 2009-08-18 12:37 (2 days old)
-> 
-> That looks similar to the WARNING discussed in [1].
-> 
-> There was no resolution to that thread.  However, [2] points out
-> possible other occurrences of the problem in 2.6.27, 28 and 29.
-> 
-> --  John
-> 
-> [1]  http://www.spinics.net/lists/netdev/msg103267.html
-> [2]  http://www.spinics.net/lists/netdev/msg104120.html
+On Tue, 18 Aug 2009 16:48:10 -0700
+"Darrick J. Wong" <djwong@us.ibm.com> wrote:
 
-Thanks for the information.
+> This driver exposes ACPI 4.0 compliant power meters as hardware monitoring
+> devices.  This second revision of the driver also exports the ACPI string
+> info as sysfs attributes, a list of the devices that the meter measures,
+> and will send ACPI notifications over the ACPI netlink socket.
 
-So I'll drop this from the list, since it most probably is not a recent thing.
+This is not my favoritest ever patch.
 
-Best,
-Rafael
+drivers/acpi/power_meter.c:459: error: 'POWER_AVERAGE' undeclared here (not in a function)
+
+and
+
+drivers/acpi/power_meter.c: In function 'read_domain_devices':
+drivers/acpi/power_meter.c:544: error: syntax error before 'PREFIX'
+drivers/acpi/power_meter.c: In function 'read_capabilities':
+drivers/acpi/power_meter.c:759: error: syntax error before 'PREFIX'
+drivers/acpi/power_meter.c:776: error: syntax error before 'PREFIX'
+
+and once I fixed those,
+
+drivers/acpi/power_meter.c: In function 'register_ro_attrs':
+drivers/acpi/power_meter.c:611: warning: 'res' may be used uninitialized in this function
+drivers/acpi/power_meter.c: In function 'register_rw_attrs':
+drivers/acpi/power_meter.c:639: warning: 'res' may be used uninitialized in this function
+
