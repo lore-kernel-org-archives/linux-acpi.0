@@ -1,66 +1,59 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 0/7] PM: Asynchronous suspend and resume (updated)
-Date: Thu, 20 Aug 2009 17:56:36 +0200
-Message-ID: <200908201756.36801.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908191829510.26174-100000@iolanthe.rowland.org>
+Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
+Date: Thu, 20 Aug 2009 21:37:28 +0200
+Message-ID: <200908202137.28358.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908201118490.2656-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38535 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:39162 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373AbZHTPzx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Aug 2009 11:55:53 -0400
-In-Reply-To: <Pine.LNX.4.44L0.0908191829510.26174-100000@iolanthe.rowland.org>
+	id S1752369AbZHTThG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Aug 2009 15:37:06 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0908201118490.2656-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, Greg KH <gregkh@suse.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Shaohua Li <shaohua.li@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
 On Thursday 20 August 2009, Alan Stern wrote:
-> On Wed, 19 Aug 2009, Rafael J. Wysocki wrote:
+> On Thu, 20 Aug 2009, Matthew Garrett wrote:
 > 
-> > On Wednesday 19 August 2009, Alan Stern wrote:
-> > > On Wed, 19 Aug 2009, Rafael J. Wysocki wrote:
-> > > 
-> > > > There's a problem that for safety reasons I maintain the ordering of dpm_list
-> > > > and the callbacks are scheduled for async execution in the same order in
-> > > > which they would have been executed synchronously.  If were to change this,
-> > > > we'd have to be _very_ careful.
-> > > 
-> > > Why?  The order in which jobs are scheduled for async execution doesn't 
-> > > bear any particular relation to the order in which they get run.
+> > > If the wakeup signal isn't squelched at the source, as part of the
+> > > event handling, will we get an interrupt storm?  Will the uhci-hcd 
+> > > resume routine be able to handle this or does it need to be done 
+> > > earlier?  In other words, do we need special-purpose code in the PCI 
+> > > layer to handler it?
 > > 
-> > Yes, it does, if all of the async threads are busy and we add more async jobs
-> > to the queue.  We must ensure that none of the jobs being executed will wait
-> > for any jobs in the queue.
+> > No, nothing special needs to be done at the PCI level. It seems that 
+> > (for Intel at least) there's no need to do anything special at the UHCI 
+> > level either.
 > 
-> That's part of the reason for the dependencies: to make sure that where
-> it matters, things don't run in the wrong order.
+> This contradicts what Shaohua wrote:
 > 
-> > Also, if any devices are handled synchronously, they must not wait for any
-> > "async" devices that haven't been scheduled yet.
-> 
-> I'm not sure what you mean.  If a device is handled synchronously, it 
-> must wait for all the devices preceding it on the list, regardless of 
-> whether those devices are handled asynchronously.
+> "The only case is UHCI in my mind. Because UHCI has non-standard wakeup
+> event register. If BIOS doesn't handle it correctly (for example, not
+> clear the wakeup event after a GPE), we will keep see the wakeup
+> event."
 
-Not really, IMO.  Namely, setting async_suspend for a device is a declaration
-that all of its dependencies are known, whether they are on "async" or on
-"sync" devices.  Hence, "sync" devices don't need to wait for the "async"
-devices they don't depend on in a known way, because otherwise it would be
-invalid to set async_suspend for those "async" devices.
+I'm not sure what the phrase "we will keep see the wakeup event" is supposed to
+mean.  For us to "see" any events there has to be a GPE set up or PCIe PME
+enabled on the right root port.  Otherwise I don't see how we can receive the
+event at all.
 
-Nevertheless, "sync" devices have to wait for all of the other "sync" devices
-that are "in front" of them in dpm_list, because dependencies between different
-"sync" devices need not be known (the direct dependencies betwee them are
-known, but there may be other unknown dependencies satisfied only because the
-the ordering of dpm_list is preserved).
+The bus type wakeup code won't know how to clear the register to acknowledge
+the wakeup, but the driver's ->runtime_resume() callback surely can do that.
 
-Obviously "sync" devices have to wait for the "async" devices they depend on
-in a known way.  In turn, "async" devices have to wait for all of the devices
-they depend on in a known way, "sync" as well as "async".
+> What code would be responsible for setting and clearing the 
+> non-standard wakeup register?  Are you assuming that ACPI will always 
+> handle it?  I guess that's a reasonable assumption -- if ACPI wasn't 
+> aware of the register then it never would get enabled, and conversely, 
+> if ACPI was aware and could enable the register, then ACPI ought to 
+> disable it when necessary.
+
+In any case the event has to be raised in one of the standard ways.
 
 Thanks,
 Rafael
