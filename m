@@ -1,103 +1,53 @@
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: Less strict requirements for video device detection
-Date: Thu, 20 Aug 2009 11:14:55 +0200
-Message-ID: <4A8D140F.1090909@canonical.com>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH 3/3] Drop platform sysfs attributes from compal-laptop
+Date: Thu, 20 Aug 2009 10:17:28 +0100
+Message-ID: <9b2b86520908200217j6a62b19dk6214b827af34418@mail.gmail.com>
+References: <1250706980-10424-1-git-send-email-Mario_Limonciello@Dell.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010405030507030606070208"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:43053 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796AbZHTJO4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 05:14:56 -0400
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:37166 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753266AbZHTJR1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2009 05:17:27 -0400
+In-Reply-To: <1250706980-10424-1-git-send-email-Mario_Limonciello@Dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rui.zhang@intel.com, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Mario Limonciello <Mario_Limonciello@dell.com>
+Cc: cezary.jackiewicz@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010405030507030606070208
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+On 8/19/09, Mario Limonciello <Mario_Limonciello@dell.com> wrote:
+>  Now that there is rfkill support, there is no need
+>  to manually grok the files in sysfs
+> Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
 
-Hardware: Acer 6920G (from a bug report)
+> @@ -464,12 +314,7 @@ static int __init compal_init(void)
+>
+>  	ret = platform_device_add(compal_device);
+>  	if (ret)
+> -		goto fail_platform_device1;
+> -
+> -	ret = sysfs_create_group(&compal_device->dev.kobj,
+> -		&compal_attribute_group);
+> -	if (ret)
+> -		goto fail_platform_device2;
+> +		goto fail_platform_device;
+>
+>  	ret = setup_rfkill();
+>  	if (ret)
+> @@ -481,11 +326,7 @@ static int __init compal_init(void)
+>  	return 0;
+>
+>  fail_rfkill:
+> -fail_platform_device2:
+> -
+> -	platform_device_del(compal_device);
 
-Another case of a broken BIOS. In this case there are several definitions for 
-video bus devices but only one has _DOS and _DOD defined. All other definitions 
-only have _DOD.
-In the past (2.6.27) _ADR was not evaluated to make sure of using a present 
-video device, but with that bug brightness could be changed.
+Don't you still need to call platform_device_del() for the fail_rfkill case?
 
-Now the video bus having _DOS and _DOD is detected as not being present. The 
-other definitions are not considered because they are lacking the _DOS method.
-Using the attached patch, would cause the detection code to consider the other 
-definitions and has been tested to enable backlight control.
-
-Would this be an acceptable approach? From the ACPI spec it rather sounds like 
-_DOD and _DOS must be present for a device for display switching and _DOS would 
-indicate possible backlight control as well. So the question might not be so 
-much is it the right thing than is it safe enough to allow more compatibility 
-with broken implementations without causing other problems...
-
--Stefan
-
-
---------------010405030507030606070208
-Content-Type: text/x-diff;
- name="0001-acpi-video-Loosen-strictness-of-video-bus-detectio.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0001-acpi-video-Loosen-strictness-of-video-bus-detectio.patc";
- filename*1="h"
-
->From 302f148a5eee5226b15c1dec1dbdfb8326bfa17a Mon Sep 17 00:00:00 2001
-From: Stefan Bader <stefan.bader@canonical.com>
-Date: Thu, 20 Aug 2009 10:45:58 +0200
-Subject: [PATCH] acpi: video: Loosen strictness of video bus detection code
-
-BugLink: http://bugs.launchpad.net/bugs/333386
-
-Currently a video bus device must (beside other criteria) define _DOD and
-_DOS methods to be considered a video device.
-Some broken BIOSes prevented working backlight control by only defining both
-for one (non-existing bus) and only _DOD for the rest. With this patch in
-place the other bus definitions were considered too and backlight control
-started to work again.
-
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
----
- drivers/acpi/video.c        |    2 +-
- drivers/acpi/video_detect.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 8851315..f9efeb8 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1083,7 +1083,7 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
- 	 */
- 
- 	/* Does this device support video switching? */
--	if (video->cap._DOS) {
-+	if (video->cap._DOS || video->cap._DOD) {
- 		video->flags.multihead = 1;
- 		status = 0;
- 	}
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 7cd2b63..bee5e34 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -82,7 +82,7 @@ long acpi_is_video_device(struct acpi_device *device)
- 		return 0;
- 
- 	/* Does this device able to support video switching ? */
--	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
-+	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
- 
--- 
-1.5.4.3
-
-
---------------010405030507030606070208--
+> -
+> -fail_platform_device1:
+> +fail_platform_device:
+>
+>  	platform_device_put(compal_device);
