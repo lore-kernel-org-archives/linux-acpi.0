@@ -1,57 +1,39 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH 3/3] Drop platform sysfs attributes from compal-laptop
-Date: Fri, 21 Aug 2009 16:43:28 -0500
-Message-ID: <4A8F1500.6070208@dell.com>
-References: <1250706980-10424-1-git-send-email-Mario_Limonciello@Dell.com> <9b2b86520908200217j6a62b19dk6214b827af34418@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.31-rc6-git5: Reported regressions from 2.6.30
+Date: Sat, 22 Aug 2009 00:02:03 +0200
+Message-ID: <200908220002.03707.rjw@sisk.pl>
+References: <jCYznkTxcLB.A.EPH.eNIjKB@chimera> <4A8F12CE.9090601@lwfinger.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig23E672FBD5FAD81401FB38C2"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932773AbZHUVms@vger.kernel.org>
-In-Reply-To: <9b2b86520908200217j6a62b19dk6214b827af34418@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: cezary.jackiewicz@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:44021 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932243AbZHUWBT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Aug 2009 18:01:19 -0400
+In-Reply-To: <4A8F12CE.9090601@lwfinger.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig23E672FBD5FAD81401FB38C2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Friday 21 August 2009, Larry Finger wrote:
+> Rafael J. Wysocki wrote:
+> 
+> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13960
+> > Subject		: rtl8187 not connect to wifi
+> > Submitter	: okias <d.okias@gmail.com>
+> > Date		: 2009-08-10 19:16 (10 days old)
+> 
+> The patch for this one was sent from Linville to DaveM earlier today,
+> and should be sent to mainline in the near future.
+> 
+> AFAIK, the OP has not yet tested the patch, but I think I was able to
+> reproduce the problem, and the patch did fit it for me.
 
+Thanks for the update.
 
+Can you please close the bug when the patch is merged?
 
-Alan Jenkins wrote:
-> On 8/19/09, Mario Limonciello <Mario_Limonciello@dell.com> wrote:
->  =20
->
->  =20
->
-> Don't you still need to call platform_device_del() for the fail_rfkill =
-case?
->
->  =20
-It was previously only called if the sysfs attribute creation failed.=20
-So if it does need to be called, then there was a bug previously there to=
-o.
---=20
-Mario Limonciello
-*Dell | Linux Engineering*
-mario_limonciello@dell.com
-
-
---------------enig23E672FBD5FAD81401FB38C2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkqPFQAACgkQ2CrZjkA73YtFRwCeN2o209XXx8HYBrLQ+W+epQie
-krUAn0CQHxP44wuzc8HrRh+KewDpBi9H
-=qw4t
------END PGP SIGNATURE-----
-
---------------enig23E672FBD5FAD81401FB38C2--
+Rafael
