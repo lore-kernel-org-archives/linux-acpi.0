@@ -1,48 +1,56 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 2/2] acpi_power_meter: hwmon driver for ACPI 4.0 power
- meters
-Date: Thu, 20 Aug 2009 16:47:41 -0700
-Message-ID: <20090820164741.707b0340.akpm@linux-foundation.org>
-References: <20090818234757.2004.88017.stgit@elm3a70.beaverton.ibm.com>
-	<20090818234810.2004.13573.stgit@elm3a70.beaverton.ibm.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Less strict requirements for video device detection
+Date: Fri, 21 Aug 2009 09:17:38 +0800
+Message-ID: <1250817458.17853.141.camel@rzhang-dt>
+References: <4A8D140F.1090909@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39116 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932119AbZHTXuY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Aug 2009 19:50:24 -0400
-In-Reply-To: <20090818234810.2004.13573.stgit@elm3a70.beaverton.ibm.com>
+Received: from mga03.intel.com ([143.182.124.21]:41305 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751364AbZHUBT1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Aug 2009 21:19:27 -0400
+In-Reply-To: <4A8D140F.1090909@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: djwong@us.ibm.com, lenb@kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com, pavel@ucw.cz
+To: Stefan Bader <stefan.bader@canonical.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tue, 18 Aug 2009 16:48:10 -0700
-"Darrick J. Wong" <djwong@us.ibm.com> wrote:
+On Thu, 2009-08-20 at 17:14 +0800, Stefan Bader wrote:
+> Hardware: Acer 6920G (from a bug report)
+> 
+> Another case of a broken BIOS. In this case there are several definitions for 
+> video bus devices but only one has _DOS and _DOD defined. All other definitions 
+> only have _DOD.
 
-> This driver exposes ACPI 4.0 compliant power meters as hardware monitoring
-> devices.  This second revision of the driver also exports the ACPI string
-> info as sysfs attributes, a list of the devices that the meter measures,
-> and will send ACPI notifications over the ACPI netlink socket.
+I have seen such kind of BIOS too.
 
-This is not my favoritest ever patch.
+> In the past (2.6.27) _ADR was not evaluated to make sure of using a present 
+> video device, but with that bug brightness could be changed.
+> 
+> Now the video bus having _DOS and _DOD is detected as not being present. The 
+> other definitions are not considered because they are lacking the _DOS method.
+> Using the attached patch, would cause the detection code to consider the other 
+> definitions and has been tested to enable backlight control.
+> 
 
-drivers/acpi/power_meter.c:459: error: 'POWER_AVERAGE' undeclared here (not in a function)
+> Would this be an acceptable approach?
 
-and
+I think so. I generated a similar patch before, but didn't sent it out
+for some reason.
+My suggestion is that we should also print out a warning message if _DOS
+is missed, what do you think?
 
-drivers/acpi/power_meter.c: In function 'read_domain_devices':
-drivers/acpi/power_meter.c:544: error: syntax error before 'PREFIX'
-drivers/acpi/power_meter.c: In function 'read_capabilities':
-drivers/acpi/power_meter.c:759: error: syntax error before 'PREFIX'
-drivers/acpi/power_meter.c:776: error: syntax error before 'PREFIX'
+thanks,
+rui
 
-and once I fixed those,
-
-drivers/acpi/power_meter.c: In function 'register_ro_attrs':
-drivers/acpi/power_meter.c:611: warning: 'res' may be used uninitialized in this function
-drivers/acpi/power_meter.c: In function 'register_rw_attrs':
-drivers/acpi/power_meter.c:639: warning: 'res' may be used uninitialized in this function
+>  From the ACPI spec it rather sounds like 
+> _DOD and _DOS must be present for a device for display switching and _DOS would 
+> indicate possible backlight control as well. So the question might not be so 
+> much is it the right thing than is it safe enough to allow more compatibility 
+> with broken implementations without causing other problems...
+> 
+> -Stefan
+> 
 
