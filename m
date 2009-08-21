@@ -1,62 +1,51 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS
-	devices
-Date: Fri, 21 Aug 2009 13:51:00 +0200
-Message-ID: <20090821115100.GA20681@elf.ucw.cz>
-References: <1249290657.2670.250.camel@rzhang-dt> <20090804132129.GH18974@elf.ucw.cz> <1249434170.2670.386.camel@rzhang-dt> <20090805161931.GA9749@elf.ucw.cz> <1249522879.2670.480.camel@rzhang-dt> <20090806071353.GB21847@elf.ucw.cz> <1249548430.2670.517.camel@rzhang-dt> <20090806095258.GA31370@elf.ucw.cz> <1250497963.5351.33.camel@rzhang-dt>
+From: Frans Pop <elendil@planet.nl>
+Subject: [PATCH] acpi: thermal: display forced passive trip points in proc
+Date: Fri, 21 Aug 2009 16:17:02 +0200
+Message-ID: <200908211617.03574.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51548 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755333AbZHULv7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2009 07:51:59 -0400
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755619AbZHUORF@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1250497963.5351.33.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Greg KH <greg@kroah.com>
 
-Hi!
+Users can force a passive trip point for a thermal zone that does not
+have _PSV defined in ACPI by setting the passive attribute in sysfs.
+It's useful to display such trip points in /proc/acpi/thermal_zone.
 
-> > > Could you please look at the documentation about ALS sysfs class in the
-> > > patch I sent out just now, and comment on that one please? thanks!
-> > 
-> > I did. The interface is too ugly to live.
-> 
-> Hi, Pavel,
-> 
-> I tried to convert the ALS sysfs I/F to two attributes only, i.e.
-> illuminance and adjustment.
-> But I found several potential problems.
-> 1. the illuminance to display adjustment mappings can not be convert to
-> a brightness level smoothly.
-> for example,
-> 	illuminance	adjustment
-> 1	600		70
-> 2	900		100
-> 3	1500		120
-> when the current illuminance is not one of the values listed in the
-> mappings, e.g. 750, the ALS driver don't have enough knowledge to get
-> the proper display adjustment, especially that a proper display
-> adjustment would be easy to select a proper brightness level.
-> We'd better leave this to user space, which is more flexible.
+.../TZ1/cooling_mode:<setting not supported>
+.../TZ1/polling_frequency:polling frequency:       10 seconds
+.../TZ1/state:state:                   ok
+.../TZ1/temperature:temperature:             56 C
+.../TZ1/trip_points:critical (S5):           110 C
+.../TZ1/trip_points:passive:                 95 C: forced
 
-Well, what interpolation does ACPI specs suggest to do? Maybe it is
-easier to have linear interpolation in the kernel than to have ugly
-20-file interface?
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: Zhang Rui <rui.zhang@intel.com>
+---
 
-> 2. I don't know if there will be laptops exporting buggy mappings that
-> needs to be overridden some day, but the current sysfs I/F is easy for
-> expanding.
-> what do you think?
+Now that I've got this set on my notebook, I also want to see that
+it's set :-)
 
-If you have buggy laptop, fix the laptop. (You can still export the
-raw values... and btw if you have buggy laptop and want to work around
-it, maybe the workaround is easier/better done in kernel?)
+Cheers,
+FJP
 
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 564ea14..c64cfa9 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -1050,6 +1050,10 @@ static int acpi_thermal_trip_seq_show(struct seq_file *seq, void *offset)
+ 				   acpi_device_bid(device));
+ 		}
+ 		seq_puts(seq, "\n");
++	} else if (tz->thermal_zone->forced_passive) {
++		seq_printf(seq,
++			   "passive:                 %i C: forced",
++			   tz->thermal_zone->forced_passive / 1000);
+ 	}
+ 
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
