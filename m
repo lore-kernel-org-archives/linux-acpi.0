@@ -1,61 +1,63 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [PATCH,v2] acpi: thermal: display forced passive trip points in proc
-Date: Fri, 21 Aug 2009 17:31:15 +0200
-Message-ID: <200908211731.16812.elendil@planet.nl>
-References: <200908211617.03574.elendil@planet.nl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/5]PCIe native PME support
+Date: Fri, 21 Aug 2009 18:47:11 +0200
+Message-ID: <200908211847.11347.rjw@sisk.pl>
+References: <1250666659.23178.119.camel@sli10-desk.sh.intel.com> <200908202322.02588.rjw@sisk.pl> <20090821070112.GC16694@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml105.kpnxchange.com ([195.121.3.9]:54887 "EHLO
-	CPSMTPM-EML105.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932182AbZHUPbQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Aug 2009 11:31:16 -0400
-In-Reply-To: <200908211617.03574.elendil@planet.nl>
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:43119 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932328AbZHUQqQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Aug 2009 12:46:16 -0400
+In-Reply-To: <20090821070112.GC16694@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Users can force a passive trip point for a thermal zone that does not
-have _PSV defined in ACPI by setting the passive attribute in sysfs.
-It's useful to display such trip points in /proc/acpi/thermal_zone.
+On Friday 21 August 2009, Shaohua Li wrote:
+> On Fri, Aug 21, 2009 at 05:22:02AM +0800, Rafael J. Wysocki wrote:
+> > On Wednesday 19 August 2009, Shaohua Li wrote:
+> > > 
+> > > PCIe defines a native PME detection mechanism. When a PCIe endpoint
+> > > invokes PME, PCIe root port has a set of regisets to detect the
+> > > endpoint's bus/device/function number and root port will send out
+> > > interrupt when PME is received. After getting interrupt, OS can identify
+> > > which device invokes PME according to such information. See PCIe
+> > > spec for detail. This patch implements this feature.
+> > > 
+> > > ---
+> > >  drivers/pci/pcie/Kconfig  |    7 +
+> > >  drivers/pci/pcie/Makefile |    2 
+> > >  drivers/pci/pcie/npme.c   |  300 ++++++++++++++++++++++++++++++++++++++++++++++
+> > >  include/linux/pci_regs.h  |    1 
+> > >  4 files changed, 310 insertions(+)
+> > > 
+> > > Index: linux/drivers/pci/pcie/Kconfig
+> > > ===================================================================
+> > > --- linux.orig/drivers/pci/pcie/Kconfig	2009-08-19 13:43:18.000000000 +0800
+> > > +++ linux/drivers/pci/pcie/Kconfig	2009-08-19 14:34:00.000000000 +0800
+> > > @@ -46,3 +46,10 @@ config PCIEASPM_DEBUG
+> > >  	help
+> > >  	  This enables PCI Express ASPM debug support. It will add per-device
+> > >  	  interface to control ASPM.
+> > > +
+> > > +config PCIENPME
+> > > +	bool "PCIE Native PME support(Experimental)"
+> > > +	depends on PCIEPORTBUS && EXPERIMENTAL
+> > > +	help
+> > > +	  This enables PCI Express Native PME Reporting.
+> > 
+> > I don't really think we need that.  Or maybe.  But I'd prefer to call it
+> > PCIE_PME.
+> It definitely is required if you ever looked at PCIe spec.
+> In my test machine, the e1000 card can send such event, and the root port can
+> collect it.
 
-.../TZ1/cooling_mode:<setting not supported>
-.../TZ1/polling_frequency:polling frequency:       10 seconds
-.../TZ1/state:state:                   ok
-.../TZ1/temperature:temperature:             53 C
-.../TZ1/trip_points:critical (S5):           110 C
-.../TZ1/trip_points:passive (forced):        95 C
+I meant the CONFIG switch, not the feature. :-)
 
-And if not set (passive is 0):
-.../TZ1/trip_points:passive (forced):<not set>
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Zhang Rui <rui.zhang@intel.com>
----
-
-I noticed I forgot the linefeed and thought of a further improvement.
-
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 564ea14..7ff5789 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -1050,6 +1050,13 @@ static int acpi_thermal_trip_seq_show(struct 
-seq_file *seq, void *offset)
- 				   acpi_device_bid(device));
- 		}
- 		seq_puts(seq, "\n");
-+	} else {
-+		seq_printf(seq, "passive (forced):");
-+		if (tz->thermal_zone->forced_passive)
-+			seq_printf(seq, "        %i C\n",
-+				   tz->thermal_zone->forced_passive / 1000);
-+		else
-+			seq_printf(seq, "<not set>\n");
- 	}
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+Thanks,
+Rafael
