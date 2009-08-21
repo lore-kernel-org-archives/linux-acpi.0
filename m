@@ -1,38 +1,38 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [PATCH] acpi: thermal: display forced passive trip points in proc
-Date: Fri, 21 Aug 2009 16:49:57 +0200
-Message-ID: <200908211649.58046.elendil@planet.nl>
-References: <200908211617.03574.elendil@planet.nl>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [RFC] [PATCH v3 1/2] introduce ALS sysfs class
+Date: Fri, 21 Aug 2009 08:08:25 -0700
+Message-ID: <20090821150825.GC10667@kroah.com>
+References: <1250671229.17853.51.camel@rzhang-dt>
+ <20090819160144.GB1020@kroah.com>
+ <1250819647.17853.144.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml103.kpnxchange.com ([195.121.3.7]:56848 "EHLO
-	CPSMTPM-EML103.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932358AbZHUOt5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Aug 2009 10:49:57 -0400
-In-Reply-To: <200908211617.03574.elendil@planet.nl>
+Received: from kroah.org ([198.145.64.141]:51206 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932217AbZHUPKW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Aug 2009 11:10:22 -0400
 Content-Disposition: inline
+In-Reply-To: <1250819647.17853.144.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>
 
-On Friday 21 August 2009, Frans Pop wrote:
-> Users can force a passive trip point for a thermal zone that does not
-> have _PSV defined in ACPI by setting the passive attribute in sysfs.
-> It's useful to display such trip points in /proc/acpi/thermal_zone.
->
-> .../TZ1/cooling_mode:<setting not supported>
-> .../TZ1/polling_frequency:polling frequency:       10 seconds
-> .../TZ1/state:state:                   ok
-> .../TZ1/temperature:temperature:             56 C
-> .../TZ1/trip_points:critical (S5):           110 C
-> .../TZ1/trip_points:passive:                 95 C: forced
+On Fri, Aug 21, 2009 at 09:54:07AM +0800, Zhang Rui wrote:
+> ---
+>  Documentation/ABI/testing/sysfs-class-als |   47 +++++
+>  drivers/Kconfig                           |    2 
+>  drivers/Makefile                          |    1 
+>  drivers/als/Kconfig                       |   10 +
+>  drivers/als/Makefile                      |    5 
+>  drivers/als/als_sys.c                     |  256 ++++++++++++++++++++++++++++++
+>  include/linux/als_sys.h                   |   57 ++++++
 
-Hmm. Maybe the following would be clearer:
-  .../TZ1/trip_points:passive (forced):        95 C
+Does this file really need to be in include/linux/ ?
 
-?
+Or could you just put it into drivers/als/ and it would be fine?
+
+thanks,
+
+greg k-h
