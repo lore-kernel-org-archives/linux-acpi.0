@@ -1,66 +1,37 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
-Date: Sat, 22 Aug 2009 01:24:17 +0400
-Message-ID: <4A8F1081.3020803@suse.de>
-References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>	 <4A8EFFB2.4040100@suse.de> <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: Re: 2.6.31-rc6-git5: Reported regressions from 2.6.30
+Date: Fri, 21 Aug 2009 16:34:06 -0500
+Message-ID: <4A8F12CE.9090601@lwfinger.net>
+References: <jCYznkTxcLB.A.EPH.eNIjKB@chimera>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000500000605060908060109"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:40121 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932528AbZHUVYR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2009 17:24:17 -0400
-In-Reply-To: <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Eric Paris <eparis@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com
-
-This is a multi-part message in MIME format.
---------------000500000605060908060109
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-
-Eric Paris пишет:
-> On Sat, 2009-08-22 at 00:12 +0400, Alexey Starikovskiy wrote:
->> Hi,
->> This should be handled by abe1dfab60e1839d115930286cb421f5a5b193f3.
-> 
-> And yet I'm getting it from linux-next today.
-> 
-> So you are apparently failing the in_atomic_preempt_off() test but
-> succeeding in your !irqs_disabled() test.
-> 
-> Something isn't right since I'm hitting it hundreds of times on boot.
-> 
-> -Eric
-> 
-Ok, let's see if replacing irqs_disabled() to 
-in_atomic_preempt_off() helps... 
-
-Regards,
-Alex.
-
---------------000500000605060908060109
-Content-Type: text/x-diff;
- name="x.patch"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x.patch"
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <jCYznkTxcLB.A.EPH.eNIjKB@chimera>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Adrian Bunk <bunk@kernel.org>, DRI <dri-devel@lists.sourceforge.net>, Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Natalie Protasevich <protasnb@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index fcb8e4b..23b262b 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- 
- #define ACPI_PREEMPTION_POINT() \
- 	do { \
--		if (!irqs_disabled()) \
-+		if (!in_atomic_preempt_off()) \
- 			cond_resched(); \
- 	} while (0)
- 
+Rafael J. Wysocki wrote:
 
---------------000500000605060908060109--
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13960
+> Subject		: rtl8187 not connect to wifi
+> Submitter	: okias <d.okias@gmail.com>
+> Date		: 2009-08-10 19:16 (10 days old)
+
+The patch for this one was sent from Linville to DaveM earlier today,
+and should be sent to mainline in the near future.
+
+AFAIK, the OP has not yet tested the patch, but I think I was able to
+reproduce the problem, and the patch did fit it for me.
+
+Larry
