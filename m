@@ -1,143 +1,62 @@
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: Re: Less strict requirements for video device detection (v2)
-Date: Fri, 21 Aug 2009 12:00:02 +0200
-Message-ID: <4A8E7022.8000707@canonical.com>
-References: <4A8D140F.1090909@canonical.com> <1250817458.17853.141.camel@rzhang-dt>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/3] Generic sysfs support for ACPI ALS and other ALS
+	devices
+Date: Fri, 21 Aug 2009 13:51:00 +0200
+Message-ID: <20090821115100.GA20681@elf.ucw.cz>
+References: <1249290657.2670.250.camel@rzhang-dt> <20090804132129.GH18974@elf.ucw.cz> <1249434170.2670.386.camel@rzhang-dt> <20090805161931.GA9749@elf.ucw.cz> <1249522879.2670.480.camel@rzhang-dt> <20090806071353.GB21847@elf.ucw.cz> <1249548430.2670.517.camel@rzhang-dt> <20090806095258.GA31370@elf.ucw.cz> <1250497963.5351.33.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090602030006070603070908"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:36687 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754373AbZHUKAD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2009 06:00:03 -0400
-In-Reply-To: <1250817458.17853.141.camel@rzhang-dt>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51548 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755333AbZHULv7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2009 07:51:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1250497963.5351.33.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>, Greg KH <greg@kroah.com>
 
-This is a multi-part message in MIME format.
---------------090602030006070603070908
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi!
 
-Zhang Rui wrote:
-> On Thu, 2009-08-20 at 17:14 +0800, Stefan Bader wrote:
->> Hardware: Acer 6920G (from a bug report)
->>
->> Another case of a broken BIOS. In this case there are several definitions for 
->> video bus devices but only one has _DOS and _DOD defined. All other definitions 
->> only have _DOD.
+> > > Could you please look at the documentation about ALS sysfs class in the
+> > > patch I sent out just now, and comment on that one please? thanks!
+> > 
+> > I did. The interface is too ugly to live.
 > 
-> I have seen such kind of BIOS too.
+> Hi, Pavel,
 > 
->> In the past (2.6.27) _ADR was not evaluated to make sure of using a present 
->> video device, but with that bug brightness could be changed.
->>
->> Now the video bus having _DOS and _DOD is detected as not being present. The 
->> other definitions are not considered because they are lacking the _DOS method.
->> Using the attached patch, would cause the detection code to consider the other 
->> definitions and has been tested to enable backlight control.
->>
-> 
->> Would this be an acceptable approach?
-> 
-> I think so. I generated a similar patch before, but didn't sent it out
-> for some reason.
-> My suggestion is that we should also print out a warning message if _DOS
-> is missed, what do you think?
+> I tried to convert the ALS sysfs I/F to two attributes only, i.e.
+> illuminance and adjustment.
+> But I found several potential problems.
+> 1. the illuminance to display adjustment mappings can not be convert to
+> a brightness level smoothly.
+> for example,
+> 	illuminance	adjustment
+> 1	600		70
+> 2	900		100
+> 3	1500		120
+> when the current illuminance is not one of the values listed in the
+> mappings, e.g. 750, the ALS driver don't have enough knowledge to get
+> the proper display adjustment, especially that a proper display
+> adjustment would be easy to select a proper brightness level.
+> We'd better leave this to user space, which is more flexible.
 
-Some indication about the problem can't hurt. Probably not in 
-acpi_is_video_device as that would trigger for even unused devices.
-So I added a warning to acpi_video_bus_check for the case when _DOS is missing. 
-The case of _DOS being present but _DOD not might also be worth a warning but 
-(though the check in acpi_is_video_device prevented this) would have been 
-accepted by the current code.
+Well, what interpolation does ACPI specs suggest to do? Maybe it is
+easier to have linear interpolation in the kernel than to have ugly
+20-file interface?
 
--Stefan
+> 2. I don't know if there will be laptops exporting buggy mappings that
+> needs to be overridden some day, but the current sysfs I/F is easy for
+> expanding.
+> what do you think?
 
-> thanks,
-> rui
-> 
->>  From the ACPI spec it rather sounds like 
->> _DOD and _DOS must be present for a device for display switching and _DOS would 
->> indicate possible backlight control as well. So the question might not be so 
->> much is it the right thing than is it safe enough to allow more compatibility 
->> with broken implementations without causing other problems...
->>
->> -Stefan
->>
-> 
+If you have buggy laptop, fix the laptop. (You can still export the
+raw values... and btw if you have buggy laptop and want to work around
+it, maybe the workaround is easier/better done in kernel?)
 
-
+								Pavel
 -- 
-
-When all other means of communication fail, try words!
-
-
-
---------------090602030006070603070908
-Content-Type: text/x-diff;
- name="0001-acpi-video-Loosen-strictness-of-video-bus-detectio.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0001-acpi-video-Loosen-strictness-of-video-bus-detectio.patc";
- filename*1="h"
-
->From 6b483015524f67dee3ae2f08f3c0cef27c9d84c6 Mon Sep 17 00:00:00 2001
-From: Stefan Bader <stefan.bader@canonical.com>
-Date: Fri, 21 Aug 2009 11:03:05 +0200
-Subject: [PATCH] acpi: video: Loosen strictness of video bus detection code
-
-BugLink: http://bugs.launchpad.net/bugs/333386
-
-Currently a video bus device must (beside other criteria) define _DOD and
-_DOS methods to be considered a video device.
-Some broken BIOSes prevented working backlight control by only defining both
-for one (non-existing bus) and only _DOD for the rest. With this patch in
-place the other bus definitions were considered too and backlight control
-started to work again.
-
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
----
- drivers/acpi/video.c        |    7 ++++++-
- drivers/acpi/video_detect.c |    2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 8851315..acd4636 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1083,7 +1083,12 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
- 	 */
- 
- 	/* Does this device support video switching? */
--	if (video->cap._DOS) {
-+	if (video->cap._DOS || video->cap._DOD) {
-+		if (!video->cap._DOS) {
-+			printk(KERN_WARNING PREFIX
-+				"BIOS bug: %s declares _DOD but not _DOS\n",
-+				acpi_device_bid(video->device));
-+		}
- 		video->flags.multihead = 1;
- 		status = 0;
- 	}
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 7cd2b63..bee5e34 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -82,7 +82,7 @@ long acpi_is_video_device(struct acpi_device *device)
- 		return 0;
- 
- 	/* Does this device able to support video switching ? */
--	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
-+	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
- 
--- 
-1.5.4.3
-
-
---------------090602030006070603070908--
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
