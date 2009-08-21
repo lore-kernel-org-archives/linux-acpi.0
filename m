@@ -1,63 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/5]PCIe native PME support
-Date: Fri, 21 Aug 2009 18:47:11 +0200
-Message-ID: <200908211847.11347.rjw@sisk.pl>
-References: <1250666659.23178.119.camel@sli10-desk.sh.intel.com> <200908202322.02588.rjw@sisk.pl> <20090821070112.GC16694@sli10-desk.sh.intel.com>
+From: Eric Paris <eparis@redhat.com>
+Subject: BUG: scheduling while atomic in acpi_ps_complete_op
+Date: Fri, 21 Aug 2009 12:55:07 -0400
+Message-ID: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43119 "EHLO ogre.sisk.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:52738 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932328AbZHUQqQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Aug 2009 12:46:16 -0400
-In-Reply-To: <20090821070112.GC16694@sli10-desk.sh.intel.com>
+	id S932445AbZHUQzL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Aug 2009 12:55:11 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: astarikovskiy@suse.de, len.brown@intel.com
 
-On Friday 21 August 2009, Shaohua Li wrote:
-> On Fri, Aug 21, 2009 at 05:22:02AM +0800, Rafael J. Wysocki wrote:
-> > On Wednesday 19 August 2009, Shaohua Li wrote:
-> > > 
-> > > PCIe defines a native PME detection mechanism. When a PCIe endpoint
-> > > invokes PME, PCIe root port has a set of regisets to detect the
-> > > endpoint's bus/device/function number and root port will send out
-> > > interrupt when PME is received. After getting interrupt, OS can identify
-> > > which device invokes PME according to such information. See PCIe
-> > > spec for detail. This patch implements this feature.
-> > > 
-> > > ---
-> > >  drivers/pci/pcie/Kconfig  |    7 +
-> > >  drivers/pci/pcie/Makefile |    2 
-> > >  drivers/pci/pcie/npme.c   |  300 ++++++++++++++++++++++++++++++++++++++++++++++
-> > >  include/linux/pci_regs.h  |    1 
-> > >  4 files changed, 310 insertions(+)
-> > > 
-> > > Index: linux/drivers/pci/pcie/Kconfig
-> > > ===================================================================
-> > > --- linux.orig/drivers/pci/pcie/Kconfig	2009-08-19 13:43:18.000000000 +0800
-> > > +++ linux/drivers/pci/pcie/Kconfig	2009-08-19 14:34:00.000000000 +0800
-> > > @@ -46,3 +46,10 @@ config PCIEASPM_DEBUG
-> > >  	help
-> > >  	  This enables PCI Express ASPM debug support. It will add per-device
-> > >  	  interface to control ASPM.
-> > > +
-> > > +config PCIENPME
-> > > +	bool "PCIE Native PME support(Experimental)"
-> > > +	depends on PCIEPORTBUS && EXPERIMENTAL
-> > > +	help
-> > > +	  This enables PCI Express Native PME Reporting.
-> > 
-> > I don't really think we need that.  Or maybe.  But I'd prefer to call it
-> > PCIE_PME.
-> It definitely is required if you ever looked at PCIe spec.
-> In my test machine, the e1000 card can send such event, and the root port can
-> collect it.
+Looks like 8bd108d14604d9c95 added ACPI_PREEMPTION_POINT() in
+acpi_ps_complete_op().  But now on boot in linux-next I get streams of
+BUG() like below (always seems to be with swapper)
 
-I meant the CONFIG switch, not the feature. :-)
+This is a linux-next kernel from Aug 21 on vmware server 2.0.
 
-Thanks,
-Rafael
+-Eric
+
+[    4.241159] BUG: scheduling while atomic: swapper/0/0x10000002
+[    4.242308] no locks held by swapper/0.
+[    4.243011] Modules linked in:
+[    4.245012] Pid: 0, comm: swapper Not tainted 2.6.31-rc6-next-20090821 #45
+[    4.246018] Call Trace:
+[    4.247015]  [<ffffffff81058635>] __schedule_bug+0xa5/0xb0
+[    4.248018]  [<ffffffff8152f0e5>] thread_return+0x794/0x93f
+[    4.249015]  [<ffffffff812d77da>] ? acpi_os_release_object+0x1c/0x34
+[    4.250020]  [<ffffffff815334e0>] ? error_exit+0x30/0xb0
+[    4.251014]  [<ffffffff812d77da>] ? acpi_os_release_object+0x1c/0x34
+[    4.252014]  [<ffffffff81061f66>] __cond_resched+0x26/0x50
+[    4.253015]  [<ffffffff8152f42a>] _cond_resched+0x4a/0x60
+[    4.254020]  [<ffffffff812fb4d1>] acpi_ps_complete_op+0x239/0x25b
+[    4.255014]  [<ffffffff812fbbc6>] acpi_ps_parse_loop+0x6d3/0x89d
+[    4.256014]  [<ffffffff812fad3b>] acpi_ps_parse_aml+0xab/0x32d
+[    4.257014]  [<ffffffff812e8d5a>] ? acpi_ds_init_aml_walk+0x10f/0x12e
+[    4.258020]  [<ffffffff812f9989>] acpi_ns_one_complete_parse+0xf9/0x128
+[    4.259014]  [<ffffffff81802140>] ? early_idt_handler+0x0/0x71
+[    4.260014]  [<ffffffff812f99e7>] acpi_ns_parse_table+0x2f/0x60
+[    4.261014]  [<ffffffff812f6339>] acpi_ns_load_table+0x59/0xb8
+[    4.262021]  [<ffffffff812fe60d>] acpi_load_tables+0x80/0x161
+[    4.263014]  [<ffffffff8183eef0>] acpi_early_init+0x71/0x11d
+[    4.264015]  [<ffffffff81802f6a>] start_kernel+0x39a/0x4a0
+[    4.265014]  [<ffffffff818022e1>] x86_64_start_reservations+0xc1/0x100
+[    4.266020]  [<ffffffff81802428>] x86_64_start_kernel+0x108/0x150
+
+
