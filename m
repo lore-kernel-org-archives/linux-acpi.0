@@ -1,51 +1,36 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: [PATCH] acpi: thermal: display forced passive trip points in proc
-Date: Fri, 21 Aug 2009 16:17:02 +0200
-Message-ID: <200908211617.03574.elendil@planet.nl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
+Date: Fri, 21 Aug 2009 10:33:49 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908211032330.2912-100000@iolanthe.rowland.org>
+References: <20090821064630.GB16694@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755619AbZHUORF@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:34437 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932214AbZHUOdt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Aug 2009 10:33:49 -0400
+In-Reply-To: <20090821064630.GB16694@sli10-desk.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Users can force a passive trip point for a thermal zone that does not
-have _PSV defined in ACPI by setting the passive attribute in sysfs.
-It's useful to display such trip points in /proc/acpi/thermal_zone.
+On Fri, 21 Aug 2009, Shaohua Li wrote:
 
-.../TZ1/cooling_mode:<setting not supported>
-.../TZ1/polling_frequency:polling frequency:       10 seconds
-.../TZ1/state:state:                   ok
-.../TZ1/temperature:temperature:             56 C
-.../TZ1/trip_points:critical (S5):           110 C
-.../TZ1/trip_points:passive:                 95 C: forced
+> > > I'm still not clear on this.  Does the non-standard wakeup register
+> > > have to be set and cleared by the suspend and resume routines in
+> > > uhci-hcd, or will it be handled by other code?
+> > 
+> > I'm not sure if anyone can answer this 100% accurately without doing any
+> > testing.
+> As far as I know, when the pci trys to enable pme, we will call corresponding
+> ACPI methods. In that methods, the non-starndard wakeup registers will be
+> set/clear. The issue is we must relay on correct BIOS.
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Zhang Rui <rui.zhang@intel.com>
----
+If the BIOS doesn't know about the non-standard register then it won't 
+set the wakeup bits.  Therefore the fact that it won't clear them 
+doesn't matter.
 
-Now that I've got this set on my notebook, I also want to see that
-it's set :-)
+Alan Stern
 
-Cheers,
-FJP
-
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 564ea14..c64cfa9 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -1050,6 +1050,10 @@ static int acpi_thermal_trip_seq_show(struct seq_file *seq, void *offset)
- 				   acpi_device_bid(device));
- 		}
- 		seq_puts(seq, "\n");
-+	} else if (tz->thermal_zone->forced_passive) {
-+		seq_printf(seq,
-+			   "passive:                 %i C: forced",
-+			   tz->thermal_zone->forced_passive / 1000);
- 	}
- 
- 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
