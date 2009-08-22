@@ -1,49 +1,177 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
-	in driver
-Date: Sat, 22 Aug 2009 15:02:04 -0300
-Message-ID: <20090822180204.GB4894@khazad-dum.debian.net>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan> <20090304120439.GA31850@khazad-dum.debian.net> <1250625730.2257.11.camel@hidalgo> <20090818201002.GA32638@srcf.ucam.org> <1250627230.2257.15.camel@hidalgo> <20090818204508.GA886@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: ACPI locks hardware devices when it doesn't detect vista
+Date: Sat, 22 Aug 2009 23:41:06 +0200
+Message-ID: <200908222341.06300.rjw@sisk.pl>
+References: <1250945310.14167.150.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:40299 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933037AbZHVSCI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Aug 2009 14:02:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20090818204508.GA886@srcf.ucam.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:46229 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932646AbZHVVko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Aug 2009 17:40:44 -0400
+In-Reply-To: <1250945310.14167.150.camel@maxim-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Yves-Alexis Perez <corsac@debian.org>, Ali Abdallah <aliov@xfce.org>, Richard Hughes <hughsient@gmail.com>, Peter Hutterer <peter.hutterer@redhat.com>, linux-acpi <linux-acpi@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, linux-input <linux-input@vger.kernel.org>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, Mairo <rety@poczta.onet.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tue, 18 Aug 2009, Matthew Garrett wrote:
-> On Tue, Aug 18, 2009 at 10:27:10PM +0200, Yves-Alexis Perez wrote:
-> > On mar, 2009-08-18 at 21:10 +0100, Matthew Garrett wrote:
-> > > 
-> > > > It seems that this patch is still not in master?
-> > > 
-> > > Correct. We can't change the existing semantics without breaking 
-> > > existing userspace applications.
-> > 
-> > Hmh ok, but is it planned?
+On Saturday 22 August 2009, Maxim Levitsky wrote:
+> Hi,
 > 
-> No. We'd break userspace.
+> <joke>
+> This should be brought to a Microsoft antitrust case...
+> </joke>
+> 
+> 
+> Today many notebooks ship with a embedded infrared receiver.
+> In Vista there is new subsystem that decodes these signals.
+> (of course it works only with Microsoft Certificated Remotes (TM)...)
+> 
+> The receiver is usually presented to system as a pnp device 
+> (using acpi tables)
+> 
+> It turns out that some bioses actually use the OSI, ACPI feature of the
+> operation system to detect if running inside Vista. If not they disable
+> the infrared receiver.
 
-Indeed.  I am not merging any changes to SUSPEND/HIBERNATE keymaps,
-until some interested party comes up with a PROPER migration plan and
-helps implementing it across the entire kernel and userspace.
+Oh well.
 
-This obviously mean new keycodes for S3 and S4-specific sleep, that
-won't change the meaning of the old ones.  There is also the generic
-(whatever the system think its best) sleep.
+That should've been Cced to linux-acpi (now added).  I'm looking forward to
+seeng a comment from Len. 
 
-X.org's braindead limit of 255 keycodes won't help any.
+> On my system this it is still tolerable:
+> 
+>             Device (MIR)
+>             {
+>                 Name (_HID, EisaId ("ENE0100"))
+>                 Method (_STA, 0, NotSerialized)
+>                 {
+>                     If (LGreaterEqual (OSYS, 0x07D6))
+>                     {
+>                         If (LOr (And (OTHR, 0x02), And (OTHR, 0x40)))
+>                         {
+>                             Return (0x00)
+>                         }
+>                         Else
+>                         {
+>                             Return (0x0F)
+>                         }
+>                     }
+>                     Else
+>                     {
+>                         Return (0x00)
+>                     }
+>                 }
+> 
+> But not so, on Mairo's system:
+> 
+>             Device (MIR)
+>             {
+>                 Name (_HID, EisaId ("ENE0100"))
+>                 Method (_STA, 0, NotSerialized)
+>                 {
+>                     If (LAnd (MCIR, LEqual (OSYS, 0x07D6)))
+>                     {
+>                         Return (0x0F)
+>                     }
+>                     Else
+>                     {
+>                         Store (Zero, ^^LPCB.IOR2)
+>                         Return (Zero)
+>                     }
+>                 }
+> 
+> 	.......
+> 
+>     Method (_WAK, 1, NotSerialized)
+>     {
+>     .......
+>         If (Not (LAnd (MCIR, LEqual (OSYS, 0x07D6))))
+>         {
+>             Store (Zero, \_SB.PCI0.LPCB.IOR2)
+>         }
+> 
+> 
+> .....
+> 
+>     Scope (_SB)
+>     {
+>         Method (_INI, 0, NotSerialized)
+>         {
+>             If (DTSE)
+>             {
+>                 TRAP (0x47)
+>             }
+> 
+>             Store (0x07D0, OSYS)
+>             If (CondRefOf (_OSI, Local0))
+>             {
+>                 If (_OSI ("Linux"))
+>                 {
+>                     Store (One, LINX)
+>                     Store (Zero, ECDY)
+>                 }
+> 
+>                 If (_OSI ("Windows 2001"))
+>                 {
+>                     Store (0x07D1, OSYS)
+>                 }
+> 
+>                 If (_OSI ("Windows 2001 SP1"))
+>                 {
+>                     Store (0x07D1, OSYS)
+>                 }
+> 
+>                 If (_OSI ("Windows 2001 SP2"))
+>                 {
+>                     Store (0x07D2, OSYS)
+>                 }
+> 
+>                 If (_OSI ("Windows 2006"))
+>                 {
+>                     Store (0x07D6, OSYS)
+>                 }
+> 
+>                 If (LEqual (TPMV, One))
+>                 {
+>                     If (LLessEqual (OSYS, 0x07D2))
+>                     {
+>                         TRAP (0x49)
+>                     }
+>                 }
+>             }
+> 
+>             If (LAnd (MPEN, LEqual (OSYS, 0x07D1)))
+>             {
+>                 TRAP (0x3D)
+>             }
+> 
+>             TRAP (0x2B)
+>         }
+>     }
+> 
+> We have tried to boot the system with acpi_osi="Windows 2006", but it
+> didn't help (kernel log confirmed that this parameter was set)
+> 
+> The only explanation I think of is ether his laptop is whitelisted on
+> osi=Linux, or that _SB._INI is called by linux _after_ MIR._STA
+> or that acpi_osi isn't yet in charge when _SB._INI is called.
+> 
+> 
+> The kernel in question is quite recent kernel, (2.6.30.5 from debian
+> unstable).
+> 
+> 
+> The only way I managed to 'enable' this device is to 
+> do 'sudo setpci -s 00:1f.0 0x88.W=0x701'
+> 
+> Or in other words undo the damage done by these ACPI commands.
+> 
+> Mairo, can you boot the system with acpi=off, and then poke the cir IO
+> range (0x700-0x703) ?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Best,
+Rafael
