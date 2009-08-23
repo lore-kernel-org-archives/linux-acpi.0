@@ -1,37 +1,42 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] thinkpad-acpi: don't ask about brightness_mode for fw.
- 1V and 1R
-Date: Sun, 23 Aug 2009 09:54:56 -0300
-Message-ID: <20090823125456.GB28731@khazad-dum.debian.net>
-References: <1250440221-8185-1-git-send-email-hmh@hmh.eng.br>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.31-rc6: ACPI handle has no context apparenty from libata during suspend to RAM
+Date: Sun, 23 Aug 2009 20:58:32 +0200
+Message-ID: <200908232058.32917.rjw@sisk.pl>
+References: <200908231424.07900.arvidjaar@mail.ru> <200908231407.38543.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:39150 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933506AbZHWMzG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Aug 2009 08:55:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1250440221-8185-1-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <200908231407.38543.elendil@planet.nl>
+Sender: linux-ide-owner@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Sun, 16 Aug 2009, Henrique de Moraes Holschuh wrote:
-> X40 (firmware 1V) and T41 (firmware 1R) have been confirmed to work
-> well with the new defaults, so we can stop pestering people to confirm
-> that fact.
+On Sunday 23 August 2009, Frans Pop wrote:
+> Andrey Borzenkov wrote:
+> > sd 0:0:0:0: [sda] Synchronizing SCSI cache
+> > sd 0:0:0:0: [sda] Stopping disk
+> > ACPI handle has no context!
+> > sdhci-pci 0000:03:01.1: PME# disabled
+> > sdhci-pci 0000:03:01.1: PCI INT B disabled
+> > ACPI handle has no context!
+> > ata5: port disabled. ignoring.
+> 
+> I have a few of those too. I've been intending to try to investigate them, 
+> but haven't gotten around to it yet. One problem is that there is no 
+> context information in the error message itself (what 
+> driver/function/whatever).
+> 
+> Are they new for you in .31 or have they always been there? I suspect the 
+> latter, in which case I wouldn't worry about them too much. I at least 
+> have never noticed any actual negative impact from them.
 
-Len, if this could make it to mainline before the kernel is released, I
-would be grateful.
+Most likely, the messages are from acpi_pm_device_sleep_state(), which on some
+buses (PCI for one example) is called for all devices regardless of whether or
+not they have the corresponding ACPI devices.  If they don't, this message is
+printed and it's a KERN_DEBUG message.  It's totally harmless.
 
-It whitelists a large class of machines (all T4x models, and the X40 and
-X41).
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Rafael
