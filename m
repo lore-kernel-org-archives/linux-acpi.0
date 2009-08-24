@@ -1,87 +1,186 @@
-From: Corrado Zoccolo <czoccolo@gmail.com>
-Subject: Re: acpi_idle_enter_bm & mwait_idle
-Date: Mon, 24 Aug 2009 22:47:35 +0200
-Message-ID: <4e5e476b0908241347j3d4918f8o4f4852af0cf7fc41@mail.gmail.com>
-References: <200908161452.53264.elfy.ua@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
+Subject: [PATCH resend] dell-wmi: Add support for new Dell WMI based HotKey
+Date: Mon, 24 Aug 2009 16:34:06 -0500
+Message-ID: <1251149646-13654-1-git-send-email-Rezwanul_Kabir@dell.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:30416 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234AbZHXUre convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2009 16:47:34 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so793397rvb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Aug 2009 13:47:36 -0700 (PDT)
-In-Reply-To: <200908161452.53264.elfy.ua@gmail.com>
+Received: from ausc60pc101.us.dell.com ([143.166.85.206]:31641 "EHLO
+	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956AbZHXVeL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2009 17:34:11 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oleksiy Protas <elfy.ua@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Rezwanul_Kabir@dell.com
 
-Those functions are called when there is nothing to do for the processo=
-r.
-Is it possible that your system is doing disk accesses when the
-slowdown happens?
-
-Corrado
-
-On Sun, Aug 16, 2009 at 1:52 PM, Oleksiy Protas<elfy.ua@gmail.com> wrot=
-e:
-> Hello,
->
-> I am sorry for bugging you guys here, but I've got a question and I t=
-hink it
-> best fits here. I have an Acer laptop, namely TravelMate 5320 with a =
-Linux OS
-> (uname -a gives: Linux seagull 2.6.30-gentoo-r4 #4 Sat Aug 15 01:29:4=
-4 EEST
-> 2009 i686 Intel(R) Celeron(R) CPU 550 @ 2.00GHz GenuineIntel GNU/Linu=
-x). What
-> I'm observing are regular streak of system unreponsiveness. Performan=
-ce
-> monitors show an activity of =C2=A0high-nice processes during these p=
-eriods.
-> OProfile gives ~24% time eaten by apci_idle_enter_bm() with ACPI enab=
-led and
-> 35% time by mwait_idle() with acpi=3Doff, regardless of streak presen=
-ce or just
-> smooth operating time. My question is how can I debug more indepth to=
- see
-> what's happening and what the named functions do so I can or can't bl=
-ame them
-> for unusable system. Thanks in advance.
-> --
-> Oleksiy Protas
-> National University =C2=ABKyiv-Mohyla Academy=C2=BB
-> Institute of Molecular Biology and Genetics, Ukraine
-> This message is signed. You can obtain a public key to verify it here=
-:
-> http://minsky.surfnet.nl:11371/pks/lookup?op=3Dget&search=3D0x81B636D=
-4F015B7EC
->
+Newer Dell systems support HotKey features differently from legacy systems.
+A new vendor specifc HotKey SMBIOS table (Type 0xB2) is defined. This
+table contains a mapping between scancode and the corresponding predefined
+keyfunction ( i.e. keycode).. Also, a new ACPI-WMI event type (called 
+KeyIDList) with a value of 0x0010 is defined. Any BIOS containing 0xB2 
+table will send hotkey notifications using KeyIDList event.
 
 
-
---=20
-_______________________________________________________________________=
-___
-
-dott. Corrado Zoccolo                          mailto:czoccolo@gmail.co=
-m
-PhD - Department of Computer Science - University of Pisa, Italy
------------------------------------------------------------------------=
+Signed-off-by: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
 ---
-The self-confidence of a warrior is not the self-confidence of the aver=
-age
-man. The average man seeks certainty in the eyes of the onlooker and ca=
-lls
-that self-confidence. The warrior seeks impeccability in his own eyes a=
-nd
-calls that humbleness.
-                               Tales of Power - C. Castaneda
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+diff -urNp a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
+--- a/drivers/platform/x86/dell-wmi.c	2009-08-11 11:49:26.000000000 -0500
++++ b/drivers/platform/x86/dell-wmi.c	2009-08-18 12:20:10.000000000 -0500
+@@ -31,6 +31,7 @@
+ #include <acpi/acpi_drivers.h>
+ #include <linux/acpi.h>
+ #include <linux/string.h>
++#include <linux/dmi.h>
+ 
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+@@ -54,7 +55,7 @@ enum { KE_KEY, KE_SW, KE_IGNORE, KE_END 
+  * via the keyboard controller so should not be sent again.
+  */
+ 
+-static struct key_entry dell_wmi_keymap[] = {
++static struct key_entry dell_legacy_wmi_keymap[] = {
+ 	{KE_KEY, 0xe045, KEY_PROG1},
+ 	{KE_KEY, 0xe009, KEY_EJECTCD},
+ 
+@@ -96,6 +97,47 @@ static struct key_entry dell_wmi_keymap[
+ 	{KE_END, 0}
+ };
+ 
++static bool dell_new_hk_type = false;
++
++struct dell_new_keymap_entry {
++	u16 scancode;
++	u16 keycode;
++};
++
++struct dell_hotkey_table {
++	struct dmi_header header;
++	struct dell_new_keymap_entry keymap[];
++
++};
++
++static struct key_entry *dell_new_wmi_keymap;
++
++static u16 bios_to_linux_keycode[256] = {
++
++	KEY_MEDIA,	KEY_NEXTSONG,	KEY_PLAYPAUSE,	KEY_PREVIOUSSONG,
++	KEY_STOPCD,	KEY_UNKNOWN,	KEY_UNKNOWN,	KEY_UNKNOWN,
++	KEY_WWW,	KEY_UNKNOWN,	KEY_VOLUMEDOWN, KEY_MUTE,
++	KEY_VOLUMEUP,	KEY_UNKNOWN,	KEY_BATTERY,	KEY_EJECTCD,
++	KEY_UNKNOWN,	KEY_SLEEP,	KEY_PROG1,	KEY_BRIGHTNESSDOWN,
++	KEY_BRIGHTNESSUP,	KEY_UNKNOWN,	KEY_KBDILLUMTOGGLE,
++	KEY_UNKNOWN,	KEY_VIDEO_NEXT,	KEY_UNKNOWN, KEY_UNKNOWN,
++	KEY_DISPLAYTOGGLE,	KEY_UNKNOWN,	KEY_UNKNOWN,	KEY_PROG2,
++	KEY_UNKNOWN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	KEY_PROG3
++};
++
++
++static struct key_entry *dell_wmi_keymap = dell_legacy_wmi_keymap;
++
+ static struct input_dev *dell_wmi_input_dev;
+ 
+ static struct key_entry *dell_wmi_get_entry_by_scancode(int code)
+@@ -133,6 +175,7 @@ static int dell_wmi_getkeycode(struct in
+ 	return -EINVAL;
+ }
+ 
++
+ static int dell_wmi_setkeycode(struct input_dev *dev, int scancode, int keycode)
+ {
+ 	struct key_entry *key;
+@@ -164,24 +207,65 @@ static void dell_wmi_notify(u32 value, v
+ 	obj = (union acpi_object *)response.pointer;
+ 
+ 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
+-		int *buffer = (int *)obj->buffer.pointer;
+-		/*
+-		 *  The upper bytes of the event may contain
+-		 *  additional information, so mask them off for the
+-		 *  scancode lookup
+-		 */
+-		key = dell_wmi_get_entry_by_scancode(buffer[1] & 0xFFFF);
++		u16 *buffer_entry = (u16 *)obj->buffer.pointer;
++		if (dell_new_hk_type && (buffer_entry[1] != 0x10)) {
++			printk(KERN_INFO "dell-wmi: Received unknown WMI event"
++					 " (0x%x)\n", buffer_entry[1]);
++			return 0;
++		}
++		key = dell_wmi_get_entry_by_scancode((int)buffer_entry[2]);
+ 		if (key) {
+ 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
+ 			input_sync(dell_wmi_input_dev);
+ 			input_report_key(dell_wmi_input_dev, key->keycode, 0);
+ 			input_sync(dell_wmi_input_dev);
+-		} else if (buffer[1] & 0xFFFF)
++		} else
+ 			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
+-			       buffer[1] & 0xFFFF);
++				buffer_entry[2]);
++
+ 	}
+ }
+ 
++
++static void setup_new_hk_map(const struct dmi_header *dm)
++{
++
++	int i;
++	int hotkey_num = (dm->length-4)/sizeof(struct dell_new_keymap_entry);
++	struct dell_hotkey_table *table =
++		container_of(dm, struct dell_hotkey_table, header);
++
++	dell_new_wmi_keymap = kzalloc((hotkey_num+1) *
++				      sizeof(struct key_entry), GFP_KERNEL);
++
++	for (i = 0; i < hotkey_num; i++) {
++		dell_new_wmi_keymap[i].type = KE_KEY;
++		dell_new_wmi_keymap[i].code = table->keymap[i].scancode;
++		dell_new_wmi_keymap[i].keycode =
++			(table->keymap[i].keycode > 255) ? 0 :
++				bios_to_linux_keycode[table->keymap[i].keycode];
++	}
++
++	dell_new_wmi_keymap[i].type = KE_END;
++	dell_new_wmi_keymap[i].code = 0;
++	dell_new_wmi_keymap[i].keycode = 0;
++
++	dell_wmi_keymap = dell_new_wmi_keymap;
++
++}
++
++
++static void find_hk_type(const struct dmi_header *dm, void *dummy)
++{
++
++	if ((dm->type == 0xb2) && (dm->length > 6)) {
++		dell_new_hk_type = true;
++		setup_new_hk_map(dm);
++	}
++
++}
++
++
+ static int __init dell_wmi_input_setup(void)
+ {
+ 	struct key_entry *key;
+@@ -226,6 +310,9 @@ static int __init dell_wmi_init(void)
+ 	int err;
+ 
+ 	if (wmi_has_guid(DELL_EVENT_GUID)) {
++
++		dmi_walk(find_hk_type, NULL);
++
+ 		err = dell_wmi_input_setup();
+ 
+ 		if (err)
