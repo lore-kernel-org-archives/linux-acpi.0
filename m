@@ -1,328 +1,87 @@
-From: Mario Limonciello <Mario_Limonciello-DYMqY+WieiM@public.gmane.org>
-Subject: [PATCH] compal-laptop: Replace sysfs support with rfkill support
-Date: Mon, 24 Aug 2009 14:50:22 -0500
-Message-ID: <1251143422-13905-1-git-send-email-Mario_Limonciello@Dell.com>
-References: <9b2b86520908220420p282c862fn9c44697db010a08d@mail.gmail.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9b2b86520908220420p282c862fn9c44697db010a08d-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mario Limonciello <Mario_Limonciello-DYMqY+WieiM@public.gmane.org>
+From: Corrado Zoccolo <czoccolo@gmail.com>
+Subject: Re: acpi_idle_enter_bm & mwait_idle
+Date: Mon, 24 Aug 2009 22:47:35 +0200
+Message-ID: <4e5e476b0908241347j3d4918f8o4f4852af0cf7fc41@mail.gmail.com>
+References: <200908161452.53264.elfy.ua@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.232]:30416 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234AbZHXUre convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2009 16:47:34 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so793397rvb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Aug 2009 13:47:36 -0700 (PDT)
+In-Reply-To: <200908161452.53264.elfy.ua@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Oleksiy Protas <elfy.ua@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-This drops the support for manually groking the files in sysfs
-to turn on and off the WLAN and BT for Compal laptops in favor
-of platform rfkill support.
+Those functions are called when there is nothing to do for the processo=
+r.
+Is it possible that your system is doing disk accesses when the
+slowdown happens?
 
-It has been combined into a single patch to not introduce regressions
-in the process of simply adding rfkill support
+Corrado
 
-Signed-off-by: Mario Limonciello <Mario_Limonciello-DYMqY+WieiM@public.gmane.org>
-Reviewed-by: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
+On Sun, Aug 16, 2009 at 1:52 PM, Oleksiy Protas<elfy.ua@gmail.com> wrot=
+e:
+> Hello,
+>
+> I am sorry for bugging you guys here, but I've got a question and I t=
+hink it
+> best fits here. I have an Acer laptop, namely TravelMate 5320 with a =
+Linux OS
+> (uname -a gives: Linux seagull 2.6.30-gentoo-r4 #4 Sat Aug 15 01:29:4=
+4 EEST
+> 2009 i686 Intel(R) Celeron(R) CPU 550 @ 2.00GHz GenuineIntel GNU/Linu=
+x). What
+> I'm observing are regular streak of system unreponsiveness. Performan=
+ce
+> monitors show an activity of =C2=A0high-nice processes during these p=
+eriods.
+> OProfile gives ~24% time eaten by apci_idle_enter_bm() with ACPI enab=
+led and
+> 35% time by mwait_idle() with acpi=3Doff, regardless of streak presen=
+ce or just
+> smooth operating time. My question is how can I debug more indepth to=
+ see
+> what's happening and what the named functions do so I can or can't bl=
+ame them
+> for unusable system. Thanks in advance.
+> --
+> Oleksiy Protas
+> National University =C2=ABKyiv-Mohyla Academy=C2=BB
+> Institute of Molecular Biology and Genetics, Ukraine
+> This message is signed. You can obtain a public key to verify it here=
+:
+> http://minsky.surfnet.nl:11371/pks/lookup?op=3Dget&search=3D0x81B636D=
+4F015B7EC
+>
+
+
+
+--=20
+_______________________________________________________________________=
+___
+
+dott. Corrado Zoccolo                          mailto:czoccolo@gmail.co=
+m
+PhD - Department of Computer Science - University of Pisa, Italy
+-----------------------------------------------------------------------=
 ---
- drivers/platform/x86/compal-laptop.c |  201 +++++++++++-----------------------
- 1 files changed, 63 insertions(+), 138 deletions(-)
-
-diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
-index c1c8c03..9b1cc45 100644
---- a/drivers/platform/x86/compal-laptop.c
-+++ b/drivers/platform/x86/compal-laptop.c
-@@ -26,17 +26,8 @@
- /*
-  * comapl-laptop.c - Compal laptop support.
-  *
-- * This driver exports a few files in /sys/devices/platform/compal-laptop/:
-- *
-- *   wlan - wlan subsystem state: contains 0 or 1 (rw)
-- *
-- *   bluetooth - Bluetooth subsystem state: contains 0 or 1 (rw)
-- *
-- *   raw - raw value taken from embedded controller register (ro)
-- *
-- * In addition to these platform device attributes the driver
-- * registers itself in the Linux backlight control subsystem and is
-- * available to userspace under /sys/class/backlight/compal-laptop/.
-+ * The driver registers itself with the rfkill subsystem and
-+ * the Linux backlight control subsystem.
-  *
-  * This driver might work on other laptops produced by Compal. If you
-  * want to try it you can pass force=1 as argument to the module which
-@@ -52,6 +43,7 @@
- #include <linux/backlight.h>
- #include <linux/platform_device.h>
- #include <linux/autoconf.h>
-+#include <linux/rfkill.h>
- 
- #define COMPAL_DRIVER_VERSION "0.2.6"
- 
-@@ -64,6 +56,10 @@
- #define WLAN_MASK	0x01
- #define BT_MASK 	0x02
- 
-+static struct rfkill *wifi_rfkill;
-+static struct rfkill *bt_rfkill;
-+static struct platform_device *compal_device;
-+
- static int force;
- module_param(force, bool, 0);
- MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
-@@ -89,65 +85,75 @@ static int get_lcd_level(void)
- 	return (int) result;
- }
- 
--static int set_wlan_state(int state)
-+static int compal_rfkill_set(void *data, bool blocked)
- {
-+	unsigned long radio = (unsigned long) data;
- 	u8 result, value;
- 
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
--	if ((result & KILLSWITCH_MASK) == 0)
--		return -EINVAL;
--	else {
--		if (state)
--			value = (u8) (result | WLAN_MASK);
--		else
--			value = (u8) (result & ~WLAN_MASK);
--		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
--	}
-+	if (!blocked)
-+		value = (u8) (result | radio);
-+	else
-+		value = (u8) (result & ~radio);
-+	ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
- 
- 	return 0;
- }
- 
--static int set_bluetooth_state(int state)
-+static void compal_rfkill_poll(struct rfkill *rfkill, void *data)
- {
--	u8 result, value;
-+	u8 result;
-+	bool hw_blocked;
- 
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
--	if ((result & KILLSWITCH_MASK) == 0)
--		return -EINVAL;
--	else {
--		if (state)
--			value = (u8) (result | BT_MASK);
--		else
--			value = (u8) (result & ~BT_MASK);
--		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
--	}
--
--	return 0;
-+	hw_blocked = !(result & KILLSWITCH_MASK);
-+	rfkill_set_hw_state(rfkill, hw_blocked);
- }
- 
--static int get_wireless_state(int *wlan, int *bluetooth)
-+static const struct rfkill_ops compal_rfkill_ops = {
-+	.poll = compal_rfkill_poll,
-+	.set_block = compal_rfkill_set,
-+};
-+
-+static int setup_rfkill(void)
- {
--	u8 result;
-+	int ret;
- 
--	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
-+	wifi_rfkill = rfkill_alloc("compal-wifi", &compal_device->dev,
-+				RFKILL_TYPE_WLAN, &compal_rfkill_ops,
-+				(void *) WLAN_MASK);
-+	if (!wifi_rfkill)
-+		return -ENOMEM;
- 
--	if (wlan) {
--		if ((result & KILLSWITCH_MASK) == 0)
--			*wlan = 0;
--		else
--			*wlan = result & WLAN_MASK;
--	}
-+	ret = rfkill_register(wifi_rfkill);
-+	if (ret)
-+		goto err_wifi;
- 
--	if (bluetooth) {
--		if ((result & KILLSWITCH_MASK) == 0)
--			*bluetooth = 0;
--		else
--			*bluetooth = (result & BT_MASK) >> 1;
-+	bt_rfkill = rfkill_alloc("compal-bluetooth", &compal_device->dev,
-+				RFKILL_TYPE_BLUETOOTH, &compal_rfkill_ops,
-+				(void *) BT_MASK);
-+	if (!bt_rfkill) {
-+		ret = -ENOMEM;
-+		goto err_allocate_bt;
- 	}
-+	ret = rfkill_register(bt_rfkill);
-+	if (ret)
-+		goto err_register_bt;
- 
- 	return 0;
-+
-+err_register_bt:
-+	rfkill_destroy(bt_rfkill);
-+
-+err_allocate_bt:
-+	rfkill_unregister(wifi_rfkill);
-+
-+err_wifi:
-+	rfkill_destroy(wifi_rfkill);
-+
-+	return ret;
- }
- 
- /* Backlight device stuff */
-@@ -170,86 +176,6 @@ static struct backlight_ops compalbl_ops = {
- 
- static struct backlight_device *compalbl_device;
- 
--/* Platform device */
--
--static ssize_t show_wlan(struct device *dev,
--	struct device_attribute *attr, char *buf)
--{
--	int ret, enabled;
--
--	ret = get_wireless_state(&enabled, NULL);
--	if (ret < 0)
--		return ret;
--
--	return sprintf(buf, "%i\n", enabled);
--}
--
--static ssize_t show_raw(struct device *dev,
--	struct device_attribute *attr, char *buf)
--{
--	u8 result;
--
--	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
--
--	return sprintf(buf, "%i\n", result);
--}
--
--static ssize_t show_bluetooth(struct device *dev,
--	struct device_attribute *attr, char *buf)
--{
--	int ret, enabled;
--
--	ret = get_wireless_state(NULL, &enabled);
--	if (ret < 0)
--		return ret;
--
--	return sprintf(buf, "%i\n", enabled);
--}
--
--static ssize_t store_wlan_state(struct device *dev,
--	struct device_attribute *attr, const char *buf, size_t count)
--{
--	int state, ret;
--
--	if (sscanf(buf, "%i", &state) != 1 || (state < 0 || state > 1))
--		return -EINVAL;
--
--	ret = set_wlan_state(state);
--	if (ret < 0)
--		return ret;
--
--	return count;
--}
--
--static ssize_t store_bluetooth_state(struct device *dev,
--	struct device_attribute *attr, const char *buf, size_t count)
--{
--	int state, ret;
--
--	if (sscanf(buf, "%i", &state) != 1 || (state < 0 || state > 1))
--		return -EINVAL;
--
--	ret = set_bluetooth_state(state);
--	if (ret < 0)
--		return ret;
--
--	return count;
--}
--
--static DEVICE_ATTR(bluetooth, 0644, show_bluetooth, store_bluetooth_state);
--static DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan_state);
--static DEVICE_ATTR(raw, 0444, show_raw, NULL);
--
--static struct attribute *compal_attributes[] = {
--	&dev_attr_bluetooth.attr,
--	&dev_attr_wlan.attr,
--	&dev_attr_raw.attr,
--	NULL
--};
--
--static struct attribute_group compal_attribute_group = {
--	.attrs = compal_attributes
--};
- 
- static struct platform_driver compal_driver = {
- 	.driver = {
-@@ -258,8 +184,6 @@ static struct platform_driver compal_driver = {
- 	}
- };
- 
--static struct platform_device *compal_device;
--
- /* Initialization */
- 
- static int dmi_check_cb(const struct dmi_system_id *id)
-@@ -390,23 +314,21 @@ static int __init compal_init(void)
- 
- 	ret = platform_device_add(compal_device);
- 	if (ret)
--		goto fail_platform_device1;
-+		goto fail_platform_device;
- 
--	ret = sysfs_create_group(&compal_device->dev.kobj,
--		&compal_attribute_group);
-+	ret = setup_rfkill();
- 	if (ret)
--		goto fail_platform_device2;
-+		goto fail_rfkill;
- 
- 	printk(KERN_INFO "compal-laptop: driver "COMPAL_DRIVER_VERSION
- 		" successfully loaded.\n");
- 
- 	return 0;
- 
--fail_platform_device2:
--
-+fail_rfkill:
- 	platform_device_del(compal_device);
- 
--fail_platform_device1:
-+fail_platform_device:
- 
- 	platform_device_put(compal_device);
- 
-@@ -424,10 +346,13 @@ fail_backlight:
- static void __exit compal_cleanup(void)
- {
- 
--	sysfs_remove_group(&compal_device->dev.kobj, &compal_attribute_group);
- 	platform_device_unregister(compal_device);
- 	platform_driver_unregister(&compal_driver);
- 	backlight_device_unregister(compalbl_device);
-+	rfkill_unregister(wifi_rfkill);
-+	rfkill_destroy(wifi_rfkill);
-+	rfkill_unregister(bt_rfkill);
-+	rfkill_destroy(bt_rfkill);
- 
- 	printk(KERN_INFO "compal-laptop: driver unloaded.\n");
- }
--- 
-1.6.3.3
-
+The self-confidence of a warrior is not the self-confidence of the aver=
+age
+man. The average man seeks certainty in the eyes of the onlooker and ca=
+lls
+that self-confidence. The warrior seeks impeccability in his own eyes a=
+nd
+calls that humbleness.
+                               Tales of Power - C. Castaneda
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
