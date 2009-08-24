@@ -1,41 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: PME# for add-on cards
-Date: Mon, 24 Aug 2009 20:39:07 +0200
-Message-ID: <200908242039.07607.rjw@sisk.pl>
-References: <200908240112.39424.rjw@sisk.pl> <20090824094429.GB1134@srcf.ucam.org>
+Subject: Re: [PATCH 1/5] introduce .wakeup_event ops
+Date: Mon, 24 Aug 2009 20:49:08 +0200
+Message-ID: <200908242049.08189.rjw@sisk.pl>
+References: <20090819115210.GC12216@srcf.ucam.org> <20090824082722.GA32264@srcf.ucam.org> <1251103572.24336.8.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090824094429.GB1134@srcf.ucam.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:52342 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753284AbZHXSsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Aug 2009 14:48:19 -0400
+In-Reply-To: <1251103572.24336.8.camel@sli10-desk.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On Monday 24 August 2009, Matthew Garrett wrote:
-> On Mon, Aug 24, 2009 at 01:12:39AM +0200, Rafael J. Wysocki wrote:
-> 
-> > After some debugging it turned out that PCI0 is the PCI host bridge
-> > (no-bus:pci0000:00), so apparently echoing PCI0 to /proc/acpi/wakeup causes
-> > a wake-up GPE to be set up for the host bridge which triggers wake-up once
-> > eth0 signals PME#.
-> 
-> Mm. That sounds entirely plausible. If it were a built-in card then the 
-> DSDT would provide that GPE, but as an add-in...
-> 
-> > First, I wonder if that's the case in general (anybody knows?).  Second, if
-> > that is the case, would it be a good idea to set up the host bridge wake-up GPE
-> > by default?
-> 
-> I'd expect this to be the case in general, yes. Systems that work 
-> without this probably have the BIOS enable it themselves on suspend. I 
-> suspect we'll have to set it to make sure.
+On Monday 24 August 2009, Shaohua Li wrote:
+> On Mon, 2009-08-24 at 16:27 +0800, Matthew Garrett wrote:
+> > On Mon, Aug 24, 2009 at 04:21:50PM +0800, Shaohua Li wrote:
+> > > On Mon, 2009-08-24 at 16:09 +0800, Matthew Garrett wrote:
+> > > > I don't agree - the wakeup GPE will generate a standard notify, and the 
+> > > > notification handler has to be at the device or bus layer to handle 
+> > > > device-specific requests.
+> > > Then we will have duplicate code at each device or bus.
+> > 
+> > I think that's inevitable, unless the notification infrastructure is 
+> > made more fine grained.
+> At least we need some check and maybe gpe handling and we need some
+> "ifdef ACPI" staff at each device or bus.
 
-OK, Matthew, Alan, thanks for your opinions.
+Why would we need that?
 
-I'll try to implement this, then.
+> There isn't big difference device/bus register a notification handler or
+> register a .wakeup_event. And .wakeup_event is more simple in device/bus
+> level.
 
-Best,
+As Matthew said, there is.
+
+To make things clear, we're not going to add .wakeup_event().
+
+Thanks,
 Rafael
