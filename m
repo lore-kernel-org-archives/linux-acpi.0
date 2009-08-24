@@ -1,122 +1,263 @@
-From: Vegard Nossum <vegard.nossum@gmail.com>
-Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
-Date: Mon, 24 Aug 2009 16:50:08 +0200
-Message-ID: <19f34abd0908240750q454a684fy9aaf4a1cb596c4ce@mail.gmail.com>
-References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
-	 <4A8EFFB2.4040100@suse.de>
-	 <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
-	 <4A8F1081.3020803@suse.de>
-	 <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: ACPI locks hardware devices when it doesn't detect vista
+Date: Mon, 24 Aug 2009 19:17:16 +0300
+Message-ID: <1251130636.12927.5.camel@maxim-laptop>
+References: <1250945310.14167.150.camel@maxim-laptop>
+	 <200908222341.06300.rjw@sisk.pl>  <1250978550.6402.14.camel@maxim-laptop>
+	 <1250980612.6402.17.camel@maxim-laptop>
+	 <1250985766.28634.3.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:38271 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678AbZHXOuP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2009 10:50:15 -0400
-In-Reply-To: <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.156]:50253 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080AbZHXQRW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2009 12:17:22 -0400
+In-Reply-To: <1250985766.28634.3.camel@maxim-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Paris <eparis@redhat.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, Mairo <rety@poczta.onet.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-2009/8/24 Eric Paris <eparis@redhat.com>:
-> On Sat, 2009-08-22 at 01:24 +0400, Alexey Starikovskiy wrote:
->> Eric Paris =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->> > On Sat, 2009-08-22 at 00:12 +0400, Alexey Starikovskiy wrote:
->> >> Hi,
->> >> This should be handled by abe1dfab60e1839d115930286cb421f5a5b193f=
-3.
->> >
->> > And yet I'm getting it from linux-next today.
->> >
->> > So you are apparently failing the in_atomic_preempt_off() test but
->> > succeeding in your !irqs_disabled() test.
->> >
->> > Something isn't right since I'm hitting it hundreds of times on bo=
-ot.
->> >
->> > -Eric
->> >
->> Ok, let's see if replacing irqs_disabled() to
->> in_atomic_preempt_off() helps...
->
-> It does stop my slew of warnings. =C2=A0Not sure it completely fixes =
-my
-> problems though....
->
-> [ =C2=A0 =C2=A01.897021] ... counter mask: =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A00000000700000003^M
-> [ =C2=A0 =C2=A01.906821] ACPI: Core revision 20090625^M
-> [ =C2=A0 10.000008] INFO: RCU detected CPU 0 stall (t=3D10000 jiffies=
-)^M
-> [ =C2=A0 10.000008] sending NMI to all CPUs:^M
-> [ =C2=A0 21.907580] Setting APIC routing to flat^M
-> [ =C2=A0 21.973314] ..TIMER: vector=3D0x30 apic1=3D0 pin1=3D2 apic2=3D=
--1 pin2=3D-1^M
-> [ =C2=A0 21.985260] CPU0: Intel(R) Xeon(R) CPU =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 X5355 =C2=A0@ 2.66GHz stepping 07^M
-> [ =C2=A0 21.992017] kmemcheck: Limiting number of CPUs to 1.^M
-> [ =C2=A0 21.993065] kmemcheck: Initialized^M
-> [ =C2=A0 22.750118] Brought up 1 CPUs^M
-> [ =C2=A0 22.751069] Total of 1 processors activated (5333.45 BogoMIPS=
-).^M
-> [ =C2=A0 23.493639] khelper used greatest stack depth: 4848 bytes lef=
-t^M
-> [ =C2=A0 24.999193] Booting paravirtualized kernel on bare hardware^M
-> [ =C2=A0 25.265364] Time: 17:50:52 =C2=A0Date: 08/21/09^M
-> [ =C2=A0 25.616191] NET: Registered protocol family 16^M
-> [ =C2=A0 27.765113] ACPI: bus type pci registered^M
-> [ =C2=A0 28.795307] PCI: Using configuration type 1 for base access^M
-> [ =C2=A0 61.793279] bio: create slab <bio-0> at 0^M
-> [ =C2=A0 95.285367] ACPI: BIOS _OSI(Linux) query ignored^M
-> [ =C2=A0102.628227] ACPI: Interpreter enabled^M
-> [ =C2=A0102.630134] ACPI: (supports S0 S1 S5)^M
-> [ =C2=A0102.823225] ACPI: Using IOAPIC for interrupt routing^M
-> [ =C2=A0142.365090] ACPI: No dock devices found.^M
-> [ =C2=A0156.864036] ACPI: PCI Root Bridge [PCI0] (0000:00)^M
-> [ =C2=A0157.460654] pci 0000:00:07.3: quirk: region 1000-103f claimed=
- by PIIX4 ACPI^M
-> [ =C2=A0157.463937] pci 0000:00:07.3: quirk: region 1040-104f claimed=
- by PIIX4 SMB^M
-> [ =C2=A0157.644036] pci 0000:00:11.0: transparent bridge^M
-> [ =C2=A0193.009036] ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9=
- 10 11 14 15) *0, disabled.^M
-> [ =C2=A0193.938036] ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *=
-9 10 11 14 15)^M
-> [ =C2=A0194.864036] ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9=
- 10 *11 14 15)^M
-> [ =C2=A0195.780036] ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9=
- 10 11 14 15) *0, disabled.^M
->
-> Something took 20 seconds between "ACPI: Core revision 20090625" and
-> "Setting APIC routing to flat"
->
-> This is a linux-next kernel, on vmware-server, with kmemcheck enabled=
-=2E
-> Disabling kmemcheck seems to make all of this go away. =C2=A0If not t=
-he ACPI
-> guys who should I be talking to?
->
-> A little bit later I finally see backtraces from NMIs because of RCU
-> stalls. =C2=A0Anyone have ideas here?
->
-> [ =C2=A0213.168161] INFO: RCU detected CPU 0 stall (t=3D10004 jiffies=
-)^M
+On Sun, 2009-08-23 at 03:02 +0300, Maxim Levitsky wrote:
+> On Sun, 2009-08-23 at 01:36 +0300, Maxim Levitsky wrote:
+> > On Sun, 2009-08-23 at 01:02 +0300, Maxim Levitsky wrote:
+> > > On Sat, 2009-08-22 at 23:41 +0200, Rafael J. Wysocki wrote:
+> > > > On Saturday 22 August 2009, Maxim Levitsky wrote:
+> > > > > Hi,
+> > > > > 
+> > > > > <joke>
+> > > > > This should be brought to a Microsoft antitrust case...
+> > > > > </joke>
+> > > > > 
+> > > > > 
+> > > > > Today many notebooks ship with a embedded infrared receiver.
+> > > > > In Vista there is new subsystem that decodes these signals.
+> > > > > (of course it works only with Microsoft Certificated Remotes (TM)...)
+> > > > > 
+> > > > > The receiver is usually presented to system as a pnp device 
+> > > > > (using acpi tables)
+> > > > > 
+> > > > > It turns out that some bioses actually use the OSI, ACPI feature of the
+> > > > > operation system to detect if running inside Vista. If not they disable
+> > > > > the infrared receiver.
+> > > 
+> > > Just one note. At least I am now sure that OSI("Windows 2006") does
+> > > return true by default.
+> > > 
+> > > I have tried booting here with acpi_osi="!Windows 2006", and actually
+> > > the CIR PNP device disappeared. I guess that _STA that returns zero
+> > > causes that.
+> > > 
+> > > On his laptop, ENE0100 device doesn't disappear, but still someone
+> > > writes zero to LPCB.IOR2 (we checked and found out that it was zero)
+> > > 
+> Just to make it clear:
+> on Mairo's laptop, booting without any special parameters, doesn't
+> remove the device from pnp list, but its I/O range is blocked.
+> Booting with acpi_osi="!Windows 2006" actually removes it from pnp list,
+> exactly, like on my system (I don't have completely confirmation of
+> that, but according to dmesg, my driver never gets loaded)
+> 
+> 
+> Best regards,
+> 	Maxim Levitsky
+> 
+> 
+> > > Maybe its zero by default, but some 'magic' driver in windows sets it
+> > > up, but this is a PCI config register on LPC bridge, (0x88) and I am
+> > > almost sure that nobody except bios knows about it.
+> > > 
+> > > Windows IR driver doesn't touch it for sure.
+> > > 
+> > > So, it could be that _STA is once called before the _SB._INI ?
+> > 
+> > We have just tested, and it turns out that on boot, the device is
+> > unlocked. So it must ACPI
+> > 
+> > I have put a printk very early in kernel initialization, and it proved
+> > that CIR io range is accessible, before acpi initialization.
+> > 
+> > 
+> > Best regards,
+> > 	Maxim Levitsky
+> > 
+> > 
+Any update on that?
 
-So this is probably just the intrinsic slowness of kmemcheck that
-causes the the big delays and RCU stalls. It shouldn't cause any other
-badness, as far as I understood, the 10000 jiffies limit is just a
-heuristic. Maybe we need to adjust it when kmemcheck is enabled.
-
-I'm more confused about the change you had to with
-irqs_disabled()/in_atomic_preempt_off().
+I have tried to 'reproduce' same issue on my system by editing my acpi
+tables, but couldn't
+(I am sure that I did everything correctly, and to be even more sure, I
+have inverted the test for windows vista in _STA, and IR device did
+lock)
 
 
-Vegard
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mairo, could you somehow compile latest kernel  from git from
+
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+
+you just need to exectute 
+
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+
+Then remove the setpci workaround, boot that kernel, and see if acpi still locks the IR device
+OK?
+
+
+Best regards,
+	Maxim Levitsky
+
+
+> > 
+> > > Best regards,
+> > > 	Maxim Levitsky
+> > > 
+> > > > 
+> > > > Oh well.
+> > > > 
+> > > > That should've been Cced to linux-acpi (now added).  I'm looking forward to
+> > > > seeng a comment from Len. 
+> > > Sorry....
+> > > > 
+> > > > > On my system this it is still tolerable:
+> > > > > 
+> > > > >             Device (MIR)
+> > > > >             {
+> > > > >                 Name (_HID, EisaId ("ENE0100"))
+> > > > >                 Method (_STA, 0, NotSerialized)
+> > > > >                 {
+> > > > >                     If (LGreaterEqual (OSYS, 0x07D6))
+> > > > >                     {
+> > > > >                         If (LOr (And (OTHR, 0x02), And (OTHR, 0x40)))
+> > > > >                         {
+> > > > >                             Return (0x00)
+> > > > >                         }
+> > > > >                         Else
+> > > > >                         {
+> > > > >                             Return (0x0F)
+> > > > >                         }
+> > > > >                     }
+> > > > >                     Else
+> > > > >                     {
+> > > > >                         Return (0x00)
+> > > > >                     }
+> > > > >                 }
+> > > > > 
+> > > > > But not so, on Mairo's system:
+> > > > > 
+> > > > >             Device (MIR)
+> > > > >             {
+> > > > >                 Name (_HID, EisaId ("ENE0100"))
+> > > > >                 Method (_STA, 0, NotSerialized)
+> > > > >                 {
+> > > > >                     If (LAnd (MCIR, LEqual (OSYS, 0x07D6)))
+> > > > >                     {
+> > > > >                         Return (0x0F)
+> > > > >                     }
+> > > > >                     Else
+> > > > >                     {
+> > > > >                         Store (Zero, ^^LPCB.IOR2)
+> > > > >                         Return (Zero)
+> > > > >                     }
+> > > > >                 }
+> > > > > 
+> > > > > 	.......
+> > > > > 
+> > > > >     Method (_WAK, 1, NotSerialized)
+> > > > >     {
+> > > > >     .......
+> > > > >         If (Not (LAnd (MCIR, LEqual (OSYS, 0x07D6))))
+> > > > >         {
+> > > > >             Store (Zero, \_SB.PCI0.LPCB.IOR2)
+> > > > >         }
+> > > > > 
+> > > > > 
+> > > > > .....
+> > > > > 
+> > > > >     Scope (_SB)
+> > > > >     {
+> > > > >         Method (_INI, 0, NotSerialized)
+> > > > >         {
+> > > > >             If (DTSE)
+> > > > >             {
+> > > > >                 TRAP (0x47)
+> > > > >             }
+> > > > > 
+> > > > >             Store (0x07D0, OSYS)
+> > > > >             If (CondRefOf (_OSI, Local0))
+> > > > >             {
+> > > > >                 If (_OSI ("Linux"))
+> > > > >                 {
+> > > > >                     Store (One, LINX)
+> > > > >                     Store (Zero, ECDY)
+> > > > >                 }
+> > > > > 
+> > > > >                 If (_OSI ("Windows 2001"))
+> > > > >                 {
+> > > > >                     Store (0x07D1, OSYS)
+> > > > >                 }
+> > > > > 
+> > > > >                 If (_OSI ("Windows 2001 SP1"))
+> > > > >                 {
+> > > > >                     Store (0x07D1, OSYS)
+> > > > >                 }
+> > > > > 
+> > > > >                 If (_OSI ("Windows 2001 SP2"))
+> > > > >                 {
+> > > > >                     Store (0x07D2, OSYS)
+> > > > >                 }
+> > > > > 
+> > > > >                 If (_OSI ("Windows 2006"))
+> > > > >                 {
+> > > > >                     Store (0x07D6, OSYS)
+> > > > >                 }
+> > > > > 
+> > > > >                 If (LEqual (TPMV, One))
+> > > > >                 {
+> > > > >                     If (LLessEqual (OSYS, 0x07D2))
+> > > > >                     {
+> > > > >                         TRAP (0x49)
+> > > > >                     }
+> > > > >                 }
+> > > > >             }
+> > > > > 
+> > > > >             If (LAnd (MPEN, LEqual (OSYS, 0x07D1)))
+> > > > >             {
+> > > > >                 TRAP (0x3D)
+> > > > >             }
+> > > > > 
+> > > > >             TRAP (0x2B)
+> > > > >         }
+> > > > >     }
+> > > > > 
+> > > > > We have tried to boot the system with acpi_osi="Windows 2006", but it
+> > > > > didn't help (kernel log confirmed that this parameter was set)
+> > > > > 
+> > > > > The only explanation I think of is ether his laptop is whitelisted on
+> > > > > osi=Linux, or that _SB._INI is called by linux _after_ MIR._STA
+> > > > > or that acpi_osi isn't yet in charge when _SB._INI is called.
+> > > > > 
+> > > > > 
+> > > > > The kernel in question is quite recent kernel, (2.6.30.5 from debian
+> > > > > unstable).
+> > > > > 
+> > > > > 
+> > > > > The only way I managed to 'enable' this device is to 
+> > > > > do 'sudo setpci -s 00:1f.0 0x88.W=0x701'
+> > > > > 
+> > > > > Or in other words undo the damage done by these ACPI commands.
+> > > > > 
+> > > > > Mairo, can you boot the system with acpi=off, and then poke the cir IO
+> > > > > range (0x700-0x703) ?
+> > > > 
+> > > > Best,
+> > > > Rafael
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > 
+> 
+
