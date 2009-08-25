@@ -1,116 +1,42 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH] fujitsu-laptop: support led-class as module
-Date: Tue, 25 Aug 2009 12:12:17 +0100
-Message-ID: <9b2b86520908250412j61a355aax55110f467c2ec61f@mail.gmail.com>
-References: <200908250511.n7P5BqSY006903@turbo.physics.adelaide.edu.au>
+From: "Matthew W. S. Bell" <matthew@bells23.org.uk>
+Subject: Re: Sony-laptop: unknown event - VAIO VGN-FW21L
+Date: Tue, 25 Aug 2009 15:39:23 +0100
+Message-ID: <1251211163.4318.23.camel@ibis.bells>
+References: <1251154761.4318.20.camel@ibis.bells>
+	 <20090825005727.GA22986@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:51404 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050AbZHYLMS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2009 07:12:18 -0400
-Received: by bwz19 with SMTP id 19so1988722bwz.37
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2009 04:12:17 -0700 (PDT)
-In-Reply-To: <200908250511.n7P5BqSY006903@turbo.physics.adelaide.edu.au>
+Received: from vm251.contextshift.net ([85.13.250.28]:43899 "EHLO
+	garuda.bells23.org.uk" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1755167AbZHYOjP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2009 10:39:15 -0400
+In-Reply-To: <20090825005727.GA22986@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: malattia@linux.it, linux-acpi@vger.kernel.org
 
-On 8/25/09, Jonathan Woithe <jwoithe@physics.adelaide.edu.au> wrote:
-> Hi Len
->
-> Please consider slipping this in to 2.6.31-rc since it's a fairly trivial
-> bug fix to ensure that fujitsu-laptop uses the LEDS class even when the LEDS
-> class been compiled as a module.  If that's not possible or viewed as
-> inappropriate then let's go for 2.6.32.
->
-> Thanks
->   jonathan
->
->
-> From: Stephen Gildea <stepheng+linux@gildea.com>
->
-> Support fujitsu::logolamp with led-class built as a module instead of
-> being compiled in.
->
-> Signed-off-by: Stephen Gildea <stepheng+linux@gildea.com>
-> Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
->
-> ---
-> A friend pointed out to me that fujitsu-laptop LED support doesn't
-> work with CONFIG_LEDS_CLASS=m.  We require CONFIG_LEDS_CLASS=y.
-> He noticed this because his distro ships led-class as a module, not
-> compiled in as my kernels are built.
->
-> It appears this straightforward patch against 2.6.31-rc7 fixes the
-> problem.
->
->  < Stephen
->
->
-> diff --git a/drivers/platform/x86/fujitsu-laptop.c
-> b/drivers/platform/x86/fujitsu-laptop.c
-> index 218b9a1..4c8897a 100644
-> --- a/drivers/platform/x86/fujitsu-laptop.c
-> +++ b/drivers/platform/x86/fujitsu-laptop.c
-> @@ -66,7 +66,7 @@
->  #include <linux/kfifo.h>
->  #include <linux/video_output.h>
->  #include <linux/platform_device.h>
-> -#ifdef CONFIG_LEDS_CLASS
-> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
->  #include <linux/leds.h>
->  #endif
->
-> @@ -96,7 +96,7 @@
->  /* FUNC interface - responses */
->  #define UNSUPPORTED_CMD 0x80000000
->
-> -#ifdef CONFIG_LEDS_CLASS
-> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
->  /* FUNC interface - LED control */
->  #define FUNC_LED_OFF	0x1
->  #define FUNC_LED_ON	0x30001
-> @@ -176,7 +176,7 @@ static struct fujitsu_hotkey_t *fujitsu_hotkey;
->
->  static void acpi_fujitsu_hotkey_notify(struct acpi_device *device, u32
-> event);
->
-> -#ifdef CONFIG_LEDS_CLASS
-> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
->  static enum led_brightness logolamp_get(struct led_classdev *cdev);
->  static void logolamp_set(struct led_classdev *cdev,
->  			       enum led_brightness brightness);
-> @@ -257,7 +257,7 @@ static int call_fext_func(int cmd, int arg0, int arg1,
-> int arg2)
->  	return out_obj.integer.value;
->  }
->
-> -#ifdef CONFIG_LEDS_CLASS
-> +#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
->  /* LED class callbacks */
->
->  static void logolamp_set(struct led_classdev *cdev,
-> @@ -911,7 +911,7 @@ static int acpi_fujitsu_hotkey_add(struct acpi_device
-> *device)
->  	printk(KERN_INFO "fujitsu-laptop: BTNI: [0x%x]\n",
->  		call_fext_func(FUNC_BUTTONS, 0x0, 0x0, 0x0));
->
-> -	#ifdef CONFIG_LEDS_CLASS
-> +	#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
->  	if (call_fext_func(FUNC_LEDS, 0x0, 0x0, 0x0) & LOGOLAMP_POWERON) {
->  		result = led_classdev_register(&fujitsu->pf_device->dev,
->  						&logolamp_led);
+On Tue, 2009-08-25 at 01:57 +0100, Matthew Garrett wrote:
+> On Mon, Aug 24, 2009 at 11:59:21PM +0100, Matthew W. S. Bell wrote:
+> > Hi,
+> > I get the following reports in my kernel log for key press and release
+> > of a "AV MODE" key. The key is situated in a set of multimedia keys
+> > above the RHS of the keyboard on the aforementioned laptop model.
+> > 
+> > sony-laptop: Unknown event: 0x100 0xa1
+> > sony-laptop: Unknown event: 0x100 0x21
+> 
+> What's this button meant to do?
 
-Don't you need to exclude
+I don't use the original software, and the supplied documentation
+doesn't mention it, but it seems to be intended to be a shortcut key to
+a media player.[1] There is also an "S1" key in the same group of
+buttons that is intended to be used as a shortcut, or, perhaps, special
+key.
 
-CONFIG_LEDS_CLASS=m
-CONFIG_FUJITSU_LAPTOP=y
+Matthew
 
-I think the Kconfig-fu is "depends on LEDS_CLASS || LEDS_CLASS=n".
+[1] <http://answers.yahoo.com/question/index?qid=20090103105816AA5kFcb>
 
-Regards
-Alan
