@@ -1,33 +1,171 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH V4 1/2] introduce ALS sysfs class
-Date: Tue, 25 Aug 2009 10:47:52 -0700
-Message-ID: <20090825174752.GB22984@kroah.com>
-References: <1251184693.3483.95.camel@rzhang-dt>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: INFO: possible circular locking dependency - kacpid  acpi_os_wait_events_complete
+Date: Tue, 25 Aug 2009 12:51:36 -0600
+Message-ID: <200908251251.37135.bjorn.helgaas@hp.com>
+References: <c4e36d110908250110xe16720o977c8cf5c3386c4b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755489AbZHYRtX@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:2332 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755250AbZHYSvg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2009 14:51:36 -0400
+In-Reply-To: <c4e36d110908250110xe16720o977c8cf5c3386c4b@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <1251184693.3483.95.camel@rzhang-dt>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>
 
-On Tue, Aug 25, 2009 at 03:18:13PM +0800, Zhang Rui wrote:
->=20
-> =EF=BB=BFIntroduce ALS sysfs class.
->=20
-> ALS sysfs class provides a standard sysfs interface for
-> Ambient Light Sensor devices.
->=20
-> please read Documentation/ABI/testing/sysfs-class-als for
-> detailed sysfs designs.
->=20
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+On Tuesday 25 August 2009 02:10:58 am Zdenek Kabelac wrote:
+> Now with 2.6.31-rc7 (3edf2fb9d80a46d6c32ba12547a42419845b4b76)
+>  I'm getting this  INFO trace - also I've noticed complete reset during resume
+> which could be eventually related to this ?
 
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+What's the most recent kernel where this did not occur?  Is this
+a regression since 2.6.30?
 
-thanks for the documentation changes.
+> My machine - T61, 4GB, C2D
+> I suspect that some resent  thinkpad-acpi changes.
 
-greg k-h
+Do you have any evidence that points to thinkpad_acpi?  I looked
+at the recent changes there, and I don't see anything obviously
+related to kacpid or deferred work.
+
+I made a recent change to the kacpid workqueue (74b58208082).
+If it's convenient to revert that change and test, it'd be
+good to rule that out.
+
+Thanks for your report!
+
+Bjorn
+
+> ACPI: Preparing to enter system sleep state S3
+> Disabling non-boot CPUs ...
+> kvm: disabling virtualization on CPU1
+> CPU 1 is now offline
+> lockdep: fixing up alternatives.
+> SMP alternatives: switching to UP code
+> CPU0 attaching NULL sched-domain.
+> CPU1 attaching NULL sched-domain.
+> CPU0 attaching NULL sched-domain.
+> CPU1 is down
+> Extended CMOS year: 2000
+> x86 PAT enabled: cpu 0, old 0x7040600070406, new 0x7010600070106
+> Back to C!
+> CPU0: Thermal monitoring handled by SMI
+> Extended CMOS year: 2000
+> Enabling non-boot CPUs ...
+> lockdep: fixing up alternatives.
+> SMP alternatives: switching to SMP code
+> Booting processor 1 APIC 0x1 ip 0x6000
+> Initializing CPU#1
+> Calibrating delay using timer specific routine.. 4390.86 BogoMIPS (lpj=7314990)
+> CPU: L1 I cache: 32K, L1 D cache: 32K
+> CPU: L2 cache: 4096K
+> CPU: Physical Processor ID: 0
+> CPU: Processor Core ID: 1
+> mce: CPU supports 6 MCE banks
+> CPU1: Thermal monitoring enabled (TM2)
+> x86 PAT enabled: cpu 1, old 0x7040600070406, new 0x7010600070106
+> CPU1: Intel(R) Core(TM)2 Duo CPU     T7500  @ 2.20GHz stepping 0a
+> kvm: enabling virtualization on CPU1
+> CPU0 attaching NULL sched-domain.
+> Switched to high resolution mode on CPU 1
+> CPU0 attaching sched-domain:
+>  domain 0: span 0-1 level CPU
+>   groups: 0 1
+> CPU1 attaching sched-domain:
+>  domain 0: span 0-1 level CPU
+>   groups: 1 0
+> CPU1 is up
+> ACPI: Waking up from system sleep state S3
+> 
+> =======================================================
+> [ INFO: possible circular locking dependency detected ]
+> 2.6.31-rc7-00015-ge740538 #18
+> -------------------------------------------------------
+> kacpi_hotplug/114 is trying to acquire lock:
+>  (kacpid){+.+.+.}, at: [<ffffffff81064df0>] flush_workqueue+0x0/0xc0
+> 
+> but task is already holding lock:
+>  (&dpc->work){+.+.+.}, at: [<ffffffff81065183>] worker_thread+0x193/0x3f0
+> 
+> which lock already depends on the new lock.
+> 
+> 
+> the existing dependency chain (in reverse order) is:
+> 
+> -> #1 (&dpc->work){+.+.+.}:
+>        [<ffffffff8107eeac>] __lock_acquire+0xc5c/0x1090
+>        [<ffffffff8107f37a>] lock_acquire+0x9a/0x180
+>        [<ffffffff810651ce>] worker_thread+0x1de/0x3f0
+>        [<ffffffff810690e6>] kthread+0xa6/0xb0
+>        [<ffffffff8100d2da>] child_rip+0xa/0x20
+>        [<ffffffffffffffff>] 0xffffffffffffffff
+> 
+> -> #0 (kacpid){+.+.+.}:
+>        [<ffffffff8107ef7f>] __lock_acquire+0xd2f/0x1090
+>        [<ffffffff8107f37a>] lock_acquire+0x9a/0x180
+>        [<ffffffff81064e4f>] flush_workqueue+0x5f/0xc0
+>        [<ffffffff81261524>] acpi_os_wait_events_complete+0x15/0x23
+>        [<ffffffff81261561>] acpi_os_execute_hp_deferred+0x2f/0x43
+>        [<ffffffff810651d4>] worker_thread+0x1e4/0x3f0
+>        [<ffffffff810690e6>] kthread+0xa6/0xb0
+>        [<ffffffff8100d2da>] child_rip+0xa/0x20
+>        [<ffffffffffffffff>] 0xffffffffffffffff
+> 
+> other info that might help us debug this:
+> 
+> 2 locks held by kacpi_hotplug/114:
+>  #0:  (kacpi_hotplug){+.+...}, at: [<ffffffff81065183>]
+> worker_thread+0x193/0x3f0
+>  #1:  (&dpc->work){+.+.+.}, at: [<ffffffff81065183>] worker_thread+0x193/0x3f0
+> 
+> stack backtrace:
+> Pid: 114, comm: kacpi_hotplug Not tainted 2.6.31-rc7-00015-ge740538 #18
+> Call Trace:
+>  [<ffffffff8107cf0d>] print_circular_bug_tail+0x9d/0xe0
+>  [<ffffffff8107ef7f>] __lock_acquire+0xd2f/0x1090
+>  [<ffffffff8107b5ff>] ? save_trace+0x3f/0xb0
+>  [<ffffffff8107f37a>] lock_acquire+0x9a/0x180
+>  [<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
+>  [<ffffffff81261532>] ? acpi_os_execute_hp_deferred+0x0/0x43
+>  [<ffffffff81064e4f>] flush_workqueue+0x5f/0xc0
+>  [<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
+>  [<ffffffff81261524>] acpi_os_wait_events_complete+0x15/0x23
+>  [<ffffffff81261561>] acpi_os_execute_hp_deferred+0x2f/0x43
+>  [<ffffffff810651d4>] worker_thread+0x1e4/0x3f0
+>  [<ffffffff81065183>] ? worker_thread+0x193/0x3f0
+>  [<ffffffff8107b2fe>] ? put_lock_stats+0xe/0x30
+>  [<ffffffff81069540>] ? autoremove_wake_function+0x0/0x40
+>  [<ffffffff81064ff0>] ? worker_thread+0x0/0x3f0
+>  [<ffffffff810690e6>] kthread+0xa6/0xb0
+>  [<ffffffff8100d2da>] child_rip+0xa/0x20
+>  [<ffffffff8100cc40>] ? restore_args+0x0/0x30
+>  [<ffffffff81069040>] ? kthread+0x0/0xb0
+>  [<ffffffff8100d2d0>] ? child_rip+0x0/0x20
+> ACPI: \_SB_.GDCK - docking
+> acpi IBM0079:00: parent device:00 should not be sleeping
+> pci 0000:00:02.0: restoring config space at offset 0x1 (was 0x900007,
+> writing 0x900403)
+> pci 0000:00:02.1: restoring config space at offset 0x1 (was 0x900000,
+> writing 0x900007)
+> uhci_hcd 0000:00:1a.0: restoring config space at offset 0x1 (was
+> 0x2800005, writing 0x2800001)
+> uhci_hcd 0000:00:1a.1: power state changed by ACPI to D0
+> uhci_hcd 0000:00:1a.1: restoring config space at offset 0x1 (was
+> 0x2800005, writing 0x2800001)
+> ehci_hcd 0000:00:1a.7: restoring config space at offset 0x1 (was
+> 0x2900106, writing 0x2900102)
+> ehci_hcd 0000:00:1a.7: PME# disabled
+> HDA Intel 0000:00:1b.0: restoring config space at offset 0x1 (was
+> 0x100106, writing 0x100102)
+> 
+> 
+> Zdenek
+> 
+
+
