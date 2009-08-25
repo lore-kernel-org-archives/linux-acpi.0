@@ -1,45 +1,40 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: ACPI explodes in -next (ACPI video it seems)
-Date: Tue, 25 Aug 2009 15:40:37 +0100
-Message-ID: <20090825154037.675e8848@lxorguk.ukuu.org.uk>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: Sony-laptop: unknown event - VAIO VGN-FW21L
+Date: Tue, 25 Aug 2009 23:33:20 +0900
+Message-ID: <20090825143320.GB9571@kamineko.org>
+References: <1251154761.4318.20.camel@ibis.bells>
+ <20090825005727.GA22986@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:45710 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755172AbZHYOjY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2009 10:39:24 -0400
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:46182
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754913AbZHYOjk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2009 10:39:40 -0400
+Content-Disposition: inline
+In-Reply-To: <20090825005727.GA22986@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rui.zhang@intel.com
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Matthew W. S. Bell" <matthew@bells23.org.uk>, linux-acpi@vger.kernel.org
 
+On Tue, Aug 25, 2009 at 01:57:27AM +0100, Matthew Garrett wrote:
+> On Mon, Aug 24, 2009 at 11:59:21PM +0100, Matthew W. S. Bell wrote:
+> > Hi,
+> > I get the following reports in my kernel log for key press and release
+> > of a "AV MODE" key. The key is situated in a set of multimedia keys
+> > above the RHS of the keyboard on the aforementioned laptop model.
+> > 
+> > sony-laptop: Unknown event: 0x100 0xa1
+> > sony-laptop: Unknown event: 0x100 0x21
+> 
+> What's this button meant to do?
 
-Trace is during a modprobe
+Hah, right. I think that button is supposed to launch some sony provided
+application to start some multimedia experience with the laptop. Kind of
+connecting the hdmi to the tv and starting to watch some movie I guess.
 
-strcmp of NULL pointer from
-acpi_device_probe + 0xA3/0x123
-driver_probe_device
-__driver_attach
-bus_for_each_dev
-driver_attach
-__driver_attach
-bus_add_driver
-driver_register
-acpi_bus_register_driver
-acpi_video_register [video]
-acpi_video_init [video]
-_stext + 49
-acpi_video_init + 0x0
-..
-..
-sys_init_module
-
-/sbin/modprobe -b acpi:LNXVIDEO: abnormal exit
-
-IRQ routing has also broken which worked fine before (resulting in no USB)
-
-HP (Compaq) Presario V5000 F.15 (Intel Video, Intel Celeron CPU @1.46GHz)
-
-
-(note I'm not subscribed to linux-acpi)
+Matthew, do you have any idea what input key can be used for it?
+-- 
+mattia
+:wq!
