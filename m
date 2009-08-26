@@ -1,37 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
-Date: Wed, 26 Aug 2009 22:11:39 +0200
-Message-ID: <200908262211.39228.rjw@sisk.pl>
-References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera> <b170af450908260147o60427997ne6b9872198893c41@mail.gmail.com>
+Subject: [PATCH 4/6] PM: Allow PCI devices to suspend/resume asynchronously
+Date: Wed, 26 Aug 2009 22:22:31 +0200
+Message-ID: <200908262222.31789.rjw@sisk.pl>
+References: <200908262217.19609.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <b170af450908260147o60427997ne6b9872198893c41@mail.gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: =?utf-8?q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>, Linux SCSI List <linux-scsi@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, Natalie Protasevich <protasnb@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200908262217.19609.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pm <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 26 August 2009, Rafa=C5=82 Mi=C5=82ecki wrote:
-> 2009/8/25 Rafael J. Wysocki <rjw@sisk.pl>:
-> > Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=3D1351=
-4
-> > Subject         : acer_wmi causes stack corruption
-> > Submitter       : Rus <harbour@sfinx.od.ua>
-> > Date            : 2009-06-12 08:13 (75 days old)
->=20
-> It has patch, just Len doesn't seem to... don't know, read the topic?
-> http://patchwork.kernel.org/patch/29082/
->=20
-> Can we ping Len somehow to push this patch directly to Linus's tree?
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-I have updated the bug entry, hopefully Len will notice it now.
+Set async_suspend for all PCI devices and PCIe port services, so that
+they can be suspended and resumed asynchronously with other devices
+they don't depend on in a known way (i.e. devices which are not their
+parents or children and to which they are not connected via struct
+pm_link objects).
 
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci.c               |    1 +
+ drivers/pci/pcie/portdrv_core.c |    1 +
+ 2 files changed, 2 insertions(+)
+
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -1360,6 +1360,7 @@ void pci_pm_init(struct pci_dev *dev)
+ 	int pm;
+ 	u16 pmc;
+ 
++	device_enable_async_suspend(&dev->dev, true);
+ 	dev->pm_cap = 0;
+ 
+ 	/* find PCI PM capability in list */
+Index: linux-2.6/drivers/pci/pcie/portdrv_core.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pcie/portdrv_core.c
++++ linux-2.6/drivers/pci/pcie/portdrv_core.c
+@@ -280,6 +280,7 @@ static void pcie_device_init(struct pci_
+ 	dev_set_name(device, "%s:pcie%02x",
+ 		 pci_name(parent), get_descriptor_id(port_type, service_type));
+ 	device->parent = &parent->dev;
++	device_enable_async_suspend(device, true);
+ }
+ 
+ /**
