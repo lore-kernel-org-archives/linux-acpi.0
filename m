@@ -1,58 +1,31 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: [PATCH 2/6] thermal: sysfs-api.txt - document passive attribute for thermal zones
-Date: Wed, 26 Aug 2009 18:17:21 +0200
-Message-ID: <1251303445-25317-3-git-send-email-elendil@planet.nl>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751936AbZHZQS1@vger.kernel.org>
-In-Reply-To: <1251303445-25317-1-git-send-email-elendil@planet.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Frans Pop <elendil@planet.nl>, Zhang Rui <rui.zhang@intel.com>, Sujith Thomas <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 4/6] thermal: add sanity check for the passive attribute
+Date: Wed, 26 Aug 2009 17:23:42 +0100
+Message-ID: <20090826162342.GA15868@srcf.ucam.org>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <1251303445-25317-5-git-send-email-elendil@planet.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:33419 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632AbZHZQXt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2009 12:23:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1251303445-25317-5-git-send-email-elendil@planet.nl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Sujith Thomas <sujith.thomas@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+On Wed, Aug 26, 2009 at 06:17:23PM +0200, Frans Pop wrote:
+> Values below 40000 milli-celsius (limit is somewhat arbitrary)
+> don't make sense and can cause the system to go into a thermal
+> heart attack: the actual temperature will always be lower and
+> thus the system will be throttled down to its lowest setting.
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index 895337f..2a036eb 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -3,7 +3,7 @@ Generic Thermal Sysfs driver How To
- 
- Written by Sujith Thomas <sujith.thomas@intel.com>, Zhang Rui <rui.zhang@intel.com>
- 
--Updated: 2 January 2008
-+Updated: 21 August 2009
- 
- Copyright (c)  2008 Intel Corporation
- 
-@@ -199,6 +199,15 @@ cdev[0-*]_trip_point
- 	point.
- 	RO, Optional
- 
-+passive
-+	Attribute is only present for zones which do not have a passive
-+	cooling policy (_PSV) defined in ACPI. Default is zero and can be
-+	set to a temperature (in millidegrees) to enable a passive trip
-+	point for the zone. Activation is done by polling with an interval
-+	of 1 second.
-+	Unit: millidegrees Celsius
-+	RW, Optional
-+
- *****************************
- * Cooling device attributes *
- *****************************
-@@ -230,8 +239,9 @@ thermal_zone_device (thermal_zone1) with 4 trip points in all.
- It has one processor and one fan, which are both registered as
- thermal_cooling_device.
- 
--If the processor is listed in _PSL method, and the fan is listed in _AL0
--method, the sys I/F structure will be built like this:
-+If the processor is listed in _PSL method, the fan is listed in _AL0
-+method, and the zone has a _PSV method, the sys I/F structure will be
-+built like this:
- 
- /sys/class/thermal:
- 
+Not keen on this - it's a pretty arbitrary cutoff, and there are some 
+cases where someone might want this value. Policy belongs in userspace, 
+and all that.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
