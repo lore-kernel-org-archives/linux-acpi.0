@@ -1,7 +1,7 @@
 From: Eric Paris <eparis@redhat.com>
 Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
-Date: Wed, 26 Aug 2009 07:58:14 -0400
-Message-ID: <1251287895.2270.25.camel@dhcp231-106.rdu.redhat.com>
+Date: Wed, 26 Aug 2009 08:20:15 -0400
+Message-ID: <1251289215.10206.9.camel@dhcp231-106.rdu.redhat.com>
 References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
 	 <4A8EFFB2.4040100@suse.de>
 	 <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
@@ -9,12 +9,12 @@ References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
 	 <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
 	 <1251248426.3623.47.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-MUD/dW/s68FIv3icQ/5n"
+Content-Type: multipart/mixed; boundary="=-CbA4Uwyco8iXC5eeL1EQ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39646 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6536 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754576AbZHZL6Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Aug 2009 07:58:24 -0400
+	id S932741AbZHZMUl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Aug 2009 08:20:41 -0400
 In-Reply-To: <1251248426.3623.47.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,15 +22,17 @@ To: ykzhao <yakui.zhao@intel.com>
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "vegard.nossum@gmail.com" <vegard.nossum@gmail.com>
 
 
---=-MUD/dW/s68FIv3icQ/5n
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+--=-CbA4Uwyco8iXC5eeL1EQ
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
 On Wed, 2009-08-26 at 09:00 +0800, ykzhao wrote:
 > On Mon, 2009-08-24 at 22:36 +0800, Eric Paris wrote:
 > > On Sat, 2009-08-22 at 01:24 +0400, Alexey Starikovskiy wrote:
-> > > Eric Paris пишет:
 
+> > > Ok, let's see if replacing irqs_disabled() to 
+> > > in_atomic_preempt_off() helps... 
+> > 
 > > It does stop my slew of warnings.  Not sure it completely fixes my
 > > problems though....
 > Will you please add the boot option of initcall_debug and attach the
@@ -38,1510 +40,1308 @@ On Wed, 2009-08-26 at 09:00 +0800, ykzhao wrote:
 > It will be helpful if you can attach the output of acpidump.
 > Thanks.
 
-Here is booting a kernel without the change.  I don't see acpidump
-packaged in fedora.  Do you have a pointer to the source or maybe a
-static binary?  I'll look myself later in the afternoon.
+I found
+http://ftp.de.debian.org/debian/pool/main/a/acpidump/acpidump_20071116.orig.tar.gz
 
--Eric
+Hopefully that is good source code.....
 
---=-MUD/dW/s68FIv3icQ/5n
-Content-Disposition: attachment; filename="serial0.txt"
-Content-Type: text/plain; name="serial0.txt"; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Attached is ACPI dump....
 
-[    0.000000] Initializing cgroup subsys cpu
-[    0.000000] Linux version 2.6.31-rc7-next-20090825 (paris@paris.rdu.redhat.com) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-44)) #50 SMP PREEMPT Tue Aug 25 17:12:01 EDT 2009
-[    0.000000] Command line: ro root=/dev/VolGroup00/LogVol00 audit=1 console=tty0 console=ttyS0,9600 enforcing=0 initcall_debug
-[    0.000000] KERNEL supported cpus:
-[    0.000000]   Intel GenuineIntel
-[    0.000000]   AMD AuthenticAMD
-[    0.000000]   Centaur CentaurHauls
-[    0.000000] BIOS-provided physical RAM map:
-[    0.000000]  BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
-[    0.000000]  BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
-[    0.000000]  BIOS-e820: 00000000000ca000 - 00000000000cc000 (reserved)
-[    0.000000]  BIOS-e820: 00000000000dc000 - 00000000000e0000 (reserved)
-[    0.000000]  BIOS-e820: 00000000000e4000 - 0000000000100000 (reserved)
-[    0.000000]  BIOS-e820: 0000000000100000 - 000000007fef0000 (usable)
-[    0.000000]  BIOS-e820: 000000007fef0000 - 000000007feff000 (ACPI data)
-[    0.000000]  BIOS-e820: 000000007feff000 - 000000007ff00000 (ACPI NVS)
-[    0.000000]  BIOS-e820: 000000007ff00000 - 0000000080000000 (usable)
-[    0.000000]  BIOS-e820: 00000000fec00000 - 00000000fec10000 (reserved)
-[    0.000000]  BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
-[    0.000000]  BIOS-e820: 00000000fffe0000 - 0000000100000000 (reserved)
-[    0.000000] DMI present.
-[    0.000000] Phoenix BIOS detected: BIOS may corrupt low RAM, working around it.
-[    0.000000] last_pfn = 0x80000 max_arch_pfn = 0x400000000
-[    0.000000] x86 PAT enabled: cpu 0, old 0x0, new 0x7010600070106
-[    0.000000] Scanning 0 areas for low memory corruption
-[    0.000000] modified physical RAM map:
-[    0.000000]  modified: 0000000000000000 - 0000000000010000 (reserved)
-[    0.000000]  modified: 0000000000010000 - 000000000009f800 (usable)
-[    0.000000]  modified: 000000000009f800 - 00000000000a0000 (reserved)
-[    0.000000]  modified: 00000000000ca000 - 00000000000cc000 (reserved)
-[    0.000000]  modified: 00000000000dc000 - 00000000000e0000 (reserved)
-[    0.000000]  modified: 00000000000e4000 - 0000000000100000 (reserved)
-[    0.000000]  modified: 0000000000100000 - 000000007fef0000 (usable)
-[    0.000000]  modified: 000000007fef0000 - 000000007feff000 (ACPI data)
-[    0.000000]  modified: 000000007feff000 - 000000007ff00000 (ACPI NVS)
-[    0.000000]  modified: 000000007ff00000 - 0000000080000000 (usable)
-[    0.000000]  modified: 00000000fec00000 - 00000000fec10000 (reserved)
-[    0.000000]  modified: 00000000fee00000 - 00000000fee01000 (reserved)
-[    0.000000]  modified: 00000000fffe0000 - 0000000100000000 (reserved)
-[    0.000000] init_memory_mapping: 0000000000000000-0000000080000000
-[    0.000000] RAMDISK: 37c11000 - 37fef062
-[    0.000000] ACPI: RSDP 00000000000f6a30 00024 (v02 PTLTD )
-[    0.000000] ACPI: XSDT 000000007fefa138 0003C (v01 INTEL  440BX    06040000 VMW  01324272)
-[    0.000000] ACPI: FACP 000000007fefee98 000F4 (v04 INTEL  440BX    06040000 PTL  000F4240)
-[    0.000000] ACPI: DSDT 000000007fefa22a 04C6E (v01 PTLTD  Custom   06040000 MSFT 03000001)
-[    0.000000] ACPI: FACS 000000007fefffc0 00040
-[    0.000000] ACPI: BOOT 000000007fefa202 00028 (v01 PTLTD  $SBFTBL$ 06040000  LTP 00000001)
-[    0.000000] ACPI: APIC 000000007fefa1a4 0005E (v01 PTLTD  ? APIC   06040000  LTP 00000000)
-[    0.000000] No NUMA configuration found
-[    0.000000] Faking a node at 0000000000000000-0000000080000000
-[    0.000000] Bootmem setup node 0 0000000000000000-0000000080000000
-[    0.000000]   NODE_DATA [0000000000010000 - 0000000000027fff]
-[    0.000000]   bootmap [0000000000028000 -  0000000000037fff] pages 10
-[    0.000000] (7 early reservations) ==> bootmem [0000000000 - 0080000000]
-[    0.000000]   #0 [0000000000 - 0000001000]   BIOS data page ==> [0000000000 - 0000001000]
-[    0.000000]   #1 [0000006000 - 0000008000]       TRAMPOLINE ==> [0000006000 - 0000008000]
-[    0.000000]   #2 [0001000000 - 0002643830]    TEXT DATA BSS ==> [0001000000 - 0002643830]
-[    0.000000]   #3 [0037c11000 - 0037fef062]          RAMDISK ==> [0037c11000 - 0037fef062]
-[    0.000000]   #4 [000009f800 - 0000100000]    BIOS reserved ==> [000009f800 - 0000100000]
-[    0.000000]   #5 [0002644000 - 00026441e8]              BRK ==> [0002644000 - 00026441e8]
-[    0.000000]   #6 [0000100000 - 0000501000]          PGTABLE ==> [0000100000 - 0000501000]
-[    0.000000] found SMP MP-table at [ffff8800000f6aa0] f6aa0
-[    0.000000] Zone PFN ranges:
-[    0.000000]   DMA      0x00000010 -> 0x00001000
-[    0.000000]   DMA32    0x00001000 -> 0x00100000
-[    0.000000]   Normal   0x00100000 -> 0x00100000
-[    0.000000] Movable zone start PFN for each node
-[    0.000000] early_node_map[3] active PFN ranges
-[    0.000000]     0: 0x00000010 -> 0x0000009f
-[    0.000000]     0: 0x00000100 -> 0x0007fef0
-[    0.000000]     0: 0x0007ff00 -> 0x00080000
-[    0.000000] ACPI: PM-Timer IO Port: 0x1008
-[    0.000000] ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
-[    0.000000] ACPI: LAPIC (acpi_id[0x01] lapic_id[0x01] enabled)
-[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
-[    0.000000] ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
-[    0.000000] ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])
-[    0.000000] IOAPIC[0]: apic_id 2, version 17, address 0xfec00000, GSI 0-23
-[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 high edge)
-[    0.000000] Using ACPI (MADT) for SMP configuration information
-[    0.000000] SMP: Allowing 2 CPUs, 0 hotplug CPUs
-[    0.000000] Allocating PCI resources starting at 80000000 (gap: 80000000:7ec00000)
-[    0.000000] NR_CPUS:512 nr_cpumask_bits:512 nr_cpu_ids:2 nr_node_ids:1
-[    0.000000] PERCPU: Embedded 478 pages/cpu @ffff880006400000 s1927008 r8192 d22688 u2097152
-[    0.000000] Built 1 zonelists in Node order, mobility grouping on.  Total pages: 508699
-[    0.000000] Policy zone: DMA32
-[    0.000000] Kernel command line: ro root=/dev/VolGroup00/LogVol00 audit=1 console=tty0 console=ttyS0,9600 enforcing=0 initcall_debug
-[    0.000000] audit: enabled (after initialization)
-[    0.000000] PID hash table entries: 4096 (order: 12, 32768 bytes)
-[    0.000000] Initializing CPU#0
-[    0.000000] Checking aperture...
-[    0.000000] No AGP bridge found
-[    0.000000] Memory: 2004256k/2097152k available (5332k kernel code, 516k absent, 92380k reserved, 2789k data, 3304k init)
-[    0.000000] SLUB: Genslabs=14, HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
-[    0.000000] Hierarchical RCU implementation.
-[    0.000000] RCU-based detection of stalled CPUs is enabled.
-[    0.000000] NR_IRQS:4352 nr_irqs:424
-[    0.000000] Extended CMOS year: 2000
-[    0.000000] TSC: Frequency read from the hypervisor
-[    0.000000] Detected 2666.725 MHz processor.
-[    0.000999] Console: colour VGA+ 80x25
-[    0.000999] console [tty0] enabled
-[    0.000999] console [ttyS0] enabled
-[    0.000999] Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-[    0.000999] ... MAX_LOCKDEP_SUBCLASSES:  8
-[    0.000999] ... MAX_LOCK_DEPTH:          48
-[    0.000999] ... MAX_LOCKDEP_KEYS:        8191
-[    0.000999] ... CLASSHASH_SIZE:          4096
-[    0.000999] ... MAX_LOCKDEP_ENTRIES:     16384
-[    0.000999] ... MAX_LOCKDEP_CHAINS:      32768
-[    0.000999] ... CHAINHASH_SIZE:          16384
-[    0.000999]  memory used by lock dependency info: 6367 kB
-[    0.000999]  per task-struct memory footprint: 2688 bytes
-[    0.001084] Calibrating delay loop (skipped), value calculated using timer frequency.. 5333.45 BogoMIPS (lpj=2666725)
-[    0.003531] Security Framework initialized
-[    0.004098] SELinux:  Initializing.
-[    0.006088] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
-[    0.009618] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes)
-[    0.011232] Mount-cache hash table entries: 256
-[    0.017461] Initializing cgroup subsys ns
-[    0.018056] Initializing cgroup subsys cpuacct
-[    0.019032] Initializing cgroup subsys devices
-[    0.020067] Initializing cgroup subsys freezer
-[    0.021220] CPU: L1 I cache: 32K, L1 D cache: 32K
-[    0.023008] CPU: L2 cache: 4096K
-[    0.024032] CPU 0/0x0 -> Node 0
-[    0.025048] mce: CPU supports 0 MCE banks
-[    0.026066] Performance Counters: Core2 events, Intel PMU driver.
-[    0.028037] ... version:                 2
-[    0.029007] ... bit width:               40
-[    0.030008] ... generic counters:        2
-[    0.031006] ... value mask:              000000ffffffffff
-[    0.032015] ... max period:              000000007fffffff
-[    0.033006] ... fixed-purpose counters:  3
-[    0.034006] ... counter mask:            0000000700000003
-[    0.040889] ACPI: Core revision 20090625
-[    0.042363] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.043100] no locks held by swapper/0.
-[    0.044004] Modules linked in:
-[    0.045384] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.046004] Call Trace:
-[    0.047055]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.048031]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.049027]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.050007]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.051016]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.052007]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.053014]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.054006]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.055019]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.056005]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.057009]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.058005]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.059039]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.060004]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.061006]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.062004]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.063017]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.064004]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.065004]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.066004]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.071009] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.072070] no locks held by swapper/0.
-[    0.072999] Modules linked in:
-[    0.075000] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.076008] Call Trace:
-[    0.077003]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.078002]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.079017]  [<ffffffff812d184c>] ? acpi_os_release_object+0x1e/0x34
-[    0.080010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.081001]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.082001]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.083001]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.084009]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.085001]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.086001]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.087000]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.088008]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.089001]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.090000]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.091000]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.092007]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.092999]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.094000]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.094999]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.096007]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.100015] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.101150] no locks held by swapper/0.
-[    0.102116] Modules linked in:
-[    0.103368] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.103994] Call Trace:
-[    0.105007]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.105998]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.106997]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.108011]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.109005]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.109997]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.110997]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.111997]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.113004]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.113997]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.114996]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.115995]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.117004]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.117996]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.118995]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.119996]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.121004]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.121995]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.122995]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.123995]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.125003]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.129042] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.130154] no locks held by swapper/0.
-[    0.131100] Modules linked in:
-[    0.132538] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.132990] Call Trace:
-[    0.134004]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.134994]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.135994]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.136993]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.138000]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.138993]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.139993]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.140992]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.142000]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.143006]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.143992]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.144991]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.146000]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.146992]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.147991]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.148992]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.149999]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.150991]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.151991]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.152991]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.153998]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.158069] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.159139] no locks held by swapper/0.
-[    0.160068] Modules linked in:
-[    0.161359] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.161986] Call Trace:
-[    0.162998]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.163989]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.164989]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.165988]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.166996]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.167988]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.168988]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.169988]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.170995]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.171988]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.172988]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.173987]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.174995]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.175987]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.176986]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.177987]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.178994]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.179986]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.181984]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.182994]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.183985]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.187043] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.188138] no locks held by swapper/0.
-[    0.188991] Modules linked in:
-[    0.191384] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.191990] Call Trace:
-[    0.192986]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.193992]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.194984]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.195992]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.196984]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.197983]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.198983]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.199991]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.200983]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.201983]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.202983]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.203990]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.204983]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.205983]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.206982]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.207991]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.208982]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.209982]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.211991]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.212981]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.213981]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.216058] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.217098] no locks held by swapper/0.
-[    0.217977] Modules linked in:
-[    0.219978] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.220985] Call Trace:
-[    0.221981]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.222980]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.223980]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.224987]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.225979]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.226979]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.227979]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.228986]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.229978]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.230979]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.231978]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.232986]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.233978]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.234978]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.235977]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.236986]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.237978]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.238977]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.239977]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.240985]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.241977]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.245100] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.247013] no locks held by swapper/0.
-[    0.247972] Modules linked in:
-[    0.249345] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.249981] Call Trace:
-[    0.250976]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.251976]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.252975]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.253999]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.254975]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.255975]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.256975]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.257982]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.258974]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.259974]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.260974]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.261981]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.262974]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.263976]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.264975]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.266016]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.266976]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.267971]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.268971]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.269976]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.270969]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.274050] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.275099] no locks held by swapper/0.
-[    0.275966] Modules linked in:
-[    0.276967] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.277966] Call Trace:
-[    0.278977]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.279970]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.280978]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.281967]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.282973]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.283967]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.284967]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.285966]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.286972]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.287967]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.288966]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.289966]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.290972]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.291966]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.292965]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.293966]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.294971]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.295965]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.296965]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.297965]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.298970]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.303341] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.304090] no locks held by swapper/0.
-[    0.305004] Modules linked in:
-[    0.306241] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.306961] Call Trace:
-[    0.307972]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.308964]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.309963]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.310962]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.311969]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.312963]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.313962]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.314962]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.315968]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.316982]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.318002]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.319007]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.320016]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.321011]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.322010]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.323011]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.324016]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.325011]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.326010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.327010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.328017]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.332064] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.333135] no locks held by swapper/0.
-[    0.334135] Modules linked in:
-[    0.335297] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.336008] Call Trace:
-[    0.337018]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.338011]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.339010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.340010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.341016]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.342010]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.343010]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.344010]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.345016]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.346011]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.347010]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.348010]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.349017]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.350011]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.351020]  [<ffffffff812f3a57>] acpi_ns_parse_table+0x2f/0x60
-[    0.352011]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.353017]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.354010]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.355010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.356010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.357016]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.361100] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.362134] no locks held by swapper/0.
-[    0.363116] Modules linked in:
-[    0.364009] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.365008] Call Trace:
-[    0.366018]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.367011]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.368011]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.369010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.370016]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.371010]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.372010]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.373010]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.374017]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.375011]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.376010]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.377010]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.378017]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.379011]  [<ffffffff812f3a6b>] acpi_ns_parse_table+0x43/0x60
-[    0.380011]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.381011]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.382016]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.383010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.384010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.385010]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.390023] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.391266] no locks held by swapper/0.
-[    0.392118] Modules linked in:
-[    0.393305] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.394008] Call Trace:
-[    0.395017]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.396011]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.397010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.398010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.399016]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.400010]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.401011]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.402010]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.403016]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.404011]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.405010]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.406010]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.407016]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.408011]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.409010]  [<ffffffff812f3a6b>] acpi_ns_parse_table+0x43/0x60
-[    0.410011]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.411016]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.412010]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.413010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.414010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.415016]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.419061] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.420130] no locks held by swapper/0.
-[    0.421116] Modules linked in:
-[    0.422063] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.423008] Call Trace:
-[    0.424018]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.425012]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.426011]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.427010]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.428016]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.429011]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.430010]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.431013]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.432017]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.433011]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.434011]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.435010]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.436017]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.437011]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.438010]  [<ffffffff812f3a6b>] acpi_ns_parse_table+0x43/0x60
-[    0.439011]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.440016]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.441010]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.442010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.443010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.444016]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.448022] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.449145] no locks held by swapper/0.
-[    0.450117] Modules linked in:
-[    0.451299] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.452008] Call Trace:
-[    0.453018]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.454011]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.455010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.456010]  [<ffffffff812f641b>] ? acpi_ps_free_op+0x35/0x4b
-[    0.457017]  [<ffffffff812f5f65>] ? acpi_ps_delete_parse_tree+0x51/0x84
-[    0.458011]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.459010]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.460010]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.461016]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.462011]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.463010]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.464010]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.465016]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.466011]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.467010]  [<ffffffff812f3a6b>] acpi_ns_parse_table+0x43/0x60
-[    0.468010]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.469016]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.470010]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.471010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.472010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.473016]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.477582] BUG: scheduling while atomic: swapper/0/0x10000002
-[    0.478130] no locks held by swapper/0.
-[    0.479120] Modules linked in:
-[    0.480294] Pid: 0, comm: swapper Not tainted 2.6.31-rc7-next-20090825 #50
-[    0.481008] Call Trace:
-[    0.482018]  [<ffffffff81058ba5>] __schedule_bug+0xa5/0xb0
-[    0.483011]  [<ffffffff81528dd5>] thread_return+0x794/0x93f
-[    0.484010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.485010]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.486017]  [<ffffffff812d184a>] ? acpi_os_release_object+0x1c/0x34
-[    0.487011]  [<ffffffff810624d6>] __cond_resched+0x26/0x50
-[    0.488010]  [<ffffffff8152911a>] _cond_resched+0x4a/0x60
-[    0.489011]  [<ffffffff812f5541>] acpi_ps_complete_op+0x239/0x25b
-[    0.490017]  [<ffffffff812f5c36>] acpi_ps_parse_loop+0x6d3/0x89d
-[    0.491011]  [<ffffffff812fdac5>] ? acpi_ut_create_generic_state+0x5d/0x7f
-[    0.492010]  [<ffffffff812f4dab>] acpi_ps_parse_aml+0xab/0x32d
-[    0.493010]  [<ffffffff812e2dca>] ? acpi_ds_init_aml_walk+0x10f/0x12e
-[    0.494016]  [<ffffffff812f39f9>] acpi_ns_one_complete_parse+0xf9/0x128
-[    0.495011]  [<ffffffff817fa140>] ? early_idt_handler+0x0/0x71
-[    0.496010]  [<ffffffff812f3a6b>] acpi_ns_parse_table+0x43/0x60
-[    0.497011]  [<ffffffff812f03a9>] acpi_ns_load_table+0x59/0xb8
-[    0.498016]  [<ffffffff812f867d>] acpi_load_tables+0x80/0x161
-[    0.499010]  [<ffffffff81836eb0>] acpi_early_init+0x71/0x11d
-[    0.500010]  [<ffffffff817faf6a>] start_kernel+0x39a/0x4a0
-[    0.501010]  [<ffffffff817fa2e1>] x86_64_start_reservations+0xc1/0x100
-[    0.502016]  [<ffffffff817fa428>] x86_64_start_kernel+0x108/0x150
-[    0.510434] Setting APIC routing to flat
-[    0.513000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-[    0.524182] CPU0: Intel(R) Xeon(R) CPU           X5355  @ 2.66GHz stepping 07
-[    0.528000] calling  kmemcheck_init+0x0/0x90 @ 1
-[    0.528013] kmemcheck: Limiting number of CPUs to 1.
-[    0.530014] kmemcheck: Initialized
-[    0.531017] initcall kmemcheck_init+0x0/0x90 returned 0 after 2929 usecs
-[    0.532000] calling  migration_init+0x0/0x80 @ 1
-[    0.534486] initcall migration_init+0x0/0x80 returned 0 after 0 usecs
-[    0.535000] calling  spawn_ksoftirqd+0x0/0x80 @ 1
-[    0.537134] initcall spawn_ksoftirqd+0x0/0x80 returned 0 after 976 usecs
-[    0.539028] calling  init_call_single_data+0x0/0x110 @ 1
-[    0.541021] initcall init_call_single_data+0x0/0x110 returned 0 after 0 usecs
-[    0.542000] calling  spawn_softlockup_task+0x0/0xa0 @ 1
-[    0.544166] initcall spawn_softlockup_task+0x0/0xa0 returned 0 after 0 usecs
-[    0.545000] calling  relay_init+0x0/0x40 @ 1
-[    0.546000] initcall relay_init+0x0/0x40 returned 0 after 0 usecs
-[    0.547453] calling  tracer_alloc_buffers+0x0/0x230 @ 1
-[    0.549197] initcall tracer_alloc_buffers+0x0/0x230 returned 0 after 976 usecs
-[    0.551016] calling  init_trace_printk+0x0/0x40 @ 1
-[    0.552000] initcall init_trace_printk+0x0/0x40 returned 0 after 0 usecs
-[    0.553000] Brought up 1 CPUs
-[    0.555011] Total of 1 processors activated (5333.45 BogoMIPS).
-[    0.571095] khelper used greatest stack depth: 4528 bytes left
-[    0.576472] calling  init_mmap_min_addr+0x0/0x40 @ 1
-[    0.577000] initcall init_mmap_min_addr+0x0/0x40 returned 0 after 0 usecs
-[    0.578000] calling  net_ns_init+0x0/0x120 @ 1
-[    0.580612] initcall net_ns_init+0x0/0x120 returned 0 after 0 usecs
-[    0.582154] calling  pci_reboot_init+0x0/0x40 @ 1
-[    0.583000] initcall pci_reboot_init+0x0/0x40 returned 0 after 0 usecs
-[    0.584000] calling  init_lapic_sysfs+0x0/0x60 @ 1
-[    0.587699] initcall init_lapic_sysfs+0x0/0x60 returned 0 after 1953 usecs
-[    0.589157] calling  print_banner+0x0/0x10 @ 1
-[    0.590000] Booting paravirtualized kernel on bare hardware
-[    0.591000] initcall print_banner+0x0/0x10 returned 0 after 976 usecs
-[    0.592000] calling  init_smp_flush+0x0/0x70 @ 1
-[    0.593000] initcall init_smp_flush+0x0/0x70 returned 0 after 0 usecs
-[    0.595028] calling  alloc_frozen_cpus+0x0/0x30 @ 1
-[    0.596000] initcall alloc_frozen_cpus+0x0/0x30 returned 0 after 0 usecs
-[    0.597000] calling  sysctl_init+0x0/0x60 @ 1
-[    0.599365] initcall sysctl_init+0x0/0x60 returned 0 after 0 usecs
-[    0.600000] calling  ksysfs_init+0x0/0xf0 @ 1
-[    0.602133] initcall ksysfs_init+0x0/0xf0 returned 0 after 976 usecs
-[    0.603000] calling  async_init+0x0/0x90 @ 1
-[    0.605731] initcall async_init+0x0/0x90 returned 0 after 976 usecs
-[    0.607141] calling  init_jiffies_clocksource+0x0/0x40 @ 1
-[    0.608000] initcall init_jiffies_clocksource+0x0/0x40 returned 0 after 0 usecs
-[    0.609010] calling  pm_init+0x0/0xa0 @ 1
-[    0.611311] initcall pm_init+0x0/0xa0 returned 0 after 0 usecs
-[    0.613079] calling  init_hw_breakpoint+0x0/0x40 @ 1
-[    0.615021] initcall init_hw_breakpoint+0x0/0x40 returned 0 after 0 usecs
-[    0.616000] calling  filelock_init+0x0/0x60 @ 1
-[    0.618081] initcall filelock_init+0x0/0x60 returned 0 after 0 usecs
-[    0.619000] calling  init_misc_binfmt+0x0/0x70 @ 1
-[    0.620000] initcall init_misc_binfmt+0x0/0x70 returned 0 after 0 usecs
-[    0.621000] calling  init_script_binfmt+0x0/0x40 @ 1
-[    0.623012] initcall init_script_binfmt+0x0/0x40 returned 0 after 0 usecs
-[    0.624000] calling  init_elf_binfmt+0x0/0x40 @ 1
-[    0.625000] initcall init_elf_binfmt+0x0/0x40 returned 0 after 0 usecs
-[    0.626000] calling  init_compat_elf_binfmt+0x0/0x40 @ 1
-[    0.627000] initcall init_compat_elf_binfmt+0x0/0x40 returned 0 after 0 usecs
-[    0.628000] calling  debugfs_init+0x0/0x90 @ 1
-[    0.630072] initcall debugfs_init+0x0/0x90 returned 0 after 976 usecs
-[    0.632011] calling  securityfs_init+0x0/0x80 @ 1
-[    0.634036] initcall securityfs_init+0x0/0x80 returned 0 after 976 usecs
-[    0.635000] calling  random32_init+0x0/0x150 @ 1
-[    0.636000] initcall random32_init+0x0/0x150 returned 0 after 0 usecs
-[    0.637000] calling  gnttab_init+0x0/0x1f0 @ 1
-[    0.638000] initcall gnttab_init+0x0/0x1f0 returned -19 after 0 usecs
-[    0.639000] calling  early_resume_init+0x0/0x1e0 @ 1
-[    0.641106] Time:  7:49:32  Date: 08/26/09
-[    0.643012] initcall early_resume_init+0x0/0x1e0 returned 0 after 1953 usecs
-[    0.645010] calling  cpuidle_init+0x0/0x70 @ 1
-[    0.647089] initcall cpuidle_init+0x0/0x70 returned 0 after 0 usecs
-[    0.648000] calling  sock_init+0x0/0x90 @ 1
-[    0.651307] initcall sock_init+0x0/0x90 returned 0 after 1953 usecs
-[    0.652401] calling  net_inuse_init+0x0/0x50 @ 1
-[    0.654024] initcall net_inuse_init+0x0/0x50 returned 0 after 976 usecs
-[    0.655000] calling  netpoll_init+0x0/0x70 @ 1
-[    0.656000] initcall netpoll_init+0x0/0x70 returned 0 after 0 usecs
-[    0.658017] calling  netlink_proto_init+0x0/0x220 @ 1
-[    0.660403] NET: Registered protocol family 16
-[    0.662296] initcall netlink_proto_init+0x0/0x220 returned 0 after 1953 usecs
-[    0.664011] calling  bdi_class_init+0x0/0x70 @ 1
-[    0.667767] initcall bdi_class_init+0x0/0x70 returned 0 after 976 usecs
-[    0.668000] calling  kobject_uevent_init+0x0/0x80 @ 1
-[    0.670084] initcall kobject_uevent_init+0x0/0x80 returned 0 after 0 usecs
-[    0.672011] calling  pcibus_class_init+0x0/0x50 @ 1
-[    0.675501] initcall pcibus_class_init+0x0/0x50 returned 0 after 1953 usecs
-[    0.677029] calling  pci_driver_init+0x0/0x40 @ 1
-[    0.682073] initcall pci_driver_init+0x0/0x40 returned 0 after 2929 usecs
-[    0.683000] calling  xenbus_probe_init+0x0/0x140 @ 1
-[    0.684000] initcall xenbus_probe_init+0x0/0x140 returned -19 after 0 usecs
-[    0.685000] calling  tty_class_init+0x0/0x60 @ 1
-[    0.688279] initcall tty_class_init+0x0/0x60 returned 0 after 1953 usecs
-[    0.690076] calling  vtconsole_class_init+0x0/0x110 @ 1
-[    0.694197] initcall vtconsole_class_init+0x0/0x110 returned 0 after 2929 usecs
-[    0.695011] calling  register_node_type+0x0/0xa0 @ 1
-[    0.697618] initcall register_node_type+0x0/0xa0 returned 0 after 0 usecs
-[    0.699152] calling  amd_postcore_init+0x0/0x9d0 @ 1
-[    0.700000] initcall amd_postcore_init+0x0/0x9d0 returned 0 after 0 usecs
-[    0.702018] calling  arch_kdebugfs_init+0x0/0x2e0 @ 1
-[    0.704329] initcall arch_kdebugfs_init+0x0/0x2e0 returned 0 after 0 usecs
-[    0.705000] calling  mtrr_if_init+0x0/0x90 @ 1
-[    0.707061] initcall mtrr_if_init+0x0/0x90 returned 0 after 0 usecs
-[    0.708000] calling  ffh_cstate_init+0x0/0x60 @ 1
-[    0.710022] initcall ffh_cstate_init+0x0/0x60 returned 0 after 0 usecs
-[    0.711000] calling  acpi_pci_init+0x0/0xa0 @ 1
-[    0.713082] ACPI: bus type pci registered
-[    0.714000] initcall acpi_pci_init+0x0/0xa0 returned 0 after 976 usecs
-[    0.715514] calling  setup_vcpu_hotplug_event+0x0/0x50 @ 1
-[    0.716000] initcall setup_vcpu_hotplug_event+0x0/0x50 returned -19 after 0 usecs
-[    0.717010] calling  dmi_id_init+0x0/0x3d0 @ 1
-[    0.721569] initcall dmi_id_init+0x0/0x3d0 returned 0 after 2929 usecs
-[    0.723082] calling  dma_bus_init+0x0/0x70 @ 1
-[    0.726244] initcall dma_bus_init+0x0/0x70 returned 0 after 1953 usecs
-[    0.728094] calling  dma_channel_table_init+0x0/0x150 @ 1
-[    0.730015] initcall dma_channel_table_init+0x0/0x150 returned 0 after 976 usecs
-[    0.732020] calling  pci_arch_init+0x0/0x90 @ 1
-[    0.734172] PCI: Using configuration type 1 for base access
-[    0.735000] initcall pci_arch_init+0x0/0x90 returned 0 after 976 usecs
-[    0.736000] calling  topology_init+0x0/0x100 @ 1
-[    0.740608] initcall topology_init+0x0/0x100 returned 0 after 2929 usecs
-[    0.742116] calling  mtrr_init_finialize+0x0/0x70 @ 1
-[    0.743000] initcall mtrr_init_finialize+0x0/0x70 returned 0 after 0 usecs
-[    0.744000] calling  param_sysfs_init+0x0/0x2c0 @ 1
-[    0.840433] initcall param_sysfs_init+0x0/0x2c0 returned 0 after 92773 usecs
-[    0.842182] calling  pm_sysrq_init+0x0/0x50 @ 1
-[    0.843000] initcall pm_sysrq_init+0x0/0x50 returned 0 after 0 usecs
-[    0.845020] calling  init_slow_work+0x0/0x60 @ 1
-[    0.847012] initcall init_slow_work+0x0/0x60 returned 0 after 0 usecs
-[    0.848000] calling  default_bdi_init+0x0/0x60 @ 1
-[    0.851849] initcall default_bdi_init+0x0/0x60 returned 0 after 1953 usecs
-[    0.853154] calling  init_bio+0x0/0x1b0 @ 1
-[    0.855544] bio: create slab <bio-0> at 0
-[    0.857387] initcall init_bio+0x0/0x1b0 returned 0 after 2929 usecs
-[    0.858000] calling  fsnotify_init+0x0/0x40 @ 1
-[    0.859000] initcall fsnotify_init+0x0/0x40 returned 0 after 0 usecs
-[    0.861020] calling  fsnotify_notification_init+0x0/0xb0 @ 1
-[    0.862000] initcall fsnotify_notification_init+0x0/0xb0 returned 0 after 0 usecs
-[    0.863000] calling  cryptomgr_init+0x0/0x40 @ 1
-[    0.865035] initcall cryptomgr_init+0x0/0x40 returned 0 after 0 usecs
-[    0.866000] calling  blk_settings_init+0x0/0x60 @ 1
-[    0.867000] initcall blk_settings_init+0x0/0x60 returned 0 after 0 usecs
-[    0.868000] calling  blk_ioc_init+0x0/0x60 @ 1
-[    0.869000] initcall blk_ioc_init+0x0/0x60 returned 0 after 0 usecs
-[    0.870000] calling  blk_softirq_init+0x0/0xe0 @ 1
-[    0.872015] initcall blk_softirq_init+0x0/0xe0 returned 0 after 0 usecs
-[    0.874011] calling  blk_iopoll_setup+0x0/0xe0 @ 1
-[    0.875000] initcall blk_iopoll_setup+0x0/0xe0 returned 0 after 0 usecs
-[    0.876000] calling  genhd_device_init+0x0/0xb0 @ 1
-[    0.879790] initcall genhd_device_init+0x0/0xb0 returned 0 after 1953 usecs
-[    0.881069] calling  blk_dev_integrity_init+0x0/0x60 @ 1
-[    0.883039] initcall blk_dev_integrity_init+0x0/0x60 returned 0 after 0 usecs
-[    0.885039] calling  pci_slot_init+0x0/0x70 @ 1
-[    0.887034] initcall pci_slot_init+0x0/0x70 returned 0 after 976 usecs
-[    0.889019] calling  fbmem_init+0x0/0xd0 @ 1
-[    0.892401] initcall fbmem_init+0x0/0xd0 returned 0 after 1953 usecs
-[    0.894035] calling  acpi_init+0x0/0x283 @ 1
-[    1.019398] ACPI: BIOS _OSI(Linux) query ignored
-[    1.039253] ACPI: Interpreter enabled
-[    1.041032] ACPI: (supports S0 S1 S5)
-[    1.044060] ACPI: Using IOAPIC for interrupt routing
-[    1.198752] initcall acpi_init+0x0/0x283 returned 0 after 295898 usecs
-[    1.199000] calling  dock_init+0x0/0xb4 @ 1
-[    1.202919] ACPI: No dock devices found.
-[    1.203000] initcall dock_init+0x0/0xb4 returned 0 after 2929 usecs
-[    1.205012] calling  acpi_pci_root_init+0x0/0x4f @ 1
-[    1.245341] ACPI: PCI Root Bridge [PCI0] (0000:00)
-[    1.254333] pci 0000:00:07.3: quirk: region 1000-103f claimed by PIIX4 ACPI
-[    1.256010] pci 0000:00:07.3: quirk: region 1040-104f claimed by PIIX4 SMB
-[    1.270391] pci 0000:00:11.0: transparent bridge
-[    1.381990] initcall acpi_pci_root_init+0x0/0x4f returned 0 after 170898 usecs
-[    1.383129] calling  acpi_pci_link_init+0x0/0x6a @ 1
-[    1.387659] ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 11 14 15) *0, disabled.
-[    1.395530] ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *9 10 11 14 15)
-[    1.401910] ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 *11 14 15)
-[    1.407894] ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 11 14 15) *0, disabled.
-[    1.414000] initcall acpi_pci_link_init+0x0/0x6a returned 0 after 28320 usecs
-[    1.415168] calling  pnp_init+0x0/0x40 @ 1
-[    1.418358] initcall pnp_init+0x0/0x40 returned 0 after 976 usecs
-[    1.419001] calling  setup_shutdown_event+0x0/0x40 @ 1
-[    1.420001] initcall setup_shutdown_event+0x0/0x40 returned 0 after 0 usecs
-[    1.422021] calling  balloon_init+0x0/0x240 @ 1
-[    1.423001] initcall balloon_init+0x0/0x240 returned -19 after 0 usecs
-[    1.424001] calling  misc_init+0x0/0xe0 @ 1
-[    1.426669] initcall misc_init+0x0/0xe0 returned 0 after 976 usecs
-[    1.428086] calling  vga_arb_device_init+0x0/0xb0 @ 1
-[    1.432527] vgaarb: device added: PCI:0000:00:0f.0,decodes=io+mem,owns=io+mem,locks=none
-[    1.434076] vgaarb: loaded
-[    1.435011] initcall vga_arb_device_init+0x0/0xb0 returned 0 after 5859 usecs
-[    1.436001] calling  cn_init+0x0/0x120 @ 1
-[    1.438277] initcall cn_init+0x0/0x120 returned 0 after 976 usecs
-[    1.439001] calling  init_scsi+0x0/0xd0 @ 1
-[    1.445580] SCSI subsystem initialized
-[    1.447108] initcall init_scsi+0x0/0xd0 returned 0 after 5859 usecs
-[    1.448001] calling  ata_init+0x0/0x3d0 @ 1
-[    1.450443] initcall ata_init+0x0/0x3d0 returned 0 after 976 usecs
-[    1.452152] calling  init_pcmcia_cs+0x0/0x70 @ 1
-[    1.454552] initcall init_pcmcia_cs+0x0/0x70 returned 0 after 976 usecs
-[    1.456076] calling  usb_init+0x0/0x1d0 @ 1
-[    1.460768] usbcore: registered new interface driver usbfs
-[    1.463469] usbcore: registered new interface driver hub
-[    1.466848] usbcore: registered new device driver usb
-[    1.468069] initcall usb_init+0x0/0x1d0 returned 0 after 10742 usecs
-[    1.470012] calling  serio_init+0x0/0xd0 @ 1
-[    1.473486] initcall serio_init+0x0/0xd0 returned 0 after 1953 usecs
-[    1.475082] calling  input_init+0x0/0x180 @ 1
-[    1.478259] initcall input_init+0x0/0x180 returned 0 after 1953 usecs
-[    1.479001] calling  rtc_init+0x0/0xa0 @ 1
-[    1.482235] initcall rtc_init+0x0/0xa0 returned 0 after 1953 usecs
-[    1.484126] calling  power_supply_class_init+0x0/0x60 @ 1
-[    1.487103] initcall power_supply_class_init+0x0/0x60 returned 0 after 1953 usecs
-[    1.488001] calling  thermal_init+0x0/0x80 @ 1
-[    1.491463] initcall thermal_init+0x0/0x80 returned 0 after 1953 usecs
-[    1.493165] calling  md_init+0x0/0x110 @ 1
-[    1.495133] initcall md_init+0x0/0x110 returned 0 after 0 usecs
-[    1.496001] calling  pci_subsys_init+0x0/0x170 @ 1
-[    1.497001] PCI: Using ACPI for IRQ routing
-[    1.500503] initcall pci_subsys_init+0x0/0x170 returned 0 after 2929 usecs
-[    1.501001] calling  proto_init+0x0/0x40 @ 1
-[    1.502001] initcall proto_init+0x0/0x40 returned 0 after 0 usecs
-[    1.503001] calling  net_dev_init+0x0/0x230 @ 1
-[    1.509798] initcall net_dev_init+0x0/0x230 returned 0 after 4882 usecs
-[    1.511066] calling  neigh_init+0x0/0xa0 @ 1
-[    1.513011] initcall neigh_init+0x0/0xa0 returned 0 after 0 usecs
-[    1.514001] calling  fib_rules_init+0x0/0xd0 @ 1
-[    1.516030] initcall fib_rules_init+0x0/0xd0 returned 0 after 0 usecs
-[    1.517001] calling  pktsched_init+0x0/0xf0 @ 1
-[    1.519057] initcall pktsched_init+0x0/0xf0 returned 0 after 976 usecs
-[    1.521012] calling  tc_filter_init+0x0/0x80 @ 1
-[    1.522001] initcall tc_filter_init+0x0/0x80 returned 0 after 0 usecs
-[    1.523001] calling  tc_action_init+0x0/0x80 @ 1
-[    1.524001] initcall tc_action_init+0x0/0x80 returned 0 after 0 usecs
-[    1.525001] calling  genl_init+0x0/0xc0 @ 1
-[    1.527242] initcall genl_init+0x0/0xc0 returned 0 after 976 usecs
-[    1.528001] calling  cipso_v4_init+0x0/0xb0 @ 1
-[    1.530073] initcall cipso_v4_init+0x0/0xb0 returned 0 after 976 usecs
-[    1.531001] calling  netlbl_init+0x0/0xc0 @ 1
-[    1.532001] NetLabel: Initializing
-[    1.533001] NetLabel:  domain hash size = 128
-[    1.534001] NetLabel:  protocols = UNLABELED CIPSOv4
-[    1.536352] NetLabel:  unlabeled traffic allowed by default
-[    1.538012] initcall netlbl_init+0x0/0xc0 returned 0 after 5859 usecs
-[    1.539001] calling  sysctl_init+0x0/0x70 @ 1
-[    1.541015] initcall sysctl_init+0x0/0x70 returned 0 after 0 usecs
-[    1.542001] calling  pci_iommu_init+0x0/0x50 @ 1
-[    1.544265] initcall pci_iommu_init+0x0/0x50 returned 0 after 976 usecs
-[    1.546012] calling  print_all_ICs+0x0/0x5c0 @ 1
-[    1.548029] initcall print_all_ICs+0x0/0x5c0 returned 0 after 0 usecs
-[    1.549001] calling  hpet_late_init+0x0/0x270 @ 1
-[    1.551017] initcall hpet_late_init+0x0/0x270 returned -19 after 0 usecs
-[    1.552001] calling  clocksource_done_booting+0x0/0x50 @ 1
-[    1.554022] Switching to clocksource tsc
-[    1.557676] initcall clocksource_done_booting+0x0/0x50 returned 0 after 3245 usecs
-[    1.565392] calling  rb_init_debugfs+0x0/0x60 @ 1
-[    1.567857] initcall rb_init_debugfs+0x0/0x60 returned 0 after 129 usecs
-[    1.571075] calling  tracer_init_debugfs+0x0/0x380 @ 1
-[    1.576649] initcall tracer_init_debugfs+0x0/0x380 returned 0 after 3049 usecs
-[    1.580314] calling  init_trace_printk_function_export+0x0/0x60 @ 1
-[    1.583254] initcall init_trace_printk_function_export+0x0/0x60 returned 0 after 54 usecs
-[    1.587116] calling  event_trace_init+0x0/0x260 @ 1
-[    1.657886] initcall event_trace_init+0x0/0x260 returned 0 after 66808 usecs
-[    1.661177] calling  init_pipe_fs+0x0/0x80 @ 1
-[    1.663836] initcall init_pipe_fs+0x0/0x80 returned 0 after 508 usecs
-[    1.666811] calling  eventpoll_init+0x0/0xe0 @ 1
-[    1.669149] initcall eventpoll_init+0x0/0xe0 returned 0 after 76 usecs
-[    1.672306] calling  anon_inode_init+0x0/0x170 @ 1
-[    1.675025] initcall anon_inode_init+0x0/0x170 returned 0 after 415 usecs
-[    1.678140] calling  tomoyo_initerface_init+0x0/0x150 @ 1
-[    1.680689] initcall tomoyo_initerface_init+0x0/0x150 returned 0 after 4 usecs
-[    1.684368] calling  blk_scsi_ioctl_init+0x0/0x2b0 @ 1
-[    1.686788] initcall blk_scsi_ioctl_init+0x0/0x2b0 returned 0 after 5 usecs
-[    1.690362] calling  acpi_event_init+0x0/0xa7 @ 1
-[    1.693108] initcall acpi_event_init+0x0/0xa7 returned 0 after 286 usecs
-[    1.696150] calling  pnpacpi_init+0x0/0xc0 @ 1
-[    1.698301] pnp: PnP ACPI init
-[    1.700097] ACPI: bus type pnp registered
-[    1.895252] pnp: PnP ACPI: found 12 devices
-[    1.897445] ACPI: ACPI bus type pnp unregistered
-[    1.899742] initcall pnpacpi_init+0x0/0xc0 returned 0 after 196680 usecs
-[    1.902832] calling  pnp_system_init+0x0/0x40 @ 1
-[    1.905463] system 00:01: ioport range 0x1000-0x103f has been reserved
-[    1.908491] system 00:01: ioport range 0x1040-0x104f has been reserved
-[    1.912124] initcall pnp_system_init+0x0/0x40 returned 0 after 6730 usecs
-[    1.915592] calling  chr_dev_init+0x0/0xf0 @ 1
-[    1.928380] initcall chr_dev_init+0x0/0xf0 returned 0 after 10340 usecs
-[    1.931547] calling  firmware_class_init+0x0/0xb0 @ 1
-[    1.934674] initcall firmware_class_init+0x0/0xb0 returned 0 after 699 usecs
-[    1.937989] calling  init_acpi_pm_clocksource+0x0/0x130 @ 1
-[    1.945217] initcall init_acpi_pm_clocksource+0x0/0x130 returned 0 after 4538 usecs
-[    1.948907] calling  pcibios_assign_resources+0x0/0xb0 @ 1
-[    1.951967] pci 0000:00:01.0: PCI bridge, secondary bus 0000:01
-[    1.954850] pci 0000:00:01.0:   IO window: disabled
-[    1.957425] pci 0000:00:01.0:   MEM window: disabled
-[    1.959833] pci 0000:00:01.0:   PREFETCH window: disabled
-[    1.962426] pci 0000:00:11.0: PCI bridge, secondary bus 0000:02
-[    1.965173] pci 0000:00:11.0:   IO window: 0x2000-0x2fff
-[    1.967939] pci 0000:00:11.0:   MEM window: 0xe8900000-0xe89fffff
-[    1.970784] pci 0000:00:11.0:   PREFETCH window: 0x80000000-0x800fffff
-[    1.974012] initcall pcibios_assign_resources+0x0/0xb0 returned 0 after 22018 usecs
-[    1.977873] calling  sysctl_core_init+0x0/0x70 @ 1
-[    1.980416] initcall sysctl_core_init+0x0/0x70 returned 0 after 249 usecs
-[    1.983492] calling  inet_init+0x0/0x2a0 @ 1
-[    1.986032] NET: Registered protocol family 2
-[    1.989683] IP route cache hash table entries: 65536 (order: 7, 524288 bytes)
-[    1.999080] TCP established hash table entries: 262144 (order: 10, 4194304 bytes)
-[    2.011145] TCP bind hash table entries: 65536 (order: 10, 4718592 bytes)
-[    2.030717] TCP: Hash tables configured (established 262144 bind 65536)
-[    2.033895] TCP reno registered
-[    2.036823] initcall inet_init+0x0/0x2a0 returned 0 after 49877 usecs
-[    2.039946] calling  af_unix_init+0x0/0x80 @ 1
-[    2.059577] NET: Registered protocol family 1
-[    2.062001] initcall af_unix_init+0x0/0x80 returned 0 after 19434 usecs
-[    2.065062] calling  populate_rootfs+0x0/0x340 @ 1
-[    2.068889] Trying to unpack rootfs image as initramfs...
-[    2.422995] Freeing initrd memory: 3960k freed
-[    2.429020] initcall populate_rootfs+0x0/0x340 returned 0 after 353177 usecs
-[    2.432296] calling  calgary_fixup_tce_spaces+0x0/0x140 @ 1
-[    2.434961] initcall calgary_fixup_tce_spaces+0x0/0x140 returned -19 after 5 usecs
-[    2.438766] calling  i8259A_init_sysfs+0x0/0x50 @ 1
-[    2.442709] initcall i8259A_init_sysfs+0x0/0x50 returned 0 after 1594 usecs
-[    2.446146] calling  vsyscall_init+0x0/0x70 @ 1
-[    2.448808] initcall vsyscall_init+0x0/0x70 returned 0 after 111 usecs
-[    2.451793] calling  sbf_init+0x0/0x120 @ 1
-[    2.453866] Simple Boot Flag at 0x36 set to 0x1
-[    2.456112] initcall sbf_init+0x0/0x120 returned 0 after 2204 usecs
-[    2.459163] calling  i8237A_init_sysfs+0x0/0x50 @ 1
-[    2.462796] initcall i8237A_init_sysfs+0x0/0x50 returned 0 after 1292 usecs
-[    2.466160] calling  add_rtc_cmos+0x0/0xf0 @ 1
-[    2.468388] initcall add_rtc_cmos+0x0/0xf0 returned 0 after 11 usecs
-[    2.471300] calling  cache_sysfs_init+0x0/0xd0 @ 1
-[    2.477415] initcall cache_sysfs_init+0x0/0xd0 returned 0 after 3507 usecs
-[    2.480760] calling  mce_init_device+0x0/0x200 @ 1
-[    2.485756] initcall mce_init_device+0x0/0x200 returned 0 after 2563 usecs
-[    2.489226] calling  threshold_init_device+0x0/0xc0 @ 1
-[    2.491715] initcall threshold_init_device+0x0/0xc0 returned 0 after 0 usecs
-[    2.494904] calling  thermal_throttle_init_device+0x0/0x110 @ 1
-[    2.497828] initcall thermal_throttle_init_device+0x0/0x110 returned 0 after 0 usecs
-[    2.501509] calling  msr_init+0x0/0x1e0 @ 1
-[    2.505603] initcall msr_init+0x0/0x1e0 returned 0 after 1990 usecs
-[    2.508830] calling  cpuid_init+0x0/0x1e0 @ 1
-[    2.512751] initcall cpuid_init+0x0/0x1e0 returned 0 after 1763 usecs
-[    2.515870] calling  ioapic_init_sysfs+0x0/0x110 @ 1
-[    2.519763] initcall ioapic_init_sysfs+0x0/0x110 returned 0 after 1306 usecs
-[    2.523105] calling  add_pcspkr+0x0/0x60 @ 1
-[    2.525929] initcall add_pcspkr+0x0/0x60 returned 0 after 732 usecs
-[    2.529210] calling  start_periodic_check_for_corruption+0x0/0x70 @ 1
-[    2.532142] Scanning for low memory corruption every 60 seconds
-[    2.534923] initcall start_periodic_check_for_corruption+0x0/0x70 returned 0 after 2721 usecs
-[    2.539125] calling  audit_classes_init+0x0/0xe0 @ 1
-[    2.541597] initcall audit_classes_init+0x0/0xe0 returned 0 after 92 usecs
-[    2.544776] calling  init_vdso_vars+0x0/0x240 @ 1
-[    2.547142] initcall init_vdso_vars+0x0/0x240 returned 0 after 87 usecs
-[    2.550367] calling  ia32_binfmt_init+0x0/0x40 @ 1
-[    2.552709] initcall ia32_binfmt_init+0x0/0x40 returned 0 after 53 usecs
-[    2.555745] calling  sysenter_setup+0x0/0x370 @ 1
-[    2.558023] initcall sysenter_setup+0x0/0x370 returned 0 after 17 usecs
-[    2.561202] calling  init_sched_debug_procfs+0x0/0x60 @ 1
-[    2.563808] initcall init_sched_debug_procfs+0x0/0x60 returned 0 after 46 usecs
-[    2.567336] calling  proc_schedstat_init+0x0/0x50 @ 1
-[    2.569970] initcall proc_schedstat_init+0x0/0x50 returned 0 after 38 usecs
-[    2.573127] calling  proc_execdomains_init+0x0/0x50 @ 1
-[    2.575649] initcall proc_execdomains_init+0x0/0x50 returned 0 after 67 usecs
-[    2.578906] calling  ioresources_init+0x0/0x70 @ 1
-[    2.581386] initcall ioresources_init+0x0/0x70 returned 0 after 67 usecs
-[    2.584430] calling  uid_cache_init+0x0/0xa0 @ 1
-[    2.586703] initcall uid_cache_init+0x0/0xa0 returned 0 after 40 usecs
-[    2.589723] calling  init_posix_timers+0x0/0x210 @ 1
-[    2.592336] initcall init_posix_timers+0x0/0x210 returned 0 after 66 usecs
-[    2.595419] calling  init_posix_cpu_timers+0x0/0x130 @ 1
-[    2.597949] initcall init_posix_cpu_timers+0x0/0x130 returned 0 after 0 usecs
-[    2.601319] calling  nsproxy_cache_init+0x0/0x60 @ 1
-[    2.603704] initcall nsproxy_cache_init+0x0/0x60 returned 0 after 20 usecs
-[    2.606799] calling  create_proc_profile+0x0/0x350 @ 1
-[    2.609233] initcall create_proc_profile+0x0/0x350 returned 0 after 0 usecs
-[    2.612522] calling  timekeeping_init_device+0x0/0x50 @ 1
-[    2.616586] initcall timekeeping_init_device+0x0/0x50 returned 0 after 1469 usecs
-[    2.620566] calling  init_clocksource_sysfs+0x0/0x80 @ 1
-[    2.624408] initcall init_clocksource_sysfs+0x0/0x80 returned 0 after 1294 usecs
-[    2.628163] calling  init_timer_list_procfs+0x0/0x60 @ 1
-[    2.631472] initcall init_timer_list_procfs+0x0/0x60 returned 0 after 34 usecs
-[    2.634983] calling  init_tstats_procfs+0x0/0x60 @ 1
-[    2.637376] initcall init_tstats_procfs+0x0/0x60 returned 0 after 35 usecs
-[    2.641264] calling  lockdep_proc_init+0x0/0xb0 @ 1
-[    2.643746] initcall lockdep_proc_init+0x0/0xb0 returned 0 after 161 usecs
-[    2.646855] calling  futex_init+0x0/0xd0 @ 1
-[    2.649066] initcall futex_init+0x0/0xd0 returned 0 after 100 usecs
-[    2.652146] calling  proc_dma_init+0x0/0x50 @ 1
-[    2.654383] initcall proc_dma_init+0x0/0x50 returned 0 after 33 usecs
-[    2.657312] calling  proc_modules_init+0x0/0x50 @ 1
-[    2.659695] initcall proc_modules_init+0x0/0x50 returned 0 after 32 usecs
-[    2.662950] calling  kallsyms_init+0x0/0x50 @ 1
-[    2.665196] initcall kallsyms_init+0x0/0x50 returned 0 after 33 usecs
-[    2.668125] calling  crash_save_vmcoreinfo_init+0x0/0x4a0 @ 1
-[    2.670854] initcall crash_save_vmcoreinfo_init+0x0/0x4a0 returned 0 after 29 usecs
-[    2.674693] calling  crash_notes_memory_init+0x0/0x60 @ 1
-[    2.677231] initcall crash_notes_memory_init+0x0/0x60 returned 0 after 9 usecs
-[    2.680731] calling  pid_namespaces_init+0x0/0x60 @ 1
-[    2.683333] initcall pid_namespaces_init+0x0/0x60 returned 0 after 54 usecs
-[    2.686465] calling  audit_init+0x0/0x190 @ 1
-[    2.688636] audit: initializing netlink socket (enabled)
-[    2.691360] type=2000 audit(1251272972.691:1): initialized
-[    2.694137] initcall audit_init+0x0/0x190 returned 0 after 5376 usecs
-[    2.697069] calling  init_kprobes+0x0/0x1d0 @ 1
-[    2.702981] initcall init_kprobes+0x0/0x1d0 returned 0 after 3636 usecs
-[    2.705998] calling  hung_task_init+0x0/0x80 @ 1
-[    2.708492] initcall hung_task_init+0x0/0x80 returned 0 after 223 usecs
-[    2.711815] calling  utsname_sysctl_init+0x0/0x40 @ 1
-[    2.714395] initcall utsname_sysctl_init+0x0/0x40 returned 0 after 119 usecs
-[    2.717562] calling  init_markers+0x0/0x40 @ 1
-[    2.719769] initcall init_markers+0x0/0x40 returned 0 after 0 usecs
-[    2.722841] calling  init_tracepoints+0x0/0x40 @ 1
-[    2.725143] initcall init_tracepoints+0x0/0x40 returned 0 after 4 usecs
-[    2.728168] calling  init_lstats_procfs+0x0/0x50 @ 1
-[    2.730573] initcall init_lstats_procfs+0x0/0x50 returned 0 after 39 usecs
-[    2.733870] calling  init_events+0x0/0xb0 @ 1
-[    2.736024] initcall init_events+0x0/0xb0 returned 0 after 28 usecs
-[    2.738934] calling  init_sched_switch_trace+0x0/0x40 @ 1
-[    2.741497] initcall init_sched_switch_trace+0x0/0x40 returned 0 after 32 usecs
-[    2.745302] calling  perf_counter_sysfs_init+0x0/0x50 @ 1
-[    2.747922] initcall perf_counter_sysfs_init+0x0/0x50 returned 0 after 76 usecs
-[    2.751454] calling  init_per_zone_wmark_min+0x0/0xa0 @ 1
-[    2.759073] initcall init_per_zone_wmark_min+0x0/0xa0 returned 0 after 4133 usecs
-[    2.762721] calling  pdflush_init+0x0/0x50 @ 1
-[    2.765466] initcall pdflush_init+0x0/0x50 returned 0 after 433 usecs
-[    2.768485] calling  kswapd_init+0x0/0xb0 @ 1
-[    2.770842] initcall kswapd_init+0x0/0xb0 returned 0 after 265 usecs
-[    2.774000] calling  setup_vmstat+0x0/0x140 @ 1
-[    2.776343] initcall setup_vmstat+0x0/0x140 returned 0 after 164 usecs
-[    2.779346] calling  mm_sysfs_init+0x0/0x50 @ 1
-[    2.781568] initcall mm_sysfs_init+0x0/0x50 returned 0 after 65 usecs
-[    2.784731] calling  proc_vmalloc_init+0x0/0x50 @ 1
-[    2.787094] initcall proc_vmalloc_init+0x0/0x50 returned 0 after 37 usecs
-[    2.790189] calling  procswaps_init+0x0/0x50 @ 1
-[    2.792439] initcall procswaps_init+0x0/0x50 returned 0 after 35 usecs
-[    2.795688] calling  hugetlb_init+0x0/0x460 @ 1
-[    2.797926] HugeTLB registered 2 MB page size, pre-allocated 0 pages
-[    2.800996] initcall hugetlb_init+0x0/0x460 returned 0 after 3024 usecs
-[    2.804225] calling  slab_proc_init+0x0/0x50 @ 1
-[    2.806469] initcall slab_proc_init+0x0/0x50 returned 0 after 41 usecs
-[    2.809452] calling  slab_sysfs_init+0x0/0x130 @ 1
-[    2.889135] initcall slab_sysfs_init+0x0/0x130 returned 0 after 75581 usecs
-[    2.892317] calling  fasync_init+0x0/0x60 @ 1
-[    2.894709] initcall fasync_init+0x0/0x60 returned 0 after 71 usecs
-[    2.897593] calling  proc_filesystems_init+0x0/0x50 @ 1
-[    2.900110] initcall proc_filesystems_init+0x0/0x50 returned 0 after 44 usecs
-[    2.903329] calling  dnotify_init+0x0/0xb0 @ 1
-[    2.906973] initcall dnotify_init+0x0/0xb0 returned 0 after 1292 usecs
-[    2.910205] calling  inotify_setup+0x0/0x40 @ 1
-[    2.912394] initcall inotify_setup+0x0/0x40 returned 0 after 0 usecs
-[    2.915460] calling  inotify_user_setup+0x0/0xf0 @ 1
-[    2.918383] initcall inotify_user_setup+0x0/0xf0 returned 0 after 536 usecs
-[    2.921524] calling  fanotify_init+0x0/0x80 @ 1
-[    2.923794] NET: Registered protocol family 37
-[    2.926118] initcall fanotify_init+0x0/0x80 returned 0 after 2313 usecs
-[    2.929127] calling  aio_setup+0x0/0xd0 @ 1
-[    2.932929] initcall aio_setup+0x0/0xd0 returned 0 after 1706 usecs
-[    2.936091] calling  proc_locks_init+0x0/0x50 @ 1
-[    2.938393] initcall proc_locks_init+0x0/0x50 returned 0 after 36 usecs
-[    2.941392] calling  init_sys32_ioctl+0x0/0xc0 @ 1
-[    2.943716] initcall init_sys32_ioctl+0x0/0xc0 returned 0 after 26 usecs
-[    2.946926] calling  init_mbcache+0x0/0x40 @ 1
-[    2.949125] initcall init_mbcache+0x0/0x40 returned 0 after 12 usecs
-[    2.952032] calling  dquot_init+0x0/0x140 @ 1
-[    2.954154] VFS: Disk quotas dquot_6.5.2
-[    2.957660] Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
-[    2.960748] initcall dquot_init+0x0/0x140 returned 0 after 6438 usecs
-[    2.963705] calling  init_v2_quota_format+0x0/0x40 @ 1
-[    2.966296] initcall init_v2_quota_format+0x0/0x40 returned 0 after 6 usecs
-[    2.969434] calling  proc_cmdline_init+0x0/0x50 @ 1
-[    2.971780] initcall proc_cmdline_init+0x0/0x50 returned 0 after 36 usecs
-[    2.974903] calling  proc_cpuinfo_init+0x0/0x50 @ 1
-[    2.977420] initcall proc_cpuinfo_init+0x0/0x50 returned 0 after 33 usecs
-[    2.980557] calling  proc_devices_init+0x0/0x50 @ 1
-[    2.982968] initcall proc_devices_init+0x0/0x50 returned 0 after 32 usecs
-[    2.986224] calling  proc_interrupts_init+0x0/0x50 @ 1
-[    2.988685] initcall proc_interrupts_init+0x0/0x50 returned 0 after 33 usecs
-[    2.991854] calling  proc_loadavg_init+0x0/0x50 @ 1
-[    2.994237] initcall proc_loadavg_init+0x0/0x50 returned 0 after 32 usecs
-[    2.997480] calling  proc_meminfo_init+0x0/0x50 @ 1
-[    2.999889] initcall proc_meminfo_init+0x0/0x50 returned 0 after 32 usecs
-[    3.002991] calling  proc_stat_init+0x0/0x50 @ 1
-[    3.005291] initcall proc_stat_init+0x0/0x50 returned 0 after 35 usecs
-[    3.008429] calling  proc_uptime_init+0x0/0x50 @ 1
-[    3.010751] initcall proc_uptime_init+0x0/0x50 returned 0 after 33 usecs
-[    3.013800] calling  proc_version_init+0x0/0x50 @ 1
-[    3.016357] initcall proc_version_init+0x0/0x50 returned 0 after 46 usecs
-[    3.019428] calling  proc_softirqs_init+0x0/0x50 @ 1
-[    3.021844] initcall proc_softirqs_init+0x0/0x50 returned 0 after 36 usecs
-[    3.024978] calling  proc_kcore_init+0x0/0x70 @ 1
-[    3.027415] initcall proc_kcore_init+0x0/0x70 returned 0 after 33 usecs
-[    3.030464] calling  vmcore_init+0x0/0xa70 @ 1
-[    3.032613] initcall vmcore_init+0x0/0xa70 returned 0 after 0 usecs
-[    3.035494] calling  proc_kmsg_init+0x0/0x50 @ 1
-[    3.037934] initcall proc_kmsg_init+0x0/0x50 returned 0 after 40 usecs
-[    3.040930] calling  proc_page_init+0x0/0x70 @ 1
-[    3.043224] initcall proc_page_init+0x0/0x70 returned 0 after 63 usecs
-[    3.046360] calling  init_devpts_fs+0x0/0x80 @ 1
-[    3.049317] initcall init_devpts_fs+0x0/0x80 returned 0 after 738 usecs
-[    3.052336] calling  init_ext3_fs+0x0/0xa0 @ 1
-[    3.057307] initcall init_ext3_fs+0x0/0xa0 returned 0 after 2749 usecs
-[    3.060426] calling  journal_init+0x0/0xe0 @ 1
-[    3.067816] initcall journal_init+0x0/0xe0 returned 0 after 5118 usecs
-[    3.070945] calling  init_ramfs_fs+0x0/0x40 @ 1
-[    3.073159] initcall init_ramfs_fs+0x0/0x40 returned 0 after 2 usecs
-[    3.076078] calling  init_hugetlbfs_fs+0x0/0xd0 @ 1
-[    3.080402] initcall init_hugetlbfs_fs+0x0/0xd0 returned 0 after 1793 usecs
-[    3.083551] calling  init_iso9660_fs+0x0/0xa0 @ 1
-[    3.087307] initcall init_iso9660_fs+0x0/0xa0 returned 0 after 1443 usecs
-[    3.090554] calling  init_nls_cp437+0x0/0x40 @ 1
-[    3.092827] initcall init_nls_cp437+0x0/0x40 returned 0 after 32 usecs
-[    3.095786] calling  init_nls_ascii+0x0/0x40 @ 1
-[    3.098190] initcall init_nls_ascii+0x0/0x40 returned 0 after 1 usecs
-[    3.101117] calling  ipc_init+0x0/0x50 @ 1
-[    3.103221] msgmni has been set to 3922
-[    3.105236] initcall ipc_init+0x0/0x50 returned 0 after 2047 usecs
-[    3.108221] calling  ipc_sysctl_init+0x0/0x40 @ 1
-[    3.110675] initcall ipc_sysctl_init+0x0/0x40 returned 0 after 201 usecs
-[    3.113734] calling  init_mqueue_fs+0x0/0x100 @ 1
-[    3.118454] initcall init_mqueue_fs+0x0/0x100 returned 0 after 2408 usecs
-[    3.121492] calling  key_proc_init+0x0/0x90 @ 1
-[    3.123782] initcall key_proc_init+0x0/0x90 returned 0 after 70 usecs
-[    3.126712] calling  selinux_nf_ip_init+0x0/0x90 @ 1
-[    3.129316] initcall selinux_nf_ip_init+0x0/0x90 returned 0 after 48 usecs
-[    3.132427] calling  init_sel_fs+0x0/0xa0 @ 1
-[    3.138221] initcall init_sel_fs+0x0/0xa0 returned 0 after 3588 usecs
-[    3.141170] calling  selnl_init+0x0/0x80 @ 1
-[    3.143407] initcall selnl_init+0x0/0x80 returned 0 after 122 usecs
-[    3.146306] calling  sel_netif_init+0x0/0x90 @ 1
-[    3.148751] initcall sel_netif_init+0x0/0x90 returned 0 after 22 usecs
-[    3.151725] calling  sel_netnode_init+0x0/0xa0 @ 1
-[    3.154060] initcall sel_netnode_init+0x0/0xa0 returned 0 after 21 usecs
-[    3.157082] calling  sel_netport_init+0x0/0xa0 @ 1
-[    3.159564] initcall sel_netport_init+0x0/0xa0 returned 0 after 13 usecs
-[    3.162665] calling  aurule_init+0x0/0x60 @ 1
-[    3.164797] initcall aurule_init+0x0/0x60 returned 0 after 11 usecs
-[    3.167691] calling  init_smk_fs+0x0/0xb0 @ 1
-[    3.170038] initcall init_smk_fs+0x0/0xb0 returned 0 after 8 usecs
-[    3.172894] calling  crypto_wq_init+0x0/0x60 @ 1
-[    3.185772] initcall crypto_wq_init+0x0/0x60 returned 0 after 10353 usecs
-[    3.188962] calling  crypto_algapi_init+0x0/0x40 @ 1
-[    3.191424] initcall crypto_algapi_init+0x0/0x40 returned 0 after 100 usecs
-[    3.194608] calling  skcipher_module_init+0x0/0x60 @ 1
-[    3.197023] initcall skcipher_module_init+0x0/0x60 returned 0 after 0 usecs
-[    3.200335] calling  chainiv_module_init+0x0/0x40 @ 1
-[    3.202936] initcall chainiv_module_init+0x0/0x40 returned 0 after 190 usecs
-[    3.206116] calling  eseqiv_module_init+0x0/0x40 @ 1
-[    3.208512] initcall eseqiv_module_init+0x0/0x40 returned 0 after 6 usecs
-[    3.211779] calling  hmac_module_init+0x0/0x40 @ 1
-[    3.214096] initcall hmac_module_init+0x0/0x40 returned 0 after 10 usecs
-[    3.217112] calling  md5_mod_init+0x0/0x40 @ 1
-[    3.220031] initcall md5_mod_init+0x0/0x40 returned 0 after 759 usecs
-[    3.223063] calling  sha1_generic_mod_init+0x0/0x40 @ 1
-[    3.225946] initcall sha1_generic_mod_init+0x0/0x40 returned 0 after 410 usecs
-[    3.230136] calling  crypto_ecb_module_init+0x0/0x40 @ 1
-[    3.232660] initcall crypto_ecb_module_init+0x0/0x40 returned 0 after 6 usecs
-[    3.235876] calling  aes_init+0x0/0x40 @ 1
-[    3.238476] initcall aes_init+0x0/0x40 returned 0 after 561 usecs
-[    3.241442] calling  arc4_init+0x0/0x40 @ 1
-[    3.243941] initcall arc4_init+0x0/0x40 returned 0 after 420 usecs
-[    3.246830] calling  krng_mod_init+0x0/0x40 @ 1
-[    3.249270] alg: No test for stdrng (krng)
-[    3.251609] initcall krng_mod_init+0x0/0x40 returned 0 after 2501 usecs
-[    3.254689] calling  prng_mod_init+0x0/0x60 @ 1
-[    3.272657] initcall prng_mod_init+0x0/0x60 returned 0 after 15440 usecs
-[    3.275748] calling  proc_genhd_init+0x0/0x70 @ 1
-[    3.278095] initcall proc_genhd_init+0x0/0x70 returned 0 after 71 usecs
-[    3.281243] calling  bsg_init+0x0/0x160 @ 1
-[    3.285375] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 253)
-[    3.289100] initcall bsg_init+0x0/0x160 returned 0 after 5666 usecs
-[    3.292408] calling  noop_init+0x0/0x40 @ 1
-[    3.295392] io scheduler noop registered
-[    3.297345] initcall noop_init+0x0/0x40 returned 0 after 1949 usecs
-[    3.300228] calling  as_init+0x0/0x40 @ 1
-[    3.302366] io scheduler anticipatory registered
-[    3.304612] initcall as_init+0x0/0x40 returned 0 after 2191 usecs
-[    3.307410] calling  deadline_init+0x0/0x40 @ 1
-[    3.309652] io scheduler deadline registered
-[    3.311906] initcall deadline_init+0x0/0x40 returned 0 after 2200 usecs
-[    3.314930] calling  cfq_init+0x0/0xd0 @ 1
-[    3.317079] io scheduler cfq registered (default)
-[    3.319345] initcall cfq_init+0x0/0xd0 returned 0 after 2338 usecs
-[    3.322331] calling  debug_objects_init_debugfs+0x0/0x90 @ 1
-[    3.325170] initcall debug_objects_init_debugfs+0x0/0x90 returned 0 after 174 usecs
-[    3.328834] calling  percpu_counter_startup+0x0/0x50 @ 1
-[    3.331494] initcall percpu_counter_startup+0x0/0x50 returned 0 after 4 usecs
-[    3.334740] calling  dynamic_debug_init+0x0/0x190 @ 1
-[    3.338863] initcall dynamic_debug_init+0x0/0x190 returned 0 after 1678 usecs
-[    3.342246] calling  pci_init+0x0/0x70 @ 1
-[    3.344306] pci 0000:00:00.0: Limiting direct PCI/PCI transfers
-[    3.347262] initcall pci_init+0x0/0x70 returned 0 after 2933 usecs
-[    3.350091] calling  pci_proc_init+0x0/0xa0 @ 1
-[    3.353150] initcall pci_proc_init+0x0/0xa0 returned 0 after 694 usecs
-[    3.356143] calling  pcie_portdrv_init+0x0/0x80 @ 1
-[    3.360634] initcall pcie_portdrv_init+0x0/0x80 returned 0 after 2094 usecs
-[    3.364087] calling  aer_service_init+0x0/0x50 @ 1
-[    3.367029] initcall aer_service_init+0x0/0x50 returned 0 after 630 usecs
-[    3.370229] calling  fb_console_init+0x0/0x180 @ 1
-[    3.373882] initcall fb_console_init+0x0/0x180 returned 0 after 1164 usecs
-[    3.377017] calling  vesafb_init+0x0/0x280 @ 1
-[    3.381005] initcall vesafb_init+0x0/0x280 returned 0 after 1740 usecs
-[    3.384285] calling  efifb_init+0x0/0x205 @ 1
-[    3.386431] initcall efifb_init+0x0/0x205 returned -19 after 30 usecs
-[    3.389383] calling  acpi_reserve_resources+0x0/0x112 @ 1
-[    3.392192] initcall acpi_reserve_resources+0x0/0x112 returned 0 after 86 usecs
-[    3.395726] calling  irqrouter_init_sysfs+0x0/0x5f @ 1
-[    3.399702] initcall irqrouter_init_sysfs+0x0/0x5f returned 0 after 1405 usecs
-[    3.403558] calling  acpi_button_init+0x0/0x7d @ 1
-[    3.407738] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
-[    3.411552] ACPI: Power Button [PWRF]
-[    3.414796] initcall acpi_button_init+0x0/0x7d returned 0 after 8727 usecs
-[    3.417989] calling  acpi_fan_init+0x0/0x7d @ 1
-[    3.420908] initcall acpi_fan_init+0x0/0x7d returned 0 after 697 usecs
-[    3.424273] calling  acpi_pci_slot_init+0x0/0x47 @ 1
-[    3.428214] initcall acpi_pci_slot_init+0x0/0x47 returned 0 after 1559 usecs
-[    3.431380] calling  acpi_processor_init+0x0/0x116 @ 1
-[    3.436858] processor LNXCPU:00: registered as cooling_device0
-[    3.439869] ACPI: Processor [CPU0] (supports 8 throttling states)
-[    3.445061] processor LNXCPU:01: registered as cooling_device1
-[    3.449666] initcall acpi_processor_init+0x0/0x116 returned 0 after 15313 usecs
-[    3.453474] calling  acpi_container_init+0x0/0x65 @ 1
-[    3.542418] initcall acpi_container_init+0x0/0x65 returned 0 after 84475 usecs
-[    3.546049] calling  acpi_thermal_init+0x0/0xa6 @ 1
-[    3.551982] initcall acpi_thermal_init+0x0/0xa6 returned 0 after 3520 usecs
-[    3.555366] calling  evtchn_init+0x0/0xb0 @ 1
-[    3.557481] initcall evtchn_init+0x0/0xb0 returned -19 after 13 usecs
-[    3.560419] calling  hypervisor_subsys_init+0x0/0x50 @ 1
-[    3.562911] initcall hypervisor_subsys_init+0x0/0x50 returned -19 after 0 usecs
-[    3.566636] calling  hyper_sysfs_init+0x0/0xf0 @ 1
-[    3.568923] initcall hyper_sysfs_init+0x0/0xf0 returned -19 after 0 usecs
-[    3.572034] calling  rand_initialize+0x0/0x60 @ 1
-[    3.574509] initcall rand_initialize+0x0/0x60 returned 0 after 195 usecs
-[    3.577558] calling  tty_init+0x0/0x130 @ 1
-[    3.654836] initcall tty_init+0x0/0x130 returned 0 after 73473 usecs
-[    3.657806] calling  pty_init+0x0/0x320 @ 1
-[    3.675645] initcall pty_init+0x0/0x320 returned 0 after 15391 usecs
-[    3.678664] calling  sysrq_init+0x0/0x50 @ 1
-[    3.680828] initcall sysrq_init+0x0/0x50 returned 0 after 67 usecs
-[    3.683727] calling  xen_init+0x0/0xc0 @ 1
-[    3.685912] initcall xen_init+0x0/0xc0 returned -19 after 0 usecs
-[    3.688754] calling  hpet_init+0x0/0xa0 @ 1
-[    3.692682] initcall hpet_init+0x0/0xa0 returned 0 after 1858 usecs
-[    3.695736] calling  nvram_init+0x0/0xb0 @ 1
-[    3.698923] Non-volatile memory driver v1.3
-[    3.701107] initcall nvram_init+0x0/0xb0 returned 0 after 3050 usecs
-[    3.704163] calling  mod_init+0x0/0x80 @ 1
-[    3.706196] initcall mod_init+0x0/0x80 returned -19 after 0 usecs
-[    3.709197] calling  agp_init+0x0/0x50 @ 1
-[    3.711211] Linux agpgart interface v0.103
-[    3.713247] initcall agp_init+0x0/0x50 returned 0 after 1991 usecs
-[    3.716058] calling  agp_intel_init+0x0/0x60 @ 1
-[    3.718716] agpgart-intel 0000:00:00.0: Intel 440BX Chipset
-[    3.724900] agpgart-intel 0000:00:00.0: AGP aperture is 256M @ 0x0
-[    3.729300] initcall agp_intel_init+0x0/0x60 returned 0 after 10573 usecs
-[    3.732381] calling  agp_sis_init+0x0/0x60 @ 1
-[    3.735454] initcall agp_sis_init+0x0/0x60 returned 0 after 897 usecs
-[    3.738737] calling  agp_via_init+0x0/0x60 @ 1
-[    3.741559] initcall agp_via_init+0x0/0x60 returned 0 after 683 usecs
-[    3.744575] calling  init_tis+0x0/0xc0 @ 1
-[    3.747456] initcall init_tis+0x0/0xc0 returned 0 after 880 usecs
-[    3.750308] calling  cn_proc_init+0x0/0x70 @ 1
-[    3.752468] initcall cn_proc_init+0x0/0x70 returned 0 after 26 usecs
-[    3.755391] calling  serial8250_init+0x0/0x1a0 @ 1
-[    3.757871] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-[    3.763418] async_waiting @ 1
-[    3.765043] async_continuing @ 1 after 45 usec
-[    3.889970] async_waiting @ 1
-[    3.891556] async_continuing @ 1 after 1 usec
-�[    4.017173] serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-[    4.022427] async_waiting @ 1
-[    4.024007] async_continuing @ 1 after 1 usec
-[    4.148947] async_waiting @ 1
-[    4.150518] async_continuing @ 1 after 1 usec
-[    4.275154] serial8250: ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-[    4.282012] initcall serial8250_init+0x0/0x1a0 returned 0 after 511858 usecs
-[    4.285407] calling  serial8250_pnp_init+0x0/0x40 @ 1
-[    4.292076] 00:09: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-[    4.298318] 00:0a: ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-[    4.302917] initcall serial8250_pnp_init+0x0/0x40 returned 0 after 14745 usecs
-[    4.306535] calling  serial8250_pci_init+0x0/0x50 @ 1
-[    4.309709] initcall serial8250_pci_init+0x0/0x50 returned 0 after 733 usecs
-[    4.313169] calling  init_kgdboc+0x0/0x40 @ 1
-[    4.315284] initcall init_kgdboc+0x0/0x40 returned 0 after 5 usecs
-[    4.318144] calling  topology_sysfs_init+0x0/0xc0 @ 1
-[    4.320706] initcall topology_sysfs_init+0x0/0xc0 returned 0 after 188 usecs
-[    4.324090] calling  brd_init+0x0/0x1d0 @ 1
-[    4.373468] brd: module loaded
-[    4.375111] initcall brd_init+0x0/0x1d0 returned 0 after 47828 usecs
-[    4.378064] calling  loop_init+0x0/0x200 @ 1
-[    4.402825] loop: module loaded
-[    4.404662] initcall loop_init+0x0/0x200 returned 0 after 23935 usecs
-[    4.407568] calling  init_kgdbts+0x0/0x40 @ 1
-[    4.409745] initcall init_kgdbts+0x0/0x40 returned 0 after 12 usecs
-[    4.412810] calling  mac_hid_init+0x0/0x100 @ 1
-[    4.416576] input: Macintosh mouse button emulation as /devices/virtual/input/input1
-[    4.420519] initcall mac_hid_init+0x0/0x100 returned 0 after 5253 usecs
-[    4.423699] calling  init_sd+0x0/0x100 @ 1
-[    4.427432] initcall init_sd+0x0/0x100 returned 0 after 1667 usecs
-[    4.430466] calling  init_sr+0x0/0x80 @ 1
-[    4.433242] initcall init_sr+0x0/0x80 returned 0 after 775 usecs
-[    4.436156] calling  init_sg+0x0/0x1a0 @ 1
-[    4.439309] initcall init_sg+0x0/0x1a0 returned 0 after 1109 usecs
-[    4.442142] calling  ahci_init+0x0/0x50 @ 1
-[    4.445431] initcall ahci_init+0x0/0x50 returned 0 after 1032 usecs
-[    4.448384] calling  net_olddevs_init+0x0/0xe0 @ 1
-[    4.450693] initcall net_olddevs_init+0x0/0xe0 returned 0 after 21 usecs
-[    4.453906] calling  cdrom_init+0x0/0x40 @ 1
-[    4.456200] initcall cdrom_init+0x0/0x40 returned 0 after 201 usecs
-[    4.459086] calling  mon_init+0x0/0x150 @ 1
-[    4.463380] initcall mon_init+0x0/0x150 returned 0 after 2185 usecs
-[    4.466229] calling  ehci_hcd_init+0x0/0x100 @ 1
-[    4.468461] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-[    4.472505] initcall ehci_hcd_init+0x0/0x100 returned 0 after 3959 usecs
-[    4.475826] calling  ohci_hcd_mod_init+0x0/0xc0 @ 1
-[    4.478179] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
-[    4.481716] initcall ohci_hcd_mod_init+0x0/0xc0 returned 0 after 3459 usecs
-[    4.485233] calling  uhci_hcd_init+0x0/0xf0 @ 1
-[    4.487398] uhci_hcd: USB Universal Host Controller Interface driver
-[    4.492932] initcall uhci_hcd_init+0x0/0xf0 returned 0 after 5403 usecs
-[    4.496315] calling  i8042_init+0x0/0x460 @ 1
-[    4.500150] PNP: PS/2 Controller [PNP0303:KBC,PNP0f13:MOUS] at 0x60,0x64 irq 1,12
-[    5.034779] serio: i8042 KBD port at 0x60,0x64 irq 1
-[    5.037927] serio: i8042 AUX port at 0x60,0x64 irq 12
-[    5.040534] initcall i8042_init+0x0/0x460 returned 0 after 529388 usecs
-[    5.043545] calling  serport_init+0x0/0x60 @ 1
-[    5.045803] initcall serport_init+0x0/0x60 returned 0 after 7 usecs
-[    5.049119] calling  mousedev_init+0x0/0x90 @ 1
-[    5.057088] mice: PS/2 mouse device common for all mice
-[    5.059972] initcall mousedev_init+0x0/0x90 returned 0 after 8461 usecs
-[    5.062996] calling  evdev_init+0x0/0x40 @ 1
-[    5.067110] initcall evdev_init+0x0/0x40 returned 0 after 1967 usecs
-[    5.070433] calling  atkbd_init+0x0/0x60 @ 1
-[    5.073464] initcall atkbd_init+0x0/0x60 returned 0 after 947 usecs
-[    5.076602] calling  psmouse_init+0x0/0xa0 @ 1
-[    5.081730] initcall psmouse_init+0x0/0xa0 returned 0 after 2744 usecs
-[    5.084853] calling  cmos_init+0x0/0xa0 @ 1
-[    5.091789] input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input2
-[    5.097047] rtc_cmos 00:04: rtc core: registered rtc_cmos as rtc0
-[    5.100326] rtc0: alarms up to one month, y3k, 114 bytes nvram
-[    5.113586] input: ImPS/2 Generic Wheel Mouse as /devices/platform/i8042/serio1/input/input3
-[    5.118619] initcall cmos_init+0x0/0xa0 returned 0 after 30955 usecs
-[    5.121821] calling  dm_init+0x0/0x80 @ 1
-[    5.137013] device-mapper: uevent: version 1.0.3
-[    5.142484] device-mapper: ioctl: 4.15.0-ioctl (2009-04-01) initialised: dm-devel@redhat.com
-[    5.146592] initcall dm_init+0x0/0x80 returned 0 after 22249 usecs
-[    5.149438] calling  dm_snapshot_init+0x0/0x300 @ 1
-[    5.152474] initcall dm_snapshot_init+0x0/0x300 returned 0 after 513 usecs
-[    5.155681] calling  dm_mirror_init+0x0/0xb0 @ 1
-[    5.172843] initcall dm_mirror_init+0x0/0xb0 returned 0 after 14593 usecs
-[    5.176029] calling  dm_dirty_log_init+0x0/0x90 @ 1
-[    5.178418] initcall dm_dirty_log_init+0x0/0x90 returned 0 after 43 usecs
-[    5.181489] calling  dm_zero_init+0x0/0x60 @ 1
-[    5.183675] initcall dm_zero_init+0x0/0x60 returned 0 after 3 usecs
-[    5.186516] calling  init_ladder+0x0/0x40 @ 1
-[    5.188724] cpuidle: using governor ladder
-[    5.190747] initcall init_ladder+0x0/0x40 returned 0 after 2021 usecs
-[    5.193880] calling  init_menu+0x0/0x40 @ 1
-[    5.195931] cpuidle: using governor menu
-[    5.197900] initcall init_menu+0x0/0x40 returned 0 after 1921 usecs
-[    5.200790] calling  efivars_init+0x0/0x2c0 @ 1
-[    5.203111] initcall efivars_init+0x0/0x2c0 returned -19 after 5 usecs
-[    5.206098] calling  hid_init+0x0/0xa0 @ 1
-[    5.209856] initcall hid_init+0x0/0xa0 returned 0 after 1707 usecs
-[    5.213012] calling  flow_cache_init+0x0/0x230 @ 1
-[    5.215722] initcall flow_cache_init+0x0/0x230 returned 0 after 426 usecs
-[    5.218823] calling  blackhole_module_init+0x0/0x40 @ 1
-[    5.221262] initcall blackhole_module_init+0x0/0x40 returned 0 after 17 usecs
-[    5.224662] calling  nf_conntrack_standalone_init+0x0/0x40 @ 1
-[    5.227377] nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
-[    5.233927] CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Please use
-[    5.237555] nf_conntrack.acct=1 kernel parameter, acct=1 nf_conntrack module option or
-[    5.241331] sysctl net.netfilter.nf_conntrack_acct=1 to enable it.
-[    5.244812] initcall nf_conntrack_standalone_init+0x0/0x40 returned 0 after 17051 usecs
-[    5.248615] calling  xt_init+0x0/0x250 @ 1
-[    5.250688] initcall xt_init+0x0/0x250 returned 0 after 65 usecs
-[    5.253633] calling  tcpudp_mt_init+0x0/0x50 @ 1
-[    5.255913] initcall tcpudp_mt_init+0x0/0x50 returned 0 after 53 usecs
-[    5.258902] calling  conntrack_mt_init+0x0/0x50 @ 1
-[    5.261219] initcall conntrack_mt_init+0x0/0x50 returned 0 after 4 usecs
-[    5.264452] calling  state_mt_init+0x0/0x50 @ 1
-[    5.266631] initcall state_mt_init+0x0/0x50 returned 0 after 8 usecs
-[    5.269531] calling  sysctl_ipv4_init+0x0/0x80 @ 1
-[    5.274250] initcall sysctl_ipv4_init+0x0/0x80 returned 0 after 2390 usecs
-[    5.277357] calling  init_syncookies+0x0/0x50 @ 1
-[    5.279680] initcall init_syncookies+0x0/0x50 returned 0 after 64 usecs
-[    5.282707] calling  ipv4_netfilter_init+0x0/0x40 @ 1
-[    5.285316] initcall ipv4_netfilter_init+0x0/0x40 returned 0 after 44 usecs
-[    5.288485] calling  nf_conntrack_l3proto_ipv4_init+0x0/0x170 @ 1
-[    5.293149] initcall nf_conntrack_l3proto_ipv4_init+0x0/0x170 returned 0 after 834 usecs
-[    5.297147] calling  nf_defrag_init+0x0/0x50 @ 1
-[    5.299375] initcall nf_defrag_init+0x0/0x50 returned 0 after 3 usecs
-[    5.302305] calling  ip_tables_init+0x0/0xe0 @ 1
-[    5.304875] ip_tables: (C) 2000-2006 Netfilter Core Team
-[    5.307407] initcall ip_tables_init+0x0/0xe0 returned 0 after 2633 usecs
-[    5.310437] calling  iptable_filter_init+0x0/0xa0 @ 1
-[    5.312955] initcall iptable_filter_init+0x0/0xa0 returned 0 after 107 usecs
-[    5.316313] calling  reject_tg_init+0x0/0x40 @ 1
-[    5.318545] initcall reject_tg_init+0x0/0x40 returned 0 after 2 usecs
-[    5.321462] calling  cubictcp_register+0x0/0xa0 @ 1
-[    5.323809] TCP cubic registered
-[    5.325669] initcall cubictcp_register+0x0/0xa0 returned 0 after 1828 usecs
-[    5.328829] calling  xfrm_user_init+0x0/0x80 @ 1
-[    5.331054] Initializing XFRM netlink socket
-[    5.333381] initcall xfrm_user_init+0x0/0x80 returned 0 after 2270 usecs
-[    5.336598] calling  packet_init+0x0/0x70 @ 1
-[    5.338767] NET: Registered protocol family 17
-[    5.341015] initcall packet_init+0x0/0x70 returned 0 after 2202 usecs
-[    5.343986] calling  severities_debugfs_init+0x0/0x90 @ 1
-[    5.346816] initcall severities_debugfs_init+0x0/0x90 returned 0 after 133 usecs
-[    5.350397] calling  hpet_insert_resource+0x0/0x50 @ 1
-[    5.352833] initcall hpet_insert_resource+0x0/0x50 returned 1 after 4 usecs
-[    5.356159] initcall hpet_insert_resource+0x0/0x50 returned with error code 1 
-[    5.359638] calling  update_mp_table+0x0/0x530 @ 1
-[    5.361963] initcall update_mp_table+0x0/0x530 returned 0 after 8 usecs
-[    5.364966] calling  lapic_insert_resource+0x0/0x70 @ 1
-[    5.367614] initcall lapic_insert_resource+0x0/0x70 returned 0 after 13 usecs
-[    5.370834] calling  init_lapic_nmi_sysfs+0x0/0x60 @ 1
-[    5.373285] initcall init_lapic_nmi_sysfs+0x0/0x60 returned 0 after 4 usecs
-[    5.376593] calling  io_apic_bug_finalize+0x0/0x50 @ 1
-[    5.379039] initcall io_apic_bug_finalize+0x0/0x50 returned 0 after 0 usecs
-[    5.382184] calling  check_early_ioremap_leak+0x0/0x90 @ 1
-[    5.384775] initcall check_early_ioremap_leak+0x0/0x90 returned 0 after 7 usecs
-[    5.388472] calling  pat_memtype_list_init+0x0/0x60 @ 1
-[    5.391010] initcall pat_memtype_list_init+0x0/0x60 returned 0 after 80 usecs
-[    5.394245] calling  sched_init_debug+0x0/0x50 @ 1
-[    5.396750] initcall sched_init_debug+0x0/0x50 returned 0 after 68 usecs
-[    5.399814] calling  init_oops_id+0x0/0x60 @ 1
-[    5.401980] initcall init_oops_id+0x0/0x60 returned 0 after 8 usecs
-[    5.404860] calling  disable_boot_consoles+0x0/0x80 @ 1
-[    5.407460] initcall disable_boot_consoles+0x0/0x80 returned 0 after 4 usecs
-[    5.410669] calling  pm_qos_power_init+0x0/0xa0 @ 1
-[    5.416572] initcall pm_qos_power_init+0x0/0xa0 returned 0 after 3464 usecs
-[    5.419902] calling  test_suspend+0x0/0x210 @ 1
-[    5.422160] initcall test_suspend+0x0/0x210 returned 0 after 8 usecs
-[    5.425050] calling  debugfs_kprobe_init+0x0/0xb0 @ 1
-[    5.427777] initcall debugfs_kprobe_init+0x0/0xb0 returned 0 after 166 usecs
-[    5.430975] calling  taskstats_init+0x0/0xd0 @ 1
-[    5.433305] registered taskstats version 1
-[    5.435330] initcall taskstats_init+0x0/0xd0 returned 0 after 2080 usecs
-[    5.438578] calling  clear_boot_tracer+0x0/0x60 @ 1
-[    5.440928] initcall clear_boot_tracer+0x0/0x60 returned 0 after 4 usecs
-[    5.443970] calling  fail_page_alloc_debugfs+0x0/0x120 @ 1
-[    5.447391] initcall fail_page_alloc_debugfs+0x0/0x120 returned 0 after 663 usecs
-[    5.450997] calling  max_swapfiles_check+0x0/0x30 @ 1
-[    5.453401] initcall max_swapfiles_check+0x0/0x30 returned 0 after 11 usecs
-[    5.456570] calling  kmemleak_late_init+0x0/0xb0 @ 1
-[    5.459482] kmemleak: Kernel memory leak detector initialized
-[    5.462334] initcall kmemleak_late_init+0x0/0xb0 returned 0 after 3155 usecs
-[    5.465500] calling  init_ima+0x0/0x50 @ 1
-[    5.468637] kmemleak: Automatic memory scanning thread started
-[    5.471693] No TPM chip found, activating TPM-bypass!
-[    5.475425] initcall init_ima+0x0/0x50 returned 0 after 7517 usecs
-[    5.478439] calling  fail_make_request_debugfs+0x0/0x50 @ 1
-[    5.481842] initcall fail_make_request_debugfs+0x0/0x50 returned 0 after 759 usecs
-[    5.485489] calling  fail_io_timeout_debugfs+0x0/0x50 @ 1
-[    5.488883] initcall fail_io_timeout_debugfs+0x0/0x50 returned 0 after 662 usecs
-[    5.492452] calling  random32_reseed+0x0/0x110 @ 1
-[    5.494783] initcall random32_reseed+0x0/0x110 returned 0 after 24 usecs
-[    5.498011] calling  pci_resource_alignment_sysfs_init+0x0/0x50 @ 1
-[    5.500904] initcall pci_resource_alignment_sysfs_init+0x0/0x50 returned 0 after 24 usecs
-[    5.504747] calling  pci_sysfs_init+0x0/0x80 @ 1
-[    5.508619] initcall pci_sysfs_init+0x0/0x80 returned 0 after 1603 usecs
-[    5.511687] calling  boot_wait_for_devices+0x0/0x50 @ 1
-[    5.514155] initcall boot_wait_for_devices+0x0/0x50 returned 0 after 9 usecs
-[    5.517343] calling  seqgen_init+0x0/0x40 @ 1
-[    5.519493] initcall seqgen_init+0x0/0x40 returned 0 after 28 usecs
-[    5.522375] calling  late_resume_init+0x0/0x170 @ 1
-[    5.524705]   Magic number: 5:494:825
-[    5.526635] initcall late_resume_init+0x0/0x170 returned 0 after 1882 usecs
-[    5.529959] calling  scsi_complete_async_scans+0x0/0x1c0 @ 1
-[    5.532593] initcall scsi_complete_async_scans+0x0/0x1c0 returned 0 after 4 usecs
-[    5.536187] calling  rtc_hctosys+0x0/0x1b0 @ 1
-[    5.558671] rtc_cmos 00:04: setting system clock to 2009-08-26 07:49:38 UTC (1251272978)
-[    5.562488] initcall rtc_hctosys+0x0/0x1b0 returned 0 after 23445 usecs
-[    5.565504] calling  memmap_init+0x0/0xe0 @ 1
-[    5.568919] initcall memmap_init+0x0/0xe0 returned 0 after 1213 usecs
-[    5.571899] calling  pci_mmcfg_late_insert_resources+0x0/0x1b0 @ 1
-[    5.574728] initcall pci_mmcfg_late_insert_resources+0x0/0x1b0 returned 1 after 5 usecs
-[    5.578725] initcall pci_mmcfg_late_insert_resources+0x0/0x1b0 returned with error code 1 
-[    5.582657] calling  tcp_congestion_default+0x0/0x40 @ 1
-[    5.585116] initcall tcp_congestion_default+0x0/0x40 returned 0 after 2 usecs
-[    5.588385] calling  initialize_hashrnd+0x0/0x50 @ 1
-[    5.590942] initcall initialize_hashrnd+0x0/0x50 returned 0 after 7 usecs
-[    5.594102] async_waiting @ 1
-[    5.596278] async_continuing @ 1 after 1 usec
-[    5.599318] Freeing unused kernel memory: 3304k freed
-[    5.609261] Write protecting the kernel read-only data: 7268k
-Mounting proc filesystem
-Mounting sysfs filesystem
-Creating /dev
-Creating initial device nodes
-%G[    6.152042] calling  journal_init+0x0/0x12d [jbd2] @ 565
-[    6.155139] initcall journal_init+0x0/0x12d [jbd2] returned 0 after 384 usecs
-[    6.209136] calling  init_ext4_fs+0x0/0x140 [ext4] @ 565
-[    6.215845] initcall init_ext4_fs+0x0/0x140 [ext4] returned 0 after 4017 usecs
-[    6.235896] calling  spi_transport_init+0x0/0xb5 [scsi_transport_spi] @ 566
-[    6.239594] initcall spi_transport_init+0x0/0xb5 [scsi_transport_spi] returned 0 after 430 usecs
-[    6.262471] calling  fusion_init+0x0/0x115 [mptbase] @ 567
-[    6.265098] Fusion MPT base driver 3.04.11
-[    6.267127] Copyright (c) 1999-2008 LSI Corporation
-[    6.269560] initcall fusion_init+0x0/0x115 [mptbase] returned 0 after 4353 usecs
-[    6.309133] calling  mptspi_init+0x0/0x109 [mptspi] @ 569
-[    6.312260] Fusion MPT SPI Host driver 3.04.11
-[    6.315114] mptspi 0000:00:10.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[    6.318947] mptbase: ioc0: Initiating bringup
-[    6.340602] ioc0: LSI53C1030 B0: Capabilities={Initiator}
-[    6.396332] scsi0 : ioc0: LSI53C1030 B0, FwRev=00000000h, Ports=1, MaxQ=128, IRQ=17
-[    6.434329] scsi 0:0:0:0: Direct-Access     VMware,  VMware Virtual S 1.0  PQ: 0 ANSI: 2
-[    6.438348] scsi target0:0:0: Beginning Domain Validation
-[    6.444324] scsi target0:0:0: Domain Validation skipping write tests
-[    6.447400] scsi target0:0:0: Ending Domain Validation
-[    6.449905] scsi target0:0:0: FAST-40 WIDE SCSI 80.0 MB/s ST (25 ns, offset 127)
-[    6.453903] initcall mptspi_init+0x0/0x109 [mptspi] returned 0 after 138319 usecs
-[    6.479292] sd 0:0:0:0: [sda] 33554432 512-byte logical blocks: (17.1 GB/16.0 GiB)
-[    6.483218] sd 0:0:0:0: [sda] Write Protect is off
-[    6.485866] sd 0:0:0:0: [sda] Cache data unavailable
-[    6.488474] sd 0:0:0:0: [sda] Assuming drive cache: write through
-[    6.493570] sd 0:0:0:0: [sda] Cache data unavailable
-[    6.495976] sd 0:0:0:0: [sda] Assuming drive cache: write through
-[    6.498974]  sda:
-[    6.502925] sd 0:0:0:0: Attached scsi generic sg0 type 0
-[    6.507478] scsi_scan_0 used greatest stack depth: 2960 bytes left
-[    6.510596]  sda1 sda2
-[    6.516778] sd 0:0:0:0: [sda] Cache data unavailable
-[    6.519297] sd 0:0:0:0: [sda] Assuming drive cache: write through
-[    6.522131] sd 0:0:0:0: [sda] Attached SCSI disk
-[    6.539950] calling  wait_scan_init+0x0/0x39 [scsi_wait_scan] @ 575
-[    6.542953] initcall wait_scan_init+0x0/0x39 [scsi_wait_scan] returned 0 after 2 usecs
-[    7.011545] EXT4-fs (/dev/root): Update your userspace programs to mount using ext4
-[    7.015244] EXT4-fs (/dev/root): ext4dev backwards compatibility will go away by 2.6.31
-[    7.028500] EXT4-fs (dm-0): barriers enabled
-[    7.031672] kjournald2 starting: pid 582, dev dm-0:8, commit interval 5 seconds
-[    7.035793] EXT4-fs (dm-0): delayed allocation enabled
-[    7.038546] EXT4-fs: file extents enabled
-[    7.053987] EXT4-fs: mballoc enabled
-[    7.056305] EXT4-fs (dm-0): mounted filesystem with ordered data mode
-[   14.828056] SELinux:  permission module_request in class system not defined in policy
-[   14.831051] SELinux: the above unknown classes and permissions will be allowed
-[   14.938910] type=1403 audit(1251272987.879:2): policy loaded auid=4294967295 ses=4294967295
-[   15.158515] type=1129 audit(1251272988.099:3): user pid=585 uid=0 auid=4294967295 ses=4294967295 subj=system_u:system_r:initrc_t:s0 msg='old-level=6 new-level=S: exe="/sbin/runlevel" (hostname=?, addr=?, terminal=console res=success)'
-[   15.335202] awk used greatest stack depth: 2168 bytes left
-		Welcome to Fedora 
-		Press 'I' to enter interactive startup.
 
---=-MUD/dW/s68FIv3icQ/5n--
+
+--=-CbA4Uwyco8iXC5eeL1EQ
+Content-Disposition: attachment; filename="acpi.dump"
+Content-Type: text/plain; name="acpi.dump"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+DSDT @ 0x7fefa22a
+  0000: 44 53 44 54 6e 4c 00 00 01 9f 50 54 4c 54 44 20  DSDTnL....PTLTD 
+  0010: 43 75 73 74 6f 6d 20 20 00 00 04 06 4d 53 46 54  Custom  ....MSFT
+  0020: 01 00 00 03 08 5c 47 50 49 43 0a 00 14 0d 5c 5f  .....\GPIC....\_
+  0030: 50 49 43 01 70 68 47 50 49 43 10 89 aa 04 5f 53  PIC.phGPIC...._S
+  0040: 42 5f 14 40 05 53 54 52 43 02 a0 09 92 93 87 68  B_.@.STRC......h
+  0050: 87 69 a4 00 72 87 68 0a 01 60 08 42 55 46 30 11  .i..r.h..`.BUF0.
+  0060: 02 60 08 42 55 46 31 11 02 60 70 68 42 55 46 30  .`.BUF1..`phBUF0
+  0070: 70 69 42 55 46 31 a2 1a 60 76 60 a0 15 92 93 83  piBUF1..`v`.....
+  0080: 88 42 55 46 30 60 00 83 88 42 55 46 31 60 00 a4  .BUF0`...BUF1`..
+  0090: 00 a4 01 5b 80 4f 45 4d 44 00 0c 89 fe ef 7f 0c  ...[.OEMD.......
+  00a0: 34 00 00 00 5b 81 1d 4f 45 4d 44 00 00 40 12 43  4...[..OEMD..@.C
+  00b0: 43 41 50 20 45 43 46 47 20 50 43 48 53 20 50 43  CAP ECFG PCHS PC
+  00c0: 48 45 20 08 54 4f 4f 53 0a 00 08 46 4c 41 47 0a  HE .TOOS...FLAG.
+  00d0: 00 14 47 20 5f 49 4e 49 00 a0 0b 92 93 46 4c 41  ..G _INI.....FLA
+  00e0: 47 0a 00 a4 00 70 0a 01 46 4c 41 47 a0 49 11 5b  G....p..FLAG.I.[
+  00f0: 12 5c 5f 4f 53 49 60 a0 15 5c 5f 4f 53 49 0d 4c  .\_OSI`..\_OSI.L
+  0100: 69 6e 75 78 00 70 0b 00 0f 54 4f 4f 53 a1 48 0f  inux.p...TOOS.H.
+  0110: a0 1c 5c 5f 4f 53 49 0d 57 69 6e 64 6f 77 73 20  ..\_OSI.Windows 
+  0120: 32 30 30 36 00 70 0b 00 0c 54 4f 4f 53 a1 48 0d  2006.p...TOOS.H.
+  0130: a0 22 5c 5f 4f 53 49 0d 57 69 6e 64 6f 77 73 20  ."\_OSI.Windows 
+  0140: 32 30 30 31 2e 31 20 53 50 31 00 70 0b 00 0a 54  2001.1 SP1.p...T
+  0150: 4f 4f 53 a1 42 0b a0 1e 5c 5f 4f 53 49 0d 57 69  OOS.B...\_OSI.Wi
+  0160: 6e 64 6f 77 73 20 32 30 30 31 2e 31 00 70 0b 00  ndows 2001.1.p..
+  0170: 09 54 4f 4f 53 a1 40 09 a0 20 5c 5f 4f 53 49 0d  .TOOS.@.. \_OSI.
+  0180: 57 69 6e 64 6f 73 77 20 32 30 30 31 20 53 50 32  Windosw 2001 SP2
+  0190: 00 70 0b 00 07 54 4f 4f 53 a1 4c 06 a0 20 5c 5f  .p...TOOS.L.. \_
+  01a0: 4f 53 49 0d 57 69 6e 64 6f 77 73 20 32 30 30 31  OSI.Windows 2001
+  01b0: 20 53 50 31 00 70 0b 00 06 54 4f 4f 53 a1 48 04   SP1.p...TOOS.H.
+  01c0: a0 1c 5c 5f 4f 53 49 0d 57 69 6e 64 6f 77 73 20  ..\_OSI.Windows 
+  01d0: 32 30 30 31 00 70 0b 00 05 54 4f 4f 53 a1 28 a0  2001.p...TOOS.(.
+  01e0: 1c 5c 5f 4f 53 49 0d 57 69 6e 64 6f 77 73 20 32  .\_OSI.Windows 2
+  01f0: 30 30 30 00 70 0b 00 04 54 4f 4f 53 a1 09 70 0b  000.p...TOOS..p.
+  0200: 00 fe 54 4f 4f 53 a1 4f 0c a0 42 0c 5b 12 5c 5f  ..TOOS.O..B.[.\_
+  0210: 4f 53 5f 60 a0 28 53 54 52 43 5c 5f 4f 53 5f 0d  OS_`.(STRC\_OS_.
+  0220: 4d 69 63 72 6f 73 6f 66 74 20 57 69 6e 64 6f 77  Microsoft Window
+  0230: 73 20 4e 54 00 70 0b 00 03 54 4f 4f 53 a1 4e 08  s NT.p...TOOS.N.
+  0240: a0 3a 53 54 52 43 5c 5f 4f 53 5f 0d 4d 69 63 72  .:STRC\_OS_.Micr
+  0250: 6f 73 6f 66 74 20 57 69 6e 64 6f 77 73 4d 45 3a  osoft WindowsME:
+  0260: 4d 69 6c 6c 65 6e 6e 69 75 6d 20 45 64 69 74 69  Millennium Editi
+  0270: 6f 6e 00 70 0b 00 02 54 4f 4f 53 a1 40 05 a0 25  on.p...TOOS.@..%
+  0280: 53 54 52 43 5c 5f 4f 53 5f 0d 4d 69 63 72 6f 73  STRC\_OS_.Micros
+  0290: 6f 66 74 20 57 69 6e 64 6f 77 73 00 70 0b 00 01  oft Windows.p...
+  02a0: 54 4f 4f 53 a1 27 a0 1b 53 54 52 43 5c 5f 4f 53  TOOS.'..STRC\_OS
+  02b0: 5f 0d 4e 65 74 57 61 72 65 00 70 0b 00 0b 54 4f  _.NetWare.p...TO
+  02c0: 4f 53 a1 09 70 0b 00 fd 54 4f 4f 53 a1 09 70 0b  OS..p...TOOS..p.
+  02d0: 00 ff 54 4f 4f 53 a4 0a 00 5b 80 53 4d 49 30 01  ..TOOS...[.SMI0.
+  02e0: 0c 00 fe 00 00 0c 02 00 00 00 5b 81 0b 53 4d 49  ..........[..SMI
+  02f0: 30 00 53 4d 49 43 08 5b 80 53 4d 49 31 00 0c bd  0.SMIC.[.SMI1...
+  0300: fe ef 7f 0c 90 00 00 00 5b 81 16 53 4d 49 31 00  ........[..SMI1.
+  0310: 42 43 4d 44 08 44 49 44 5f 20 49 4e 46 4f 40 45  BCMD.DID_ INFO@E
+  0320: 5b 81 10 53 4d 49 31 00 01 01 00 00 28 49 4e 46  [..SMI1.....(INF
+  0330: 5f 08 5b 81 12 53 4d 49 31 00 00 28 49 4e 46 31  _.[..SMI1..(INF1
+  0340: 20 49 4e 46 32 20 5b 01 50 53 4d 58 00 5b 01 4f   INF2 [.PSMX.[.O
+  0350: 45 4d 4c 0f 5b 82 8b 39 04 50 43 49 30 08 5f 48  EML.[..9.PCI0._H
+  0360: 49 44 0c 41 d0 0a 03 08 5f 43 49 44 0c 41 d0 0a  ID.A...._CID.A..
+  0370: 08 08 5f 42 42 4e 0a 00 08 5f 41 44 52 0a 00 5b  .._BBN..._ADR..[
+  0380: 80 52 45 47 53 02 0a 50 0a 30 5b 81 40 07 52 45  .REGS..P.0[.@.RE
+  0390: 47 53 03 00 48 04 50 41 4d 30 08 50 41 4d 31 08  GS..H.PAM0.PAM1.
+  03a0: 50 41 4d 32 08 50 41 4d 33 08 50 41 4d 34 08 50  PAM2.PAM3.PAM4.P
+  03b0: 41 4d 35 08 50 41 4d 36 08 44 52 42 30 08 44 52  AM5.PAM6.DRB0.DR
+  03c0: 42 31 08 44 52 42 32 08 44 52 42 33 08 44 52 42  B1.DRB2.DRB3.DRB
+  03d0: 34 08 44 52 42 35 08 44 52 42 36 08 44 52 42 37  4.DRB5.DRB6.DRB7
+  03e0: 08 00 06 48 45 4e 5f 02 00 40 05 54 5f 45 4e 01  ...HEN_..@.T_EN.
+  03f0: 54 5f 53 5a 02 00 35 43 52 53 54 01 5b 80 52 45  T_SZ..5CRST.[.RE
+  0400: 30 30 02 0a d8 0a 04 5b 81 0b 52 45 30 30 03 4f  00.....[..RE00.O
+  0410: 45 4d 52 20 08 52 53 52 43 11 4c 1c 0b c7 01 88  EMR .RSRC.L.....
+  0420: 0e 00 02 0c 00 00 00 00 00 ff 00 00 00 00 01 00  ................
+  0430: 87 18 00 00 0c 03 00 00 00 00 00 00 0a 00 ff ff  ................
+  0440: 0b 00 00 00 00 00 00 00 02 00 00 87 18 00 00 0c  ................
+  0450: 03 00 00 00 00 00 00 0c 00 ff 3f 0c 00 00 00 00  ..........?.....
+  0460: 00 00 40 00 00 00 87 18 00 00 0c 03 00 00 00 00  ..@.............
+  0470: 00 40 0c 00 ff 7f 0c 00 00 00 00 00 00 40 00 00  .@...........@..
+  0480: 00 87 18 00 00 0c 03 00 00 00 00 00 80 0c 00 ff  ................
+  0490: bf 0c 00 00 00 00 00 00 40 00 00 00 87 18 00 00  ........@.......
+  04a0: 0c 03 00 00 00 00 00 c0 0c 00 ff ff 0c 00 00 00  ................
+  04b0: 00 00 00 40 00 00 00 87 18 00 00 0c 03 00 00 00  ...@............
+  04c0: 00 00 00 0d 00 ff 3f 0d 00 00 00 00 00 00 40 00  ......?.......@.
+  04d0: 00 00 87 18 00 00 0c 03 00 00 00 00 00 40 0d 00  .............@..
+  04e0: ff 7f 0d 00 00 00 00 00 00 40 00 00 00 87 18 00  .........@......
+  04f0: 00 0c 03 00 00 00 00 00 80 0d 00 ff bf 0d 00 00  ................
+  0500: 00 00 00 00 40 00 00 00 87 18 00 00 0c 03 00 00  ....@...........
+  0510: 00 00 00 c0 0d 00 ff ff 0d 00 00 00 00 00 00 40  ...............@
+  0520: 00 00 00 87 18 00 00 0c 03 00 00 00 00 00 00 0e  ................
+  0530: 00 ff 3f 0e 00 00 00 00 00 00 40 00 00 00 87 18  ..?.......@.....
+  0540: 00 00 0c 03 00 00 00 00 00 40 0e 00 ff 7f 0e 00  .........@......
+  0550: 00 00 00 00 00 40 00 00 00 87 18 00 00 0c 03 00  .....@..........
+  0560: 00 00 00 00 80 0e 00 ff bf 0e 00 00 00 00 00 00  ................
+  0570: 40 00 00 00 87 18 00 00 0c 03 00 00 00 00 00 c0  @...............
+  0580: 0e 00 ff ff 0e 00 00 00 00 00 00 40 00 00 00 87  ...........@....
+  0590: 18 00 00 0c 03 00 00 00 00 00 00 00 f0 ff ff bf  ................
+  05a0: fe 00 00 00 00 00 00 c0 0e 00 47 01 2e 00 2e 00  ..........G.....
+  05b0: 01 02 47 01 00 fe 00 fe 01 20 47 01 f8 0c f8 0c  ..G...... G.....
+  05c0: 01 08 88 0e 00 01 0c 03 00 00 00 00 f7 0c 00 00  ................
+  05d0: f8 0c 00 88 0e 00 01 0c 03 00 00 00 0d ff ff 00  ................
+  05e0: 00 00 f3 00 79 00 14 48 4e 5f 43 52 53 08 70 00  ....y..HN_CRS.p.
+  05f0: 61 a0 11 54 5f 45 4e 79 0a 01 72 54 5f 53 5a 0a  a..T_ENy..rT_SZ.
+  0600: 11 00 61 8a 52 53 52 43 0b 7a 01 48 4c 4d 4e 8a  ..a.RSRC.z.HLMN.
+  0610: 52 53 52 43 0b 7e 01 48 4c 4d 58 8a 52 53 52 43  RSRC.~.HLMX.RSRC
+  0620: 0b 86 01 48 4c 4c 4e 70 50 43 48 53 48 4c 4d 4e  ...HLLNpPCHSHLMN
+  0630: 70 50 43 48 45 48 4c 4d 58 72 74 48 4c 4d 58 48  pPCHEHLMXrtHLMXH
+  0640: 4c 4d 4e 00 0a 01 48 4c 4c 4e 8d 52 53 52 43 0b  LMN...HLLN.RSRC.
+  0650: 88 01 43 30 52 57 8a 52 53 52 43 0a 36 43 30 4d  ..C0RW.RSRC.6C0M
+  0660: 4e 8a 52 53 52 43 0a 3a 43 30 4d 58 8a 52 53 52  N.RSRC.:C0MX.RSR
+  0670: 43 0a 42 43 30 4c 4e 70 01 43 30 52 57 a0 12 93  C.BC0LNp.C0RW...
+  0680: 7b 50 41 4d 31 0a 03 00 0a 01 70 00 43 30 52 57  {PAM1.....p.C0RW
+  0690: 70 00 43 30 4c 4e a0 12 92 7b 50 41 4d 31 0a 03  p.C0LN...{PAM1..
+  06a0: 00 70 0b 00 40 43 30 4c 4e 8d 52 53 52 43 0b 60  .p..@C0LN.RSRC.`
+  06b0: 02 43 34 52 57 8a 52 53 52 43 0a 51 43 34 4d 4e  .C4RW.RSRC.QC4MN
+  06c0: 8a 52 53 52 43 0a 55 43 34 4d 58 8a 52 53 52 43  .RSRC.UC4MX.RSRC
+  06d0: 0a 5d 43 34 4c 4e 70 01 43 34 52 57 a0 12 93 7b  .]C4LNp.C4RW...{
+  06e0: 50 41 4d 31 0a 30 00 0a 10 70 00 43 34 52 57 70  PAM1.0...p.C4RWp
+  06f0: 00 43 34 4c 4e a0 12 92 7b 50 41 4d 31 0a 30 00  .C4LN...{PAM1.0.
+  0700: 70 0b 00 40 43 34 4c 4e 8d 52 53 52 43 0b 38 03  p..@C4LN.RSRC.8.
+  0710: 43 38 52 57 8a 52 53 52 43 0a 6c 43 38 4d 4e 8a  C8RW.RSRC.lC8MN.
+  0720: 52 53 52 43 0a 70 43 38 4d 58 8a 52 53 52 43 0a  RSRC.pC8MX.RSRC.
+  0730: 78 43 38 4c 4e 70 01 43 38 52 57 a0 12 93 7b 50  xC8LNp.C8RW...{P
+  0740: 41 4d 32 0a 03 00 0a 01 70 00 43 38 52 57 70 00  AM2.....p.C8RWp.
+  0750: 43 38 4c 4e a0 12 92 7b 50 41 4d 32 0a 03 00 70  C8LN...{PAM2...p
+  0760: 0b 00 40 43 38 4c 4e 8d 52 53 52 43 0b 10 04 43  ..@C8LN.RSRC...C
+  0770: 43 52 57 8a 52 53 52 43 0a 87 43 43 4d 4e 8a 52  CRW.RSRC..CCMN.R
+  0780: 53 52 43 0a 8b 43 43 4d 58 8a 52 53 52 43 0a 93  SRC..CCMX.RSRC..
+  0790: 43 43 4c 4e 70 01 43 43 52 57 a0 12 93 7b 50 41  CCLNp.CCRW...{PA
+  07a0: 4d 32 0a 30 00 0a 10 70 00 43 43 52 57 70 00 43  M2.0...p.CCRWp.C
+  07b0: 43 4c 4e a0 12 92 7b 50 41 4d 32 0a 30 00 70 0b  CLN...{PAM2.0.p.
+  07c0: 00 40 43 43 4c 4e 8d 52 53 52 43 0b e8 04 44 30  .@CCLN.RSRC...D0
+  07d0: 52 57 8a 52 53 52 43 0a a2 44 30 4d 4e 8a 52 53  RW.RSRC..D0MN.RS
+  07e0: 52 43 0a a6 44 30 4d 58 8a 52 53 52 43 0a ae 44  RC..D0MX.RSRC..D
+  07f0: 30 4c 4e 70 01 44 30 52 57 a0 12 93 7b 50 41 4d  0LNp.D0RW...{PAM
+  0800: 33 0a 03 00 0a 01 70 00 44 30 52 57 70 00 44 30  3.....p.D0RWp.D0
+  0810: 4c 4e a0 12 92 7b 50 41 4d 33 0a 03 00 70 0b 00  LN...{PAM3...p..
+  0820: 40 44 30 4c 4e 8d 52 53 52 43 0b c0 05 44 34 52  @D0LN.RSRC...D4R
+  0830: 57 8a 52 53 52 43 0a bd 44 34 4d 4e 8a 52 53 52  W.RSRC..D4MN.RSR
+  0840: 43 0a c1 44 34 4d 58 8a 52 53 52 43 0a c9 44 34  C..D4MX.RSRC..D4
+  0850: 4c 4e 70 01 44 34 52 57 a0 12 93 7b 50 41 4d 33  LNp.D4RW...{PAM3
+  0860: 0a 30 00 0a 10 70 00 44 34 52 57 70 00 44 34 4c  .0...p.D4RWp.D4L
+  0870: 4e a0 12 92 7b 50 41 4d 33 0a 30 00 70 0b 00 40  N...{PAM3.0.p..@
+  0880: 44 34 4c 4e 8d 52 53 52 43 0b 98 06 44 38 52 57  D4LN.RSRC...D8RW
+  0890: 8a 52 53 52 43 0a d8 44 38 4d 4e 8a 52 53 52 43  .RSRC..D8MN.RSRC
+  08a0: 0a dc 44 38 4d 58 8a 52 53 52 43 0a e4 44 38 4c  ..D8MX.RSRC..D8L
+  08b0: 4e 70 01 44 38 52 57 a0 12 93 7b 50 41 4d 34 0a  Np.D8RW...{PAM4.
+  08c0: 03 00 0a 01 70 00 44 38 52 57 70 00 44 38 4c 4e  ....p.D8RWp.D8LN
+  08d0: a0 12 92 7b 50 41 4d 34 0a 03 00 70 0b 00 40 44  ...{PAM4...p..@D
+  08e0: 38 4c 4e 8d 52 53 52 43 0b 70 07 44 43 52 57 8a  8LN.RSRC.p.DCRW.
+  08f0: 52 53 52 43 0a f3 44 43 4d 4e 8a 52 53 52 43 0a  RSRC..DCMN.RSRC.
+  0900: f7 44 43 4d 58 8a 52 53 52 43 0a ff 44 43 4c 4e  .DCMX.RSRC..DCLN
+  0910: 70 01 44 43 52 57 a0 12 93 7b 50 41 4d 34 0a 30  p.DCRW...{PAM4.0
+  0920: 00 0a 10 70 00 44 43 52 57 70 00 44 43 4c 4e a0  ...p.DCRWp.DCLN.
+  0930: 12 92 7b 50 41 4d 34 0a 30 00 70 0b 00 40 44 43  ..{PAM4.0.p..@DC
+  0940: 4c 4e 8d 52 53 52 43 0b 48 08 45 30 52 57 8a 52  LN.RSRC.H.E0RW.R
+  0950: 53 52 43 0b 0e 01 45 30 4d 4e 8a 52 53 52 43 0b  SRC...E0MN.RSRC.
+  0960: 12 01 45 30 4d 58 8a 52 53 52 43 0b 1a 01 45 30  ..E0MX.RSRC...E0
+  0970: 4c 4e 70 01 45 30 52 57 a0 12 93 7b 50 41 4d 35  LNp.E0RW...{PAM5
+  0980: 0a 03 00 0a 01 70 00 45 30 52 57 70 00 45 30 4c  .....p.E0RWp.E0L
+  0990: 4e a0 12 92 7b 50 41 4d 35 0a 03 00 70 0b 00 40  N...{PAM5...p..@
+  09a0: 45 30 4c 4e 8d 52 53 52 43 0b 20 09 45 34 52 57  E0LN.RSRC. .E4RW
+  09b0: 8a 52 53 52 43 0b 29 01 45 34 4d 4e 8a 52 53 52  .RSRC.).E4MN.RSR
+  09c0: 43 0b 2d 01 45 34 4d 58 8a 52 53 52 43 0b 35 01  C.-.E4MX.RSRC.5.
+  09d0: 45 34 4c 4e 70 01 45 34 52 57 a0 12 93 7b 50 41  E4LNp.E4RW...{PA
+  09e0: 4d 35 0a 30 00 0a 10 70 00 45 34 52 57 70 00 45  M5.0...p.E4RWp.E
+  09f0: 34 4c 4e a0 12 92 7b 50 41 4d 35 0a 30 00 70 0b  4LN...{PAM5.0.p.
+  0a00: 00 40 45 34 4c 4e 8d 52 53 52 43 0b f8 09 45 38  .@E4LN.RSRC...E8
+  0a10: 52 57 8a 52 53 52 43 0b 44 01 45 38 4d 4e 8a 52  RW.RSRC.D.E8MN.R
+  0a20: 53 52 43 0b 48 01 45 38 4d 58 8a 52 53 52 43 0b  SRC.H.E8MX.RSRC.
+  0a30: 50 01 45 38 4c 4e 70 01 45 38 52 57 a0 12 93 7b  P.E8LNp.E8RW...{
+  0a40: 50 41 4d 36 0a 03 00 0a 01 70 00 45 38 52 57 70  PAM6.....p.E8RWp
+  0a50: 00 45 38 4c 4e a0 12 92 7b 50 41 4d 36 0a 03 00  .E8LN...{PAM6...
+  0a60: 70 0b 00 40 45 38 4c 4e 8d 52 53 52 43 0b d0 0a  p..@E8LN.RSRC...
+  0a70: 45 43 52 57 8a 52 53 52 43 0b 5f 01 45 43 4d 4e  ECRW.RSRC._.ECMN
+  0a80: 8a 52 53 52 43 0b 63 01 45 43 4d 58 8a 52 53 52  .RSRC.c.ECMX.RSR
+  0a90: 43 0b 6b 01 45 43 4c 4e 70 01 45 43 52 57 a0 12  C.k.ECLNp.ECRW..
+  0aa0: 93 7b 50 41 4d 36 0a 30 00 0a 10 70 00 45 43 52  .{PAM6.0...p.ECR
+  0ab0: 57 70 00 45 43 4c 4e a0 12 92 7b 50 41 4d 36 0a  Wp.ECLN...{PAM6.
+  0ac0: 30 00 70 0b 00 40 45 43 4c 4e a4 52 53 52 43 08  0.p..@ECLN.RSRC.
+  0ad0: 5f 50 52 57 12 06 02 0a 03 0a 03 14 46 cc 5f 50  _PRW........F._P
+  0ae0: 52 54 00 a0 4e 3f 93 47 50 49 43 0a 01 a4 12 43  RT..N?.GPIC....C
+  0af0: 3f 48 12 0d 04 0c ff ff 0f 00 0a 00 0a 00 0a 10  ?H..............
+  0b00: 12 0d 04 0c ff ff 0f 00 0a 01 0a 00 0a 11 12 0d  ................
+  0b10: 04 0c ff ff 0f 00 0a 02 0a 00 0a 12 12 0d 04 0c  ................
+  0b20: ff ff 0f 00 0a 03 0a 00 0a 13 12 0d 04 0c ff ff  ................
+  0b30: 10 00 0a 00 0a 00 0a 11 12 0d 04 0c ff ff 10 00  ................
+  0b40: 0a 01 0a 00 0a 12 12 0d 04 0c ff ff 10 00 0a 02  ................
+  0b50: 0a 00 0a 13 12 0d 04 0c ff ff 10 00 0a 03 0a 00  ................
+  0b60: 0a 10 12 0d 04 0c ff ff 11 00 0a 00 0a 00 0a 12  ................
+  0b70: 12 0d 04 0c ff ff 11 00 0a 01 0a 00 0a 13 12 0d  ................
+  0b80: 04 0c ff ff 11 00 0a 02 0a 00 0a 10 12 0d 04 0c  ................
+  0b90: ff ff 11 00 0a 03 0a 00 0a 11 12 0d 04 0c ff ff  ................
+  0ba0: 12 00 0a 00 0a 00 0a 13 12 0d 04 0c ff ff 12 00  ................
+  0bb0: 0a 01 0a 00 0a 10 12 0d 04 0c ff ff 12 00 0a 02  ................
+  0bc0: 0a 00 0a 11 12 0d 04 0c ff ff 12 00 0a 03 0a 00  ................
+  0bd0: 0a 12 12 0d 04 0c ff ff 13 00 0a 00 0a 00 0a 10  ................
+  0be0: 12 0d 04 0c ff ff 13 00 0a 01 0a 00 0a 11 12 0d  ................
+  0bf0: 04 0c ff ff 13 00 0a 02 0a 00 0a 12 12 0d 04 0c  ................
+  0c00: ff ff 13 00 0a 03 0a 00 0a 13 12 0d 04 0c ff ff  ................
+  0c10: 14 00 0a 00 0a 00 0a 11 12 0d 04 0c ff ff 14 00  ................
+  0c20: 0a 01 0a 00 0a 12 12 0d 04 0c ff ff 14 00 0a 02  ................
+  0c30: 0a 00 0a 13 12 0d 04 0c ff ff 14 00 0a 03 0a 00  ................
+  0c40: 0a 10 12 0d 04 0c ff ff 15 00 0a 00 0a 00 0a 12  ................
+  0c50: 12 0d 04 0c ff ff 15 00 0a 01 0a 00 0a 13 12 0d  ................
+  0c60: 04 0c ff ff 15 00 0a 02 0a 00 0a 10 12 0d 04 0c  ................
+  0c70: ff ff 15 00 0a 03 0a 00 0a 11 12 0d 04 0c ff ff  ................
+  0c80: 16 00 0a 00 0a 00 0a 13 12 0d 04 0c ff ff 16 00  ................
+  0c90: 0a 01 0a 00 0a 10 12 0d 04 0c ff ff 16 00 0a 02  ................
+  0ca0: 0a 00 0a 11 12 0d 04 0c ff ff 16 00 0a 03 0a 00  ................
+  0cb0: 0a 12 12 0d 04 0c ff ff 17 00 0a 00 0a 00 0a 10  ................
+  0cc0: 12 0d 04 0c ff ff 17 00 0a 01 0a 00 0a 11 12 0d  ................
+  0cd0: 04 0c ff ff 17 00 0a 02 0a 00 0a 12 12 0d 04 0c  ................
+  0ce0: ff ff 17 00 0a 03 0a 00 0a 13 12 0d 04 0c ff ff  ................
+  0cf0: 18 00 0a 00 0a 00 0a 11 12 0d 04 0c ff ff 18 00  ................
+  0d00: 0a 01 0a 00 0a 12 12 0d 04 0c ff ff 18 00 0a 02  ................
+  0d10: 0a 00 0a 13 12 0d 04 0c ff ff 18 00 0a 03 0a 00  ................
+  0d20: 0a 10 12 0d 04 0c ff ff 19 00 0a 00 0a 00 0a 12  ................
+  0d30: 12 0d 04 0c ff ff 19 00 0a 01 0a 00 0a 13 12 0d  ................
+  0d40: 04 0c ff ff 19 00 0a 02 0a 00 0a 10 12 0d 04 0c  ................
+  0d50: ff ff 19 00 0a 03 0a 00 0a 11 12 0d 04 0c ff ff  ................
+  0d60: 1a 00 0a 00 0a 00 0a 13 12 0d 04 0c ff ff 1a 00  ................
+  0d70: 0a 01 0a 00 0a 10 12 0d 04 0c ff ff 1a 00 0a 02  ................
+  0d80: 0a 00 0a 11 12 0d 04 0c ff ff 1a 00 0a 03 0a 00  ................
+  0d90: 0a 12 12 0d 04 0c ff ff 1b 00 0a 00 0a 00 0a 10  ................
+  0da0: 12 0d 04 0c ff ff 1b 00 0a 01 0a 00 0a 11 12 0d  ................
+  0db0: 04 0c ff ff 1b 00 0a 02 0a 00 0a 12 12 0d 04 0c  ................
+  0dc0: ff ff 1b 00 0a 03 0a 00 0a 13 12 0d 04 0c ff ff  ................
+  0dd0: 1c 00 0a 00 0a 00 0a 11 12 0d 04 0c ff ff 1c 00  ................
+  0de0: 0a 01 0a 00 0a 12 12 0d 04 0c ff ff 1c 00 0a 02  ................
+  0df0: 0a 00 0a 13 12 0d 04 0c ff ff 1c 00 0a 03 0a 00  ................
+  0e00: 0a 10 12 0d 04 0c ff ff 1d 00 0a 00 0a 00 0a 12  ................
+  0e10: 12 0d 04 0c ff ff 1d 00 0a 01 0a 00 0a 13 12 0d  ................
+  0e20: 04 0c ff ff 1d 00 0a 02 0a 00 0a 10 12 0d 04 0c  ................
+  0e30: ff ff 1d 00 0a 03 0a 00 0a 11 12 0d 04 0c ff ff  ................
+  0e40: 1e 00 0a 00 0a 00 0a 13 12 0d 04 0c ff ff 1e 00  ................
+  0e50: 0a 01 0a 00 0a 10 12 0d 04 0c ff ff 1e 00 0a 02  ................
+  0e60: 0a 00 0a 11 12 0d 04 0c ff ff 1e 00 0a 03 0a 00  ................
+  0e70: 0a 12 12 0d 04 0c ff ff 1f 00 0a 00 0a 00 0a 10  ................
+  0e80: 12 0d 04 0c ff ff 1f 00 0a 01 0a 00 0a 11 12 0d  ................
+  0e90: 04 0c ff ff 1f 00 0a 02 0a 00 0a 12 12 0d 04 0c  ................
+  0ea0: ff ff 1f 00 0a 03 0a 00 0a 13 12 0d 04 0c ff ff  ................
+  0eb0: 07 00 0a 00 0a 00 0a 10 12 0d 04 0c ff ff 07 00  ................
+  0ec0: 0a 01 0a 00 0a 11 12 0d 04 0c ff ff 07 00 0a 02  ................
+  0ed0: 0a 00 0a 12 12 0d 04 0c ff ff 07 00 0a 03 0a 00  ................
+  0ee0: 0a 13 a1 4f 8b a4 12 4b 8b 48 12 1e 04 0c ff ff  ...O...K.H......
+  0ef0: 0f 00 0a 00 5c 2f 04 5f 53 42 5f 50 43 49 30 49  ....\/._SB_PCI0I
+  0f00: 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c ff ff 0f  SA_LNKA.........
+  0f10: 00 0a 01 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53  ...\/._SB_PCI0IS
+  0f20: 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff ff 0f 00  A_LNKB..........
+  0f30: 0a 02 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41  ..\/._SB_PCI0ISA
+  0f40: 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff 0f 00 0a  _LNKC...........
+  0f50: 03 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f  .\/._SB_PCI0ISA_
+  0f60: 4c 4e 4b 44 0a 00 12 1e 04 0c ff ff 10 00 0a 00  LNKD............
+  0f70: 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c  \/._SB_PCI0ISA_L
+  0f80: 4e 4b 42 0a 00 12 1e 04 0c ff ff 10 00 0a 01 5c  NKB............\
+  0f90: 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e  /._SB_PCI0ISA_LN
+  0fa0: 4b 43 0a 00 12 1e 04 0c ff ff 10 00 0a 02 5c 2f  KC............\/
+  0fb0: 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b  ._SB_PCI0ISA_LNK
+  0fc0: 44 0a 00 12 1e 04 0c ff ff 10 00 0a 03 5c 2f 04  D............\/.
+  0fd0: 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41  _SB_PCI0ISA_LNKA
+  0fe0: 0a 00 12 1e 04 0c ff ff 11 00 0a 00 5c 2f 04 5f  ............\/._
+  0ff0: 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 43 0a  SB_PCI0ISA_LNKC.
+  1000: 00 12 1e 04 0c ff ff 11 00 0a 01 5c 2f 04 5f 53  ...........\/._S
+  1010: 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00  B_PCI0ISA_LNKD..
+  1020: 12 1e 04 0c ff ff 11 00 0a 02 5c 2f 04 5f 53 42  ..........\/._SB
+  1030: 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12  _PCI0ISA_LNKA...
+  1040: 1e 04 0c ff ff 11 00 0a 03 5c 2f 04 5f 53 42 5f  .........\/._SB_
+  1050: 50 43 49 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e  PCI0ISA_LNKB....
+  1060: 04 0c ff ff 12 00 0a 00 5c 2f 04 5f 53 42 5f 50  ........\/._SB_P
+  1070: 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00 12 1e 04  CI0ISA_LNKD.....
+  1080: 0c ff ff 12 00 0a 01 5c 2f 04 5f 53 42 5f 50 43  .......\/._SB_PC
+  1090: 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c  I0ISA_LNKA......
+  10a0: ff ff 12 00 0a 02 5c 2f 04 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  10b0: 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff  0ISA_LNKB.......
+  10c0: ff 12 00 0a 03 5c 2f 04 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  10d0: 49 53 41 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff  ISA_LNKC........
+  10e0: 13 00 0a 00 5c 2f 04 5f 53 42 5f 50 43 49 30 49  ....\/._SB_PCI0I
+  10f0: 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c ff ff 13  SA_LNKA.........
+  1100: 00 0a 01 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53  ...\/._SB_PCI0IS
+  1110: 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff ff 13 00  A_LNKB..........
+  1120: 0a 02 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41  ..\/._SB_PCI0ISA
+  1130: 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff 13 00 0a  _LNKC...........
+  1140: 03 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f  .\/._SB_PCI0ISA_
+  1150: 4c 4e 4b 44 0a 00 12 1e 04 0c ff ff 14 00 0a 00  LNKD............
+  1160: 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c  \/._SB_PCI0ISA_L
+  1170: 4e 4b 42 0a 00 12 1e 04 0c ff ff 14 00 0a 01 5c  NKB............\
+  1180: 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e  /._SB_PCI0ISA_LN
+  1190: 4b 43 0a 00 12 1e 04 0c ff ff 14 00 0a 02 5c 2f  KC............\/
+  11a0: 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b  ._SB_PCI0ISA_LNK
+  11b0: 44 0a 00 12 1e 04 0c ff ff 14 00 0a 03 5c 2f 04  D............\/.
+  11c0: 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41  _SB_PCI0ISA_LNKA
+  11d0: 0a 00 12 1e 04 0c ff ff 15 00 0a 00 5c 2f 04 5f  ............\/._
+  11e0: 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 43 0a  SB_PCI0ISA_LNKC.
+  11f0: 00 12 1e 04 0c ff ff 15 00 0a 01 5c 2f 04 5f 53  ...........\/._S
+  1200: 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00  B_PCI0ISA_LNKD..
+  1210: 12 1e 04 0c ff ff 15 00 0a 02 5c 2f 04 5f 53 42  ..........\/._SB
+  1220: 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12  _PCI0ISA_LNKA...
+  1230: 1e 04 0c ff ff 15 00 0a 03 5c 2f 04 5f 53 42 5f  .........\/._SB_
+  1240: 50 43 49 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e  PCI0ISA_LNKB....
+  1250: 04 0c ff ff 16 00 0a 00 5c 2f 04 5f 53 42 5f 50  ........\/._SB_P
+  1260: 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00 12 1e 04  CI0ISA_LNKD.....
+  1270: 0c ff ff 16 00 0a 01 5c 2f 04 5f 53 42 5f 50 43  .......\/._SB_PC
+  1280: 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c  I0ISA_LNKA......
+  1290: ff ff 16 00 0a 02 5c 2f 04 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  12a0: 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff  0ISA_LNKB.......
+  12b0: ff 16 00 0a 03 5c 2f 04 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  12c0: 49 53 41 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff  ISA_LNKC........
+  12d0: 17 00 0a 00 5c 2f 04 5f 53 42 5f 50 43 49 30 49  ....\/._SB_PCI0I
+  12e0: 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c ff ff 17  SA_LNKA.........
+  12f0: 00 0a 01 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53  ...\/._SB_PCI0IS
+  1300: 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff ff 17 00  A_LNKB..........
+  1310: 0a 02 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41  ..\/._SB_PCI0ISA
+  1320: 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff 17 00 0a  _LNKC...........
+  1330: 03 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f  .\/._SB_PCI0ISA_
+  1340: 4c 4e 4b 44 0a 00 12 1e 04 0c ff ff 18 00 0a 00  LNKD............
+  1350: 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c  \/._SB_PCI0ISA_L
+  1360: 4e 4b 42 0a 00 12 1e 04 0c ff ff 18 00 0a 01 5c  NKB............\
+  1370: 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e  /._SB_PCI0ISA_LN
+  1380: 4b 43 0a 00 12 1e 04 0c ff ff 18 00 0a 02 5c 2f  KC............\/
+  1390: 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b  ._SB_PCI0ISA_LNK
+  13a0: 44 0a 00 12 1e 04 0c ff ff 18 00 0a 03 5c 2f 04  D............\/.
+  13b0: 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41  _SB_PCI0ISA_LNKA
+  13c0: 0a 00 12 1e 04 0c ff ff 19 00 0a 00 5c 2f 04 5f  ............\/._
+  13d0: 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 43 0a  SB_PCI0ISA_LNKC.
+  13e0: 00 12 1e 04 0c ff ff 19 00 0a 01 5c 2f 04 5f 53  ...........\/._S
+  13f0: 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00  B_PCI0ISA_LNKD..
+  1400: 12 1e 04 0c ff ff 19 00 0a 02 5c 2f 04 5f 53 42  ..........\/._SB
+  1410: 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12  _PCI0ISA_LNKA...
+  1420: 1e 04 0c ff ff 19 00 0a 03 5c 2f 04 5f 53 42 5f  .........\/._SB_
+  1430: 50 43 49 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e  PCI0ISA_LNKB....
+  1440: 04 0c ff ff 1a 00 0a 00 5c 2f 04 5f 53 42 5f 50  ........\/._SB_P
+  1450: 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00 12 1e 04  CI0ISA_LNKD.....
+  1460: 0c ff ff 1a 00 0a 01 5c 2f 04 5f 53 42 5f 50 43  .......\/._SB_PC
+  1470: 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c  I0ISA_LNKA......
+  1480: ff ff 1a 00 0a 02 5c 2f 04 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  1490: 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff  0ISA_LNKB.......
+  14a0: ff 1a 00 0a 03 5c 2f 04 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  14b0: 49 53 41 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff  ISA_LNKC........
+  14c0: 1b 00 0a 00 5c 2f 04 5f 53 42 5f 50 43 49 30 49  ....\/._SB_PCI0I
+  14d0: 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c ff ff 1b  SA_LNKA.........
+  14e0: 00 0a 01 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53  ...\/._SB_PCI0IS
+  14f0: 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff ff 1b 00  A_LNKB..........
+  1500: 0a 02 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41  ..\/._SB_PCI0ISA
+  1510: 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff 1b 00 0a  _LNKC...........
+  1520: 03 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f  .\/._SB_PCI0ISA_
+  1530: 4c 4e 4b 44 0a 00 12 1e 04 0c ff ff 1c 00 0a 00  LNKD............
+  1540: 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c  \/._SB_PCI0ISA_L
+  1550: 4e 4b 42 0a 00 12 1e 04 0c ff ff 1c 00 0a 01 5c  NKB............\
+  1560: 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e  /._SB_PCI0ISA_LN
+  1570: 4b 43 0a 00 12 1e 04 0c ff ff 1c 00 0a 02 5c 2f  KC............\/
+  1580: 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b  ._SB_PCI0ISA_LNK
+  1590: 44 0a 00 12 1e 04 0c ff ff 1c 00 0a 03 5c 2f 04  D............\/.
+  15a0: 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41  _SB_PCI0ISA_LNKA
+  15b0: 0a 00 12 1e 04 0c ff ff 1d 00 0a 00 5c 2f 04 5f  ............\/._
+  15c0: 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 43 0a  SB_PCI0ISA_LNKC.
+  15d0: 00 12 1e 04 0c ff ff 1d 00 0a 01 5c 2f 04 5f 53  ...........\/._S
+  15e0: 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00  B_PCI0ISA_LNKD..
+  15f0: 12 1e 04 0c ff ff 1d 00 0a 02 5c 2f 04 5f 53 42  ..........\/._SB
+  1600: 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12  _PCI0ISA_LNKA...
+  1610: 1e 04 0c ff ff 1d 00 0a 03 5c 2f 04 5f 53 42 5f  .........\/._SB_
+  1620: 50 43 49 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e  PCI0ISA_LNKB....
+  1630: 04 0c ff ff 1e 00 0a 00 5c 2f 04 5f 53 42 5f 50  ........\/._SB_P
+  1640: 43 49 30 49 53 41 5f 4c 4e 4b 44 0a 00 12 1e 04  CI0ISA_LNKD.....
+  1650: 0c ff ff 1e 00 0a 01 5c 2f 04 5f 53 42 5f 50 43  .......\/._SB_PC
+  1660: 49 30 49 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c  I0ISA_LNKA......
+  1670: ff ff 1e 00 0a 02 5c 2f 04 5f 53 42 5f 50 43 49  ......\/._SB_PCI
+  1680: 30 49 53 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff  0ISA_LNKB.......
+  1690: ff 1e 00 0a 03 5c 2f 04 5f 53 42 5f 50 43 49 30  .....\/._SB_PCI0
+  16a0: 49 53 41 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff  ISA_LNKC........
+  16b0: 1f 00 0a 00 5c 2f 04 5f 53 42 5f 50 43 49 30 49  ....\/._SB_PCI0I
+  16c0: 53 41 5f 4c 4e 4b 41 0a 00 12 1e 04 0c ff ff 1f  SA_LNKA.........
+  16d0: 00 0a 01 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53  ...\/._SB_PCI0IS
+  16e0: 41 5f 4c 4e 4b 42 0a 00 12 1e 04 0c ff ff 1f 00  A_LNKB..........
+  16f0: 0a 02 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41  ..\/._SB_PCI0ISA
+  1700: 5f 4c 4e 4b 43 0a 00 12 1e 04 0c ff ff 1f 00 0a  _LNKC...........
+  1710: 03 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f  .\/._SB_PCI0ISA_
+  1720: 4c 4e 4b 44 0a 00 12 1e 04 0c ff ff 07 00 0a 00  LNKD............
+  1730: 5c 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c  \/._SB_PCI0ISA_L
+  1740: 4e 4b 41 0a 00 12 1e 04 0c ff ff 07 00 0a 01 5c  NKA............\
+  1750: 2f 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e  /._SB_PCI0ISA_LN
+  1760: 4b 42 0a 00 12 1e 04 0c ff ff 07 00 0a 02 5c 2f  KB............\/
+  1770: 04 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b  ._SB_PCI0ISA_LNK
+  1780: 43 0a 00 12 1e 04 0c ff ff 07 00 0a 03 5c 2f 04  C............\/.
+  1790: 5f 53 42 5f 50 43 49 30 49 53 41 5f 4c 4e 4b 44  _SB_PCI0ISA_LNKD
+  17a0: 0a 00 5b 82 0f 41 47 50 5f 08 5f 41 44 52 0c 00  ..[..AGP_._ADR..
+  17b0: 00 01 00 5b 82 88 d3 02 49 53 41 5f 08 5f 41 44  ...[....ISA_._AD
+  17c0: 52 0c 00 00 07 00 5b 82 4a 13 4d 42 52 44 08 5f  R.....[.J.MBRD._
+  17d0: 48 49 44 0c 41 d0 0c 02 08 5f 55 49 44 0a 1f 08  HID.A...._UID...
+  17e0: 52 53 52 43 11 46 0a 0a a2 47 01 10 00 10 00 01  RSRC.F...G......
+  17f0: 10 47 01 24 00 24 00 01 02 47 01 28 00 28 00 01  .G.$.$...G.(.(..
+  1800: 02 47 01 2c 00 2c 00 01 02 47 01 30 00 30 00 01  .G.,.,...G.0.0..
+  1810: 02 47 01 34 00 34 00 01 02 47 01 38 00 38 00 01  .G.4.4...G.8.8..
+  1820: 02 47 01 3c 00 3c 00 01 02 47 01 50 00 50 00 01  .G.<.<...G.P.P..
+  1830: 04 47 01 72 00 72 00 01 06 47 01 80 00 80 00 01  .G.r.r...G......
+  1840: 01 47 01 90 00 90 00 01 10 47 01 a4 00 a4 00 01  .G.......G......
+  1850: 02 47 01 a8 00 a8 00 01 02 47 01 ac 00 ac 00 01  .G.......G......
+  1860: 02 47 01 b0 00 b0 00 01 06 47 01 b8 00 b8 00 01  .G.......G......
+  1870: 02 47 01 bc 00 bc 00 01 02 47 01 00 01 00 01 01  .G.......G......
+  1880: 40 47 01 40 01 40 01 01 10 79 00 14 46 07 5f 43  @G.@.@...y..F._C
+  1890: 52 53 00 8b 52 53 52 43 0a 92 50 4d 4d 4e 8b 52  RS..RSRC..PMMN.R
+  18a0: 53 52 43 0a 94 50 4d 4d 58 7b 5e 5e 5e 2e 50 57  SRC..PMMX{^^^.PW
+  18b0: 52 5f 50 4d 42 41 0c fe ff ff ff 50 4d 4d 4e 70  R_PMBA.....PMMNp
+  18c0: 50 4d 4d 4e 50 4d 4d 58 8b 52 53 52 43 0a 9a 53  PMMNPMMX.RSRC..S
+  18d0: 4d 4d 4e 8b 52 53 52 43 0a 9c 53 4d 4d 58 7b 5e  MMN.RSRC..SMMX{^
+  18e0: 5e 5e 2e 50 57 52 5f 53 42 42 41 0c fe ff ff ff  ^^.PWR_SBBA.....
+  18f0: 53 4d 4d 4e 70 53 4d 4d 4e 53 4d 4d 58 a4 52 53  SMMNpSMMNSMMX.RS
+  1900: 52 43 5b 82 35 44 4d 41 43 08 5f 48 49 44 0c 41  RC[.5DMAC._HID.A
+  1910: d0 02 00 08 5f 43 52 53 11 20 0a 1d 47 01 00 00  ...._CRS. ..G...
+  1920: 00 00 01 10 47 01 81 00 81 00 01 0f 47 01 c0 00  ....G.......G...
+  1930: c0 00 01 20 2a 10 02 79 00 5b 82 36 50 49 43 5f  ... *..y.[.6PIC_
+  1940: 08 5f 48 49 44 0c 41 d0 00 01 08 5f 43 52 53 11  ._HID.A...._CRS.
+  1950: 21 0a 1e 47 01 20 00 20 00 01 02 47 01 a0 00 a0  !..G. . ...G....
+  1960: 00 01 02 47 01 d0 04 d0 04 01 02 23 04 00 01 79  ...G.......#...y
+  1970: 00 5b 82 25 54 49 4d 45 08 5f 48 49 44 0c 41 d0  .[.%TIME._HID.A.
+  1980: 01 00 08 5f 43 52 53 11 10 0a 0d 47 01 40 00 40  ..._CRS....G.@.@
+  1990: 00 01 04 22 01 00 79 00 5b 82 25 52 54 43 5f 08  ..."..y.[.%RTC_.
+  19a0: 5f 48 49 44 0c 41 d0 0b 00 08 5f 43 52 53 11 10  _HID.A...._CRS..
+  19b0: 0a 0d 47 01 70 00 70 00 01 02 22 00 01 79 00 5b  ..G.p.p..."..y.[
+  19c0: 82 22 53 50 4b 52 08 5f 48 49 44 0c 41 d0 08 00  ."SPKR._HID.A...
+  19d0: 08 5f 43 52 53 11 0d 0a 0a 47 01 61 00 61 00 01  ._CRS....G.a.a..
+  19e0: 01 79 00 5b 82 2d 4b 42 43 5f 08 5f 48 49 44 0c  .y.[.-KBC_._HID.
+  19f0: 41 d0 03 03 08 5f 43 52 53 11 18 0a 15 47 01 60  A...._CRS....G.`
+  1a00: 00 60 00 01 01 47 01 64 00 64 00 01 01 22 02 00  .`...G.d.d..."..
+  1a10: 79 00 5b 82 4d 0f 53 4d 43 5f 08 5f 48 49 44 0c  y.[.M.SMC_._HID.
+  1a20: 06 10 00 01 08 5f 43 49 44 0d 73 6d 63 2d 73 61  ....._CID.smc-sa
+  1a30: 6e 74 61 72 6f 73 61 00 14 45 04 5f 53 54 41 08  ntarosa..E._STA.
+  1a40: a0 3a 92 93 45 43 46 47 0a 00 5b 80 45 53 4d 43  .:..ECFG..[.ESMC
+  1a50: 00 72 45 43 46 47 0b 00 02 00 0a 20 5b 81 10 45  .rECFG..... [..E
+  1a60: 53 4d 43 03 53 4d 50 52 08 53 4d 45 4e 08 a0 0c  SMC.SMPR.SMEN...
+  1a70: 92 93 53 4d 45 4e 0a 00 a4 0a 0b a4 0a 00 14 42  ..SMEN.........B
+  1a80: 09 5f 43 52 53 08 5b 80 45 53 4d 43 00 72 45 43  ._CRS.[.ESMC.rEC
+  1a90: 46 47 0b 00 02 00 0a 20 5b 81 1c 45 53 4d 43 03  FG..... [..ESMC.
+  1aa0: 53 4d 50 52 08 53 4d 45 4e 08 53 4d 49 52 08 00  SMPR.SMEN.SMIR..
+  1ab0: 28 53 4d 49 4f 10 08 54 4d 50 31 11 10 0a 0d 47  (SMIO..TMP1....G
+  1ac0: 01 00 03 00 03 01 20 22 40 00 79 00 8b 54 4d 50  ...... "@.y..TMP
+  1ad0: 31 0a 02 49 4f 4d 4e 8b 54 4d 50 31 0a 04 49 4f  1..IOMN.TMP1..IO
+  1ae0: 4d 58 8b 54 4d 50 31 0a 09 49 52 51 53 70 53 4d  MX.TMP1..IRQSpSM
+  1af0: 49 4f 49 4f 4d 4e 70 53 4d 49 4f 49 4f 4d 58 70  IOIOMNpSMIOIOMXp
+  1b00: 79 0a 01 53 4d 49 52 00 49 52 51 53 a4 54 4d 50  y..SMIR.IRQS.TMP
+  1b10: 31 5b 82 1d 4d 4f 55 53 08 5f 48 49 44 0c 41 d0  1[..MOUS._HID.A.
+  1b20: 0f 13 08 5f 43 52 53 11 08 0a 05 22 00 10 79 00  ..._CRS...."..y.
+  1b30: 5b 80 47 45 4e 5f 02 0a b0 0a 04 5b 81 10 47 45  [.GEN_.....[..GE
+  1b40: 4e 5f 03 49 53 41 53 01 50 4f 53 44 01 14 40 1a  N_.ISAS.POSD..@.
+  1b50: 5f 49 4e 49 00 a0 22 90 5e 5e 2e 50 57 52 5f 4c  _INI..".^^.PWR_L
+  1b60: 50 54 45 5e 5e 2e 50 57 52 5f 4c 50 54 4d 70 01  PTE^^.PWR_LPTMp.
+  1b70: 88 44 52 43 54 0a 00 00 a0 22 90 5e 5e 2e 50 57  .DRCT....".^^.PW
+  1b80: 52 5f 55 31 45 5f 5e 5e 2e 50 57 52 5f 55 31 4d  R_U1E_^^.PWR_U1M
+  1b90: 5f 70 01 88 44 52 43 54 0a 01 00 a0 22 90 5e 5e  _p..DRCT....".^^
+  1ba0: 2e 50 57 52 5f 55 32 45 5f 5e 5e 2e 50 57 52 5f  .PWR_U2E_^^.PWR_
+  1bb0: 55 32 4d 5f 70 01 88 44 52 43 54 0a 02 00 a0 22  U2M_p..DRCT...."
+  1bc0: 90 5e 5e 2e 50 57 52 5f 46 44 43 45 5e 5e 2e 50  .^^.PWR_FDCE^^.P
+  1bd0: 57 52 5f 46 44 43 4d 70 01 88 44 52 43 54 0a 03  WR_FDCMp..DRCT..
+  1be0: 00 a0 42 05 5e 5e 2e 50 57 52 5f 41 55 44 4d a0  ..B.^^.PWR_AUDM.
+  1bf0: 16 5e 5e 2e 50 57 52 5f 4d 44 49 45 70 01 88 44  .^^.PWR_MDIEp..D
+  1c00: 52 43 54 0a 04 00 a0 16 5e 5e 2e 50 57 52 5f 53  RCT.....^^.PWR_S
+  1c10: 42 45 5f 70 01 88 44 52 43 54 0a 05 00 a0 16 5e  BE_p..DRCT.....^
+  1c20: 5e 2e 50 57 52 5f 4d 53 53 45 70 01 88 44 52 43  ^.PWR_MSSEp..DRC
+  1c30: 54 0a 06 00 a0 22 90 5e 5e 2e 50 57 52 5f 47 30  T....".^^.PWR_G0
+  1c40: 39 45 5e 5e 2e 50 57 52 5f 47 30 39 4d 70 01 88  9E^^.PWR_G09Mp..
+  1c50: 44 52 43 54 0a 07 00 a0 22 90 5e 5e 2e 50 57 52  DRCT....".^^.PWR
+  1c60: 5f 47 31 30 45 5e 5e 2e 50 57 52 5f 47 31 30 4d  _G10E^^.PWR_G10M
+  1c70: 70 01 88 44 52 43 54 0a 08 00 a0 22 90 5e 5e 2e  p..DRCT....".^^.
+  1c80: 50 57 52 5f 47 31 32 45 5e 5e 2e 50 57 52 5f 47  PWR_G12E^^.PWR_G
+  1c90: 31 32 4d 70 01 88 44 52 43 54 0a 09 00 a0 22 90  12Mp..DRCT....".
+  1ca0: 5e 5e 2e 50 57 52 5f 47 31 33 45 5e 5e 2e 50 57  ^^.PWR_G13E^^.PW
+  1cb0: 52 5f 47 31 33 4d 70 01 88 44 52 43 54 0a 0a 00  R_G13Mp..DRCT...
+  1cc0: a0 16 5e 5e 2e 50 57 52 5f 47 31 34 45 70 01 88  ..^^.PWR_G14Ep..
+  1cd0: 44 52 43 54 0a 0b 00 a0 16 5e 5e 2e 50 57 52 5f  DRCT.....^^.PWR_
+  1ce0: 47 31 35 45 70 01 88 44 52 43 54 0a 0c 00 14 3e  G15Ep..DRCT....>
+  1cf0: 44 45 43 44 04 70 0d 44 45 43 44 00 5b 31 70 68  DECD.p.DECD.[1ph
+  1d00: 5b 31 70 69 5b 31 70 6a 5b 31 70 6b 5b 31 a0 1e  [1pi[1pj[1pk[1..
+  1d10: 5e 50 4f 53 44 a0 0b 92 93 68 00 44 49 53 42 68  ^POSD....h.DISBh
+  1d20: 69 a0 0b 92 93 6b ff 45 4e 41 42 6a 6b 14 49 e1  i....k.ENABjk.I.
+  1d30: 45 4e 41 42 02 a0 09 92 5e 50 4f 53 44 a4 00 70  ENAB....^POSD..p
+  1d40: 0d 45 4e 41 42 00 5b 31 70 68 5b 31 70 69 5b 31  .ENAB.[1ph[1pi[1
+  1d50: 70 68 60 72 68 69 61 a0 4c 0a 83 88 44 52 43 54  ph`rhia.L...DRCT
+  1d60: 0a 00 00 70 5e 5e 2e 50 57 52 5f 4c 50 54 41 62  ...p^^.PWR_LPTAb
+  1d70: a0 46 04 92 95 60 83 88 4c 50 54 31 62 00 a0 38  .F...`..LPT1b..8
+  1d80: 92 94 61 83 88 4c 50 54 32 62 00 70 0d 4c 50 54  ..a..LPT2b.p.LPT
+  1d90: 20 44 65 63 6f 64 65 20 52 65 75 73 65 64 00 5b   Decode Reused.[
+  1da0: 31 72 83 88 44 52 43 54 0a 00 00 0a 01 88 44 52  1r..DRCT......DR
+  1db0: 43 54 0a 00 00 a4 00 a0 4c 04 92 95 60 83 88 45  CT......L...`..E
+  1dc0: 43 50 31 62 00 a0 3e 92 94 61 83 88 45 43 50 32  CP1b..>..a..ECP2
+  1dd0: 62 00 70 0d 4c 50 54 20 44 65 63 6f 64 65 20 52  b.p.LPT Decode R
+  1de0: 65 75 73 65 64 20 28 45 43 50 29 00 5b 31 72 83  eused (ECP).[1r.
+  1df0: 88 44 52 43 54 0a 00 00 0a 01 88 44 52 43 54 0a  .DRCT......DRCT.
+  1e00: 00 00 a4 00 a1 44 0e 70 53 43 41 4e 60 61 4c 50  .....D.pSCAN`aLP
+  1e10: 54 31 4c 50 54 32 62 a0 42 06 92 93 62 ff 70 0d  T1LPT2b.B...b.p.
+  1e20: 4c 50 54 20 44 65 63 6f 64 65 20 45 6e 61 62 6c  LPT Decode Enabl
+  1e30: 65 64 00 5b 31 70 68 5b 31 70 62 5b 31 70 62 5e  ed.[1ph[1pb[1pb^
+  1e40: 5e 2e 50 57 52 5f 4c 50 54 41 70 01 5e 5e 2e 50  ^.PWR_LPTAp.^^.P
+  1e50: 57 52 5f 4c 50 54 45 70 01 5e 5e 2e 50 57 52 5f  WR_LPTEp.^^.PWR_
+  1e60: 4c 50 54 4d 72 83 88 44 52 43 54 0a 00 00 0a 01  LPTMr..DRCT.....
+  1e70: 88 44 52 43 54 0a 00 00 a4 00 70 53 43 41 4e 60  .DRCT.....pSCAN`
+  1e80: 61 45 43 50 31 45 43 50 32 62 a0 4e 05 92 93 62  aECP1ECP2b.N...b
+  1e90: ff 70 0d 4c 50 54 20 28 45 43 50 29 20 44 65 63  .p.LPT (ECP) Dec
+  1ea0: 6f 64 65 20 45 6e 61 62 6c 65 64 00 5b 31 70 68  ode Enabled.[1ph
+  1eb0: 5b 31 70 62 5b 31 70 62 5e 5e 2e 50 57 52 5f 4c  [1pb[1pb^^.PWR_L
+  1ec0: 50 54 41 70 01 5e 5e 2e 50 57 52 5f 4c 50 54 45  PTAp.^^.PWR_LPTE
+  1ed0: 70 01 5e 5e 2e 50 57 52 5f 4c 50 54 4d 70 01 88  p.^^.PWR_LPTMp..
+  1ee0: 44 52 43 54 0a 00 00 a4 00 a0 40 06 83 88 44 52  DRCT......@...DR
+  1ef0: 43 54 0a 01 00 70 5e 5e 2e 50 57 52 5f 55 31 41  CT...p^^.PWR_U1A
+  1f00: 5f 62 a0 47 04 92 95 60 83 88 55 41 50 31 62 00  _b.G...`..UAP1b.
+  1f10: a0 39 92 94 61 83 88 55 41 50 32 62 00 70 0d 43  .9..a..UAP2b.p.C
+  1f20: 4f 4d 31 20 44 65 63 6f 64 65 20 52 65 75 73 65  OM1 Decode Reuse
+  1f30: 64 00 5b 31 72 83 88 44 52 43 54 0a 01 00 0a 01  d.[1r..DRCT.....
+  1f40: 88 44 52 43 54 0a 01 00 a4 00 a1 4c 06 70 53 43  .DRCT......L.pSC
+  1f50: 41 4e 60 61 55 41 50 31 55 41 50 32 62 a0 49 05  AN`aUAP1UAP2b.I.
+  1f60: 92 93 62 ff 70 0d 43 4f 4d 31 20 44 65 63 6f 64  ..b.p.COM1 Decod
+  1f70: 65 20 45 6e 61 62 6c 65 64 00 5b 31 70 68 5b 31  e Enabled.[1ph[1
+  1f80: 70 62 5b 31 70 62 5e 5e 2e 50 57 52 5f 55 31 41  pb[1pb^^.PWR_U1A
+  1f90: 5f 70 01 5e 5e 2e 50 57 52 5f 55 31 45 5f 70 01  _p.^^.PWR_U1E_p.
+  1fa0: 5e 5e 2e 50 57 52 5f 55 31 4d 5f 70 01 88 44 52  ^^.PWR_U1M_p..DR
+  1fb0: 43 54 0a 01 00 a4 00 a0 40 06 83 88 44 52 43 54  CT......@...DRCT
+  1fc0: 0a 02 00 70 5e 5e 2e 50 57 52 5f 55 32 41 5f 62  ...p^^.PWR_U2A_b
+  1fd0: a0 47 04 92 95 60 83 88 55 41 50 31 62 00 a0 39  .G...`..UAP1b..9
+  1fe0: 92 94 61 83 88 55 41 50 32 62 00 70 0d 43 4f 4d  ..a..UAP2b.p.COM
+  1ff0: 32 20 44 65 63 6f 64 65 20 52 65 75 73 65 64 00  2 Decode Reused.
+  2000: 5b 31 72 83 88 44 52 43 54 0a 02 00 0a 01 88 44  [1r..DRCT......D
+  2010: 52 43 54 0a 02 00 a4 00 a1 4c 06 70 53 43 41 4e  RCT......L.pSCAN
+  2020: 60 61 55 41 50 31 55 41 50 32 62 a0 49 05 92 93  `aUAP1UAP2b.I...
+  2030: 62 ff 70 0d 43 4f 4d 32 20 44 65 63 6f 64 65 20  b.p.COM2 Decode 
+  2040: 45 6e 61 62 6c 65 64 00 5b 31 70 68 5b 31 70 62  Enabled.[1ph[1pb
+  2050: 5b 31 70 62 5e 5e 2e 50 57 52 5f 55 32 41 5f 70  [1pb^^.PWR_U2A_p
+  2060: 01 5e 5e 2e 50 57 52 5f 55 32 45 5f 70 01 5e 5e  .^^.PWR_U2E_p.^^
+  2070: 2e 50 57 52 5f 55 32 4d 5f 70 01 88 44 52 43 54  .PWR_U2M_p..DRCT
+  2080: 0a 02 00 a4 00 a0 4f 05 83 88 44 52 43 54 0a 03  ......O...DRCT..
+  2090: 00 70 5e 5e 2e 50 57 52 5f 46 44 43 41 62 a0 46  .p^^.PWR_FDCAb.F
+  20a0: 04 92 95 60 83 88 46 44 43 31 62 00 a0 38 92 94  ...`..FDC1b..8..
+  20b0: 61 83 88 46 44 43 32 62 00 70 0d 46 44 43 20 44  a..FDC2b.p.FDC D
+  20c0: 65 63 6f 64 65 20 52 65 75 73 65 64 00 5b 31 72  ecode Reused.[1r
+  20d0: 83 88 44 52 43 54 0a 03 00 0a 01 88 44 52 43 54  ..DRCT......DRCT
+  20e0: 0a 03 00 a4 00 a1 4b 06 70 53 43 41 4e 60 61 46  ......K.pSCAN`aF
+  20f0: 44 43 31 46 44 43 32 62 a0 48 05 92 93 62 ff 70  DC1FDC2b.H...b.p
+  2100: 0d 46 44 43 20 44 65 63 6f 64 65 20 45 6e 61 62  .FDC Decode Enab
+  2110: 6c 65 64 00 5b 31 70 68 5b 31 70 62 5b 31 70 62  led.[1ph[1pb[1pb
+  2120: 5e 5e 2e 50 57 52 5f 46 44 43 41 70 01 5e 5e 2e  ^^.PWR_FDCAp.^^.
+  2130: 50 57 52 5f 46 44 43 45 70 01 5e 5e 2e 50 57 52  PWR_FDCEp.^^.PWR
+  2140: 5f 46 44 43 4d 70 01 88 44 52 43 54 0a 03 00 a4  _FDCMp..DRCT....
+  2150: 00 a0 40 06 83 88 44 52 43 54 0a 04 00 70 5e 5e  ..@...DRCT...p^^
+  2160: 2e 50 57 52 5f 4d 44 49 41 62 a0 47 04 92 95 60  .PWR_MDIAb.G...`
+  2170: 83 88 4d 49 44 31 62 00 a0 39 92 94 61 83 88 4d  ..MID1b..9..a..M
+  2180: 49 44 32 62 00 70 0d 4d 49 44 49 20 44 65 63 6f  ID2b.p.MIDI Deco
+  2190: 64 65 20 52 65 75 73 65 64 00 5b 31 72 83 88 44  de Reused.[1r..D
+  21a0: 52 43 54 0a 04 00 0a 01 88 44 52 43 54 0a 04 00  RCT......DRCT...
+  21b0: a4 00 a1 4c 06 70 53 43 41 4e 60 61 4d 49 44 31  ...L.pSCAN`aMID1
+  21c0: 4d 49 44 32 62 a0 49 05 92 93 62 ff 70 0d 4d 49  MID2b.I...b.p.MI
+  21d0: 44 49 20 44 65 63 6f 64 65 20 45 6e 61 62 6c 65  DI Decode Enable
+  21e0: 64 00 5b 31 70 68 5b 31 70 62 5b 31 70 62 5e 5e  d.[1ph[1pb[1pb^^
+  21f0: 2e 50 57 52 5f 4d 44 49 41 70 01 5e 5e 2e 50 57  .PWR_MDIAp.^^.PW
+  2200: 52 5f 4d 44 49 45 70 01 5e 5e 2e 50 57 52 5f 41  R_MDIEp.^^.PWR_A
+  2210: 55 44 4d 70 01 88 44 52 43 54 0a 04 00 a4 00 a0  UDMp..DRCT......
+  2220: 4a 06 83 88 44 52 43 54 0a 05 00 70 5e 5e 2e 50  J...DRCT...p^^.P
+  2230: 57 52 5f 53 42 41 5f 62 a0 41 05 92 95 60 83 88  WR_SBA_b.A...`..
+  2240: 53 42 31 5f 62 00 a0 43 04 92 94 61 83 88 53 42  SB1_b..C...a..SB
+  2250: 32 5f 62 00 70 0d 53 6f 75 6e 64 20 42 6c 61 73  2_b.p.Sound Blas
+  2260: 74 65 72 20 44 65 63 6f 64 65 20 52 65 75 73 65  ter Decode Reuse
+  2270: 64 00 5b 31 72 83 88 44 52 43 54 0a 05 00 0a 01  d.[1r..DRCT.....
+  2280: 88 44 52 43 54 0a 05 00 a4 00 a1 45 07 70 53 43  .DRCT......E.pSC
+  2290: 41 4e 60 61 53 42 31 5f 53 42 32 5f 62 a0 42 06  AN`aSB1_SB2_b.B.
+  22a0: 92 93 62 ff 70 0d 53 6f 75 6e 64 20 42 6c 61 73  ..b.p.Sound Blas
+  22b0: 74 65 72 20 44 65 63 6f 64 65 20 45 6e 61 62 6c  ter Decode Enabl
+  22c0: 65 64 00 5b 31 70 68 5b 31 70 62 5b 31 70 62 5e  ed.[1ph[1pb[1pb^
+  22d0: 5e 2e 50 57 52 5f 53 42 41 5f 70 01 5e 5e 2e 50  ^.PWR_SBA_p.^^.P
+  22e0: 57 52 5f 53 42 45 5f 70 01 5e 5e 2e 50 57 52 5f  WR_SBE_p.^^.PWR_
+  22f0: 41 55 44 4d 70 01 88 44 52 43 54 0a 05 00 a4 00  AUDMp..DRCT.....
+  2300: a0 43 07 83 88 44 52 43 54 0a 06 00 70 5e 5e 2e  .C...DRCT...p^^.
+  2310: 50 57 52 5f 4d 53 53 41 62 a0 4a 05 92 95 60 83  PWR_MSSAb.J...`.
+  2320: 88 4d 53 53 31 62 00 a0 4c 04 92 94 61 83 88 4d  .MSS1b..L...a..M
+  2330: 53 53 32 62 00 70 0d 4d 69 63 72 6f 73 6f 66 74  SS2b.p.Microsoft
+  2340: 20 53 6f 75 6e 64 20 53 79 73 74 65 6d 20 44 65   Sound System De
+  2350: 63 6f 64 65 20 52 65 75 73 65 64 00 5b 31 72 83  code Reused.[1r.
+  2360: 88 44 52 43 54 0a 06 00 0a 01 88 44 52 43 54 0a  .DRCT......DRCT.
+  2370: 06 00 a4 00 a1 4e 07 70 53 43 41 4e 60 61 4d 53  .....N.pSCAN`aMS
+  2380: 53 31 4d 53 53 32 62 a0 4b 06 92 93 62 ff 70 0d  S1MSS2b.K...b.p.
+  2390: 4d 69 63 72 6f 73 6f 66 74 20 53 6f 75 6e 64 20  Microsoft Sound 
+  23a0: 53 79 73 74 65 6d 20 44 65 63 6f 64 65 20 45 6e  System Decode En
+  23b0: 61 62 6c 65 64 00 5b 31 70 68 5b 31 70 62 5b 31  abled.[1ph[1pb[1
+  23c0: 70 62 5e 5e 2e 50 57 52 5f 4d 53 53 41 70 01 5e  pb^^.PWR_MSSAp.^
+  23d0: 5e 2e 50 57 52 5f 4d 53 53 45 70 01 5e 5e 2e 50  ^.PWR_MSSEp.^^.P
+  23e0: 57 52 5f 41 55 44 4d 70 01 88 44 52 43 54 0a 06  WR_AUDMp..DRCT..
+  23f0: 00 a4 00 08 4c 54 4d 50 12 24 11 0a 00 0a 01 0a  ....LTMP.$......
+  2400: 01 0a 03 0a 03 0a 07 0a 07 0a 07 0a 07 0a 10 0a  ................
+  2410: 10 0a 10 0a 10 0a 10 0a 10 0a 10 0a 10 a0 47 72  ..............Gr
+  2420: 95 69 0a 10 a0 43 0b 83 88 44 52 43 54 0a 07 00  .i...C...DRCT...
+  2430: 70 5e 5e 2e 50 57 52 5f 47 30 39 41 62 a0 4a 09  p^^.PWR_G09Ab.J.
+  2440: 92 95 60 62 a0 43 09 95 61 72 62 0a 10 00 70 0d  ..`b.C..arb...p.
+  2450: 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65 20  General-Purpose 
+  2460: 23 39 20 44 65 63 6f 64 65 20 52 65 75 73 65 64  #9 Decode Reused
+  2470: 00 5b 31 a0 4e 04 94 83 88 4c 54 4d 50 69 00 5e  .[1.N....LTMPi.^
+  2480: 5e 2e 50 57 52 5f 47 30 39 4c 70 83 88 4c 54 4d  ^.PWR_G09Lp..LTM
+  2490: 50 69 00 5e 5e 2e 50 57 52 5f 47 30 39 4c 70 0d  Pi.^^.PWR_G09Lp.
+  24a0: 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65 20  General-Purpose 
+  24b0: 23 39 20 45 78 74 65 6e 64 65 64 00 5b 31 70 69  #9 Extended.[1pi
+  24c0: 5b 31 72 83 88 44 52 43 54 0a 07 00 0a 01 88 44  [1r..DRCT......D
+  24d0: 52 43 54 0a 07 00 a4 00 a0 45 0b 83 88 44 52 43  RCT......E...DRC
+  24e0: 54 0a 08 00 70 5e 5e 2e 50 57 52 5f 47 31 30 41  T...p^^.PWR_G10A
+  24f0: 62 a0 4c 09 92 95 60 62 a0 45 09 95 61 72 62 0a  b.L...`b.E..arb.
+  2500: 10 00 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70  ..p.General-Purp
+  2510: 6f 73 65 20 23 31 30 20 44 65 63 6f 64 65 20 52  ose #10 Decode R
+  2520: 65 75 73 65 64 00 5b 31 a0 4f 04 94 83 88 4c 54  eused.[1.O....LT
+  2530: 4d 50 69 00 5e 5e 2e 50 57 52 5f 47 31 30 4c 70  MPi.^^.PWR_G10Lp
+  2540: 83 88 4c 54 4d 50 69 00 5e 5e 2e 50 57 52 5f 47  ..LTMPi.^^.PWR_G
+  2550: 31 30 4c 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72  10Lp.General-Pur
+  2560: 70 6f 73 65 20 23 31 30 20 45 78 74 65 6e 64 65  pose #10 Extende
+  2570: 64 00 5b 31 70 69 5b 31 72 83 88 44 52 43 54 0a  d.[1pi[1r..DRCT.
+  2580: 08 00 0a 01 88 44 52 43 54 0a 08 00 a4 00 a0 45  .....DRCT......E
+  2590: 0b 83 88 44 52 43 54 0a 09 00 70 5e 5e 2e 50 57  ...DRCT...p^^.PW
+  25a0: 52 5f 47 31 32 41 62 a0 4c 09 92 95 60 62 a0 45  R_G12Ab.L...`b.E
+  25b0: 09 95 61 72 62 0a 10 00 70 0d 47 65 6e 65 72 61  ..arb...p.Genera
+  25c0: 6c 2d 50 75 72 70 6f 73 65 20 23 31 32 20 44 65  l-Purpose #12 De
+  25d0: 63 6f 64 65 20 52 65 75 73 65 64 00 5b 31 a0 4f  code Reused.[1.O
+  25e0: 04 94 83 88 4c 54 4d 50 69 00 5e 5e 2e 50 57 52  ....LTMPi.^^.PWR
+  25f0: 5f 47 31 32 4c 70 83 88 4c 54 4d 50 69 00 5e 5e  _G12Lp..LTMPi.^^
+  2600: 2e 50 57 52 5f 47 31 32 4c 70 0d 47 65 6e 65 72  .PWR_G12Lp.Gener
+  2610: 61 6c 2d 50 75 72 70 6f 73 65 20 23 31 32 20 45  al-Purpose #12 E
+  2620: 78 74 65 6e 64 65 64 00 5b 31 70 69 5b 31 72 83  xtended.[1pi[1r.
+  2630: 88 44 52 43 54 0a 09 00 0a 01 88 44 52 43 54 0a  .DRCT......DRCT.
+  2640: 09 00 a4 00 a0 45 0b 83 88 44 52 43 54 0a 0a 00  .....E...DRCT...
+  2650: 70 5e 5e 2e 50 57 52 5f 47 31 33 41 62 a0 4c 09  p^^.PWR_G13Ab.L.
+  2660: 92 95 60 62 a0 45 09 95 61 72 62 0a 10 00 70 0d  ..`b.E..arb...p.
+  2670: 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65 20  General-Purpose 
+  2680: 23 31 33 20 44 65 63 6f 64 65 20 52 65 75 73 65  #13 Decode Reuse
+  2690: 64 00 5b 31 a0 4f 04 94 83 88 4c 54 4d 50 69 00  d.[1.O....LTMPi.
+  26a0: 5e 5e 2e 50 57 52 5f 47 31 33 4c 70 83 88 4c 54  ^^.PWR_G13Lp..LT
+  26b0: 4d 50 69 00 5e 5e 2e 50 57 52 5f 47 31 33 4c 70  MPi.^^.PWR_G13Lp
+  26c0: 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65  .General-Purpose
+  26d0: 20 23 31 33 20 45 78 74 65 6e 64 65 64 00 5b 31   #13 Extended.[1
+  26e0: 70 69 5b 31 72 83 88 44 52 43 54 0a 0a 00 0a 01  pi[1r..DRCT.....
+  26f0: 88 44 52 43 54 0a 0a 00 a4 00 a0 45 0b 83 88 44  .DRCT......E...D
+  2700: 52 43 54 0a 0b 00 70 5e 5e 2e 50 57 52 5f 47 31  RCT...p^^.PWR_G1
+  2710: 34 41 62 a0 4c 09 92 95 60 62 a0 45 09 95 61 72  4Ab.L...`b.E..ar
+  2720: 62 0a 10 00 70 0d 47 65 6e 65 72 61 6c 2d 50 75  b...p.General-Pu
+  2730: 72 70 6f 73 65 20 23 31 34 20 44 65 63 6f 64 65  rpose #14 Decode
+  2740: 20 52 65 75 73 65 64 00 5b 31 a0 4f 04 94 83 88   Reused.[1.O....
+  2750: 4c 54 4d 50 69 00 5e 5e 2e 50 57 52 5f 47 31 34  LTMPi.^^.PWR_G14
+  2760: 4c 70 83 88 4c 54 4d 50 69 00 5e 5e 2e 50 57 52  Lp..LTMPi.^^.PWR
+  2770: 5f 47 31 34 4c 70 0d 47 65 6e 65 72 61 6c 2d 50  _G14Lp.General-P
+  2780: 75 72 70 6f 73 65 20 23 31 34 20 45 78 74 65 6e  urpose #14 Exten
+  2790: 64 65 64 00 5b 31 70 69 5b 31 72 83 88 44 52 43  ded.[1pi[1r..DRC
+  27a0: 54 0a 0b 00 0a 01 88 44 52 43 54 0a 0b 00 a4 00  T......DRCT.....
+  27b0: a0 45 0b 83 88 44 52 43 54 0a 0c 00 70 5e 5e 2e  .E...DRCT...p^^.
+  27c0: 50 57 52 5f 47 31 35 41 62 a0 4c 09 92 95 60 62  PWR_G15Ab.L...`b
+  27d0: a0 45 09 95 61 72 62 0a 10 00 70 0d 47 65 6e 65  .E..arb...p.Gene
+  27e0: 72 61 6c 2d 50 75 72 70 6f 73 65 20 23 31 35 20  ral-Purpose #15 
+  27f0: 44 65 63 6f 64 65 20 52 65 75 73 65 64 00 5b 31  Decode Reused.[1
+  2800: a0 4f 04 94 83 88 4c 54 4d 50 69 00 5e 5e 2e 50  .O....LTMPi.^^.P
+  2810: 57 52 5f 47 31 35 4c 70 83 88 4c 54 4d 50 69 00  WR_G15Lp..LTMPi.
+  2820: 5e 5e 2e 50 57 52 5f 47 31 35 4c 70 0d 47 65 6e  ^^.PWR_G15Lp.Gen
+  2830: 65 72 61 6c 2d 50 75 72 70 6f 73 65 20 23 31 35  eral-Purpose #15
+  2840: 20 45 78 74 65 6e 64 65 64 00 5b 31 70 69 5b 31   Extended.[1pi[1
+  2850: 72 83 88 44 52 43 54 0a 0c 00 0a 01 88 44 52 43  r..DRCT......DRC
+  2860: 54 0a 0c 00 a4 00 a0 4d 07 92 83 88 44 52 43 54  T......M....DRCT
+  2870: 0a 07 00 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72  ...p.General-Pur
+  2880: 70 6f 73 65 20 23 39 20 44 65 63 6f 64 65 20 45  pose #9 Decode E
+  2890: 6e 61 62 6c 65 64 00 5b 31 70 68 5b 31 70 68 5e  nabled.[1ph[1ph^
+  28a0: 5e 2e 50 57 52 5f 47 30 39 41 70 83 88 4c 54 4d  ^.PWR_G09Ap..LTM
+  28b0: 50 69 00 5e 5e 2e 50 57 52 5f 47 30 39 4c 70 01  Pi.^^.PWR_G09Lp.
+  28c0: 5e 5e 2e 50 57 52 5f 47 30 39 45 70 01 5e 5e 2e  ^^.PWR_G09Ep.^^.
+  28d0: 50 57 52 5f 47 30 39 4d 70 01 88 44 52 43 54 0a  PWR_G09Mp..DRCT.
+  28e0: 07 00 a4 00 a0 4e 07 92 83 88 44 52 43 54 0a 08  .....N....DRCT..
+  28f0: 00 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f  .p.General-Purpo
+  2900: 73 65 20 23 31 30 20 44 65 63 6f 64 65 20 45 6e  se #10 Decode En
+  2910: 61 62 6c 65 64 00 5b 31 70 68 5b 31 70 68 5e 5e  abled.[1ph[1ph^^
+  2920: 2e 50 57 52 5f 47 31 30 41 70 83 88 4c 54 4d 50  .PWR_G10Ap..LTMP
+  2930: 69 00 5e 5e 2e 50 57 52 5f 47 31 30 4c 70 01 5e  i.^^.PWR_G10Lp.^
+  2940: 5e 2e 50 57 52 5f 47 31 30 45 70 01 5e 5e 2e 50  ^.PWR_G10Ep.^^.P
+  2950: 57 52 5f 47 31 30 4d 70 01 88 44 52 43 54 0a 08  WR_G10Mp..DRCT..
+  2960: 00 a4 00 a0 4e 07 92 83 88 44 52 43 54 0a 09 00  ....N....DRCT...
+  2970: 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73  p.General-Purpos
+  2980: 65 20 23 31 32 20 44 65 63 6f 64 65 20 45 6e 61  e #12 Decode Ena
+  2990: 62 6c 65 64 00 5b 31 70 68 5b 31 70 68 5e 5e 2e  bled.[1ph[1ph^^.
+  29a0: 50 57 52 5f 47 31 32 41 70 83 88 4c 54 4d 50 69  PWR_G12Ap..LTMPi
+  29b0: 00 5e 5e 2e 50 57 52 5f 47 31 32 4c 70 01 5e 5e  .^^.PWR_G12Lp.^^
+  29c0: 2e 50 57 52 5f 47 31 32 45 70 01 5e 5e 2e 50 57  .PWR_G12Ep.^^.PW
+  29d0: 52 5f 47 31 32 4d 70 01 88 44 52 43 54 0a 09 00  R_G12Mp..DRCT...
+  29e0: a4 00 a0 4e 07 92 83 88 44 52 43 54 0a 0a 00 70  ...N....DRCT...p
+  29f0: 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65  .General-Purpose
+  2a00: 20 23 31 33 20 44 65 63 6f 64 65 20 45 6e 61 62   #13 Decode Enab
+  2a10: 6c 65 64 00 5b 31 70 68 5b 31 70 68 5e 5e 2e 50  led.[1ph[1ph^^.P
+  2a20: 57 52 5f 47 31 33 41 70 83 88 4c 54 4d 50 69 00  WR_G13Ap..LTMPi.
+  2a30: 5e 5e 2e 50 57 52 5f 47 31 33 4c 70 01 5e 5e 2e  ^^.PWR_G13Lp.^^.
+  2a40: 50 57 52 5f 47 31 33 45 70 01 5e 5e 2e 50 57 52  PWR_G13Ep.^^.PWR
+  2a50: 5f 47 31 33 4d 70 01 88 44 52 43 54 0a 0a 00 a4  _G13Mp..DRCT....
+  2a60: 00 a0 41 07 92 83 88 44 52 43 54 0a 0b 00 70 0d  ..A....DRCT...p.
+  2a70: 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65 20  General-Purpose 
+  2a80: 23 31 34 20 44 65 63 6f 64 65 20 45 6e 61 62 6c  #14 Decode Enabl
+  2a90: 65 64 00 5b 31 70 68 5b 31 70 68 5e 5e 2e 50 57  ed.[1ph[1ph^^.PW
+  2aa0: 52 5f 47 31 34 41 70 83 88 4c 54 4d 50 69 00 5e  R_G14Ap..LTMPi.^
+  2ab0: 5e 2e 50 57 52 5f 47 31 34 4c 70 01 5e 5e 2e 50  ^.PWR_G14Lp.^^.P
+  2ac0: 57 52 5f 47 31 34 45 70 01 88 44 52 43 54 0a 0b  WR_G14Ep..DRCT..
+  2ad0: 00 a4 00 a0 41 07 92 83 88 44 52 43 54 0a 0c 00  ....A....DRCT...
+  2ae0: 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73  p.General-Purpos
+  2af0: 65 20 23 31 35 20 44 65 63 6f 64 65 20 45 6e 61  e #15 Decode Ena
+  2b00: 62 6c 65 64 00 5b 31 70 68 5b 31 70 68 5e 5e 2e  bled.[1ph[1ph^^.
+  2b10: 50 57 52 5f 47 31 35 41 70 83 88 4c 54 4d 50 69  PWR_G15Ap..LTMPi
+  2b20: 00 5e 5e 2e 50 57 52 5f 47 31 35 4c 70 01 5e 5e  .^^.PWR_G15Lp.^^
+  2b30: 2e 50 57 52 5f 47 31 35 45 70 01 88 44 52 43 54  .PWR_G15Ep..DRCT
+  2b40: 0a 0c 00 a4 00 a4 ff 14 46 a2 44 49 53 42 02 a0  ........F.DISB..
+  2b50: 09 92 5e 50 4f 53 44 a4 00 70 0d 44 49 53 42 00  ..^POSD..p.DISB.
+  2b60: 5b 31 70 68 5b 31 70 69 5b 31 a0 4d 14 83 88 44  [1ph[1pi[1.M...D
+  2b70: 52 43 54 0a 00 00 a0 4a 09 92 95 68 83 88 4c 50  RCT....J...h..LP
+  2b80: 54 31 5e 5e 2e 50 57 52 5f 4c 50 54 41 00 a0 42  T1^^.PWR_LPTA..B
+  2b90: 08 92 94 72 68 69 00 83 88 4c 50 54 32 5e 5e 2e  ...rhi...LPT2^^.
+  2ba0: 50 57 52 5f 4c 50 54 41 00 74 83 88 44 52 43 54  PWR_LPTA.t..DRCT
+  2bb0: 0a 00 00 0a 01 60 70 60 88 44 52 43 54 0a 00 00  .....`p`.DRCT...
+  2bc0: a0 2c 92 60 70 0d 4c 50 54 20 44 65 63 6f 64 65  .,.`p.LPT Decode
+  2bd0: 20 44 69 73 61 62 6c 65 64 00 5b 31 70 68 5b 31   Disabled.[1ph[1
+  2be0: 70 00 5e 5e 2e 50 57 52 5f 4c 50 54 45 a1 21 70  p.^^.PWR_LPTE.!p
+  2bf0: 0d 4c 50 54 20 44 65 63 6f 64 65 20 44 65 72 65  .LPT Decode Dere
+  2c00: 66 65 72 65 6e 63 65 64 00 5b 31 70 60 5b 31 a4  ferenced.[1p`[1.
+  2c10: 00 a0 46 0a 92 95 68 83 88 45 43 50 31 5e 5e 2e  ..F...h..ECP1^^.
+  2c20: 50 57 52 5f 4c 50 54 41 00 a0 4e 08 92 94 72 68  PWR_LPTA..N...rh
+  2c30: 69 00 83 88 45 43 50 32 5e 5e 2e 50 57 52 5f 4c  i...ECP2^^.PWR_L
+  2c40: 50 54 41 00 74 83 88 44 52 43 54 0a 00 00 0a 01  PTA.t..DRCT.....
+  2c50: 60 70 60 88 44 52 43 54 0a 00 00 a0 32 92 60 70  `p`.DRCT....2.`p
+  2c60: 0d 4c 50 54 20 28 45 43 50 29 20 44 65 63 6f 64  .LPT (ECP) Decod
+  2c70: 65 20 44 69 73 61 62 6c 65 64 00 5b 31 70 68 5b  e Disabled.[1ph[
+  2c80: 31 70 00 5e 5e 2e 50 57 52 5f 4c 50 54 45 a1 27  1p.^^.PWR_LPTE.'
+  2c90: 70 0d 4c 50 54 20 28 45 43 50 29 20 44 65 63 6f  p.LPT (ECP) Deco
+  2ca0: 64 65 20 44 65 72 65 66 65 72 65 6e 63 65 64 00  de Dereferenced.
+  2cb0: 5b 31 70 60 5b 31 a4 00 a0 48 0a 83 88 44 52 43  [1p`[1...H...DRC
+  2cc0: 54 0a 01 00 a0 4c 09 92 95 68 83 88 55 41 50 31  T....L...h..UAP1
+  2cd0: 5e 5e 2e 50 57 52 5f 55 31 41 5f 00 a0 44 08 92  ^^.PWR_U1A_..D..
+  2ce0: 94 72 68 69 00 83 88 55 41 50 32 5e 5e 2e 50 57  .rhi...UAP2^^.PW
+  2cf0: 52 5f 55 31 41 5f 00 74 83 88 44 52 43 54 0a 01  R_U1A_.t..DRCT..
+  2d00: 00 0a 01 60 70 60 88 44 52 43 54 0a 01 00 a0 2d  ...`p`.DRCT....-
+  2d10: 92 60 70 0d 43 4f 4d 31 20 44 65 63 6f 64 65 20  .`p.COM1 Decode 
+  2d20: 44 69 73 61 62 6c 65 64 00 5b 31 70 68 5b 31 70  Disabled.[1ph[1p
+  2d30: 00 5e 5e 2e 50 57 52 5f 55 31 45 5f a1 22 70 0d  .^^.PWR_U1E_."p.
+  2d40: 43 4f 4d 31 20 44 65 63 6f 64 65 20 44 65 72 65  COM1 Decode Dere
+  2d50: 66 65 72 65 6e 63 65 64 00 5b 31 70 60 5b 31 a4  ferenced.[1p`[1.
+  2d60: 00 a0 48 0a 83 88 44 52 43 54 0a 02 00 a0 4c 09  ..H...DRCT....L.
+  2d70: 92 95 68 83 88 55 41 50 31 5e 5e 2e 50 57 52 5f  ..h..UAP1^^.PWR_
+  2d80: 55 32 41 5f 00 a0 44 08 92 94 72 68 69 00 83 88  U2A_..D...rhi...
+  2d90: 55 41 50 32 5e 5e 2e 50 57 52 5f 55 32 41 5f 00  UAP2^^.PWR_U2A_.
+  2da0: 74 83 88 44 52 43 54 0a 02 00 0a 01 60 70 60 88  t..DRCT.....`p`.
+  2db0: 44 52 43 54 0a 02 00 a0 2d 92 60 70 0d 43 4f 4d  DRCT....-.`p.COM
+  2dc0: 32 20 44 65 63 6f 64 65 20 44 69 73 61 62 6c 65  2 Decode Disable
+  2dd0: 64 00 5b 31 70 68 5b 31 70 00 5e 5e 2e 50 57 52  d.[1ph[1p.^^.PWR
+  2de0: 5f 55 32 45 5f a1 22 70 0d 43 4f 4d 32 20 44 65  _U2E_."p.COM2 De
+  2df0: 63 6f 64 65 20 44 65 72 65 66 65 72 65 6e 63 65  code Dereference
+  2e00: 64 00 5b 31 70 60 5b 31 a4 00 a0 46 0a 83 88 44  d.[1p`[1...F...D
+  2e10: 52 43 54 0a 03 00 a0 4a 09 92 95 68 83 88 46 44  RCT....J...h..FD
+  2e20: 43 31 5e 5e 2e 50 57 52 5f 46 44 43 41 00 a0 42  C1^^.PWR_FDCA..B
+  2e30: 08 92 94 72 68 69 00 83 88 46 44 43 32 5e 5e 2e  ...rhi...FDC2^^.
+  2e40: 50 57 52 5f 46 44 43 41 00 74 83 88 44 52 43 54  PWR_FDCA.t..DRCT
+  2e50: 0a 03 00 0a 01 60 70 60 88 44 52 43 54 0a 03 00  .....`p`.DRCT...
+  2e60: a0 2c 92 60 70 0d 46 44 43 20 44 65 63 6f 64 65  .,.`p.FDC Decode
+  2e70: 20 44 69 73 61 62 6c 65 64 00 5b 31 70 68 5b 31   Disabled.[1ph[1
+  2e80: 70 00 5e 5e 2e 50 57 52 5f 46 44 43 45 a1 21 70  p.^^.PWR_FDCE.!p
+  2e90: 0d 46 44 43 20 44 65 63 6f 64 65 20 44 65 72 65  .FDC Decode Dere
+  2ea0: 66 65 72 65 6e 63 65 64 00 5b 31 70 60 5b 31 a4  ferenced.[1p`[1.
+  2eb0: 00 a0 48 0a 83 88 44 52 43 54 0a 04 00 a0 4c 09  ..H...DRCT....L.
+  2ec0: 92 95 68 83 88 4d 49 44 31 5e 5e 2e 50 57 52 5f  ..h..MID1^^.PWR_
+  2ed0: 4d 44 49 41 00 a0 44 08 92 94 72 68 69 00 83 88  MDIA..D...rhi...
+  2ee0: 4d 49 44 32 5e 5e 2e 50 57 52 5f 4d 44 49 41 00  MID2^^.PWR_MDIA.
+  2ef0: 74 83 88 44 52 43 54 0a 04 00 0a 01 60 70 60 88  t..DRCT.....`p`.
+  2f00: 44 52 43 54 0a 04 00 a0 2d 92 60 70 0d 4d 49 44  DRCT....-.`p.MID
+  2f10: 49 20 44 65 63 6f 64 65 20 44 69 73 61 62 6c 65  I Decode Disable
+  2f20: 64 00 5b 31 70 68 5b 31 70 00 5e 5e 2e 50 57 52  d.[1ph[1p.^^.PWR
+  2f30: 5f 4d 44 49 45 a1 22 70 0d 4d 49 44 49 20 44 65  _MDIE."p.MIDI De
+  2f40: 63 6f 64 65 20 44 65 72 65 66 65 72 65 6e 63 65  code Dereference
+  2f50: 64 00 5b 31 70 60 5b 31 a4 00 a0 4a 0b 83 88 44  d.[1p`[1...J...D
+  2f60: 52 43 54 0a 05 00 a0 4e 0a 92 95 68 83 88 53 42  RCT....N...h..SB
+  2f70: 31 5f 5e 5e 2e 50 57 52 5f 53 42 41 5f 00 a0 46  1_^^.PWR_SBA_..F
+  2f80: 09 92 94 72 68 69 00 83 88 53 42 32 5f 5e 5e 2e  ...rhi...SB2_^^.
+  2f90: 50 57 52 5f 53 42 41 5f 00 74 83 88 44 52 43 54  PWR_SBA_.t..DRCT
+  2fa0: 0a 05 00 0a 01 60 70 60 88 44 52 43 54 0a 05 00  .....`p`.DRCT...
+  2fb0: a0 36 92 60 70 0d 53 6f 75 6e 64 20 42 6c 61 73  .6.`p.Sound Blas
+  2fc0: 74 65 72 20 44 65 63 6f 64 65 20 44 69 73 61 62  ter Decode Disab
+  2fd0: 6c 65 64 00 5b 31 70 68 5b 31 70 00 5e 5e 2e 50  led.[1ph[1p.^^.P
+  2fe0: 57 52 5f 53 42 45 5f a1 2b 70 0d 53 6f 75 6e 64  WR_SBE_.+p.Sound
+  2ff0: 20 42 6c 61 73 74 65 72 20 44 65 63 6f 64 65 20   Blaster Decode 
+  3000: 44 65 72 65 66 65 72 65 6e 63 65 64 00 5b 31 70  Dereferenced.[1p
+  3010: 60 5b 31 a4 00 a0 4c 0c 83 88 44 52 43 54 0a 06  `[1...L...DRCT..
+  3020: 00 a0 40 0c 92 95 68 83 88 4d 53 53 31 5e 5e 2e  ..@...h..MSS1^^.
+  3030: 50 57 52 5f 4d 53 53 41 00 a0 48 0a 92 94 72 68  PWR_MSSA..H...rh
+  3040: 69 00 83 88 4d 53 53 32 5e 5e 2e 50 57 52 5f 4d  i...MSS2^^.PWR_M
+  3050: 53 53 41 00 74 83 88 44 52 43 54 0a 06 00 0a 01  SSA.t..DRCT.....
+  3060: 60 70 60 88 44 52 43 54 0a 06 00 a0 3f 92 60 70  `p`.DRCT....?.`p
+  3070: 0d 4d 69 63 72 6f 73 6f 66 74 20 53 6f 75 6e 64  .Microsoft Sound
+  3080: 20 53 79 73 74 65 6d 20 44 65 63 6f 64 65 20 44   System Decode D
+  3090: 69 73 61 62 6c 65 64 00 5b 31 70 68 5b 31 70 00  isabled.[1ph[1p.
+  30a0: 5e 5e 2e 50 57 52 5f 4d 53 53 45 a1 34 70 0d 4d  ^^.PWR_MSSE.4p.M
+  30b0: 69 63 72 6f 73 6f 66 74 20 53 6f 75 6e 64 20 53  icrosoft Sound S
+  30c0: 79 73 74 65 6d 20 44 65 63 6f 64 65 20 44 65 72  ystem Decode Der
+  30d0: 65 66 65 72 65 6e 63 65 64 00 5b 31 70 60 5b 31  eferenced.[1p`[1
+  30e0: a4 00 a0 4f 0b 83 88 44 52 43 54 0a 07 00 70 5e  ...O...DRCT...p^
+  30f0: 5e 2e 50 57 52 5f 47 30 39 41 60 72 5e 5e 2e 50  ^.PWR_G09A`r^^.P
+  3100: 57 52 5f 47 30 39 4c 0a 01 61 a0 47 09 90 92 95  WR_G09L..a.G....
+  3110: 68 60 92 94 72 68 69 00 72 60 61 00 74 83 88 44  h`..rhi.r`a.t..D
+  3120: 52 43 54 0a 07 00 0a 01 60 70 60 88 44 52 43 54  RCT.....`p`.DRCT
+  3130: 0a 07 00 a0 3b 92 60 70 0d 47 65 6e 65 72 61 6c  ....;.`p.General
+  3140: 2d 50 75 72 70 6f 73 65 20 23 39 20 44 65 63 6f  -Purpose #9 Deco
+  3150: 64 65 20 44 69 73 61 62 6c 65 64 00 5b 31 70 68  de Disabled.[1ph
+  3160: 5b 31 70 00 5e 5e 2e 50 57 52 5f 47 30 39 45 a1  [1p.^^.PWR_G09E.
+  3170: 30 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f  0p.General-Purpo
+  3180: 73 65 20 23 39 20 44 65 63 6f 64 65 20 44 65 72  se #9 Decode Der
+  3190: 65 66 65 72 65 6e 63 65 64 00 5b 31 70 60 5b 31  eferenced.[1p`[1
+  31a0: a4 00 a0 41 0c 83 88 44 52 43 54 0a 08 00 70 5e  ...A...DRCT...p^
+  31b0: 5e 2e 50 57 52 5f 47 31 30 41 60 72 5e 5e 2e 50  ^.PWR_G10A`r^^.P
+  31c0: 57 52 5f 47 31 30 4c 0a 01 61 a0 49 09 90 92 95  WR_G10L..a.I....
+  31d0: 68 60 92 94 72 68 69 00 72 60 61 00 74 83 88 44  h`..rhi.r`a.t..D
+  31e0: 52 43 54 0a 08 00 0a 01 60 70 60 88 44 52 43 54  RCT.....`p`.DRCT
+  31f0: 0a 08 00 a0 3c 92 60 70 0d 47 65 6e 65 72 61 6c  ....<.`p.General
+  3200: 2d 50 75 72 70 6f 73 65 20 23 31 30 20 44 65 63  -Purpose #10 Dec
+  3210: 6f 64 65 20 44 69 73 61 62 6c 65 64 00 5b 31 70  ode Disabled.[1p
+  3220: 68 5b 31 70 00 5e 5e 2e 50 57 52 5f 47 31 30 45  h[1p.^^.PWR_G10E
+  3230: a1 31 70 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70  .1p.General-Purp
+  3240: 6f 73 65 20 23 31 30 20 44 65 63 6f 64 65 20 44  ose #10 Decode D
+  3250: 65 72 65 66 65 72 65 6e 63 65 64 00 5b 31 70 60  ereferenced.[1p`
+  3260: 5b 31 a4 00 a0 41 0c 83 88 44 52 43 54 0a 09 00  [1...A...DRCT...
+  3270: 70 5e 5e 2e 50 57 52 5f 47 31 32 41 60 72 5e 5e  p^^.PWR_G12A`r^^
+  3280: 2e 50 57 52 5f 47 31 32 4c 0a 01 61 a0 49 09 90  .PWR_G12L..a.I..
+  3290: 92 95 68 60 92 94 72 68 69 00 72 60 61 00 74 83  ..h`..rhi.r`a.t.
+  32a0: 88 44 52 43 54 0a 09 00 0a 01 60 70 60 88 44 52  .DRCT.....`p`.DR
+  32b0: 43 54 0a 09 00 a0 3c 92 60 70 0d 47 65 6e 65 72  CT....<.`p.Gener
+  32c0: 61 6c 2d 50 75 72 70 6f 73 65 20 23 31 32 20 44  al-Purpose #12 D
+  32d0: 65 63 6f 64 65 20 44 69 73 61 62 6c 65 64 00 5b  ecode Disabled.[
+  32e0: 31 70 68 5b 31 70 00 5e 5e 2e 50 57 52 5f 47 31  1ph[1p.^^.PWR_G1
+  32f0: 32 45 a1 31 70 0d 47 65 6e 65 72 61 6c 2d 50 75  2E.1p.General-Pu
+  3300: 72 70 6f 73 65 20 23 31 32 20 44 65 63 6f 64 65  rpose #12 Decode
+  3310: 20 44 65 72 65 66 65 72 65 6e 63 65 64 00 5b 31   Dereferenced.[1
+  3320: 70 60 5b 31 a4 00 a0 41 0c 83 88 44 52 43 54 0a  p`[1...A...DRCT.
+  3330: 0a 00 70 5e 5e 2e 50 57 52 5f 47 31 33 41 60 72  ..p^^.PWR_G13A`r
+  3340: 5e 5e 2e 50 57 52 5f 47 31 33 4c 0a 01 61 a0 49  ^^.PWR_G13L..a.I
+  3350: 09 90 92 95 68 60 92 94 72 68 69 00 72 60 61 00  ....h`..rhi.r`a.
+  3360: 74 83 88 44 52 43 54 0a 0a 00 0a 01 60 70 60 88  t..DRCT.....`p`.
+  3370: 44 52 43 54 0a 0a 00 a0 3c 92 60 70 0d 47 65 6e  DRCT....<.`p.Gen
+  3380: 65 72 61 6c 2d 50 75 72 70 6f 73 65 20 23 31 33  eral-Purpose #13
+  3390: 20 44 65 63 6f 64 65 20 44 69 73 61 62 6c 65 64   Decode Disabled
+  33a0: 00 5b 31 70 68 5b 31 70 00 5e 5e 2e 50 57 52 5f  .[1ph[1p.^^.PWR_
+  33b0: 47 31 33 45 a1 31 70 0d 47 65 6e 65 72 61 6c 2d  G13E.1p.General-
+  33c0: 50 75 72 70 6f 73 65 20 23 31 33 20 44 65 63 6f  Purpose #13 Deco
+  33d0: 64 65 20 44 65 72 65 66 65 72 65 6e 63 65 64 00  de Dereferenced.
+  33e0: 5b 31 70 60 5b 31 a4 00 a0 41 0c 83 88 44 52 43  [1p`[1...A...DRC
+  33f0: 54 0a 0b 00 70 5e 5e 2e 50 57 52 5f 47 31 34 41  T...p^^.PWR_G14A
+  3400: 60 72 5e 5e 2e 50 57 52 5f 47 31 34 4c 0a 01 61  `r^^.PWR_G14L..a
+  3410: a0 49 09 90 92 95 68 60 92 94 72 68 69 00 72 60  .I....h`..rhi.r`
+  3420: 61 00 74 83 88 44 52 43 54 0a 0b 00 0a 01 60 70  a.t..DRCT.....`p
+  3430: 60 88 44 52 43 54 0a 0b 00 a0 3c 92 60 70 0d 47  `.DRCT....<.`p.G
+  3440: 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65 20 23  eneral-Purpose #
+  3450: 31 34 20 44 65 63 6f 64 65 20 44 69 73 61 62 6c  14 Decode Disabl
+  3460: 65 64 00 5b 31 70 68 5b 31 70 00 5e 5e 2e 50 57  ed.[1ph[1p.^^.PW
+  3470: 52 5f 47 31 34 45 a1 31 70 0d 47 65 6e 65 72 61  R_G14E.1p.Genera
+  3480: 6c 2d 50 75 72 70 6f 73 65 20 23 31 34 20 44 65  l-Purpose #14 De
+  3490: 63 6f 64 65 20 44 65 72 65 66 65 72 65 6e 63 65  code Dereference
+  34a0: 64 00 5b 31 70 60 5b 31 a4 00 a0 41 0c 83 88 44  d.[1p`[1...A...D
+  34b0: 52 43 54 0a 0c 00 70 5e 5e 2e 50 57 52 5f 47 31  RCT...p^^.PWR_G1
+  34c0: 35 41 60 72 5e 5e 2e 50 57 52 5f 47 31 35 4c 0a  5A`r^^.PWR_G15L.
+  34d0: 01 61 a0 49 09 90 92 95 68 60 92 94 72 68 69 00  .a.I....h`..rhi.
+  34e0: 72 60 61 00 74 83 88 44 52 43 54 0a 0c 00 0a 01  r`a.t..DRCT.....
+  34f0: 60 70 60 88 44 52 43 54 0a 0c 00 a0 3c 92 60 70  `p`.DRCT....<.`p
+  3500: 0d 47 65 6e 65 72 61 6c 2d 50 75 72 70 6f 73 65  .General-Purpose
+  3510: 20 23 31 35 20 44 65 63 6f 64 65 20 44 69 73 61   #15 Decode Disa
+  3520: 62 6c 65 64 00 5b 31 70 68 5b 31 70 00 5e 5e 2e  bled.[1ph[1p.^^.
+  3530: 50 57 52 5f 47 31 35 45 a1 31 70 0d 47 65 6e 65  PWR_G15E.1p.Gene
+  3540: 72 61 6c 2d 50 75 72 70 6f 73 65 20 23 31 35 20  ral-Purpose #15 
+  3550: 44 65 63 6f 64 65 20 44 65 72 65 66 65 72 65 6e  Decode Dereferen
+  3560: 63 65 64 00 5b 31 70 60 5b 31 a4 00 a4 ff 14 41  ced.[1p`[1.....A
+  3570: 04 53 43 41 4e 04 70 0d 53 43 41 4e 00 5b 31 70  .SCAN.p.SCAN.[1p
+  3580: 68 5b 31 70 69 5b 31 70 87 6a 62 a2 1e 62 76 62  h[1pi[1p.jb..bvb
+  3590: a0 19 92 95 68 83 88 6a 62 00 a0 0f 92 94 69 83  ....h..jb.....i.
+  35a0: 88 6b 62 00 70 62 5b 31 a4 62 70 ff 5b 31 a4 ff  .kb.pb[1.bp.[1..
+  35b0: 08 4d 53 53 31 12 0e 04 0b 30 05 0b 04 06 0b 80  .MSS1....0......
+  35c0: 0e 0b 40 0f 08 4d 53 53 32 12 0e 04 0b 38 05 0b  ..@..MSS2....8..
+  35d0: 0c 06 0b 88 0e 0b 48 0f 08 53 42 31 5f 12 0e 04  ......H..SB1_...
+  35e0: 0b 20 02 0b 40 02 0b 60 02 0b 80 02 08 53 42 32  . ..@..`.....SB2
+  35f0: 5f 12 0e 04 0b 34 02 0b 54 02 0b 74 02 0b 94 02  _....4..T..t....
+  3600: 08 4d 49 44 31 12 0e 04 0b 00 03 0b 10 03 0b 20  .MID1.......... 
+  3610: 03 0b 30 03 08 4d 49 44 32 12 0e 04 0b 04 03 0b  ..0..MID2.......
+  3620: 14 03 0b 24 03 0b 34 03 08 46 44 43 31 12 08 02  ...$..4..FDC1...
+  3630: 0b f0 03 0b 70 03 08 46 44 43 32 12 08 02 0b f6  ....p..FDC2.....
+  3640: 03 0b 76 03 08 55 41 50 31 12 1a 08 0b f8 03 0b  ..v..UAP1.......
+  3650: f8 02 0b 20 02 0b 28 02 0b 38 02 0b e8 02 0b 38  ... ..(..8.....8
+  3660: 03 0b e8 03 08 55 41 50 32 12 1a 08 0b 00 04 0b  .....UAP2.......
+  3670: 00 03 0b 28 02 0b 30 02 0b 40 02 0b f0 02 0b 40  ...(..0..@.....@
+  3680: 03 0b f0 03 08 4c 50 54 31 12 0b 03 0b bc 03 0b  .....LPT1.......
+  3690: 78 03 0b 78 02 08 4c 50 54 32 12 0b 03 0b c0 03  x..x..LPT2......
+  36a0: 0b 80 03 0b 80 02 08 45 43 50 31 12 0b 03 0b bc  .......ECP1.....
+  36b0: 07 0b 78 07 0b 78 06 08 45 43 50 32 12 0b 03 0b  ..x..x..ECP2....
+  36c0: c0 07 0b 80 07 0b 80 06 5b 01 52 45 53 56 00 08  ........[.RESV..
+  36d0: 44 52 43 54 12 1c 0d 0a 00 0a 00 0a 00 0a 00 0a  DRCT............
+  36e0: 00 0a 00 0a 00 0a 00 0a 00 0a 00 0a 00 0a 00 0a  ................
+  36f0: 00 5b 82 45 0b 4c 4e 4b 41 08 5f 48 49 44 0c 41  .[.E.LNKA._HID.A
+  3700: d0 0c 0f 08 5f 55 49 44 0a 01 08 5f 50 52 53 11  ...._UID..._PRS.
+  3710: 09 0a 06 23 f8 ce 18 79 00 08 52 53 52 43 11 09  ...#...y..RSRC..
+  3720: 0a 06 23 00 00 18 79 00 14 11 5f 44 49 53 00 7d  ..#...y..._DIS.}
+  3730: 50 49 52 41 0a 80 50 49 52 41 14 2d 5f 43 52 53  PIRA..PIRA.-_CRS
+  3740: 00 8b 52 53 52 43 0a 01 49 52 51 30 7b 50 49 52  ..RSRC..IRQ0{PIR
+  3750: 41 0a 0f 60 79 0a 01 60 49 52 51 30 70 52 53 52  A..`y..`IRQ0pRSR
+  3760: 43 5b 31 a4 52 53 52 43 14 28 5f 53 52 53 01 70  C[1.RSRC.(_SRS.p
+  3770: 68 5b 31 8b 68 0a 01 49 52 51 30 82 49 52 51 30  h[1.h..IRQ0.IRQ0
+  3780: 60 76 60 7d 60 7b 50 49 52 41 0a 70 00 50 49 52  `v`}`{PIRA.p.PIR
+  3790: 41 14 16 5f 53 54 41 00 a0 0c 7b 50 49 52 41 0a  A.._STA...{PIRA.
+  37a0: 80 00 a4 0a 09 a4 0a 0b 5b 82 4a 0a 4c 4e 4b 42  ........[.J.LNKB
+  37b0: 08 5f 48 49 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a  ._HID.A...._UID.
+  37c0: 02 08 5f 50 52 53 11 09 0a 06 23 f8 ce 18 79 00  .._PRS....#...y.
+  37d0: 08 52 53 52 43 11 09 0a 06 23 00 00 18 79 00 14  .RSRC....#...y..
+  37e0: 11 5f 44 49 53 00 7d 50 49 52 42 0a 80 50 49 52  ._DIS.}PIRB..PIR
+  37f0: 42 14 26 5f 43 52 53 00 8b 52 53 52 43 0a 01 49  B.&_CRS..RSRC..I
+  3800: 52 51 30 7b 50 49 52 42 0a 0f 60 79 0a 01 60 49  RQ0{PIRB..`y..`I
+  3810: 52 51 30 a4 52 53 52 43 14 24 5f 53 52 53 01 8b  RQ0.RSRC.$_SRS..
+  3820: 68 0a 01 49 52 51 30 82 49 52 51 30 60 76 60 7d  h..IRQ0.IRQ0`v`}
+  3830: 60 7b 50 49 52 42 0a 70 00 50 49 52 42 14 16 5f  `{PIRB.p.PIRB.._
+  3840: 53 54 41 00 a0 0c 7b 50 49 52 42 0a 80 00 a4 0a  STA...{PIRB.....
+  3850: 09 a4 0a 0b 5b 82 4a 0a 4c 4e 4b 43 08 5f 48 49  ....[.J.LNKC._HI
+  3860: 44 0c 41 d0 0c 0f 08 5f 55 49 44 0a 03 08 5f 50  D.A...._UID..._P
+  3870: 52 53 11 09 0a 06 23 f8 ce 18 79 00 08 52 53 52  RS....#...y..RSR
+  3880: 43 11 09 0a 06 23 00 00 18 79 00 14 11 5f 44 49  C....#...y..._DI
+  3890: 53 00 7d 50 49 52 43 0a 80 50 49 52 43 14 26 5f  S.}PIRC..PIRC.&_
+  38a0: 43 52 53 00 8b 52 53 52 43 0a 01 49 52 51 30 7b  CRS..RSRC..IRQ0{
+  38b0: 50 49 52 43 0a 0f 60 79 0a 01 60 49 52 51 30 a4  PIRC..`y..`IRQ0.
+  38c0: 52 53 52 43 14 24 5f 53 52 53 01 8b 68 0a 01 49  RSRC.$_SRS..h..I
+  38d0: 52 51 30 82 49 52 51 30 60 76 60 7d 60 7b 50 49  RQ0.IRQ0`v`}`{PI
+  38e0: 52 43 0a 70 00 50 49 52 43 14 16 5f 53 54 41 00  RC.p.PIRC.._STA.
+  38f0: a0 0c 7b 50 49 52 43 0a 80 00 a4 0a 09 a4 0a 0b  ..{PIRC.........
+  3900: 5b 82 4a 0a 4c 4e 4b 44 08 5f 48 49 44 0c 41 d0  [.J.LNKD._HID.A.
+  3910: 0c 0f 08 5f 55 49 44 0a 04 08 5f 50 52 53 11 09  ..._UID..._PRS..
+  3920: 0a 06 23 f8 ce 18 79 00 08 52 53 52 43 11 09 0a  ..#...y..RSRC...
+  3930: 06 23 00 00 18 79 00 14 11 5f 44 49 53 00 7d 50  .#...y..._DIS.}P
+  3940: 49 52 44 0a 80 50 49 52 44 14 26 5f 43 52 53 00  IRD..PIRD.&_CRS.
+  3950: 8b 52 53 52 43 0a 01 49 52 51 30 7b 50 49 52 44  .RSRC..IRQ0{PIRD
+  3960: 0a 0f 60 79 0a 01 60 49 52 51 30 a4 52 53 52 43  ..`y..`IRQ0.RSRC
+  3970: 14 24 5f 53 52 53 01 8b 68 0a 01 49 52 51 30 82  .$_SRS..h..IRQ0.
+  3980: 49 52 51 30 60 76 60 7d 60 7b 50 49 52 44 0a 70  IRQ0`v`}`{PIRD.p
+  3990: 00 50 49 52 44 14 16 5f 53 54 41 00 a0 0c 7b 50  .PIRD.._STA...{P
+  39a0: 49 52 44 0a 80 00 a4 0a 09 a4 0a 0b 5b 80 50 49  IRD.........[.PI
+  39b0: 52 58 02 0a 60 0a 04 5b 81 1d 50 49 52 58 03 01  RX..`..[..PIRX..
+  39c0: 01 00 50 49 52 41 08 50 49 52 42 08 50 49 52 43  ..PIRA.PIRB.PIRC
+  39d0: 08 50 49 52 44 08 5b 82 45 b1 53 49 4f 5f 08 5f  .PIRD.[.E.SIO_._
+  39e0: 48 49 44 0c 41 d0 0a 05 5b 82 42 13 4c 50 54 5f  HID.A...[.B.LPT_
+  39f0: 08 4d 43 44 5f 0a 16 08 5f 48 49 44 0c 41 d0 04  .MCD_..._HID.A..
+  3a00: 00 14 42 04 5f 43 52 53 00 a0 35 7b 5f 53 54 41  ..B._CRS..5{_STA
+  3a10: 0a 02 00 5b 23 50 53 4d 58 ff ff 70 0a 00 42 43  ...[#PSMX..p..BC
+  3a20: 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49  MDpMCD_DID_p.SMI
+  3a30: 43 70 49 4e 46 4f 60 5b 27 50 53 4d 58 a4 60 a4  CpINFO`['PSMX.`.
+  3a40: 52 53 52 43 14 30 42 5f 53 52 01 5b 23 50 53 4d  RSRC.0B_SR.[#PSM
+  3a50: 58 ff ff 70 0a 01 42 43 4d 44 70 4d 43 44 5f 44  X..p..BCMDpMCD_D
+  3a60: 49 44 5f 70 68 49 4e 46 4f 70 00 53 4d 49 43 5b  ID_phINFOp.SMIC[
+  3a70: 27 50 53 4d 58 14 32 42 5f 50 52 00 5b 23 50 53  'PSMX.2B_PR.[#PS
+  3a80: 4d 58 ff ff 70 0a 02 42 43 4d 44 70 4d 43 44 5f  MX..p..BCMDpMCD_
+  3a90: 44 49 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f 60  DID_p.SMICpINFO`
+  3aa0: 5b 27 50 53 4d 58 a4 60 14 2a 42 5f 44 49 00 5b  ['PSMX.`.*B_DI.[
+  3ab0: 23 50 53 4d 58 ff ff 70 0a 03 42 43 4d 44 70 4d  #PSMX..p..BCMDpM
+  3ac0: 43 44 5f 44 49 44 5f 70 00 53 4d 49 43 5b 27 50  CD_DID_p.SMIC['P
+  3ad0: 53 4d 58 14 32 5f 53 54 41 00 5b 23 50 53 4d 58  SMX.2_STA.[#PSMX
+  3ae0: ff ff 70 0a 04 42 43 4d 44 70 4d 43 44 5f 44 49  ..p..BCMDpMCD_DI
+  3af0: 44 5f 70 00 53 4d 49 43 70 49 4e 46 5f 60 5b 27  D_p.SMICpINF_`['
+  3b00: 50 53 4d 58 a4 60 08 52 53 52 43 11 10 0a 0d 47  PSMX.`.RSRC....G
+  3b10: 01 00 01 00 01 01 08 22 00 00 79 00 5b 82 42 13  ......."..y.[.B.
+  3b20: 4c 50 54 42 08 4d 43 44 5f 0a 17 08 5f 48 49 44  LPTB.MCD_..._HID
+  3b30: 0c 41 d0 04 00 08 52 53 52 43 11 10 0a 0d 47 01  .A....RSRC....G.
+  3b40: 00 01 00 01 01 08 22 00 00 79 00 14 42 04 5f 43  ......"..y..B._C
+  3b50: 52 53 00 a0 35 7b 5f 53 54 41 0a 02 00 5b 23 50  RS..5{_STA...[#P
+  3b60: 53 4d 58 ff ff 70 0a 00 42 43 4d 44 70 4d 43 44  SMX..p..BCMDpMCD
+  3b70: 5f 44 49 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f  _DID_p.SMICpINFO
+  3b80: 60 5b 27 50 53 4d 58 a4 60 a4 52 53 52 43 14 30  `['PSMX.`.RSRC.0
+  3b90: 5f 53 52 53 01 5b 23 50 53 4d 58 ff ff 70 0a 01  _SRS.[#PSMX..p..
+  3ba0: 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 68 49  BCMDpMCD_DID_phI
+  3bb0: 4e 46 4f 70 00 53 4d 49 43 5b 27 50 53 4d 58 14  NFOp.SMIC['PSMX.
+  3bc0: 32 5f 50 52 53 00 5b 23 50 53 4d 58 ff ff 70 0a  2_PRS.[#PSMX..p.
+  3bd0: 02 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00  .BCMDpMCD_DID_p.
+  3be0: 53 4d 49 43 70 49 4e 46 4f 60 5b 27 50 53 4d 58  SMICpINFO`['PSMX
+  3bf0: a4 60 14 2a 5f 44 49 53 00 5b 23 50 53 4d 58 ff  .`.*_DIS.[#PSMX.
+  3c00: ff 70 0a 03 42 43 4d 44 70 4d 43 44 5f 44 49 44  .p..BCMDpMCD_DID
+  3c10: 5f 70 00 53 4d 49 43 5b 27 50 53 4d 58 14 32 5f  _p.SMIC['PSMX.2_
+  3c20: 53 54 41 00 5b 23 50 53 4d 58 ff ff 70 0a 04 42  STA.[#PSMX..p..B
+  3c30: 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d  CMDpMCD_DID_p.SM
+  3c40: 49 43 70 49 4e 46 5f 60 5b 27 50 53 4d 58 a4 60  ICpINF_`['PSMX.`
+  3c50: 5b 82 42 13 45 50 50 5f 08 4d 43 44 5f 0a 19 08  [.B.EPP_.MCD_...
+  3c60: 5f 48 49 44 0c 41 d0 04 00 08 52 53 52 43 11 10  _HID.A....RSRC..
+  3c70: 0a 0d 47 01 00 01 00 01 01 08 22 00 00 79 00 14  ..G......."..y..
+  3c80: 42 04 5f 43 52 53 00 a0 35 7b 5f 53 54 41 0a 02  B._CRS..5{_STA..
+  3c90: 00 5b 23 50 53 4d 58 ff ff 70 0a 00 42 43 4d 44  .[#PSMX..p..BCMD
+  3ca0: 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49 43 70  pMCD_DID_p.SMICp
+  3cb0: 49 4e 46 4f 60 5b 27 50 53 4d 58 a4 60 a4 52 53  INFO`['PSMX.`.RS
+  3cc0: 52 43 14 30 42 5f 53 52 01 5b 23 50 53 4d 58 ff  RC.0B_SR.[#PSMX.
+  3cd0: ff 70 0a 01 42 43 4d 44 70 4d 43 44 5f 44 49 44  .p..BCMDpMCD_DID
+  3ce0: 5f 70 68 49 4e 46 4f 70 00 53 4d 49 43 5b 27 50  _phINFOp.SMIC['P
+  3cf0: 53 4d 58 14 32 42 5f 50 52 00 5b 23 50 53 4d 58  SMX.2B_PR.[#PSMX
+  3d00: ff ff 70 0a 02 42 43 4d 44 70 4d 43 44 5f 44 49  ..p..BCMDpMCD_DI
+  3d10: 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f 60 5b 27  D_p.SMICpINFO`['
+  3d20: 50 53 4d 58 a4 60 14 2a 42 5f 44 49 00 5b 23 50  PSMX.`.*B_DI.[#P
+  3d30: 53 4d 58 ff ff 70 0a 03 42 43 4d 44 70 4d 43 44  SMX..p..BCMDpMCD
+  3d40: 5f 44 49 44 5f 70 00 53 4d 49 43 5b 27 50 53 4d  _DID_p.SMIC['PSM
+  3d50: 58 14 32 5f 53 54 41 00 5b 23 50 53 4d 58 ff ff  X.2_STA.[#PSMX..
+  3d60: 70 0a 04 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f  p..BCMDpMCD_DID_
+  3d70: 70 00 53 4d 49 43 70 49 4e 46 5f 60 5b 27 50 53  p.SMICpINF_`['PS
+  3d80: 4d 58 a4 60 5b 82 49 13 43 4f 4d 41 08 4d 43 44  MX.`[.I.COMA.MCD
+  3d90: 5f 0a 11 08 5f 48 49 44 0c 41 d0 05 01 08 5f 55  _..._HID.A...._U
+  3da0: 49 44 0a 01 08 52 53 52 43 11 10 0a 0d 47 01 00  ID...RSRC....G..
+  3db0: 01 00 01 01 08 22 00 00 79 00 14 42 04 5f 43 52  ....."..y..B._CR
+  3dc0: 53 00 a0 35 7b 5f 53 54 41 0a 02 00 5b 23 50 53  S..5{_STA...[#PS
+  3dd0: 4d 58 ff ff 70 0a 00 42 43 4d 44 70 4d 43 44 5f  MX..p..BCMDpMCD_
+  3de0: 44 49 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f 60  DID_p.SMICpINFO`
+  3df0: 5b 27 50 53 4d 58 a4 60 a4 52 53 52 43 14 30 5f  ['PSMX.`.RSRC.0_
+  3e00: 53 52 53 01 5b 23 50 53 4d 58 ff ff 70 0a 01 42  SRS.[#PSMX..p..B
+  3e10: 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 68 49 4e  CMDpMCD_DID_phIN
+  3e20: 46 4f 70 00 53 4d 49 43 5b 27 50 53 4d 58 14 32  FOp.SMIC['PSMX.2
+  3e30: 5f 50 52 53 00 5b 23 50 53 4d 58 ff ff 70 0a 02  _PRS.[#PSMX..p..
+  3e40: 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53  BCMDpMCD_DID_p.S
+  3e50: 4d 49 43 70 49 4e 46 4f 60 5b 27 50 53 4d 58 a4  MICpINFO`['PSMX.
+  3e60: 60 14 2a 5f 44 49 53 00 5b 23 50 53 4d 58 ff ff  `.*_DIS.[#PSMX..
+  3e70: 70 0a 03 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f  p..BCMDpMCD_DID_
+  3e80: 70 00 53 4d 49 43 5b 27 50 53 4d 58 14 32 5f 53  p.SMIC['PSMX.2_S
+  3e90: 54 41 00 5b 23 50 53 4d 58 ff ff 70 0a 04 42 43  TA.[#PSMX..p..BC
+  3ea0: 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49  MDpMCD_DID_p.SMI
+  3eb0: 43 70 49 4e 46 5f 60 5b 27 50 53 4d 58 a4 60 5b  CpINF_`['PSMX.`[
+  3ec0: 82 49 13 43 4f 4d 42 08 4d 43 44 5f 0a 12 08 5f  .I.COMB.MCD_..._
+  3ed0: 48 49 44 0c 41 d0 05 01 08 5f 55 49 44 0a 02 08  HID.A...._UID...
+  3ee0: 52 53 52 43 11 10 0a 0d 47 01 00 01 00 01 01 08  RSRC....G.......
+  3ef0: 22 00 00 79 00 14 42 04 5f 43 52 53 00 a0 35 7b  "..y..B._CRS..5{
+  3f00: 5f 53 54 41 0a 02 00 5b 23 50 53 4d 58 ff ff 70  _STA...[#PSMX..p
+  3f10: 0a 00 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70  ..BCMDpMCD_DID_p
+  3f20: 00 53 4d 49 43 70 49 4e 46 4f 60 5b 27 50 53 4d  .SMICpINFO`['PSM
+  3f30: 58 a4 60 a4 52 53 52 43 14 30 5f 53 52 53 01 5b  X.`.RSRC.0_SRS.[
+  3f40: 23 50 53 4d 58 ff ff 70 0a 01 42 43 4d 44 70 4d  #PSMX..p..BCMDpM
+  3f50: 43 44 5f 44 49 44 5f 70 68 49 4e 46 4f 70 00 53  CD_DID_phINFOp.S
+  3f60: 4d 49 43 5b 27 50 53 4d 58 14 32 5f 50 52 53 00  MIC['PSMX.2_PRS.
+  3f70: 5b 23 50 53 4d 58 ff ff 70 0a 02 42 43 4d 44 70  [#PSMX..p..BCMDp
+  3f80: 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49 43 70 49  MCD_DID_p.SMICpI
+  3f90: 4e 46 4f 60 5b 27 50 53 4d 58 a4 60 14 2a 5f 44  NFO`['PSMX.`.*_D
+  3fa0: 49 53 00 5b 23 50 53 4d 58 ff ff 70 0a 03 42 43  IS.[#PSMX..p..BC
+  3fb0: 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49  MDpMCD_DID_p.SMI
+  3fc0: 43 5b 27 50 53 4d 58 14 32 5f 53 54 41 00 5b 23  C['PSMX.2_STA.[#
+  3fd0: 50 53 4d 58 ff ff 70 0a 04 42 43 4d 44 70 4d 43  PSMX..p..BCMDpMC
+  3fe0: 44 5f 44 49 44 5f 70 00 53 4d 49 43 70 49 4e 46  D_DID_p.SMICpINF
+  3ff0: 5f 60 5b 27 50 53 4d 58 a4 60 5b 82 49 13 49 52  _`['PSMX.`[.I.IR
+  4000: 44 41 08 4d 43 44 5f 0a 14 08 5f 48 49 44 0c 41  DA.MCD_..._HID.A
+  4010: d0 05 10 08 5f 55 49 44 0a 02 08 52 53 52 43 11  ...._UID...RSRC.
+  4020: 10 0a 0d 47 01 00 01 00 01 01 08 22 00 00 79 00  ...G......."..y.
+  4030: 14 42 04 5f 43 52 53 00 a0 35 7b 5f 53 54 41 0a  .B._CRS..5{_STA.
+  4040: 02 00 5b 23 50 53 4d 58 ff ff 70 0a 00 42 43 4d  ..[#PSMX..p..BCM
+  4050: 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49 43  DpMCD_DID_p.SMIC
+  4060: 70 49 4e 46 4f 60 5b 27 50 53 4d 58 a4 60 a4 52  pINFO`['PSMX.`.R
+  4070: 53 52 43 14 30 42 5f 53 52 01 5b 23 50 53 4d 58  SRC.0B_SR.[#PSMX
+  4080: ff ff 70 0a 01 42 43 4d 44 70 4d 43 44 5f 44 49  ..p..BCMDpMCD_DI
+  4090: 44 5f 70 68 49 4e 46 4f 70 00 53 4d 49 43 5b 27  D_phINFOp.SMIC['
+  40a0: 50 53 4d 58 14 32 42 5f 50 52 00 5b 23 50 53 4d  PSMX.2B_PR.[#PSM
+  40b0: 58 ff ff 70 0a 02 42 43 4d 44 70 4d 43 44 5f 44  X..p..BCMDpMCD_D
+  40c0: 49 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f 60 5b  ID_p.SMICpINFO`[
+  40d0: 27 50 53 4d 58 a4 60 14 2a 42 5f 44 49 00 5b 23  'PSMX.`.*B_DI.[#
+  40e0: 50 53 4d 58 ff ff 70 0a 03 42 43 4d 44 70 4d 43  PSMX..p..BCMDpMC
+  40f0: 44 5f 44 49 44 5f 70 00 53 4d 49 43 5b 27 50 53  D_DID_p.SMIC['PS
+  4100: 4d 58 14 32 5f 53 54 41 00 5b 23 50 53 4d 58 ff  MX.2_STA.[#PSMX.
+  4110: ff 70 0a 04 42 43 4d 44 70 4d 43 44 5f 44 49 44  .p..BCMDpMCD_DID
+  4120: 5f 70 00 53 4d 49 43 70 49 4e 46 5f 60 5b 27 50  _p.SMICpINF_`['P
+  4130: 53 4d 58 a4 60 5b 82 49 13 42 41 53 4b 08 4d 43  SMX.`[.I.BASK.MC
+  4140: 44 5f 0a 15 08 5f 48 49 44 0c 41 d0 05 10 08 5f  D_..._HID.A...._
+  4150: 55 49 44 0a 02 08 52 53 52 43 11 10 0a 0d 47 01  UID...RSRC....G.
+  4160: 00 01 00 01 01 08 22 00 00 79 00 14 42 04 5f 43  ......"..y..B._C
+  4170: 52 53 00 a0 35 7b 5f 53 54 41 0a 02 00 5b 23 50  RS..5{_STA...[#P
+  4180: 53 4d 58 ff ff 70 0a 00 42 43 4d 44 70 4d 43 44  SMX..p..BCMDpMCD
+  4190: 5f 44 49 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f  _DID_p.SMICpINFO
+  41a0: 60 5b 27 50 53 4d 58 a4 60 a4 52 53 52 43 14 30  `['PSMX.`.RSRC.0
+  41b0: 42 5f 53 52 01 5b 23 50 53 4d 58 ff ff 70 0a 01  B_SR.[#PSMX..p..
+  41c0: 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 68 49  BCMDpMCD_DID_phI
+  41d0: 4e 46 4f 70 00 53 4d 49 43 5b 27 50 53 4d 58 14  NFOp.SMIC['PSMX.
+  41e0: 32 42 5f 50 52 00 5b 23 50 53 4d 58 ff ff 70 0a  2B_PR.[#PSMX..p.
+  41f0: 02 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00  .BCMDpMCD_DID_p.
+  4200: 53 4d 49 43 70 49 4e 46 4f 60 5b 27 50 53 4d 58  SMICpINFO`['PSMX
+  4210: a4 60 14 2a 42 5f 44 49 00 5b 23 50 53 4d 58 ff  .`.*B_DI.[#PSMX.
+  4220: ff 70 0a 03 42 43 4d 44 70 4d 43 44 5f 44 49 44  .p..BCMDpMCD_DID
+  4230: 5f 70 00 53 4d 49 43 5b 27 50 53 4d 58 14 32 5f  _p.SMIC['PSMX.2_
+  4240: 53 54 41 00 5b 23 50 53 4d 58 ff ff 70 0a 04 42  STA.[#PSMX..p..B
+  4250: 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d  CMDpMCD_DID_p.SM
+  4260: 49 43 70 49 4e 46 5f 60 5b 27 50 53 4d 58 a4 60  ICpINF_`['PSMX.`
+  4270: 5b 82 4c 13 46 49 52 5f 08 4d 43 44 5f 0a 13 08  [.L.FIR_.MCD_...
+  4280: 5f 48 49 44 0c 3a 63 60 01 08 5f 55 49 44 0a 02  _HID.:c`.._UID..
+  4290: 08 52 53 52 43 11 13 0a 10 47 01 00 01 00 01 01  .RSRC....G......
+  42a0: 08 22 00 00 2a 00 00 79 00 14 42 04 5f 43 52 53  ."..*..y..B._CRS
+  42b0: 00 a0 35 7b 5f 53 54 41 0a 02 00 5b 23 50 53 4d  ..5{_STA...[#PSM
+  42c0: 58 ff ff 70 0a 00 42 43 4d 44 70 4d 43 44 5f 44  X..p..BCMDpMCD_D
+  42d0: 49 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f 60 5b  ID_p.SMICpINFO`[
+  42e0: 27 50 53 4d 58 a4 60 a4 52 53 52 43 14 30 42 5f  'PSMX.`.RSRC.0B_
+  42f0: 53 52 01 5b 23 50 53 4d 58 ff ff 70 0a 01 42 43  SR.[#PSMX..p..BC
+  4300: 4d 44 70 4d 43 44 5f 44 49 44 5f 70 68 49 4e 46  MDpMCD_DID_phINF
+  4310: 4f 70 00 53 4d 49 43 5b 27 50 53 4d 58 14 32 42  Op.SMIC['PSMX.2B
+  4320: 5f 50 52 00 5b 23 50 53 4d 58 ff ff 70 0a 02 42  _PR.[#PSMX..p..B
+  4330: 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d  CMDpMCD_DID_p.SM
+  4340: 49 43 70 49 4e 46 4f 60 5b 27 50 53 4d 58 a4 60  ICpINFO`['PSMX.`
+  4350: 14 2a 42 5f 44 49 00 5b 23 50 53 4d 58 ff ff 70  .*B_DI.[#PSMX..p
+  4360: 0a 03 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70  ..BCMDpMCD_DID_p
+  4370: 00 53 4d 49 43 5b 27 50 53 4d 58 14 32 5f 53 54  .SMIC['PSMX.2_ST
+  4380: 41 00 5b 23 50 53 4d 58 ff ff 70 0a 04 42 43 4d  A.[#PSMX..p..BCM
+  4390: 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49 43  DpMCD_DID_p.SMIC
+  43a0: 70 49 4e 46 5f 60 5b 27 50 53 4d 58 a4 60 5b 82  pINF_`['PSMX.`[.
+  43b0: 4d 13 46 44 43 5f 08 4d 43 44 5f 0a 18 08 5f 48  M.FDC_.MCD_..._H
+  43c0: 49 44 0c 41 d0 07 00 08 52 53 52 43 11 1b 0a 18  ID.A....RSRC....
+  43d0: 47 01 00 01 00 01 01 06 47 01 07 01 07 01 01 01  G.......G.......
+  43e0: 22 00 00 2a 00 00 79 00 14 42 04 5f 43 52 53 00  "..*..y..B._CRS.
+  43f0: a0 35 7b 5f 53 54 41 0a 02 00 5b 23 50 53 4d 58  .5{_STA...[#PSMX
+  4400: ff ff 70 0a 00 42 43 4d 44 70 4d 43 44 5f 44 49  ..p..BCMDpMCD_DI
+  4410: 44 5f 70 00 53 4d 49 43 70 49 4e 46 4f 60 5b 27  D_p.SMICpINFO`['
+  4420: 50 53 4d 58 a4 60 a4 52 53 52 43 14 30 5f 53 52  PSMX.`.RSRC.0_SR
+  4430: 53 01 5b 23 50 53 4d 58 ff ff 70 0a 01 42 43 4d  S.[#PSMX..p..BCM
+  4440: 44 70 4d 43 44 5f 44 49 44 5f 70 68 49 4e 46 4f  DpMCD_DID_phINFO
+  4450: 70 00 53 4d 49 43 5b 27 50 53 4d 58 14 32 5f 50  p.SMIC['PSMX.2_P
+  4460: 52 53 00 5b 23 50 53 4d 58 ff ff 70 0a 02 42 43  RS.[#PSMX..p..BC
+  4470: 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49  MDpMCD_DID_p.SMI
+  4480: 43 70 49 4e 46 4f 60 5b 27 50 53 4d 58 a4 60 14  CpINFO`['PSMX.`.
+  4490: 2a 5f 44 49 53 00 5b 23 50 53 4d 58 ff ff 70 0a  *_DIS.[#PSMX..p.
+  44a0: 03 42 43 4d 44 70 4d 43 44 5f 44 49 44 5f 70 00  .BCMDpMCD_DID_p.
+  44b0: 53 4d 49 43 5b 27 50 53 4d 58 14 32 5f 53 54 41  SMIC['PSMX.2_STA
+  44c0: 00 5b 23 50 53 4d 58 ff ff 70 0a 04 42 43 4d 44  .[#PSMX..p..BCMD
+  44d0: 70 4d 43 44 5f 44 49 44 5f 70 00 53 4d 49 43 70  pMCD_DID_p.SMICp
+  44e0: 49 4e 46 5f 60 5b 27 50 53 4d 58 a4 60 5b 82 44  INF_`['PSMX.`[.D
+  44f0: 1d 50 57 52 5f 08 5f 41 44 52 0c 03 00 07 00 5b  .PWR_._ADR.....[
+  4500: 80 47 50 4f 5f 01 0c 34 10 00 00 0c 04 00 00 00  .GPO_..4........
+  4510: 5b 81 31 47 50 4f 5f 03 47 4f 30 30 01 47 4f 30  [.1GPO_.GO00.GO0
+  4520: 31 01 47 4f 30 32 01 00 03 47 4f 30 36 01 47 4f  1.GO02...GO06.GO
+  4530: 30 37 01 00 05 47 4f 31 33 01 00 0a 00 05 47 4f  07...GO13.....GO
+  4540: 32 39 01 5b 80 47 4c 42 4c 01 0c 28 10 00 00 0c  29.[.GLBL..(....
+  4550: 04 00 00 00 5b 81 0f 47 4c 42 4c 03 00 18 00 01  ....[..GLBL.....
+  4560: 4c 50 4f 4c 01 5b 80 53 4d 42 5f 01 0c 40 10 00  LPOL.[.SMB_..@..
+  4570: 00 0c 0c 00 00 00 5b 81 29 53 4d 42 5f 01 48 53  ......[.)SMB_.HS
+  4580: 54 53 08 4c 56 54 53 08 43 54 4c 52 08 43 4d 44  TS.LVTS.CTLR.CMD
+  4590: 52 08 41 44 44 52 08 44 41 54 30 08 44 41 54 31  R.ADDR.DAT0.DAT1
+  45a0: 08 5b 80 50 43 49 5f 02 0a 40 0a 60 5b 81 45 11  .[.PCI_..@.`[.E.
+  45b0: 50 43 49 5f 03 50 4d 42 41 20 00 48 06 00 04 46  PCI_.PMBA .H...F
+  45c0: 44 43 4d 01 00 01 55 31 4d 5f 01 00 01 55 32 4d  DCM...U1M_...U2M
+  45d0: 5f 01 00 01 4c 50 54 4d 01 00 4d 04 4d 44 49 45  _...LPTM..M.MDIE
+  45e0: 01 4d 44 49 41 02 53 42 45 5f 01 00 01 53 42 41  .MDIA.SBE_...SBA
+  45f0: 5f 02 4d 53 53 45 01 4d 53 53 41 02 00 0e 00 01  _.MSSE.MSSA.....
+  4600: 41 55 44 4d 01 00 02 4b 42 43 4d 01 47 31 32 4d  AUDM...KBCM.G12M
+  4610: 01 47 31 33 4d 01 4c 50 54 45 01 47 30 39 41 10  .G13M.LPTE.G09A.
+  4620: 47 30 39 4c 04 00 01 47 30 39 4d 01 47 30 39 45  G09L...G09M.G09E
+  4630: 01 00 01 00 01 4c 50 54 41 02 00 01 46 44 43 41  .....LPTA...FDCA
+  4640: 01 46 44 43 45 01 4b 42 43 45 01 00 01 47 31 30  .FDCE.KBCE...G10
+  4650: 41 10 47 31 30 4c 04 00 01 47 31 30 4d 01 47 31  A.G10L...G10M.G1
+  4660: 30 45 01 00 01 55 31 41 5f 03 55 31 45 5f 01 55  0E...U1A_.U1E_.U
+  4670: 32 41 5f 03 55 32 45 5f 01 47 31 32 41 10 47 31  2A_.U2E_.G12A.G1
+  4680: 32 4c 04 47 31 32 45 01 00 2b 47 31 33 41 10 47  2L.G12E..+G13A.G
+  4690: 31 33 4c 04 47 31 33 45 01 00 2b 47 31 34 41 10  13L.G13E..+G14A.
+  46a0: 47 31 34 4c 04 47 31 34 45 01 00 0b 47 31 35 41  G14L.G14E...G15A
+  46b0: 10 47 31 35 4c 04 47 31 35 45 01 00 4b 08 53 42  .G15L.G15E..K.SB
+  46c0: 42 41 20 5b 82 1b 55 53 42 5f 08 5f 41 44 52 0c  BA [..USB_._ADR.
+  46d0: 02 00 07 00 08 5f 50 52 57 12 06 02 0a 08 0a 01  ....._PRW.......
+  46e0: 5b 82 0f 49 44 45 5f 08 5f 41 44 52 0c 01 00 07  [..IDE_._ADR....
+  46f0: 00 14 27 5a 30 30 30 02 70 7d 7d 79 0b e9 40 0a  ..'Z000.p}}y..@.
+  4700: 10 00 79 68 0a 08 00 00 69 00 5c 2f 03 5f 53 42  ..yh....i.\/._SB
+  4710: 5f 50 43 49 30 4f 45 4d 52 14 2e 5a 30 30 31 01  _PCI0OEMR..Z001.
+  4720: 5b 23 4f 45 4d 4c ff ff 5a 30 30 30 0a 81 68 70  [#OEML..Z000..hp
+  4730: 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52 60  \/._SB_PCI0OEMR`
+  4740: 5b 27 4f 45 4d 4c a4 60 14 40 15 5a 30 30 32 01  ['OEML.`.@.Z002.
+  4750: 5b 23 4f 45 4d 4c ff ff 5a 30 30 30 0a 82 68 70  [#OEML..Z000..hp
+  4760: 12 32 0d 0a 00 0a 00 0a 00 0a 00 0a 00 0a 00 0a  .2..............
+  4770: 00 0a 00 0a 00 0d 56 4d 77 61 72 65 20 56 69 72  ......VMware Vir
+  4780: 74 75 61 6c 20 42 61 74 74 65 72 79 00 0d 00 0d  tual Battery....
+  4790: 00 0d 00 60 70 5c 2f 03 5f 53 42 5f 50 43 49 30  ...`p\/._SB_PCI0
+  47a0: 4f 45 4d 52 88 60 0a 00 00 70 5c 2f 03 5f 53 42  OEMR.`...p\/._SB
+  47b0: 5f 50 43 49 30 4f 45 4d 52 88 60 0a 01 00 70 5c  _PCI0OEMR.`...p\
+  47c0: 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52 88 60  /._SB_PCI0OEMR.`
+  47d0: 0a 02 00 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f  ...p\/._SB_PCI0O
+  47e0: 45 4d 52 88 60 0a 03 00 70 5c 2f 03 5f 53 42 5f  EMR.`...p\/._SB_
+  47f0: 50 43 49 30 4f 45 4d 52 88 60 0a 04 00 70 5c 2f  PCI0OEMR.`...p\/
+  4800: 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52 88 60 0a  ._SB_PCI0OEMR.`.
+  4810: 05 00 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45  ..p\/._SB_PCI0OE
+  4820: 4d 52 88 60 0a 06 00 70 5c 2f 03 5f 53 42 5f 50  MR.`...p\/._SB_P
+  4830: 43 49 30 4f 45 4d 52 88 60 0a 07 00 70 5c 2f 03  CI0OEMR.`...p\/.
+  4840: 5f 53 42 5f 50 43 49 30 4f 45 4d 52 88 60 0a 08  _SB_PCI0OEMR.`..
+  4850: 00 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d  .p\/._SB_PCI0OEM
+  4860: 52 61 5b 27 4f 45 4d 4c a0 2e 92 93 61 0a 01 70  Ra['OEML....a..p
+  4870: 12 25 0d 0a 00 0c ff ff ff ff 0c ff ff ff ff 0a  .%..............
+  4880: 00 0c ff ff ff ff 0a 00 0a 00 0a 00 0a 00 0d 00  ................
+  4890: 0d 00 0d 00 0d 00 60 a4 60 14 4d 0a 5a 30 30 33  ......`.`.M.Z003
+  48a0: 01 5b 23 4f 45 4d 4c ff ff 5a 30 30 30 0a 83 68  .[#OEML..Z000..h
+  48b0: 70 12 0a 04 0a 00 0a 00 0a 00 0a 00 60 70 5c 2f  p...........`p\/
+  48c0: 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52 88 60 0a  ._SB_PCI0OEMR.`.
+  48d0: 00 00 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45  ..p\/._SB_PCI0OE
+  48e0: 4d 52 88 60 0a 01 00 70 5c 2f 03 5f 53 42 5f 50  MR.`...p\/._SB_P
+  48f0: 43 49 30 4f 45 4d 52 88 60 0a 02 00 70 5c 2f 03  CI0OEMR.`...p\/.
+  4900: 5f 53 42 5f 50 43 49 30 4f 45 4d 52 88 60 0a 03  _SB_PCI0OEMR.`..
+  4910: 00 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d  .p\/._SB_PCI0OEM
+  4920: 52 61 5b 27 4f 45 4d 4c a0 1c 92 93 61 0a 01 70  Ra['OEML....a..p
+  4930: 12 13 04 0a 00 0c ff ff ff ff 0c ff ff ff ff 0c  ................
+  4940: ff ff ff ff 60 a4 60 14 4c 04 5a 30 30 34 00 5b  ....`.`.L.Z004.[
+  4950: 23 4f 45 4d 4c ff ff 5a 30 30 30 0a 84 0a 00 70  #OEML..Z000....p
+  4960: 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52 60  \/._SB_PCI0OEMR`
+  4970: 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52  p\/._SB_PCI0OEMR
+  4980: 61 5b 27 4f 45 4d 4c a0 0a 92 93 61 0a 01 70 0a  a['OEML....a..p.
+  4990: 01 60 a4 60 5b 82 4e 04 42 41 54 31 08 5f 48 49  .`.`[.N.BAT1._HI
+  49a0: 44 0c 41 d0 0c 0a 08 5f 55 49 44 0a 01 08 5f 50  D.A...._UID..._P
+  49b0: 43 4c 12 07 01 5c 5f 53 42 5f 14 0d 5f 53 54 41  CL...\_SB_.._STA
+  49c0: 00 a4 5a 30 30 31 0a 01 14 0d 5f 42 49 46 00 a4  ..Z001...._BIF..
+  49d0: 5a 30 30 32 0a 01 14 0d 5f 42 53 54 00 a4 5a 30  Z002...._BST..Z0
+  49e0: 30 33 0a 01 5b 82 4e 04 42 41 54 32 08 5f 48 49  03..[.N.BAT2._HI
+  49f0: 44 0c 41 d0 0c 0a 08 5f 55 49 44 0a 02 08 5f 50  D.A...._UID..._P
+  4a00: 43 4c 12 07 01 5c 5f 53 42 5f 14 0d 5f 53 54 41  CL...\_SB_.._STA
+  4a10: 00 a4 5a 30 30 31 0a 02 14 0d 5f 42 49 46 00 a4  ..Z001...._BIF..
+  4a20: 5a 30 30 32 0a 02 14 0d 5f 42 53 54 00 a4 5a 30  Z002...._BST..Z0
+  4a30: 30 33 0a 02 5b 82 3e 41 43 41 44 08 5f 48 49 44  03..[.>ACAD._HID
+  4a40: 0d 41 43 50 49 30 30 30 33 00 08 5f 55 49 44 0a  .ACPI0003.._UID.
+  4a50: 01 08 5f 50 43 4c 12 07 01 5c 5f 53 42 5f 14 09  .._PCL...\_SB_..
+  4a60: 5f 53 54 41 00 a4 0a 0f 14 0b 5f 50 53 52 00 a4  _STA......_PSR..
+  4a70: 5a 30 30 34 14 09 5f 53 57 53 00 a4 0a 08 5b 82  Z004.._SWS....[.
+  4a80: 44 06 53 4c 50 42 08 5f 48 49 44 0d 50 4e 50 30  D.SLPB._HID.PNP0
+  4a90: 43 30 45 00 08 5f 50 52 57 12 06 02 0a 09 0a 04  C0E.._PRW.......
+  4aa0: 14 06 5f 50 53 57 01 14 3c 5f 53 54 41 00 5b 23  .._PSW..<_STA.[#
+  4ab0: 4f 45 4d 4c ff ff 5a 30 30 30 0a 89 0a 00 70 5c  OEML..Z000....p\
+  4ac0: 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52 60 5b  /._SB_PCI0OEMR`[
+  4ad0: 27 4f 45 4d 4c a0 09 7b 60 0a 01 00 a4 0a 0f a1  'OEML..{`.......
+  4ae0: 04 a4 0a 00 10 4d 0e 5c 5f 47 50 45 14 45 0e 5f  .....M.\_GPE.E._
+  4af0: 4c 30 39 00 5b 23 5c 2e 5f 53 42 5f 4f 45 4d 4c  L09.[#\._SB_OEML
+  4b00: ff ff 5c 2e 5f 53 42 5f 5a 30 30 30 0a 86 0a 00  ..\._SB_Z000....
+  4b10: 70 5c 2f 03 5f 53 42 5f 50 43 49 30 4f 45 4d 52  p\/._SB_PCI0OEMR
+  4b20: 60 5b 27 5c 2e 5f 53 42 5f 4f 45 4d 4c a0 2b 92  `['\._SB_OEML.+.
+  4b30: 93 60 0a 00 86 5c 2e 5f 53 42 5f 42 41 54 31 60  .`...\._SB_BAT1`
+  4b40: 86 5c 2e 5f 53 42 5f 42 41 54 32 60 86 5c 2e 5f  .\._SB_BAT2`.\._
+  4b50: 53 42 5f 41 43 41 44 0a 80 5b 23 5c 2e 5f 53 42  SB_ACAD..[#\._SB
+  4b60: 5f 4f 45 4d 4c ff ff 5c 2e 5f 53 42 5f 5a 30 30  _OEML..\._SB_Z00
+  4b70: 30 0a 88 0a 00 70 5c 2f 03 5f 53 42 5f 50 43 49  0....p\/._SB_PCI
+  4b80: 30 4f 45 4d 52 60 5b 27 5c 2e 5f 53 42 5f 4f 45  0OEMR`['\._SB_OE
+  4b90: 4d 4c a0 13 7b 60 0a 01 00 86 5c 2e 5f 53 42 5f  ML..{`....\._SB_
+  4ba0: 53 4c 50 42 0a 80 a0 13 7b 60 0a 02 00 86 5c 2e  SLPB....{`....\.
+  4bb0: 5f 53 42 5f 53 4c 50 42 0a 02 a0 17 92 93 60 0a  _SB_SLPB......`.
+  4bc0: 00 5c 2e 5f 53 42 5f 5a 30 30 30 0a 88 7b 60 0a  .\._SB_Z000..{`.
+  4bd0: ff 00 08 5f 53 30 5f 12 06 02 0a 05 0a 05 08 5f  ..._S0_........_
+  4be0: 53 31 5f 12 06 02 0a 04 0a 04 08 5f 53 34 5f 12  S1_........_S4_.
+  4bf0: 06 02 0a 00 0a 00 08 5f 53 35 5f 12 06 02 0a 00  ......._S5_.....
+  4c00: 0a 00 14 31 5f 50 54 53 01 a0 17 92 95 68 0a 02  ...1_PTS.....h..
+  4c10: 70 01 5c 2f 03 5f 53 42 5f 50 43 49 30 43 52 53  p.\/._SB_PCI0CRS
+  4c20: 54 a1 12 70 00 5c 2f 03 5f 53 42 5f 50 43 49 30  T..p.\/._SB_PCI0
+  4c30: 43 52 53 54 10 39 5f 50 52 5f 5b 83 0b 43 50 55  CRST.9_PR_[..CPU
+  4c40: 30 00 10 10 00 00 06 5b 83 0b 43 50 55 31 01 10  0......[..CPU1..
+  4c50: 10 00 00 06 5b 83 0b 43 50 55 32 02 10 10 00 00  ....[..CPU2.....
+  4c60: 06 5b 83 0b 43 50 55 33 03 10 10 00 00 06        .[..CPU3......
+
+FACS @ 0x7fefffc0
+  0000: 46 41 43 53 40 00 00 00 00 00 00 00 00 00 00 00  FACS@...........
+  0010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+FACP @ 0x7fefee98
+  0000: 46 41 43 50 f4 00 00 00 04 4c 49 4e 54 45 4c 20  FACP.....LINTEL 
+  0010: 34 34 30 42 58 20 20 20 00 00 04 06 50 54 4c 20  440BX   ....PTL 
+  0020: 40 42 0f 00 c0 ff ef 7f 2a a2 ef 7f 00 00 09 00  @B......*.......
+  0030: b2 00 00 00 f0 f1 00 00 00 10 00 00 00 00 00 00  ................
+  0040: 04 10 00 00 00 00 00 00 00 00 00 00 08 10 00 00  ................
+  0050: 0c 10 00 00 00 00 00 00 04 02 00 04 04 00 00 00  ................
+  0060: 65 00 e9 03 00 00 00 00 01 03 0d 00 32 00 00 00  e...........2...
+  0070: 21 00 00 00 01 08 00 01 64 00 00 00 00 00 00 00  !.......d.......
+  0080: fe 03 00 00 c0 ff ef 7f 00 00 00 00 2a a2 ef 7f  ............*...
+  0090: 00 00 00 00 01 20 00 02 00 10 00 00 00 00 00 00  ..... ..........
+  00a0: 00 00 00 00 00 00 00 00 00 00 00 00 01 10 00 02  ................
+  00b0: 04 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00d0: 01 20 00 03 08 10 00 00 00 00 00 00 01 20 00 02  . ........... ..
+  00e0: 0c 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  00f0: 00 00 00 00                                      ....
+
+BOOT @ 0x7fefa202
+  0000: 42 4f 4f 54 28 00 00 00 01 a5 50 54 4c 54 44 20  BOOT(.....PTLTD 
+  0010: 24 53 42 46 54 42 4c 24 00 00 04 06 20 4c 54 50  $SBFTBL$.... LTP
+  0020: 01 00 00 00 36 00 00 00                          ....6...
+
+APIC @ 0x7fefa1a4
+  0000: 41 50 49 43 5e 00 00 00 01 48 50 54 4c 54 44 20  APIC^....HPTLTD 
+  0010: 09 20 41 50 49 43 20 20 00 00 04 06 20 4c 54 50  . APIC  .... LTP
+  0020: 00 00 00 00 00 00 e0 fe 01 00 00 00 00 08 00 00  ................
+  0030: 01 00 00 00 00 08 01 01 01 00 00 00 01 0c 02 00  ................
+  0040: 00 00 c0 fe 00 00 00 00 02 0a 00 00 02 00 00 00  ................
+  0050: 05 00 04 06 00 05 00 01 04 06 01 05 00 01        ..............
+
+XSDT @ 0x7fefa138
+  0000: 58 53 44 54 3c 00 00 00 01 8e 49 4e 54 45 4c 20  XSDT<.....INTEL 
+  0010: 34 34 30 42 58 20 20 20 00 00 04 06 56 4d 57 20  440BX   ....VMW 
+  0020: 72 42 32 01 98 ee ef 7f 00 00 00 00 02 a2 ef 7f  rB2.............
+  0030: 00 00 00 00 a4 a1 ef 7f 00 00 00 00              ............
+
+FACP @ 0x7fefef8c
+  0000: 46 41 43 50 74 00 00 00 01 7a 49 4e 54 45 4c 20  FACPt....zINTEL 
+  0010: 34 34 30 42 58 20 20 20 00 00 04 06 50 54 4c 20  440BX   ....PTL 
+  0020: 40 42 0f 00 c0 ff ef 7f 2a a2 ef 7f 00 00 09 00  @B......*.......
+  0030: b2 00 00 00 f0 f1 00 00 00 10 00 00 00 00 00 00  ................
+  0040: 04 10 00 00 00 00 00 00 00 00 00 00 08 10 00 00  ................
+  0050: 0c 10 00 00 00 00 00 00 04 02 00 04 04 00 00 00  ................
+  0060: 65 00 e9 03 00 00 00 00 01 03 0d 00 32 00 00 00  e...........2...
+  0070: 21 00 00 00                                      !...
+
+RSDT @ 0x7fefa174
+  0000: 52 53 44 54 30 00 00 00 01 9c 49 4e 54 45 4c 20  RSDT0.....INTEL 
+  0010: 34 34 30 42 58 20 20 20 00 00 04 06 20 4c 54 50  440BX   .... LTP
+  0020: 00 00 00 00 8c ef ef 7f 02 a2 ef 7f a4 a1 ef 7f  ................
+
+RSD PTR @ 0xf6a30
+  0000: 52 53 44 20 50 54 52 20 b4 50 54 4c 54 44 20 02  RSD PTR .PTLTD .
+  0010: 74 a1 ef 7f 24 00 00 00 38 a1 ef 7f 00 00 00 00  t...$...8.......
+  0020: 95 00 00 00                                      ....
+
+
+--=-CbA4Uwyco8iXC5eeL1EQ--
 
