@@ -1,57 +1,39 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [PATCH] fujitsu-laptop: support led-class as module
-Date: Wed, 26 Aug 2009 11:08:26 +0930 (CST)
-Message-ID: <200908260138.n7Q1cQxW008893@turbo.physics.adelaide.edu.au>
-References: <9b2b86520908250412j61a355aax55110f467c2ec61f@mail.gmail.com>
+From: Lin Ming <lin@minggr.cn>
+Subject: Re: ACPI explodes in -next (ACPI video it seems)
+Date: Wed, 26 Aug 2009 09:43:04 +0800
+Message-ID: <d3f22a0908251843i1975c6a0n246b0fd5e1c94142@mail.gmail.com>
+References: <20090825154037.675e8848@lxorguk.ukuu.org.uk>
+	 <d3f22a0908251824p9711c0eie1e8609f50e5f192@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:43114 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932810AbZHZBji (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Aug 2009 21:39:38 -0400
-In-Reply-To: <9b2b86520908250412j61a355aax55110f467c2ec61f@mail.gmail.com> from "Alan Jenkins" at Aug 25, 2009 12:12:17 PM
+Received: from mail-px0-f182.google.com ([209.85.216.182]:55566 "EHLO
+	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932075AbZHZBnD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2009 21:43:03 -0400
+Received: by pxi12 with SMTP id 12so3867336pxi.22
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2009 18:43:05 -0700 (PDT)
+In-Reply-To: <d3f22a0908251824p9711c0eie1e8609f50e5f192@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com
 
-Hi
-
-> > Please consider slipping this in to 2.6.31-rc since it's a fairly trivial
-> > bug fix to ensure that fujitsu-laptop uses the LEDS class even when the LEDS
-> > class been compiled as a module.  If that's not possible or viewed as
-> > inappropriate then let's go for 2.6.32.
-> > :
+On Wed, Aug 26, 2009 at 9:24 AM, Lin Ming<lin@minggr.cn> wrote:
+> On Tue, Aug 25, 2009 at 10:40 PM, Alan Cox<alan@lxorguk.ukuu.org.uk> wrote:
+>>
+>> Trace is during a modprobe
+>>
+>> strcmp of NULL pointer from
 >
-> Don't you need to exclude
-> 
-> CONFIG_LEDS_CLASS=m
-> CONFIG_FUJITSU_LAPTOP=y
+> Looks like the HID/UID NULL pointer issue that was fixed by
+> acpi-fix-null-bug-for-hid-uid-string-2.patch in -mm tree
 
-Hmm, good point.  Admittedly this would be a rare case since most
-distributors would ship with both CONFIG_LEDS_CLASS and
-CONFIG_FUJITSU_LAPTOP set to "m" - a situation which the proposed patch
-at least makes workable.
+The original report here:
+http://lkml.org/lkml/2009/7/20/422
 
-> I think the Kconfig-fu is "depends on LEDS_CLASS || LEDS_CLASS=n".
+And the patch:
+http://userweb.kernel.org/~akpm/mmotm/broken-out/acpi-fix-null-bug-for-hid-uid-string-2.patch
 
-So, basically something like this should do the trick:
-
-signed-off-by: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-signed-off-by: Joathan Woithe <jwoithe@physics.adelaide.edu.au>
-
---- a/drivers/platform/x86/Kconfig	2009-08-26 11:03:20.000000000 +0930
-+++ b/drivers/platform/x86/Kconfig	2009-08-26 11:04:28.000000000 +0930
-@@ -82,6 +82,7 @@
- 	depends on ACPI
- 	depends on INPUT
- 	depends on BACKLIGHT_CLASS_DEVICE
-+	depends on LEDS_CLASS || LEDS_CLASS=n
- 	---help---
- 	  This is a driver for laptops built by Fujitsu:
-
-Regards
-  jonathan
+Lin Ming
