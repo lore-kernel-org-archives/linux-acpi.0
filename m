@@ -1,81 +1,57 @@
-From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-Subject: Re: INFO: possible circular locking dependency - kacpid
-	acpi_os_wait_events_complete
-Date: Wed, 26 Aug 2009 16:12:19 +0200
-Message-ID: <c4e36d110908260712u3aa0e27ft869049aa310a7386@mail.gmail.com>
-References: <c4e36d110908250110xe16720o977c8cf5c3386c4b@mail.gmail.com>
-	 <200908251251.37135.bjorn.helgaas@hp.com>
-	 <c4e36d110908251333p2da20276j650232cea8da4c1f@mail.gmail.com>
-	 <200908251459.37106.bjorn.helgaas@hp.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
+Date: Wed, 26 Aug 2009 22:13:04 +0800
+Message-ID: <1251295984.3623.83.camel@localhost.localdomain>
+References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
+	 <4A8EFFB2.4040100@suse.de>
+	 <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
+	 <4A8F1081.3020803@suse.de>
+	 <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
+	 <1251248426.3623.47.camel@localhost.localdomain>
+	 <1251287895.2270.25.camel@dhcp231-106.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:54270 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558AbZHZOMT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2009 10:12:19 -0400
-In-Reply-To: <200908251459.37106.bjorn.helgaas@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933022AbZHZONW@vger.kernel.org>
+In-Reply-To: <1251287895.2270.25.camel@dhcp231-106.rdu.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eric Paris <eparis@redhat.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "vegard.nossum@gmail.com" <vegard.nossum@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, Paul Martin <pm@debian.org>, Vojtech Gondzala <vojtech.gondzala@gmail.com>
 
-2009/8/25 Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> On Tuesday 25 August 2009 02:33:30 pm you wrote:
->> 2009/8/25 Bjorn Helgaas <bjorn.helgaas@hp.com>:
->> > On Tuesday 25 August 2009 02:10:58 am Zdenek Kabelac wrote:
->> >> Now with 2.6.31-rc7 (3edf2fb9d80a46d6c32ba12547a42419845b4b76)
->> >> =A0I'm getting this =A0INFO trace - also I've noticed complete re=
-set during resume
->> >> which could be eventually related to this
->> > Do you have any evidence that points to thinkpad_acpi? =A0I looked
->> > at the recent changes there, and I don't see anything obviously
->> > related to kacpid or deferred work.
->> >
->>
->> Well I've never seen this INFO trace before - also I'm not sure I
->> could reliable retest it - might be coincidence of suspend out of po=
-rt
->> replicator and resume while being attached on it - however I do this
->> relatively often and I start to see this after I' started to use -rc=
-7
->> kernel.
->>
->> My guess is purely based on the fact that commit touching functions
->> from INFO trace was recently merged to main tree.
->>
->> If there will be some time I could try to make few tests for suspend
->> resume - but I hope the trace would be enough for analysis.
->
+On Wed, 2009-08-26 at 19:58 +0800, Eric Paris wrote:
+> On Wed, 2009-08-26 at 09:00 +0800, ykzhao wrote:
+> > On Mon, 2009-08-24 at 22:36 +0800, Eric Paris wrote:
+> > > On Sat, 2009-08-22 at 01:24 +0400, Alexey Starikovskiy wrote:
+> > > > Eric Paris =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>=20
+> > > It does stop my slew of warnings.  Not sure it completely fixes m=
+y
+> > > problems though....
+> > Will you please add the boot option of initcall_debug and attach th=
+e
+> > output of dmesg?
+> > It will be helpful if you can attach the output of acpidump.
+> > Thanks.
+Hi
+	Will you please confirm whether this issue happens on the 2.6.31-rc6
+kernel?
+	If there is no such issue, will you please revert the following commit
+and see whether the issue still exists?
+   >commit 74b5820808215f65b70b05a099d6d3c969b82689
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Wed Jul 29 15:54:25 2009 -0600
 
-Well definitelly I do not have a reliable test case to
-deterministically trigger this INFO trace, but I think from the trace
-it looks like  the acpi_os_wait_events_complete calls flush_workqueue
-which again calls acpi_os_execute_hp_deferred which again tries to
-invoke flush_workqueue - so is that correct ?
+    ACPI: bind workqueues to CPU 0 to avoid SMI corruption
 
-(__acpi_os_execute looks somewhat cryptic in selection what would be ca=
-lled)
+      In this commit it will schedule to other kernel thread and switch
+to task 0 again.
 
-This is the stack traceback cut from my first post:
-
- [<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
- [<ffffffff81261532>] ? acpi_os_execute_hp_deferred+0x0/0x43
- [<ffffffff81064e4f>] flush_workqueue+0x5f/0xc0
- [<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
- [<ffffffff81261524>] acpi_os_wait_events_complete+0x15/0x23
- [<ffffffff81261561>] acpi_os_execute_hp_deferred+0x2f/0x43
- [<ffffffff810651d4>] worker_thread+0x1e4/0x3f0
-
-So it looks like this issue is releated to commit:
-c02256be79a1a3557332ac51e653d574a2a7d2b5
-
-Hopefully the author would be able to fix this ?
-
-Zdenek
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
+    Yakui.   =20
+>=20
+> Here is booting a kernel without the change.  I don't see acpidump
+> packaged in fedora.  Do you have a pointer to the source or maybe a
+> static binary?  I'll look myself later in the afternoon.
+>=20
+> -Eric
