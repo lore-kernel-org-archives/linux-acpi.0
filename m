@@ -1,34 +1,36 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 5/6] thermal: Only set passive_delay for forced passive
-	cooling
-Date: Wed, 26 Aug 2009 17:25:37 +0100
-Message-ID: <20090826162537.GC15868@srcf.ucam.org>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <1251303445-25317-6-git-send-email-elendil@planet.nl>
+From: Frans Pop <elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
+Date: Wed, 26 Aug 2009 18:33:34 +0200
+Message-ID: <200908261833.37310.elendil@planet.nl>
+References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera> <b170af450908260147o60427997ne6b9872198893c41@mail.gmail.com> <b170af450908260147o60427997ne6b9872198893c41@mail.gmail.com> <20090826075337.4230d82c.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752018AbZHZQZo@vger.kernel.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-To: <20090826075337.4230d82c.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1251303445-25317-6-git-send-email-elendil@planet.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 26, 2009 at 06:17:24PM +0200, Frans Pop wrote:
-> Setting polling_delay is useless as passive_delay has priority,
-> so the value shown in proc isn't the actual polling delay. It
-> also gives the impression to the user that he can change the
-> polling interval through proc, while in fact he can't.
-> 
-> Also, unset passive_delay when the forced passive trip point is
-> unbound to allow polling to be disabled.
-> 
-> Signed-off-by: Frans Pop <elendil@planet.nl>
-> Cc: Matthew Garrett <mjg@redhat.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
+(Dropped unrelated CCs.)
 
-I'll look over this - I seem to remember having some reason to set that, 
-but it escapes me now.
+Andrew Morton wrote:
+> I'm not seeing any linux-acpi emails from Len since August 14.
+> 
+> So I merged this patch and shall send it along with
+> 
+> thermal_sys-check-get_temp-return-value.patch
+> acpi-dont-call-acpi_processor_init-if-acpi-is-disabled.patch
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks for that Andrew. Could you please do the same for my patches in
+http://bugzilla.kernel.org/show_bug.cgi?id=13389 (or
+http://lkml.org/lkml/2009/8/17/169)?
+
+That BR is on the regression list for 2.6.30. The patches apply cleanly to 
+current mainline.
+
+Thanks,
+FJP
