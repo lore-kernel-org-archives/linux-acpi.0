@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/6] PM: Allow serio input devices to suspend/resume asynchronously
-Date: Wed, 26 Aug 2009 22:24:19 +0200
-Message-ID: <200908262224.19110.rjw@sisk.pl>
+Subject: [PATCH 5/6] PM: Allow ACPI devices to suspend/resume asynchronously
+Date: Wed, 26 Aug 2009 22:23:28 +0200
+Message-ID: <200908262223.28899.rjw@sisk.pl>
 References: <200908262217.19609.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35954 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:35948 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753313AbZHZU1d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Aug 2009 16:27:33 -0400
+	id S1753267AbZHZU1c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Aug 2009 16:27:32 -0400
 In-Reply-To: <200908262217.19609.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,27 +20,26 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Mach
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Set async_suspend for all serio input devices, so that they can be
-suspended and resumed asynchronously with other devices they don't
-depend on in a known way (i.e. devices which are not their parents
-or children and to which they are not connected via struct pm_link
-objects).
+Set async_suspend for all ACPI devices, so that they can be suspended
+and resumed asynchronously with other devices they don't depend on in
+a known way (i.e. devices which are not their parents or children and
+to which they are not connected via struct pm_link objects).
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/input/serio/serio.c |    1 +
+ drivers/acpi/scan.c |    1 +
  1 file changed, 1 insertion(+)
 
-Index: linux-2.6/drivers/input/serio/serio.c
+Index: linux-2.6/drivers/acpi/scan.c
 ===================================================================
---- linux-2.6.orig/drivers/input/serio/serio.c
-+++ linux-2.6/drivers/input/serio/serio.c
-@@ -576,6 +576,7 @@ static void serio_add_port(struct serio 
- 			printk(KERN_ERR
- 				"serio: sysfs_create_group() failed for %s (%s), error: %d\n",
- 				serio->phys, serio->name, error);
-+		device_enable_async_suspend(&serio->dev, true);
- 	}
- }
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -539,6 +539,7 @@ static int acpi_device_register(struct a
+ 		       dev_name(&device->dev));
  
+ 	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
++	device_enable_async_suspend(&device->dev, true);
+ 	return 0;
+ end:
+ 	mutex_lock(&acpi_device_lock);
 
