@@ -1,268 +1,84 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
-Date: Wed, 26 Aug 2009 09:00:26 +0800
-Message-ID: <1251248426.3623.47.camel@localhost.localdomain>
-References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
-	 <4A8EFFB2.4040100@suse.de>
-	 <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
-	 <4A8F1081.3020803@suse.de>
-	 <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH] ACPICA: Windows compatibility fix: same buffer/string store
+Date: Wed, 26 Aug 2009 09:01:34 +0800
+Message-ID: <1251248494.17754.14.camel@minggr.sh.intel.com>
+References: <B9D7F88A26B04740A56A35A34719F3AFE09E7D@AUSX3MPS330.aus.amer.dell.com>
+	 <B9D7F88A26B04740A56A35A34719F3AF01052A9F@AUSX3MPS330.aus.amer.dell.com>
+	 <E87738D94A6AD54789B5B8D1BAEB06CC5C74808741@azsmsx503.amr.corp.intel.com>
+	 <B9D7F88A26B04740A56A35A34719F3AF010901C6@AUSX3MPS330.aus.amer.dell.com>
+	 <1249956889.7853.2.camel@rzhang-dt>
+	 <B9D7F88A26B04740A56A35A34719F3AF01090463@AUSX3MPS330.aus.amer.dell.com>
+	 <1250045983.7853.68.camel@rzhang-dt>
+	 <B9D7F88A26B04740A56A35A34719F3AF01090704@AUSX3MPS330.aus.amer.dell.com>
+	 <037F493892196B458CD3E193E8EBAD4F01EAB64667@pdsmsx502.ccr.corp.intel.com>
+	 <B9D7F88A26B04740A56A35A34719F3AF0110BCD1@AUSX3MPS330.aus.amer.dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932768AbZHZBAn@vger.kernel.org>
-In-Reply-To: <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Paris <eparis@redhat.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "vegard.nossum@gmail.com" <vegard.nossum@gmail.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:10147 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751020AbZHZBGm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Aug 2009 21:06:42 -0400
+In-Reply-To: <B9D7F88A26B04740A56A35A34719F3AF0110BCD1@AUSX3MPS330.aus.amer.dell.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Rezwanul_Kabir@Dell.com" <Rezwanul_Kabir@Dell.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, 2009-08-24 at 22:36 +0800, Eric Paris wrote:
-> On Sat, 2009-08-22 at 01:24 +0400, Alexey Starikovskiy wrote:
-> > Eric Paris =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> > > On Sat, 2009-08-22 at 00:12 +0400, Alexey Starikovskiy wrote:
-> > >> Hi,
-> > >> This should be handled by abe1dfab60e1839d115930286cb421f5a5b193=
-f3.
-> > >=20
-> > > And yet I'm getting it from linux-next today.
-> > >=20
-> > > So you are apparently failing the in_atomic_preempt_off() test bu=
-t
-> > > succeeding in your !irqs_disabled() test.
-> > >=20
-> > > Something isn't right since I'm hitting it hundreds of times on b=
-oot.
-> > >=20
-> > > -Eric
-> > >=20
-> > Ok, let's see if replacing irqs_disabled() to=20
-> > in_atomic_preempt_off() helps...=20
->=20
-> It does stop my slew of warnings.  Not sure it completely fixes my
-> problems though....
-Will you please add the boot option of initcall_debug and attach the
-output of dmesg?
-It will be helpful if you can attach the output of acpidump.
-Thanks.
->=20
-> [    1.897021] ... counter mask:            0000000700000003^M
-> [    1.906821] ACPI: Core revision 20090625^M
-> [   10.000008] INFO: RCU detected CPU 0 stall (t=3D10000 jiffies)^M
-> [   10.000008] sending NMI to all CPUs:^M
-> [   21.907580] Setting APIC routing to flat^M
-> [   21.973314] ..TIMER: vector=3D0x30 apic1=3D0 pin1=3D2 apic2=3D-1 p=
-in2=3D-1^M
-> [   21.985260] CPU0: Intel(R) Xeon(R) CPU           X5355  @ 2.66GHz =
-stepping 07^M
-> [   21.992017] kmemcheck: Limiting number of CPUs to 1.^M
-> [   21.993065] kmemcheck: Initialized^M
-> [   22.750118] Brought up 1 CPUs^M
-> [   22.751069] Total of 1 processors activated (5333.45 BogoMIPS).^M
-> [   23.493639] khelper used greatest stack depth: 4848 bytes left^M
-> [   24.999193] Booting paravirtualized kernel on bare hardware^M
-> [   25.265364] Time: 17:50:52  Date: 08/21/09^M
-> [   25.616191] NET: Registered protocol family 16^M
-> [   27.765113] ACPI: bus type pci registered^M
-> [   28.795307] PCI: Using configuration type 1 for base access^M
-> [   61.793279] bio: create slab <bio-0> at 0^M
-> [   95.285367] ACPI: BIOS _OSI(Linux) query ignored^M
-> [  102.628227] ACPI: Interpreter enabled^M
-> [  102.630134] ACPI: (supports S0 S1 S5)^M
-> [  102.823225] ACPI: Using IOAPIC for interrupt routing^M
-> [  142.365090] ACPI: No dock devices found.^M
-> [  156.864036] ACPI: PCI Root Bridge [PCI0] (0000:00)^M
-> [  157.460654] pci 0000:00:07.3: quirk: region 1000-103f claimed by P=
-IIX4 ACPI^M
-> [  157.463937] pci 0000:00:07.3: quirk: region 1040-104f claimed by P=
-IIX4 SMB^M
-> [  157.644036] pci 0000:00:11.0: transparent bridge^M
-> [  193.009036] ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 1=
-1 14 15) *0, disabled.^M
-> [  193.938036] ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *9 10 =
-11 14 15)^M
-> [  194.864036] ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 *=
-11 14 15)^M
-> [  195.780036] ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 1=
-1 14 15) *0, disabled.^M
->=20
-> Something took 20 seconds between "ACPI: Core revision 20090625" and
-> "Setting APIC routing to flat"
->=20
-> This is a linux-next kernel, on vmware-server, with kmemcheck enabled=
-=2E
-> Disabling kmemcheck seems to make all of this go away.  If not the AC=
-PI
-> guys who should I be talking to?
->=20
-> A little bit later I finally see backtraces from NMIs because of RCU
-> stalls.  Anyone have ideas here?
->=20
-> [  213.168161] INFO: RCU detected CPU 0 stall (t=3D10004 jiffies)^M
-> [  213.168161] sending NMI to all CPUs:^M
-> [  213.168161] NMI backtrace for cpu 0^M
-> [  213.168161] CPU 0:^M
-> [  213.168161] Modules linked in:^M
-> [  213.168161] Pid: 1, comm: swapper Not tainted 2.6.31-rc6-next-2009=
-0821 #46 VMware Virtual Platform^M
-> [  213.168161] RIP: 0010:[<ffffffff81036ff1>]  [<ffffffff81036ff1>] f=
-lat_send_IPI_mask+0x81/0xe0^M
-> [  213.168161] RSP: 0018:ffff880006403d48  EFLAGS: 00000046^M
-> [  213.168161] RAX: 0000000000000c00 RBX: 0000000000000c00 RCX: 00000=
-00000000001^M
-> [  213.168161] RDX: 0000000000000000 RSI: 0000000000000002 RDI: 00000=
-00000000300^M
-> [  213.168161] RBP: ffff880006403d78 R08: 0000000000000002 R09: 00000=
-00000010002^M
-> [  213.168161] R10: 0000000000000000 R11: 0000000000000000 R12: 00000=
-00000000002^M
-> [  213.168161] R13: 0000000000000046 R14: 0000000000000001 R15: fffff=
-fff8173e140^M
-> [  213.168161] FS:  0000000000000000(0000) GS:ffff880006400000(0000) =
-knlGS:0000000000000000^M
-> [  213.168161] CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b^M
-> [  213.168161] CR2: ffff88007f80605c CR3: 0000000001001000 CR4: 00000=
-000000006f0^M
-> [  213.168161] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000=
-00000000000^M
-> [  213.168161] DR3: 0000000000000000 DR6: 00000000ffff4ff0 DR7: 00000=
-00000000400^M
-> [  213.168161] Call Trace:^M
-> [  213.168161]  <#DB[1]>  <<EOE>> Pid: 1, comm: swapper Not tainted 2=
-=2E6.31-rc6-next-20090821 #46^M
-> [  213.168161] Call Trace:^M
-> [  213.168161]  <NMI>  [<ffffffff815353f1>] nmi_watchdog_tick+0x1a1/0=
-x2f0^M
-> [  213.168161]  [<ffffffff81097f4d>] ? notify_die+0x3d/0x60^M
-> [  213.168161]  [<ffffffff81534338>] do_nmi+0xb8/0x2f0^M
-> [  213.168161]  [<ffffffff81533f40>] nmi+0x20/0x39^M
-> [  213.168161]  [<ffffffff81036ff1>] ? flat_send_IPI_mask+0x81/0xe0^M
-> [  213.168161]  <<EOE>>  <IRQ>  [<ffffffff810370ce>] flat_send_IPI_al=
-l+0x7e/0x90^M
-> [  213.168161]  [<ffffffff8103268c>] arch_trigger_all_cpu_backtrace+0=
-x5c/0xb0^M
-> [  213.168161]  [<ffffffff810de45d>] __rcu_pending+0x8d/0x320^M
-> [  213.168161]  [<ffffffff810de726>] rcu_pending+0x36/0x80^M
-> [  213.168161]  [<ffffffff8107f62b>] ? run_local_timers+0x2b/0x50^M
-> [  213.168161]  [<ffffffff8107fa9d>] update_process_times+0x4d/0x90^M
-> [  213.168161]  [<ffffffff810a3393>] ? tick_do_update_jiffies64+0x83/=
-0xf0^M
-> [  213.168161]  [<ffffffff810a36cb>] tick_sched_timer+0x6b/0xe0^M
-> [  213.168161]  [<ffffffff815337d5>] ? _spin_unlock+0x75/0x80^M
-> [  213.168161]  [<ffffffff810a3660>] ? tick_sched_timer+0x0/0xe0^M
-> [  213.168161]  [<ffffffff810957b6>] __run_hrtimer+0x76/0x100^M
-> [  213.168161]  [<ffffffff810958f1>] ? hrtimer_interrupt+0xb1/0x1b0^M
-> [  213.168161]  [<ffffffff8109592b>] hrtimer_interrupt+0xeb/0x1b0^M
-> [  213.168161]  [<ffffffff81031538>] smp_apic_timer_interrupt+0x78/0x=
-d0^M
-> [  213.168161]  [<ffffffff81014e63>] apic_timer_interrupt+0x13/0x20^M
-> [  213.168161]  <EOI>  [<ffffffff81533270>] ? _write_unlock_irqrestor=
-e+0x90/0xb0^M
-> [  213.168161]  [<ffffffff81153eae>] ? create_object+0x1fe/0x2e0^M
-> [  213.168161]  [<ffffffff8104c684>] ? mark_shadow+0x74/0xf0^M
-> [  213.168161]  [<ffffffff8151843e>] ? kmemleak_alloc+0x6e/0xf0^M
-> [  213.168161]  [<ffffffff8114cc44>] ? __kmalloc_track_caller+0x164/0=
-x2e0^M
-> [  213.168161]  [<ffffffff810f66e2>] ? trace_define_field+0x92/0x180^=
-M
-> [  213.168161]  [<ffffffff8111ec26>] ? kstrdup+0x46/0x90^M
-> [  213.168161]  [<ffffffff810f66e2>] ? trace_define_field+0x92/0x180^=
-M
-> [  213.168161]  [<ffffffff81057744>] ? ftrace_define_fields_sched_wai=
-t_task+0x1a4/0x1b0^M
-> [  213.168161]  [<ffffffff810f7342>] ? event_create_dir+0x1e2/0x440^M
-> [  213.168161]  [<ffffffff8182c15d>] ? event_trace_init+0x15d/0x260^M
-> [  213.168161]  [<ffffffff8182c000>] ? event_trace_init+0x0/0x260^M
-> [  213.168161]  [<ffffffff8100a07b>] ? do_one_initcall+0x4b/0x1b0^M
-> [  213.168161]  [<ffffffff810d84c0>] ? irq_to_desc+0x40/0x50^M
-> [  213.168161]  [<ffffffff81804140>] ? early_idt_handler+0x0/0x71^M
-> [  213.168161]  [<ffffffff81805280>] ? kernel_init+0x210/0x2e0^M
-> [  213.168161]  [<ffffffff8101539a>] ? child_rip+0xa/0x20^M
-> [  213.168161]  [<ffffffff81014cd4>] ? restore_args+0x0/0x30^M
-> [  213.168161]  [<ffffffff81805070>] ? kernel_init+0x0/0x2e0^M
-> [  213.168161]  [<ffffffff81015390>] ? child_rip+0x0/0x20^M
->=20
-> [  243.172246] INFO: RCU detected CPU 0 stall (t=3D40007 jiffies)^M
-> [  243.172246] sending NMI to all CPUs:^M
-> [  243.172246] NMI backtrace for cpu 0^M
-> [  243.172246] CPU 0:^M
-> [  243.172246] Modules linked in:^M
-> [  243.172246] Pid: 1, comm: swapper Not tainted 2.6.31-rc6-next-2009=
-0821 #46 VMware Virtual Platform^M
-> [  243.172246] RIP: 0010:[<ffffffff81036ff1>]  [<ffffffff81036ff1>] f=
-lat_send_IPI_mask+0x81/0xe0^M
-> [  243.172246] RSP: 0018:ffff880006403d48  EFLAGS: 00000046^M
-> [  243.172246] RAX: 0000000000000c00 RBX: 0000000000000c00 RCX: 00000=
-00000000001^M
-> [  243.172246] RDX: 0000000000000000 RSI: 0000000000000002 RDI: 00000=
-00000000300^M
-> [  243.172246] RBP: ffff880006403d78 R08: 0000000000000002 R09: 00000=
-00000010002^M
-> [  243.172246] R10: 0000000000000000 R11: 0000000000000000 R12: 00000=
-00000000002^M
-> [  243.172246] R13: 0000000000000046 R14: 0000000000000001 R15: fffff=
-fff8173e140^M
-> [  243.172246] FS:  0000000000000000(0000) GS:ffff880006400000(0000) =
-knlGS:0000000000000000^M
-> [  243.172246] CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b^M
-> [  243.172246] CR2: ffff88007f80605c CR3: 0000000001001000 CR4: 00000=
-000000006f0^M
-> [  243.172246] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000=
-00000000000^M
-> [  243.172246] DR3: 0000000000000000 DR6: 00000000ffff4ff0 DR7: 00000=
-00000000400^M
-> [  243.172246] Call Trace:^M
-> [  243.172246]  <#DB[1]>  <<EOE>> Pid: 1, comm: swapper Not tainted 2=
-=2E6.31-rc6-next-20090821 #46^M
-> [  243.172246] Call Trace:^M
-> [  243.172246]  <NMI>  [<ffffffff815353f1>] nmi_watchdog_tick+0x1a1/0=
-x2f0^M
-> [  243.172246]  [<ffffffff81097f4d>] ? notify_die+0x3d/0x60^M
-> [  243.172246]  [<ffffffff81534338>] do_nmi+0xb8/0x2f0^M
-> [  243.172246]  [<ffffffff81533f40>] nmi+0x20/0x39^M
-> [  243.172246]  [<ffffffff81036ff1>] ? flat_send_IPI_mask+0x81/0xe0^M
-> [  243.172246]  <<EOE>>  <IRQ>  [<ffffffff810370ce>] flat_send_IPI_al=
-l+0x7e/0x90^M
-> [  243.172246]  [<ffffffff8103268c>] arch_trigger_all_cpu_backtrace+0=
-x5c/0xb0^M
-> [  243.172246]  [<ffffffff810de45d>] __rcu_pending+0x8d/0x320^M
-> [  243.172246]  [<ffffffff810de726>] rcu_pending+0x36/0x80^M
-> [  243.172246]  [<ffffffff8107f62b>] ? run_local_timers+0x2b/0x50^M
-> [  243.172246]  [<ffffffff8107fa9d>] update_process_times+0x4d/0x90^M
-> [  243.172246]  [<ffffffff810a3393>] ? tick_do_update_jiffies64+0x83/=
-0xf0^M
-> [  243.172246]  [<ffffffff810a36cb>] tick_sched_timer+0x6b/0xe0^M
-> [  243.172246]  [<ffffffff815337d5>] ? _spin_unlock+0x75/0x80^M
-> [  243.172246]  [<ffffffff810a3660>] ? tick_sched_timer+0x0/0xe0^M
-> [  243.172246]  [<ffffffff810957b6>] __run_hrtimer+0x76/0x100^M
-> [  243.172246]  [<ffffffff810958f1>] ? hrtimer_interrupt+0xb1/0x1b0^M
-> [  243.172246]  [<ffffffff8109592b>] hrtimer_interrupt+0xeb/0x1b0^M
-> [  243.172246]  [<ffffffff81031538>] smp_apic_timer_interrupt+0x78/0x=
-d0^M
-> [  243.172246]  [<ffffffff81014e63>] apic_timer_interrupt+0x13/0x20^M
-> [  243.172246]  <EOI>  [<ffffffff81533270>] ? _write_unlock_irqrestor=
-e+0x90/0xb0^M
-> [  243.172246]  [<ffffffff81153eae>] ? create_object+0x1fe/0x2e0^M
-> [  243.172246]  [<ffffffff8151843e>] ? kmemleak_alloc+0x6e/0xf0^M
-> [  243.172246]  [<ffffffff8114c5a3>] ? kmem_cache_alloc+0x153/0x200^M
-> [  243.172246]  [<ffffffff810fd08f>] ? init_preds+0xdf/0x280^M
-> [  243.172246]  [<ffffffff810f25de>] ? register_ftrace_event+0x7e/0x2=
-30^M
-> [  243.172246]  [<ffffffff8126b5e4>] ? ftrace_raw_init_event_block_re=
-map+0x54/0x70^M
-> [  243.172246]  [<ffffffff8182c182>] ? event_trace_init+0x182/0x260^M
-> [  243.172246]  [<ffffffff8182c000>] ? event_trace_init+0x0/0x260^M
-> [  243.172246]  [<ffffffff8100a07b>] ? do_one_initcall+0x4b/0x1b0^M
-> [  243.172246]  [<ffffffff810d84c0>] ? irq_to_desc+0x40/0x50^M
-> [  243.172246]  [<ffffffff81804140>] ? early_idt_handler+0x0/0x71^M
-> [  243.172246]  [<ffffffff81805280>] ? kernel_init+0x210/0x2e0^M
-> [  243.172246]  [<ffffffff8101539a>] ? child_rip+0xa/0x20^M
-> [  243.172246]  [<ffffffff81014cd4>] ? restore_args+0x0/0x30^M
-> [  243.172246]  [<ffffffff81805070>] ? kernel_init+0x0/0x2e0^M
-> [  243.172246]  [<ffffffff81015390>] ? child_rip+0x0/0x20^M
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi, Len
+
+This is the important fix for the WMI based HotKey issue reported by Dell.
+Could you merge it to 2.6.31-rc8?
+
+Thanks,
+Lin Ming
+---
+
+Subject: [PATCH] ACPICA: Windows compatibility fix: same buffer/string store
+
+Fixes a compatibility issue when the same buffer or string is
+stored to itself. This has been seen in the field. Previously,
+ACPICA would zero out the buffer/string. Now, the operation is
+treated as a noop. ACPICA BZ 803.
+
+http://bugzilla.acpica.org/show_bug.cgi?id=803
+
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/exstorob.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/acpica/exstorob.c b/drivers/acpi/acpica/exstorob.c
+index 67340cc..257706e 100644
+--- a/drivers/acpi/acpica/exstorob.c
++++ b/drivers/acpi/acpica/exstorob.c
+@@ -70,6 +70,12 @@ acpi_ex_store_buffer_to_buffer(union acpi_operand_object *source_desc,
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ex_store_buffer_to_buffer, source_desc);
+ 
++	/* If Source and Target are the same, just return */
++
++	if (source_desc == target_desc) {
++		return_ACPI_STATUS(AE_OK);
++	}
++
+ 	/* We know that source_desc is a buffer by now */
+ 
+ 	buffer = ACPI_CAST_PTR(u8, source_desc->buffer.pointer);
+@@ -161,6 +167,12 @@ acpi_ex_store_string_to_string(union acpi_operand_object *source_desc,
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ex_store_string_to_string, source_desc);
+ 
++	/* If Source and Target are the same, just return */
++
++	if (source_desc == target_desc) {
++		return_ACPI_STATUS(AE_OK);
++	}
++
+ 	/* We know that source_desc is a string by now */
+ 
+ 	buffer = ACPI_CAST_PTR(u8, source_desc->string.pointer);
+
+
