@@ -1,64 +1,68 @@
-From: Yves-Alexis Perez <corsac@debian.org>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
- in driver
-Date: Wed, 26 Aug 2009 19:52:41 +0200
-Message-ID: <1251309161.10837.6.camel@hidalgo>
-References: <1235992429.3858.58.camel@hughsie-work.lan>
-	 <20090302112400.GA2356@khazad-dum.debian.net>
-	 <1236164049.3936.17.camel@hughsie-work.lan>
-	 <20090304120439.GA31850@khazad-dum.debian.net>
-	 <1250625730.2257.11.camel@hidalgo> <20090818201002.GA32638@srcf.ucam.org>
-	 <1251286574.32399.3.camel@miria>  <20090826134349.GA12404@srcf.ucam.org>
+From: Eric Paris <eparis@redhat.com>
+Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
+Date: Wed, 26 Aug 2009 14:48:50 -0400
+Message-ID: <1251312530.2280.1.camel@dhcp231-106.rdu.redhat.com>
+References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
+	 <4A8EFFB2.4040100@suse.de>
+	 <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
+	 <4A8F1081.3020803@suse.de>
+	 <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
+	 <1251248426.3623.47.camel@localhost.localdomain>
+	 <1251287895.2270.25.camel@dhcp231-106.rdu.redhat.com>
+	 <1251295984.3623.83.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-fWeHaQVpcbSTTYw5xQ3w"
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20090826134349.GA12404@srcf.ucam.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, aliov@xfce.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:5403 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752586AbZHZStK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Aug 2009 14:49:10 -0400
+In-Reply-To: <1251295984.3623.83.camel@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ykzhao <yakui.zhao@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "vegard.nossum@gmail.com" <vegard.nossum@gmail.com>
 
-
---=-fWeHaQVpcbSTTYw5xQ3w
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On mer, 2009-08-26 at 14:43 +0100, Matthew Garrett wrote:
-> On Wed, Aug 26, 2009 at 01:36:14PM +0200, Yves-Alexis Perez wrote:
->=20
-> > #define XF86XK_Suspend    0x1008FFA7   /* Sleep to RAM                *=
-/       =20
-> > #define XF86XK_Hibernate  0x1008FFA8   /* Sleep to disk               *=
-/
+On Wed, 2009-08-26 at 22:13 +0800, ykzhao wrote:
+> On Wed, 2009-08-26 at 19:58 +0800, Eric Paris wrote:
+> > On Wed, 2009-08-26 at 09:00 +0800, ykzhao wrote:
+> > > On Mon, 2009-08-24 at 22:36 +0800, Eric Paris wrote:
+> > > > On Sat, 2009-08-22 at 01:24 +0400, Alexey Starikovskiy wrote:
+> > > > > Eric Paris =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
 > >=20
-> > So (some) userspace seems to have switched already?
->=20
-> Adding those keysyms was, with hindsight, an error.
+> > > > It does stop my slew of warnings.  Not sure it completely fixes=
+ my
+> > > > problems though....
+> > > Will you please add the boot option of initcall_debug and attach =
+the
+> > > output of dmesg?
+> > > It will be helpful if you can attach the output of acpidump.
+> > > Thanks.
+> Hi
+> 	Will you please confirm whether this issue happens on the 2.6.31-rc6
+> kernel?
 
-Ok, so every userland app which began the transition should step back
-until a correct migration plan is set up?
+I just went back to a -rc7 kernel (but a largely different .config) and
+it did not happen.
 
-Are X people aware of that and will they step back? What should we do so
-it works on most system? Now that things have started to move wouldn't
-it make sense to keep going?
+> 	If there is no such issue, will you please revert the following comm=
+it
+> and see whether the issue still exists?
+>    >commit 74b5820808215f65b70b05a099d6d3c969b82689
 
-Sorry, I'm a bit lost and I think xfce4-power-manager upstream is too=E2=80=
-=A6
+I reverted
+74b5820808215f65b70b05a099d6d3c969b82689 and
+773c0ef52ae8dd375b877c51bc6e8d03fb0b59b7
 
-Cheers,
---=20
-Yves-Alexis
+but still see the same problem.  I will try to build a -rc7 kernel with
+a similar config for a fair comparison.  If it works, I'll start a git
+bisect.
 
---=-fWeHaQVpcbSTTYw5xQ3w
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+-Eric
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkqVdmUACgkQTUTAIMXAW66towCfV00tqK1O8HEEpcnV/agZdNSO
-HbIAn2Y3A3XcoX413OJtxT1dR5felNxu
-=W5vm
------END PGP SIGNATURE-----
-
---=-fWeHaQVpcbSTTYw5xQ3w--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
