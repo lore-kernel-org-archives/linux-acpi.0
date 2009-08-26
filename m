@@ -1,31 +1,81 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
-	in driver
-Date: Wed, 26 Aug 2009 14:43:49 +0100
-Message-ID: <20090826134349.GA12404@srcf.ucam.org>
-References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan> <20090304120439.GA31850@khazad-dum.debian.net> <1250625730.2257.11.camel@hidalgo> <20090818201002.GA32638@srcf.ucam.org> <1251286574.32399.3.camel@miria>
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Subject: Re: INFO: possible circular locking dependency - kacpid
+	acpi_os_wait_events_complete
+Date: Wed, 26 Aug 2009 16:12:19 +0200
+Message-ID: <c4e36d110908260712u3aa0e27ft869049aa310a7386@mail.gmail.com>
+References: <c4e36d110908250110xe16720o977c8cf5c3386c4b@mail.gmail.com>
+	 <200908251251.37135.bjorn.helgaas@hp.com>
+	 <c4e36d110908251333p2da20276j650232cea8da4c1f@mail.gmail.com>
+	 <200908251459.37106.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:55911 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757315AbZHZNoD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2009 09:44:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1251286574.32399.3.camel@miria>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:54270 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754558AbZHZOMT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2009 10:12:19 -0400
+In-Reply-To: <200908251459.37106.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yves-Alexis Perez <corsac@debian.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, Paul Martin <pm@debian.org>, Vojtech Gondzala <vojtech.gondzala@gmail.com>
 
-On Wed, Aug 26, 2009 at 01:36:14PM +0200, Yves-Alexis Perez wrote:
+2009/8/25 Bjorn Helgaas <bjorn.helgaas@hp.com>:
+> On Tuesday 25 August 2009 02:33:30 pm you wrote:
+>> 2009/8/25 Bjorn Helgaas <bjorn.helgaas@hp.com>:
+>> > On Tuesday 25 August 2009 02:10:58 am Zdenek Kabelac wrote:
+>> >> Now with 2.6.31-rc7 (3edf2fb9d80a46d6c32ba12547a42419845b4b76)
+>> >> =A0I'm getting this =A0INFO trace - also I've noticed complete re=
+set during resume
+>> >> which could be eventually related to this
+>> > Do you have any evidence that points to thinkpad_acpi? =A0I looked
+>> > at the recent changes there, and I don't see anything obviously
+>> > related to kacpid or deferred work.
+>> >
+>>
+>> Well I've never seen this INFO trace before - also I'm not sure I
+>> could reliable retest it - might be coincidence of suspend out of po=
+rt
+>> replicator and resume while being attached on it - however I do this
+>> relatively often and I start to see this after I' started to use -rc=
+7
+>> kernel.
+>>
+>> My guess is purely based on the fact that commit touching functions
+>> from INFO trace was recently merged to main tree.
+>>
+>> If there will be some time I could try to make few tests for suspend
+>> resume - but I hope the trace would be enough for analysis.
+>
 
-> #define XF86XK_Suspend    0x1008FFA7   /* Sleep to RAM                */        
-> #define XF86XK_Hibernate  0x1008FFA8   /* Sleep to disk               */
-> 
-> So (some) userspace seems to have switched already?
+Well definitelly I do not have a reliable test case to
+deterministically trigger this INFO trace, but I think from the trace
+it looks like  the acpi_os_wait_events_complete calls flush_workqueue
+which again calls acpi_os_execute_hp_deferred which again tries to
+invoke flush_workqueue - so is that correct ?
 
-Adding those keysyms was, with hindsight, an error.
+(__acpi_os_execute looks somewhat cryptic in selection what would be ca=
+lled)
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+This is the stack traceback cut from my first post:
+
+ [<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
+ [<ffffffff81261532>] ? acpi_os_execute_hp_deferred+0x0/0x43
+ [<ffffffff81064e4f>] flush_workqueue+0x5f/0xc0
+ [<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
+ [<ffffffff81261524>] acpi_os_wait_events_complete+0x15/0x23
+ [<ffffffff81261561>] acpi_os_execute_hp_deferred+0x2f/0x43
+ [<ffffffff810651d4>] worker_thread+0x1e4/0x3f0
+
+So it looks like this issue is releated to commit:
+c02256be79a1a3557332ac51e653d574a2a7d2b5
+
+Hopefully the author would be able to fix this ?
+
+Zdenek
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
