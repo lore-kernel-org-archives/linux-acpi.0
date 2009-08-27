@@ -1,37 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 8] PM: Allow user space to change the power.async_suspend flag of devices
-Date: Fri, 28 Aug 2009 00:24:06 +0200
-Message-ID: <200908280024.06082.rjw@sisk.pl>
-References: <200908262217.19609.rjw@sisk.pl> <200908272120.56021.rjw@sisk.pl> <20090827203634.372EC526EC9@mailhub.coreip.homeip.net>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: [PATCH] ACPICA: Don't switch task then not allowed
+Date: Fri, 28 Aug 2009 02:39:35 +0400
+Message-ID: <20090827223935.25504.42480.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753389AbZH0WXJ@vger.kernel.org>
-In-Reply-To: <20090827203634.372EC526EC9@mailhub.coreip.homeip.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from charybdis-ext.suse.de ([195.135.221.2]:51684 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751276AbZH0Wjd (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 18:39:33 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux-acpi@vger.kernel.org
 
-On Thursday 27 August 2009, Dmitry Torokhov wrote:
-> Hi Rafael,
-> 
-> On Thu, Aug 27, 2009 at 09:20:55PM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > Add sysfs attribute power/async for every device allowing the user
-> > space to access the device's power.async_suspend flag and modify it,
-> > if necessary.
-> > 
-> 
-> I don't think we should let users meddle with individual devices;
-> one global flag should be enough to work around "broken-at-the-moment"
-> issues.
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
 
-Well, this patch is handy for testing if anyone is interested, so I posted it.
+ include/acpi/platform/aclinux.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-It isn't exactly safe, though, you're right.
 
-Thanks,
-Rafael
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index fcb8e4b..23b262b 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+ 
+ #define ACPI_PREEMPTION_POINT() \
+ 	do { \
+-		if (!irqs_disabled()) \
++		if (!in_atomic_preempt_off()) \
+ 			cond_resched(); \
+ 	} while (0)
+ 
+
