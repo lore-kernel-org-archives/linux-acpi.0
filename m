@@ -1,31 +1,40 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 6/6] PM: Allow serio input devices to suspend/resume
-	asynchronously
-Date: Thu, 27 Aug 2009 13:08:53 -0700
-Message-ID: <20090827204106.1132B526EC9@mailhub.coreip.homeip.net>
-References: <200908262217.19609.rjw@sisk.pl> <200908262224.19110.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 0/6] PM: Asynchronous suspend and resume of devices
+Date: Thu, 27 Aug 2009 16:46:08 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908271637480.25639-100000@iolanthe.rowland.org>
+References: <200908262217.19609.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752532AbZH0UJA@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200908262224.19110.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200908262217.19609.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 26, 2009 at 10:24:19PM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Set async_suspend for all serio input devices, so that they can be
-> suspended and resumed asynchronously with other devices they don't
-> depend on in a known way (i.e. devices which are not their parents
-> or children and to which they are not connected via struct pm_link
-> objects).
-> 
+On Wed, 26 Aug 2009, Rafael J. Wysocki wrote:
 
-As I mentioned not yet, please - i8042 may be unhappy if you pound
-all its ports at once. I should have a solution for it though.
+> Hi,
+> 
+> The following patches introduce a mechanism allowing us to execute device
+> drivers' suspend and resume callbacks asynchronously during system sleep
+> transitions, such as suspend to RAM.
+> 
+> The idea is explained in the changelogs of the first two patches.
+> 
+> Comments welcome.
 
--- 
-Dmitry
+I've been terribly busy and haven't had a chance to look at this.  The
+earlier version seemed to have a bunch of mutual-exclusion issues; are
+they resolved now?  There were also some problems involving unsafe
+iteration over the dpm_list -- remember that devices can be
+unregistered at any time, not just while they are suspending or
+resuming.
+
+When a device finishes, instead of having the async thread look for 
+another device to work on, I think it would be better to have the 
+thread check the dependents of the current device.  Those which are 
+now ready can be added to a "device-ready" list, which is used to 
+direct the actions of new async threads.
+
+Alan Stern
