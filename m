@@ -1,38 +1,77 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPICA: Windows compatibility fix: same buffer/string store
-Date: Thu, 27 Aug 2009 10:29:02 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0908271028510.7792@localhost.localdomain>
-References: <B9D7F88A26B04740A56A35A34719F3AFE09E7D@AUSX3MPS330.aus.amer.dell.com>
- <B9D7F88A26B04740A56A35A34719F3AF01052A9F@AUSX3MPS330.aus.amer.dell.com>
- <E87738D94A6AD54789B5B8D1BAEB06CC5C74808741@azsmsx503.amr.corp.intel.com>
- <B9D7F88A26B04740A56A35A34719F3AF010901C6@AUSX3MPS330.aus.amer.dell.com>
- <1249956889.7853.2.camel@rzhang-dt>
- <B9D7F88A26B04740A56A35A34719F3AF01090463@AUSX3MPS330.aus.amer.dell.com>
- <1250045983.7853.68.camel@rzhang-dt>
- <B9D7F88A26B04740A56A35A34719F3AF01090704@AUSX3MPS330.aus.amer.dell.com>
- <037F493892196B458CD3E193E8EBAD4F01EAB64667@pdsmsx502.ccr.corp.intel.com>
- <B9D7F88A26B04740A56A35A34719F3AF0110BCD1@AUSX3MPS330.aus.amer.dell.com>
- <1251248494.17754.14.camel@minggr.sh.intel.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: PME# for add-on cards
+Date: Thu, 27 Aug 2009 09:13:07 -0700
+Message-ID: <20090827091307.1fe8af2b@jbarnes-g45>
+References: <200908240112.39424.rjw@sisk.pl>
+	<20090824094429.GB1134@srcf.ucam.org>
+	<200908242039.07607.rjw@sisk.pl>
+	<20090824121239.51ac35ce@jbarnes-g45>
+	<20090825234203.GB14047@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:53213 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146AbZH0O33 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 10:29:29 -0400
-Received: from localhost.localdomain ([64.140.212.33])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KP100J59HKGYPH0@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 27 Aug 2009 09:29:10 -0500 (CDT)
-In-reply-to: <1251248494.17754.14.camel@minggr.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090825234203.GB14047@khazad-dum.debian.net>
+Sender: linux-pci-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Rezwanul_Kabir@Dell.com" <Rezwanul_Kabir@Dell.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-applied for 2.6.31
+On Tue, 25 Aug 2009 20:42:03 -0300
+Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+> On Mon, 24 Aug 2009, Jesse Barnes wrote:
+> > On Mon, 24 Aug 2009 20:39:07 +0200
+> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> > > On Monday 24 August 2009, Matthew Garrett wrote:
+> > > > On Mon, Aug 24, 2009 at 01:12:39AM +0200, Rafael J. Wysocki
+> > > > wrote:
+> > > > > After some debugging it turned out that PCI0 is the PCI host
+> > > > > bridge (no-bus:pci0000:00), so apparently echoing PCI0
+> > > > > to /proc/acpi/wakeup causes a wake-up GPE to be set up for the
+> > > > > host bridge which triggers wake-up once eth0 signals PME#.
+> > > > 
+> > > > Mm. That sounds entirely plausible. If it were a built-in card
+> > > > then the DSDT would provide that GPE, but as an add-in...
+> > > > 
+> > > > > First, I wonder if that's the case in general (anybody
+> > > > > knows?). Second, if that is the case, would it be a good idea
+> > > > > to set up the host bridge wake-up GPE by default?
+> > > > 
+> > > > I'd expect this to be the case in general, yes. Systems that
+> > > > work without this probably have the BIOS enable it themselves on
+> > > > suspend. I suspect we'll have to set it to make sure.
+> > > 
+> > > OK, Matthew, Alan, thanks for your opinions.
+> > > 
+> > > I'll try to implement this, then.
+> > 
+> > I think that's the best approach.  The only risk that I can see
+> > immediately is that we'll expose ourselves to add-in cards with
+> > flakey PME# signals.  We can worry about that when/if we see it
+> > though.
+> 
+> I have seen it, an old atheros-based wifi card packaged by 3COM.  My
+> Intel D875PBZ motherboard could not turn off (it would turn back on
+> due to #PME) with that crap installed.  Probably the BIOS didn't
+> defend itself enough against PME on power _off_.  I didn't even need
+> to have ANY driver at all for that card for it to be a hassle.
+> 
+> I have sinced given that card away to someone who runs it under
+> Windows in a different motherboard (that probably masks #PME on
+> shutdown :p).
+> 
+> May I humbly suggest a command-line switch to let the user disable
+> the new behaviour (or even selectively disable/enable it per host
+> bridge) since day one?  The default can be enabled, let's priorize
+> good hardware and firmware over buggy crap!  but let's make it easy
+> to work around any issues it could cause right from the beginning,
+> because they _will_ happen.
 
+Hopefully we can do even better than that with per-device quirks (i.e.
+only disable PME on a bridge if a child device is buggy).
+
+Rafael?
+
+-- 
+Jesse Barnes, Intel Open Source Technology Center
