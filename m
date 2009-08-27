@@ -1,68 +1,31 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 7] PM: Add a switch for disabling/enabling asynchronous
-	suspend/resume
-Date: Thu, 27 Aug 2009 13:07:35 -0700
-Message-ID: <20090827203948.9CD25526EC9@mailhub.coreip.homeip.net>
-References: <200908262217.19609.rjw@sisk.pl> <200908270025.34821.rjw@sisk.pl> <200908272117.52931.rjw@sisk.pl> <200908272119.47053.rjw@sisk.pl>
+Subject: Re: [PATCH 6/6] PM: Allow serio input devices to suspend/resume
+	asynchronously
+Date: Thu, 27 Aug 2009 13:08:53 -0700
+Message-ID: <20090827204106.1132B526EC9@mailhub.coreip.homeip.net>
+References: <200908262217.19609.rjw@sisk.pl> <200908262224.19110.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:61581 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752385AbZH0UHi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 16:07:38 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752532AbZH0UJA@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200908272119.47053.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <200908262224.19110.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Linux PCI <linux-pci@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 27, 2009 at 09:19:46PM +0200, Rafael J. Wysocki wrote:
+On Wed, Aug 26, 2009 at 10:24:19PM +0200, Rafael J. Wysocki wrote:
 > From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> Add sysfs attribute kernel/power/pm_async allowing the user space to
-> disable and enable async suspend/resume of devices.
+> Set async_suspend for all serio input devices, so that they can be
+> suspended and resumed asynchronously with other devices they don't
+> depend on in a known way (i.e. devices which are not their parents
+> or children and to which they are not connected via struct pm_link
+> objects).
 > 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/base/power/main.c  |   13 +++++++------
->  drivers/base/power/power.h |    6 +++---
->  kernel/power/main.c        |   28 +++++++++++++++++++++++++++-
->  3 files changed, 37 insertions(+), 10 deletions(-)
-> 
-> Index: linux-2.6/kernel/power/main.c
-> ===================================================================
-> --- linux-2.6.orig/kernel/power/main.c
-> +++ linux-2.6/kernel/power/main.c
-> @@ -44,6 +44,29 @@ int pm_notifier_call_chain(unsigned long
->  			== NOTIFY_BAD) ? -EINVAL : 0;
->  }
->  
-> +/* If set, devices may be suspended and resumed asynchronously. */
-> +int pm_async_enabled = 1;
-> +
-> +static ssize_t pm_async_show(struct kobject *kobj, struct kobj_attribute *attr,
-> +			     char *buf)
-> +{
-> +	return sprintf(buf, "%d\n", pm_async_enabled);
-> +}
-> +
-> +static ssize_t pm_async_store(struct kobject *kobj, struct kobj_attribute *attr,
-> +			      const char *buf, size_t n)
-> +{
-> +	int val;
-> +
-> +	if (sscanf(buf, "%d", &val) == 1) {
 
-I prefer more vigorous restrictions on the sysfs interfaces. Maybe:
-
-	if (strict_strtoul(buf, 10, &val) || val > 1)
-		return -EINVAL;
-
-	pm_async_enabled = val;
-
-?
+As I mentioned not yet, please - i8042 may be unhappy if you pound
+all its ports at once. I should have a solution for it though.
 
 -- 
 Dmitry
