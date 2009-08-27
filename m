@@ -1,40 +1,212 @@
-From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
-Date: Thu, 27 Aug 2009 14:36:53 -0700
-Message-ID: <20090827143653.52308d6d.akpm@linux-foundation.org>
-References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera>
-	<200908261833.37310.elendil@planet.nl>
-	<20090826123647.e60d9555.akpm@linux-foundation.org>
-	<200908272023.21288.rusty@rustcorp.com.au>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 7 updated] PM: Add a switch for disabling/enabling asynchronous suspend/resume
+Date: Fri, 28 Aug 2009 00:22:40 +0200
+Message-ID: <200908280022.40522.rjw@sisk.pl>
+References: <200908262217.19609.rjw@sisk.pl> <200908272119.47053.rjw@sisk.pl> <20090827203948.9CD25526EC9@mailhub.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200908272023.21288.rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Cc: elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org, zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090827203948.9CD25526EC9@mailhub.coreip.homeip.net>
+Sender: linux-pci-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 27 Aug 2009 20:23:20 +0930
-Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org> wrote:
+On Thursday 27 August 2009, Dmitry Torokhov wrote:
+> On Thu, Aug 27, 2009 at 09:19:46PM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > Add sysfs attribute kernel/power/pm_async allowing the user space to
+> > disable and enable async suspend/resume of devices.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/base/power/main.c  |   13 +++++++------
+> >  drivers/base/power/power.h |    6 +++---
+> >  kernel/power/main.c        |   28 +++++++++++++++++++++++++++-
+> >  3 files changed, 37 insertions(+), 10 deletions(-)
+> > 
+> > Index: linux-2.6/kernel/power/main.c
+> > ===================================================================
+> > --- linux-2.6.orig/kernel/power/main.c
+> > +++ linux-2.6/kernel/power/main.c
+> > @@ -44,6 +44,29 @@ int pm_notifier_call_chain(unsigned long
+> >  			== NOTIFY_BAD) ? -EINVAL : 0;
+> >  }
+> >  
+> > +/* If set, devices may be suspended and resumed asynchronously. */
+> > +int pm_async_enabled = 1;
+> > +
+> > +static ssize_t pm_async_show(struct kobject *kobj, struct kobj_attribute *attr,
+> > +			     char *buf)
+> > +{
+> > +	return sprintf(buf, "%d\n", pm_async_enabled);
+> > +}
+> > +
+> > +static ssize_t pm_async_store(struct kobject *kobj, struct kobj_attribute *attr,
+> > +			      const char *buf, size_t n)
+> > +{
+> > +	int val;
+> > +
+> > +	if (sscanf(buf, "%d", &val) == 1) {
+> 
+> I prefer more vigorous restrictions on the sysfs interfaces. Maybe:
+> 
+> 	if (strict_strtoul(buf, 10, &val) || val > 1)
+> 		return -EINVAL;
+> 
+> 	pm_async_enabled = val;
+> 
+> ?
 
-> > My linux-next repair job:
-> 
-> OK, I've dropped these from my tree entirely to avoid more problems.
-> 
-> Can you take them?  They're not really at home in my tree.
-> 
-> arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-> misc:work_on_cpu-acpi.patch
-> misc:work_on_cpu-acpi-fix.patch
-> misc:work_on_cpu-dcdbas.patch
-> 
-> You can fetch them from http://ozlabs.org/~rusty/kernel/rr-latest/
-> 
-> (You'll want to rename the last three something sane...)
+OK
 
-Those patches are already in today's linux-next so I can't carry them.
+Updated patch below.
 
-Please email them over in the traditional fashion once that situation
-has sorted itself out?
+Thanks,
+Rafael
+
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: PM: Add a switch for disabling/enabling asynchronous suspend/resume
+
+Add sysfs attribute kernel/power/pm_async allowing the user space to
+disable and enable async suspend/resume of devices.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/base/power/main.c  |   13 +++++++------
+ drivers/base/power/power.h |    6 +++---
+ kernel/power/main.c        |   31 ++++++++++++++++++++++++++++++-
+ 3 files changed, 40 insertions(+), 10 deletions(-)
+
+Index: linux-2.6/kernel/power/main.c
+===================================================================
+--- linux-2.6.orig/kernel/power/main.c
++++ linux-2.6/kernel/power/main.c
+@@ -44,6 +44,32 @@ int pm_notifier_call_chain(unsigned long
+ 			== NOTIFY_BAD) ? -EINVAL : 0;
+ }
+ 
++/* If set, devices may be suspended and resumed asynchronously. */
++int pm_async_enabled = 1;
++
++static ssize_t pm_async_show(struct kobject *kobj, struct kobj_attribute *attr,
++			     char *buf)
++{
++	return sprintf(buf, "%d\n", pm_async_enabled);
++}
++
++static ssize_t pm_async_store(struct kobject *kobj, struct kobj_attribute *attr,
++			      const char *buf, size_t n)
++{
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val))
++		return -EINVAL;
++
++	if (val > 1)
++		return -EINVAL;
++
++	pm_async_enabled = val;
++	return n;
++}
++
++power_attr(pm_async);
++
+ #ifdef CONFIG_PM_DEBUG
+ int pm_test_level = TEST_NONE;
+ 
+@@ -208,9 +234,12 @@ static struct attribute * g[] = {
+ #ifdef CONFIG_PM_TRACE
+ 	&pm_trace_attr.attr,
+ #endif
+-#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_DEBUG)
++#ifdef CONFIG_PM_SLEEP
++	&pm_async_attr.attr,
++#ifdef CONFIG_PM_DEBUG
+ 	&pm_test_attr.attr,
+ #endif
++#endif
+ 	NULL,
+ };
+ 
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -235,7 +235,7 @@ static int device_pm_wait_fn(struct devi
+  */
+ static void device_pm_wait_for_masters(struct device *slave)
+ {
+-	if (!pm_trace_enabled)
++	if (pm_async_enabled && !pm_trace_enabled)
+ 		device_for_each_master(slave, slave, device_pm_wait_fn);
+ }
+ 
+@@ -245,7 +245,8 @@ static void device_pm_wait_for_masters(s
+  */
+ static void device_pm_wait_for_slaves(struct device *master)
+ {
+-	device_for_each_slave(master, master, device_pm_wait_fn);
++	if (pm_async_enabled)
++		device_for_each_slave(master, master, device_pm_wait_fn);
+ }
+ 
+ /**
+@@ -560,7 +561,7 @@ static int device_resume_noirq(struct de
+ 	if (pm_op_started(dev))
+ 		return 0;
+ 
+-	if (dev->power.async_suspend && !pm_trace_enabled) {
++	if (pm_async_enabled && !pm_trace_enabled && dev->power.async_suspend) {
+ 		async_schedule(async_resume_noirq, dev);
+ 		return 0;
+ 	}
+@@ -719,7 +720,7 @@ static int device_resume(struct device *
+ 	if (pm_op_started(dev))
+ 		return 0;
+ 
+-	if (dev->power.async_suspend && !pm_trace_enabled) {
++	if (pm_async_enabled && !pm_trace_enabled && dev->power.async_suspend) {
+ 		get_device(dev);
+ 		async_schedule(async_resume, dev);
+ 		return 0;
+@@ -965,7 +966,7 @@ static int device_suspend_noirq(struct d
+ 	if (pm_op_started(dev))
+ 		return 0;
+ 
+-	if (dev->power.async_suspend) {
++	if (pm_async_enabled && dev->power.async_suspend) {
+ 		async_schedule(async_suspend_noirq, dev);
+ 		return 0;
+ 	}
+@@ -1139,7 +1140,7 @@ static int device_suspend(struct device 
+ 	if (pm_op_started(dev))
+ 		return 0;
+ 
+-	if (dev->power.async_suspend) {
++	if (pm_async_enabled && dev->power.async_suspend) {
+ 		get_device(dev);
+ 		async_schedule(async_suspend, dev);
+ 		return 0;
+Index: linux-2.6/drivers/base/power/power.h
+===================================================================
+--- linux-2.6.orig/drivers/base/power/power.h
++++ linux-2.6/drivers/base/power/power.h
+@@ -16,10 +16,10 @@ static inline void pm_runtime_remove(str
+ 
+ #ifdef CONFIG_PM_SLEEP
+ 
+-/*
+- * main.c
+- */
++/* kernel/power/main.c */
++extern int pm_async_enabled;
+ 
++/* drivers/base/power/main.c */
+ extern struct list_head dpm_list;	/* The active device list */
+ 
+ static inline struct device *to_device(struct list_head *entry)
