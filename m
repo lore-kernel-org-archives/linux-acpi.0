@@ -1,56 +1,38 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
-Date: Thu, 27 Aug 2009 21:13:51 +1000
-Message-ID: <20090827211351.f9c96bfc.sfr@canb.auug.org.au>
-References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera>
-	<200908261833.37310.elendil@planet.nl>
-	<20090826123647.e60d9555.akpm@linux-foundation.org>
-	<200908272023.21288.rusty@rustcorp.com.au>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPICA: Windows compatibility fix: same buffer/string store
+Date: Thu, 27 Aug 2009 10:29:02 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908271028510.7792@localhost.localdomain>
+References: <B9D7F88A26B04740A56A35A34719F3AFE09E7D@AUSX3MPS330.aus.amer.dell.com>
+ <B9D7F88A26B04740A56A35A34719F3AF01052A9F@AUSX3MPS330.aus.amer.dell.com>
+ <E87738D94A6AD54789B5B8D1BAEB06CC5C74808741@azsmsx503.amr.corp.intel.com>
+ <B9D7F88A26B04740A56A35A34719F3AF010901C6@AUSX3MPS330.aus.amer.dell.com>
+ <1249956889.7853.2.camel@rzhang-dt>
+ <B9D7F88A26B04740A56A35A34719F3AF01090463@AUSX3MPS330.aus.amer.dell.com>
+ <1250045983.7853.68.camel@rzhang-dt>
+ <B9D7F88A26B04740A56A35A34719F3AF01090704@AUSX3MPS330.aus.amer.dell.com>
+ <037F493892196B458CD3E193E8EBAD4F01EAB64667@pdsmsx502.ccr.corp.intel.com>
+ <B9D7F88A26B04740A56A35A34719F3AF0110BCD1@AUSX3MPS330.aus.amer.dell.com>
+ <1251248494.17754.14.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__27_Aug_2009_21_13_51_+1000_Q1GFTqHHfNWTZJGe"
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200908272023.21288.rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Frans Pop <elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>, zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:53213 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146AbZH0O33 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 10:29:29 -0400
+Received: from localhost.localdomain ([64.140.212.33])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KP100J59HKGYPH0@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 27 Aug 2009 09:29:10 -0500 (CDT)
+In-reply-to: <1251248494.17754.14.camel@minggr.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Rezwanul_Kabir@Dell.com" <Rezwanul_Kabir@Dell.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
---Signature=_Thu__27_Aug_2009_21_13_51_+1000_Q1GFTqHHfNWTZJGe
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+applied for 2.6.31
 
-Hi Rusty,
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-On Thu, 27 Aug 2009 20:23:20 +0930 Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org> wr=
-ote:
->
-> > Rusty/Len: please work out why the title for that patch went silly.
->=20
-> git-quiltimport uses the patch names, and doesn't extract the title.  I
-> assume that's what Stephen uses.  I didn't rename the patch when I rewrote
-> it not to use work_on_cpu.
-
-git quiltimport assumes "mail-like" patches, so it looks for "From:" and
-"Subject:" lines.  I guess it could be made to use the first line of the
-patch if there is no subject ...
-
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Thu__27_Aug_2009_21_13_51_+1000_Q1GFTqHHfNWTZJGe
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkqWam8ACgkQjjKRsyhoI8xc8QCfT+TUq0Dx0zrRIjriHbIp3n+z
-9k0An3u12Duw+xLno8qu8+pUYrW0+hmM
-=+zdC
------END PGP SIGNATURE-----
-
---Signature=_Thu__27_Aug_2009_21_13_51_+1000_Q1GFTqHHfNWTZJGe--
