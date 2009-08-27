@@ -1,38 +1,28 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPICA: Don't switch task then not allowed
-Date: Fri, 28 Aug 2009 02:39:35 +0400
-Message-ID: <20090827223935.25504.42480.stgit@thinkpad>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] fujitsu-laptop: fix config corner case
+Date: Thu, 27 Aug 2009 18:46:27 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908271846180.23436@localhost.localdomain>
+References: <200908262314.n7QNEkcP021958@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:51684 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751276AbZH0Wjd (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 18:39:33 -0400
+Received: from vms173001pub.verizon.net ([206.46.173.1]:62892 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770AbZH0Wq2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 18:46:28 -0400
+Received: from localhost.localdomain ([64.140.212.33])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KP200DOG4LHZ6PD@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Thu, 27 Aug 2009 17:46:30 -0500 (CDT)
+In-reply-to: <200908262314.n7QNEkcP021958@turbo.physics.adelaide.edu.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org, alan-jenkins@tuffmail.co.uk
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+applied for 2.6.31
 
- include/acpi/platform/aclinux.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index fcb8e4b..23b262b 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
- 
- #define ACPI_PREEMPTION_POINT() \
- 	do { \
--		if (!irqs_disabled()) \
-+		if (!in_atomic_preempt_off()) \
- 			cond_resched(); \
- 	} while (0)
- 
+thanks,
+Len Brown, Intel Open Source Technology Center
 
