@@ -1,61 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/6] PM: Asynchronous suspend and resume of devices
-Date: Thu, 27 Aug 2009 23:18:19 +0200
-Message-ID: <200908272318.19868.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908271637480.25639-100000@iolanthe.rowland.org>
+From: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
+Date: Thu, 27 Aug 2009 14:36:53 -0700
+Message-ID: <20090827143653.52308d6d.akpm@linux-foundation.org>
+References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera>
+	<200908261833.37310.elendil@planet.nl>
+	<20090826123647.e60d9555.akpm@linux-foundation.org>
+	<200908272023.21288.rusty@rustcorp.com.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908271637480.25639-100000@iolanthe.rowland.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200908272023.21288.rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+Cc: elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org, zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 27 August 2009, Alan Stern wrote:
-> On Wed, 26 Aug 2009, Rafael J. Wysocki wrote:
+On Thu, 27 Aug 2009 20:23:20 +0930
+Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org> wrote:
+
+> > My linux-next repair job:
 > 
-> > Hi,
-> > 
-> > The following patches introduce a mechanism allowing us to execute device
-> > drivers' suspend and resume callbacks asynchronously during system sleep
-> > transitions, such as suspend to RAM.
-> > 
-> > The idea is explained in the changelogs of the first two patches.
-> > 
-> > Comments welcome.
+> OK, I've dropped these from my tree entirely to avoid more problems.
 > 
-> I've been terribly busy and haven't had a chance to look at this.  The
-> earlier version seemed to have a bunch of mutual-exclusion issues; are
-> they resolved now?
+> Can you take them?  They're not really at home in my tree.
+> 
+> arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+> misc:work_on_cpu-acpi.patch
+> misc:work_on_cpu-acpi-fix.patch
+> misc:work_on_cpu-dcdbas.patch
+> 
+> You can fetch them from http://ozlabs.org/~rusty/kernel/rr-latest/
+> 
+> (You'll want to rename the last three something sane...)
 
-Please be more specific.
+Those patches are already in today's linux-next so I can't carry them.
 
-> There were also some problems involving unsafe iteration over the dpm_list
-> -- remember that devices can be unregistered at any time, not just while
-> they are suspending or resuming.
-
-Not at the time we're holding dpm_list_mtx, though.
-
-I don't think there are any unsafe iterations over dpm_list in the patches.
-
-> When a device finishes, instead of having the async thread look for 
-> another device to work on, I think it would be better to have the 
-> thread check the dependents of the current device.  Those which are 
-> now ready can be added to a "device-ready" list, which is used to 
-> direct the actions of new async threads.
-
-Actually, I wanted to avoid adding such a list, because that would be
-duplicating of the async framework's actions, to some extent.  Yes, we can
-duplicate the async framework just for the suspend/resume needs.  No, I don't
-think it's worth it.
-
-BTW, the patches have been tested on a dual-core box and I haven't seen any
-problems with them so far.  Also, the testing shows that the waiting for
-devices with unsatisfied dependencies is almost eliminated (on my test box
-it happens 4-8 times during the entire suspend-resume cycle).
-
-Thanks,
-Rafael
+Please email them over in the traditional fashion once that situation
+has sorted itself out?
