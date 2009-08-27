@@ -1,89 +1,69 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Re: acpi_ex_system_memory_space_handler oops
-Date: Thu, 27 Aug 2009 12:05:31 +0300
-Message-ID: <20090827090531.GB3075@localdomain.by>
-References: <20090812201034.GA2983@localdomain.by>
- <1250498613.28336.68.camel@minggr.sh.intel.com>
- <20090817113059.GA3245@localdomain.by>
- <d3f22a0908170622x7dd9ce73m5c3ea86406cc9935@mail.gmail.com>
- <20090818071359.GA3713@localdomain.by>
- <1250579915.13743.8.camel@minggr.sh.intel.com>
- <20090827075253.GB3536@localdomain.by>
- <1251359994.3282.11.camel@minggr.sh.intel.com>
- <20090827082927.GD3536@localdomain.by>
- <1251362657.3282.19.camel@minggr.sh.intel.com>
+From: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
+Date: Thu, 27 Aug 2009 20:23:20 +0930
+Message-ID: <200908272023.21288.rusty@rustcorp.com.au>
+References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera> <200908261833.37310.elendil@planet.nl> <20090826123647.e60d9555.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6sX45UoQRIJXqkqR"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751889AbZH0JBs@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090826123647.e60d9555.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1251362657.3282.19.camel@minggr.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Frans Pop <elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>, zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 27 Aug 2009 05:06:47 am Andrew Morton wrote:
+> So in my tree I reworked it so that the new `force' arg gets passed
+> through appropriately.  It compiles cleanly but I'd suggest that Len
+> simply drop "misc:work_on_cpu-acpi" and we send it back to Rusty for
+> some rechecking (sorry).
 
---6sX45UoQRIJXqkqR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sure.  My main motivation is to get rid of cpumasks on the stack; while
+there, I tried to fix this up properly.
 
-On (08/27/09 16:44), Lin Ming wrote:
-> > > > [    0.178628] ACPI: EC: Look up EC in DSDT
-> > > > [    0.196480] ACPI: Interpreter enabled
-> > > > [    0.196575] ACPI: (supports S0 S1 S3 S4 S5)
-> > > > [    0.197184] ACPI: Using IOAPIC for interrupt routing
-> > > > [    0.197352] PCI: MCFG configuration 0: base e0000000 segment 0 b=
-uses 0 - 255
-> > > > [    0.203511] ACPI Error (dswload-0790): [PCFG] Namespace lookup f=
-ailure, AE_ALREADY_EXISTS
-> > > > [    0.203738] ACPI Exception: AE_ALREADY_EXISTS, During name looku=
-p/catalog 20090521 psloop-227
-> > > > [    0.203964] ACPI Error (psparse-0537): Method parse/execution fa=
-iled [\_SB_.RBPE] (Node f7017678), AE_ALREADY_EXISTS
-> > > > [    0.204256] ACPI: Marking method RBPE as Serialized because of A=
-E_ALREADY_EXISTS error
-> > > > [    0.204510] ACPI Error (psparse-0537): Method parse/execution fa=
-iled [\_GPE._L01] (Node f701d198), AE_ALREADY_EXISTS
-> > > > [    0.204803] ACPI: Marking method _L01 as Serialized because of A=
-E_ALREADY_EXISTS error
-> > > > [    0.205063] ACPI Exception: AE_ALREADY_EXISTS, while evaluating =
-GPE method [_L01] 20090521 evgpe-568
-> > >=20
-> > > Do you mean rc7-git5 sometime boot fails even with the patch applied?
-> > >
-> > No. Patched kernel boots ok. Even successfully booted kernel sometimes =
-has the given lines in dmesg.
-> > (I'll watch more.)
->=20
+> Rusty/Len: please work out why the title for that patch went silly.
 
-Yes, looks like:
+git-quiltimport uses the patch names, and doesn't extract the title.  I
+assume that's what Stephen uses.  I didn't rename the patch when I rewrote
+it not to use work_on_cpu.
 
-> So the patch only fixes the oops,=20
-confirmed;
+> Rusty, please self-administer smackings for
+> 
+> 		struct set_throttling_info sti
+> 			= { pr, p_throttling, t_state.target_state };
+> 
+> these things always start out simple and end up not-simple, so some poor
+> schmuck has to clean them up so stuff doesn't break.
+> 
+> 		struct set_throttling_info sti = {
+> 			.pr = pr,
+> 			.p_throttling = p_throttling,
+> 			.target_state = t_state.target_state,
+> 			.force = force
+> 		};
+> 
+> is better!
 
-> we also need to fix the AE_ALREADY_EXISTS error.
->=20
-AE_ALREADY_EXISTS fix not confirmed.=20
-(AE_ALREADY_EXISTS errors are quite rare.)
+Meh... same concept applies to function arguments, and we rely on typechecking
+to catch that (though we have little choice in C).
 
+> My linux-next repair job:
 
-	Sergey
+OK, I've dropped these from my tree entirely to avoid more problems.
 
---6sX45UoQRIJXqkqR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Can you take them?  They're not really at home in my tree.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
+misc:work_on_cpu-acpi.patch
+misc:work_on_cpu-acpi-fix.patch
+misc:work_on_cpu-dcdbas.patch
 
-iJwEAQECAAYFAkqWTFsACgkQfKHnntdSXjRLYAQApejkO1KAP8yI1Oaki/dKtKxT
-adUrMkwsfnSvLTWBApWt53I8tmTTFwBcSF0cJbzxTJ4d9C+2Mcp6fwaTbBZYN0sE
-10388zWf2KRO5/Hkw9j/n9+tc/XPvzxqFg7umSqEyih1zTNZMd30TGQWyzfI/ok/
-GVQIvqhHJyQzKeF0VmU=
-=TO/l
------END PGP SIGNATURE-----
+You can fetch them from http://ozlabs.org/~rusty/kernel/rr-latest/
 
---6sX45UoQRIJXqkqR--
+(You'll want to rename the last three something sane...)
+
+Thanks,
+Rusty.
