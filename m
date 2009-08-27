@@ -1,43 +1,44 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [PATCH 1/2] ACPI processor: force throttling state when BIOS returns incorrect value
-Date: Thu, 27 Aug 2009 20:28:36 +0200
-Message-ID: <200908272028.38676.elendil@planet.nl>
-References: <200908171443.35622.elendil@planet.nl> <20090819115855.193ea8bb.akpm@linux-foundation.org> <alpine.LFD.2.00.0908271329160.7792@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/6] PM: Asynchronous suspend and resume of devices
+Date: Thu, 27 Aug 2009 21:17:52 +0200
+Message-ID: <200908272117.52931.rjw@sisk.pl>
+References: <200908262217.19609.rjw@sisk.pl> <200908270025.34821.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml110.kpnxchange.com ([195.121.3.14]:52908 "EHLO
-	CPSMTPM-EML110.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752058AbZH0S2j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Aug 2009 14:28:39 -0400
-In-Reply-To: <alpine.LFD.2.00.0908271329160.7792@localhost.localdomain>
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:40984 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751356AbZH0TXp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Aug 2009 15:23:45 -0400
+In-Reply-To: <200908270025.34821.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, rui.zhang@intel.com, stable@kernel.org
+To: linux-pm <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
 
-On Thursday 27 August 2009, you wrote:
-> > Did this just fall through the cracks
->
-> yes, during summer vacation, the cracks can sometimes be large.
+On Thursday 27 August 2009, Rafael J. Wysocki wrote:
+> On Wednesday 26 August 2009, Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > The following patches introduce a mechanism allowing us to execute device
+> > drivers' suspend and resume callbacks asynchronously during system sleep
+> > transitions, such as suspend to RAM.
+> > 
+> > The idea is explained in the changelogs of the first two patches.
+> > 
+> > Comments welcome.
+> 
+> Forgot to say, the patchset is on top of the linux-next branch of suspend-2.6.
 
-Nice to see you're back :-)
+I have two more patches in this series.  The first one introduces a sysfs
+switch allowing the user space to block the async suspend/resume.  The second
+one gives the user space access to the power.async_suspend flag of devices
+through sysfs.
 
-> Thanks for handling this one Andrew.
->
-> -Len Brown, Intel Open Source Technology Center
->
-> ps. lenb@intel.com isn't my e-mail address.
+The patches will follow in the next messages.
 
-Hmmm. Then why is that address listed in bugzilla, both in the CC list for 
-#13389 and in the history of that BR for both actions done by you?
-That's where I took it from...
+Thanks,
+Rafael
 
-Is it simply that you need to update your bugzilla account?
-
-Cheers,
-FJP
