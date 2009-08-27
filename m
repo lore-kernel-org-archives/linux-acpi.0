@@ -1,64 +1,68 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: BUG: scheduling while atomic in acpi_ps_complete_op
-Date: Thu, 27 Aug 2009 13:39:06 +0800
-Message-ID: <d82e647a0908262239m769f1417j9a9cae4e4ec8a8aa@mail.gmail.com>
-References: <1250873707.2168.38.camel@dhcp231-106.rdu.redhat.com>
-	 <4A8EFFB2.4040100@suse.de>
-	 <1250886352.2168.83.camel@dhcp231-106.rdu.redhat.com>
-	 <4A8F1081.3020803@suse.de>
-	 <1251124609.2359.25.camel@dhcp231-106.rdu.redhat.com>
-	 <1251248426.3623.47.camel@localhost.localdomain>
-	 <1251287895.2270.25.camel@dhcp231-106.rdu.redhat.com>
-	 <1251295984.3623.83.camel@localhost.localdomain>
-	 <1251312530.2280.1.camel@dhcp231-106.rdu.redhat.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
+	in driver
+Date: Wed, 26 Aug 2009 23:18:01 -0700
+Message-ID: <20090827065011.10E78526EC9@mailhub.coreip.homeip.net>
+References: <1235992429.3858.58.camel@hughsie-work.lan> <20090302112400.GA2356@khazad-dum.debian.net> <1236164049.3936.17.camel@hughsie-work.lan> <20090304120439.GA31850@khazad-dum.debian.net> <1250625730.2257.11.camel@hidalgo> <20090818201002.GA32638@srcf.ucam.org> <1251286574.32399.3.camel@miria> <20090826134349.GA12404@srcf.ucam.org> <1251309161.10837.6.camel@hidalgo> <20090826225111.GC23973@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f192.google.com ([209.85.222.192]:37764 "EHLO
-	mail-pz0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830AbZH0FjF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 01:39:05 -0400
-In-Reply-To: <1251312530.2280.1.camel@dhcp231-106.rdu.redhat.com>
+Received: from mail-px0-f174.google.com ([209.85.216.174]:46550 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750961AbZH0GSF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2009 02:18:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20090826225111.GC23973@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eric Paris <eparis@redhat.com>
-Cc: ykzhao <yakui.zhao@intel.com>, Alexey Starikovskiy <astarikovskiy@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "vegard.nossum@gmail.com" <vegard.nossum@gmail.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Yves-Alexis Perez <corsac@debian.org>, Matthew Garrett <mjg@redhat.com>, Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, aliov@xfce.org
 
-2009/8/27 Eric Paris <eparis@redhat.com>:
-> On Wed, 2009-08-26 at 22:13 +0800, ykzhao wrote:
->> On Wed, 2009-08-26 at 19:58 +0800, Eric Paris wrote:
->> > On Wed, 2009-08-26 at 09:00 +0800, ykzhao wrote:
->> > > On Mon, 2009-08-24 at 22:36 +0800, Eric Paris wrote:
->> > > > On Sat, 2009-08-22 at 01:24 +0400, Alexey Starikovskiy wrote:
->> > > > > Eric Paris =D0=C9=DB=C5=D4:
->> >
->> > > > It does stop my slew of warnings. =9ANot sure it completely fi=
-xes my
->> > > > problems though....
->> > > Will you please add the boot option of initcall_debug and attach=
- the
->> > > output of dmesg?
->> > > It will be helpful if you can attach the output of acpidump.
->> > > Thanks.
->> Hi
->> =9A =9A =9A Will you please confirm whether this issue happens on th=
-e 2.6.31-rc6
->> kernel?
->
-> I just went back to a -rc7 kernel (but a largely different .config) a=
-nd
-> it did not happen.
+On Wed, Aug 26, 2009 at 07:51:11PM -0300, Henrique de Moraes Holschuh wrote:
+> On Wed, 26 Aug 2009, Yves-Alexis Perez wrote:
+> > On mer, 2009-08-26 at 14:43 +0100, Matthew Garrett wrote:
+> > > On Wed, Aug 26, 2009 at 01:36:14PM +0200, Yves-Alexis Perez wrote:
+> > > > #define XF86XK_Suspend    0x1008FFA7   /* Sleep to RAM                */        
+> > > > #define XF86XK_Hibernate  0x1008FFA8   /* Sleep to disk               */
+> > > > 
+> > > > So (some) userspace seems to have switched already?
+> > > 
+> > > Adding those keysyms was, with hindsight, an error.
+> > 
+> > Ok, so every userland app which began the transition should step back
+> > until a correct migration plan is set up?
+> 
+> IMHO it would be both easier and faster to deploy a proper migration plan
+> and keep going.  Nobody said the names used by X.org keysyms have to agree
+> with the ones used by input devices, for example... and a mapping table is
+> already used anyway.
+> 
+> So, userspace can use the X keysyms like the above. There's nothing wrong
+> with it.  But the correct mapping for kernel input events to those keysyms
+> is AND WILL REMAIN:
+> 
+> KEY_SLEEP -> XF86XK_Suspend
+> KEY_SUSPEND -> XF86XK_Hibernate
+> 
+> If people want to define two new input events, say KEY_SUSPENDTORAM and
+> KEY_SUSPENDTODISK, start migrating the kernel drivers to use these two, and
+> after some time with no use of KEY_SLEEP in the kernel, reclaim it to
+> be a generic "sleep the system in some unspecified way", I'd be fine with
+> it.
+> 
+> So, you'd have:
+> KEY_SLEEP -> XF86XK_Suspend
+> KEY_SUSPENDTORAM -> XF86XK_Suspend
+> KEY_SUSPEND -> XF86XK_Hibernate
+> KEY_SUSPENDTODISK -> XF86XK_Hibernate
+> 
+> I'd guess the only thing that could make us break that ABI the way people
+> wanted us to (i.e. change the meaning of KEY_SUSPEND and KEY_SLEEP, and add
+> a new KEY_HIBERNATE), is a proof that we got the USB HID table wrong and
+> that USB keyboards are doing the wrong thing because of it.
+> 
 
-It may happen in -rc7 if kmemleak is enalbled,  see
+Would not it be easier just to adjust HID in this case?
 
-         http://marc.info/?l=3Dlinux-kernel&m=3D125110822604893&w=3D2
-
-Thanks.
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Dmitry
