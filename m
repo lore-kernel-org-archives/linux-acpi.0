@@ -1,43 +1,37 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
-Date: Fri, 28 Aug 2009 11:43:05 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908281137110.4116-100000@iolanthe.rowland.org>
-References: <200908262221.09224.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 3/4] fujitsu-laptop: driver [un]registration fixes
+Date: Fri, 28 Aug 2009 14:56:49 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908281455010.23436@localhost.localdomain>
+References: <200907310846.n6V8k2nd006757@mercury.physics.adelaide.edu.au>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200908262221.09224.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:48593 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752719AbZH1S5E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2009 14:57:04 -0400
+In-reply-to: <200907310846.n6V8k2nd006757@mercury.physics.adelaide.edu.au>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bzolnier@gmail.com
 
-On Wed, 26 Aug 2009, Rafael J. Wysocki wrote:
+On Fri, 31 Jul 2009, Jonathan Woithe wrote:
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
+> [PATCH 3/4] fujitsu-laptop: driver [un]registration fixes
 > 
-> Theoretically, the total time of system sleep transitions (suspend
-> to RAM, hibernation) can be reduced by running suspend and resume
-> callbacks of device drivers in parallel with each other.  However,
-> there are dependencies between devices such that, for example, we may
-> not be allowed to put one device into a low power state before
-> anohter one has been suspended (e.g. we cannot suspend a bridge
-> before suspending all devices behind it).  In particular, we're not
-> allowed to suspend the parent of a device before suspending the
-> device itself.  Analogously, we're not allowed to resume a device
-> before resuming its parent.
+> >From Bartlomiej Zolnierkiewicz.
 
-> In this version of the patch the async threads started to execute
-> the resume callbacks of specific device don't exit immediately having
-> done that, but search dpm_list for devices whose PM dependencies have
-> already been satisfied and execute their callbacks without waiting.
+This line needs to be the 1st in the message for the attribution
+to work correctly, and it needs to follow this format:
 
-Given this design, why bother to invoke device_resume() for the async 
-devices?  Why not just start up a bunch of async threads, each of which 
-calls async_resume() repeatedly until everything is finished?  (And 
-rearrange async_resume() to scan the list first and do the actual 
-resume second.)
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-The same goes for the noirq versions.
+> * Move led_classdev_unregister() calls from fujitsu_cleanup() to
+>   acpi_fujitsu_hotkey_remove().
 
-Alan Stern
+i fixed it manually and applied for 2.6.32.
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
+
