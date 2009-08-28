@@ -1,182 +1,59 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] acpi: switch /proc/acpi/{debug_layer,debug_level} to
-	seq_file
-Date: Fri, 28 Aug 2009 23:53:04 +0400
-Message-ID: <20090828195304.GB15123@x200.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
+Date: Fri, 28 Aug 2009 15:59:27 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0908281548140.2865-100000@iolanthe.rowland.org>
+References: <200908282138.14602.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:43576 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752480AbZH1TxG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2009 15:53:06 -0400
-Received: by ewy2 with SMTP id 2so2434062ewy.17
-        for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2009 12:53:07 -0700 (PDT)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200908282138.14602.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com, akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+On Fri, 28 Aug 2009, Rafael J. Wysocki wrote:
 
- drivers/acpi/debug.c |   82 +++++++++++++++++++++------------------------------
- 1 file changed, 34 insertions(+), 48 deletions(-)
+> > Given this design, why bother to invoke device_resume() for the async 
+> > devices?  Why not just start up a bunch of async threads, each of which 
+> > calls async_resume() repeatedly until everything is finished?  (And 
+> > rearrange async_resume() to scan the list first and do the actual 
+> > resume second.)
+> > 
+> > The same goes for the noirq versions.
+> 
+> I thought about that, but there are a few things to figure out:
+> - how many threads to start
 
---- a/drivers/acpi/debug.c
-+++ b/drivers/acpi/debug.c
-@@ -3,6 +3,7 @@
-  */
- 
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
-@@ -201,72 +202,54 @@ module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
- #define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
- #define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
- 
--static int
--acpi_system_read_debug(char *page,
--		       char **start, off_t off, int count, int *eof, void *data)
-+static int acpi_system_debug_proc_show(struct seq_file *m, void *v)
- {
--	char *p = page;
--	int size = 0;
- 	unsigned int i;
- 
--	if (off != 0)
--		goto end;
-+	seq_printf(m, "%-25s\tHex        SET\n", "Description");
- 
--	p += sprintf(p, "%-25s\tHex        SET\n", "Description");
--
--	switch ((unsigned long)data) {
-+	switch ((unsigned long)m->private) {
- 	case 0:
- 		for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
--			p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
-+			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
- 				     acpi_debug_layers[i].name,
- 				     acpi_debug_layers[i].value,
- 				     (acpi_dbg_layer & acpi_debug_layers[i].
- 				      value) ? '*' : ' ');
- 		}
--		p += sprintf(p, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
-+		seq_printf(m, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
- 			     ACPI_ALL_DRIVERS,
- 			     (acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
- 			     ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer &
- 						       ACPI_ALL_DRIVERS) ==
- 			     0 ? ' ' : '-');
--		p += sprintf(p,
-+		seq_printf(m,
- 			     "--\ndebug_layer = 0x%08X (* = enabled, - = partial)\n",
- 			     acpi_dbg_layer);
- 		break;
- 	case 1:
- 		for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
--			p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
-+			seq_printf(m, "%-25s\t0x%08lX [%c]\n",
- 				     acpi_debug_levels[i].name,
- 				     acpi_debug_levels[i].value,
- 				     (acpi_dbg_level & acpi_debug_levels[i].
- 				      value) ? '*' : ' ');
- 		}
--		p += sprintf(p, "--\ndebug_level = 0x%08X (* = enabled)\n",
-+		seq_printf(m, "--\ndebug_level = 0x%08X (* = enabled)\n",
- 			     acpi_dbg_level);
- 		break;
--	default:
--		p += sprintf(p, "Invalid debug option\n");
--		break;
- 	}
-+	return 0;
-+}
- 
--      end:
--	size = (p - page);
--	if (size <= off + count)
--		*eof = 1;
--	*start = page + off;
--	size -= off;
--	if (size > count)
--		size = count;
--	if (size < 0)
--		size = 0;
--
--	return size;
-+static int acpi_system_debug_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, acpi_system_debug_proc_show, PDE(inode)->data);
- }
- 
--static int
--acpi_system_write_debug(struct file *file,
-+static ssize_t acpi_system_debug_proc_write(struct file *file,
- 			const char __user * buffer,
--			unsigned long count, void *data)
-+			size_t count, loff_t *pos)
- {
- 	char debug_string[12] = { '\0' };
- 
-@@ -279,7 +262,7 @@ acpi_system_write_debug(struct file *file,
- 
- 	debug_string[count] = '\0';
- 
--	switch ((unsigned long)data) {
-+	switch ((unsigned long)PDE(file->f_path.dentry->d_inode)->data) {
- 	case 0:
- 		acpi_dbg_layer = simple_strtoul(debug_string, NULL, 0);
- 		break;
-@@ -292,6 +275,15 @@ acpi_system_write_debug(struct file *file,
- 
- 	return count;
- }
-+
-+static const struct file_operations acpi_system_debug_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= acpi_system_debug_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= acpi_system_debug_proc_write,
-+};
- #endif
- 
- int __init acpi_debug_init(void)
-@@ -303,24 +295,18 @@ int __init acpi_debug_init(void)
- 
- 	/* 'debug_layer' [R/W] */
- 	name = ACPI_SYSTEM_FILE_DEBUG_LAYER;
--	entry =
--	    create_proc_read_entry(name, S_IFREG | S_IRUGO | S_IWUSR,
--				   acpi_root_dir, acpi_system_read_debug,
--				   (void *)0);
--	if (entry)
--		entry->write_proc = acpi_system_write_debug;
--	else
-+	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
-+				 acpi_root_dir, &acpi_system_debug_proc_fops,
-+				 (void *)0);
-+	if (!entry)
- 		goto Error;
- 
- 	/* 'debug_level' [R/W] */
- 	name = ACPI_SYSTEM_FILE_DEBUG_LEVEL;
--	entry =
--	    create_proc_read_entry(name, S_IFREG | S_IRUGO | S_IWUSR,
--				   acpi_root_dir, acpi_system_read_debug,
--				   (void *)1);
--	if (entry)
--		entry->write_proc = acpi_system_write_debug;
--	else
-+	entry = proc_create_data(name, S_IFREG | S_IRUGO | S_IWUSR,
-+				 acpi_root_dir, &acpi_system_debug_proc_fops,
-+				 (void *)1);
-+	if (!entry)
- 		goto Error;
- 
-       Done:
+That's a tough question.  Right now you start roughly as many threads
+as there are async devices.  That seems like overkill.
+
+I would expect that a reasonably small number of threads would suffice 
+to achieve most of the possible time savings.  Something on the order 
+of 10 should work well.  If the majority of the time is spent 
+handling N devices then N+1 threads would be enough.  Judging from some 
+of the comments posted earlier, even 4 threads would give a big 
+advantage.
+
+> - when to start them
+
+You might as well start them at the beginning of dpm_resume and 
+dpm_resume_noirq.  That way they can overlap with the synchronous 
+operations.
+
+> - stop condition
+
+When an error occurs or when op_started has been set for every 
+remaining async device.
+
+> I had a few ideas, but then I thought it would be simpler to start an async
+> thread when we know there's some async work to do (ie. there's an async
+> device to handle) and make each async thread browse the list just once (the
+> rationale is that we've just handled a device, so there's a chance there are
+> some devices with satisfied dependencies down the list).
+
+It comes down to this: Should there be many threads, each of which 
+browses the list only once, or should there be a few threads, each of 
+which browses the list many times?
+
+Alan Stern
