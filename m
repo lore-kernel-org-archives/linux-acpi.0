@@ -1,37 +1,36 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [RESEND PATCH] ACPICA: fix leak of acpi_os_validate_address
-Date: Fri, 28 Aug 2009 09:17:09 +0800
-Message-ID: <1251422229.3282.22.camel@minggr.sh.intel.com>
-References: <1250131948.4044.5.camel@minggr.sh.intel.com>
-	 <alpine.LFD.2.00.0908271307240.7792@localhost.localdomain>
+From: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
+Date: Fri, 28 Aug 2009 11:32:18 +0930
+Message-ID: <200908281132.19765.rusty@rustcorp.com.au>
+References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera> <200908272023.21288.rusty@rustcorp.com.au> <20090827211351.f9c96bfc.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:13065 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751022AbZH1BVZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Aug 2009 21:21:25 -0400
-In-Reply-To: <alpine.LFD.2.00.0908271307240.7792@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090827211351.f9c96bfc.sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Content-Disposition: inline
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Frans Pop <elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>, zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, 2009-08-28 at 01:09 +0800, Len Brown wrote:
-> it is easier to apply patches when they do not appear multiple times
-> in the e-mail message...
+On Thu, 27 Aug 2009 08:43:51 pm Stephen Rothwell wrote:
+> Hi Rusty,
 > 
-> why does acpi_os_invalidate_address() need a return value other than void?
-
-Just for extension, maybe some future usage.
-
-Lin Ming
-
+> On Thu, 27 Aug 2009 20:23:20 +0930 Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org> wrote:
+> >
+> > > Rusty/Len: please work out why the title for that patch went silly.
+> > 
+> > git-quiltimport uses the patch names, and doesn't extract the title.  I
+> > assume that's what Stephen uses.  I didn't rename the patch when I rewrote
+> > it not to use work_on_cpu.
 > 
-> applied to acpi-test
-> 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
+> git quiltimport assumes "mail-like" patches, so it looks for "From:" and
+> "Subject:" lines.  I guess it could be made to use the first line of the
+> patch if there is no subject ...
 
+My scripts should all handle Subject: prefixes, I can just start using that.
+
+Thanks,
+Rusty.
