@@ -1,68 +1,87 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: Re: 2.6.31-rc7-git2: Reported regressions 2.6.29 -> 2.6.30
-Date: Fri, 28 Aug 2009 09:43:30 +1000
-Message-ID: <20090828094330.0f7f75d7.sfr@canb.auug.org.au>
-References: <JuOd1ZASH0B.A.YGB.0zGlKB@chimera>
-	<200908261833.37310.elendil@planet.nl>
-	<20090826123647.e60d9555.akpm@linux-foundation.org>
-	<200908272023.21288.rusty@rustcorp.com.au>
-	<20090827143653.52308d6d.akpm@linux-foundation.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
+ in driver
+Date: Thu, 27 Aug 2009 21:34:16 -0300
+Message-ID: <20090828003416.GB11195@khazad-dum.debian.net>
+References: <20090302112400.GA2356@khazad-dum.debian.net>
+ <1236164049.3936.17.camel@hughsie-work.lan>
+ <20090304120439.GA31850@khazad-dum.debian.net>
+ <1250625730.2257.11.camel@hidalgo>
+ <20090818201002.GA32638@srcf.ucam.org>
+ <1251286574.32399.3.camel@miria>
+ <20090826134349.GA12404@srcf.ucam.org>
+ <1251309161.10837.6.camel@hidalgo>
+ <20090826225111.GC23973@khazad-dum.debian.net>
+ <20090827065011.10E78526EC9@mailhub.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__28_Aug_2009_09_43_30_+1000_3fCgz2za9/ojxanB"
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090827143653.52308d6d.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, elendil-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org, zajec5-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-List-Id: linux-acpi@vger.kernel.org
-
---Signature=_Fri__28_Aug_2009_09_43_30_+1000_3fCgz2za9/ojxanB
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60688 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750753AbZH1AeU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Aug 2009 20:34:20 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20090827065011.10E78526EC9@mailhub.coreip.homeip.net>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Yves-Alexis Perez <corsac@debian.org>, Matthew Garrett <mjg@redhat.com>, Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, aliov@xfce.org
 
-Hi Andrew, Rusty,
+On Wed, 26 Aug 2009, Dmitry Torokhov wrote:
+> On Wed, Aug 26, 2009 at 07:51:11PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Wed, 26 Aug 2009, Yves-Alexis Perez wrote:
+> > > On mer, 2009-08-26 at 14:43 +0100, Matthew Garrett wrote:
+> > > > On Wed, Aug 26, 2009 at 01:36:14PM +0200, Yves-Alexis Perez wrote:
+> > > > > #define XF86XK_Suspend    0x1008FFA7   /* Sleep to RAM                */        
+> > > > > #define XF86XK_Hibernate  0x1008FFA8   /* Sleep to disk               */
+> > > > > 
+> > > > > So (some) userspace seems to have switched already?
+> > > > 
+> > > > Adding those keysyms was, with hindsight, an error.
+> > > 
+> > > Ok, so every userland app which began the transition should step back
+> > > until a correct migration plan is set up?
+> > 
+> > IMHO it would be both easier and faster to deploy a proper migration plan
+> > and keep going.  Nobody said the names used by X.org keysyms have to agree
+> > with the ones used by input devices, for example... and a mapping table is
+> > already used anyway.
+> > 
+> > So, userspace can use the X keysyms like the above. There's nothing wrong
+> > with it.  But the correct mapping for kernel input events to those keysyms
+> > is AND WILL REMAIN:
+> > 
+> > KEY_SLEEP -> XF86XK_Suspend
+> > KEY_SUSPEND -> XF86XK_Hibernate
+> > 
+> > If people want to define two new input events, say KEY_SUSPENDTORAM and
+> > KEY_SUSPENDTODISK, start migrating the kernel drivers to use these two, and
+> > after some time with no use of KEY_SLEEP in the kernel, reclaim it to
+> > be a generic "sleep the system in some unspecified way", I'd be fine with
+> > it.
+> > 
+> > So, you'd have:
+> > KEY_SLEEP -> XF86XK_Suspend
+> > KEY_SUSPENDTORAM -> XF86XK_Suspend
+> > KEY_SUSPEND -> XF86XK_Hibernate
+> > KEY_SUSPENDTODISK -> XF86XK_Hibernate
+> > 
+> > I'd guess the only thing that could make us break that ABI the way people
+> > wanted us to (i.e. change the meaning of KEY_SUSPEND and KEY_SLEEP, and add
+> > a new KEY_HIBERNATE), is a proof that we got the USB HID table wrong and
+> > that USB keyboards are doing the wrong thing because of it.
+> 
+> Would not it be easier just to adjust HID in this case?
 
-On Thu, 27 Aug 2009 14:36:53 -0700 Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org=
-> wrote:
->
-> On Thu, 27 Aug 2009 20:23:20 +0930 Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org> =
-wrote:
-> >=20
-> > Can you take them?  They're not really at home in my tree.
-> >=20
-> > arch-x86-kernel-acpi-cstatec-avoid-using-work_on_cpu.patch
-> > misc:work_on_cpu-acpi.patch
-> > misc:work_on_cpu-acpi-fix.patch
-> > misc:work_on_cpu-dcdbas.patch
-> >=20
-> > You can fetch them from http://ozlabs.org/~rusty/kernel/rr-latest/
-> >=20
-> > (You'll want to rename the last three something sane...)
->=20
-> Those patches are already in today's linux-next so I can't carry them.
->=20
-> Please email them over in the traditional fashion once that situation
-> has sorted itself out?
+Your call.  I really don't know what the USB HID spec wants KEY_foo to mean,
+and I don't know if we got it wrong or not.  I know I used KEY_SLEEP and
+KEY_SUSPEND in thinkpad-acpi because those are the mappings the rest of the
+kernel uses.  The thinkpad hotkeys *do* have sleep-to-ram and sleep-to-disk
+context, they're not generic "sleep" keys.
 
-Those patches will not be in next-20090828.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Fri__28_Aug_2009_09_43_30_+1000_3fCgz2za9/ojxanB
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkqXGiIACgkQjjKRsyhoI8xGYgCdF1tV9fC5DVYLkjUp6rmG22vT
-+kkAoKNKhLZYwSQbYUlJFhpl7mwGhxxU
-=fWnF
------END PGP SIGNATURE-----
-
---Signature=_Fri__28_Aug_2009_09_43_30_+1000_3fCgz2za9/ojxanB--
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
