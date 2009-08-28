@@ -1,104 +1,227 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 14/24] led: document sysfs interface
-Date: Fri, 28 Aug 2009 14:56:45 +0200
-Message-ID: <1251464215-6540-15-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 04/24] eeepc-laptop: fix ordering of init and exit functions
+Date: Fri, 28 Aug 2009 14:56:35 +0200
+Message-ID: <1251464215-6540-5-git-send-email-corentincj@iksaif.net>
 References: <1251464215-6540-1-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-2-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-3-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-4-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-5-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-6-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-7-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-8-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-9-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-10-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-11-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-12-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-13-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-14-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp22.services.sfr.fr ([93.17.128.10]:6652 "EHLO
+Received: from smtp22.services.sfr.fr ([93.17.128.13]:36226 "EHLO
 	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129AbZH1NDl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2009 09:03:41 -0400
+	with ESMTP id S1751199AbZH1NJG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2009 09:09:06 -0400
 Received: from smtp22.services.sfr.fr (msfrf2206 [10.18.26.20])
-	by msfrf2205.sfr.fr (SMTP Server) with ESMTP id 55A267000D3A
-	for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2009 15:03:43 +0200 (CEST)
-In-Reply-To: <1251464215-6540-14-git-send-email-corentincj@iksaif.net>
+	by msfrf2215.sfr.fr (SMTP Server) with ESMTP id 10E39700689F
+	for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2009 15:00:42 +0200 (CEST)
+In-Reply-To: <1251464215-6540-4-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, alan-jenkins@tuffmail.co.uk, Corentin Chary <corentincj@iksaif.net>, Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-acpi@vger.kernel.org, alan-jenkins@tuffmail.co.uk, Corentin Chary <corentincj@iksaif.net>
 
-Also fix Documentation/led-class.txt, the acceptable
-range of values for brightness is 0-max_brightness, not 0-255.
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Cc: Richard Purdie <rpurdie@rpsys.net>
+1. input and backlight devices were registered after acpi notifications
+   are enabled.  This left a window where eeepc_hotk_notify() might
+   find these devices in an inconsistent (half-initialized) state.
+
+-> Move all device registration into eeepc_hotk_add(), which is called
+   before enabling acpi notifications.
+
+2. input and backlight devices were unregistered before acpi
+   notifications are disabled.  This left a window where
+   eeepc_hotk_notify() might find these devices in an inconsistent
+   (half-destroyed) state.
+
+-> Move all device unregistration into eeepc_hotk_remove(), which is
+   called after disabling acpi notifications.
+
+3. The acpi driver was not freed if an error occured further down in
+   eeepc_laptop_init().
+
+-> The rest of eeepc_laptop_init() has been moved to eeepc_hotk_add(),
+   so this is no longer a problem.
+
+4. The acpi driver was unregistered before the platform driver.  This
+   left a window where a sysfs access could attempt to read the ehotk
+   structure after it had been freed by eeepc_hotk_remove().
+
+-> The acpi driver is now unregistered as the last step in
+   eeepc_laptop_exit(), so this is no longer a problem.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- Documentation/ABI/testing/sysfs-class-led |   28 ++++++++++++++++++++++++++++
- Documentation/leds-class.txt              |    9 +++++----
- 2 files changed, 33 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-class-led
+ drivers/platform/x86/eeepc-laptop.c |  120 +++++++++++++++++------------------
+ 1 files changed, 59 insertions(+), 61 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-class-led b/Documentation/ABI/testing/sysfs-class-led
-new file mode 100644
-index 0000000..9e4541d
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-led
-@@ -0,0 +1,28 @@
-+What:		/sys/class/leds/<led>/brightness
-+Date:		March 2006
-+KernelVersion:	2.6.17
-+Contact:	Richard Purdie <rpurdie@rpsys.net>
-+Description:
-+		Set the brightness of the LED. Most LEDs don't
-+		have hardware brightness support so will just be turned on for
-+		non-zero brightness settings. The value is between 0 and
-+		/sys/class/leds/<led>/max_brightness.
-+
-+What:		/sys/class/leds/<led>/max_brightness
-+Date:		March 2006
-+KernelVersion:	2.6.17
-+Contact:	Richard Purdie <rpurdie@rpsys.net>
-+Description:
-+		Maximum brightness level for this led, default is 255 (LED_FULL).
-+
-+What:		/sys/class/leds/<led>/trigger
-+Date:		March 2006
-+KernelVersion:	2.6.17
-+Contact:	Richard Purdie <rpurdie@rpsys.net>
-+Description:
-+		Set the trigger for this LED. A trigger is a kernel based source
-+		of led events.
-+		You can change triggers in a similar manner to the way an IO
-+		scheduler is chosen. Trigger specific parameters can appear in
-+		/sys/class/leds/<led> once a given trigger is selected.
-+
-diff --git a/Documentation/leds-class.txt b/Documentation/leds-class.txt
-index 6399557..8fd5ca2 100644
---- a/Documentation/leds-class.txt
-+++ b/Documentation/leds-class.txt
-@@ -1,3 +1,4 @@
-+
- LED handling under Linux
- ========================
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 8dd86f7..cf47d1c 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -847,44 +847,6 @@ error_slot:
+ 	return ret;
+ }
  
-@@ -5,10 +6,10 @@ If you're reading this and thinking about keyboard leds, these are
- handled by the input subsystem and the led class is *not* needed.
+-static int eeepc_hotk_add(struct acpi_device *device)
+-{
+-	int result;
+-
+-	if (!device)
+-		 return -EINVAL;
+-	pr_notice(EEEPC_HOTK_NAME "\n");
+-	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
+-	if (!ehotk)
+-		return -ENOMEM;
+-	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
+-	ehotk->handle = device->handle;
+-	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
+-	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
+-	device->driver_data = ehotk;
+-	ehotk->device = device;
+-	result = eeepc_hotk_check();
+-	if (result)
+-		goto ehotk_fail;
+-
+-	return 0;
+-
+- ehotk_fail:
+-	kfree(ehotk);
+-	ehotk = NULL;
+-
+-	return result;
+-}
+-
+-static int eeepc_hotk_remove(struct acpi_device *device, int type)
+-{
+-	if (!device || !acpi_driver_data(device))
+-		 return -EINVAL;
+-
+-	kfree(ehotk);
+-	return 0;
+-}
+-
+ static int eeepc_hotk_resume(struct acpi_device *device)
+ {
+ 	if (ehotk->wlan_rfkill) {
+@@ -1066,19 +1028,6 @@ static void eeepc_hwmon_exit(void)
+ 	eeepc_hwmon_device = NULL;
+ }
  
- In its simplest form, the LED class just allows control of LEDs from
--userspace. LEDs appear in /sys/class/leds/. The brightness file will
--set the brightness of the LED (taking a value 0-255). Most LEDs don't
--have hardware brightness support so will just be turned on for non-zero
--brightness settings.
-+userspace. LEDs appear in /sys/class/leds/. The maximum brightness of the
-+LED is defined in max_brightness file. The brightness file will set the brightness
-+of the LED (taking a value 0-max_brightness). Most LEDs don't have hardware
-+brightness support so will just be turned on for non-zero brightness settings.
+-static void __exit eeepc_laptop_exit(void)
+-{
+-	eeepc_backlight_exit();
+-	eeepc_rfkill_exit();
+-	eeepc_input_exit();
+-	eeepc_hwmon_exit();
+-	acpi_bus_unregister_driver(&eeepc_hotk_driver);
+-	sysfs_remove_group(&platform_device->dev.kobj,
+-			   &platform_attribute_group);
+-	platform_device_unregister(platform_device);
+-	platform_driver_unregister(&platform_driver);
+-}
+-
+ static int eeepc_new_rfkill(struct rfkill **rfkill,
+ 			    const char *name, struct device *dev,
+ 			    enum rfkill_type type, int cm)
+@@ -1193,21 +1142,27 @@ static int eeepc_hwmon_init(struct device *dev)
+ 	return result;
+ }
  
- The class also introduces the optional concept of an LED trigger. A trigger
- is a kernel based source of led events. Triggers can either be simple or
+-static int __init eeepc_laptop_init(void)
++static int eeepc_hotk_add(struct acpi_device *device)
+ {
+ 	struct device *dev;
+ 	int result;
+ 
+-	if (acpi_disabled)
+-		return -ENODEV;
+-	result = acpi_bus_register_driver(&eeepc_hotk_driver);
+-	if (result < 0)
+-		return result;
+-	if (!ehotk) {
+-		acpi_bus_unregister_driver(&eeepc_hotk_driver);
+-		return -ENODEV;
+-	}
++	if (!device)
++		 return -EINVAL;
++	pr_notice(EEEPC_HOTK_NAME "\n");
++	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
++	if (!ehotk)
++		return -ENOMEM;
++	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
++	ehotk->handle = device->handle;
++	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
++	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
++	device->driver_data = ehotk;
++	ehotk->device = device;
+ 
++	result = eeepc_hotk_check();
++	if (result)
++		goto fail_check;
+ 	eeepc_enable_camera();
+ 
+ 	/* Register platform stuff */
+@@ -1246,6 +1201,7 @@ static int __init eeepc_laptop_init(void)
+ 		goto fail_rfkill;
+ 
+ 	return 0;
++
+ fail_rfkill:
+ 	eeepc_hwmon_exit();
+ fail_hwmon:
+@@ -1261,8 +1217,50 @@ fail_platform_device1:
+ 	platform_driver_unregister(&platform_driver);
+ fail_platform_driver:
+ 	eeepc_input_exit();
++fail_check:
++	kfree(ehotk);
++
+ 	return result;
+ }
+ 
++static int eeepc_hotk_remove(struct acpi_device *device, int type)
++{
++	if (!device || !acpi_driver_data(device))
++		 return -EINVAL;
++
++	eeepc_backlight_exit();
++	eeepc_rfkill_exit();
++	eeepc_input_exit();
++	eeepc_hwmon_exit();
++	sysfs_remove_group(&platform_device->dev.kobj,
++			   &platform_attribute_group);
++	platform_device_unregister(platform_device);
++	platform_driver_unregister(&platform_driver);
++
++	kfree(ehotk);
++	return 0;
++}
++
++static int __init eeepc_laptop_init(void)
++{
++	int result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++	result = acpi_bus_register_driver(&eeepc_hotk_driver);
++	if (result < 0)
++		return result;
++	if (!ehotk) {
++		acpi_bus_unregister_driver(&eeepc_hotk_driver);
++		return -ENODEV;
++	}
++	return 0;
++}
++
++static void __exit eeepc_laptop_exit(void)
++{
++	acpi_bus_unregister_driver(&eeepc_hotk_driver);
++}
++
+ module_init(eeepc_laptop_init);
+ module_exit(eeepc_laptop_exit);
 -- 
 1.6.4
 
