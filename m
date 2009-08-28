@@ -1,87 +1,37 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] thinkpad-acpi: use correct key names for sleep states
- in driver
-Date: Thu, 27 Aug 2009 21:34:16 -0300
-Message-ID: <20090828003416.GB11195@khazad-dum.debian.net>
-References: <20090302112400.GA2356@khazad-dum.debian.net>
- <1236164049.3936.17.camel@hughsie-work.lan>
- <20090304120439.GA31850@khazad-dum.debian.net>
- <1250625730.2257.11.camel@hidalgo>
- <20090818201002.GA32638@srcf.ucam.org>
- <1251286574.32399.3.camel@miria>
- <20090826134349.GA12404@srcf.ucam.org>
- <1251309161.10837.6.camel@hidalgo>
- <20090826225111.GC23973@khazad-dum.debian.net>
- <20090827065011.10E78526EC9@mailhub.coreip.homeip.net>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [RESEND PATCH] ACPICA: fix leak of acpi_os_validate_address
+Date: Fri, 28 Aug 2009 09:17:09 +0800
+Message-ID: <1251422229.3282.22.camel@minggr.sh.intel.com>
+References: <1250131948.4044.5.camel@minggr.sh.intel.com>
+	 <alpine.LFD.2.00.0908271307240.7792@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60688 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750753AbZH1AeU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Aug 2009 20:34:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20090827065011.10E78526EC9@mailhub.coreip.homeip.net>
+Received: from mga09.intel.com ([134.134.136.24]:13065 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751022AbZH1BVZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Aug 2009 21:21:25 -0400
+In-Reply-To: <alpine.LFD.2.00.0908271307240.7792@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Yves-Alexis Perez <corsac@debian.org>, Matthew Garrett <mjg@redhat.com>, Richard Hughes <hughsient@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Peter Hutterer <peter.hutterer@redhat.com>, linux-input <linux-input@vger.kernel.org>, Matthias Clasen <mclasen@redhat.com>, aliov@xfce.org
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, 26 Aug 2009, Dmitry Torokhov wrote:
-> On Wed, Aug 26, 2009 at 07:51:11PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Wed, 26 Aug 2009, Yves-Alexis Perez wrote:
-> > > On mer, 2009-08-26 at 14:43 +0100, Matthew Garrett wrote:
-> > > > On Wed, Aug 26, 2009 at 01:36:14PM +0200, Yves-Alexis Perez wrote:
-> > > > > #define XF86XK_Suspend    0x1008FFA7   /* Sleep to RAM                */        
-> > > > > #define XF86XK_Hibernate  0x1008FFA8   /* Sleep to disk               */
-> > > > > 
-> > > > > So (some) userspace seems to have switched already?
-> > > > 
-> > > > Adding those keysyms was, with hindsight, an error.
-> > > 
-> > > Ok, so every userland app which began the transition should step back
-> > > until a correct migration plan is set up?
-> > 
-> > IMHO it would be both easier and faster to deploy a proper migration plan
-> > and keep going.  Nobody said the names used by X.org keysyms have to agree
-> > with the ones used by input devices, for example... and a mapping table is
-> > already used anyway.
-> > 
-> > So, userspace can use the X keysyms like the above. There's nothing wrong
-> > with it.  But the correct mapping for kernel input events to those keysyms
-> > is AND WILL REMAIN:
-> > 
-> > KEY_SLEEP -> XF86XK_Suspend
-> > KEY_SUSPEND -> XF86XK_Hibernate
-> > 
-> > If people want to define two new input events, say KEY_SUSPENDTORAM and
-> > KEY_SUSPENDTODISK, start migrating the kernel drivers to use these two, and
-> > after some time with no use of KEY_SLEEP in the kernel, reclaim it to
-> > be a generic "sleep the system in some unspecified way", I'd be fine with
-> > it.
-> > 
-> > So, you'd have:
-> > KEY_SLEEP -> XF86XK_Suspend
-> > KEY_SUSPENDTORAM -> XF86XK_Suspend
-> > KEY_SUSPEND -> XF86XK_Hibernate
-> > KEY_SUSPENDTODISK -> XF86XK_Hibernate
-> > 
-> > I'd guess the only thing that could make us break that ABI the way people
-> > wanted us to (i.e. change the meaning of KEY_SUSPEND and KEY_SLEEP, and add
-> > a new KEY_HIBERNATE), is a proof that we got the USB HID table wrong and
-> > that USB keyboards are doing the wrong thing because of it.
+On Fri, 2009-08-28 at 01:09 +0800, Len Brown wrote:
+> it is easier to apply patches when they do not appear multiple times
+> in the e-mail message...
 > 
-> Would not it be easier just to adjust HID in this case?
+> why does acpi_os_invalidate_address() need a return value other than void?
 
-Your call.  I really don't know what the USB HID spec wants KEY_foo to mean,
-and I don't know if we got it wrong or not.  I know I used KEY_SLEEP and
-KEY_SUSPEND in thinkpad-acpi because those are the mappings the rest of the
-kernel uses.  The thinkpad hotkeys *do* have sleep-to-ram and sleep-to-disk
-context, they're not generic "sleep" keys.
+Just for extension, maybe some future usage.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Lin Ming
+
+> 
+> applied to acpi-test
+> 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+
