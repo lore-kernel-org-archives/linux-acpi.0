@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 23/24] asus-laptop: document the module
-Date: Fri, 28 Aug 2009 14:56:54 +0200
-Message-ID: <1251464215-6540-24-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 09/24] eeepc-laptop: switch to dev_pm_ops
+Date: Fri, 28 Aug 2009 14:56:40 +0200
+Message-ID: <1251464215-6540-10-git-send-email-corentincj@iksaif.net>
 References: <1251464215-6540-1-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-2-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-3-git-send-email-corentincj@iksaif.net>
@@ -11,301 +11,116 @@ References: <1251464215-6540-1-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-7-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-8-git-send-email-corentincj@iksaif.net>
  <1251464215-6540-9-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-10-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-11-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-12-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-13-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-14-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-15-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-16-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-17-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-18-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-19-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-20-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-21-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-22-git-send-email-corentincj@iksaif.net>
- <1251464215-6540-23-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp22.services.sfr.fr ([93.17.128.11]:60914 "EHLO
+Received: from smtp22.services.sfr.fr ([93.17.128.12]:61346 "EHLO
 	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbZH1NDl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2009 09:03:41 -0400
-In-Reply-To: <1251464215-6540-23-git-send-email-corentincj@iksaif.net>
+	with ESMTP id S1751128AbZH1NDm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2009 09:03:42 -0400
+Received: from smtp22.services.sfr.fr (msfrf2206 [10.18.26.20])
+	by msfrf2210.sfr.fr (SMTP Server) with ESMTP id 26CB2700255D
+	for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2009 15:03:43 +0200 (CEST)
+In-Reply-To: <1251464215-6540-9-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, alan-jenkins@tuffmail.co.uk, Corentin Chary <corentincj@iksaif.net>
 
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+
+This also involves switching the resume handler from the acpi device
+to the platform device.  Using the more fine grained handlers allows
+two improvements:
+
+1. We only need to recheck rfkill state after resume from hibernation.
+
+2. The wireless LED workaround accounts for up to 1.1s out of 1.7s
+resuming devices (when wireless is enabled).  We can limit the
+workaround to thaw(), so that it only delays suspend to disk.
+
+The workaround is only likely to help when hibernation is aborted.
+Suspend to ram cannot be aborted by the user.  Device suspend errors may
+well happen before eeepc-laptop would even be frozen.  Suspend errors
+which happen after that could be pretty funky anyway.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- Documentation/laptops/asus-laptop.txt |  258 +++++++++++++++++++++++++++++++++
- 1 files changed, 258 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/laptops/asus-laptop.txt
+ drivers/platform/x86/eeepc-laptop.c |   25 +++++++++++++++++++------
+ 1 files changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/laptops/asus-laptop.txt b/Documentation/laptops/asus-laptop.txt
-new file mode 100644
-index 0000000..c1c5be8
---- /dev/null
-+++ b/Documentation/laptops/asus-laptop.txt
-@@ -0,0 +1,258 @@
-+Asus Laptop Extras
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index df68ae6..1c94860 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -150,10 +150,19 @@ struct eeepc_hotk {
+ static struct eeepc_hotk *ehotk;
+ 
+ /* Platform device/driver */
++static int eeepc_hotk_thaw(struct device *device);
++static int eeepc_hotk_restore(struct device *device);
 +
-+Version 0.1
-+August 6, 2009
++static struct dev_pm_ops eeepc_pm_ops = {
++	.thaw = eeepc_hotk_thaw,
++	.restore = eeepc_hotk_restore,
++};
 +
-+Corentin Chary <corentincj@iksaif.net>
-+http://acpi4asus.sf.net/
+ static struct platform_driver platform_driver = {
+ 	.driver = {
+ 		.name = EEEPC_HOTK_FILE,
+ 		.owner = THIS_MODULE,
++		.pm = &eeepc_pm_ops,
+ 	}
+ };
+ 
+@@ -192,7 +201,6 @@ static struct key_entry eeepc_keymap[] = {
+  */
+ static int eeepc_hotk_add(struct acpi_device *device);
+ static int eeepc_hotk_remove(struct acpi_device *device, int type);
+-static int eeepc_hotk_resume(struct acpi_device *device);
+ static void eeepc_hotk_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id eeepc_device_ids[] = {
+@@ -209,7 +217,6 @@ static struct acpi_driver eeepc_hotk_driver = {
+ 	.ops = {
+ 		.add = eeepc_hotk_add,
+ 		.remove = eeepc_hotk_remove,
+-		.resume = eeepc_hotk_resume,
+ 		.notify = eeepc_hotk_notify,
+ 	},
+ };
+@@ -821,7 +828,7 @@ error_slot:
+ 	return ret;
+ }
+ 
+-static int eeepc_hotk_resume(struct acpi_device *device)
++static int eeepc_hotk_thaw(struct device *device)
+ {
+ 	if (ehotk->wlan_rfkill) {
+ 		bool wlan;
+@@ -829,14 +836,20 @@ static int eeepc_hotk_resume(struct acpi_device *device)
+ 		/*
+ 		 * Work around bios bug - acpi _PTS turns off the wireless led
+ 		 * during suspend.  Normally it restores it on resume, but
+-		 * we should kick it ourselves in case suspend is aborted.
++		 * we should kick it ourselves in case hibernation is aborted.
+ 		 */
+ 		wlan = get_acpi(CM_ASL_WLAN);
+ 		set_acpi(CM_ASL_WLAN, wlan);
++	}
 +
-+ This driver provides support for extra features of ACPI-compatible ASUS laptops.
-+ It may also support some MEDION, JVC or VICTOR laptops (such as MEDION 9675 or
-+ VICTOR XP7210 for example). It makes all the extra buttons generate standard
-+ ACPI events that go through /proc/acpi/events and input events (like keyboards).
-+ On some models adds support for changing the display brightness and output,
-+ switching the LCD backlight on and off, and most importantly, allows you to
-+ blink those fancy LEDs intended for reporting mail and wireless status.
-+
-+This driver supercedes the old asus_acpi driver.
-+
-+Requirements
-+------------
-+
-+  Kernel 2.6.X sources, configured for your computer, with ACPI support.
-+  You also need CONFIG_INPUT and CONFIG_ACPI.
-+
-+Status
-+------
-+
-+ The features currently supported are the following (see below for
-+ detailed description):
-+
-+ - Fn key combinations
-+ - Bluetooth enable and disable
-+ - Wlan enable and disable
-+ - GPS enable and disable
-+ - Video output switching
-+ - Ambient Light Sensor on and off
-+ - LED control
-+ - LED Display control
-+ - LCD brightness control
-+ - LCD on and off
-+
-+ A compatibility table by model and feature is maintained on the web
-+ site, http://acpi4asus.sf.net/.
-+
-+Usage
-+-----
-+
-+  Try "modprobe asus_acpi". Check your dmesg (simply type dmesg). You should
-+  see some lines like this :
-+
-+      Asus Laptop Extras version 0.42
-+        L2D model detected.
-+
-+  If it is not the output you have on your laptop, send it (and the laptop's
-+  DSDT) to me.
-+
-+  That's all, now, all the events generated by the hotkeys of your laptop
-+  should be reported in your /proc/acpi/event entry. You can check with
-+  "acpi_listen".
-+
-+  Hotkeys are also reported as input keys (like keyboards) you can check
-+  which key are supported using "xev" under X11.
-+
-+  You can get informations on the version of your DSDT table by reading the
-+  /sys/devices/platform/asus-laptop/infos entry. If you have a question or a
-+  bug report to do, please include the output of this entry.
-+
-+LEDs
-+----
-+
-+  You can modify LEDs be echoing values to /sys/class/leds/asus::*/brightness :
-+    echo 1 >  /sys/class/leds/asus::mail/brightness
-+  will switch the mail LED on.
-+  You can also know if they are on/off by reading their content and use
-+  kernel triggers like ide-disk or heartbeat.
-+
-+Backlight
-+---------
-+
-+  You can control lcd backlight power and brightness with
-+  /sys/class/backlight/asus-laptop/. Brightness Values are between 0 and 15.
-+
-+Wireless devices
-+---------------
-+
-+  You can turn the internal Bluetooth adapter on/off with the bluetooth entry
-+  (only on models with Bluetooth). This usually controls the associated LED.
-+  Same for Wlan adapter.
-+
-+Display switching
-+-----------------
-+
-+  Note: the display switching code is currently considered EXPERIMENTAL.
-+
-+  Switching works for the following models:
-+    L3800C
-+    A2500H
-+    L5800C
-+    M5200N
-+    W1000N (albeit with some glitches)
-+    M6700R
-+    A6JC
-+    F3J
-+
-+  Switching doesn't work for the following:
-+    M3700N
-+    L2X00D (locks the laptop under certain conditions)
-+
-+  To switch the displays, echo values from 0 to 15 to
-+  /sys/devices/platform/asus-laptop/display. The significance of those values
-+  is as follows:
-+
-+  +-------+-----+-----+-----+-----+-----+
-+  | Bin   | Val | DVI | TV  | CRT | LCD |
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0000  +   0 +     +     +     +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0001  +   1 +     +     +     +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0010  +   2 +     +     +  X  +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0011  +   3 +     +     +  X  +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0100  +   4 +     +  X  +     +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0101  +   5 +     +  X  +     + X   +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0110  +   6 +     +  X  +  X  +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 0111  +   7 +     +  X  +  X  +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1000  +   8 +  X  +     +     +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1001  +   9 +  X  +     +     +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1010  +  10 +  X  +     +  X  +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1011  +  11 +  X  +     +  X  +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1100  +  12 +  X  +  X  +     +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1101  +  13 +  X  +  X  +     +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1110  +  14 +  X  +  X  +  X  +     +
-+  +-------+-----+-----+-----+-----+-----+
-+  + 1111  +  15 +  X  +  X  +  X  +  X  +
-+  +-------+-----+-----+-----+-----+-----+
-+
-+  In most cases, the appropriate displays must be plugged in for the above
-+  combinations to work. TV-Out may need to be initialized at boot time.
-+
-+  Debugging:
-+  1) Check whether the Fn+F8 key:
-+     a) does not lock the laptop (try disabling CONFIG_X86_UP_APIC or boot with
-+        noapic / nolapic if it does)
-+     b) generates events (0x6n, where n is the value corresponding to the
-+        configuration above)
-+     c) actually works
-+     Record the disp value at every configuration.
-+  2) Echo values from 0 to 15 to /sys/devices/platform/asus-laptop/display.
-+     Record its value, note any change. If nothing changes, try a broader range,
-+     up to 65535.
-+  3) Send ANY output (both positive and negative reports are needed, unless your
-+     machine is already listed above) to the acpi4asus-user mailing list.
-+
-+  Note: on some machines (e.g. L3C), after the module has been loaded, only 0x6n
-+  events are generated and no actual switching occurs. In such a case, a line
-+  like:
-+
-+    echo $((10#$arg-60)) > /sys/devices/platform/asus-laptop/display
-+
-+  will usually do the trick ($arg is the 0000006n-like event passed to acpid).
-+
-+  Note: there is currently no reliable way to read display status on xxN
-+  (Centrino) models.
-+
-+LED display
-+-----------
-+
-+  Some models like the W1N have a LED display that can be used to display
-+  several informations.
-+
-+  LED display works for the following models:
-+    W1000N
-+    W1J
-+
-+  To control the LED display, use the following :
-+
-+    echo 0x0T000DDD > /sys/devices/platform/asus-laptop/
-+
-+  where T control the 3 letters display, and DDD the 3 digits display,
-+  according to the tables below.
-+
-+         DDD (digits)
-+         000 to 999 = display digits
-+         AAA        = ---
-+         BBB to FFF = turn-off
-+
-+         T  (type)
-+         0 = off
-+         1 = dvd
-+         2 = vcd
-+         3 = mp3
-+         4 = cd
-+         5 = tv
-+         6 = cpu
-+         7 = vol
-+
-+  For example "echo 0x01000001 >/sys/devices/platform/asus-laptop/ledd"
-+  would display "DVD001".
-+
-+Driver options:
-+---------------
-+
-+ Options can be passed to the asus-laptop driver using the standard
-+ module argument syntax (<param>=<value> when passing the option to the
-+ module or asus-laptop.<param>=<value> on the kernel boot line when
-+ asus-laptop is statically linked into the kernel).
-+
-+	     wapf: WAPF defines the behavior of the Fn+Fx wlan key
-+		   The significance of values is yet to be found, but
-+		   most of the time:
-+		   - 0x0 should do nothing
-+		   - 0x1 should allow to control the device with Fn+Fx key.
-+		   - 0x4 should send an ACPI event (0x88) while pressing the Fn+Fx key
-+		   - 0x5 like 0x1 or 0x4
-+
-+ The default value is 0x1.
-+
-+Unsupported models
-+------------------
-+
-+ These models will never be supported by this module, as they use a completely
-+ different mechanism to handle LEDs and extra stuff (meaning we have no clue
-+ how it works):
-+
-+ - ASUS A1300 (A1B), A1370D
-+ - ASUS L7300G
-+ - ASUS L8400
-+
-+Patches, Errors, Questions:
-+--------------------------
-+
-+ I appreciate any success or failure
-+ reports, especially if they add to or correct the compatibility table.
-+ Please include the following information in your report:
-+
-+ - Asus model name
-+ - a copy of your ACPI tables, using the "acpidump" utility
-+ - a copy of /sys/devices/platform/asus-laptop/infos
-+ - which driver features work and which don't
-+ - the observed behavior of non-working features
-+
-+ Any other comments or patches are also more than welcome.
-+
-+ acpi4asus-user@lists.sourceforge.net
-+ http://sourceforge.net/projects/acpi4asus
-+
++	return 0;
++}
+ 
+-		/* Refresh both rfkill state and pci hotplug */
++static int eeepc_hotk_restore(struct device *device)
++{
++	/* Refresh both wlan rfkill state and pci hotplug */
++	if (ehotk->wlan_rfkill)
+ 		eeepc_rfkill_hotplug();
+-	}
+ 
+ 	if (ehotk->bluetooth_rfkill)
+ 		rfkill_set_sw_state(ehotk->bluetooth_rfkill,
 -- 
 1.6.4
 
