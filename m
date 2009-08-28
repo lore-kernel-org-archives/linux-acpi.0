@@ -1,59 +1,41 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
-Date: Fri, 28 Aug 2009 15:59:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908281548140.2865-100000@iolanthe.rowland.org>
-References: <200908282138.14602.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] thinkpad-acpi: don't ask about brightness_mode for fw.
+ 1V and 1R
+Date: Fri, 28 Aug 2009 19:02:33 -0300
+Message-ID: <20090828220233.GB30331@khazad-dum.debian.net>
+References: <1250440221-8185-1-git-send-email-hmh@hmh.eng.br>
+ <20090823125456.GB28731@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200908282138.14602.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:47546 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751859AbZH1WCg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Aug 2009 18:02:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20090823125456.GB28731@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Fri, 28 Aug 2009, Rafael J. Wysocki wrote:
-
-> > Given this design, why bother to invoke device_resume() for the async 
-> > devices?  Why not just start up a bunch of async threads, each of which 
-> > calls async_resume() repeatedly until everything is finished?  (And 
-> > rearrange async_resume() to scan the list first and do the actual 
-> > resume second.)
-> > 
-> > The same goes for the noirq versions.
+On Sun, 23 Aug 2009, Henrique de Moraes Holschuh wrote:
+> On Sun, 16 Aug 2009, Henrique de Moraes Holschuh wrote:
+> > X40 (firmware 1V) and T41 (firmware 1R) have been confirmed to work
+> > well with the new defaults, so we can stop pestering people to confirm
+> > that fact.
 > 
-> I thought about that, but there are a few things to figure out:
-> - how many threads to start
+> Len, if this could make it to mainline before the kernel is released, I
+> would be grateful.
+> 
+> It whitelists a large class of machines (all T4x models, and the X40 and
+> X41).
 
-That's a tough question.  Right now you start roughly as many threads
-as there are async devices.  That seems like overkill.
+Ping!
 
-I would expect that a reasonably small number of threads would suffice 
-to achieve most of the possible time savings.  Something on the order 
-of 10 should work well.  If the majority of the time is spent 
-handling N devices then N+1 threads would be enough.  Judging from some 
-of the comments posted earlier, even 4 threads would give a big 
-advantage.
-
-> - when to start them
-
-You might as well start them at the beginning of dpm_resume and 
-dpm_resume_noirq.  That way they can overlap with the synchronous 
-operations.
-
-> - stop condition
-
-When an error occurs or when op_started has been set for every 
-remaining async device.
-
-> I had a few ideas, but then I thought it would be simpler to start an async
-> thread when we know there's some async work to do (ie. there's an async
-> device to handle) and make each async thread browse the list just once (the
-> rationale is that we've just handled a device, so there's a chance there are
-> some devices with satisfied dependencies down the list).
-
-It comes down to this: Should there be many threads, each of which 
-browses the list only once, or should there be a few threads, each of 
-which browses the list many times?
-
-Alan Stern
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
