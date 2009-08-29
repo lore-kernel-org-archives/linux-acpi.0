@@ -1,145 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
-Date: Sat, 29 Aug 2009 14:49:57 +0200
-Message-ID: <200908291449.57667.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908282146550.9540-100000@netrider.rowland.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 00/24] acpi4asus updates
+Date: Sat, 29 Aug 2009 14:14:24 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908291411500.24904@localhost.localdomain>
+References: <1251464215-6540-1-git-send-email-corentincj@iksaif.net>
+ <4A97F17E.3060908@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751457AbZH2Mt1@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908282146550.9540-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:25172 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770AbZH2SOk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 14:14:40 -0400
+Received: from localhost.localdomain ([64.140.212.33])
+ by vms173009.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KP500H5SHC2QIC1@vms173009.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 29 Aug 2009 13:14:32 -0500 (CDT)
+In-reply-to: <4A97F17E.3060908@tuffmail.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Corentin Chary <corentincj@iksaif.net>, linux-acpi@vger.kernel.org
 
-On Saturday 29 August 2009, Alan Stern wrote:
-> On Sat, 29 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > On Friday 28 August 2009, Alan Stern wrote:
-> > > On Fri, 28 Aug 2009, Rafael J. Wysocki wrote:
-> > > 
-> > > > > Given this design, why bother to invoke device_resume() for the async 
-> > > > > devices?  Why not just start up a bunch of async threads, each of which 
-> > > > > calls async_resume() repeatedly until everything is finished?  (And 
-> > > > > rearrange async_resume() to scan the list first and do the actual 
-> > > > > resume second.)
-> > > > > 
-> > > > > The same goes for the noirq versions.
-> > > > 
-> > > > I thought about that, but there are a few things to figure out:
-> > > > - how many threads to start
-> > > 
-> > > That's a tough question.  Right now you start roughly as many threads
-> > > as there are async devices.  That seems like overkill.
+On Fri, 28 Aug 2009, Alan Jenkins wrote:
+
+> Corentin Chary wrote:
+> > Hi Len,
+> > Here is acpi4asus series for 2.6.32:
+> >  * eeepc-laptop bugfixes and updates.
+> >  * asus-laptop updates (keyboard backlight and new hotkeys).
+> >  * documentation on asus-laptop, eeepc-laptop, video/lcd,
+> >    video/backlight and leds.
 > > 
-> > In fact they are substantially fewer than that, for the following reasons.
-> > 
-> > First, the async framework will not start more than MAX_THREADS threads,
-> > which is 256 at the moment.  This number is less than the number of async
-> > devices to handle on an average system.
+> > Alan Jenkins (9):
+> >   eeepc-laptop: don't touch the pci slot if it was claimed by a
+> >     different driver
+> >   eeepc-laptop: use a mutex to serialize pci hotplug (resume vs.
+> >     notify)
+> >   
+> I'm hoping the two patches above will fix a regression on certain hardware,
+> and that they can be pushed into 2.6.31.  Or if they don't fix it, that the
+> commits responsible can be reverted - which will conflict with all the
+> eeepc-laptop patches.  So you may wish to hold back on eeepc-laptop.
 > 
-> Okay, but MAX_THREADS isn't under your control.  Remember also that 
-> each thread takes up some memory, and during hibernation we are in a 
-> memory-constrained situation.
+> See linux-acpi thread "[Debian-eeepc-devel] Problems with wlan on a 1005HA-M"
+> (regression in 2.6.31-rc6: suspend hangs and causes the wireless to be
+> disabled).
 
-We keep some extra free memory for things like this.  It's not likely to be
-exhausted by the async threads alone.
+Yes, I happened to read that thread (unlike many others that I have
+not yet read:-).  When we have clear testing results and know what to do
+we can do it.  If it is before Linus returns from vacation and cuts .31,
+that is fine.  If not, we can always repair in .stable.
 
-> > Second, no new async threads are started while the main thread is handling the
-> > sync devices , so the existing threads have a chance to do their job.  If
-> > there's a "cluster" of sync devices in dpm_list, the number of async threads
-> > running is likely to drop rapidly while those devices are being handled.
-> > (BTW, if there were no sync devices, the whole thing would be much simpler,
-> > but I don't think it's realistic to assume we'll be able to get rid of them any
-> > time soon).
-> 
-> Perhaps not, but it would be interesting to see what happens if every 
-> device is async.  Maybe you can try it and get a meaningful result.
-
-I could if it didn't crash.  Perhaps I can with init=/bin/bash.
-
-> > Finally, but not least importantly, async threads are not started for the
-> > async devices that were previously handled "out of order" by the already
-> > running async threads (or by async threads that have already finished).  My
-> > testing shows that there are quite a few of them on the average.  For example,
-> > on the HP nx6325 typically there are as many as 580 async devices handled "out
-> > of order" during a _single_ suspend-resume cycle (including the "early" and
-> > "late" phases), while only a few (below 10) devices are waited for by at least
-> > one async thread.
-> 
-> That is a difficult sort of thing to know in advance.  It ought to be 
-> highly influenced by the percentage of async devices; that's another 
-> reason for wanting to know what happens when every device is async.
-
-There are a few factors beyond our direct control influencing this, like for
-example how much time it takes to handle each individual device (that may
-vary from .5 s to microseconds AFAICS).
-
-In addition to this not only the percentage, but also the distribution of sync
-devices in dpm_list has an effect.  For example, the situations where every
-second device is sync and where the first half of devices are async and the
-other is sync would lead to different kinds of behavior.
-
-> > > I would expect that a reasonably small number of threads would suffice 
-> > > to achieve most of the possible time savings.  Something on the order 
-> > > of 10 should work well.  If the majority of the time is spent 
-> > > handling N devices then N+1 threads would be enough.  Judging from some 
-> > > of the comments posted earlier, even 4 threads would give a big 
-> > > advantage.
-> > 
-> > That unfortunately is not the case with the set of async devices including
-> > PCI, ACPI and serio devices only.  The average time savings are between 5% to
-> > 14%, depending on the system and the phase of the cycle (the relative savings
-> > are typically greater for suspend).  Still, that amounts to .5 s in some cases.
-> 
-> Without context it's hard to be sure, but I don't think your numbers 
-> contradict what I said.  If you get between 5% and 14% time savings 
-> with 14 threads, then you might get between 4% and 10% savings with 
-> only 4 threads.
-
-I only wanted to say that the advantage is not really that "big". :-)
-
-> I must agree, 14 threads isn't a lot.  But at the moment that number is 
-> random, not under your control.
-
-It's not directly controlled, but there are some interactions between the
-async threads, the main threads and the async framework that don't allow this
-number to grow too much.
-
-IMO it sometimes is better to allow things to work themselves out, as long as
-they don't explode, than to try to keep everything under strict control.  YMMV.
-
-> > > > - when to start them
-> > > 
-> > > You might as well start them at the beginning of dpm_resume and 
-> > > dpm_resume_noirq.  That way they can overlap with the synchronous 
-> > > operations.
-> > 
-> > In that case they would have to wait in the beginning, so I'd need a mechanism
-> > to wake them up.
-> 
-> You already have two such mechanisms: dpm_list_mtx and the embedded 
-> wait_queue_heads.  Although in the scheme I'm proposing, no async 
-> threads would ever have to wait on a per-device waitqueue.  A 
-> system-wide waitqueue might work out better (for use when a thread 
-> reaches the end of the list and then waits before starting over at the 
-> beginning).
-
-However, sync devices may depend on the async ones and they need the
-per-device wait queues for this purpose.
-
-> > Alternatively, there could be a limit to the number of async threads started
-> > within the current design, but I'd prefer to leave that to the async framework
-> > (namely, if MAX_THREADS makes sense for boot, it's also likely to make sense
-> > for PM).
-> 
-> Strictly speaking, a new thread should be started only when needed.  
-> That is, only when all the existing threads are busy running a 
-> callback.  It shouldn't be too hard to keep track of when that happens.
-
-The async framework does that for us. :-)
-
-Thanks,
-Rafael
+thanks,
+Len Brown, Intel Open Source technolgy Center.
