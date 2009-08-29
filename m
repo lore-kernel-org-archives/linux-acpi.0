@@ -1,122 +1,61 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
-Date: Fri, 28 Aug 2009 22:06:19 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908282146550.9540-100000@netrider.rowland.org>
-References: <200908290022.00446.rjw@sisk.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH 00/11] SFI: Simple Firmware Interface - v3
+Date: Sat, 29 Aug 2009 09:34:55 +0200
+Message-ID: <20090829073455.GA27559@elte.hu>
+References: <1250282295-25216-1-git-send-email-lenb@kernel.org> <20090817100628.GA21498@elte.hu> <alpine.LFD.2.00.0908281949560.27023@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751546AbZH2CGU@vger.kernel.org>
-In-Reply-To: <200908290022.00446.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:46892 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751877AbZH2HfI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Aug 2009 03:35:08 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0908281949560.27023@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: x86@kernel.org, sfi-devel@simplefirmware.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, 29 Aug 2009, Rafael J. Wysocki wrote:
 
-> On Friday 28 August 2009, Alan Stern wrote:
-> > On Fri, 28 Aug 2009, Rafael J. Wysocki wrote:
+* Len Brown <lenb@kernel.org> wrote:
+
+> 
+> > Ok, this iteration is even nicer.
+> 
+> Thank you, Ingo, both for the thoughtful review,
+> and your kind words.
+> 
+> >   Reviewed-by: Ingo Molnar <mingo@elte.hu>
 > > 
-> > > > Given this design, why bother to invoke device_resume() for the async 
-> > > > devices?  Why not just start up a bunch of async threads, each of which 
-> > > > calls async_resume() repeatedly until everything is finished?  (And 
-> > > > rearrange async_resume() to scan the list first and do the actual 
-> > > > resume second.)
-> > > > 
-> > > > The same goes for the noirq versions.
-> > > 
-> > > I thought about that, but there are a few things to figure out:
-> > > - how many threads to start
+> > A patch technical request/suggestion. I guess you'd like to keep 
+> > these bits in the ACPI tree, so that you can test it and merge it 
+> > with ongoing ACPI changes, right?
 > > 
-> > That's a tough question.  Right now you start roughly as many threads
-> > as there are async devices.  That seems like overkill.
-> 
-> In fact they are substantially fewer than that, for the following reasons.
-> 
-> First, the async framework will not start more than MAX_THREADS threads,
-> which is 256 at the moment.  This number is less than the number of async
-> devices to handle on an average system.
-
-Okay, but MAX_THREADS isn't under your control.  Remember also that 
-each thread takes up some memory, and during hibernation we are in a 
-memory-constrained situation.
-
-> Second, no new async threads are started while the main thread is handling the
-> sync devices , so the existing threads have a chance to do their job.  If
-> there's a "cluster" of sync devices in dpm_list, the number of async threads
-> running is likely to drop rapidly while those devices are being handled.
-> (BTW, if there were no sync devices, the whole thing would be much simpler,
-> but I don't think it's realistic to assume we'll be able to get rid of them any
-> time soon).
-
-Perhaps not, but it would be interesting to see what happens if every 
-device is async.  Maybe you can try it and get a meaningful result.
-
-> Finally, but not least importantly, async threads are not started for the
-> async devices that were previously handled "out of order" by the already
-> running async threads (or by async threads that have already finished).  My
-> testing shows that there are quite a few of them on the average.  For example,
-> on the HP nx6325 typically there are as many as 580 async devices handled "out
-> of order" during a _single_ suspend-resume cycle (including the "early" and
-> "late" phases), while only a few (below 10) devices are waited for by at least
-> one async thread.
-
-That is a difficult sort of thing to know in advance.  It ought to be 
-highly influenced by the percentage of async devices; that's another 
-reason for wanting to know what happens when every device is async.
-
-> > I would expect that a reasonably small number of threads would suffice 
-> > to achieve most of the possible time savings.  Something on the order 
-> > of 10 should work well.  If the majority of the time is spent 
-> > handling N devices then N+1 threads would be enough.  Judging from some 
-> > of the comments posted earlier, even 4 threads would give a big 
-> > advantage.
-> 
-> That unfortunately is not the case with the set of async devices including
-> PCI, ACPI and serio devices only.  The average time savings are between 5% to
-> 14%, depending on the system and the phase of the cycle (the relative savings
-> are typically greater for suspend).  Still, that amounts to .5 s in some cases.
-
-Without context it's hard to be sure, but I don't think your numbers 
-contradict what I said.  If you get between 5% and 14% time savings 
-with 14 threads, then you might get between 4% and 10% savings with 
-only 4 threads.
-
-I must agree, 14 threads isn't a lot.  But at the moment that number is 
-random, not under your control.
-
-> > > - when to start them
+> > That would be fine to me for all the arch/x86/ touching patches, 
+> > except for this one:
 > > 
-> > You might as well start them at the beginning of dpm_resume and 
-> > dpm_resume_noirq.  That way they can overlap with the synchronous 
-> > operations.
+> >  [PATCH 05/11] ACPI, x86: expose some IO-APIC routines when CONFIG_ACPI=n
+> > 
+> > I'd like to pick this one up into tip:x86/apic, because there's 
+> > ongoing work in this area. (also, by the looks of it, i'd not be 
+> > surprised if this patch needed some testing. This is fragile code 
+> > with quirky Kconfig dependencies.)
+> > 
+> > I can create a standalone topic for this (based on .31-rc6), 
+> > containing this single commit, which you could pull into the ACPI 
+> > tree? That way we both can have this commit and nobody is held up, 
+> > and both trees can be pushed to Linus in the .32 merge window, 
+> > independently of each other.
 > 
-> In that case they would have to wait in the beginning, so I'd need a mechanism
-> to wake them up.
-
-You already have two such mechanisms: dpm_list_mtx and the embedded 
-wait_queue_heads.  Although in the scheme I'm proposing, no async 
-threads would ever have to wait on a per-device waitqueue.  A 
-system-wide waitqueue might work out better (for use when a thread 
-reaches the end of the list and then waits before starting over at the 
-beginning).
-
-> Alternatively, there could be a limit to the number of async threads started
-> within the current design, but I'd prefer to leave that to the async framework
-> (namely, if MAX_THREADS makes sense for boot, it's also likely to make sense
-> for PM).
-
-Strictly speaking, a new thread should be started only when needed.  
-That is, only when all the existing threads are busy running a 
-callback.  It shouldn't be too hard to keep track of when that happens.
-
-> > It comes down to this: Should there be many threads, each of which 
-> > browses the list only once, or should there be a few threads, each of 
-> > which browses the list many times?
+> Sure.
 > 
-> Well, quite obviously I prefer the many threads version. :-)
+> Go ahead and pull that patch onto an 2.6.31-rc8 based branch from here:
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-sfi-2.6.git for-ingo
+> 
+> As the previous patches did not depend on it, I simply rebased 
+> that one to rc8 and moved the other patches after it.
 
-Okay, clearly it's a matter of taste.  To me the many-threads version 
-seems less elegant and less well controlled.
+Pulled, thanks Len!
 
-Alan Stern
+	Ingo
