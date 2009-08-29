@@ -1,15 +1,15 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
 Subject: [PATCH] ACPI: EC: Merge IRQ and POLL modes
-Date: Sun, 30 Aug 2009 02:43:52 +0400
-Message-ID: <20090829224351.10587.35433.stgit@thinkpad>
+Date: Sun, 30 Aug 2009 03:06:14 +0400
+Message-ID: <20090829230613.15391.84344.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:36993 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:41785 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752046AbZH2Wnw (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 18:43:52 -0400
+	with ESMTP id S1752191AbZH2XGP (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 19:06:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -29,12 +29,12 @@ References: http://bugzilla.kernel.org/show_bug.cgi?id=12949
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- drivers/acpi/ec.c |  152 ++++++++++++++++-------------------------------------
- 1 files changed, 46 insertions(+), 106 deletions(-)
+ drivers/acpi/ec.c |  140 +++++++++++++++++------------------------------------
+ 1 files changed, 46 insertions(+), 94 deletions(-)
 
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 78f8380..839b542 100644
+index 391f331..839b542 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
 @@ -68,15 +68,13 @@ enum ec_command {
@@ -218,26 +218,16 @@ index 78f8380..839b542 100644
  end:
  	if (ec->global_lock)
  		acpi_release_global_lock(glk);
-@@ -365,17 +341,7 @@ static int acpi_ec_burst_enable(struct acpi_ec *ec)
+@@ -365,7 +341,7 @@ static int acpi_ec_burst_enable(struct acpi_ec *ec)
  				.wdata = NULL, .rdata = &d,
  				.wlen = 0, .rlen = 1};
  
 -	return acpi_ec_transaction(ec, &t, 0);
--}
--
--static void acpi_ec_check_state(struct acpi_ec *ec)
--{
--	struct transaction t = {.command = ACPI_EC_BURST_DISABLE,
--				.wdata = NULL, .rdata = NULL,
--				.wlen = 0, .rlen = 0};
--	mutex_lock(&ec->lock);
--	acpi_ec_transaction_unlocked(ec, &t, 0);
--	mutex_unlock(&ec->lock);
 +	return acpi_ec_transaction(ec, &t);
  }
  
  static int acpi_ec_burst_disable(struct acpi_ec *ec)
-@@ -385,7 +351,7 @@ static int acpi_ec_burst_disable(struct acpi_ec *ec)
+@@ -375,7 +351,7 @@ static int acpi_ec_burst_disable(struct acpi_ec *ec)
  				.wlen = 0, .rlen = 0};
  
  	return (acpi_ec_read_status(ec) & ACPI_EC_FLAG_BURST) ?
@@ -246,7 +236,7 @@ index 78f8380..839b542 100644
  }
  
  static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
-@@ -396,7 +362,7 @@ static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
+@@ -386,7 +362,7 @@ static int acpi_ec_read(struct acpi_ec *ec, u8 address, u8 * data)
  				.wdata = &address, .rdata = &d,
  				.wlen = 1, .rlen = 1};
  
@@ -255,7 +245,7 @@ index 78f8380..839b542 100644
  	*data = d;
  	return result;
  }
-@@ -408,7 +374,7 @@ static int acpi_ec_write(struct acpi_ec *ec, u8 address, u8 data)
+@@ -398,7 +374,7 @@ static int acpi_ec_write(struct acpi_ec *ec, u8 address, u8 data)
  				.wdata = wdata, .rdata = NULL,
  				.wlen = 2, .rlen = 0};
  
@@ -264,7 +254,7 @@ index 78f8380..839b542 100644
  }
  
  /*
-@@ -476,7 +442,7 @@ int ec_transaction(u8 command,
+@@ -466,7 +442,7 @@ int ec_transaction(u8 command,
  	if (!first_ec)
  		return -ENODEV;
  
@@ -273,7 +263,7 @@ index 78f8380..839b542 100644
  }
  
  EXPORT_SYMBOL(ec_transaction);
-@@ -497,7 +463,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
+@@ -487,7 +463,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
  	 * bit to be cleared (and thus clearing the interrupt source).
  	 */
  
@@ -282,7 +272,7 @@ index 78f8380..839b542 100644
  	if (result)
  		return result;
  
-@@ -580,28 +546,10 @@ static u32 acpi_ec_gpe_handler(void *data)
+@@ -570,28 +546,10 @@ static u32 acpi_ec_gpe_handler(void *data)
  	pr_debug(PREFIX "~~~> interrupt\n");
  	status = acpi_ec_read_status(ec);
  
@@ -314,7 +304,7 @@ index 78f8380..839b542 100644
  	return ACPI_INTERRUPT_HANDLED;
  }
  
-@@ -847,8 +795,6 @@ static int acpi_ec_add(struct acpi_device *device)
+@@ -837,8 +795,6 @@ static int acpi_ec_add(struct acpi_device *device)
  	acpi_ec_add_fs(device);
  	pr_info(PREFIX "GPE = 0x%lx, I/O: command/status = 0x%lx, data = 0x%lx\n",
  			  ec->gpe, ec->command_addr, ec->data_addr);
@@ -323,16 +313,7 @@ index 78f8380..839b542 100644
  	return 0;
  }
  
-@@ -930,8 +876,6 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 		}
- 	}
- 
--	acpi_ec_check_state(ec);
--
- 	set_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags);
- 	return 0;
- }
-@@ -1066,8 +1010,6 @@ static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
+@@ -1054,8 +1010,6 @@ static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
  {
  	struct acpi_ec *ec = acpi_driver_data(device);
  	/* Stop using GPE */
@@ -341,7 +322,7 @@ index 78f8380..839b542 100644
  	acpi_disable_gpe(NULL, ec->gpe);
  	return 0;
  }
-@@ -1076,8 +1018,6 @@ static int acpi_ec_resume(struct acpi_device *device)
+@@ -1064,8 +1018,6 @@ static int acpi_ec_resume(struct acpi_device *device)
  {
  	struct acpi_ec *ec = acpi_driver_data(device);
  	/* Enable use of GPE back */
