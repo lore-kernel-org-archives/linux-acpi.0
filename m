@@ -1,44 +1,29 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
-Date: Sat, 29 Aug 2009 20:53:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0908292048570.26533-100000@netrider.rowland.org>
-References: <200908292117.06049.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 1/9] acpi battery: work around negative s16 battery current
+ on Acer
+Date: Sat, 29 Aug 2009 21:36:13 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908292135550.23028@localhost.localdomain>
+References: <200908062257.n76Mvm4P024072@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200908292117.06049.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:36398 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbZH3Bgc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 21:36:32 -0400
+Received: from localhost.localdomain ([64.140.212.33])
+ by vms173015.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KP600G4F1SGFPT0@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sat, 29 Aug 2009 20:36:17 -0500 (CDT)
+In-reply-to: <200908062257.n76Mvm4P024072@imap1.linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, hector@marcansoft.com, astarikovskiy@suse.de
 
-On Sat, 29 Aug 2009, Rafael J. Wysocki wrote:
+applied to acpi-test for for 2.6.32
 
-> On Saturday 29 August 2009, Rafael J. Wysocki wrote:
-> > On Saturday 29 August 2009, Alan Stern wrote:
-> ...
-> > > Strictly speaking, a new thread should be started only when needed.  
-> > > That is, only when all the existing threads are busy running a 
-> > > callback.  It shouldn't be too hard to keep track of when that happens.
-> > 
-> > The async framework does that for us. :-)
-> 
-> So, when I said "async threads", I should have rather said "async functions",
-> because one async thread can execute multiple functions scheduled with
-> async_schedule().
-> 
-> Taking that into consideration, it all works like this.  When there's a new
-> async device to handle and there are no async threads available, a new thread
-> is started and it runs the async function that handles the device and
-> "opportunistically" searches dpm_list (once) for other device that are ready
-> for handling.  After this function has returned, the thread goes to sleep and
-> it only exits after being idle for 1 s.  In turn, when there's a new async
-> device to handle and there are async threads available, on of them gets the
-> async function to run.
-> 
-> I don't really think we can do much better than this in any other approach.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Since it obviously works and is relatively simple, I guess we ought to 
-adopt it.
-
-Alan Stern
