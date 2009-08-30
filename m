@@ -1,28 +1,27 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 1/9] acpi battery: work around negative s16 battery current
- on Acer
-Date: Sat, 29 Aug 2009 21:36:13 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0908292135550.23028@localhost.localdomain>
-References: <200908062257.n76Mvm4P024072@imap1.linux-foundation.org>
+Subject: Re: [PATCH] ACPI: EC: Merge IRQ and POLL modes
+Date: Sat, 29 Aug 2009 21:47:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908292147370.15619@localhost.localdomain>
+References: <20090829224351.10587.35433.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:36398 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbZH3Bgc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 21:36:32 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:48901 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753138AbZH3Brp (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 21:47:45 -0400
 Received: from localhost.localdomain ([64.140.212.33])
- by vms173015.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KP600G4F1SGFPT0@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 29 Aug 2009 20:36:17 -0500 (CDT)
-In-reply-to: <200908062257.n76Mvm4P024072@imap1.linux-foundation.org>
+ with ESMTPA id <0KP600HZ52BNLRK4@vms173019.mailsrvcs.net> for
+ Linux-acpi@vger.kernel.org; Sat, 29 Aug 2009 20:47:48 -0500 (CDT)
+In-reply-to: <20090829224351.10587.35433.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, hector@marcansoft.com, astarikovskiy@suse.de
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Linux-acpi@vger.kernel.org
 
-applied to acpi-test for for 2.6.32
+-ENOAPPLY
 
 thanks,
 Len Brown, Intel Open Source Technology Center
