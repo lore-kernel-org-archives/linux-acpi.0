@@ -1,53 +1,58 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
-Date: Sun, 30 Aug 2009 08:45:33 +0200
-Message-ID: <20090830064533.GA1417@ucw.cz>
-References: <Pine.LNX.4.44L0.0908282146550.9540-100000@netrider.rowland.org> <200908291449.57667.rjw@sisk.pl>
+From: Mario <rety@poczta.onet.pl>
+Subject: Re: Is acpi_ec_ecdt_probe() broken? (was: Re: ACPI locks hardware devices when it doesn't detect vista)
+Date: Sun, 30 Aug 2009 08:59:29 +0200
+Message-ID: <200908300859.29494.rety@poczta.onet.pl>
+References: <1250945310.14167.150.camel@maxim-laptop> <200908300037.45412.rjw@sisk.pl> <1251588634.15582.0.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43177 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108AbZH3Gpj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Aug 2009 02:45:39 -0400
+Received: from smtp1m5.poczta.onet.pl ([213.180.138.32]:52578 "EHLO
+	smtp1m5.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417AbZH3G7U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Aug 2009 02:59:20 -0400
+Received: from ciq202.neoplus.adsl.tpnet.pl ([83.31.40.202]:42508 "EHLO
+	[192.168.1.2]" rhost-flags-OK-OK-OK-FAIL) by ps1.mod5.onet
+	with ESMTPSA id S50334772AbZH3G7U2hy6l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org> + 1 other);
+	Sun, 30 Aug 2009 08:59:20 +0200
+In-Reply-To: <1251588634.15582.0.camel@maxim-laptop>
 Content-Disposition: inline
-In-Reply-To: <200908291449.57667.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Hi!
+Maxim, 
 
-> > > > > > The same goes for the noirq versions.
-> > > > > 
-> > > > > I thought about that, but there are a few things to figure out:
-> > > > > - how many threads to start
-> > > > 
-> > > > That's a tough question.  Right now you start roughly as many threads
-> > > > as there are async devices.  That seems like overkill.
-> > > 
-> > > In fact they are substantially fewer than that, for the following reasons.
-> > > 
-> > > First, the async framework will not start more than MAX_THREADS threads,
-> > > which is 256 at the moment.  This number is less than the number of async
-> > > devices to handle on an average system.
-> > 
-> > Okay, but MAX_THREADS isn't under your control.  Remember also that 
-> > each thread takes up some memory, and during hibernation we are in a 
-> > memory-constrained situation.
-> 
-> We keep some extra free memory for things like this.  It's not likely to be
-> exhausted by the async threads alone.
+I did the test regarding last coment from Alexey Starikovskiy on the bugzilla.
 
-What extra memory? You are creating quite a lot of threads. For 256 of
-them, it would take cca 2MB... You recently removed code from s2disk
-that freed 4MB of extra memory, so you are now essentially relying on
-min_free_kbytes -- and even then is not reliable, user might s2disk
-under memory pressure. min_free_kbytes is 1MB on my system.
+>What happens if acpi_ec_ecdt_probe() is not called at all? Do you have same
+>hang as with changed order?
 
-								Pavel
+That did it. System starts and MIR works ok without setpci solution.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards
+Mario
+
+Sunday 30 of August 2009 01:30:34 Maxim Levitsky wrote:
+> On Sun, 2009-08-30 at 00:37 +0200, Rafael J. Wysocki wrote:
+> > On Saturday 29 August 2009, Mario wrote:
+> > > Exact model is Compal JFL92.
+> > > I've attached a dmidecode output.
+> >
+> > OK
+> >
+> > Maxim, Mario, can you create a bug entry in the kernel Bugzilla for this
+> > issue and put my address into the CC list in there?
+>
+> Done,
+>
+> http://bugzilla.kernel.org/show_bug.cgi?id=14086
+>
+>
+> Best regards,
+> 	Maxim Levitsky
+
+
