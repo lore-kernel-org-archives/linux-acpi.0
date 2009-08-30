@@ -1,41 +1,32 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: Don't use Notebook as MSI vendor substitute
-Date: Sun, 30 Aug 2009 20:30:23 +0400
-Message-ID: <20090830163022.27730.14328.stgit@thinkpad>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH] ACPI: EC: Merge IRQ and POLL modes
+Date: Sun, 30 Aug 2009 17:50:44 +0100
+Message-ID: <9b2b86520908300950j40a62eaeqca28c7c5b1cd38b8@mail.gmail.com>
+References: <20090829230613.15391.84344.stgit@thinkpad>
+	 <alpine.LFD.2.00.0908292147590.15619@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:43950 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753858AbZH3QaW (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 30 Aug 2009 12:30:22 -0400
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:56721 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753446AbZH3Qun (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Sun, 30 Aug 2009 12:50:43 -0400
+Received: by fxm17 with SMTP id 17so2376487fxm.37
+        for <Linux-acpi@vger.kernel.org>; Sun, 30 Aug 2009 09:50:44 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.0908292147590.15619@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: Linux-acpi@vger.kernel.org
 
-"Notebook" name is not unique to MSI, thus should be not be used
-to identify MSI hardware.
+On 8/30/09, Len Brown <lenb@kernel.org> wrote:
+> applied to acpi-test for 2.6.32
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+This passes my test for the temperamental Asus Eee 701. Thanks Alexey!
+ Let's hope it works as well elsewhere.
 
- drivers/acpi/ec.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I saw one hang on resume from hibernation while hammering the
+brightness keys.  However  I can't reproduce it.  It might be a
+regression, but it was probably just a fluke.
 
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 839b542..bd35442 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -942,7 +942,7 @@ int __init acpi_ec_ecdt_probe(void)
- 	 * Generate a boot ec context
- 	 */
- 	if (dmi_name_in_vendors("Micro-Star") ||
--	    dmi_name_in_vendors("Notebook")) {
-+	    dmi_name_in_vendors("MICRO-STAR")) {
- 		pr_info(PREFIX "Enabling special treatment for EC from MSI.\n");
- 		EC_FLAGS_MSI = 1;
- 	}
-
+Alan
