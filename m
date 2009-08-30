@@ -1,34 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 4/4] ACPI: video - cleanup video device registration
-Date: Sat, 29 Aug 2009 23:24:35 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0908292310580.15619@localhost.localdomain>
-References: <20090808072150.2980.3863.stgit@localhost.localdomain>
- <20090808075647.90344526EC9@mailhub.coreip.homeip.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/6] PM: Asynchronous resume of devices
+Date: Sun, 30 Aug 2009 08:45:33 +0200
+Message-ID: <20090830064533.GA1417@ucw.cz>
+References: <Pine.LNX.4.44L0.0908282146550.9540-100000@netrider.rowland.org> <200908291449.57667.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:41958 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232AbZH3DYs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 29 Aug 2009 23:24:48 -0400
-Received: from localhost.localdomain ([64.140.212.33])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KP600NMH6T10T6A@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 29 Aug 2009 22:24:38 -0500 (CDT)
-In-reply-to: <20090808075647.90344526EC9@mailhub.coreip.homeip.net>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43177 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108AbZH3Gpj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Aug 2009 02:45:39 -0400
+Content-Disposition: inline
+In-Reply-To: <200908291449.57667.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
 
-Dmitry, Rui,
-Can you refresh this patch (and its follow-on) on top of the current 
-linux-acpi test branch?
+Hi!
 
-I re-did patch #3 by hand since it was trivial, but I'd rather that
-you do this one and its follow-on for me.
+> > > > > > The same goes for the noirq versions.
+> > > > > 
+> > > > > I thought about that, but there are a few things to figure out:
+> > > > > - how many threads to start
+> > > > 
+> > > > That's a tough question.  Right now you start roughly as many threads
+> > > > as there are async devices.  That seems like overkill.
+> > > 
+> > > In fact they are substantially fewer than that, for the following reasons.
+> > > 
+> > > First, the async framework will not start more than MAX_THREADS threads,
+> > > which is 256 at the moment.  This number is less than the number of async
+> > > devices to handle on an average system.
+> > 
+> > Okay, but MAX_THREADS isn't under your control.  Remember also that 
+> > each thread takes up some memory, and during hibernation we are in a 
+> > memory-constrained situation.
+> 
+> We keep some extra free memory for things like this.  It's not likely to be
+> exhausted by the async threads alone.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+What extra memory? You are creating quite a lot of threads. For 256 of
+them, it would take cca 2MB... You recently removed code from s2disk
+that freed 4MB of extra memory, so you are now essentially relying on
+min_free_kbytes -- and even then is not reliable, user might s2disk
+under memory pressure. min_free_kbytes is 1MB on my system.
 
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
