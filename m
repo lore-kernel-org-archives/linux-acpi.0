@@ -1,75 +1,66 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 0/8] ACPI: make every acpi_device have a HID
-Date: Mon, 31 Aug 2009 16:46:45 -0600
-Message-ID: <20090831224535.12236.61350.stgit@bob.kio>
+Subject: [PATCH v2 1/8] ACPI: fix synthetic HID for \_SB_
+Date: Mon, 31 Aug 2009 16:46:50 -0600
+Message-ID: <20090831224650.12236.40364.stgit@bob.kio>
+References: <20090831224535.12236.61350.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:46470 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957AbZHaWqi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:46:38 -0400
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:32102 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105AbZHaWqn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:46:43 -0400
+In-Reply-To: <20090831224535.12236.61350.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-This series was prompted by an issue we saw recently in the mm tree:
-http://lkml.org/lkml/2009/7/20/422
+This makes \_SB_ show up as /sys/devices/LNXSYSTM:00/LNXSYBUS:00
+rather than "device:00".  This has been broken for a loooong time
+(at least since 2.6.13) because device->parent is an acpi_device
+pointer, not a handle.
 
-Synopsis:
-
-    Linux/ACPI discovered a video device.  The device had no _HID or _CID
-    methods, but based on acpi_is_video_device(), we added a sythetic CID
-    ("LNXVIDEO"), so the device ended up with a CID but no HID.
-
-    We bound the acpi_video_bus (drivers/acpi/video.c) driver to the device
-    based on the CID.  This driver has a .notify() method, so we tried to
-    install a notify handler on the device.  This uses strcmp() on the
-    device HID to determine whether it's a fixed hardware device, and this
-    oopsed because this device had no HID.
-
-    This used to work because the HID was stored in an array that was
-    initialized to zeroes, but a recent change replaced this with a pointer
-    that is NULL until a HID is set.
-
-This thread: http://marc.info/?l=linux-acpi&m=124959955813409&w=2
-has patches that work around this by basically returning a pointer to an
-empty string rather than a NULL pointer in this case.
-
-However, the HID is a pretty central part of an acpi_device, and I think it
-complicates the driver model too much to deal with HIDs that might be empty
-strings.  I think it's better for Linux/ACPI to just make sure that *every*
-acpi_device has at least one ID (either a HID, a CID, or a synthetic ID).
-
-The main place this default "device" ID appears is with ACPI devices that
-just have _ADR methods, e.g., PCI slots.
-
-Original posting: http://marc.info/?l=linux-acpi&m=125113191017124&w=2
-
-Changes from initial post to v2:
-    - Applies on acpi-test (on top of "ACPI: cleanups for hotplug",
-      http://marc.info/?l=linux-acpi&m=125175792329288&w=2).
-    - Removed memory leak fix (folded into v2 of series that introduced it).
-
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
+ drivers/acpi/scan.c |   18 ++++++------------
+ 1 files changed, 6 insertions(+), 12 deletions(-)
 
-Bjorn Helgaas (8):
-      ACPI: fix synthetic HID for \_SB_
-      ACPI: use acpi_device_hid() when possible
-      ACPI: make sure every acpi_device has an ID
-      ACPI: maintain a single list of _HID and _CID IDs
-      ACPI: remove acpi_device.flags.compatible_ids
-      ACPI: remove acpi_device.flags.hardware_id
-      ACPI: remove acpi_device_uid() and related stuff
-      ACPI: simplify building device HID/CID list
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 54f5514..1b656a5 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1095,6 +1095,12 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 		if (ACPI_IS_ROOT_DEVICE(device)) {
+ 			hid = ACPI_SYSTEM_HID;
+ 			break;
++		} else if (ACPI_IS_ROOT_DEVICE(device->parent)) {
++			/* \_SB_, the only root-level namespace device */
++			hid = ACPI_BUS_HID;
++			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
++			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
++			break;
+ 		}
+ 
+ 		status = acpi_get_object_info(device->handle, &info);
+@@ -1144,18 +1150,6 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 		break;
+ 	}
+ 
+-	/*
+-	 * \_SB
+-	 * ----
+-	 * Fix for the system root bus device -- the only root-level device.
+-	 */
+-	if (((acpi_handle)device->parent == ACPI_ROOT_OBJECT) &&
+-	     (device->device_type == ACPI_BUS_TYPE_DEVICE)) {
+-		hid = ACPI_BUS_HID;
+-		strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
+-		strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
+-	}
+-
+ 	if (hid) {
+ 		device->pnp.hardware_id = ACPI_ALLOCATE_ZEROED(strlen (hid) + 1);
+ 		if (device->pnp.hardware_id) {
 
-
- drivers/acpi/scan.c        |  279 +++++++++++++-------------------------------
- drivers/pnp/pnpacpi/core.c |   21 +--
- include/acpi/acpi_bus.h    |   16 +--
- 3 files changed, 101 insertions(+), 215 deletions(-)
-
--- 
-Bjorn
