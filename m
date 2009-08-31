@@ -1,106 +1,138 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 7/8] ACPI: remove acpi_device_uid() and related stuff
-Date: Mon, 31 Aug 2009 16:47:20 -0600
-Message-ID: <20090831224720.12236.33721.stgit@bob.kio>
+Subject: [PATCH v2 8/8] ACPI: simplify building device HID/CID list
+Date: Mon, 31 Aug 2009 16:47:25 -0600
+Message-ID: <20090831224725.12236.85639.stgit@bob.kio>
 References: <20090831224535.12236.61350.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:32230 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbZHaWrO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:47:14 -0400
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:46676 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973AbZHaWrT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:47:19 -0400
 In-Reply-To: <20090831224535.12236.61350.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-Nobody uses acpi_device_uid(), so this patch removes it.
+Minor code cleanup, no functional change.  Instead of remembering
+what HIDs & CIDs to add later, just add them immediately.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c     |   17 -----------------
- include/acpi/acpi_bus.h |    4 +---
- 2 files changed, 1 insertions(+), 20 deletions(-)
+ drivers/acpi/scan.c |   56 +++++++++++++++++++++------------------------------
+ 1 files changed, 23 insertions(+), 33 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 08e4750..f19a935 100644
+index f19a935..5dda709 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -1016,7 +1016,6 @@ static void acpi_device_set_id(struct acpi_device *device)
+@@ -1014,21 +1014,19 @@ static void acpi_add_id(struct acpi_device *device, const char *dev_id)
+ 
+ static void acpi_device_set_id(struct acpi_device *device)
  {
- 	struct acpi_device_info *info = NULL;
- 	char *hid = NULL;
--	char *uid = NULL;
- 	struct acpica_device_id_list *cid_list = NULL;
- 	char *cid_add = NULL;
+-	struct acpi_device_info *info = NULL;
+-	char *hid = NULL;
+-	struct acpica_device_id_list *cid_list = NULL;
+-	char *cid_add = NULL;
  	acpi_status status;
-@@ -1043,8 +1042,6 @@ static void acpi_device_set_id(struct acpi_device *device)
++	struct acpi_device_info *info;
++	struct acpica_device_id_list *cid_list;
+ 	int i;
+ 
+ 	switch (device->device_type) {
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		if (ACPI_IS_ROOT_DEVICE(device)) {
+-			hid = ACPI_SYSTEM_HID;
++			acpi_add_id(device, ACPI_SYSTEM_HID);
+ 			break;
+ 		} else if (ACPI_IS_ROOT_DEVICE(device->parent)) {
+ 			/* \_SB_, the only root-level namespace device */
+-			hid = ACPI_BUS_HID;
++			acpi_add_id(device, ACPI_BUS_HID);
+ 			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
+ 			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
+ 			break;
+@@ -1041,41 +1039,43 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 		}
  
  		if (info->valid & ACPI_VALID_HID)
- 			hid = info->hardware_id.string;
--		if (info->valid & ACPI_VALID_UID)
--			uid = info->unique_id.string;
- 		if (info->valid & ACPI_VALID_CID)
+-			hid = info->hardware_id.string;
+-		if (info->valid & ACPI_VALID_CID)
++			acpi_add_id(device, info->hardware_id.string);
++		if (info->valid & ACPI_VALID_CID) {
  			cid_list = &info->compatible_id_list;
++			for (i = 0; i < cid_list->count; i++)
++				acpi_add_id(device, cid_list->ids[i].string);
++		}
  		if (info->valid & ACPI_VALID_ADR) {
-@@ -1094,15 +1091,6 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 			device->pnp.bus_address = info->address;
+ 			device->flags.bus_address = 1;
+ 		}
  
- 	if (hid)
- 		acpi_add_id(device, hid);
--	if (uid) {
--		device->pnp.unique_id = ACPI_ALLOCATE_ZEROED(strlen (uid) + 1);
--		if (device->pnp.unique_id) {
--			strcpy(device->pnp.unique_id, uid);
--			device->flags.unique_id = 1;
--		}
--	} else
--		device->pnp.unique_id = NULL;
--
- 	if (cid_list)
- 		for (i = 0; i < cid_list->count; i++)
- 			acpi_add_id(device, cid_list->ids[i].string);
-@@ -1197,11 +1185,6 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	 * -----------------
- 	 * TBD: Synch with Core's enumeration/initialization process.
+-		/* If we have a video/bay/dock device, add our selfdefined
+-		   HID to the CID list. Like that the video/bay/dock drivers
+-		   will get autoloaded and the device might still match
+-		   against another driver.
+-		*/
++		/*
++		 * Some devices don't reliably have _HIDs & _CIDs, so add
++		 * synthetic HIDs to make sure drivers can find them.
++		 */
+ 		if (acpi_is_video_device(device))
+-			cid_add = ACPI_VIDEO_HID;
++			acpi_add_id(device, ACPI_VIDEO_HID);
+ 		else if (ACPI_SUCCESS(acpi_bay_match(device)))
+-			cid_add = ACPI_BAY_HID;
++			acpi_add_id(device, ACPI_BAY_HID);
+ 		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+-			cid_add = ACPI_DOCK_HID;
++			acpi_add_id(device, ACPI_DOCK_HID);
+ 
+ 		break;
+ 	case ACPI_BUS_TYPE_POWER:
+-		hid = ACPI_POWER_HID;
++		acpi_add_id(device, ACPI_POWER_HID);
+ 		break;
+ 	case ACPI_BUS_TYPE_PROCESSOR:
+-		hid = ACPI_PROCESSOR_OBJECT_HID;
++		acpi_add_id(device, ACPI_PROCESSOR_OBJECT_HID);
+ 		break;
+ 	case ACPI_BUS_TYPE_THERMAL:
+-		hid = ACPI_THERMAL_HID;
++		acpi_add_id(device, ACPI_THERMAL_HID);
+ 		break;
+ 	case ACPI_BUS_TYPE_POWER_BUTTON:
+-		hid = ACPI_BUTTON_HID_POWERF;
++		acpi_add_id(device, ACPI_BUTTON_HID_POWERF);
+ 		break;
+ 	case ACPI_BUS_TYPE_SLEEP_BUTTON:
+-		hid = ACPI_BUTTON_HID_SLEEPF;
++		acpi_add_id(device, ACPI_BUTTON_HID_SLEEPF);
+ 		break;
+ 	}
+ 
+@@ -1086,18 +1086,8 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 	 * This generic ID isn't useful for driver binding, but it provides
+ 	 * the useful property that "every acpi_device has an ID."
  	 */
+-	if (!hid && !cid_list && !cid_add)
+-		hid = "device";
 -
--	/*
--	 * Hardware ID, Unique ID, & Bus Address
--	 * -------------------------------------
--	 */
- 	acpi_device_set_id(device);
+-	if (hid)
+-		acpi_add_id(device, hid);
+-	if (cid_list)
+-		for (i = 0; i < cid_list->count; i++)
+-			acpi_add_id(device, cid_list->ids[i].string);
+-	if (cid_add)
+-		acpi_add_id(device, cid_add);
+-
+-	kfree(info);
++	if (list_empty(&device->pnp.ids))
++		acpi_add_id(device, "device");
+ }
  
- 	/*
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 012be7d..49c414e 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -142,7 +142,6 @@ struct acpi_device_status {
- struct acpi_device_flags {
- 	u32 dynamic_status:1;
- 	u32 bus_address:1;
--	u32 unique_id:1;
- 	u32 removable:1;
- 	u32 ejectable:1;
- 	u32 lockable:1;
-@@ -151,7 +150,7 @@ struct acpi_device_flags {
- 	u32 performance_manageable:1;
- 	u32 wake_capable:1;	/* Wakeup(_PRW) supported? */
- 	u32 force_power_state:1;
--	u32 reserved:21;
-+	u32 reserved:22;
- };
- 
- /* File System */
-@@ -186,7 +185,6 @@ struct acpi_device_pnp {
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
- #define acpi_device_adr(d)	((d)->pnp.bus_address)
- char *acpi_device_hid(struct acpi_device *device);
--#define acpi_device_uid(d)	((d)->pnp.unique_id)
- #define acpi_device_name(d)	((d)->pnp.device_name)
- #define acpi_device_class(d)	((d)->pnp.device_class)
- 
+ static int acpi_device_set_context(struct acpi_device *device)
 
