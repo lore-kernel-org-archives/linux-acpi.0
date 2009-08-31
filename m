@@ -1,75 +1,72 @@
 From: Frans Pop <elendil@planet.nl>
-Subject: Re: [PATCH 4/6] thermal: add sanity check for the passive attribute
-Date: Mon, 31 Aug 2009 12:30:30 +0200
-Message-ID: <200908311230.32021.elendil@planet.nl>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <200908261848.29897.elendil@planet.nl> <1251707630.3483.181.camel@rzhang-dt>
+Subject: Re: [PATCH 2/6] thermal: sysfs-api.txt - document passive attribute for thermal zones
+Date: Mon, 31 Aug 2009 13:19:58 +0200
+Message-ID: <200908311320.00632.elendil@planet.nl>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <1251303445-25317-3-git-send-email-elendil@planet.nl> <1251706691.3483.169.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Cpsmtpm-eml108.kpnxchange.com ([195.121.3.12]:60056 "EHLO
-	CPSMTPM-EML108.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751733AbZHaKab convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 31 Aug 2009 06:30:31 -0400
-In-Reply-To: <1251707630.3483.181.camel@rzhang-dt>
+Received: from cpsmtpm-eml102.kpnxchange.com ([195.121.3.6]:60961 "EHLO
+	CPSMTPM-EML102.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751395AbZHaLT7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Aug 2009 07:19:59 -0400
+In-Reply-To: <1251706691.3483.169.camel@rzhang-dt>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
 On Monday 31 August 2009, Zhang Rui wrote:
-> On Thu, 2009-08-27 at 00:48 +0800, Frans Pop wrote:
-> > On Wednesday 26 August 2009, Matthew Garrett wrote:
-> > > On Wed, Aug 26, 2009 at 06:17:23PM +0200, Frans Pop wrote:
-> > > > Values below 40000 milli-celsius (limit is somewhat arbitrary)
-> > > > don't make sense and can cause the system to go into a thermal
-> > > > heart attack: the actual temperature will always be lower and
-> > > > thus the system will be throttled down to its lowest setting.
-> > >
-> > > Not keen on this - it's a pretty arbitrary cutoff, and there are
-> > > some cases where someone might want this value. Policy belongs in
-> > > userspace, and all that.
-> >
-> > What cases do you see? Testing? Or systems that might have to opera=
-te
-> > at such a low temperature? I deliberately chose a value that's at a
-> > level that's easy to reach.
-> >
-> > I agree it is arbitrary, but it will prevent major confusion when
-> > someone like me echo's 95 directly in sysfs.
+> > +passive
+> > +	Attribute is only present for zones which do not have a passive
+> > +	cooling policy (_PSV) defined in ACPI.
 >
-> this is a problem.
-> how about something like:
-> #define THERMAL_PASSIVE_WARNING_LEVEL 0x40000
+> We should not involve any platform specific stuff in this
+> documentation. how about "Attribute is only present for zones in which
+> the passive cooling policy is not supported by native thermal driver"
+[...]
+> > -If the processor is listed in _PSL method, and the fan is listed in
+> > _AL0 -method, the sys I/F structure will be built like this:
+> > +If the processor is listed in _PSL method, the fan is listed in _AL0
+> > +method, and the zone has a _PSV method, the sys I/F structure will
+> > be +built like this:
+>
+> For an ACPI thermal zone, supporting passive cooling means that both
+> _PSL and _PSV are available.
+> so I don't think we need to change this. :)
 
-Hmmm. 40000 hexadecimal? That seems a bit high ;-)
+OK. Updated patch below.
 
-> if (state < THERMAL_PASSIVE_WARNING_LEVEL)
->    printk(KERN_WARNING PREFIX "Passive trip point too low, this may"
->           "slow down your laptop because processors are throttled "
->           "whenever the temperature is higher than %dC\n", state/1000=
-);
 
-Disadvantage is that users are unlikely to actually see that message at=
-=20
-the time they set the value, especially if they're working in some xter=
-m.=20
-They'd have to check dmesg or log files. It also increases the .text si=
-ze=20
-of the module for an option that very few people are likely to use.
+From: Frans Pop <elendil@planet.nl>
+Subject: thermal: sysfs-api.txt - document passive attribute for thermal zones
 
-> > Would 1000 (1 =C2=B0C) perhaps be more acceptable as a limit? I dou=
-bt
-> > there are valid use-cases for below 0 temps :-)
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Sujith Thomas <sujith.thomas@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 
-I'd prefer this option. Do you see any downside to this?
-
-Cheers,
-=46JP
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index 895337f..a87dc27 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -199,6 +199,15 @@ cdev[0-*]_trip_point
+ 	point.
+ 	RO, Optional
+ 
++passive
++	Attribute is only present for zones in which the passive cooling
++	policy is not supported by native thermal driver. Default is zero
++	and can be set to a temperature (in millidegrees) to enable a
++	passive trip point for the zone. Activation is done by polling
++	with an interval of 1 second.
++	Unit: millidegrees Celsius
++	RW, Optional
++
+ *****************************
+ * Cooling device attributes *
+ *****************************
