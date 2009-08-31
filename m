@@ -1,297 +1,120 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 2 16/19] ACPI: use acpi_walk_namespace() to enumerate devices
-Date: Mon, 31 Aug 2009 16:33:27 -0600
-Message-ID: <20090831223327.11814.65407.stgit@bob.kio>
+Subject: [PATCH 2 17/19] ACPI: add acpi_bus_get_status_handle()
+Date: Mon, 31 Aug 2009 16:33:32 -0600
+Message-ID: <20090831223332.11814.80316.stgit@bob.kio>
 References: <20090831223053.11814.38463.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:29586 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbZHaWdU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:33:20 -0400
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:4431 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957AbZHaWdZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:33:25 -0400
 In-Reply-To: <20090831223053.11814.38463.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
-acpi_bus_scan() currently walks the namespace manually.  This patch changes
-it to use acpi_walk_namespace() instead.
+Add acpi_bus_get_status_handle() so we can get the status of a namespace
+object before building a struct acpi_device.
 
-Besides removing some complicated code, this means we take advantage of the
-namespace locking done by acpi_walk_namespace().  The locking isn't so
-important at boot-time, but I hope to eventually use this same path to
-handle hot-addition of devices, when it will be important.
-
-Note that acpi_walk_namespace() does not actually visit the starting node
-first, so we need to do that by hand first.
+This removes a use of "device->flags.dynamic_status", a cached indicator of
+whether _STA exists.  It seems simpler and more reliable to just evaluate
+_STA and catch AE_NOT_FOUND errors.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c |  196 +++++++++++++++++++--------------------------------
- 1 files changed, 74 insertions(+), 122 deletions(-)
+ drivers/acpi/bus.c      |   49 +++++++++++++++++++++--------------------------
+ include/acpi/acpi_bus.h |    2 ++
+ 2 files changed, 24 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5565b34..ad62cd9 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1395,123 +1395,92 @@ end:
- 	return result;
- }
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 135fbfe..7411915 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -94,36 +94,33 @@ int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device)
  
--static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops)
-+static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
-+				      void *context, void **return_value)
+ EXPORT_SYMBOL(acpi_bus_get_device);
+ 
+-int acpi_bus_get_status(struct acpi_device *device)
++acpi_status acpi_bus_get_status_handle(acpi_handle handle,
++				       unsigned long long *sta)
  {
- 	acpi_status status = AE_OK;
--	struct acpi_device *parent = NULL;
--	struct acpi_device *child = NULL;
--	acpi_handle phandle = NULL;
--	acpi_handle chandle = NULL;
-+	struct acpi_device *device = NULL;
- 	acpi_object_type type = 0;
--	u32 level = 1;
--	int ret;
-+	struct acpi_bus_ops *ops = context;
+-	acpi_status status = AE_OK;
+-	unsigned long long sta = 0;
+-
++	acpi_status status;
+ 
+-	if (!device)
+-		return -EINVAL;
++	status = acpi_evaluate_integer(handle, "_STA", NULL, sta);
++	if (ACPI_SUCCESS(status))
++		return AE_OK;
  
 -	/*
--	 * We must have an acpi_device for the starting node already, and
--	 * we scan its children.
+-	 * Evaluate _STA if present.
 -	 */
--	phandle = handle;
--	ret = acpi_bus_get_device(phandle, &parent);
--	if (ret)
--		return ret;
-+	status = acpi_get_type(handle, &type);
-+	if (ACPI_FAILURE(status))
+-	if (device->flags.dynamic_status) {
+-		status =
+-		    acpi_evaluate_integer(device->handle, "_STA", NULL, &sta);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
+-		STRUCT_TO_INT(device->status) = (int)sta;
++	if (status == AE_NOT_FOUND) {
++		*sta = ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
++		       ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
 +		return AE_OK;
- 
- 	/*
--	 * Parse through the ACPI namespace, identify all 'devices', and
--	 * create a new 'struct acpi_device' for each.
-+	 * We're only interested in objects that we consider 'devices'.
- 	 */
--	while ((level > 0) && parent) {
-+	switch (type) {
-+	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
-+	case ACPI_TYPE_DEVICE:
-+		type = ACPI_BUS_TYPE_DEVICE;
-+		break;
-+	case ACPI_TYPE_PROCESSOR:
-+		type = ACPI_BUS_TYPE_PROCESSOR;
-+		break;
-+	case ACPI_TYPE_THERMAL:
-+		type = ACPI_BUS_TYPE_THERMAL;
-+		break;
-+	case ACPI_TYPE_POWER:
-+		type = ACPI_BUS_TYPE_POWER;
-+		break;
-+	default:
-+		return AE_OK;
-+	}
- 
--		status = acpi_get_next_object(ACPI_TYPE_ANY, phandle,
--					      chandle, &chandle);
-+	if (ops->acpi_op_add)
-+		status = acpi_add_single_object(&device, handle, type, ops);
-+	else
-+		status = acpi_bus_get_device(handle, &device);
- 
--		/*
--		 * If this scope is exhausted then move our way back up.
--		 */
--		if (ACPI_FAILURE(status)) {
--			level--;
--			chandle = phandle;
--			acpi_get_parent(phandle, &phandle);
--			if (parent->parent)
--				parent = parent->parent;
--			continue;
--		}
-+	if (ACPI_FAILURE(status))
-+		return AE_CTRL_DEPTH;
- 
--		status = acpi_get_type(chandle, &type);
-+	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
-+		status = acpi_start_single_object(device);
- 		if (ACPI_FAILURE(status))
--			continue;
--
--		/*
--		 * If this is a scope object then parse it (depth-first).
--		 */
--		if (type == ACPI_TYPE_LOCAL_SCOPE) {
--			level++;
--			phandle = chandle;
--			chandle = NULL;
--			continue;
--		}
-+			return AE_CTRL_DEPTH;
-+	}
- 
--		/*
--		 * We're only interested in objects that we consider 'devices'.
--		 */
--		switch (type) {
--		case ACPI_TYPE_DEVICE:
--			type = ACPI_BUS_TYPE_DEVICE;
--			break;
--		case ACPI_TYPE_PROCESSOR:
--			type = ACPI_BUS_TYPE_PROCESSOR;
--			break;
--		case ACPI_TYPE_THERMAL:
--			type = ACPI_BUS_TYPE_THERMAL;
--			break;
--		case ACPI_TYPE_POWER:
--			type = ACPI_BUS_TYPE_POWER;
--			break;
--		default:
--			continue;
--		}
-+	/*
-+	 * If the device is present, enabled, and functioning then
-+	 * parse its scope (depth-first).  Note that we need to
-+	 * represent absent devices to facilitate PnP notifications
-+	 * -- but only the subtree head (not all of its children,
-+	 * which will be enumerated when the parent is inserted).
-+	 *
-+	 * TBD: Need notifications and other detection mechanisms
-+	 *      in place before we can fully implement this.
-+	 *
-+	 * When the device is not present but functional, it is also
-+	 * necessary to scan the children of this device.
-+	 */
-+	if (!device->status.present && !device->status.functional)
-+		return AE_CTRL_DEPTH;
- 
--		if (ops->acpi_op_add)
--			status = acpi_add_single_object(&child, chandle, type,
--							ops);
--		else
--			status = acpi_bus_get_device(chandle, &child);
-+	if (!*return_value)
-+		*return_value = device;
-+	return AE_OK;
+ 	}
++	return status;
 +}
  
--		if (ACPI_FAILURE(status))
--			continue;
-+static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
-+			 struct acpi_device **child)
+-	/*
+-	 * According to ACPI spec some device can be present and functional
+-	 * even if the parent is not present but functional.
+-	 * In such conditions the child device should not inherit the status
+-	 * from the parent.
+-	 */
+-	else
+-		STRUCT_TO_INT(device->status) =
+-		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
+-		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
++int acpi_bus_get_status(struct acpi_device *device)
 +{
 +	acpi_status status;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	void *device = NULL;
++	unsigned long long sta;
++
++	status = acpi_bus_get_status_handle(device->handle, &sta);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	STRUCT_TO_INT(device->status) = (int) sta;
  
--		if (ops->acpi_op_start && !(ops->acpi_op_add)) {
--			status = acpi_start_single_object(child);
--			if (ACPI_FAILURE(status))
--				continue;
--		}
-+	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-+	printk(KERN_INFO PREFIX "Enumerating devices from [%s]\n",
-+	       (char *) buffer.pointer);
- 
--		/*
--		 * If the device is present, enabled, and functioning then
--		 * parse its scope (depth-first).  Note that we need to
--		 * represent absent devices to facilitate PnP notifications
--		 * -- but only the subtree head (not all of its children,
--		 * which will be enumerated when the parent is inserted).
--		 *
--		 * TBD: Need notifications and other detection mechanisms
--		 *      in place before we can fully implement this.
--		 */
--		 /*
--		 * When the device is not present but functional, it is also
--		 * necessary to scan the children of this device.
--		 */
--		if (child->status.present || (!child->status.present &&
--					child->status.functional)) {
--			status = acpi_get_next_object(ACPI_TYPE_ANY, chandle,
--						      NULL, NULL);
--			if (ACPI_SUCCESS(status)) {
--				level++;
--				phandle = chandle;
--				chandle = NULL;
--				parent = child;
--			}
--		}
--	}
-+	status = acpi_bus_check_add(handle, 0, ops, &device);
-+	if (ACPI_SUCCESS(status))
-+		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-+				    acpi_bus_check_add, ops, &device);
- 
-+	if (child)
-+		*child = device;
+ 	if (device->status.functional && !device->status.present) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
+@@ -135,10 +132,8 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+ 			  device->pnp.bus_id,
+ 			  (u32) STRUCT_TO_INT(device->status)));
+-
  	return 0;
  }
- 
-@@ -1519,33 +1488,25 @@ int
- acpi_bus_add(struct acpi_device **child,
- 	     struct acpi_device *parent, acpi_handle handle, int type)
- {
--	int result;
- 	struct acpi_bus_ops ops;
- 
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_add = 1;
- 
--	result = acpi_add_single_object(child, handle, type, &ops);
--	if (!result)
--		result = acpi_bus_scan((*child)->handle, &ops);
 -
--	return result;
-+	acpi_bus_scan(handle, &ops, child);
-+	return 0;
- }
- EXPORT_SYMBOL(acpi_bus_add);
+ EXPORT_SYMBOL(acpi_bus_get_status);
  
- int acpi_bus_start(struct acpi_device *device)
- {
--	int result;
- 	struct acpi_bus_ops ops;
+ void acpi_bus_private_data_handler(acpi_handle handle,
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 0ce840b..a273cdf 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -322,6 +322,8 @@ extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
  
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_start = 1;
- 
--	result = acpi_start_single_object(device);
--	if (!result)
--		result = acpi_bus_scan(device->handle, &ops);
--
--	return result;
-+	acpi_bus_scan(device->handle, &ops, NULL);
-+	return 0;
- }
- EXPORT_SYMBOL(acpi_bus_start);
- 
-@@ -1648,17 +1609,9 @@ int __init acpi_scan_init(void)
- 	}
- 
- 	/*
--	 * Create the root device in the bus's device tree
--	 */
--	result = acpi_add_single_object(&acpi_root, ACPI_ROOT_OBJECT,
--					ACPI_BUS_TYPE_DEVICE, &ops);
--	if (result)
--		goto Done;
--
--	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
--	result = acpi_bus_scan(acpi_root->handle, &ops);
-+	result = acpi_bus_scan(ACPI_ROOT_OBJECT, &ops, &acpi_root);
- 
- 	if (!result)
- 		result = acpi_bus_scan_fixed();
-@@ -1666,6 +1619,5 @@ int __init acpi_scan_init(void)
- 	if (result)
- 		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
- 
--Done:
- 	return result;
- }
+ int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device);
+ void acpi_bus_data_handler(acpi_handle handle, void *context);
++acpi_status acpi_bus_get_status_handle(acpi_handle handle,
++				       unsigned long long *sta);
+ int acpi_bus_get_status(struct acpi_device *device);
+ int acpi_bus_get_power(acpi_handle handle, int *state);
+ int acpi_bus_set_power(acpi_handle handle, int state);
 
