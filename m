@@ -1,47 +1,75 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH V5 1/2] introduce ALS sysfs class
-Date: Mon, 31 Aug 2009 11:02:07 +0200
-Message-ID: <20090831090207.GD11117@elf.ucw.cz>
-References: <1251706028.3483.160.camel@rzhang-dt> <20090831083449.GB11117@elf.ucw.cz> <1251708537.3483.191.camel@rzhang-dt>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: [PATCH 4/6] thermal: add sanity check for the passive attribute
+Date: Mon, 31 Aug 2009 12:30:30 +0200
+Message-ID: <200908311230.32021.elendil@planet.nl>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <200908261848.29897.elendil@planet.nl> <1251707630.3483.181.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51259 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbZHaJCQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 05:02:16 -0400
+Received: from Cpsmtpm-eml108.kpnxchange.com ([195.121.3.12]:60056 "EHLO
+	CPSMTPM-EML108.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751733AbZHaKab convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Aug 2009 06:30:31 -0400
+In-Reply-To: <1251707630.3483.181.camel@rzhang-dt>
 Content-Disposition: inline
-In-Reply-To: <1251708537.3483.191.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon 2009-08-31 16:48:57, Zhang Rui wrote:
-> On Mon, 2009-08-31 at 16:34 +0800, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > @@ -0,0 +1,32 @@
-> > > +What:		/sys/class/als/als[0-N]/desc
-> > > +Date:		Aug. 2009
-> > > +KernelVersion:	2.6.32
-> > > +Contact:	Zhang Rui <rui.zhang@intel.com>
-> > > +Description:	Strings which descibes the current Ambient Light Sensor
-> > > +		device. This is given by native ALS driver as part of
-> > > +		registration. e.g: "acpi_als" for ACPI ALS devices.
-> > > +		RO
-> > 
-> > Normal way to do that (backlight class does it, for example) is to
-> > have acpi_als instead of als0, and get rid of desc field.
-> 
-> IMO, both are okay, hard to say which is preferred.
-> Other sysfs classes like scsi_host, hwmon, input use this as well.
-> and you don't have a really strong objection to this, right? :)
+On Monday 31 August 2009, Zhang Rui wrote:
+> On Thu, 2009-08-27 at 00:48 +0800, Frans Pop wrote:
+> > On Wednesday 26 August 2009, Matthew Garrett wrote:
+> > > On Wed, Aug 26, 2009 at 06:17:23PM +0200, Frans Pop wrote:
+> > > > Values below 40000 milli-celsius (limit is somewhat arbitrary)
+> > > > don't make sense and can cause the system to go into a thermal
+> > > > heart attack: the actual temperature will always be lower and
+> > > > thus the system will be throttled down to its lowest setting.
+> > >
+> > > Not keen on this - it's a pretty arbitrary cutoff, and there are
+> > > some cases where someone might want this value. Policy belongs in
+> > > userspace, and all that.
+> >
+> > What cases do you see? Testing? Or systems that might have to opera=
+te
+> > at such a low temperature? I deliberately chose a value that's at a
+> > level that's easy to reach.
+> >
+> > I agree it is arbitrary, but it will prevent major confusion when
+> > someone like me echo's 95 directly in sysfs.
+>
+> this is a problem.
+> how about something like:
+> #define THERMAL_PASSIVE_WARNING_LEVEL 0x40000
 
-Actually I do. Inventing nonsensical als17 name, then having helpful
-desc explaining it is acpi_als is pretty ugly...
-									Pavel
+Hmmm. 40000 hexadecimal? That seems a bit high ;-)
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> if (state < THERMAL_PASSIVE_WARNING_LEVEL)
+>    printk(KERN_WARNING PREFIX "Passive trip point too low, this may"
+>           "slow down your laptop because processors are throttled "
+>           "whenever the temperature is higher than %dC\n", state/1000=
+);
+
+Disadvantage is that users are unlikely to actually see that message at=
+=20
+the time they set the value, especially if they're working in some xter=
+m.=20
+They'd have to check dmesg or log files. It also increases the .text si=
+ze=20
+of the module for an option that very few people are likely to use.
+
+> > Would 1000 (1 =C2=B0C) perhaps be more acceptable as a limit? I dou=
+bt
+> > there are valid use-cases for below 0 temps :-)
+
+I'd prefer this option. Do you see any downside to this?
+
+Cheers,
+=46JP
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
