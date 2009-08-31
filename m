@@ -1,44 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 10] PM: Measure suspend and resume times for individual devices (was: Re: [PATCH 2/6] PM: Asynchronous resume of devices)
-Date: Mon, 31 Aug 2009 18:00:49 +0200
-Message-ID: <200908311800.49664.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908311006490.10295-100000@iolanthe.rowland.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH V5 0/2] Ambient Light Sensor support
+Date: Mon, 31 Aug 2009 13:04:35 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908311303340.19451@localhost.localdomain>
+References: <1251706025.3483.159.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0908311006490.10295-100000@iolanthe.rowland.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:15259 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbZHaREi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 13:04:38 -0400
+In-reply-to: <1251706025.3483.159.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Pavel Machek <pavel@ucw.cz>
 
-On Monday 31 August 2009, Alan Stern wrote:
-> On Sun, 30 Aug 2009, Rafael J. Wysocki wrote:
-> 
-> > > > For testing purposes it would be nice to have a one-line summary for
-> > > > each device containing a thread ID, start timestamp, end timestamp, and
-> > > > elapsed time.  With that information you could evaluate the amount of
-> > > > parallelism and determine where the bottlenecks are.  It would give a
-> > > > much more detailed picture of the entire process than the total time of
-> > > > your recent patch 9.
-> > > 
-> > > Of course it would.  I think I'll implement it.
-> > 
-> > OK, below is a patch for that.  It only prints the time elapsed, because the
-> > timestamps themselves can be obtained from the usual kernel timestamping.
-> 
-> Does that include the start timestamps?  I don't see them anywhere in
-> the patch.  Without the start timestamps we have no way to know how
-> much time was spent waiting for dpm_list_mtx or other resources as
-> opposed to actually carrying out the operation.
+I put this in the acpi test tree, with the expectation
+that it will have at least one minor revision update
+before going upstream.
 
-If the callback in question is actually defined, there will be additional debug
-printouts before executing it from which we can get the start timestamps.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-If the callback is not defined, the time elapsed will be 0 anyway, which is
-kind of untinteresting.
-
-Thanks,
-Rafael
