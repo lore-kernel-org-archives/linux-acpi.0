@@ -1,75 +1,75 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 2 19/19] ACPI: handle re-enumeration,
-	when acpi_devices might already exist
-Date: Mon, 31 Aug 2009 16:33:42 -0600
-Message-ID: <20090831223342.11814.93.stgit@bob.kio>
-References: <20090831223053.11814.38463.stgit@bob.kio>
+Subject: [PATCH v2 0/8] ACPI: make every acpi_device have a HID
+Date: Mon, 31 Aug 2009 16:46:45 -0600
+Message-ID: <20090831224535.12236.61350.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:38829 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132AbZHaWdf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:33:35 -0400
-In-Reply-To: <20090831223053.11814.38463.stgit@bob.kio>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:46470 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957AbZHaWqi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:46:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-acpi_bus_scan() traverses the namespace to enumerate devices and uses
-acpi_add_single_object() to create acpi_devices.  When the platform
-notifies us of a hot-plug event, we need to traverse part of the namespace
-again to figure out what appeared or disappeared.  (We don't yet call
-acpi_bus_scan() during hot-plug, but I plan to do that in the future.)
+This series was prompted by an issue we saw recently in the mm tree:
+http://lkml.org/lkml/2009/7/20/422
 
-This patch makes acpi_add_single_object() notice when we already have
-an acpi_device, so we don't need to make a new one.
+Synopsis:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Linux/ACPI discovered a video device.  The device had no _HID or _CID
+    methods, but based on acpi_is_video_device(), we added a sythetic CID
+    ("LNXVIDEO"), so the device ended up with a CID but no HID.
+
+    We bound the acpi_video_bus (drivers/acpi/video.c) driver to the device
+    based on the CID.  This driver has a .notify() method, so we tried to
+    install a notify handler on the device.  This uses strcmp() on the
+    device HID to determine whether it's a fixed hardware device, and this
+    oopsed because this device had no HID.
+
+    This used to work because the HID was stored in an array that was
+    initialized to zeroes, but a recent change replaced this with a pointer
+    that is NULL until a HID is set.
+
+This thread: http://marc.info/?l=linux-acpi&m=124959955813409&w=2
+has patches that work around this by basically returning a pointer to an
+empty string rather than a NULL pointer in this case.
+
+However, the HID is a pretty central part of an acpi_device, and I think it
+complicates the driver model too much to deal with HIDs that might be empty
+strings.  I think it's better for Linux/ACPI to just make sure that *every*
+acpi_device has at least one ID (either a HID, a CID, or a synthetic ID).
+
+The main place this default "device" ID appears is with ACPI devices that
+just have _ADR methods, e.g., PCI slots.
+
+Original posting: http://marc.info/?l=linux-acpi&m=125113191017124&w=2
+
+Changes from initial post to v2:
+    - Applies on acpi-test (on top of "ACPI: cleanups for hotplug",
+      http://marc.info/?l=linux-acpi&m=125175792329288&w=2).
+    - Removed memory leak fix (folded into v2 of series that introduced it).
+
 ---
- drivers/acpi/scan.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 61a7e16..54f5514 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1402,10 +1402,10 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 				      void *context, void **return_value)
- {
- 	struct acpi_bus_ops *ops = context;
--	struct acpi_device *device = NULL;
--	acpi_status status;
- 	int type;
- 	unsigned long long sta;
-+	struct acpi_device *device;
-+	acpi_status status;
- 	int result;
- 
- 	result = acpi_bus_type_and_status(handle, &type, &sta);
-@@ -1416,13 +1416,16 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 	    !(sta & ACPI_STA_DEVICE_FUNCTIONING))
- 		return AE_CTRL_DEPTH;
- 
--	if (ops->acpi_op_add)
--		status = acpi_add_single_object(&device, handle, type, sta,
--						ops);
--	else
--		status = acpi_bus_get_device(handle, &device);
-+	/*
-+	 * We may already have an acpi_device from a previous enumeration.  If
-+	 * so, we needn't add it again, but we may still have to start it.
-+	 */
-+	device = NULL;
-+	acpi_bus_get_device(handle, &device);
-+	if (ops->acpi_op_add && !device)
-+		acpi_add_single_object(&device, handle, type, sta, ops);
- 
--	if (ACPI_FAILURE(status))
-+	if (!device)
- 		return AE_CTRL_DEPTH;
- 
- 	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
+Bjorn Helgaas (8):
+      ACPI: fix synthetic HID for \_SB_
+      ACPI: use acpi_device_hid() when possible
+      ACPI: make sure every acpi_device has an ID
+      ACPI: maintain a single list of _HID and _CID IDs
+      ACPI: remove acpi_device.flags.compatible_ids
+      ACPI: remove acpi_device.flags.hardware_id
+      ACPI: remove acpi_device_uid() and related stuff
+      ACPI: simplify building device HID/CID list
 
+
+ drivers/acpi/scan.c        |  279 +++++++++++++-------------------------------
+ drivers/pnp/pnpacpi/core.c |   21 +--
+ include/acpi/acpi_bus.h    |   16 +--
+ 3 files changed, 101 insertions(+), 215 deletions(-)
+
+-- 
+Bjorn
