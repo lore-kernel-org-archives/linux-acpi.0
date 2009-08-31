@@ -1,72 +1,164 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [PATCH 2/6] thermal: sysfs-api.txt - document passive attribute for thermal zones
-Date: Mon, 31 Aug 2009 13:19:58 +0200
-Message-ID: <200908311320.00632.elendil@planet.nl>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <1251303445-25317-3-git-send-email-elendil@planet.nl> <1251706691.3483.169.camel@rzhang-dt>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 10] PM: Measure suspend and resume times for individual devices (was: Re: [PATCH 2/6] PM: Asynchronous resume of devices)
+Date: Mon, 31 Aug 2009 14:53:47 +0200
+Message-ID: <200908311453.47138.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0908292043500.26533-100000@netrider.rowland.org> <200908302313.52945.rjw@sisk.pl> <20090831072545.GA21570@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml102.kpnxchange.com ([195.121.3.6]:60961 "EHLO
-	CPSMTPM-EML102.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751395AbZHaLT7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 31 Aug 2009 07:19:59 -0400
-In-Reply-To: <1251706691.3483.169.camel@rzhang-dt>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090831072545.GA21570@elte.hu>
+Sender: linux-pci-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Monday 31 August 2009, Zhang Rui wrote:
-> > +passive
-> > +	Attribute is only present for zones which do not have a passive
-> > +	cooling policy (_PSV) defined in ACPI.
->
-> We should not involve any platform specific stuff in this
-> documentation. how about "Attribute is only present for zones in which
-> the passive cooling policy is not supported by native thermal driver"
-[...]
-> > -If the processor is listed in _PSL method, and the fan is listed in
-> > _AL0 -method, the sys I/F structure will be built like this:
-> > +If the processor is listed in _PSL method, the fan is listed in _AL0
-> > +method, and the zone has a _PSV method, the sys I/F structure will
-> > be +built like this:
->
-> For an ACPI thermal zone, supporting passive cooling means that both
-> _PSL and _PSV are available.
-> so I don't think we need to change this. :)
+On Monday 31 August 2009, Ingo Molnar wrote:
+> 
+> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> 
+> > On Sunday 30 August 2009, Rafael J. Wysocki wrote:
+> > > On Sunday 30 August 2009, Alan Stern wrote:
+> > > > On Sat, 29 Aug 2009, Rafael J. Wysocki wrote:
+> > > > 
+> > > > > I only wanted to say that the advantage is not really that "big". :-)
+> > > > > 
+> > > > > > I must agree, 14 threads isn't a lot.  But at the moment that number is 
+> > > > > > random, not under your control.
+> > > > > 
+> > > > > It's not directly controlled, but there are some interactions between the
+> > > > > async threads, the main threads and the async framework that don't allow this
+> > > > > number to grow too much.
+> > > > > 
+> > > > > IMO it sometimes is better to allow things to work themselves out, as long as
+> > > > > they don't explode, than to try to keep everything under strict control.  YMMV.
+> > > > 
+> > > > For testing purposes it would be nice to have a one-line summary for
+> > > > each device containing a thread ID, start timestamp, end timestamp, and
+> > > > elapsed time.  With that information you could evaluate the amount of
+> > > > parallelism and determine where the bottlenecks are.  It would give a
+> > > > much more detailed picture of the entire process than the total time of
+> > > > your recent patch 9.
+> > > 
+> > > Of course it would.  I think I'll implement it.
+> > 
+> > OK, below is a patch for that.  It only prints the time elapsed, because the
+> > timestamps themselves can be obtained from the usual kernel timestamping.
+> > 
+> > It's on top of all the previous patches.
+> > 
+> > Thanks,
+> > Rafael
+> > 
+> > ---
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > Subject: PM: Measure suspend and resume times for individual devices
+> > 
+> > If verbose PM debugging is enabled, measure and print the time of
+> > suspending and resuming of individual devices.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/base/power/main.c |   51 +++++++++++++++++++++++++++++++++++++++++-----
+> >  kernel/power/swsusp.c     |    2 -
+> >  2 files changed, 47 insertions(+), 6 deletions(-)
+> > 
+> > Index: linux-2.6/drivers/base/power/main.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/base/power/main.c
+> > +++ linux-2.6/drivers/base/power/main.c
+> > @@ -442,11 +442,11 @@ static bool pm_op_started(struct device 
+> >   */
+> >  int pm_time_elapsed(struct timeval *start, struct timeval *stop)
+> >  {
+> > -	s64 elapsed_centisecs64;
+> > +	s64 elapsed_msecs64;
+> >  
+> > -	elapsed_centisecs64 = timeval_to_ns(stop) - timeval_to_ns(start);
+> > -	do_div(elapsed_centisecs64, NSEC_PER_SEC / 100);
+> > -	return elapsed_centisecs64;
+> > +	elapsed_msecs64 = timeval_to_ns(stop) - timeval_to_ns(start);
+> > +	do_div(elapsed_msecs64, NSEC_PER_SEC / 1000);
+> > +	return elapsed_msecs64;
+> >  }
+> >  
+> >  static char *pm_verb(int event)
+> > @@ -476,7 +476,7 @@ static char *pm_verb(int event)
+> >  static void dpm_show_time(struct timeval *start, struct timeval *stop,
+> >  			  pm_message_t state, const char *info)
+> >  {
+> > -	int centisecs = pm_time_elapsed(start, stop);
+> > +	int centisecs = pm_time_elapsed(start, stop) / 10;
+> >  
+> >  	printk(KERN_INFO "PM: %s%s%s of devices complete in %d.%02d seconds\n",
+> >  		info ? info : "", info ? " " : "", pm_verb(state.event),
+> > @@ -497,6 +497,33 @@ static void pm_dev_err(struct device *de
+> >  		kobject_name(&dev->kobj), pm_verb(state.event), info, error);
+> >  }
+> >  
+> > +#ifdef DEBUG
+> > +static void device_show_time(struct timeval *start, struct device *dev,
+> > +			     pm_message_t state, char *info)
+> > +{
+> > +	struct timeval stop;
+> > +	int msecs;
+> > +
+> > +	do_gettimeofday(&stop);
+> > +	msecs = pm_time_elapsed(start, &stop);
+> > +	dev_dbg(dev, "PID %d: %s%s%s complete in %d.%03d seconds\n",
+> > +		task_pid_nr(current), info ? info : "", info ? " " : "",
+> > +		pm_verb(state.event), msecs / 1000, msecs % 1000);
+> > +}
+> > +
+> > +#define TIMER_DECLARE(timer)	struct timeval timer
+> > +#define TIMER_START(timer)	do { \
+> > +		do_gettimeofday(&timer); \
+> > +	} while (0)
+> > +#define TIMER_STOP(timer, dev, state, info)	do { \
+> > +		device_show_time(&timer, dev, state, info); \
+> > +	} while (0)
+> > +#else /* !DEBUG */
+> > +#define TIMER_DECLARE(timer)
+> > +#define TIMER_START(timer)	do { } while (0)
+> > +#define TIMER_STOP(timer, dev, state, info)	do { } while (0)
+> > +#endif /* !DEBUG */
+> > +
+> >  /*------------------------- Resume routines -------------------------*/
+> >  
+> >  /**
+> > @@ -510,7 +537,9 @@ static void pm_dev_err(struct device *de
+> >  static int __device_resume_noirq(struct device *dev, pm_message_t state)
+> >  {
+> >  	int error = 0;
+> > +	TIMER_DECLARE(timer);
+> >  
+> > +	TIMER_START(timer);
+> >  	TRACE_DEVICE(dev);
+> >  	TRACE_RESUME(0);
+> >  
+> > @@ -523,6 +552,7 @@ static int __device_resume_noirq(struct 
+> >  	wake_up_all(&dev->power.wait_queue);
+> >  
+> >  	TRACE_RESUME(error);
+> > +	TIMER_STOP(timer, dev, state, "EARLY");
+> >  	return error;
+> 
+> Hm, these CPP macros are rather ugly. Why is there a need for the 
+> TIMER_DECLARE() wrapper - if a proper inline function is used 
+> there's no need for that.
 
-OK. Updated patch below.
+I need a variable to be declared so that I can save the "start" timestamp
+in it.  I don't need the variable if DEBUG is unset, though.
 
+How would you do that without using a macro?  Or #ifdef #endif block that
+would be uglier IMO (which is why I didn't do that)?
 
-From: Frans Pop <elendil@planet.nl>
-Subject: thermal: sysfs-api.txt - document passive attribute for thermal zones
+> There's other all-capitals macros in that code implementing code (and not
+> constants) - is that really justified/clean?
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Sujith Thomas <sujith.thomas@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Do you mean the TRACE_* macros?  Please ask Linus about that, they are from
+him. :-)
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index 895337f..a87dc27 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -199,6 +199,15 @@ cdev[0-*]_trip_point
- 	point.
- 	RO, Optional
- 
-+passive
-+	Attribute is only present for zones in which the passive cooling
-+	policy is not supported by native thermal driver. Default is zero
-+	and can be set to a temperature (in millidegrees) to enable a
-+	passive trip point for the zone. Activation is done by polling
-+	with an interval of 1 second.
-+	Unit: millidegrees Celsius
-+	RW, Optional
-+
- *****************************
- * Cooling device attributes *
- *****************************
+Thanks,
+Rafael
