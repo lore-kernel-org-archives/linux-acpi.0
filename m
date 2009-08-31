@@ -1,56 +1,68 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPICA: fixup after acpi_get_object_info() change
-Date: Mon, 31 Aug 2009 16:22:19 -0600
-Message-ID: <200908311622.20201.bjorn.helgaas@hp.com>
-References: <20090831222000.11461.52371.stgit@bob.kio>
+Subject: [PATCH 2 00/19] ACPI: cleanups for hotplug
+Date: Mon, 31 Aug 2009 16:32:05 -0600
+Message-ID: <20090831223053.11814.38463.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:30538 "EHLO
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:32868 "EHLO
 	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672AbZHaWWS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:22:18 -0400
-In-Reply-To: <20090831222000.11461.52371.stgit@bob.kio>
-Content-Disposition: inline
+	with ESMTP id S1751645AbZHaWb7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:31:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Gary Hade <garyhade@us.ibm.com>
+Cc: linux-acpi@vger.kernel.org
 
-Oops, I meant to CC you guys, but forgot.  15b8dd53f5ffa is in
-acpi-test, but not upstream yet.
+I'm working to make the Linux/ACPI code handle hotplug notification
+events.  This should ultimately allow us to remove the existing
+hotplug code scattered through the ACPI device drivers.
 
-On Monday 31 August 2009 04:20:00 pm Bjorn Helgaas wrote:
-> Commit 15b8dd53f5ffa changed info->hardware_id from a static array to
-> a pointer.  If hardware_id is non-NULL, it points to a NULL-terminated
-> string, so we don't need to terminate it explicitly.  However, it may
-> be NULL; in that case, we *can't* add a NULL terminator.
-> 
-> This causes a NULL pointer dereference oops for devices without _HID.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> CC: Lin Ming <ming.m.lin@intel.com>
-> CC: Bob Moore <robert.moore@intel.com>
-> CC: Gary Hade <garyhade@us.ibm.com>
-> ---
->  drivers/pci/hotplug/acpiphp_ibm.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-> index a9d926b..e7be66d 100644
-> --- a/drivers/pci/hotplug/acpiphp_ibm.c
-> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
-> @@ -406,7 +406,6 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
->  			__func__, status);
->  		return retval;
->  	}
-> -	info->hardware_id.string[sizeof(info->hardware_id.length) - 1] = '\0';
->  
->  	if (info->current_status && (info->valid & ACPI_VALID_HID) &&
->  			(!strcmp(info->hardware_id.string, IBM_HARDWARE_ID1) ||
-> 
-> 
+This is a long series of cleanups that should cause no functional
+change, but will make it easier to call acpi_bus_scan() from the
+notification path.
+
+Comments and testing reports welcome.  Boot logs with
+CONFIG_ACPI_DEBUG=y and "acpi.debug_layer=0x00010000" will be
+helpful in debugging any issues.
+
+Original posting: http://marc.info/?l=linux-acpi&m=124907619701194&w=2
+
+Changes from initial post to v2:
+    - refreshed to apply on current acpi-test (0beab01e5b2c448).
+    - fixed memory leak in acpi_add_single_object() debug code
+    - added ACPI_IS_ROOT_DEVICE() macro (Len)
+
+---
+
+Bjorn Helgaas (19):
+      ACPI: simplify deferred execution path
+      ACPI: remove null pointer checks in deferred execution path
+      ACPI: don't pass handle for fixed hardware notifications
+      ACPI: add debug for device addition
+      ACPI: remove unused acpi_bus_scan_fixed() argument
+      ACPI: remove redundant "handle" and "parent" arguments
+      ACPI: save device_type in acpi_device
+      ACPI: use device_type rather than comparing HID
+      ACPI: remove acpi_device_set_context() "type" argument
+      ACPI: remove redundant "type" arguments
+      ACPI: remove unnecessary argument checking
+      ACPI: add acpi_bus_get_parent() and remove "parent" arguments
+      ACPI: convert acpi_bus_scan() to operate on an acpi_handle
+      ACPI: enumerate namespace before adding functional fixed hardware devices
+      ACPI: identify device tree root by null parent pointer, not ACPI_BUS_TYPE
+      ACPI: use acpi_walk_namespace() to enumerate devices
+      ACPI: add acpi_bus_get_status_handle()
+      ACPI: factor out device type and status checking
+      ACPI: handle re-enumeration, when acpi_devices might already exist
 
 
+ drivers/acpi/bus.c      |   49 ++---
+ drivers/acpi/osl.c      |   32 +--
+ drivers/acpi/scan.c     |  431 +++++++++++++++++++++--------------------------
+ include/acpi/acpi_bus.h |    6 -
+ 4 files changed, 224 insertions(+), 294 deletions(-)
+
+-- 
+Bjorn
