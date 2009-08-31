@@ -1,73 +1,58 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 2/8] ACPI: use acpi_device_hid() when possible
-Date: Mon, 31 Aug 2009 16:46:55 -0600
-Message-ID: <20090831224655.12236.85138.stgit@bob.kio>
+Subject: [PATCH v2 3/8] ACPI: make sure every acpi_device has an ID
+Date: Mon, 31 Aug 2009 16:47:00 -0600
+Message-ID: <20090831224700.12236.5140.stgit@bob.kio>
 References: <20090831224535.12236.61350.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:13634 "EHLO
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:13653 "EHLO
 	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645AbZHaWqs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:46:48 -0400
+	with ESMTP id S1751821AbZHaWqx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:46:53 -0400
 In-Reply-To: <20090831224535.12236.61350.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-Use acpi_device_hid() rather than accessing acpi_device.pnp.hardware_id
-directly.
+This makes sure every acpi_device has at least one ID.  If we build an
+acpi_device for a namespace node with no _HID or _CID, we sometimes
+synthesize an ID like "LNXCPU" or "LNXVIDEO".  If we don't even have
+that, give it a default "device" ID.
+
+Note that this means things like:
+    /sys/devices/LNXSYSTM:00/LNXSYBUS:00/HWP0001:00/HWP0002:04/device:00
+(a PCI slot SxFy device) will have "hid" and "modprobe" entries, where
+they didn't before.  These aren't very useful (a HID of "device" doesn't
+tell you what *kind* of device it is, so it doesn't help find a driver),
+but I don't think they're harmful.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c        |    6 +++---
- drivers/pnp/pnpacpi/core.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/scan.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 1b656a5..14fd679 100644
+index 14fd679..f22fe87 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -185,7 +185,7 @@ static ssize_t
- acpi_device_hid_show(struct device *dev, struct device_attribute *attr, char *buf) {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 
--	return sprintf(buf, "%s\n", acpi_dev->pnp.hardware_id);
-+	return sprintf(buf, "%s\n", acpi_device_hid(acpi_dev));
- }
- static DEVICE_ATTR(hid, 0444, acpi_device_hid_show, NULL);
- 
-@@ -497,7 +497,7 @@ static int acpi_device_register(struct acpi_device *device)
- 	 * If failed, create one and link it into acpi_bus_id_list
- 	 */
- 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
--		if(!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id? device->pnp.hardware_id : "device")) {
-+		if (!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id ? acpi_device_hid(device) : "device")) {
- 			acpi_device_bus_id->instance_no ++;
- 			found = 1;
- 			kfree(new_bus_id);
-@@ -506,7 +506,7 @@ static int acpi_device_register(struct acpi_device *device)
+@@ -1150,6 +1150,16 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 		break;
  	}
- 	if (!found) {
- 		acpi_device_bus_id = new_bus_id;
--		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? device->pnp.hardware_id : "device");
-+		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? acpi_device_hid(device) : "device");
- 		acpi_device_bus_id->instance_no = 0;
- 		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
- 	}
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index c07fdb9..ff963d4 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -234,7 +234,7 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
- 	/* true means it matched */
- 	return acpi->flags.hardware_id
- 	    && !acpi_get_physical_device(acpi->handle)
--	    && compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
-+	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
- }
  
- static int __init acpi_pnp_find_device(struct device *dev, acpi_handle * handle)
++	/*
++	 * We build acpi_devices for some objects that don't have _HID or _CID,
++	 * e.g., PCI bridges and slots.  Drivers can't bind to these objects,
++	 * but we do use them indirectly by traversing the acpi_device tree.
++	 * This generic ID isn't useful for driver binding, but it provides
++	 * the useful property that "every acpi_device has an ID."
++	 */
++	if (!hid && !cid_list && !cid_add)
++		hid = "device";
++
+ 	if (hid) {
+ 		device->pnp.hardware_id = ACPI_ALLOCATE_ZEROED(strlen (hid) + 1);
+ 		if (device->pnp.hardware_id) {
 
