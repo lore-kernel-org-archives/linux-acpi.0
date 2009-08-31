@@ -1,189 +1,251 @@
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Re: acpi_ex_system_memory_space_handler oops
-Date: Tue, 1 Sep 2009 00:12:24 +0300
-Message-ID: <20090831211224.GA3028@localdomain.by>
-References: <20090812201034.GA2983@localdomain.by>
- <1250498613.28336.68.camel@minggr.sh.intel.com>
- <20090817113059.GA3245@localdomain.by>
- <d3f22a0908170622x7dd9ce73m5c3ea86406cc9935@mail.gmail.com>
- <20090818071359.GA3713@localdomain.by>
- <1250579915.13743.8.camel@minggr.sh.intel.com>
- <20090827075253.GB3536@localdomain.by>
- <1251359994.3282.11.camel@minggr.sh.intel.com>
- <20090827082927.GD3536@localdomain.by>
- <1251362657.3282.19.camel@minggr.sh.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH update] ACPI / PM: Allow PCI root bridges to wake up the system
+Date: Mon, 31 Aug 2009 23:24:20 +0200
+Message-ID: <200908312324.20850.rjw@sisk.pl>
+References: <200908300041.14541.rjw@sisk.pl> <200908312141.00737.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:49279 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbZHaVIa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 17:08:30 -0400
-Content-Disposition: inline
-In-Reply-To: <1251362657.3282.19.camel@minggr.sh.intel.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:53988 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929AbZHaVXk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Aug 2009 17:23:40 -0400
+In-Reply-To: <200908312141.00737.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-pm@lists.linux-foundation.org
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
+On Monday 31 August 2009, Rafael J. Wysocki wrote:
+> On Sunday 30 August 2009, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > If PCI root bridge is declared in the ACPI tables as a wake-up
+> > device, allow it to wake up the system by default.
+> > 
+> > This allows add-on PCI devices to work as wake-up devices on some
+> > systems, where PME# asserted by an add-on device causes the root
+> > bridge GPE to generate a wake-up event, without using
+> > /proc/acpi/wakeup to change the root bridge wake-up setting.
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Updated patch is appended, but there's a problem with it.  Namely, when the
+root bridge GPE is shared with other devices, those devices are also enabled
+to wake up and they may be kind of "interesting" (on one of my test boxes they
+include the ethernet and audio adapters).  I'm not sure what to do about that.
 
-On (08/27/09 16:44), Lin Ming wrote:
-> On Thu, 2009-08-27 at 16:29 +0800, Sergey Senozhatsky wrote:
-> > On (08/27/09 15:59), Lin Ming wrote:
-> > > > rc7-git5 (patched)
-> > > >=20
-> > > > [    0.178628] ACPI: EC: Look up EC in DSDT
-> > > > [    0.196480] ACPI: Interpreter enabled
-> > > > [    0.196575] ACPI: (supports S0 S1 S3 S4 S5)
-> > > > [    0.197184] ACPI: Using IOAPIC for interrupt routing
-> > > > [    0.197352] PCI: MCFG configuration 0: base e0000000 segment 0 b=
-uses 0 - 255
-> > > > [    0.203511] ACPI Error (dswload-0790): [PCFG] Namespace lookup f=
-ailure, AE_ALREADY_EXISTS
-> > > > [    0.203738] ACPI Exception: AE_ALREADY_EXISTS, During name looku=
-p/catalog 20090521 psloop-227
-> > > > [    0.203964] ACPI Error (psparse-0537): Method parse/execution fa=
-iled [\_SB_.RBPE] (Node f7017678), AE_ALREADY_EXISTS
-> > > > [    0.204256] ACPI: Marking method RBPE as Serialized because of A=
-E_ALREADY_EXISTS error
-> > > > [    0.204510] ACPI Error (psparse-0537): Method parse/execution fa=
-iled [\_GPE._L01] (Node f701d198), AE_ALREADY_EXISTS
-> > > > [    0.204803] ACPI: Marking method _L01 as Serialized because of A=
-E_ALREADY_EXISTS error
-> > > > [    0.205063] ACPI Exception: AE_ALREADY_EXISTS, while evaluating =
-GPE method [_L01] 20090521 evgpe-568
-> > >=20
->=20
-> So the patch only fixes the oops,=20
-> we also need to fix the AE_ALREADY_EXISTS error.
->=20
-> AE_ALREADY_EXISTS fix not confirmed.
-I'm afraid there was my mistake. No luck in reproducing this with patched k=
-ernel.
+Thanks,
+Rafael
 
-I've updated BIOS (305 -> 307, ASUS F3Jc) - unpatched kernel (rc8, rc7) oop=
-ses.
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI / PM: Allow PCI root bridges to wake up the system
 
-Made some changes to acpi_ex_system_memory_space_handler:
+If PCI root bridge is declared in the ACPI tables as a wake-up
+device, allow it to wake up the system by default.
 
-	static int prev_ebx =3D 0;
-	struct pt_regs *regs =3D task_pt_regs(current);
-	[..]
-	if (prev_ebx !=3D regs->bx) {
-		printk("EAX: %08lx EBX: %08lx ECX: %08lx EDX: %08lx\n",
-			   regs->ax, regs->bx, regs->cx, regs->dx);
-		prev_ebx =3D regs->bx;
-	}
+This allows add-on PCI devices to work as wake-up devices on some
+systems, where PME# asserted by an add-on device causes the root
+bridge GPE to generate a wake-up event, without using
+/proc/acpi/wakeup to change the root bridge wake-up setting.
 
-Kernel oopses at acpi_ex_system_memory_space_handler+0x75, which is
-mov    0x8(%ebx),%edx  /* 0x8(%ebx) =3D=3D mem_info->mapped_physical_addres=
-s */
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/glue.c     |    9 +++++++++
+ drivers/acpi/pci_root.c |   25 +++++++++++++------------
+ drivers/acpi/proc.c     |   29 +----------------------------
+ drivers/acpi/sleep.h    |    2 ++
+ drivers/acpi/wakeup.c   |   35 +++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |    1 +
+ 6 files changed, 61 insertions(+), 40 deletions(-)
 
-2 normal boots:
-[    0.179720] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.203556] EAX: f7231fc8 EBX: f7231fe0 ECX: c1062064 EDX: 00000000
-[    0.204522] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.204727] EAX: f7231fc8 EBX: f7231fe0 ECX: c1062064 EDX: 00000000
-[    0.205402] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.207394] EAX: f7231fc8 EBX: f7231fe0 ECX: c1062064 EDX: 00000000
-[    0.207742] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.223926] EAX: 00000002 EBX: c160368c ECX: c15adae0 EDX: 00000002
-[    0.313569] EAX: 00000002 EBX: c1603720 ECX: c15adae0 EDX: 00000002
-[    0.538362] EAX: 00000002 EBX: c160395c ECX: c15adae0 EDX: 00000002
-[    0.539345] EAX: 00000002 EBX: c1603960 ECX: c15adae0 EDX: 00000002
-[    0.551478] EAX: 00000002 EBX: c1603968 ECX: c15adae0 EDX: 00000002
-[    0.553474] EAX: 00000002 EBX: c160396c ECX: c15adae0 EDX: 00000002
-[    0.559407] EAX: 00000002 EBX: c1603970 ECX: c15adae0 EDX: 00000002
-[    0.562432] EAX: 00000002 EBX: c1603974 ECX: c15adae0 EDX: 00000002
-[    0.567686] EAX: f68fffc8 EBX: f68fffe0 ECX: c1062064 EDX: 00000000
-[    0.929685] EAX: 00000002 EBX: c160399c ECX: c15adae0 EDX: 00000002
-[    0.943102] EAX: f68fffc8 EBX: f68fffe0 ECX: c1062064 EDX: 00000000
-[    1.119718] EAX: f707bfc8 EBX: f707bfe0 ECX: c1062064 EDX: 00000000
-[    4.247438] EAX: 00000004 EBX: 00000003 ECX: 08061916 EDX: 00000003
-[    4.624659] EAX: 00000080 EBX: b7fe3000 ECX: 00007111 EDX: 08d26e88
-[    9.422412] EAX: 00000003 EBX: 00000003 ECX: b7f4e000 EDX: 00001000
-[   15.780002] EAX: 00000003 EBX: 00000007 ECX: b803a000 EDX: 00001000
-[   30.282635] EAX: 00000003 EBX: 00000004 ECX: b7313000 EDX: 00001000
-[   31.760373] EAX: 00000003 EBX: 00000005 ECX: b8081000 EDX: 00001000
-[   46.478595] EAX: 00000003 EBX: 00000011 ECX: b8085000 EDX: 00001000
-[   60.287018] EAX: 00000003 EBX: 00000004 ECX: b7313000 EDX: 00001000
-[   76.503652] EAX: 00000003 EBX: 00000011 ECX: b8085000 EDX: 00001000
-[   95.286847] EAX: 00000003 EBX: 00000004 ECX: b7313000 EDX: 00001000
-[  103.537367] EAX: 00000003 EBX: 00000005 ECX: b8081000 EDX: 00001000
-[  106.503656] EAX: 00000003 EBX: 00000011 ECX: b8085000 EDX: 00001000
-
-***
-[    0.177114] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.200169] EAX: f7213fc8 EBX: f7213fe0 ECX: c1062064 EDX: 00000000
-[    0.200854] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.200998] EAX: f7213fc8 EBX: f7213fe0 ECX: c1062064 EDX: 00000000
-[    0.201331] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.202367] EAX: f7213fc8 EBX: f7213fe0 ECX: c1062064 EDX: 00000000
-[    0.202569] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.204209] EAX: f7213fc8 EBX: f7213fe0 ECX: c1062064 EDX: 00000000
-[    0.204452] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.206921] EAX: f7213fc8 EBX: f7213fe0 ECX: c1062064 EDX: 00000000
-[    0.207834] EAX: 00000002 EBX: c1603684 ECX: c15adae0 EDX: 00000002
-[    0.220475] EAX: 00000002 EBX: c160368c ECX: c15adae0 EDX: 00000002
-[    0.319953] EAX: 00000002 EBX: c1603720 ECX: c15adae0 EDX: 00000002
-[    0.540786] EAX: 00000002 EBX: c160395c ECX: c15adae0 EDX: 00000002
-[    0.541769] EAX: 00000002 EBX: c1603960 ECX: c15adae0 EDX: 00000002
-[    0.550439] EAX: 00000002 EBX: c1603968 ECX: c15adae0 EDX: 00000002
-[    0.552394] EAX: 00000002 EBX: c160396c ECX: c15adae0 EDX: 00000002
-[    0.560133] EAX: 00000002 EBX: c1603970 ECX: c15adae0 EDX: 00000002
-[    0.563108] EAX: 00000002 EBX: c1603974 ECX: c15adae0 EDX: 00000002
-[    0.568408] EAX: f697bfc8 EBX: f697bfe0 ECX: c1062064 EDX: 00000000
-[    0.926336] EAX: f707ffc8 EBX: f707ffe0 ECX: c1062064 EDX: 00000000
-[    0.932752] EAX: 00000002 EBX: c160399c ECX: c15adae0 EDX: 00000002
-[    0.932974] EAX: f697bfc8 EBX: f697bfe0 ECX: c1062064 EDX: 00000000
-[    4.094675] EAX: 00000004 EBX: 00000003 ECX: 08061916 EDX: 00000003
-[    4.604710] EAX: 00000080 EBX: b80c2000 ECX: 00007111 EDX: 08cdae88
-[    9.325215] EAX: 00000003 EBX: 00000003 ECX: b7f30000 EDX: 00001000
-[   15.744843] EAX: 00000003 EBX: 00000007 ECX: b8003000 EDX: 00001000
-[   30.818662] EAX: 00000003 EBX: 00000004 ECX: b7490000 EDX: 00001000
-[   38.545531] EAX: 00000003 EBX: 00000005 ECX: b7edb000 EDX: 00001000
-
-
-I also have changed show_registers(struct pt_regs *regs) to __show_regs(reg=
-s, 0); after the stack trace.
-Here are 2 oopses (they are similar):
-Kacpid not tainted
-EIP: 0060: [<c12a30ce>] 	EFLAGS: 00010246 	CPU: 0
-EIP is at acpi_ex_system_memory_space_handler+0x75/0x22f
-EAX: 00000001	EBX: 00000020	ECX: 00000008	EDX: 00000000
-ESI: f7213dec	EDI: 0000008	EBP: f7213d10	ESP: f7213cdc
-DS: 007b	ES: 007b	FS: 00d8	GS: 00e0	SS: 0068
-
-***
-EAX: 00000001   EBX: 00000020   ECX: 00000008   EDX: 00000000
-ESI: f7213dec   EDI: 0000008    EBP: f7213d10   ESP: f7213cdc
-DS: 007b        ES: 007b        FS: 00d8        GS: 00e0        SS: 0068
-
-
-Note EBX: 00000020 in both cases.
-(happend around 0.21 min when 'usually' EBX: c1603684/f7213fe0).
-
-
-	Sergey
---45Z9DzgjV8m4Oswq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iJwEAQECAAYFAkqcPLgACgkQfKHnntdSXjT8xwP8DUvjebMDEHD9dvjoIBZk/ApA
-6D8Bt2hlJbigOEv8od2kLAJUYr/ZbK0JTWN6PUTi9IeNbzPuG9I5U0/xS7bcaeuc
-3oojxrrqJ57CV3ZgrrhkMtG3+swFeNVmSFxQIu7SeTpK1PDeAPuPS6ImldBCr7/D
-WphrMla9lNMZ87/uBt4=
-=a6lr
------END PGP SIGNATURE-----
-
---45Z9DzgjV8m4Oswq--
+Index: linux-2.6/drivers/acpi/glue.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/glue.c
++++ linux-2.6/drivers/acpi/glue.c
+@@ -13,6 +13,8 @@
+ #include <linux/acpi.h>
+ #include <linux/pm_link.h>
+ 
++#include "sleep.h"
++
+ #define ACPI_GLUE_DEBUG	0
+ #if ACPI_GLUE_DEBUG
+ #define DBG(x...) printk(PREFIX x)
+@@ -168,6 +170,13 @@ static int acpi_bind_one(struct device *
+ 				"physical_node");
+ 		if (acpi_dev->wakeup.flags.valid) {
+ 			device_set_wakeup_capable(dev, true);
++			/* Allow PCI root bridges to wake up the system. */
++			if (acpi_dev_is_root_bridge(acpi_dev)) {
++				mutex_lock(&acpi_device_lock);
++				acpi_dev->wakeup.state.enabled = true;
++				propagate_enable_wakeup(acpi_dev);
++				mutex_unlock(&acpi_device_lock);
++			}
+ 			device_set_wakeup_enable(dev,
+ 						acpi_dev->wakeup.state.enabled);
+ 		}
+Index: linux-2.6/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -138,26 +138,27 @@ acpi_handle acpi_get_pci_rootbridge_hand
+ EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
+ 
+ /**
++ * acpi_dev_is_root_bridge - determine if an ACPI device is a PCI root bridge
++ * @device: ACPI device to check.
++ */
++bool acpi_dev_is_root_bridge(struct acpi_device *device)
++{
++	return !acpi_match_device_ids(device, root_device_ids);
++}
++
++/**
+  * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
+- * @handle - the ACPI CA node in question.
+- *
+- * Note: we could make this API take a struct acpi_device * instead, but
+- * for now, it's more convenient to operate on an acpi_handle.
++ * @handle: the ACPI CA node in question.
+  */
+ int acpi_is_root_bridge(acpi_handle handle)
+ {
+ 	int ret;
+ 	struct acpi_device *device;
+ 
+-	ret = acpi_bus_get_device(handle, &device);
++	ret = !acpi_bus_get_device(handle, &device);
+ 	if (ret)
+-		return 0;
+-
+-	ret = acpi_match_device_ids(device, root_device_ids);
+-	if (ret)
+-		return 0;
+-	else
+-		return 1;
++		ret = acpi_dev_is_root_bridge(device);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(acpi_is_root_bridge);
+ 
+Index: linux-2.6/include/acpi/acpi_bus.h
+===================================================================
+--- linux-2.6.orig/include/acpi/acpi_bus.h
++++ linux-2.6/include/acpi/acpi_bus.h
+@@ -371,6 +371,7 @@ struct device *acpi_get_physical_device(
+ 
+ /* helper */
+ acpi_handle acpi_get_child(acpi_handle, acpi_integer);
++bool acpi_dev_is_root_bridge(struct acpi_device *);
+ int acpi_is_root_bridge(acpi_handle);
+ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
+ #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
+Index: linux-2.6/drivers/acpi/proc.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/proc.c
++++ linux-2.6/drivers/acpi/proc.c
+@@ -377,14 +377,6 @@ acpi_system_wakeup_device_seq_show(struc
+ 	return 0;
+ }
+ 
+-static void physical_device_enable_wakeup(struct acpi_device *adev)
+-{
+-	struct device *dev = acpi_get_physical_device(adev->handle);
+-
+-	if (dev && device_can_wakeup(dev))
+-		device_set_wakeup_enable(dev, adev->wakeup.state.enabled);
+-}
+-
+ static ssize_t
+ acpi_system_write_wakeup_device(struct file *file,
+ 				const char __user * buffer,
+@@ -420,26 +412,7 @@ acpi_system_write_wakeup_device(struct f
+ 	}
+ 	if (found_dev) {
+ 		physical_device_enable_wakeup(found_dev);
+-		list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-			struct acpi_device *dev = container_of(node,
+-							       struct
+-							       acpi_device,
+-							       wakeup_list);
+-
+-			if ((dev != found_dev) &&
+-			    (dev->wakeup.gpe_number ==
+-			     found_dev->wakeup.gpe_number)
+-			    && (dev->wakeup.gpe_device ==
+-				found_dev->wakeup.gpe_device)) {
+-				printk(KERN_WARNING
+-				       "ACPI: '%s' and '%s' have the same GPE, "
+-				       "can't disable/enable one seperately\n",
+-				       dev->pnp.bus_id, found_dev->pnp.bus_id);
+-				dev->wakeup.state.enabled =
+-				    found_dev->wakeup.state.enabled;
+-				physical_device_enable_wakeup(dev);
+-			}
+-		}
++		propagate_enable_wakeup(found_dev);
+ 	}
+ 	mutex_unlock(&acpi_device_lock);
+ 	return count;
+Index: linux-2.6/drivers/acpi/wakeup.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/wakeup.c
++++ linux-2.6/drivers/acpi/wakeup.c
+@@ -124,6 +124,41 @@ void acpi_disable_wakeup_device(u8 sleep
+ 	}
+ }
+ 
++void physical_device_enable_wakeup(struct acpi_device *adev)
++{
++	struct device *dev = acpi_get_physical_device(adev->handle);
++
++	if (dev && device_can_wakeup(dev))
++		device_set_wakeup_enable(dev, adev->wakeup.state.enabled);
++}
++
++void propagate_enable_wakeup(struct acpi_device *wakeup_dev)
++{
++	struct list_head *node, *next;
++
++	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
++		struct acpi_device *dev =
++			container_of(node, struct acpi_device, wakeup_list);
++
++		if (!dev->wakeup.flags.valid)
++			continue;
++
++		if (dev == wakeup_dev)
++			continue;
++
++		if (dev->wakeup.gpe_number != wakeup_dev->wakeup.gpe_number
++		    || dev->wakeup.gpe_device != wakeup_dev->wakeup.gpe_device)
++			continue;
++
++		printk(KERN_WARNING "ACPI: '%s' and '%s' share a GPE, "
++			"unable to disable/enable one seperately\n",
++			dev->pnp.bus_id, wakeup_dev->pnp.bus_id);
++
++		dev->wakeup.state.enabled = wakeup_dev->wakeup.state.enabled;
++		physical_device_enable_wakeup(dev);
++	}
++}
++
+ int __init acpi_wakeup_device_init(void)
+ {
+ 	struct list_head *node, *next;
+Index: linux-2.6/drivers/acpi/sleep.h
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep.h
++++ linux-2.6/drivers/acpi/sleep.h
+@@ -5,6 +5,8 @@ extern int acpi_suspend (u32 state);
+ extern void acpi_enable_wakeup_device_prep(u8 sleep_state);
+ extern void acpi_enable_wakeup_device(u8 sleep_state);
+ extern void acpi_disable_wakeup_device(u8 sleep_state);
++extern void physical_device_enable_wakeup(struct acpi_device *adev);
++extern void propagate_enable_wakeup(struct acpi_device *wakeup_dev);
+ 
+ extern struct list_head acpi_wakeup_device_list;
+ extern struct mutex acpi_device_lock;
