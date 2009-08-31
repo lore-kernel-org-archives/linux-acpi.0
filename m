@@ -1,164 +1,113 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 10] PM: Measure suspend and resume times for individual devices (was: Re: [PATCH 2/6] PM: Asynchronous resume of devices)
-Date: Mon, 31 Aug 2009 14:53:47 +0200
-Message-ID: <200908311453.47138.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0908292043500.26533-100000@netrider.rowland.org> <200908302313.52945.rjw@sisk.pl> <20090831072545.GA21570@elte.hu>
+Subject: Re: [PATCH] ACPI: introduce kernel parameter acpi_sleep=s3_sci_enable
+Date: Mon, 31 Aug 2009 15:01:00 +0200
+Message-ID: <200908311501.00842.rjw@sisk.pl>
+References: <1251702975.3483.140.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20090831072545.GA21570@elte.hu>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux PCI <linux-pci@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:52245 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751858AbZHaNAJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Aug 2009 09:00:09 -0400
+In-Reply-To: <1251702975.3483.140.camel@rzhang-dt>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Monday 31 August 2009, Ingo Molnar wrote:
+On Monday 31 August 2009, Zhang Rui wrote:
 > 
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> Introduce kernel parameter acpi_sleep=s3_sci_enable
+
+I'm not against that, but I'd rather call the option s3_set_sci_en.
+
+> some laptop requires SCI_EN being set directly on resume,
+> or else they hung somewhere in the resume code path.
 > 
-> > On Sunday 30 August 2009, Rafael J. Wysocki wrote:
-> > > On Sunday 30 August 2009, Alan Stern wrote:
-> > > > On Sat, 29 Aug 2009, Rafael J. Wysocki wrote:
-> > > > 
-> > > > > I only wanted to say that the advantage is not really that "big". :-)
-> > > > > 
-> > > > > > I must agree, 14 threads isn't a lot.  But at the moment that number is 
-> > > > > > random, not under your control.
-> > > > > 
-> > > > > It's not directly controlled, but there are some interactions between the
-> > > > > async threads, the main threads and the async framework that don't allow this
-> > > > > number to grow too much.
-> > > > > 
-> > > > > IMO it sometimes is better to allow things to work themselves out, as long as
-> > > > > they don't explode, than to try to keep everything under strict control.  YMMV.
-> > > > 
-> > > > For testing purposes it would be nice to have a one-line summary for
-> > > > each device containing a thread ID, start timestamp, end timestamp, and
-> > > > elapsed time.  With that information you could evaluate the amount of
-> > > > parallelism and determine where the bottlenecks are.  It would give a
-> > > > much more detailed picture of the entire process than the total time of
-> > > > your recent patch 9.
-> > > 
-> > > Of course it would.  I think I'll implement it.
-> > 
-> > OK, below is a patch for that.  It only prints the time elapsed, because the
-> > timestamps themselves can be obtained from the usual kernel timestamping.
-> > 
-> > It's on top of all the previous patches.
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> > ---
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: PM: Measure suspend and resume times for individual devices
-> > 
-> > If verbose PM debugging is enabled, measure and print the time of
-> > suspending and resuming of individual devices.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/base/power/main.c |   51 +++++++++++++++++++++++++++++++++++++++++-----
-> >  kernel/power/swsusp.c     |    2 -
-> >  2 files changed, 47 insertions(+), 6 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/base/power/main.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/base/power/main.c
-> > +++ linux-2.6/drivers/base/power/main.c
-> > @@ -442,11 +442,11 @@ static bool pm_op_started(struct device 
-> >   */
-> >  int pm_time_elapsed(struct timeval *start, struct timeval *stop)
-> >  {
-> > -	s64 elapsed_centisecs64;
-> > +	s64 elapsed_msecs64;
-> >  
-> > -	elapsed_centisecs64 = timeval_to_ns(stop) - timeval_to_ns(start);
-> > -	do_div(elapsed_centisecs64, NSEC_PER_SEC / 100);
-> > -	return elapsed_centisecs64;
-> > +	elapsed_msecs64 = timeval_to_ns(stop) - timeval_to_ns(start);
-> > +	do_div(elapsed_msecs64, NSEC_PER_SEC / 1000);
-> > +	return elapsed_msecs64;
-> >  }
-> >  
-> >  static char *pm_verb(int event)
-> > @@ -476,7 +476,7 @@ static char *pm_verb(int event)
-> >  static void dpm_show_time(struct timeval *start, struct timeval *stop,
-> >  			  pm_message_t state, const char *info)
-> >  {
-> > -	int centisecs = pm_time_elapsed(start, stop);
-> > +	int centisecs = pm_time_elapsed(start, stop) / 10;
-> >  
-> >  	printk(KERN_INFO "PM: %s%s%s of devices complete in %d.%02d seconds\n",
-> >  		info ? info : "", info ? " " : "", pm_verb(state.event),
-> > @@ -497,6 +497,33 @@ static void pm_dev_err(struct device *de
-> >  		kobject_name(&dev->kobj), pm_verb(state.event), info, error);
-> >  }
-> >  
-> > +#ifdef DEBUG
-> > +static void device_show_time(struct timeval *start, struct device *dev,
-> > +			     pm_message_t state, char *info)
-> > +{
-> > +	struct timeval stop;
-> > +	int msecs;
-> > +
-> > +	do_gettimeofday(&stop);
-> > +	msecs = pm_time_elapsed(start, &stop);
-> > +	dev_dbg(dev, "PID %d: %s%s%s complete in %d.%03d seconds\n",
-> > +		task_pid_nr(current), info ? info : "", info ? " " : "",
-> > +		pm_verb(state.event), msecs / 1000, msecs % 1000);
-> > +}
-> > +
-> > +#define TIMER_DECLARE(timer)	struct timeval timer
-> > +#define TIMER_START(timer)	do { \
-> > +		do_gettimeofday(&timer); \
-> > +	} while (0)
-> > +#define TIMER_STOP(timer, dev, state, info)	do { \
-> > +		device_show_time(&timer, dev, state, info); \
-> > +	} while (0)
-> > +#else /* !DEBUG */
-> > +#define TIMER_DECLARE(timer)
-> > +#define TIMER_START(timer)	do { } while (0)
-> > +#define TIMER_STOP(timer, dev, state, info)	do { } while (0)
-> > +#endif /* !DEBUG */
-> > +
-> >  /*------------------------- Resume routines -------------------------*/
-> >  
-> >  /**
-> > @@ -510,7 +537,9 @@ static void pm_dev_err(struct device *de
-> >  static int __device_resume_noirq(struct device *dev, pm_message_t state)
-> >  {
-> >  	int error = 0;
-> > +	TIMER_DECLARE(timer);
-> >  
-> > +	TIMER_START(timer);
-> >  	TRACE_DEVICE(dev);
-> >  	TRACE_RESUME(0);
-> >  
-> > @@ -523,6 +552,7 @@ static int __device_resume_noirq(struct 
-> >  	wake_up_all(&dev->power.wait_queue);
-> >  
-> >  	TRACE_RESUME(error);
-> > +	TIMER_STOP(timer, dev, state, "EARLY");
-> >  	return error;
-> 
-> Hm, these CPP macros are rather ugly. Why is there a need for the 
-> TIMER_DECLARE() wrapper - if a proper inline function is used 
-> there's no need for that.
+> We already have a blacklist for these lattops but we still need
+> this option, especially when debugging some suspend/resume problems.
 
-I need a variable to be declared so that I can save the "start" timestamp
-in it.  I don't need the variable if DEBUG is unset, though.
-
-How would you do that without using a macro?  Or #ifdef #endif block that
-would be uglier IMO (which is why I didn't do that)?
-
-> There's other all-capitals macros in that code implementing code (and not
-> constants) - is that really justified/clean?
-
-Do you mean the TRACE_* macros?  Please ask Linus about that, they are from
-him. :-)
+Do we know of any that are not blacklisted?
 
 Thanks,
 Rafael
+
+
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  Documentation/kernel-parameters.txt |    3 ++-
+>  arch/x86/kernel/acpi/sleep.c        |    4 ++++
+>  drivers/acpi/sleep.c                |    6 ++++++
+>  include/linux/acpi.h                |    3 +++
+>  4 files changed, 15 insertions(+), 1 deletion(-)
+> 
+> Index: linux-2.6/drivers/acpi/sleep.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/sleep.c
+> +++ linux-2.6/drivers/acpi/sleep.c
+> @@ -182,6 +182,12 @@ static void acpi_pm_end(void)
+>   */
+>  static bool set_sci_en_on_resume;
+>  
+> +void __init acpi_set_sci_en_on_resume(void)
+> +{
+> +	set_sci_en_on_resume = true;
+> +	return 0;
+> +}
+> +
+>  extern void do_suspend_lowlevel(void);
+>  
+>  static u32 acpi_suspend_states[] = {
+> Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
+> +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+> @@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
+>  #endif
+>  		if (strncmp(str, "old_ordering", 12) == 0)
+>  			acpi_old_suspend_ordering();
+> +#ifdef CONFIG_SUSPEND
+> +		if (strncmp(str, "s3_sci_enable", 13) == 0)
+> +			acpi_set_sci_en_on_resume();
+> +#endif /* CONFIG_SUSPEND */
+>  		str = strchr(str, ',');
+>  		if (str != NULL)
+>  			str += strspn(str, ", \t");
+> Index: linux-2.6/include/linux/acpi.h
+> ===================================================================
+> --- linux-2.6.orig/include/linux/acpi.h
+> +++ linux-2.6/include/linux/acpi.h
+> @@ -255,6 +255,9 @@ int acpi_check_mem_region(resource_size_
+>  void __init acpi_no_s4_hw_signature(void);
+>  void __init acpi_old_suspend_ordering(void);
+>  void __init acpi_s4_no_nvs(void);
+> +#ifdef CONFIG_SUSPEND
+> +void __init acpi_set_sci_en_on_resume(void);
+> +#endif /* CONFIG_SUSPEND*/
+>  #endif /* CONFIG_PM_SLEEP */
+>  
+>  #define OSC_QUERY_TYPE			0
+> Index: linux-2.6/Documentation/kernel-parameters.txt
+> ===================================================================
+> --- linux-2.6.orig/Documentation/kernel-parameters.txt
+> +++ linux-2.6/Documentation/kernel-parameters.txt
+> @@ -240,7 +240,7 @@ and is between 256 and 4096 characters. 
+>  
+>  	acpi_sleep=	[HW,ACPI] Sleep options
+>  			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
+> -				  old_ordering, s4_nonvs }
+> +				  old_ordering, s4_nonvs, s3_sci_enable }
+>  			See Documentation/power/video.txt for information on
+>  			s3_bios and s3_mode.
+>  			s3_beep is for debugging; it makes the PC's speaker beep
+> @@ -253,6 +253,7 @@ and is between 256 and 4096 characters. 
+>  			of _PTS is used by default).
+>  			s4_nonvs prevents the kernel from saving/restoring the
+>  			ACPI NVS memory during hibernation.
+> +			s3_sci_enable sets SCI_EN directly on resume.
+>  
+>  	acpi_use_timer_override [HW,ACPI]
+>  			Use timer override. For some broken Nvidia NF5 boards
