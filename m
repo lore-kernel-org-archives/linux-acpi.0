@@ -1,79 +1,31 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 2/6] thermal: sysfs-api.txt - document passive
-	attribute for thermal zones
-Date: Tue, 01 Sep 2009 08:44:42 +0800
-Message-ID: <1251765882.3483.193.camel@rzhang-dt>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
-	 <1251303445-25317-3-git-send-email-elendil@planet.nl>
-	 <1251706691.3483.169.camel@rzhang-dt>
-	 <200908311320.00632.elendil@planet.nl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 9/9] acpi: fix NULL bug for HID/UID string
+Date: Mon, 31 Aug 2009 21:41:26 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0908312140590.20689@localhost.localdomain>
+References: <200908062257.n76MvuCr024266@imap1.linux-foundation.org>
+ <Pine.LNX.4.64.0908070012490.11170@sister.anvils>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:65039 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752442AbZIAAqr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 31 Aug 2009 20:46:47 -0400
-In-Reply-To: <200908311320.00632.elendil@planet.nl>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:53329 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752303AbZIABl3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 21:41:29 -0400
+Received: from localhost.localdomain ([74.104.157.165])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KP9000MTRD68PU2@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Mon, 31 Aug 2009 20:41:32 -0500 (CDT)
+In-reply-to: <Pine.LNX.4.64.0908070012490.11170@sister.anvils>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
+Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com, Valdis.Kletnieks@vt.edu
 
-On Mon, 2009-08-31 at 19:19 +0800, Frans Pop wrote:
-> On Monday 31 August 2009, Zhang Rui wrote:
-> > > +passive
-> > > +	Attribute is only present for zones which do not have a passive
-> > > +	cooling policy (_PSV) defined in ACPI.
-> >
-> > We should not involve any platform specific stuff in this
-> > documentation. how about "Attribute is only present for zones in which
-> > the passive cooling policy is not supported by native thermal driver"
-> [...]
-> > > -If the processor is listed in _PSL method, and the fan is listed in
-> > > _AL0 -method, the sys I/F structure will be built like this:
-> > > +If the processor is listed in _PSL method, the fan is listed in _AL0
-> > > +method, and the zone has a _PSV method, the sys I/F structure will
-> > > be +built like this:
-> >
-> > For an ACPI thermal zone, supporting passive cooling means that both
-> > _PSL and _PSV are available.
-> > so I don't think we need to change this. :)
-> 
-> OK. Updated patch below.
-> 
-> 
-> From: Frans Pop <elendil@planet.nl>
-> Subject: thermal: sysfs-api.txt - document passive attribute for thermal zones
-> 
-> Signed-off-by: Frans Pop <elendil@planet.nl>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Sujith Thomas <sujith.thomas@intel.com>
-> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-> 
-Acked-by: Zhang Rui <rui.zhang@intel.com>
+http://patchwork.kernel.org/patch/39735/
+
+applied to acpica branch in acpi-test tree
 
 thanks,
-rui
-> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-> index 895337f..a87dc27 100644
-> --- a/Documentation/thermal/sysfs-api.txt
-> +++ b/Documentation/thermal/sysfs-api.txt
-> @@ -199,6 +199,15 @@ cdev[0-*]_trip_point
->  	point.
->  	RO, Optional
->  
-> +passive
-> +	Attribute is only present for zones in which the passive cooling
-> +	policy is not supported by native thermal driver. Default is zero
-> +	and can be set to a temperature (in millidegrees) to enable a
-> +	passive trip point for the zone. Activation is done by polling
-> +	with an interval of 1 second.
-> +	Unit: millidegrees Celsius
-> +	RW, Optional
-> +
->  *****************************
->  * Cooling device attributes *
->  *****************************
+Len Brown, Intel Open Source Technology Center
 
