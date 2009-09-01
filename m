@@ -1,95 +1,73 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH V6 1/2] introduce ALS sysfs class
-Date: Tue, 01 Sep 2009 16:30:44 +0800
-Message-ID: <1251793844.3483.228.camel@rzhang-dt>
-References: <1251789947.3483.215.camel@rzhang-dt>
-	 <20090901081114.GA9942@elf.ucw.cz>
+Subject: Re: [PATCH V6 2/2] introduce ACPI ALS device driver
+Date: Tue, 01 Sep 2009 16:39:36 +0800
+Message-ID: <1251794376.3483.238.camel@rzhang-dt>
+References: <1251789956.3483.216.camel@rzhang-dt>
+	 <20090901081342.GB9942@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:43192 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:29628 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676AbZIAIc4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Sep 2009 04:32:56 -0400
-In-Reply-To: <20090901081114.GA9942@elf.ucw.cz>
+	id S1751400AbZIAIln (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Sep 2009 04:41:43 -0400
+In-Reply-To: <20090901081342.GB9942@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Tue, 2009-09-01 at 16:11 +0800, Pavel Machek wrote:
+On Tue, 2009-09-01 at 16:13 +0800, Pavel Machek wrote:
 > Hi!
-> 
-> > Introduce ALS sysfs class.
-> > 
-> > ALS sysfs class provides a standard sysfs interface for
-> > Ambient Light Sensor devices.
-> > 
-> > please read Documentation/ABI/testing/sysfs-class-als for
-> > detailed sysfs designs.
-> 
-> Thanks for fixing the interface!
-> 
-> > +static ssize_t
-> > +illuminance_show(struct device *dev, struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct als_device *als = to_als_device(dev);
+>=20
+> > ACPI spec defines ACPI Ambient Light Sensor device (hid ACPI0008),
+> > which provides a standard interface by which the OS may query prope=
+rties
+> > of the ambient light environment the system is currently operating =
+in,
+> > as well as the ability to detect meaningful changes in these values=
+ when
+> > the environment changes.
+>=20
+> > +struct acpi_als {
+> > +	struct acpi_device *device;
+> > +	struct als_device *als_sys;
 > > +	int illuminance;
-> > +	int result;
-> > +
-> > +	result = als->ops->get_illuminance(als, &illuminance);
-> > +	if (result)
-> > +		return result;
-> > +
-> > +	if (!illuminance)
-> > +		return sprintf(buf, "Illuminance below the supported range\n");
-> > +	else if (illuminance == -1)
-> > +		return sprintf(buf, "Illuminance above the supported range\n");
-> > +	else if (illuminance < -1)
-> > +		return -ERANGE;
-> > +	else
-> > +		return sprintf(buf, "%d\n", illuminance);
-> > +}
-> 
-> that's nor particulary clean. One value per file and all that. Could
-> we simply return errnos in _all_ the error cases? (Docs would suggest
-> this contains integer so string is definitely unexpected).
-> 
-IMO, 0 and -1 are not errors. they just suggest that the Ambient Light
-illuminance is beyond the device support range, while the device is
-still working normally.
-what about exporting these values (0 and -1) to user space directly?
+> > +	int chromaticity;
+> > +	int temperature;
+> > +	int polling;
+> > +	int count;
+> > +	struct als_mapping *mappings;
+> > +};
+>=20
+> chromaticity is write-only variable.
 
-> 
-> > +static ssize_t
-> > +adjustment_show(struct device *dev, struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct als_device *als = to_als_device(dev);
-> > +	int illuminance, adjustment;
-> > +	int result;
-> > +
-> > +	result = als->ops->get_illuminance(als, &illuminance);
-> > +	if (result)
-> > +		return result;
-> > +
-> > +	if (illuminance < 0 && illuminance != -1)
-> > +		return sprintf(buf, "Current illuminance invalid\n");
-> > +
-> > +	result = als_get_adjustment(als, illuminance, &adjustment);
-> > +	if (result)
-> > +		return result;
-> > +
-> > +	return sprintf(buf, "%d%%\n", adjustment);
-> > +}
-> 
-> You should not return strings... and in this case it is not clear how
-> the code works. You fill the buf, but then return...? 
+>  I believe you can drop it and
+> associted code.
+>=20
+> temperature ditto. Drop from this version?
+>=20
+> polling ditto. Drop from this version?
+>=20
+=EF=BB=BFcolor temperature, chromaticity and polling are three optional=
+ features
+defined in the ACPI spec, which are not supported yet in the ACPI ALS
+driver right now.
 
-As the adjustment is a percentage value, I added a '%' postfix so that
-users won't be confused.
-yes, it's okay to just export the integer, e.g. "100" instead of "100%".
+I think it's okay to add the code first and then generate some
+incremental patches to enable these features once we found such kind of
+platforms.
 
 thanks,
 rui
 
+
+> Thanks,
+> 									Pavel
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
