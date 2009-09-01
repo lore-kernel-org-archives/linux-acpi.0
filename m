@@ -1,74 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V6 1/2] introduce ALS sysfs class
-Date: Tue, 1 Sep 2009 20:47:00 +0200
-Message-ID: <200909012047.00606.rjw@sisk.pl>
-References: <1251789947.3483.215.camel@rzhang-dt> <1251793844.3483.228.camel@rzhang-dt> <20090901084306.GD9942@elf.ucw.cz>
+Subject: Re: [RFC][PATCH update] ACPI / PM: Allow PCI root bridges to wake up the system
+Date: Tue, 1 Sep 2009 21:03:19 +0200
+Message-ID: <200909012103.19761.rjw@sisk.pl>
+References: <200908300041.14541.rjw@sisk.pl> <200908312324.20850.rjw@sisk.pl> <20090901132547.GA13084@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58260 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985AbZIASp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Sep 2009 14:45:59 -0400
-In-Reply-To: <20090901084306.GD9942@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090901132547.GA13084@srcf.ucam.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-pm@lists.linux-foundation.org, Linux PCI <linux-pci@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>
 
-On Tuesday 01 September 2009, Pavel Machek wrote:
-> On Tue 2009-09-01 16:30:44, Zhang Rui wrote:
-> > On Tue, 2009-09-01 at 16:11 +0800, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > Introduce ALS sysfs class.
-> > > > 
-> > > > ALS sysfs class provides a standard sysfs interface for
-> > > > Ambient Light Sensor devices.
-> > > > 
-> > > > please read Documentation/ABI/testing/sysfs-class-als for
-> > > > detailed sysfs designs.
-> > > 
-> > > Thanks for fixing the interface!
-> > > 
-> > > > +static ssize_t
-> > > > +illuminance_show(struct device *dev, struct device_attribute *attr, char *buf)
-> > > > +{
-> > > > +	struct als_device *als = to_als_device(dev);
-> > > > +	int illuminance;
-> > > > +	int result;
-> > > > +
-> > > > +	result = als->ops->get_illuminance(als, &illuminance);
-> > > > +	if (result)
-> > > > +		return result;
-> > > > +
-> > > > +	if (!illuminance)
-> > > > +		return sprintf(buf, "Illuminance below the supported range\n");
-> > > > +	else if (illuminance == -1)
-> > > > +		return sprintf(buf, "Illuminance above the supported range\n");
-> > > > +	else if (illuminance < -1)
-> > > > +		return -ERANGE;
-> > > > +	else
-> > > > +		return sprintf(buf, "%d\n", illuminance);
-> > > > +}
-> > > 
-> > > that's nor particulary clean. One value per file and all that. Could
-> > > we simply return errnos in _all_ the error cases? (Docs would suggest
-> > > this contains integer so string is definitely unexpected).
-> > > 
-> > IMO, 0 and -1 are not errors. they just suggest that the Ambient Light
-> > illuminance is beyond the device support range, while the device is
-> > still working normally.
-> > what about exporting these values (0 and -1) to user space directly?
+On Tuesday 01 September 2009, Matthew Garrett wrote:
+> On Mon, Aug 31, 2009 at 11:24:20PM +0200, Rafael J. Wysocki wrote:
 > 
-> Returning 0 for "below" range and 99999999 for "above" range would be
-> nice, yes. 
+> > Updated patch is appended, but there's a problem with it.  Namely, when the
+> > root bridge GPE is shared with other devices, those devices are also enabled
+> > to wake up and they may be kind of "interesting" (on one of my test boxes they
+> > include the ethernet and audio adapters).  I'm not sure what to do about that.
+> 
+> Perhaps only enable it if a child device is enabled?
 
-Why not 0 and "all ones" or 0 and -1.
+Well, the problem is that we have to enable the devices that share the GPE to
+wake up together, but the child device we _really_ want to wake-up need not
+be any of them.
 
-Is there anything wrong with -1 in particular?
+Also, the child device may be enabled to wake up after we've run the "glue"
+code.
 
-Best,
+Well, perhaps it's better to rework pci_enable_wake() so that it, if the device
+doesn't have an ACPI handle and is not PCIe, it will go and enable the root
+bridge to wake up as well?
+
+I wonder what about the bridges between the desired wake-up device and the
+root bridge.  I guess they also should be enabled to wake-up, so that they can
+forward the PME# in case the system is designed this way.
+
+Thoughts?
+
+> This is difficult with the current code - the refcounted GPE stuff I'm
+> working on ought to make it easier.
+
+Ah, I think that's going to be useful.
+
+Thanks,
 Rafael
