@@ -1,63 +1,29 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH V6 2/2] introduce ACPI ALS device driver
-Date: Tue, 1 Sep 2009 10:44:01 +0200
-Message-ID: <20090901084401.GE9942@elf.ucw.cz>
-References: <1251789956.3483.216.camel@rzhang-dt> <20090901081342.GB9942@elf.ucw.cz> <1251794376.3483.238.camel@rzhang-dt>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC][PATCH update] ACPI / PM: Allow PCI root bridges to wake
+	up the system
+Date: Tue, 1 Sep 2009 14:25:47 +0100
+Message-ID: <20090901132547.GA13084@srcf.ucam.org>
+References: <200908300041.14541.rjw@sisk.pl> <200908312141.00737.rjw@sisk.pl> <200908312324.20850.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56521 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400AbZIAIoU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Sep 2009 04:44:20 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1251794376.3483.238.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200908312324.20850.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, Linux PCI <linux-pci@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Tue 2009-09-01 16:39:36, Zhang Rui wrote:
-> On Tue, 2009-09-01 at 16:13 +0800, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > ACPI spec defines ACPI Ambient Light Sensor device (hid ACPI0008),
-> > > which provides a standard interface by which the OS may query properties
-> > > of the ambient light environment the system is currently operating in,
-> > > as well as the ability to detect meaningful changes in these values when
-> > > the environment changes.
-> > 
-> > > +struct acpi_als {
-> > > +	struct acpi_device *device;
-> > > +	struct als_device *als_sys;
-> > > +	int illuminance;
-> > > +	int chromaticity;
-> > > +	int temperature;
-> > > +	int polling;
-> > > +	int count;
-> > > +	struct als_mapping *mappings;
-> > > +};
-> > 
-> > chromaticity is write-only variable.
-> 
-> >  I believe you can drop it and
-> > associted code.
-> > 
-> > temperature ditto. Drop from this version?
-> > 
-> > polling ditto. Drop from this version?
-> > 
-> ???color temperature, chromaticity and polling are three optional features
-> defined in the ACPI spec, which are not supported yet in the ACPI ALS
-> driver right now.
-> 
-> I think it's okay to add the code first and then generate some
-> incremental patches to enable these features once we found such kind of
-> platforms.
+On Mon, Aug 31, 2009 at 11:24:20PM +0200, Rafael J. Wysocki wrote:
 
-I'd avoid adding dead code to ease review etc... You can add it back
-easily when it actually has users...
-									Pavel
+> Updated patch is appended, but there's a problem with it.  Namely, when the
+> root bridge GPE is shared with other devices, those devices are also enabled
+> to wake up and they may be kind of "interesting" (on one of my test boxes they
+> include the ethernet and audio adapters).  I'm not sure what to do about that.
+
+Perhaps only enable it if a child device is enabled? This is difficult 
+with the current code - the refcounted GPE stuff I'm working on ought to 
+make it easier.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
