@@ -1,138 +1,79 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 8/8] ACPI: simplify building device HID/CID list
-Date: Mon, 31 Aug 2009 16:47:25 -0600
-Message-ID: <20090831224725.12236.85639.stgit@bob.kio>
-References: <20090831224535.12236.61350.stgit@bob.kio>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 2/6] thermal: sysfs-api.txt - document passive
+	attribute for thermal zones
+Date: Tue, 01 Sep 2009 08:44:42 +0800
+Message-ID: <1251765882.3483.193.camel@rzhang-dt>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
+	 <1251303445-25317-3-git-send-email-elendil@planet.nl>
+	 <1251706691.3483.169.camel@rzhang-dt>
+	 <200908311320.00632.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:46676 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973AbZHaWrT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Aug 2009 18:47:19 -0400
-In-Reply-To: <20090831224535.12236.61350.stgit@bob.kio>
+Received: from mga03.intel.com ([143.182.124.21]:65039 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752442AbZIAAqr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Aug 2009 20:46:47 -0400
+In-Reply-To: <200908311320.00632.elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+To: Frans Pop <elendil@planet.nl>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Minor code cleanup, no functional change.  Instead of remembering
-what HIDs & CIDs to add later, just add them immediately.
+On Mon, 2009-08-31 at 19:19 +0800, Frans Pop wrote:
+> On Monday 31 August 2009, Zhang Rui wrote:
+> > > +passive
+> > > +	Attribute is only present for zones which do not have a passive
+> > > +	cooling policy (_PSV) defined in ACPI.
+> >
+> > We should not involve any platform specific stuff in this
+> > documentation. how about "Attribute is only present for zones in which
+> > the passive cooling policy is not supported by native thermal driver"
+> [...]
+> > > -If the processor is listed in _PSL method, and the fan is listed in
+> > > _AL0 -method, the sys I/F structure will be built like this:
+> > > +If the processor is listed in _PSL method, the fan is listed in _AL0
+> > > +method, and the zone has a _PSV method, the sys I/F structure will
+> > > be +built like this:
+> >
+> > For an ACPI thermal zone, supporting passive cooling means that both
+> > _PSL and _PSV are available.
+> > so I don't think we need to change this. :)
+> 
+> OK. Updated patch below.
+> 
+> 
+> From: Frans Pop <elendil@planet.nl>
+> Subject: thermal: sysfs-api.txt - document passive attribute for thermal zones
+> 
+> Signed-off-by: Frans Pop <elendil@planet.nl>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Sujith Thomas <sujith.thomas@intel.com>
+> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+> 
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- drivers/acpi/scan.c |   56 +++++++++++++++++++++------------------------------
- 1 files changed, 23 insertions(+), 33 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index f19a935..5dda709 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1014,21 +1014,19 @@ static void acpi_add_id(struct acpi_device *device, const char *dev_id)
- 
- static void acpi_device_set_id(struct acpi_device *device)
- {
--	struct acpi_device_info *info = NULL;
--	char *hid = NULL;
--	struct acpica_device_id_list *cid_list = NULL;
--	char *cid_add = NULL;
- 	acpi_status status;
-+	struct acpi_device_info *info;
-+	struct acpica_device_id_list *cid_list;
- 	int i;
- 
- 	switch (device->device_type) {
- 	case ACPI_BUS_TYPE_DEVICE:
- 		if (ACPI_IS_ROOT_DEVICE(device)) {
--			hid = ACPI_SYSTEM_HID;
-+			acpi_add_id(device, ACPI_SYSTEM_HID);
- 			break;
- 		} else if (ACPI_IS_ROOT_DEVICE(device->parent)) {
- 			/* \_SB_, the only root-level namespace device */
--			hid = ACPI_BUS_HID;
-+			acpi_add_id(device, ACPI_BUS_HID);
- 			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
- 			strcpy(device->pnp.device_class, ACPI_BUS_CLASS);
- 			break;
-@@ -1041,41 +1039,43 @@ static void acpi_device_set_id(struct acpi_device *device)
- 		}
- 
- 		if (info->valid & ACPI_VALID_HID)
--			hid = info->hardware_id.string;
--		if (info->valid & ACPI_VALID_CID)
-+			acpi_add_id(device, info->hardware_id.string);
-+		if (info->valid & ACPI_VALID_CID) {
- 			cid_list = &info->compatible_id_list;
-+			for (i = 0; i < cid_list->count; i++)
-+				acpi_add_id(device, cid_list->ids[i].string);
-+		}
- 		if (info->valid & ACPI_VALID_ADR) {
- 			device->pnp.bus_address = info->address;
- 			device->flags.bus_address = 1;
- 		}
- 
--		/* If we have a video/bay/dock device, add our selfdefined
--		   HID to the CID list. Like that the video/bay/dock drivers
--		   will get autoloaded and the device might still match
--		   against another driver.
--		*/
-+		/*
-+		 * Some devices don't reliably have _HIDs & _CIDs, so add
-+		 * synthetic HIDs to make sure drivers can find them.
-+		 */
- 		if (acpi_is_video_device(device))
--			cid_add = ACPI_VIDEO_HID;
-+			acpi_add_id(device, ACPI_VIDEO_HID);
- 		else if (ACPI_SUCCESS(acpi_bay_match(device)))
--			cid_add = ACPI_BAY_HID;
-+			acpi_add_id(device, ACPI_BAY_HID);
- 		else if (ACPI_SUCCESS(acpi_dock_match(device)))
--			cid_add = ACPI_DOCK_HID;
-+			acpi_add_id(device, ACPI_DOCK_HID);
- 
- 		break;
- 	case ACPI_BUS_TYPE_POWER:
--		hid = ACPI_POWER_HID;
-+		acpi_add_id(device, ACPI_POWER_HID);
- 		break;
- 	case ACPI_BUS_TYPE_PROCESSOR:
--		hid = ACPI_PROCESSOR_OBJECT_HID;
-+		acpi_add_id(device, ACPI_PROCESSOR_OBJECT_HID);
- 		break;
- 	case ACPI_BUS_TYPE_THERMAL:
--		hid = ACPI_THERMAL_HID;
-+		acpi_add_id(device, ACPI_THERMAL_HID);
- 		break;
- 	case ACPI_BUS_TYPE_POWER_BUTTON:
--		hid = ACPI_BUTTON_HID_POWERF;
-+		acpi_add_id(device, ACPI_BUTTON_HID_POWERF);
- 		break;
- 	case ACPI_BUS_TYPE_SLEEP_BUTTON:
--		hid = ACPI_BUTTON_HID_SLEEPF;
-+		acpi_add_id(device, ACPI_BUTTON_HID_SLEEPF);
- 		break;
- 	}
- 
-@@ -1086,18 +1086,8 @@ static void acpi_device_set_id(struct acpi_device *device)
- 	 * This generic ID isn't useful for driver binding, but it provides
- 	 * the useful property that "every acpi_device has an ID."
- 	 */
--	if (!hid && !cid_list && !cid_add)
--		hid = "device";
--
--	if (hid)
--		acpi_add_id(device, hid);
--	if (cid_list)
--		for (i = 0; i < cid_list->count; i++)
--			acpi_add_id(device, cid_list->ids[i].string);
--	if (cid_add)
--		acpi_add_id(device, cid_add);
--
--	kfree(info);
-+	if (list_empty(&device->pnp.ids))
-+		acpi_add_id(device, "device");
- }
- 
- static int acpi_device_set_context(struct acpi_device *device)
+thanks,
+rui
+> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+> index 895337f..a87dc27 100644
+> --- a/Documentation/thermal/sysfs-api.txt
+> +++ b/Documentation/thermal/sysfs-api.txt
+> @@ -199,6 +199,15 @@ cdev[0-*]_trip_point
+>  	point.
+>  	RO, Optional
+>  
+> +passive
+> +	Attribute is only present for zones in which the passive cooling
+> +	policy is not supported by native thermal driver. Default is zero
+> +	and can be set to a temperature (in millidegrees) to enable a
+> +	passive trip point for the zone. Activation is done by polling
+> +	with an interval of 1 second.
+> +	Unit: millidegrees Celsius
+> +	RW, Optional
+> +
+>  *****************************
+>  * Cooling device attributes *
+>  *****************************
 
