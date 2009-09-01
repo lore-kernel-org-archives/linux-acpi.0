@@ -1,29 +1,45 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC][PATCH update] ACPI / PM: Allow PCI root bridges to wake
-	up the system
-Date: Tue, 1 Sep 2009 14:25:47 +0100
-Message-ID: <20090901132547.GA13084@srcf.ucam.org>
-References: <200908300041.14541.rjw@sisk.pl> <200908312141.00737.rjw@sisk.pl> <200908312324.20850.rjw@sisk.pl>
+From: Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [PATCH 13/24] video/lcd: document sysfs interface
+Date: Tue, 01 Sep 2009 15:43:02 +0100
+Message-ID: <1251816182.9395.98.camel@dax.rpnet.com>
+References: <1251464215-6540-1-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-2-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-3-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-4-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-5-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-6-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-7-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-8-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-9-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-10-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-11-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-12-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-13-git-send-email-corentincj@iksaif.net>
+	 <1251464215-6540-14-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200908312324.20850.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Linux PCI <linux-pci@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from dan.rpsys.net ([93.97.175.187]:63978 "EHLO dan.rpsys.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751400AbZIAOoC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Sep 2009 10:44:02 -0400
+In-Reply-To: <1251464215-6540-14-git-send-email-corentincj@iksaif.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, alan-jenkins@tuffmail.co.uk
 
-On Mon, Aug 31, 2009 at 11:24:20PM +0200, Rafael J. Wysocki wrote:
+On Fri, 2009-08-28 at 14:56 +0200, Corentin Chary wrote:
+> Date and KernelVersion may be wrong because the lcd
+> interface was introduced before git initial import.
+> 
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Acked-by: Richard Purdie <rpurdie@linux.intel.com>
 
-> Updated patch is appended, but there's a problem with it.  Namely, when the
-> root bridge GPE is shared with other devices, those devices are also enabled
-> to wake up and they may be kind of "interesting" (on one of my test boxes they
-> include the ethernet and audio adapters).  I'm not sure what to do about that.
+> ---
+>  Documentation/ABI/testing/sysfs-class-lcd |   23 +++++++++++++++++++++++
+>  1 files changed, 23 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/ABI/testing/sysfs-class-lcd
 
-Perhaps only enable it if a child device is enabled? This is difficult 
-with the current code - the refcounted GPE stuff I'm working on ought to 
-make it easier.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
