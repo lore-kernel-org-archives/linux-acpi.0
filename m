@@ -1,55 +1,43 @@
-From: Norton Finance Loan <info@loan.co.uk>
-Subject: LOAN OFFER AT 3% INTREST RATE......
-Date: Tue, 04 Aug 2009 12:45:59 -0500
-Message-ID: <20090804124559.d5jiw5iowgooo0co@201.219.3.37>
-Reply-To: nortonfinace_nflc@yahoo.com
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH 0/3] Rework GPE handling
+Date: Wed, 2 Sep 2009 19:10:14 +0100
+Message-ID: <20090902181014.GA10917@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from miduvi.gov.ec ([201.219.3.37]:34692 "EHLO miduvi.gov.ec"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751008AbZIBMP0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Sep 2009 08:15:26 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753286AbZIBSK2@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: robert.moore@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+The current GPE code attempts to define GPEs as either runtime (the 
+default), wake or run/wake. These states are orthogonal to whether or 
+not a GPE is actually enabled or not. Further, various additional flags 
+are defined and set, but never used.
 
+This architecture is additionally complicated by changing the type of a 
+GPE causing it to be disabled, resulting in complex functions that then 
+have to conditionally re-enable a GPE. It also makes it impossible to 
+determine how many consumers a given GPE has, preventing us from 
+being able to implement runtime power management for devices requiring 
+GPEs for wakeup notification.
 
-My name is Mr Barr James walter,the managing director of Norton
-Finance Loan
-Company.I am a private loan lender.I give out loans to
-business people and
-individuals for just 3% interest rate.This loan co-operation
-gives out
-loan without any collateral and under no risk.
-If you are interested in getting a loan from my firm,
-contact me with the
-following details for the fast processing of your loan which
-will take
-48-hours for you to receive your demanded loan all over the
-world.
-======================
-* Applicant Full Names
-* Applicant Contact Address:
-* Direct-Phone Number:
-* Country:
-* Age:
-* Marital Status:
-* Amount Required As Loan:
-* Proposed Terms/Duration Of Loan:
-* Annual Income: * Occupation:
+This patchset adds a new, simpler API and transitions the existing users 
+over to it. It then removes the old code.
 
-You are to contact me for your much needed loan via email
-below;
+ drivers/acpi/acpica/acevents.h |    6 -
+ drivers/acpi/acpica/aclocal.h  |    2 
+ drivers/acpi/acpica/evgpe.c    |  150 ++++---------------------------------
+ drivers/acpi/acpica/evgpeblk.c |  164 +----------------------------------------
+ drivers/acpi/acpica/evxface.c  |   14 ---
+ drivers/acpi/acpica/evxfevnt.c |  139 ++++++++++++++++++++++++++++++++--
+ drivers/acpi/button.c          |   18 +++-
+ drivers/acpi/ec.c              |    5 -
+ drivers/acpi/wakeup.c          |   57 +++-----------
+ include/acpi/acpixf.h          |    8 ++
+ include/acpi/actypes.h         |   32 ++------
+ 11 files changed, 197 insertions(+), 398 deletions(-)
 
-Regards,
-Mr Barr James walter
-E-mail:nortonfinace_nflc@yahoo.com
-Tel:Tel+44 70457 95686
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
