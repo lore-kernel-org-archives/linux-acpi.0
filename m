@@ -1,80 +1,183 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/6] thermal: sysfs-api.txt - document passive
-	attribute for thermal zones
-Date: Wed, 2 Sep 2009 22:02:33 +0200
-Message-ID: <20090902200233.GB1918@ucw.cz>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <1251303445-25317-3-git-send-email-elendil@planet.nl> <1251706691.3483.169.camel@rzhang-dt> <200908311320.00632.elendil@planet.nl> <1251765882.3483.193.camel@rzhang-dt>
+From: Daniel Walker <dwalker@fifo99.com>
+Subject: Re: [PATCH 3/3] ACPI: Remove old GPE API and transition code
+ entirely to new one
+Date: Wed, 02 Sep 2009 13:37:26 -0700
+Message-ID: <1251923846.16819.4.camel@desktop>
+References: <20090902181014.GA10917@srcf.ucam.org>
+	 <1251915173-10144-1-git-send-email-mjg@redhat.com>
+	 <1251915173-10144-2-git-send-email-mjg@redhat.com>
+	 <1251915173-10144-3-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46201 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752411AbZIBUCk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Sep 2009 16:02:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1251765882.3483.193.camel@rzhang-dt>
+Received: from fifo99.com ([67.223.236.141]:57969 "EHLO fifo99.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751188AbZIBUh0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Sep 2009 16:37:26 -0400
+In-Reply-To: <1251915173-10144-3-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Frans Pop <elendil@planet.nl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Thomas, Sujith" <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: robert.moore@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
-
-> > > We should not involve any platform specific stuff in this
-> > > documentation. how about "Attribute is only present for zones in which
-> > > the passive cooling policy is not supported by native thermal driver"
-> > [...]
-> > > > -If the processor is listed in _PSL method, and the fan is listed in
-> > > > _AL0 -method, the sys I/F structure will be built like this:
-> > > > +If the processor is listed in _PSL method, the fan is listed in _AL0
-> > > > +method, and the zone has a _PSV method, the sys I/F structure will
-> > > > be +built like this:
-> > >
-> > > For an ACPI thermal zone, supporting passive cooling means that both
-> > > _PSL and _PSV are available.
-> > > so I don't think we need to change this. :)
-> > 
-> > OK. Updated patch below.
-> > 
-> > 
-> > From: Frans Pop <elendil@planet.nl>
-> > Subject: thermal: sysfs-api.txt - document passive attribute for thermal zones
-> > 
-> > Signed-off-by: Frans Pop <elendil@planet.nl>
-> > Cc: Zhang Rui <rui.zhang@intel.com>
-> > Cc: Sujith Thomas <sujith.thomas@intel.com>
-> > Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-> > 
-> Acked-by: Zhang Rui <rui.zhang@intel.com>
+On Wed, 2009-09-02 at 14:12 -0400, Matthew Garrett wrote:
+> Remove the old GPE type handling entirely, which gets rid of various
+> quirks like the implicit disabling with GPE type setting and some entirely
+> dead code that set flags that were never used by anything else in the
+> kernel. Also fix up some comments that erroneously claimed that the code
+> they were commenting was actually enabling GPEs.
 > 
-> thanks,
-> rui
-> > diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-> > index 895337f..a87dc27 100644
-> > --- a/Documentation/thermal/sysfs-api.txt
-> > +++ b/Documentation/thermal/sysfs-api.txt
-> > @@ -199,6 +199,15 @@ cdev[0-*]_trip_point
-> >  	point.
-> >  	RO, Optional
-> >  
-> > +passive
-> > +	Attribute is only present for zones in which the passive cooling
-> > +	policy is not supported by native thermal driver. Default is zero
-> > +	and can be set to a temperature (in millidegrees) to enable a
-> > +	passive trip point for the zone. Activation is done by polling
-> > +	with an interval of 1 second.
-> > +	Unit: millidegrees Celsius
-> > +	RW, Optional
-> > +
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> ---
+>  drivers/acpi/acpica/acevents.h |    6 +-
+>  drivers/acpi/acpica/evgpe.c    |  150 ++++--------------------------------
+>  drivers/acpi/acpica/evgpeblk.c |  164 +---------------------------------------
+>  drivers/acpi/acpica/evxface.c  |   14 ----
+>  drivers/acpi/acpica/evxfevnt.c |   48 +-----------
+>  drivers/acpi/button.c          |    5 -
+>  drivers/acpi/ec.c              |    2 -
+>  drivers/acpi/wakeup.c          |   55 ++-----------
+>  include/acpi/actypes.h         |   32 ++------
+>  9 files changed, 41 insertions(+), 435 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+> index 0bba148..197aa4f 100644
+> --- a/drivers/acpi/acpica/acevents.h
+> +++ b/drivers/acpi/acpica/acevents.h
+> @@ -76,8 +76,7 @@ acpi_ev_queue_notify_request(struct acpi_namespace_node *node,
+>   * evgpe - GPE handling and dispatch
+>   */
+>  acpi_status
+> -acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info,
+> -				u8 type);
+> +acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info);
+>  
+>  acpi_status
+>  acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info,
+> @@ -122,9 +121,6 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_event_info *gpe_event_info,
+>  u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info *gpe_xrupt_list);
+>  
+>  acpi_status
+> -acpi_ev_set_gpe_type(struct acpi_gpe_event_info *gpe_event_info, u8 type);
+> -
+> -acpi_status
+>  acpi_ev_check_for_wake_only_gpe(struct acpi_gpe_event_info *gpe_event_info);
+>  
+>  acpi_status acpi_ev_gpe_initialize(void);
+> diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+> index b9d8ee6..97c0e0f 100644
+> --- a/drivers/acpi/acpica/evgpe.c
+> +++ b/drivers/acpi/acpica/evgpe.c
+> @@ -54,54 +54,9 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context);
+>  
+>  /*******************************************************************************
+>   *
+> - * FUNCTION:    acpi_ev_set_gpe_type
+> - *
+> - * PARAMETERS:  gpe_event_info          - GPE to set
+> - *              Type                    - New type
+> - *
+> - * RETURN:      Status
+> - *
+> - * DESCRIPTION: Sets the new type for the GPE (wake, run, or wake/run)
+> - *
+> - ******************************************************************************/
+> -
+> -acpi_status
+> -acpi_ev_set_gpe_type(struct acpi_gpe_event_info *gpe_event_info, u8 type)
+> -{
+> -	acpi_status status;
+> -
+> -	ACPI_FUNCTION_TRACE(ev_set_gpe_type);
+> -
+> -	/* Validate type and update register enable masks */
+> -
+> -	switch (type) {
+> -	case ACPI_GPE_TYPE_WAKE:
+> -	case ACPI_GPE_TYPE_RUNTIME:
+> -	case ACPI_GPE_TYPE_WAKE_RUN:
+> -		break;
+> -
+> -	default:
+> -		return_ACPI_STATUS(AE_BAD_PARAMETER);
+> -	}
+> -
+> -	/* Disable the GPE if currently enabled */
+> -
+> -	status = acpi_ev_disable_gpe(gpe_event_info);
+> -
+> -	/* Clear the type bits and insert the new Type */
+> -
+> -	gpe_event_info->flags &= ~ACPI_GPE_TYPE_MASK;
+> -	gpe_event_info->flags |= type;
+> -	return_ACPI_STATUS(status);
+> -}
+> -
+> -/*******************************************************************************
+> - *
+>   * FUNCTION:    acpi_ev_update_gpe_enable_masks
+>   *
+>   * PARAMETERS:  gpe_event_info          - GPE to update
+> - *              Type                    - What to do: ACPI_GPE_DISABLE or
+> - *                                        ACPI_GPE_ENABLE
+>   *
+>   * RETURN:      Status
+>   *
+> @@ -110,8 +65,7 @@ acpi_ev_set_gpe_type(struct acpi_gpe_event_info *gpe_event_info, u8 type)
+>   ******************************************************************************/
+>  
+>  acpi_status
+> -acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info,
+> -				u8 type)
+> +acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info)
+>  {
+>  	struct acpi_gpe_register_info *gpe_register_info;
+>  	u8 register_bit;
+> @@ -127,37 +81,13 @@ acpi_ev_update_gpe_enable_masks(struct acpi_gpe_event_info *gpe_event_info,
+>  	    (1 <<
+>  	     (gpe_event_info->gpe_number - gpe_register_info->base_gpe_number));
+>  
+> -	/* 1) Disable case. Simply clear all enable bits */
+> -
+> -	if (type == ACPI_GPE_DISABLE) {
+> -		ACPI_CLEAR_BIT(gpe_register_info->enable_for_wake,
+> -			       register_bit);
+> -		ACPI_CLEAR_BIT(gpe_register_info->enable_for_run, register_bit);
+> -		return_ACPI_STATUS(AE_OK);
+> -	}
+> -
+> -	/* 2) Enable case. Set/Clear the appropriate enable bits */
+> -
+> -	switch (gpe_event_info->flags & ACPI_GPE_TYPE_MASK) {
+> -	case ACPI_GPE_TYPE_WAKE:
+> -		ACPI_SET_BIT(gpe_register_info->enable_for_wake, register_bit);
+> -		ACPI_CLEAR_BIT(gpe_register_info->enable_for_run, register_bit);
+> -		break;
+> -
+> -	case ACPI_GPE_TYPE_RUNTIME:
+> -		ACPI_CLEAR_BIT(gpe_register_info->enable_for_wake,
+> -			       register_bit);
+> -		ACPI_SET_BIT(gpe_register_info->enable_for_run, register_bit);
+> -		break;
+> -
+> -	case ACPI_GPE_TYPE_WAKE_RUN:
+> -		ACPI_SET_BIT(gpe_register_info->enable_for_wake, register_bit);
+> -		ACPI_SET_BIT(gpe_register_info->enable_for_run, register_bit);
+> -		break;
+> +	ACPI_CLEAR_BIT(gpe_register_info->enable_for_wake, register_bit);
+> +	ACPI_CLEAR_BIT(gpe_register_info->enable_for_run, register_bit);
+>  
+> -	default:
+> -		return_ACPI_STATUS(AE_BAD_PARAMETER);
+> -	}
+> +	if (gpe_event_info->runtime_count)
+> +                ACPI_SET_BIT(gpe_register_info->enable_for_run, register_bit);
+> +	if (gpe_event_info->wakeup_count)
+> +                ACPI_SET_BIT(gpe_register_info->enable_for_wake, register_bit);
 
-So '0=disabled'? Better say that, because throttling at 0C would be
-useless in most of the world.
+Could you run this through checkpatch.pl and fix any issues you find..
+It looks like you have some copy&paste issues on the lines above.
 
-Are values below zero supported? Maybe -28000mC should mean
-'disabled'? :-).
+Daniel
 
-									Pavel 
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
