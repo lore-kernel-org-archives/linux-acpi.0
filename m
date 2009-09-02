@@ -1,43 +1,128 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 0/3] Rework GPE handling
-Date: Wed, 2 Sep 2009 19:10:14 +0100
-Message-ID: <20090902181014.GA10917@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753286AbZIBSK2@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: robert.moore@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] ACPI: Add support for new refcounted GPE API to drivers
+Date: Wed,  2 Sep 2009 14:12:52 -0400
+Message-ID: <1251915173-10144-2-git-send-email-mjg@redhat.com>
+References: <20090902181014.GA10917@srcf.ucam.org>
+ <1251915173-10144-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:40578 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075AbZIBSNS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Sep 2009 14:13:18 -0400
+In-Reply-To: <1251915173-10144-1-git-send-email-mjg@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: robert.moore@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-The current GPE code attempts to define GPEs as either runtime (the 
-default), wake or run/wake. These states are orthogonal to whether or 
-not a GPE is actually enabled or not. Further, various additional flags 
-are defined and set, but never used.
+Add GPE refcounting support to ACPI drivers that need it. This will
+currently do little until the core is changed over to use the new
+behaviour.
 
-This architecture is additionally complicated by changing the type of a 
-GPE causing it to be disabled, resulting in complex functions that then 
-have to conditionally re-enable a GPE. It also makes it impossible to 
-determine how many consumers a given GPE has, preventing us from 
-being able to implement runtime power management for devices requiring 
-GPEs for wakeup notification.
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/button.c |   13 +++++++++++++
+ drivers/acpi/ec.c     |    3 +++
+ drivers/acpi/wakeup.c |    6 ++++++
+ 3 files changed, 22 insertions(+), 0 deletions(-)
 
-This patchset adds a new, simpler API and transitions the existing users 
-over to it. It then removes the old code.
-
- drivers/acpi/acpica/acevents.h |    6 -
- drivers/acpi/acpica/aclocal.h  |    2 
- drivers/acpi/acpica/evgpe.c    |  150 ++++---------------------------------
- drivers/acpi/acpica/evgpeblk.c |  164 +----------------------------------------
- drivers/acpi/acpica/evxface.c  |   14 ---
- drivers/acpi/acpica/evxfevnt.c |  139 ++++++++++++++++++++++++++++++++--
- drivers/acpi/button.c          |   18 +++-
- drivers/acpi/ec.c              |    5 -
- drivers/acpi/wakeup.c          |   57 +++-----------
- include/acpi/acpixf.h          |    8 ++
- include/acpi/actypes.h         |   32 ++------
- 11 files changed, 197 insertions(+), 398 deletions(-)
-
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 9195deb..4dd67b1 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -367,6 +367,9 @@ static int acpi_button_add(struct acpi_device *device)
+ 	if (button->type == ACPI_BUTTON_TYPE_LID)
+ 		acpi_lid_send_state(device);
+ 
++	acpi_get_runtime_gpe(device->wakeup.gpe_device,
++			     device->wakeup.gpe_number);
++
+ 	if (device->wakeup.flags.valid) {
+ 		/* Button's GPE is run-wake GPE */
+ 		acpi_set_gpe_type(device->wakeup.gpe_device,
+@@ -374,6 +377,8 @@ static int acpi_button_add(struct acpi_device *device)
+ 				  ACPI_GPE_TYPE_WAKE_RUN);
+ 		acpi_enable_gpe(device->wakeup.gpe_device,
+ 				device->wakeup.gpe_number);
++		acpi_get_wakeup_gpe(device->wakeup.gpe_device,
++				    device->wakeup.gpe_number);
+ 		device->wakeup.state.enabled = 1;
+ 	}
+ 
+@@ -393,6 +398,14 @@ static int acpi_button_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 
++	acpi_put_runtime_gpe(device->wakeup.gpe_device,
++			     device->wakeup.gpe_number);
++	if (device->wakeup.flags.valid) {
++		acpi_put_wakeup_gpe(device->wakeup.gpe_device,
++				    device->wakeup.gpe_number);
++		device->wakeup.state.enabled = 0;
++	}
++
+ 	acpi_button_remove_fs(device);
+ 	input_unregister_device(button->input);
+ 	kfree(button);
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 391f331..56f6ba9 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -790,6 +790,7 @@ ec_parse_device(acpi_handle handle, u32 Level, void *context, void **retval)
+ 
+ static void ec_remove_handlers(struct acpi_ec *ec)
+ {
++	acpi_put_runtime_gpe(NULL, ec->gpe);
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+ 		pr_err(PREFIX "failed to remove space handler\n");
+@@ -900,6 +901,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 		return -ENODEV;
+ 	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
+ 	acpi_enable_gpe(NULL, ec->gpe);
++	acpi_get_runtime_gpe(NULL, ec->gpe);
+ 	status = acpi_install_address_space_handler(ec->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_ec_space_handler,
+@@ -916,6 +918,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 		} else {
+ 			acpi_remove_gpe_handler(NULL, ec->gpe,
+ 				&acpi_ec_gpe_handler);
++			acpi_put_runtime_gpe(NULL, ec->gpe);
+ 			return -ENODEV;
+ 		}
+ 	}
+diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+index 88725dc..98023ef 100644
+--- a/drivers/acpi/wakeup.c
++++ b/drivers/acpi/wakeup.c
+@@ -81,6 +81,8 @@ void acpi_enable_wakeup_device(u8 sleep_state)
+ 		if (!dev->wakeup.flags.run_wake)
+ 			acpi_enable_gpe(dev->wakeup.gpe_device,
+ 					dev->wakeup.gpe_number);
++		acpi_get_wakeup_gpe(dev->wakeup.gpe_device,
++				    dev->wakeup.gpe_number);
+ 	}
+ }
+ 
+@@ -121,6 +123,8 @@ void acpi_disable_wakeup_device(u8 sleep_state)
+ 			acpi_clear_gpe(dev->wakeup.gpe_device,
+ 				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 		}
++		acpi_put_wakeup_gpe(dev->wakeup.gpe_device,
++				    dev->wakeup.gpe_number);
+ 	}
+ }
+ 
+@@ -141,6 +145,8 @@ int __init acpi_wakeup_device_init(void)
+ 				  ACPI_GPE_TYPE_WAKE_RUN);
+ 		acpi_enable_gpe(dev->wakeup.gpe_device,
+ 				dev->wakeup.gpe_number);
++		acpi_get_wakeup_gpe(dev->wakeup.gpe_device,
++				    dev->wakeup.gpe_number);
+ 		dev->wakeup.state.enabled = 1;
+ 	}
+ 	mutex_unlock(&acpi_device_lock);
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.2.5
+
