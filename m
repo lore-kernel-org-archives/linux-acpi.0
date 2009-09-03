@@ -1,141 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: introduce kernel parameter acpi_sleep=s3_sci_enable
-Date: Thu, 3 Sep 2009 23:20:02 +0200
-Message-ID: <200909032320.02132.rjw@sisk.pl>
-References: <1251702975.3483.140.camel@rzhang-dt> <200908311501.00842.rjw@sisk.pl> <1251959303.3483.296.camel@rzhang-dt>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH] Resend: ACPI/CPUFREQ: Introduce hw_limit per cpu cpufreq sysfs interface
+Date: Thu, 3 Sep 2009 23:42:31 +0200
+Message-ID: <20090903214231.GB27880@isilmar.linta.de>
+References: <200909031323.29420.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39153 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932290AbZICVTP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Sep 2009 17:19:15 -0400
-In-Reply-To: <1251959303.3483.296.camel@rzhang-dt>
+Received: from isilmar.linta.de ([213.133.102.198]:52882 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756394AbZICVtL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Sep 2009 17:49:11 -0400
+Content-Disposition: inline
+In-Reply-To: <200909031323.29420.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Dave Jones <davej@redhat.com>, Len Brown <lenb@kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, Pallipadi Venkatesh <venkatesh.pallipadi@intel.com>
 
-On Thursday 03 September 2009, Zhang Rui wrote:
-> On Mon, 2009-08-31 at 21:01 +0800, Rafael J. Wysocki wrote:
-> > On Monday 31 August 2009, Zhang Rui wrote:
-> > > 
-> > > Introduce kernel parameter acpi_sleep=s3_sci_enable
-> > 
-> > I'm not against that, but I'd rather call the option s3_set_sci_en.
-> > 
-> okay, patch refreshed.
-> 
-> > > some laptop requires SCI_EN being set directly on resume,
-> > > or else they hung somewhere in the resume code path.
-> > > 
-> > > We already have a blacklist for these lattops but we still need
-> > > this option, especially when debugging some suspend/resume problems.
-> > 
-> > Do we know of any that are not blacklisted?
-> > 
-> sorry, I mean we have a whitelist.
+Hey,
 
-Blacklist, whitelist, whatever.  :-)
+On Thu, Sep 03, 2009 at 01:23:28PM +0200, Thomas Renninger wrote:
+> I now realized that this patch somewhat clashes with
+> cpufrequtils cpufreq-info --hwlimits command.
+> IMO "cpufreq-info --hwlimits" is wrong here as it evaluates
+> max_freq sysfs value which could also get limited by the user.
 
-Do we actually _know_ of any systems out there that are not in the
-list and that require this workaround?
+huh?
 
-> refreshed patch attached belowed.
-> 
-> 
-> Introduce kernel parameter acpi_sleep=s3_sci_enable
-> 
-> some laptop requires SCI_EN being set directly on resume,
-> or else they hung somewhere in the resume code path.
-> 
-> We already have a blacklist for these lattops but we still need
-> this option, especially when debugging some suspend/resume problems.
+brodo@comet:~$ cpufreq-info --hwlimits
+800000 2001000
+brodo@comet:~$ sudo cpufreq-set --max 1.2G
+brodo@comet:~$ cpufreq-info --hwlimits
+800000 2001000
 
-I'd say "... problems, in case there are systems that need this workaround
-and are not yet in the blacklist" in addition.
- 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  Documentation/kernel-parameters.txt |    3 ++-
->  arch/x86/kernel/acpi/sleep.c        |    4 ++++
->  drivers/acpi/sleep.c                |    6 ++++++
->  include/linux/acpi.h                |    3 +++
->  4 files changed, 15 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/sleep.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/sleep.c
-> +++ linux-2.6/drivers/acpi/sleep.c
-> @@ -182,6 +182,12 @@ static void acpi_pm_end(void)
->   */
->  static bool set_sci_en_on_resume;
->  
-> +void __init acpi_set_sci_en_on_resume(void)
-> +{
-> +	set_sci_en_on_resume = true;
-> +	return 0;
-> +}
-> +
->  extern void do_suspend_lowlevel(void);
->  
->  static u32 acpi_suspend_states[] = {
-> Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-> +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-> @@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
->  #endif
->  		if (strncmp(str, "old_ordering", 12) == 0)
->  			acpi_old_suspend_ordering();
-> +#ifdef CONFIG_SUSPEND
-> +		if (strncmp(str, "s3_set_sci_en", 13) == 0)
-> +			acpi_set_sci_en_on_resume();
-> +#endif /* CONFIG_SUSPEND */
->  		str = strchr(str, ',');
->  		if (str != NULL)
->  			str += strspn(str, ", \t");
-> Index: linux-2.6/include/linux/acpi.h
-> ===================================================================
-> --- linux-2.6.orig/include/linux/acpi.h
-> +++ linux-2.6/include/linux/acpi.h
-> @@ -251,6 +251,9 @@ int acpi_check_mem_region(resource_size_
->  void __init acpi_no_s4_hw_signature(void);
->  void __init acpi_old_suspend_ordering(void);
->  void __init acpi_s4_no_nvs(void);
-> +#ifdef CONFIG_SUSPEND
-> +void __init acpi_set_sci_en_on_resume(void);
-> +#endif /* CONFIG_SUSPEND*/
->  #endif /* CONFIG_PM_SLEEP */
->  
->  #define OSC_QUERY_TYPE			0
-> Index: linux-2.6/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> +++ linux-2.6/Documentation/kernel-parameters.txt
-> @@ -240,7 +240,7 @@ and is between 256 and 4096 characters. 
->  
->  	acpi_sleep=	[HW,ACPI] Sleep options
->  			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
-> -				  old_ordering, s4_nonvs }
-> +				  old_ordering, s4_nonvs, s3_set_sci_en }
->  			See Documentation/power/video.txt for information on
->  			s3_bios and s3_mode.
->  			s3_beep is for debugging; it makes the PC's speaker beep
-> @@ -253,6 +253,7 @@ and is between 256 and 4096 characters. 
->  			of _PTS is used by default).
->  			s4_nonvs prevents the kernel from saving/restoring the
->  			ACPI NVS memory during hibernation.
-> +			s3_set_sci_en sets SCI_EN directly on resume.
+--hwlimits evaluates cpuinfo_{cur,min,max}_freq which are the hardware
+limits. Those may be limited further by the BIOS on runtime (firmware
+limits, so to speak). It seems to me that this is what you want to add with
+this patch?
 
-I'd say "causes the kernel to set SCI_EN directly on resume from S3 (which is
-against the ACPI specification, but some broken systems don't work without
-it)." here.
-
->  	acpi_use_timer_override [HW,ACPI]
->  			Use timer override. For some broken Nvidia NF5 boards
-
-Thanks,
-Rafael
+Best,
+	Dominik
