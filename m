@@ -1,88 +1,141 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V6 1/2] introduce ALS sysfs class
-Date: Thu, 3 Sep 2009 23:13:19 +0200
-Message-ID: <200909032313.19893.rjw@sisk.pl>
-References: <1251789947.3483.215.camel@rzhang-dt> <1251945339.3483.260.camel@rzhang-dt> <20090903084543.GC3793@elf.ucw.cz>
+Subject: Re: [PATCH] ACPI: introduce kernel parameter acpi_sleep=s3_sci_enable
+Date: Thu, 3 Sep 2009 23:20:02 +0200
+Message-ID: <200909032320.02132.rjw@sisk.pl>
+References: <1251702975.3483.140.camel@rzhang-dt> <200908311501.00842.rjw@sisk.pl> <1251959303.3483.296.camel@rzhang-dt>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39117 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:39153 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932333AbZICVMW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Sep 2009 17:12:22 -0400
-In-Reply-To: <20090903084543.GC3793@elf.ucw.cz>
+	id S932290AbZICVTP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Sep 2009 17:19:15 -0400
+In-Reply-To: <1251959303.3483.296.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thursday 03 September 2009, Pavel Machek wrote:
-> On Thu 2009-09-03 10:35:39, Zhang Rui wrote:
-> > On Thu, 2009-09-03 at 08:16 +0800, Rafael J. Wysocki wrote:
-> > > On Wednesday 02 September 2009, Pavel Machek wrote:
-> > > > On Wed 2009-09-02 23:46:11, Rafael J. Wysocki wrote:
-> > > > > On Wednesday 02 September 2009, Pavel Machek wrote:
-> > > > > > On Wed 2009-09-02 23:12:58, Rafael J. Wysocki wrote:
-> > > > > > > On Tuesday 01 September 2009, Pavel Machek wrote:
-> > > > > > > > 
-> > > > > > > > > > > IMO, 0 and -1 are not errors. they just suggest that the Ambient Light
-> > > > > > > > > > > illuminance is beyond the device support range, while the device is
-> > > > > > > > > > > still working normally.
-> > > > > > > > > > > what about exporting these values (0 and -1) to user space directly?
-> > > > > > > > > > 
-> > > > > > > > > > Returning 0 for "below" range and 99999999 for "above" range would be
-> > > > > > > > > > nice, yes. 
-> > > > > > > > > 
-> > > > > > > > > Why not 0 and "all ones" or 0 and -1.
-> > > > > > > > > 
-> > > > > > > > > Is there anything wrong with -1 in particular?
-> > > > > > > > 
-> > > > > > > > Normal people expect -1 to be less than 123, and output is in ascii. If
-> > > > > > > > you make it ((unsigned) ~0) I guess that becomes acceptable.
-> > > > > > > 
-> > > > > > > Well, "-1" is a perfectly valid alphanumerical representation of an int.
-> > > > > > > I don't really see the problem with the "-", unless we're talking about some
-> > > > > > > broken user space, that is.
-> > > > > > 
-> > > > > > No. But if you see illumination value of -1 lumen, do you really
-> > > > > > expect a *lot* of light?
-> > > > > 
-> > > > > Not really.  I'd rather intrepret it as "the number is not to be trusted",
-> > > > > which is what it means.
-> > > > > 
-> > > > > The problem with "all ones" is that it depends on the size of the underlying
-> > > > > data type, which is not nice.  Also, if you want that to be a "big number",
-> > > > > there's no clear rule to tell what the number should actually be.
-> > > > > 
-> > > > > Anyway, this really is a matter of definition.  If we document the attribute
-> > > > > to read as "-1" in specific circumstances, the user space will have to take
-> > > > > that into account.
-> > > > 
-> > > > Well, I'd prefer to specify -1 as "underflow" and 1000000000 as
-> > > > "overflow". Any numbers should work, but ... lets make the interface
-> > > > logical if we can.
+On Thursday 03 September 2009, Zhang Rui wrote:
+> On Mon, 2009-08-31 at 21:01 +0800, Rafael J. Wysocki wrote:
+> > On Monday 31 August 2009, Zhang Rui wrote:
 > > > 
-> > > The interface is already defined, isn't it?  And we're now considering whether
-> > > or not to pass the values defined by the interface directly to the user space,
-> > > which I think is the right thing to do, because we have no reason _whatsoever_
-> > > to change them to anything else.
+> > > Introduce kernel parameter acpi_sleep=s3_sci_enable
+> > 
+> > I'm not against that, but I'd rather call the option s3_set_sci_en.
+> > 
+> okay, patch refreshed.
+> 
+> > > some laptop requires SCI_EN being set directly on resume,
+> > > or else they hung somewhere in the resume code path.
 > > > 
-> > I agree.
-> > For environment illuminance, "-1" is surely an invalid value.
-> > IMO, users would rather look for what it actually means than interpret
-> > it to a value lower than 0.
-> 
-> Yes, you'd have to look that up. With 1000000000 for overflow, you
-> would not have to do any lookups...
-> 
-> (Plus, if you use -1 for overflow... you need 0 for underflow, but 0
-> lumen is pretty valid value. Actually I'm thinking if this should
-> maybe not on the log scale or something).
+> > > We already have a blacklist for these lattops but we still need
+> > > this option, especially when debugging some suspend/resume problems.
+> > 
+> > Do we know of any that are not blacklisted?
+> > 
+> sorry, I mean we have a whitelist.
 
-Let's make the "-1 corresponds to all ones" rule and stop losing time for
-discussing that any more.  I don't think it's worth it. :-)
+Blacklist, whitelist, whatever.  :-)
+
+Do we actually _know_ of any systems out there that are not in the
+list and that require this workaround?
+
+> refreshed patch attached belowed.
+> 
+> 
+> Introduce kernel parameter acpi_sleep=s3_sci_enable
+> 
+> some laptop requires SCI_EN being set directly on resume,
+> or else they hung somewhere in the resume code path.
+> 
+> We already have a blacklist for these lattops but we still need
+> this option, especially when debugging some suspend/resume problems.
+
+I'd say "... problems, in case there are systems that need this workaround
+and are not yet in the blacklist" in addition.
+ 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  Documentation/kernel-parameters.txt |    3 ++-
+>  arch/x86/kernel/acpi/sleep.c        |    4 ++++
+>  drivers/acpi/sleep.c                |    6 ++++++
+>  include/linux/acpi.h                |    3 +++
+>  4 files changed, 15 insertions(+), 1 deletion(-)
+> 
+> Index: linux-2.6/drivers/acpi/sleep.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/acpi/sleep.c
+> +++ linux-2.6/drivers/acpi/sleep.c
+> @@ -182,6 +182,12 @@ static void acpi_pm_end(void)
+>   */
+>  static bool set_sci_en_on_resume;
+>  
+> +void __init acpi_set_sci_en_on_resume(void)
+> +{
+> +	set_sci_en_on_resume = true;
+> +	return 0;
+> +}
+> +
+>  extern void do_suspend_lowlevel(void);
+>  
+>  static u32 acpi_suspend_states[] = {
+> Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
+> +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+> @@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
+>  #endif
+>  		if (strncmp(str, "old_ordering", 12) == 0)
+>  			acpi_old_suspend_ordering();
+> +#ifdef CONFIG_SUSPEND
+> +		if (strncmp(str, "s3_set_sci_en", 13) == 0)
+> +			acpi_set_sci_en_on_resume();
+> +#endif /* CONFIG_SUSPEND */
+>  		str = strchr(str, ',');
+>  		if (str != NULL)
+>  			str += strspn(str, ", \t");
+> Index: linux-2.6/include/linux/acpi.h
+> ===================================================================
+> --- linux-2.6.orig/include/linux/acpi.h
+> +++ linux-2.6/include/linux/acpi.h
+> @@ -251,6 +251,9 @@ int acpi_check_mem_region(resource_size_
+>  void __init acpi_no_s4_hw_signature(void);
+>  void __init acpi_old_suspend_ordering(void);
+>  void __init acpi_s4_no_nvs(void);
+> +#ifdef CONFIG_SUSPEND
+> +void __init acpi_set_sci_en_on_resume(void);
+> +#endif /* CONFIG_SUSPEND*/
+>  #endif /* CONFIG_PM_SLEEP */
+>  
+>  #define OSC_QUERY_TYPE			0
+> Index: linux-2.6/Documentation/kernel-parameters.txt
+> ===================================================================
+> --- linux-2.6.orig/Documentation/kernel-parameters.txt
+> +++ linux-2.6/Documentation/kernel-parameters.txt
+> @@ -240,7 +240,7 @@ and is between 256 and 4096 characters. 
+>  
+>  	acpi_sleep=	[HW,ACPI] Sleep options
+>  			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
+> -				  old_ordering, s4_nonvs }
+> +				  old_ordering, s4_nonvs, s3_set_sci_en }
+>  			See Documentation/power/video.txt for information on
+>  			s3_bios and s3_mode.
+>  			s3_beep is for debugging; it makes the PC's speaker beep
+> @@ -253,6 +253,7 @@ and is between 256 and 4096 characters. 
+>  			of _PTS is used by default).
+>  			s4_nonvs prevents the kernel from saving/restoring the
+>  			ACPI NVS memory during hibernation.
+> +			s3_set_sci_en sets SCI_EN directly on resume.
+
+I'd say "causes the kernel to set SCI_EN directly on resume from S3 (which is
+against the ACPI specification, but some broken systems don't work without
+it)." here.
+
+>  	acpi_use_timer_override [HW,ACPI]
+>  			Use timer override. For some broken Nvidia NF5 boards
 
 Thanks,
 Rafael
