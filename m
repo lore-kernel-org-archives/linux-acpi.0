@@ -1,64 +1,97 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 0/4] PCI/ACPI PM: Propagate wake-up enable upstream
-Date: Fri, 4 Sep 2009 00:02:02 +0200
-Message-ID: <200909040002.02562.rjw@sisk.pl>
-References: <200908300041.14541.rjw@sisk.pl> <200909012103.19761.rjw@sisk.pl> <200909020041.57754.rjw@sisk.pl>
+Subject: [RFC][PATCH 1/4] PCI PM: Simplify PCI wake-up code
+Date: Fri, 4 Sep 2009 00:03:36 +0200
+Message-ID: <200909040003.36917.rjw@sisk.pl>
+References: <200908300041.14541.rjw@sisk.pl> <200909020041.57754.rjw@sisk.pl> <200909040002.02562.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39275 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932370AbZICWGh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Sep 2009 18:06:37 -0400
-In-Reply-To: <200909020041.57754.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200909040002.02562.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
 To: linux-pm@lists.linux-foundation.org
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jesse Barnes <jbarnes@virtuousgeek.org>, Linux PCI <linux-pci@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 02 September 2009, Rafael J. Wysocki wrote:
-> On Tuesday 01 September 2009, Rafael J. Wysocki wrote:
-> > On Tuesday 01 September 2009, Matthew Garrett wrote:
-> > > On Mon, Aug 31, 2009 at 11:24:20PM +0200, Rafael J. Wysocki wrote:
-> > > 
-> > > > Updated patch is appended, but there's a problem with it.  Namely, when the
-> > > > root bridge GPE is shared with other devices, those devices are also enabled
-> > > > to wake up and they may be kind of "interesting" (on one of my test boxes they
-> > > > include the ethernet and audio adapters).  I'm not sure what to do about that.
-> > > 
-> > > Perhaps only enable it if a child device is enabled?
-> > 
-> > Well, the problem is that we have to enable the devices that share the GPE to
-> > wake up together, but the child device we _really_ want to wake-up need not
-> > be any of them.
-> > 
-> > Also, the child device may be enabled to wake up after we've run the "glue"
-> > code.
-> > 
-> > Well, perhaps it's better to rework pci_enable_wake() so that it, if the device
-> > doesn't have an ACPI handle and is not PCIe, it will go and enable the root
-> > bridge to wake up as well?
-> > 
-> > I wonder what about the bridges between the desired wake-up device and the
-> > root bridge.  I guess they also should be enabled to wake-up, so that they can
-> > forward the PME# in case the system is designed this way.
-> 
-> Below is a prototype of what I was thinking of, although I'm not sure if that's
-> enough.
-> 
-> Comments welcome.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Hm, no comments. :-(
+Rework the PCI wake-up code so that it's easier to read without
+changing the functionality.
 
-In the meantime I spent some time on this problem and prepared the following
-series of patches.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |   10 +++++++---
+ drivers/pci/pci.c      |   25 ++++++++++++++-----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
-The last one has to be tested on the system it was invented for, but that's
-going to take some time.
-
-Comments welcome.
-
-Rafael
-
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -1218,8 +1218,7 @@ void pci_pme_active(struct pci_dev *dev,
+  */
+ int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
+ {
+-	int error = 0;
+-	bool pme_done = false;
++	int ret = 0;
+ 
+ 	if (enable && !device_may_wakeup(&dev->dev))
+ 		return -EINVAL;
+@@ -1230,18 +1229,22 @@ int pci_enable_wake(struct pci_dev *dev,
+ 	 * enable.  To disable wake-up we call the platform first, for symmetry.
+ 	 */
+ 
+-	if (!enable && platform_pci_can_wakeup(dev))
+-		error = platform_pci_sleep_wake(dev, false);
+-
+-	if (!enable || pci_pme_capable(dev, state)) {
+-		pci_pme_active(dev, enable);
+-		pme_done = true;
+-	}
++	if (enable) {
++		int error;
+ 
+-	if (enable && platform_pci_can_wakeup(dev))
++		if (pci_pme_capable(dev, state))
++			pci_pme_active(dev, true);
++		else
++			ret = 1;
+ 		error = platform_pci_sleep_wake(dev, true);
++		if (ret)
++			ret = error;
++	} else {
++		platform_pci_sleep_wake(dev, false);
++		pci_pme_active(dev, false);
++	}
+ 
+-	return pme_done ? 0 : error;
++	return ret;
+ }
+ 
+ /**
+Index: linux-2.6/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -111,12 +111,16 @@ static bool acpi_pci_can_wakeup(struct p
+ 
+ static int acpi_pci_sleep_wake(struct pci_dev *dev, bool enable)
+ {
+-	int error = acpi_pm_device_sleep_wake(&dev->dev, enable);
++	int error;
+ 
++	if (!acpi_pci_can_wakeup(dev))
++		return 0;
++
++	error = acpi_pm_device_sleep_wake(&dev->dev, enable);
+ 	if (!error)
+-		dev_printk(KERN_INFO, &dev->dev,
+-				"wake-up capability %s by ACPI\n",
++		dev_info(&dev->dev, "wake-up capability %s by ACPI\n",
+ 				enable ? "enabled" : "disabled");
++
+ 	return error;
+ }
+ 
