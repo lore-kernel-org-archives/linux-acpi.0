@@ -1,78 +1,69 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH V6 1/2] introduce ALS sysfs class
-Date: Thu, 3 Sep 2009 09:35:52 +0100
-Message-ID: <9b2b86520909030135v73319621g39225ef5191a28f0@mail.gmail.com>
-References: <1251789947.3483.215.camel@rzhang-dt>
-	 <9b2b86520909021222k6cc49456vc3232e488eef9e37@mail.gmail.com>
-	 <1251945918.3483.267.camel@rzhang-dt>
+Date: Thu, 3 Sep 2009 10:43:53 +0200
+Message-ID: <20090903084353.GB3793@elf.ucw.cz>
+References: <1251789947.3483.215.camel@rzhang-dt> <200909022346.11475.rjw@sisk.pl> <20090902215148.GA3429@elf.ucw.cz> <200909030216.04896.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:63275 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752248AbZICIfw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2009 04:35:52 -0400
-In-Reply-To: <1251945918.3483.267.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753929AbZICIoP@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200909030216.04896.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>, Pavel Machek <pavel@ucw.cz>
 
-On 9/3/09, Zhang Rui <rui.zhang@intel.com> wrote:
-> On Thu, 2009-09-03 at 03:22 +0800, Alan Jenkins wrote:
->> On 9/1/09, Zhang Rui <rui.zhang@intel.com> wrote:
->> >
->> > Introduce ALS sysfs class.
->> >
->> > ALS sysfs class provides a standard sysfs interface for
->> > Ambient Light Sensor devices.
->> >
->> > please read Documentation/ABI/testing/sysfs-class-als for
->> > detailed sysfs designs.
->> >
->> > =EF=BB=BFCC: Pavel Machek <pavel@ucw.cz>
->> > Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
->> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->> > ---
->>
->> > +++ linux-2.6/drivers/als/Kconfig
->> > @@ -0,0 +1,10 @@
->> > +#
->> > +# Ambient Light Sensor sysfs device configuration
->> > +#
->> > +
->> > +menuconfig ALS
->> > +	tristate "Ambient Light Sensor sysfs device"
->> > +	help
->> > +	  This framework provides a generic sysfs interface for
->> > +	  Ambient Light Sensor devices.
->> > +	  If you want this support, you should say Y or M here.
->>
->> Gratuitous nitpick:
->> Can this option be made non-visible (or hidden behind CONFIG_EMBEDDE=
-D)?
->>
->> Maybe you copied the pattern of the thermal sysfs interface - but th=
-e
->> ACPI thermal driver is useful to keep your computer cool even withou=
-t
->> the sysfs interface.  ALS drivers are useless without the sysfs
->> interface, no?
->>
-> ACPI ALS device driver is the first user of this sysfs class.
-> I think there will be more native ALS device drivers in the future,
-> which locate at drivers/als/ and depends on CONFIG_ALS.
->
-> thanks,
-> rui
+On Thu 2009-09-03 02:16:04, Rafael J. Wysocki wrote:
+> On Wednesday 02 September 2009, Pavel Machek wrote:
+> > On Wed 2009-09-02 23:46:11, Rafael J. Wysocki wrote:
+> > > On Wednesday 02 September 2009, Pavel Machek wrote:
+> > > > On Wed 2009-09-02 23:12:58, Rafael J. Wysocki wrote:
+> > > > > On Tuesday 01 September 2009, Pavel Machek wrote:
+> > > > > > 
+> > > > > > > > > IMO, 0 and -1 are not errors. they just suggest that the Ambient Light
+> > > > > > > > > illuminance is beyond the device support range, while the device is
+> > > > > > > > > still working normally.
+> > > > > > > > > what about exporting these values (0 and -1) to user space directly?
+> > > > > > > > 
+> > > > > > > > Returning 0 for "below" range and 99999999 for "above" range would be
+> > > > > > > > nice, yes. 
+> > > > > > > 
+> > > > > > > Why not 0 and "all ones" or 0 and -1.
+> > > > > > > 
+> > > > > > > Is there anything wrong with -1 in particular?
+> > > > > > 
+> > > > > > Normal people expect -1 to be less than 123, and output is in ascii. If
+> > > > > > you make it ((unsigned) ~0) I guess that becomes acceptable.
+> > > > > 
+> > > > > Well, "-1" is a perfectly valid alphanumerical representation of an int.
+> > > > > I don't really see the problem with the "-", unless we're talking about some
+> > > > > broken user space, that is.
+> > > > 
+> > > > No. But if you see illumination value of -1 lumen, do you really
+> > > > expect a *lot* of light?
+> > > 
+> > > Not really.  I'd rather intrepret it as "the number is not to be trusted",
+> > > which is what it means.
+> > > 
+> > > The problem with "all ones" is that it depends on the size of the underlying
+> > > data type, which is not nice.  Also, if you want that to be a "big number",
+> > > there's no clear rule to tell what the number should actually be.
+> > > 
+> > > Anyway, this really is a matter of definition.  If we document the attribute
+> > > to read as "-1" in specific circumstances, the user space will have to take
+> > > that into account.
+> > 
+> > Well, I'd prefer to specify -1 as "underflow" and 1000000000 as
+> > "overflow". Any numbers should work, but ... lets make the interface
+> > logical if we can.
+> 
+> The interface is already defined, isn't it?  And we're now
+> considering whether
 
-Oh!  So it may become a menu like e.g. hwmon.
+No, I don't think it is "already defined". Yes the patches float
+around, but as nothing is merged we can still fix it easily.
+								Pavel
 
-Thanks for the explanation
-Alan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
