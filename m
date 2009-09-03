@@ -1,53 +1,87 @@
-From: Lin Ming <lin@minggr.cn>
-Subject: Re: als driver build error
-Date: Thu, 3 Sep 2009 11:18:38 +0800
-Message-ID: <d3f22a0909022018u3dde2bdfid62b258f3e3b4301@mail.gmail.com>
-References: <d3f22a0909022006v64473b58l231e9a7213f2e834@mail.gmail.com>
-	 <1251947411.3483.272.camel@rzhang-dt>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 4/6] thermal: add sanity check for the passive attribute
+Date: Thu, 03 Sep 2009 14:10:05 +0800
+Message-ID: <1251958205.3483.290.camel@rzhang-dt>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
+	 <200908261848.29897.elendil@planet.nl>
+	 <1251707630.3483.181.camel@rzhang-dt>
+	 <200908311230.32021.elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f204.google.com ([209.85.216.204]:55571 "EHLO
-	mail-px0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963AbZICDSg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Sep 2009 23:18:36 -0400
-Received: by pxi42 with SMTP id 42so1355391pxi.20
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Sep 2009 20:18:38 -0700 (PDT)
-In-Reply-To: <1251947411.3483.272.camel@rzhang-dt>
+Received: from mga11.intel.com ([192.55.52.93]:17662 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754503AbZICGM2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Sep 2009 02:12:28 -0400
+In-Reply-To: <200908311230.32021.elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: Frans Pop <elendil@planet.nl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Sep 3, 2009 at 11:10 AM, Zhang Rui<rui.zhang@intel.com> wrote:
-> You're building the -next tree, aren't you?
+On Mon, 2009-08-31 at 18:30 +0800, Frans Pop wrote:
+> On Monday 31 August 2009, Zhang Rui wrote:
+> > On Thu, 2009-08-27 at 00:48 +0800, Frans Pop wrote:
+> > > On Wednesday 26 August 2009, Matthew Garrett wrote:
+> > > > On Wed, Aug 26, 2009 at 06:17:23PM +0200, Frans Pop wrote:
+> > > > > Values below 40000 milli-celsius (limit is somewhat arbitrary=
+)
+> > > > > don't make sense and can cause the system to go into a therma=
+l
+> > > > > heart attack: the actual temperature will always be lower and
+> > > > > thus the system will be throttled down to its lowest setting.
+> > > >
+> > > > Not keen on this - it's a pretty arbitrary cutoff, and there ar=
+e
+> > > > some cases where someone might want this value. Policy belongs =
+in
+> > > > userspace, and all that.
+> > >
+> > > What cases do you see? Testing? Or systems that might have to ope=
+rate
+> > > at such a low temperature? I deliberately chose a value that's at=
+ a
+> > > level that's easy to reach.
+> > >
+> > > I agree it is arbitrary, but it will prevent major confusion when
+> > > someone like me echo's 95 directly in sysfs.
+> >
+> > this is a problem.
+> > how about something like:
+> > #define THERMAL_PASSIVE_WARNING_LEVEL 0x40000
+>=20
+> Hmmm. 40000 hexadecimal? That seems a bit high ;-)
+>=20
+> > if (state < THERMAL_PASSIVE_WARNING_LEVEL)
+> >    printk(KERN_WARNING PREFIX "Passive trip point too low, this may=
+"
+> >           "slow down your laptop because processors are throttled "
+> >           "whenever the temperature is higher than %dC\n", state/10=
+00);
+>=20
+> Disadvantage is that users are unlikely to actually see that message =
+at=20
+> the time they set the value, especially if they're working in some xt=
+erm.=20
+> They'd have to check dmesg or log files. It also increases the .text =
+size=20
+> of the module for an option that very few people are likely to use.
+>=20
+> > > Would 1000 (1 =C2=B0C) perhaps be more acceptable as a limit? I d=
+oubt
+> > > there are valid use-cases for below 0 temps :-)
+>=20
+> I'd prefer this option. Do you see any downside to this?
+>=20
+I see many laptops with a passive trip point higher than 90C, so a
+passive trip point higher than 100C may be meaningful.
+I think we should use a higher value, say 2000?
 
-linux-acpi-2.6/test branch.
+thanks,
+rui
 
->
-> please refer to this thread,
-> http://patchwork.kernel.org/patch/44989/
 
-Build OK with this patch applied.
-
-Thanks.
-Lin Ming
-
->
-> thanks,
-> rui
->
-> On Thu, 2009-09-03 at 11:06 +0800, Lin Ming wrote:
->> drivers/acpi/als.c: In function =91acpi_als_get_mappings=92:
->> drivers/acpi/als.c:173: error: expected =91)=92 before =91PREFIX=92
->> drivers/acpi/als.c: In function =91acpi_als_add=92:
->> drivers/acpi/als.c:347: error: expected =91)=92 before =91PREFIX=92
->> make[2]: *** [drivers/acpi/als.o] Error 1
->> make[2]: *** Waiting for unfinished jobs....
->> make[1]: *** [drivers/acpi] Error 2
->
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
