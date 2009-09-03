@@ -1,47 +1,83 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: ACPI: EC: wait for ongoing transactions before suspending
-Date: Thu, 03 Sep 2009 16:36:56 +0100
-Message-ID: <4A9FE298.4050303@tuffmail.co.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH V6 1/2] introduce ALS sysfs class
+Date: Thu, 3 Sep 2009 23:10:43 +0200
+Message-ID: <200909032310.43639.rjw@sisk.pl>
+References: <1251789947.3483.215.camel@rzhang-dt> <200909030216.04896.rjw@sisk.pl> <20090903084353.GB3793@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:54036 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753328AbZICPg6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Sep 2009 11:36:58 -0400
-Received: by fxm17 with SMTP id 17so20248fxm.37
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Sep 2009 08:37:00 -0700 (PDT)
+Received: from ogre.sisk.pl ([217.79.144.158]:39101 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932301AbZICVJq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Sep 2009 17:09:46 -0400
+In-Reply-To: <20090903084353.GB3793@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>
 
-If a transaction is started just before suspend we should wait for it
-before disabling the GPE.  Otherwise the GPE could be re-enabled by the
-"disable gpe during transactions" workaround (EC_FLAGS_GPE_STORM).
+On Thursday 03 September 2009, Pavel Machek wrote:
+> On Thu 2009-09-03 02:16:04, Rafael J. Wysocki wrote:
+> > On Wednesday 02 September 2009, Pavel Machek wrote:
+> > > On Wed 2009-09-02 23:46:11, Rafael J. Wysocki wrote:
+> > > > On Wednesday 02 September 2009, Pavel Machek wrote:
+> > > > > On Wed 2009-09-02 23:12:58, Rafael J. Wysocki wrote:
+> > > > > > On Tuesday 01 September 2009, Pavel Machek wrote:
+> > > > > > > 
+> > > > > > > > > > IMO, 0 and -1 are not errors. they just suggest that the Ambient Light
+> > > > > > > > > > illuminance is beyond the device support range, while the device is
+> > > > > > > > > > still working normally.
+> > > > > > > > > > what about exporting these values (0 and -1) to user space directly?
+> > > > > > > > > 
+> > > > > > > > > Returning 0 for "below" range and 99999999 for "above" range would be
+> > > > > > > > > nice, yes. 
+> > > > > > > > 
+> > > > > > > > Why not 0 and "all ones" or 0 and -1.
+> > > > > > > > 
+> > > > > > > > Is there anything wrong with -1 in particular?
+> > > > > > > 
+> > > > > > > Normal people expect -1 to be less than 123, and output is in ascii. If
+> > > > > > > you make it ((unsigned) ~0) I guess that becomes acceptable.
+> > > > > > 
+> > > > > > Well, "-1" is a perfectly valid alphanumerical representation of an int.
+> > > > > > I don't really see the problem with the "-", unless we're talking about some
+> > > > > > broken user space, that is.
+> > > > > 
+> > > > > No. But if you see illumination value of -1 lumen, do you really
+> > > > > expect a *lot* of light?
+> > > > 
+> > > > Not really.  I'd rather intrepret it as "the number is not to be trusted",
+> > > > which is what it means.
+> > > > 
+> > > > The problem with "all ones" is that it depends on the size of the underlying
+> > > > data type, which is not nice.  Also, if you want that to be a "big number",
+> > > > there's no clear rule to tell what the number should actually be.
+> > > > 
+> > > > Anyway, this really is a matter of definition.  If we document the attribute
+> > > > to read as "-1" in specific circumstances, the user space will have to take
+> > > > that into account.
+> > > 
+> > > Well, I'd prefer to specify -1 as "underflow" and 1000000000 as
+> > > "overflow". Any numbers should work, but ... lets make the interface
+> > > logical if we can.
+> > 
+> > The interface is already defined, isn't it?  And we're now
+> > considering whether
+> 
+> No, I don't think it is "already defined".
 
-I hope this also solves EC timeouts and resume hangs when pressing acpi
-hotkeys during hibernation.  However this problem is difficult to
-reproduce and I have not been able to confirm the fix.
+ACPI Specification 4.0, Section 9.2.2, p. 335, defines the interface quite
+clearly.  It actually is defined as "Ones (-1)", but as I said previously, the
+"all ones" version is not really convenient for sysfs.
 
-References: http://bugzilla.kernel.org/show_bug.cgi?id=14112
+I don't think the attribute should return anything other than the values
+defined by the spec, because anyone searching for documentation will first look
+into the spec.
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+As I said before, I don't think we have any reason _whatsoever_ to translate
+the spec-defined values to anything else.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 64a20ef..6fd1be2 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -979,7 +979,9 @@ static int acpi_ec_suspend(struct acpi_device *device, pm_message_t state)
- {
- 	struct acpi_ec *ec = acpi_driver_data(device);
- 	/* Stop using GPE */
-+	mutex_lock(&ec->lock);
- 	acpi_disable_gpe(NULL, ec->gpe);
-+	mutex_unlock(&ec->lock);
- 	return 0;
- }
- 
-
-
+Thanks,
+Rafael
