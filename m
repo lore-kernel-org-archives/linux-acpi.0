@@ -1,89 +1,128 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 4/6] thermal: add sanity check for the passive attribute
-Date: Thu, 03 Sep 2009 14:10:05 +0800
-Message-ID: <1251958205.3483.290.camel@rzhang-dt>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
-	 <200908261848.29897.elendil@planet.nl>
-	 <1251707630.3483.181.camel@rzhang-dt>
-	 <200908311230.32021.elendil@planet.nl>
+Subject: Re: [PATCH] ACPI: introduce kernel parameter
+	acpi_sleep=s3_sci_enable
+Date: Thu, 03 Sep 2009 14:28:23 +0800
+Message-ID: <1251959303.3483.296.camel@rzhang-dt>
+References: <1251702975.3483.140.camel@rzhang-dt>
+	 <200908311501.00842.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17662 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:11630 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754503AbZICGM2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Sep 2009 02:12:28 -0400
-In-Reply-To: <200908311230.32021.elendil@planet.nl>
+	id S1754492AbZICGam (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Sep 2009 02:30:42 -0400
+In-Reply-To: <200908311501.00842.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Pop <elendil@planet.nl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, 2009-08-31 at 18:30 +0800, Frans Pop wrote:
+On Mon, 2009-08-31 at 21:01 +0800, Rafael J. Wysocki wrote:
 > On Monday 31 August 2009, Zhang Rui wrote:
-> > On Thu, 2009-08-27 at 00:48 +0800, Frans Pop wrote:
-> > > On Wednesday 26 August 2009, Matthew Garrett wrote:
-> > > > On Wed, Aug 26, 2009 at 06:17:23PM +0200, Frans Pop wrote:
-> > > > > Values below 40000 milli-celsius (limit is somewhat arbitrary=
-)
-> > > > > don't make sense and can cause the system to go into a therma=
-l
-> > > > > heart attack: the actual temperature will always be lower and
-> > > > > thus the system will be throttled down to its lowest setting.
-> > > >
-> > > > Not keen on this - it's a pretty arbitrary cutoff, and there ar=
-e
-> > > > some cases where someone might want this value. Policy belongs =
-in
-> > > > userspace, and all that.
-> > >
-> > > What cases do you see? Testing? Or systems that might have to ope=
-rate
-> > > at such a low temperature? I deliberately chose a value that's at=
- a
-> > > level that's easy to reach.
-> > >
-> > > I agree it is arbitrary, but it will prevent major confusion when
-> > > someone like me echo's 95 directly in sysfs.
-> >
-> > this is a problem.
-> > how about something like:
-> > #define THERMAL_PASSIVE_WARNING_LEVEL 0x40000
->=20
-> Hmmm. 40000 hexadecimal? That seems a bit high ;-)
->=20
-> > if (state < THERMAL_PASSIVE_WARNING_LEVEL)
-> >    printk(KERN_WARNING PREFIX "Passive trip point too low, this may=
-"
-> >           "slow down your laptop because processors are throttled "
-> >           "whenever the temperature is higher than %dC\n", state/10=
-00);
->=20
-> Disadvantage is that users are unlikely to actually see that message =
-at=20
-> the time they set the value, especially if they're working in some xt=
-erm.=20
-> They'd have to check dmesg or log files. It also increases the .text =
-size=20
-> of the module for an option that very few people are likely to use.
->=20
-> > > Would 1000 (1 =C2=B0C) perhaps be more acceptable as a limit? I d=
-oubt
-> > > there are valid use-cases for below 0 temps :-)
->=20
-> I'd prefer this option. Do you see any downside to this?
->=20
-I see many laptops with a passive trip point higher than 90C, so a
-passive trip point higher than 100C may be meaningful.
-I think we should use a higher value, say 2000?
+> > 
+> > Introduce kernel parameter acpi_sleep=s3_sci_enable
+> 
+> I'm not against that, but I'd rather call the option s3_set_sci_en.
+> 
+okay, patch refreshed.
 
-thanks,
-rui
+> > some laptop requires SCI_EN being set directly on resume,
+> > or else they hung somewhere in the resume code path.
+> > 
+> > We already have a blacklist for these lattops but we still need
+> > this option, especially when debugging some suspend/resume problems.
+> 
+> Do we know of any that are not blacklisted?
+> 
+sorry, I mean we have a whitelist.
+
+refreshed patch attached belowed.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Introduce kernel parameter acpi_sleep=s3_sci_enable
+
+some laptop requires SCI_EN being set directly on resume,
+or else they hung somewhere in the resume code path.
+
+We already have a blacklist for these lattops but we still need
+this option, especially when debugging some suspend/resume problems.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ Documentation/kernel-parameters.txt |    3 ++-
+ arch/x86/kernel/acpi/sleep.c        |    4 ++++
+ drivers/acpi/sleep.c                |    6 ++++++
+ include/linux/acpi.h                |    3 +++
+ 4 files changed, 15 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep.c
++++ linux-2.6/drivers/acpi/sleep.c
+@@ -182,6 +182,12 @@ static void acpi_pm_end(void)
+  */
+ static bool set_sci_en_on_resume;
+ 
++void __init acpi_set_sci_en_on_resume(void)
++{
++	set_sci_en_on_resume = true;
++	return 0;
++}
++
+ extern void do_suspend_lowlevel(void);
+ 
+ static u32 acpi_suspend_states[] = {
+Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
++++ linux-2.6/arch/x86/kernel/acpi/sleep.c
+@@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
+ #endif
+ 		if (strncmp(str, "old_ordering", 12) == 0)
+ 			acpi_old_suspend_ordering();
++#ifdef CONFIG_SUSPEND
++		if (strncmp(str, "s3_set_sci_en", 13) == 0)
++			acpi_set_sci_en_on_resume();
++#endif /* CONFIG_SUSPEND */
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+Index: linux-2.6/include/linux/acpi.h
+===================================================================
+--- linux-2.6.orig/include/linux/acpi.h
++++ linux-2.6/include/linux/acpi.h
+@@ -251,6 +251,9 @@ int acpi_check_mem_region(resource_size_
+ void __init acpi_no_s4_hw_signature(void);
+ void __init acpi_old_suspend_ordering(void);
+ void __init acpi_s4_no_nvs(void);
++#ifdef CONFIG_SUSPEND
++void __init acpi_set_sci_en_on_resume(void);
++#endif /* CONFIG_SUSPEND*/
+ #endif /* CONFIG_PM_SLEEP */
+ 
+ #define OSC_QUERY_TYPE			0
+Index: linux-2.6/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-2.6.orig/Documentation/kernel-parameters.txt
++++ linux-2.6/Documentation/kernel-parameters.txt
+@@ -240,7 +240,7 @@ and is between 256 and 4096 characters. 
+ 
+ 	acpi_sleep=	[HW,ACPI] Sleep options
+ 			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
+-				  old_ordering, s4_nonvs }
++				  old_ordering, s4_nonvs, s3_set_sci_en }
+ 			See Documentation/power/video.txt for information on
+ 			s3_bios and s3_mode.
+ 			s3_beep is for debugging; it makes the PC's speaker beep
+@@ -253,6 +253,7 @@ and is between 256 and 4096 characters. 
+ 			of _PTS is used by default).
+ 			s4_nonvs prevents the kernel from saving/restoring the
+ 			ACPI NVS memory during hibernation.
++			s3_set_sci_en sets SCI_EN directly on resume.
+ 
+ 	acpi_use_timer_override [HW,ACPI]
+ 			Use timer override. For some broken Nvidia NF5 boards
+
+
