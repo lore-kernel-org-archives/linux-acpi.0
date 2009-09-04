@@ -1,40 +1,74 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC][PATCH 4/4] PCI/ACPI PM: Propagate wake-up enable for
-	devices w/o ACPI support
-Date: Fri, 4 Sep 2009 15:56:38 +0100
-Message-ID: <20090904145638.GA23091@srcf.ucam.org>
-References: <200908300041.14541.rjw@sisk.pl> <200909040007.09926.rjw@sisk.pl> <1252030384.3609.45.camel@localhost.localdomain> <200909041639.46289.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] drivers/acpi: fix memory leak in acpi_device_set_id
+Date: Fri, 4 Sep 2009 09:23:02 -0600
+Message-ID: <200909040923.03457.bjorn.helgaas@hp.com>
+References: <1252047619-2924-1-git-send-email-dfeng@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:22222 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751192AbZIDPXC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2009 11:23:02 -0400
+In-Reply-To: <1252047619-2924-1-git-send-email-dfeng@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <200909041639.46289.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ykzhao <yakui.zhao@intel.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Jesse Barnes <jbarnes@virtuousgeek.org>, Linux PCI <linux-pci@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Xiaotian Feng <dfeng@redhat.com>
+Cc: len.brown@intel.com, rui.zhang@intel.com, yakui.zhao@intel.com, ak@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Sep 04, 2009 at 04:39:46PM +0200, Rafael J. Wysocki wrote:
+On Friday 04 September 2009 01:00:19 am Xiaotian Feng wrote:
+> In acpi_device_set_id, if cid_list is allocated by ACPI_ALLOCATE_ZEROED,
+> it is never freed. This patch fixes the memory leak. 
 
-> Quite frankly, I'm not sure of that.  It really depends on how PME# is routed
-> in given system.  The spec permits routing it directly to the chipset as well
-> as routing it through bridges and I don't know if we can assume that the
-> first upstream device capable of generating wake-up events will handle it.
+There are several recent changes to this code that remove this leak.
+The current acpi-test version:
 
-The GPE block is going to be in the chipset, so unless the vendors have 
-explicitly hooked up a link between the PME line from a bridge and the 
-EC, we're presumably always going to get it from the chipset if at all.
+http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=blob;f=drivers/acpi/scan.c;h=e218ec5c6be046171e08a0f2d95a751aee2a9aec;hb=test
 
-> That said, I think we can try returning from
-> acpi_pci_propagate_wakeup_enable() as soon as
-> acpi_pm_device_sleep_wake() returns 0 for current device.  On the test systems
-> I have it won't make any difference, because the GPE is shared among the
-> root bridge and the first upstream bridge of the device in question.
+does not have the leak, as far as I can tell, because it doesn't have
+the cid_list kmalloc().
 
-Yes, it's presumably the case that the PME event in the bridge is just 
-tied to the root bridge in the chipset. Do we know what chipset this 
-hardware is? For Intel, at least, GPE behaviour is defined in the 
-chipset docs.
+If it's a serious issue, your patch might be appropriate for -stable,
+but I don't think we'll need it in 2.6.32.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Bjorn
+
+> Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
+> ---
+>  drivers/acpi/scan.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 781435d..a0102ad 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1010,6 +1010,7 @@ static void acpi_device_set_id(struct acpi_device *device,
+>  	struct acpi_compatible_id_list *cid_list = NULL;
+>  	const char *cid_add = NULL;
+>  	acpi_status status;
+> +	int free_cid_list = 0;
+>  
+>  	switch (type) {
+>  	case ACPI_BUS_TYPE_DEVICE:
+> @@ -1098,6 +1099,7 @@ static void acpi_device_set_id(struct acpi_device *device,
+>  				kfree(buffer.pointer);
+>  				return;
+>  			} else {
+> +				free_cid_list = 1;
+>  				cid_list->count = 0;
+>  				cid_list->size = size;
+>  			}
+> @@ -1124,6 +1126,8 @@ static void acpi_device_set_id(struct acpi_device *device,
+>  			printk(KERN_ERR PREFIX "Memory allocation error\n");
+>  	}
+>  
+> +	if (free_cid_list)
+> +		ACPI_FREE(cid_list);
+>  	kfree(buffer.pointer);
+>  }
+>  
+
+
