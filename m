@@ -1,100 +1,86 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Subject: [PATCH] acpi: make ACPI_DOCK a tristate option again
-Date: Fri, 04 Sep 2009 08:49:50 +0100
-Message-ID: <4AA0E2BE02000078000136C7@vpn.id2.novell.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] Resend: ACPI/CPUFREQ: Introduce hw_limit per cpu cpufreq sysfs interface
+Date: Fri, 4 Sep 2009 15:50:42 +0200
+Message-ID: <200909041550.43607.trenn@suse.de>
+References: <200909031323.29420.trenn@suse.de> <20090903214231.GB27880@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vpn.id2.novell.com ([195.33.99.129]:32911 "EHLO
-	vpn.id2.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756547AbZIDIJw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Sep 2009 04:09:52 -0400
+Received: from cantor2.suse.de ([195.135.220.15]:35707 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756778AbZIDNun (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Sep 2009 09:50:43 -0400
+In-Reply-To: <20090903214231.GB27880@isilmar.linta.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Dave Jones <davej@redhat.com>, Len Brown <lenb@kernel.org>, cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, Pallipadi Venkatesh <venkatesh.pallipadi@intel.com>
 
-I cannot follow the explanation in commit
-898b054f3eec5921320ae8614b5bdd7b07ea5b43: If other drivers require the
-dock module to be loaded before them, they sould simply have a
-dependency on dock.ko. In the particular case mentioned (libata), this
-already is the case.
+On Thursday 03 September 2009 23:42:31 Dominik Brodowski wrote:
+> Hey,
+> 
+> On Thu, Sep 03, 2009 at 01:23:28PM +0200, Thomas Renninger wrote:
+> > I now realized that this patch somewhat clashes with
+> > cpufrequtils cpufreq-info --hwlimits command.
+> > IMO "cpufreq-info --hwlimits" is wrong here as it evaluates
+> > max_freq sysfs value which could also get limited by the user.
+> 
+> huh?
+> 
+> brodo@comet:~$ cpufreq-info --hwlimits
+> 800000 2001000
+> brodo@comet:~$ sudo cpufreq-set --max 1.2G
+> brodo@comet:~$ cpufreq-info --hwlimits
+> 800000 2001000
+Ah, I didn't look into cpufreqinfo details where hwlimits
+is coming from.
+But how would one then differ between:
+- The max freq the CPU is really capable of
+- Whether it's a BIOS limitation
+I like to have the _PPC limitation exposed to userspace
+in a way one can be sure it is a _PPC limitation.
+cpuinfo.bios_limit?
 
-However, in order to dock to really be compilable as a module, the
-select from libata also needs to be corrected: Boolean sub-options of
-tristate options selecting another tristate option should not do the
-select themselves, as that forces the selected option to Y. Instead,
-a conditional select in the base tristate option is needed.
+Another, more intrusive idea (I mainly care about _PPC
+distinction):
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Best also thermal or whatever other limits there could happen.
+Most generic approach which comes to my mind is something like:
+ - Introduce
+   cpufreq_verify_within_limits(policy, min, max)
+   wrapper:
+   cpufreq_set_limit(char *limit_name, policy, min, max)
 
----
- drivers/acpi/Kconfig  |    2 +-
- drivers/acpi/Makefile |    2 +-
- drivers/acpi/osl.c    |    1 +
- drivers/ata/Kconfig   |    2 +-
- 4 files changed, 4 insertions(+), 3 deletions(-)
+Thermal or PPC(processor) driver could then use:
+   cpufreq_set_limit("bios", policy, min, max)
+   cpufreq_set_limit("thermal", policy, min, max)
 
---- linux-2.6.31-rc8/drivers/acpi/Kconfig	2009-08-28 14:54:27.000000000 +0200
-+++ 2.6.31-rc8-acpi-dock-module/drivers/acpi/Kconfig	2009-08-19 13:28:12.000000000 +0200
-@@ -171,7 +171,7 @@ config ACPI_FAN
- 	  the module will be called fan.
- 
- config ACPI_DOCK
--	bool "Dock"
-+	tristate "Dock"
- 	depends on EXPERIMENTAL
- 	help
- 	  This driver supports ACPI-controlled docking stations and removable
---- linux-2.6.31-rc8/drivers/acpi/Makefile	2009-06-10 05:05:27.000000000 +0200
-+++ 2.6.31-rc8-acpi-dock-module/drivers/acpi/Makefile	2009-08-19 13:31:37.000000000 +0200
-@@ -32,7 +32,6 @@ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- acpi-y				+= bus.o glue.o
- acpi-y				+= scan.o
- acpi-y				+= ec.o
--acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
- acpi-y				+= power.o
- acpi-y				+= system.o event.o
-@@ -54,6 +53,7 @@ obj-$(CONFIG_ACPI_CONTAINER)	+= containe
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY) += acpi_memhotplug.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-+obj-$(CONFIG_ACPI_DOCK)		+= dock.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
- 
---- linux-2.6.31-rc8/drivers/acpi/osl.c	2009-08-28 14:54:27.000000000 +0200
-+++ 2.6.31-rc8-acpi-dock-module/drivers/acpi/osl.c	2009-09-04 08:47:50.000000000 +0200
-@@ -803,6 +803,7 @@ acpi_status acpi_os_hotplug_execute(acpi
- {
- 	return __acpi_os_execute(0, function, context, 1);
- }
-+EXPORT_SYMBOL_GPL(acpi_os_hotplug_execute);
- 
- void acpi_os_wait_events_complete(void *context)
- {
---- linux-2.6.31-rc8/drivers/ata/Kconfig	2009-08-28 14:54:27.000000000 +0200
-+++ 2.6.31-rc8-acpi-dock-module/drivers/ata/Kconfig	2009-08-19 13:28:35.000000000 +0200
-@@ -8,6 +8,7 @@ menuconfig ATA
- 	depends on BLOCK
- 	depends on !(M32R || M68K) || BROKEN
- 	select SCSI
-+	select ACPI_DOCK if ATA_ACPI
- 	---help---
- 	  If you want to use a ATA hard disk, ATA tape drive, ATA CD-ROM or
- 	  any other ATA device under Linux, say Y and make sure that you know
-@@ -29,7 +30,6 @@ config ATA_NONSTANDARD
- config ATA_ACPI
- 	bool "ATA ACPI Support"
- 	depends on ACPI && PCI
--	select ACPI_DOCK
- 	default y
- 	help
- 	  This option adds support for ATA-related ACPI objects.
+cpufreq core's cpufreq_set_limit function will remember the limit
+and where it comes from and calls cpufreq_verify_within_limits internally.
 
+thermal, processor and possible other drivers would need to
+register a cpufreq limit, a sysfs file could then dynamically be created
+and the limit exposed, e.g. like:
+cpu0/cpufreq/limits/thermal
+cpu0/cpufreq/limits/bios (or ppc now?)
+cpu0/cpufreq/limits/...
+
+Any idea of an easier way to achieve this (provide a unique and easy
+way to show freq limitations and what's the root cause
+of it)?
+
+   Thomas
+
+> --hwlimits evaluates cpuinfo_{cur,min,max}_freq which are the hardware
+> limits. Those may be limited further by the BIOS on runtime (firmware
+> limits, so to speak). It seems to me that this is what you want to add with
+> this patch?
+> 
+> Best,
+> 	Dominik
+> 
 
 
