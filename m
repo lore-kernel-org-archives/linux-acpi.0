@@ -1,47 +1,68 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH] topstar_acpi: add new driver for hotkeys support on
-	Topstar N01
-Date: Sat, 5 Sep 2009 14:02:32 +0100
-Message-ID: <9b2b86520909050602q1c62c648kdce76dc77b9f3dfd@mail.gmail.com>
-References: <200909050229.55665.herton@mandriva.com.br>
+From: Daniel Walker <dwalker@fifo99.com>
+Subject: Re: [RFC][PATCH 2/2] disable boot interrupts on Intel X58 and 55x0
+Date: Sat, 05 Sep 2009 07:47:20 -0700
+Message-ID: <1252162040.6877.7.camel@desktop>
+References: <20090904165525.26294.31112.sendpatchset@t500>
+	 <20090904165545.26294.94612.sendpatchset@t500>
+	 <1252084019.22928.39.camel@desktop>  <4AA22A6F.30003@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:56844 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710AbZIENCd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Sep 2009 09:02:33 -0400
-Received: by fxm17 with SMTP id 17so1180090fxm.37
-        for <linux-acpi@vger.kernel.org>; Sat, 05 Sep 2009 06:02:34 -0700 (PDT)
-In-Reply-To: <200909050229.55665.herton@mandriva.com.br>
+Received: from fifo99.com ([67.223.236.141]:48394 "EHLO fifo99.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751832AbZIEOrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Sep 2009 10:47:16 -0400
+In-Reply-To: <4AA22A6F.30003@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: linux-acpi@vger.kernel.org
+To: Stefan Assmann <sassmann@redhat.com>
+Cc: linux-kernel@vger.kernel.org, jcm@redhat.com, sdietrich@novell.com, linux-acpi@vger.kernel.org, andi@firstfloor.org, hpa@zytor.com, mingo@elte.hu, Olaf.Dabrunz@gmx.net, ktokunag@redhat.com, tglx@linutronix.de, lenb@kernel.org
 
-On 9/5/09, Herton Ronaldo Krzesinski <herton@mandriva.com.br> wrote:
-> This adds Topstar Laptop Extras ACPI driver. It enables hotkeys
-> functionality with Topstar N01 netbook. Besides hotkeys there are
-> other functions exposed by its ACPI firmware, but for now only
-> hotkeys reporting on Topstar N01 is supported. Topstar is a chinese
-> manufacturer, its website can be currently reached at
-> http://www.topstardigital.cn/
->
-> Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+On Sat, 2009-09-05 at 11:07 +0200, Stefan Assmann wrote:
+> On 04.09.2009 19:06, Daniel Walker wrote:
+> > On Fri, 2009-09-04 at 12:55 -0400, Stefan Assmann wrote:
+> >> + * Disable boot interrupts on Intel X58, 55x0 (Tylersburg).
+> >> + * See Intel document #321328-001, section 19.10.2.27.
+> >> + * (Disable PCI INTx Routing to ICH)
+> >> + */
+> >> +#define INTEL_X58_55x0_QPIPINTRC_OFFSET        0xe0
+> >> +#define INTEL_X58_55x0_QPIPINTRC_BIT   (1<<25)
+> >> +static void quirk_disable_intel_tylersburg_boot_interrupt(struct
+> >> pci_dev *dev)
+> >> +{
+> >> +       u32 pci_config_dword;
+> >> +
+> >> +       if (noioapicquirk)
+> >> +               return;
+> >> +
+> >> +       pci_read_config_dword(dev, INTEL_X58_55x0_QPIPINTRC_OFFSET,
+> >> &pci_config_dword);
+> >> +       pci_config_dword |= INTEL_X58_55x0_QPIPINTRC_BIT;
+> >> +       pci_write_config_dword(dev, INTEL_X58_55x0_QPIPINTRC_OFFSET,
+> >> pci_config_dword);
+> >> +
+> >> +       printk(KERN_INFO "disabled boot interrupt on device 0x%04x:0x%
+> >> 04x\n",
+> >> +               dev->vendor, dev->device);
+> >> +}
+> >> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,   PCI_DEVICE_ID_INTEL_QPI_TBG15,  quirk_disable_intel_tylersburg_boot_interrupt);
+> >> +DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,  PCI_DEVICE_ID_INTEL_QPI_TBG15,  quirk_disable_intel_tylersburg_boot_interrupt);
+> > 
+> > 
+> > These lines are wildly long .. Could you reduce these down to a max of
+> > 80 characters..
+> 
+> Hi Daniel,
+> 
+> you're right about the lines being to long, however if you take a peek
+> at drivers/pci/quirks.c you'll see that all the quirks are done this
+> way. :)
 
-> +static void __exit acpi_topstar_exit(void)
-> +{
-> +	acpi_bus_unregister_driver(&acpi_topstar_driver);
-> +
-> +	printk(KERN_INFO "Topstar Laptop ACPI extras driver unloaded\n");
+I looked, the whole thing is a mess .. Really all these lines need to be
+cleaned up.. It doesn't help to have you add more to it tho. Especially
+the tab's or spaces between the commas, I can say I understand why that
+is.. If there is a good reason why it's like that I'm all ears..
 
-Oh... and this type of message always strikes me as gratuitous.  rmmod
-doesn't happen during normal operation.  So if the user removed the
-module... they know they did it.  They can check lsmod if they forget
-and are not sure.
+Daniel
 
-If (as a developer) you want to be sure the acpi driver was really
-unregistered, you can (and probably should) look in sysfs.
-
-Thanks
-Alan
