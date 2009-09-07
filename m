@@ -1,37 +1,60 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [RFC][PATCH 0/2] boot interrupts on Intel X58 and 55x0
-Date: Sun, 6 Sep 2009 22:33:28 -0300
-Message-ID: <20090907013328.GA19670@khazad-dum.debian.net>
+Subject: Re: [RFC][PATCH 2/2] disable boot interrupts on Intel X58 and 55x0
+Date: Sun, 6 Sep 2009 22:37:42 -0300
+Message-ID: <20090907013742.GB19670@khazad-dum.debian.net>
 References: <20090904165525.26294.31112.sendpatchset@t500>
+ <20090904165545.26294.94612.sendpatchset@t500>
+ <1252084019.22928.39.camel@desktop>
+ <4AA22A6F.30003@redhat.com>
+ <1252162040.6877.7.camel@desktop>
+ <20090905161852.GA19706@santana.dyndns.org>
+ <1252170459.6877.44.camel@desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34788 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:36137 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758409AbZIGBdg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Sep 2009 21:33:36 -0400
+	by vger.kernel.org with ESMTP id S1758395AbZIGBho (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Sep 2009 21:37:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20090904165525.26294.31112.sendpatchset@t500>
+In-Reply-To: <1252170459.6877.44.camel@desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Assmann <sassmann@redhat.com>
-Cc: linux-kernel@vger.kernel.org, jcm@redhat.com, sdietrich@novell.com, linux-acpi@vger.kernel.org, andi@firstfloor.org, hpa@zytor.com, mingo@elte.hu, Olaf.Dabrunz@gmx.net, ktokunag@redhat.com, tglx@linutronix.de, lenb@kernel.org
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: Olaf Dabrunz <Olaf.Dabrunz@gmx.net>, Stefan Assmann <sassmann@redhat.com>, linux-kernel@vger.kernel.org, jcm@redhat.com, sdietrich@novell.com, linux-acpi@vger.kernel.org, andi@firstfloor.org, hpa@zytor.com, mingo@elte.hu, ktokunag@redhat.com, tglx@linutronix.de, lenb@kernel.org
 
-On Fri, 04 Sep 2009, Stefan Assmann wrote:
-> is more serious namely the onboard NIC (8086:10c9) is malfunctioning on some
-> of our test system if the second patch is applied. It fails to acquire an IP
-> from DHCP and we're pretty clueless on this issue right now.
-> Help is greatly appreciated!
+On Sat, 05 Sep 2009, Daniel Walker wrote:
+> I'm not sure I see how this makes "adding/deleting/modifying" easier ..
+> We have lots of other situations where lines are broken down less than
+> 80, function arguments, macros, structures all sorts of stuff. 
+> 
+> Taking this block for instance,
+> 
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
+>                         PCI_DEVICE_ID_TIGON3_5780,
+>                         quirk_msi_intx_disable_bug);
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
+>                         PCI_DEVICE_ID_TIGON3_5780S,
+>                         quirk_msi_intx_disable_bug);
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
+>                         PCI_DEVICE_ID_TIGON3_5714,
+>                         quirk_msi_intx_disable_bug);
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
+>                         PCI_DEVICE_ID_TIGON3_5714S,
+>                         quirk_msix_intx_disable_bug);
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
+>                         PCI_DEVICE_ID_TIGON3_5715,
+>                         quirk_msi_intx_disable_bug);
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM,
+>                         PCI_DEVICE_ID_TIGON3_5715S,
+>                         quirk_msi_intx_disable_bug);
 
-Did you read Intel documet 320839-009, August/2009, already?  It is at:
-http://www.intel.com/Assets/PDF/specupdate/320839.pdf
+You must have an alien brain of some sort if reading that is easier than the
+tabular (single-line) format for you.
 
-I see some stuff there that might be a problem, many of the "issues" are
-related to interrupt handling.  Errata 40 (EOI to IOAPIC can be blocked)
-even states that one should avoid the X58 IOH IOAPIC on stepping B2
-completely, and use the IOAPIC in the ICH10R instead.
-
-And the B2 stepping is the one in most motherboards (B3 is quite new).
+Please try finding the one entry in there which is different (I changed one
+of them) with a quick glance.  Chances are you'll just skip over it and
+think all of them do the same thing.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
