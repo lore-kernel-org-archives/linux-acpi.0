@@ -1,72 +1,48 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: [PATCH v2] ACPI: Clarify resource conflict message
-Date: Tue, 8 Sep 2009 15:31:46 +0200
-Message-ID: <200909081531.46716.jdelvare@suse.de>
+From: Simon Kitching <skitching@apache.org>
+Subject: Index is beyond end of object; Method parse/execution failed
+Date: Tue, 08 Sep 2009 21:16:05 +0200
+Message-ID: <1252437365.5669.14.camel@simon-laptop>
+Reply-To: skitching@apache.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56985 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918AbZIHNbo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Sep 2009 09:31:44 -0400
-Content-Disposition: inline
+Received: from viefep31-int.chello.at ([62.179.121.49]:46668 "EHLO
+	viefep31-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751857AbZIHTfL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2009 15:35:11 -0400
+Received: from edge04.upc.biz ([192.168.13.239]) by viefep16-int.chello.at
+          (InterMail vM.7.09.01.00 201-2219-108-20080618) with ESMTP
+          id <20090908191606.BCKS422.viefep16-int.chello.at@edge04.upc.biz>
+          for <linux-acpi@vger.kernel.org>; Tue, 8 Sep 2009 21:16:06 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <sourcejedi.lkml@googlemail.com>
 
-From: Jean Delvare <jdelvare@suse.de>
-Subject: ACPI: Clarify resource conflict message
+Hi All,
 
-The message "ACPI: Device needs an ACPI driver" is misleading. The
-device _may_ need an ACPI driver, if the BIOS implemented a custom
-API for the device in question (which, AFAIK, can't be checked.) If
-not, then either a generic ACPI driver may be used (for example
-"thermal"), or nothing can be done (other than a white list).
+Suspend-to-mem and resume seem to work fine, but I get a few odd ACPI
+messages in dmesg. Is this of interest to anyone?
 
-I propose to reword the message to:
+[  188.914261] ACPI Exception: AE_AML_PACKAGE_LIMIT, Index (000000005)
+is beyond end of object 20090521 exoparg2-445
+[  188.914278] ACPI Error (psparse-0537): Method parse/execution failed
+[\_SB_.C248] (Node f701a6d8), AE_AML_PACKAGE_LIMIT
+[  188.914344] ACPI Error (psparse-0537): Method parse/execution failed
+[\_SB_.C002.C0DE.C354._STM] (Node f701d780), AE_AML_PACKAGE_LIMIT
+[  188.914415] ata5: ACPI set timing mode failed (status=0x300b)
 
-ACPI: If an ACPI driver is available for this device, you should use
-it instead of the native driver
 
-which I think is more correct. Comments and suggestions welcome.
+Kernel: 2.6.31-rc9
+Distro: ubuntu 09.04
+Hardware: Compaq nc8430 laptop
+CPU: core duo T2500
 
-I also added a message warning about possible problems and system
-instability when users pass acpi_enforce_resources=lax, as suggested
-by Len.
+These messages are generated every time I run
+   echo "mem" > /sys/power/state
+although otherwise the suspend/resume seems 100% ok.
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>
----
-Len, if you are satisfied with the wording, any chance to have this
-patch in 2.6.31? Thanks.
+I'm happy to provide more info or run tests if anyone wants me to.
 
- drivers/acpi/osl.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Regards, Simon
 
---- linux-2.6.31-rc9.orig/drivers/acpi/osl.c	2009-09-08 09:46:51.000000000 +0200
-+++ linux-2.6.31-rc9/drivers/acpi/osl.c	2009-09-08 13:56:53.000000000 +0200
-@@ -1182,7 +1182,13 @@ int acpi_check_resource_conflict(struct
- 			       res_list_elem->name,
- 			       (long long) res_list_elem->start,
- 			       (long long) res_list_elem->end);
--			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
-+			if (acpi_enforce_resources == ENFORCE_RESOURCES_LAX)
-+				printk(KERN_NOTICE "ACPI: This conflict may"
-+				       " cause random problems and system"
-+				       " instability\n");
-+			printk(KERN_INFO "ACPI: If an ACPI driver is available"
-+			       " for this device, you should use it instead of"
-+			       " the native driver\n");
- 		}
- 		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
- 			return -EBUSY;
-
--- 
-Jean Delvare
-Suse L3
