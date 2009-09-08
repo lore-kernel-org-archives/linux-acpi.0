@@ -1,57 +1,102 @@
-From: Alex Bennee <kernel-hacker@bennee.com>
-Subject: Re: Machine resumes straight after suspend to RAM (or disk)
-Date: Tue, 8 Sep 2009 21:05:25 +0100
-Message-ID: <b2cdc9f30909081305u61b896c1kff8caab3e003412e@mail.gmail.com>
-References: <b2cdc9f30909081157r3087f707ve3a0cff77f46941a@mail.gmail.com>
-	 <200909082138.15312.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 1/5] PCI PM: Simplify PCI wake-up code
+Date: Tue, 8 Sep 2009 23:12:59 +0200
+Message-ID: <200909082312.59769.rjw@sisk.pl>
+References: <200908300041.14541.rjw@sisk.pl> <200909040002.02562.rjw@sisk.pl> <200909082311.48366.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:20508 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbZIHUFY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2009 16:05:24 -0400
-In-Reply-To: <200909082138.15312.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:58868 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751930AbZIHVP4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Sep 2009 17:15:56 -0400
+In-Reply-To: <200909082311.48366.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-pm@lists.linux-foundation.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux PCI <linux-pci@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ykzhao <yakui.zhao@intel.com>
 
-2009/9/8 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Tuesday 08 September 2009, Alex Bennee wrote:
->> Hi,
->>
->> I thought I'd enable suspend and resume on my desktop machine so I
->> could save myself some time in the morning when I restart the machine.
->> The machine is fairly standard Intel Core Duo based system (lspci
->> attached). However when I execute pm-suspend (or Gentoo's own
->> hibernate-script) the system does suspend but resumes immediately.
-<snip>
->>
->> So any ideas?
->
-> What's in /proc/acpi/wakeup after a clean boot?
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-21:03 alex@danny/x86_64 [~] >cat /proc/acpi/wakeup
-Device	S-state	  Status   Sysfs node
-P0P1	  S4	 disabled
-P0P3	  S4	 disabled  pci:0000:00:1e.0
-P0P4	  S4	 disabled  pci:0000:00:1c.0
-P0P5	  S4	 disabled
-P0P6	  S4	 disabled
-P0P7	  S4	 disabled
-P0P8	  S4	 disabled
-P0P9	  S4	 disabled
-PS2K	  S4	 disabled  pnp:00:09
-PS2M	  S4	 disabled  pnp:00:0a
-MC97	  S4	 disabled
-USB1	  S4	 disabled  pci:0000:00:1d.0
-USB2	  S4	 disabled  pci:0000:00:1d.1
-USB3	  S4	 disabled  pci:0000:00:1d.2
-USB4	  S4	 disabled  pci:0000:00:1d.3
-EUSB	  S4	 disabled  pci:0000:00:1d.7
+Rework the PCI wake-up code so that it's easier to read without
+changing the functionality.
 
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |   10 +++++++---
+ drivers/pci/pci.c      |   25 ++++++++++++++-----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
--- 
-Alex, homepage: http://www.bennee.com/~alex/
-http://www.half-llama.co.uk
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -1218,8 +1218,7 @@ void pci_pme_active(struct pci_dev *dev,
+  */
+ int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
+ {
+-	int error = 0;
+-	bool pme_done = false;
++	int ret = 0;
+ 
+ 	if (enable && !device_may_wakeup(&dev->dev))
+ 		return -EINVAL;
+@@ -1230,18 +1229,22 @@ int pci_enable_wake(struct pci_dev *dev,
+ 	 * enable.  To disable wake-up we call the platform first, for symmetry.
+ 	 */
+ 
+-	if (!enable && platform_pci_can_wakeup(dev))
+-		error = platform_pci_sleep_wake(dev, false);
+-
+-	if (!enable || pci_pme_capable(dev, state)) {
+-		pci_pme_active(dev, enable);
+-		pme_done = true;
+-	}
++	if (enable) {
++		int error;
+ 
+-	if (enable && platform_pci_can_wakeup(dev))
++		if (pci_pme_capable(dev, state))
++			pci_pme_active(dev, true);
++		else
++			ret = 1;
+ 		error = platform_pci_sleep_wake(dev, true);
++		if (ret)
++			ret = error;
++	} else {
++		platform_pci_sleep_wake(dev, false);
++		pci_pme_active(dev, false);
++	}
+ 
+-	return pme_done ? 0 : error;
++	return ret;
+ }
+ 
+ /**
+Index: linux-2.6/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -111,12 +111,16 @@ static bool acpi_pci_can_wakeup(struct p
+ 
+ static int acpi_pci_sleep_wake(struct pci_dev *dev, bool enable)
+ {
+-	int error = acpi_pm_device_sleep_wake(&dev->dev, enable);
++	int error;
+ 
++	if (!acpi_pci_can_wakeup(dev))
++		return 0;
++
++	error = acpi_pm_device_sleep_wake(&dev->dev, enable);
+ 	if (!error)
+-		dev_printk(KERN_INFO, &dev->dev,
+-				"wake-up capability %s by ACPI\n",
++		dev_info(&dev->dev, "wake-up capability %s by ACPI\n",
+ 				enable ? "enabled" : "disabled");
++
+ 	return error;
+ }
+ 
+
