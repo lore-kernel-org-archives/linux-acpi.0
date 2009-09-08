@@ -1,99 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Alex Bennee <kernel-hacker@bennee.com>
 Subject: Re: Machine resumes straight after suspend to RAM (or disk)
-Date: Tue, 8 Sep 2009 21:38:15 +0200
-Message-ID: <200909082138.15312.rjw@sisk.pl>
+Date: Tue, 8 Sep 2009 21:05:25 +0100
+Message-ID: <b2cdc9f30909081305u61b896c1kff8caab3e003412e@mail.gmail.com>
 References: <b2cdc9f30909081157r3087f707ve3a0cff77f46941a@mail.gmail.com>
+	 <200909082138.15312.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58543 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750912AbZIHThT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Sep 2009 15:37:19 -0400
-In-Reply-To: <b2cdc9f30909081157r3087f707ve3a0cff77f46941a@mail.gmail.com>
+Received: from ey-out-2122.google.com ([74.125.78.25]:20508 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbZIHUFY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2009 16:05:24 -0400
+In-Reply-To: <200909082138.15312.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Bennee <kernel-hacker@bennee.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: lkml <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tuesday 08 September 2009, Alex Bennee wrote:
-> Hi,
-> 
-> I thought I'd enable suspend and resume on my desktop machine so I
-> could save myself some time in the morning when I restart the machine.
-> The machine is fairly standard Intel Core Duo based system (lspci
-> attached). However when I execute pm-suspend (or Gentoo's own
-> hibernate-script) the system does suspend but resumes immediately. To
-> add insult to injury the ethernet doesn't come back properly and needs
-> a reboot to reset it.
-> 
-> I've played about a little with the ACPI debug stuff but it's easy to
-> overflow the dmesg buffer. The relevant section around the
-> suspend/resume looks like:
-> 
-> [ 1025.178019] Disabling non-boot CPUs ...
-> [ 1025.182071] kvm: disabling virtualization on CPU1
-> [ 1025.227729] CPU 1 is now offline
-> [ 1025.227731] SMP alternatives: switching to UP code
-> [ 1025.232627] CPU0 attaching NULL sched-domain.
-> [ 1025.232630] CPU1 attaching NULL sched-domain.
-> [ 1025.232634] CPU0 attaching NULL sched-domain.
-> [ 1025.232771] CPU1 is down
-> [ 1025.233264] acpi_suspend_enter acpi_state=3
-> [ 1025.233276] evgpeblk-0144 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Entry
-> [ 1025.233286] evgpeblk-0178 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Exit- AE_OK
-> [ 1025.233290] evgpeblk-0144 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Entry
-> [ 1025.233299] evgpeblk-0178 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Exit- AE_OK
-> [ 1025.233303] evgpeblk-0144 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Entry
-> [ 1025.233311] evgpeblk-0178 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Exit- AE_OK
-> [ 1025.233315] evgpeblk-0144 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Entry
-> [ 1025.233319] evgpeblk-0178 [ffff8800b70d8000] [05] ev_walk_gpe_list
->     : ----Exit- AE_OK
-> [ 1025.233319] evxfevnt-0074 [ffff8800b70d8000] [05] enable
->     : ----Entry
-> [ 1025.233319] evxfevnt-0086 [ffff8800b70d8000] [05] enable
->     : System is already in ACPI mode
-> [ 1025.233319] evxfevnt-0101 [ffff8800b70d8000] [05] enable
->     : ----Exit- AE_OK
-> [ 1025.233319] evxfevnt-0397 [ffff8800b70d8000] [05] clear_event
->     : ----Entry
-> [ 1025.233319] evxfevnt-0413 [ffff8800b70d8000] [05] clear_event
->     : ----Exit- AE_OK
-> [ 1025.233319] evxfevnt-0831 [ffff8800b70d8000] [05] disable_all_gpes
->     : ----Entry
-> [ 1025.233319] evgpeblk-0144 [ffff8800b70d8000] [07] ev_walk_gpe_list
->     : ----Entry
-> [ 1025.233319] evgpeblk-0178 [ffff8800b70d8000] [07] ev_walk_gpe_list
->     : ----Exit- AE_OK
-> [ 1025.233319] evgpeblk-0144 [ffff8800b70d8000] [07] ev_walk_gpe_list
->     : ----Entry
-> [ 1025.233319] evgpeblk-0178 [ffff8800b70d8000] [07] ev_walk_gpe_list
->     : ----Exit- AE_OK
-> [ 1025.233319] evxfevnt-0841 [ffff8800b70d8000] [05] disable_all_gpes
->     : ----Exit- AE_OK
-> [ 1025.233319] Back to C!
-> [ 1025.233319] CPU0: Thermal LVT vector (0xfa) already installed
-> [ 1025.233319] Enabling non-boot CPUs ...
-> [ 1025.233319] SMP alternatives: switching to SMP code
-> [ 1025.237548] Booting processor 1 APIC 0x1 ip 0x6000
-> [ 1025.232536] Initializing CPU#1
-> [ 1025.232536] Calibrating delay using timer specific routine..
-> 4245.78 BogoMIPS (lpj=8491564)
-> 
-> Unfortunately the ACPI stuff is all Greek to me. If anyone wants
-> additional debug information then please let me know.
-> 
-> So any ideas?
+2009/9/8 Rafael J. Wysocki <rjw@sisk.pl>:
+> On Tuesday 08 September 2009, Alex Bennee wrote:
+>> Hi,
+>>
+>> I thought I'd enable suspend and resume on my desktop machine so I
+>> could save myself some time in the morning when I restart the machine.
+>> The machine is fairly standard Intel Core Duo based system (lspci
+>> attached). However when I execute pm-suspend (or Gentoo's own
+>> hibernate-script) the system does suspend but resumes immediately.
+<snip>
+>>
+>> So any ideas?
+>
+> What's in /proc/acpi/wakeup after a clean boot?
 
-What's in /proc/acpi/wakeup after a clean boot?
+21:03 alex@danny/x86_64 [~] >cat /proc/acpi/wakeup
+Device	S-state	  Status   Sysfs node
+P0P1	  S4	 disabled
+P0P3	  S4	 disabled  pci:0000:00:1e.0
+P0P4	  S4	 disabled  pci:0000:00:1c.0
+P0P5	  S4	 disabled
+P0P6	  S4	 disabled
+P0P7	  S4	 disabled
+P0P8	  S4	 disabled
+P0P9	  S4	 disabled
+PS2K	  S4	 disabled  pnp:00:09
+PS2M	  S4	 disabled  pnp:00:0a
+MC97	  S4	 disabled
+USB1	  S4	 disabled  pci:0000:00:1d.0
+USB2	  S4	 disabled  pci:0000:00:1d.1
+USB3	  S4	 disabled  pci:0000:00:1d.2
+USB4	  S4	 disabled  pci:0000:00:1d.3
+EUSB	  S4	 disabled  pci:0000:00:1d.7
 
-Rafael
+
+-- 
+Alex, homepage: http://www.bennee.com/~alex/
+http://www.half-llama.co.uk
