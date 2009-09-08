@@ -1,130 +1,72 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH] topstar_acpi: add new driver for hotkeys support on
-	Topstar N01
-Date: Tue, 8 Sep 2009 14:03:31 +0100
-Message-ID: <9b2b86520909080603u798eb14dn29dadeeb1b4a87df@mail.gmail.com>
-References: <200909050229.55665.herton@mandriva.com.br>
-	 <9b2b86520909050602q1c62c648kdce76dc77b9f3dfd@mail.gmail.com>
-	 <200909071626.03334.herton@mandriva.com.br>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: [PATCH v2] ACPI: Clarify resource conflict message
+Date: Tue, 8 Sep 2009 15:31:46 +0200
+Message-ID: <200909081531.46716.jdelvare@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:59077 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752501AbZIHNDb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2009 09:03:31 -0400
-Received: by bwz19 with SMTP id 19so2173922bwz.37
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Sep 2009 06:03:32 -0700 (PDT)
-In-Reply-To: <200909071626.03334.herton@mandriva.com.br>
+Received: from cantor2.suse.de ([195.135.220.15]:56985 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752918AbZIHNbo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Sep 2009 09:31:44 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Thomas Renninger <trenn@suse.de>, Alan Jenkins <sourcejedi.lkml@googlemail.com>
 
-On 9/7/09, Herton Ronaldo Krzesinski <herton@mandriva.com.br> wrote:
-> Em S=E1b 05 Set 2009, =E0s 10:02:32, Alan Jenkins escreveu:
->> On 9/5/09, Herton Ronaldo Krzesinski <herton@mandriva.com.br> wrote:
->> > This adds Topstar Laptop Extras ACPI driver. It enables hotkeys
->> > functionality with Topstar N01 netbook. Besides hotkeys there are
->> > other functions exposed by its ACPI firmware, but for now only
->> > hotkeys reporting on Topstar N01 is supported. Topstar is a chines=
-e
->> > manufacturer, its website can be currently reached at
->> > http://www.topstardigital.cn/
->> >
->> > Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
->>
->> > +static void __exit acpi_topstar_exit(void)
->> > +{
->> > +	acpi_bus_unregister_driver(&acpi_topstar_driver);
->> > +
->> > +	printk(KERN_INFO "Topstar Laptop ACPI extras driver unloaded\n")=
-;
->>
->> Oh... and this type of message always strikes me as gratuitous.  rmm=
-od
->> doesn't happen during normal operation.  So if the user removed the
->> module... they know they did it.  They can check lsmod if they forge=
-t
->> and are not sure.
->>
->> If (as a developer) you want to be sure the acpi driver was really
->> unregistered, you can (and probably should) look in sysfs.
->
-> Hi, thanks for review. I addressed all issues you pointed out, and re=
-named
-> the
-> driver to topstar-laptop as suggested by Corentin Chary. I'll attach =
-also
-> the
-> diff on top of previous topstar_acpi.c as reference (before the renam=
-e and
-> without Kconfig/Makefile changes). I only compiled tested it, as beca=
-use of
-> bank holidays here will only be able to retest wednesday this, but th=
-e
-> changes
-> are safe anyway. Here is new version of the patch (feel free to add y=
-our
-> Reviewed-by to it):
->
-> From e4fb36e01af04248e1a4ddda0964187e4b7fdb4a Mon Sep 17 00:00:00 200=
-1
-> From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-> Date: Mon, 7 Sep 2009 16:12:48 -0300
-> Subject: [PATCH] topstar-laptop: add new driver for hotkeys support o=
-n
-> Topstar N01
->
-> This adds Topstar Laptop Extras ACPI driver. It enables hotkeys
-> functionality with Topstar N01 netbook. Besides hotkeys there are
-> other functions exposed by its ACPI firmware, but for now only
-> hotkeys reporting on Topstar N01 is supported. Topstar is a chinese
-> manufacturer, its website can be currently reached at
-> http://www.topstardigital.cn/
->
-> Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: ACPI: Clarify resource conflict message
 
-Great!
+The message "ACPI: Device needs an ACPI driver" is misleading. The
+device _may_ need an ACPI driver, if the BIOS implemented a custom
+API for the device in question (which, AFAIK, can't be checked.) If
+not, then either a generic ACPI driver may be used (for example
+"thermal"), or nothing can be done (other than a white list).
 
-Reviewed-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+I propose to reword the message to:
 
-I found two more style points to bug you with.
+ACPI: If an ACPI driver is available for this device, you should use
+it instead of the native driver
 
-> +
-> +#include <linux/module.h>
+which I think is more correct. Comments and suggestions welcome.
 
-The other drivers explicitly include <linux.init.h> for __init.  The
-LDD3 book says to do so as well.
+I also added a message warning about possible problems and system
+instability when users pass acpi_enforce_resources=lax, as suggested
+by Len.
 
-It also seems conventional to include <linux/kernel.h> for printk.
-(LDD3 thinks module.h is enough, but I disagree since module.h doesn't
-directly include kernel.h).
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+---
+Len, if you are satisfied with the wording, any chance to have this
+patch in 2.6.31? Thanks.
 
-> +#include <acpi/acpi_bus.h>
-> +#include <acpi/acpi_drivers.h>
+ drivers/acpi/osl.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-[whereas the different prefix for the ac_types.h etc suggested that we
-should get away without them]
+--- linux-2.6.31-rc9.orig/drivers/acpi/osl.c	2009-09-08 09:46:51.000000000 +0200
++++ linux-2.6.31-rc9/drivers/acpi/osl.c	2009-09-08 13:56:53.000000000 +0200
+@@ -1182,7 +1182,13 @@ int acpi_check_resource_conflict(struct
+ 			       res_list_elem->name,
+ 			       (long long) res_list_elem->start,
+ 			       (long long) res_list_elem->end);
+-			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
++			if (acpi_enforce_resources == ENFORCE_RESOURCES_LAX)
++				printk(KERN_NOTICE "ACPI: This conflict may"
++				       " cause random problems and system"
++				       " instability\n");
++			printk(KERN_INFO "ACPI: If an ACPI driver is available"
++			       " for this device, you should use it instead of"
++			       " the native driver\n");
+ 		}
+ 		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
+ 			return -EBUSY;
 
-> +
-> +static int is_tps_dev;
-> +
-
-bool?
-
-"is_tps_dev" seems confused.  I think the phrase should be either "is
-a tps _laptop_" or "_has_ a tps device".  Perhaps "found_tps_dev"
-would be even better.
-
-> []'s
-> Herton
-
-And the same to you :-).
-Alan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jean Delvare
+Suse L3
