@@ -1,40 +1,34 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH v3] topstar-laptop: add new driver for hotkeys support on
-	Topstar N01
-Date: Wed, 9 Sep 2009 21:46:55 +0200
-Message-ID: <71cd59b00909091246m22c12081oe8f10018cee6be78@mail.gmail.com>
-References: <200909091441.09355.herton@mandriva.com.br>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: [PATCH 1/5] PCI PM: Simplify PCI wake-up code
+Date: Wed, 9 Sep 2009 14:20:20 -0700
+Message-ID: <20090909142020.334a9e84@jbarnes-g45>
+References: <200908300041.14541.rjw@sisk.pl>
+	<200909040002.02562.rjw@sisk.pl>
+	<200909082311.48366.rjw@sisk.pl>
+	<200909082312.59769.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:39732 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbZIITqx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2009 15:46:53 -0400
-Received: by bwz19 with SMTP id 19so686232bwz.37
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2009 12:46:55 -0700 (PDT)
-In-Reply-To: <200909091441.09355.herton@mandriva.com.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200909082312.59769.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux PCI <linux-pci@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ykzhao <yakui.zhao@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: linux-acpi@vger.kernel.org, Alan Jenkins <sourcejedi.lkml@googlemail.com>
 
-On Wed, Sep 9, 2009 at 7:41 PM, Herton Ronaldo
-Krzesinski<herton@mandriva.com.br> wrote:
-> This adds Topstar Laptop Extras ACPI driver. It enables hotkeys
-> functionality with Topstar N01 netbook. Besides hotkeys there are
-> other functions exposed by its ACPI firmware, but for now only
-> hotkeys reporting on Topstar N01 is supported. Topstar is a chinese
-> manufacturer, its website can be currently reached at
-> http://www.topstardigital.cn/
->
-> Reviewed-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-> Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+On Tue, 8 Sep 2009 23:12:59 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-Seems good,
-Maybe you'll want to make a patch to add yourself to the MAINTAINERS file.
-You should also CC Len Brown, so he will add your patch in the linux-acpi tree.
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Rework the PCI wake-up code so that it's easier to read without
+> changing the functionality.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+
+Applied this series to my linux-next branch, thanks.  Len, that include
+the ACPI portion; hope that's ok.
 
 -- 
-Corentin Chary
-http://xf.iksaif.net
+Jesse Barnes, Intel Open Source Technology Center
