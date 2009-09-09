@@ -1,118 +1,71 @@
-From: Daniel J Blueman <daniel.blueman@gmail.com>
-Subject: [2.6.31-rc9] hotplug SATA vs lockdep: false positive?
-Date: Wed, 9 Sep 2009 22:20:42 +0100
-Message-ID: <6278d2220909091420g688bd11fybc33be4e472757b1@mail.gmail.com>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [RESEND] [PATCH 1/3] ACPI: battery: Fix
+ CONFIG_ACPI_SYSFS_POWER=n
+Date: Thu, 10 Sep 2009 00:21:11 +0300
+Message-ID: <1252531271.4174.5.camel@maxim-laptop>
+References: <4A4A219C.2020802@tuffmail.co.uk>
+	 <1252339562.28499.13.camel@maxim-laptop>  <4AA7E438.4070905@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:34826 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695AbZIIVUk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2009 17:20:40 -0400
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:57140 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754369AbZIIVVP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2009 17:21:15 -0400
+Received: by fxm17 with SMTP id 17so3694018fxm.37
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2009 14:21:18 -0700 (PDT)
+In-Reply-To: <4AA7E438.4070905@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
-When hot-plugging my SATA DVD drive into my laptop, I see a lockdep
-warning [1]. On closer inspection, both flush_workqueue() and
-worker_thread() do tricks with lockdep maps. False positive?
+On Wed, 2009-09-09 at 18:22 +0100, Alan Jenkins wrote: 
+> Maxim Levitsky wrote:
+> > Hi,
+> >
+> > So this is newer version of this patchset.
+> > When this will be merged?
+> >
+> >
+> > Last patch doesn't apply, seems that parts of yours patch were applied.
+> > I applied it manually.
+> >   
+> > Will soon test.
+> >
+> >
+> > Best regards,
+> > 	Maxim Levitsky
+> >   
+> 
+> I will submit "To: len" next time round.
+> 
+> You're right, it no longer applies cleanly to acpi-test.  ["patch" is
+> happy to apply it and warn about "fuzz", but git-am is more strict.  It
+> doesn't look like there's a real conflict.]
+I applied it on top of both vanilla and linux-next. Here it really
+doesn't apply (with or without 'fuzz')
 
-Daniel
+> 
+> I look forward to your results.  Please tell me the diff you end up with
+> for the last patch and what tree you applied it on top of.  That way, if
+> I add "Tested-by: Maxim..." I can be certain we're talking about the
+> same patch :-).
+> 
+> Thanks!
+> Alan
 
---- [1]
+I did that few days ago (applied patch manually, without much thinking)
 
-$ dmesg
-ata2: exception Emask 0x10 SAct 0x0 SErr 0x4040000 action 0xe frozen
-ata2: irq_stat 0x00000040, connection status changed
-ata2: SError: { CommWake DevExch }
-ata2: hard resetting link
-=======================================================
-[ INFO: possible circular locking dependency detected ]
-2.6.31-rc9-290cd #1
--------------------------------------------------------
-kacpi_hotplug/198 is trying to acquire lock:
- (kacpid){+.+.+.}, at: [<ffffffff81073a70>] flush_workqueue+0x0/0xf0
-(workqueue.c:292)
+Unfortunately, resulting kernel oopses if battery is present, and
+otherwise, if I plug batter later on, many battery statistics are
+missing (probably some locks are held)
 
-but task is already holding lock:
- (&dpc->work){+.+.+.}, at: [<ffffffff81072a42>]
-worker_thread+0x1f2/0x3c0 (bitops.h:101)
-which lock already depends on the new lock.
+I will soon investigate this issue, more deeply.
 
-the existing dependency chain (in reverse order) is:
+Best regards,
+Maxim Levitsky
 
--> #1 (&dpc->work){+.+.+.}:
-       [<ffffffff8108eb19>] __lock_acquire+0xe29/0x1240
-       [<ffffffff8108f04e>] lock_acquire+0x11e/0x170
-       [<ffffffff81072a92>] worker_thread+0x242/0x3c0 (workqueue.c:291)
-       [<ffffffff81077456>] kthread+0xa6/0xc0
-       [<ffffffff8100d29a>] child_rip+0xa/0x20
-       [<ffffffffffffffff>] 0xffffffffffffffff
 
--> #0 (kacpid){+.+.+.}:
-       [<ffffffff8108ebe1>] __lock_acquire+0xef1/0x1240
-       [<ffffffff8108f04e>] lock_acquire+0x11e/0x170
-       [<ffffffff81073acc>] flush_workqueue+0x5c/0xf0 (workqueue.c:403)
-       [<ffffffff812f6eaf>] acpi_os_wait_events_complete+0x10/0x1e
-       [<ffffffff812f6ee7>] acpi_os_execute_hp_deferred+0x2a/0x3e
-       [<ffffffff81072a98>] worker_thread+0x248/0x3c0 (workqueue.c:292)
-       [<ffffffff81077456>] kthread+0xa6/0xc0
-       [<ffffffff8100d29a>] child_rip+0xa/0x20
-       [<ffffffffffffffff>] 0xffffffffffffffff
 
-other info that might help us debug this:
-
-2 locks held by kacpi_hotplug/198:
- #0:  (kacpi_hotplug){+.+...}, at: [<ffffffff81072a42>]
-worker_thread+0x1f2/0x3c0
- #1:  (&dpc->work){+.+.+.}, at: [<ffffffff81072a42>] worker_thread+0x1f2/0x3c0
-
-stack backtrace:
-Pid: 198, comm: kacpi_hotplug Tainted: G         C 2.6.31-rc9-290cd #1
-
-Call Trace:
- [<ffffffff8108c8a7>] print_circular_bug_tail+0xa7/0x100
- [<ffffffff8108ebe1>] __lock_acquire+0xef1/0x1240
- [<ffffffff8108a808>] ? add_lock_to_list+0x58/0xf0
- [<ffffffff8108f04e>] lock_acquire+0x11e/0x170
- [<ffffffff81073a70>] ? flush_workqueue+0x0/0xf0 (workqueue.c:397)
- [<ffffffff812f6ebd>] ? acpi_os_execute_hp_deferred+0x0/0x3e
- [<ffffffff81073acc>] flush_workqueue+0x5c/0xf0 (workqueue.c:403)
- [<ffffffff81073a70>] ? flush_workqueue+0x0/0xf0 (workqueue.c:397)
- [<ffffffff812f6eaf>] acpi_os_wait_events_complete+0x10/0x1e drivers/acpi/osl.c
- [<ffffffff812f6ee7>] acpi_os_execute_hp_deferred+0x2a/0x3e
- [<ffffffff81072a98>] worker_thread+0x248/0x3c0 (workqueue.c:292)
- [<ffffffff81072a42>] ? worker_thread+0x1f2/0x3c0
- [<ffffffff81077900>] ? autoremove_wake_function+0x0/0x40
- [<ffffffff81072850>] ? worker_thread+0x0/0x3c0
- [<ffffffff81077456>] kthread+0xa6/0xc0
- [<ffffffff8100d29a>] child_rip+0xa/0x20
- [<ffffffff8100cbd4>] ? restore_args+0x0/0x30
- [<ffffffff810773b0>] ? kthread+0x0/0xc0
- [<ffffffff8100d290>] ? child_rip+0x0/0x20
-
-ACPI: \_SB_.PCI0.SATA.PRT1 - docking
-ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
-ata2.00: ACPI cmd e3/00:10:00:00:00:a0 succeeded
-ata2.00: ACPI cmd e3/00:03:00:00:00:a0 succeeded
-ata2.00: ATAPI: HL-DT-ST DVDRAM GSA-U20N, HX12, max UDMA/133
-ata2.00: ACPI cmd e3/00:10:00:00:00:a0 succeeded
-ata2.00: ACPI cmd e3/00:03:00:00:00:a0 succeeded
-ata2.00: configured for UDMA/133
-ata2: exception Emask 0x10 SAct 0x0 SErr 0x0 action 0xf t4
-ata2: irq_stat 0x40000001
-ata2: hard resetting link
-ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
-ata2.00: ACPI cmd e3/00:10:00:00:00:a0 succeeded
-ata2.00: ACPI cmd e3/00:03:00:00:00:a0 succeeded
-ata2.00: ACPI cmd e3/00:10:00:00:00:a0 succeeded
-ata2.00: ACPI cmd e3/00:03:00:00:00:a0 succeeded
-ata2.00: configured for UDMA/133
-ata2: EH complete
-scsi 1:0:0:0: CD-ROM            HL-DT-ST DVDRAM GSA-U20N  HX12 PQ: 0 ANSI: 5
-sr0: scsi3-mmc drive: 24x/24x writer dvd-ram cd/rw xa/form2 cdda tray
-Uniform CD-ROM driver Revision: 3.20
-sr 1:0:0:0: Attached scsi CD-ROM sr0
-sr 1:0:0:0: Attached scsi generic sg1 type 5
--- 
-Daniel J Blueman
