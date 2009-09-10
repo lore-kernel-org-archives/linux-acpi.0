@@ -1,70 +1,56 @@
-From: Kamala Narasimhan <Kamala.Narasimhan@citrix.com>
-Subject: RE: Resume from sleep fails on HP 6930p with the latest Linux
- kernel when iommu is enabled
-Date: Wed, 9 Sep 2009 23:47:31 -0400
-Message-ID: <5997D0BE578D47409D1EBD41DFD341F4777E182DD1@FTLPMAILBOX01.citrite.net>
-References: <5997D0BE578D47409D1EBD41DFD341F4777E182DCD@FTLPMAILBOX01.citrite.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: RFC: Light sensors, unifying current options?
+Date: Thu, 10 Sep 2009 10:23:12 +0200
+Message-ID: <20090910082312.GG7248@elf.ucw.cz>
+References: <4A9FC9D7.20000@cam.ac.uk> <1252308744.3483.414.camel@rzhang-dt> <4AA4F194.1070507@cam.ac.uk> <1252467684.3483.446.camel@rzhang-dt> <4AA79144.8060104@cam.ac.uk> <1252546449.3483.476.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:17628 "EHLO SMTP.CITRIX.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752091AbZIJDra convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2009 23:47:30 -0400
-In-Reply-To: <5997D0BE578D47409D1EBD41DFD341F4777E182DCD@FTLPMAILBOX01.citrite.net>
-Content-Language: en-US
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40131 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940AbZIJIXR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 04:23:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1252546449.3483.476.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'fenghua.yu@intel.com'" <fenghua.yu@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, LKML <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "alan@linux.intel.com" <alan@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "Cory T. Tusar" <ctusar@videon-central.com>, "Trisal, Kalhan" <kalhan.trisal@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-[Adding Fenghua Yu to the thread as he submitted the iommu suspend/resume patch (https://lists.linux-foundation.org/pipermail/iommu/2009-March/001247.html) which pertains to this issue]
+Hi!
 
-Thought I would clarify that resume from S3 would have never worked with intel_iommu enabled on HP 6930p as opposed to this being a regression for the following reasons -
+> > Perhaps we might do it via sysfs naming instead.
+> > 
+> > illuminance[n] - defined to be visible (which is what term means anyway)
+> > 
+> > infrared[n] - hmm.. will be in different units to illuminance - perhaps we leave
+> > these raw with suitable documentation?
+> > 
+> > illuminance_and_infrared[n]
+> > 
+> what's the unit of this?
+> what does the value of this file mean?
+> I think we should make sure that there are more sensors need this and
+> the same "visible + infrared" reading on different sensors stands for
+> the same ambient light environment.
 
-1) Before the above mentioned patch, when intel_iommu is enabled, during S3/resume we would encounter a kernel crash due to lack of iommu suspend/resume support.
-2) After iommu suspend/resume support was added, resume failed on HP 6930p due to enable translation unit code added by the above patch to the iommu resume code path.
+Are you sure that makes sense? And is that even possible? I'd be
+afraid that the sensors are not nearly accurate enough to give precise
+values, and each sensor is going to take different parts of spectrum,
+etc.
 
-Thanks,
-Kamala
+Yes, we should aim at having similar interface with similar values on
+all the sensors, but lets not overdo it.
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Kamala Narasimhan
-> Sent: Wednesday, September 09, 2009 9:53 PM
-> To: 'linux-acpi@vger.kernel.org'
-> Subject: Resume from sleep fails on HP 6930p with the latest Linux
-> kernel when iommu is enabled
-> 
-> I encounter an issue with resume from S3 failing on HP 6930p with the
-> latest Linux kernel when iommu is enabled.  Is this a known issue?
-> Does anyone have any advice on how to fix/further investigate this
-> problem?
-> 
-> Points to note:
-> 
-> 1)	This issue is reproducible only with the latest Linux kernel and
-> a regression from older ones.
-> 2)	iommu should be enabled through kernel build config or
-> intel_iommu=on kernel command line.
-> 3)	Happens only on HP 6930p.
-> 4)	Appears to be related to enable translation unit code in the
-> iommu resume code path.
-> 
-> How to reproduce the problem?
-> 
-> 1)	Fetch latest Linux kernel.
-> 2)	Build with CONFIG_DMAR_DEFAULT_ON or enable iommu through kernel
-> command line intel_iommu=on.
-> 3)	Enter S3 after booting with the newly built kernel on HP 6930p.
-> 4)	Attempt to resume from S3 and that should fail.
-> 
-> Let me know if you need further information to help with this issue.
-> 
-> Thanks,
-> Kamala
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But maybe there are some other sensors that don't have this asynchronous
+> notification so that the cached values don't have a chance to get
+> updated.
+> then we need to read the sensor every time the sysfs I/F is poked.
+
+I bet most sensors are like that. And no, we don't have to reread from
+hw every time, we can just read and cache it once per second or
+something.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
