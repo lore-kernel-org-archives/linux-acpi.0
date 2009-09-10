@@ -1,162 +1,166 @@
-From: Daniel J Blueman <daniel.blueman@gmail.com>
-Subject: Re: [2.6.29-rc5 ACPI] truncated dsobject list...
-Date: Thu, 10 Sep 2009 11:17:01 +0100
-Message-ID: <6278d2220909100317y1266021bla5e9f24e13a64f1b@mail.gmail.com>
-References: <6278d2220902170831n3801a935x578b5dff64d00c62@mail.gmail.com>
-	 <4911F71203A09E4D9981D27F9D830858149BBB4F@orsmsx503.amr.corp.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 6/9] PM: Add a switch for disabling/enabling asynchronous suspend/resume
+Date: Thu, 10 Sep 2009 12:26:53 +0200
+Message-ID: <20090910102653.GA30778@atrey.karlin.mff.cuni.cz>
+References: <200909100127.11252.rjw@sisk.pl> <200909100138.25839.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:61251 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755336AbZIJKQ7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 06:16:59 -0400
-In-Reply-To: <4911F71203A09E4D9981D27F9D830858149BBB4F@orsmsx503.amr.corp.intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56218 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235AbZIJK0u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 06:26:50 -0400
+Content-Disposition: inline
+In-Reply-To: <200909100138.25839.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@infradead.org>, Ingo Molnar <mingo@elte.hu>
 
-On Tue, Feb 17, 2009 at 7:48 PM, Moore, Robert <robert.moore@intel.com>=
- wrote:
->>ACPI Warning (dsobject-0502): Package List length (6) larger than
->>NumElements count (4), truncated
->
-> This simply means that in one of the ACPI tables, a Package object wa=
-s found that was declared to have 6 items. However, when parsing the pa=
-ckage, the interpreter only found 4 items.
->
-> It's a BIOS issue, but probably not serious unless there really is su=
-pposed to be 6 items.
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Add sysfs attribute kernel/power/pm_async allowing the user space to
+> disable and enable async suspend/resume of devices.
 
-I see this with stock 2.6.31 [1] on Intel S5400SF hardware. I'll send
-you the acpidump offline.
+for bisect reasons, should this go before 5?
 
-Thanks,
-  Daniel
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/base/power/main.c  |   13 +++++++------
+>  drivers/base/power/power.h |    6 +++---
+>  kernel/power/main.c        |   31 ++++++++++++++++++++++++++++++-
+>  3 files changed, 40 insertions(+), 10 deletions(-)
+> 
+> Index: linux-2.6/kernel/power/main.c
+> ===================================================================
+> --- linux-2.6.orig/kernel/power/main.c
+> +++ linux-2.6/kernel/power/main.c
+> @@ -44,6 +44,32 @@ int pm_notifier_call_chain(unsigned long
+>  			== NOTIFY_BAD) ? -EINVAL : 0;
+>  }
+>  
+> +/* If set, devices may be suspended and resumed asynchronously. */
+> +int pm_async_enabled = 1;
+> +
+> +static ssize_t pm_async_show(struct kobject *kobj, struct kobj_attribute *attr,
+> +			     char *buf)
+> +{
+> +	return sprintf(buf, "%d\n", pm_async_enabled);
+> +}
+> +
+> +static ssize_t pm_async_store(struct kobject *kobj, struct kobj_attribute *attr,
+> +			      const char *buf, size_t n)
+> +{
+> +	unsigned long val;
+> +
+> +	if (strict_strtoul(buf, 10, &val))
+> +		return -EINVAL;
+> +
+> +	if (val > 1)
+> +		return -EINVAL;
+> +
+> +	pm_async_enabled = val;
+> +	return n;
+> +}
+> +
+> +power_attr(pm_async);
+> +
+>  #ifdef CONFIG_PM_DEBUG
+>  int pm_test_level = TEST_NONE;
+>  
+> @@ -208,9 +234,12 @@ static struct attribute * g[] = {
+>  #ifdef CONFIG_PM_TRACE
+>  	&pm_trace_attr.attr,
+>  #endif
+> -#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_DEBUG)
+> +#ifdef CONFIG_PM_SLEEP
+> +	&pm_async_attr.attr,
+> +#ifdef CONFIG_PM_DEBUG
+>  	&pm_test_attr.attr,
+>  #endif
+> +#endif
+>  	NULL,
+>  };
+>  
+> Index: linux-2.6/drivers/base/power/main.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/base/power/main.c
+> +++ linux-2.6/drivers/base/power/main.c
+> @@ -235,7 +235,7 @@ static int device_pm_wait_fn(struct devi
+>   */
+>  static void device_pm_wait_for_masters(struct device *slave)
+>  {
+> -	if (!pm_trace_enabled)
+> +	if (pm_async_enabled && !pm_trace_enabled)
+>  		device_for_each_master(slave, slave, device_pm_wait_fn);
+>  }
+>  
+> @@ -245,7 +245,8 @@ static void device_pm_wait_for_masters(s
+>   */
+>  static void device_pm_wait_for_slaves(struct device *master)
+>  {
+> -	device_for_each_slave(master, master, device_pm_wait_fn);
+> +	if (pm_async_enabled)
+> +		device_for_each_slave(master, master, device_pm_wait_fn);
+>  }
+>  
+>  /**
+> @@ -560,7 +561,7 @@ static int device_resume_noirq(struct de
+>  	if (pm_op_started(dev))
+>  		return 0;
+>  
+> -	if (dev->power.async_suspend && !pm_trace_enabled) {
+> +	if (pm_async_enabled && !pm_trace_enabled && dev->power.async_suspend) {
+>  		async_schedule(async_resume_noirq, dev);
+>  		return 0;
+>  	}
+> @@ -719,7 +720,7 @@ static int device_resume(struct device *
+>  	if (pm_op_started(dev))
+>  		return 0;
+>  
+> -	if (dev->power.async_suspend && !pm_trace_enabled) {
+> +	if (pm_async_enabled && !pm_trace_enabled && dev->power.async_suspend) {
+>  		get_device(dev);
+>  		async_schedule(async_resume, dev);
+>  		return 0;
+> @@ -965,7 +966,7 @@ static int device_suspend_noirq(struct d
+>  	if (pm_op_started(dev))
+>  		return 0;
+>  
+> -	if (dev->power.async_suspend) {
+> +	if (pm_async_enabled && dev->power.async_suspend) {
+>  		async_schedule(async_suspend_noirq, dev);
+>  		return 0;
+>  	}
+> @@ -1139,7 +1140,7 @@ static int device_suspend(struct device 
+>  	if (pm_op_started(dev))
+>  		return 0;
+>  
+> -	if (dev->power.async_suspend) {
+> +	if (pm_async_enabled && dev->power.async_suspend) {
+>  		get_device(dev);
+>  		async_schedule(async_suspend, dev);
+>  		return 0;
+> Index: linux-2.6/drivers/base/power/power.h
+> ===================================================================
+> --- linux-2.6.orig/drivers/base/power/power.h
+> +++ linux-2.6/drivers/base/power/power.h
+> @@ -16,10 +16,10 @@ static inline void pm_runtime_remove(str
+>  
+>  #ifdef CONFIG_PM_SLEEP
+>  
+> -/*
+> - * main.c
+> - */
+> +/* kernel/power/main.c */
+> +extern int pm_async_enabled;
+>  
+> +/* drivers/base/power/main.c */
+>  extern struct list_head dpm_list;	/* The active device list */
+>  
+>  static inline struct device *to_device(struct list_head *entry)
 
---- [1]
-
-$ dmesg
-ACPI: RSDP 00000000000f03f0 00024 (v02 INTEL )
-
-ACPI: XSDT 000000007fb39120 0008C (v01 INTEL  S5400SF  00000000 INTL 01=
-000013)
-
-ACPI: DMAR 000000007fb37000 00112 (v01 INTEL  S5400SF  00000001 INTL 01=
-000013)
-
-ACPI: FACP 000000007fb35000 000F4 (v03 INTEL  S5400SF  00000000 INTL 01=
-000013)
-
-ACPI: DSDT 000000007fb2e000 05664 (v02 INTEL  S5400SF  00000008 INTL 01=
-000013)
-
-ACPI: FACS 000000007fabf000 00040
-
-ACPI: APIC 000000007fb34000 000C8 (v01 INTEL  S5400SF  00000000 INTL 01=
-000013)
-
-ACPI: SPCR 000000007fb2d000 00050 (v01 INTEL  S5400SF  00000000 INTL 01=
-000013)
-
-ACPI: HPET 000000007fb2c000 00038 (v01 INTEL  S5400SF  00000001 INTL 01=
-000013)
-
-ACPI: MCFG 000000007fb2b000 0003C (v01 INTEL  S5400SF  00000001 INTL 01=
-000013)
-
-ACPI: SSDT 000000007fb2a000 00A14 (v02 INTEL  EIST     00004000 INTL 01=
-000013)
-
-ACPI: SSDT 000000007fb29000 00193 (v02 INTEL  IPMI     00004000 INTL 01=
-000013)
-
-ACPI: SSDT 000000007fb28000 002D4 (v02 INTEL  CST      00004000 INTL 01=
-000013)
-
-ACPI: HEST 000000007fb27000 000A8 (v01 INTEL  S5400SF  00000001 INTL 00=
-000001)
-
-ACPI: BERT 000000007fb26000 00030 (v01 INTEL  S5400SF  00000001 INTL 00=
-000001)
-
-ACPI: ERST 000000007fb25000 00230 (v01 INTEL  S5400SF  00000001 INTL 00=
-000001)
-
-ACPI: EINJ 000000007fb24000 00130 (v01 INTEL  S5400SF  00000001 INTL 00=
-000001)
-
-<snip>
-ACPI: EC: Look up EC in DSDT
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-ACPI Warning: Package List length (6) larger than NumElements count
-(2), truncated
-
- 20090521 dsobject-502
-
-
->>-----Original Message-----
->>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->>owner@vger.kernel.org] On Behalf Of Daniel J Blueman
->>Sent: Tuesday, February 17, 2009 8:32 AM
->>To: linux-acpi@vger.kernel.org; Linux Kernel
->>Subject: [2.6.29-rc5 ACPI] truncated dsobject list...
->>
->>With 2.6.29-rc5 on an Intel S5000PAL server (BIOS
->>S5000.86B.10.60.0091.100920081631), we see ACPI object list truncatio=
-n
->>[1]. Does it make sense to increase the default element allocation?
->>
->>Many thanks,
->> =A0Daniel
->>
->>--- [1]
->>
->>ACPI: EC: Look up EC in DSDT
->>ACPI Warning (dsobject-0502): Package List length (6) larger than
->>NumElements count (4), truncated
->>[20081204]
---=20
-Daniel J Blueman
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
