@@ -1,43 +1,35 @@
-From: "Yu, Fenghua" <fenghua.yu@intel.com>
-Subject: RE: Resume from sleep fails on HP 6930p with the latest Linux
- kernel when iommu is enabled
-Date: Thu, 10 Sep 2009 10:19:04 -0700
-Message-ID: <A6AD88C3F2289247BE726C37303E1EB8B98BB801@orsmsx505.amr.corp.intel.com>
-References: <5997D0BE578D47409D1EBD41DFD341F4777E182DCD@FTLPMAILBOX01.citrite.net>
- <5997D0BE578D47409D1EBD41DFD341F4777E182DD1@FTLPMAILBOX01.citrite.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/9] PM: Asynchronous suspend of devices
+Date: Thu, 10 Sep 2009 20:37:50 +0200
+Message-ID: <20090910183750.GA23356@elf.ucw.cz>
+References: <200909100127.11252.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47187 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850AbZIJRTD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 13:19:03 -0400
-In-Reply-To: <5997D0BE578D47409D1EBD41DFD341F4777E182DD1@FTLPMAILBOX01.citrite.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753017AbZIJShy@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200909100127.11252.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@infradead.org>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-acpi@vger.kernel.org
-To: 'Kamala Narasimhan' <Kamala.Narasimhan@citrix.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>
 
->[Adding Fenghua Yu to the thread as he submitted the iommu suspend/resume
->patch (https://lists.linux-foundation.org/pipermail/iommu/2009-
->March/001247.html) which pertains to this issue]
->
->Thought I would clarify that resume from S3 would have never worked with
->intel_iommu enabled on HP 6930p as opposed to this being a regression for
->the following reasons -
->
->1) Before the above mentioned patch, when intel_iommu is enabled, during
->S3/resume we would encounter a kernel crash due to lack of iommu
->suspend/resume support.
->2) After iommu suspend/resume support was added, resume failed on HP 6930p
->due to enable translation unit code added by the above patch to the iommu
->resume code path.
+Hi!
+> 
+> The following series of patches implements asynchronous suspend and resume of
+> devices.
+> 
+> All of the patches have already been discussed, please refer to the changelogs
+> for details.
+> 
+> The patches are targeted at 2.6.33, so if there are no major objections, I'll
+> put them into the linux-next branch of the suspend-2.6 tree after .31-rc1 is
+> out.
 
-Yes, you are right. This is not a regression. Now we are talking about suspend/resume issue on HP 6930P. The suspend/resume patch should have been tested on many platforms either by me or by others for quite a while. So I would guess this is an issue specific to HP 6930p, e.g. BIOS issue.
+Patches 1-6 look mostly ok to me, I guess you can add my Acked-by. The
+rest is fine, too, but I'm not sure if we really need so much of
+debugging infrastructure...
+									Pavel
 
-Could you please send out log buffer message (from serial port or kdb) after the failure?
-
-Thanks.
-
--Fenghua
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
