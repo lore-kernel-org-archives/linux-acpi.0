@@ -1,93 +1,45 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [2.6.31-rc9] hotplug SATA vs lockdep: false positive?
-Date: Thu, 10 Sep 2009 17:43:22 +0200
-Message-ID: <1252597402.7205.75.camel@laptop>
-References: <6278d2220909091420g688bd11fybc33be4e472757b1@mail.gmail.com>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: [PATCH 5/6] thermal: Only set passive_delay for forced passive cooling
+Date: Thu, 10 Sep 2009 18:07:12 +0200
+Message-ID: <200909101807.13874.elendil@planet.nl>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl> <1251303445-25317-6-git-send-email-elendil@planet.nl> <20090826162537.GC15868@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:52942 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbZIJPnV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 11:43:21 -0400
-In-Reply-To: <6278d2220909091420g688bd11fybc33be4e472757b1@mail.gmail.com>
+Received: from cpsmtpm-eml105.kpnxchange.com ([195.121.3.9]:61394 "EHLO
+	CPSMTPM-EML105.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750827AbZIJQHM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Sep 2009 12:07:12 -0400
+In-Reply-To: <20090826162537.GC15868@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel J Blueman <daniel.blueman@gmail.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 
-On Wed, 2009-09-09 at 22:20 +0100, Daniel J Blueman wrote:
+Hi Matthew,
 
-> When hot-plugging my SATA DVD drive into my laptop, I see a lockdep
-> warning [1]. On closer inspection, both flush_workqueue() and
-> worker_thread() do tricks with lockdep maps. False positive?
+On Wednesday 26 August 2009, Matthew Garrett wrote:
+> On Wed, Aug 26, 2009 at 06:17:24PM +0200, Frans Pop wrote:
+> > Setting polling_delay is useless as passive_delay has priority,
+> > so the value shown in proc isn't the actual polling delay. It
+> > also gives the impression to the user that he can change the
+> > polling interval through proc, while in fact he can't.
+> >
+> > Also, unset passive_delay when the forced passive trip point is
+> > unbound to allow polling to be disabled.
+> >
+> > Signed-off-by: Frans Pop <elendil@planet.nl>
+> > Cc: Matthew Garrett <mjg@redhat.com>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+>
+> I'll look over this - I seem to remember having some reason to set
+> that, but it escapes me now.
 
-No, looks like a typical case of a workqueue trying to flush itself,
-something that can easily deadlock for real.
+Have you had a chance to check this?
 
-> =======================================================
-> [ INFO: possible circular locking dependency detected ]
-> 2.6.31-rc9-290cd #1
-> -------------------------------------------------------
-> kacpi_hotplug/198 is trying to acquire lock:
->  (kacpid){+.+.+.}, at: [<ffffffff81073a70>] flush_workqueue+0x0/0xf0
-> (workqueue.c:292)
-> 
-> but task is already holding lock:
->  (&dpc->work){+.+.+.}, at: [<ffffffff81072a42>]
-> worker_thread+0x1f2/0x3c0 (bitops.h:101)
-> which lock already depends on the new lock.
-> 
-> the existing dependency chain (in reverse order) is:
-> 
-> -> #1 (&dpc->work){+.+.+.}:
->        [<ffffffff8108eb19>] __lock_acquire+0xe29/0x1240
->        [<ffffffff8108f04e>] lock_acquire+0x11e/0x170
->        [<ffffffff81072a92>] worker_thread+0x242/0x3c0 (workqueue.c:291)
->        [<ffffffff81077456>] kthread+0xa6/0xc0
->        [<ffffffff8100d29a>] child_rip+0xa/0x20
->        [<ffffffffffffffff>] 0xffffffffffffffff
-> 
-> -> #0 (kacpid){+.+.+.}:
->        [<ffffffff8108ebe1>] __lock_acquire+0xef1/0x1240
->        [<ffffffff8108f04e>] lock_acquire+0x11e/0x170
->        [<ffffffff81073acc>] flush_workqueue+0x5c/0xf0 (workqueue.c:403)
->        [<ffffffff812f6eaf>] acpi_os_wait_events_complete+0x10/0x1e
->        [<ffffffff812f6ee7>] acpi_os_execute_hp_deferred+0x2a/0x3e
->        [<ffffffff81072a98>] worker_thread+0x248/0x3c0 (workqueue.c:292)
->        [<ffffffff81077456>] kthread+0xa6/0xc0
->        [<ffffffff8100d29a>] child_rip+0xa/0x20
->        [<ffffffffffffffff>] 0xffffffffffffffff
-> 
-> other info that might help us debug this:
-> 
-> 2 locks held by kacpi_hotplug/198:
->  #0:  (kacpi_hotplug){+.+...}, at: [<ffffffff81072a42>]
-> worker_thread+0x1f2/0x3c0
->  #1:  (&dpc->work){+.+.+.}, at: [<ffffffff81072a42>] worker_thread+0x1f2/0x3c0
-> 
-> stack backtrace:
-> Pid: 198, comm: kacpi_hotplug Tainted: G         C 2.6.31-rc9-290cd #1
-> 
-> Call Trace:
->  [<ffffffff8108c8a7>] print_circular_bug_tail+0xa7/0x100
->  [<ffffffff8108ebe1>] __lock_acquire+0xef1/0x1240
->  [<ffffffff8108a808>] ? add_lock_to_list+0x58/0xf0
->  [<ffffffff8108f04e>] lock_acquire+0x11e/0x170
->  [<ffffffff81073a70>] ? flush_workqueue+0x0/0xf0 (workqueue.c:397)
->  [<ffffffff812f6ebd>] ? acpi_os_execute_hp_deferred+0x0/0x3e
->  [<ffffffff81073acc>] flush_workqueue+0x5c/0xf0 (workqueue.c:403)
->  [<ffffffff81073a70>] ? flush_workqueue+0x0/0xf0 (workqueue.c:397)
->  [<ffffffff812f6eaf>] acpi_os_wait_events_complete+0x10/0x1e drivers/acpi/osl.c
->  [<ffffffff812f6ee7>] acpi_os_execute_hp_deferred+0x2a/0x3e
->  [<ffffffff81072a98>] worker_thread+0x248/0x3c0 (workqueue.c:292)
->  [<ffffffff81072a42>] ? worker_thread+0x1f2/0x3c0
->  [<ffffffff81077900>] ? autoremove_wake_function+0x0/0x40
->  [<ffffffff81072850>] ? worker_thread+0x0/0x3c0
->  [<ffffffff81077456>] kthread+0xa6/0xc0
->  [<ffffffff8100d29a>] child_rip+0xa/0x20
->  [<ffffffff8100cbd4>] ? restore_args+0x0/0x30
->  [<ffffffff810773b0>] ? kthread+0x0/0xc0
->  [<ffffffff8100d290>] ? child_rip+0x0/0x20
-
+Cheers,
+FJP
