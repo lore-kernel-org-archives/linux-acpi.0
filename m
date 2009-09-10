@@ -1,44 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Bug #13733] 2.6.31-rc2: irq 16: nobody cared
-Date: Thu, 10 Sep 2009 23:02:51 +0200
-Message-ID: <200909102302.51808.rjw@sisk.pl>
-References: <dhwns-J2-13@gated-at.bofh.it> <dhwxb-O6-7@gated-at.bofh.it> <4AA6B5D4.4040802@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [RFC] acpi: remove redundant NULL checks in acpi drivers
+Date: Thu, 10 Sep 2009 16:36:55 -0600
+Message-ID: <200909101636.56398.bjorn.helgaas@hp.com>
+References: <4AA92CAD.8020208@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40594 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751728AbZIJVCN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Sep 2009 17:02:13 -0400
-In-Reply-To: <4AA6B5D4.4040802@gmail.com>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:22362 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304AbZIJWhP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 18:37:15 -0400
+In-Reply-To: <4AA92CAD.8020208@tuffmail.co.uk>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Niel Lambrechts <niel.lambrechts@gmail.com>
-Cc: "linux.kernel" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Tuesday 08 September 2009, Niel Lambrechts wrote:
-> On 09/06/2009 10:30 PM, Rafael J. Wysocki wrote:
-> > The following bug entry is on the current list of known regressions
-> > from 2.6.30.  Please verify if it still should be listed and let me know
-> > (either way).
-> >
-> >
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=13733
-> > Subject		: 2.6.31-rc2: irq 16: nobody cared
-> > Submitter	: Niel Lambrechts<niel.lambrechts@gmail.com>
-> > Date		: 2009-07-06 18:32 (63 days old)
-> > References	: http://marc.info/?l=linux-kernel&m=124690524027166&w=4
+On Thursday 10 September 2009 10:43:25 am Alan Jenkins wrote:
+> I noticed a pattern of unnecessary checks, and wrote some semantic
+> patches to remove them (using the spatch tool).  Here are the
+> results, modulo some manual adjustment of blank lines to try and
+> preserve the coding style in different files.
 > 
-> Hi Rafael,
-> 
-> This is still present in 2.6.31-rc9-pae.
-> 
-> To test, I removed ehci_hcd, hibernated/resumed and the problem did not appear.
-> But when I first plugged in a USB mouse after the system was up and before
-> ehci_hcd was loaded the error occurred again.
+> Would you be interested in accepting this?  Can I submit it like
+> this, or should I break it up somehow?
 
-Thanks for the update (extending the CC list).
+I'm generally in favor of removing these checks.  In most cases,
+you can go even farther, for example:
 
-Rafael
+> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+> index 98b9690..57fbf70 100644
+> --- a/drivers/acpi/ac.c
+> +++ b/drivers/acpi/ac.c
+> @@ -259,9 +259,6 @@ static int acpi_ac_add(struct acpi_device *device)
+>  	struct acpi_ac *ac = NULL;
+
+The initialization of "ac" is useless since the first thing we
+do below is assign to it.
+
+> -	if (!device)
+> -		return -EINVAL;
+> -
+>  	ac = kzalloc(sizeof(struct acpi_ac), GFP_KERNEL);
+>  	if (!ac)
+>  		return -ENOMEM;
+> @@ -306,11 +303,10 @@ static int acpi_ac_add(struct acpi_device *device)
+>  
+>  static int acpi_ac_resume(struct acpi_device *device)
+>  {
+> -	struct acpi_ac *ac;
+> +	struct acpi_ac *ac = acpi_driver_data(device);
+>  	unsigned old_state;
+> -	if (!device || !acpi_driver_data(device))
+> +	if (!ac)
+>  		return -EINVAL;
+
+I would also remove the test of "!ac".  acpi_ac_resume() can only
+be called after acpi_ac_add() completes successfully, and acpi_ac_add()
+always sets "device->driver_data = ac".
+
+So testing "!ac" here will only find memory corruption or a bug in
+the Linux/ACPI core.  In either case, I think it's better to oops
+than to return -EINVAL, which will probably get ignored.
+
+Bjorn
+
