@@ -1,44 +1,84 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: RFC: Light sensors, unifying current options?
-Date: Fri, 11 Sep 2009 09:20:49 +0200
-Message-ID: <20090911092049.70887ad0@hyperion.delvare>
-References: <4A9FC9D7.20000@cam.ac.uk>
-	<1252308744.3483.414.camel@rzhang-dt>
-	<4AA4F194.1070507@cam.ac.uk>
-	<1252467684.3483.446.camel@rzhang-dt>
-	<4AA79144.8060104@cam.ac.uk>
-	<1252546449.3483.476.camel@rzhang-dt>
-	<4AA8CF57.4010409@cam.ac.uk>
-	<1252634101.3483.514.camel@rzhang-dt>
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Subject: Re: INFO: possible circular locking dependency - kacpid
+	acpi_os_wait_events_complete
+Date: Fri, 11 Sep 2009 09:48:46 +0200
+Message-ID: <c4e36d110909110048i45e55d43vf4a4d94320be703f@mail.gmail.com>
+References: <c4e36d110908250110xe16720o977c8cf5c3386c4b@mail.gmail.com>
+	 <200908251251.37135.bjorn.helgaas@hp.com>
+	 <c4e36d110908251333p2da20276j650232cea8da4c1f@mail.gmail.com>
+	 <200908251459.37106.bjorn.helgaas@hp.com>
+	 <c4e36d110908260712u3aa0e27ft869049aa310a7386@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:50508 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752698AbZIKHUt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Sep 2009 03:20:49 -0400
-In-Reply-To: <1252634101.3483.514.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754079AbZIKHsq@vger.kernel.org>
+In-Reply-To: <c4e36d110908260712u3aa0e27ft869049aa310a7386@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, Paul Martin <pm@debian.org>, Vojtech Gondzala <vojtech.gondzala@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, LKML <linux-kernel@vger.kernel.org>, "alan@linux.intel.com" <alan@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "pavel@ucw.cz" <pavel@ucw.cz>, "Cory T. Tusar" <ctusar@videon-central.com>, "Trisal, Kalhan" <kalhan.trisal@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, 11 Sep 2009 09:55:01 +0800, Zhang Rui wrote:
-> On Thu, 2009-09-10 at 18:05 +0800, Jonathan Cameron wrote:
-> > Some sensors, e.g. tsl2561 use an internal clock to do sampling and hence
-> > have some predefined period in which the reading taken doesn't change.
-> > Perhaps exporting said period would be useful to userspace?
-> > 
-> I don't think so.
-> IMO, the tsl2561 driver should handle this, and there is no need to
-> annoy the user space.
-> i.e. users always assume the content of "illuminance" attribute is
-> valid, and it's the driver's job to make this true. We don't need to
-> document this.
+2009/8/26 Zdenek Kabelac <zdenek.kabelac@gmail.com>:
+> 2009/8/25 Bjorn Helgaas <bjorn.helgaas@hp.com>:
+>> On Tuesday 25 August 2009 02:33:30 pm you wrote:
+>>> 2009/8/25 Bjorn Helgaas <bjorn.helgaas@hp.com>:
+>>> > On Tuesday 25 August 2009 02:10:58 am Zdenek Kabelac wrote:
+>>> >> Now with 2.6.31-rc7 (3edf2fb9d80a46d6c32ba12547a42419845b4b76)
+>>> >> =A0I'm getting this =A0INFO trace - also I've noticed complete r=
+eset during resume
+>>> >> which could be eventually related to this
+>>> > Do you have any evidence that points to thinkpad_acpi? =A0I looke=
+d
+>>> > at the recent changes there, and I don't see anything obviously
+>>> > related to kacpid or deferred work.
+>>> >
+>>>
+>>> Well I've never seen this INFO trace before - also I'm not sure I
+>>> could reliable retest it - might be coincidence of suspend out of p=
+ort
+>>> replicator and resume while being attached on it - however I do thi=
+s
+>>> relatively often and I start to see this after I' started to use -r=
+c7
+>>> kernel.
+>>>
+>>> My guess is purely based on the fact that commit touching functions
+>>> from INFO trace was recently merged to main tree.
+>>>
+>>> If there will be some time I could try to make few tests for suspen=
+d
+>>> resume - but I hope the trace would be enough for analysis.
+>>
+>
+> Well definitelly I do not have a reliable test case to
+> deterministically trigger this INFO trace, but I think from the trace
+> it looks like =A0the acpi_os_wait_events_complete calls flush_workque=
+ue
+> which again calls acpi_os_execute_hp_deferred which again tries to
+> invoke flush_workqueue - so is that correct ?
+>
+> (__acpi_os_execute looks somewhat cryptic in selection what would be =
+called)
+>
+> This is the stack traceback cut from my first post:
+>
+> =A0[<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
+> =A0[<ffffffff81261532>] ? acpi_os_execute_hp_deferred+0x0/0x43
+> =A0[<ffffffff81064e4f>] flush_workqueue+0x5f/0xc0
+> =A0[<ffffffff81064df0>] ? flush_workqueue+0x0/0xc0
+> =A0[<ffffffff81261524>] acpi_os_wait_events_complete+0x15/0x23
+> =A0[<ffffffff81261561>] acpi_os_execute_hp_deferred+0x2f/0x43
+> =A0[<ffffffff810651d4>] worker_thread+0x1e4/0x3f0
+>
+> So it looks like this issue is releated to commit:
+> c02256be79a1a3557332ac51e653d574a2a7d2b5
+>
+> Hopefully the author would be able to fix this ?
+>
 
-I agree with Rui on this. Let's not delegate everything to user-space,
-otherwise it's pointless to write kernel drivers in the first place.
+Hi
 
--- 
-Jean Delvare
+Any progress with this issue - I'm still getting this INFO trace even
+with 2.6.31
+
+Zdenek
