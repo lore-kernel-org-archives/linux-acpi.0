@@ -1,262 +1,44 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: [RESEND] [PATCH 1/3] ACPI: battery: Fix
- CONFIG_ACPI_SYSFS_POWER=n
-Date: Fri, 11 Sep 2009 05:34:42 +0300
-Message-ID: <1252636482.12609.5.camel@maxim-laptop>
-References: <4A4A219C.2020802@tuffmail.co.uk>
-	 <1252339562.28499.13.camel@maxim-laptop> <4AA7E438.4070905@tuffmail.co.uk>
-	 <1252531271.4174.5.camel@maxim-laptop>
-	 <9b2b86520909100411o6dc850a5mc80792285411aff3@mail.gmail.com>
+From: Frans Pop <elendil@planet.nl>
+Subject: [PATCH 0/6] thermal: improvements re. forced passive cooling
+Date: Fri, 11 Sep 2009 08:08:55 +0200
+Message-ID: <200909110808.57494.elendil@planet.nl>
+References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:33434 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585AbZIKCeq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 22:34:46 -0400
-Received: by fxm17 with SMTP id 17so532326fxm.37
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2009 19:34:48 -0700 (PDT)
-In-Reply-To: <9b2b86520909100411o6dc850a5mc80792285411aff3@mail.gmail.com>
+Received: from Cpsmtpm-eml108.kpnxchange.com ([195.121.3.12]:64199 "EHLO
+	CPSMTPM-EML108.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751920AbZIKGIz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Sep 2009 02:08:55 -0400
+In-Reply-To: <1251303445-25317-1-git-send-email-elendil@planet.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Zhang Rui <rui.zhang@intel.com>
 
-On Thu, 2009-09-10 at 12:11 +0100, Alan Jenkins wrote: 
-> On 9/9/09, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> > On Wed, 2009-09-09 at 18:22 +0100, Alan Jenkins wrote:
-> >> Maxim Levitsky wrote:
-> >> > Hi,
-> >> >
-> >> > So this is newer version of this patchset.
-> >> > When this will be merged?
-> >> >
-> >> >
-> >> > Last patch doesn't apply, seems that parts of yours patch were applied.
-> >> > I applied it manually.
-> >> >
-> >> > Will soon test.
-> >> >
-> >> >
-> >> > Best regards,
-> >> > 	Maxim Levitsky
-> >> >
-> >>
-> >> I will submit "To: len" next time round.
-> >>
-> >> You're right, it no longer applies cleanly to acpi-test.  ["patch" is
-> >> happy to apply it and warn about "fuzz", but git-am is more strict.  It
-> >> doesn't look like there's a real conflict.]
-> > I applied it on top of both vanilla and linux-next. Here it really
-> > doesn't apply (with or without 'fuzz')
-> >
-> >>
-> >> I look forward to your results.  Please tell me the diff you end up with
-> >> for the last patch and what tree you applied it on top of.  That way, if
-> >> I add "Tested-by: Maxim..." I can be certain we're talking about the
-> >> same patch :-).
-> >>
-> >> Thanks!
-> >> Alan
-> >
-> > I did that few days ago (applied patch manually, without much thinking)
-> >
-> > Unfortunately, resulting kernel oopses if battery is present, and
-> > otherwise, if I plug batter later on, many battery statistics are
-> > missing (probably some locks are held)
-> >
-> > I will soon investigate this issue, more deeply.
-> >
-> > Best regards,
-> > Maxim Levitsky
-> 
-> I've applied the patches from the mailing list, initially on -rc8
-> using git-am, then rebased them onto acpi-test without conflicts.  I
-> don't have GIT hosting, so here's a git bundle.  If you're still
-> having problems, you should be able to get an _exact_ copy of my tree
-> with
-> 
-> $ git fetch alan.bundle battery-check:battery-check
-> $ git checkout battery-check
-> 
-> so long as you have the acpi-test commit I based it on.
-> 
-> Thanks
-> Alan
+Hello Len,
 
-Indeed, it works.
+Please consider this patch set [1] for 2.6.32.
 
+All patches have now been acked by either Rui or Matthew, with the 
+exception of:
 
-Just one issue though, if I plug in the battery after system boot, it is
-detected a an 'energy battery' (energy_battery_props are used)
+1/6 thermal: sysfs-api.txt - reformat for improved readability
+This is a trivial documentation patch.
 
-ACPI seems to be ok:
+4/6 thermal: add sanity check for the passive attribute
+There was some discussion on this, but I feel that my version 2 of the 
+patch is a reasonable compromise, in that it prevents obviously useless 
+values (below 1C), but does not set an arbitrary lower limit. If you feel 
+it needs more discussion, it could be dropped from the series for now.
 
-                Device (BAT0)
-                {
-                    Name (_HID, EisaId ("PNP0C0A"))
-                    Name (_UID, 0x01)
-                    Name (_PCL, Package (0x01)
-                    {
-                        \_SB
-                    })
-                    Name (PBIF, Package (0x0D)
-                    {
-                        0x01, 
-                        0x0FA0, 
-                        0x0FA0, 
-                        0x01, 
-                        0x39D0, 
-                        0x0190, 
-                        0x78, 
-                        0x0108, 
-                        0x0EC4, 
-                        "Li_Ion 4000mA ", 
-                        "", 
-                        "Lion", 
-                        "Acer   "
-                    })
-                    Name (PBST, Package (0x04)
-                    {
-                        0x01, 
-                        0xFFFFFFFF, 
-                        0xFFFFFFFF, 
-                        0x39D0
-                    })
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (ECON)
-                        {
-                            If (\_SB.PCI0.LPC.EC0.BAL1)
-                            {
-                                Sleep (0x14)
-                                Return (0x1F)
-                            }
-                            Else
-                            {
-                                Sleep (0x14)
-                                Return (0x0F)
-                            }
-                        }
-                        Else
-                        {
-                            Sleep (0x14)
-                            Return (0x1F)
-                        }
-                    }
+If you'd like me to post the series again, then please let me know.
 
-                    Method (_BIF, 0, NotSerialized)
-                    {
-                        If (ECON)
-                        {
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BDC0, Index (PBIF, 0x01))
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BFC0, Index (PBIF, 0x02))
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BDV0, Index (PBIF, 0x04))
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BDC0, Local2)
-                            Divide (Local2, 0x64, Local6, Local2)
-                            Multiply (Local2, 0x05, Local3)
-                            Store (Local3, Index (PBIF, 0x05))
-                            Multiply (Local2, 0x03, Local4)
-                            Store (Local4, Index (PBIF, 0x06))
-                            Store (\_SB.PCI0.LPC.EC0.BTY0, Local1)
-                            Sleep (0x14)
-                            If (LEqual (Local1, 0x01))
-                            {
-                                Store ("GC86508SAT0 ", Index (PBIF, 0x09))
-                                Store ("SANYO ", Index (PBIF, 0x0C))
-                            }
-                            Else
-                            {
-                                If (LEqual (Local1, 0x02))
-                                {
-                                    Store ("GC86503SY90 ", Index (PBIF, 0x09))
-                                    Store ("SONY ", Index (PBIF, 0x0C))
-                                }
-                                Else
-                                {
-                                    If (LEqual (Local1, 0x04))
-                                    {
-                                        Store ("GC86503PAG0 ", Index (PBIF, 0x09))
-                                        Store ("PANASONIC ", Index (PBIF, 0x0C))
-                                    }
-                                    Else
-                                    {
-                                        If (LEqual (Local1, 0x05))
-                                        {
-                                            Store ("GC86508SM60 ", Index (PBIF, 0x09))
-                                            Store ("SAMSUNG ", Index (PBIF, 0x0C))
-                                        }
-                                        Else
-                                        {
-                                            Store ("BCL3100LiON ", Index (PBIF, 0x09))
-                                            Store ("COMPAL ", Index (PBIF, 0x0C))
-                                        }
-                                    }
-                                }
-                            }
-                        }
+Thanks,
+FJP
 
-                        Return (PBIF)
-                    }
-
-                    Method (_BST, 0, NotSerialized)
-                    {
-                        If (ECON)
-                        {
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BST0, Local0)
-                            And (Local0, 0x07, Local0)
-                            Store (Local0, Index (PBST, 0x00))
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.GAU0, Local2)
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BPV0, Local3)
-                            Sleep (0x14)
-                            Store (\_SB.PCI0.LPC.EC0.BFC0, Local1)
-                            Sleep (0x14)
-                            If (Local2)
-                            {
-                                Multiply (Local2, Local1, Local2)
-                                Divide (Local2, 0x64, Local6, Local2)
-                                If (Local6)
-                                {
-                                    Increment (Local2)
-                                }
-                            }
-
-                            Store (\_SB.PCI0.LPC.EC0.BAC0, Local1)
-                            If (And (Local1, 0x8000, Local1))
-                            {
-                                Store (\_SB.PCI0.LPC.EC0.BAC0, Local1)
-                                Subtract (0xFFFF, Local1, Local1)
-                            }
-                            Else
-                            {
-                                Store (0x00, Local1)
-                            }
-
-                            Sleep (0x14)
-                            Store (Local1, Index (PBST, 0x01))
-                            Store (Local2, Index (PBST, 0x02))
-                            Store (Local3, Index (PBST, 0x03))
-                        }
-
-                        Return (PBST)
-                    }
-                }
-
-
-
-
-
-PBIF at offset 0 is set correctly to 1.
-
-
-Best regards,
-	Maxim Levitsky
-
+[1] http://www.spinics.net/lists/linux-acpi/msg24104.html
