@@ -1,44 +1,44 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: [PATCH 0/6] thermal: improvements re. forced passive cooling
-Date: Fri, 11 Sep 2009 08:08:55 +0200
-Message-ID: <200909110808.57494.elendil@planet.nl>
-References: <1251303445-25317-1-git-send-email-elendil@planet.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: RFC: Light sensors, unifying current options?
+Date: Fri, 11 Sep 2009 09:20:49 +0200
+Message-ID: <20090911092049.70887ad0@hyperion.delvare>
+References: <4A9FC9D7.20000@cam.ac.uk>
+	<1252308744.3483.414.camel@rzhang-dt>
+	<4AA4F194.1070507@cam.ac.uk>
+	<1252467684.3483.446.camel@rzhang-dt>
+	<4AA79144.8060104@cam.ac.uk>
+	<1252546449.3483.476.camel@rzhang-dt>
+	<4AA8CF57.4010409@cam.ac.uk>
+	<1252634101.3483.514.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from Cpsmtpm-eml108.kpnxchange.com ([195.121.3.12]:64199 "EHLO
-	CPSMTPM-EML108.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751920AbZIKGIz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Sep 2009 02:08:55 -0400
-In-Reply-To: <1251303445-25317-1-git-send-email-elendil@planet.nl>
-Content-Disposition: inline
+Received: from poutre.nerim.net ([62.4.16.124]:50508 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752698AbZIKHUt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Sep 2009 03:20:49 -0400
+In-Reply-To: <1252634101.3483.514.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Zhang Rui <rui.zhang@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, LKML <linux-kernel@vger.kernel.org>, "alan@linux.intel.com" <alan@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "pavel@ucw.cz" <pavel@ucw.cz>, "Cory T. Tusar" <ctusar@videon-central.com>, "Trisal, Kalhan" <kalhan.trisal@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hello Len,
+On Fri, 11 Sep 2009 09:55:01 +0800, Zhang Rui wrote:
+> On Thu, 2009-09-10 at 18:05 +0800, Jonathan Cameron wrote:
+> > Some sensors, e.g. tsl2561 use an internal clock to do sampling and hence
+> > have some predefined period in which the reading taken doesn't change.
+> > Perhaps exporting said period would be useful to userspace?
+> > 
+> I don't think so.
+> IMO, the tsl2561 driver should handle this, and there is no need to
+> annoy the user space.
+> i.e. users always assume the content of "illuminance" attribute is
+> valid, and it's the driver's job to make this true. We don't need to
+> document this.
 
-Please consider this patch set [1] for 2.6.32.
+I agree with Rui on this. Let's not delegate everything to user-space,
+otherwise it's pointless to write kernel drivers in the first place.
 
-All patches have now been acked by either Rui or Matthew, with the 
-exception of:
-
-1/6 thermal: sysfs-api.txt - reformat for improved readability
-This is a trivial documentation patch.
-
-4/6 thermal: add sanity check for the passive attribute
-There was some discussion on this, but I feel that my version 2 of the 
-patch is a reasonable compromise, in that it prevents obviously useless 
-values (below 1C), but does not set an arbitrary lower limit. If you feel 
-it needs more discussion, it could be dropped from the series for now.
-
-If you'd like me to post the series again, then please let me know.
-
-Thanks,
-FJP
-
-[1] http://www.spinics.net/lists/linux-acpi/msg24104.html
+-- 
+Jean Delvare
