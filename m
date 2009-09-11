@@ -1,133 +1,262 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [2.6.31-rc9] hotplug SATA vs lockdep: false positive?
-Date: Fri, 11 Sep 2009 09:59:23 +0800
-Message-ID: <d82e647a0909101859t48f4a494l75040b47a7474760@mail.gmail.com>
-References: <6278d2220909091420g688bd11fybc33be4e472757b1@mail.gmail.com>
-	 <1252597402.7205.75.camel@laptop>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [RESEND] [PATCH 1/3] ACPI: battery: Fix
+ CONFIG_ACPI_SYSFS_POWER=n
+Date: Fri, 11 Sep 2009 05:34:42 +0300
+Message-ID: <1252636482.12609.5.camel@maxim-laptop>
+References: <4A4A219C.2020802@tuffmail.co.uk>
+	 <1252339562.28499.13.camel@maxim-laptop> <4AA7E438.4070905@tuffmail.co.uk>
+	 <1252531271.4174.5.camel@maxim-laptop>
+	 <9b2b86520909100411o6dc850a5mc80792285411aff3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:53229 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751832AbZIKC0R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 22:26:17 -0400
-In-Reply-To: <1252597402.7205.75.camel@laptop>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:33434 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585AbZIKCeq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2009 22:34:46 -0400
+Received: by fxm17 with SMTP id 17so532326fxm.37
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2009 19:34:48 -0700 (PDT)
+In-Reply-To: <9b2b86520909100411o6dc850a5mc80792285411aff3@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Daniel J Blueman <daniel.blueman@gmail.com>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
-2009/9/10 Peter Zijlstra <peterz@infradead.org>:
-> On Wed, 2009-09-09 at 22:20 +0100, Daniel J Blueman wrote:
->
->> When hot-plugging my SATA DVD drive into my laptop, I see a lockdep
->> warning [1]. On closer inspection, both flush_workqueue() and
->> worker_thread() do tricks with lockdep maps. False positive?
->
-> No, looks like a typical case of a workqueue trying to flush itself,
-> something that can easily deadlock for real.
+On Thu, 2009-09-10 at 12:11 +0100, Alan Jenkins wrote: 
+> On 9/9/09, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> > On Wed, 2009-09-09 at 18:22 +0100, Alan Jenkins wrote:
+> >> Maxim Levitsky wrote:
+> >> > Hi,
+> >> >
+> >> > So this is newer version of this patchset.
+> >> > When this will be merged?
+> >> >
+> >> >
+> >> > Last patch doesn't apply, seems that parts of yours patch were applied.
+> >> > I applied it manually.
+> >> >
+> >> > Will soon test.
+> >> >
+> >> >
+> >> > Best regards,
+> >> > 	Maxim Levitsky
+> >> >
+> >>
+> >> I will submit "To: len" next time round.
+> >>
+> >> You're right, it no longer applies cleanly to acpi-test.  ["patch" is
+> >> happy to apply it and warn about "fuzz", but git-am is more strict.  It
+> >> doesn't look like there's a real conflict.]
+> > I applied it on top of both vanilla and linux-next. Here it really
+> > doesn't apply (with or without 'fuzz')
+> >
+> >>
+> >> I look forward to your results.  Please tell me the diff you end up with
+> >> for the last patch and what tree you applied it on top of.  That way, if
+> >> I add "Tested-by: Maxim..." I can be certain we're talking about the
+> >> same patch :-).
+> >>
+> >> Thanks!
+> >> Alan
+> >
+> > I did that few days ago (applied patch manually, without much thinking)
+> >
+> > Unfortunately, resulting kernel oopses if battery is present, and
+> > otherwise, if I plug batter later on, many battery statistics are
+> > missing (probably some locks are held)
+> >
+> > I will soon investigate this issue, more deeply.
+> >
+> > Best regards,
+> > Maxim Levitsky
+> 
+> I've applied the patches from the mailing list, initially on -rc8
+> using git-am, then rebased them onto acpi-test without conflicts.  I
+> don't have GIT hosting, so here's a git bundle.  If you're still
+> having problems, you should be able to get an _exact_ copy of my tree
+> with
+> 
+> $ git fetch alan.bundle battery-check:battery-check
+> $ git checkout battery-check
+> 
+> so long as you have the acpi-test commit I based it on.
+> 
+> Thanks
+> Alan
 
-Hi,Peter
-
-IMHO, it seems flushing other workqueues in one workqueue, so it
-may be a false positive. Since the three workqueue instances share one
-lock class, maybe lockdep_set_class*() or other similar annotations
-is needed in acpi_os_initialize1() to avoid the warning.
-
-Thanks.
-
->
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
->> [ INFO: possible circular locking dependency detected ]
->> 2.6.31-rc9-290cd #1
->> -------------------------------------------------------
->> kacpi_hotplug/198 is trying to acquire lock:
->> =A0(kacpid){+.+.+.}, at: [<ffffffff81073a70>] flush_workqueue+0x0/0x=
-f0
->> (workqueue.c:292)
->>
->> but task is already holding lock:
->> =A0(&dpc->work){+.+.+.}, at: [<ffffffff81072a42>]
->> worker_thread+0x1f2/0x3c0 (bitops.h:101)
->> which lock already depends on the new lock.
->>
->> the existing dependency chain (in reverse order) is:
->>
->> -> #1 (&dpc->work){+.+.+.}:
->> =A0 =A0 =A0 =A0[<ffffffff8108eb19>] __lock_acquire+0xe29/0x1240
->> =A0 =A0 =A0 =A0[<ffffffff8108f04e>] lock_acquire+0x11e/0x170
->> =A0 =A0 =A0 =A0[<ffffffff81072a92>] worker_thread+0x242/0x3c0 (workq=
-ueue.c:291)
->> =A0 =A0 =A0 =A0[<ffffffff81077456>] kthread+0xa6/0xc0
->> =A0 =A0 =A0 =A0[<ffffffff8100d29a>] child_rip+0xa/0x20
->> =A0 =A0 =A0 =A0[<ffffffffffffffff>] 0xffffffffffffffff
->>
->> -> #0 (kacpid){+.+.+.}:
->> =A0 =A0 =A0 =A0[<ffffffff8108ebe1>] __lock_acquire+0xef1/0x1240
->> =A0 =A0 =A0 =A0[<ffffffff8108f04e>] lock_acquire+0x11e/0x170
->> =A0 =A0 =A0 =A0[<ffffffff81073acc>] flush_workqueue+0x5c/0xf0 (workq=
-ueue.c:403)
->> =A0 =A0 =A0 =A0[<ffffffff812f6eaf>] acpi_os_wait_events_complete+0x1=
-0/0x1e
->> =A0 =A0 =A0 =A0[<ffffffff812f6ee7>] acpi_os_execute_hp_deferred+0x2a=
-/0x3e
->> =A0 =A0 =A0 =A0[<ffffffff81072a98>] worker_thread+0x248/0x3c0 (workq=
-ueue.c:292)
->> =A0 =A0 =A0 =A0[<ffffffff81077456>] kthread+0xa6/0xc0
->> =A0 =A0 =A0 =A0[<ffffffff8100d29a>] child_rip+0xa/0x20
->> =A0 =A0 =A0 =A0[<ffffffffffffffff>] 0xffffffffffffffff
->>
->> other info that might help us debug this:
->>
->> 2 locks held by kacpi_hotplug/198:
->> =A0#0: =A0(kacpi_hotplug){+.+...}, at: [<ffffffff81072a42>]
->> worker_thread+0x1f2/0x3c0
->> =A0#1: =A0(&dpc->work){+.+.+.}, at: [<ffffffff81072a42>] worker_thre=
-ad+0x1f2/0x3c0
->>
->> stack backtrace:
->> Pid: 198, comm: kacpi_hotplug Tainted: G =A0 =A0 =A0 =A0 C 2.6.31-rc=
-9-290cd #1
->>
->> Call Trace:
->> =A0[<ffffffff8108c8a7>] print_circular_bug_tail+0xa7/0x100
->> =A0[<ffffffff8108ebe1>] __lock_acquire+0xef1/0x1240
->> =A0[<ffffffff8108a808>] ? add_lock_to_list+0x58/0xf0
->> =A0[<ffffffff8108f04e>] lock_acquire+0x11e/0x170
->> =A0[<ffffffff81073a70>] ? flush_workqueue+0x0/0xf0 (workqueue.c:397)
->> =A0[<ffffffff812f6ebd>] ? acpi_os_execute_hp_deferred+0x0/0x3e
->> =A0[<ffffffff81073acc>] flush_workqueue+0x5c/0xf0 (workqueue.c:403)
->> =A0[<ffffffff81073a70>] ? flush_workqueue+0x0/0xf0 (workqueue.c:397)
->> =A0[<ffffffff812f6eaf>] acpi_os_wait_events_complete+0x10/0x1e drive=
-rs/acpi/osl.c
->> =A0[<ffffffff812f6ee7>] acpi_os_execute_hp_deferred+0x2a/0x3e
->> =A0[<ffffffff81072a98>] worker_thread+0x248/0x3c0 (workqueue.c:292)
->> =A0[<ffffffff81072a42>] ? worker_thread+0x1f2/0x3c0
->> =A0[<ffffffff81077900>] ? autoremove_wake_function+0x0/0x40
->> =A0[<ffffffff81072850>] ? worker_thread+0x0/0x3c0
->> =A0[<ffffffff81077456>] kthread+0xa6/0xc0
->> =A0[<ffffffff8100d29a>] child_rip+0xa/0x20
->> =A0[<ffffffff8100cbd4>] ? restore_args+0x0/0x30
->> =A0[<ffffffff810773b0>] ? kthread+0x0/0xc0
->> =A0[<ffffffff8100d290>] ? child_rip+0x0/0x20
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at =A0http://www.tux.org/lkml/
->
+Indeed, it works.
 
 
+Just one issue though, if I plug in the battery after system boot, it is
+detected a an 'energy battery' (energy_battery_props are used)
 
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ACPI seems to be ok:
+
+                Device (BAT0)
+                {
+                    Name (_HID, EisaId ("PNP0C0A"))
+                    Name (_UID, 0x01)
+                    Name (_PCL, Package (0x01)
+                    {
+                        \_SB
+                    })
+                    Name (PBIF, Package (0x0D)
+                    {
+                        0x01, 
+                        0x0FA0, 
+                        0x0FA0, 
+                        0x01, 
+                        0x39D0, 
+                        0x0190, 
+                        0x78, 
+                        0x0108, 
+                        0x0EC4, 
+                        "Li_Ion 4000mA ", 
+                        "", 
+                        "Lion", 
+                        "Acer   "
+                    })
+                    Name (PBST, Package (0x04)
+                    {
+                        0x01, 
+                        0xFFFFFFFF, 
+                        0xFFFFFFFF, 
+                        0x39D0
+                    })
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (ECON)
+                        {
+                            If (\_SB.PCI0.LPC.EC0.BAL1)
+                            {
+                                Sleep (0x14)
+                                Return (0x1F)
+                            }
+                            Else
+                            {
+                                Sleep (0x14)
+                                Return (0x0F)
+                            }
+                        }
+                        Else
+                        {
+                            Sleep (0x14)
+                            Return (0x1F)
+                        }
+                    }
+
+                    Method (_BIF, 0, NotSerialized)
+                    {
+                        If (ECON)
+                        {
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BDC0, Index (PBIF, 0x01))
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BFC0, Index (PBIF, 0x02))
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BDV0, Index (PBIF, 0x04))
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BDC0, Local2)
+                            Divide (Local2, 0x64, Local6, Local2)
+                            Multiply (Local2, 0x05, Local3)
+                            Store (Local3, Index (PBIF, 0x05))
+                            Multiply (Local2, 0x03, Local4)
+                            Store (Local4, Index (PBIF, 0x06))
+                            Store (\_SB.PCI0.LPC.EC0.BTY0, Local1)
+                            Sleep (0x14)
+                            If (LEqual (Local1, 0x01))
+                            {
+                                Store ("GC86508SAT0 ", Index (PBIF, 0x09))
+                                Store ("SANYO ", Index (PBIF, 0x0C))
+                            }
+                            Else
+                            {
+                                If (LEqual (Local1, 0x02))
+                                {
+                                    Store ("GC86503SY90 ", Index (PBIF, 0x09))
+                                    Store ("SONY ", Index (PBIF, 0x0C))
+                                }
+                                Else
+                                {
+                                    If (LEqual (Local1, 0x04))
+                                    {
+                                        Store ("GC86503PAG0 ", Index (PBIF, 0x09))
+                                        Store ("PANASONIC ", Index (PBIF, 0x0C))
+                                    }
+                                    Else
+                                    {
+                                        If (LEqual (Local1, 0x05))
+                                        {
+                                            Store ("GC86508SM60 ", Index (PBIF, 0x09))
+                                            Store ("SAMSUNG ", Index (PBIF, 0x0C))
+                                        }
+                                        Else
+                                        {
+                                            Store ("BCL3100LiON ", Index (PBIF, 0x09))
+                                            Store ("COMPAL ", Index (PBIF, 0x0C))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Return (PBIF)
+                    }
+
+                    Method (_BST, 0, NotSerialized)
+                    {
+                        If (ECON)
+                        {
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BST0, Local0)
+                            And (Local0, 0x07, Local0)
+                            Store (Local0, Index (PBST, 0x00))
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.GAU0, Local2)
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BPV0, Local3)
+                            Sleep (0x14)
+                            Store (\_SB.PCI0.LPC.EC0.BFC0, Local1)
+                            Sleep (0x14)
+                            If (Local2)
+                            {
+                                Multiply (Local2, Local1, Local2)
+                                Divide (Local2, 0x64, Local6, Local2)
+                                If (Local6)
+                                {
+                                    Increment (Local2)
+                                }
+                            }
+
+                            Store (\_SB.PCI0.LPC.EC0.BAC0, Local1)
+                            If (And (Local1, 0x8000, Local1))
+                            {
+                                Store (\_SB.PCI0.LPC.EC0.BAC0, Local1)
+                                Subtract (0xFFFF, Local1, Local1)
+                            }
+                            Else
+                            {
+                                Store (0x00, Local1)
+                            }
+
+                            Sleep (0x14)
+                            Store (Local1, Index (PBST, 0x01))
+                            Store (Local2, Index (PBST, 0x02))
+                            Store (Local3, Index (PBST, 0x03))
+                        }
+
+                        Return (PBST)
+                    }
+                }
+
+
+
+
+
+PBIF at offset 0 is set correctly to 1.
+
+
+Best regards,
+	Maxim Levitsky
+
