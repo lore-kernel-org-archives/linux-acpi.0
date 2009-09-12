@@ -1,77 +1,105 @@
-From: Simon Kitching <skitching@apache.org>
-Subject: Re: Index is beyond end of object; Method parse/execution failed
-Date: Sat, 12 Sep 2009 15:01:24 +0200
-Message-ID: <1252760484.23058.5.camel@simon-laptop>
-References: <1252437365.5669.14.camel@simon-laptop>
-	 <d3f22a0909081931i5c71a804yc2cb405f9b050ea2@mail.gmail.com>
-	 <1252524747.15601.3.camel@simon-laptop>
-	 <200909100902.10097.bjorn.helgaas@hp.com>
-Reply-To: skitching@apache.org
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH] ACPI: Remember to clear acpi_dev->driver after calling ops.remove()
+Date: Sat, 12 Sep 2009 16:35:49 +0100
+Message-ID: <4AABBFD5.1000009@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from viefep11-int.chello.at ([62.179.121.31]:55055 "EHLO
-	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400AbZILNBc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Sep 2009 09:01:32 -0400
-In-Reply-To: <200909100902.10097.bjorn.helgaas@hp.com>
+Received: from ey-out-2122.google.com ([74.125.78.24]:54626 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754680AbZILPft (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Sep 2009 11:35:49 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so220345eyf.5
+        for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2009 08:35:51 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Lin Ming <lin@minggr.cn>, linux-acpi@vger.kernel.org, Frans Pop <elendil@planet.nl>
+To: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Thu, 2009-09-10 at 09:02 -0600, Bjorn Helgaas wrote:
-> On Wednesday 09 September 2009 01:32:27 pm Simon Kitching wrote:
-> > On Wed, 2009-09-09 at 10:31 +0800, Lin Ming wrote:
-> > > On Wed, Sep 9, 2009 at 3:16 AM, Simon Kitching<skitching@apache.org> wrote:
-> > > > Hi All,
-> > > >
-> > > > Suspend-to-mem and resume seem to work fine, but I get a few odd ACPI
-> > > > messages in dmesg. Is this of interest to anyone?
-> > > >
-> > > > [  188.914261] ACPI Exception: AE_AML_PACKAGE_LIMIT, Index (000000005)
-> > > > is beyond end of object 20090521 exoparg2-445
-> > > > [  188.914278] ACPI Error (psparse-0537): Method parse/execution failed
-> > > > [\_SB_.C248] (Node f701a6d8), AE_AML_PACKAGE_LIMIT
-> > > > [  188.914344] ACPI Error (psparse-0537): Method parse/execution failed
-> > > > [\_SB_.C002.C0DE.C354._STM] (Node f701d780), AE_AML_PACKAGE_LIMIT
-> > > > [  188.914415] ata5: ACPI set timing mode failed (status=0x300b)
-> > > >
-> > > >
-> > > > Kernel: 2.6.31-rc9
-> > > > Distro: ubuntu 09.04
-> > > > Hardware: Compaq nc8430 laptop
-> > > > CPU: core duo T2500
-> > > >
-> > > > These messages are generated every time I run
-> > > >   echo "mem" > /sys/power/state
-> > > > although otherwise the suspend/resume seems 100% ok.
-> > > >
-> > > > I'm happy to provide more info or run tests if anyone wants me to.
-> > > 
-> > > Could you attach the acpidump output?
-> > 
-> > Rather than send a 300kb attachment, I have put the relevant file here:
-> >   http://people.apache.org/~skitching/acpidump.txt
-> 
-> I think this is a BIOS defect.  Frans Pop reported the same
-> problem earlier on a Compaq 2510p.  I poked our notebook BIOS
-> people about it, but since these are fairly old notebooks and
-> we haven't seen any real problem (other than the error messages),
-> there's not much interest in fixing it.  Sorry; I wish I had a
-> better answer.
-> 
+If an error occurs while binding a driver to a device and we call
+remove(), we should also clear acpi->driver and acpi_dev->driverdata.
+Otherwise bad things will happen e.g. we will invoke the suspend()
+driver callback when the system is suspended, even though the driver
+thinks it has been unbound from the device.
 
-Well, if this is due to a defective BIOS, then not much can be done;
-there certainly isn't much point in releasing new BIOS versions for
-3-year-old systems. I posted mainly because it might indicate a Linux
-ACPI implementation bug that could be fixed.
+Also check the return value of acpi_start_single_object().  I'm not
+sure what will happen if we claim success despite seeing ops.start()
+fail and then calling ops.remove(), but it's not a good idea.
 
-Hopefully in future BIOS makers will try boot/suspend/resume tests with
-Linux before shipping :-)
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+CC: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ drivers/acpi/scan.c |   45 +++++++++++++++++++++++++++------------------
+ 1 files changed, 27 insertions(+), 18 deletions(-)
 
-Thanks to you all.
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 957620b..cde179e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -423,26 +423,33 @@ static int acpi_device_probe(struct device * dev)
+ 	int ret;
+ 
+ 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+-	if (!ret) {
+-		if (acpi_dev->bus_ops.acpi_op_start)
+-			acpi_start_single_object(acpi_dev);
+-
+-		if (acpi_drv->ops.notify) {
+-			ret = acpi_device_install_notify_handler(acpi_dev);
+-			if (ret) {
+-				if (acpi_drv->ops.remove)
+-					acpi_drv->ops.remove(acpi_dev,
+-						     acpi_dev->removal_type);
+-				return ret;
+-			}
+-		}
++	if (ret)
++		return ret;
+ 
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			"Found driver [%s] for device [%s]\n",
+-			acpi_drv->name, acpi_dev->pnp.bus_id));
+-		get_device(dev);
++	if (acpi_dev->bus_ops.acpi_op_start) {
++		ret = acpi_start_single_object(acpi_dev);
++		if (ret)
++			return ret;
+ 	}
+-	return ret;
++
++	if (acpi_drv->ops.notify) {
++		ret = acpi_device_install_notify_handler(acpi_dev);
++		if (ret) {
++			if (acpi_drv->ops.remove)
++				acpi_drv->ops.remove(acpi_dev,
++						acpi_dev->removal_type);
++			acpi_dev->driver = NULL;
++			acpi_dev->driver_data = NULL;
++			return ret;
++		}
++	}
++
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++		"Found driver [%s] for device [%s]\n",
++		acpi_drv->name, acpi_dev->pnp.bus_id));
++	get_device(dev);
++
++	return 0;
+ }
+ 
+ static int acpi_device_remove(struct device * dev)
+@@ -617,6 +624,8 @@ static int acpi_start_single_object(struct acpi_device *device)
+ 		result = driver->ops.start(device);
+ 		if (result && driver->ops.remove)
+ 			driver->ops.remove(device, ACPI_BUS_REMOVAL_NORMAL);
++		device->driver = NULL;
++		device->driver_data = NULL;
+ 	}
+ 
+ 	return result;
+-- 
+1.6.3.2
 
-Regards, Simon
+
 
