@@ -1,105 +1,84 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH] ACPI: Remember to clear acpi_dev->driver after calling ops.remove()
-Date: Sat, 12 Sep 2009 16:35:49 +0100
-Message-ID: <4AABBFD5.1000009@tuffmail.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 3/8] thinkpad-acpi: be more strict when detecting a ThinkPad
+Date: Sat, 12 Sep 2009 15:22:13 -0300
+Message-ID: <1252779738-7459-4-git-send-email-hmh@hmh.eng.br>
+References: <1252779738-7459-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:54626 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754680AbZILPft (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Sep 2009 11:35:49 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so220345eyf.5
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2009 08:35:51 -0700 (PDT)
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54949 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754543AbZILSWW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 Sep 2009 14:22:22 -0400
+In-Reply-To: <1252779738-7459-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux acpi <linux-acpi@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-If an error occurs while binding a driver to a device and we call
-remove(), we should also clear acpi->driver and acpi_dev->driverdata.
-Otherwise bad things will happen e.g. we will invoke the suspend()
-driver callback when the system is suspended, even though the driver
-thinks it has been unbound from the device.
+Use stricter checks to decide that we're running on a supported ThinkPad.
+This should remove some possible false positives, although nobody ever
+bothered to report any.
 
-Also check the return value of acpi_start_single_object().  I'm not
-sure what will happen if we claim success despite seeing ops.start()
-fail and then calling ops.remove(), but it's not a good idea.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-CC: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/acpi/scan.c |   45 +++++++++++++++++++++++++++------------------
- 1 files changed, 27 insertions(+), 18 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   22 +++++++++++++---------
+ 1 files changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 957620b..cde179e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -423,26 +423,33 @@ static int acpi_device_probe(struct device * dev)
- 	int ret;
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index cc4155c..d69ab3f 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -1621,6 +1621,9 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv)
+  *
+  *  Sources: IBM ThinkPad Public Web Documents (update changelogs),
+  *  Information from users in ThinkWiki
++ *
++ *  WARNING: we use this table also to detect that the machine is
++ *  a ThinkPad in some cases, so don't remove entries lightly.
+  */
  
- 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
--	if (!ret) {
--		if (acpi_dev->bus_ops.acpi_op_start)
--			acpi_start_single_object(acpi_dev);
--
--		if (acpi_drv->ops.notify) {
--			ret = acpi_device_install_notify_handler(acpi_dev);
--			if (ret) {
--				if (acpi_drv->ops.remove)
--					acpi_drv->ops.remove(acpi_dev,
--						     acpi_dev->removal_type);
--				return ret;
--			}
--		}
-+	if (ret)
-+		return ret;
- 
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			"Found driver [%s] for device [%s]\n",
--			acpi_drv->name, acpi_dev->pnp.bus_id));
--		get_device(dev);
-+	if (acpi_dev->bus_ops.acpi_op_start) {
-+		ret = acpi_start_single_object(acpi_dev);
-+		if (ret)
-+			return ret;
+ #define TPV_Q(__v, __id1, __id2, __bv1, __bv2)		\
+@@ -1782,6 +1785,12 @@ static void __init tpacpi_check_outdated_fw(void)
  	}
--	return ret;
-+
-+	if (acpi_drv->ops.notify) {
-+		ret = acpi_device_install_notify_handler(acpi_dev);
-+		if (ret) {
-+			if (acpi_drv->ops.remove)
-+				acpi_drv->ops.remove(acpi_dev,
-+						acpi_dev->removal_type);
-+			acpi_dev->driver = NULL;
-+			acpi_dev->driver_data = NULL;
-+			return ret;
-+		}
-+	}
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+		"Found driver [%s] for device [%s]\n",
-+		acpi_drv->name, acpi_dev->pnp.bus_id));
-+	get_device(dev);
-+
-+	return 0;
  }
  
- static int acpi_device_remove(struct device * dev)
-@@ -617,6 +624,8 @@ static int acpi_start_single_object(struct acpi_device *device)
- 		result = driver->ops.start(device);
- 		if (result && driver->ops.remove)
- 			driver->ops.remove(device, ACPI_BUS_REMOVAL_NORMAL);
-+		device->driver = NULL;
-+		device->driver_data = NULL;
++static bool __init tpacpi_is_fw_known(void)
++{
++	return tpacpi_check_quirks(tpacpi_bios_version_qtable,
++			ARRAY_SIZE(tpacpi_bios_version_qtable)) != 0;
++}
++
+ /****************************************************************************
+  ****************************************************************************
+  *
+@@ -7706,9 +7715,11 @@ static int __init probe_for_thinkpad(void)
+ 
+ 	/*
+ 	 * Non-ancient models have better DMI tagging, but very old models
+-	 * don't.
++	 * don't.  tpacpi_is_fw_known() is a cheat to help in that case.
+ 	 */
+-	is_thinkpad = (thinkpad_id.model_str != NULL);
++	is_thinkpad = (thinkpad_id.model_str != NULL) ||
++		      (thinkpad_id.ec_model != 0) ||
++		      tpacpi_is_fw_known();
+ 
+ 	/* ec is required because many other handles are relative to it */
+ 	TPACPI_ACPIHANDLE_INIT(ec);
+@@ -7719,13 +7730,6 @@ static int __init probe_for_thinkpad(void)
+ 		return -ENODEV;
  	}
  
- 	return result;
+-	/*
+-	 * Risks a regression on very old machines, but reduces potential
+-	 * false positives a damn great deal
+-	 */
+-	if (!is_thinkpad)
+-		is_thinkpad = (thinkpad_id.vendor == PCI_VENDOR_ID_IBM);
+-
+ 	if (!is_thinkpad && !force_load)
+ 		return -ENODEV;
+ 
 -- 
-1.6.3.2
-
-
+1.6.3.3
 
