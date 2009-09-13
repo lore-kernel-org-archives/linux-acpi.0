@@ -1,49 +1,58 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH] ACPI fan: fix memleak on acpi_fan_add_fs() failure
-Date: Sun, 13 Sep 2009 11:28:30 +0100
-Message-ID: <4AACC94E.9040208@tuffmail.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:33728 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752570AbZIMK23 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Sep 2009 06:28:29 -0400
-Received: by ewy2 with SMTP id 2so2202156ewy.17
-        for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2009 03:28:31 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH 1/5] Trivial whitespace cleanups
+Date: Sun, 13 Sep 2009 22:38:23 +0300
+Message-ID: <1252870707-4824-2-git-send-email-felipe.contreras@gmail.com>
+References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754977AbZIMTjB@vger.kernel.org>
+In-Reply-To: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Vegard Nossum <vegardno@ifi.uio.no>, Pekka Enberg <penberg@cs.helsinki.fi>, Ingo Molnar <mingo@elte.hu>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Alok N Kataria <akataria@vmware.com>, "Tan, Wei Chong" <wei.chong.tan@intel.com>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/acpi/fan.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/string_32.h |    1 -
+ arch/x86/kernel/tsc.c            |    2 +-
+ drivers/acpi/acpica/tbfadt.c     |    1 -
+ 3 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 947556e..eb1511e 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -283,13 +283,17 @@ static int acpi_fan_add(struct acpi_device *device)
+diff --git a/arch/x86/include/asm/string_32.h b/arch/x86/include/asm/string_32.h
+index c86f452..ae907e6 100644
+--- a/arch/x86/include/asm/string_32.h
++++ b/arch/x86/include/asm/string_32.h
+@@ -65,7 +65,6 @@ static __always_inline void *__constant_memcpy(void *to, const void *from,
+ 	case 4:
+ 		*(int *)to = *(int *)from;
+ 		return to;
+-
+ 	case 3:
+ 		*(short *)to = *(short *)from;
+ 		*((char *)to + 2) = *((char *)from + 2);
+diff --git a/arch/x86/kernel/tsc.c b/arch/x86/kernel/tsc.c
+index 71f4368..8a2fc11 100644
+--- a/arch/x86/kernel/tsc.c
++++ b/arch/x86/kernel/tsc.c
+@@ -670,7 +670,7 @@ static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
+ 	if ((val == CPUFREQ_PRECHANGE  && freq->old < freq->new) ||
+ 			(val == CPUFREQ_POSTCHANGE && freq->old > freq->new) ||
+ 			(val == CPUFREQ_RESUMECHANGE)) {
+-		*lpj = 	cpufreq_scale(loops_per_jiffy_ref, ref_freq, freq->new);
++		*lpj = cpufreq_scale(loops_per_jiffy_ref, ref_freq, freq->new);
  
- 	result = acpi_fan_add_fs(device);
- 	if (result)
--		goto end;
-+		goto unregister;
+ 		tsc_khz = cpufreq_scale(tsc_khz_ref, ref_freq, freq->new);
+ 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 82b02dc..c016335 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -275,7 +275,6 @@ void acpi_tb_parse_fadt(u32 table_index)
  
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       !device->power.state ? "on" : "off");
- 
--      end:
-+unregister:
-+	sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
-+	sysfs_remove_link(&cdev->device.kobj, "device");
-+	thermal_cooling_device_unregister(cdev);
-+end:
- 	return result;
- }
- 
-
+ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
+ {
+-
+ 	/*
+ 	 * Check if the FADT is larger than the largest table that we expect
+ 	 * (the ACPI 2.0/3.0 version). If so, truncate the table, and issue
+-- 
+1.6.5.rc1
