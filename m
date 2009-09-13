@@ -1,54 +1,58 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC][PATCH 3/4] PCI / ACPI PM: Platform support for PCI PME
-	wake-up
-Date: Sun, 13 Sep 2009 23:55:18 +0100
-Message-ID: <20090913225518.GA31787@srcf.ucam.org>
-References: <200909132320.05077.rjw@sisk.pl> <200909132324.03340.rjw@sisk.pl> <20090913222505.GC31175@srcf.ucam.org> <200909140053.05779.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 3/4] PCI / ACPI PM: Platform support for PCI PME wake-up
+Date: Mon, 14 Sep 2009 01:08:08 +0200
+Message-ID: <200909140108.08579.rjw@sisk.pl>
+References: <200909132320.05077.rjw@sisk.pl> <200909140053.05779.rjw@sisk.pl> <20090913225518.GA31787@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:59659 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028AbZIMWz3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Sep 2009 18:55:29 -0400
-Content-Disposition: inline
-In-Reply-To: <200909140053.05779.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090913225518.GA31787@srcf.ucam.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Shaohua Li <shaohua.li@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 14, 2009 at 12:53:05AM +0200, Rafael J. Wysocki wrote:
-> On Monday 14 September 2009, Matthew Garrett wrote:
-> > On Sun, Sep 13, 2009 at 11:24:03PM +0200, Rafael J. Wysocki wrote:
-> > > +	} else if (!dev->wakeup.flags.run_wake) {
-> > > +		acpi_set_gpe_type(dev->wakeup.gpe_device,
-> > > +					dev->wakeup.gpe_number,
-> > > +					ACPI_GPE_TYPE_WAKE);
+On Monday 14 September 2009, Matthew Garrett wrote:
+> On Mon, Sep 14, 2009 at 12:53:05AM +0200, Rafael J. Wysocki wrote:
+> > On Monday 14 September 2009, Matthew Garrett wrote:
+> > > On Sun, Sep 13, 2009 at 11:24:03PM +0200, Rafael J. Wysocki wrote:
+> > > > +	} else if (!dev->wakeup.flags.run_wake) {
+> > > > +		acpi_set_gpe_type(dev->wakeup.gpe_device,
+> > > > +					dev->wakeup.gpe_number,
+> > > > +					ACPI_GPE_TYPE_WAKE);
+> > > 
+> > > Is this going to work for cases where we have multiple devices attached 
+> > > to the same GPE? The common one is EHCI, where both EHCI HCDs will be 
+> > > one a single GPE. If we wake one, that'll then disable the GPE for the 
+> > > other. Further wakeup events will then be lost.
 > > 
-> > Is this going to work for cases where we have multiple devices attached 
-> > to the same GPE? The common one is EHCI, where both EHCI HCDs will be 
-> > one a single GPE. If we wake one, that'll then disable the GPE for the 
-> > other. Further wakeup events will then be lost.
+> > You're right, I overlooked that.  Some kind of refcounting is needed here.
 > 
-> You're right, I overlooked that.  Some kind of refcounting is needed here.
-
-I've sent patches to implement this at the GPE level, which also change 
-the API for requesting them. I'm waiting on feedback from Bob Moore.
-
-> > > +	if (device->wakeup.flags.valid)
-> > > +		acpi_install_notify_handler(device->handle, ACPI_SYSTEM_NOTIFY,
-> > > +						pci_acpi_device_wakeup,
-> > > +						&dev->dev);
-> > > +
+> I've sent patches to implement this at the GPE level, which also change 
+> the API for requesting them. I'm waiting on feedback from Bob Moore.
+> 
+> > > > +	if (device->wakeup.flags.valid)
+> > > > +		acpi_install_notify_handler(device->handle, ACPI_SYSTEM_NOTIFY,
+> > > > +						pci_acpi_device_wakeup,
+> > > > +						&dev->dev);
+> > > > +
+> > > 
+> > > I think this will fail for the root bridge if acpiphp has already 
+> > > grabbed it to check for hotplug events.
 > > 
-> > I think this will fail for the root bridge if acpiphp has already 
-> > grabbed it to check for hotplug events.
+> > The root bridge is not a struct pci_dev and this is called only for these.
 > 
-> The root bridge is not a struct pci_dev and this is called only for these.
+> Are you sure?
 
-Are you sure? When I did this I saw conflicts with acpiphp. I may have 
-my terminology confused. I sent another patch that abstract that out.
+Yup.  ACPI associates the root bridge handle with the struct device created by
+pci_create_bus() as the bridge of the root bus.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> When I did this I saw conflicts with acpiphp. I may have my terminology
+> confused. I sent another patch that abstract that out.
+
+I'll have a look at acpihp, then.
+
+Thanks,
+Rafael
