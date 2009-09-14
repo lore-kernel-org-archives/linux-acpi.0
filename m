@@ -1,105 +1,39 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 3/3] dell-laptop: fix rfkill memory leak on unload
-Date: Mon, 14 Sep 2009 12:43:53 +0200
-Message-ID: <1252925033-29696-4-git-send-email-corentincj@iksaif.net>
-References: <1252925033-29696-1-git-send-email-corentincj@iksaif.net>
- <1252925033-29696-2-git-send-email-corentincj@iksaif.net>
- <1252925033-29696-3-git-send-email-corentincj@iksaif.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44084 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750749AbZINKvY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Sep 2009 06:51:24 -0400
-In-Reply-To: <1252925033-29696-3-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 0/3] rfkill_unregister() should always be followed by rfkill_destroy()
+Date: Mon, 14 Sep 2009 12:43:50 +0200
+Message-ID: <1252925033-29696-1-git-send-email-corentincj@iksaif.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755136AbZINKv2@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Johannes Berg <johannes@sipsolutions.net>, Corentin Chary <corentincj@iksaif.net>, Matthew Garrett <mjg@redhat.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Johannes Berg <johannes@sipsolutions.net>, Corentin Chary <corentincj@iksaif.net>
+List-Id: linux-acpi@vger.kernel.org
 
-rfkill_unregister() should always be followed by rfkill_destroy()
+The semantic match that finds the first problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Cc: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/dell-laptop.c |   36 ++++++++++++++++++++++++------------
- 1 files changed, 24 insertions(+), 12 deletions(-)
+// <smpl>
 
-diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
-index 74909c4..c81002c 100644
---- a/drivers/platform/x86/dell-laptop.c
-+++ b/drivers/platform/x86/dell-laptop.c
-@@ -206,6 +206,25 @@ static const struct rfkill_ops dell_rfkill_ops = {
- 	.query = dell_rfkill_query,
- };
- 
-+static void dell_free_rfkill(void)
-+{
-+	if (wifi_rfkill) {
-+		rfkill_unregister(wifi_rfkill);
-+		rfkill_destroy(wifi_rfkill);
-+		wifi_rfkill = NULL;
-+	}
-+	if (bluetooth_rfkill) {
-+		rfkill_unregister(bluetooth_rfkill);
-+		rfkill_destroy(bluetooth_rfkill);
-+		bluetooth_rfkill = NULL;
-+	}
-+	if (wwan_rfkill) {
-+		rfkill_unregister(wwan_rfkill);
-+		rfkill_destroy(wwan_rfkill);
-+		wwan_rfkill = NULL;
-+	}
-+}
-+
- static int dell_setup_rfkill(void)
- {
- 	struct calling_interface_buffer buffer;
-@@ -256,14 +275,17 @@ static int dell_setup_rfkill(void)
- 	return 0;
- err_wwan:
- 	rfkill_destroy(wwan_rfkill);
-+	wwan_rfkill = NULL;
- 	if (bluetooth_rfkill)
- 		rfkill_unregister(bluetooth_rfkill);
- err_bluetooth:
- 	rfkill_destroy(bluetooth_rfkill);
-+	bluetooth_rfkill = NULL;
- 	if (wifi_rfkill)
- 		rfkill_unregister(wifi_rfkill);
- err_wifi:
- 	rfkill_destroy(wifi_rfkill);
-+	wifi_rfkill = NULL;
- 
- 	return ret;
- }
-@@ -369,12 +391,7 @@ static int __init dell_init(void)
- 
- 	return 0;
- out:
--	if (wifi_rfkill)
--		rfkill_unregister(wifi_rfkill);
--	if (bluetooth_rfkill)
--		rfkill_unregister(bluetooth_rfkill);
--	if (wwan_rfkill)
--		rfkill_unregister(wwan_rfkill);
-+	dell_free_rfkill();
- 	kfree(da_tokens);
- 	return ret;
- }
-@@ -382,12 +399,7 @@ out:
- static void __exit dell_exit(void)
- {
- 	backlight_device_unregister(dell_backlight_device);
--	if (wifi_rfkill)
--		rfkill_unregister(wifi_rfkill);
--	if (bluetooth_rfkill)
--		rfkill_unregister(bluetooth_rfkill);
--	if (wwan_rfkill)
--		rfkill_unregister(wwan_rfkill);
-+	dell_free_rfkill();
- }
- 
- module_init(dell_init);
--- 
-1.6.4.2
+@r@
+expression E;
+position p;
+@@
 
+rfkill_unregister(E);@p
+... when != rfkill_destroy(E)
+
+@script:python@
+p << r.p;
+@@
+
+print "rfkill_unregister without rfkill_destroy found: %s %s " % (p[0].file, p[0].line)
+// </spml>
+
+Corentin Chary (3):
+  hp-wmi: fix rfkill memory leak on unload
+  thinkpad_acpi: fix rfkill memory leak on unload
+  dell-laptop: fix rfkill memory leak on unload
+
+ drivers/platform/x86/dell-laptop.c   |   36 ++++++++++++++++++++++-----------
+ drivers/platform/x86/hp-wmi.c        |    2 +-
+ drivers/platform/x86/thinkpad_acpi.c |    1 +
+ 3 files changed, 26 insertions(+), 13 deletions(-)
