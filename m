@@ -1,49 +1,46 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 4/5] acpi: fix trivial warning
-Date: Mon, 14 Sep 2009 17:34:55 +0300
-Message-ID: <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
-References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-2-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-3-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
-	 <1252936556.28368.215.camel@desktop>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: Re: [PATCH 0/3] rfkill_unregister() should always be followed by
+ rfkill_destroy()
+Date: Mon, 14 Sep 2009 15:57:15 +0100
+Message-ID: <4AAE59CB.8030702@tuffmail.co.uk>
+References: <1252925033-29696-1-git-send-email-corentincj@iksaif.net> <20090914132401.GC32253@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:7685 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755590AbZINOex convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 10:34:53 -0400
-In-Reply-To: <1252936556.28368.215.camel@desktop>
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:54023 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078AbZINO5S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 10:57:18 -0400
+In-Reply-To: <20090914132401.GC32253@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Walker <dwalker@fifo99.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Corentin Chary <corentincj@iksaif.net>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Johannes Berg <johannes@sipsolutions.net>
 
-On Mon, Sep 14, 2009 at 4:55 PM, Daniel Walker <dwalker@fifo99.com> wro=
-te:
-> On Sun, 2009-09-13 at 22:38 +0300, Felipe Contreras wrote:
->> drivers/acpi/acpica/tbfadt.c: In function =E2=80=98acpi_tb_create_lo=
-cal_fadt=E2=80=99:
->> arch/x86/include/asm/string_32.h:74: warning: array subscript is abo=
-ve array bounds
->>
->> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Henrique de Moraes Holschuh wrote:
+> On Mon, 14 Sep 2009, Corentin Chary wrote:
+>   
+>>  drivers/platform/x86/dell-laptop.c   |   36 ++++++++++++++++++++++-----------
+>>  drivers/platform/x86/hp-wmi.c        |    2 +-
+>>  drivers/platform/x86/thinkpad_acpi.c |    1 +
+>>     
 >
-> Could you run this through checkpatch also, it looks like you have a =
-few
-> style issues..
+> These are also likely needed in 2.6.31, please add appropriate Cc: lines to
+> stable@kernel.org while adding the Acked-By's.
+>
+>   
 
-I did... the style issues are already there, my patch is not
-introducing them. Do you want me to send a separate patch to fix the
-existing style issues?
+Do they meet the -stable criteria?
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+...
+ - It must fix a real bug that bothers people (not a, "This could be a
+   problem..." type thing).
+ - It must fix a problem that causes a build error (but not for things
+   marked CONFIG_BROKEN), an oops, a hang, data corruption, a real
+   security issue, or some "oh, that's not good" issue.  In short, something
+   critical.
+... (Documentation/stable_kernel_rules.txt)
+
+Regards
+Alan
