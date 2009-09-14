@@ -1,48 +1,49 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [Bug 14159] AIC79xx is not working properly with an attached
- scsi tape since 2.6.29
-Date: Mon, 14 Sep 2009 09:25:12 -0500
-Message-ID: <1252938312.8584.37.camel@mulgrave.site>
-References: <bug-14159-11613@http.bugzilla.kernel.org/>
-	 <200909140718.n8E7ImIE010519@demeter.kernel.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 4/5] acpi: fix trivial warning
+Date: Mon, 14 Sep 2009 17:34:55 +0300
+Message-ID: <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
+References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-2-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-3-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
+	 <1252936556.28368.215.camel@desktop>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51189 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752259AbZINOZS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Sep 2009 10:25:18 -0400
-In-Reply-To: <200909140718.n8E7ImIE010519@demeter.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.154]:7685 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755590AbZINOex convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 10:34:53 -0400
+In-Reply-To: <1252936556.28368.215.camel@desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bugzilla-daemon@bugzilla.kernel.org
-Cc: linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
 
-> --- Comment #3 from g.giorgetti@teamsystem.com  2009-09-14 07:18:46 ---
-> today after building and installing the latest stable kernel 2.6.31 I can tell
-> you that the problem is still there.
-> 
-> Here is the machine's /proc/interrups
-> 
->            CPU0       CPU1       
->   0:         44          0   IO-APIC-edge      timer
->   1:          0          2   IO-APIC-edge      i8042
->   3:          0          0   IO-APIC-fasteoi   ehci_hcd:usb2, ohci_hcd:usb5,
-> ohci_hcd:usb6
->   4:          0          2   IO-APIC-edge    
->   8:          0          1   IO-APIC-edge      rtc0
->   9:          0          0   IO-APIC-fasteoi   acpi, sata_svw
->  12:          0          4   IO-APIC-edge      i8042
->  14:         63      92631   IO-APIC-edge      ide0
->  19:          0          0   IO-APIC-fasteoi   aic79xx
+On Mon, Sep 14, 2009 at 4:55 PM, Daniel Walker <dwalker@fifo99.com> wro=
+te:
+> On Sun, 2009-09-13 at 22:38 +0300, Felipe Contreras wrote:
+>> drivers/acpi/acpica/tbfadt.c: In function =E2=80=98acpi_tb_create_lo=
+cal_fadt=E2=80=99:
+>> arch/x86/include/asm/string_32.h:74: warning: array subscript is abo=
+ve array bounds
+>>
+>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+>
+> Could you run this through checkpatch also, it looks like you have a =
+few
+> style issues..
 
-So this is the problem, as predicted: the card isn't getting interrupts.
-This would strongly suggest an ACPI problem.  Can you try booting with
-pci=noacpi?
+I did... the style issues are already there, my patch is not
+introducing them. Do you want me to send a separate patch to fix the
+existing style issues?
 
-Thanks,
-
-James
-
-
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
