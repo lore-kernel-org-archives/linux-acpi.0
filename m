@@ -1,51 +1,38 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Bug 14159] AIC79xx is not working properly with an attached scsi tape since 2.6.29
-Date: Mon, 14 Sep 2009 11:24:38 -0600
-Message-ID: <200909141124.39379.bjorn.helgaas@hp.com>
-References: <bug-14159-11613@http.bugzilla.kernel.org/> <200909140718.n8E7ImIE010519@demeter.kernel.org> <1252938312.8584.37.camel@mulgrave.site>
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: Re: [PATCH 0/3] rfkill_unregister() should always be followed by rfkill_destroy()
+Date: Mon, 14 Sep 2009 19:47:22 +0200
+Message-ID: <200909141947.22170.corentincj@iksaif.net>
+References: <1252925033-29696-1-git-send-email-corentincj@iksaif.net> <20090914170717.GA13452@khazad-dum.debian.net> <20090914171056.GB13452@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:31635 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808AbZINRYh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 13:24:37 -0400
-In-Reply-To: <1252938312.8584.37.camel@mulgrave.site>
-Content-Disposition: inline
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:59054 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063AbZINRrN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 13:47:13 -0400
+In-Reply-To: <20090914171056.GB13452@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: bugzilla-daemon@bugzilla.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Stefan Assmann <sassmann@novell.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Johannes Berg <johannes@sipsolutions.net>
 
-On Monday 14 September 2009 08:25:12 am James Bottomley wrote:
-> > --- Comment #3 from g.giorgetti@teamsystem.com  2009-09-14 07:18:46 ---
-> > today after building and installing the latest stable kernel 2.6.31 I can tell
-> > you that the problem is still there.
-> > 
-> > Here is the machine's /proc/interrups
-> > 
-> >            CPU0       CPU1       
-> >   0:         44          0   IO-APIC-edge      timer
-> >   1:          0          2   IO-APIC-edge      i8042
-> >   3:          0          0   IO-APIC-fasteoi   ehci_hcd:usb2, ohci_hcd:usb5,
-> > ohci_hcd:usb6
-> >   4:          0          2   IO-APIC-edge    
-> >   8:          0          1   IO-APIC-edge      rtc0
-> >   9:          0          0   IO-APIC-fasteoi   acpi, sata_svw
-> >  12:          0          4   IO-APIC-edge      i8042
-> >  14:         63      92631   IO-APIC-edge      ide0
-> >  19:          0          0   IO-APIC-fasteoi   aic79xx
+On Monday 14 September 2009 19:10:56 Henrique de Moraes Holschuh wrote:
+> On Mon, 14 Sep 2009, Henrique de Moraes Holschuh wrote:
+> > I don't know about the fix for dell-laptop since it is a lot larger.
 > 
-> So this is the problem, as predicted: the card isn't getting interrupts.
-> This would strongly suggest an ACPI problem.  Can you try booting with
-> pci=noacpi?
+> But looking at it, it seems to meet the -stable criteria as well.  However,
+> it looks like you're fixing two bugs there (set pointers to NULL, call
+> _destroy()), so it would be better to have two (smaller) patches, maybe?
+> 
 
-You might also try "pci=noioapicquirk".  Commit bbe194433bae [1]
-fiddles with boot interrupts on AMD 813x devices, which you seem
-to have.
+The dell-laptop patch is superseded by:
+http://patchwork.kernel.org/patch/42705/
+http://patchwork.kernel.org/patch/42699/
 
-Bjorn
+I didn't check patchwork before working on this patch :/
 
-[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=bbe194433baeadc953f49e3795b41ffffc5486dd
+-- 
+Corentin Chary
+http://xf.iksaif.net
