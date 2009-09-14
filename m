@@ -1,34 +1,42 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 0/3] rfkill_unregister() should always be followed by
- rfkill_destroy()
-Date: Mon, 14 Sep 2009 10:24:01 -0300
-Message-ID: <20090914132401.GC32253@khazad-dum.debian.net>
-References: <1252925033-29696-1-git-send-email-corentincj@iksaif.net>
+From: Daniel Walker <dwalker@fifo99.com>
+Subject: Re: [PATCH 4/5] acpi: fix trivial warning
+Date: Mon, 14 Sep 2009 06:55:56 -0700
+Message-ID: <1252936556.28368.215.camel@desktop>
+References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-2-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-3-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:39328 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751900AbZINNYA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Sep 2009 09:24:00 -0400
-Content-Disposition: inline
-In-Reply-To: <1252925033-29696-1-git-send-email-corentincj@iksaif.net>
+Received: from fifo99.com ([67.223.236.141]:52895 "EHLO fifo99.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752288AbZINNzJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Sep 2009 09:55:09 -0400
+In-Reply-To: <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Johannes Berg <johannes@sipsolutions.net>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Mon, 14 Sep 2009, Corentin Chary wrote:
->  drivers/platform/x86/dell-laptop.c   |   36 ++++++++++++++++++++++-----------
->  drivers/platform/x86/hp-wmi.c        |    2 +-
->  drivers/platform/x86/thinkpad_acpi.c |    1 +
+On Sun, 2009-09-13 at 22:38 +0300, Felipe Contreras wrote:
+> drivers/acpi/acpica/tbfadt.c: In function =E2=80=98acpi_tb_create_loc=
+al_fadt=E2=80=99:
+> arch/x86/include/asm/string_32.h:74: warning: array subscript is abov=
+e array bounds
+>=20
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 
-These are also likely needed in 2.6.31, please add appropriate Cc: lines to
-stable@kernel.org while adding the Acked-By's.
+Could you run this through checkpatch also, it looks like you have a fe=
+w
+style issues..
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Daniel
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
