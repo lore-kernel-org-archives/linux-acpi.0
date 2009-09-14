@@ -1,38 +1,58 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v4] topstar-laptop: add new driver for hotkeys support on Topstar N01
-Date: Mon, 14 Sep 2009 09:30:14 -0600
-Message-ID: <200909140930.14874.bjorn.helgaas@hp.com>
-References: <200909092102.22152.herton@mandriva.com.br> <200909101702.54249.bjorn.helgaas@hp.com> <200909120155.45521.herton@mandriva.com.br>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH 0/4] ACPI: Remove unnecessary code in acpi drivers
+Date: Mon, 14 Sep 2009 17:09:25 +0100
+Message-ID: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:28420 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632AbZINPaN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 11:30:13 -0400
-In-Reply-To: <200909120155.45521.herton@mandriva.com.br>
-Content-Disposition: inline
+Received: from mxout-08.mxes.net ([216.86.168.183]:63735 "EHLO
+	mxout-08.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751697AbZINQJd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 12:09:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Alan Jenkins <sourcejedi.lkml@googlemail.com>, Corentin Chary <corentin.chary@gmail.com>
+To: lenb@kernel.org
+Cc: bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org
 
-On Friday 11 September 2009 10:55:45 pm Herton Ronaldo Krzesinski wrote:
-> +static int acpi_topstar_remove(struct acpi_device *device, int type)
-> +{
-> +	struct topstar_hkey *tps_hkey = acpi_driver_data(device);
-> +
-> +	acpi_topstar_fncx_switch(device, false);
-> +
-> +	input_unregister_device(tps_hkey->inputdev);
-> +	kfree(tps_hkey);
-> +	device->driver_data = NULL;
+Bjorn critiqued some code in a new acpi driver as unnecesary. However,
+the same code patterns are present in most acpi drivers.  Let's remove
+them all.
 
-I think you should remove this "driver_data = NULL" assignment.
-Clearing it in the driver helps cover up bugs like the one Alan
-just fixed:
-  http://marc.info/?l=linux-acpi&m=125276975701005&w=2
+The first patch ammends acpi/scan.c so that the following NULL
+assignment pattern can be removed with complete confidence:
 
-Bjorn
+    acpi_driver_remove(acpi_device *device, int removal_type) 
+    {
+	...
+	device->driverdata = NULL;
+    }
+
+Some failure paths in scan.c were omitting to clear device->driverdata,
+and more seriously device->driver, so I fixed that before removing the
+NULL assignments from drivers.
+
+In total this removes ~150 lines.
+
+ drivers/acpi/ac.c                       |   23 +++------------
+ drivers/acpi/acpi_memhotplug.c          |   13 ++-------
+ drivers/acpi/battery.c                  |   18 +++---------
+ drivers/acpi/container.c                |   12 ++------
+ drivers/acpi/ec.c                       |    9 +-----
+ drivers/acpi/fan.c                      |   14 +---------
+ drivers/acpi/pci_link.c                 |   11 ++++---
+ drivers/acpi/power.c                    |   19 ++-----------
+ drivers/acpi/processor_core.c           |    7 +----
+ drivers/acpi/sbs.c                      |   11 +------
+ drivers/acpi/sbshc.c                    |   17 +----------
+ drivers/acpi/scan.c                     |   45 ++++++++++++++++++------------
+ drivers/acpi/thermal.c                  |   21 +++-----------
+ drivers/acpi/video.c                    |   17 ++---------
+ drivers/hwmon/asus_atk0110.c            |    2 -
+ drivers/hwmon/hp_accel.c                |    9 ------
+ drivers/input/misc/atlas_btns.c         |    5 +---
+ drivers/platform/x86/asus-laptop.c      |    9 ------
+ drivers/platform/x86/asus_acpi.c        |    9 ------
+ drivers/platform/x86/eeepc-laptop.c     |    7 -----
+ drivers/platform/x86/fujitsu-laptop.c   |    6 ----
+ drivers/platform/x86/intel_menlow.c     |    6 ----
+ drivers/platform/x86/panasonic-laptop.c |   16 +---------
+ drivers/platform/x86/wmi.c              |    3 --
+24 files changed, 70 insertions(+), 239 deletions(-)
