@@ -1,44 +1,53 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: Re: [PATCH 3/3] dell-laptop: fix rfkill memory leak on unload
-Date: Mon, 14 Sep 2009 14:01:58 +0200
-Message-ID: <200909141401.58428.corentincj@iksaif.net>
-References: <1252925033-29696-1-git-send-email-corentincj@iksaif.net> <20090914104616.GA6170@srcf.ucam.org> <4AAE22CF.1020609@tuffmail.co.uk>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 2/3] thinkpad_acpi: fix rfkill memory leak on unload
+Date: Mon, 14 Sep 2009 10:22:07 -0300
+Message-ID: <20090914132207.GB32253@khazad-dum.debian.net>
+References: <1252925033-29696-1-git-send-email-corentincj@iksaif.net>
+ <1252925033-29696-2-git-send-email-corentincj@iksaif.net>
+ <1252925033-29696-3-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:38047 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276AbZINMBv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 08:01:51 -0400
-In-Reply-To: <4AAE22CF.1020609@tuffmail.co.uk>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59591 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755389AbZINNWH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Sep 2009 09:22:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1252925033-29696-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Johannes Berg <johannes@sipsolutions.net>
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Julia Lawall <julia@diku.dk>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Johannes Berg <johannes@sipsolutions.net>
 
-On Monday 14 September 2009 13:02:39 Alan Jenkins wrote:
-> Matthew Garrett wrote:
-> > On Mon, Sep 14, 2009 at 12:43:53PM +0200, Corentin Chary wrote:
-> >> rfkill_unregister() should always be followed by rfkill_destroy()
-> >>
-> >> Cc: Matthew Garrett <mjg@redhat.com>
-> >> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> >
-> > Acked-by: Matthew Garrett <mjg@redhat.com>
+On Mon, 14 Sep 2009, Corentin Chary wrote:
+> rfkill_unregister() should always be followed by rfkill_destroy()
 > 
-> I can endorse this as I already submitted something similar :-).
-> <http://patchwork.kernel.org/patch/42699/> (with a disclaimer that it
-> was not tested on dell hardware).
+> Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 
-I haven't seen your patch, sorry :/
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: stable@kernel.org
 
-It also conflicts with http://patchwork.kernel.org/patch/42705/ (I set 
-wlan_rfkill to NULL to avoid use-after-free).
-
-Let's drop this patch and merge your series
+> ---
+>  drivers/platform/x86/thinkpad_acpi.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+> index e856008..21c9715 100644
+> --- a/drivers/platform/x86/thinkpad_acpi.c
+> +++ b/drivers/platform/x86/thinkpad_acpi.c
+> @@ -1278,6 +1278,7 @@ static void tpacpi_destroy_rfkill(const enum tpacpi_rfk_id id)
+>  	tp_rfk = tpacpi_rfkill_switches[id];
+>  	if (tp_rfk) {
+>  		rfkill_unregister(tp_rfk->rfkill);
+> +		rfkill_destroy(tp_rfk->rfkill);
+>  		tpacpi_rfkill_switches[id] = NULL;
+>  		kfree(tp_rfk);
+>  	}
 
 -- 
-Corentin Chary
-http://xf.iksaif.net
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
