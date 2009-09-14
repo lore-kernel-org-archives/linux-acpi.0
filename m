@@ -1,100 +1,78 @@
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 1/4] ACPI: Remember to clear acpi_dev->driver after calling ops.remove()
-Date: Mon, 14 Sep 2009 17:09:26 +0100
-Message-ID: <1252944569-29799-2-git-send-email-alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH 2/4] ACPI: Remove uneccessary NULL assignments in acpi drivers
+Date: Mon, 14 Sep 2009 17:09:27 +0100
+Message-ID: <1252944569-29799-3-git-send-email-alan-jenkins@tuffmail.co.uk>
 References: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxout-08.mxes.net ([216.86.168.183]:63743 "EHLO
+Received: from mxout-08.mxes.net ([216.86.168.183]:63755 "EHLO
 	mxout-08.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755071AbZINQJe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 12:09:34 -0400
+	with ESMTP id S1756016AbZINQJf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 12:09:35 -0400
 In-Reply-To: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-If an error occurs while binding a driver to a device and we call
-remove(), we should also clear acpi->driver and acpi_dev->driverdata.
-Otherwise bad things will happen e.g. we will invoke the suspend()
-driver callback when the system is suspended, even though the driver
-thinks it has been unbound from the device.
-
-Also check the return value of acpi_start_single_object().  I'm not
-sure what will happen if we claim success despite seeing ops.start()
-fail and then calling ops.remove(), but it can't be good.
+The core is responsibile for clearing device->driverdata on removal.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c |   45 +++++++++++++++++++++++++++------------------
- 1 files changed, 27 insertions(+), 18 deletions(-)
+ drivers/acpi/ec.c            |    1 -
+ drivers/acpi/sbshc.c         |    1 -
+ drivers/acpi/video.c         |    1 -
+ drivers/hwmon/asus_atk0110.c |    2 --
+ 4 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 957620b..cde179e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -423,26 +423,33 @@ static int acpi_device_probe(struct device * dev)
- 	int ret;
- 
- 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
--	if (!ret) {
--		if (acpi_dev->bus_ops.acpi_op_start)
--			acpi_start_single_object(acpi_dev);
--
--		if (acpi_drv->ops.notify) {
--			ret = acpi_device_install_notify_handler(acpi_dev);
--			if (ret) {
--				if (acpi_drv->ops.remove)
--					acpi_drv->ops.remove(acpi_dev,
--						     acpi_dev->removal_type);
--				return ret;
--			}
--		}
-+	if (ret)
-+		return ret;
- 
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			"Found driver [%s] for device [%s]\n",
--			acpi_drv->name, acpi_dev->pnp.bus_id));
--		get_device(dev);
-+	if (acpi_dev->bus_ops.acpi_op_start) {
-+		ret = acpi_start_single_object(acpi_dev);
-+		if (ret)
-+			return ret;
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 64a20ef..add6621 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -852,7 +852,6 @@ static int acpi_ec_remove(struct acpi_device *device, int type)
  	}
--	return ret;
-+
-+	if (acpi_drv->ops.notify) {
-+		ret = acpi_device_install_notify_handler(acpi_dev);
-+		if (ret) {
-+			if (acpi_drv->ops.remove)
-+				acpi_drv->ops.remove(acpi_dev,
-+						acpi_dev->removal_type);
-+			acpi_dev->driver = NULL;
-+			acpi_dev->driver_data = NULL;
-+			return ret;
-+		}
-+	}
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+		"Found driver [%s] for device [%s]\n",
-+		acpi_drv->name, acpi_dev->pnp.bus_id));
-+	get_device(dev);
-+
-+	return 0;
+ 	mutex_unlock(&ec->lock);
+ 	acpi_ec_remove_fs(device);
+-	device->driver_data = NULL;
+ 	if (ec == first_ec)
+ 		first_ec = NULL;
+ 	kfree(ec);
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index d933980..8d89337 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -304,7 +304,6 @@ static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
+ 	hc = acpi_driver_data(device);
+ 	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
+ 	kfree(hc);
+-	device->driver_data = NULL;
+ 	return 0;
  }
  
- static int acpi_device_remove(struct device * dev)
-@@ -617,6 +624,8 @@ static int acpi_start_single_object(struct acpi_device *device)
- 		result = driver->ops.start(device);
- 		if (result && driver->ops.remove)
- 			driver->ops.remove(device, ACPI_BUS_REMOVAL_NORMAL);
-+		device->driver = NULL;
-+		device->driver_data = NULL;
- 	}
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index b51f1fe..f405807 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -2345,7 +2345,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
+ 	acpi_video_bus_remove_fs(device);
+  err_free_video:
+ 	kfree(video);
+-	device->driver_data = NULL;
  
- 	return result;
+ 	return error;
+ }
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index fe4fa29..7fc7625 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -982,8 +982,6 @@ static int atk_remove(struct acpi_device *device, int type)
+ 	struct atk_data *data = device->driver_data;
+ 	dev_dbg(&device->dev, "removing...\n");
+ 
+-	device->driver_data = NULL;
+-
+ 	atk_remove_files(data);
+ 	atk_free_sensors(data);
+ 	hwmon_device_unregister(data->hwmon_dev);
 -- 
 1.6.3.2
 
