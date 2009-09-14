@@ -1,58 +1,100 @@
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 0/4] ACPI: Remove unnecessary code in acpi drivers
-Date: Mon, 14 Sep 2009 17:09:25 +0100
-Message-ID: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH 1/4] ACPI: Remember to clear acpi_dev->driver after calling ops.remove()
+Date: Mon, 14 Sep 2009 17:09:26 +0100
+Message-ID: <1252944569-29799-2-git-send-email-alan-jenkins@tuffmail.co.uk>
+References: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxout-08.mxes.net ([216.86.168.183]:63735 "EHLO
+Received: from mxout-08.mxes.net ([216.86.168.183]:63743 "EHLO
 	mxout-08.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbZINQJd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 12:09:33 -0400
+	with ESMTP id S1755071AbZINQJe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 12:09:34 -0400
+In-Reply-To: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org
+Cc: bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Bjorn critiqued some code in a new acpi driver as unnecesary. However,
-the same code patterns are present in most acpi drivers.  Let's remove
-them all.
+If an error occurs while binding a driver to a device and we call
+remove(), we should also clear acpi->driver and acpi_dev->driverdata.
+Otherwise bad things will happen e.g. we will invoke the suspend()
+driver callback when the system is suspended, even though the driver
+thinks it has been unbound from the device.
 
-The first patch ammends acpi/scan.c so that the following NULL
-assignment pattern can be removed with complete confidence:
+Also check the return value of acpi_start_single_object().  I'm not
+sure what will happen if we claim success despite seeing ops.start()
+fail and then calling ops.remove(), but it can't be good.
 
-    acpi_driver_remove(acpi_device *device, int removal_type) 
-    {
-	...
-	device->driverdata = NULL;
-    }
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ drivers/acpi/scan.c |   45 +++++++++++++++++++++++++++------------------
+ 1 files changed, 27 insertions(+), 18 deletions(-)
 
-Some failure paths in scan.c were omitting to clear device->driverdata,
-and more seriously device->driver, so I fixed that before removing the
-NULL assignments from drivers.
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 957620b..cde179e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -423,26 +423,33 @@ static int acpi_device_probe(struct device * dev)
+ 	int ret;
+ 
+ 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+-	if (!ret) {
+-		if (acpi_dev->bus_ops.acpi_op_start)
+-			acpi_start_single_object(acpi_dev);
+-
+-		if (acpi_drv->ops.notify) {
+-			ret = acpi_device_install_notify_handler(acpi_dev);
+-			if (ret) {
+-				if (acpi_drv->ops.remove)
+-					acpi_drv->ops.remove(acpi_dev,
+-						     acpi_dev->removal_type);
+-				return ret;
+-			}
+-		}
++	if (ret)
++		return ret;
+ 
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-			"Found driver [%s] for device [%s]\n",
+-			acpi_drv->name, acpi_dev->pnp.bus_id));
+-		get_device(dev);
++	if (acpi_dev->bus_ops.acpi_op_start) {
++		ret = acpi_start_single_object(acpi_dev);
++		if (ret)
++			return ret;
+ 	}
+-	return ret;
++
++	if (acpi_drv->ops.notify) {
++		ret = acpi_device_install_notify_handler(acpi_dev);
++		if (ret) {
++			if (acpi_drv->ops.remove)
++				acpi_drv->ops.remove(acpi_dev,
++						acpi_dev->removal_type);
++			acpi_dev->driver = NULL;
++			acpi_dev->driver_data = NULL;
++			return ret;
++		}
++	}
++
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++		"Found driver [%s] for device [%s]\n",
++		acpi_drv->name, acpi_dev->pnp.bus_id));
++	get_device(dev);
++
++	return 0;
+ }
+ 
+ static int acpi_device_remove(struct device * dev)
+@@ -617,6 +624,8 @@ static int acpi_start_single_object(struct acpi_device *device)
+ 		result = driver->ops.start(device);
+ 		if (result && driver->ops.remove)
+ 			driver->ops.remove(device, ACPI_BUS_REMOVAL_NORMAL);
++		device->driver = NULL;
++		device->driver_data = NULL;
+ 	}
+ 
+ 	return result;
+-- 
+1.6.3.2
 
-In total this removes ~150 lines.
-
- drivers/acpi/ac.c                       |   23 +++------------
- drivers/acpi/acpi_memhotplug.c          |   13 ++-------
- drivers/acpi/battery.c                  |   18 +++---------
- drivers/acpi/container.c                |   12 ++------
- drivers/acpi/ec.c                       |    9 +-----
- drivers/acpi/fan.c                      |   14 +---------
- drivers/acpi/pci_link.c                 |   11 ++++---
- drivers/acpi/power.c                    |   19 ++-----------
- drivers/acpi/processor_core.c           |    7 +----
- drivers/acpi/sbs.c                      |   11 +------
- drivers/acpi/sbshc.c                    |   17 +----------
- drivers/acpi/scan.c                     |   45 ++++++++++++++++++------------
- drivers/acpi/thermal.c                  |   21 +++-----------
- drivers/acpi/video.c                    |   17 ++---------
- drivers/hwmon/asus_atk0110.c            |    2 -
- drivers/hwmon/hp_accel.c                |    9 ------
- drivers/input/misc/atlas_btns.c         |    5 +---
- drivers/platform/x86/asus-laptop.c      |    9 ------
- drivers/platform/x86/asus_acpi.c        |    9 ------
- drivers/platform/x86/eeepc-laptop.c     |    7 -----
- drivers/platform/x86/fujitsu-laptop.c   |    6 ----
- drivers/platform/x86/intel_menlow.c     |    6 ----
- drivers/platform/x86/panasonic-laptop.c |   16 +---------
- drivers/platform/x86/wmi.c              |    3 --
-24 files changed, 70 insertions(+), 239 deletions(-)
