@@ -1,131 +1,27 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [Bug 14159] AIC79xx is not working properly with an attached
- scsi tape since 2.6.29
-Date: Tue, 15 Sep 2009 08:55:46 -0500
-Message-ID: <1253022946.29947.1.camel@mulgrave.site>
-References: <bug-14159-11613@http.bugzilla.kernel.org/>
-	 <200909151307.n8FD7jBC002000@demeter.kernel.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Bug 14159] AIC79xx is not working properly with an attached scsi tape since 2.6.29
+Date: Tue, 15 Sep 2009 09:08:07 -0600
+Message-ID: <200909150908.07780.bjorn.helgaas@hp.com>
+References: <bug-14159-11613@http.bugzilla.kernel.org/> <200909151307.n8FD7jBC002000@demeter.kernel.org> <1253022946.29947.1.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <200909151307.n8FD7jBC002000@demeter.kernel.org>
+In-Reply-To: <1253022946.29947.1.camel@mulgrave.site>
+Content-Disposition: inline
 Sender: linux-scsi-owner@vger.kernel.org
-To: bugzilla-daemon@bugzilla.kernel.org
-Cc: linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: bugzilla-daemon@bugzilla.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Stefan Assmann <sassmann@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2009-09-15 at 13:07 +0000, bugzilla-daemon@bugzilla.kernel.org
-wrote:
-> http://bugzilla.kernel.org/show_bug.cgi?id=14159
+> > http://bugzilla.kernel.org/show_bug.cgi?id=14159
+> > --- Comment #8 from g.giorgetti@teamsystem.com  2009-09-15 13:07:42 ---
+> > All right, we've just rebooted the server and tried with the "noioapicquirk"
+> > param and everything is fine.
 
-cc'ing linux-acpi
+Great, thanks.  Gabriele, could you attach the "lspci -nn" output,
+please?  I'm hoping Stefan will update the quirk, and I think he'll
+need the numeric device ID.
 
-James
-
-> --- Comment #8 from g.giorgetti@teamsystem.com  2009-09-15 13:07:42 ---
-> All right, we've just rebooted the server and tried with the "noioapicquirk"
-> param and everything is fine.
-> 
-> Looking at the patch you put up in your reply I can see some code for amd_813x
-> (quirk_disable_amd_813x_boot_interrupt and the definition for AMD_813X_REV_B2)
-> 
-> So just in case you need it, I'm pasting the lspci for the AMD-8131 we have.
-> Please let me know if you need anything else.
-> 
-> Thank you,
->  Gabriele
-> 
-> 
-> 
-> 40:0f.0 PCI bridge: Advanced Micro Devices [AMD] AMD-8131 PCI-X Bridge (rev 12)
-> (prog-if 00 [Normal decode])
->     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+
-> Stepping- SERR+ FastB2B-
->     Status: Cap+ 66MHz+ UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort-
-> <MAbort- >SERR- <PERR-
->     Latency: 150
->     Bus: primary=40, secondary=41, subordinate=41, sec-latency=96
->     I/O behind bridge: 00007000-00007fff
->     Memory behind bridge: e1f00000-e1ffffff
->     Prefetchable memory behind bridge: 00000000e0200000-00000000e02fffff
->     Secondary status: 66MHz+ FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort-
-> <MAbort- <SERR- <PERR-
->     BridgeCtl: Parity+ SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
->     Capabilities: [a0] PCI-X bridge device
->         Secondary Status: 64bit+ 133MHz+ SCD- USC- SCO- SRD- Freq=133MHz
->         Status: Dev=40:0f.0 64bit+ 133MHz+ SCD- USC- SCO- SRD-
->         Upstream: Capacity=14 CommitmentLimit=65535
->         Downstream: Capacity=2 CommitmentLimit=65535
->     Capabilities: [b8] HyperTransport: Interrupt Discovery and Configuration
->     Capabilities: [c0] HyperTransport: Slave or Primary Interface
->         !!! Possibly incomplete decoding
->         Command: BaseUnitID=15 UnitCnt=2 MastHost- DefDir-
->         Link Control 0: CFlE- CST- CFE- <LkFail- Init+ EOC- TXO- <CRCErr=0
->         Link Config 0: MLWI=16bit MLWO=16bit LWI=16bit LWO=16bit
->         Link Control 1: CFlE- CST- CFE- <LkFail+ Init- EOC+ TXO+ <CRCErr=0
->         Link Config 1: MLWI=8bit MLWO=8bit LWI=N/C LWO=N/C
->         Revision ID: 1.02
-> 
-> 40:0f.1 PIC: Advanced Micro Devices [AMD] AMD-8131 PCI-X IOAPIC (rev 01)
-> (prog-if 10 [IO-APIC])
->     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B-
->     Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort-
-> <MAbort- >SERR- <PERR-
->     Latency: 0
-> 
-> 40:10.0 PCI bridge: Advanced Micro Devices [AMD] AMD-8131 PCI-X Bridge (rev 12)
-> (prog-if 00 [Normal decode])
->     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+
-> Stepping- SERR+ FastB2B-
->     Status: Cap+ 66MHz+ UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort-
-> <MAbort- >SERR- <PERR-
->     Latency: 150
->     Bus: primary=40, secondary=42, subordinate=42, sec-latency=0
->     I/O behind bridge: 0000f000-00000fff
->     Memory behind bridge: fff00000-000fffff
->     Prefetchable memory behind bridge: 00000000fff00000-00000000000fffff
->     Secondary status: 66MHz+ FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort-
-> <MAbort+ <SERR- <PERR-
->     BridgeCtl: Parity- SERR- NoISA- VGA- MAbort- >Reset- FastB2B-
->     Capabilities: [a0] PCI-X bridge device
->         Secondary Status: 64bit+ 133MHz+ SCD- USC- SCO- SRD- Freq=conv
->         Status: Dev=40:10.0 64bit+ 133MHz+ SCD- USC- SCO- SRD-
->         Upstream: Capacity=14 CommitmentLimit=65535
->         Downstream: Capacity=2 CommitmentLimit=65535
->     Capabilities: [b8] HyperTransport: Interrupt Discovery and Configuration
-> 
-> 40:10.1 PIC: Advanced Micro Devices [AMD] AMD-8131 PCI-X IOAPIC (rev 01)
-> (prog-if 10 [IO-APIC])
->     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B-
->     Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort-
-> <MAbort- >SERR- <PERR-
->     Latency: 0
-> 
-> 41:01.0 SCSI storage controller: Adaptec ASC-29320ALP U320 (rev 10)
->     Subsystem: Adaptec Unknown device 0044
->     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+
-> Stepping- SERR+ FastB2B-
->     Status: Cap+ 66MHz+ UDF- FastB2B- ParErr- DEVSEL=slow >TAbort- <TAbort-
-> <MAbort- >SERR- <PERR-
->     Latency: 148 (10000ns min, 6250ns max), Cache Line Size: 64 bytes
->     Interrupt: pin A routed to IRQ 19
->     Region 0: I/O ports at 7000 [disabled] [size=256]
->     Region 1: Memory at e1f80000 (64-bit, non-prefetchable) [size=8K]
->     Region 3: I/O ports at 7800 [disabled] [size=256]
->     [virtual] Expansion ROM at e0200000 [disabled] [size=512K]
->     Capabilities: [dc] Power Management version 2
->         Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA
-> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->         Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->     Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/1
-> Enable-
->         Address: 0000000000000000  Data: 0000
->     Capabilities: [94] PCI-X non-bridge device
->         Command: DPERE- ERO- RBC=512 OST=3
->         Status: Dev=41:01.0 64bit+ 133MHz+ SCD- USC- DC=simple DMMRBC=512
-> DMOST=8 DMCRS=16 RSCEM- 266MHz- 533MHz-
-> 
 
