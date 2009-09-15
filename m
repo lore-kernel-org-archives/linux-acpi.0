@@ -1,45 +1,61 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: How to backlight_device_register with some kind of "low prior"
 	(for KMS)
-Date: Tue, 15 Sep 2009 09:54:20 +0200
-Message-ID: <b170af450909150054q5f5958f7rcaf66d16c0fd358a@mail.gmail.com>
+Date: Tue, 15 Sep 2009 16:17:04 +0800
+Message-ID: <1253002624.32627.2.camel@rzhang-dt>
 References: <b170af450909142324i478b453fw105554eb584e7181@mail.gmail.com>
-	 <1253000634.2504.27.camel@rzhang-dt>
+	<1253000634.2504.27.camel@rzhang-dt>
+	<b170af450909150054q5f5958f7rcaf66d16c0fd358a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:53505 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738AbZIOHyU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2009 03:54:20 -0400
-Received: by ewy2 with SMTP id 2so210090ewy.17
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2009 00:54:23 -0700 (PDT)
-In-Reply-To: <1253000634.2504.27.camel@rzhang-dt>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <b170af450909150054q5f5958f7rcaf66d16c0fd358a@mail.gmail.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=dri-devel>
+List-Post: <mailto:dri-devel@lists.sourceforge.net>
+List-Help: <mailto:dri-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.sourceforge.net
+To: =?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5@gmail.com>
+Cc: "Zhao, Yakui" <yakui.zhao@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "dri-devel@lists.sourceforge.net" <dri-devel@lists.sourceforge.net>, Richard Purdie <rpurdie@rpsys.net>, "Barnes,
+	Jesse" <jbarnes@virtuousgeek.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, dri-devel@lists.sourceforge.net, "Zhao, Yakui" <yakui.zhao@intel.com>, "Barnes, Jesse" <jbarnes@virtuousgeek.org>
 
-OK, you provided me fair amount of texts to read :)
-
-W dniu 15 wrze=C5=9Bnia 2009 09:43 u=C5=BCytkownik Zhang Rui
-<rui.zhang@intel.com> napisa=C5=82:
-> And I think it may work for you as well, i.e. two backlight sysfs I/F
-> may co-exist, it's the user space to decide which I/F to use.
-
-Could you  explain, please, how does work Fn+F5 and Fn+F6 in
-notebooks? I thought it generates some ACPI that kernel identifies as
-backlight up/down and kernel passes it to module registered with:
-backlight_device_register(...)
-is that right?
-
-Then two backlight devices would be a problem, I guess?
-
---=20
-Rafa=C5=82
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCAyMDA5LTA5LTE1IGF0IDE1OjU0ICswODAwLCBSYWZhxYIgTWnFgmVja2kgd3JvdGU6
+IAo+IE9LLCB5b3UgcHJvdmlkZWQgbWUgZmFpciBhbW91bnQgb2YgdGV4dHMgdG8gcmVhZCA6KQo+
+IAo+IFcgZG5pdSAxNSB3cnplxZtuaWEgMjAwOSAwOTo0MyB1xbx5dGtvd25payBaaGFuZyBSdWkK
+PiA8cnVpLnpoYW5nQGludGVsLmNvbT4gbmFwaXNhxYI6Cj4gPiBBbmQgSSB0aGluayBpdCBtYXkg
+d29yayBmb3IgeW91IGFzIHdlbGwsIGkuZS4gdHdvIGJhY2tsaWdodCBzeXNmcyBJL0YKPiA+IG1h
+eSBjby1leGlzdCwgaXQncyB0aGUgdXNlciBzcGFjZSB0byBkZWNpZGUgd2hpY2ggSS9GIHRvIHVz
+ZS4KPiAKPiBDb3VsZCB5b3UgIGV4cGxhaW4sIHBsZWFzZSwgaG93IGRvZXMgd29yayBGbitGNSBh
+bmQgRm4rRjYgaW4KPiBub3RlYm9va3M/IEkgdGhvdWdodCBpdCBnZW5lcmF0ZXMgc29tZSBBQ1BJ
+IHRoYXQga2VybmVsIGlkZW50aWZpZXMgYXMKPiBiYWNrbGlnaHQgdXAvZG93biBhbmQga2VybmVs
+IHBhc3NlcyBpdCB0byBtb2R1bGUgcmVnaXN0ZXJlZCB3aXRoOgo+IGJhY2tsaWdodF9kZXZpY2Vf
+cmVnaXN0ZXIoLi4uKQo+IGlzIHRoYXQgcmlnaHQ/Cj4gCk5vLi4uCgp0aGUgaG90a2V5IGV2ZW50
+cyBjYW4gYmUgY29udHJvbGxlZCBlaXRoZXIgYnkgQUNQSSB2aWRlbyBkZXZpY2Ugb3IgYnkKQUNQ
+SSBwbGF0Zm9ybSBzcGVjaWZpYyBkZXZpY2UsIHNheSBzb255LWxhcHRvcC4KVGhlcmUgYXJlIGFs
+c28gb3RoZXIgd2F5cyB0aGF0IEFDUEkgaXMgbm90IGludm9sdmVkIGJ1dCB0aGV5J3JlIGJleW9u
+ZApteSBzY29wZS4gOikKCklmIGl0J3MgY29udHJvbGxlZCB2aWEgQUNQSSB2aWRlbyBkZXZpY2Us
+IHRoZSBBQ1BJIHZpZGVvIGJhY2tsaWdodApjb250cm9sIHVzdWFsbHkgd29ya3MgYXQgdGhpcyB0
+aW1lLiBXaGVuIGhvdGtleSBpcyBwcmVzc2VkLCBhbiBBQ1BJCm5vdGlmaWNhdGlvbiBpcyBzZW50
+IHRvIEFDUEkgdmlkZW8gZGV2aWNlLCBhbmQgdGhlbiB0aGUgYmFja2xpZ2h0IGlzCmNoYW5nZWQg
+dmlhIEFDUEkgY29udHJvbCBtZXRob2RzIChfQkNNL19CQ0wvX0JRQykuCgpJZiBpdCdzIGNvbnRy
+b2xsZWQgaW4gQUNQSSBwbGF0Zm9ybSBzcGVjaWZpYyB3YXksIHRoZW4gdGhlIHBsYXRmb3JtCnNw
+ZWNpZmljIGRyaXZlciAoZS5nLiBzb255LWxhcHRvcCkgY2FuIGNhdGNoIHRoZSBldmVudCB3aGVu
+IGhvdGtleSBpcwpwcmVzc2VkIGFuZCBpbnZva2VzIHRoZSBwbGF0Zm9ybSBzcGVjaWZpYyBtZXRo
+b2RzIHRvIGNoYW5nZSB0aGUKYmFja2xpZ2h0LgoKPiBUaGVuIHR3byBiYWNrbGlnaHQgZGV2aWNl
+cyB3b3VsZCBiZSBhIHByb2JsZW0sIEkgZ3Vlc3M/Cj4gCkkgYWdyZWUuIGJ1dCB3ZSBkb24ndCBo
+YXZlIGFueSBiZXR0ZXIgaWRlYSBmb3Igbm93LiA6KAoKdGhhbmtzLApydWkKCgotLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0KQ29tZSBidWlsZCB3aXRoIHVzISBUaGUgQmxhY2tCZXJyeSZyZWc7IERldmVs
+b3BlciBDb25mZXJlbmNlIGluIFNGLCBDQQppcyB0aGUgb25seSBkZXZlbG9wZXIgZXZlbnQgeW91
+IG5lZWQgdG8gYXR0ZW5kIHRoaXMgeWVhci4gSnVtcHN0YXJ0IHlvdXIKZGV2ZWxvcGluZyBza2ls
+bHMsIHRha2UgQmxhY2tCZXJyeSBtb2JpbGUgYXBwbGljYXRpb25zIHRvIG1hcmtldCBhbmQgc3Rh
+eSAKYWhlYWQgb2YgdGhlIGN1cnZlLiBKb2luIHVzIGZyb20gTm92ZW1iZXIgOSYjNDU7MTIsIDIw
+MDkuIFJlZ2lzdGVyIG5vdyYjMzM7Cmh0dHA6Ly9wLnNmLm5ldC9zZnUvZGV2Y29uZgotLQpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpEcmktZGV2ZWwgbWFp
+bGluZyBsaXN0CkRyaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5z
+b3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGluZm8vZHJpLWRldmVsCg==
