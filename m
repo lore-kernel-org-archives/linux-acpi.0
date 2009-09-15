@@ -1,391 +1,359 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 4/4] ACPI: Remove uneccesary acpi_disabled checks in acpi drivers
-Date: Mon, 14 Sep 2009 13:46:31 -0600
-Message-ID: <200909141346.31381.bjorn.helgaas@hp.com>
-References: <1252944569-29799-1-git-send-email-alan-jenkins@tuffmail.co.uk> <1252944569-29799-5-git-send-email-alan-jenkins@tuffmail.co.uk>
+From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+Subject: [PATCH v6] topstar-laptop: add new driver for hotkeys support on Topstar N01
+Date: Mon, 14 Sep 2009 21:11:21 -0300
+Message-ID: <200909142111.22037.herton@mandriva.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:23708 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756865AbZINTq3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 15:46:29 -0400
-In-Reply-To: <1252944569-29799-5-git-send-email-alan-jenkins@tuffmail.co.uk>
-Content-Disposition: inline
+Received: from perninha.conectiva.com.br ([200.140.247.100]:41129 "EHLO
+	perninha.conectiva.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754810AbZIOALy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2009 20:11:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>, Alan Jenkins <sourcejedi.lkml@googlemail.com>, Corentin Chary <corentin.chary@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Monday 14 September 2009 10:09:29 am Alan Jenkins wrote:
-> acpi_bus_register_driver() already checks acpi_disabled, so acpi bus
-> drivers don't need to.  Also, pass on the return value when it fails
-> instead of assuming ENODEV.
-> 
-> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+This adds Topstar Laptop Extras ACPI driver. It enables hotkeys
+functionality with Topstar N01 netbook. Besides hotkeys there are
+other functions exposed by its ACPI firmware, but for now only
+hotkeys reporting on Topstar N01 is supported. Topstar is a chinese
+manufacturer, its website can be currently reached at
+http://www.topstardigital.cn/
 
-Reviewed-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Reviewed-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+---
+ MAINTAINERS                           |    5 +
+ drivers/platform/x86/Kconfig          |    9 +
+ drivers/platform/x86/Makefile         |    1 +
+ drivers/platform/x86/topstar-laptop.c |  265 +++++++++++++++++++++++++++++++++
+ 4 files changed, 280 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/platform/x86/topstar-laptop.c
 
-Minor comments below.  Thanks for doing this.
+v5 - review fixes
+v6 - more review fixes: remove additional check when manually modprobing module,
+remove uneeded driver_data = NULL from acpi_topstar_remove
 
-> ---
->  drivers/acpi/ac.c                       |    5 +----
->  drivers/acpi/acpi_memhotplug.c          |    2 +-
->  drivers/acpi/battery.c                  |    2 --
->  drivers/acpi/container.c                |    4 ++--
->  drivers/acpi/ec.c                       |    2 +-
->  drivers/acpi/fan.c                      |    2 +-
->  drivers/acpi/pci_link.c                 |   11 ++++++-----
->  drivers/acpi/power.c                    |    2 +-
->  drivers/acpi/sbs.c                      |    4 +---
->  drivers/acpi/sbshc.c                    |    7 +------
->  drivers/acpi/thermal.c                  |    2 +-
->  drivers/acpi/video.c                    |    2 +-
->  drivers/hwmon/hp_accel.c                |    3 ---
->  drivers/input/misc/atlas_btns.c         |    5 +----
->  drivers/platform/x86/asus-laptop.c      |    3 ---
->  drivers/platform/x86/asus_acpi.c        |    3 ---
->  drivers/platform/x86/eeepc-laptop.c     |    2 --
->  drivers/platform/x86/panasonic-laptop.c |    7 ++-----
->  drivers/platform/x86/wmi.c              |    3 ---
->  19 files changed, 20 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index 7725bda..142744a 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -338,9 +338,6 @@ static int __init acpi_ac_init(void)
->  {
->  	int result;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> -
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  	acpi_ac_dir = acpi_lock_ac_dir();
->  	if (!acpi_ac_dir)
-> @@ -352,7 +349,7 @@ static int __init acpi_ac_init(void)
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  		acpi_unlock_ac_dir(acpi_ac_dir);
->  #endif
-
-Idle thought: I wonder if it'd be worth having a driver method
-for procfs/sysfs management.  There are a bunch of drivers that
-do this, and it's always a pain to figure out whether they do
-the right thing and in the right order.
-
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return 0;
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 71085b9..30a4600 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -526,7 +526,7 @@ static int __init acpi_memory_device_init(void)
->  	result = acpi_bus_register_driver(&acpi_memory_device_driver);
->  
->  	if (result < 0)
-> -		return -ENODEV;
-> +		return result;
->  
->  	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
->  				     ACPI_UINT32_MAX,
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 90e39d9..f451dc0 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -907,8 +907,6 @@ static struct acpi_driver acpi_battery_driver = {
->  
->  static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
->  {
-> -	if (acpi_disabled)
-> -		return;
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  	acpi_battery_dir = acpi_lock_battery_dir();
->  	if (!acpi_battery_dir)
-> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> index 30c4700..c54b69b 100644
-> --- a/drivers/acpi/container.c
-> +++ b/drivers/acpi/container.c
-> @@ -245,7 +245,7 @@ static int __init acpi_container_init(void)
->  
->  	result = acpi_bus_register_driver(&acpi_container_driver);
->  	if (result < 0) {
-> -		return (result);
-> +		return result;
->  	}
->  
->  	/* register notify handler to every container device */
-> @@ -254,7 +254,7 @@ static int __init acpi_container_init(void)
->  			    ACPI_UINT32_MAX,
->  			    container_walk_namespace_cb, &action, NULL);
->  
-> -	return (0);
-> +	return 0;
->  }
->  
->  static void __exit acpi_container_exit(void)
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 5e93ae3..26c58a3 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -1010,7 +1010,7 @@ int __init acpi_ec_init(void)
->  	result = acpi_bus_register_driver(&acpi_ec_driver);
->  	if (result < 0) {
->  		remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return result;
-> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> index d40e214..947556e 100644
-> --- a/drivers/acpi/fan.c
-> +++ b/drivers/acpi/fan.c
-> @@ -345,7 +345,7 @@ static int __init acpi_fan_init(void)
->  	result = acpi_bus_register_driver(&acpi_fan_driver);
->  	if (result < 0) {
->  		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return 0;
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 394ae89..4a1e22a 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -769,9 +769,7 @@ static int irqrouter_resume(struct sys_device *dev)
->  
->  static int acpi_pci_link_remove(struct acpi_device *device, int type)
->  {
-> -	struct acpi_pci_link *link;
-> -
-> -	link = acpi_driver_data(device);
-> +	struct acpi_pci_link *link = acpi_driver_data(device);
->  
->  	mutex_lock(&acpi_link_lock);
->  	list_del(&link->list);
-> @@ -900,6 +898,8 @@ device_initcall(irqrouter_init_sysfs);
->  
->  static int __init acpi_pci_link_init(void)
->  {
-> +	int result;
-> +
->  	if (acpi_noirq)
->  		return 0;
->  
-> @@ -911,8 +911,9 @@ static int __init acpi_pci_link_init(void)
->  			acpi_irq_balance = 0;
->  	}
->  
-> -	if (acpi_bus_register_driver(&acpi_pci_link_driver) < 0)
-> -		return -ENODEV;
-> +	result = acpi_bus_register_driver(&acpi_pci_link_driver);
-> +	if (result < 0)
-> +		return result;
->  
->  	return 0;
->  }
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 2c3d844..3cd8d45 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -747,7 +747,7 @@ int __init acpi_power_init(void)
->  	result = acpi_bus_register_driver(&acpi_power_driver);
->  	if (result < 0) {
->  		remove_proc_entry(ACPI_POWER_CLASS, acpi_root_dir);
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return 0;
-> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-> index 4c7ab39..192e613 100644
-> --- a/drivers/acpi/sbs.c
-> +++ b/drivers/acpi/sbs.c
-> @@ -1013,8 +1013,6 @@ static int __init acpi_sbs_init(void)
->  {
->  	int result = 0;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  	acpi_ac_dir = acpi_lock_ac_dir();
->  	if (!acpi_ac_dir)
-> @@ -1028,7 +1026,7 @@ static int __init acpi_sbs_init(void)
->  	result = acpi_bus_register_driver(&acpi_sbs_driver);
->  	if (result < 0) {
->  		acpi_sbs_rmdirs();
-> -		return -ENODEV;
-> +		return result;
->  	}
->  	return 0;
->  }
-> diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-> index 9e06e9c..c07cabd 100644
-> --- a/drivers/acpi/sbshc.c
-> +++ b/drivers/acpi/sbshc.c
-> @@ -302,12 +302,7 @@ static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
->  
->  static int __init acpi_smb_hc_init(void)
->  {
-> -	int result;
-> -
-> -	result = acpi_bus_register_driver(&acpi_smb_hc_driver);
-> -	if (result < 0)
-> -		return -ENODEV;
-> -	return 0;
-> +	return acpi_bus_register_driver(&acpi_smb_hc_driver);
->  }
->  
->  static void __exit acpi_smb_hc_exit(void)
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index fca61a1..767e57d 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -1534,7 +1534,7 @@ static int __init acpi_thermal_init(void)
->  	result = acpi_bus_register_driver(&acpi_thermal_driver);
->  	if (result < 0) {
->  		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return 0;
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 576a600..0433df3 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -2398,7 +2398,7 @@ int acpi_video_register(void)
->  	result = acpi_bus_register_driver(&acpi_video_bus);
->  	if (result < 0) {
->  		remove_proc_entry(ACPI_VIDEO_CLASS, acpi_root_dir);
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	/*
-> diff --git a/drivers/hwmon/hp_accel.c b/drivers/hwmon/hp_accel.c
-> index c8d3c88..38f8959 100644
-> --- a/drivers/hwmon/hp_accel.c
-> +++ b/drivers/hwmon/hp_accel.c
-> @@ -357,9 +357,6 @@ static int __init lis3lv02d_init_module(void)
->  {
->  	int ret;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> -
->  	ret = acpi_bus_register_driver(&lis3lv02d_driver);
->  	if (ret < 0)
->  		return ret;
-> diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
-> index 1b87191..36740d1 100644
-> --- a/drivers/input/misc/atlas_btns.c
-> +++ b/drivers/input/misc/atlas_btns.c
-> @@ -156,13 +156,10 @@ static int __init atlas_acpi_init(void)
->  {
->  	int result;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> -
->  	result = acpi_bus_register_driver(&atlas_acpi_driver);
->  	if (result < 0) {
->  		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
-
-I think this printk is pointless.
-
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return 0;
-> diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-> index 8af43e9..4234edb 100644
-> --- a/drivers/platform/x86/asus-laptop.c
-> +++ b/drivers/platform/x86/asus-laptop.c
-> @@ -1438,9 +1438,6 @@ static int __init asus_laptop_init(void)
->  {
->  	int result;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> -
->  	result = acpi_bus_register_driver(&asus_hotk_driver);
->  	if (result < 0)
->  		return result;
-> diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
-> index 25a7d57..502692b 100644
-> --- a/drivers/platform/x86/asus_acpi.c
-> +++ b/drivers/platform/x86/asus_acpi.c
-> @@ -1416,9 +1416,6 @@ static int __init asus_acpi_init(void)
->  {
->  	int result;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> -
->  	asus_proc_dir = proc_mkdir(PROC_ASUS, acpi_root_dir);
->  	if (!asus_proc_dir) {
->  		printk(KERN_ERR "Asus ACPI: Unable to create /proc entry\n");
-> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-> index e7f14a4..eba3772 100644
-> --- a/drivers/platform/x86/eeepc-laptop.c
-> +++ b/drivers/platform/x86/eeepc-laptop.c
-> @@ -1291,8 +1291,6 @@ static int __init eeepc_laptop_init(void)
->  {
->  	int result;
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
->  	result = acpi_bus_register_driver(&eeepc_hotk_driver);
->  	if (result < 0)
->  		return result;
-> diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-> index 953b60c..ea28882 100644
-> --- a/drivers/platform/x86/panasonic-laptop.c
-> +++ b/drivers/platform/x86/panasonic-laptop.c
-> @@ -678,16 +678,13 @@ out_hotkey:
->  
->  static int __init acpi_pcc_init(void)
->  {
-> -	int result = 0;
-> -
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> +	int result;
->  
->  	result = acpi_bus_register_driver(&acpi_pcc_driver);
->  	if (result < 0) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
->  				  "Error registering hotkey driver\n"));
-
-Another (IMHO) pointless printk.
-
-> -		return -ENODEV;
-> +		return result;
->  	}
->  
->  	return 0;
-> diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-> index 177f8d7..d889f51 100644
-> --- a/drivers/platform/x86/wmi.c
-> +++ b/drivers/platform/x86/wmi.c
-> @@ -702,9 +702,6 @@ static int __init acpi_wmi_init(void)
->  
->  	INIT_LIST_HEAD(&wmi_blocks.list);
->  
-> -	if (acpi_disabled)
-> -		return -ENODEV;
-> -
->  	result = acpi_bus_register_driver(&acpi_wmi_driver);
->  
->  	if (result < 0) {
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8dca9d8..d75a7a7 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4968,6 +4968,11 @@ T:	quilt http://svn.sourceforge.jp/svnroot/tomoyo/trunk/2.2.x/tomoyo-lsm/patches
+ S:	Maintained
+ F:	security/tomoyo/
+ 
++TOPSTAR LAPTOP EXTRAS DRIVER
++M:	Herton Ronaldo Krzesinski <herton@mandriva.com.br>
++S:	Maintained
++F:	drivers/platform/x86/topstar-laptop.c
++
+ TOSHIBA ACPI EXTRAS DRIVER
+ S:	Orphan
+ F:	drivers/platform/x86/toshiba_acpi.c
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 77c6097..4831562 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -396,6 +396,15 @@ config ACPI_ASUS
+ 	  NOTE: This driver is deprecated and will probably be removed soon,
+ 	  use asus-laptop instead.
+ 
++config TOPSTAR_LAPTOP
++	tristate "Topstar Laptop Extras"
++	depends on ACPI
++	depends on INPUT
++	---help---
++	  This driver adds support for hotkeys found on Topstar laptops.
++
++	  If you have a Topstar laptop, say Y or M here.
++
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on ACPI
+diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+index 641b8bf..d1c1621 100644
+--- a/drivers/platform/x86/Makefile
++++ b/drivers/platform/x86/Makefile
+@@ -19,4 +19,5 @@ obj-$(CONFIG_PANASONIC_LAPTOP)	+= panasonic-laptop.o
+ obj-$(CONFIG_INTEL_MENLOW)	+= intel_menlow.o
+ obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
++obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+diff --git a/drivers/platform/x86/topstar-laptop.c b/drivers/platform/x86/topstar-laptop.c
+new file mode 100644
+index 0000000..02f3d4e
+--- /dev/null
++++ b/drivers/platform/x86/topstar-laptop.c
+@@ -0,0 +1,265 @@
++/*
++ * ACPI driver for Topstar notebooks (hotkeys support only)
++ *
++ * Copyright (c) 2009 Herton Ronaldo Krzesinski <herton@mandriva.com.br>
++ *
++ * Implementation inspired by existing x86 platform drivers, in special
++ * asus/eepc/fujitsu-laptop, thanks to their authors
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/input.h>
++
++#define ACPI_TOPSTAR_CLASS "topstar"
++
++struct topstar_hkey {
++	struct input_dev *inputdev;
++};
++
++struct tps_key_entry {
++	u8 code;
++	u16 keycode;
++};
++
++static struct tps_key_entry topstar_keymap[] = {
++	{ 0x80, KEY_BRIGHTNESSUP },
++	{ 0x81, KEY_BRIGHTNESSDOWN },
++	{ 0x83, KEY_VOLUMEUP },
++	{ 0x84, KEY_VOLUMEDOWN },
++	{ 0x85, KEY_MUTE },
++	{ 0x86, KEY_SWITCHVIDEOMODE },
++	{ 0x87, KEY_F13 }, /* touchpad enable/disable key */
++	{ 0x88, KEY_WLAN },
++	{ 0x8a, KEY_WWW },
++	{ 0x8b, KEY_MAIL },
++	{ 0x8c, KEY_MEDIA },
++	{ 0x96, KEY_F14 }, /* G key? */
++	{ }
++};
++
++static struct tps_key_entry *tps_get_key_by_scancode(int code)
++{
++	struct tps_key_entry *key;
++
++	for (key = topstar_keymap; key->code; key++)
++		if (code == key->code)
++			return key;
++
++	return NULL;
++}
++
++static struct tps_key_entry *tps_get_key_by_keycode(int code)
++{
++	struct tps_key_entry *key;
++
++	for (key = topstar_keymap; key->code; key++)
++		if (code == key->keycode)
++			return key;
++
++	return NULL;
++}
++
++static void acpi_topstar_notify(struct acpi_device *device, u32 event)
++{
++	struct tps_key_entry *key;
++	static bool dup_evnt[2];
++	bool *dup;
++	struct topstar_hkey *hkey = acpi_driver_data(device);
++
++	/* 0x83 and 0x84 key events comes duplicated... */
++	if (event == 0x83 || event == 0x84) {
++		dup = &dup_evnt[event - 0x83];
++		if (*dup) {
++			*dup = false;
++			return;
++		}
++		*dup = true;
++	}
++
++	/*
++	 * 'G key' generate two event codes, convert to only
++	 * one event/key code for now (3G switch?)
++	 */
++	if (event == 0x97)
++		event = 0x96;
++
++	key = tps_get_key_by_scancode(event);
++	if (key) {
++		input_report_key(hkey->inputdev, key->keycode, 1);
++		input_sync(hkey->inputdev);
++		input_report_key(hkey->inputdev, key->keycode, 0);
++		input_sync(hkey->inputdev);
++		return;
++	}
++
++	/* Known non hotkey events don't handled or that we don't care yet */
++	if (event == 0x8e || event == 0x8f || event == 0x90)
++		return;
++
++	pr_info("unknown event = 0x%02x\n", event);
++}
++
++static int acpi_topstar_fncx_switch(struct acpi_device *device, bool state)
++{
++	acpi_status status;
++	union acpi_object fncx_params[1] = {
++		{ .type = ACPI_TYPE_INTEGER }
++	};
++	struct acpi_object_list fncx_arg_list = { 1, &fncx_params[0] };
++
++	fncx_params[0].integer.value = state ? 0x86 : 0x87;
++	status = acpi_evaluate_object(device->handle, "FNCX", &fncx_arg_list, NULL);
++	if (ACPI_FAILURE(status)) {
++		pr_err("Unable to switch FNCX notifications\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int topstar_getkeycode(struct input_dev *dev, int scancode, int *keycode)
++{
++	struct tps_key_entry *key = tps_get_key_by_scancode(scancode);
++
++	if (!key)
++		return -EINVAL;
++
++	*keycode = key->keycode;
++	return 0;
++}
++
++static int topstar_setkeycode(struct input_dev *dev, int scancode, int keycode)
++{
++	struct tps_key_entry *key;
++	int old_keycode;
++
++	if (keycode < 0 || keycode > KEY_MAX)
++		return -EINVAL;
++
++	key = tps_get_key_by_scancode(scancode);
++
++	if (!key)
++		return -EINVAL;
++
++	old_keycode = key->keycode;
++	key->keycode = keycode;
++	set_bit(keycode, dev->keybit);
++	if (!tps_get_key_by_keycode(old_keycode))
++		clear_bit(old_keycode, dev->keybit);
++	return 0;
++}
++
++static int acpi_topstar_init_hkey(struct topstar_hkey *hkey)
++{
++	struct tps_key_entry *key;
++
++	hkey->inputdev = input_allocate_device();
++	if (!hkey->inputdev) {
++		pr_err("Unable to allocate input device\n");
++		return -ENODEV;
++	}
++	hkey->inputdev->name = "Topstar Laptop extra buttons";
++	hkey->inputdev->phys = "topstar/input0";
++	hkey->inputdev->id.bustype = BUS_HOST;
++	hkey->inputdev->getkeycode = topstar_getkeycode;
++	hkey->inputdev->setkeycode = topstar_setkeycode;
++	for (key = topstar_keymap; key->code; key++) {
++		set_bit(EV_KEY, hkey->inputdev->evbit);
++		set_bit(key->keycode, hkey->inputdev->keybit);
++	}
++	if (input_register_device(hkey->inputdev)) {
++		pr_err("Unable to register input device\n");
++		input_free_device(hkey->inputdev);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int acpi_topstar_add(struct acpi_device *device)
++{
++	struct topstar_hkey *tps_hkey;
++
++	tps_hkey = kzalloc(sizeof(struct topstar_hkey), GFP_KERNEL);
++	if (!tps_hkey)
++		return -ENOMEM;
++
++	strcpy(acpi_device_name(device), "Topstar TPSACPI");
++	strcpy(acpi_device_class(device), ACPI_TOPSTAR_CLASS);
++
++	if (acpi_topstar_fncx_switch(device, true))
++		goto add_err;
++
++	if (acpi_topstar_init_hkey(tps_hkey))
++		goto add_err;
++
++	device->driver_data = tps_hkey;
++	return 0;
++
++add_err:
++	kfree(tps_hkey);
++	return -ENODEV;
++}
++
++static int acpi_topstar_remove(struct acpi_device *device, int type)
++{
++	struct topstar_hkey *tps_hkey = acpi_driver_data(device);
++
++	acpi_topstar_fncx_switch(device, false);
++
++	input_unregister_device(tps_hkey->inputdev);
++	kfree(tps_hkey);
++
++	return 0;
++}
++
++static const struct acpi_device_id topstar_device_ids[] = {
++	{ "TPSACPI01", 0 },
++	{ "", 0 },
++};
++MODULE_DEVICE_TABLE(acpi, topstar_device_ids);
++
++static struct acpi_driver acpi_topstar_driver = {
++	.name = "Topstar laptop ACPI driver",
++	.class = ACPI_TOPSTAR_CLASS,
++	.ids = topstar_device_ids,
++	.ops = {
++		.add = acpi_topstar_add,
++		.remove = acpi_topstar_remove,
++		.notify = acpi_topstar_notify,
++	},
++};
++
++static int __init topstar_laptop_init(void)
++{
++	int ret;
++
++	ret = acpi_bus_register_driver(&acpi_topstar_driver);
++	if (ret < 0)
++		return ret;
++
++	printk(KERN_INFO "Topstar Laptop ACPI extras driver loaded\n");
++
++	return 0;
++}
++
++static void __exit topstar_laptop_exit(void)
++{
++	acpi_bus_unregister_driver(&acpi_topstar_driver);
++}
++
++module_init(topstar_laptop_init);
++module_exit(topstar_laptop_exit);
++
++MODULE_AUTHOR("Herton Ronaldo Krzesinski");
++MODULE_DESCRIPTION("Topstar Laptop ACPI Extras driver");
++MODULE_LICENSE("GPL");
+-- 
+1.6.4.2
 
