@@ -1,38 +1,56 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: set acpi_driver.owner in all acpi drivers
-Date: Thu, 17 Sep 2009 14:10:59 -0300
-Message-ID: <20090917171059.GA789@khazad-dum.debian.net>
-References: <4AB0FDB7.1050204@tuffmail.co.uk>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/3] ACPI: Add infrastructure for refcounting GPE
+ consumers
+Date: Thu, 17 Sep 2009 14:19:23 -0700
+Message-ID: <4911F71203A09E4D9981D27F9D8308583774349D@orsmsx503.amr.corp.intel.com>
+References: <20090902181014.GA10917@srcf.ucam.org>
+ <1251915173-10144-1-git-send-email-mjg@redhat.com>
+ <200909152330.38874.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:50500 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752974AbZIQRK7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Sep 2009 13:10:59 -0400
-Content-Disposition: inline
-In-Reply-To: <4AB0FDB7.1050204@tuffmail.co.uk>
+Received: from mga11.intel.com ([192.55.52.93]:35307 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753133AbZIQVTV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Sep 2009 17:19:21 -0400
+In-Reply-To: <200909152330.38874.rjw@sisk.pl>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, 16 Sep 2009, Alan Jenkins wrote:
-> The owner field provides the link between drivers and modules in sysfs,
-> but no ACPI driver was setting it.
-> 
-> After setting the owner field we can see which module provides which
-> driver and vice versa by looking at /sys/bus/acpi/driver/*/module and
-> /sys/module/*/drivers/acpi:*.
-> 
-> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+I have a couple of comments and questions:
 
-For the thinkpad-acpi changes:
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+1) The core issue that needs to be solved concerns enabling/disabling the wake and wake/run GPEs, is this correct? As far as I can tell, the normal runtime GPEs do not need any change. The runtime GPEs are mostly defined by _Lxx/_Exx methods. The main exception to this is the EC, it has a GPE defined by the _GPE method under the EC device. Are there any issues here?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+2) A large change that goes unmentioned is that the ACPICA core would no longer execute the _PRW control methods in order to discover the wake GPEs. This makes sense to me because it is clear that the bus scan code must execute these _PRW methods anyway, in order to obtain the wake GPE and other info. So it makes sense to just remove the _PRW and wake GPE management code from ACPICA and let the host OS and drivers handle this task, since it does it already anyway. Do I understand this correctly?
+
+Thanks,
+Bob
+
+
+
+
+>-----Original Message-----
+>From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+>Sent: Tuesday, September 15, 2009 2:31 PM
+>To: Matthew Garrett
+>Cc: Moore, Robert; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
+>Subject: Re: [PATCH 1/3] ACPI: Add infrastructure for refcounting GPE
+>consumers
+>
+>On Wednesday 02 September 2009, Matthew Garrett wrote:
+>> ACPI GPEs may map to multiple devices. The current GPE interface only
+>> provides a mechanism for enabling and disabling GPEs, making it difficult
+>> to change the state of GPEs at runtime without extensive cooperation
+>> between devices. Add an API to allow devices to indicate whether or not
+>> they want their device's GPE to be enabled for both runtime and wakeup
+>> events.
+>
+>Looks fine in general, but are we going to do anything about unbalanced
+>puts?
+>
+>Rafael
+>
