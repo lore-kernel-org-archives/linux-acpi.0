@@ -1,20 +1,26 @@
-From: "global loan company" <info@loan.com>
-Subject: loan offer
-Date: Fri, 18 Sep 2009 00:58:12 +0300
-Message-ID: <20090917215813.M65127@loan.com>
-Reply-To: loan.dept113@live.com
+From: "kavithachidambaram" <kavithachidambaram@saitechnology.com>
+Subject: linux power management techniques...
+Date: Fri, 18 Sep 2009 02:58:07 -0800
+Message-ID: <4ab367bf.15a.de8.8188@saitechnology.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=utf-8
+Content-Type: text/plain; charset="iso-8859-1"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.inovareganhar.org.mz ([196.3.96.67]:65134 "EHLO
-	zebra.uem.mz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751447AbZIQWsn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Sep 2009 18:48:43 -0400
+Received: from webmail.saitechnology.com ([74.211.199.132]:3353 "EHLO
+	saitechnology.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755290AbZIRLOL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Sep 2009 07:14:11 -0400
+Received: from saitechnology.com (unverified [127.0.0.1])
+	by saitechnology.com (SurgeMail 3.9e) with ESMTP id 395862-1756912
+	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2009 03:58:07 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
 
-
-contact us for 2% interest rate loan
-
+Hi, 
+   i wants to know available power management techniques,
+and how can i optimize power management? is there any
+document for optimization?
+    thanks a lot...
+-kavitha.
+  
