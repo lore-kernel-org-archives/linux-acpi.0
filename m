@@ -1,54 +1,49 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 2/8] arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid
- cross-CPU interrupts by using smp_call_function_any()
-Date: Fri, 18 Sep 2009 13:11:31 -0700
-Message-ID: <20090918131131.786e2fcc.akpm@linux-foundation.org>
-References: <200909181941.n8IJf5oR002397@imap1.linux-foundation.org>
-	<20090918195953.GB7413@redhat.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [patch 6/8] hwmon driver for ACPI 4.0 power meters
+Date: Fri, 18 Sep 2009 13:46:43 -0700
+Message-ID: <20090918204643.GZ10521@tux1.beaverton.ibm.com>
+References: <200909181941.n8IJf91g002548@imap1.linux-foundation.org>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53719 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758582AbZIRUNB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Sep 2009 16:13:01 -0400
-In-Reply-To: <20090918195953.GB7413@redhat.com>
+Received: from e34.co.us.ibm.com ([32.97.110.152]:55384 "EHLO
+	e34.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752291AbZIRUqp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Sep 2009 16:46:45 -0400
+Received: from d03relay02.boulder.ibm.com (d03relay02.boulder.ibm.com [9.17.195.227])
+	by e34.co.us.ibm.com (8.14.3/8.13.1) with ESMTP id n8IKgR40021982
+	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2009 14:42:27 -0600
+Received: from d03av04.boulder.ibm.com (d03av04.boulder.ibm.com [9.17.195.170])
+	by d03relay02.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id n8IKkk4W194262
+	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2009 14:46:46 -0600
+Received: from d03av04.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av04.boulder.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id n8IKkist028806
+	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2009 14:46:46 -0600
+Content-Disposition: inline
+In-Reply-To: <200909181941.n8IJf91g002548@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, pavel@ucw.cz, rui.zhang@intel.com
 
-On Fri, 18 Sep 2009 15:59:53 -0400
-Dave Jones <davej@redhat.com> wrote:
-
-> On Fri, Sep 18, 2009 at 12:41:05PM -0700, Andrew Morton wrote:
+On Fri, Sep 18, 2009 at 12:41:09PM -0700, akpm@linux-foundation.org wrote:
+> From: "Darrick J. Wong" <djwong@us.ibm.com>
 > 
->  > diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
->  > --- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any
->  > +++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
->  > @@ -192,9 +192,11 @@ static void do_drv_write(void *_cmd)
->  >  
->  >  static void drv_read(struct drv_cmd *cmd)
->  >  {
->  > +	int err;
->  >  	cmd->val = 0;
->  >  
->  > -	smp_call_function_single(cpumask_any(cmd->mask), do_drv_read, cmd, 1);
->  > +	err = smp_call_function_any(cmd->mask, do_drv_read, cmd, 1);
->  > +	WARN_ON_ONCE(err);	/* smp_call_function_any() was buggy? */
->  >  }
->  >  
->  >  static void drv_write(struct drv_cmd *cmd)
+> This driver exposes ACPI 4.0 compliant power meters as hardware monitoring
+> devices.  This second revision of the driver also exports the ACPI string
+> info as sysfs attributes, a list of the devices that the meter measures,
+> and will send ACPI notifications over the ACPI netlink socket.  This
+> latest revision only enables the power capping controls if it can be
+> confirmed that the power cap can be enforced by the hardware and explains
+> how the notification interfaces work.
 > 
-> I'm ok with this going in, but I still wonder if we could have done it
-> all a lot easier, by making cpumask_any pick the current cpu if it was
-> in the mask instead of introducing yet another variant to an already
-> enormous api.
-> 
+> [akpm@linux-foundation.org: remove default-y]
+> [akpm@linux-foundation.org: build fix]
 
-Yeah, I wondered about that.  But iirc Rusty had a good-sounding reason
-for adding a new function but that reason didn't get into the changelog so
-it's lost.
+Looks good to me.
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
 
+(Ack'ing my own patch?)
+
+--D
