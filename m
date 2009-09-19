@@ -1,111 +1,61 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [git pull request] ACPI Processor Aggregator Device Driver
-Date: Sat, 19 Sep 2009 03:07:24 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0909190258090.22030@localhost.localdomain>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Linux not shutting down all devices? Battery drain in after
+	shutdown
+Date: Sat, 19 Sep 2009 12:37:09 +0200
+Message-ID: <20090919103709.GA4466@elf.ucw.cz>
+References: <20090917122451.GA13717@gandalf.dynalias.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:40034 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755070AbZISHHv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Sep 2009 03:07:51 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46936 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751903AbZISKiL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Sep 2009 06:38:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20090917122451.GA13717@gandalf.dynalias.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>
+To: Norbert Preining <preining@logic.at>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mattia Dongili <malattia@linux.it>, Matthew Garrett <mjg59@srcf.ucam.org>, Matthias Welwarsky <matze@welwarsky.de>
 
-Hi Linus,
+On Thu 2009-09-17 14:24:51, Norbert Preining wrote:
+> Dear all,
+> 
+> I have a very strange problem with my Sony VAIO Z11 laptop. When I turn
+> it off in Linux it still drains battery, and quite a lot indeed, several
+> percent per hour.
+> 
+> Interestingly, when shutting down from Windows XP the same doesn't happen,
+> after 10 hours of off time starting from 100% charge after rebooting I have
+> still 98.8%, so that is fine (counting that booting costs some energy).
+> 
+> This is in fact also a problem for many other users using Windows, too,
+> see [1]. I have checked that on Windows all devices are set up so that
+> at shutdown and hibernation (S4 and S5) they are going to off state (D3).
+> 
+> The only thing I can imagine is that one of the devices not completely
+> of not at all supported by the kernel is not properly shut down.
+> AFAIS the only device which I have not running here is the fingerprint
+> scanner.
+> 
+> My questions are:
+> - is there a way and if how to check that all devices will get properly
+>   shut down on halt?
+> - is there any other reason the battery drain might happen?
+> 
+> Some details about the laptop:
+> - it has a dual graphic card (Intel and nVidia), the sony-laptop module
+>   (extended for the zseries, see [2], with adaption to 2.6.31 by me [3]), 
+>   or the stock kernel sony-laptop plus the nvidia-control module 
+>   (by Matthew Garret [4]) can be used to turn the nvidia card of on a
+>   running system so that it does not draw any energy
+> - lspci -vvv output is attached as lspci.txt
+> - software running is Debian/sid with kernel 2.6.31
 
-please pull from: 
-
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpi-pad
-
-We believe that this driver is useful in this form, particularly since
-it can be available in Linux as this underlying feature
-is rolled out by platform vendors.
-
-Per the commit message below, Vaidy and PeterZ have proposed
-making the scheduler smarter, and they do not agree that this
-driver should be upstream before those enhancements are ready.
-
-So I've put this driver on its own branch to let you decide
-if it should go upstream now or not.
-
-This will update the files shown below.
-
-thanks!
-
---
-Len Brown
-Intel Open Source Technology Center
+On PC, keyboard driver is expected to shut down the machine; I'd try
+complaining to Sony, perhaps they have newer bios.
 
 
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.31/acpi-acpi-pad-20090521-2.6.31-rc4.diff.gz
-
- MAINTAINERS             |    8 +
- drivers/acpi/Kconfig    |   11 +
- drivers/acpi/Makefile   |    2 +
- drivers/acpi/acpi_pad.c |  514 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 535 insertions(+), 0 deletions(-)
- create mode 100644 drivers/acpi/acpi_pad.c
-
-through these commits:
-
-Shaohua Li (1):
-      ACPI: create Processor Aggregator Device driver
-
-with this log:
-
-commit 8e0af5141ab950b78b3ebbfaded5439dcf8b3a8d
-Author: Shaohua Li <shaohua.li@intel.com>
-Date:   Mon Jul 27 18:11:02 2009 -0400
-
-    ACPI: create Processor Aggregator Device driver
-    
-    ACPI 4.0 created the logical "processor aggregator device" as
-    a mechinism for platforms to ask the OS to force otherwise busy
-    processors to enter (power saving) idle.
-    
-    The intent is to lower power consumption to ride-out
-    transient electrical and thermal emergencies,
-    rather than powering off the server.
-    
-    On platforms that can save more power/performance via P-states,
-    the platform will first exhaust P-states before forcing idle.
-    However, the relative benefit of P-states vs. idle states
-    is platform dependent, and thus this driver need not know
-    or care about it.
-    
-    This driver does not use the kernel's CPU hot-plug mechanism
-    because after the transient emergency is over, the system must
-    be returned to its normal state, and hotplug would permanently
-    break both cpusets and binding.
-    
-    So to force idle, the driver creates a power saving thread.
-    The scheduler will migrate the thread to the preferred CPU.
-    The thread has max priority and has SCHED_RR policy,
-    so it can occupy one CPU.  To save power, the thread will
-    invoke the deep C-state entry instructions.
-    
-    To avoid starvation, the thread will sleep 5% of the time
-    time for every second (current RT scheduler has threshold
-    to avoid starvation, but if other CPUs are idle,
-    the CPU can borrow CPU timer from other,
-    which makes the mechanism not work here)
-    
-    Vaidyanathan Srinivasan has proposed scheduler enhancements
-    to allow injecting idle time into the system.  This driver doesn't
-    depend on those enhancements, but could cut over to them
-    when they are available.
-    
-    Peter Z. does not favor upstreaming this driver until
-    the those scheduler enhancements are in place.  However,
-    we favor upstreaming this driver now because it is useful
-    now, and can be enhanced over time.
-    
-    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-    NACKed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-    Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
