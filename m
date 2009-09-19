@@ -1,44 +1,44 @@
-From: Neil Wilson <neil@aldur.co.uk>
-Subject: Ethernet dropped packets/overruns on Lenovo N100 when ACPI is on
-Date: Sat, 19 Sep 2009 17:12:38 +0100
-Message-ID: <50d9f33a0909190912u5595d223i7e28d45ff126809@mail.gmail.com>
-References: <50d9f33a0909190130x198cb287vc3c4b032016ab59c@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
+ generate events on changes
+Date: Sat, 19 Sep 2009 20:24:24 -0300
+Message-ID: <20090919232424.GA15200@khazad-dum.debian.net>
+References: <1247587564-27737-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:63608 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192AbZISQMf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Sep 2009 12:12:35 -0400
-Received: by ewy2 with SMTP id 2so2074851ewy.17
-        for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2009 09:12:38 -0700 (PDT)
-In-Reply-To: <50d9f33a0909190130x198cb287vc3c4b032016ab59c@mail.gmail.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44915 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751026AbZISXYX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Sep 2009 19:24:23 -0400
+Content-Disposition: inline
+In-Reply-To: <1247587564-27737-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, rui.zhang@intel.com, corentincj@iksaif.net
 
-Hi,
+On Tue, 14 Jul 2009, Matthew Garrett wrote:
+> Certain hardware will send us events when the backlight brightness
+> changes. Add a function to update the value in the core, and
+> additionally send a uevent so that userspace can pop up appropriate
+> UI. The uevents are flagged depending on whether the update originated
+> in the kernel or from userspace, making it easier to only display UI
+> at the appropriate time.
 
-I hope this is the right list to shed some light on this kernel problem:
+Ok.  I have it working (event-based AND poll-based) in thinkpad-acpi,
+although it needs to be tested by dual-GPU, ACPI-based and OpRegion-based
+owners.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=13830
-referring to further detail at
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/401891
+Should the driver notify of *any* changes, even when the user is hitting the
+"ceiling" or the "floor" and the backlight value didn't really change?
 
-When I use 'acpi=off' or 'acpi=ht' I can run the Realtek network
-interface on the Lenovo at full speed with no problems.
+If the answer is no, shouldn't the backlight class filter these out itself,
+to guarantee a consistent experience?
 
-Once I switch ACPI on, or use any of the other ACPI control flags then
-I start to
-get network errors when I put the interface under load. Errors,
-overruns and dropped packets all go up in tandem.
-
-I was wondering if you had any suggestions as to how to debug this
-further and hopefully get it fixed.
-
-The problem has existed in all versions of the kernel I have
-available, (down to 2.6.24). Diagnostic output from the machine is
-attached to the Launchpad bug above.
-
---
-Neil Wilson
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
