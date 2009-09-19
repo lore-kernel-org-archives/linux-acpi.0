@@ -1,67 +1,177 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: 2.6.31 regression: hangs on Compaq Evo N800c with ACPI enabled - bisected
-Date: Mon, 21 Sep 2009 15:03:19 +0200
-Message-ID: <200909211503.22661.linux@rainbow-software.org>
+From: Jan Holst Jensen <jan@jan-holst.dk>
+Subject: Re: EHCI_HCD resets cause USB disks to fail - caused by
+	CPU C-states.
+Date: Sat, 19 Sep 2009 11:51:17 +0200
+Message-ID: <4AB4A995.6060709@jan-holst.dk>
+References: <Pine.LNX.4.44L0.0909181443300.3123-100000@iolanthe.rowland.org>
+Reply-To: jan@jan-holst.dk
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756073AbZIUND0@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: venkatesh.pallipadi@intel.com
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1231039005352007310=="
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.44L0.0909181443300.3123-100000@iolanthe.rowland.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Mime-version: 1.0
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, USB list <linux-usb@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-kernel 2.6.31 hangs during boot on Compaq Evo N800c laptop. 2.6.30 works fine.
-See https://bugzilla.redhat.com/show_bug.cgi?id=522057
+This is a multi-part message in MIME format.
+--===============1231039005352007310==
+Content-Type: multipart/alternative;
+ boundary="------------080306080007000606060508"
 
-Bisection resulted in commit ee1ca48fae7e575d5e399d4fdcfe0afc1212a64c:
+This is a multi-part message in MIME format.
+--------------080306080007000606060508
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-$ git bisect bad
-ee1ca48fae7e575d5e399d4fdcfe0afc1212a64c is first bad commit
-commit ee1ca48fae7e575d5e399d4fdcfe0afc1212a64c
-Author: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
-Date:   Thu May 21 17:09:10 2009 -0700
+Alan Stern wrote:
+> [Adding CC's, since this is a CPU power management issue just as much 
+> as a USB issue.]
+>
+> On Fri, 18 Sep 2009, Jan Holst Jensen wrote:
+>
+>   
+>> Hi.
+>>
+>> I recently had severe problems with a new PC. When attaching an external 
+>> USB disk I would see USB resets once in a while in /var/log/messages and 
+>> after another while the disk would disconnect and data would be lost. 
+>> Like this
+>>
+>> Sep 13 13:30:56 rumleskaft kernel: [164642.760290] usb 1-5: reset high 
+>> speed USB device using ehci_hcd and address 3
+>> [repeated a number of times]
+>> Sep 13 13:31:17 rumleskaft kernel: [164663.430421] sd 2:0:0:0: Device 
+>> offlined - not ready after error recovery
+>> Sep 13 13:31:17 rumleskaft kernel: [164663.430459] sd 2:0:0:0: [sdb] 
+>> Result: hostbyte=DID_ABORT driverbyte=DRIVER_OK,SUGGEST_OK
+>> Sep 13 13:31:17 rumleskaft kernel: [164663.436193] usb 1-5: USB 
+>> disconnect, address 3
+>> Sep 13 13:31:17 rumleskaft kernel: [164663.436446] sd 2:0:0:0: [sdb] 
+>> Result: hostbyte=DID_NO_CONNECT driverbyte=DRIVER_OK,SUGGEST_OK
+>> Sep 13 13:31:17 rumleskaft kernel: [164663.437711] lost page write due 
+>> to I/O error on sdb2
+>> Sep 13 13:31:17 rumleskaft kernel: [164663.454184] lost page write due 
+>> to I/O error on sdb2
+>>
+>> On my machine I found that disabling CPU C-states and forcing "GV3 only" 
+>> solved the problem completely. So in some cases it would seem that CPU 
+>> power management is causing timing issues (?). Can this be fixed in the 
+>> USB driver layer or does it take cooperation from the kernel's CPU power 
+>> management - or perhaps a combination of both ?
+>>
+>> You can read more details about my issue at
+>>
+>> http://www.fit-pc2.com/forum/viewtopic.php?f=26&t=851
+>>
+>> Cheers
+>> -- Jan Holst Jensen, Denmark
+>>     
+>
+> For what it's worth, I haven't heard of anything like this before and I
+> have no idea what the answers are.  My guess is that a hardware bug is
+> responsible for the misbehavior while in higher C states.
+>
+> Alan Stern
+>   
 
-    ACPI: Disable ARB_DISABLE on platforms where it is not needed
+Could be. Hardware info for my system can be found at 
+http://www.jan-holst.dk/linux-usb/sysconfig.txt. It is the output of 
+/proc/version, /etc/issue and lshw.
 
-    ARB_DISABLE is a NOP on all of the recent Intel platforms.
+-- Jan
 
-    For such platforms, reduce contention on c3_lock
-    by skipping the fake ARB_DISABLE.
+--------------080306080007000606060508
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Alan Stern wrote:
+<blockquote
+ cite="mid:Pine.LNX.4.44L0.0909181443300.3123-100000@iolanthe.rowland.org"
+ type="cite">
+  <pre wrap="">[Adding CC's, since this is a CPU power management issue just as much 
+as a USB issue.]
 
-:040000 040000 f05492fbba2c068f22d7aefca36896f07ff8611b 47e784478de3c386591a92181e7784f5d224a989 M      arch
-:040000 040000 a379b031d617def0094cca3f56c2eda510a0604b cc00f83544238d1757fdf2a5e62206d1a49de2de M      drivers
+On Fri, 18 Sep 2009, Jan Holst Jensen wrote:
 
-Reverting this commit fixes the regression.
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Hi.
 
-CPU is Mobile Pentium 4-M:
+I recently had severe problems with a new PC. When attaching an external 
+USB disk I would see USB resets once in a while in /var/log/messages and 
+after another while the disk would disconnect and data would be lost. 
+Like this
 
-processor	: 0
-vendor_id	: GenuineIntel
-cpu family	: 15
-model		: 2
-model name	: Mobile Intel(R) Pentium(R) 4 - M CPU 2.20GHz
-stepping	: 7
-cpu MHz		: 2200.000
-cache size	: 512 KB
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 2
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe up pebs bts cid
-bogomips	: 4395.79
-clflush size	: 64
-power management:
+Sep 13 13:30:56 rumleskaft kernel: [164642.760290] usb 1-5: reset high 
+speed USB device using ehci_hcd and address 3
+[repeated a number of times]
+Sep 13 13:31:17 rumleskaft kernel: [164663.430421] sd 2:0:0:0: Device 
+offlined - not ready after error recovery
+Sep 13 13:31:17 rumleskaft kernel: [164663.430459] sd 2:0:0:0: [sdb] 
+Result: hostbyte=DID_ABORT driverbyte=DRIVER_OK,SUGGEST_OK
+Sep 13 13:31:17 rumleskaft kernel: [164663.436193] usb 1-5: USB 
+disconnect, address 3
+Sep 13 13:31:17 rumleskaft kernel: [164663.436446] sd 2:0:0:0: [sdb] 
+Result: hostbyte=DID_NO_CONNECT driverbyte=DRIVER_OK,SUGGEST_OK
+Sep 13 13:31:17 rumleskaft kernel: [164663.437711] lost page write due 
+to I/O error on sdb2
+Sep 13 13:31:17 rumleskaft kernel: [164663.454184] lost page write due 
+to I/O error on sdb2
 
--- 
-Ondrej Zary
+On my machine I found that disabling CPU C-states and forcing "GV3 only" 
+solved the problem completely. So in some cases it would seem that CPU 
+power management is causing timing issues (?). Can this be fixed in the 
+USB driver layer or does it take cooperation from the kernel's CPU power 
+management - or perhaps a combination of both ?
+
+You can read more details about my issue at
+
+<a class="moz-txt-link-freetext" href="http://www.fit-pc2.com/forum/viewtopic.php?f=26&t=851">http://www.fit-pc2.com/forum/viewtopic.php?f=26&amp;t=851</a>
+
+Cheers
+-- Jan Holst Jensen, Denmark
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+For what it's worth, I haven't heard of anything like this before and I
+have no idea what the answers are.  My guess is that a hardware bug is
+responsible for the misbehavior while in higher C states.
+
+Alan Stern
+  </pre>
+</blockquote>
+<br>
+Could be. Hardware info for my system can be found at <a
+ href="http://www.jan-holst.dk/linux-usb/sysconfig.txt">http://www.jan-holst.dk/linux-usb/sysconfig.txt</a>.
+It is the output of /proc/version, /etc/issue and lshw.<br>
+<br>
+-- Jan<br>
+</body>
+</html>
+
+--------------080306080007000606060508--
+
+--===============1231039005352007310==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1231039005352007310==--
