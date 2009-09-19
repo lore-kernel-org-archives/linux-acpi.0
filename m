@@ -1,49 +1,44 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: Linux not shutting down all devices? Battery drain in after
-	shutdown
-Date: Sat, 19 Sep 2009 17:04:20 +0200
-Message-ID: <20090919150420.GG20239@gamma.logic.tuwien.ac.at>
-References: <20090917122451.GA13717@gandalf.dynalias.org> <20090919103709.GA4466@elf.ucw.cz> <20090919144911.GD28777@khazad-dum.debian.net>
+From: Neil Wilson <neil@aldur.co.uk>
+Subject: Ethernet dropped packets/overruns on Lenovo N100 when ACPI is on
+Date: Sat, 19 Sep 2009 17:12:38 +0100
+Message-ID: <50d9f33a0909190912u5595d223i7e28d45ff126809@mail.gmail.com>
+References: <50d9f33a0909190130x198cb287vc3c4b032016ab59c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:51705 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756088AbZISPEU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Sep 2009 11:04:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20090919144911.GD28777@khazad-dum.debian.net>
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:63608 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751192AbZISQMf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Sep 2009 12:12:35 -0400
+Received: by ewy2 with SMTP id 2so2074851ewy.17
+        for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2009 09:12:38 -0700 (PDT)
+In-Reply-To: <50d9f33a0909190130x198cb287vc3c4b032016ab59c@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mattia Dongili <malattia@linux.it>, Matthew Garrett <mjg59@srcf.ucam.org>, Matthias Welwarsky <matze@welwarsky.de>
+To: linux-acpi@vger.kernel.org
 
-On Sa, 19 Sep 2009, Henrique de Moraes Holschuh wrote:
-> I have seen this sort of problem on ThinkPads as well.  Lenovo decided to
+Hi,
 
-Yes, Thinkpads are mentioned also in the thread I have cited. 
+I hope this is the right list to shed some light on this kernel problem:
 
-> fix it in firmware and shut down the stuff entirely in firmware.
+http://bugzilla.kernel.org/show_bug.cgi?id=13830
+referring to further detail at
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/401891
 
-Bad for us that Sony is not capable to do that.
+When I use 'acpi=off' or 'acpi=ht' I can run the Realtek network
+interface on the Lenovo at full speed with no problems.
 
-> Interestingly enough, in the ThinkPad case, Windows was not affected.
+Once I switch ACPI on, or use any of the other ACPI control flags then
+I start to
+get network errors when I put the interface under load. Errors,
+overruns and dropped packets all go up in tandem.
 
-It actually seems to depend on some settings/driver issues, that is the
-reason why (I guess) Vista, XP, and linux all have these problems,
-but not in all cases.
+I was wondering if you had any suggestions as to how to debug this
+further and hopefully get it fixed.
 
-It is a bit frustrating though ...
+The problem has existed in all versions of the kernel I have
+available, (down to 2.6.24). Diagnostic output from the machine is
+attached to the Launchpad bug above.
 
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Dr. Norbert Preining <preining@logic.at>        Vienna University of Technology
-Debian Developer <preining@debian.org>                         Debian TeX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-BABWORTH
-Something which justifies having a really good cry.
-			--- Douglas Adams, The Meaning of Liff
+--
+Neil Wilson
