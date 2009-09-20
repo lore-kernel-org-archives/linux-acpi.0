@@ -1,51 +1,38 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: it87 sensors need an ACPI driver (2.6.31)
-Date: Sun, 20 Sep 2009 10:17:21 +0100
-Message-ID: <9b2b86520909200217v71c9529ax3dbbd2341049295e@mail.gmail.com>
-References: <c43b2e150909200120kf87cdc2oabafea8abbf01227@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 1/3] backlight: Allow drivers to update the core, and
+ generate events on changes
+Date: Sun, 20 Sep 2009 08:16:56 -0300
+Message-ID: <20090920111656.GA6645@khazad-dum.debian.net>
+References: <1247587564-27737-1-git-send-email-mjg@redhat.com>
+ <20090919232424.GA15200@khazad-dum.debian.net>
+ <20090920041554.GA9229@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:42427 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126AbZITJRT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Sep 2009 05:17:19 -0400
-In-Reply-To: <c43b2e150909200120kf87cdc2oabafea8abbf01227@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751697AbZITLba@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090920041554.GA9229@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, rui.zhang@intel.com, corentincj@iksaif.net
 List-Id: linux-acpi@vger.kernel.org
-To: wixor <wixorpeek@gmail.com>
-Cc: lm-sensors@lm-sensors.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-[CC linux-acpi]
+On Sun, 20 Sep 2009, Matthew Garrett wrote:
+> On Sat, Sep 19, 2009 at 08:24:24PM -0300, Henrique de Moraes Holschuh wrote:
+> > Should the driver notify of *any* changes, even when the user is hitting the
+> > "ceiling" or the "floor" and the backlight value didn't really change?
+> 
+> I'd say yes - the user will expect the UI to appear whenever they hit 
+> the button.
 
-On 9/20/09, wixor <wixorpeek@gmail.com> wrote:
-> Hello,
-> with recent upgrade to 2.6.31 I get
->
-> it87: Found IT8712F chip at 0x290, revision 7
-> it87: in3 is VCC (+5V)
-> it87: in7 is VCCH (+5V Stand-By)
-> ACPI: I/O resource it87 [0x295-0x296] conflicts with ACPI region IP__
-> [0x295-0x296]
-> ACPI: Device needs an ACPI driver
-> FATAL: Error inserting it87
-> (/lib/modules/2.6.31/kernel/drivers/hwmon/it87.ko): Device or resource
-> busy
->
-> when trying to load it87 module. On previous kernels the module worked
-> fine. I tried grepping for IP__ in acpi dump and found this:
->
-> OperationRegion (IP, SystemIO, 0x0295, 0x02)
-> Field (IP, ByteAcc, NoLock, Preserve)
-> {
->     INDX,   8,
->     DAT0,   8
-> }
->
-> I have also discovered that dsdt contains description of what is
-> connected to each it87 input. Maybe it has also some code to access
-> the chip? In /proc/acpi I can read only one temperature, while the
-> chip measures three temperatures, fan speeds and voltages. This is
-> desktop pc with ASUS A8N1-E maniboard, athlon64 and nforce4 chipset.
->
-> Thanks for your time.
+Ok.  The thinkpad-acpi changes depends on a large patchset that I should
+send to Len today.  After that, I will send the patch that adds brightness
+event support.
+
+Are you backlight patches in any tree?  Are them expected to hit mainline
+this merge window?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
