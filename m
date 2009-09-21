@@ -1,354 +1,151 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v3 4/8] ACPI: maintain a single list of _HID and _CID IDs
-Date: Mon, 21 Sep 2009 13:35:19 -0600
-Message-ID: <20090921193519.21656.39040.stgit@bob.kio>
+Subject: [PATCH v3 6/8] ACPI: remove acpi_device.flags.hardware_id
+Date: Mon, 21 Sep 2009 13:35:29 -0600
+Message-ID: <20090921193529.21656.11425.stgit@bob.kio>
 References: <20090921193417.21656.32718.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:19331 "EHLO
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:19396 "EHLO
 	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753369AbZIUTfQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 15:35:16 -0400
+	with ESMTP id S1753379AbZIUTf0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 15:35:26 -0400
 In-Reply-To: <20090921193417.21656.32718.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Alex Chiang <achiang@hp.com>
+Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-There's no need to treat _HID and _CID differently.  Keeping them in
-a single list makes code that uses the IDs a little simpler because it
-can just traverse the list rather than checking "do we have a HID?",
-"do we have any CIDs?"
+Every acpi_device has at least one ID (if there's no _HID or _CID, we
+give it a synthetic or default ID).  So there's no longer a need to
+check whether an ID exists; we can just use it.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Reviewed-by: Alex Chiang <achiang@hp.com>
 ---
- drivers/acpi/scan.c        |  165 ++++++++++++--------------------------------
- drivers/pnp/pnpacpi/core.c |   16 ++--
- include/acpi/acpi_bus.h    |   10 ++-
- 3 files changed, 59 insertions(+), 132 deletions(-)
+ drivers/acpi/scan.c        |   37 +++++++++++++------------------------
+ drivers/pnp/pnpacpi/core.c |    3 +--
+ include/acpi/acpi_bus.h    |    3 +--
+ 3 files changed, 15 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 53b96e7..9c65244 100644
+index 954cb1d..3f9b8d0 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -45,6 +45,7 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
- {
- 	int len;
+@@ -47,9 +47,6 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
  	int count;
-+	struct acpi_hardware_id *id;
+ 	struct acpi_hardware_id *id;
  
- 	if (!acpi_dev->flags.hardware_id && !acpi_dev->flags.compatible_ids)
- 		return -ENODEV;
-@@ -52,33 +53,14 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+-	if (!acpi_dev->flags.hardware_id)
+-		return -ENODEV;
+-
  	len = snprintf(modalias, size, "acpi:");
  	size -= len;
  
--	if (acpi_dev->flags.hardware_id) {
--		count = snprintf(&modalias[len], size, "%s:",
--				 acpi_dev->pnp.hardware_id);
-+	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
-+		count = snprintf(&modalias[len], size, "%s:", id->id);
- 		if (count < 0 || count >= size)
- 			return -EINVAL;
- 		len += count;
- 		size -= count;
+@@ -203,17 +200,13 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+ 			goto end;
  	}
  
--	if (acpi_dev->flags.compatible_ids) {
--		struct acpica_device_id_list *cid_list;
--		int i;
--
--		cid_list = acpi_dev->pnp.cid_list;
--		for (i = 0; i < cid_list->count; i++) {
--			count = snprintf(&modalias[len], size, "%s:",
--					 cid_list->ids[i].string);
--			if (count < 0 || count >= size) {
--				printk(KERN_ERR PREFIX "%s cid[%i] exceeds event buffer size",
--				       acpi_dev->pnp.device_name, i);
--				break;
--			}
--			len += count;
--			size -= count;
--		}
+-	if (dev->flags.hardware_id) {
+-		result = device_create_file(&dev->dev, &dev_attr_hid);
+-		if (result)
+-			goto end;
 -	}
++	result = device_create_file(&dev->dev, &dev_attr_hid);
++	if (result)
++		goto end;
+ 
+-	if (dev->flags.hardware_id) {
+-		result = device_create_file(&dev->dev, &dev_attr_modalias);
+-		if (result)
+-			goto end;
+-	}
++	result = device_create_file(&dev->dev, &dev_attr_modalias);
++	if (result)
++		goto end;
+ 
+         /*
+          * If device has _EJ0, 'eject' file is created that is used to trigger
+@@ -239,11 +232,8 @@ static void acpi_device_remove_files(struct acpi_device *dev)
+ 	if (ACPI_SUCCESS(status))
+ 		device_remove_file(&dev->dev, &dev_attr_eject);
+ 
+-	if (dev->flags.hardware_id)
+-		device_remove_file(&dev->dev, &dev_attr_modalias);
 -
- 	modalias[len] = '\0';
- 	return len;
+-	if (dev->flags.hardware_id)
+-		device_remove_file(&dev->dev, &dev_attr_hid);
++	device_remove_file(&dev->dev, &dev_attr_modalias);
++	device_remove_file(&dev->dev, &dev_attr_hid);
+ 	if (dev->handle)
+ 		device_remove_file(&dev->dev, &dev_attr_path);
  }
-@@ -273,6 +255,7 @@ int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids)
- {
- 	const struct acpi_device_id *id;
-+	struct acpi_hardware_id *hwid;
- 
- 	/*
- 	 * If the device is not present, it is unnecessary to load device
-@@ -281,40 +264,30 @@ int acpi_match_device_ids(struct acpi_device *device,
- 	if (!device->status.present)
- 		return -ENODEV;
- 
--	if (device->flags.hardware_id) {
--		for (id = ids; id->id[0]; id++) {
--			if (!strcmp((char*)id->id, device->pnp.hardware_id))
-+	for (id = ids; id->id[0]; id++)
-+		list_for_each_entry(hwid, &device->pnp.ids, list)
-+			if (!strcmp((char *) id->id, hwid->id))
- 				return 0;
--		}
--	}
--
--	if (device->flags.compatible_ids) {
--		struct acpica_device_id_list *cid_list = device->pnp.cid_list;
--		int i;
--
--		for (id = ids; id->id[0]; id++) {
--			/* compare multiple _CID entries against driver ids */
--			for (i = 0; i < cid_list->count; i++) {
--				if (!strcmp((char*)id->id,
--					    cid_list->ids[i].string))
--					return 0;
--			}
--		}
--	}
- 
- 	return -ENOENT;
- }
- EXPORT_SYMBOL(acpi_match_device_ids);
- 
-+static void acpi_free_ids(struct acpi_device *device)
-+{
-+	struct acpi_hardware_id *id, *tmp;
-+
-+	list_for_each_entry_safe(id, tmp, &device->pnp.ids, list) {
-+		kfree(id->id);
-+		kfree(id);
-+	}
-+}
-+
- static void acpi_device_release(struct device *dev)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 
--	kfree(acpi_dev->pnp.cid_list);
--	if (acpi_dev->flags.hardware_id)
--		kfree(acpi_dev->pnp.hardware_id);
--	if (acpi_dev->flags.unique_id)
--		kfree(acpi_dev->pnp.unique_id);
-+	acpi_free_ids(acpi_dev);
- 	kfree(acpi_dev);
- }
- 
-@@ -1028,62 +1001,30 @@ static int acpi_dock_match(struct acpi_device *device)
- 	return acpi_get_handle(device->handle, "_DCK", &tmp);
- }
- 
--static struct acpica_device_id_list*
--acpi_add_cid(
--	struct acpi_device_info         *info,
--	struct acpica_device_id         *new_cid)
-+char *acpi_device_hid(struct acpi_device *device)
- {
--	struct acpica_device_id_list    *cid;
--	char                            *next_id_string;
--	acpi_size                       cid_length;
--	acpi_size                       new_cid_length;
--	u32                             i;
--
--
--	/* Allocate new CID list with room for the new CID */
--
--	if (!new_cid)
--		new_cid_length = info->compatible_id_list.list_size;
--	else if (info->compatible_id_list.list_size)
--		new_cid_length = info->compatible_id_list.list_size +
--			new_cid->length + sizeof(struct acpica_device_id);
--	else
--		new_cid_length = sizeof(struct acpica_device_id_list) + new_cid->length;
--
--	cid = ACPI_ALLOCATE_ZEROED(new_cid_length);
--	if (!cid) {
--		return NULL;
--	}
--
--	cid->list_size = new_cid_length;
--	cid->count = info->compatible_id_list.count;
--	if (new_cid)
--		cid->count++;
--	next_id_string = (char *) cid->ids + (cid->count * sizeof(struct acpica_device_id));
--
--	/* Copy all existing CIDs */
-+	struct acpi_hardware_id *hid;
- 
--	for (i = 0; i < info->compatible_id_list.count; i++) {
--		cid_length = info->compatible_id_list.ids[i].length;
--		cid->ids[i].string = next_id_string;
--		cid->ids[i].length = cid_length;
--
--		ACPI_MEMCPY(next_id_string, info->compatible_id_list.ids[i].string,
--			cid_length);
--
--		next_id_string += cid_length;
--	}
-+	hid = list_first_entry(&device->pnp.ids, struct acpi_hardware_id, list);
-+	return hid->id;
-+}
- 
--	/* Append the new CID */
-+static void acpi_add_id(struct acpi_device *device, const char *dev_id)
-+{
-+	struct acpi_hardware_id *id;
- 
--	if (new_cid) {
--		cid->ids[i].string = next_id_string;
--		cid->ids[i].length = new_cid->length;
-+	id = kmalloc(sizeof(*id), GFP_KERNEL);
-+	if (!id)
-+		return;
- 
--		ACPI_MEMCPY(next_id_string, new_cid->string, new_cid->length);
-+	id->id = kmalloc(strlen(dev_id) + 1, GFP_KERNEL);
-+	if (!id->id) {
-+		kfree(id);
-+		return;
+@@ -474,8 +464,9 @@ static int acpi_device_register(struct acpi_device *device)
+ 	 * If failed, create one and link it into acpi_bus_id_list
+ 	 */
+ 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
+-		if (!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id ? acpi_device_hid(device) : "device")) {
+-			acpi_device_bus_id->instance_no ++;
++		if (!strcmp(acpi_device_bus_id->bus_id,
++			    acpi_device_hid(device))) {
++			acpi_device_bus_id->instance_no++;
+ 			found = 1;
+ 			kfree(new_bus_id);
+ 			break;
+@@ -483,7 +474,7 @@ static int acpi_device_register(struct acpi_device *device)
  	}
- 
--	return cid;
-+	strcpy(id->id, dev_id);
-+	list_add_tail(&id->list, &device->pnp.ids);
- }
- 
- static void acpi_device_set_id(struct acpi_device *device)
-@@ -1094,6 +1035,7 @@ static void acpi_device_set_id(struct acpi_device *device)
- 	struct acpica_device_id_list *cid_list = NULL;
- 	char *cid_add = NULL;
- 	acpi_status status;
-+	int i;
- 
- 	switch (device->device_type) {
- 	case ACPI_BUS_TYPE_DEVICE:
-@@ -1166,15 +1108,9 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 	if (!found) {
+ 		acpi_device_bus_id = new_bus_id;
+-		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? acpi_device_hid(device) : "device");
++		strcpy(acpi_device_bus_id->bus_id, acpi_device_hid(device));
+ 		acpi_device_bus_id->instance_no = 0;
+ 		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
+ 	}
+@@ -1102,10 +1093,8 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 	if (!hid && !cid_list && !cid_add)
  		hid = "device";
  
- 	if (hid) {
--		device->pnp.hardware_id = ACPI_ALLOCATE_ZEROED(strlen (hid) + 1);
--		if (device->pnp.hardware_id) {
--			strcpy(device->pnp.hardware_id, hid);
--			device->flags.hardware_id = 1;
--		}
-+		acpi_add_id(device, hid);
-+		device->flags.hardware_id = 1;
- 	}
--	if (!device->flags.hardware_id)
--		device->pnp.hardware_id = "";
--
+-	if (hid) {
++	if (hid)
+ 		acpi_add_id(device, hid);
+-		device->flags.hardware_id = 1;
+-	}
  	if (uid) {
  		device->pnp.unique_id = ACPI_ALLOCATE_ZEROED(strlen (uid) + 1);
  		if (device->pnp.unique_id) {
-@@ -1185,24 +1121,12 @@ static void acpi_device_set_id(struct acpi_device *device)
- 	if (!device->flags.unique_id)
- 		device->pnp.unique_id = "";
- 
--	if (cid_list || cid_add) {
--		struct acpica_device_id_list *list;
--
--		if (cid_add) {
--			struct acpica_device_id cid;
--			cid.length = strlen (cid_add) + 1;
--			cid.string = cid_add;
--
--			list = acpi_add_cid(info, &cid);
--		} else {
--			list = acpi_add_cid(info, NULL);
--		}
--
--		if (list) {
--			device->pnp.cid_list = list;
--			if (cid_add)
--				device->flags.compatible_ids = 1;
--		}
-+	if (cid_list)
-+		for (i = 0; i < cid_list->count; i++)
-+			acpi_add_id(device, cid_list->ids[i].string);
-+	if (cid_add) {
-+		acpi_add_id(device, cid_add);
-+		device->flags.compatible_ids = 1;
- 	}
- 
- 	kfree(info);
-@@ -1269,6 +1193,7 @@ static int acpi_add_single_object(struct acpi_device **child,
- 		return -ENOMEM;
- 	}
- 
-+	INIT_LIST_HEAD(&device->pnp.ids);
- 	device->device_type = type;
- 	device->handle = handle;
- 	device->parent = acpi_bus_get_parent(handle);
 diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index ff963d4..3a4478f 100644
+index 3a4478f..83b8b5a 100644
 --- a/drivers/pnp/pnpacpi/core.c
 +++ b/drivers/pnp/pnpacpi/core.c
-@@ -153,6 +153,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	acpi_handle temp = NULL;
- 	acpi_status status;
- 	struct pnp_dev *dev;
-+	struct acpi_hardware_id *id;
+@@ -230,8 +230,7 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+ 	struct pnp_dev *pnp = _pnp;
  
- 	/*
- 	 * If a PnPacpi device is not present , the device
-@@ -193,15 +194,12 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	if (dev->capabilities & PNP_CONFIGURABLE)
- 		pnpacpi_parse_resource_option_data(dev);
+ 	/* true means it matched */
+-	return acpi->flags.hardware_id
+-	    && !acpi_get_physical_device(acpi->handle)
++	return !acpi_get_physical_device(acpi->handle)
+ 	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
+ }
  
--	if (device->flags.compatible_ids) {
--		struct acpica_device_id_list *cid_list = device->pnp.cid_list;
--		int i;
--
--		for (i = 0; i < cid_list->count; i++) {
--			if (!ispnpidacpi(cid_list->ids[i].string))
--				continue;
--			pnp_add_id(dev, cid_list->ids[i].string);
--		}
-+	list_for_each_entry(id, &device->pnp.ids, list) {
-+		if (!strcmp(id->id, acpi_device_hid(device)))
-+			continue;
-+		if (!ispnpidacpi(id->id))
-+			continue;
-+		pnp_add_id(dev, id->id);
- 	}
- 
- 	/* clear out the damaged flags */
 diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 13a63a6..635e305 100644
+index e422547..1d205f5 100644
 --- a/include/acpi/acpi_bus.h
 +++ b/include/acpi/acpi_bus.h
-@@ -171,19 +171,23 @@ typedef unsigned long acpi_bus_address;
- typedef char acpi_device_name[40];
- typedef char acpi_device_class[20];
+@@ -141,7 +141,6 @@ struct acpi_device_status {
  
-+struct acpi_hardware_id {
-+	struct list_head list;
-+	char *id;
-+};
-+
- struct acpi_device_pnp {
- 	acpi_bus_id bus_id;	/* Object name */
- 	acpi_bus_address bus_address;	/* _ADR */
--	char *hardware_id;	/* _HID */
--	struct acpica_device_id_list *cid_list;	/* _CIDs */
- 	char *unique_id;	/* _UID */
-+	struct list_head ids;		/* _HID and _CIDs */
- 	acpi_device_name device_name;	/* Driver-determined */
- 	acpi_device_class device_class;	/*        "          */
+ struct acpi_device_flags {
+ 	u32 dynamic_status:1;
+-	u32 hardware_id:1;
+ 	u32 bus_address:1;
+ 	u32 unique_id:1;
+ 	u32 removable:1;
+@@ -152,7 +151,7 @@ struct acpi_device_flags {
+ 	u32 performance_manageable:1;
+ 	u32 wake_capable:1;	/* Wakeup(_PRW) supported? */
+ 	u32 force_power_state:1;
+-	u32 reserved:20;
++	u32 reserved:21;
  };
  
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
- #define acpi_device_adr(d)	((d)->pnp.bus_address)
--#define acpi_device_hid(d)	((d)->pnp.hardware_id)
-+char *acpi_device_hid(struct acpi_device *device);
- #define acpi_device_uid(d)	((d)->pnp.unique_id)
- #define acpi_device_name(d)	((d)->pnp.device_name)
- #define acpi_device_class(d)	((d)->pnp.device_class)
+ /* File System */
 
