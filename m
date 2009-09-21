@@ -1,91 +1,170 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH v2] ACPI: Clarify resource conflict message
-Date: Mon, 21 Sep 2009 10:25:40 +0200
-Message-ID: <200909211025.40605.jdelvare@suse.de>
-References: <200909081531.46716.jdelvare@suse.de>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] ACPI: request_region failure ignored in acpi_request_region()
+Date: Mon, 21 Sep 2009 11:50:56 +0200
+Message-ID: <4AB74C80.5090801@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:38286 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753570AbZIUIZi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 04:25:38 -0400
-In-Reply-To: <200909081531.46716.jdelvare@suse.de>
-Content-Disposition: inline
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:61823 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755778AbZIUJna (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 05:43:30 -0400
+Received: by ewy2 with SMTP id 2so782800ewy.17
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Sep 2009 02:43:32 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>, Alan Jenkins <sourcejedi.lkml@googlemail.com>
+To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-Len, Rui, can you please push this patch upstream quickly? We get
-more and more reports about this, and an improved wording would
-definitely help.
+request_(mem_)region may fail, clean up and produce an error.
 
-Thanks.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+Found with sed: http://kernelnewbies.org/roelkluin
 
-Le mardi 08 septembre 2009, Jean Delvare a =C3=A9crit=C2=A0:
-> From: Jean Delvare <jdelvare@suse.de>
-> Subject: ACPI: Clarify resource conflict message
->=20
-> The message "ACPI: Device needs an ACPI driver" is misleading. The
-> device _may_ need an ACPI driver, if the BIOS implemented a custom
-> API for the device in question (which, AFAIK, can't be checked.) If
-> not, then either a generic ACPI driver may be used (for example
-> "thermal"), or nothing can be done (other than a white list).
->=20
-> I propose to reword the message to:
->=20
-> ACPI: If an ACPI driver is available for this device, you should use
-> it instead of the native driver
->=20
-> which I think is more correct. Comments and suggestions welcome.
->=20
-> I also added a message warning about possible problems and system
-> instability when users pass acpi_enforce_resources=3Dlax, as suggeste=
-d
-> by Len.
->=20
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-> ---
-> Len, if you are satisfied with the wording, any chance to have this
-> patch in 2.6.31? Thanks.
->=20
->  drivers/acpi/osl.c |    8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
->=20
-> --- linux-2.6.31-rc9.orig/drivers/acpi/osl.c	2009-09-08 09:46:51.0000=
-00000 +0200
-> +++ linux-2.6.31-rc9/drivers/acpi/osl.c	2009-09-08 13:56:53.000000000=
- +0200
-> @@ -1182,7 +1182,13 @@ int acpi_check_resource_conflict(struct
->  			       res_list_elem->name,
->  			       (long long) res_list_elem->start,
->  			       (long long) res_list_elem->end);
-> -			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
-> +			if (acpi_enforce_resources =3D=3D ENFORCE_RESOURCES_LAX)
-> +				printk(KERN_NOTICE "ACPI: This conflict may"
-> +				       " cause random problems and system"
-> +				       " instability\n");
-> +			printk(KERN_INFO "ACPI: If an ACPI driver is available"
-> +			       " for this device, you should use it instead of"
-> +			       " the native driver\n");
->  		}
->  		if (acpi_enforce_resources =3D=3D ENFORCE_RESOURCES_STRICT)
->  			return -EBUSY;
->=20
+build, sparse and checkpatch tested.
 
+please review.
 
-
---=20
-Jean Delvare
-Suse L3
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 5691f16..f10d786 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -136,51 +136,112 @@ static struct osi_linux {
+ 	unsigned int	known:1;
+ } osi_linux = { 0, 0, 0, 0};
+ 
+-static void __init acpi_request_region (struct acpi_generic_address *addr,
++static int __init acpi_request_region(struct acpi_generic_address *addr,
+ 	unsigned int length, char *desc)
+ {
+ 	struct resource *res;
+ 
+ 	if (!addr->address || !length)
+-		return;
++		return 0;
+ 
+ 	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+ 		res = request_region(addr->address, length, desc);
+ 	else if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+ 		res = request_mem_region(addr->address, length, desc);
++	else
++		return 0;
++
++	if (res == NULL)
++		return -ENOMEM;
++	return 0;
+ }
+ 
+-static int __init acpi_reserve_resources(void)
++static void __init acpi_release_region(struct acpi_generic_address *addr,
++		unsigned int length)
+ {
+-	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
+-		"ACPI PM1a_EVT_BLK");
+-
+-	acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block, acpi_gbl_FADT.pm1_event_length,
+-		"ACPI PM1b_EVT_BLK");
+-
+-	acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block, acpi_gbl_FADT.pm1_control_length,
+-		"ACPI PM1a_CNT_BLK");
+-
+-	acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block, acpi_gbl_FADT.pm1_control_length,
+-		"ACPI PM1b_CNT_BLK");
++	if (addr->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++		release_region(addr->address, length);
++	else
++		release_mem_region(addr->address, length);
++}
+ 
+-	if (acpi_gbl_FADT.pm_timer_length == 4)
+-		acpi_request_region(&acpi_gbl_FADT.xpm_timer_block, 4, "ACPI PM_TMR");
++static int __init acpi_reserve_resources(void)
++{
++	int ret;
++	ret = acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block,
++			acpi_gbl_FADT.pm1_event_length, "ACPI PM1a_EVT_BLK");
++	if (ret != 0)
++		return ret;
++
++	ret = acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block,
++			acpi_gbl_FADT.pm1_event_length, "ACPI PM1b_EVT_BLK");
++	if (ret != 0)
++		goto release_xpm1a_eb;
++
++	ret = acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block,
++			acpi_gbl_FADT.pm1_control_length, "ACPI PM1a_CNT_BLK");
++	if (ret != 0)
++		goto release_xpm1b_eb;
++
++	ret = acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block,
++			acpi_gbl_FADT.pm1_control_length, "ACPI PM1b_CNT_BLK");
++	if (ret != 0)
++		goto release_xpm1a_cb;
++
++	if (acpi_gbl_FADT.pm_timer_length == 4) {
++		ret = acpi_request_region(&acpi_gbl_FADT.xpm_timer_block, 4,
++				"ACPI PM_TMR");
++		if (ret != 0)
++			goto release_xpm1b_cb;
++	}
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm2_control_block, acpi_gbl_FADT.pm2_control_length,
+-		"ACPI PM2_CNT_BLK");
++	ret = acpi_request_region(&acpi_gbl_FADT.xpm2_control_block,
++			acpi_gbl_FADT.pm2_control_length, "ACPI PM2_CNT_BLK");
++	if (ret != 0)
++		goto release_xpm_tb;
+ 
+ 	/* Length of GPE blocks must be a non-negative multiple of 2 */
+ 
+-	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1))
+-		acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
+-			       acpi_gbl_FADT.gpe0_block_length, "ACPI GPE0_BLK");
+-
+-	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
+-		acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
+-			       acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
++	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1)) {
++		ret = acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
++			       acpi_gbl_FADT.gpe0_block_length,
++			       "ACPI GPE0_BLK");
++		if (ret != 0)
++			goto release_xpm2_cb;
++	}
+ 
++	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1)) {
++		ret = acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
++			       acpi_gbl_FADT.gpe1_block_length,
++			       "ACPI GPE1_BLK");
++		if (ret != 0)
++			goto release_xgpe0_b;
++	}
+ 	return 0;
++
++release_xgpe0_b:
++	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1))
++		acpi_release_region(&acpi_gbl_FADT.xgpe0_block,
++				acpi_gbl_FADT.gpe0_block_length);
++release_xpm2_cb:
++	acpi_release_region(&acpi_gbl_FADT.xpm2_control_block,
++			acpi_gbl_FADT.pm2_control_length);
++release_xpm_tb:
++	if (acpi_gbl_FADT.pm_timer_length == 4)
++		acpi_release_region(&acpi_gbl_FADT.xpm_timer_block, 4);
++release_xpm1b_cb:
++	acpi_release_region(&acpi_gbl_FADT.xpm1b_control_block,
++			acpi_gbl_FADT.pm1_control_length);
++release_xpm1a_cb:
++	acpi_release_region(&acpi_gbl_FADT.xpm1a_control_block,
++			acpi_gbl_FADT.pm1_control_length);
++release_xpm1b_eb:
++	acpi_release_region(&acpi_gbl_FADT.xpm1b_event_block,
++			acpi_gbl_FADT.pm1_event_length);
++release_xpm1a_eb:
++	acpi_release_region(&acpi_gbl_FADT.xpm1a_event_block,
++			acpi_gbl_FADT.pm1_event_length);
++	return ret;
+ }
+ device_initcall(acpi_reserve_resources);
+ 
