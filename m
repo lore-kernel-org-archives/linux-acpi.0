@@ -1,140 +1,73 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v3 10/17] ACPI: add acpi_bus_get_parent() and remove "parent"
-	arguments
-Date: Mon, 21 Sep 2009 13:29:35 -0600
-Message-ID: <20090921192935.21322.94526.stgit@bob.kio>
-References: <20090921192656.21322.23072.stgit@bob.kio>
+Subject: [PATCH v3 2/8] ACPI: use acpi_device_hid() when possible
+Date: Mon, 21 Sep 2009 13:35:09 -0600
+Message-ID: <20090921193509.21656.63871.stgit@bob.kio>
+References: <20090921193417.21656.32718.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:17539 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753205AbZIUTba (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 15:31:30 -0400
-In-Reply-To: <20090921192656.21322.23072.stgit@bob.kio>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:48276 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753364AbZIUTfG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 15:35:06 -0400
+In-Reply-To: <20090921193417.21656.32718.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-This patch adds acpi_bus_get_parent(), which ascends the namespace until
-it finds a parent with an acpi_device.
-
-Then we use acpi_bus_get_parent() in acpi_add_single_object(), so callers
-don't have to figure out or keep track of the parent acpi_device.
+Use acpi_device_hid() rather than accessing acpi_device.pnp.hardware_id
+directly.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/scan.c |   50 +++++++++++++++++++++++++++++++++++++-------------
- 1 files changed, 37 insertions(+), 13 deletions(-)
+ drivers/acpi/scan.c        |    6 +++---
+ drivers/pnp/pnpacpi/core.c |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index f2e2834..f205b36 100644
+index e9227ea..269c0aa 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -662,6 +662,33 @@ EXPORT_SYMBOL(acpi_bus_unregister_driver);
- /* --------------------------------------------------------------------------
-                                  Device Enumeration
-    -------------------------------------------------------------------------- */
-+static struct acpi_device *acpi_bus_get_parent(acpi_handle handle)
-+{
-+	acpi_status status;
-+	int ret;
-+	struct acpi_device *device;
-+
-+	/*
-+	 * Fixed hardware devices do not appear in the namespace and do not
-+	 * have handles, but we fabricate acpi_devices for them, so we have
-+	 * to deal with them specially.
-+	 */
-+	if (handle == NULL)
-+		return acpi_root;
-+
-+	do {
-+		status = acpi_get_parent(handle, &handle);
-+		if (status == AE_NULL_ENTRY)
-+			return NULL;
-+		if (ACPI_FAILURE(status))
-+			return acpi_root;
-+
-+		ret = acpi_bus_get_device(handle, &device);
-+		if (ret == 0)
-+			return device;
-+	} while (1);
-+}
-+
- acpi_status
- acpi_bus_get_ejd(acpi_handle handle, acpi_handle *ejd)
- {
-@@ -1217,10 +1244,9 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 	return 0;
+@@ -185,7 +185,7 @@ static ssize_t
+ acpi_device_hid_show(struct device *dev, struct device_attribute *attr, char *buf) {
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 
+-	return sprintf(buf, "%s\n", acpi_dev->pnp.hardware_id);
++	return sprintf(buf, "%s\n", acpi_device_hid(acpi_dev));
+ }
+ static DEVICE_ATTR(hid, 0444, acpi_device_hid_show, NULL);
+ 
+@@ -501,7 +501,7 @@ static int acpi_device_register(struct acpi_device *device)
+ 	 * If failed, create one and link it into acpi_bus_id_list
+ 	 */
+ 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
+-		if(!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id? device->pnp.hardware_id : "device")) {
++		if (!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id ? acpi_device_hid(device) : "device")) {
+ 			acpi_device_bus_id->instance_no ++;
+ 			found = 1;
+ 			kfree(new_bus_id);
+@@ -510,7 +510,7 @@ static int acpi_device_register(struct acpi_device *device)
+ 	}
+ 	if (!found) {
+ 		acpi_device_bus_id = new_bus_id;
+-		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? device->pnp.hardware_id : "device");
++		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? acpi_device_hid(device) : "device");
+ 		acpi_device_bus_id->instance_no = 0;
+ 		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
+ 	}
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index c07fdb9..ff963d4 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -234,7 +234,7 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+ 	/* true means it matched */
+ 	return acpi->flags.hardware_id
+ 	    && !acpi_get_physical_device(acpi->handle)
+-	    && compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
++	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
  }
  
--static int
--acpi_add_single_object(struct acpi_device **child,
--		       struct acpi_device *parent, acpi_handle handle, int type,
--			struct acpi_bus_ops *ops)
-+static int acpi_add_single_object(struct acpi_device **child,
-+				  acpi_handle handle, int type,
-+				  struct acpi_bus_ops *ops)
- {
- 	int result;
- 	struct acpi_device *device;
-@@ -1234,7 +1260,7 @@ acpi_add_single_object(struct acpi_device **child,
- 
- 	device->device_type = type;
- 	device->handle = handle;
--	device->parent = parent;
-+	device->parent = acpi_bus_get_parent(handle);
- 	device->bus_ops = *ops; /* workround for not call .start */
- 
- 	acpi_device_get_busid(device);
-@@ -1434,8 +1460,8 @@ static int acpi_bus_scan(struct acpi_device *start, struct acpi_bus_ops *ops)
- 		}
- 
- 		if (ops->acpi_op_add)
--			status = acpi_add_single_object(&child, parent,
--				chandle, type, ops);
-+			status = acpi_add_single_object(&child, chandle, type,
-+							ops);
- 		else
- 			status = acpi_bus_get_device(chandle, &child);
- 
-@@ -1488,7 +1514,7 @@ acpi_bus_add(struct acpi_device **child,
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_add = 1;
- 
--	result = acpi_add_single_object(child, parent, handle, type, &ops);
-+	result = acpi_add_single_object(child, handle, type, &ops);
- 	if (!result)
- 		result = acpi_bus_scan(*child, &ops);
- 
-@@ -1584,15 +1610,13 @@ static int acpi_bus_scan_fixed(void)
- 	 * Enumerate all fixed-feature devices.
- 	 */
- 	if ((acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON) == 0) {
--		result = acpi_add_single_object(&device, acpi_root,
--						NULL,
-+		result = acpi_add_single_object(&device, NULL,
- 						ACPI_BUS_TYPE_POWER_BUTTON,
- 						&ops);
- 	}
- 
- 	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
--		result = acpi_add_single_object(&device, acpi_root,
--						NULL,
-+		result = acpi_add_single_object(&device, NULL,
- 						ACPI_BUS_TYPE_SLEEP_BUTTON,
- 						&ops);
- 	}
-@@ -1618,7 +1642,7 @@ int __init acpi_scan_init(void)
- 	/*
- 	 * Create the root device in the bus's device tree
- 	 */
--	result = acpi_add_single_object(&acpi_root, NULL, ACPI_ROOT_OBJECT,
-+	result = acpi_add_single_object(&acpi_root, ACPI_ROOT_OBJECT,
- 					ACPI_BUS_TYPE_SYSTEM, &ops);
- 	if (result)
- 		goto Done;
+ static int __init acpi_pnp_find_device(struct device *dev, acpi_handle * handle)
 
