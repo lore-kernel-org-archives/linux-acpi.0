@@ -1,103 +1,215 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: ACPI problems with 2.6.31 linux-acpi
-Date: Mon, 21 Sep 2009 08:56:38 +0800
-Message-ID: <1253494598.3609.318.camel@localhost.localdomain>
-References: <ee1d12670909170306s6b9716e2ib45eb6818cb9d7b3@mail.gmail.com>
-	 <ee1d12670909170312y5a67c6f7le58ef388bb25499f@mail.gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: acpi_ps_complete_op(): BUG: scheduling while atomic: ..
+Date: Mon, 21 Sep 2009 09:37:26 +0200
+Message-ID: <20090921073726.GA13791@elte.hu>
+References: <20090920115423.GA28749@tuxedu.home>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34800 "EHLO mga09.intel.com"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:44992 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750984AbZIUA4c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Sep 2009 20:56:32 -0400
-In-Reply-To: <ee1d12670909170312y5a67c6f7le58ef388bb25499f@mail.gmail.com>
+	id S1752218AbZIUHiA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Sep 2009 03:38:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20090920115423.GA28749@tuxedu.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henric Blomgren <henric@digitalroutes.co.uk>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, Eric Paris <eparis@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Jens Axboe <jens.axboe@oracle.com>, Len
 
-On Thu, 2009-09-17 at 18:12 +0800, Henric Blomgren wrote:
-> Hello everyone,
-> 
-> I've got a problem with one of my home debian nodes and I'm lead to
-> believe it is to do with the acpi system.
-> 
-> When installing 2.6.26 (debian vanilla) the system randomly locks up
-> with the message:
-> BUG: soft lockup detected on CPU#0! 61s
-> While kacpid consumes 100% cpu according to top.
-Will you please file a bug report at
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI and attach the
-following output?
-   a. acpidump
-   b. grep -R . /sys/firmware/acpi/interrupts/*
-   c. lspic -vxxx
 
-Thanks.
-> 
-> With this being an older kernel I took it upon myself to build 2.6.31
-> to see if there was any change.
-> The system does not lock up any more, but kacpid still consumes close
-> to 100% cpu and I'm getting this in my dmesg:
-> [45699.978868] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.LPC_.SMBR] (Node f7812c48), AE_AML_INFINITE_LOOP
-> [45699.978905] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_SB_.PCI0.LPC_.INIT] (Node f7812c30), AE_AML_INFINITE_LOOP
-> [45699.978936] ACPI Error (psparse-0537): Method parse/execution
-> failed [\_GPE._L00] (Node f78101b0), AE_AML_INFINITE_LOOP
-> [45699.978970] ACPI Exception: AE_AML_INFINITE_LOOP, while evaluating
-> GPE method [_L00] 20090521 evgpe-568
-> (constantly repeating).
-> 
-> The system is an Intel Atom Little-Falls mini itx board with 1gb ram
-> which I've checked with memtest86.
-> lspci output:
-> 00:00.0 Host bridge: Intel Corporation 82945G/GZ/P/PL Memory
-> Controller Hub (rev 02)
-> 00:02.0 VGA compatible controller: Intel Corporation 82945G/GZ
-> Integrated Graphics Controller (rev 02)
-> 00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express
-> Port 1 (rev 01)
-> 00:1c.2 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express
-> Port 3 (rev 01)
-> 00:1c.3 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express
-> Port 4 (rev 01)
-> 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
-> UHCI Controller #1 (rev 01)
-> 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
-> UHCI Controller #2 (rev 01)
-> 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
-> UHCI Controller #3 (rev 01)
-> 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
-> UHCI Controller #4 (rev 01)
-> 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2
-> EHCI Controller (rev 01)
-> 00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev e1)
-> 00:1f.0 ISA bridge: Intel Corporation 82801GB/GR (ICH7 Family) LPC
-> Interface Bridge (rev 01)
-> 00:1f.2 IDE interface: Intel Corporation 82801GB/GR/GH (ICH7 Family)
-> SATA IDE Controller (rev 01)
-> 00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controller (rev 01)
-> 01:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
-> RTL8101E/RTL8102E PCI Express Fast Ethernet controller (rev 02)
-> 04:00.0 Mass storage controller: Promise Technology, Inc. PDC20575
-> (SATAII150 TX2plus) (rev 02)
-> 
-> acpidump output is available at : http://halfbug.com/acpi.txt
-> 
-> Booting with acpi=off fixes the problem, but I thought I would report
-> this issue since it is happening with the latest kernel.
-> 
-> Sorry if the above information does not include everything you need to
-> know, if anything is missing please let me know and I'll get the
-> information.
-> 
-> Regards,
-> Henric
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(Cc:-ed ACPI folks.)
 
+* Kelly Bowa <kbpm@tuxedu.org> wrote:
+
+> hi,
+> found following bug in 2.6.31-rc8. CPU model is Intel(R) Atom(TM) CPU N270. This is produced at boot time. I havent had time to look into this yet but looks like an ACPI bug to me..
+> 
+> <6>Checking 'hlt' instruction... OK.
+> <6>ACPI: Core revision 20090521
+> <3>BUG: scheduling while atomic: swapper/0/0x10000002
+> <4>Modules linked in:
+> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
+> <4> [<c03a0354>] schedule+0x97/0xa6b
+> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
+> <4> [<c01bf271>] ? put_object+0x3a/0x3d
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c012ba43>] __cond_resched+0x17/0x23
+> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
+> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
+> <4> [<c02c9a8d>] ? acpi_ps_get_next_simple_arg+0xe0/0xeb
+> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
+> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
+> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
+> <4> [<c02c90e9>] acpi_ns_parse_table+0x39/0x78
+> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
+> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
+> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
+> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
+> <4> [<c0541091>] __init_begin+0x91/0x96
+> <3>BUG: scheduling while atomic: swapper/0/0x10000002
+> <4>Modules linked in:
+> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
+> <4> [<c03a0354>] schedule+0x97/0xa6b
+> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
+> <4> [<c01bf271>] ? put_object+0x3a/0x3d
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c012ba43>] __cond_resched+0x17/0x23
+> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
+> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
+> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
+> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
+> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
+> <4> [<c02c90e9>] acpi_ns_parse_table+0x39/0x78
+> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
+> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
+> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
+> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
+> <4> [<c0541091>] __init_begin+0x91/0x96
+> <3>BUG: scheduling while atomic: swapper/0/0x10000002
+> <4>Modules linked in:
+> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
+> <4> [<c03a0354>] schedule+0x97/0xa6b
+> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
+> <4> [<c01bf271>] ? put_object+0x3a/0x3d
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c012ba43>] __cond_resched+0x17/0x23
+> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
+> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
+> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
+> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
+> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
+> <4> [<c02c90e9>] acpi_ns_parse_table+0x39/0x78
+> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
+> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
+> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
+> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
+> <4> [<c0541091>] __init_begin+0x91/0x96
+> <3>BUG: scheduling while atomic: swapper/0/0x10000002
+> <4>Modules linked in:
+> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
+> <4> [<c03a0354>] schedule+0x97/0xa6b
+> <4> [<c01b7e49>] ? init_object+0xe/0x67
+> <4> [<c03a49d1>] ? sub_preempt_count+0x9/0x9f
+> <4> [<c01ba21f>] ? kmem_cache_free+0x85/0xd5
+> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
+> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
+> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
+> <4> [<c02cb2c3>] ? acpi_ps_free_op+0x51/0x56
+> <4> [<c02cafd0>] ? acpi_ps_delete_parse_tree+0x38/0x50
+> <4> [<c012ba43>] __cond_resched+0x17/0x23
+> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
+> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
+> <4> [<c02b8ab9>] ? acpi_ds_load2_end_op+0x1b3/0x3f6
+> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
+> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
+> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
+> <4> [<c02c911b>] acpi_ns_parse_table+0x6b/0x78
+> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
+> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
+> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
+> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
+> <4> [<c0541091>] __init_begin+0x91/0x96
+> <3>BUG: scheduling while atomic: swapper/0/0x10000002
+> <4>Modules linked in:
+> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
+> <4> [<c03a0354>] schedule+0x97/0xa6b
+> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
+> <4> [<c01bf271>] ? put_object+0x3a/0x3d
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
+> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
+> <4> [<c012ba43>] __cond_resched+0x17/0x23
+> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
+> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
+> <4> [<c02cb21c>] ? acpi_ps_init_op+0x8/0x12
+> <4> [<c02c9a8d>] ? acpi_ps_get_next_simple_arg+0xe0/0xeb
+> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
+> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
+> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
+> <4> [<c02c911b>] acpi_ns_parse_table+0x6b/0x78
+> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
+> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
+> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
+> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
+> <4> [<c0541091>] __init_begin+0x91/0x96
+> <3>BUG: scheduling while atomic: swapper/0/0x10000002
+> <4>Modules linked in:
+> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
+> <4> [<c03a0354>] schedule+0x97/0xa6b
+> <4> [<c01b7e49>] ? init_object+0xe/0x67
+> <4> [<c03a49d1>] ? sub_preempt_count+0x9/0x9f
+> <4> [<c01ba21f>] ? kmem_cache_free+0x85/0xd5
+> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
+> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
+> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
+> <4> [<c02cb2c3>] ? acpi_ps_free_op+0x51/0x56
+> <4> [<c02cafd0>] ? acpi_ps_delete_parse_tree+0x38/0x50
+> <4> [<c012ba43>] __cond_resched+0x17/0x23
+> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
+> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
+> <4> [<c02b8ab9>] ? acpi_ds_load2_end_op+0x1b3/0x3f6
+> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
+> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
+> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
+> <4> [<c02c911b>] acpi_ns_parse_table+0x6b/0x78
+> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
+> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
+> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
+> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
+> <4> [<c0541091>] __init_begin+0x91/0x96
+> <6>ftrace: converting mcount calls to 0f 1f 44 00 00
+> <6>ftrace: allocating 14224 entries in 28 pages
+> <6>..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+> <6>CPU0: Intel(R) Atom(TM) CPU N270   @ 1.60GHz stepping 02
+> <6>Booting processor 1 APIC 0x1 ip 0x6000
+> <6>Initializing CPU#1
+> .....
+> 
+> <3>BUG: using smp_processor_id() in preemptible [00000000] code: events/0/9
+> <4>caller is vmstat_update+0x14/0x3e
+> <4>Pid: 9, comm: events/0 Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c039ff98>] ? printk+0x14/0x1c
+> <4> [<c0284e7a>] debug_smp_processor_id+0x9e/0xb4
+> <4> [<c01a4749>] vmstat_update+0x14/0x3e
+> <4> [<c0144a30>] worker_thread+0x15f/0x1e8
+> <4> [<c01a4735>] ? vmstat_update+0x0/0x3e
+> <4> [<c014809f>] ? autoremove_wake_function+0x0/0x38
+> <4> [<c01448d1>] ? worker_thread+0x0/0x1e8
+> <4> [<c0147d9e>] kthread+0x66/0x6b
+> <4> [<c0147d38>] ? kthread+0x0/0x6b
+> <4> [<c01035cf>] kernel_thread_helper+0x7/0x10
+> <3>BUG: using smp_processor_id() in preemptible [00000000] code: events/0/9
+> <4>caller is vmstat_update+0x2a/0x3e
+> <4>Pid: 9, comm: events/0 Not tainted 2.6.31-git #3
+> <4>Call Trace:
+> <4> [<c039ff98>] ? printk+0x14/0x1c
+> <4> [<c0284e7a>] debug_smp_processor_id+0x9e/0xb4
+> <4> [<c01a475f>] vmstat_update+0x2a/0x3e
+> <4> [<c0144a30>] worker_thread+0x15f/0x1e8
+> <4> [<c01a4735>] ? vmstat_update+0x0/0x3e
+> <4> [<c014809f>] ? autoremove_wake_function+0x0/0x38
+> <4> [<c01448d1>] ? worker_thread+0x0/0x1e8
+> <4> [<c0147d9e>] kthread+0x66/0x6b
+> <4> [<c0147d38>] ? kthread+0x0/0x6b
+> <4> [<c01035cf>] kernel_thread_helper+0x7/0x10
+> 
+> kbpm
