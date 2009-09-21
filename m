@@ -1,215 +1,91 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: acpi_ps_complete_op(): BUG: scheduling while atomic: ..
-Date: Mon, 21 Sep 2009 09:37:26 +0200
-Message-ID: <20090921073726.GA13791@elte.hu>
-References: <20090920115423.GA28749@tuxedu.home>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH v2] ACPI: Clarify resource conflict message
+Date: Mon, 21 Sep 2009 10:25:40 +0200
+Message-ID: <200909211025.40605.jdelvare@suse.de>
+References: <200909081531.46716.jdelvare@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:44992 "EHLO mx2.mail.elte.hu"
+Received: from cantor2.suse.de ([195.135.220.15]:38286 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218AbZIUHiA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Sep 2009 03:38:00 -0400
+	id S1753570AbZIUIZi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 04:25:38 -0400
+In-Reply-To: <200909081531.46716.jdelvare@suse.de>
 Content-Disposition: inline
-In-Reply-To: <20090920115423.GA28749@tuxedu.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Eric Paris <eparis@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Jens Axboe <jens.axboe@oracle.com>, Len
+To: linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, Alan Jenkins <sourcejedi.lkml@googlemail.com>
+
+Len, Rui, can you please push this patch upstream quickly? We get
+more and more reports about this, and an improved wording would
+definitely help.
+
+Thanks.
+
+Le mardi 08 septembre 2009, Jean Delvare a =C3=A9crit=C2=A0:
+> From: Jean Delvare <jdelvare@suse.de>
+> Subject: ACPI: Clarify resource conflict message
+>=20
+> The message "ACPI: Device needs an ACPI driver" is misleading. The
+> device _may_ need an ACPI driver, if the BIOS implemented a custom
+> API for the device in question (which, AFAIK, can't be checked.) If
+> not, then either a generic ACPI driver may be used (for example
+> "thermal"), or nothing can be done (other than a white list).
+>=20
+> I propose to reword the message to:
+>=20
+> ACPI: If an ACPI driver is available for this device, you should use
+> it instead of the native driver
+>=20
+> which I think is more correct. Comments and suggestions welcome.
+>=20
+> I also added a message warning about possible problems and system
+> instability when users pass acpi_enforce_resources=3Dlax, as suggeste=
+d
+> by Len.
+>=20
+> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Len Brown <len.brown@intel.com>
+> Cc: Thomas Renninger <trenn@suse.de>
+> Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+> ---
+> Len, if you are satisfied with the wording, any chance to have this
+> patch in 2.6.31? Thanks.
+>=20
+>  drivers/acpi/osl.c |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+>=20
+> --- linux-2.6.31-rc9.orig/drivers/acpi/osl.c	2009-09-08 09:46:51.0000=
+00000 +0200
+> +++ linux-2.6.31-rc9/drivers/acpi/osl.c	2009-09-08 13:56:53.000000000=
+ +0200
+> @@ -1182,7 +1182,13 @@ int acpi_check_resource_conflict(struct
+>  			       res_list_elem->name,
+>  			       (long long) res_list_elem->start,
+>  			       (long long) res_list_elem->end);
+> -			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
+> +			if (acpi_enforce_resources =3D=3D ENFORCE_RESOURCES_LAX)
+> +				printk(KERN_NOTICE "ACPI: This conflict may"
+> +				       " cause random problems and system"
+> +				       " instability\n");
+> +			printk(KERN_INFO "ACPI: If an ACPI driver is available"
+> +			       " for this device, you should use it instead of"
+> +			       " the native driver\n");
+>  		}
+>  		if (acpi_enforce_resources =3D=3D ENFORCE_RESOURCES_STRICT)
+>  			return -EBUSY;
+>=20
 
 
-(Cc:-ed ACPI folks.)
 
-* Kelly Bowa <kbpm@tuxedu.org> wrote:
-
-> hi,
-> found following bug in 2.6.31-rc8. CPU model is Intel(R) Atom(TM) CPU N270. This is produced at boot time. I havent had time to look into this yet but looks like an ACPI bug to me..
-> 
-> <6>Checking 'hlt' instruction... OK.
-> <6>ACPI: Core revision 20090521
-> <3>BUG: scheduling while atomic: swapper/0/0x10000002
-> <4>Modules linked in:
-> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
-> <4> [<c03a0354>] schedule+0x97/0xa6b
-> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
-> <4> [<c01bf271>] ? put_object+0x3a/0x3d
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c012ba43>] __cond_resched+0x17/0x23
-> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
-> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
-> <4> [<c02c9a8d>] ? acpi_ps_get_next_simple_arg+0xe0/0xeb
-> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
-> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
-> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
-> <4> [<c02c90e9>] acpi_ns_parse_table+0x39/0x78
-> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
-> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
-> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
-> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
-> <4> [<c0541091>] __init_begin+0x91/0x96
-> <3>BUG: scheduling while atomic: swapper/0/0x10000002
-> <4>Modules linked in:
-> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
-> <4> [<c03a0354>] schedule+0x97/0xa6b
-> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
-> <4> [<c01bf271>] ? put_object+0x3a/0x3d
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c012ba43>] __cond_resched+0x17/0x23
-> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
-> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
-> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
-> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
-> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
-> <4> [<c02c90e9>] acpi_ns_parse_table+0x39/0x78
-> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
-> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
-> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
-> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
-> <4> [<c0541091>] __init_begin+0x91/0x96
-> <3>BUG: scheduling while atomic: swapper/0/0x10000002
-> <4>Modules linked in:
-> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
-> <4> [<c03a0354>] schedule+0x97/0xa6b
-> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
-> <4> [<c01bf271>] ? put_object+0x3a/0x3d
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c012ba43>] __cond_resched+0x17/0x23
-> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
-> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
-> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
-> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
-> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
-> <4> [<c02c90e9>] acpi_ns_parse_table+0x39/0x78
-> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
-> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
-> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
-> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
-> <4> [<c0541091>] __init_begin+0x91/0x96
-> <3>BUG: scheduling while atomic: swapper/0/0x10000002
-> <4>Modules linked in:
-> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
-> <4> [<c03a0354>] schedule+0x97/0xa6b
-> <4> [<c01b7e49>] ? init_object+0xe/0x67
-> <4> [<c03a49d1>] ? sub_preempt_count+0x9/0x9f
-> <4> [<c01ba21f>] ? kmem_cache_free+0x85/0xd5
-> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
-> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
-> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
-> <4> [<c02cb2c3>] ? acpi_ps_free_op+0x51/0x56
-> <4> [<c02cafd0>] ? acpi_ps_delete_parse_tree+0x38/0x50
-> <4> [<c012ba43>] __cond_resched+0x17/0x23
-> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
-> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
-> <4> [<c02b8ab9>] ? acpi_ds_load2_end_op+0x1b3/0x3f6
-> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
-> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
-> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
-> <4> [<c02c911b>] acpi_ns_parse_table+0x6b/0x78
-> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
-> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
-> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
-> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
-> <4> [<c0541091>] __init_begin+0x91/0x96
-> <3>BUG: scheduling while atomic: swapper/0/0x10000002
-> <4>Modules linked in:
-> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
-> <4> [<c03a0354>] schedule+0x97/0xa6b
-> <4> [<c01b8e4a>] ? __slab_free+0xd7/0x2ab
-> <4> [<c01bf271>] ? put_object+0x3a/0x3d
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c02cb15d>] ? acpi_ps_pop_scope+0x79/0x84
-> <4> [<c02ce4d8>] ? acpi_debug_print+0xa/0xc2
-> <4> [<c012ba43>] __cond_resched+0x17/0x23
-> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
-> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
-> <4> [<c02cb21c>] ? acpi_ps_init_op+0x8/0x12
-> <4> [<c02c9a8d>] ? acpi_ps_get_next_simple_arg+0xe0/0xeb
-> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
-> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
-> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
-> <4> [<c02c911b>] acpi_ns_parse_table+0x6b/0x78
-> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
-> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
-> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
-> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
-> <4> [<c0541091>] __init_begin+0x91/0x96
-> <3>BUG: scheduling while atomic: swapper/0/0x10000002
-> <4>Modules linked in:
-> <4>Pid: 0, comm: swapper Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c0129e92>] __schedule_bug+0x4d/0x52
-> <4> [<c03a0354>] schedule+0x97/0xa6b
-> <4> [<c01b7e49>] ? init_object+0xe/0x67
-> <4> [<c03a49d1>] ? sub_preempt_count+0x9/0x9f
-> <4> [<c01ba21f>] ? kmem_cache_free+0x85/0xd5
-> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
-> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
-> <4> [<c02abae5>] ? acpi_os_release_object+0xd/0x11
-> <4> [<c02cb2c3>] ? acpi_ps_free_op+0x51/0x56
-> <4> [<c02cafd0>] ? acpi_ps_delete_parse_tree+0x38/0x50
-> <4> [<c012ba43>] __cond_resched+0x17/0x23
-> <4> [<c03a0e2e>] _cond_resched+0x20/0x2b
-> <4> [<c02ca71c>] acpi_ps_complete_op+0x214/0x223
-> <4> [<c02b8ab9>] ? acpi_ds_load2_end_op+0x1b3/0x3f6
-> <4> [<c02cad98>] acpi_ps_parse_loop+0x66d/0x7bd
-> <4> [<c02ca089>] acpi_ps_parse_aml+0xd4/0x324
-> <4> [<c02c909a>] acpi_ns_one_complete_parse+0x10e/0x124
-> <4> [<c02c911b>] acpi_ns_parse_table+0x6b/0x78
-> <4> [<c02c5f57>] acpi_ns_load_table+0x63/0xe0
-> <4> [<c02ccea6>] acpi_load_tables+0x6b/0x13e
-> <4> [<c05606d1>] acpi_early_init+0x5d/0xeb
-> <4> [<c054180c>] start_kernel+0x2ce/0x2dd
-> <4> [<c0541091>] __init_begin+0x91/0x96
-> <6>ftrace: converting mcount calls to 0f 1f 44 00 00
-> <6>ftrace: allocating 14224 entries in 28 pages
-> <6>..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-> <6>CPU0: Intel(R) Atom(TM) CPU N270   @ 1.60GHz stepping 02
-> <6>Booting processor 1 APIC 0x1 ip 0x6000
-> <6>Initializing CPU#1
-> .....
-> 
-> <3>BUG: using smp_processor_id() in preemptible [00000000] code: events/0/9
-> <4>caller is vmstat_update+0x14/0x3e
-> <4>Pid: 9, comm: events/0 Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c039ff98>] ? printk+0x14/0x1c
-> <4> [<c0284e7a>] debug_smp_processor_id+0x9e/0xb4
-> <4> [<c01a4749>] vmstat_update+0x14/0x3e
-> <4> [<c0144a30>] worker_thread+0x15f/0x1e8
-> <4> [<c01a4735>] ? vmstat_update+0x0/0x3e
-> <4> [<c014809f>] ? autoremove_wake_function+0x0/0x38
-> <4> [<c01448d1>] ? worker_thread+0x0/0x1e8
-> <4> [<c0147d9e>] kthread+0x66/0x6b
-> <4> [<c0147d38>] ? kthread+0x0/0x6b
-> <4> [<c01035cf>] kernel_thread_helper+0x7/0x10
-> <3>BUG: using smp_processor_id() in preemptible [00000000] code: events/0/9
-> <4>caller is vmstat_update+0x2a/0x3e
-> <4>Pid: 9, comm: events/0 Not tainted 2.6.31-git #3
-> <4>Call Trace:
-> <4> [<c039ff98>] ? printk+0x14/0x1c
-> <4> [<c0284e7a>] debug_smp_processor_id+0x9e/0xb4
-> <4> [<c01a475f>] vmstat_update+0x2a/0x3e
-> <4> [<c0144a30>] worker_thread+0x15f/0x1e8
-> <4> [<c01a4735>] ? vmstat_update+0x0/0x3e
-> <4> [<c014809f>] ? autoremove_wake_function+0x0/0x38
-> <4> [<c01448d1>] ? worker_thread+0x0/0x1e8
-> <4> [<c0147d9e>] kthread+0x66/0x6b
-> <4> [<c0147d38>] ? kthread+0x0/0x6b
-> <4> [<c01035cf>] kernel_thread_helper+0x7/0x10
-> 
-> kbpm
+--=20
+Jean Delvare
+Suse L3
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
