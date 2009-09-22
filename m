@@ -1,107 +1,78 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v3 7/8] ACPI: remove acpi_device_uid() and related stuff
-Date: Mon, 21 Sep 2009 13:35:35 -0600
-Message-ID: <20090921193534.21656.66980.stgit@bob.kio>
-References: <20090921193417.21656.32718.stgit@bob.kio>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: asus_atk0110 not working on Asus P7P55D PRO
+Date: Mon, 21 Sep 2009 18:52:00 -0600
+Message-ID: <51f3faa70909211752i29ab88b4kbf33278e171e3fd5@mail.gmail.com>
+References: <4AB1C907.1070503@gmail.com>
+	 <20090920162306.GA18214@dreamland.darkstar.lan>
+	 <51f3faa70909201047x56313d99q7cdc49bcc4634b01@mail.gmail.com>
+	 <20090920185824.GA23206@dreamland.darkstar.lan>
+	 <51f3faa70909201551k70ace90x2b25351bfc04c555@mail.gmail.com>
+	 <20090921190434.GA10101@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:48358 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419AbZIUTfb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 15:35:31 -0400
-In-Reply-To: <20090921193417.21656.32718.stgit@bob.kio>
+Received: from mail-ew0-f213.google.com ([209.85.219.213]:62166 "EHLO
+	mail-ew0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbZIVBSo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Sep 2009 21:18:44 -0400
+In-Reply-To: <20090921190434.GA10101@dreamland.darkstar.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Hugh Dickins <hugh.dickins@tiscali.co.uk>, Valdis Kletnieks <Valdis.Kletnieks@vt.edu>, Lin Ming <ming.m.lin@intel.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Nobody uses acpi_device_uid(), so this patch removes it.
+On Mon, Sep 21, 2009 at 1:04 PM, Luca Tettamanti <kronos.it@gmail.com> =
+wrote:
+> Il Sun, Sep 20, 2009 at 04:51:10PM -0600, Robert Hancock ha scritto:
+>> On Sun, Sep 20, 2009 at 12:58 PM, Luca Tettamanti <kronos.it@gmail.c=
+om> wrote:
+>> >> >> I'm guessing this board uses a different format than what the =
+driver
+>> >> >> is expecting. I'm attaching the gzipped decompiled DSDT from t=
+he
+>> >> >> board, hopefully it's useful to somebody..
+>> >> >
+>> >> > Please try the following patch, it should detect the proper buf=
+fer size.
+>> >> >
+>> >>
+>> >> Obviously something not quite right:
+>> >
+>> > Ah yes, the pointer for the output buffer was pointing to the wron=
+g
+>> > variable. Sorry for that ;)
+>>
+>> Cool, seems to be working.
+>
+> Excellent :)
+>
+>> Though the high and critical temperatures
+>> seem a bit odd, but maybe that's what the BIOS actually reports:
+> [...]
+>> CPU Temperature: =A0 =A0+32.5=B0C =A0(high =3D +45.0=B0C, crit =3D +=
+45.5=B0C)
+>> MB Temperature: =A0 =A0 +31.0=B0C =A0(high =3D +45.0=B0C, crit =3D +=
+46.0=B0C)
+>
+> The limits are declared in the DSDT, the driver doesn't do any
+> calculation.
+> It's possible that Asus changed the encoding (again); so far I've bee=
+n
+> unable to locate a "version" field that would allow the driver to det=
+ect
+> a change in the data structures.
+>
+> I've got a new patch for you: instead of probing and preallocating th=
+e
+> buffer this version lets ACPI code do the allocation; the return valu=
+e
+> is cached anyway, so there won't be a big number of allocations.
+> Can you please test and see if it works?
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- drivers/acpi/scan.c     |   18 ------------------
- include/acpi/acpi_bus.h |    4 +---
- 2 files changed, 1 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3f9b8d0..6880852 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1017,7 +1017,6 @@ static void acpi_device_set_id(struct acpi_device *device)
- {
- 	struct acpi_device_info *info = NULL;
- 	char *hid = NULL;
--	char *uid = NULL;
- 	struct acpica_device_id_list *cid_list = NULL;
- 	char *cid_add = NULL;
- 	acpi_status status;
-@@ -1044,8 +1043,6 @@ static void acpi_device_set_id(struct acpi_device *device)
- 
- 		if (info->valid & ACPI_VALID_HID)
- 			hid = info->hardware_id.string;
--		if (info->valid & ACPI_VALID_UID)
--			uid = info->unique_id.string;
- 		if (info->valid & ACPI_VALID_CID)
- 			cid_list = &info->compatible_id_list;
- 		if (info->valid & ACPI_VALID_ADR) {
-@@ -1095,16 +1092,6 @@ static void acpi_device_set_id(struct acpi_device *device)
- 
- 	if (hid)
- 		acpi_add_id(device, hid);
--	if (uid) {
--		device->pnp.unique_id = ACPI_ALLOCATE_ZEROED(strlen (uid) + 1);
--		if (device->pnp.unique_id) {
--			strcpy(device->pnp.unique_id, uid);
--			device->flags.unique_id = 1;
--		}
--	}
--	if (!device->flags.unique_id)
--		device->pnp.unique_id = "";
--
- 	if (cid_list)
- 		for (i = 0; i < cid_list->count; i++)
- 			acpi_add_id(device, cid_list->ids[i].string);
-@@ -1199,11 +1186,6 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	 * -----------------
- 	 * TBD: Synch with Core's enumeration/initialization process.
- 	 */
--
--	/*
--	 * Hardware ID, Unique ID, & Bus Address
--	 * -------------------------------------
--	 */
- 	acpi_device_set_id(device);
- 
- 	/*
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 1d205f5..b8f195d 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -142,7 +142,6 @@ struct acpi_device_status {
- struct acpi_device_flags {
- 	u32 dynamic_status:1;
- 	u32 bus_address:1;
--	u32 unique_id:1;
- 	u32 removable:1;
- 	u32 ejectable:1;
- 	u32 lockable:1;
-@@ -151,7 +150,7 @@ struct acpi_device_flags {
- 	u32 performance_manageable:1;
- 	u32 wake_capable:1;	/* Wakeup(_PRW) supported? */
- 	u32 force_power_state:1;
--	u32 reserved:21;
-+	u32 reserved:22;
- };
- 
- /* File System */
-@@ -186,7 +185,6 @@ struct acpi_device_pnp {
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
- #define acpi_device_adr(d)	((d)->pnp.bus_address)
- char *acpi_device_hid(struct acpi_device *device);
--#define acpi_device_uid(d)	((d)->pnp.unique_id)
- #define acpi_device_name(d)	((d)->pnp.device_name)
- #define acpi_device_class(d)	((d)->pnp.device_class)
- 
-
+Yes, this version still works..
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
