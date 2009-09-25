@@ -1,76 +1,66 @@
-From: Thomas Backlund <tmb@mandriva.org>
-Subject: Re: [git pull request] ACPI & driver patches for Linux-2.6.32-rc0
-Date: Fri, 25 Sep 2009 15:08:42 +0300
-Message-ID: <4ABCB2CA.4020709@mandriva.org>
-References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain>
+From: "Joshua C." <joshuacov@googlemail.com>
+Subject: Re: Linux acpi compatibility / iasl compiler
+Date: Fri, 25 Sep 2009 15:04:54 +0200
+Message-ID: <5f6f8c5f0909250604u3a48c150yeca0e77a0a966541@mail.gmail.com>
+References: <7AF83C134DEA3240992E8EF512F61B7903C21AC51E@pdsmsx502.ccr.corp.intel.com>
+	 <4911F71203A09E4D9981D27F9D8308583AE9A6C6@orsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-7; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mbox2.netikka.net ([213.250.81.203]:35432 "EHLO
-	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752374AbZIYMhp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2009 08:37:45 -0400
-In-Reply-To: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain>
+Received: from an-out-0708.google.com ([209.85.132.248]:59934 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752669AbZIYNEu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2009 09:04:50 -0400
+Received: by an-out-0708.google.com with SMTP id d40so2103235and.1
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2009 06:04:54 -0700 (PDT)
+In-Reply-To: <4911F71203A09E4D9981D27F9D8308583AE9A6C6@orsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Len Brown wrote:
-> Hi Linus,
-> 
-> please pull from: 
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> 
-> Two new drivers, bring the ACPICA core up to date with ACPI 4.0,
-> and a bunch of other stuff...
-> 
-> This will update the files shown below.
-> 
-> thanks!
-> 
-> --
-> Len Brown
-> Intel Open Source Technology Center
-> 
-> 
-> ps. individual patches are available on linux-acpi@vger.kernel.org
-> and a consolidated plain patch is available here:
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.31/acpi-release-20090903-2.6.31.diff.gz
-> 
+2009/9/25 Moore, Robert <robert.moore@intel.com>:
+>
+>> 1. Can I substitute the original dsdt (compiled with ms asl 2) with
+>> the one compiled and optimazed with Intel iasl?
+>>
+>
+> Yes. It should work the same as the original.
+>
+>> 2. Is there such a "big" diffference between the code produced by
+>> these apps?
+>
+> iASL is an optimizing compiler. It will optimize all namepaths to their minimum lengths, it will minimize integer sizes, and will perform constant folding. These optimizations can shrink the code considerably.
+>
+>
+>> 3. How should windows react to the new dsdt recompiled with intel's
+>> iasl?
+>
+> The DSDT should perform identically. It has simply been optimized by iASL.
+> I can't speak to the other ACPI tables on your machine (although, usually any other ASL/AML tables are SSDTs)
+>
+>
+> 4) You should let the kernel override the DSDT with your DSDT before you even think about flashing the bios.
+>
+ I tried it. Linux works perfectly. As for windows:
+-win7 doesn't show any visible signs of problems. I did my best to
+load the table in the registry. I even tried it without UAC.It looks
+like it works with the optimazed dsdt.
+However this is closed-source acpi driver and maybe it still reads
+(from the bios) the original dsdt (the ms one). Therefore I'm not that
+sure about it.
+-winXP: after loading the new optimized dsdt in the registry and
+restarting the pc almost nothing works. random shutdowns with bsod and
+some of the hardware isn't even seen! Only a new install is the
+solution.
+I know that the winxp acpi driver should be rather old but I didn't
+expect such a downturn.
 
-This gets my laptop flooding logs with:
+To sum up:
 
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
+Linux works great, but from what i saw I can't say that windows (at
+least xp, not sure for 7) likes the iasl compiled code. This once
+again proved the "obvious" luck of standards in windows.
 
---
-Thomas
+Thanx to Robert Moore for the reply. I'll test some more times with
+different iasl options before finally flashing the modded bios.
