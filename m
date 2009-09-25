@@ -1,19 +1,62 @@
-From: "Joshua C." <joshuacov@googlemail.com>
-Subject: (unknown)
-Date: Fri, 25 Sep 2009 00:19:14 +0200
-Message-ID: <5f6f8c5f0909241519l28ff08a7gd083ab213bfea2a0@mail.gmail.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH] ACPI: Kill overly verbose "power state" log messages
+Date: Fri, 25 Sep 2009 08:46:37 +0800
+Message-ID: <1253839597.3609.459.camel@localhost.localdomain>
+References: <adapr9gypqz.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f183.google.com ([209.85.210.183]:42015 "EHLO
-	mail-yx0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530AbZIXWTK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Sep 2009 18:19:10 -0400
-Received: by yxe13 with SMTP id 13so2494588yxe.23
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2009 15:19:14 -0700 (PDT)
-Subject: 
+Received: from mga14.intel.com ([143.182.124.37]:54514 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751194AbZIYAq1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Sep 2009 20:46:27 -0400
+In-Reply-To: <adapr9gypqz.fsf@cisco.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>
+Cc: Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-unsubscribe joshuacov@googlemail.com
+On Fri, 2009-09-25 at 05:52 +0800, Roland Dreier wrote:
+> I was recently lucky enough to get a 64-CPU system.  The processors
+> actually have T-states, so my kernel log ends up with 64 lines like:
+> 
+>     ACPI: CPU0 (power states: C1[C1] C2[C3])
+> 
+> This is pretty useless clutter because this info is already available
+> after boot from both /sys/devices/system/cpu/cpu*/cpuidle/state?/ as
+> well as /proc/acpi/processor/CPU*/power.
+> 
+> So just delete the code that prints the throttling states in
+> processor_idle.c.
+It seems that it is unnecessary to delete the C-state info.
+Thanks.
+> 
+> Signed-off-by: Roland Dreier <rolandd@cisco.com>
+> ---
+>  drivers/acpi/processor_idle.c |    7 -------
+>  1 files changed, 0 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index cc61a62..706eacf 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -1214,13 +1214,6 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+>  		acpi_processor_setup_cpuidle(pr);
+>  		if (cpuidle_register_device(&pr->power.dev))
+>  			return -EIO;
+> -
+> -		printk(KERN_INFO PREFIX "CPU%d (power states:", pr->id);
+> -		for (i = 1; i <= pr->power.count; i++)
+> -			if (pr->power.states[i].valid)
+> -				printk(" C%d[C%d]", i,
+> -				       pr->power.states[i].type);
+> -		printk(")\n");
+>  	}
+>  #ifdef CONFIG_ACPI_PROCFS
+>  	/* 'power' [R] */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
