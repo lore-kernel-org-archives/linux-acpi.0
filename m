@@ -1,155 +1,75 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [PATCH] ACPI: New driver for Lenovo SL laptops
-Date: Fri, 25 Sep 2009 17:54:33 +0100
-Message-ID: <4ABCF5C9.2030603@tuffmail.co.uk>
-References: <1253805163-12493-1-git-send-email-ike.pan@canonical.com>
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: Re: [PATCH] acpi: fix null pointer deference of hardware_id string
+Date: Fri, 25 Sep 2009 20:24:13 +0200
+Message-ID: <1253903053.26639.3.camel@localhost>
+References: <1250133125.4044.19.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f211.google.com ([209.85.219.211]:49114 "EHLO
-	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435AbZIYQyh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2009 12:54:37 -0400
-In-Reply-To: <1253805163-12493-1-git-send-email-ike.pan@canonical.com>
+Received: from www17.your-server.de ([213.133.104.17]:52035 "EHLO
+	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbZIYSuw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2009 14:50:52 -0400
+In-Reply-To: <1250133125.4044.19.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Alexandre Rostovtsev <tetromino@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
+Am Donnerstag, den 13.08.2009, 11:12 +0800 schrieb Lin Ming:
+> From: Lin Ming <ming.m.lin@intel.com>
+> Date: Thu, 13 Aug 2009 11:04:47 +0800
 
+Another month, another git repository...
 
-On 9/24/09, Ike Panhc <ike.pan@canonical.com> wrote:
-> lenovo-sl-laptop is a new driver that provides support for hotkeys,
-> bluetooth,
-> LenovoCare LEDs and fan speed on the Lenovo ThinkPad SL series laptops. The
-> original author is Alexandre Rostovtsev. [1] In February 2009 Alexandre has
-> posted the driver on the linux-acpi mailing list and and there was some
-> feedback suggesting further modifications. [2] I would like to see Linux
-> working properly on these laptops. I was encouraged to push this driver
-> again
-> with the modifications that where suggested in the responses to the initial
-> post in order to allow me and others interested in that driver to improve it
-> and hopefully get it included upstream.
->
-> [1] homepage : http://github.com/tetromino/lenovo-sl-laptop/tree/master
-> [2] http://patchwork.kernel.org/patch/7427/
->
-> Following the suggestions when last time the origin author has posted on the
-> linux-acpi mailing list. The major modification of this driver is listed
-> below.
->  - Remove backlight control
->  - Remove procfs EC debug
->  - Remove fan control function
->  - Using generic debugging infrastructure
->  - Support for lastest rfkill infrastructure (by Alexandre)
->  - Register query function into EC for detecting hotkey event
->
-> Patch against current checkout of linux-acpi 2.6.31 is below.
->
->
+Are there any reasons why the patch below didn't land in linus' git
+tree?
 
-Hi again!  Here are a few comments on the non-rfkill bits of the driver.  It's not a comprehensive review, just a few nit-picks I noticed.
+> Subject: [PATCH] acpi: fix null pointer deference of hardware_id string
+> 
+> This regression was caused by commit ed44482
+> "ACPICA: Major update for acpi_get_object_info external interface"
+> 
+> Don't need to set hardware_id string \0 terminated here,
+> acpi_get_object_info already handles it.
+> 
+> Tested-by: Thomas Meyer <thomas@m3y3r.de>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> ---
+>  drivers/char/agp/hp-agp.c         |    6 ++++--
+>  drivers/pci/hotplug/acpiphp_ibm.c |    1 -
+>  2 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/char/agp/hp-agp.c b/drivers/char/agp/hp-agp.c
+> index 7bead4c..d83c4a8 100644
+> --- a/drivers/char/agp/hp-agp.c
+> +++ b/drivers/char/agp/hp-agp.c
+> @@ -492,8 +492,10 @@ zx1_gart_probe (acpi_handle obj, u32 depth, void *context, void **ret)
+>  		status = acpi_get_object_info(handle, &info);
+>  		if (ACPI_SUCCESS(status)) {
+>  			/* TBD check _CID also */
+> -			info->hardware_id.string[sizeof(info->hardware_id.length)-1] = '\0';
+> -			match = (strcmp(info->hardware_id.string, "HWP0001") == 0);
+> +			if (info->valid & ACPI_VALID_HID)
+> +				match = !strcmp(info->hardware_id.string, "HWP0001");
+> +			else
+> +				match = 0;
+>  			kfree(info);
+>  			if (match) {
+>  				status = hp_acpi_csr_space(handle, &sba_hpa, &length);
+> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
+> index a9d926b..e7be66d 100644
+> --- a/drivers/pci/hotplug/acpiphp_ibm.c
+> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
+> @@ -406,7 +406,6 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
+>  			__func__, status);
+>  		return retval;
+>  	}
+> -	info->hardware_id.string[sizeof(info->hardware_id.length) - 1] = '\0';
+>  
+>  	if (info->current_status && (info->valid & ACPI_VALID_HID) &&
+>  			(!strcmp(info->hardware_id.string, IBM_HARDWARE_ID1) ||
+> 
+> 
 
-
-> +static const struct acpi_device_id hkey_ids[] = {
-> +	{"LEN0014", 0},
-> +	{"", 0},
-> +};
-> +
-> +static struct acpi_driver hkey_driver = {
-> +	.name = "lenovo-sl-laptop-hotkey",
-> +	.class = "lenovo",
-> +	.ids = hkey_ids,
-> +	.ops = {
-> +		.add = hkey_add,
-> +		.remove = hkey_remove,
-> +	},
-
-I recently discovered a neglected .owner field in this struct.  Please set the .owner field to THIS_MODULE to get correct information under "/sys/module/leveno-sl-laptop/drivers"
-
-> +};
-> +
-> +static void hkey_inputdev_exit(void)
-> +{
-> +	if (hkey_inputdev) {
-> +		input_unregister_device(hkey_inputdev);
-> +		input_free_device(hkey_inputdev);
-> +		hkey_inputdev = NULL;
-> +	}
-> +}
-> +
-> +static int hkey_inputdev_init(void)
-> +{
-> +	int result;
-> +	struct key_entry *key;
-> +
-> +	hkey_inputdev = input_allocate_device();
-> +	if (!hkey_inputdev) {
-> +		pr_err("Failed to allocate hotkey input device\n");
-> +		return -ENODEV;
-> +	}
-> +	hkey_inputdev->name = "Lenovo ThinkPad SL Series extra buttons";
-> +	hkey_inputdev->phys = LENSL_HKEY_FILE "/input0";
-> +	hkey_inputdev->uniq = LENSL_HKEY_FILE;
-> +	hkey_inputdev->id.bustype = BUS_HOST;
-> +	hkey_inputdev->id.vendor = PCI_VENDOR_ID_LENOVO;
-
-I never have any idea what these accomplish, but Dmitry didn't object to the values so I hope they're sane enough :-).  Anyway, how about adding
-
-	hkey_inputdev->dev.parent = &lensl_pdev->dev;
-
-It should make the input device show up under "/sys/devices/platform/lenovo-sl-laptop", instead of /sys/devices/virtual.
-
-> +	set_bit(EV_KEY, hkey_inputdev->evbit);
-> +
-> +	for (key = ec_keymap; key->type != KE_END; key++)
-> +		set_bit(key->keycode, hkey_inputdev->keybit);
-> +
-> +	result = input_register_device(hkey_inputdev);
-> +	if (result) {
-> +		pr_err("Failed to register hotkey input device\n");
-> +		input_free_device(hkey_inputdev);
-> +		hkey_inputdev = NULL;
-> +		return -ENODEV;
-> +	}
-> +	pr_devel("Initialized hotkey subdriver\n");
-> +	return 0;
-> +}
-
-...
-
-> +static void __exit lenovo_sl_laptop_exit(void)
-> +{
-> +	hwmon_exit();
-> +	led_exit();
-> +	hkey_unregister_notify();
-> +
-> +	radio_exit(LENSL_UWB);
-> +	radio_exit(LENSL_WWAN);
-> +	radio_exit(LENSL_BLUETOOTH);
-> +
-> +	if (lensl_pdev)
-> +		platform_device_unregister(lensl_pdev);
-> +	destroy_workqueue(lensl_wq);
-> +
-> +	pr_info("Unloaded Lenovo ThinkPad SL Series driver\n");
-
-What purpose does this message serve?
-
-> +}
-> +
-> +MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO*:*:pvrThinkPad SL*:rvnLENOVO:*");
-> +MODULE_ALIAS("dmi:bvnLENOVO:*:svnLENOVO*:*:pvrThinkPadSL*:rvnLENOVO:*");
-
-Why can't you use
-
-MODULE_DEVICE_TABLE(acpi, hkey_ids);
-
-instead?
-
-> +module_init(lenovo_sl_laptop_init);
-> +module_exit(lenovo_sl_laptop_exit);
-
-Best wishes
-Alan
