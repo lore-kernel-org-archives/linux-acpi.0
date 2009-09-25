@@ -1,145 +1,270 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [origin tree boot crash] NULL pointer dereference, IP:
-	[<ffffffff82b07130>] ibm_find_acpi_device+0x5c/0xf5
-Date: Fri, 25 Sep 2009 15:47:14 -0600
-Message-ID: <1253915234.16789.14.camel@dc7800.home>
-References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain>
-	 <20090923213052.GA6648@elte.hu>
-	 <1253756114.9794.43.camel@minggr.sh.intel.com>
-	 <1253757510.9794.55.camel@minggr.sh.intel.com>
-	 <1253758420.9794.59.camel@minggr.sh.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 1/2] PM / PCMCIA: Drop second argument of pcmcia_socket_dev_suspend()
+Date: Sat, 26 Sep 2009 01:25:11 +0200
+Message-ID: <200909260125.11149.rjw@sisk.pl>
+References: <200909260122.59030.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:31016 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535AbZIYVtq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2009 17:49:46 -0400
-In-Reply-To: <1253758420.9794.59.camel@minggr.sh.intel.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54673 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926AbZIYXZn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Sep 2009 19:25:43 -0400
+In-Reply-To: <200909260122.59030.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pcmcia@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Florian <fs-kernelbugzilla@spline.de>
 
-On Thu, 2009-09-24 at 10:13 +0800, Lin Ming wrote:
-> On Thu, 2009-09-24 at 09:58 +0800, Lin Ming wrote:
-> > On Thu, 2009-09-24 at 09:35 +0800, Lin Ming wrote:
-> > > On Thu, 2009-09-24 at 05:30 +0800, Ingo Molnar wrote:
-> > > > > commit 15b8dd53f5ffaf8e2d9095c423f713423f576c0f
-> > > > > Date:   Mon Jun 29 13:39:29 2009 +0800
-> > > > >
-> > > > >     ACPICA: Major update for acpi_get_object_info external interface
-> > > > 
-> > > > this one is causing boot crashes in -tip testing: 
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-> hp-agp.c need the same fix.
-> Could you refresh your patch with this one?
+pcmcia_socket_dev_suspend() doesn't use its second argument, so it
+may be dropped safely.
 
-I think Len has already applied the series containing the acpiphp_ibm.c
-fix.  I tested that one and verified that it fixed an actual crash.
+This change is necessary for the subsequent yenta suspend/resume fix.
 
-I think your hp-agp.c patch below is correct, and I don't object if you
-want to submit it, but I don't *think* we'll have a problem even without
-it.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pcmcia/at91_cf.c        |    2 +-
+ drivers/pcmcia/au1000_generic.c |    2 +-
+ drivers/pcmcia/bfin_cf_pcmcia.c |    2 +-
+ drivers/pcmcia/cs.c             |    2 +-
+ drivers/pcmcia/i82092.c         |    2 +-
+ drivers/pcmcia/i82365.c         |    2 +-
+ drivers/pcmcia/m32r_cfc.c       |    2 +-
+ drivers/pcmcia/m32r_pcc.c       |    2 +-
+ drivers/pcmcia/m8xx_pcmcia.c    |    2 +-
+ drivers/pcmcia/omap_cf.c        |    2 +-
+ drivers/pcmcia/pd6729.c         |    2 +-
+ drivers/pcmcia/pxa2xx_base.c    |    2 +-
+ drivers/pcmcia/sa1100_generic.c |    2 +-
+ drivers/pcmcia/sa1111_generic.c |    2 +-
+ drivers/pcmcia/tcic.c           |    2 +-
+ drivers/pcmcia/vrc4171_card.c   |    2 +-
+ include/pcmcia/ss.h             |    2 +-
+ 17 files changed, 17 insertions(+), 17 deletions(-)
 
-We will only touch "info->hardware_id.string[]" if we have already found
-an HP vendor-defined CSR space descriptor.  Any device with that
-descriptor should have a HID.
-
-Bjorn
-
-> diff --git a/drivers/char/agp/hp-agp.c b/drivers/char/agp/hp-agp.c
-> index 7bead4c..d83c4a8 100644
-> --- a/drivers/char/agp/hp-agp.c
-> +++ b/drivers/char/agp/hp-agp.c
-> @@ -492,8 +492,10 @@ zx1_gart_probe (acpi_handle obj, u32 depth, void *context, void **ret)
->  		status = acpi_get_object_info(handle, &info);
->  		if (ACPI_SUCCESS(status)) {
->  			/* TBD check _CID also */
-> -			info->hardware_id.string[sizeof(info->hardware_id.length)-1] = '\0';
-> -			match = (strcmp(info->hardware_id.string, "HWP0001") == 0);
-> +			if (info->valid & ACPI_VALID_HID)
-> +				match = !strcmp(info->hardware_id.string, "HWP0001");
-> +			else
-> +				match = 0;
->  			kfree(info);
->  			if (match) {
->  				status = hp_acpi_csr_space(handle, &sba_hpa, &length);
-> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-> index a9d926b..e7be66d 100644
-> --- a/drivers/pci/hotplug/acpiphp_ibm.c
-> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
-> @@ -406,7 +406,6 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
->  			__func__, status);
->  		return retval;
->  	}
-> -	info->hardware_id.string[sizeof(info->hardware_id.length) - 1] = '\0';
->  
->  	if (info->current_status && (info->valid & ACPI_VALID_HID) &&
->  			(!strcmp(info->hardware_id.string, IBM_HARDWARE_ID1) ||
-> 
-> 
-> > 
-> > Below patch should fix the crash.
-> > http://patchwork.kernel.org/patch/49090/ 
-> > 
-> > Subject: [PATCH v3 01/17] ACPICA: fixup after acpi_get_object_info() change
-> > 
-> > Commit 15b8dd53f5ffa changed info->hardware_id from a static array to
-> > a pointer.  If hardware_id is non-NULL, it points to a NULL-terminated
-> > string, so we don't need to terminate it explicitly.  However, it may
-> > be NULL; in that case, we *can't* add a NULL terminator.
-> > 
-> > This causes a NULL pointer dereference oops for devices without _HID.
-> > 
-> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > CC: Lin Ming <ming.m.lin@intel.com>
-> > CC: Bob Moore <robert.moore@intel.com>
-> > CC: Gary Hade <garyhade@us.ibm.com>
-> > ---
-> >  drivers/pci/hotplug/acpiphp_ibm.c |    1 -
-> >  1 files changed, 0 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-> > index a9d926b..e7be66d 100644
-> > --- a/drivers/pci/hotplug/acpiphp_ibm.c
-> > +++ b/drivers/pci/hotplug/acpiphp_ibm.c
-> > @@ -406,7 +406,6 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
-> >  			__func__, status);
-> >  		return retval;
-> >  	}
-> > -	info->hardware_id.string[sizeof(info->hardware_id.length) - 1] = '\0';
-> >  
-> >  	if (info->current_status && (info->valid & ACPI_VALID_HID) &&
-> >  			(!strcmp(info->hardware_id.string, IBM_HARDWARE_ID1) ||
-> > 
-> > 
-> > ---
-> > Lin Ming
-> > 
-> > > 
-> > > commit 718fb0de8ff88f71b3b91a8ee8e42e60c88e5128
-> > > Author: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-> > > Date:   Thu Aug 6 23:18:12 2009 +0000
-> > > 
-> > >     ACPI: fix NULL bug for HID/UID string
-> > >     
-> > >     acpi_device->pnp.hardware_id and unique_id are now allocated pointers,
-> > >     replacing the previous arrays.  acpi_device_install_notify_handler()
-> > >     oopsed on the NULL hid when probing the video device, and perhaps other
-> > >     uses are vulnerable too.  So initialize those pointers to empty strings
-> > >     when there is no hid or uid.  Also, free hardware_id and unique_id when
-> > >     when acpi_device is going to be freed.
-> > >     
-> > >     http://bugzilla.kernel.org/show_bug.cgi?id=14096
-> > >     
-> > >     Signed-off-by: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-> > >     Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> > >     Signed-off-by: Len Brown <len.brown@intel.com>
-> > > 
-> > > Thanks,
-> > > Lin Ming
-> > 
-> 
+Index: linux-2.6/drivers/pcmcia/at91_cf.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/at91_cf.c
++++ linux-2.6/drivers/pcmcia/at91_cf.c
+@@ -363,7 +363,7 @@ static int at91_cf_suspend(struct platfo
+ 	struct at91_cf_socket	*cf = platform_get_drvdata(pdev);
+ 	struct at91_cf_data	*board = cf->board;
+ 
+-	pcmcia_socket_dev_suspend(&pdev->dev, mesg);
++	pcmcia_socket_dev_suspend(&pdev->dev);
+ 	if (device_may_wakeup(&pdev->dev)) {
+ 		enable_irq_wake(board->det_pin);
+ 		if (board->irq_pin)
+Index: linux-2.6/drivers/pcmcia/au1000_generic.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/au1000_generic.c
++++ linux-2.6/drivers/pcmcia/au1000_generic.c
+@@ -515,7 +515,7 @@ static int au1x00_drv_pcmcia_probe(struc
+ static int au1x00_drv_pcmcia_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int au1x00_drv_pcmcia_resume(struct platform_device *dev)
+Index: linux-2.6/drivers/pcmcia/bfin_cf_pcmcia.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/bfin_cf_pcmcia.c
++++ linux-2.6/drivers/pcmcia/bfin_cf_pcmcia.c
+@@ -302,7 +302,7 @@ static int __devexit bfin_cf_remove(stru
+ 
+ static int bfin_cf_suspend(struct platform_device *pdev, pm_message_t mesg)
+ {
+-	return pcmcia_socket_dev_suspend(&pdev->dev, mesg);
++	return pcmcia_socket_dev_suspend(&pdev->dev);
+ }
+ 
+ static int bfin_cf_resume(struct platform_device *pdev)
+Index: linux-2.6/drivers/pcmcia/cs.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/cs.c
++++ linux-2.6/drivers/pcmcia/cs.c
+@@ -101,7 +101,7 @@ EXPORT_SYMBOL(pcmcia_socket_list_rwsem);
+ static int socket_resume(struct pcmcia_socket *skt);
+ static int socket_suspend(struct pcmcia_socket *skt);
+ 
+-int pcmcia_socket_dev_suspend(struct device *dev, pm_message_t state)
++int pcmcia_socket_dev_suspend(struct device *dev)
+ {
+ 	struct pcmcia_socket *socket;
+ 
+Index: linux-2.6/drivers/pcmcia/i82092.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/i82092.c
++++ linux-2.6/drivers/pcmcia/i82092.c
+@@ -42,7 +42,7 @@ MODULE_DEVICE_TABLE(pci, i82092aa_pci_id
+ #ifdef CONFIG_PM
+ static int i82092aa_socket_suspend (struct pci_dev *dev, pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int i82092aa_socket_resume (struct pci_dev *dev)
+Index: linux-2.6/include/pcmcia/ss.h
+===================================================================
+--- linux-2.6.orig/include/pcmcia/ss.h
++++ linux-2.6/include/pcmcia/ss.h
+@@ -279,7 +279,7 @@ extern struct pccard_resource_ops pccard
+ extern struct pccard_resource_ops pccard_nonstatic_ops;
+ 
+ /* socket drivers are expected to use these callbacks in their .drv struct */
+-extern int pcmcia_socket_dev_suspend(struct device *dev, pm_message_t state);
++extern int pcmcia_socket_dev_suspend(struct device *dev);
+ extern int pcmcia_socket_dev_resume(struct device *dev);
+ 
+ /* socket drivers use this callback in their IRQ handler */
+Index: linux-2.6/drivers/pcmcia/i82365.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/i82365.c
++++ linux-2.6/drivers/pcmcia/i82365.c
+@@ -1241,7 +1241,7 @@ static int pcic_init(struct pcmcia_socke
+ static int i82365_drv_pcmcia_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int i82365_drv_pcmcia_resume(struct platform_device *dev)
+Index: linux-2.6/drivers/pcmcia/m32r_cfc.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/m32r_cfc.c
++++ linux-2.6/drivers/pcmcia/m32r_cfc.c
+@@ -699,7 +699,7 @@ static struct pccard_operations pcc_oper
+ static int cfc_drv_pcmcia_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int cfc_drv_pcmcia_resume(struct platform_device *dev)
+Index: linux-2.6/drivers/pcmcia/m32r_pcc.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/m32r_pcc.c
++++ linux-2.6/drivers/pcmcia/m32r_pcc.c
+@@ -675,7 +675,7 @@ static struct pccard_operations pcc_oper
+ static int pcc_drv_pcmcia_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int pcc_drv_pcmcia_resume(struct platform_device *dev)
+Index: linux-2.6/drivers/pcmcia/m8xx_pcmcia.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/m8xx_pcmcia.c
++++ linux-2.6/drivers/pcmcia/m8xx_pcmcia.c
+@@ -1296,7 +1296,7 @@ static int m8xx_remove(struct of_device 
+ #ifdef CONFIG_PM
+ static int m8xx_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&pdev->dev, state);
++	return pcmcia_socket_dev_suspend(&pdev->dev);
+ }
+ 
+ static int m8xx_resume(struct platform_device *pdev)
+Index: linux-2.6/drivers/pcmcia/omap_cf.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/omap_cf.c
++++ linux-2.6/drivers/pcmcia/omap_cf.c
+@@ -334,7 +334,7 @@ static int __exit omap_cf_remove(struct 
+ 
+ static int omap_cf_suspend(struct platform_device *pdev, pm_message_t mesg)
+ {
+-	return pcmcia_socket_dev_suspend(&pdev->dev, mesg);
++	return pcmcia_socket_dev_suspend(&pdev->dev);
+ }
+ 
+ static int omap_cf_resume(struct platform_device *pdev)
+Index: linux-2.6/drivers/pcmcia/pd6729.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/pd6729.c
++++ linux-2.6/drivers/pcmcia/pd6729.c
+@@ -758,7 +758,7 @@ static void __devexit pd6729_pci_remove(
+ #ifdef CONFIG_PM
+ static int pd6729_socket_suspend(struct pci_dev *dev, pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int pd6729_socket_resume(struct pci_dev *dev)
+Index: linux-2.6/drivers/pcmcia/pxa2xx_base.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/pxa2xx_base.c
++++ linux-2.6/drivers/pcmcia/pxa2xx_base.c
+@@ -302,7 +302,7 @@ static int pxa2xx_drv_pcmcia_remove(stru
+ 
+ static int pxa2xx_drv_pcmcia_suspend(struct device *dev)
+ {
+-	return pcmcia_socket_dev_suspend(dev, PMSG_SUSPEND);
++	return pcmcia_socket_dev_suspend(dev);
+ }
+ 
+ static int pxa2xx_drv_pcmcia_resume(struct device *dev)
+Index: linux-2.6/drivers/pcmcia/sa1100_generic.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/sa1100_generic.c
++++ linux-2.6/drivers/pcmcia/sa1100_generic.c
+@@ -89,7 +89,7 @@ static int sa11x0_drv_pcmcia_remove(stru
+ static int sa11x0_drv_pcmcia_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int sa11x0_drv_pcmcia_resume(struct platform_device *dev)
+Index: linux-2.6/drivers/pcmcia/sa1111_generic.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/sa1111_generic.c
++++ linux-2.6/drivers/pcmcia/sa1111_generic.c
+@@ -159,7 +159,7 @@ static int __devexit pcmcia_remove(struc
+ 
+ static int pcmcia_suspend(struct sa1111_dev *dev, pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int pcmcia_resume(struct sa1111_dev *dev)
+Index: linux-2.6/drivers/pcmcia/tcic.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/tcic.c
++++ linux-2.6/drivers/pcmcia/tcic.c
+@@ -366,7 +366,7 @@ static int __init get_tcic_id(void)
+ static int tcic_drv_pcmcia_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int tcic_drv_pcmcia_resume(struct platform_device *dev)
+Index: linux-2.6/drivers/pcmcia/vrc4171_card.c
+===================================================================
+--- linux-2.6.orig/drivers/pcmcia/vrc4171_card.c
++++ linux-2.6/drivers/pcmcia/vrc4171_card.c
+@@ -707,7 +707,7 @@ __setup("vrc4171_card=", vrc4171_card_se
+ static int vrc4171_card_suspend(struct platform_device *dev,
+ 				     pm_message_t state)
+ {
+-	return pcmcia_socket_dev_suspend(&dev->dev, state);
++	return pcmcia_socket_dev_suspend(&dev->dev);
+ }
+ 
+ static int vrc4171_card_resume(struct platform_device *dev)
 
