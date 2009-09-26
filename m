@@ -1,49 +1,27 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [GIT PATCH] backlight event support enhancements
-Date: Sat, 26 Sep 2009 20:57:30 -0300
-Message-ID: <20090926235730.GA27784@khazad-dum.debian.net>
-References: <1253468688-4933-1-git-send-email-hmh@hmh.eng.br>
- <1253490102.564.3.camel@ted>
- <20090921122859.GC1136@khazad-dum.debian.net>
- <20090926195527.GB15339@khazad-dum.debian.net>
- <1254008109.7598.63.camel@ted>
+Subject: Re: [GIT PATCH] thinkpad-acpi patches for the merge window (second
+ set)
+Date: Sat, 26 Sep 2009 20:58:05 -0300
+Message-ID: <20090926235805.GB27784@khazad-dum.debian.net>
+References: <1253466567-4285-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56366 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56105 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865AbZIZX5a (ORCPT
+	by vger.kernel.org with ESMTP id S1752607AbZIZX6F (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Sep 2009 19:57:30 -0400
+	Sat, 26 Sep 2009 19:58:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1254008109.7598.63.camel@ted>
+In-Reply-To: <1253466567-4285-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Purdie <rpurdie@rpsys.net>
-Cc: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Sun, 27 Sep 2009, Richard Purdie wrote:
-> On Sat, 2009-09-26 at 16:55 -0300, Henrique de Moraes Holschuh wrote:
-> > On Mon, 21 Sep 2009, Henrique de Moraes Holschuh wrote:
-> > > > I'm going to try and get the event patches in this merge window if I
-> > > > can. I'm going to have intermittent internet access for a few days but I
-> > > > will send a pull request for the backlight tree over that time period. 
-> > > > 
-> > > > Whats the timeframe for acpi-test merging?
-> > > 
-> > > acpi-test usually merges late, and the patchset with the prerequisites for
-> > > patch 2/2 are not even merged in acpi-test yet.
-> > 
-> > Well, they got merged early :-)  The patches are all in mainline already, so
-> > the thinkpad-acpi dependencies have been taken care of.
-> > 
-> > Can you please merge patch 2/2 through the backlight tree?  It can go in
-> > toghether with Matthew's patches.
-> 
-> Matthew's patches and your 1/2 patch are in. I'll queue 2/2 in the tree
-> now I know the other parts are there.
+Len,
 
-Thank you.
+Thanks for merging both patchsets so fast.  You rule!
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
