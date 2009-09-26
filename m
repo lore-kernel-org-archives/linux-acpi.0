@@ -1,459 +1,585 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v1] PCI hotplug: move IOAPIC support from acpiphp to ioapic
-	driver
-Date: Fri, 25 Sep 2009 21:24:24 -0600
-Message-ID: <20090926032424.30285.4832.stgit@bob.kio>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <lenb@hera.kernel.org>
+Subject: [git pull request] ACPI related patches for 2.6.32-rc0 - part 2
+Date: Sat, 26 Sep 2009 05:19:53 GMT
+Message-ID: <200909260519.n8Q5JrB6016778@hera.kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:24225 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753121AbZIZDYV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2009 23:24:21 -0400
+Received: from hera.kernel.org ([140.211.167.34]:41056 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750750AbZIZFUG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Sep 2009 01:20:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch moves PCI I/O APIC support from acpiphp to a separate driver.
+Hi Linus,
 
-Like pciehp and shpchp, acpiphp handles PCI hotplug, i.e., addition and
-removal of PCI adapters.  But in addition, acpiphp handles some ACPI
-hotplug, such as the addition of new host bridges, and the I/O APIC
-support was tangled up with that.
+please pull from: 
 
-I don't think the I/O APIC support needs to be in acpiphp; PCI I/O APICs
-usually appear as a function on a PCI host bridge, and we'll enumerate the
-APIC before any of the devices behind the bridge that use it.
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-As far as I know, nobody actually uses I/O APIC hotplug.  It depends on
-acpi_register_ioapic(), which is only implemented for ia64, and I don't
-think any vendors have supported I/O chassis hotplug yet.
+This batch includes the small patch to fix the recent acpiphp_ibm oops,
+that we caused with the previous batch....
 
-Kenji-san, I think this new file needs a Fujitsu copyright, but there
-wasn't one in acpiphp_glue to copy.  If you send me one, I'll put it
-in the next version of this patch.
+This will update the files shown below.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-CC: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-CC: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
-CC: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
-CC: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
- drivers/pci/Kconfig                |    7 +
- drivers/pci/Makefile               |    2 
- drivers/pci/hotplug/acpiphp.h      |    6 -
- drivers/pci/hotplug/acpiphp_glue.c |  190 ------------------------------------
- drivers/pci/ioapic.c               |  127 ++++++++++++++++++++++++
- 5 files changed, 136 insertions(+), 196 deletions(-)
- create mode 100644 drivers/pci/ioapic.c
+thanks!
 
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index fdc864f..d7d28ae 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -69,3 +69,10 @@ config PCI_IOV
- 	  physical resources.
- 
- 	  If unsure, say N.
-+
-+config PCI_IOAPIC
-+	bool
-+	depends on PCI
-+	depends on ACPI
-+	depends on HOTPLUG
-+	default y
-diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
-index 4a7f11d..4df48d5 100644
---- a/drivers/pci/Makefile
-+++ b/drivers/pci/Makefile
-@@ -14,6 +14,8 @@ CFLAGS_legacy.o += -Wno-deprecated-declarations
- # Build PCI Express stuff if needed
- obj-$(CONFIG_PCIEPORTBUS) += pcie/
- 
-+obj-$(CONFIG_PCI_IOAPIC) += ioapic.o
-+
- obj-$(CONFIG_HOTPLUG) += hotplug.o
- 
- # Build the PCI Hotplug drivers if we were asked to
-diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-index 7d938df..bab5204 100644
---- a/drivers/pci/hotplug/acpiphp.h
-+++ b/drivers/pci/hotplug/acpiphp.h
-@@ -146,12 +146,6 @@ struct acpiphp_attention_info
- 	struct module *owner;
- };
- 
--struct acpiphp_ioapic {
--	struct pci_dev *dev;
--	u32 gsi_base;
--	struct list_head list;
--};
--
- /* PCI bus bridge HID */
- #define ACPI_PCI_HOST_HID		"PNP0A03"
- 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 58d25a1..392e4b3 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -52,8 +52,6 @@
- #include "acpiphp.h"
- 
- static LIST_HEAD(bridge_list);
--static LIST_HEAD(ioapic_list);
--static DEFINE_SPINLOCK(ioapic_list_lock);
- 
- #define MY_NAME "acpiphp_glue"
- 
-@@ -606,190 +604,6 @@ static void remove_bridge(acpi_handle handle)
- 					   handle_hotplug_event_bridge);
- }
- 
--static struct pci_dev * get_apic_pci_info(acpi_handle handle)
--{
--	struct pci_dev *dev;
--
--	dev = acpi_get_pci_dev(handle);
--	if (!dev)
--		return NULL;
--
--	if ((dev->class != PCI_CLASS_SYSTEM_PIC_IOAPIC) &&
--	    (dev->class != PCI_CLASS_SYSTEM_PIC_IOXAPIC))
--	{
--		pci_dev_put(dev);
--		return NULL;
--	}
--
--	return dev;
--}
--
--static int get_gsi_base(acpi_handle handle, u32 *gsi_base)
--{
--	acpi_status status;
--	int result = -1;
--	unsigned long long gsb;
--	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
--	union acpi_object *obj;
--	void *table;
--
--	status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsb);
--	if (ACPI_SUCCESS(status)) {
--		*gsi_base = (u32)gsb;
--		return 0;
--	}
--
--	status = acpi_evaluate_object(handle, "_MAT", NULL, &buffer);
--	if (ACPI_FAILURE(status) || !buffer.length || !buffer.pointer)
--		return -1;
--
--	obj = buffer.pointer;
--	if (obj->type != ACPI_TYPE_BUFFER)
--		goto out;
--
--	table = obj->buffer.pointer;
--	switch (((struct acpi_subtable_header *)table)->type) {
--	case ACPI_MADT_TYPE_IO_SAPIC:
--		*gsi_base = ((struct acpi_madt_io_sapic *)table)->global_irq_base;
--		result = 0;
--		break;
--	case ACPI_MADT_TYPE_IO_APIC:
--		*gsi_base = ((struct acpi_madt_io_apic *)table)->global_irq_base;
--		result = 0;
--		break;
--	default:
--		break;
--	}
-- out:
--	kfree(buffer.pointer);
--	return result;
--}
--
--static acpi_status
--ioapic_add(acpi_handle handle, u32 lvl, void *context, void **rv)
--{
--	acpi_status status;
--	unsigned long long sta;
--	acpi_handle tmp;
--	struct pci_dev *pdev;
--	u32 gsi_base;
--	u64 phys_addr;
--	struct acpiphp_ioapic *ioapic;
--
--	/* Evaluate _STA if present */
--	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_SUCCESS(status) && sta != ACPI_STA_ALL)
--		return AE_CTRL_DEPTH;
--
--	/* Scan only PCI bus scope */
--	status = acpi_get_handle(handle, "_HID", &tmp);
--	if (ACPI_SUCCESS(status))
--		return AE_CTRL_DEPTH;
--
--	if (get_gsi_base(handle, &gsi_base))
--		return AE_OK;
--
--	ioapic = kmalloc(sizeof(*ioapic), GFP_KERNEL);
--	if (!ioapic)
--		return AE_NO_MEMORY;
--
--	pdev = get_apic_pci_info(handle);
--	if (!pdev)
--		goto exit_kfree;
--
--	if (pci_enable_device(pdev))
--		goto exit_pci_dev_put;
--
--	pci_set_master(pdev);
--
--	if (pci_request_region(pdev, 0, "I/O APIC(acpiphp)"))
--		goto exit_pci_disable_device;
--
--	phys_addr = pci_resource_start(pdev, 0);
--	if (acpi_register_ioapic(handle, phys_addr, gsi_base))
--		goto exit_pci_release_region;
--
--	ioapic->gsi_base = gsi_base;
--	ioapic->dev = pdev;
--	spin_lock(&ioapic_list_lock);
--	list_add_tail(&ioapic->list, &ioapic_list);
--	spin_unlock(&ioapic_list_lock);
--
--	return AE_OK;
--
-- exit_pci_release_region:
--	pci_release_region(pdev, 0);
-- exit_pci_disable_device:
--	pci_disable_device(pdev);
-- exit_pci_dev_put:
--	pci_dev_put(pdev);
-- exit_kfree:
--	kfree(ioapic);
--
--	return AE_OK;
--}
--
--static acpi_status
--ioapic_remove(acpi_handle handle, u32 lvl, void *context, void **rv)
--{
--	acpi_status status;
--	unsigned long long sta;
--	acpi_handle tmp;
--	u32 gsi_base;
--	struct acpiphp_ioapic *pos, *n, *ioapic = NULL;
--
--	/* Evaluate _STA if present */
--	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_SUCCESS(status) && sta != ACPI_STA_ALL)
--		return AE_CTRL_DEPTH;
--
--	/* Scan only PCI bus scope */
--	status = acpi_get_handle(handle, "_HID", &tmp);
--	if (ACPI_SUCCESS(status))
--		return AE_CTRL_DEPTH;
--
--	if (get_gsi_base(handle, &gsi_base))
--		return AE_OK;
--
--	acpi_unregister_ioapic(handle, gsi_base);
--
--	spin_lock(&ioapic_list_lock);
--	list_for_each_entry_safe(pos, n, &ioapic_list, list) {
--		if (pos->gsi_base != gsi_base)
--			continue;
--		ioapic = pos;
--		list_del(&ioapic->list);
--		break;
--	}
--	spin_unlock(&ioapic_list_lock);
--
--	if (!ioapic)
--		return AE_OK;
--
--	pci_release_region(ioapic->dev, 0);
--	pci_disable_device(ioapic->dev);
--	pci_dev_put(ioapic->dev);
--	kfree(ioapic);
--
--	return AE_OK;
--}
--
--static int acpiphp_configure_ioapics(acpi_handle handle)
--{
--	ioapic_add(handle, 0, NULL, NULL);
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
--			    ACPI_UINT32_MAX, ioapic_add, NULL, NULL);
--	return 0;
--}
--
--static int acpiphp_unconfigure_ioapics(acpi_handle handle)
--{
--	ioapic_remove(handle, 0, NULL, NULL);
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
--			    ACPI_UINT32_MAX, ioapic_remove, NULL, NULL);
--	return 0;
--}
--
- static int power_on_slot(struct acpiphp_slot *slot)
- {
- 	acpi_status status;
-@@ -1014,8 +828,6 @@ static int __ref enable_device(struct acpiphp_slot *slot)
- 	pci_bus_assign_resources(bus);
- 	acpiphp_sanitize_bus(bus);
- 	acpiphp_set_hpp_values(bus);
--	list_for_each_entry(func, &slot->funcs, sibling)
--		acpiphp_configure_ioapics(func->handle);
- 	pci_enable_bridges(bus);
- 	pci_bus_add_devices(bus);
- 
-@@ -1091,7 +903,6 @@ static int disable_device(struct acpiphp_slot *slot)
- 	}
- 
- 	list_for_each_entry(func, &slot->funcs, sibling) {
--		acpiphp_unconfigure_ioapics(func->handle);
- 		acpiphp_bus_trim(func->handle);
- 	}
- 
-@@ -1275,7 +1086,6 @@ static int acpiphp_configure_bridge (acpi_handle handle)
- 	acpiphp_sanitize_bus(bus);
- 	acpiphp_set_hpp_values(bus);
- 	pci_enable_bridges(bus);
--	acpiphp_configure_ioapics(handle);
- 	return 0;
- }
- 
-diff --git a/drivers/pci/ioapic.c b/drivers/pci/ioapic.c
-new file mode 100644
-index 0000000..487f139
---- /dev/null
-+++ b/drivers/pci/ioapic.c
-@@ -0,0 +1,127 @@
-+/*
-+ * IOAPIC/IOxAPIC/IOSAPIC driver
-+ *
-+ * XXX Fujitsu copyright TBD
-+ * (c) Copyright 2009 Hewlett-Packard Development Company, L.P.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * This driver manages PCI I/O APICs added by hotplug after boot.  We try to
-+ * claim all I/O APIC PCI devices, but those present at boot were registered
-+ * when we parsed the ACPI MADT, so we'll fail when we try to re-register
-+ * them.
-+ */
-+
-+#include <linux/pci.h>
-+#include <linux/acpi.h>
-+#include <acpi/acpi_bus.h>
-+
-+struct ioapic {
-+	acpi_handle	handle;
-+	u32		gsi_base;
-+};
-+
-+static int ioapic_probe(struct pci_dev *dev, const struct pci_device_id *ent)
-+{
-+	acpi_handle handle;
-+	acpi_status status;
-+	unsigned long long gsb;
-+	struct ioapic *ioapic;
-+	u64 addr;
-+	int ret;
-+	char *type;
-+
-+	handle = DEVICE_ACPI_HANDLE(&dev->dev);
-+	if (!handle)
-+		return -EINVAL;
-+
-+	status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsb);
-+	if (ACPI_FAILURE(status))
-+		return -EINVAL;
-+
-+	/*
-+	 * The previous code in acpiphp evaluated _MAT if _GSB failed, but
-+	 * ACPI spec 4.0 sec 6.2.2 requires _GSB for hot-pluggable I/O APICs.
-+	 */
-+
-+	ioapic = kzalloc(sizeof(*ioapic), GFP_KERNEL);
-+	if (!ioapic)
-+		return -ENOMEM;
-+
-+	ioapic->handle = handle;
-+	ioapic->gsi_base = (u32) gsb;
-+
-+	if (dev->class == PCI_CLASS_SYSTEM_PIC_IOAPIC)
-+		type = "IOAPIC";
-+	else
-+		type = "IOxAPIC";
-+
-+	ret = pci_enable_device(dev);
-+	if (ret < 0)
-+		goto exit_free;
-+
-+	pci_set_master(dev);
-+
-+	if (pci_request_region(dev, 0, type))
-+		goto exit_disable;
-+
-+	addr = pci_resource_start(dev, 0);
-+	if (acpi_register_ioapic(ioapic->handle, addr, ioapic->gsi_base))
-+		goto exit_release;
-+
-+	pci_set_drvdata(dev, ioapic);
-+	dev_info(&dev->dev, "%s at %#llx, GSI %u\n", type, addr,
-+		 ioapic->gsi_base);
-+	return 0;
-+
-+exit_release:
-+	pci_release_region(dev, 0);
-+exit_disable:
-+	pci_disable_device(dev);
-+exit_free:
-+	kfree(ioapic);
-+	return -ENODEV;
-+}
-+
-+static void ioapic_remove(struct pci_dev *dev)
-+{
-+	struct ioapic *ioapic = pci_get_drvdata(dev);
-+
-+	acpi_unregister_ioapic(ioapic->handle, ioapic->gsi_base);
-+	pci_release_region(dev, 0);
-+	pci_disable_device(dev);
-+	kfree(ioapic);
-+}
-+
-+
-+static struct pci_device_id ioapic_devices[] = {
-+	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
-+	  PCI_CLASS_SYSTEM_PIC_IOAPIC << 8, 0xffff00, },
-+	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
-+	  PCI_CLASS_SYSTEM_PIC_IOXAPIC << 8, 0xffff00, },
-+	{ }
-+};
-+
-+static struct pci_driver ioapic_driver = {
-+	.name		= "ioapic",
-+	.id_table	= ioapic_devices,
-+	.probe		= ioapic_probe,
-+	.remove		= __devexit_p(ioapic_remove),
-+};
-+
-+static int __init ioapic_init(void)
-+{
-+	return pci_register_driver(&ioapic_driver);
-+}
-+
-+static void __exit ioapic_exit(void)
-+{
-+	pci_unregister_driver(&ioapic_driver);
-+}
-+
-+module_init(ioapic_init);
-+module_exit(ioapic_exit);
+--
+Len Brown
+Intel Open Source Technology Center
 
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.31/acpi-release-20090903-2.6.31.diff.gz
+
+ Documentation/laptops/thinkpad-acpi.txt |   48 ++-
+ drivers/acpi/bus.c                      |   49 +--
+ drivers/acpi/scan.c                     |  705 ++++++++++++-------------------
+ drivers/pci/hotplug/acpiphp_ibm.c       |    1 -
+ drivers/platform/x86/thinkpad_acpi.c    |  632 +++++++++++++++++++---------
+ drivers/pnp/pnpacpi/core.c              |   21 +-
+ include/acpi/acpi_bus.h                 |   22 +-
+ 7 files changed, 768 insertions(+), 710 deletions(-)
+
+through these commits:
+
+Bjorn Helgaas (25):
+      ACPICA: fixup after acpi_get_object_info() change
+      ACPI: add debug for device addition
+      ACPI: remove unused acpi_bus_scan_fixed() argument
+      ACPI: remove redundant "handle" and "parent" arguments
+      ACPI: save device_type in acpi_device
+      ACPI: use device_type rather than comparing HID
+      ACPI: remove acpi_device_set_context() "type" argument
+      ACPI: remove redundant "type" arguments
+      ACPI: remove unnecessary argument checking
+      ACPI: add acpi_bus_get_parent() and remove "parent" arguments
+      ACPI: convert acpi_bus_scan() to operate on an acpi_handle
+      ACPI: enumerate namespace before adding functional fixed hardware devices
+      ACPI: identify device tree root by null parent pointer, not ACPI_BUS_TYPE
+      ACPI: use acpi_walk_namespace() to enumerate devices
+      ACPI: add acpi_bus_get_status_handle()
+      ACPI: factor out device type and status checking
+      ACPI: handle re-enumeration, when acpi_devices might already exist
+      ACPI: fix synthetic HID for \_SB_
+      ACPI: use acpi_device_hid() when possible
+      ACPI: make sure every acpi_device has an ID
+      ACPI: maintain a single list of _HID and _CID IDs
+      ACPI: remove acpi_device.flags.compatible_ids
+      ACPI: remove acpi_device.flags.hardware_id
+      ACPI: remove acpi_device_uid() and related stuff
+      ACPI: simplify building device HID/CID list
+
+Henrique de Moraes Holschuh (6):
+      thinkpad-acpi: don't leave ERR_PTR() pointers around
+      thinkpad-acpi: remove uneeded tp_features.hotkey tests in hotkey_exit
+      thinkpad-acpi: drop HKEY event 0x5010
+      thinkpad-acpi: hotkey event driver update
+      thinkpad-acpi: add internal hotkey event API
+      thinkpad-acpi: name event constants
+
+with this log:
+
+commit 2b474ad8473f57c2930b2bda6c397c3aa8d97896
+Merge: ea26105 67bcae6
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Sep 26 01:08:55 2009 -0400
+
+    Merge branch 'thinkpad-2.6.32-part2' into release
+
+commit ea2610515755614da76677185349c66880c1e84d
+Merge: 6d7f18f 57f3674
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Sep 26 01:08:43 2009 -0400
+
+    Merge branch 'bjorn-HID' into release
+
+commit 57f3674f5e9c7b1102ae62fc2920d2fa09fce1ea
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:40 2009 -0600
+
+    ACPI: simplify building device HID/CID list
+    
+    Minor code cleanup, no functional change.  Instead of remembering
+    what HIDs & CIDs to add later, just add them immediately.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 6622d8cee73a26bce958484065c8f0e704911a62
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:35 2009 -0600
+
+    ACPI: remove acpi_device_uid() and related stuff
+    
+    Nobody uses acpi_device_uid(), so this patch removes it.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 1131b938f0757350f569f8ad5bee737cd02b8e58
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:29 2009 -0600
+
+    ACPI: remove acpi_device.flags.hardware_id
+    
+    Every acpi_device has at least one ID (if there's no _HID or _CID, we
+    give it a synthetic or default ID).  So there's no longer a need to
+    check whether an ID exists; we can just use it.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit b2972f87508a21db7584d11fdb5c97cb7101a788
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:24 2009 -0600
+
+    ACPI: remove acpi_device.flags.compatible_ids
+    
+    We now keep a single list of IDs that includes both the _HID and any
+    _CIDs.  We no longer need to keep track of whether the device has a _CID.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 7f47fa6c2ff15f5e59cdbb350f86faef6829294a
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:19 2009 -0600
+
+    ACPI: maintain a single list of _HID and _CID IDs
+    
+    There's no need to treat _HID and _CID differently.  Keeping them in
+    a single list makes code that uses the IDs a little simpler because it
+    can just traverse the list rather than checking "do we have a HID?",
+    "do we have any CIDs?"
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Reviewed-by: Alex Chiang <achiang@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit b1fbfb2ae8f2f0e04219218da6f52f7313466899
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:14 2009 -0600
+
+    ACPI: make sure every acpi_device has an ID
+    
+    This makes sure every acpi_device has at least one ID.  If we build an
+    acpi_device for a namespace node with no _HID or _CID, we sometimes
+    synthesize an ID like "LNXCPU" or "LNXVIDEO".  If we don't even have
+    that, give it a default "device" ID.
+    
+    Note that this means things like:
+        /sys/devices/LNXSYSTM:00/LNXSYBUS:00/HWP0001:00/HWP0002:04/device:00
+    (a PCI slot SxFy device) will have "hid" and "modprobe" entries, where
+    they didn't before.  These aren't very useful (a HID of "device" doesn't
+    tell you what *kind* of device it is, so it doesn't help find a driver),
+    but I don't think they're harmful.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit ea8d82fd316208bd0ffe6f64823d04bcb8c57158
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:09 2009 -0600
+
+    ACPI: use acpi_device_hid() when possible
+    
+    Use acpi_device_hid() rather than accessing acpi_device.pnp.hardware_id
+    directly.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 78b8e141f8458ba0b8ac53c45bc327112c53887e
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 13:35:04 2009 -0600
+
+    ACPI: fix synthetic HID for \_SB_
+    
+    This makes \_SB_ show up as /sys/devices/LNXSYSTM:00/LNXSYBUS:00
+    rather than "device:00".  This has been broken for a loooong time
+    (at least since 2.6.13) because device->parent is an acpi_device
+    pointer, not a handle.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit e3b87f8a9d5a61f6367c66d1bb0a4e19d251194d
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:30:11 2009 +0000
+
+    ACPI: handle re-enumeration, when acpi_devices might already exist
+    
+    acpi_bus_scan() traverses the namespace to enumerate devices and uses
+    acpi_add_single_object() to create acpi_devices.  When the platform
+    notifies us of a hot-plug event, we need to traverse part of the namespace
+    again to figure out what appeared or disappeared.  (We don't yet call
+    acpi_bus_scan() during hot-plug, but I plan to do that in the future.)
+    
+    This patch makes acpi_add_single_object() notice when we already have
+    an acpi_device, so we don't need to make a new one.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 778cbc1d3abd434b6d882714630235e3711bb15b
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:30:06 2009 +0000
+
+    ACPI: factor out device type and status checking
+    
+    This patch adds acpi_bus_type_and_status(), which determines the type
+    of the object and whether we want to build an acpi_device for it.  If
+    it is acpi_device-worthy, it returns the type and the device's current
+    status.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 402ac53614bce0c273c73a80339556bf56dd3d39
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:30:01 2009 +0000
+
+    ACPI: add acpi_bus_get_status_handle()
+    
+    Add acpi_bus_get_status_handle() so we can get the status of a namespace
+    object before building a struct acpi_device.
+    
+    This removes a use of "device->flags.dynamic_status", a cached indicator of
+    whether _STA exists.  It seems simpler and more reliable to just evaluate
+    _STA and catch AE_NOT_FOUND errors.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 51a85faf2d4ffecd8384b3f501f9f7ee2b05ee53
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:56 2009 +0000
+
+    ACPI: use acpi_walk_namespace() to enumerate devices
+    
+    acpi_bus_scan() currently walks the namespace manually.  This patch changes
+    it to use acpi_walk_namespace() instead.
+    
+    Besides removing some complicated code, this means we take advantage of the
+    namespace locking done by acpi_walk_namespace().  The locking isn't so
+    important at boot-time, but I hope to eventually use this same path to
+    handle hot-addition of devices, when it will be important.
+    
+    Note that acpi_walk_namespace() does not actually visit the starting node
+    first, so we need to do that by hand first.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 859ac9a4be0c753cece0e30a2e4a65fd2cdcaeee
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:50 2009 +0000
+
+    ACPI: identify device tree root by null parent pointer, not ACPI_BUS_TYPE
+    
+    We can identify the root of the ACPI device tree by the fact that it
+    has no parent.  This is simpler than passing around ACPI_BUS_TYPE_SYSTEM
+    and will help remove special treatment of the device tree root.
+    
+    Currently, we add the root by hand with ACPI_BUS_TYPE_SYSTEM.  If we
+    traverse the tree treating the root as just another device and use
+    acpi_get_type(), the root shows up as ACPI_TYPE_DEVICE.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit adc08e2035f1859d4b129f42b2c2305ef090d226
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:45 2009 +0000
+
+    ACPI: enumerate namespace before adding functional fixed hardware devices
+    
+    This patch changes the order so we enumerate in the "root, namespace,
+    functional fixed" order instead of the "root, functional fixed, namespace"
+    order.  When I change acpi_bus_scan() to use acpi_walk_namespace(), it
+    will use the former order, so this patch isolates the order change for
+    bisectability.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8e029bf0a611ea3995bd1fae0285cbaf6eed7f16
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:40 2009 +0000
+
+    ACPI: convert acpi_bus_scan() to operate on an acpi_handle
+    
+    This patch changes acpi_bus_scan() to take an acpi_handle rather than an
+    acpi_device pointer.  I plan to use acpi_bus_scan() in the hotplug path,
+    and I'd rather not assume that notifications only go to nodes that already
+    have acpi_devices.
+    
+    This will also help remove the special case for adding the root node.  We
+    currently add the root by hand before acpi_bus_scan(), but using a handle
+    here means we can start the acpi_bus_scan() directly with the root even
+    though it doesn't have an acpi_device yet.
+    
+    Note that acpi_bus_scan() currently adds and/or starts the *children* of
+    its device argument.  It doesn't do anything with the device itself.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5c478f499c9e6a3ac542c940f7b434686f4967a5
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:35 2009 +0000
+
+    ACPI: add acpi_bus_get_parent() and remove "parent" arguments
+    
+    This patch adds acpi_bus_get_parent(), which ascends the namespace until
+    it finds a parent with an acpi_device.
+    
+    Then we use acpi_bus_get_parent() in acpi_add_single_object(), so callers
+    don't have to figure out or keep track of the parent acpi_device.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 77c24888b7693eecee904308e0ee51f7f1f564df
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:30 2009 +0000
+
+    ACPI: remove unnecessary argument checking
+    
+    acpi_add_single_object() is static, and all callers supply a valid "child"
+    argument, so we don't need to check it.  This patch also remove some
+    unnecessary initializations.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c7bcb4e98aca348f6f8ab432496ff35ba7a49a1d
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:25 2009 +0000
+
+    ACPI: remove redundant "type" arguments
+    
+    We now save the ACPI bus "device_type" in the acpi_device structure, so
+    we don't need to pass it around explicitly anymore.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit bc3b07726aa288e2a5e60d9a1dd8188b3faa7385
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:20 2009 +0000
+
+    ACPI: remove acpi_device_set_context() "type" argument
+    
+    We only pass the "type" to acpi_device_set_context() so we know whether
+    the device has a handle to which we can attach the acpi_device pointer.
+    But it's safer to just check for the handle directly, since it's in the
+    acpi_device already.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit ccba2a36d74a9da815e597ac727cfd096fa8e750
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:15 2009 +0000
+
+    ACPI: use device_type rather than comparing HID
+    
+    Check the acpi_device device_type rather than the HID.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit caaa6efb3d82d0102db9e7094ca5773c46e6780c
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:10 2009 +0000
+
+    ACPI: save device_type in acpi_device
+    
+    Most uses of the ACPI bus device_type (ACPI_BUS_TYPE_DEVICE,
+    ACPI_BUS_TYPE_POWER, etc) are during device initialization, but
+    we do need it later for notify handler installation, since that
+    is different for fixed hardware devices vs. namespace devices.
+    
+    This patch saves the device_type in the acpi_device structure,
+    so we can check that rather than comparing against the _HID string.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 66b7ed40aaf153d634aabff409a0dda675f37f45
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:29:05 2009 +0000
+
+    ACPI: remove redundant "handle" and "parent" arguments
+    
+    In several cases, functions take handle and parent device pointers in
+    addition to acpi_device pointers.  But the acpi_device structure contains
+    both the handle and the parent pointer, so it's pointless and error-prone
+    to pass them all.  This patch removes the unnecessary "handle" and "parent"
+    arguments.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit e8b945c9c155d06e1d1ea594f8e18e01aa36f612
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:28:59 2009 +0000
+
+    ACPI: remove unused acpi_bus_scan_fixed() argument
+    
+    We never use the "root" argument, so just remove it.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 29aaefa68f933110e577fbf3ca360c88331e5ff5
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:28:54 2009 +0000
+
+    ACPI: add debug for device addition
+    
+    Add debug output for adding an ACPI device.  Enable this with
+    "acpi.debug_layer=0x00010000" (ACPI_BUS_COMPONENT).
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit b24715027aab5e586c4ab1d035f3e543307dea69
+Author: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Date:   Mon Sep 21 19:28:49 2009 +0000
+
+    ACPICA: fixup after acpi_get_object_info() change
+    
+    Commit 15b8dd53f5ffa changed info->hardware_id from a static array to
+    a pointer.  If hardware_id is non-NULL, it points to a NULL-terminated
+    string, so we don't need to terminate it explicitly.  However, it may
+    be NULL; in that case, we *can't* add a NULL terminator.
+    
+    This causes a NULL pointer dereference oops for devices without _HID.
+    
+    Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+    CC: Lin Ming <ming.m.lin@intel.com>
+    CC: Bob Moore <robert.moore@intel.com>
+    CC: Gary Hade <garyhade@us.ibm.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 67bcae6ee8e111f3343bc89345883024ba230a3b
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sun Sep 20 14:09:27 2009 -0300
+
+    thinkpad-acpi: name event constants
+    
+    Reduce the number of magic numbers in the driver... note that they
+    were all explained and documented already.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8b468c0c85f41c4c55227c17271b4187d8911fb0
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sun Sep 20 14:09:26 2009 -0300
+
+    thinkpad-acpi: add internal hotkey event API
+    
+    Add an internal API to the driver, to allow subdrivers to request and
+    receive HKEY 0x1000 events.  This API will be used by the backlight
+    (brightness up/down) and upcoming ALSA mixer (volume up/down/mute)
+    subdrivers.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 0d922e3b84dc4923fc67901580a3c166006fba7a
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sun Sep 20 14:09:25 2009 -0300
+
+    thinkpad-acpi: hotkey event driver update
+    
+    Update the HKEY event driver to:
+    
+    1. Handle better the second-gen firmware, which has no HKEY mask
+       support but does report FN+F3, FN+F4 and FN+F12 without the need
+       for NVRAM polling.
+    
+       a) always make the mask-related attributes available in sysfs;
+       b) use DMI quirks to detect the second-gen firmware;
+       c) properly report that FN+F3, FN+F4 and FN+F12 are enabled,
+          and available even on mask-less second-gen firmware;
+    
+    2. Decouple the issuing of hotkey events towards userspace from
+       their reception from the firmware.  ALSA mixer and brightness
+       event reporting support will need this feature.
+    
+    3. Clean up the mess in the hotkey driver a great deal.  It is
+       still very convoluted, and wants a full refactoring into a
+       proper event API interface, but that is not going to happen
+       today.
+    
+    4. Fully reset firmware interface on resume (restore hotkey
+       mask and status).
+    
+    5. Stop losing polled events for no good reason when changing the
+       mask and poll frequencies.  We will still lose them when the
+       hotkey_source_mask is changed, as well as any that happened
+       between driver suspend and driver resume.
+    
+    The hotkey subdriver now has the notion of user-space-visible hotkey
+    event mask, as well as of the set of "hotkey" events the driver needs
+    (because brightness/volume change reports are not just keypress
+    reports in most ThinkPad models).
+    
+    With this rewrite, the ABI level is bumped to 0x020500 should
+    userspace need to know it is dealing with the updated hotkey
+    subdriver.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 176dd98523fee4836210bc0834c8e3e6a93247bf
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sun Sep 20 14:09:24 2009 -0300
+
+    thinkpad-acpi: drop HKEY event 0x5010
+    
+    HKEY event 0x5010 is useless to us: old ThinkPads don't issue it.  Newer
+    ThinkPads won't issue it anymore.  And all ThinkPads issue 0x1010 and
+    0x1011 events.
+    
+    Just silently drop it instead of sending it to userspace.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 4be73005e4dcf111fa88f7265ed147e2de38b075
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sun Sep 20 14:09:23 2009 -0300
+
+    thinkpad-acpi: remove uneeded tp_features.hotkey tests in hotkey_exit
+    
+    hotkey_exit() is only called if hotkey_init() finished sucessfully, or
+    by direct calls inside hotkey_init().  The tp_features.hotkey test is
+    always true, and just adds to the confusion, remove it.  Also, avoid
+    calling hotkey_mask_set() when it won't do anything useful.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 435c47e20bc212d0fa6652ac93fae8eaee7b9b34
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Sun Sep 20 14:09:22 2009 -0300
+
+    thinkpad-acpi: don't leave ERR_PTR() pointers around
+    
+    backlight_device_register returns ERR_PTR() in case of problems, and
+    the current code would leave that ERR_PTR in ibm_backlight_device.
+    
+    The current code paths won't touch it in that situation, but that could
+    change.  Make sure to set ibm_backlight_device to NULL in the error
+    path.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
