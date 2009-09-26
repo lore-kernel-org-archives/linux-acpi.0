@@ -1,41 +1,52 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [git pull request] ACPI related patches for 2.6.32-rc0 - part 2
-Date: Sat, 26 Sep 2009 20:29:36 +0900
-Message-ID: <20090926112936.GA16854@kamineko.org>
-References: <200909260519.n8Q5JrB6016778@hera.kernel.org>
+From: "Henrique de Moraes Holschuh" <hmh@hmh.eng.br>
+Subject: Re: [PATCH 5/6] thinkpad-acpi: add internal hotkey event API
+Date: Sat, 26 Sep 2009 10:48:05 -0300
+Message-ID: <1253972885.13490.1336737611@webmail.messagingengine.com>
+References: <1253466567-4285-1-git-send-email-hmh@hmh.eng.br>
+ <1253466567-4285-6-git-send-email-hmh@hmh.eng.br>
+ <1253955570.3897.4.camel@ht.satnam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:45896
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952AbZIZL3g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Sep 2009 07:29:36 -0400
-Content-Disposition: inline
-In-Reply-To: <200909260519.n8Q5JrB6016778@hera.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:38512 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751462AbZIZNsC convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Sep 2009 09:48:02 -0400
+In-Reply-To: <1253955570.3897.4.camel@ht.satnam>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@hera.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Sat, Sep 26, 2009 at 05:19:53AM +0000, Len Brown wrote:
-> Hi Linus,
-> 
-> please pull from: 
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> 
-> This batch includes the small patch to fix the recent acpiphp_ibm oops,
-> that we caused with the previous batch....
-> 
-> This will update the files shown below.
+On Sat, 26 Sep 2009 14:29 +0530, "Jaswinder Singh Rajput" <jaswinder@ke=
+rnel.org> wrote:
+> > +/*
+> > + * Sets the driver hotkey mask.
+> > + *
+> > + * Can be called even if the hotkey subdriver is inactive
+> > + */
+> > +static int tpacpi_hotkey_driver_mask_set(const u32 mask)
+>=20
+>=20
+>   CC [M]  drivers/platform/x86/thinkpad_acpi.o
+> drivers/platform/x86/thinkpad_acpi.c:2225: warning:
+> =E2=80=98tpacpi_hotkey_driver_mask_set=E2=80=99 defined but not used
 
-Argh, was it too late for the sony-laptop patches I sent a few days
-ago[1]?
-Should I try to send them earlier, maybe around the late -rc releases to
-get them in acpi-test for a while first?
+The function is used by another patch, which is waiting for its
+prerequisites to be merged through the backlight tree.
 
-Thanks
-[1]: http://patchwork.kernel.org/project/linux-acpi/list/?=Mattia+Dongili&submitter=1375
--- 
-mattia
-:wq!
+That patch has already been sent to linux-acpi as well.
+
+--=20
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
