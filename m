@@ -1,52 +1,43 @@
-From: "Henrique de Moraes Holschuh" <hmh@hmh.eng.br>
-Subject: Re: [PATCH 5/6] thinkpad-acpi: add internal hotkey event API
-Date: Sat, 26 Sep 2009 10:48:05 -0300
-Message-ID: <1253972885.13490.1336737611@webmail.messagingengine.com>
-References: <1253466567-4285-1-git-send-email-hmh@hmh.eng.br>
- <1253466567-4285-6-git-send-email-hmh@hmh.eng.br>
- <1253955570.3897.4.camel@ht.satnam>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [GIT PATCH] backlight event support enhancements
+Date: Sat, 26 Sep 2009 16:55:27 -0300
+Message-ID: <20090926195527.GB15339@khazad-dum.debian.net>
+References: <1253468688-4933-1-git-send-email-hmh@hmh.eng.br>
+ <1253490102.564.3.camel@ted>
+ <20090921122859.GC1136@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:38512 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:49173 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751462AbZIZNsC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Sep 2009 09:48:02 -0400
-In-Reply-To: <1253955570.3897.4.camel@ht.satnam>
+	by vger.kernel.org with ESMTP id S1750795AbZIZTz1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Sep 2009 15:55:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20090921122859.GC1136@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Sat, 26 Sep 2009 14:29 +0530, "Jaswinder Singh Rajput" <jaswinder@ke=
-rnel.org> wrote:
-> > +/*
-> > + * Sets the driver hotkey mask.
-> > + *
-> > + * Can be called even if the hotkey subdriver is inactive
-> > + */
-> > +static int tpacpi_hotkey_driver_mask_set(const u32 mask)
->=20
->=20
->   CC [M]  drivers/platform/x86/thinkpad_acpi.o
-> drivers/platform/x86/thinkpad_acpi.c:2225: warning:
-> =E2=80=98tpacpi_hotkey_driver_mask_set=E2=80=99 defined but not used
+On Mon, 21 Sep 2009, Henrique de Moraes Holschuh wrote:
+> > I'm going to try and get the event patches in this merge window if I
+> > can. I'm going to have intermittent internet access for a few days but I
+> > will send a pull request for the backlight tree over that time period. 
+> > 
+> > Whats the timeframe for acpi-test merging?
+> 
+> acpi-test usually merges late, and the patchset with the prerequisites for
+> patch 2/2 are not even merged in acpi-test yet.
 
-The function is used by another patch, which is waiting for its
-prerequisites to be merged through the backlight tree.
+Well, they got merged early :-)  The patches are all in mainline already, so
+the thinkpad-acpi dependencies have been taken care of.
 
-That patch has already been sent to linux-acpi as well.
+Can you please merge patch 2/2 through the backlight tree?  It can go in
+toghether with Matthew's patches.
 
---=20
+-- 
   "One disk to rule them all, One disk to find them. One disk to bring
   them all and in the darkness grind them. In the Land of Redmond
   where the shadows lie." -- The Silicon Valley Tarot
   Henrique Holschuh
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
