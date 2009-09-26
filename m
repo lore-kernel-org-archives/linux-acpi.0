@@ -1,167 +1,174 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/2] PM / yenta: Fix cardbus suspend/resume regression
-Date: Sat, 26 Sep 2009 01:26:48 +0200
-Message-ID: <200909260126.48896.rjw@sisk.pl>
-References: <200909260122.59030.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200909260122.59030.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pcmcia@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Florian <fs-kernelbugzilla@spline.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: thinkpad-acpi: fix incorrect use of TPACPI_BRGHT_MODE_ECNVRAM
+Date: Fri, 25 Sep 2009 21:57:33 -0300
+Message-ID: <1253926653-6147-1-git-send-email-hmh@hmh.eng.br>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59175 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751998AbZIZA5f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Sep 2009 20:57:35 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+HBRV-based default selection of backlight control strategy didn't work
+well, at least the X41 defines it but doesn't use it and I don't think
+it will stop there.  Switch to a blacklist, and make sure only Radeon-
+based models get ECNVRAM.
 
-Since 2.6.29 the PCI PM core have been restoring the standard
-configuration registers of PCI devices in the early phase of
-resume.  In particular, PCI devices without drivers have been handled
-this way since commit 355a72d75b3b4f4877db4c9070c798238028ecb5
-(PCI: Rework default handling of suspend and resume).  Unfortunately,
-this leads to post-resume problems with CardBus devices which cannot
-be accessed in the early phase of resume, because the sockets they
-are on have not been woken up yet at that point.
+Symptoms of incorrect backlight mode selection are:
 
-To solve this problem, move the yenta socket resume to the early
-phase of resume and, analogously, move the suspend of it to the late
-phase of suspend.  Additionally, remove some unnecessary PCI code
-from the yenta socket's resume routine.
+1. Non-working backlight control through sysfs;
 
-Fixes http://bugzilla.kernel.org/show_bug.cgi?id=13092, which is a
-post-2.6.28 regression.
+2. Backlight gets reset to the lowest level at every shutdown, reboot
+   and when thinkpad-acpi gets unloaded;
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-by: Florian <fs-kernelbugzilla@spline.de>
+This fixes a regression in 2.6.30, bugzilla #13826.  This fix is
+already present on 2.6.31.
+
+This is a minimal patch for 2.6.30-stable, based on mainline
+commits: 050df107c408a3df048524b3783a5fc6d4dccfdb,
+	 7d95a3d564901e88ed42810f054e579874151999,
+	 59fe4fe34d7afdf63208124f313be9056feaa2f4,
+	 6da25bf51689a5cc60370d30275dbb9e6852e0cb
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Reported-by: Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Reported-by: Robert de Rooy <robert.de.rooy@gmail.com>
 ---
- drivers/pcmcia/yenta_socket.c |   92 ++++++++++++++++++++++--------------------
- 1 file changed, 50 insertions(+), 42 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   74 ++++++++++++++++++++++++++++------
+ 1 files changed, 61 insertions(+), 13 deletions(-)
 
-Index: linux-2.6-stable/drivers/pcmcia/yenta_socket.c
-===================================================================
---- linux-2.6-stable.orig/drivers/pcmcia/yenta_socket.c
-+++ linux-2.6-stable/drivers/pcmcia/yenta_socket.c
-@@ -1225,60 +1225,71 @@ static int __devinit yenta_probe (struct
- }
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 912be65..7cd6d11 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -286,6 +286,8 @@ struct thinkpad_id_data {
  
- #ifdef CONFIG_PM
--static int yenta_dev_suspend (struct pci_dev *dev, pm_message_t state)
-+static int yenta_dev_suspend_noirq(struct device *dev)
- {
--	struct yenta_socket *socket = pci_get_drvdata(dev);
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct yenta_socket *socket = pci_get_drvdata(pdev);
- 	int ret;
+ 	u16 bios_model;		/* Big Endian, TP-1Y = 0x5931, 0 = unknown */
+ 	u16 ec_model;
++	u16 bios_release;	/* 1ZETK1WW = 0x314b, 0 = unknown */
++	u16 ec_release;
  
--	ret = pcmcia_socket_dev_suspend(&dev->dev, state);
-+	ret = pcmcia_socket_dev_suspend(dev);
+ 	char *model_str;	/* ThinkPad T43 */
+ 	char *nummodel_str;	/* 9384A9C for a 9384-A9C model */
+@@ -362,6 +364,45 @@ static void tpacpi_log_usertask(const char * const what)
+ 		} \
+ 	} while (0)
  
--	if (socket) {
--		if (socket->type && socket->type->save_state)
--			socket->type->save_state(socket);
--
--		/* FIXME: pci_save_state needs to have a better interface */
--		pci_save_state(dev);
--		pci_read_config_dword(dev, 16*4, &socket->saved_state[0]);
--		pci_read_config_dword(dev, 17*4, &socket->saved_state[1]);
--		pci_disable_device(dev);
--
--		/*
--		 * Some laptops (IBM T22) do not like us putting the Cardbus
--		 * bridge into D3.  At a guess, some other laptop will
--		 * probably require this, so leave it commented out for now.
--		 */
--		/* pci_set_power_state(dev, 3); */
--	}
-+	if (!socket)
-+		return ret;
++#define TPACPI_MATCH_ANY		0xffffU
++#define TPACPI_MATCH_UNKNOWN		0U
 +
-+	if (socket->type && socket->type->save_state)
-+		socket->type->save_state(socket);
++/* TPID('1', 'Y') == 0x5931 */
++#define TPID(__c1, __c2) (((__c2) << 8) | (__c1))
 +
-+	pci_save_state(pdev);
-+	pci_read_config_dword(pdev, 16*4, &socket->saved_state[0]);
-+	pci_read_config_dword(pdev, 17*4, &socket->saved_state[1]);
-+	pci_disable_device(pdev);
++#define TPACPI_Q_IBM(__id1, __id2, __quirk)	\
++	{ .vendor = PCI_VENDOR_ID_IBM,		\
++	  .bios = TPID(__id1, __id2),		\
++	  .ec = TPACPI_MATCH_ANY,		\
++	  .quirks = (__quirk) }
 +
-+	/*
-+	 * Some laptops (IBM T22) do not like us putting the Cardbus
-+	 * bridge into D3.  At a guess, some other laptop will
-+	 * probably require this, so leave it commented out for now.
-+	 */
-+	/* pci_set_power_state(dev, 3); */
- 
- 	return ret;
- }
- 
--
--static int yenta_dev_resume (struct pci_dev *dev)
-+static int yenta_dev_resume_noirq(struct device *dev)
- {
--	struct yenta_socket *socket = pci_get_drvdata(dev);
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct yenta_socket *socket = pci_get_drvdata(pdev);
-+	int ret;
- 
--	if (socket) {
--		int rc;
-+	if (!socket)
-+		return 0;
- 
--		pci_set_power_state(dev, 0);
--		/* FIXME: pci_restore_state needs to have a better interface */
--		pci_restore_state(dev);
--		pci_write_config_dword(dev, 16*4, socket->saved_state[0]);
--		pci_write_config_dword(dev, 17*4, socket->saved_state[1]);
-+	pci_write_config_dword(pdev, 16*4, socket->saved_state[0]);
-+	pci_write_config_dword(pdev, 17*4, socket->saved_state[1]);
- 
--		rc = pci_enable_device(dev);
--		if (rc)
--			return rc;
-+	ret = pci_enable_device(pdev);
-+	if (ret)
-+		return ret;
- 
--		pci_set_master(dev);
-+	pci_set_master(pdev);
- 
--		if (socket->type && socket->type->restore_state)
--			socket->type->restore_state(socket);
--	}
-+	if (socket->type && socket->type->restore_state)
-+		socket->type->restore_state(socket);
- 
--	return pcmcia_socket_dev_resume(&dev->dev);
-+	return pcmcia_socket_dev_resume(dev);
- }
-+
-+static struct dev_pm_ops yenta_pm_ops = {
-+	.suspend_noirq = yenta_dev_suspend_noirq,
-+	.resume_noirq = yenta_dev_resume_noirq,
-+	.freeze_noirq = yenta_dev_suspend_noirq,
-+	.thaw_noirq = yenta_dev_resume_noirq,
-+	.poweroff_noirq = yenta_dev_suspend_noirq,
-+	.restore_noirq = yenta_dev_resume_noirq,
++struct tpacpi_quirk {
++	unsigned int vendor;
++	u16 bios;
++	u16 ec;
++	unsigned long quirks;
 +};
 +
-+#define YENTA_PM_OPS	(&yenta_pm_ops)
-+#else
-+#define YENTA_PM_OPS	NULL
- #endif
++static unsigned long __init tpacpi_check_quirks(
++			const struct tpacpi_quirk *qlist,
++			unsigned int qlist_size)
++{
++	while (qlist_size) {
++		if ((qlist->vendor == thinkpad_id.vendor ||
++				qlist->vendor == TPACPI_MATCH_ANY) &&
++		    (qlist->bios == thinkpad_id.bios_model ||
++				qlist->bios == TPACPI_MATCH_ANY) &&
++		    (qlist->ec == thinkpad_id.ec_model ||
++				qlist->ec == TPACPI_MATCH_ANY))
++			return qlist->quirks;
++
++		qlist_size--;
++		qlist++;
++	}
++	return 0;
++}
++
++
+ /****************************************************************************
+  ****************************************************************************
+  *
+@@ -5757,14 +5798,27 @@ static struct backlight_ops ibm_backlight_data = {
  
- #define CB_ID(vend,dev,type)				\
-@@ -1376,10 +1387,7 @@ static struct pci_driver yenta_cardbus_d
- 	.id_table	= yenta_table,
- 	.probe		= yenta_probe,
- 	.remove		= __devexit_p(yenta_close),
--#ifdef CONFIG_PM
--	.suspend	= yenta_dev_suspend,
--	.resume		= yenta_dev_resume,
--#endif
-+	.driver.pm	= YENTA_PM_OPS,
- };
+ /* --------------------------------------------------------------------- */
  
++#define TPACPI_BRGHT_Q_EC	0x0002  /* Should or must use EC HBRV */
++
++static const struct tpacpi_quirk brightness_quirk_table[] __initconst = {
++	TPACPI_Q_IBM('1', 'Y', TPACPI_BRGHT_Q_EC),
++	TPACPI_Q_IBM('1', 'Q', TPACPI_BRGHT_Q_EC),
++	TPACPI_Q_IBM('7', '6', TPACPI_BRGHT_Q_EC),
++	TPACPI_Q_IBM('7', '8', TPACPI_BRGHT_Q_EC),
++};
++
+ static int __init brightness_init(struct ibm_init_struct *iibm)
+ {
+ 	int b;
++	unsigned long quirks;
  
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
+ 
+ 	mutex_init(&brightness_mutex);
+ 
++	quirks = tpacpi_check_quirks(brightness_quirk_table,
++				ARRAY_SIZE(brightness_quirk_table));
++
+ 	/*
+ 	 * We always attempt to detect acpi support, so as to switch
+ 	 * Lenovo Vista BIOS to ACPI brightness mode even if we are not
+@@ -5821,19 +5875,9 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	/* TPACPI_BRGHT_MODE_AUTO not implemented yet, just use default */
+ 	if (brightness_mode == TPACPI_BRGHT_MODE_AUTO ||
+ 	    brightness_mode == TPACPI_BRGHT_MODE_MAX) {
+-		if (thinkpad_id.vendor == PCI_VENDOR_ID_IBM) {
+-			/*
+-			 * IBM models that define HBRV probably have
+-			 * EC-based backlight level control
+-			 */
+-			if (acpi_evalf(ec_handle, NULL, "HBRV", "qd"))
+-				/* T40-T43, R50-R52, R50e, R51e, X31-X41 */
+-				brightness_mode = TPACPI_BRGHT_MODE_ECNVRAM;
+-			else
+-				/* all other IBM ThinkPads */
+-				brightness_mode = TPACPI_BRGHT_MODE_UCMS_STEP;
+-		} else
+-			/* All Lenovo ThinkPads */
++		if (quirks & TPACPI_BRGHT_Q_EC)
++			brightness_mode = TPACPI_BRGHT_MODE_ECNVRAM;
++		else
+ 			brightness_mode = TPACPI_BRGHT_MODE_UCMS_STEP;
+ 
+ 		dbg_printk(TPACPI_DBG_BRGHT,
+@@ -7387,6 +7431,8 @@ static int __must_check __init get_thinkpad_model_data(
+ 		return 0;
+ 	tp->bios_model = tp->bios_version_str[0]
+ 			 | (tp->bios_version_str[1] << 8);
++	tp->bios_release = (tp->bios_version_str[4] << 8)
++			 | tp->bios_version_str[5];
+ 
+ 	/*
+ 	 * ThinkPad T23 or newer, A31 or newer, R50e or newer,
+@@ -7407,6 +7453,8 @@ static int __must_check __init get_thinkpad_model_data(
+ 				return -ENOMEM;
+ 			tp->ec_model = ec_fw_string[0]
+ 					| (ec_fw_string[1] << 8);
++			tp->ec_release = (ec_fw_string[4] << 8)
++					| ec_fw_string[5];
+ 			break;
+ 		}
+ 	}
+-- 
+1.6.3.3
+
