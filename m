@@ -1,44 +1,28 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: [PATCH] ACPI : ACPI: Don't disable ARB_DISABLE on some old cpus
-Date: Sun, 27 Sep 2009 13:15:02 +0800
-Message-ID: <1254028502.4298.11.camel@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: thinkpad-acpi: fix CONFIG_THINKPAD_ACPI_HOTKEY_POLL build problem
+Date: Sun, 27 Sep 2009 02:13:26 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0909270213220.16783@localhost.localdomain>
+References: <1254012169-31473-1-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63615 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383AbZI0FPp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Sep 2009 01:15:45 -0400
+Received: from vms173013pub.verizon.net ([206.46.173.13]:42941 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351AbZI0GNf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Sep 2009 02:13:35 -0400
+Received: from localhost.localdomain ([74.104.150.83])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KQM00JA09AFXR0A@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Sun, 27 Sep 2009 01:13:33 -0500 (CDT)
+In-reply-to: <1254012169-31473-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+applied
 
-Don't disable ARB_DISABLE when the familary ID is 0x0F.
-It is required when it enters the C3 state on the old cpus.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=14211
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
----
- arch/x86/kernel/acpi/cstate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-2.6/arch/x86/kernel/acpi/cstate.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/cstate.c	2009-09-18 10:28:32.000000000 +0800
-+++ linux-2.6/arch/x86/kernel/acpi/cstate.c	2009-09-24 14:59:57.000000000 +0800
-@@ -48,7 +48,7 @@
- 	 * P4, Core and beyond CPUs
- 	 */
- 	if (c->x86_vendor == X86_VENDOR_INTEL &&
--	    (c->x86 > 0x6 || (c->x86 == 6 && c->x86_model >= 14)))
-+	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 14)))
- 			flags->bm_control = 0;
- }
- EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
-
+thanks,
+Len Brown, Intel Open Source Technology Center
 
