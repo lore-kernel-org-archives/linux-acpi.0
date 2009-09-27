@@ -1,69 +1,44 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [git pull request] ACPI & driver patches for Linux-2.6.32-rc0
-Date: Sun, 27 Sep 2009 09:55:03 +0800
-Message-ID: <1254016503.17697.21.camel@minggr.sh.intel.com>
-References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain>
-	 <4ABCB2CA.4020709@mandriva.org>
-	 <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: [PATCH] ACPI : ACPI: Don't disable ARB_DISABLE on some old cpus
+Date: Sun, 27 Sep 2009 13:15:02 +0800
+Message-ID: <1254028502.4298.11.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59916 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:63615 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753151AbZI0CEh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 26 Sep 2009 22:04:37 -0400
-In-Reply-To: <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com>
+	id S1751383AbZI0FPp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Sep 2009 01:15:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Backlund <tmb@mandriva.org>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-> 
-> This gets my laptop flooding logs with:
+Don't disable ARB_DISABLE when the familary ID is 0x0F.
+It is required when it enters the C3 state on the old cpus.
 
-Hi, 
+http://bugzilla.kernel.org/show_bug.cgi?id=14211
 
-Could you do a bisect?
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ arch/x86/kernel/acpi/cstate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks
-Lin Ming
+Index: linux-2.6/arch/x86/kernel/acpi/cstate.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/acpi/cstate.c	2009-09-18 10:28:32.000000000 +0800
++++ linux-2.6/arch/x86/kernel/acpi/cstate.c	2009-09-24 14:59:57.000000000 +0800
+@@ -48,7 +48,7 @@
+ 	 * P4, Core and beyond CPUs
+ 	 */
+ 	if (c->x86_vendor == X86_VENDOR_INTEL &&
+-	    (c->x86 > 0x6 || (c->x86 == 6 && c->x86_model >= 14)))
++	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 14)))
+ 			flags->bm_control = 0;
+ }
+ EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
 
-> 
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> > ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20090903/evregion-424)
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-> > ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
-> 
-> --
-> Thomas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
