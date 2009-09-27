@@ -1,33 +1,41 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: ACPI patches for 2.6.31-rc0 - part 3
-Date: Sun, 27 Sep 2009 20:10:35 +0900
-Message-ID: <20090927111035.GB15973@kamineko.org>
-References: <1254040365-18971-1-git-send-email-lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [origin tree build failure] [PATCH] thinkpad-acpi: Fix build
+ on !CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+Date: Sun, 27 Sep 2009 09:28:28 -0300
+Message-ID: <20090927122828.GA24783@khazad-dum.debian.net>
+References: <200909260519.n8Q5JrB6016778@hera.kernel.org>
+ <20090927075254.GA20847@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:43628
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796AbZI0LKd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Sep 2009 07:10:33 -0400
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:46740 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753894AbZI0M22 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Sep 2009 08:28:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1254040365-18971-1-git-send-email-lenb@kernel.org>
+In-Reply-To: <20090927075254.GA20847@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, malattia@kamineko.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@hera.kernel.org>, torvalds@linux-foundation.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Sep 27, 2009 at 04:32:40AM -0400, Len Brown wrote:
-> please speak up if you disagree these should merge upstream.
+On Sun, 27 Sep 2009, Ingo Molnar wrote:
+> >  drivers/platform/x86/thinkpad_acpi.c    |  632 +++++++++++++++++++---------
+> 
+> -tip testing found that these changes caused a build failure 
+> in drivers/platform/x86/thinkpad_acpi.c when 
+> !CONFIG_THINKPAD_ACPI_HOTKEY_POLL - the fix is attached 
+> below.
 
-Len,
-Apologies if I'm being too insistent but I still can't see the
-sony-laptop patches being applied, is there something wrong with them?
+Fixed by a different patch, which will hit mainline soon.  Len already
+merged the fix in acpi-test.
 
-http://patchwork.kernel.org/project/linux-acpi/list/?=Mattia+Dongili&submitter=1375
+BTW, the function _is_ used even when CONFIG_THINKPAD_ACPI_HOTKEY_POLL is
+undefined...
 
-Cc-ing my other email email address in case linux.it still bounces your
-emails.
 -- 
-mattia
-:wq!
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
