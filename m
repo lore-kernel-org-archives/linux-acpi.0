@@ -1,179 +1,121 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH] ACPI: Add EC event managerment functions into header
- file
-Date: Tue, 29 Sep 2009 02:16:12 +0400
-Message-ID: <4AC135AC.2010407@gmail.com>
-References: <1254173448-18362-1-git-send-email-ike.pan@canonical.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume
+	from suspend
+Date: Mon, 28 Sep 2009 16:20:02 -0600
+Message-ID: <20090928222002.GC19406@ldl.fc.hp.com>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <20090928173819.GA2441@ldl.fc.hp.com> <200909282243.44226.rjw@sisk.pl> <200909282305.56102.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:38617 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286AbZI1WQL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 18:16:11 -0400
-In-Reply-To: <1254173448-18362-1-git-send-email-ike.pan@canonical.com>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:31107 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157AbZI1W3J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 18:29:09 -0400
+Content-Disposition: inline
+In-Reply-To: <200909282305.56102.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Xiaotian Feng <dfeng@redhat.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-These functions are never used anywhere, but sbshc.c.
-What is the reason to make them known to the whole kernel?
+* Rafael J. Wysocki <rjw@sisk.pl>:
+> On Monday 28 September 2009, Rafael J. Wysocki wrote:
+> > On Monday 28 September 2009, Alex Chiang wrote:
+> > > * Xiaotian Feng <dfeng@redhat.com>:
+> > > > --- a/drivers/acpi/pci_root.c
+> > > > +++ b/drivers/acpi/pci_root.c
+> > > > @@ -387,7 +387,11 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
+> > > >  		if (!pdev || hnd == handle)
+> > > >  			break;
+> > > >  
+> > > > -		pbus = pdev->subordinate;
+> > > > +		if (pdev->subordinate)
+> > > > +			pbus = pdev->subordinate;
+> > > > +		else
+> > > > +			pbus = pdev->bus;
+> > > > +
+> > > 
+> > > I'm a little confused by this. If we start from the PCI root
+> > > bridge and walk back down the hierarchy, shouldn't everything
+> > > between the root and the device be a P2P bridge?
+> > 
+> > Well, if my reading of the code is correct, there's no guarantee that
+> > pci_get_slot() will always return either the right device or a bridge.
+> 
+> I should have been more precise.
+> 
+> If devfn of node happens to be the same as devfn of a non-bridge device on
+> pbus, the pci_get_slot() will return a valid pointer to it, but
+> pdev->subordinate will be NULL.  Is it impossible for some reason?
 
-Ike Panhc =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> There are two functions for add/remove EC query handler functions, wh=
-ich
-> exported without any definition in header files
->
-> Patch against current checkout of linux-acpi 2.6.31 is below.
->
-> In this patch, the following definitions has been added into
-> include/linux/acpi.h
->  - typedef: acpi_ec_query_func
->  - struct: acpi_ec
->  - fucntions: acpi_ec_add_query_handler, acpi_ec_remove_query_handler
->
-> And the following definitions has been removed from driver/acpi/ec.c
->  - typedef: acpi_ec_query_func
->  - struct: acpi_ec
->
-> So that, the following externs and typedef could be remove from
-> drivers/acpi/sbshc.c
->  - typedef: acpi_ec_query_func
->  - externs: acpi_ec_add_query_handler, acpi_ec_remove_query_handler
->
-> Signed-off-by: Ike Panhc <ike.pan@canonical.com>
-> ---
->  drivers/acpi/ec.c    |   22 +++++-----------------
->  drivers/acpi/sbshc.c |    8 --------
->  include/linux/acpi.h |   21 +++++++++++++++++++++
->  3 files changed, 26 insertions(+), 25 deletions(-)
->
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index f707960..8950c4f 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -43,6 +43,7 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  #include <linux/dmi.h>
-> +#include <linux/acpi.h>
-> =20
->  #define ACPI_EC_CLASS			"embedded_controller"
->  #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
-> @@ -80,10 +81,6 @@ enum {
->  					 * OpReg are installed */
->  };
-> =20
-> -/* If we find an EC via the ECDT, we need to keep a ptr to its conte=
-xt */
-> -/* External interfaces use first EC only, so remember */
-> -typedef int (*acpi_ec_query_func) (void *data);
-> -
->  struct acpi_ec_query_handler {
->  	struct list_head node;
->  	acpi_ec_query_func func;
-> @@ -104,19 +101,10 @@ struct transaction {
->  	bool done;
->  };
-> =20
-> -static struct acpi_ec {
-> -	acpi_handle handle;
-> -	unsigned long gpe;
-> -	unsigned long command_addr;
-> -	unsigned long data_addr;
-> -	unsigned long global_lock;
-> -	unsigned long flags;
-> -	struct mutex lock;
-> -	wait_queue_head_t wait;
-> -	struct list_head list;
-> -	struct transaction *curr;
-> -	spinlock_t curr_lock;
-> -} *boot_ec, *first_ec;
-> +/* If we find an EC via the ECDT, we need to keep a ptr to its conte=
-xt */
-> +/* External interfaces use first EC only, so remember */
-> +static struct acpi_ec *boot_ec;
-> +static struct acpi_ec *first_ec;
-> =20
->  static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
-> =20
-> diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-> index d933980..d5550a5 100644
-> --- a/drivers/acpi/sbshc.c
-> +++ b/drivers/acpi/sbshc.c
-> @@ -250,12 +250,6 @@ static int smbus_alarm(void *context)
->  	return 0;
->  }
-> =20
-> -typedef int (*acpi_ec_query_func) (void *data);
-> -
-> -extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bi=
-t,
-> -			      acpi_handle handle, acpi_ec_query_func func,
-> -			      void *data);
-> -
->  static int acpi_smbus_hc_add(struct acpi_device *device)
->  {
->  	int status;
-> @@ -292,8 +286,6 @@ static int acpi_smbus_hc_add(struct acpi_device *=
-device)
->  	return 0;
->  }
-> =20
-> -extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 quer=
-y_bit);
-> -
->  static int acpi_smbus_hc_remove(struct acpi_device *device, int type=
-)
->  {
->  	struct acpi_smb_hc *hc;
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index dfcd920..259eacb 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -145,12 +145,33 @@ struct acpi_pci_driver {
->  int acpi_pci_register_driver(struct acpi_pci_driver *driver);
->  void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
-> =20
-> +typedef int (*acpi_ec_query_func) (void *data);
-> +
-> +struct acpi_ec {
-> +	acpi_handle handle;
-> +	unsigned long gpe;
-> +	unsigned long command_addr;
-> +	unsigned long data_addr;
-> +	unsigned long global_lock;
-> +	unsigned long flags;
-> +	struct mutex lock;
-> +	wait_queue_head_t wait;
-> +	struct list_head list;
-> +	struct transaction *curr;
-> +	spinlock_t curr_lock;
-> +};
-> +
->  extern int ec_read(u8 addr, u8 *val);
->  extern int ec_write(u8 addr, u8 val);
->  extern int ec_transaction(u8 command,
->                            const u8 *wdata, unsigned wdata_len,
->                            u8 *rdata, unsigned rdata_len,
->  			  int force_poll);
-> +extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bi=
-t,
-> +				      acpi_handle handle,
-> +				      acpi_ec_query_func func, void *data);
-> +extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 quer=
-y_bit);
-> +
-> =20
->  #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
-> =20
->  =20
+Hm, that's a good thought, but I'm still confused. Here's the
+first part of the full function (acpi_get_pci_dev):
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        phandle = handle;
+        while (!acpi_is_root_bridge(phandle)) {
+                node = kzalloc(sizeof(struct acpi_handle_node), GFP_KERNEL);
+                if (!node)
+                        goto out;
+
+                INIT_LIST_HEAD(&node->node);
+                node->handle = phandle;
+                list_add(&node->node, &device_list);
+
+                status = acpi_get_parent(phandle, &phandle);
+                if (ACPI_FAILURE(status))
+                        goto out;
+        }
+
+phandle starts off as the input parameter, and we make successive
+calls to acpi_get_parent() to walk up the ACPI device tree until
+we get to a root bridge.
+
+My assumption here is that all those ACPI devices must be P2P
+bridges.
+
+        root = acpi_pci_find_root(phandle);
+        if (!root)
+                goto out;
+
+        pbus = root->bus;
+
+Now we've got an acpi_pci_root() which has a struct pci_bus, and
+we can start walking back down the PCI tree. Except what we're
+really doing is iterating across the device_list which we created
+above.
+
+device_list should only contain P2P bridges, based on my
+assumption above.
+
+        list_for_each_entry(node, &device_list, node) {
+                acpi_handle hnd = node->handle;
+                status = acpi_evaluate_integer(hnd, "_ADR", NULL, &adr);
+                if (ACPI_FAILURE(status))
+                        goto out;
+                dev = (adr >> 16) & 0xffff;
+                fn  = adr & 0xffff;
+
+                pdev = pci_get_slot(pbus, PCI_DEVFN(dev, fn));
+                if (!pdev || hnd == handle)
+                        break;
+
+                pbus = pdev->subordinate;
+                pci_dev_put(pdev);
+        }
+
+The point you raise about collision between the devfn of 'node'
+and some non-bridge device returned by pci_get_slot() seems like
+it really shouldn't happen, because we evaluate _ADR for each
+node on device_list, in the reverse order that we found them, and
+based on my assumption, all those nodes should be bridges.
+
+I'm not saying that Xiaotian's patch is wrong. I'm saying I'd
+like to be educated as to why my basic assumption was wrong,
+because now you're making me think that this code is pretty
+fragile. :-/
+
+Thanks.
+
+/ac
+
+
