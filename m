@@ -1,82 +1,193 @@
 From: Thomas Backlund <tmb@mandriva.org>
 Subject: Re: [git pull request] ACPI & driver patches for Linux-2.6.32-rc0
-Date: Tue, 29 Sep 2009 00:31:57 +0300
-Message-ID: <4AC12B4D.30508@mandriva.org>
-References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain> <4ABCB2CA.4020709@mandriva.org> <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com> <1254016503.17697.21.camel@minggr.sh.intel.com> <alpine.LFD.2.00.0909270348570.16783@localhost.localdomain> <4AC11A0F.2030806@mandriva.org> <4AC12015.4040508@suse.de>
+Date: Tue, 29 Sep 2009 00:44:49 +0300
+Message-ID: <4AC12E51.8050501@mandriva.org>
+References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain> <4ABCB2CA.4020709@mandriva.org> <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com> <1254016503.17697.21.camel@minggr.sh.intel.com> <alpine.LFD.2.00.0909270348570.16783@localhost.localdomain> <4AC11A0F.2030806@mandriva.org> <4AC12015.4040508@suse.de> <4AC12B4D.30508@mandriva.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+ boundary="------------070207000401070306080706"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mbox2.netikka.net ([213.250.81.203]:43162 "EHLO
+Received: from mbox2.netikka.net ([213.250.81.203]:42852 "EHLO
 	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbZI1Vb4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 17:31:56 -0400
-In-Reply-To: <4AC12015.4040508@suse.de>
+	with ESMTP id S1753143AbZI1Vor (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 17:44:47 -0400
+In-Reply-To: <4AC12B4D.30508@mandriva.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Alexey Starikovskiy wrote:
-> Thomas Backlund =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+This is a multi-part message in MIME format.
+--------------070207000401070306080706
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+Thomas Backlund wrote:
+> Alexey Starikovskiy wrote:
+>> Thomas Backlund пишет:
+>>>
+>>> Now this is a Acer TravelMate 5720G laptop with the latest 1.35 bios.
+>>> Distro is Mandriva Linux Cooker, and arch is x86_64
+>>>
+>>> Attached is output of "grep ACPI /var/log/dmesg"
+>>> dmesg-acpi-20090903
+>>> - all acpi patches as of 2.6.32-rc1
+>> This one does not have errors you've mentioned earlier, could you find 
+>> dmesg with them?
+> 
+> Ah, sorry about that...
+> I should have done dmesg|grep ACPI to get the errors... it would have 
+> shown this too:
+> tg3 0000:02:00.0: wake-up capability disabled by ACPI
+> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] 
+> (20090903/evregion-424)
+> ACPI Error (psparse-0537): Method parse/execution failed 
+> [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
+> ACPI Error (psparse-0537): Method parse/execution failed 
+> [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
+> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
+> 
+> 
+> 
+>>> dmesg-acpi-20090903-ec-2.6.31
+>>> - all acpi patches as of 2.6.32-rc1
+>>> - ec.c from 2.6.31.1
+>>>
+>>>
+>>> Should I start bisecting, or do you have any other suggestion?
+>> There is only one patch which touch ec.c, 
+>> 2a84cb9852f52c0cd1c48bca41a8792d44ad06cc. You may try to revert it, 
+>> and see.
 >>
->> Now this is a Acer TravelMate 5720G laptop with the latest 1.35 bios=
-=2E
->> Distro is Mandriva Linux Cooker, and arch is x86_64
->>
->> Attached is output of "grep ACPI /var/log/dmesg"
->> dmesg-acpi-20090903
->> - all acpi patches as of 2.6.32-rc1
-> This one does not have errors you've mentioned earlier, could you fin=
-d dmesg with them?
+> 
+> Isn't that what pretty much what I did when I built a kernel with the 
+> 2.6.31.1 ec.c ?
+> 
+> Anyway, after I applied your patch you just posted on acpi-devel:
+> ACPI: EC: Rewrite DMI checks
+> 
+> to the 2.6.32-rc1 tree the:
+> 
+>> -ACPI Error (psargs-0359): [\_PR_.CPU0.CSTX] Namespace lookup failure, 
+>> AE_NOT_FOUND
+>> -ACPI Error (psparse-0537): Method parse/execution failed 
+>> [\_SB_.PCI0.LPCB.EC0_._Q2F] (Node ffff88013f81c1a0), AE_NOT_FOUND
+> 
+> does not show up at boot anymore, and so far I haven't seen the other 
+> errors either...
+> 
+> I'll post a follow-up if they show up again...
+> 
 
-Ah, sorry about that...
-I should have done dmesg|grep ACPI to get the errors... it would have=20
-shown this too:
-tg3 0000:02:00.0: wake-up capability disabled by ACPI
-ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl]=20
-(20090903/evregion-424)
-ACPI Error (psparse-0537): Method parse/execution failed=20
-[\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
-ACPI Error (psparse-0537): Method parse/execution failed=20
-[\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
-ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
+Bah...
+I spoke too soon:
 
 
+--------------070207000401070306080706
+Content-Type: text/plain;
+ name="acpi-errors"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="acpi-errors"
 
->> dmesg-acpi-20090903-ec-2.6.31
->> - all acpi patches as of 2.6.32-rc1
->> - ec.c from 2.6.31.1
->>
->>
->> Should I start bisecting, or do you have any other suggestion?
-> There is only one patch which touch ec.c, 2a84cb9852f52c0cd1c48bca41a=
-8792d44ad06cc. You may try to revert it, and see.
->=20
-
-Isn't that what pretty much what I did when I built a kernel with the=20
-2.6.31.1 ec.c ?
-
-Anyway, after I applied your patch you just posted on acpi-devel:
-ACPI: EC: Rewrite DMI checks
-
-to the 2.6.32-rc1 tree the:
-
-> -ACPI Error (psargs-0359): [\_PR_.CPU0.CSTX] Namespace lookup failure=
-, AE_NOT_FOUND
-> -ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0=
-=2ELPCB.EC0_._Q2F] (Node ffff88013f81c1a0), AE_NOT_FOUND
-
-does not show up at boot anymore, and so far I haven't seen the other=20
-errors either...
-
-I'll post a follow-up if they show up again...
-
---
-Thomas
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IEJJT1MtZTgyMDogMDAwMDAwMDBiZmVkMDAwMCAtIDAwMDAwMDAwYmZlZGYwMDAgKEFDUEkg
+TlZTKQpBQ1BJOiBSU0RQIDAwMDAwMDAwMDAwZjdiZjAgMDAwMjQgKHYwMiBQVExURCApCkFD
+UEk6IFhTRFQgMDAwMDAwMDBiZmVkMTYwZSAwMDA4QyAodjAxIEFDUlNZUyBBQ1JQUkRDVCAw
+NjA0MDAwMCBJTk5BIDAwMDAwMDAwKQpBQ1BJOiBGQUNQIDAwMDAwMDAwYmZlZGJiZDcgMDAw
+RjQgKHYwMyBJTlRFTCAgQ1JFU1RMTkUgMDYwNDAwMDAgQUxBTiAwMDAwMDAwMSkKQUNQSTog
+RFNEVCAwMDAwMDAwMGJmZWQyYmJhIDA4RkE5ICh2MDIgSU5URUwgIENSRVNUTE5FIDA2MDQw
+MDAwIE1TRlQgMDMwMDAwMDApCkFDUEk6IEZBQ1MgMDAwMDAwMDBiZmVkZWZjMCAwMDA0MApB
+Q1BJOiBIUEVUIDAwMDAwMDAwYmZlZGJjY2IgMDAwMzggKHYwMSBJTlRFTCAgQ1JFU1RMTkUg
+MDYwNDAwMDAgTE9IUiAwMDAwMDA1QSkKQUNQSTogTUNGRyAwMDAwMDAwMGJmZWRiZDAzIDAw
+MDNDICh2MDEgSU5URUwgIENSRVNUTE5FIDA2MDQwMDAwIExPSFIgMDAwMDAwNUEpCkFDUEk6
+IFRDUEEgMDAwMDAwMDBiZmVkYmQzZiAwMDAzMiAodjAxIEludGVsICAgQ1JFU1RMTiAwNjA0
+MDAwMCAgICAgIDAwMDA1QTUyKQpBQ1BJOiBUTU9SIDAwMDAwMDAwYmZlZGJkNzEgMDAwMjYg
+KHYwMSBQVExURCAgICAgICAgICAgMDYwNDAwMDAgUFRMICAwMDAwMDAwMykKQUNQSTogU0xJ
+QyAwMDAwMDAwMGJmZWRiZDk3IDAwMTc2ICh2MDEgQUNSU1lTIEFDUlBSRENUIDA2MDQwMDAw
+IEFOTkkgMDAwMDAwMDEpCkFDUEk6IEFTRiEgMDAwMDAwMDBiZmVkYmYwZCAwMDA2MyAodjMy
+IE9FTUlEICBPRU1UQkwgICAwNjA0MDAwMCBQVEwgIDAwMDAwMDAxKQpBQ1BJOiBBUElDIDAw
+MDAwMDAwYmZlZGJmNzAgMDAwNjggKHYwMSBQVExURCAgPyBBUElDICAgMDYwNDAwMDAgIExU
+UCAwMDAwMDAwMCkKQUNQSTogQk9PVCAwMDAwMDAwMGJmZWRiZmQ4IDAwMDI4ICh2MDEgUFRM
+VEQgICRTQkZUQkwkIDA2MDQwMDAwICBMVFAgMDAwMDAwMDEpCkFDUEk6IFNTRFQgMDAwMDAw
+MDBiZmVkMjhkZCAwMDJERCAodjAxIFNhdGFSZSBTYXRhQWhjaSAwMDAwMTAwMCBJTlRMIDIw
+MDUwNjI0KQpBQ1BJOiBTU0RUIDAwMDAwMDAwYmZlZDFjNTYgMDAyNUYgKHYwMSAgUG1SZWYg
+IENwdTBUc3QgMDAwMDMwMDAgSU5UTCAyMDA1MDYyNCkKQUNQSTogU1NEVCAwMDAwMDAwMGJm
+ZWQxYmIwIDAwMEE2ICh2MDEgIFBtUmVmICBDcHUxVHN0IDAwMDAzMDAwIElOVEwgMjAwNTA2
+MjQpCkFDUEk6IFNTRFQgMDAwMDAwMDBiZmVkMTY5YSAwMDUxNiAodjAxICBQbVJlZiAgICBD
+cHVQbSAwMDAwMzAwMCBJTlRMIDIwMDUwNjI0KQpBQ1BJOiBMb2NhbCBBUElDIGFkZHJlc3Mg
+MHhmZWUwMDAwMApBQ1BJOiBQTS1UaW1lciBJTyBQb3J0OiAweDEwMDgKQUNQSTogTG9jYWwg
+QVBJQyBhZGRyZXNzIDB4ZmVlMDAwMDAKQUNQSTogTEFQSUMgKGFjcGlfaWRbMHgwMF0gbGFw
+aWNfaWRbMHgwMF0gZW5hYmxlZCkKQUNQSTogTEFQSUMgKGFjcGlfaWRbMHgwMV0gbGFwaWNf
+aWRbMHgwMV0gZW5hYmxlZCkKQUNQSTogTEFQSUNfTk1JIChhY3BpX2lkWzB4MDBdIGhpZ2gg
+ZWRnZSBsaW50WzB4MV0pCkFDUEk6IExBUElDX05NSSAoYWNwaV9pZFsweDAxXSBoaWdoIGVk
+Z2UgbGludFsweDFdKQpBQ1BJOiBJT0FQSUMgKGlkWzB4MDJdIGFkZHJlc3NbMHhmZWMwMDAw
+MF0gZ3NpX2Jhc2VbMF0pCkFDUEk6IElOVF9TUkNfT1ZSIChidXMgMCBidXNfaXJxIDAgZ2xv
+YmFsX2lycSAyIGhpZ2ggZWRnZSkKQUNQSTogSU5UX1NSQ19PVlIgKGJ1cyAwIGJ1c19pcnEg
+OSBnbG9iYWxfaXJxIDkgaGlnaCBsZXZlbCkKQUNQSTogSVJRMCB1c2VkIGJ5IG92ZXJyaWRl
+LgpBQ1BJOiBJUlEyIHVzZWQgYnkgb3ZlcnJpZGUuCkFDUEk6IElSUTkgdXNlZCBieSBvdmVy
+cmlkZS4KVXNpbmcgQUNQSSAoTUFEVCkgZm9yIFNNUCBjb25maWd1cmF0aW9uIGluZm9ybWF0
+aW9uCkFDUEk6IEhQRVQgaWQ6IDB4ODA4NmEyMDEgYmFzZTogMHhmZWQwMDAwMApBQ1BJOiBD
+b3JlIHJldmlzaW9uIDIwMDkwOTAzCkFDUEk6IGJ1cyB0eXBlIHBjaSByZWdpc3RlcmVkCkFD
+UEk6IEVDOiBMb29rIHVwIEVDIGluIERTRFQKQUNQSTogQklPUyBfT1NJKExpbnV4KSBxdWVy
+eSBpZ25vcmVkCkFDUEk6IEludGVycHJldGVyIGVuYWJsZWQKQUNQSTogKHN1cHBvcnRzIFMw
+IFMzIFM0IFM1KQpBQ1BJOiBVc2luZyBJT0FQSUMgZm9yIGludGVycnVwdCByb3V0aW5nCkFD
+UEk6IEVudW1lcmF0aW5nIGRldmljZXMgZnJvbSBbXF0KQUNQSTogRUM6IEdQRSA9IDB4MTcs
+IEkvTzogY29tbWFuZC9zdGF0dXMgPSAweDY2LCBkYXRhID0gMHg2MgpBQ1BJOiBObyBkb2Nr
+IGRldmljZXMgZm91bmQuCkFDUEk6IFBDSSBSb290IEJyaWRnZSBbUENJMF0gKDAwMDA6MDAp
+CnBjaSAwMDAwOjAwOjFmLjA6IHF1aXJrOiByZWdpb24gMTAwMC0xMDdmIGNsYWltZWQgYnkg
+SUNINiBBQ1BJL0dQSU8vVENPCkFDUEk6IFBDSSBJbnRlcnJ1cHQgUm91dGluZyBUYWJsZSBb
+XF9TQl8uUENJMC5fUFJUXQpBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFibGUgW1xf
+U0JfLlBDSTAuUEVHUC5fUFJUXQpBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFibGUg
+W1xfU0JfLlBDSTAuUlAwMS5fUFJUXQpBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFi
+bGUgW1xfU0JfLlBDSTAuUlAwMi5fUFJUXQpBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcg
+VGFibGUgW1xfU0JfLlBDSTAuUlAwMy5fUFJUXQpBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRp
+bmcgVGFibGUgW1xfU0JfLlBDSTAuUENJQi5fUFJUXQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExp
+bmsgW0xOS0FdIChJUlFzIDEwICoxMSkKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktC
+XSAoSVJRcyAxMCAqMTEpCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQ10gKElSUXMg
+MTAgKjExKQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0RdIChJUlFzIDEwICoxMSkK
+QUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktFXSAoSVJRcyAxMCAqMTEpCkFDUEk6IFBD
+SSBJbnRlcnJ1cHQgTGluayBbTE5LRl0gKElSUXMgMTAgKjExKQpBQ1BJOiBQQ0kgSW50ZXJy
+dXB0IExpbmsgW0xOS0ddIChJUlFzIDEwICoxMSkKQUNQSTogUENJIEludGVycnVwdCBMaW5r
+IFtMTktIXSAoSVJRcyAxMCAqMTEpClBDSTogVXNpbmcgQUNQSSBmb3IgSVJRIHJvdXRpbmcK
+cG5wOiBQblAgQUNQSSBpbml0CkFDUEk6IGJ1cyB0eXBlIHBucCByZWdpc3RlcmVkCnBucDog
+UG5QIEFDUEk6IGZvdW5kIDExIGRldmljZXMKQUNQSTogQUNQSSBidXMgdHlwZSBwbnAgdW5y
+ZWdpc3RlcmVkCkFDUEkgV2FybmluZyBmb3IgXF9TQl8uUENJMC5TQVRBLlBSVDAuX0dURjog
+UmV0dXJuIHR5cGUgbWlzbWF0Y2ggLSBmb3VuZCBJbnRlZ2VyLCBleHBlY3RlZCBCdWZmZXIg
+KDIwMDkwOTAzL25zcHJlZGVmLTEwMDYpCkFDUEk6IFdNSTogTWFwcGVyIGxvYWRlZApBQ1BJ
+OiBMaWQgU3dpdGNoIFtMSUQwXQpBQ1BJOiBTbGVlcCBCdXR0b24gW1NMUEJdCkFDUEk6IFBv
+d2VyIEJ1dHRvbiBbUFdSRl0KQUNQSTogQUMgQWRhcHRlciBbQURQMV0gKG9uLWxpbmUpCkFD
+UEk6IEV4dGVuc2EgNTIyMCBkZXRlY3RlZCAtIGRpc2FibGluZyBtd2FpdCBmb3IgQ1BVIEMt
+c3RhdGVzCkFDUEk6IFNTRFQgMDAwMDAwMDBiZmVkMjU1OSAwMDJCQyAodjAxICBQbVJlZiAg
+Q3B1MElzdCAwMDAwMzAwMCBJTlRMIDIwMDUwNjI0KQpBQ1BJOiBTU0RUIDAwMDAwMDAwYmZl
+ZDFlYjUgMDA2MUYgKHYwMSAgUG1SZWYgIENwdTBDc3QgMDAwMDMwMDEgSU5UTCAyMDA1MDYy
+NCkKQUNQSTogUHJvY2Vzc29yIFtDUFUwXSAoc3VwcG9ydHMgOCB0aHJvdHRsaW5nIHN0YXRl
+cykKQUNQSTogU1NEVCAwMDAwMDAwMGJmZWQyODE1IDAwMEM4ICh2MDEgIFBtUmVmICBDcHUx
+SXN0IDAwMDAzMDAwIElOVEwgMjAwNTA2MjQpCkFDUEk6IFNTRFQgMDAwMDAwMDBiZmVkMjRk
+NCAwMDA4NSAodjAxICBQbVJlZiAgQ3B1MUNzdCAwMDAwMzAwMCBJTlRMIDIwMDUwNjI0KQpB
+Q1BJOiBQcm9jZXNzb3IgW0NQVTFdIChzdXBwb3J0cyA4IHRocm90dGxpbmcgc3RhdGVzKQpB
+Q1BJIFdhcm5pbmcgZm9yIFxfU0JfLlBDSTAuTFBDQi5FQzBfLkJBVDAuX0JJRjogQ29udmVy
+dGVkIEJ1ZmZlciB0byBleHBlY3RlZCBTdHJpbmcgYXQgaW5kZXggOSAoMjAwOTA5MDMvbnNy
+ZXBhaXItMTMyKQpBQ1BJIFdhcm5pbmcgZm9yIFxfU0JfLlBDSTAuTFBDQi5FQzBfLkJBVDAu
+X0JJRjogQ29udmVydGVkIEJ1ZmZlciB0byBleHBlY3RlZCBTdHJpbmcgYXQgaW5kZXggMTAg
+KDIwMDkwOTAzL25zcmVwYWlyLTEzMikKQUNQSSBXYXJuaW5nIGZvciBcX1NCXy5QQ0kwLkxQ
+Q0IuRUMwXy5CQVQwLl9CSUY6IENvbnZlcnRlZCBCdWZmZXIgdG8gZXhwZWN0ZWQgU3RyaW5n
+IGF0IGluZGV4IDExICgyMDA5MDkwMy9uc3JlcGFpci0xMzIpCkFDUEkgV2FybmluZyBmb3Ig
+XF9TQl8uUENJMC5MUENCLkVDMF8uQkFUMC5fQklGOiBDb252ZXJ0ZWQgQnVmZmVyIHRvIGV4
+cGVjdGVkIFN0cmluZyBhdCBpbmRleCAxMiAoMjAwOTA5MDMvbnNyZXBhaXItMTMyKQpBQ1BJ
+OiBCYXR0ZXJ5IFNsb3QgW0JBVDBdIChiYXR0ZXJ5IHByZXNlbnQpCmFjZXItd21pOiBBY2Vy
+IExhcHRvcCBBQ1BJLVdNSSBFeHRyYXMKQUNQSTogVGhlcm1hbCBab25lIFtUWlMwXSAoNDYg
+QykKQUNQSTogVGhlcm1hbCBab25lIFtUWlMxXSAoNTYgQykKQUNQSTogVmlkZW8gRGV2aWNl
+IFtWR0FdIChtdWx0aS1oZWFkOiB5ZXMgIHJvbTogbm8gIHBvc3Q6IG5vKQpBQ1BJOiBJL08g
+cmVzb3VyY2UgMDAwMDowMDoxZi4zIFsweDFjMDAtMHgxYzFmXSBjb25mbGljdHMgd2l0aCBB
+Q1BJIHJlZ2lvbiBTTUJJIFsweDFjMDAtMHgxYzBmXQpBQ1BJOiBJZiBhbiBBQ1BJIGRyaXZl
+ciBpcyBhdmFpbGFibGUgZm9yIHRoaXMgZGV2aWNlLCB5b3Ugc2hvdWxkIHVzZSBpdCBpbnN0
+ZWFkIG9mIHRoZSBuYXRpdmUgZHJpdmVyCnRnMyAwMDAwOjAyOjAwLjA6IHdha2UtdXAgY2Fw
+YWJpbGl0eSBkaXNhYmxlZCBieSBBQ1BJCnRnMyAwMDAwOjAyOjAwLjA6IHdha2UtdXAgY2Fw
+YWJpbGl0eSBkaXNhYmxlZCBieSBBQ1BJCnRnMyAwMDAwOjAyOjAwLjA6IHdha2UtdXAgY2Fw
+YWJpbGl0eSBlbmFibGVkIGJ5IEFDUEkKQUNQSSBFeGNlcHRpb246IEFFX1RJTUUsIFJldHVy
+bmVkIGJ5IEhhbmRsZXIgZm9yIFtFbWJlZGRlZENvbnRyb2xdICgyMDA5MDkwMy9ldnJlZ2lv
+bi00MjQpCkFDUEkgRXJyb3IgKHBzcGFyc2UtMDUzNyk6IE1ldGhvZCBwYXJzZS9leGVjdXRp
+b24gZmFpbGVkIFtcX1NCXy5BTVcwLldNQ0FdIChOb2RlIGZmZmY4ODAxM2Y4MTNkYTApLCBB
+RV9USU1FCnRnMyAwMDAwOjAyOjAwLjA6IHdha2UtdXAgY2FwYWJpbGl0eSBkaXNhYmxlZCBi
+eSBBQ1BJCg==
+--------------070207000401070306080706--
