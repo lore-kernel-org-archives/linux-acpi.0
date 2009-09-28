@@ -1,70 +1,155 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume from suspend
-Date: Mon, 28 Sep 2009 23:05:56 +0200
-Message-ID: <200909282305.56102.rjw@sisk.pl>
-References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <20090928173819.GA2441@ldl.fc.hp.com> <200909282243.44226.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: [PATCH] ACPI: Add EC event managerment functions into header file
+Date: Tue, 29 Sep 2009 05:30:48 +0800
+Message-ID: <1254173448-18362-1-git-send-email-ike.pan@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38593 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751575AbZI1VEh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Sep 2009 17:04:37 -0400
-In-Reply-To: <200909282243.44226.rjw@sisk.pl>
+Received: from adelie.canonical.com ([91.189.90.139]:38448 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752747AbZI1Va4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 17:30:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: Xiaotian Feng <dfeng@redhat.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Monday 28 September 2009, Rafael J. Wysocki wrote:
-> On Monday 28 September 2009, Alex Chiang wrote:
-> > Hi Xiaotian,
-> > 
-> > Thanks for the bug report.
-> > 
-> > * Xiaotian Feng <dfeng@redhat.com>:
-> > > commit 275582 introduces acpi_get_pci_dev(), but pdev->subordinate
-> > > can be NULL, then a NULL was passed to pci_get_slot, this results
-> > > the kernel oops when resume from suspend.
-> > > 
-> > > This patch resolves following kernel oops:
-> > > BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
-> > > IP: [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
-> > > 
-> > > Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-> > > ---
-> > >  drivers/acpi/pci_root.c |    6 +++++-
-> > >  1 files changed, 5 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> > > index 3112221..3c35144 100644
-> > > --- a/drivers/acpi/pci_root.c
-> > > +++ b/drivers/acpi/pci_root.c
-> > > @@ -387,7 +387,11 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
-> > >  		if (!pdev || hnd == handle)
-> > >  			break;
-> > >  
-> > > -		pbus = pdev->subordinate;
-> > > +		if (pdev->subordinate)
-> > > +			pbus = pdev->subordinate;
-> > > +		else
-> > > +			pbus = pdev->bus;
-> > > +
-> > 
-> > I'm a little confused by this. If we start from the PCI root
-> > bridge and walk back down the hierarchy, shouldn't everything
-> > between the root and the device be a P2P bridge?
-> 
-> Well, if my reading of the code is correct, there's no guarantee that
-> pci_get_slot() will always return either the right device or a bridge.
+There are two functions for add/remove EC query handler functions, which
+exported without any definition in header files
 
-I should have been more precise.
+Patch against current checkout of linux-acpi 2.6.31 is below.
 
-If devfn of node happens to be the same as devfn of a non-bridge device on
-pbus, the pci_get_slot() will return a valid pointer to it, but
-pdev->subordinate will be NULL.  Is it impossible for some reason?
+In this patch, the following definitions has been added into
+include/linux/acpi.h
+ - typedef: acpi_ec_query_func
+ - struct: acpi_ec
+ - fucntions: acpi_ec_add_query_handler, acpi_ec_remove_query_handler
 
-Thanks,
-Rafael
+And the following definitions has been removed from driver/acpi/ec.c
+ - typedef: acpi_ec_query_func
+ - struct: acpi_ec
+
+So that, the following externs and typedef could be remove from
+drivers/acpi/sbshc.c
+ - typedef: acpi_ec_query_func
+ - externs: acpi_ec_add_query_handler, acpi_ec_remove_query_handler
+
+Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+---
+ drivers/acpi/ec.c    |   22 +++++-----------------
+ drivers/acpi/sbshc.c |    8 --------
+ include/linux/acpi.h |   21 +++++++++++++++++++++
+ 3 files changed, 26 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index f707960..8950c4f 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -43,6 +43,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <linux/dmi.h>
++#include <linux/acpi.h>
+ 
+ #define ACPI_EC_CLASS			"embedded_controller"
+ #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
+@@ -80,10 +81,6 @@ enum {
+ 					 * OpReg are installed */
+ };
+ 
+-/* If we find an EC via the ECDT, we need to keep a ptr to its context */
+-/* External interfaces use first EC only, so remember */
+-typedef int (*acpi_ec_query_func) (void *data);
+-
+ struct acpi_ec_query_handler {
+ 	struct list_head node;
+ 	acpi_ec_query_func func;
+@@ -104,19 +101,10 @@ struct transaction {
+ 	bool done;
+ };
+ 
+-static struct acpi_ec {
+-	acpi_handle handle;
+-	unsigned long gpe;
+-	unsigned long command_addr;
+-	unsigned long data_addr;
+-	unsigned long global_lock;
+-	unsigned long flags;
+-	struct mutex lock;
+-	wait_queue_head_t wait;
+-	struct list_head list;
+-	struct transaction *curr;
+-	spinlock_t curr_lock;
+-} *boot_ec, *first_ec;
++/* If we find an EC via the ECDT, we need to keep a ptr to its context */
++/* External interfaces use first EC only, so remember */
++static struct acpi_ec *boot_ec;
++static struct acpi_ec *first_ec;
+ 
+ static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
+ 
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index d933980..d5550a5 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -250,12 +250,6 @@ static int smbus_alarm(void *context)
+ 	return 0;
+ }
+ 
+-typedef int (*acpi_ec_query_func) (void *data);
+-
+-extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
+-			      acpi_handle handle, acpi_ec_query_func func,
+-			      void *data);
+-
+ static int acpi_smbus_hc_add(struct acpi_device *device)
+ {
+ 	int status;
+@@ -292,8 +286,6 @@ static int acpi_smbus_hc_add(struct acpi_device *device)
+ 	return 0;
+ }
+ 
+-extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
+-
+ static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_smb_hc *hc;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index dfcd920..259eacb 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -145,12 +145,33 @@ struct acpi_pci_driver {
+ int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+ void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+ 
++typedef int (*acpi_ec_query_func) (void *data);
++
++struct acpi_ec {
++	acpi_handle handle;
++	unsigned long gpe;
++	unsigned long command_addr;
++	unsigned long data_addr;
++	unsigned long global_lock;
++	unsigned long flags;
++	struct mutex lock;
++	wait_queue_head_t wait;
++	struct list_head list;
++	struct transaction *curr;
++	spinlock_t curr_lock;
++};
++
+ extern int ec_read(u8 addr, u8 *val);
+ extern int ec_write(u8 addr, u8 val);
+ extern int ec_transaction(u8 command,
+                           const u8 *wdata, unsigned wdata_len,
+                           u8 *rdata, unsigned rdata_len,
+ 			  int force_poll);
++extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
++				      acpi_handle handle,
++				      acpi_ec_query_func func, void *data);
++extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
++
+ 
+ #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+ 
+-- 
+1.6.0.4
+
