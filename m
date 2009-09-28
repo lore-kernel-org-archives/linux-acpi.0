@@ -1,52 +1,66 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [origin tree build failure] [PATCH] thinkpad-acpi: Fix build
-	on !CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-Date: Mon, 28 Sep 2009 17:35:26 +0200
-Message-ID: <20090928153526.GA9231@elte.hu>
-References: <200909260519.n8Q5JrB6016778@hera.kernel.org> <20090927075254.GA20847@elte.hu> <20090927122828.GA24783@khazad-dum.debian.net> <alpine.LFD.2.00.0909272331520.5561@localhost.localdomain>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume
+	from suspend
+Date: Mon, 28 Sep 2009 11:38:20 -0600
+Message-ID: <20090928173819.GA2441@ldl.fc.hp.com>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:34067 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752518AbZI1PgB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Sep 2009 11:36:01 -0400
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:6809 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473AbZI1RiQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 13:38:16 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0909272331520.5561@localhost.localdomain>
+In-Reply-To: <1254119480-9730-1-git-send-email-dfeng@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Xiaotian Feng <dfeng@redhat.com>
+Cc: lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Len Brown <lenb@kernel.org> wrote:
+Hi Xiaotian,
 
->=20
-> > > >  drivers/platform/x86/thinkpad_acpi.c    |  632 +++++++++++++++=
-++++---------
-> > >=20
-> > > -tip testing found that these changes caused a build failure=20
-> > > in drivers/platform/x86/thinkpad_acpi.c when=20
-> > > !CONFIG_THINKPAD_ACPI_HOTKEY_POLL - the fix is attached  below.
-> >=20
-> > Fixed by a different patch, which will hit mainline soon....
->=20
-> Ingo,
-> 2.6.32-rc1 should build fine* -- let me know if it doesn't.
->=20
-> thanks,
-> Len Brown, Intel Open Source Technology Center
->=20
-> * module this message, which Henruque assures me will go away soon
-> drivers/platform/x86/thinkpad_acpi.c:2225: warning:=20
-> =E2=80=98tpacpi_hotkey_driver_mask_set=E2=80=99 defined but not used
+Thanks for the bug report.
 
-well, the warning is fixed properly in my patch, as pointed out in the=20
-changelog. Have you read that?
+* Xiaotian Feng <dfeng@redhat.com>:
+> commit 275582 introduces acpi_get_pci_dev(), but pdev->subordinate
+> can be NULL, then a NULL was passed to pci_get_slot, this results
+> the kernel oops when resume from suspend.
+> 
+> This patch resolves following kernel oops:
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+> IP: [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+> 
+> Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
+> ---
+>  drivers/acpi/pci_root.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 3112221..3c35144 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -387,7 +387,11 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
+>  		if (!pdev || hnd == handle)
+>  			break;
+>  
+> -		pbus = pdev->subordinate;
+> +		if (pdev->subordinate)
+> +			pbus = pdev->subordinate;
+> +		else
+> +			pbus = pdev->bus;
+> +
 
-	Ingo
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm a little confused by this. If we start from the PCI root
+bridge and walk back down the hierarchy, shouldn't everything
+between the root and the device be a P2P bridge?
+
+What is special about suspend/resume that causes the subordinate
+bus to become NULL?
+
+Can you send the full stacktrace?
+
+Thanks.
+
+/ac
+
