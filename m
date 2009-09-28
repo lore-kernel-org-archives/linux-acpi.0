@@ -1,55 +1,47 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: Troubles with ACPI in Linux kernel v 2.6.31- git18
-Date: Mon, 28 Sep 2009 09:03:40 +0800
-Message-ID: <1254099820.4298.24.camel@localhost.localdomain>
-References: <E1Mrxqa-0004u0-00.dorif-mail-ru@f282.mail.ru>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH v1] PCI hotplug: move IOAPIC support from acpiphp to ioapic
+ driver
+Date: Mon, 28 Sep 2009 10:21:17 +0900
+Message-ID: <4AC00F8D.7000008@jp.fujitsu.com>
+References: <20090926032424.30285.4832.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53859 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901AbZI1BEt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Sep 2009 21:04:49 -0400
-In-Reply-To: <E1Mrxqa-0004u0-00.dorif-mail-ru@f282.mail.ru>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090926032424.30285.4832.stgit@bob.kio>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?=D0=90=D0=BB=D0=B5=D0=BA=D1=81=D0=B0=D0=BD=D0=B4=D1=80_?= =?UTF-8?Q?=D0=94=D0=BE=D1=80=D0=B8=D1=84?= <dorif@mail.ru>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, 2009-09-28 at 01:47 +0800, =D0=90=D0=BB=D0=B5=D0=BA=D1=81=D0=B0=
-=D0=BD=D0=B4=D1=80 =D0=94=D0=BE=D1=80=D0=B8=D1=84 wrote:
-> Hello! I have tried to compile Linux kernel v. 2.6.31 git18 and have =
-received these warnings:
-> WARNING: vmlinux.o(.text+0x1aa4a): Section mismatch in reference from=
- the function acpi_save_state_mem() to the function .cpuinit.text:setup=
-_trampoline()
-> The function acpi_save_state_mem() references
-> the function __cpuinit setup_trampoline().
-> This is often because acpi_save_state_mem lacks a __cpuinit=20
-> annotation or the annotation of setup_trampoline is wrong.
-> WARNING: drivers/acpi/processor.o(.text+0xa64): Section mismatch in r=
-eference from the function acpi_processor_add() to the function .cpuini=
-t.text:acpi_processor_power_init()
-> The function acpi_processor_add() references
-> the function __cpuinit acpi_processor_power_init().
-> This is often because acpi_processor_add lacks a __cpuinit=20
-> annotation or the annotation of acpi_processor_power_init is wrong.
-> I hope this troubles will be corrected soon.
-> P.S.:I'm very sorry for my poor English.
-Thanks for your info.
-It seems that the function prototype is defined incorrectly.
+Bjorn Helgaas wrote:
+> This patch moves PCI I/O APIC support from acpiphp to a separate driver.
+> 
+> Like pciehp and shpchp, acpiphp handles PCI hotplug, i.e., addition and
+> removal of PCI adapters.  But in addition, acpiphp handles some ACPI
+> hotplug, such as the addition of new host bridges, and the I/O APIC
+> support was tangled up with that.
+> 
+> I don't think the I/O APIC support needs to be in acpiphp; PCI I/O APICs
+> usually appear as a function on a PCI host bridge, and we'll enumerate the
+> APIC before any of the devices behind the bridge that use it.
+> 
+> As far as I know, nobody actually uses I/O APIC hotplug.  It depends on
+> acpi_register_ioapic(), which is only implemented for ia64, and I don't
+> think any vendors have supported I/O chassis hotplug yet.
+> 
+> Kenji-san, I think this new file needs a Fujitsu copyright, but there
+> wasn't one in acpiphp_glue to copy.  If you send me one, I'll put it
+> in the next version of this patch.
+> 
 
-Thanks.
+Looks good to me. 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And here is Fujitsu copyright (thank you for asking me about that).
+
+Copyright (C) 2009 Fujitsu Limited.
+
+Thanks,
+Kenji Kaneshige
