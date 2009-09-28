@@ -1,72 +1,52 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [origin tree build failure] [PATCH] thinkpad-acpi: Fix build
- on !CONFIG_THINKPAD_ACPI_HOTKEY_POLL
-Date: Mon, 28 Sep 2009 16:44:49 -0300
-Message-ID: <20090928194449.GA9469@khazad-dum.debian.net>
-References: <200909260519.n8Q5JrB6016778@hera.kernel.org>
- <20090927075254.GA20847@elte.hu>
- <20090927122828.GA24783@khazad-dum.debian.net>
- <alpine.LFD.2.00.0909272331520.5561@localhost.localdomain>
- <20090928153526.GA9231@elte.hu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] PM / PCMCIA: Drop second argument of pcmcia_socket_dev_suspend()
+Date: Mon, 28 Sep 2009 22:16:53 +0200
+Message-ID: <200909282216.53633.rjw@sisk.pl>
+References: <200909260122.59030.rjw@sisk.pl> <200909260125.11149.rjw@sisk.pl> <20090928113112.GA5602@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56119 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752707AbZI1Tot (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Sep 2009 15:44:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20090928153526.GA9231@elte.hu>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20090928113112.GA5602@pengutronix.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, Linux PCI <linux-pci@vger.kernel.org>, linux-pcmcia@lists.infradead.org, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Florian <fs-kernelbugzilla@spline.de>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Mon, 28 Sep 2009, Ingo Molnar wrote:
-> * Len Brown <lenb@kernel.org> wrote:
-> > > > >  drivers/platform/x86/thinkpad_acpi.c    |  632 +++++++++++++++++++---------
-> > > > 
-> > > > -tip testing found that these changes caused a build failure 
-> > > > in drivers/platform/x86/thinkpad_acpi.c when 
-> > > > !CONFIG_THINKPAD_ACPI_HOTKEY_POLL - the fix is attached  below.
-> > > 
-> > > Fixed by a different patch, which will hit mainline soon....
+On Monday 28 September 2009, Wolfram Sang wrote:
+> On Sat, Sep 26, 2009 at 01:25:11AM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
 > > 
-> > Ingo,
-> > 2.6.32-rc1 should build fine* -- let me know if it doesn't.
+> > pcmcia_socket_dev_suspend() doesn't use its second argument, so it
+> > may be dropped safely.
 > > 
-> > thanks,
-> > Len Brown, Intel Open Source Technology Center
+> > This change is necessary for the subsequent yenta suspend/resume fix.
 > > 
-> > * module this message, which Henruque assures me will go away soon
-> > drivers/platform/x86/thinkpad_acpi.c:2225: warning: 
-> > ???tpacpi_hotkey_driver_mask_set??? defined but not used
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/pcmcia/at91_cf.c        |    2 +-
+> >  drivers/pcmcia/au1000_generic.c |    2 +-
+> >  drivers/pcmcia/bfin_cf_pcmcia.c |    2 +-
+> >  drivers/pcmcia/cs.c             |    2 +-
+> >  drivers/pcmcia/i82092.c         |    2 +-
+> >  drivers/pcmcia/i82365.c         |    2 +-
+> >  drivers/pcmcia/m32r_cfc.c       |    2 +-
+> >  drivers/pcmcia/m32r_pcc.c       |    2 +-
+> >  drivers/pcmcia/m8xx_pcmcia.c    |    2 +-
+> >  drivers/pcmcia/omap_cf.c        |    2 +-
+> >  drivers/pcmcia/pd6729.c         |    2 +-
+> >  drivers/pcmcia/pxa2xx_base.c    |    2 +-
+> >  drivers/pcmcia/sa1100_generic.c |    2 +-
+> >  drivers/pcmcia/sa1111_generic.c |    2 +-
+> >  drivers/pcmcia/tcic.c           |    2 +-
+> >  drivers/pcmcia/vrc4171_card.c   |    2 +-
+> >  include/pcmcia/ss.h             |    2 +-
 > 
-> well, the warning is fixed properly in my patch, as pointed out in the 
-> changelog. Have you read that?
+> Hmm, you are not converting yenta_socket here. Won't that break building the
+> kernel (git bisect)?
 
-Your patch will break the driver when the functionality that uses
-tpacpi_hotkey_driver_mask_set() lands in mainline.  That functionality is
-already in a subsystem tree waiting a push to Linus.
+You're right, I should have modified yenta_socket.c here as well.  Will fix.
 
-Of course, you had no way to know that, and I failed to convey that detail
-(mostly because _I_ screwed up and forgot I had that patch already applied)
-when I replied to you.  Sorry about that.
-
-The patch adding that functionality had already been submitted at the time
-you sent in your patch, and it will be merged through the backlight tree
-very soon.  That patch couldn't arrive earlier because it needed changes
-both in the backlight tree AND in the ACPI tree, and nobody knew which tree
-would merge first.
-
-Now that all dependencies (both from backlight and ACPI) are already in
-mainline, I asked Richard Purdie to send it to Linus together with his next
-batch of backlight updates.  That will silence the warning about
-tpacpi_hotkey_driver_mask_set().
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Rafael
