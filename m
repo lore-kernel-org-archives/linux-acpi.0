@@ -1,118 +1,72 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH] ACPI: EC: Rewrite DMI checks
-Date: Mon, 28 Sep 2009 23:37:21 +0400
-Message-ID: <20090928193720.8342.63300.stgit@thinkpad>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [origin tree build failure] [PATCH] thinkpad-acpi: Fix build
+ on !CONFIG_THINKPAD_ACPI_HOTKEY_POLL
+Date: Mon, 28 Sep 2009 16:44:49 -0300
+Message-ID: <20090928194449.GA9469@khazad-dum.debian.net>
+References: <200909260519.n8Q5JrB6016778@hera.kernel.org>
+ <20090927075254.GA20847@elte.hu>
+ <20090927122828.GA24783@khazad-dum.debian.net>
+ <alpine.LFD.2.00.0909272331520.5561@localhost.localdomain>
+ <20090928153526.GA9231@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:55294 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752707AbZI1ThS (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 15:37:18 -0400
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56119 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752707AbZI1Tot (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Sep 2009 15:44:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20090928153526.GA9231@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-"Notebook" name is not unique to MSI, thus should not be used
-to identify MSI hardware.
-Use dmi_check_system() for DMI matching.wq
+On Mon, 28 Sep 2009, Ingo Molnar wrote:
+> * Len Brown <lenb@kernel.org> wrote:
+> > > > >  drivers/platform/x86/thinkpad_acpi.c    |  632 +++++++++++++++++++---------
+> > > > 
+> > > > -tip testing found that these changes caused a build failure 
+> > > > in drivers/platform/x86/thinkpad_acpi.c when 
+> > > > !CONFIG_THINKPAD_ACPI_HOTKEY_POLL - the fix is attached  below.
+> > > 
+> > > Fixed by a different patch, which will hit mainline soon....
+> > 
+> > Ingo,
+> > 2.6.32-rc1 should build fine* -- let me know if it doesn't.
+> > 
+> > thanks,
+> > Len Brown, Intel Open Source Technology Center
+> > 
+> > * module this message, which Henruque assures me will go away soon
+> > drivers/platform/x86/thinkpad_acpi.c:2225: warning: 
+> > ???tpacpi_hotkey_driver_mask_set??? defined but not used
+> 
+> well, the warning is fixed properly in my patch, as pointed out in the 
+> changelog. Have you read that?
 
-References: http://bugzilla.kernel.org/show_bug.cgi?id=14086
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+Your patch will break the driver when the functionality that uses
+tpacpi_hotkey_driver_mask_set() lands in mainline.  That functionality is
+already in a subsystem tree waiting a push to Linus.
 
- drivers/acpi/ec.c |   49 +++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 43 insertions(+), 6 deletions(-)
+Of course, you had no way to know that, and I failed to convey that detail
+(mostly because _I_ screwed up and forgot I had that patch already applied)
+when I replied to you.  Sorry about that.
 
+The patch adding that functionality had already been submitted at the time
+you sent in your patch, and it will be merged through the backlight tree
+very soon.  That patch couldn't arrive earlier because it needed changes
+both in the backlight tree AND in the ACPI tree, and nobody knew which tree
+would merge first.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f707960..da7da37 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -119,6 +119,8 @@ static struct acpi_ec {
- } *boot_ec, *first_ec;
- 
- static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
-+static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
-+static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
- 
- /* --------------------------------------------------------------------------
-                              Transaction Management
-@@ -899,6 +901,41 @@ static const struct acpi_device_id ec_device_ids[] = {
- 	{"", 0},
- };
- 
-+/* Some BIOS do not survive early DSDT scan, skip it */
-+static int ec_skip_dsdt_scan(const struct dmi_system_id *id) {
-+	EC_FLAGS_SKIP_DSDT_SCAN = 1;
-+	return 0;
-+}
-+
-+/* ASUStek often supplies us with broken ECDT, validate it */
-+static int ec_validate_ecdt(const struct dmi_system_id *id) {
-+	EC_FLAGS_VALIDATE_ECDT = 1;
-+	return 0;
-+}
-+
-+/* MSI EC needs special treatment, enable it */
-+static int ec_flag_msi(const struct dmi_system_id *id) {
-+	EC_FLAGS_MSI = 1;
-+	EC_FLAGS_VALIDATE_ECDT = 1;
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata ec_dmi_table[] = {
-+	{
-+	ec_skip_dsdt_scan, "Compal JFL92", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
-+	DMI_MATCH(DMI_BOARD_NAME, "JFL92") }, NULL},
-+	{
-+	ec_flag_msi, "MSI hardware", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "Micro-Star"),
-+	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-Star") }, NULL},
-+	{
-+	ec_validate_ecdt, "ASUS hardware", {
-+	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
-+	{},
-+};
-+
-+
- int __init acpi_ec_ecdt_probe(void)
- {
- 	acpi_status status;
-@@ -911,11 +948,7 @@ int __init acpi_ec_ecdt_probe(void)
- 	/*
- 	 * Generate a boot ec context
- 	 */
--	if (dmi_name_in_vendors("Micro-Star") ||
--	    dmi_name_in_vendors("Notebook")) {
--		pr_info(PREFIX "Enabling special treatment for EC from MSI.\n");
--		EC_FLAGS_MSI = 1;
--	}
-+	dmi_check_system(ec_dmi_table);
- 	status = acpi_get_table(ACPI_SIG_ECDT, 1,
- 				(struct acpi_table_header **)&ecdt_ptr);
- 	if (ACPI_SUCCESS(status)) {
-@@ -926,7 +959,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->handle = ACPI_ROOT_OBJECT;
- 		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
- 		/* Don't trust ECDT, which comes from ASUSTek */
--		if (!dmi_name_in_vendors("ASUS") && EC_FLAGS_MSI == 0)
-+		if (!EC_FLAGS_VALIDATE_ECDT)
- 			goto install;
- 		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
- 		if (!saved_ec)
-@@ -934,6 +967,10 @@ int __init acpi_ec_ecdt_probe(void)
- 		memcpy(saved_ec, boot_ec, sizeof(struct acpi_ec));
- 	/* fall through */
- 	}
-+
-+	if (EC_FLAGS_SKIP_DSDT_SCAN)
-+		return -ENODEV;
-+
- 	/* This workaround is needed only on some broken machines,
- 	 * which require early EC, but fail to provide ECDT */
- 	printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
+Now that all dependencies (both from backlight and ACPI) are already in
+mainline, I asked Richard Purdie to send it to Linus together with his next
+batch of backlight updates.  That will silence the warning about
+tpacpi_hotkey_driver_mask_set().
 
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
