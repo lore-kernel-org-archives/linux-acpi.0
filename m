@@ -1,83 +1,125 @@
-From: Roland Dreier <rdreier@cisco.com>
-Subject: [PATCH] ACPI: Get rid of "registered as cooling_deviceX" messages
-Date: Mon, 28 Sep 2009 15:43:39 -0700
-Message-ID: <adahbumwuzo.fsf@cisco.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume from suspend
+Date: Tue, 29 Sep 2009 00:50:13 +0200
+Message-ID: <200909290050.13833.rjw@sisk.pl>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <200909282305.56102.rjw@sisk.pl> <20090928222002.GC19406@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sj-iport-1.cisco.com ([171.71.176.70]:65133 "EHLO
-	sj-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbZI1Wnh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 18:43:37 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:38929 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752693AbZI1Wsz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Sep 2009 18:48:55 -0400
+In-Reply-To: <20090928222002.GC19406@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: Xiaotian Feng <dfeng@redhat.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The messages "<xyz> registered as cooling_deviceX" printed by various
-ACPI drivers give the same information as just looking at the symlinks
-/sys/class/thermal/cooling_deviceX/device.  On a big system, they
-clutter up the syslog and take a long time to print on a serial console.
+On Tuesday 29 September 2009, Alex Chiang wrote:
+> * Rafael J. Wysocki <rjw@sisk.pl>:
+> > On Monday 28 September 2009, Rafael J. Wysocki wrote:
+> > > On Monday 28 September 2009, Alex Chiang wrote:
+> > > > * Xiaotian Feng <dfeng@redhat.com>:
+> > > > > --- a/drivers/acpi/pci_root.c
+> > > > > +++ b/drivers/acpi/pci_root.c
+> > > > > @@ -387,7 +387,11 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
+> > > > >  		if (!pdev || hnd == handle)
+> > > > >  			break;
+> > > > >  
+> > > > > -		pbus = pdev->subordinate;
+> > > > > +		if (pdev->subordinate)
+> > > > > +			pbus = pdev->subordinate;
+> > > > > +		else
+> > > > > +			pbus = pdev->bus;
+> > > > > +
+> > > > 
+> > > > I'm a little confused by this. If we start from the PCI root
+> > > > bridge and walk back down the hierarchy, shouldn't everything
+> > > > between the root and the device be a P2P bridge?
+> > > 
+> > > Well, if my reading of the code is correct, there's no guarantee that
+> > > pci_get_slot() will always return either the right device or a bridge.
+> > 
+> > I should have been more precise.
+> > 
+> > If devfn of node happens to be the same as devfn of a non-bridge device on
+> > pbus, the pci_get_slot() will return a valid pointer to it, but
+> > pdev->subordinate will be NULL.  Is it impossible for some reason?
+> 
+> Hm, that's a good thought, but I'm still confused. Here's the
+> first part of the full function (acpi_get_pci_dev):
+> 
+>         phandle = handle;
+>         while (!acpi_is_root_bridge(phandle)) {
+>                 node = kzalloc(sizeof(struct acpi_handle_node), GFP_KERNEL);
+>                 if (!node)
+>                         goto out;
+> 
+>                 INIT_LIST_HEAD(&node->node);
+>                 node->handle = phandle;
+>                 list_add(&node->node, &device_list);
+> 
+>                 status = acpi_get_parent(phandle, &phandle);
+>                 if (ACPI_FAILURE(status))
+>                         goto out;
+>         }
+> 
+> phandle starts off as the input parameter, and we make successive
+> calls to acpi_get_parent() to walk up the ACPI device tree until
+> we get to a root bridge.
+> 
+> My assumption here is that all those ACPI devices must be P2P
+> bridges.
+> 
+>         root = acpi_pci_find_root(phandle);
+>         if (!root)
+>                 goto out;
+> 
+>         pbus = root->bus;
+> 
+> Now we've got an acpi_pci_root() which has a struct pci_bus, and
+> we can start walking back down the PCI tree. Except what we're
+> really doing is iterating across the device_list which we created
+> above.
+> 
+> device_list should only contain P2P bridges, based on my
+> assumption above.
+> 
+>         list_for_each_entry(node, &device_list, node) {
+>                 acpi_handle hnd = node->handle;
+>                 status = acpi_evaluate_integer(hnd, "_ADR", NULL, &adr);
+>                 if (ACPI_FAILURE(status))
+>                         goto out;
+>                 dev = (adr >> 16) & 0xffff;
+>                 fn  = adr & 0xffff;
+> 
+>                 pdev = pci_get_slot(pbus, PCI_DEVFN(dev, fn));
+>                 if (!pdev || hnd == handle)
+>                         break;
+> 
+>                 pbus = pdev->subordinate;
+>                 pci_dev_put(pdev);
+>         }
+> 
+> The point you raise about collision between the devfn of 'node'
+> and some non-bridge device returned by pci_get_slot() seems like
+> it really shouldn't happen, because we evaluate _ADR for each
+> node on device_list, in the reverse order that we found them, and
+> based on my assumption, all those nodes should be bridges.
 
-On a 64-thread system I've been lucky enough to play with:
+You seem to be right, but if the Xiaotian's patch actually fixes the NULL
+pointer deref, one of the assumptions is clearly wrong.
 
-    $ dmesg | grep 'registered as cooling_device' | wc
-         64     448    4278
+> I'm not saying that Xiaotian's patch is wrong. I'm saying I'd
+> like to be educated as to why my basic assumption was wrong,
+> because now you're making me think that this code is pretty
+> fragile. :-/
 
-which is getting past tragedy and into the realm of comedy.  We may as
-well not print these messages.
+Perhaps Xiaotian can add some printk()s on top of his patch that will show us
+exactly in what conditions pbus becomes NULL.
 
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
----
-Len, still more in my trimming of the boot log on my big box.  If this
-makes sense to you, please apply.
-
-Also I think <http://patchwork.kernel.org/patch/50048/> might have
-gotten lost somewhere -- you applied the C-state version but not the
-equivalent T-state patch.
-
- drivers/acpi/fan.c            |    2 --
- drivers/acpi/processor_core.c |    3 ---
- drivers/acpi/video.c          |    2 --
- 3 files changed, 0 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index f419849..6bbc61d 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -267,8 +267,6 @@ static int acpi_fan_add(struct acpi_device *device)
- 		goto end;
- 	}
- 
--	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
--
- 	device->driver_data = cdev;
- 	result = sysfs_create_link(&device->dev.kobj,
- 				   &cdev->device.kobj,
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index c2d4d6e..3d6e95e 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -845,9 +845,6 @@ static int acpi_processor_add(struct acpi_device *device)
- 		goto err_power_exit;
- 	}
- 
--	dev_info(&device->dev, "registered as cooling_device%d\n",
--		 pr->cdev->id);
--
- 	result = sysfs_create_link(&device->dev.kobj,
- 				   &pr->cdev->device.kobj,
- 				   "thermal_cooling");
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index a4fddb2..3f67f4d 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1022,8 +1022,6 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
- 			return;
- 		}
- 
--		dev_info(&device->dev->dev, "registered as cooling_device%d\n",
--			 device->cooling_dev->id);
- 		result = sysfs_create_link(&device->dev->dev.kobj,
- 				&device->cooling_dev->device.kobj,
- 				"thermal_cooling");
+Thanks,
+Rafael
