@@ -1,155 +1,82 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: [PATCH] ACPI: Add EC event managerment functions into header file
-Date: Tue, 29 Sep 2009 05:30:48 +0800
-Message-ID: <1254173448-18362-1-git-send-email-ike.pan@canonical.com>
+From: Thomas Backlund <tmb@mandriva.org>
+Subject: Re: [git pull request] ACPI & driver patches for Linux-2.6.32-rc0
+Date: Tue, 29 Sep 2009 00:31:57 +0300
+Message-ID: <4AC12B4D.30508@mandriva.org>
+References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain> <4ABCB2CA.4020709@mandriva.org> <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com> <1254016503.17697.21.camel@minggr.sh.intel.com> <alpine.LFD.2.00.0909270348570.16783@localhost.localdomain> <4AC11A0F.2030806@mandriva.org> <4AC12015.4040508@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:38448 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747AbZI1Va4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 17:30:56 -0400
+Received: from mbox2.netikka.net ([213.250.81.203]:43162 "EHLO
+	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578AbZI1Vb4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 17:31:56 -0400
+In-Reply-To: <4AC12015.4040508@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-There are two functions for add/remove EC query handler functions, which
-exported without any definition in header files
+Alexey Starikovskiy wrote:
+> Thomas Backlund =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>>
+>> Now this is a Acer TravelMate 5720G laptop with the latest 1.35 bios=
+=2E
+>> Distro is Mandriva Linux Cooker, and arch is x86_64
+>>
+>> Attached is output of "grep ACPI /var/log/dmesg"
+>> dmesg-acpi-20090903
+>> - all acpi patches as of 2.6.32-rc1
+> This one does not have errors you've mentioned earlier, could you fin=
+d dmesg with them?
 
-Patch against current checkout of linux-acpi 2.6.31 is below.
+Ah, sorry about that...
+I should have done dmesg|grep ACPI to get the errors... it would have=20
+shown this too:
+tg3 0000:02:00.0: wake-up capability disabled by ACPI
+ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl]=20
+(20090903/evregion-424)
+ACPI Error (psparse-0537): Method parse/execution failed=20
+[\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
+ACPI Error (psparse-0537): Method parse/execution failed=20
+[\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
+ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
 
-In this patch, the following definitions has been added into
-include/linux/acpi.h
- - typedef: acpi_ec_query_func
- - struct: acpi_ec
- - fucntions: acpi_ec_add_query_handler, acpi_ec_remove_query_handler
 
-And the following definitions has been removed from driver/acpi/ec.c
- - typedef: acpi_ec_query_func
- - struct: acpi_ec
 
-So that, the following externs and typedef could be remove from
-drivers/acpi/sbshc.c
- - typedef: acpi_ec_query_func
- - externs: acpi_ec_add_query_handler, acpi_ec_remove_query_handler
+>> dmesg-acpi-20090903-ec-2.6.31
+>> - all acpi patches as of 2.6.32-rc1
+>> - ec.c from 2.6.31.1
+>>
+>>
+>> Should I start bisecting, or do you have any other suggestion?
+> There is only one patch which touch ec.c, 2a84cb9852f52c0cd1c48bca41a=
+8792d44ad06cc. You may try to revert it, and see.
+>=20
 
-Signed-off-by: Ike Panhc <ike.pan@canonical.com>
----
- drivers/acpi/ec.c    |   22 +++++-----------------
- drivers/acpi/sbshc.c |    8 --------
- include/linux/acpi.h |   21 +++++++++++++++++++++
- 3 files changed, 26 insertions(+), 25 deletions(-)
+Isn't that what pretty much what I did when I built a kernel with the=20
+2.6.31.1 ec.c ?
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f707960..8950c4f 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -43,6 +43,7 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include <linux/dmi.h>
-+#include <linux/acpi.h>
- 
- #define ACPI_EC_CLASS			"embedded_controller"
- #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
-@@ -80,10 +81,6 @@ enum {
- 					 * OpReg are installed */
- };
- 
--/* If we find an EC via the ECDT, we need to keep a ptr to its context */
--/* External interfaces use first EC only, so remember */
--typedef int (*acpi_ec_query_func) (void *data);
--
- struct acpi_ec_query_handler {
- 	struct list_head node;
- 	acpi_ec_query_func func;
-@@ -104,19 +101,10 @@ struct transaction {
- 	bool done;
- };
- 
--static struct acpi_ec {
--	acpi_handle handle;
--	unsigned long gpe;
--	unsigned long command_addr;
--	unsigned long data_addr;
--	unsigned long global_lock;
--	unsigned long flags;
--	struct mutex lock;
--	wait_queue_head_t wait;
--	struct list_head list;
--	struct transaction *curr;
--	spinlock_t curr_lock;
--} *boot_ec, *first_ec;
-+/* If we find an EC via the ECDT, we need to keep a ptr to its context */
-+/* External interfaces use first EC only, so remember */
-+static struct acpi_ec *boot_ec;
-+static struct acpi_ec *first_ec;
- 
- static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
- 
-diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-index d933980..d5550a5 100644
---- a/drivers/acpi/sbshc.c
-+++ b/drivers/acpi/sbshc.c
-@@ -250,12 +250,6 @@ static int smbus_alarm(void *context)
- 	return 0;
- }
- 
--typedef int (*acpi_ec_query_func) (void *data);
--
--extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
--			      acpi_handle handle, acpi_ec_query_func func,
--			      void *data);
--
- static int acpi_smbus_hc_add(struct acpi_device *device)
- {
- 	int status;
-@@ -292,8 +286,6 @@ static int acpi_smbus_hc_add(struct acpi_device *device)
- 	return 0;
- }
- 
--extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
--
- static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_smb_hc *hc;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index dfcd920..259eacb 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -145,12 +145,33 @@ struct acpi_pci_driver {
- int acpi_pci_register_driver(struct acpi_pci_driver *driver);
- void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
- 
-+typedef int (*acpi_ec_query_func) (void *data);
-+
-+struct acpi_ec {
-+	acpi_handle handle;
-+	unsigned long gpe;
-+	unsigned long command_addr;
-+	unsigned long data_addr;
-+	unsigned long global_lock;
-+	unsigned long flags;
-+	struct mutex lock;
-+	wait_queue_head_t wait;
-+	struct list_head list;
-+	struct transaction *curr;
-+	spinlock_t curr_lock;
-+};
-+
- extern int ec_read(u8 addr, u8 *val);
- extern int ec_write(u8 addr, u8 val);
- extern int ec_transaction(u8 command,
-                           const u8 *wdata, unsigned wdata_len,
-                           u8 *rdata, unsigned rdata_len,
- 			  int force_poll);
-+extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
-+				      acpi_handle handle,
-+				      acpi_ec_query_func func, void *data);
-+extern void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
-+
- 
- #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
- 
--- 
-1.6.0.4
+Anyway, after I applied your patch you just posted on acpi-devel:
+ACPI: EC: Rewrite DMI checks
 
+to the 2.6.32-rc1 tree the:
+
+> -ACPI Error (psargs-0359): [\_PR_.CPU0.CSTX] Namespace lookup failure=
+, AE_NOT_FOUND
+> -ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0=
+=2ELPCB.EC0_._Q2F] (Node ffff88013f81c1a0), AE_NOT_FOUND
+
+does not show up at boot anymore, and so far I haven't seen the other=20
+errors either...
+
+I'll post a follow-up if they show up again...
+
+--
+Thomas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
