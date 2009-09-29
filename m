@@ -1,132 +1,599 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [git pull request] ACPI & driver patches for Linux-2.6.32-rc0
-Date: Tue, 29 Sep 2009 12:25:39 +0400
-Message-ID: <4AC1C483.3000308@suse.de>
-References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain> <4ABCB2CA.4020709@mandriva.org> <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com> <1254016503.17697.21.camel@minggr.sh.intel.com> <alpine.LFD.2.00.0909270348570.16783@localhost.localdomain> <4AC11A0F.2030806@mandriva.org> <4AC12015.4040508@suse.de> <4AC12B4D.30508@mandriva.org> <4AC12E51.8050501@mandriva.org> <4AC134EB.1050705@suse.de> <4AC15582.8090601@mandriva.org>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
+Date: Tue, 29 Sep 2009 10:20:44 +0100
+Message-ID: <9b2b86520909290220g6b5f6beal6337b17f1bdd339@mail.gmail.com>
+References: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080508040400060009050505"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753655AbZI2IZk@vger.kernel.org>
-In-Reply-To: <4AC15582.8090601@mandriva.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Backlund <tmb@mandriva.org>
-Cc: Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:52784 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753486AbZI2JUm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Sep 2009 05:20:42 -0400
+In-Reply-To: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080508040400060009050505
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+On 9/29/09, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com> wrote:
+> This add supports for devices like keyboard, backlight, tablet and
+> accelerometer.
+>
+> This work is supported by International Syst S/A.
+>
+> Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-Thomas Backlund пишет:
-> Alexey Starikovskiy wrote:
->> Thomas Backlund пишет:
->>> Thomas Backlund wrote:
->>>> Alexey Starikovskiy wrote:
->>>>> Thomas Backlund пишет:
->>>>>> Now this is a Acer TravelMate 5720G laptop with the latest 1.35 bios.
->>>>>> Distro is Mandriva Linux Cooker, and arch is x86_64
->>>>>>
->>>>>> Attached is output of "grep ACPI /var/log/dmesg"
->>>>>> dmesg-acpi-20090903
->>>>>> - all acpi patches as of 2.6.32-rc1
->>>>> This one does not have errors you've mentioned earlier, could you 
->>>>> find dmesg with them?
->>>> Ah, sorry about that...
->>>> I should have done dmesg|grep ACPI to get the errors... it would 
->>>> have shown this too:
->>>> tg3 0000:02:00.0: wake-up capability disabled by ACPI
->>>> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] 
->>>> (20090903/evregion-424)
->>>> ACPI Error (psparse-0537): Method parse/execution failed 
->>>> [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
->>>> ACPI Error (psparse-0537): Method parse/execution failed 
->>>> [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
->>>> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
->>>>
->>>>
->>>>
->>>>>> dmesg-acpi-20090903-ec-2.6.31
->>>>>> - all acpi patches as of 2.6.32-rc1
->>>>>> - ec.c from 2.6.31.1
->>>>>>
->>>>>>
->>>>>> Should I start bisecting, or do you have any other suggestion?
->>>>> There is only one patch which touch ec.c, 
->>>>> 2a84cb9852f52c0cd1c48bca41a8792d44ad06cc. You may try to revert it, 
->>>>> and see.
->>>>>
->>>> Isn't that what pretty much what I did when I built a kernel with 
->>>> the 2.6.31.1 ec.c ?
->>>>
->>>> Anyway, after I applied your patch you just posted on acpi-devel:
->>>> ACPI: EC: Rewrite DMI checks
->>>>
->>>> to the 2.6.32-rc1 tree the:
->>>>
->>>>> -ACPI Error (psargs-0359): [\_PR_.CPU0.CSTX] Namespace lookup 
->>>>> failure, AE_NOT_FOUND
->>>>> -ACPI Error (psparse-0537): Method parse/execution failed 
->>>>> [\_SB_.PCI0.LPCB.EC0_._Q2F] (Node ffff88013f81c1a0), AE_NOT_FOUND
->>>> does not show up at boot anymore, and so far I haven't seen the 
->>>> other errors either...
->>>>
->>>> I'll post a follow-up if they show up again...
->>>>
->>> Bah...
->>> I spoke too soon:
->>>
->> Could you please turn on timing information in printk ? Please also 
->> uncomment "#define DEBUG" in ec.c
->>
-> 
-> That generated a big log......
-> 
-> This is now grep ACPI /var/log/syslog from the 2.6.32-rc1 + the above 
-> "ACPI: EC: Rewrite DMI checks"
-> 
-> As it's big, I posted it here:
-> http://tmb.mine.nu/acpi-ec-bug/acpi-ec-debug.bz2
-Thanks,
-please check if attached patch helps:
-> 
-> -- 
-> Thomas
+Hi!
 
+In general this driver was a pleasure to read.  It looks like you have
+a nice and clean ACPI interface to work with.  I haven't seen anything
+quite like the cmpc_{add,remove}_acpi_notify_device() functions
+before, but they make a lot of sense here.
 
---------------080508040400060009050505
-Content-Type: text/x-diff;
- name="reset-controller.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="reset-controller.patch"
+But I do have a few comments :-).
 
-ACPI: EC: Restart command even if no interrupts from EC
+The "-laptop" naming convention is more informative than "-acpi".
+Perhaps this driver should be called "classmate-laptop".  I would keep
+the cmpc_ prefix in the source code though.
 
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+More comments inline.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
----
+> +/*
+> + * Generic input device code.
+> + */
+> +
+> +typedef void (*input_device_init)(struct input_dev *dev);
+> +
+> +static int cmpc_add_acpi_notify_device(struct acpi_device *acpi, char
+> *name,
+> +				       acpi_notify_handler handler,
+> +				       input_device_init idev_init)
+> +{
+> +	struct input_dev *inputdev;
+> +	acpi_status status;
+> +	int error;
+> +	inputdev = input_allocate_device();
+> +	if (!inputdev) {
+> +		error = -ENOMEM;
+> +		goto out;
+> +	}
+> +	inputdev->name = name;
+> +	inputdev->dev.parent = &acpi->dev;
+> +	idev_init(inputdev);
+> +	error = input_register_device(inputdev);
+> +	if (error)
+> +		goto err_reg;
+> +	dev_set_drvdata(&acpi->dev, inputdev);
+> +	status = acpi_install_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
+> +					     handler, inputdev);
+> +	if (ACPI_FAILURE(status)) {
+> +		error = -ENODEV;
+> +		goto err_acpi;
+> +	}
+> +	return 0;
+> +err_acpi:
+> +	input_unregister_device(inputdev);
+> +err_reg:
+> +	input_free_device(inputdev);
+> +out:
+> +	return error;
+> +}
+> +
+> +static int cmpc_remove_acpi_notify_device(struct acpi_device *acpi,
+> +					  acpi_notify_handler handler)
+> +{
+> +	struct input_dev *inputdev;
+> +	acpi_status status;
+> +	status = acpi_remove_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
+> +					    handler);
+> +	inputdev = dev_get_drvdata(&acpi->dev);
+> +	input_unregister_device(inputdev);
+> +	input_free_device(inputdev);
 
- drivers/acpi/ec.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+Dmitry the input maintainer says "input_free_device() should not be
+called after input_unregister_device()." (This also applies to the
+error handling in add_acpi_notify_device()).
 
+> +	return 0;
+> +}
+> +
+> +
+> +/*
+> + * Accelerometer code.
+> + */
+> +
+> +static acpi_status cmpc_start_accel(acpi_handle handle)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	acpi_status status;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x3;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
+> +	return status;
+> +}
+> +
+> +static acpi_status cmpc_stop_accel(acpi_handle handle)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	acpi_status status;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x4;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
+> +	return status;
+> +}
+> +
+> +static acpi_status cmpc_accel_set_sense(acpi_handle handle, int val)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x02;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	param[1].integer.value = val;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	return acpi_evaluate_object(handle, "ACMD", &input, NULL);
+> +}
+> +
+> +static acpi_status cmpc_get_accel(acpi_handle handle,
+> +				  unsigned char *x,
+> +				  unsigned char *y,
+> +				  unsigned char *z)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, 0 };
+> +	unsigned char *locs;
+> +	acpi_status status;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x01;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_object(handle, "ACMD", &input, &output);
+> +	if (ACPI_SUCCESS(status)) {
+> +		union acpi_object *obj;
+> +		obj = output.pointer;
+> +		locs = obj->buffer.pointer;
+> +		*x = locs[0];
+> +		*y = locs[1];
+> +		*z = locs[2];
+> +		kfree(output.pointer);
+> +	}
+> +	return status;
+> +}
+> +
+> +static void cmpc_accel_handler(acpi_handle handle, u32 event, void *ctx)
+> +{
+> +	struct input_dev *inputdev = ctx;
+> +	acpi_status status;
+> +	unsigned char x, y, z;
+> +	if (event == 0x81) {
+> +		status = cmpc_get_accel(handle, &x, &y, &z);
+> +		if (ACPI_SUCCESS(status)) {
+> +			input_report_abs(inputdev, ABS_X, x);
+> +			input_report_abs(inputdev, ABS_Y, y);
+> +			input_report_abs(inputdev, ABS_Z, z);
+> +			input_sync(inputdev);
+> +		}
+> +	}
+> +}
+> +
+> +static ssize_t cmpc_accel_sense_store(struct device *dev,
+> +				      struct device_attribute *attr,
+> +				      const char *buf, size_t count)
+> +{
+> +	struct acpi_device *acpi;
+> +	int sense;
+> +	acpi = to_acpi_device(dev);
+> +	if (sscanf(buf, "%d", &sense) <= 0)
+> +		return -EINVAL;
+> +	cmpc_accel_set_sense(acpi->handle, sense);
+> +	return strnlen(buf, count);
+> +}
+> +
+> +struct device_attribute cmpc_accel_sense_attr = {
+> +	.attr = { .name = "sense", .mode = 0220 },
+> +	.store = cmpc_accel_sense_store
+> +};
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index da7da37..9c34515 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -234,10 +234,8 @@ static int ec_poll(struct acpi_ec *ec)
- 			}
- 			advance_transaction(ec, acpi_ec_read_status(ec));
- 		} while (time_before(jiffies, delay));
--		if (!ec->curr->irq_count ||
--		    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF))
-+		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF)
- 			break;
--		/* try restart command if we get any false interrupts */
- 		pr_debug(PREFIX "controller reset, restart transaction\n");
- 		spin_lock_irqsave(&ec->curr_lock, flags);
- 		start_transaction(ec);
+What does this do?  What range of values can it take?  Is it a common
+attribute for input devices, or does it need specific documentation?
 
---------------080508040400060009050505--
+Would it make sense for the driver to initialize it to a default
+value, so that we would always know what the current value is, and
+provide a .show() method as well?
+
+> +
+> +static int cmpc_accel_open(struct input_dev *input)
+> +{
+> +	struct acpi_device *acpi;
+> +	acpi = to_acpi_device(input->dev.parent);
+> +	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
+> +		return 0;
+> +	return -EIO;
+> +}
+> +
+> +static void cmpc_accel_close(struct input_dev *input)
+> +{
+> +	struct acpi_device *acpi;
+> +	acpi = to_acpi_device(input->dev.parent);
+> +	cmpc_stop_accel(acpi->handle);
+> +}
+> +
+> +static void cmpc_accel_idev_init(struct input_dev *inputdev)
+> +{
+> +	set_bit(EV_ABS, inputdev->evbit);
+> +	input_set_abs_params(inputdev, ABS_X, 0, 255, 8, 0);
+> +	input_set_abs_params(inputdev, ABS_Y, 0, 255, 8, 0);
+> +	input_set_abs_params(inputdev, ABS_Z, 0, 255, 8, 0);
+> +	inputdev->open = cmpc_accel_open;
+> +	inputdev->close = cmpc_accel_close;
+> +}
+> +
+> +static int cmpc_accel_add(struct acpi_device *acpi)
+> +{
+> +	int error;
+> +	error = device_create_file(&acpi->dev, &cmpc_accel_sense_attr);
+> +	if (error)
+> +		return error;
+> +	return cmpc_add_acpi_notify_device(acpi, "cmpc_accel",
+> +					   cmpc_accel_handler,
+> +					   cmpc_accel_idev_init);
+> +}
+> +
+> +static int cmpc_accel_remove(struct acpi_device *acpi, int type)
+> +{
+> +	device_remove_file(&acpi->dev, &cmpc_accel_sense_attr);
+> +	return cmpc_remove_acpi_notify_device(acpi, cmpc_accel_handler);
+> +}
+> +
+> +static const struct acpi_device_id cmpc_accel_device_ids[] = {
+> +	{"ACCE0000", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_accel_device_ids);
+> +
+> +static struct acpi_driver cmpc_accel_acpi_driver = {
+> +	.name = "cmpc_accel",
+> +	.class = "cmpc_accel",
+> +	.ids = cmpc_accel_device_ids,
+> +	.ops = {
+> +		.add = cmpc_accel_add,
+> +		.remove = cmpc_accel_remove
+> +	}
+
+Could you please set
+
+	.owner = THIS_MODULE,
+
+on all the acpi drivers?  It will provide data in
+/sys/module/cmpc_acpi/drivers and
+/sys/bus/acpi/drivers/<driver>/module.  It seems to be forgotten
+knowledge, but I'm trying to revive it :-).
+
+> +};
+> +
+> +static bool cmpc_accel_driver_registered;
+> +
+> +
+> +/*
+> + * Tablet mode code.
+> + */
+> +static acpi_status cmpc_get_tablet(acpi_handle handle,
+> +				   unsigned long long *value)
+> +{
+> +	union acpi_object param;
+> +	struct acpi_object_list input;
+> +	unsigned long long output;
+> +	acpi_status status;
+> +	param.type = ACPI_TYPE_INTEGER;
+> +	param.integer.value = 0x01;
+> +	input.count = 1;
+> +	input.pointer = &param;
+> +	status = acpi_evaluate_integer(handle, "TCMD", &input, &output);
+> +	if (ACPI_SUCCESS(status))
+> +		*value = output;
+> +	return status;
+> +}
+> +
+> +static void cmpc_tablet_handler(acpi_handle handle, u32 event, void *ctx)
+> +{
+> +	unsigned long long val = 0;
+> +	struct input_dev *inputdev = ctx;
+> +	if (event == 0x81) {
+> +		if (ACPI_SUCCESS(cmpc_get_tablet(handle, &val)))
+> +			input_report_switch(inputdev, SW_TABLET_MODE, !val);
+> +	}
+> +}
+> +
+> +static void cmpc_tablet_idev_init(struct input_dev *inputdev)
+> +{
+> +	set_bit(EV_SW, inputdev->evbit);
+> +	set_bit(SW_TABLET_MODE, inputdev->swbit);
+
+Don't you need to initialize the switch value here?
+
+Also, have you tested this with changing the switch value while
+suspended?  I _think_ you need to update the switch state on resume.
+This is purely from looking at other acpi drivers and their evolution;
+I don't have any practical experience with input drivers.
+
+> +}
+> +
+> +static int cmpc_tablet_add(struct acpi_device *acpi)
+> +{
+> +	return cmpc_add_acpi_notify_device(acpi, "cmpc_tablet",
+> +					   cmpc_tablet_handler,
+> +					   cmpc_tablet_idev_init);
+> +}
+> +
+> +static int cmpc_tablet_remove(struct acpi_device *acpi, int type)
+> +{
+> +	return cmpc_remove_acpi_notify_device(acpi, cmpc_tablet_handler);
+> +}
+> +
+> +static const struct acpi_device_id cmpc_tablet_device_ids[] = {
+> +	{"TBLT0000", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_tablet_device_ids);
+> +
+> +static struct acpi_driver cmpc_tablet_acpi_driver = {
+> +	.name = "cmpc_tablet",
+> +	.class = "cmpc_tablet",
+> +	.ids = cmpc_tablet_device_ids,
+> +	.ops = {
+> +		.add = cmpc_tablet_add,
+> +		.remove = cmpc_tablet_remove
+> +	}
+> +};
+> +
+> +static bool cmpc_tablet_driver_registered;
+> +
+> +
+> +/*
+> + * Backlight code.
+> + */
+> +
+> +static acpi_status cmpc_get_brightness(acpi_handle handle,
+> +				       unsigned long long *value)
+> +{
+> +	union acpi_object param;
+> +	struct acpi_object_list input;
+> +	unsigned long long output;
+> +	acpi_status status;
+> +	param.type = ACPI_TYPE_INTEGER;
+> +	param.integer.value = 0xC0;
+> +	input.count = 1;
+> +	input.pointer = &param;
+> +	status = acpi_evaluate_integer(handle, "GRDI", &input, &output);
+> +	if (ACPI_SUCCESS(status))
+> +		*value = output;
+> +	return status;
+> +}
+> +
+> +static acpi_status cmpc_set_brightness(acpi_handle handle,
+> +				       unsigned long long value)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	acpi_status status;
+> +	unsigned long long output;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0xC0;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	param[1].integer.value = value;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_integer(handle, "GWRI", &input, &output);
+> +	return status;
+> +}
+> +
+> +static int cmpc_bl_get_brightness(struct backlight_device *bd)
+> +{
+> +	acpi_status status;
+> +	acpi_handle handle;
+> +	unsigned long long brightness;
+> +	handle = bl_get_data(bd);
+> +	status = cmpc_get_brightness(handle, &brightness);
+> +	if (ACPI_SUCCESS(status))
+> +		return brightness;
+> +	else
+> +		return -1;
+> +}
+> +
+> +static int cmpc_bl_update_status(struct backlight_device *bd)
+> +{
+> +	acpi_status status;
+> +	acpi_handle handle;
+> +	handle = bl_get_data(bd);
+> +	status = cmpc_set_brightness(handle, bd->props.brightness);
+> +	if (ACPI_SUCCESS(status))
+> +		return 0;
+> +	else
+> +		return -1;
+> +}
+> +
+> +static struct backlight_ops cmpc_bl_ops = {
+> +	.get_brightness = cmpc_bl_get_brightness,
+> +	.update_status = cmpc_bl_update_status
+> +};
+> +
+> +static int cmpc_bl_add(struct acpi_device *acpi)
+> +{
+> +	struct backlight_device *bd;
+> +	bd = backlight_device_register("cmpc_bl", &acpi->dev,
+> +				       acpi->handle, &cmpc_bl_ops);
+> +	bd->props.max_brightness = 7;
+> +	dev_set_drvdata(&acpi->dev, bd);
+> +	return 0;
+> +}
+> +
+> +static int cmpc_bl_remove(struct acpi_device *acpi, int type)
+> +{
+> +	struct backlight_device *bd;
+> +	bd = dev_get_drvdata(&acpi->dev);
+> +	backlight_device_unregister(bd);
+> +	return 0;
+> +}
+> +
+> +static const struct acpi_device_id cmpc_device_ids[] = {
+> +	{"IPML200", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_device_ids);
+> +
+> +static struct acpi_driver cmpc_bl_acpi_driver = {
+> +	.name = "cmpc",
+> +	.class = "cmpc",
+> +	.ids = cmpc_device_ids,
+> +	.ops = {
+> +		.add = cmpc_bl_add,
+> +		.remove = cmpc_bl_remove
+> +	}
+> +};
+> +
+> +static bool cmpc_bl_driver_registered;
+> +
+> +
+> +/*
+> + * Extra keys code.
+> + */
+> +static int cmpc_keys_codes[] = {
+> +	KEY_UNKNOWN,
+> +	KEY_WLAN,
+> +	KEY_SWITCHVIDEOMODE,
+
+> +	KEY_BRIGHTNESSDOWN,
+> +	KEY_BRIGHTNESSUP,
+
+Please confirm that the brightness keys do not directly affect the
+backlight, and these key events are a signal for userspace to adjust
+the backlight itself.
+
+If they _do_ affect the backlight, you should call the newly added
+backlight_force_update() when they are pressed, and it will generate a
+uevent on the backlight device.  (I guess you will have to add an ugly
+global variable for the backlight device, sorry about that).  In this
+case you should ideally avoid generating _input_ events for brightness
+keys.
+
+Currently userspace is expected to handle annoying devices which
+generate KEY_BRIGHTNESS* while directly changing the brightness.  But
+requires a racy hack, so you should definitely try to avoid this for
+new devices.  It will encourage userspace to implement support for the
+backlight device uevents :-).
+
+> +	KEY_VENDOR,
+> +	KEY_MAX
+> +};
+> +
+> +static void cmpc_keys_handler(acpi_handle handle, u32 event, void *ctx)
+> +{
+> +	struct input_dev *inputdev;
+> +	int code = KEY_MAX;
+> +	if ((event & 0x0F) < ARRAY_SIZE(cmpc_keys_codes))
+> +		code = cmpc_keys_codes[event & 0x0F];
+> +	inputdev = ctx;
+> +	input_report_key(inputdev, code, !(event & 0x10));
+> +}
+> +
+> +static void cmpc_keys_idev_init(struct input_dev *inputdev)
+> +{
+> +	int i;
+> +	set_bit(EV_KEY, inputdev->evbit);
+> +	for (i = 0; cmpc_keys_codes[i] != KEY_MAX; i++)
+> +		set_bit(cmpc_keys_codes[i], inputdev->keybit);
+> +}
+> +
+> +static int cmpc_keys_add(struct acpi_device *acpi)
+> +{
+> +	return cmpc_add_acpi_notify_device(acpi, "cmpc_keys",
+> +					   cmpc_keys_handler,
+> +					   cmpc_keys_idev_init);
+> +}
+> +
+> +static int cmpc_keys_remove(struct acpi_device *acpi, int type)
+> +{
+> +	return cmpc_remove_acpi_notify_device(acpi, cmpc_keys_handler);
+> +}
+> +
+> +static const struct acpi_device_id cmpc_keys_device_ids[] = {
+> +	{"FnBT0000", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_keys_device_ids);
+> +
+> +static struct acpi_driver cmpc_keys_acpi_driver = {
+> +	.name = "cmpc_keys",
+> +	.class = "cmpc_keys",
+> +	.ids = cmpc_keys_device_ids,
+> +	.ops = {
+> +		.add = cmpc_keys_add,
+> +		.remove = cmpc_keys_remove
+> +	}
+> +};
+> +
+> +static bool cmpc_keys_driver_registered;
+> +
+> +
+> +/*
+> + * General init/exit code.
+> + */
+> +
+> +static int cmpc_init(void)
+> +{
+> +	int result;
+> +	result = acpi_bus_register_driver(&cmpc_keys_acpi_driver);
+> +	cmpc_keys_driver_registered = !!result;
+> +	result = acpi_bus_register_driver(&cmpc_bl_acpi_driver);
+> +	cmpc_bl_driver_registered = !!result;
+> +	result = acpi_bus_register_driver(&cmpc_tablet_acpi_driver);
+> +	cmpc_tablet_driver_registered = !!result;
+> +	result = acpi_bus_register_driver(&cmpc_accel_acpi_driver);
+> +	cmpc_accel_driver_registered = !!result;
+
+These _registered flags are not necessary.  Registration doesn't fail
+if the hardware doesn't exist.  It only fails if acpi=off, or on
+-ENOMEM.  It would be reasonable to fail loading the module if one of
+the drivers fails to register.
+
+> +	/*
+> +	 * Not every CMPC has every ACPI device supported here. So always return
+> +	 * success.
+> +	 */
+> +	return 0;
+> +}
+> +
+> +static void cmpc_exit(void)
+> +{
+> +	if (cmpc_accel_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
+> +	if (cmpc_tablet_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
+> +	if (cmpc_bl_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
+> +	if (cmpc_keys_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
+> +}
+> +
+> +module_init(cmpc_init);
+> +module_exit(cmpc_exit);
+> --
+> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
