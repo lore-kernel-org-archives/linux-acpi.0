@@ -1,93 +1,113 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
-Date: Tue, 29 Sep 2009 17:41:42 +0100
-Message-ID: <9b2b86520909290941g6295ba36i907dfda62b968529@mail.gmail.com>
-References: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
-	 <9b2b86520909290220g6b5f6beal6337b17f1bdd339@mail.gmail.com>
-	 <20090929141618.GD18847@vespa.holoscopio.com>
+From: Thomas Backlund <tmb@mandriva.org>
+Subject: Re: [git pull request] ACPI & driver patches for Linux-2.6.32-rc0
+Date: Tue, 29 Sep 2009 20:42:49 +0300
+Message-ID: <4AC24719.60909@mandriva.org>
+References: <alpine.LFD.2.00.0909190237560.22030@localhost.localdomain> <4ABCB2CA.4020709@mandriva.org> <d3f22a0909261902o5e48c2a0lab56fca21edf8c5b@mail.gmail.com> <1254016503.17697.21.camel@minggr.sh.intel.com> <alpine.LFD.2.00.0909270348570.16783@localhost.localdomain> <4AC11A0F.2030806@mandriva.org> <4AC12015.4040508@suse.de> <4AC12B4D.30508@mandriva.org> <4AC12E51.8050501@mandriva.org> <4AC134EB.1050705@suse.de> <4AC15582.8090601@mandriva.org> <4AC1C483.3000308@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20090929141618.GD18847@vespa.holoscopio.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, dtor@mail.ru, dmitry.torokhov@gmail.com
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mbox2.netikka.net ([213.250.81.203]:41934 "EHLO
+	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673AbZI2Rmt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Sep 2009 13:42:49 -0400
+In-Reply-To: <4AC1C483.3000308@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 9/29/09, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com> wrote:
-> On Tue, Sep 29, 2009 at 10:20:44AM +0100, Alan Jenkins wrote:
-> Hello, Allan.
->
-> Thanks for the feedback. I am considering an investigation whether we
-> have lots of other ACPI input devices that could share some code like
-> {add,remove}_acpi_notify_device. Regarding the driver naming, I will
-> send a second version with it and other modifications considering your
-> feedback and that of other people too.
->
-> I will also ask for some explicit feedback and add linux-input and
-> Dmitry to the loop.
->
-
-I'll leave the input questions for the list.  I don't have any
-suggestions about your choice of keycode for the house key, or how to
-calibrate accelerometers.
-
->> > +struct device_attribute cmpc_accel_sense_attr = {
->> > +	.attr = { .name = "sense", .mode = 0220 },
->> > +	.store = cmpc_accel_sense_store
->> > +};
-
-> This changes the accelerometer device sensitivity. I will take a look at
-> the ACPI tables to get a range. If very much sensitive, the device will
-> generate too much ACPI notifications, even when the classmate PC is no a
-> table and there seems to be no movement. If not very much sensitive, you
-> must throw it spinning into the air to get anything.  :-)
->
-> I will pick a default value, although I think we could let it to
-> userspace, but a sensible default value will not hurt here. As far as I
-> know, there is no ACPI method to do get_sense, but we can mirror the
-> last value written and provide a .show.
->
-> What do you recommend as a documentation? Something at
-> Documentation/ABI/testing/, perhaps? I don't know if there are any other
-> devices with something similar, but I would not be surprised if there
-> are some of them.
-
-Documentation/ABI seems reasonable; "sysfs-platform-eeepc-laptop" was
-accepted there.
-
-You could try (either in place of documentation, or in addition to)
-making the interface self-explanatory.  Call the attribute
-"sensitivity", and add a "max_sensitivity" attribute.  It would also
-make the interface more generic.
-
->> > +static void cmpc_tablet_idev_init(struct input_dev *inputdev)
->> > +{
->> > +	set_bit(EV_SW, inputdev->evbit);
->> > +	set_bit(SW_TABLET_MODE, inputdev->swbit);
+Alexey Starikovskiy wrote:
+> Thomas Backlund =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>> Alexey Starikovskiy wrote:
+>>> Thomas Backlund =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>>>> Thomas Backlund wrote:
+>>>>> Alexey Starikovskiy wrote:
+>>>>>> Thomas Backlund =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>>>>>>> Now this is a Acer TravelMate 5720G laptop with the latest 1.35=
+=20
+>>>>>>> bios.
+>>>>>>> Distro is Mandriva Linux Cooker, and arch is x86_64
+>>>>>>>
+>>>>>>> Attached is output of "grep ACPI /var/log/dmesg"
+>>>>>>> dmesg-acpi-20090903
+>>>>>>> - all acpi patches as of 2.6.32-rc1
+>>>>>> This one does not have errors you've mentioned earlier, could yo=
+u=20
+>>>>>> find dmesg with them?
+>>>>> Ah, sorry about that...
+>>>>> I should have done dmesg|grep ACPI to get the errors... it would=20
+>>>>> have shown this too:
+>>>>> tg3 0000:02:00.0: wake-up capability disabled by ACPI
+>>>>> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl=
+]=20
+>>>>> (20090903/evregion-424)
+>>>>> ACPI Error (psparse-0537): Method parse/execution failed=20
+>>>>> [\_SB_.PCI0.LPCB.EC0_.GBST] (Node ffff88013f81c5e0), AE_TIME
+>>>>> ACPI Error (psparse-0537): Method parse/execution failed=20
+>>>>> [\_SB_.PCI0.LPCB.EC0_.BAT0._BST] (Node ffff88013f81c720), AE_TIME
+>>>>> ACPI Exception: AE_TIME, Evaluating _BST (20090903/battery-393)
+>>>>>
+>>>>>
+>>>>>
+>>>>>>> dmesg-acpi-20090903-ec-2.6.31
+>>>>>>> - all acpi patches as of 2.6.32-rc1
+>>>>>>> - ec.c from 2.6.31.1
+>>>>>>>
+>>>>>>>
+>>>>>>> Should I start bisecting, or do you have any other suggestion?
+>>>>>> There is only one patch which touch ec.c,=20
+>>>>>> 2a84cb9852f52c0cd1c48bca41a8792d44ad06cc. You may try to revert=20
+>>>>>> it, and see.
+>>>>>>
+>>>>> Isn't that what pretty much what I did when I built a kernel with=
+=20
+>>>>> the 2.6.31.1 ec.c ?
+>>>>>
+>>>>> Anyway, after I applied your patch you just posted on acpi-devel:
+>>>>> ACPI: EC: Rewrite DMI checks
+>>>>>
+>>>>> to the 2.6.32-rc1 tree the:
+>>>>>
+>>>>>> -ACPI Error (psargs-0359): [\_PR_.CPU0.CSTX] Namespace lookup=20
+>>>>>> failure, AE_NOT_FOUND
+>>>>>> -ACPI Error (psparse-0537): Method parse/execution failed=20
+>>>>>> [\_SB_.PCI0.LPCB.EC0_._Q2F] (Node ffff88013f81c1a0), AE_NOT_FOUN=
+D
+>>>>> does not show up at boot anymore, and so far I haven't seen the=20
+>>>>> other errors either...
+>>>>>
+>>>>> I'll post a follow-up if they show up again...
+>>>>>
+>>>> Bah...
+>>>> I spoke too soon:
+>>>>
+>>> Could you please turn on timing information in printk ? Please also=
+=20
+>>> uncomment "#define DEBUG" in ec.c
+>>>
 >>
->> Don't you need to initialize the switch value here?
+>> That generated a big log......
 >>
->
-> No, input_allocate_device does kzalloc. Otherwise, this would apply to
-> the other bitmaps as well.
-
-The other bitmaps aren't for switches though.  Here's what prompted
-this comment - a snippet from the old (2.6.29) version of
-Documentation/rfkill.txt:
-
-"2. Input device switches (sources of EV_SW events) DO store their current state
-(so you *must* initialize it by issuing a gratuitous input layer event on
-driver start-up and also when resuming from sleep), and that state CAN be
-queried from userspace through IOCTLs."
-
->> Also, have you tested this with changing the switch value while
->> suspended?  I _think_ you need to update the switch state on resume.
->> This is purely from looking at other acpi drivers and their evolution;
->> I don't have any practical experience with input drivers.
+>> This is now grep ACPI /var/log/syslog from the 2.6.32-rc1 + the abov=
+e=20
+>> "ACPI: EC: Rewrite DMI checks"
 >>
->
-> Interesting point. I will do the testing.
+>> As it's big, I posted it here:
+>> http://tmb.mine.nu/acpi-ec-bug/acpi-ec-debug.bz2
+> Thanks,
+> please check if attached patch helps:
+>>
 
-Thanks
-Alan
+Been running that patch for ~6 hours now, and the errors are gone...
+
+Thanks!
+
+--
+Thomas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
