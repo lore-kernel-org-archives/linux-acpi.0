@@ -1,44 +1,47 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
-Date: Tue, 29 Sep 2009 13:17:52 -0700
-Message-ID: <1254255472.3797.12.camel@Joe-Laptop.home>
-References: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
-	 <20090929130522.ecf4d5ec.akpm@linux-foundation.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume
+	from suspend
+Date: Tue, 29 Sep 2009 14:49:48 -0600
+Message-ID: <20090929204948.GA31574@ldl.fc.hp.com>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <200909290050.13833.rjw@sisk.pl> <4AC1DD52.5040607@redhat.com> <200909292208.18203.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1428 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751826AbZI2URt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Sep 2009 16:17:49 -0400
-In-Reply-To: <20090929130522.ecf4d5ec.akpm@linux-foundation.org>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:2597 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485AbZI2UuU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Sep 2009 16:50:20 -0400
+Content-Disposition: inline
+In-Reply-To: <200909292208.18203.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Danny Feng <dfeng@redhat.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2009-09-29 at 13:05 -0700, Andrew Morton wrote:
-> static acpi_status cmpc_start_accel(acpi_handle handle)
-> {
-> 	union acpi_object param[2];
-> 	struct acpi_object_list input;
-> 	acpi_status status;
-> 
-> 	param[0].type = ACPI_TYPE_INTEGER;
-> 	param[0].integer.value = 0x3;
-> 	param[1].type = ACPI_TYPE_INTEGER;
-> 	input.count = 2;
-> 	input.pointer = param;
-> 	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
-> 	return status;
-> }
-> 
-> puts a smile on our faces.
+* Rafael J. Wysocki <rjw@sisk.pl>:
+> On Tuesday 29 September 2009, Danny Feng wrote:
+> > Is there any cases that pdev->subordinate is NULL while pdev is bridge 
+> > device?
+> >  From pci_slot.c::walk_p2p_bridge, there's code like following:
+> > 
+> >          dev = pci_get_slot(pci_bus, PCI_DEVFN(device, function));
+> >          if (!dev || !dev->subordinate)
+> >                  goto out;
+> > 
+> > It looks like dev->subordinate can be NULL even if in p2p
+> > bridge, right?
 
-Much better, but what appears to be incomplete initialization
-of stack variables is also a bit offputting.
+In the code you post above, that results from doing an ACPI
+namespace walk, which will definitely find non-bridge devices.
+ 
+> Right, in general, but in this particular case each device we
+> inspect is supposed to be a parent of another device, which
+> implies that there's a bus below it (given that it's a PCI
+> device).
 
-cheers, Joe
+Right, that's why I'm surprised that my assumption broke. But now
+that I see that a dock device is involved, maybe that's not so
+surprising.
 
+/ac
 
