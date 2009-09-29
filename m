@@ -1,606 +1,134 @@
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Subject: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
-Date: Mon, 28 Sep 2009 22:38:00 -0300
-Message-ID: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
+From: Danny Feng <dfeng@redhat.com>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume	from
+ suspend
+Date: Tue, 29 Sep 2009 09:44:34 +0800
+Message-ID: <4AC16682.50207@redhat.com>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <20090928173819.GA2441@ldl.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from liberdade.minaslivre.org ([72.232.18.203]:49018 "EHLO
-	liberdade.minaslivre.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860AbZI2BiB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2009 21:38:01 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:23103 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753834AbZI2Bp0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Sep 2009 21:45:26 -0400
+In-Reply-To: <20090928173819.GA2441@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+To: Alex Chiang <achiang@hp.com>
+Cc: lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This add supports for devices like keyboard, backlight, tablet and
-accelerometer.
+On 09/29/2009 01:38 AM, Alex Chiang wrote:
+> Hi Xiaotian,
+>
+> Thanks for the bug report.
+>
+> * Xiaotian Feng<dfeng@redhat.com>:
+>    
+>> commit 275582 introduces acpi_get_pci_dev(), but pdev->subordinate
+>> can be NULL, then a NULL was passed to pci_get_slot, this results
+>> the kernel oops when resume from suspend.
+>>
+>> This patch resolves following kernel oops:
+>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+>> IP: [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+>>
+>> Signed-off-by: Xiaotian Feng<dfeng@redhat.com>
+>> ---
+>>   drivers/acpi/pci_root.c |    6 +++++-
+>>   1 files changed, 5 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index 3112221..3c35144 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -387,7 +387,11 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
+>>   		if (!pdev || hnd == handle)
+>>   			break;
+>>
+>> -		pbus = pdev->subordinate;
+>> +		if (pdev->subordinate)
+>> +			pbus = pdev->subordinate;
+>> +		else
+>> +			pbus = pdev->bus;
+>> +
+>>      
+> I'm a little confused by this. If we start from the PCI root
+> bridge and walk back down the hierarchy, shouldn't everything
+> between the root and the device be a P2P bridge?
+>
+> What is special about suspend/resume that causes the subordinate
+> bus to become NULL?
+>
+> Can you send the full stacktrace?
+>
+> Thanks.
+>
+> /ac
+>
+>
+>    
+the full call trace is here:
 
-This work is supported by International Syst S/A.
-
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
----
- MAINTAINERS                      |    6 +
- drivers/platform/x86/Kconfig     |   12 +
- drivers/platform/x86/Makefile    |    1 +
- drivers/platform/x86/cmpc_acpi.c |  522 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 541 insertions(+), 0 deletions(-)
- create mode 100644 drivers/platform/x86/cmpc_acpi.c
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c450f3a..9e14df1 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1368,6 +1368,12 @@ L:	linux-scsi@vger.kernel.org
- S:	Supported
- F:	drivers/scsi/fnic/
- 
-+CMPC ACPI DRIVER
-+M:	Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-+M:	Daniel Oliveira Nascimento <don@syst.com.br>
-+S:	Supported
-+F:	drivers/platform/x86/cmpc_acpi.c
-+
- CODA FILE SYSTEM
- M:	Jan Harkes <jaharkes@cs.cmu.edu>
- M:	coda@cs.cmu.edu
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 55ca39d..2cbc6a6 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -435,4 +435,16 @@ config ACPI_TOSHIBA
- 
- 	  If you have a legacy free Toshiba laptop (such as the Libretto L1
- 	  series), say Y.
-+
-+config ACPI_CMPC
-+	tristate "CMPC Laptop Extras"
-+	depends on X86
-+	select INPUT
-+	select BACKLIGHT_CLASS_DEVICE
-+	default n
-+	help
-+	  Support for Intel Classmate PC ACPI devices, including some
-+	  keys as input device, backlight device, tablet and accelerometer
-+	  devices.
-+
- endif # X86_PLATFORM_DEVICES
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index d1c1621..fc92247 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -21,3 +21,4 @@ obj-$(CONFIG_ACPI_WMI)		+= wmi.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
- obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
-+obj-$(CONFIG_ACPI_CMPC)		+= cmpc_acpi.o
-diff --git a/drivers/platform/x86/cmpc_acpi.c b/drivers/platform/x86/cmpc_acpi.c
-new file mode 100644
-index 0000000..c77c855
---- /dev/null
-+++ b/drivers/platform/x86/cmpc_acpi.c
-@@ -0,0 +1,522 @@
-+/*
-+ *  Copyright (C) 2009  Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
-+
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/workqueue.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/backlight.h>
-+#include <linux/input.h>
-+
-+MODULE_LICENSE("GPL");
-+
-+
-+/*
-+ * Generic input device code.
-+ */
-+
-+typedef void (*input_device_init)(struct input_dev *dev);
-+
-+static int cmpc_add_acpi_notify_device(struct acpi_device *acpi, char *name,
-+				       acpi_notify_handler handler,
-+				       input_device_init idev_init)
-+{
-+	struct input_dev *inputdev;
-+	acpi_status status;
-+	int error;
-+	inputdev = input_allocate_device();
-+	if (!inputdev) {
-+		error = -ENOMEM;
-+		goto out;
-+	}
-+	inputdev->name = name;
-+	inputdev->dev.parent = &acpi->dev;
-+	idev_init(inputdev);
-+	error = input_register_device(inputdev);
-+	if (error)
-+		goto err_reg;
-+	dev_set_drvdata(&acpi->dev, inputdev);
-+	status = acpi_install_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
-+					     handler, inputdev);
-+	if (ACPI_FAILURE(status)) {
-+		error = -ENODEV;
-+		goto err_acpi;
-+	}
-+	return 0;
-+err_acpi:
-+	input_unregister_device(inputdev);
-+err_reg:
-+	input_free_device(inputdev);
-+out:
-+	return error;
-+}
-+
-+static int cmpc_remove_acpi_notify_device(struct acpi_device *acpi,
-+					  acpi_notify_handler handler)
-+{
-+	struct input_dev *inputdev;
-+	acpi_status status;
-+	status = acpi_remove_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
-+					    handler);
-+	inputdev = dev_get_drvdata(&acpi->dev);
-+	input_unregister_device(inputdev);
-+	input_free_device(inputdev);
-+	return 0;
-+}
-+
-+
-+/*
-+ * Accelerometer code.
-+ */
-+
-+static acpi_status cmpc_start_accel(acpi_handle handle)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	acpi_status status;
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x3;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
-+	return status;
-+}
-+
-+static acpi_status cmpc_stop_accel(acpi_handle handle)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	acpi_status status;
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x4;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
-+	return status;
-+}
-+
-+static acpi_status cmpc_accel_set_sense(acpi_handle handle, int val)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x02;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	param[1].integer.value = val;
-+	input.count = 2;
-+	input.pointer = param;
-+	return acpi_evaluate_object(handle, "ACMD", &input, NULL);
-+}
-+
-+static acpi_status cmpc_get_accel(acpi_handle handle,
-+				  unsigned char *x,
-+				  unsigned char *y,
-+				  unsigned char *z)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, 0 };
-+	unsigned char *locs;
-+	acpi_status status;
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0x01;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_object(handle, "ACMD", &input, &output);
-+	if (ACPI_SUCCESS(status)) {
-+		union acpi_object *obj;
-+		obj = output.pointer;
-+		locs = obj->buffer.pointer;
-+		*x = locs[0];
-+		*y = locs[1];
-+		*z = locs[2];
-+		kfree(output.pointer);
-+	}
-+	return status;
-+}
-+
-+static void cmpc_accel_handler(acpi_handle handle, u32 event, void *ctx)
-+{
-+	struct input_dev *inputdev = ctx;
-+	acpi_status status;
-+	unsigned char x, y, z;
-+	if (event == 0x81) {
-+		status = cmpc_get_accel(handle, &x, &y, &z);
-+		if (ACPI_SUCCESS(status)) {
-+			input_report_abs(inputdev, ABS_X, x);
-+			input_report_abs(inputdev, ABS_Y, y);
-+			input_report_abs(inputdev, ABS_Z, z);
-+			input_sync(inputdev);
-+		}
-+	}
-+}
-+
-+static ssize_t cmpc_accel_sense_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t count)
-+{
-+	struct acpi_device *acpi;
-+	int sense;
-+	acpi = to_acpi_device(dev);
-+	if (sscanf(buf, "%d", &sense) <= 0)
-+		return -EINVAL;
-+	cmpc_accel_set_sense(acpi->handle, sense);
-+	return strnlen(buf, count);
-+}
-+
-+struct device_attribute cmpc_accel_sense_attr = {
-+	.attr = { .name = "sense", .mode = 0220 },
-+	.store = cmpc_accel_sense_store
-+};
-+
-+static int cmpc_accel_open(struct input_dev *input)
-+{
-+	struct acpi_device *acpi;
-+	acpi = to_acpi_device(input->dev.parent);
-+	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
-+		return 0;
-+	return -EIO;
-+}
-+
-+static void cmpc_accel_close(struct input_dev *input)
-+{
-+	struct acpi_device *acpi;
-+	acpi = to_acpi_device(input->dev.parent);
-+	cmpc_stop_accel(acpi->handle);
-+}
-+
-+static void cmpc_accel_idev_init(struct input_dev *inputdev)
-+{
-+	set_bit(EV_ABS, inputdev->evbit);
-+	input_set_abs_params(inputdev, ABS_X, 0, 255, 8, 0);
-+	input_set_abs_params(inputdev, ABS_Y, 0, 255, 8, 0);
-+	input_set_abs_params(inputdev, ABS_Z, 0, 255, 8, 0);
-+	inputdev->open = cmpc_accel_open;
-+	inputdev->close = cmpc_accel_close;
-+}
-+
-+static int cmpc_accel_add(struct acpi_device *acpi)
-+{
-+	int error;
-+	error = device_create_file(&acpi->dev, &cmpc_accel_sense_attr);
-+	if (error)
-+		return error;
-+	return cmpc_add_acpi_notify_device(acpi, "cmpc_accel",
-+					   cmpc_accel_handler,
-+					   cmpc_accel_idev_init);
-+}
-+
-+static int cmpc_accel_remove(struct acpi_device *acpi, int type)
-+{
-+	device_remove_file(&acpi->dev, &cmpc_accel_sense_attr);
-+	return cmpc_remove_acpi_notify_device(acpi, cmpc_accel_handler);
-+}
-+
-+static const struct acpi_device_id cmpc_accel_device_ids[] = {
-+	{"ACCE0000", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_accel_device_ids);
-+
-+static struct acpi_driver cmpc_accel_acpi_driver = {
-+	.name = "cmpc_accel",
-+	.class = "cmpc_accel",
-+	.ids = cmpc_accel_device_ids,
-+	.ops = {
-+		.add = cmpc_accel_add,
-+		.remove = cmpc_accel_remove
-+	}
-+};
-+
-+static bool cmpc_accel_driver_registered;
-+
-+
-+/*
-+ * Tablet mode code.
-+ */
-+static acpi_status cmpc_get_tablet(acpi_handle handle,
-+				   unsigned long long *value)
-+{
-+	union acpi_object param;
-+	struct acpi_object_list input;
-+	unsigned long long output;
-+	acpi_status status;
-+	param.type = ACPI_TYPE_INTEGER;
-+	param.integer.value = 0x01;
-+	input.count = 1;
-+	input.pointer = &param;
-+	status = acpi_evaluate_integer(handle, "TCMD", &input, &output);
-+	if (ACPI_SUCCESS(status))
-+		*value = output;
-+	return status;
-+}
-+
-+static void cmpc_tablet_handler(acpi_handle handle, u32 event, void *ctx)
-+{
-+	unsigned long long val = 0;
-+	struct input_dev *inputdev = ctx;
-+	if (event == 0x81) {
-+		if (ACPI_SUCCESS(cmpc_get_tablet(handle, &val)))
-+			input_report_switch(inputdev, SW_TABLET_MODE, !val);
-+	}
-+}
-+
-+static void cmpc_tablet_idev_init(struct input_dev *inputdev)
-+{
-+	set_bit(EV_SW, inputdev->evbit);
-+	set_bit(SW_TABLET_MODE, inputdev->swbit);
-+}
-+
-+static int cmpc_tablet_add(struct acpi_device *acpi)
-+{
-+	return cmpc_add_acpi_notify_device(acpi, "cmpc_tablet",
-+					   cmpc_tablet_handler,
-+					   cmpc_tablet_idev_init);
-+}
-+
-+static int cmpc_tablet_remove(struct acpi_device *acpi, int type)
-+{
-+	return cmpc_remove_acpi_notify_device(acpi, cmpc_tablet_handler);
-+}
-+
-+static const struct acpi_device_id cmpc_tablet_device_ids[] = {
-+	{"TBLT0000", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_tablet_device_ids);
-+
-+static struct acpi_driver cmpc_tablet_acpi_driver = {
-+	.name = "cmpc_tablet",
-+	.class = "cmpc_tablet",
-+	.ids = cmpc_tablet_device_ids,
-+	.ops = {
-+		.add = cmpc_tablet_add,
-+		.remove = cmpc_tablet_remove
-+	}
-+};
-+
-+static bool cmpc_tablet_driver_registered;
-+
-+
-+/*
-+ * Backlight code.
-+ */
-+
-+static acpi_status cmpc_get_brightness(acpi_handle handle,
-+				       unsigned long long *value)
-+{
-+	union acpi_object param;
-+	struct acpi_object_list input;
-+	unsigned long long output;
-+	acpi_status status;
-+	param.type = ACPI_TYPE_INTEGER;
-+	param.integer.value = 0xC0;
-+	input.count = 1;
-+	input.pointer = &param;
-+	status = acpi_evaluate_integer(handle, "GRDI", &input, &output);
-+	if (ACPI_SUCCESS(status))
-+		*value = output;
-+	return status;
-+}
-+
-+static acpi_status cmpc_set_brightness(acpi_handle handle,
-+				       unsigned long long value)
-+{
-+	union acpi_object param[2];
-+	struct acpi_object_list input;
-+	acpi_status status;
-+	unsigned long long output;
-+	param[0].type = ACPI_TYPE_INTEGER;
-+	param[0].integer.value = 0xC0;
-+	param[1].type = ACPI_TYPE_INTEGER;
-+	param[1].integer.value = value;
-+	input.count = 2;
-+	input.pointer = param;
-+	status = acpi_evaluate_integer(handle, "GWRI", &input, &output);
-+	return status;
-+}
-+
-+static int cmpc_bl_get_brightness(struct backlight_device *bd)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+	unsigned long long brightness;
-+	handle = bl_get_data(bd);
-+	status = cmpc_get_brightness(handle, &brightness);
-+	if (ACPI_SUCCESS(status))
-+		return brightness;
-+	else
-+		return -1;
-+}
-+
-+static int cmpc_bl_update_status(struct backlight_device *bd)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+	handle = bl_get_data(bd);
-+	status = cmpc_set_brightness(handle, bd->props.brightness);
-+	if (ACPI_SUCCESS(status))
-+		return 0;
-+	else
-+		return -1;
-+}
-+
-+static struct backlight_ops cmpc_bl_ops = {
-+	.get_brightness = cmpc_bl_get_brightness,
-+	.update_status = cmpc_bl_update_status
-+};
-+
-+static int cmpc_bl_add(struct acpi_device *acpi)
-+{
-+	struct backlight_device *bd;
-+	bd = backlight_device_register("cmpc_bl", &acpi->dev,
-+				       acpi->handle, &cmpc_bl_ops);
-+	bd->props.max_brightness = 7;
-+	dev_set_drvdata(&acpi->dev, bd);
-+	return 0;
-+}
-+
-+static int cmpc_bl_remove(struct acpi_device *acpi, int type)
-+{
-+	struct backlight_device *bd;
-+	bd = dev_get_drvdata(&acpi->dev);
-+	backlight_device_unregister(bd);
-+	return 0;
-+}
-+
-+static const struct acpi_device_id cmpc_device_ids[] = {
-+	{"IPML200", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_device_ids);
-+
-+static struct acpi_driver cmpc_bl_acpi_driver = {
-+	.name = "cmpc",
-+	.class = "cmpc",
-+	.ids = cmpc_device_ids,
-+	.ops = {
-+		.add = cmpc_bl_add,
-+		.remove = cmpc_bl_remove
-+	}
-+};
-+
-+static bool cmpc_bl_driver_registered;
-+
-+
-+/*
-+ * Extra keys code.
-+ */
-+static int cmpc_keys_codes[] = {
-+	KEY_UNKNOWN,
-+	KEY_WLAN,
-+	KEY_SWITCHVIDEOMODE,
-+	KEY_BRIGHTNESSDOWN,
-+	KEY_BRIGHTNESSUP,
-+	KEY_VENDOR,
-+	KEY_MAX
-+};
-+
-+static void cmpc_keys_handler(acpi_handle handle, u32 event, void *ctx)
-+{
-+	struct input_dev *inputdev;
-+	int code = KEY_MAX;
-+	if ((event & 0x0F) < ARRAY_SIZE(cmpc_keys_codes))
-+		code = cmpc_keys_codes[event & 0x0F];
-+	inputdev = ctx;
-+	input_report_key(inputdev, code, !(event & 0x10));
-+}
-+
-+static void cmpc_keys_idev_init(struct input_dev *inputdev)
-+{
-+	int i;
-+	set_bit(EV_KEY, inputdev->evbit);
-+	for (i = 0; cmpc_keys_codes[i] != KEY_MAX; i++)
-+		set_bit(cmpc_keys_codes[i], inputdev->keybit);
-+}
-+
-+static int cmpc_keys_add(struct acpi_device *acpi)
-+{
-+	return cmpc_add_acpi_notify_device(acpi, "cmpc_keys",
-+					   cmpc_keys_handler,
-+					   cmpc_keys_idev_init);
-+}
-+
-+static int cmpc_keys_remove(struct acpi_device *acpi, int type)
-+{
-+	return cmpc_remove_acpi_notify_device(acpi, cmpc_keys_handler);
-+}
-+
-+static const struct acpi_device_id cmpc_keys_device_ids[] = {
-+	{"FnBT0000", 0},
-+	{"", 0}
-+};
-+MODULE_DEVICE_TABLE(acpi, cmpc_keys_device_ids);
-+
-+static struct acpi_driver cmpc_keys_acpi_driver = {
-+	.name = "cmpc_keys",
-+	.class = "cmpc_keys",
-+	.ids = cmpc_keys_device_ids,
-+	.ops = {
-+		.add = cmpc_keys_add,
-+		.remove = cmpc_keys_remove
-+	}
-+};
-+
-+static bool cmpc_keys_driver_registered;
-+
-+
-+/*
-+ * General init/exit code.
-+ */
-+
-+static int cmpc_init(void)
-+{
-+	int result;
-+	result = acpi_bus_register_driver(&cmpc_keys_acpi_driver);
-+	cmpc_keys_driver_registered = !!result;
-+	result = acpi_bus_register_driver(&cmpc_bl_acpi_driver);
-+	cmpc_bl_driver_registered = !!result;
-+	result = acpi_bus_register_driver(&cmpc_tablet_acpi_driver);
-+	cmpc_tablet_driver_registered = !!result;
-+	result = acpi_bus_register_driver(&cmpc_accel_acpi_driver);
-+	cmpc_accel_driver_registered = !!result;
-+	/*
-+	 * Not every CMPC has every ACPI device supported here. So always return
-+	 * success.
-+	 */
-+	return 0;
-+}
-+
-+static void cmpc_exit(void)
-+{
-+	if (cmpc_accel_driver_registered)
-+		acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
-+	if (cmpc_tablet_driver_registered)
-+		acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
-+	if (cmpc_bl_driver_registered)
-+		acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
-+	if (cmpc_keys_driver_registered)
-+		acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
-+}
-+
-+module_init(cmpc_init);
-+module_exit(cmpc_exit);
--- 
-1.6.3.3
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
+IP: [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+PGD 208b9d067 PUD 208a89067 PMD 0
+Oops: 0000 [#1] SMP
+last sysfs file: /sys/power/state
+CPU 0
+Modules linked in: fuse radeon ttm drm_kms_helper drm i2c_algo_bit sco 
+bridge stp llc bnep l2cap bluetooth sunrpc ip6t_REJECT nf_conntrack_ipv6 
+ip6table_filter ip6_tables ipv6 dm_multipath uinput snd_hda_codec_analog 
+snd_hda_intel snd_hda_codec snd_hwdep e1000e snd_pcm snd_timer i2c_i801 
+i2c_core snd soundcore snd_page_alloc iTCO_wdt iTCO_vendor_support 
+serio_raw ppdev parport_pc parport pcspkr dcdbas ata_generic pata_acpi 
+[last unloaded: speedstep_lib]
+Pid: 35, comm: kacpi_hotplug Not tainted 2.6.32-rc2 #3 OptiPlex 760
+RIP: 0010:[<ffffffff812217e7>]  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+RSP: 0018:ffff88022ee69aa0  EFLAGS: 00010286
+RAX: 0000000000000000 RBX: ffff88022e9b1090 RCX: 00000000000000a0
+RDX: 000000000000002f RSI: ffffffff8168ab38 RDI: ffffffff8168ab38
+RBP: ffff88022ee69ac0 R08: ffffffff8168ab30 R09: ffff880100000000
+R10: ffffffff8168ab50 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000001 R14: ffff88022f712000 R15: ffff88022f710dd0
+FS:  0000000000000000(0000) GS:ffff880028200000(0000) 
+knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000000028 CR3: 00000001fc298000 CR4: 00000000000406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process kacpi_hotplug (pid: 35, threadinfo ffff88022ee68000, task 
+ffff88022eefc120)
+Stack:
+  0000000000000018 ffff88022e9b1090 ffff88020880e9c0 0000000000000000
+<0> ffff88022ee69b30 ffffffff81254193 0000000000000000 ffff88022ee69ae0
+<0> ffff88020880e340 ffff88020880ee38 ffff88022f710208 0000000000000001
+Call Trace:
+  [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
+  [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
+  [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
+  [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
+  [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
+  [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
+  [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
+  [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
+  [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
+  [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
+  [<ffffffff8106a244>] worker_thread+0x251/0x347
+  [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
+  [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
+  [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
+  [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
+  [<ffffffff8106e0e0>] kthread+0x7f/0x87
+  [<ffffffff81012cea>] child_rip+0xa/0x20
+  [<ffffffff81012650>] ? restore_args+0x0/0x30
+  [<ffffffff8106e061>] ? kthread+0x0/0x87
+  [<ffffffff81012ce0>] ? child_rip+0x0/0x20
+Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7 
+45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00 <49> 8b 
+5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
+RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+  RSP <ffff88022ee69aa0>
+CR2: 0000000000000028
+---[ end trace b5a7793bd9db2a4d ]---
 
