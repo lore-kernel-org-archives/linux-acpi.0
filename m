@@ -1,757 +1,632 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [RFC Patch 2/2]IPMI/ACPI: Add the IPMI
-	opregion driver to send IPMI message in AML code
-Date: Wed, 30 Sep 2009 09:37:42 -0600
-Message-ID: <200909300937.44077.bjorn.helgaas@hp.com>
-References: <1254202194-7630-1-git-send-email-yakui.zhao@intel.com>
-	<1254202194-7630-2-git-send-email-yakui.zhao@intel.com>
+Subject: Re: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
+Date: Wed, 30 Sep 2009 09:50:38 -0600
+Message-ID: <200909300950.39332.bjorn.helgaas@hp.com>
+References: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <1254202194-7630-2-git-send-email-yakui.zhao@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:10985 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754713AbZI3Puh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Sep 2009 11:50:37 -0400
+In-Reply-To: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-To: yakui.zhao@intel.com
-Cc: linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, minyard@acm.org, lenb@kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org
 
-On Monday 28 September 2009 11:29:54 pm yakui.zhao@intel.com wrote:
+On Monday 28 September 2009 07:38:00 pm Thadeu Lima de Souza Cascardo wrote:
+> This add supports for devices like keyboard, backlight, tablet and
+> accelerometer.
 
-These are a few coding style nits.  As I mentioned, I think there
-are much bigger issues to worry about first, so please don't just
-fix the coding style problems below and repost this.  Work on the
-bigger things like driver registration first.
+Something about the PNP IDs bothered me yesterday, but I couldn't
+figure out what.  You're using:
 
-> Index: linux-2.6/drivers/acpi/ipmi.c
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-2.6/drivers/acpi/ipmi.c	2009-09-28 15:53:24.000000000 +0800
-> @@ -0,0 +1,567 @@
+  ACCE0000
+  TBLT0000
+  IPML200
+  FnBT0000
+
+Normally these OEM-specific ACPI drivers claim PNP IDs like ATK0100,
+TOS6200, FUJ02B1, etc., that are obviously OEM-specific.
+
+But the ones you're claiming seem pretty generic, like things
+we could imagine appearing on machines other than the Classmate.
+
+So I guess my question is, "Are these really generic?  If so, should
+this be split into separate, non-Classmate named drivers, such as
+'accelerometer', 'tablet', etc.?"
+
+Bjorn
+
+> 
+> Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+> ---
+>  MAINTAINERS                      |    6 +
+>  drivers/platform/x86/Kconfig     |   12 +
+>  drivers/platform/x86/Makefile    |    1 +
+>  drivers/platform/x86/cmpc_acpi.c |  522 ++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 541 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/platform/x86/cmpc_acpi.c
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index c450f3a..9e14df1 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1368,6 +1368,12 @@ L:	linux-scsi@vger.kernel.org
+>  S:	Supported
+>  F:	drivers/scsi/fnic/
+>  
+> +CMPC ACPI DRIVER
+> +M:	Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+> +M:	Daniel Oliveira Nascimento <don@syst.com.br>
+> +S:	Supported
+> +F:	drivers/platform/x86/cmpc_acpi.c
+> +
+>  CODA FILE SYSTEM
+>  M:	Jan Harkes <jaharkes@cs.cmu.edu>
+>  M:	coda@cs.cmu.edu
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 55ca39d..2cbc6a6 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -435,4 +435,16 @@ config ACPI_TOSHIBA
+>  
+>  	  If you have a legacy free Toshiba laptop (such as the Libretto L1
+>  	  series), say Y.
+> +
+> +config ACPI_CMPC
+> +	tristate "CMPC Laptop Extras"
+> +	depends on X86
+> +	select INPUT
+> +	select BACKLIGHT_CLASS_DEVICE
+> +	default n
+> +	help
+> +	  Support for Intel Classmate PC ACPI devices, including some
+> +	  keys as input device, backlight device, tablet and accelerometer
+> +	  devices.
+> +
+>  endif # X86_PLATFORM_DEVICES
+> diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
+> index d1c1621..fc92247 100644
+> --- a/drivers/platform/x86/Makefile
+> +++ b/drivers/platform/x86/Makefile
+> @@ -21,3 +21,4 @@ obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+>  obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+>  obj-$(CONFIG_TOPSTAR_LAPTOP)	+= topstar-laptop.o
+>  obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+> +obj-$(CONFIG_ACPI_CMPC)		+= cmpc_acpi.o
+> diff --git a/drivers/platform/x86/cmpc_acpi.c b/drivers/platform/x86/cmpc_acpi.c
+> new file mode 100644
+> index 0000000..c77c855
+> --- /dev/null
+> +++ b/drivers/platform/x86/cmpc_acpi.c
+> @@ -0,0 +1,522 @@
 > +/*
-> + *  ipmi.c - ACPI IPMI opregion
-> + *
-> + *  Copyright (C) 2009 Intel Corporation
-> + *  Copyright (C) 2009 Zhao Yakui <yakui.zhao@intel.com>
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *  Copyright (C) 2009  Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 > + *
 > + *  This program is free software; you can redistribute it and/or modify
 > + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or (at
-> + *  your option) any later version.
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
 > + *
-> + *  This program is distributed in the hope that it will be useful, but
-> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + *  General Public License for more details.
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
 > + *
 > + *  You should have received a copy of the GNU General Public License along
 > + *  with this program; if not, write to the Free Software Foundation, Inc.,
-> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 > + */
 > +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/types.h>
-> +#include <linux/delay.h>
-> +#include <linux/proc_fs.h>
-> +#include <linux/seq_file.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/list.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/io.h>
-> +#include <acpi/acpi_bus.h>
-> +#include <acpi/acpi_drivers.h>
-> +#include <linux/ipmi.h>
 > +
-> +MODULE_AUTHOR("Zhao Yakui");
-> +MODULE_DESCRIPTION("ACPI IPMI Opregion driver");
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/workqueue.h>
+> +#include <acpi/acpi_drivers.h>
+> +#include <linux/backlight.h>
+> +#include <linux/input.h>
+> +
 > +MODULE_LICENSE("GPL");
 > +
-> +#define ACPI_IPMI_CLASS			"IPMI"
-
-I know this is common style, but I think it's stupid to add this
-#define since the value is only used once.
-
-> +#define ACPI_IPMI_DEVICE_NAME		"IPMI_dev"
-
-This one isn't used at all.
-
-> +#define IPMI_FLAGS_HANDLER_INSTALL	0
-> +
-> +#define ACPI_IPMI_OK			0
-> +#define ACPI_IPMI_TIMEOUT		0x10
-> +#define ACPI_IPMI_UNKNOWN		0x07
-> +/* the IPMI timeout is 30s */
-> +#define IPMI_TIMEOUT			(30 * HZ)
-> +
-> +
-> +struct acpi_ipmi_device {
-> +	acpi_handle handle;
-> +	struct acpi_device *device;
-> +	int if_type;
-> +	/* the device list attached to driver_data.ipmi_devices */
-> +	struct list_head head;
-> +	ipmi_user_t 	user_interface;
-> +	struct mutex	mutex_lock;
-> +	/* the IPMI request message list */
-> +	struct list_head tx_msg_list;
-> +	long curr_msgid;
-> +	/* IPMI flags */
-> +	unsigned long flags;
-> +};
-> +
-> +struct ipmi_driver_data {
-> +	int device_count;
-> +	struct list_head	ipmi_devices;
-> +	struct ipmi_smi_watcher	bmc_events;
-> +	struct ipmi_user_hndl	ipmi_hndlrs;
-> +};
-> +
-> +struct acpi_ipmi_msg {
-> +	/* message list */
-> +	struct list_head head;
-> +	/* General speaking the addr type should be SI_ADDR_TYPE. And
-> +	 * the addr channel should be BMC.
-> +	 * In fact it can also be IPMB type. But we will have to
-> +	 * parse it from the Netfn command buffer. It is so complex
-> +	 * that it is skipped.
-> +	 */
-> +	struct ipmi_addr addr;
-> +	/* tx message id */
-> +	long tx_msgid;
-> +	/* it is used to track whether the IPMI message is finished */
-> +	struct completion tx_complete;
-> +	struct kernel_ipmi_msg tx_message;
-> +	int	msg_done;
-> +	/* tx data . And copy it from ACPI object buffer */
-> +	u8	tx_data[64];
-> +	int	tx_len;
-> +	/* get the response data */
-> +	u8	rx_data[64];
-> +	/* the response length. The netfn & cmd is excluded. */
-> +	int	rx_len;
-> +	struct acpi_ipmi_device *device;
-> +};
 > +
 > +/*
-> + * IPMI request/response buffer.
-> + * The length is 66 bytes.
-> + */
-> +struct acpi_ipmi_buffer {
-> +	/* status code of a given IPMI command */
-
-Comment is superfluous.
-
-> +	u8 status_code;
-> +	/* the length of the payload */
-
-Comment is superfluous.
-
-> +	u8 length;
-> +	/* the payload. Before the operatin is carried out, it represents the
-> +	 * request message payload. After the opration is carried out, it
-> +	 * stores the response message returned by IPMI command.
-
-"Operation" is spelled wrong twice.
-
-> +	 */
-> +	u8 data[64];
-> +};
-> +static void ipmi_register_bmc(int iface, struct device *dev);
-> +static void ipmi_bmc_gone(int iface);
-> +static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
-> +
-> +static struct ipmi_driver_data driver_data = {
-> +	.ipmi_devices = LIST_HEAD_INIT(driver_data.ipmi_devices),
-> +	.bmc_events = {
-> +		.owner = THIS_MODULE,
-> +		.new_smi = ipmi_register_bmc,
-> +		.smi_gone = ipmi_bmc_gone,
-> +	},
-> +	.ipmi_hndlrs = {
-> +		.ipmi_recv_hndl = ipmi_msg_handler,
-> +	},
-> +};
-> +
-> +static
-> +struct acpi_ipmi_msg *acpi_alloc_ipmi_msg(struct acpi_ipmi_device *ipmi)
-> +{
-> +	struct acpi_ipmi_msg *ipmi_msg;
-> +
-> +	ipmi_msg = kzalloc(sizeof(struct acpi_ipmi_msg), GFP_KERNEL);
-> +	if (!ipmi_msg)	{
-> +		printk(KERN_DEBUG "Can't allocate memory for ipmi_msg\n");
-> +		return NULL;
-> +	}
-> +	init_completion(&ipmi_msg->tx_complete);
-> +	INIT_LIST_HEAD(&ipmi_msg->head);
-> +	ipmi_msg->device = ipmi;
-> +	return ipmi_msg;
-> +}
-> +
-> +static void acpi_format_ipmi_msg(struct acpi_ipmi_msg *tx_msg,
-> +		acpi_physical_address address,
-> +		acpi_integer *value)
-> +{
-> +	struct kernel_ipmi_msg *msg;
-> +	u8	temp_value;
-> +	struct acpi_ipmi_buffer *buffer;
-> +	struct acpi_ipmi_device *device;
-
-We don't usually use tabs in local variable lists.
-
-> +
-> +	msg = &tx_msg->tx_message;
-> +	/* get the netfn */
-> +	temp_value = (address >> 8) & 0xff;
-> +	msg->netfn = temp_value;
-> +	/* get the command */
-> +	temp_value = address & 0xff;
-> +	msg->cmd = temp_value;
-> +	msg->data = tx_msg->tx_data;
-> +	/* value is the parameter passed by the IPMI opregion space handler.
-> +	 * It points to the IPMI request message buffer
-> +	 */
-
-Use a consistent comment style, e.g.,
-
-	/*
-	 * Value is ...
-	 */
-
-(Applies many places.)
-
-> +	buffer = (struct acpi_ipmi_buffer *)value;
-> +	/* copy the tx message data */
-> +	msg->data_len = buffer->length;
-> +	memcpy(tx_msg->tx_data, buffer->data, msg->data_len);
-> +	/*
-> +	 * now the default type is SYSTEM_INTERFACE and channel type is BMC.
-> +	 * If the netfn is APP_REQUEST and the cmd is SEND_MESSAGE,
-> +	 * the addr type should be changed to IPMB.
-> +	 */
-> +	tx_msg->addr.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
-> +	tx_msg->addr.channel = IPMI_BMC_CHANNEL;
-> +	tx_msg->addr.data[0] = 0;
-> +
-> +	/* If the netfn is APP_REQUEST and the cmd is SEND_MESSAGE, we should
-> +	 * parse the IPMI request message buffer to get the IPMB address.
-> +	 * If so, please fix me.
-> +	 */
-> +
-> +	/* Get the msgid */
-> +	device = tx_msg->device;
-> +	mutex_lock(&device->mutex_lock);
-> +	device->curr_msgid++;
-> +	tx_msg->tx_msgid = device->curr_msgid;
-> +	mutex_unlock(&device->mutex_lock);
-> +}
-> +
-> +static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
-> +		acpi_integer *value, int timeout)
-> +{
-> +	struct acpi_ipmi_buffer *buffer;
-> +
-> +	/* value is also used as output parameter. It represents the response
-> +	 * IPMI message returned by IPMI command.
-> +	 */
-> +	buffer = (struct acpi_ipmi_buffer *)value;
-> +	/* when timeout is zero, it means that the timeout happens */
-> +	if (!timeout) {
-> +		/* the status code is ACPI_IPMI_TIMEOUT */
-> +		buffer->status_code = ACPI_IPMI_TIMEOUT;
-> +		return;
-> +	}
-> +	/* If the flag of msg_done is not set, it means that the IPMI command
-> +	 * is not executed correctly.
-> +	 * The status code will be ACPI_IPMI_UNKNOWN.
-> +	 */
-> +	if (!msg->msg_done) {
-> +		buffer->status_code = ACPI_IPMI_UNKNOWN;
-> +		return;
-> +	}
-> +	/* If the IPMI response message is obtained correctly, the status code
-> +	 * will be ACPI_IPMI_OK
-> +	 */
-> +	buffer->status_code = ACPI_IPMI_OK;
-> +	buffer->length = msg->rx_len;
-> +	memcpy(buffer->data, msg->rx_data, msg->rx_len);
-> +	return;
-> +}
-> +static void ipmi_destroy_tx_msg(struct acpi_ipmi_device *ipmi)
-> +{
-> +	struct acpi_ipmi_msg *tx_msg = NULL;
-> +	int count = 5;
-> +
-> +	list_for_each_entry(tx_msg, &ipmi->tx_msg_list, head) {
-> +		/* wake up the sleep thread on the Tx msg */
-> +		complete(&tx_msg->tx_complete);
-> +	}
-> +	while (count--) {
-> +		if (list_empty(&ipmi->tx_msg_list))
-> +			break;
-> +		schedule_timeout(1);
-> +	}
-> +	if (!list_empty(&ipmi->tx_msg_list))
-> +		printk(KERN_DEBUG "tx msg list is not NULL\n");
-> +
-> +}
-> +static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
-> +{
-> +	struct acpi_ipmi_device *ipmi_device =
-> +			(struct acpi_ipmi_device *)user_msg_data;
-
-No cast needed here.
-
-> +	int msg_found = 0;
-> +	struct acpi_ipmi_msg *tx_msg = NULL;
-> +
-> +	if (msg->user != ipmi_device->user_interface) {
-> +		printk(KERN_DEBUG "Incorrect IPMI user\n");
-> +		ipmi_free_recv_msg(msg);
-> +		return;
-> +	}
-> +	mutex_lock(&ipmi_device->mutex_lock);
-> +	list_for_each_entry(tx_msg, &ipmi_device->tx_msg_list, head) {
-> +		if (msg->msgid == tx_msg->tx_msgid) {
-> +			/* find the message id */
-> +			msg_found = 1;
-> +			break;
-> +		}
-> +	}
-> +
-> +	mutex_unlock(&ipmi_device->mutex_lock);
-> +	if (!msg_found) {
-> +		/* no matched msg is found . But we should free it */
-> +		ipmi_free_recv_msg(msg);
-> +		printk(KERN_DEBUG "Incorrect MSG is found \n");
-> +		return;
-> +	}
-> +
-> +	if (msg->msg.data_len > 1) {
-> +		/* copy the response data to Rx_data buffer */
-> +		memcpy(tx_msg->rx_data, msg->msg_data, msg->msg.data_len);
-> +		tx_msg->rx_len = msg->msg.data_len;
-> +		tx_msg->msg_done = 1;
-> +	}
-> +	complete(&tx_msg->tx_complete);
-> +	ipmi_free_recv_msg(msg);
-> +};
-> +static void ipmi_register_bmc(int iface, struct device *dev)
-> +{
-> +	struct acpi_ipmi_device *ipmi_device;
-> +	struct acpi_device *device;
-> +	ipmi_user_t		user;
-> +	int err;
-> +
-> +	if (list_empty(&driver_data.ipmi_devices))
-> +		return;
-> +
-> +	list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
-> +		device = ipmi_device->device;
-> +		if (ipmi_device->user_interface) {
-> +			/*
-> +			 * Only one user interface is allowed to be registered
-> +			 * for one IPMI device.
-> +			 * If we already create the user interface for
-> +			 * one IPMI device, skip it
-> +			 */
-> +			continue;
-> +		}
-> +		if (dev == &device->dev) {
-> +			/* If the dev is identical to the ACPI device,
-> +			 * create the user interface.
-> +			 */
-> +			err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
-> +						ipmi_device, &user);
-> +			if (err == 0)
-> +				ipmi_device->user_interface = user;
-> +
-> +			continue;
-> +		}
-> +		/* In fact maybe the IPMI interface can be registered by
-> +		 * other methods. For example: SPMI, DMI, PCI
-> +		 * So we should also create the user interface.
-> +		 */
-> +		err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
-> +						ipmi_device, &user);
-> +		ipmi_device->user_interface = user;
-> +	}
-> +	return;
-
-No "return" statement needed here.
-
-> +}
-> +static void ipmi_bmc_gone(int iface)
-> +{
-> +	struct acpi_ipmi_device *ipmi_device;
-> +
-> +	if (list_empty(&driver_data.ipmi_devices))
-> +		return;
-> +
-> +	list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
-> +		if (ipmi_device->user_interface) {
-> +			ipmi_destroy_user(ipmi_device->user_interface);
-> +			ipmi_device->user_interface = NULL;
-> +			/* we should also destory tx msg list */
-> +			ipmi_destroy_tx_msg(ipmi_device);
-> +		}
-> +	}
-> +}
-> +/* --------------------------------------------------------------------------
-> + * 			Address Space Management
-> +   -------------------------------------------------------------------------- */
-> +/*
-> + * This is the IPMI opregion space handler.
-> + * @function: indicates the read/write. In fact as the IPMI message is driven
-> + * by command, only write is meaningful.
-> + * @address: This contains the netfn/command of IPMI request message.
-> + * @bits   : not used.
-> + * @value  : it is an in/out parameter. It points to the IPMI message buffer.
-> + *	     Before the IPMI message is sent, it represents the actual request
-> + *	     IPMI message. After the IPMI message is finished, it represents
-> + *	     the response IPMI message returned by IPMI command.
-> + * @handler_context: IPMI device context.
+> + * Generic input device code.
 > + */
 > +
-> +static acpi_status
-> +acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
-> +		      u32 bits, acpi_integer *value,
-> +		      void *handler_context, void *region_context)
+> +typedef void (*input_device_init)(struct input_dev *dev);
+> +
+> +static int cmpc_add_acpi_notify_device(struct acpi_device *acpi, char *name,
+> +				       acpi_notify_handler handler,
+> +				       input_device_init idev_init)
 > +{
-> +	struct acpi_ipmi_msg *tx_msg = NULL;
-
-No initialization needed.
-
-> +	struct acpi_ipmi_device *ipmi_device =
-> +			(struct acpi_ipmi_device *) handler_context;
-
-No cast needed.
-
-> +	int err;
+> +	struct input_dev *inputdev;
 > +	acpi_status status;
-
-Need a blank line here.
-
-> +	/*
-> +	 * IPMI opregion message.
-> +	 * IPMI message is firstly written to the BMC and system software
-> +	 * can get the respsonse. So it is unmeaningful for the IPMI read
-> +	 * access.
-> +	 */
-> +	if ((function & ACPI_IO_MASK) == ACPI_READ) {
-> +		/* AE_TYPE is returned. */
-
-Superfluous comment.
-
-> +		return AE_TYPE;
+> +	int error;
+> +	inputdev = input_allocate_device();
+> +	if (!inputdev) {
+> +		error = -ENOMEM;
+> +		goto out;
 > +	}
-> +	if (!ipmi_device->user_interface) {
-> +		/* not exist */
-
-Superfluous comment.
-
-> +		return AE_NOT_EXIST;
+> +	inputdev->name = name;
+> +	inputdev->dev.parent = &acpi->dev;
+> +	idev_init(inputdev);
+> +	error = input_register_device(inputdev);
+> +	if (error)
+> +		goto err_reg;
+> +	dev_set_drvdata(&acpi->dev, inputdev);
+> +	status = acpi_install_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
+> +					     handler, inputdev);
+> +	if (ACPI_FAILURE(status)) {
+> +		error = -ENODEV;
+> +		goto err_acpi;
 > +	}
-> +	tx_msg = acpi_alloc_ipmi_msg(ipmi_device);
-> +	if (!tx_msg) {
-> +		/* no memory is allocated */
-
-Superfluous comment.
-
-> +		return AE_NO_MEMORY;
-> +	}
-> +	acpi_format_ipmi_msg(tx_msg, address, value);
-> +	mutex_lock(&ipmi_device->mutex_lock);
-> +	list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
-> +	mutex_unlock(&ipmi_device->mutex_lock);
-> +	err = ipmi_request_settime(ipmi_device->user_interface,
-> +					&tx_msg->addr,
-> +					tx_msg->tx_msgid,
-> +					&tx_msg->tx_message,
-> +					NULL, 0, 0, 0);
-> +	if (err) {
-> +		status = AE_ERROR;
-> +		goto end_label;
-> +	}
-> +	err = wait_for_completion_timeout(&tx_msg->tx_complete, IPMI_TIMEOUT);
+> +	return 0;
+> +err_acpi:
+> +	input_unregister_device(inputdev);
+> +err_reg:
+> +	input_free_device(inputdev);
+> +out:
+> +	return error;
+> +}
 > +
-> +end_label:
-> +	acpi_format_ipmi_response(tx_msg, value, err);
-> +	status = AE_OK;
-> +	mutex_lock(&ipmi_device->mutex_lock);
-> +	list_del(&tx_msg->head);
-> +	mutex_unlock(&ipmi_device->mutex_lock);
-> +	kfree(tx_msg);
+> +static int cmpc_remove_acpi_notify_device(struct acpi_device *acpi,
+> +					  acpi_notify_handler handler)
+> +{
+> +	struct input_dev *inputdev;
+> +	acpi_status status;
+> +	status = acpi_remove_notify_handler(acpi->handle, ACPI_DEVICE_NOTIFY,
+> +					    handler);
+> +	inputdev = dev_get_drvdata(&acpi->dev);
+> +	input_unregister_device(inputdev);
+> +	input_free_device(inputdev);
+> +	return 0;
+> +}
+> +
+> +
+> +/*
+> + * Accelerometer code.
+> + */
+> +
+> +static acpi_status cmpc_start_accel(acpi_handle handle)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	acpi_status status;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x3;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
 > +	return status;
 > +}
 > +
-> +static void ipmi_remove_handlers(struct acpi_ipmi_device *ipmi)
+> +static acpi_status cmpc_stop_accel(acpi_handle handle)
 > +{
-> +	if (!test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
-
-I don't think you need to use test_bit(), clear_bit(), and set_bit()
-for this flag.
-
-> +		return;
-> +	acpi_remove_address_space_handler(ipmi->handle,
-> +				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler);
-> +
-> +	clear_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
-> +}
-> +
-> +static int ipmi_install_handlers(struct acpi_ipmi_device *ipmi)
-> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
 > +	acpi_status status;
-> +
-> +	if (test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
-> +		return 0;
-> +
-> +	status = acpi_install_address_space_handler(ipmi->handle,
-> +						    ACPI_ADR_SPACE_IPMI,
-> +						    &acpi_ipmi_space_handler,
-> +						    NULL, ipmi);
-> +	if (ACPI_FAILURE(status)) {
-> +		printk(KERN_DEBUG "Can't register IPMI opregion %s\n",
-> +					acpi_device_bid(ipmi->device));
-> +		return -EINVAL;
-> +	}
-> +	set_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
-> +	return 0;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x4;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
+> +	return status;
 > +}
-> +static int acpi_ipmi_add(struct acpi_device *device)
+> +
+> +static acpi_status cmpc_accel_set_sense(acpi_handle handle, int val)
 > +{
-> +	struct acpi_ipmi_device *ipmi_device;
-> +	acpi_handle handle;
-> +	unsigned long long temp;
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x02;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	param[1].integer.value = val;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	return acpi_evaluate_object(handle, "ACMD", &input, NULL);
+> +}
+> +
+> +static acpi_status cmpc_get_accel(acpi_handle handle,
+> +				  unsigned char *x,
+> +				  unsigned char *y,
+> +				  unsigned char *z)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, 0 };
+> +	unsigned char *locs;
 > +	acpi_status status;
-
-Need a blank line here.
-
-> +	if (!device)
-> +		return -EINVAL;
-
-No need to test this.
-
-> +
-> +	handle = device->handle;
-> +	temp = 0;
-
-No need to initialize "temp".
-
-> +	status = acpi_evaluate_integer(handle, "_IFT", NULL, &temp);
-> +	if (ACPI_FAILURE(status)) {
-> +		printk(KERN_DEBUG "Incorrect _IFT object for %s\n",
-> +				acpi_device_bid(device));
-> +		return -ENODEV;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0x01;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_object(handle, "ACMD", &input, &output);
+> +	if (ACPI_SUCCESS(status)) {
+> +		union acpi_object *obj;
+> +		obj = output.pointer;
+> +		locs = obj->buffer.pointer;
+> +		*x = locs[0];
+> +		*y = locs[1];
+> +		*z = locs[2];
+> +		kfree(output.pointer);
 > +	}
-> +	ipmi_device = kzalloc(sizeof(struct acpi_ipmi_device), GFP_KERNEL);
-> +	if (!ipmi_device) {
-> +		printk(KERN_DEBUG "Can't allocate memory space\n");
-> +		return -ENOMEM;
-> +	}
-> +	ipmi_device->if_type = temp;
-> +	switch (ipmi_device->if_type) {
-> +	case 1:
-> +	case 2:
-> +	case 3:
-> +		break;
-> +	default:
-> +		printk(KERN_DEBUG "Unknow IPMI:SI interface type %d\n",
-> +				ipmi_device->if_type);
-> +		kfree(ipmi_device);
-> +		return -EINVAL;
-> +	}
-> +	ipmi_device->handle = device->handle;
-> +	ipmi_device->device = device;
-> +	mutex_init(&ipmi_device->mutex_lock);
-> +	INIT_LIST_HEAD(&ipmi_device->head);
-> +	INIT_LIST_HEAD(&ipmi_device->tx_msg_list);
-> +
-> +	if (ipmi_install_handlers(ipmi_device)) {
-> +		/* can't register the IPMI opregion */
-
-Superfluous comment.
-
-> +		kfree(ipmi_device);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* add it to the IPMI device list */
-
-Superfluous comment.
-
-> +	list_add_tail(&ipmi_device->head, &driver_data.ipmi_devices);
-> +	device->driver_data = ipmi_device;
-> +	return 0;
+> +	return status;
 > +}
 > +
-> +static int acpi_ipmi_remove(struct acpi_device *device, int type)
+> +static void cmpc_accel_handler(acpi_handle handle, u32 event, void *ctx)
 > +{
-> +	struct acpi_ipmi_device *ipmi_device;
-> +
-> +	ipmi_device = acpi_driver_data(device);
-
-Put this in the local variable list, e.g.,
-
-	struct acpi_ipmi_device *ipmi_device = acpi_driver_data(device);
-
-> +	if (!ipmi_device)
-> +		return 0;
-
-No need to test this; if we got here, it means acpi_ipmi_add()
-succeeded, and it set the driver_data pointer.
-
-> +
-> +	if (ipmi_device->user_interface) {
-> +		/*
-> +		 * If the IPMI user interface is created, it should be
-> +		 * destroyed.
-> +		 */
-
-Superfluous comment.
-
-> +		ipmi_destroy_user(ipmi_device->user_interface);
-> +		ipmi_device->user_interface = NULL;
+> +	struct input_dev *inputdev = ctx;
+> +	acpi_status status;
+> +	unsigned char x, y, z;
+> +	if (event == 0x81) {
+> +		status = cmpc_get_accel(handle, &x, &y, &z);
+> +		if (ACPI_SUCCESS(status)) {
+> +			input_report_abs(inputdev, ABS_X, x);
+> +			input_report_abs(inputdev, ABS_Y, y);
+> +			input_report_abs(inputdev, ABS_Z, z);
+> +			input_sync(inputdev);
+> +		}
 > +	}
-> +	list_del(&ipmi_device->head);
-> +	if (!list_empty(&ipmi_device->tx_msg_list)) {
-> +		/* destroy the Tx_msg list */
-> +		ipmi_destroy_tx_msg(ipmi_device);
-> +	}
-> +	ipmi_remove_handlers(ipmi_device);
-> +	kfree(ipmi_device);
-> +	device->driver_data = NULL;
-> +	return 0;
 > +}
 > +
-> +static const struct acpi_device_id ipmi_device_ids[] = {
-> +	{"IPI0001", 0},
-> +	{"", 0},
+> +static ssize_t cmpc_accel_sense_store(struct device *dev,
+> +				      struct device_attribute *attr,
+> +				      const char *buf, size_t count)
+> +{
+> +	struct acpi_device *acpi;
+> +	int sense;
+> +	acpi = to_acpi_device(dev);
+> +	if (sscanf(buf, "%d", &sense) <= 0)
+> +		return -EINVAL;
+> +	cmpc_accel_set_sense(acpi->handle, sense);
+> +	return strnlen(buf, count);
+> +}
+> +
+> +struct device_attribute cmpc_accel_sense_attr = {
+> +	.attr = { .name = "sense", .mode = 0220 },
+> +	.store = cmpc_accel_sense_store
 > +};
 > +
-> +static struct acpi_driver acpi_ipmi_driver = {
-> +	.name = "ipmi",
-> +	.class = ACPI_IPMI_CLASS,
-> +	.ids = ipmi_device_ids,
+> +static int cmpc_accel_open(struct input_dev *input)
+> +{
+> +	struct acpi_device *acpi;
+> +	acpi = to_acpi_device(input->dev.parent);
+> +	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
+> +		return 0;
+> +	return -EIO;
+> +}
+> +
+> +static void cmpc_accel_close(struct input_dev *input)
+> +{
+> +	struct acpi_device *acpi;
+> +	acpi = to_acpi_device(input->dev.parent);
+> +	cmpc_stop_accel(acpi->handle);
+> +}
+> +
+> +static void cmpc_accel_idev_init(struct input_dev *inputdev)
+> +{
+> +	set_bit(EV_ABS, inputdev->evbit);
+> +	input_set_abs_params(inputdev, ABS_X, 0, 255, 8, 0);
+> +	input_set_abs_params(inputdev, ABS_Y, 0, 255, 8, 0);
+> +	input_set_abs_params(inputdev, ABS_Z, 0, 255, 8, 0);
+> +	inputdev->open = cmpc_accel_open;
+> +	inputdev->close = cmpc_accel_close;
+> +}
+> +
+> +static int cmpc_accel_add(struct acpi_device *acpi)
+> +{
+> +	int error;
+> +	error = device_create_file(&acpi->dev, &cmpc_accel_sense_attr);
+> +	if (error)
+> +		return error;
+> +	return cmpc_add_acpi_notify_device(acpi, "cmpc_accel",
+> +					   cmpc_accel_handler,
+> +					   cmpc_accel_idev_init);
+> +}
+> +
+> +static int cmpc_accel_remove(struct acpi_device *acpi, int type)
+> +{
+> +	device_remove_file(&acpi->dev, &cmpc_accel_sense_attr);
+> +	return cmpc_remove_acpi_notify_device(acpi, cmpc_accel_handler);
+> +}
+> +
+> +static const struct acpi_device_id cmpc_accel_device_ids[] = {
+> +	{"ACCE0000", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_accel_device_ids);
+> +
+> +static struct acpi_driver cmpc_accel_acpi_driver = {
+> +	.name = "cmpc_accel",
+> +	.class = "cmpc_accel",
+> +	.ids = cmpc_accel_device_ids,
 > +	.ops = {
-> +		.add = acpi_ipmi_add,
-> +		.remove = acpi_ipmi_remove,
-> +		},
+> +		.add = cmpc_accel_add,
+> +		.remove = cmpc_accel_remove
+> +	}
 > +};
 > +
-> +static int __init acpi_ipmi_init(void)
+> +static bool cmpc_accel_driver_registered;
+> +
+> +
+> +/*
+> + * Tablet mode code.
+> + */
+> +static acpi_status cmpc_get_tablet(acpi_handle handle,
+> +				   unsigned long long *value)
 > +{
-> +	int result = 0;
-
-No need to initialize "result".
-
-> +
-> +	if (acpi_disabled)
-> +		return result;
-
-No need to check this; acpi_bus_register_driver() does it already.
-
-> +
-> +	result = acpi_bus_register_driver(&acpi_ipmi_driver);
-> +
-
-Remove these blank lines.
-
-> +	if (result)
-> +		return result;
-> +
-> +	result = ipmi_smi_watcher_register(&driver_data.bmc_events);
-> +
-> +	if (result)
-> +		acpi_bus_unregister_driver(&acpi_ipmi_driver);
-> +
-> +	return result;
+> +	union acpi_object param;
+> +	struct acpi_object_list input;
+> +	unsigned long long output;
+> +	acpi_status status;
+> +	param.type = ACPI_TYPE_INTEGER;
+> +	param.integer.value = 0x01;
+> +	input.count = 1;
+> +	input.pointer = &param;
+> +	status = acpi_evaluate_integer(handle, "TCMD", &input, &output);
+> +	if (ACPI_SUCCESS(status))
+> +		*value = output;
+> +	return status;
 > +}
 > +
-> +static void __exit acpi_ipmi_exit(void)
+> +static void cmpc_tablet_handler(acpi_handle handle, u32 event, void *ctx)
 > +{
-> +	if (acpi_disabled)
-> +		return;
-
-Remove this check, too.
-
-> +
-> +	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
-> +	acpi_bus_unregister_driver(&acpi_ipmi_driver);
-> +
-> +	return;
-
-No "return" statement needed here.
-
+> +	unsigned long long val = 0;
+> +	struct input_dev *inputdev = ctx;
+> +	if (event == 0x81) {
+> +		if (ACPI_SUCCESS(cmpc_get_tablet(handle, &val)))
+> +			input_report_switch(inputdev, SW_TABLET_MODE, !val);
+> +	}
 > +}
 > +
-> +module_init(acpi_ipmi_init);
-> +module_exit(acpi_ipmi_exit);
-> Index: linux-2.6/drivers/acpi/Kconfig
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/Kconfig	2009-09-27 14:35:38.000000000 +0800
-> +++ linux-2.6/drivers/acpi/Kconfig	2009-09-28 13:10:46.000000000 +0800
-> @@ -204,6 +204,18 @@
->  
->  	  To compile this driver as a module, choose M here:
->  	  the module will be called processor.
-> +config ACPI_IPMI
-> +	tristate "IPMI"
-> +	depends on EXPERIMENTAL
-> +	default n
-> +	select IPMI_HANDLER
-> +	select IPMI_SI
-> +	help
-> +	  This driver enables the ACPI to access the BMC controller. And it
-> +	  uses the IPMI request/response message to communicate with BMC
-> +	  controller, which can be found on on the server.
-
-"on on" is a typo.
-
+> +static void cmpc_tablet_idev_init(struct input_dev *inputdev)
+> +{
+> +	set_bit(EV_SW, inputdev->evbit);
+> +	set_bit(SW_TABLET_MODE, inputdev->swbit);
+> +}
 > +
-> +	  To compile this driver as a module, choose M here:
+> +static int cmpc_tablet_add(struct acpi_device *acpi)
+> +{
+> +	return cmpc_add_acpi_notify_device(acpi, "cmpc_tablet",
+> +					   cmpc_tablet_handler,
+> +					   cmpc_tablet_idev_init);
+> +}
+> +
+> +static int cmpc_tablet_remove(struct acpi_device *acpi, int type)
+> +{
+> +	return cmpc_remove_acpi_notify_device(acpi, cmpc_tablet_handler);
+> +}
+> +
+> +static const struct acpi_device_id cmpc_tablet_device_ids[] = {
+> +	{"TBLT0000", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_tablet_device_ids);
+> +
+> +static struct acpi_driver cmpc_tablet_acpi_driver = {
+> +	.name = "cmpc_tablet",
+> +	.class = "cmpc_tablet",
+> +	.ids = cmpc_tablet_device_ids,
+> +	.ops = {
+> +		.add = cmpc_tablet_add,
+> +		.remove = cmpc_tablet_remove
+> +	}
+> +};
+> +
+> +static bool cmpc_tablet_driver_registered;
+> +
+> +
+> +/*
+> + * Backlight code.
+> + */
+> +
+> +static acpi_status cmpc_get_brightness(acpi_handle handle,
+> +				       unsigned long long *value)
+> +{
+> +	union acpi_object param;
+> +	struct acpi_object_list input;
+> +	unsigned long long output;
+> +	acpi_status status;
+> +	param.type = ACPI_TYPE_INTEGER;
+> +	param.integer.value = 0xC0;
+> +	input.count = 1;
+> +	input.pointer = &param;
+> +	status = acpi_evaluate_integer(handle, "GRDI", &input, &output);
+> +	if (ACPI_SUCCESS(status))
+> +		*value = output;
+> +	return status;
+> +}
+> +
+> +static acpi_status cmpc_set_brightness(acpi_handle handle,
+> +				       unsigned long long value)
+> +{
+> +	union acpi_object param[2];
+> +	struct acpi_object_list input;
+> +	acpi_status status;
+> +	unsigned long long output;
+> +	param[0].type = ACPI_TYPE_INTEGER;
+> +	param[0].integer.value = 0xC0;
+> +	param[1].type = ACPI_TYPE_INTEGER;
+> +	param[1].integer.value = value;
+> +	input.count = 2;
+> +	input.pointer = param;
+> +	status = acpi_evaluate_integer(handle, "GWRI", &input, &output);
+> +	return status;
+> +}
+> +
+> +static int cmpc_bl_get_brightness(struct backlight_device *bd)
+> +{
+> +	acpi_status status;
+> +	acpi_handle handle;
+> +	unsigned long long brightness;
+> +	handle = bl_get_data(bd);
+> +	status = cmpc_get_brightness(handle, &brightness);
+> +	if (ACPI_SUCCESS(status))
+> +		return brightness;
+> +	else
+> +		return -1;
+> +}
+> +
+> +static int cmpc_bl_update_status(struct backlight_device *bd)
+> +{
+> +	acpi_status status;
+> +	acpi_handle handle;
+> +	handle = bl_get_data(bd);
+> +	status = cmpc_set_brightness(handle, bd->props.brightness);
+> +	if (ACPI_SUCCESS(status))
+> +		return 0;
+> +	else
+> +		return -1;
+> +}
+> +
+> +static struct backlight_ops cmpc_bl_ops = {
+> +	.get_brightness = cmpc_bl_get_brightness,
+> +	.update_status = cmpc_bl_update_status
+> +};
+> +
+> +static int cmpc_bl_add(struct acpi_device *acpi)
+> +{
+> +	struct backlight_device *bd;
+> +	bd = backlight_device_register("cmpc_bl", &acpi->dev,
+> +				       acpi->handle, &cmpc_bl_ops);
+> +	bd->props.max_brightness = 7;
+> +	dev_set_drvdata(&acpi->dev, bd);
+> +	return 0;
+> +}
+> +
+> +static int cmpc_bl_remove(struct acpi_device *acpi, int type)
+> +{
+> +	struct backlight_device *bd;
+> +	bd = dev_get_drvdata(&acpi->dev);
+> +	backlight_device_unregister(bd);
+> +	return 0;
+> +}
+> +
+> +static const struct acpi_device_id cmpc_device_ids[] = {
+> +	{"IPML200", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_device_ids);
+> +
+> +static struct acpi_driver cmpc_bl_acpi_driver = {
+> +	.name = "cmpc",
+> +	.class = "cmpc",
+> +	.ids = cmpc_device_ids,
+> +	.ops = {
+> +		.add = cmpc_bl_add,
+> +		.remove = cmpc_bl_remove
+> +	}
+> +};
+> +
+> +static bool cmpc_bl_driver_registered;
+> +
+> +
+> +/*
+> + * Extra keys code.
+> + */
+> +static int cmpc_keys_codes[] = {
+> +	KEY_UNKNOWN,
+> +	KEY_WLAN,
+> +	KEY_SWITCHVIDEOMODE,
+> +	KEY_BRIGHTNESSDOWN,
+> +	KEY_BRIGHTNESSUP,
+> +	KEY_VENDOR,
+> +	KEY_MAX
+> +};
+> +
+> +static void cmpc_keys_handler(acpi_handle handle, u32 event, void *ctx)
+> +{
+> +	struct input_dev *inputdev;
+> +	int code = KEY_MAX;
+> +	if ((event & 0x0F) < ARRAY_SIZE(cmpc_keys_codes))
+> +		code = cmpc_keys_codes[event & 0x0F];
+> +	inputdev = ctx;
+> +	input_report_key(inputdev, code, !(event & 0x10));
+> +}
+> +
+> +static void cmpc_keys_idev_init(struct input_dev *inputdev)
+> +{
+> +	int i;
+> +	set_bit(EV_KEY, inputdev->evbit);
+> +	for (i = 0; cmpc_keys_codes[i] != KEY_MAX; i++)
+> +		set_bit(cmpc_keys_codes[i], inputdev->keybit);
+> +}
+> +
+> +static int cmpc_keys_add(struct acpi_device *acpi)
+> +{
+> +	return cmpc_add_acpi_notify_device(acpi, "cmpc_keys",
+> +					   cmpc_keys_handler,
+> +					   cmpc_keys_idev_init);
+> +}
+> +
+> +static int cmpc_keys_remove(struct acpi_device *acpi, int type)
+> +{
+> +	return cmpc_remove_acpi_notify_device(acpi, cmpc_keys_handler);
+> +}
+> +
+> +static const struct acpi_device_id cmpc_keys_device_ids[] = {
+> +	{"FnBT0000", 0},
+> +	{"", 0}
+> +};
+> +MODULE_DEVICE_TABLE(acpi, cmpc_keys_device_ids);
+> +
+> +static struct acpi_driver cmpc_keys_acpi_driver = {
+> +	.name = "cmpc_keys",
+> +	.class = "cmpc_keys",
+> +	.ids = cmpc_keys_device_ids,
+> +	.ops = {
+> +		.add = cmpc_keys_add,
+> +		.remove = cmpc_keys_remove
+> +	}
+> +};
+> +
+> +static bool cmpc_keys_driver_registered;
+> +
+> +
+> +/*
+> + * General init/exit code.
+> + */
+> +
+> +static int cmpc_init(void)
+> +{
+> +	int result;
+> +	result = acpi_bus_register_driver(&cmpc_keys_acpi_driver);
+> +	cmpc_keys_driver_registered = !!result;
+> +	result = acpi_bus_register_driver(&cmpc_bl_acpi_driver);
+> +	cmpc_bl_driver_registered = !!result;
+> +	result = acpi_bus_register_driver(&cmpc_tablet_acpi_driver);
+> +	cmpc_tablet_driver_registered = !!result;
+> +	result = acpi_bus_register_driver(&cmpc_accel_acpi_driver);
+> +	cmpc_accel_driver_registered = !!result;
+> +	/*
+> +	 * Not every CMPC has every ACPI device supported here. So always return
+> +	 * success.
+> +	 */
+> +	return 0;
+> +}
+> +
+> +static void cmpc_exit(void)
+> +{
+> +	if (cmpc_accel_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
+> +	if (cmpc_tablet_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
+> +	if (cmpc_bl_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
+> +	if (cmpc_keys_driver_registered)
+> +		acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
+> +}
+> +
+> +module_init(cmpc_init);
+> +module_exit(cmpc_exit);
 
-Looks like you're missing some "module will be called" text here.
 
->  
->  config ACPI_HOTPLUG_CPU
->  	bool
-> Index: linux-2.6/drivers/acpi/Makefile
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/Makefile	2009-09-27 14:35:38.000000000 +0800
-> +++ linux-2.6/drivers/acpi/Makefile	2009-09-28 13:09:09.000000000 +0800
-> @@ -57,6 +57,7 @@
->  obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
->  obj-$(CONFIG_ACPI_SBS)		+= sbs.o
->  obj-$(CONFIG_ACPI_POWER_METER)	+= power_meter.o
-> +obj-$(CONFIG_ACPI_IPMI)		+= ipmi.o
->  
->  # processor has its own "processor." module_param namespace
->  processor-y			:= processor_core.o processor_throttling.o
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-
-------------------------------------------------------------------------------
-Come build with us! The BlackBerry&reg; Developer Conference in SF, CA
-is the only developer event you need to attend this year. Jumpstart your
-developing skills, take BlackBerry mobile applications to market and stay 
-ahead of the curve. Join us from November 9&#45;12, 2009. Register now&#33;
-http://p.sf.net/sfu/devconf
