@@ -1,94 +1,161 @@
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Subject: Re: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
-Date: Wed, 30 Sep 2009 15:57:07 -0300
-Message-ID: <20090930185707.GI17475@vespa.holoscopio.com>
-References: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com> <200909300950.39332.bjorn.helgaas@hp.com> <20090930175141.GG17475@vespa.holoscopio.com> <200909301227.49916.bjorn.helgaas@hp.com>
+From: Stefan Bader <stefan.bader@canonical.com>
+Subject: Re: Less strict requirements for video device detection (v3)
+Date: Wed, 30 Sep 2009 22:23:23 +0200
+Message-ID: <4AC3BE3B.7020304@canonical.com>
+References: <4A8D140F.1090909@canonical.com>	 <1250817458.17853.141.camel@rzhang-dt>  <4A8E7022.8000707@canonical.com>	 <1251076781.3483.13.camel@rzhang-dt>  <4A92A73C.7010003@canonical.com> <1251162484.3483.51.camel@rzhang-dt>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0XMZdl/q8hSSmFeD"
+Content-Type: multipart/mixed;
+ boundary="------------070703010807080906080300"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from liberdade.minaslivre.org ([72.232.18.203]:57709 "EHLO
-	liberdade.minaslivre.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751894AbZI3S5H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Sep 2009 14:57:07 -0400
-Content-Disposition: inline
-In-Reply-To: <200909301227.49916.bjorn.helgaas@hp.com>
+Received: from adelie.canonical.com ([91.189.90.139]:39420 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752519AbZI3UXQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Sep 2009 16:23:16 -0400
+In-Reply-To: <1251162484.3483.51.camel@rzhang-dt>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, lenb@kernel.org
 
-
---0XMZdl/q8hSSmFeD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is a multi-part message in MIME format.
+--------------070703010807080906080300
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 30, 2009 at 12:27:48PM -0600, Bjorn Helgaas wrote:
-> On Wednesday 30 September 2009 11:51:43 am Thadeu Lima de Souza Cascardo =
-wrote:
-> > On Wed, Sep 30, 2009 at 09:50:38AM -0600, Bjorn Helgaas wrote:
-> > > On Monday 28 September 2009 07:38:00 pm Thadeu Lima de Souza Cascardo=
- wrote:
-> > > > This add supports for devices like keyboard, backlight, tablet and
-> > > > accelerometer.
-> > >=20
-> > > Something about the PNP IDs bothered me yesterday, but I couldn't
-> > > figure out what.  You're using:
-> > >=20
-> > >   ACCE0000
-> > >   TBLT0000
-> > >   IPML200
-> > >   FnBT0000
-> > >=20
-> > > Normally these OEM-specific ACPI drivers claim PNP IDs like ATK0100,
-> > > TOS6200, FUJ02B1, etc., that are obviously OEM-specific.
-> > >=20
-> > > But the ones you're claiming seem pretty generic, like things
-> > > we could imagine appearing on machines other than the Classmate.
-> > >=20
-> > > So I guess my question is, "Are these really generic?  If so, should
-> > > this be split into separate, non-Classmate named drivers, such as
-> > > 'accelerometer', 'tablet', etc.?"
-> > >=20
-> >=20
-> > Although I agree that {ATK,TOS,FUJ,IBM}* give pretty much a certainty
-> > these are OEM-specific, I think we'd need some evidence that
-> > {ACCE,TBLT,IPML,FnBT}* are generic enough to grant them a non-classmate
-> > driver.
-> >=20
-> > What I mean is that we should push this driver forward and turn these
-> > into a generic driver if we get some evidence these are not
-> > Classmate-specific. And that will happen when we hit some other system
-> > with these devices.
+Resending. It feels like being lost.
+
+-Stefan
+
+Zhang Rui wrote:
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 >=20
-> Yep, I agree with you that it's not worth splitting things up until
-> we find these devices on more systems.  Just out of curiosity, where
-> did you find specs for these devices?  If there's a public spec, it'd
-> be nice to have a pointer to it in the driver.
->=20
-> Bjorn
+> On Mon, 2009-08-24 at 22:44 +0800, Stefan Bader wrote:
+>> Zhang Rui wrote:
+>>> On Fri, 2009-08-21 at 18:00 +0800, Stefan Bader wrote:
+>>>> Zhang Rui wrote:
+>>>>> On Thu, 2009-08-20 at 17:14 +0800, Stefan Bader wrote:
+>>>>>> Hardware: Acer 6920G (from a bug report)
+>>>>>>
+>>>>>> Another case of a broken BIOS. In this case there are several defi=
+nitions for=20
+>>>>>> video bus devices but only one has _DOS and _DOD defined. All othe=
+r definitions=20
+>>>>>> only have _DOD.
+>>>>> I have seen such kind of BIOS too.
+>>>>>
+>>>>>> In the past (2.6.27) _ADR was not evaluated to make sure of using =
+a present=20
+>>>>>> video device, but with that bug brightness could be changed.
+>>>>>>
+>>>>>> Now the video bus having _DOS and _DOD is detected as not being pr=
+esent. The=20
+>>>>>> other definitions are not considered because they are lacking the =
+_DOS method.
+>>>>>> Using the attached patch, would cause the detection code to consid=
+er the other=20
+>>>>>> definitions and has been tested to enable backlight control.
+>>>>>>
+>>>>>> Would this be an acceptable approach?
+>>>>> I think so. I generated a similar patch before, but didn't sent it =
+out
+>>>>> for some reason.
+>>>>> My suggestion is that we should also print out a warning message if=
+ _DOS
+>>>>> is missed, what do you think?
+>>>> Some indication about the problem can't hurt. Probably not in=20
+>>>> acpi_is_video_device as that would trigger for even unused devices.
+>>>> So I added a warning to acpi_video_bus_check for the case when _DOS =
+is missing.=20
+>>> =EF=BB=BFhow about using printk(KERN_WARNING FW_BUG "blabla")?
+>> I am not biased on that.
+>>
+>> -Stefan
+>>> thanks,
+>>> rui
+>>>
+>>>> The case of _DOS being present but _DOD not might also be worth a wa=
+rning but=20
+>>>> (though the check in acpi_is_video_device prevented this) would have=
+ been=20
+>>>> accepted by the current code.
+>>>> -Stefan
+>>>>
+>>>>> thanks,
+>>>>> rui
+>>>>>
+>>>>>>  From the ACPI spec it rather sounds like=20
+>>>>>> _DOD and _DOS must be present for a device for display switching a=
+nd _DOS would=20
+>>>>>> indicate possible backlight control as well. So the question might=
+ not be so=20
+>>>>>> much is it the right thing than is it safe enough to allow more co=
+mpatibility=20
+>>>>>> with broken implementations without causing other problems...
+>>>>>>
+>>>>>> -Stefan
 
-There was no public spec. I used as reference some source code released
-as GPL. This implementation used proc files as user interface. Other
-references are the dumped tables, which I am using to implement what is
-very likely a rfkill device. We are still doing some tests before adding
-it to the driver.
+--------------070703010807080906080300
+Content-Type: text/x-diff;
+ name="0001-acpi-video-Loosen-strictness-of-video-bus-detectio.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0001-acpi-video-Loosen-strictness-of-video-bus-detectio.patc";
+ filename*1="h"
 
-Regards,
-Cascardo.
+>From dbd8ac9a49a1b11eb7c5a49cfd44a93f1a5dd921 Mon Sep 17 00:00:00 2001
+From: Stefan Bader <stefan.bader@canonical.com>
+Date: Fri, 21 Aug 2009 11:03:05 +0200
+Subject: [PATCH] acpi: video: Loosen strictness of video bus detection code
 
---0XMZdl/q8hSSmFeD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+BugLink: http://bugs.launchpad.net/bugs/333386
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Currently a video bus device must (beside other criteria) define _DOD and
+_DOS methods to be considered a video device.
+Some broken BIOSes prevented working backlight control by only defining both
+for one (non-existing bus) and only _DOD for the rest. With this patch in
+place the other bus definitions were considered too and backlight control
+started to work again.
 
-iEYEARECAAYFAkrDqgMACgkQyTpryRcqtS2FMACgkfz4FT+M4itIFJ5zAa0gj7wu
-QeYAn0pwOMsf34RTSbkzWiJ2alOb/KBh
-=4ms0
------END PGP SIGNATURE-----
+Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c        |    7 ++++++-
+ drivers/acpi/video_detect.c |    2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---0XMZdl/q8hSSmFeD--
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index a4fddb2..518910e 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1109,7 +1109,12 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
+ 	 */
+ 
+ 	/* Does this device support video switching? */
+-	if (video->cap._DOS) {
++	if (video->cap._DOS || video->cap._DOD) {
++		if (!video->cap._DOS) {
++			printk(KERN_WARNING FW_BUG
++				"ACPI(%s) defines _DOD but not _DOS\n",
++				acpi_device_bid(video->device));
++		}
+ 		video->flags.multihead = 1;
+ 		status = 0;
+ 	}
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 7032f25..575593a 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -84,7 +84,7 @@ long acpi_is_video_device(struct acpi_device *device)
+ 		return 0;
+ 
+ 	/* Does this device able to support video switching ? */
+-	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
++	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
+ 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
+ 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
+ 
+-- 
+1.5.4.3
+
+
+--------------070703010807080906080300--
