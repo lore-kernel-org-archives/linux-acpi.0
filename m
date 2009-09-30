@@ -1,159 +1,105 @@
-From: Danny Feng <dfeng@redhat.com>
-Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after  resume
- from suspend
-Date: Wed, 30 Sep 2009 10:46:31 +0800
-Message-ID: <4AC2C687.8060601@redhat.com>
-References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <20090928173819.GA2441@ldl.fc.hp.com> <4AC16682.50207@redhat.com> <200909292212.42697.rjw@sisk.pl>
+From: "Joshua C." <joshuacov@googlemail.com>
+Subject: Re: Linux acpi compatibility / iasl compiler
+Date: Wed, 30 Sep 2009 15:08:59 +0200
+Message-ID: <5f6f8c5f0909300608m39b8e6en560cef043980f145@mail.gmail.com>
+References: <7AF83C134DEA3240992E8EF512F61B7903C21AC51E@pdsmsx502.ccr.corp.intel.com>
+	 <4911F71203A09E4D9981D27F9D8308583AE9A6C6@orsmsx503.amr.corp.intel.com>
+	 <5f6f8c5f0909250604u3a48c150yeca0e77a0a966541@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38344 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753914AbZI3Crq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Sep 2009 22:47:46 -0400
-In-Reply-To: <200909292212.42697.rjw@sisk.pl>
+Received: from mail-yx0-f173.google.com ([209.85.210.173]:43917 "EHLO
+	mail-yx0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753681AbZI3NI4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Sep 2009 09:08:56 -0400
+Received: by yxe3 with SMTP id 3so3980412yxe.4
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2009 06:09:00 -0700 (PDT)
+In-Reply-To: <5f6f8c5f0909250604u3a48c150yeca0e77a0a966541@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alex Chiang <achiang@hp.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Lin, Ming M" <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 09/30/2009 04:12 AM, Rafael J. Wysocki wrote:
-> On Tuesday 29 September 2009, Danny Feng wrote:
->> On 09/29/2009 01:38 AM, Alex Chiang wrote:
->>> Hi Xiaotian,
->>>
->>> Thanks for the bug report.
->>>
->>> * Xiaotian Feng<dfeng@redhat.com>:
->>>
->>>> commit 275582 introduces acpi_get_pci_dev(), but pdev->subordinate
->>>> can be NULL, then a NULL was passed to pci_get_slot, this results
->>>> the kernel oops when resume from suspend.
->>>>
->>>> This patch resolves following kernel oops:
->>>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
->>>> IP: [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
->>>>
->>>> Signed-off-by: Xiaotian Feng<dfeng@redhat.com>
->>>> ---
->>>>    drivers/acpi/pci_root.c |    6 +++++-
->>>>    1 files changed, 5 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->>>> index 3112221..3c35144 100644
->>>> --- a/drivers/acpi/pci_root.c
->>>> +++ b/drivers/acpi/pci_root.c
->>>> @@ -387,7 +387,11 @@ struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
->>>>    		if (!pdev || hnd == handle)
->>>>    			break;
->>>>
->>>> -		pbus = pdev->subordinate;
->>>> +		if (pdev->subordinate)
->>>> +			pbus = pdev->subordinate;
->>>> +		else
->>>> +			pbus = pdev->bus;
->>>> +
->>>>
->>> I'm a little confused by this. If we start from the PCI root
->>> bridge and walk back down the hierarchy, shouldn't everything
->>> between the root and the device be a P2P bridge?
->>>
->>> What is special about suspend/resume that causes the subordinate
->>> bus to become NULL?
->>>
->>> Can you send the full stacktrace?
->>>
->>> Thanks.
->>>
->>> /ac
->>>
->>>
->>>
->> the full call trace is here:
+2009/9/25 Joshua C. <joshuacov@googlemail.com>:
+> 2009/9/25 Moore, Robert <robert.moore@intel.com>:
 >>
->> BUG: unable to handle kernel NULL pointer dereference at 0000000000000028
->> IP: [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
->> PGD 208b9d067 PUD 208a89067 PMD 0
->> Oops: 0000 [#1] SMP
->> last sysfs file: /sys/power/state
->> CPU 0
->> Modules linked in: fuse radeon ttm drm_kms_helper drm i2c_algo_bit sco
->> bridge stp llc bnep l2cap bluetooth sunrpc ip6t_REJECT nf_conntrack_ipv6
->> ip6table_filter ip6_tables ipv6 dm_multipath uinput snd_hda_codec_analog
->> snd_hda_intel snd_hda_codec snd_hwdep e1000e snd_pcm snd_timer i2c_i801
->> i2c_core snd soundcore snd_page_alloc iTCO_wdt iTCO_vendor_support
->> serio_raw ppdev parport_pc parport pcspkr dcdbas ata_generic pata_acpi
->> [last unloaded: speedstep_lib]
->> Pid: 35, comm: kacpi_hotplug Not tainted 2.6.32-rc2 #3 OptiPlex 760
->> RIP: 0010:[<ffffffff812217e7>]  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
->> RSP: 0018:ffff88022ee69aa0  EFLAGS: 00010286
->> RAX: 0000000000000000 RBX: ffff88022e9b1090 RCX: 00000000000000a0
->> RDX: 000000000000002f RSI: ffffffff8168ab38 RDI: ffffffff8168ab38
->> RBP: ffff88022ee69ac0 R08: ffffffff8168ab30 R09: ffff880100000000
->> R10: ffffffff8168ab50 R11: 0000000000000000 R12: 0000000000000000
->> R13: 0000000000000001 R14: ffff88022f712000 R15: ffff88022f710dd0
->> FS:  0000000000000000(0000) GS:ffff880028200000(0000)
->> knlGS:0000000000000000
->> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
->> CR2: 0000000000000028 CR3: 00000001fc298000 CR4: 00000000000406f0
->> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
->> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
->> Process kacpi_hotplug (pid: 35, threadinfo ffff88022ee68000, task
->> ffff88022eefc120)
->> Stack:
->>    0000000000000018 ffff88022e9b1090 ffff88020880e9c0 0000000000000000
->> <0>  ffff88022ee69b30 ffffffff81254193 0000000000000000 ffff88022ee69ae0
->> <0>  ffff88020880e340 ffff88020880ee38 ffff88022f710208 0000000000000001
->> Call Trace:
->>    [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
+>>> 1. Can I substitute the original dsdt (compiled with ms asl 2) with
+>>> the one compiled and optimazed with Intel iasl?
+>>>
+>>
+>> Yes. It should work the same as the original.
+>>
+>>> 2. Is there such a "big" diffference between the code produced by
+>>> these apps?
+>>
+>> iASL is an optimizing compiler. It will optimize all namepaths to th=
+eir minimum lengths, it will minimize integer sizes, and will perform c=
+onstant folding. These optimizations can shrink the code considerably.
+>>
+>>
+>>> 3. How should windows react to the new dsdt recompiled with intel's
+>>> iasl?
+>>
+>> The DSDT should perform identically. It has simply been optimized by=
+ iASL.
+>> I can't speak to the other ACPI tables on your machine (although, us=
+ually any other ASL/AML tables are SSDTs)
+>>
+>>
+>> 4) You should let the kernel override the DSDT with your DSDT before=
+ you even think about flashing the bios.
+>>
+> =A0I tried it. Linux works perfectly. As for windows:
+> -win7 doesn't show any visible signs of problems. I did my best to
+> load the table in the registry. I even tried it without UAC.It looks
+> like it works with the optimazed dsdt.
+> However this is closed-source acpi driver and maybe it still reads
+> (from the bios) the original dsdt (the ms one). Therefore I'm not tha=
+t
+> sure about it.
+> -winXP: after loading the new optimized dsdt in the registry and
+> restarting the pc almost nothing works. random shutdowns with bsod an=
+d
+> some of the hardware isn't even seen! Only a new install is the
+> solution.
+> I know that the winxp acpi driver should be rather old but I didn't
+> expect such a downturn.
 >
-> Have you checked (using gdb) which source code line this corresponds to?
+> To sum up:
 >
-Yep, the code line corresponds to
-pdev = pci_get_slot(pbus, PCI_DEVFN(dev, fn));
-
-Also gdb shows pci_bus->devices has offset of 0x28.
-
-I've put some check in acpi_get_pci_dev, it shows that pbus is NULL when 
-the panic happens.
-
->>    [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
->>    [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
->>    [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
->>    [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
->>    [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
->>    [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
+> Linux works great, but from what i saw I can't say that windows (at
+> least xp, not sure for 7) likes the iasl compiled code. This once
+> again proved the "obvious" luck of standards in windows.
 >
-> This looks like a device has just been discovered.
->
->>    [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
->>    [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
->
-> Have the machine been docked while suspended?
-I was confused too..I didn't touch anything just suspend and then power 
-up. Are there some devices unplugged or ejected at suspend stage?
->
->>    [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
->>    [<ffffffff8106a244>] worker_thread+0x251/0x347
->>    [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
->>    [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
->>    [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
->>    [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
->>    [<ffffffff8106e0e0>] kthread+0x7f/0x87
->>    [<ffffffff81012cea>] child_rip+0xa/0x20
->>    [<ffffffff81012650>] ? restore_args+0x0/0x30
->>    [<ffffffff8106e061>] ? kthread+0x0/0x87
->>    [<ffffffff81012ce0>] ? child_rip+0x0/0x20
->> Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7
->> 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00<49>  8b
->> 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
->> RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
->>    RSP<ffff88022ee69aa0>
->> CR2: 0000000000000028
->> ---[ end trace b5a7793bd9db2a4d ]---
->
-> Thanks,
-> Rafael
+> Thanx to Robert Moore for the reply. I'll test some more times with
+> different iasl options before finally flashing the modded bios.
 >
 
+I flashed the bios with the recompiled DSDT (with iasl-20090903,
+optimized) table some days ago. Here are the results:
+
+Linux:  No problems at all.Works great and nothing extra should be done=
+=2E Great.
+
+Windows7: It didn't like it the first time. After flashing the bios
+wouldn't boot so I needed to reinstall it. After this it works fine.
+The whole story makes me think that windows caches the dsdt in the
+registry and compares it with the one provided by the bios during
+boot. On mismatch it won't boot.
+
+WindowsXPSP3: It doesn't like intel compiler's optimazations. I tried
+all options (-of -oi -on) but I wouldn't boot. It coulnd't be
+installed either. Neither does it like the MS asl v.3. Obviously their
+acpi driver is quite old. I coundn't test the compatibility mode of
+iasl because the compiled dsdt was 13 bytes bigger than the available
+space (in the bios file). Therefore I cannot comment on this but I bet
+it wouldn't like it either.
+
+Anyway, I'm back to linux and it has no problems with my new (repaired)=
+ DSDT.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
