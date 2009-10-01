@@ -1,58 +1,103 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] cmpc_acpi: Added support for Classmate PC ACPI devices.
-Date: Thu, 1 Oct 2009 09:38:57 -0700
-Message-ID: <20091001163857.GB22320@core.coreip.homeip.net>
-References: <1254188280-29155-1-git-send-email-cascardo@holoscopio.com> <9b2b86520909290220g6b5f6beal6337b17f1bdd339@mail.gmail.com> <20090929141618.GD18847@vespa.holoscopio.com> <9b2b86520909290941g6295ba36i907dfda62b968529@mail.gmail.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH, trivial] ACPI: dock: fix "sibiling" typo
+Date: Thu, 1 Oct 2009 11:59:23 -0600
+Message-ID: <20091001175923.GD31915@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:45232 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597AbZJAQjG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2009 12:39:06 -0400
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:48763 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755673AbZJAR7T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2009 13:59:19 -0400
 Content-Disposition: inline
-In-Reply-To: <9b2b86520909290941g6295ba36i907dfda62b968529@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, don@syst.com.br, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Sep 29, 2009 at 05:41:42PM +0100, Alan Jenkins wrote:
-> On 9/29/09, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com> wrote:
-> 
-> >> > +static void cmpc_tablet_idev_init(struct input_dev *inputdev)
-> >> > +{
-> >> > +	set_bit(EV_SW, inputdev->evbit);
-> >> > +	set_bit(SW_TABLET_MODE, inputdev->swbit);
-> >>
-> >> Don't you need to initialize the switch value here?
-> >>
-> >
-> > No, input_allocate_device does kzalloc. Otherwise, this would apply to
-> > the other bitmaps as well.
-> 
-> The other bitmaps aren't for switches though.  Here's what prompted
-> this comment - a snippet from the old (2.6.29) version of
-> Documentation/rfkill.txt:
-> 
-> "2. Input device switches (sources of EV_SW events) DO store their current state
-> (so you *must* initialize it by issuing a gratuitous input layer event on
-> driver start-up and also when resuming from sleep), and that state CAN be
-> queried from userspace through IOCTLs."
-> 
+Crossword clues as haikus:
 
-There is a mixup betweeb capabilieies and state bitmasks. In init you
-set up the capabilitis bits and you don't need to clear bitmaps. This is
-true for everything - keys/buttons, switches, relatixe/absolute axis,
-everything.
+	Snakes from the same brood
+	fighting Jackson on a plane?
+	sibilant siblings
 
-Now switches do naturally have a certain state. Unlke keys (which are
-assumed to be normally in released state) switch can be on or off. So
-the driver has (if it can) query the switch state (hardware state) and
-issue appropriate input_event() to bring internal state of the device in
-sync with the state of the hardware. The same on resume - the switch may
-be altered while the box was asleep to upon resume we need to do the
-same.
+I guess Will Shortz's job is still secure.
 
--- 
-Dmitry
+Signed-off-by: Alex Chiang <achiang@hp.com>
+---
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 3a2cfef..7338b6a 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -67,7 +67,7 @@ struct dock_station {
+ 	struct list_head dependent_devices;
+ 	struct list_head hotplug_devices;
+ 
+-	struct list_head sibiling;
++	struct list_head sibling;
+ 	struct platform_device *dock_device;
+ };
+ static LIST_HEAD(dock_stations);
+@@ -275,7 +275,7 @@ int is_dock_device(acpi_handle handle)
+ 
+ 	if (is_dock(handle))
+ 		return 1;
+-	list_for_each_entry(dock_station, &dock_stations, sibiling) {
++	list_for_each_entry(dock_station, &dock_stations, sibling) {
+ 		if (find_dock_dependent_device(dock_station, handle))
+ 			return 1;
+ 	}
+@@ -619,7 +619,7 @@ register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
+ 	 * make sure this handle is for a device dependent on the dock,
+ 	 * this would include the dock station itself
+ 	 */
+-	list_for_each_entry(dock_station, &dock_stations, sibiling) {
++	list_for_each_entry(dock_station, &dock_stations, sibling) {
+ 		/*
+ 		 * An ATA bay can be in a dock and itself can be ejected
+ 		 * seperately, so there are two 'dock stations' which need the
+@@ -651,7 +651,7 @@ void unregister_hotplug_dock_device(acpi_handle handle)
+ 	if (!dock_station_count)
+ 		return;
+ 
+-	list_for_each_entry(dock_station, &dock_stations, sibiling) {
++	list_for_each_entry(dock_station, &dock_stations, sibling) {
+ 		dd = find_dock_dependent_device(dock_station, handle);
+ 		if (dd)
+ 			dock_del_hotplug_device(dock_station, dd);
+@@ -787,7 +787,7 @@ static int acpi_dock_notifier_call(struct notifier_block *this,
+ 	if (event != ACPI_NOTIFY_BUS_CHECK && event != ACPI_NOTIFY_DEVICE_CHECK
+ 	   && event != ACPI_NOTIFY_EJECT_REQUEST)
+ 		return 0;
+-	list_for_each_entry(dock_station, &dock_stations, sibiling) {
++	list_for_each_entry(dock_station, &dock_stations, sibling) {
+ 		if (dock_station->handle == handle) {
+ 			struct dock_data *dock_data;
+ 
+@@ -958,7 +958,7 @@ static int dock_add(acpi_handle handle)
+ 	dock_station->last_dock_time = jiffies - HZ;
+ 	INIT_LIST_HEAD(&dock_station->dependent_devices);
+ 	INIT_LIST_HEAD(&dock_station->hotplug_devices);
+-	INIT_LIST_HEAD(&dock_station->sibiling);
++	INIT_LIST_HEAD(&dock_station->sibling);
+ 	spin_lock_init(&dock_station->dd_lock);
+ 	mutex_init(&dock_station->hp_lock);
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
+@@ -1044,7 +1044,7 @@ static int dock_add(acpi_handle handle)
+ 	add_dock_dependent_device(dock_station, dd);
+ 
+ 	dock_station_count++;
+-	list_add(&dock_station->sibiling, &dock_stations);
++	list_add(&dock_station->sibling, &dock_stations);
+ 	return 0;
+ 
+ dock_add_err_unregister:
+@@ -1149,7 +1149,7 @@ static void __exit dock_exit(void)
+ 	struct dock_station *tmp;
+ 
+ 	unregister_acpi_bus_notifier(&dock_acpi_notifier);
+-	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibiling)
++	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibling)
+ 		dock_remove(dock_station);
+ }
+ 
