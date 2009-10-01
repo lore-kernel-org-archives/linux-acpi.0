@@ -1,103 +1,119 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH, trivial] ACPI: dock: fix "sibiling" typo
-Date: Thu, 1 Oct 2009 11:59:23 -0600
-Message-ID: <20091001175923.GD31915@ldl.fc.hp.com>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume
+	from suspend
+Date: Thu, 1 Oct 2009 14:05:22 -0600
+Message-ID: <20091001200522.GF31915@ldl.fc.hp.com>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <20090928173819.GA2441@ldl.fc.hp.com> <4AC16682.50207@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:48763 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755673AbZJAR7T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2009 13:59:19 -0400
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:27263 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756056AbZJAUFT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2009 16:05:19 -0400
 Content-Disposition: inline
+In-Reply-To: <4AC16682.50207@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Danny Feng <dfeng@redhat.com>
+Cc: lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Crossword clues as haikus:
+Hi Danny,
 
-	Snakes from the same brood
-	fighting Jackson on a plane?
-	sibilant siblings
+* Danny Feng <dfeng@redhat.com>:
+> Call Trace:
+>  [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
+>  [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
+>  [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
+>  [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
+>  [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
+>  [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
+>  [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
+>  [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
+>  [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
+>  [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
+>  [<ffffffff8106a244>] worker_thread+0x251/0x347
+>  [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
+>  [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
+>  [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
+>  [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
+>  [<ffffffff8106e0e0>] kthread+0x7f/0x87
+>  [<ffffffff81012cea>] child_rip+0xa/0x20
+>  [<ffffffff81012650>] ? restore_args+0x0/0x30
+>  [<ffffffff8106e061>] ? kthread+0x0/0x87
+>  [<ffffffff81012ce0>] ? child_rip+0x0/0x20
+> Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7  
+> 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00 <49> 8b  
+> 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
+> RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+>  RSP <ffff88022ee69aa0>
+> CR2: 0000000000000028
+> ---[ end trace b5a7793bd9db2a4d ]---
 
-I guess Will Shortz's job is still secure.
+Can you please reproduce with this debug patch? I'm guessing that
+we're dying because we have a NULL parent device, but I'm curious
+as to what causes this situation to occur.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Thanks.
+/ac
 ---
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 3a2cfef..7338b6a 100644
+index 7338b6a..4c1b128 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -67,7 +67,7 @@ struct dock_station {
- 	struct list_head dependent_devices;
- 	struct list_head hotplug_devices;
+@@ -126,6 +126,7 @@ add_dock_dependent_device(struct dock_station *ds,
+ {
+ 	spin_lock(&ds->dd_lock);
+ 	list_add_tail(&dd->list, &ds->dependent_devices);
++	printk("%s adding handle %p\n", __func__, dd->handle);
+ 	spin_unlock(&ds->dd_lock);
+ }
  
--	struct list_head sibiling;
-+	struct list_head sibling;
- 	struct platform_device *dock_device;
- };
- static LIST_HEAD(dock_stations);
-@@ -275,7 +275,7 @@ int is_dock_device(acpi_handle handle)
+@@ -142,6 +143,8 @@ dock_add_hotplug_device(struct dock_station *ds,
+ {
+ 	mutex_lock(&ds->hp_lock);
+ 	list_add_tail(&dd->hotplug_list, &ds->hotplug_devices);
++	dump_stack();
++	printk("%s adding handle %p\n", __func__, dd->handle);
+ 	mutex_unlock(&ds->hp_lock);
+ }
  
- 	if (is_dock(handle))
- 		return 1;
--	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+	list_for_each_entry(dock_station, &dock_stations, sibling) {
- 		if (find_dock_dependent_device(dock_station, handle))
- 			return 1;
- 	}
-@@ -619,7 +619,7 @@ register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
- 	 * make sure this handle is for a device dependent on the dock,
- 	 * this would include the dock station itself
- 	 */
--	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+	list_for_each_entry(dock_station, &dock_stations, sibling) {
+@@ -325,14 +328,17 @@ static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
+ 	acpi_handle parent;
+ 	int ret;
+ 
++	printk("%s handle %p\n", __func__, handle);
+ 	if (acpi_bus_get_device(handle, &device)) {
  		/*
- 		 * An ATA bay can be in a dock and itself can be ejected
- 		 * seperately, so there are two 'dock stations' which need the
-@@ -651,7 +651,7 @@ void unregister_hotplug_dock_device(acpi_handle handle)
- 	if (!dock_station_count)
- 		return;
+ 		 * no device created for this object,
+ 		 * so we should create one.
+ 		 */
+ 		acpi_get_parent(handle, &parent);
+-		if (acpi_bus_get_device(parent, &parent_device))
++		if (acpi_bus_get_device(parent, &parent_device)) {
+ 			parent_device = NULL;
++			printk("%s no parent, setting NULL\n", __func__);
++		}
  
--	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+	list_for_each_entry(dock_station, &dock_stations, sibling) {
- 		dd = find_dock_dependent_device(dock_station, handle);
- 		if (dd)
- 			dock_del_hotplug_device(dock_station, dd);
-@@ -787,7 +787,7 @@ static int acpi_dock_notifier_call(struct notifier_block *this,
- 	if (event != ACPI_NOTIFY_BUS_CHECK && event != ACPI_NOTIFY_DEVICE_CHECK
- 	   && event != ACPI_NOTIFY_EJECT_REQUEST)
- 		return 0;
--	list_for_each_entry(dock_station, &dock_stations, sibiling) {
-+	list_for_each_entry(dock_station, &dock_stations, sibling) {
- 		if (dock_station->handle == handle) {
- 			struct dock_data *dock_data;
+ 		ret = acpi_bus_add(&device, parent_device, handle,
+ 			ACPI_BUS_TYPE_DEVICE);
+@@ -385,8 +391,10 @@ static void hotplug_dock_devices(struct dock_station *ds, u32 event)
+ 	 * First call driver specific hotplug functions
+ 	 */
+ 	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
+-		if (dd->ops && dd->ops->handler)
++		if (dd->ops && dd->ops->handler) {
++			printk("%s handle %p\n", __func__, dd->handle);
+ 			dd->ops->handler(dd->handle, event, dd->context);
++		}
+ 	}
  
-@@ -958,7 +958,7 @@ static int dock_add(acpi_handle handle)
- 	dock_station->last_dock_time = jiffies - HZ;
- 	INIT_LIST_HEAD(&dock_station->dependent_devices);
- 	INIT_LIST_HEAD(&dock_station->hotplug_devices);
--	INIT_LIST_HEAD(&dock_station->sibiling);
-+	INIT_LIST_HEAD(&dock_station->sibling);
- 	spin_lock_init(&dock_station->dd_lock);
- 	mutex_init(&dock_station->hp_lock);
- 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
-@@ -1044,7 +1044,7 @@ static int dock_add(acpi_handle handle)
+ 	/*
+@@ -1041,6 +1049,7 @@ static int dock_add(acpi_handle handle)
+ 		ret = -ENOMEM;
+ 		goto dock_add_err_unregister;
+ 	}
++	printk("%s adding self as dependent %p)\n", __func__, dd->handle);
  	add_dock_dependent_device(dock_station, dd);
  
  	dock_station_count++;
--	list_add(&dock_station->sibiling, &dock_stations);
-+	list_add(&dock_station->sibling, &dock_stations);
- 	return 0;
- 
- dock_add_err_unregister:
-@@ -1149,7 +1149,7 @@ static void __exit dock_exit(void)
- 	struct dock_station *tmp;
- 
- 	unregister_acpi_bus_notifier(&dock_acpi_notifier);
--	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibiling)
-+	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibling)
- 		dock_remove(dock_station);
- }
- 
