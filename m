@@ -1,44 +1,44 @@
-From: Stefan Richter <stefanr-MtYdepGKPcBMYopoZt5u/LNAH6kLmebB@public.gmane.org>
-Subject: Re: 2.6.32-rc1-git2: Reported regressions from 2.6.31
-Date: Fri, 02 Oct 2009 15:00:37 +0200
-Message-ID: <4AC5F975.6060505@s5r6.in-berlin.de>
-References: <9UCePxij8cB.A.VCG.-3SxKB@chimera> <1254469139.3531.19.camel@ht.satnam>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 2.6.31.stable] ACPI: fix Compaq Evo N800c (Pentium 4m) boot
+ hang regression
+Date: Fri, 02 Oct 2009 09:59:41 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0910020956440.25240@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1254469139.3531.19.camel-6Ww87KsxWewAvxtiuMwx3w@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jaswinder Singh Rajput <jaswinder-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Bunk <bunk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:35431 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032AbZJBN7w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Oct 2009 09:59:52 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Jaswinder Singh Rajput wrote:
-> If you add one more entry say "Suspected commit :" then it will be great
-> and will solve regressions much faster.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Will?  Might.
+ACPI: fix Compaq Evo N800c (Pentium 4m) boot hang regression
 
-> You can request submitter to
-> submit 'suspected commit' by git bisect and also specify git bisect
-> links like : (for more information about git bisect check
-> http://kerneltrap.org/node/11753)
+Don't disable ARB_DISABLE when the familary ID is 0x0F.
 
-I disagree.  A reporter should only be asked to bisect (using git or
-other tools) /if/ a developer determined that bisection may speed up the
-debugging process or is the only remaining option to make progress with
-a bug.
+http://bugzilla.kernel.org/show_bug.cgi?id=14211
 
-It would be wrong to steal a reporter's valuable time by asking for
-bisection before anybody familiar with the matter even had a first look
-at the report.
+This was a 2.6.31 regression, and so this patch
+needs to be applied to 2.6.31.stable
 
-Remember:
-  - Not all bugs can be economically narrowed down by bisection.
-  - Bisection requires skills, rigor, and time.
-  - Alas there are considerable sections in our kernel history which
-    are not bisectable.
--- 
-Stefan Richter
--=====-==--= =-=- ---=-
-http://arcgraph.de/sr/
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index 8c44c23..59cdfa4 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -48,7 +48,7 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+ 	 * P4, Core and beyond CPUs
+ 	 */
+ 	if (c->x86_vendor == X86_VENDOR_INTEL &&
+-	    (c->x86 > 0x6 || (c->x86 == 6 && c->x86_model >= 14)))
++	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 14)))
+ 			flags->bm_control = 0;
+ }
+ EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
