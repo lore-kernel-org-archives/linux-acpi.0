@@ -1,101 +1,97 @@
-From: Andrew Lutomirski <luto@mit.edu>
-Subject: Re: High power consumption after suspend/resume cycle
-Date: Sat, 3 Oct 2009 11:58:58 -0400
-Message-ID: <cb0375e10910030858i63051557j5fad3312d3bd3a4c@mail.gmail.com>
-References: <cb0375e10910021044n182d696dy8fd566925e46b134@mail.gmail.com>
-	 <cb0375e10910021229x7924ec56o61627ec0f625a70c@mail.gmail.com>
-	 <200910022337.42283.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [git pull request] ACPI Processor Aggregator Driver for 2.6.32-rc1
+Date: Sat, 3 Oct 2009 22:49:19 +0200
+Message-ID: <200910032249.19292.rjw@sisk.pl>
+References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:52834 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbZJCQHV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Oct 2009 12:07:21 -0400
-In-Reply-To: <200910022337.42283.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:39838 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757064AbZJCUsg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Oct 2009 16:48:36 -0400
+In-Reply-To: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-thinkpad@linux-thinkpad.org, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 
-On Fri, Oct 2, 2009 at 5:37 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday 02 October 2009, Andrew Lutomirski wrote:
->> [Adding cc's to linux-pm and linux-acpi and ]
->>
->> On Fri, Oct 2, 2009 at 1:44 PM, Andrew Lutomirski <luto@mit.edu> wro=
-te:
->> > Hi all-
->> >
->> > I'm running a git kernel that's slightly newer than 2.6.32-rc1.
->> >
->> > First, thanks for all the great work everywhere on laptop power
->> > consumption -- on my Lenovo X200s, it looks like Linux is getting
->> > close to Windows (Windows wins by about 0.7W, except that its powe=
-r
->> > usage frequently spikes since Windows apparently still doesn't kno=
-w
->> > how to sit still and do nothing, whereas Linux's seems more stable=
-=2E),
->> > even running KDE with compositing enabled and
->> > while connected to wifi, at least after some tweaking.
->>
->> [fixed irrelevant typo above, too.]
->>
->> >
->> > There's a catch, though: after a suspend/resume cycle, power
->> > consumption goes up by over well over a watt. =A0(On a system that=
- draws
->> > about 7 watts before suspending, that's a big deal.) =A0I've tried
->> > turning off X, suspending with 'echo mem > /sys/power/state' to av=
-oid
->> > any distro scripts running, and manually restoring SATA power savi=
-ng
->> > settings, but it still happens. =A0I even tried unbinding e1000e a=
-nd
->> > both USB drivers, unloading the i2400 (wimax) driver, iwlagn, and
->> > iwlcore, and it still happens. =A0This is 100% reproducible, and I=
-'d be
->> > happy to test things.
->> >
->> > This could be a BIOS bug I suppose (although I'm running the lates=
-t
->> > BIOS), but Windows 7 does not have this problem at all.
->> >
->> > Any ideas about what to try or what subsystem to blame?
->
-> It's quite hard to say. =A0Most likely one of devices is put into the=
- full power
-> state during resume and not put back into the low power state it was =
-in before.
->
-> That may be a result of the PCI core handling of resume, which puts a=
-ll devices
-> into D0 in order to restore their standard config registers and doesn=
-'t put
-> them into low power states afterwards.
+On Saturday 03 October 2009, Len Brown wrote:
+> Hi Linus,
+> 
+> please pull from: 
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpi-pad
+> 
+> This will add the ACPI Processor Aggregator Driver to the kernel.
+> acpi_pad implements a new ACPI feature where the baseboard management
+> controller can ask Linux to force busy processors to stay idle.
+> 
+> The BMC does this under dire electrical or thermal conditions
+> after it has already lowered the P-state to low frequencey mode
+> on all processors, yet the emergency persists.  This offline
+> technique is used before employing even more invasive measures,
+> such as taking T-states down to 1/8th of LFM, or powering-off
+> the server completely.
+> 
+> This driver will have no effect on the installed base,
+> no no old systems implement this new feature.  However, this
+> simle driver in Linux will be useful as this feature
+> is deployed by OEMs on new hardware.
+> 
+> As I mentioned previously, this is an ACPI patch, not a scheduler patch.
+> PeterZ is hoping to implement a more sophisticated method for forcing
+> idle time in the system with the scheduler, and when that is available,
+> I'll be delighted to update this driver to invoke it.
+> 
+> thanks!
+> 
+> --
+> Len Brown
+> Intel Open Source Technology Center
+> 
+> 
+> ps. individual patches are available on linux-acpi@vger.kernel.org
+> and a consolidated plain patch is available here:
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.31/acpi-acpi-pad-20090521-2.6.31-rc4.diff.gz
+> 
+>  MAINTAINERS             |    8 +
+>  drivers/acpi/Kconfig    |   12 +
+>  drivers/acpi/Makefile   |    2 +
+>  drivers/acpi/acpi_pad.c |  514 +++++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 536 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/acpi/acpi_pad.c
+> 
+> through these commits:
+> 
+> Len Brown (1):
+>       acpi_pad: build only on X86
+> 
+> Shaohua Li (1):
+>       ACPI: create Processor Aggregator Device driver
+> 
+> with this log:
+> 
+> commit d91f79ebc3191b15dbe385925af4840f4e68df77
+> Author: Len Brown <len.brown@intel.com>
+> Date:   Sun Sep 27 02:35:55 2009 -0400
+> 
+>     acpi_pad: build only on X86
+>     
+>     X86_FEATURE_MWAIT doesn't exist on ia64...
+>     
+>     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> commit 8e0af5141ab950b78b3ebbfaded5439dcf8b3a8d
+> Author: Shaohua Li <shaohua.li@intel.com>
+> Date:   Mon Jul 27 18:11:02 2009 -0400
+> 
+>     ACPI: create Processor Aggregator Device driver
 
-I don't think that's the problem at all -- I diffed the output of
-lspci -vvvvxxxx before and after suspend and none of the differences
-looked interesting.  Everything was in D0 both before and after.  One
-of the EHCI devices had PME asserted after resume, but clearing that
-with setpci made no difference.
+Can you please point me to the mailing list thread there this driver was
+posted (and possibly reviewed and discussed)?
 
-I did some more experiments that make it look like it's a bug in i915.
- I'll email the maintainers.
-
->
-> If that's really the case, PCI run-time PM should help here once impl=
-emented,
-> although that's going to take some time to achieve.
-
-I'm looking forward to another little bit of power savings there, too :=
-)
-
-Thanks,
-Andy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Rafael
