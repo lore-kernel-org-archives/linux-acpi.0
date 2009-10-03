@@ -1,132 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [git pull request] ACPI Processor Aggregator Driver for 2.6.32-rc1
-Date: Sat, 03 Oct 2009 01:56:32 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: 2.6.32-rc1: spurious error message from "ACPI button: provide lid
+ status functions"
+Date: Sat, 03 Oct 2009 11:52:57 +0100
+Message-ID: <4AC72D09.3040907@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:44946 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752996AbZJCF4r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Oct 2009 01:56:47 -0400
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:45002 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754553AbZJCKw4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Oct 2009 06:52:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Eric Anholt <eric@anholt.net>, Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+ACPI: Waking up from system sleep state S4
+PM: Device PNP0C0D:00 failed to thaw: error 1
 
-please pull from: 
+The device appears to be the acpi lid "button".  The error comes from
+calling acpi_lid_send_state():
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpi-pad
-
-This will add the ACPI Processor Aggregator Driver to the kernel.
-acpi_pad implements a new ACPI feature where the baseboard management
-controller can ask Linux to force busy processors to stay idle.
-
-The BMC does this under dire electrical or thermal conditions
-after it has already lowered the P-state to low frequencey mode
-on all processors, yet the emergency persists.  This offline
-technique is used before employing even more invasive measures,
-such as taking T-states down to 1/8th of LFM, or powering-off
-the server completely.
-
-This driver will have no effect on the installed base,
-no no old systems implement this new feature.  However, this
-simle driver in Linux will be useful as this feature
-is deployed by OEMs on new hardware.
-
-As I mentioned previously, this is an ACPI patch, not a scheduler patch.
-PeterZ is hoping to implement a more sophisticated method for forcing
-idle time in the system with the scheduler, and when that is available,
-I'll be delighted to update this driver to invoke it.
-
-thanks!
-
---
-Len Brown
-Intel Open Source Technology Center
+    @@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct
+    acpi_device *device)
+         /* input layer checks if event is redundant */
+         input_report_switch(button->input, SW_LID, !state);
+         input_sync(button->input);
+    -    return 0;
+    +
+    +    ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+    device);
+    +    if (ret == NOTIFY_DONE)
+    +        ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+    +                           device);
+    +    return ret;
+     }
 
 
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.31/acpi-acpi-pad-20090521-2.6.31-rc4.diff.gz
+The "error 1" is actually NOTIFY_OK.
 
- MAINTAINERS             |    8 +
- drivers/acpi/Kconfig    |   12 +
- drivers/acpi/Makefile   |    2 +
- drivers/acpi/acpi_pad.c |  514 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 536 insertions(+), 0 deletions(-)
- create mode 100644 drivers/acpi/acpi_pad.c
+    @include/linux/notify.h:
+    #define NOTIFY_DONE        0x0000        /* Don't care */
+    #define NOTIFY_OK        0x0001        /* Suits me */
+    #define NOTIFY_STOP_MASK    0x8000        /* Don't call further */
+    #define NOTIFY_BAD        (NOTIFY_STOP_MASK|0x0002)
+                            /* Bad/Veto action */
+    /*
+     * Clean way to return from the notifier and stop further calls.
+     */
+    #define NOTIFY_STOP        (NOTIFY_OK|NOTIFY_STOP_MASK)
 
-through these commits:
 
-Len Brown (1):
-      acpi_pad: build only on X86
+Clearly acpi_lid_send_state() should return 0 for NOTIFY_OK.  I guess
+NOTIFY_STOP can be ignored until someone says they need it.
 
-Shaohua Li (1):
-      ACPI: create Processor Aggregator Device driver
+But I don't understand the NOTIFY_DONE case, so I'm not sure.  I can't
+find any users to reverse engineer it.  IMO it either needs to be
+removed or commented.
 
-with this log:
+Can you please sort this out, so we don't see this error message on a
+completely successful resume?
 
-commit d91f79ebc3191b15dbe385925af4840f4e68df77
-Author: Len Brown <len.brown@intel.com>
-Date:   Sun Sep 27 02:35:55 2009 -0400
-
-    acpi_pad: build only on X86
-    
-    X86_FEATURE_MWAIT doesn't exist on ia64...
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 8e0af5141ab950b78b3ebbfaded5439dcf8b3a8d
-Author: Shaohua Li <shaohua.li@intel.com>
-Date:   Mon Jul 27 18:11:02 2009 -0400
-
-    ACPI: create Processor Aggregator Device driver
-    
-    ACPI 4.0 created the logical "processor aggregator device" as
-    a mechinism for platforms to ask the OS to force otherwise busy
-    processors to enter (power saving) idle.
-    
-    The intent is to lower power consumption to ride-out
-    transient electrical and thermal emergencies,
-    rather than powering off the server.
-    
-    On platforms that can save more power/performance via P-states,
-    the platform will first exhaust P-states before forcing idle.
-    However, the relative benefit of P-states vs. idle states
-    is platform dependent, and thus this driver need not know
-    or care about it.
-    
-    This driver does not use the kernel's CPU hot-plug mechanism
-    because after the transient emergency is over, the system must
-    be returned to its normal state, and hotplug would permanently
-    break both cpusets and binding.
-    
-    So to force idle, the driver creates a power saving thread.
-    The scheduler will migrate the thread to the preferred CPU.
-    The thread has max priority and has SCHED_RR policy,
-    so it can occupy one CPU.  To save power, the thread will
-    invoke the deep C-state entry instructions.
-    
-    To avoid starvation, the thread will sleep 5% of the time
-    time for every second (current RT scheduler has threshold
-    to avoid starvation, but if other CPUs are idle,
-    the CPU can borrow CPU timer from other,
-    which makes the mechanism not work here)
-    
-    Vaidyanathan Srinivasan has proposed scheduler enhancements
-    to allow injecting idle time into the system.  This driver doesn't
-    depend on those enhancements, but could cut over to them
-    when they are available.
-    
-    Peter Z. does not favor upstreaming this driver until
-    the those scheduler enhancements are in place.  However,
-    we favor upstreaming this driver now because it is useful
-    now, and can be enhanced over time.
-    
-    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-    NACKed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-    Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+Thanks!
+Alan
