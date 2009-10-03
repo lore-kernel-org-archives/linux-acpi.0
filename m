@@ -1,128 +1,99 @@
-From: "Joshua C." <joshuacov@googlemail.com>
-Subject: Re: Linux acpi compatibility / iasl compiler
-Date: Sat, 3 Oct 2009 17:03:05 +0200
-Message-ID: <5f6f8c5f0910030803o5113627eha3e7c796d9431367@mail.gmail.com>
-References: <7AF83C134DEA3240992E8EF512F61B7903C21AC51E@pdsmsx502.ccr.corp.intel.com>
-	 <4911F71203A09E4D9981D27F9D8308583AE9A6C6@orsmsx503.amr.corp.intel.com>
-	 <5f6f8c5f0909250604u3a48c150yeca0e77a0a966541@mail.gmail.com>
-	 <5f6f8c5f0909300608m39b8e6en560cef043980f145@mail.gmail.com>
-	 <4911F71203A09E4D9981D27F9D8308583B0212E0@orsmsx503.amr.corp.intel.com>
+From: Andrew Lutomirski <luto@mit.edu>
+Subject: Re: High power consumption after suspend/resume cycle
+Date: Sat, 3 Oct 2009 11:58:58 -0400
+Message-ID: <cb0375e10910030858i63051557j5fad3312d3bd3a4c@mail.gmail.com>
+References: <cb0375e10910021044n182d696dy8fd566925e46b134@mail.gmail.com>
+	 <cb0375e10910021229x7924ec56o61627ec0f625a70c@mail.gmail.com>
+	 <200910022337.42283.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f212.google.com ([209.85.217.212]:55761 "EHLO
-	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028AbZJCPDm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Oct 2009 11:03:42 -0400
-Received: by gxk4 with SMTP id 4so2443323gxk.8
-        for <linux-acpi@vger.kernel.org>; Sat, 03 Oct 2009 08:03:06 -0700 (PDT)
-In-Reply-To: <4911F71203A09E4D9981D27F9D8308583B0212E0@orsmsx503.amr.corp.intel.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:52834 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751360AbZJCQHV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Oct 2009 12:07:21 -0400
+In-Reply-To: <200910022337.42283.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Lin, Ming M" <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, linux-thinkpad@linux-thinkpad.org, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-2009/9/30 Moore, Robert <robert.moore@intel.com>:
-> What exactly was the repair/change that you made to the DSDT?
->
->
-> -----Original Message-----
-> From: Joshua C. [mailto:joshuacov@googlemail.com]
-> Sent: Wednesday, September 30, 2009 6:09 AM
-> To: Moore, Robert
-> Cc: Lin, Ming M; linux-acpi@vger.kernel.org
-> Subject: Re: Linux acpi compatibility / iasl compiler
->
-> 2009/9/25 Joshua C. <joshuacov@googlemail.com>:
->> 2009/9/25 Moore, Robert <robert.moore@intel.com>:
->>>
->>>> 1. Can I substitute the original dsdt (compiled with ms asl 2) wit=
-h
->>>> the one compiled and optimazed with Intel iasl?
->>>>
->>>
->>> Yes. It should work the same as the original.
->>>
->>>> 2. Is there such a "big" diffference between the code produced by
->>>> these apps?
->>>
->>> iASL is an optimizing compiler. It will optimize all namepaths to t=
-heir minimum lengths, it will minimize integer sizes, and will perform =
-constant folding. These optimizations can shrink the code considerably.
->>>
->>>
->>>> 3. How should windows react to the new dsdt recompiled with intel'=
-s
->>>> iasl?
->>>
->>> The DSDT should perform identically. It has simply been optimized b=
-y iASL.
->>> I can't speak to the other ACPI tables on your machine (although, u=
-sually any other ASL/AML tables are SSDTs)
->>>
->>>
->>> 4) You should let the kernel override the DSDT with your DSDT befor=
-e you even think about flashing the bios.
->>>
->> =A0I tried it. Linux works perfectly. As for windows:
->> -win7 doesn't show any visible signs of problems. I did my best to
->> load the table in the registry. I even tried it without UAC.It looks
->> like it works with the optimazed dsdt.
->> However this is closed-source acpi driver and maybe it still reads
->> (from the bios) the original dsdt (the ms one). Therefore I'm not th=
-at
->> sure about it.
->> -winXP: after loading the new optimized dsdt in the registry and
->> restarting the pc almost nothing works. random shutdowns with bsod a=
-nd
->> some of the hardware isn't even seen! Only a new install is the
->> solution.
->> I know that the winxp acpi driver should be rather old but I didn't
->> expect such a downturn.
+On Fri, Oct 2, 2009 at 5:37 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Friday 02 October 2009, Andrew Lutomirski wrote:
+>> [Adding cc's to linux-pm and linux-acpi and ]
 >>
->> To sum up:
->>
->> Linux works great, but from what i saw I can't say that windows (at
->> least xp, not sure for 7) likes the iasl compiled code. This once
->> again proved the "obvious" luck of standards in windows.
->>
->> Thanx to Robert Moore for the reply. I'll test some more times with
->> different iasl options before finally flashing the modded bios.
->>
->
-> I flashed the bios with the recompiled DSDT (with iasl-20090903,
-> optimized) table some days ago. Here are the results:
->
-> Linux: =A0No problems at all.Works great and nothing extra should be =
-done. Great.
->
-> Windows7: It didn't like it the first time. After flashing the bios
-> wouldn't boot so I needed to reinstall it. After this it works fine.
-> The whole story makes me think that windows caches the dsdt in the
-> registry and compares it with the one provided by the bios during
-> boot. On mismatch it won't boot.
->
-> WindowsXPSP3: It doesn't like intel compiler's optimazations. I tried
-> all options (-of -oi -on) but I wouldn't boot. It coulnd't be
-> installed either. Neither does it like the MS asl v.3. Obviously thei=
+>> On Fri, Oct 2, 2009 at 1:44 PM, Andrew Lutomirski <luto@mit.edu> wro=
+te:
+>> > Hi all-
+>> >
+>> > I'm running a git kernel that's slightly newer than 2.6.32-rc1.
+>> >
+>> > First, thanks for all the great work everywhere on laptop power
+>> > consumption -- on my Lenovo X200s, it looks like Linux is getting
+>> > close to Windows (Windows wins by about 0.7W, except that its powe=
 r
-> acpi driver is quite old. I coundn't test the compatibility mode of
-> iasl because the compiled dsdt was 13 bytes bigger than the available
-> space (in the bios file). Therefore I cannot comment on this but I be=
+>> > usage frequently spikes since Windows apparently still doesn't kno=
+w
+>> > how to sit still and do nothing, whereas Linux's seems more stable=
+=2E),
+>> > even running KDE with compositing enabled and
+>> > while connected to wifi, at least after some tweaking.
+>>
+>> [fixed irrelevant typo above, too.]
+>>
+>> >
+>> > There's a catch, though: after a suspend/resume cycle, power
+>> > consumption goes up by over well over a watt. =A0(On a system that=
+ draws
+>> > about 7 watts before suspending, that's a big deal.) =A0I've tried
+>> > turning off X, suspending with 'echo mem > /sys/power/state' to av=
+oid
+>> > any distro scripts running, and manually restoring SATA power savi=
+ng
+>> > settings, but it still happens. =A0I even tried unbinding e1000e a=
+nd
+>> > both USB drivers, unloading the i2400 (wimax) driver, iwlagn, and
+>> > iwlcore, and it still happens. =A0This is 100% reproducible, and I=
+'d be
+>> > happy to test things.
+>> >
+>> > This could be a BIOS bug I suppose (although I'm running the lates=
 t
-> it wouldn't like it either.
+>> > BIOS), but Windows 7 does not have this problem at all.
+>> >
+>> > Any ideas about what to try or what subsystem to blame?
 >
-> Anyway, I'm back to linux and it has no problems with my new (repaire=
-d) DSDT.
+> It's quite hard to say. =A0Most likely one of devices is put into the=
+ full power
+> state during resume and not put back into the low power state it was =
+in before.
 >
+> That may be a result of the PCI core handling of resume, which puts a=
+ll devices
+> into D0 in order to restore their standard config registers and doesn=
+'t put
+> them into low power states afterwards.
 
-There is a broken/missing object in the original dsdt (\SB_.PSHR).
-Take a look at kernel bug #10237. There you'll find 2 dsdt tables. The
-first on is from ykzhao (uploaded on 2008-05-09 03:09) and the second
-one is the one I'm using right now ("my custom DSDT" uploaded on
-2008-05-12 07:06). I just added the missing PSHR object
-(\SB_.PCI0.LPC0.PHSR (0x0D, 0x00), TJ85) and fixed the warnungs.
+I don't think that's the problem at all -- I diffed the output of
+lspci -vvvvxxxx before and after suspend and none of the differences
+looked interesting.  Everything was in D0 both before and after.  One
+of the EHCI devices had PME asserted after resume, but clearing that
+with setpci made no difference.
+
+I did some more experiments that make it look like it's a bug in i915.
+ I'll email the maintainers.
+
+>
+> If that's really the case, PCI run-time PM should help here once impl=
+emented,
+> although that's going to take some time to achieve.
+
+I'm looking forward to another little bit of power savings there, too :=
+)
+
+Thanks,
+Andy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
