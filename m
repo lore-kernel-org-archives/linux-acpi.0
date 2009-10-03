@@ -1,97 +1,104 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [git pull request] ACPI Processor Aggregator Driver for 2.6.32-rc1
-Date: Sat, 3 Oct 2009 22:49:19 +0200
-Message-ID: <200910032249.19292.rjw@sisk.pl>
-References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume from suspend
+Date: Sun, 4 Oct 2009 00:56:00 +0200
+Message-ID: <200910040056.00247.rjw@sisk.pl>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <4AC16682.50207@redhat.com> <20091001200522.GF31915@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39838 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:40034 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757064AbZJCUsg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Oct 2009 16:48:36 -0400
-In-Reply-To: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
+	id S1755389AbZJCWzc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Oct 2009 18:55:32 -0400
+In-Reply-To: <20091001200522.GF31915@ldl.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+To: Alex Chiang <achiang@hp.com>, Danny Feng <dfeng@redhat.com>
+Cc: lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Saturday 03 October 2009, Len Brown wrote:
-> Hi Linus,
+On Thursday 01 October 2009, Alex Chiang wrote:
+> Hi Danny,
 > 
-> please pull from: 
+> * Danny Feng <dfeng@redhat.com>:
+> > Call Trace:
+> >  [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
+> >  [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
+> >  [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
+> >  [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
+> >  [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
+> >  [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
+> >  [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
+> >  [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
+> >  [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
+> >  [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
+> >  [<ffffffff8106a244>] worker_thread+0x251/0x347
+> >  [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
+> >  [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
+> >  [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
+> >  [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
+> >  [<ffffffff8106e0e0>] kthread+0x7f/0x87
+> >  [<ffffffff81012cea>] child_rip+0xa/0x20
+> >  [<ffffffff81012650>] ? restore_args+0x0/0x30
+> >  [<ffffffff8106e061>] ? kthread+0x0/0x87
+> >  [<ffffffff81012ce0>] ? child_rip+0x0/0x20
+> > Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7  
+> > 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00 <49> 8b  
+> > 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
+> > RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+> >  RSP <ffff88022ee69aa0>
+> > CR2: 0000000000000028
+> > ---[ end trace b5a7793bd9db2a4d ]---
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpi-pad
-> 
-> This will add the ACPI Processor Aggregator Driver to the kernel.
-> acpi_pad implements a new ACPI feature where the baseboard management
-> controller can ask Linux to force busy processors to stay idle.
-> 
-> The BMC does this under dire electrical or thermal conditions
-> after it has already lowered the P-state to low frequencey mode
-> on all processors, yet the emergency persists.  This offline
-> technique is used before employing even more invasive measures,
-> such as taking T-states down to 1/8th of LFM, or powering-off
-> the server completely.
-> 
-> This driver will have no effect on the installed base,
-> no no old systems implement this new feature.  However, this
-> simle driver in Linux will be useful as this feature
-> is deployed by OEMs on new hardware.
-> 
-> As I mentioned previously, this is an ACPI patch, not a scheduler patch.
-> PeterZ is hoping to implement a more sophisticated method for forcing
-> idle time in the system with the scheduler, and when that is available,
-> I'll be delighted to update this driver to invoke it.
-> 
-> thanks!
-> 
-> --
-> Len Brown
-> Intel Open Source Technology Center
-> 
-> 
-> ps. individual patches are available on linux-acpi@vger.kernel.org
-> and a consolidated plain patch is available here:
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.31/acpi-acpi-pad-20090521-2.6.31-rc4.diff.gz
-> 
->  MAINTAINERS             |    8 +
->  drivers/acpi/Kconfig    |   12 +
->  drivers/acpi/Makefile   |    2 +
->  drivers/acpi/acpi_pad.c |  514 +++++++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 536 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/acpi/acpi_pad.c
-> 
-> through these commits:
-> 
-> Len Brown (1):
->       acpi_pad: build only on X86
-> 
-> Shaohua Li (1):
->       ACPI: create Processor Aggregator Device driver
-> 
-> with this log:
-> 
-> commit d91f79ebc3191b15dbe385925af4840f4e68df77
-> Author: Len Brown <len.brown@intel.com>
-> Date:   Sun Sep 27 02:35:55 2009 -0400
-> 
->     acpi_pad: build only on X86
->     
->     X86_FEATURE_MWAIT doesn't exist on ia64...
->     
->     Signed-off-by: Len Brown <len.brown@intel.com>
-> 
-> commit 8e0af5141ab950b78b3ebbfaded5439dcf8b3a8d
-> Author: Shaohua Li <shaohua.li@intel.com>
-> Date:   Mon Jul 27 18:11:02 2009 -0400
-> 
->     ACPI: create Processor Aggregator Device driver
+> Can you please reproduce with this debug patch? I'm guessing that
+> we're dying because we have a NULL parent device, but I'm curious
+> as to what causes this situation to occur.
 
-Can you please point me to the mailing list thread there this driver was
-posted (and possibly reviewed and discussed)?
+If we had a NULL parent, acpi_get_parent() would return an error.  Also, if we
+one of the devices is NULL at the PCI level, pci_get_slot() will return NULL.
+The only possibility left is that one of the buses we find in the ACPI tables
+doesn't have a secondary PCI bus.
 
-Best,
+I think what happens is that on resume we get a dock notification
+(via dock_acpi_notifier registered in dock_init()) for a dock station device
+that is present in the ACPI tables, but not physically accessible at the moment
+(I guess that falls into the "BIOS bug" category, but we can fix this easily in
+the kernel).
+
+So, IMO, the appended patch is the right fix.
+
+Danny, please test it and report back (in particular, please tell us if you see
+the "Secondary bus not present" message in dmesg).
+
+Thanks,
 Rafael
+
+
+---
+ drivers/acpi/pci_root.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+Index: linux-2.6/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -389,6 +389,18 @@ struct pci_dev *acpi_get_pci_dev(acpi_ha
+ 
+ 		pbus = pdev->subordinate;
+ 		pci_dev_put(pdev);
++
++		/*
++		 * During resume from a sleep state we can get a dock
++		 * notification for a device that is present in ACPI tables,
++		 * but not physically accessible at the moment, so tell the
++		 * caller it's not present.
++		 */
++		if (!pbus) {
++			dev_info(&pdev->dev, "Secondary bus not present\n");
++			pdev = NULL;
++			break;
++		}
+ 	}
+ out:
+ 	list_for_each_entry_safe(node, tmp, &device_list, node)
