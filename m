@@ -1,104 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume from suspend
-Date: Sun, 4 Oct 2009 00:56:00 +0200
-Message-ID: <200910040056.00247.rjw@sisk.pl>
-References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <4AC16682.50207@redhat.com> <20091001200522.GF31915@ldl.fc.hp.com>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Subject: Re: [PATCH] battery: Fix charge_now returned by broken batteries
+Date: Sun, 4 Oct 2009 19:46:42 +0200
+Message-ID: <ca2dc2820910041046i47a1c3dhba82266bb14a440c@mail.gmail.com>
+References: <1254669853.26496.0.camel@carter>
+	 <20091004164553.GD10505@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40034 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755389AbZJCWzc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Oct 2009 18:55:32 -0400
-In-Reply-To: <20091001200522.GF31915@ldl.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757478AbZJDRrV@vger.kernel.org>
+In-Reply-To: <20091004164553.GD10505@khazad-dum.debian.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: astarikovskiy@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Danny Feng <dfeng@redhat.com>
-Cc: lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday 01 October 2009, Alex Chiang wrote:
-> Hi Danny,
-> 
-> * Danny Feng <dfeng@redhat.com>:
-> > Call Trace:
-> >  [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
-> >  [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
-> >  [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
-> >  [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
-> >  [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
-> >  [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
-> >  [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
-> >  [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
-> >  [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
-> >  [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
-> >  [<ffffffff8106a244>] worker_thread+0x251/0x347
-> >  [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
-> >  [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
-> >  [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
-> >  [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
-> >  [<ffffffff8106e0e0>] kthread+0x7f/0x87
-> >  [<ffffffff81012cea>] child_rip+0xa/0x20
-> >  [<ffffffff81012650>] ? restore_args+0x0/0x30
-> >  [<ffffffff8106e061>] ? kthread+0x0/0x87
-> >  [<ffffffff81012ce0>] ? child_rip+0x0/0x20
-> > Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7  
-> > 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00 <49> 8b  
-> > 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
-> > RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
-> >  RSP <ffff88022ee69aa0>
-> > CR2: 0000000000000028
-> > ---[ end trace b5a7793bd9db2a4d ]---
-> 
-> Can you please reproduce with this debug patch? I'm guessing that
-> we're dying because we have a NULL parent device, but I'm curious
-> as to what causes this situation to occur.
+On Sun, Oct 4, 2009 at 6:45 PM, Henrique de Moraes Holschuh
+<hmh@hmh.eng.br> wrote:
+> On Sun, 04 Oct 2009, Miguel Ojeda wrote:
+>> Some broken batteries like my DELL NR2227 or a friend's DELL GK4798 =
+return
+>> the design_capacity (charge_full_design) as capacity_now (charge_now=
+)
+>> when completely charged.
+>>
+>> I noticed this when looking at a battery plugin that reported "127% =
+charged".
+>> Some of these plugins have already "fixed" this in userspace by codi=
+ng
+>> something like min(percentage, 100)).
+>
+> A battery can be charged above 100%. =A0It just depends what you call=
+ 100%,
+> and the "I am full" level *varies* in a non-monotonic way during the =
+battery
+> lifetime...
+>
+> So, if you don't want to see > 100%, you have to clamp it to 100% and=
+ lose
+> information (when your "100%" level is actually increasing as the thi=
+ng
+> keeps charging and you keep raising the baseline so that it doesn't g=
+o over
+> 100%).
 
-If we had a NULL parent, acpi_get_parent() would return an error.  Also, if we
-one of the devices is NULL at the PCI level, pci_get_slot() will return NULL.
-The only possibility left is that one of the buses we find in the ACPI tables
-doesn't have a secondary PCI bus.
+If the 100% level increased, then full_charge_capacity (a.k.a. "_last_
+full capacity" as seen in /proc) will increase as well, won't it? If
+the battery went over that 100% that means there is a "new" 100%, why
+are we losing information?.
 
-I think what happens is that on resume we get a dock notification
-(via dock_acpi_notifier registered in dock_init()) for a dock station device
-that is present in the ACPI tables, but not physically accessible at the moment
-(I guess that falls into the "BIOS bug" category, but we can fix this easily in
-the kernel).
+I am asking, I am not an expert on battery stuff.
 
-So, IMO, the appended patch is the right fix.
+>
+>> So I discovered that the battery wrongly returns charge_full_design =
+when
+>> completely charged instead of charge_full.
+>
+> Ick.
+>
+>> This patch fixes this by returning min(capacity_now, full_charge_cap=
+acity)
+>> on both procfs and sysfs.
+>
+> What will it cause on non-broken batteries? =A0Or during gauge reset,=
+ when any
+> battery that updates full_charge_capacity only at the end of the cycl=
+e will
+> really have capacity_now > full_charge_capacity ?
 
-Danny, please test it and report back (in particular, please tell us if you see
-the "Secondary bus not present" message in dmesg).
+Well, does it make sense to have capacity_now higher than
+full_charge_capacity? Wouldn't that information be broken too?
 
-Thanks,
-Rafael
+Again, I am just wondering.
 
+>
+>> Now the userspace plugins report the correct 100% and their userspac=
+e check
+>> may not be needed (if this error is the only one producing >100% res=
+ults).
+>
+> Like I said, > 100% can happen, unless what you define to be 100% is =
+very
+> elastic (and gets updated all the time).
 
----
- drivers/acpi/pci_root.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+I still think it does not make sense to have a battery charged over
+its 100% capacity whatever the definition of 100% is. Maybe I do not
+understand your point.
 
-Index: linux-2.6/drivers/acpi/pci_root.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/pci_root.c
-+++ linux-2.6/drivers/acpi/pci_root.c
-@@ -389,6 +389,18 @@ struct pci_dev *acpi_get_pci_dev(acpi_ha
- 
- 		pbus = pdev->subordinate;
- 		pci_dev_put(pdev);
-+
-+		/*
-+		 * During resume from a sleep state we can get a dock
-+		 * notification for a device that is present in ACPI tables,
-+		 * but not physically accessible at the moment, so tell the
-+		 * caller it's not present.
-+		 */
-+		if (!pbus) {
-+			dev_info(&pdev->dev, "Secondary bus not present\n");
-+			pdev = NULL;
-+			break;
-+		}
- 	}
- out:
- 	list_for_each_entry_safe(node, tmp, &device_list, node)
+>
+> --
+> =A0"One disk to rule them all, One disk to find them. One disk to bri=
+ng
+> =A0them all and in the darkness grind them. In the Land of Redmond
+> =A0where the shadows lie." -- The Silicon Valley Tarot
+> =A0Henrique Holschuh
+>
