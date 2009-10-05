@@ -1,79 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PCI: Fix NULL pointer dereference in
-	acpi_get_pci_dev()
-Date: Tue, 6 Oct 2009 02:01:42 +0200
-Message-ID: <200910060201.42519.rjw@sisk.pl>
-References: <200910060130.43246.rjw@sisk.pl>
-	<20091005233759.GB14394@ldl.fc.hp.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: 2.6.32-rc1: spurious error message from "ACPI button: provide
+ lid status functions"
+Date: Mon, 5 Oct 2009 16:59:07 -0700
+Message-ID: <20091005165907.291b9c6c@jbarnes-g45>
+References: <4AC72D09.3040907@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20091005233759.GB14394@ldl.fc.hp.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alex Chiang <achiang@hp.com>
-Cc: chepioq@gmail.com, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Danny Feng <dfeng@redhat.com>, pm list <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755361AbZJEX7y@vger.kernel.org>
+In-Reply-To: <4AC72D09.3040907@tuffmail.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Eric Anholt <eric@anholt.net>, Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 06 October 2009, Alex Chiang wrote:
-> * Rafael J. Wysocki <rjw@sisk.pl>:
-> > 
-> > Fixes http://bugzilla.kernel.org/show_bug.cgi?id=14129, which is a
-> > regression from 2.6.30.
-> 
-> Thanks for doing this.
-> 
-> One small comment below (not major), but other than that:
-> 
-> Reviewed-by: Alex Chiang <achiang@hp.com>
-> 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > Reported-by: Danny Feng <dfeng@redhat.com>
-> > Tested-by: chepioq <chepioq@gmail.com>
-> > ---
-> >  drivers/acpi/pci_root.c |   12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
-> > 
-> > Index: linux-2.6/drivers/acpi/pci_root.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/pci_root.c
-> > +++ linux-2.6/drivers/acpi/pci_root.c
-> > @@ -389,6 +389,18 @@ struct pci_dev *acpi_get_pci_dev(acpi_ha
-> >  
-> >  		pbus = pdev->subordinate;
-> >  		pci_dev_put(pdev);
-> > +
-> > +		/*
-> > +		 * During resume from a sleep state we can get a dock
-> > +		 * notification for a device that is present in ACPI tables,
-> > +		 * but not physically accessible at the moment, so tell the
-> > +		 * caller it's not present in that case.
-> > +		 */
-> > +		if (!pbus) {
-> > +			dev_info(&pdev->dev, "Secondary bus not present\n");
-> 
-> Should this be dev_dbg() or maybe even strike it completely?
+On Sat, 03 Oct 2009 11:52:57 +0100
+Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
 
-I thought about that, but I decided not to just in order to get some idea about
-how many affected systems are out there.  If that happens to be a problem for
-anyone, we can simply remove the message in the future.
-
+> ACPI: Waking up from system sleep state S4
+> PM: Device PNP0C0D:00 failed to thaw: error 1
 > 
-> > +			pdev = NULL;
-> > +			break;
-> > +		}
-> >  	}
-> >  out:
-> >  	list_for_each_entry_safe(node, tmp, &device_list, node)
-> > 
+> The device appears to be the acpi lid "button".  The error comes from
+> calling acpi_lid_send_state():
+> 
+>     @@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct
+>     acpi_device *device)
+>          /* input layer checks if event is redundant */
+>          input_report_switch(button->input, SW_LID, !state);
+>          input_sync(button->input);
+>     -    return 0;
+>     +
+>     +    ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+>     device);
+>     +    if (ret == NOTIFY_DONE)
+>     +        ret = blocking_notifier_call_chain(&acpi_lid_notifier,
+> state,
+>     +                           device);
+>     +    return ret;
+>      }
+> 
+> 
+> The "error 1" is actually NOTIFY_OK.
+> 
+>     @include/linux/notify.h:
+>     #define NOTIFY_DONE        0x0000        /* Don't care */
+>     #define NOTIFY_OK        0x0001        /* Suits me */
+>     #define NOTIFY_STOP_MASK    0x8000        /* Don't call further */
+>     #define NOTIFY_BAD        (NOTIFY_STOP_MASK|0x0002)
+>                             /* Bad/Veto action */
+>     /*
+>      * Clean way to return from the notifier and stop further calls.
+>      */
+>     #define NOTIFY_STOP        (NOTIFY_OK|NOTIFY_STOP_MASK)
+> 
+> 
+> Clearly acpi_lid_send_state() should return 0 for NOTIFY_OK.  I guess
+> NOTIFY_STOP can be ignored until someone says they need it.
+> 
+> But I don't understand the NOTIFY_DONE case, so I'm not sure.  I can't
+> find any users to reverse engineer it.  IMO it either needs to be
+> removed or commented.
+> 
+> Can you please sort this out, so we don't see this error message on a
+> completely successful resume?
+
+Ah yeah, this does look funky.  I'll fix it up.
 
 Thanks,
-Rafael
+-- 
+Jesse Barnes, Intel Open Source Technology Center
