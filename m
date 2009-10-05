@@ -1,52 +1,77 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [git pull request] ACPI Processor Aggregator Driver for
- 2.6.32-rc1
-Date: Mon, 5 Oct 2009 16:23:12 -0700 (PDT)
-Message-ID: <alpine.LFD.2.01.0910051614510.3432@localhost.localdomain>
-References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain> <20091005033256.GA26592@balbir.in.ibm.com> <200910052159.24920.rjw@sisk.pl> <20091005140415.57f1db5e.akpm@linux-foundation.org> <alpine.LFD.2.00.0910051818130.32307@localhost.localdomain>
- <20091005154021.129a8f9f.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / PCI: Fix NULL pointer dereference in
+	acpi_get_pci_dev()
+Date: Tue, 6 Oct 2009 01:30:43 +0200
+Message-ID: <200910060130.43246.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57558 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754263AbZJEXZI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2009 19:25:08 -0400
-In-Reply-To: <20091005154021.129a8f9f.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Len Brown <lenb@kernel.org>
+Cc: chepioq@gmail.com, Alex Chiang <achiang@hp.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Danny Feng <dfeng@redhat.com>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, rjw@sisk.pl, balbir@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, a.p.zijlstra@chello.nl, shaohua.li@intel.com, svaidy@linux.vnet.ibm.com
 
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
+acpi_get_pci_dev() assumes that every handle it finds in the ACPI CA
+name space, between given device handle and the PCI root bridge
+handle, corresponds to a PCI-to-PCI bridge with an existing secondary
+bus.  For this reason, when it finds a struct pci_dev object
+corresponding to one of them, it doesn't check if its 'subordinate'
+field is a valid pointer.
 
-On Mon, 5 Oct 2009, Andrew Morton wrote:
-> 
-> But it's all too late now, isn't it.  This is the first time that
-> non-linux-acpi readers knew of the existence of this driver.
+However, during resume from a sleep state, as well as at startup, we
+may get a dock notification, via dock_acpi_notifier registered by
+dock_init(), for a docking station device that is present in the ACPI
+tables, but not physically accessible at the moment.  In that
+situation, the device appears to be below a PCI bridge whose
+'subordinate' field is NULL.  This, in turn, causes
+acpi_get_pci_dev() to trigger a NULL pointer dereference.
 
-Why do people even care? This driver is not going to be used in any 
-situation where any regular person will _ever_ care. And if you don't 
-like it, you don't have to enable it at all.
+To fix this issue make acpi_get_pci_dev() check if pdev->subordinate
+is not NULL for every device it finds in the path between the root
+bridge and the device it's supposed to get to and return NULL if the
+"target" device is not really accessible.
 
-That driver is ACPI-specific, is not very complex, is marked EXPERIMENTAL, 
-and everybody including Len has said that _if_ the scheduler people can 
-ever solve it at that level, it would be good. But as it is, it has 
-NOTHING to do with the scheduler, and why _should_ any non-ACPI people 
-know about the existence of that driver?
+Fixes http://bugzilla.kernel.org/show_bug.cgi?id=14129, which is a
+regression from 2.6.30.
 
-In fact, the only reason the scheduler people even know about it is that 
-Len at first tried to do something more invasive, and was shot down. Now 
-it's just a driver, and the scheduler people can _try_ to do it some other 
-way if they really care, but that's _their_ problem. Not the driver.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-by: Danny Feng <dfeng@redhat.com>
+Tested-by: chepioq <chepioq@gmail.com>
+---
+ drivers/acpi/pci_root.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-In the meantime, I personally suspect we probably never want to even try 
-to solve it in the scheduler, because why the hell should we care and add 
-complex logic for something like that? At least not until we end up having 
-the same issue on some other architecture too, and it turns from a hacky 
-ACPI thing into something more.
-
-As it is, the driver is entirely self-contained and doesn't affect any 
-other subsystem. 
-
-				Linus
+Index: linux-2.6/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -389,6 +389,18 @@ struct pci_dev *acpi_get_pci_dev(acpi_ha
+ 
+ 		pbus = pdev->subordinate;
+ 		pci_dev_put(pdev);
++
++		/*
++		 * During resume from a sleep state we can get a dock
++		 * notification for a device that is present in ACPI tables,
++		 * but not physically accessible at the moment, so tell the
++		 * caller it's not present in that case.
++		 */
++		if (!pbus) {
++			dev_info(&pdev->dev, "Secondary bus not present\n");
++			pdev = NULL;
++			break;
++		}
+ 	}
+ out:
+ 	list_for_each_entry_safe(node, tmp, &device_list, node)
