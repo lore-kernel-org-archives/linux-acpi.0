@@ -1,91 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [git pull request] ACPI Processor Aggregator Driver for
- 2.6.32-rc1
-Date: Mon, 5 Oct 2009 14:04:15 -0700
-Message-ID: <20091005140415.57f1db5e.akpm@linux-foundation.org>
-References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
-	<20091005033256.GA26592@balbir.in.ibm.com>
-	<200910052159.24920.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [git pull request] ACPI Processor Aggregator Driver for 2.6.32-rc1
+Date: Mon, 5 Oct 2009 23:51:53 +0200
+Message-ID: <200910052351.53207.rjw@sisk.pl>
+References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain> <200910052159.24920.rjw@sisk.pl> <alpine.LFD.2.01.0910051354450.3432@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34341 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753557AbZJEVGC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2009 17:06:02 -0400
-In-Reply-To: <200910052159.24920.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754705AbZJEVvH@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.01.0910051354450.3432@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: balbir@linux.vnet.ibm.com, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: balbir@linux.vnet.ibm.com, lenb@kernel.org, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, a.p.zijlstra@chello.nl, shaohua.li@intel.com, svaidy@linux.vnet.ibm.com
 
-On Mon, 5 Oct 2009 21:59:24 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> > >     Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > >     NACKed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-> > >     Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-> > >     Signed-off-by: Len Brown <len.brown@intel.com>
+On Monday 05 October 2009, Linus Torvalds wrote:
+> 
+> On Mon, 5 Oct 2009, Rafael J. Wysocki wrote:
 > > 
-> > This is a first a patch with a NACKed-by, could we please have more
-> > discussion on the proposed design.
+> > This thing has already been merged, it appears: and it looks like a 
+> > total breakage of rules to me.
 > 
-> This thing has already been merged, it appears:
-> 
-> commit 8e0af5141ab950b78b3ebbfaded5439dcf8b3a8d
-> Author: Shaohua Li <shaohua.li@intel.com>
-> Date:   Mon Jul 27 18:11:02 2009 -0400
-> 
->     ACPI: create Processor Aggregator Device driver
-> 
-> and it looks like a total breakage of rules to me.
+> Well, Len pointed out to me that the NAK is kind of pointless, since it 
+> had no constructive alternatives to the issue. So he left it in as 
+> documentation, but until the scheduler people can actually _do_ something 
+> about the problem, their voice doesn't really matter, does it?
 
-To me also.
+Well, for a patch that was objected to so strongly, I think it didn't get
+enough review from other relevant people before being pushed upstream.
+It looks like Balbir didn't see it before for one example.
 
-I'm not a great believer in "rules".  They're only guidelines based on
-past experience and an expectation that prior experience is a predictor
-of future outcomes.  Sometimes, in some cases that prediction breaks down,
-so we should ignore the "rules".  But this does not appear to be such a
-case.
+It's been lots of time since the patch was originally posted to send it to
+the LKML for discussion and so on and to receive some comments that
+might help to improve it.  I have no idea why that wasn't done and I suspect
+there was some corporate pressure on Len to push it upstream as quickly as
+possible.
 
-The driver was merged over Peter's strenuous and reasonable-sounding
-objections.  Partly because of:
-
-On Fri, 26 Jun 2009 12:46:53 -0400 (EDT)
-Len Brown <lenb@kernel.org> wrote:
-
-> ...
-> We'd like to ship the forced-idle thread as a self-contained driver,
-> if possilbe.  Because that would enable us to easily back-port it
-> to some enterprise releases that want the feature.  So if we can
-> implement this such that it is functional with existing scheduler
-> facilities, that would be get us by.  If the scheduler evolves
-> and provides a more optimal mechanism in the future, then that is
-> great, as long as we don't have to wait for that to provide
-> the basic version of the feature.
-
-Problem is, that plan doesn't work.  If in 2.6.33 we add the new
-scheduler capabilities and then convert this driver to utilise them
-then the enterprise releases don't really have a backported driver any
-more.  They own some special thing which was cherrypicked in a
-mid-development stage from 2.6.32.  And future enhancement or fixing of
-that driver is not applicable to the enterprise kernel's version.  So a
-large part of the reason for preferring to use backported mainline
-features will be invalidated.
-
-
-All that being said, I don't see a lot of gain in reverting the driver
-now.  From the mainline kernel's POV we make the scheduler changes,
-alter the driver and then proceed happily.  The thus-stranded
-enterprise kernel people are then somewhat screwed, but what can we do?
-Apart from asking "please don't do this again".
-
-
-
-Technical question: the overall feature, which I'd describe as
-"shutting down CPUs when an external agent tells us the
-thermal/electrical/other load is too high" is not at all specific to
-the x86 CPU.  Should the code have been designed in such a way as to
-permit other architectures to play?  
-
+Best,
+Rafael
