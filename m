@@ -1,95 +1,157 @@
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
-Subject: Re: [git pull request] ACPI Processor Aggregator Driver for
- 2.6.32-rc1
-Date: Mon, 5 Oct 2009 12:45:38 +0530
-Message-ID: <20091005071538.GA3036@balbir.in.ibm.com>
-References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
- <20091005033256.GA26592@balbir.in.ibm.com>
- <20091005053310.GB14222@dirshya.in.ibm.com>
-Reply-To: balbir@linux.vnet.ibm.com
+From: Stefan Bader <stefan.bader@canonical.com>
+Subject: Re: [Fwd: Re: [PATCH] acerhdf: Limit modalias matching to supported
+ boards]
+Date: Mon, 05 Oct 2009 14:05:54 +0200
+Message-ID: <4AC9E122.8050609@canonical.com>
+References: <4AC9E0F3.5030605@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758545AbZJEHQY@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091005053310.GB14222@dirshya.in.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Shaohua Li <shaohua.li@intel.com>
+Content-Type: multipart/mixed;
+ boundary="------------050003000606070004030900"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from adelie.canonical.com ([91.189.90.139]:45081 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758558AbZJEMGd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2009 08:06:33 -0400
+In-Reply-To: <4AC9E0F3.5030605@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Borislav Petkov <petkovbb@gmail.com>, Peter Feuerer <peter@piie.net>
 
-* Vaidy <svaidy@linux.vnet.ibm.com> [2009-10-05 11:03:10]:
+This is a multi-part message in MIME format.
+--------------050003000606070004030900
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> * Balbir Singh <balbir@linux.vnet.ibm.com> [2009-10-05 09:02:56]:
+Stefan Bader wrote:
+> Len,
 > 
-> > * Len Brown <lenb@kernel.org> [2009-10-03 01:56:32]:
-> > 
-> > >     This driver does not use the kernel's CPU hot-plug mechanism
-> > >     because after the transient emergency is over, the system must
-> > >     be returned to its normal state, and hotplug would permanently
-> > >     break both cpusets and binding.
-> > >     
-> > 
-> > Why does hotplug break cpusets and binding?
+> could you please pick this patch to prevent the acerhdf module to get 
+> loaded on the wrong hardware (causing only annoying warnings.
 > 
-> CPU hotplug will break any cpuset that is setup with that cpu.
-> Userspace needs to register for notifications and redo the cpusets to
-> get desired behaviour.  Since these emergencies are short durations,
-> these may require constant re-creation of cpusets leading to an
-> administrative overhead and added complexity.
->
- 
-My concern is that the alternative is even harsher, you can end up
-with starvation, unless we explicitly migrate all tasks away from that
-CPU (I need to see the patches again to see if they do that).
-
-> Hence Peter had suggested a transparent method to reduce system
-> capacity and not really knock out a single cpu.  The goal is to run
-> something like 6 cpus at a time in an 8 cpu system without starving
-> any single cpu.  Also real time jobs should still allowed to be run
-> since they will generally be very short running.
+> Thanks,
+> Stefan
 > 
-> In this patch series, the main design issue was about running
-> a forced-idle thread that may affect scheduling fairness.
->
-
-Not to mention that they put the scheduler and available CPUs or the
-notion of them (out of sync).
- 
-> > >     So to force idle, the driver creates a power saving thread.
-> > >     The scheduler will migrate the thread to the preferred CPU.
-> > >     The thread has max priority and has SCHED_RR policy,
-> > >     so it can occupy one CPU.  To save power, the thread will
-> > >     invoke the deep C-state entry instructions.
-> > >     
-> > >     To avoid starvation, the thread will sleep 5% of the time
-> > >     time for every second (current RT scheduler has threshold
-> > >     to avoid starvation, but if other CPUs are idle,
-> > >     the CPU can borrow CPU timer from other,
-> > >     which makes the mechanism not work here)
-> > >     
-> > >     Vaidyanathan Srinivasan has proposed scheduler enhancements
-> > >     to allow injecting idle time into the system.  This driver doesn't
-> > >     depend on those enhancements, but could cut over to them
-> > >     when they are available.
-> > >     
-> > >     Peter Z. does not favor upstreaming this driver until
-> > >     the those scheduler enhancements are in place.  However,
-> > >     we favor upstreaming this driver now because it is useful
-> > >     now, and can be enhanced over time.
-> > >     
-> > >     Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> > >     NACKed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-> > >     Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-> > >     Signed-off-by: Len Brown <len.brown@intel.com>
-> > 
-> > This is a first a patch with a NACKed-by, could we please have more
-> > discussion on the proposed design.
+> -------- Original Message --------
+> Subject: Re: [PATCH] acerhdf: Limit modalias matching to supported boards
+> Date: Sat, 03 Oct 2009 18:47:33 +0200
+> From: Peter Feuerer <peter@piie.net>
+> To: Stefan Bader <stefan.bader@canonical.com>
+> CC: Borislav Petkov <petkovbb@googlemail.com>, linux-kernel@vger.kernel.org
+> References: <4AC34B83.6090402@canonical.com> 
+> <20090930212233.GB17712@liondog.tnic> 
+> <cone.1254466252.404216.3290.1000@onepiie> 
+> <4AC5B0F1.4030303@canonical.com> 
+> <9ea470500910020254j21fad1d3g1c825bcecdbb29fb@mail.gmail.com> 
+> <cone.1254477850.9043.3499.1000@onepiie> <4AC5D098.1010504@canonical.com>
 > 
-> This is the most recent reference I have:
-> http://marc.info/?l=linux-acpi&m=124650086915649&w=2
->
+> Stefan Bader writes:
+> 
+>> Peter Feuerer wrote:
+>>> Borislav Petkov writes:
+>>>
+>>>> On Fri, Oct 2, 2009 at 9:51 AM, Stefan Bader 
+>>>> <stefan.bader@canonical.com> wrote:
+>>>>>>> I search my acerhdf-inbox for the people who sent me the BIOS 
+>>>>>>> versions,
+>>>>>> maybe they still have the netbook and can me send the modalias 
+>>>>>> content. I'll
+>>>>>> hopefully find some time upcoming weekend.
+>>>>>>
+>>>>>> But, can't we simply assume, following dmi lines?
+>>>>>>
+>>>>>> MODULE_ALIAS("dmi:*:*Acer*:*AOA*:");
+>>>>>> MODULE_ALIAS("dmi:*:*Gateway*:*AOA*:");
+>>>>>> MODULE_ALIAS("dmi:*:*Packard Bell*:*AOA*:");
+>>>>>> MODULE_ALIAS("dmi:*:*Packard Bell*:*DOA*:");
+>>>>>>
+>>>>>> We have exactly those constellations within the BIOS settings 
+>>>>>> table. If I
+>>>>>> interpret the modalias line correctly, "pnAOA110" means "Product Name
+>>>>>> AOA110" and that's what we have already in the BIOS settings 
+>>>>>> table. So I
+>>>>>> think we do already have all information we need to create a 
+>>>>>> complete patch
+>>>>>> for the problem, or am I wrong?
+>>>>>
+>>>>> Right pn means that. I would strongly believe the above changes 
+>>>>> should be
+>>>>> good. I sometimes tend to be over-cautious. Attaching a refreshed 
+>>>>> patch
+>>>>> which includes them all.
+>>>>
+>>>> Well, acerhdf.c and dmi-id.c both do
+>>>> dmi_get_system_info(DMI_PRODUCT_NAME) when querying product name which
+>>>> means that the product names in the acerhdf table and the dmi-id ones
+>>>> are actually one and the same thing.
+>>>>
+>>>> IMO, we should just go ahead send it to Len. Stefan, you have my ACK.
+> 
+> Acked-by: Peter Feuerer <peter@piie.net>
+> 
+> Thank you Stefan!
+> 
+> regards,
+> --peter
+> 
 
-Thanks for the link. 
+Doh! This time _with_ the patch...
+
+
 
 -- 
-	Balbir
+
+When all other means of communication fail, try words!
+
+
+
+--------------050003000606070004030900
+Content-Type: text/x-diff;
+ name="0001-acerhdf-Limit-modalias-matching-to-supported-boards.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0001-acerhdf-Limit-modalias-matching-to-supported-boards.pat";
+ filename*1="ch"
+
+>From 60cdb7bea856fdd594262ee1e9608cd2210cf196 Mon Sep 17 00:00:00 2001
+From: Stefan Bader <stefan.bader@canonical.com>
+Date: Mon, 28 Sep 2009 17:11:29 +0000
+Subject: [PATCH] acerhdf: Limit modalias matching to supported boards
+
+BugLink: https://bugs.launchpad.net/ubuntu/+bug/435958
+
+The module alias currently matches any Acer computer but when loaded the
+BIOS checks will only succeed on Aspire One models. This causes a invalid
+BIOS warning for all other models (seen on Aspire 4810T).
+This is not fatal but worries users that see this message. Limiting the
+moule alias to models starting with AOA or DOA for Packard Bell.
+
+Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
+Acked-by: Borislav Petkov <petkovbb@gmail.com>
+Acked-by: Peter Feuerer <peter@piie.net>
+---
+ drivers/platform/x86/acerhdf.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
+index 0a8f735..23eea4c 100644
+--- a/drivers/platform/x86/acerhdf.c
++++ b/drivers/platform/x86/acerhdf.c
+@@ -629,9 +629,10 @@ static void __exit acerhdf_exit(void)
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Peter Feuerer");
+ MODULE_DESCRIPTION("Aspire One temperature and fan driver");
+-MODULE_ALIAS("dmi:*:*Acer*:*:");
+-MODULE_ALIAS("dmi:*:*Gateway*:*:");
+-MODULE_ALIAS("dmi:*:*Packard Bell*:*:");
++MODULE_ALIAS("dmi:*:*Acer*:pnAOA*:");
++MODULE_ALIAS("dmi:*:*Gateway*:pnAOA*:");
++MODULE_ALIAS("dmi:*:*Packard Bell*:pnAOA*:");
++MODULE_ALIAS("dmi:*:*Packard Bell*:pnDOA*:");
+ 
+ module_init(acerhdf_init);
+ module_exit(acerhdf_exit);
+-- 
+1.5.4.3
+
+
+--------------050003000606070004030900--
