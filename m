@@ -1,101 +1,159 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] CPUidle: always return with interrupts
-	enabled
-Date: Tue, 6 Oct 2009 14:02:51 -0700
-Message-ID: <636c5030910061402x5a1e6f99i9cebf098c37147ee@mail.gmail.com>
-References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
-	<200909302321.33088.rjw@sisk.pl>
-	<20091006133456.5177a32a.akpm@linux-foundation.org>
+From: Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2.6.32-rc3] Prevent a panic when
+	disabling RT2860 wireless when associated
+Date: Tue, 6 Oct 2009 23:18:36 +0200
+Message-ID: <71cd59b00910061418o6a9e3e65n6365972ee0980780@mail.gmail.com>
+References: <mpro.kr41l600vf1lc0bg3.linux@youmustbejoking.demon.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20091006133456.5177a32a.akpm@linux-foundation.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <mpro.kr41l600vf1lc0bg3.linux-Ym6Ivm/Ks7B65+NM0QMiFAbYiX8G1TQY9dF7HbQ/qKg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Darren Salt <linux-Ym6Ivm/Ks7B65+NM0QMiFAbYiX8G1TQY9dF7HbQ/qKg@public.gmane.org>
+Cc: linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 6, 2009 at 1:34 PM, Andrew Morton <akpm@linux-foundation.org> w=
-rote:
-> On Wed, 30 Sep 2009 23:21:33 +0200
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+On Tue, Oct 6, 2009 at 10:43 PM, Darren Salt
+<linux-Ym6Ivm/Ks7B65+NM0QMiFAbYiX8G1TQY9dF7HbQ/qKg@public.gmane.org> wrote:
+> This works around what I think is actually a bug in rt2860sta which is
+> triggered when the hardware "disappears" from beneath the driver, i.e. wh=
+en
+> wireless is toggled off via ACPI. It does so by ensuring that the rfkill
+> soft-block flag is set before the hardware is disabled.
 >
->> On Wednesday 30 September 2009, Kevin Hilman wrote:
->> > In the case where cpuidle_idle_call() returns before changing state
->> > due to a need_resched(), it was returning with IRQs disabled.
->> >
->> > This patch ensures IRQs are (re)enabled before returning.
->>
->> Venki, any comments on this?
+> I do not know whether this patch is required if rt2800pci is in use inste=
+ad
+> of rt2860sta; at the time of submission of this patch, I've not been able=
+ to
+> test this.
 >
-> Rigor mortis is setting in on this one.
+> (Ref. http://bugzilla.kernel.org/show_bug.cgi?id=3D13390)
 >
-> Venki's most recent linux-acpi email was on July 31.
+> Signed-off-by: Darren Salt <linux-Ym6Ivm/Ks7B65+NM0QMiFAbYiX8G1TQY9dF7HbQ/qKg@public.gmane.org>
 >
->> > Reported-by: Hemanth V <hemanthv@ti.com>
->> > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> > ---
->> > =A0drivers/cpuidle/cpuidle.c | =A0 =A05 ++++-
->> > =A01 files changed, 4 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
->> > index ad41f19..12fdd39 100644
->> > --- a/drivers/cpuidle/cpuidle.c
->> > +++ b/drivers/cpuidle/cpuidle.c
->> > @@ -76,8 +76,11 @@ static void cpuidle_idle_call(void)
->> > =A0#endif
->> > =A0 =A0 /* ask the governor for the next state */
->> > =A0 =A0 next_state =3D cpuidle_curr_governor->select(dev);
->> > - =A0 if (need_resched())
->> > + =A0 if (need_resched()) {
->> > + =A0 =A0 =A0 =A0 =A0 local_irq_enable();
->> > =A0 =A0 =A0 =A0 =A0 =A0 return;
->> > + =A0 }
->> > +
->> > =A0 =A0 target_state =3D &dev->states[next_state];
->> >
->> > =A0 =A0 /* enter the state and update stats */
+> --- a/drivers/platform/x86/eeepc-laptop.c =A0 =A0 =A0 2009-10-06 02:03:33=
+.656944837 +0100
+> +++ b/drivers/platform/x86/eeepc-laptop.c =A0 =A0 =A0 2009-10-06 03:03:15=
+.693022131 +0100
+> @@ -150,6 +150,8 @@ struct eeepc_hotk {
+> =A0/* The actual device the driver binds to */
+> =A0static struct eeepc_hotk *ehotk;
 >
-> The patch seems correct to me. =A0The code is hopelessly poorly
-> documented as per usual, but other paths in that function, including
-> the call to target_state->enter() (which devolves to default_idle) also
-> enable interrupts.
+> +static void eeepc_rfkill_hotplug(bool real);
+> +
+> =A0/* Platform device/driver */
+> =A0static int eeepc_hotk_thaw(struct device *device);
+> =A0static int eeepc_hotk_restore(struct device *device);
+> @@ -343,7 +345,16 @@ static bool eeepc_wlan_rfkill_blocked(vo
+> =A0static int eeepc_rfkill_set(void *data, bool blocked)
+> =A0{
+> =A0 =A0 =A0 =A0unsigned long asl =3D (unsigned long)data;
+> - =A0 =A0 =A0 return set_acpi(asl, !blocked);
+> + =A0 =A0 =A0 int ret;
+> +
+> + =A0 =A0 =A0 if (asl !=3D CM_ASL_WLAN)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return set_acpi(asl, !blocked);
+> +
+> + =A0 =A0 =A0 /* hack to avoid panic with rt2860sta */
+> + =A0 =A0 =A0 if (blocked)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 eeepc_rfkill_hotplug(false);
+> + =A0 =A0 =A0 ret =3D set_acpi(asl, !blocked);
+> + =A0 =A0 =A0 return ret;
+> =A0}
 >
-> Kevin, the changelog is not good. =A0It tells us what was wrong with the
-> code but does not describe the user-visible effects of the bug.
+> =A0static const struct rfkill_ops eeepc_rfkill_ops =3D {
+> @@ -643,13 +654,13 @@ static int eeepc_get_adapter_status(stru
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+>
+> -static void eeepc_rfkill_hotplug(void)
+> +static void eeepc_rfkill_hotplug(bool real)
+> =A0{
+> =A0 =A0 =A0 =A0struct pci_dev *dev;
+> =A0 =A0 =A0 =A0struct pci_bus *bus;
+> - =A0 =A0 =A0 bool blocked =3D eeepc_wlan_rfkill_blocked();
+> + =A0 =A0 =A0 bool blocked =3D real ? eeepc_wlan_rfkill_blocked() : true;
+>
+> - =A0 =A0 =A0 if (ehotk->wlan_rfkill)
+> + =A0 =A0 =A0 if (real && ehotk->wlan_rfkill)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rfkill_set_sw_state(ehotk->wlan_rfkill, bl=
+ocked);
+>
+> =A0 =A0 =A0 =A0mutex_lock(&ehotk->hotplug_lock);
+> @@ -692,7 +703,7 @@ static void eeepc_rfkill_notify(acpi_han
+> =A0 =A0 =A0 =A0if (event !=3D ACPI_NOTIFY_BUS_CHECK)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+>
+> - =A0 =A0 =A0 eeepc_rfkill_hotplug();
+> + =A0 =A0 =A0 eeepc_rfkill_hotplug(true);
+> =A0}
+>
+> =A0static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
+> @@ -850,7 +861,7 @@ static int eeepc_hotk_restore(struct dev
+> =A0{
+> =A0 =A0 =A0 =A0/* Refresh both wlan rfkill state and pci hotplug */
+> =A0 =A0 =A0 =A0if (ehotk->wlan_rfkill)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 eeepc_rfkill_hotplug();
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 eeepc_rfkill_hotplug(true);
+>
+> =A0 =A0 =A0 =A0if (ehotk->bluetooth_rfkill)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rfkill_set_sw_state(ehotk->bluetooth_rfkil=
+l,
+> @@ -993,7 +1004,7 @@ static void eeepc_rfkill_exit(void)
+> =A0 =A0 =A0 =A0 * Refresh pci hotplug in case the rfkill state was change=
+d after
+> =A0 =A0 =A0 =A0 * eeepc_unregister_rfkill_notifier()
+> =A0 =A0 =A0 =A0 */
+> - =A0 =A0 =A0 eeepc_rfkill_hotplug();
+> + =A0 =A0 =A0 eeepc_rfkill_hotplug(true);
+> =A0 =A0 =A0 =A0if (ehotk->hotplug_slot)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pci_hp_deregister(ehotk->hotplug_slot);
+>
+> @@ -1109,7 +1120,7 @@ static int eeepc_rfkill_init(struct devi
+> =A0 =A0 =A0 =A0 * Refresh pci hotplug in case the rfkill state was change=
+d during
+> =A0 =A0 =A0 =A0 * setup.
+> =A0 =A0 =A0 =A0 */
+> - =A0 =A0 =A0 eeepc_rfkill_hotplug();
+> + =A0 =A0 =A0 eeepc_rfkill_hotplug(true);
+>
+> =A0exit:
+> =A0 =A0 =A0 =A0if (result && result !=3D -ENODEV)
+>
+> --
+> | Darren Salt =A0 =A0 =A0 =A0 =A0 =A0| linux at youmustbejoking | nr. Ash=
+ington, | Doon
+> | using Debian GNU/Linux | or ds =A0 =A0,demon,co,uk =A0 =A0| Northumberl=
+and | Army
+> | + Lobby friends, family, business, government. =A0 =A0WE'RE KILLING THE=
+ PLANET.
+>
+> Insanity is just a state of mind.
+>
 
-The idle path assumes that the platform specific idle code returns
-with interrupts enabled (although this too is undocumented AFAICT) and
-on ARM we have a WARN_ON(!(irqs_disabled()) when returning from the
-idle loop, so the user-visible effects were only a warning since
-interrupts were eventually re-enabled later.
-
-> I'm unable to find any bug report from Hemanth so I'm all in the dark.
->
-> Your cc to linux-omap makes me suspect that <whatever the problem was>
-> was exhibited on a non-x86 platform, under some circumstances. =A0Perhaps
-> that explains (for unknown reasons) why <whatever the problem was> was
-> not observed on x86. =A0But I'm totally in the dark and grasping for
-> clues and have no way of determining (for example) whether we should
-> backport the fix to earlier kernels.
->
-> Please send along the additional information?
->
-
-On x86, this same problem exists, but there is no WARN_ON() to detect
-it.  As on ARM, the interrupts are eventually re-enabled, so I'm not
-sure of any actual bugs triggered by this.  It's primarily a
-correctness/consistency fix.
-
+Hi,
+Did you test this patch with other hardware ?
+Can't we fix that directly in rt2860sta ?
 Thanks,
 
-Kevin
+-- =
+
+Corentin Chary
+http://xf.iksaif.net
+
+---------------------------------------------------------------------------=
+---
+Come build with us! The BlackBerry(R) Developer Conference in SF, CA
+is the only developer event you need to attend this year. Jumpstart your
+developing skills, take BlackBerry mobile applications to market and stay =
+
+ahead of the curve. Join us from November 9 - 12, 2009. Register now!
+http://p.sf.net/sfu/devconference
