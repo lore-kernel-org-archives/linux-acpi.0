@@ -1,76 +1,79 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 2/7] vsprintf: add %pR support for IRQ and DMA resources
-Date: Tue, 06 Oct 2009 15:33:34 -0600
-Message-ID: <20091006213334.4272.31517.stgit@bob.kio>
-References: <20091006213259.4272.68068.stgit@bob.kio>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 14336] New: [Pardus] Soft Lockup Problem with
+ Attansic Ethernet Card
+Date: Tue, 6 Oct 2009 15:55:02 -0700
+Message-ID: <20091006155502.f3fc86d9.akpm@linux-foundation.org>
+References: <bug-14336-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933478AbZJFVge@vger.kernel.org>
-In-Reply-To: <20091006213259.4272.68068.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40258 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933700AbZJFWzm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Oct 2009 18:55:42 -0400
+In-Reply-To: <bug-14336-10286@http.bugzilla.kernel.org/>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: badibere@gmail.com
+Cc: bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Jay Cliburn <jcliburn@gmail.com>, Chris Snook <chris.snook@gmail.com>, Jie Yang <jie.yang@atheros.com>
 
-Print addresses (IO port numbers and memory addresses) in hex, but print
-others (IRQs and DMA channels) in decimal.  Only print the end if it's
-different from the start.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- lib/vsprintf.c |   31 +++++++++++++++++++++----------
- 1 files changed, 21 insertions(+), 10 deletions(-)
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
 
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index 7830576..1b60aed 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -604,26 +604,37 @@ static char *resource_string(char *buf, char *end, struct resource *res,
- #ifndef MEM_RSRC_PRINTK_SIZE
- #define MEM_RSRC_PRINTK_SIZE	10
- #endif
--	struct printf_spec num_spec = {
-+	struct printf_spec hex_spec = {
- 		.base = 16,
- 		.precision = -1,
- 		.flags = SPECIAL | SMALL | ZEROPAD,
- 	};
--	/* room for the actual numbers, the two "0x", -, [, ] and the final zero */
--	char sym[4*sizeof(resource_size_t) + 8];
-+	struct printf_spec dec_spec = {
-+		.base = 10,
-+		.precision = -1,
-+		.flags = 0,
-+	};
-+	/* room for two actual numbers (decimal or hex), the two "0x", -, [, ]
-+	 * and the final zero */
-+	char sym[2*3*sizeof(resource_size_t) + 8];
- 	char *p = sym, *pend = sym + sizeof(sym);
--	int size = -1;
-+	int size = -1, addr = 0;
- 
--	if (res->flags & IORESOURCE_IO)
-+	if (res->flags & IORESOURCE_IO) {
- 		size = IO_RSRC_PRINTK_SIZE;
--	else if (res->flags & IORESOURCE_MEM)
-+		addr = 1;
-+	} else if (res->flags & IORESOURCE_MEM) {
- 		size = MEM_RSRC_PRINTK_SIZE;
-+		addr = 1;
-+	}
- 
- 	*p++ = '[';
--	num_spec.field_width = size;
--	p = number(p, pend, res->start, num_spec);
--	*p++ = '-';
--	p = number(p, pend, res->end, num_spec);
-+	hex_spec.field_width = size;
-+	p = number(p, pend, res->start, addr ? hex_spec : dec_spec);
-+	if (res->start != res->end) {
-+		*p++ = '-';
-+		p = number(p, pend, res->end, addr ? hex_spec : dec_spec);
-+	}
- 	*p++ = ']';
- 	*p = 0;
- 
+On Tue, 6 Oct 2009 22:37:13 GMT
+bugzilla-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=14336
+> 
+>            Summary: [Pardus] Soft Lockup Problem with Attansic Ethernet
+>                     Card
+>            Product: Networking
+>            Version: 2.5
+>     Kernel Version: 2.6.30.8
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: high
+>           Priority: P1
+>          Component: IPV4
+>         AssignedTo: shemminger@linux-foundation.org
+>         ReportedBy: badibere@gmail.com
+>         Regression: No
+> 
+> 
+> I have soft lockup problem with attansic ethernet card while activating eth0
+> interface.
+> 
+> My ethernet card is 09:00.0 Ethernet controller: Attansic Technology Corp.
+> Device 1063 (rev c0)
+> 
+> If I try to activate eth0 interface while network cable is pluged in, then
+> everything freezes.
+> 
+> If I try to activate eth0 interface while network cable isn't pluged in, then
+> no problem. But, if i plug in, again freezes.
+> 
+> My /var/log/syslog is in attachment.
+> 
+
+>From the dmesg output it appears that this card is driven by the atl1c
+driver:
+
+Oct  7 00:55:57 baDibere kernel: [  169.943463] atl1c 0000:09:00.0: Unable to allocate MSI interrupt Error: -22
+Oct  7 00:55:57 baDibere kernel: [  169.943576] atl1c 0000:09:00.0: atl1c: eth0 NIC Link is Up<100 Mbps Full Duplex>
+Oct  7 00:56:22 baDibere kernel: [  194.849361] NVRM: Xid (0001:00): 16, Head 00000000 Count 00003651
+Oct  7 00:56:31 baDibere kernel: [  203.849307] NVRM: Xid (0001:00): 16, Head 00000000 Count 00003653
+Oct  7 00:56:36 baDibere kernel: [  208.849339] NVRM: Xid (0001:00): 8, Channel 00000003
+Oct  7 00:56:41 baDibere kernel: [  213.852320] NVRM: Xid (0001:00): 16, Head 00000000 Count 00003655
+
+
+The "Unable to allocate MSI interrupt" might be the immediate problem.
+
+Who belongs to MSI interrupt allocation?  PCI?  ACPI?
+
+However the driver does attempt to handle and recover from the MSI
+interrupt allocation error so perhaps that's no the cause at all.
+
