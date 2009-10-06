@@ -1,71 +1,56 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: 2.6.32-rc1: spurious error message from "ACPI button: provide
- lid status functions"
-Date: Mon, 5 Oct 2009 16:59:07 -0700
-Message-ID: <20091005165907.291b9c6c@jbarnes-g45>
-References: <4AC72D09.3040907@tuffmail.co.uk>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [git pull request] ACPI Processor Aggregator Driver for 2.6.32-rc1
+Date: Mon, 05 Oct 2009 21:28:18 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0910052054540.309@localhost.localdomain>
+References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
+ <20091005033256.GA26592@balbir.in.ibm.com> <200910052159.24920.rjw@sisk.pl>
+ <20091005140415.57f1db5e.akpm@linux-foundation.org>
+ <alpine.LFD.2.00.0910051818130.32307@localhost.localdomain>
+ <20091005154021.129a8f9f.akpm@linux-foundation.org>
+ <alpine.LFD.2.01.0910051614510.3432@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755361AbZJEX7y@vger.kernel.org>
-In-Reply-To: <4AC72D09.3040907@tuffmail.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Eric Anholt <eric@anholt.net>, Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:25139 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755657AbZJFB3T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2009 21:29:19 -0400
+In-reply-to: <alpine.LFD.2.01.0910051614510.3432@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, rjw@sisk.pl, balbir@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, a.p.zijlstra@chello.nl, shaohua.li@intel.com, svaidy@linux.vnet.ibm.com
 
-On Sat, 03 Oct 2009 11:52:57 +0100
-Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
+> ...  we probably never want to even try 
+> to solve it in the scheduler, because why the hell should we care and add 
+> complex logic for something like that?
 
-> ACPI: Waking up from system sleep state S4
-> PM: Device PNP0C0D:00 failed to thaw: error 1
-> 
-> The device appears to be the acpi lid "button".  The error comes from
-> calling acpi_lid_send_state():
-> 
->     @@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct
->     acpi_device *device)
->          /* input layer checks if event is redundant */
->          input_report_switch(button->input, SW_LID, !state);
->          input_sync(button->input);
->     -    return 0;
->     +
->     +    ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
->     device);
->     +    if (ret == NOTIFY_DONE)
->     +        ret = blocking_notifier_call_chain(&acpi_lid_notifier,
-> state,
->     +                           device);
->     +    return ret;
->      }
-> 
-> 
-> The "error 1" is actually NOTIFY_OK.
-> 
->     @include/linux/notify.h:
->     #define NOTIFY_DONE        0x0000        /* Don't care */
->     #define NOTIFY_OK        0x0001        /* Suits me */
->     #define NOTIFY_STOP_MASK    0x8000        /* Don't call further */
->     #define NOTIFY_BAD        (NOTIFY_STOP_MASK|0x0002)
->                             /* Bad/Veto action */
->     /*
->      * Clean way to return from the notifier and stop further calls.
->      */
->     #define NOTIFY_STOP        (NOTIFY_OK|NOTIFY_STOP_MASK)
-> 
-> 
-> Clearly acpi_lid_send_state() should return 0 for NOTIFY_OK.  I guess
-> NOTIFY_STOP can be ignored until someone says they need it.
-> 
-> But I don't understand the NOTIFY_DONE case, so I'm not sure.  I can't
-> find any users to reverse engineer it.  IMO it either needs to be
-> removed or commented.
-> 
-> Can you please sort this out, so we don't see this error message on a
-> completely successful resume?
+Today we take cores down to 100% idle, one at a time.
+This is useful, but isn't the best we can do.
 
-Ah yeah, this does look funky.  I'll fix it up.
+For we get zero "uncore" power savings.
+As long as at least one core is active anywhere in the system,
+all the uncores in all the packages in the system must remain active.
 
-Thanks,
--- 
-Jesse Barnes, Intel Open Source Technology Center
+What a scheduler-based solution could do is
+instead of taking, say, 1 of 64 cores down for 100%
+of the period, it could take all 64 cores down
+for 64th of the same period.  This could get the hardware
+into the deeper "package C-states", for a measurable
+net power savings.
+
+At the same time, this system-wide throttling may mitigate
+some of the fairness/availability issues raised regarding
+taking cores 100% off-line.
+
+But doing this optimally will not be trivial.
+The hardware must stay in the deep-sleep-states long enough
+to make it worth the energy to enter and exit those states.
+The hardware will flush the caches, having a performance
+impact on all the cores.  Device interrupts would prevent
+the cores from sleeping, so they'd need to be somehow delayed
+if we are to sleep long enough to make sleeping worth it etc.
+
+cheers,
+-Len Brown, Intel Open Source Technology Center
+
