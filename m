@@ -1,23 +1,83 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH]AC/DC notifier
-Date: Tue, 06 Oct 2009 13:56:19 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0910061356120.7229@localhost.localdomain>
-References: <200908111515.42635.mark.langsdorf@amd.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] CPUidle: always return with interrupts
+	enabled
+Date: Tue, 6 Oct 2009 13:34:56 -0700
+Message-ID: <20091006133456.5177a32a.akpm@linux-foundation.org>
+References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
+	<200909302321.33088.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:64009 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755618AbZJFR5X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Oct 2009 13:57:23 -0400
-In-reply-to: <200908111515.42635.mark.langsdorf@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200909302321.33088.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Langsdorf <mark.langsdorf@amd.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, matthew.tippett@amd.com, samuel.li@amd.com
 
-applied
+On Wed, 30 Sep 2009 23:21:33 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+> On Wednesday 30 September 2009, Kevin Hilman wrote:
+> > In the case where cpuidle_idle_call() returns before changing state
+> > due to a need_resched(), it was returning with IRQs disabled.
+> > 
+> > This patch ensures IRQs are (re)enabled before returning.
+> 
+> Venki, any comments on this?
 
+Rigor mortis is setting in on this one.
+
+Venki's most recent linux-acpi email was on July 31.
+
+> > Reported-by: Hemanth V <hemanthv@ti.com>
+> > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> > ---
+> >  drivers/cpuidle/cpuidle.c |    5 ++++-
+> >  1 files changed, 4 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> > index ad41f19..12fdd39 100644
+> > --- a/drivers/cpuidle/cpuidle.c
+> > +++ b/drivers/cpuidle/cpuidle.c
+> > @@ -76,8 +76,11 @@ static void cpuidle_idle_call(void)
+> >  #endif
+> >  	/* ask the governor for the next state */
+> >  	next_state = cpuidle_curr_governor->select(dev);
+> > -	if (need_resched())
+> > +	if (need_resched()) {
+> > +		local_irq_enable();
+> >  		return;
+> > +	}
+> > +
+> >  	target_state = &dev->states[next_state];
+> >  
+> >  	/* enter the state and update stats */
+
+The patch seems correct to me.  The code is hopelessly poorly
+documented as per usual, but other paths in that function, including
+the call to target_state->enter() (which devolves to default_idle) also
+enable interrupts.
+
+Kevin, the changelog is not good.  It tells us what was wrong with the
+code but does not describe the user-visible effects of the bug.
+
+I'm unable to find any bug report from Hemanth so I'm all in the dark.
+
+Your cc to linux-omap makes me suspect that <whatever the problem was>
+was exhibited on a non-x86 platform, under some circumstances.  Perhaps
+that explains (for unknown reasons) why <whatever the problem was> was
+not observed on x86.  But I'm totally in the dark and grasping for
+clues and have no way of determining (for example) whether we should
+backport the fix to earlier kernels.
+
+
+Please send along the additional information?
