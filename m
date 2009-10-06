@@ -1,120 +1,104 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 3/7] vsprintf: add %pRt, %pRf to print struct resource details
-Date: Tue, 06 Oct 2009 15:33:39 -0600
-Message-ID: <20091006213339.4272.93907.stgit@bob.kio>
+Subject: [PATCH 5/7] x86/PCI: print resources consistently with %pRt
+Date: Tue, 06 Oct 2009 15:33:49 -0600
+Message-ID: <20091006213349.4272.65914.stgit@bob.kio>
 References: <20091006213259.4272.68068.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933454AbZJFVeU@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20091006213259.4272.68068.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This adds support for printing struct resource type and flag information.
-For example, "%pRt" looks like "[mem 0x80080000000-0x8008001ffff 64bit pref]",
-and "%pRf" looks like "[mem 0xff5e2000-0xff5e2007 pref flags 0x1]".
+This uses %pRt to print additional resource information (type, size,
+prefetchability, etc.) consistently.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- lib/vsprintf.c |   51 ++++++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 44 insertions(+), 7 deletions(-)
+ arch/x86/pci/acpi.c |   14 +++++++++++---
+ arch/x86/pci/i386.c |   12 +++++-------
+ 2 files changed, 16 insertions(+), 10 deletions(-)
 
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index 1b60aed..a6e1951 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -595,7 +595,7 @@ static char *symbol_string(char *buf, char *end, void *ptr,
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 2297280..4d4f1df 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -7,6 +7,7 @@
+ #include <asm/pci_x86.h>
+ 
+ struct pci_root_info {
++	struct acpi_device *bridge;
+ 	char *name;
+ 	unsigned int res_num;
+ 	struct resource *res;
+@@ -107,12 +108,18 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
+ 	res->child = NULL;
+ 
+ 	if (insert_resource(root, res)) {
+-		printk(KERN_ERR "PCI: Failed to allocate 0x%lx-0x%lx "
+-			"from %s for %s\n", (unsigned long) res->start,
+-			(unsigned long) res->end, root->name, info->name);
++		dev_err(&info->bridge->dev, "can't allocate %pRt\n", res);
+ 	} else {
+ 		info->bus->resource[info->res_num] = res;
+ 		info->res_num++;
++		if (addr.translation_offset)
++			dev_info(&info->bridge->dev, "host bridge window: %pRt "
++				 "(PCI address [%#llx-%#llx])\n",
++				 res, res->start - addr.translation_offset,
++				 res->end - addr.translation_offset);
++		else
++			dev_info(&info->bridge->dev,
++				 "host bridge window: %pRt\n", res);
+ 	}
+ 	return AE_OK;
  }
+@@ -124,6 +131,7 @@ get_current_resources(struct acpi_device *device, int busnum,
+ 	struct pci_root_info info;
+ 	size_t size;
  
- static char *resource_string(char *buf, char *end, struct resource *res,
--				struct printf_spec spec)
-+				struct printf_spec spec, const char *fmt)
- {
- #ifndef IO_RSRC_PRINTK_SIZE
- #define IO_RSRC_PRINTK_SIZE	6
-@@ -614,9 +614,21 @@ static char *resource_string(char *buf, char *end, struct resource *res,
- 		.precision = -1,
- 		.flags = 0,
- 	};
--	/* room for two actual numbers (decimal or hex), the two "0x", -, [, ]
--	 * and the final zero */
--	char sym[2*3*sizeof(resource_size_t) + 8];
-+	struct printf_spec str_spec = {
-+		.field_width = -1,
-+		.precision = 10,
-+		.flags = LEFT,
-+	};
-+	struct printf_spec flag_spec = {
-+		.base = 16,
-+		.precision = -1,
-+		.flags = SPECIAL | SMALL,
-+	};
-+	/*
-+	 * room for three actual numbers (decimal or hex), plus
-+	 * "[mem 0x-0x 64bit pref disabled flags 0x]\0"
-+	 */
-+	char sym[3*3*sizeof(resource_size_t) + 41];
- 	char *p = sym, *pend = sym + sizeof(sym);
- 	int size = -1, addr = 0;
- 
-@@ -629,12 +641,35 @@ static char *resource_string(char *buf, char *end, struct resource *res,
- 	}
- 
- 	*p++ = '[';
-+	if (fmt[1] == 't' || fmt[1] == 'f') {
-+		if (res->flags & IORESOURCE_IO)
-+			p = string(p, pend, "io  ", str_spec);
-+		else if (res->flags & IORESOURCE_MEM)
-+			p = string(p, pend, "mem ", str_spec);
-+		else if (res->flags & IORESOURCE_IRQ)
-+			p = string(p, pend, "irq ", str_spec);
-+		else if (res->flags & IORESOURCE_DMA)
-+			p = string(p, pend, "dma ", str_spec);
-+	}
- 	hex_spec.field_width = size;
- 	p = number(p, pend, res->start, addr ? hex_spec : dec_spec);
- 	if (res->start != res->end) {
- 		*p++ = '-';
- 		p = number(p, pend, res->end, addr ? hex_spec : dec_spec);
- 	}
-+	if (fmt[1] == 't' || fmt[1] == 'f') {
-+		if (res->flags & IORESOURCE_MEM_64)
-+			p = string(p, pend, " 64bit", str_spec);
-+		if (res->flags & IORESOURCE_PREFETCH)
-+			p = string(p, pend, " pref", str_spec);
-+		if (res->flags & IORESOURCE_DISABLED)
-+			p = string(p, pend, " disabled", str_spec);
-+		if (fmt[1] == 'f') {
-+			p = string(p, pend, " flags ", str_spec);
-+			p = number(p, pend, res->flags & ~IORESOURCE_TYPE_BITS,
-+				   flag_spec);
-+		}
-+	}
- 	*p++ = ']';
- 	*p = 0;
- 
-@@ -812,8 +847,10 @@ static char *ip4_addr_string(char *buf, char *end, const u8 *addr,
-  * - 'f' For simple symbolic function names without offset
-  * - 'S' For symbolic direct pointers with offset
-  * - 's' For symbolic direct pointers without offset
-- * - 'R' For a struct resource pointer, it prints the range of
-- *       addresses (not the name nor the flags)
-+ * - 'R' For a struct resource pointer, print:
-+ *       R   address range only ([0x0-0x1f])
-+ *       Rt  type and range ([mem 0x0-0x1f 64bit pref])
-+ *       Rf  type, range, and flags ([mem 0x0-0x1f 64bit pref flags 0x1])
-  * - 'M' For a 6-byte MAC address, it prints the address in the
-  *       usual colon-separated hex notation
-  * - 'm' For a 6-byte MAC address, it prints the hex address without colons
-@@ -844,7 +881,7 @@ static char *pointer(const char *fmt, char *buf, char *end, void *ptr,
- 	case 'S':
- 		return symbol_string(buf, end, ptr, spec, *fmt);
- 	case 'R':
--		return resource_string(buf, end, ptr, spec);
-+		return resource_string(buf, end, ptr, spec, fmt);
- 	case 'M':			/* Colon separated: 00:01:02:03:04:05 */
- 	case 'm':			/* Contiguous: 000102030405 */
- 		return mac_address_string(buf, end, ptr, spec, fmt);
++	info.bridge = device;
+ 	info.bus = bus;
+ 	info.res_num = 0;
+ 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_resource,
+diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+index b22d13b..a70a85d 100644
+--- a/arch/x86/pci/i386.c
++++ b/arch/x86/pci/i386.c
+@@ -129,7 +129,7 @@ static void __init pcibios_allocate_bus_resources(struct list_head *bus_list)
+ 					continue;
+ 				if (!r->start ||
+ 				    pci_claim_resource(dev, idx) < 0) {
+-					dev_info(&dev->dev, "BAR %d: can't allocate resource\n", idx);
++					dev_info(&dev->dev, "BAR %d: can't allocate %pRt\n", idx, r);
+ 					/*
+ 					 * Something is wrong with the region.
+ 					 * Invalidate the resource to prevent
+@@ -164,12 +164,10 @@ static void __init pcibios_allocate_resources(int pass)
+ 			else
+ 				disabled = !(command & PCI_COMMAND_MEMORY);
+ 			if (pass == disabled) {
+-				dev_dbg(&dev->dev, "resource %#08llx-%#08llx (f=%lx, d=%d, p=%d)\n",
+-					(unsigned long long) r->start,
+-					(unsigned long long) r->end,
+-					r->flags, disabled, pass);
++				dev_dbg(&dev->dev, "%pRf (d=%d, p=%d)\n", r,
++					disabled, pass);
+ 				if (pci_claim_resource(dev, idx) < 0) {
+-					dev_info(&dev->dev, "BAR %d: can't allocate resource\n", idx);
++					dev_info(&dev->dev, "BAR %d: can't allocate %pRt\n", idx, r);
+ 					/* We'll assign a new address later */
+ 					r->end -= r->start;
+ 					r->start = 0;
+@@ -182,7 +180,7 @@ static void __init pcibios_allocate_resources(int pass)
+ 				/* Turn the ROM off, leave the resource region,
+ 				 * but keep it unregistered. */
+ 				u32 reg;
+-				dev_dbg(&dev->dev, "disabling ROM\n");
++				dev_dbg(&dev->dev, "disabling ROM %pRt\n", r);
+ 				r->flags &= ~IORESOURCE_ROM_ENABLE;
+ 				pci_read_config_dword(dev,
+ 						dev->rom_base_reg, &reg);
