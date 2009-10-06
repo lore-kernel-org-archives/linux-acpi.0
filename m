@@ -1,71 +1,69 @@
-From: Yinghai Lu <yhlu.kernel@gmail.com>
-Subject: Re: Regression in ACPI in 2.6.31-rc5
-Date: Mon, 5 Oct 2009 21:38:40 -0700
-Message-ID: <86802c440910052138i211dce8apd50cc3558b24de44@mail.gmail.com>
-References: <200908072333.24631.storm@sys49152.net>
-	 <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain>
-	 <200908160400.03391.storm@sys49152.net>
-	 <alpine.LFD.2.00.0910052312140.309@localhost.localdomain>
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: Re: [git pull request] ACPI Processor Aggregator Driver for
+ 2.6.32-rc1
+Date: Tue, 6 Oct 2009 14:46:06 +0530
+Message-ID: <20091006091606.GA6818@balbir.in.ibm.com>
+References: <alpine.LFD.2.00.0910030145140.25240@localhost.localdomain>
+ <20091005033256.GA26592@balbir.in.ibm.com>
+ <200910052159.24920.rjw@sisk.pl>
+ <20091005140415.57f1db5e.akpm@linux-foundation.org>
+ <alpine.LFD.2.00.0910051818130.32307@localhost.localdomain>
+ <20091005154021.129a8f9f.akpm@linux-foundation.org>
+ <alpine.LFD.2.01.0910051614510.3432@localhost.localdomain>
+ <alpine.LFD.2.00.0910052054540.309@localhost.localdomain>
+Reply-To: balbir@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753482AbZJFEjS@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0910052312140.309@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Jesse Barnes <jesse.barnes@intel.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Ingo Molnar <mingo@elte.hu>, x86@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=iso-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e23smtp08.au.ibm.com ([202.81.31.141]:35204 "EHLO
+	e23smtp08.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756341AbZJFJQs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Oct 2009 05:16:48 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0910052054540.309@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, a.p.zijlstra@chello.nl, shaohua.li@intel.com, svaidy@linux.vnet.ibm.com
 
-Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
-> Subject: [PATCH] Revert "x86/pci: remove rounding quirk from e820_setup_gap()"
+* Len Brown <lenb@kernel.org> [2009-10-05 21:28:18]:
+
+> > ...  we probably never want to even try 
+> > to solve it in the scheduler, because why the hell should we care and add 
+> > complex logic for something like that?
+> 
+> Today we take cores down to 100% idle, one at a time.
+> This is useful, but isn't the best we can do.
+> 
+> For we get zero "uncore" power savings.
+> As long as at least one core is active anywhere in the system,
+> all the uncores in all the packages in the system must remain active.
+> 
+> What a scheduler-based solution could do is
+> instead of taking, say, 1 of 64 cores down for 100%
+> of the period, it could take all 64 cores down
+> for 64th of the same period.  This could get the hardware
+> into the deeper "package C-states", for a measurable
+> net power savings.
+> 
+> At the same time, this system-wide throttling may mitigate
+> some of the fairness/availability issues raised regarding
+> taking cores 100% off-line.
+> 
+> But doing this optimally will not be trivial.
+> The hardware must stay in the deep-sleep-states long enough
+> to make it worth the energy to enter and exit those states.
+> The hardware will flush the caches, having a performance
+> impact on all the cores.  Device interrupts would prevent
+> the cores from sleeping, so they'd need to be somehow delayed
+> if we are to sleep long enough to make sleeping worth it etc.
 >
-> This reverts commit 5d423ccd7ba4285f1084e91b26805e1d0ae978ed.
->
-> because it caused multiple regressions in 2.6.31-rc1
->
-> http://bugzilla.kernel.org/show_bug.cgi?id=13940
->
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->
-> Yinghai,
-> is there a reason we should not revert the offending patch, per below?
 
-that patch is introduced fix another bug to get enough resource.
+My concern is the side-effects of an approach like this. In the case
+that was pointed out earlier about hotplug breaking CPUSets, this
+solution can lead to starvation (single CPU in a cpuset). Most distros
+will enable this feature right? So most end users will see this thread
+running when ACPI 4.0 firmware decides to do thermal throttling.
 
-and that patch looks like reveal some bug in ACPI (?) because when
-apci subsystem is enabled,
-some BARs of some pci devices get cleared somehow.
-
-actually there is patch that could workaround the problem too
-
----
- arch/x86/kernel/e820.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/arch/x86/kernel/e820.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/e820.c
-+++ linux-2.6/arch/x86/kernel/e820.c
-@@ -1378,8 +1378,8 @@ static unsigned long ram_alignment(resou
- 	if (mb < 16)
- 		return 1024*1024;
-
--	/* To 32MB for anything above that */
--	return 32*1024*1024;
-+	/* To 64MB for anything above that */
-+	return 64*1024*1024;
- }
-
- #define MAX_RESOURCE_SIZE ((resource_size_t)-1)
-
-but Linus wants to know why those BARs get cleared, and who is using
-that extra 32M.
-
-It seems some guys request acpidump from the reporter, and not sure
-what is the result from their checking.
-or need the reporter to boot with acpi.debug_layer=0x400000
-acpi.debug_level=0x04000807
-to pull out more result?
-
-YH
+-- 
+	Balbir
