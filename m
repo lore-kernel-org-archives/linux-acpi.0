@@ -1,76 +1,76 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 6/7] ia64/PCI: print resources consistently with %pRt
-Date: Tue, 06 Oct 2009 15:33:54 -0600
-Message-ID: <20091006213354.4272.70294.stgit@bob.kio>
+Subject: [PATCH 2/7] vsprintf: add %pR support for IRQ and DMA resources
+Date: Tue, 06 Oct 2009 15:33:34 -0600
+Message-ID: <20091006213334.4272.31517.stgit@bob.kio>
 References: <20091006213259.4272.68068.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933478AbZJFVge@vger.kernel.org>
 In-Reply-To: <20091006213259.4272.68068.stgit@bob.kio>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This uses %pRt to print additional resource information (type, size,
-prefetchability, etc.) consistently.
+Print addresses (IO port numbers and memory addresses) in hex, but print
+others (IRQs and DMA channels) in decimal.  Only print the end if it's
+different from the start.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- arch/ia64/pci/pci.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
+ lib/vsprintf.c |   31 +++++++++++++++++++++----------
+ 1 files changed, 21 insertions(+), 10 deletions(-)
 
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 7de76dd..0f90259 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -126,6 +126,7 @@ alloc_pci_controller (int seg)
- }
+diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+index 7830576..1b60aed 100644
+--- a/lib/vsprintf.c
++++ b/lib/vsprintf.c
+@@ -604,26 +604,37 @@ static char *resource_string(char *buf, char *end, struct resource *res,
+ #ifndef MEM_RSRC_PRINTK_SIZE
+ #define MEM_RSRC_PRINTK_SIZE	10
+ #endif
+-	struct printf_spec num_spec = {
++	struct printf_spec hex_spec = {
+ 		.base = 16,
+ 		.precision = -1,
+ 		.flags = SPECIAL | SMALL | ZEROPAD,
+ 	};
+-	/* room for the actual numbers, the two "0x", -, [, ] and the final zero */
+-	char sym[4*sizeof(resource_size_t) + 8];
++	struct printf_spec dec_spec = {
++		.base = 10,
++		.precision = -1,
++		.flags = 0,
++	};
++	/* room for two actual numbers (decimal or hex), the two "0x", -, [, ]
++	 * and the final zero */
++	char sym[2*3*sizeof(resource_size_t) + 8];
+ 	char *p = sym, *pend = sym + sizeof(sym);
+-	int size = -1;
++	int size = -1, addr = 0;
  
- struct pci_root_info {
-+	struct acpi_device *bridge;
- 	struct pci_controller *controller;
- 	char *name;
- };
-@@ -292,9 +293,19 @@ static __devinit acpi_status add_window(struct acpi_resource *res, void *data)
- 	window->offset = offset;
+-	if (res->flags & IORESOURCE_IO)
++	if (res->flags & IORESOURCE_IO) {
+ 		size = IO_RSRC_PRINTK_SIZE;
+-	else if (res->flags & IORESOURCE_MEM)
++		addr = 1;
++	} else if (res->flags & IORESOURCE_MEM) {
+ 		size = MEM_RSRC_PRINTK_SIZE;
++		addr = 1;
++	}
  
- 	if (insert_resource(root, &window->resource)) {
--		printk(KERN_ERR "alloc 0x%llx-0x%llx from %s for %s failed\n",
--			window->resource.start, window->resource.end,
--			root->name, info->name);
-+		dev_err(&info->bridge->dev, "can't allocate %pRt\n",
-+			&window->resource);
-+	} else {
-+		if (offset)
-+			dev_info(&info->bridge->dev, "host bridge window: %pRt "
-+				 "(PCI address [%#llx-%#llx])\n",
-+				 &window->resource,
-+				 window->resource.start - offset,
-+				 window->resource.end - offset);
-+		else
-+			dev_info(&info->bridge->dev,
-+				 "host bridge window: %pRt\n",
-+				 &window->resource);
- 	}
+ 	*p++ = '[';
+-	num_spec.field_width = size;
+-	p = number(p, pend, res->start, num_spec);
+-	*p++ = '-';
+-	p = number(p, pend, res->end, num_spec);
++	hex_spec.field_width = size;
++	p = number(p, pend, res->start, addr ? hex_spec : dec_spec);
++	if (res->start != res->end) {
++		*p++ = '-';
++		p = number(p, pend, res->end, addr ? hex_spec : dec_spec);
++	}
+ 	*p++ = ']';
+ 	*p = 0;
  
- 	return AE_OK;
-@@ -314,8 +325,7 @@ pcibios_setup_root_windows(struct pci_bus *bus, struct pci_controller *ctrl)
- 		    (res->end - res->start < 16))
- 			continue;
- 		if (j >= PCI_BUS_NUM_RESOURCES) {
--			printk("Ignoring range [%#llx-%#llx] (%lx)\n",
--					res->start, res->end, res->flags);
-+			dev_warn(&bus->dev, "ignoring %pRf (no space)\n", res);
- 			continue;
- 		}
- 		bus->resource[j++] = res;
-@@ -359,6 +369,7 @@ pci_acpi_scan_root(struct acpi_device *device, int domain, int bus)
- 			goto out3;
- 
- 		sprintf(name, "PCI Bus %04x:%02x", domain, bus);
-+		info.bridge = device;
- 		info.controller = controller;
- 		info.name = name;
- 		acpi_walk_resources(device->handle, METHOD_NAME__CRS,
