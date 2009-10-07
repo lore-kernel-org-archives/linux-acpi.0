@@ -1,79 +1,47 @@
-From: Andrey Rahmatullin <wrar@altlinux.org>
-Subject: Random AE_TIME exceptions
-Date: Wed, 7 Oct 2009 12:44:37 +0600
-Message-ID: <20091007064437.GH6196@wrars-comp.wrarsdomain>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH][ACPI] AC/DC notifier
+Date: Wed, 7 Oct 2009 09:31:21 +0200
+Message-ID: <20091007073121.GA31245@elf.ucw.cz>
+References: <FFAE0590FF35E441901B67BD8BA62E950245ABD9@storexmb3.amd.com> <20090812005532.GA31003@srcf.ucam.org> <20090814163233.GC1626@ucw.cz> <20090816074008.GA11624@1wt.eu> <4ACB59E2.3000600@amd.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="JTEWvpGgrDDIFGki"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from k66.ru ([87.224.128.21]:49745 "EHLO k66.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180AbZJGHQM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Oct 2009 03:16:12 -0400
-Received: from [87.224.251.61] (HELO wrars-comp.wrarsdomain)
-  by k66.ru (CommuniGate Pro SMTP 5.1.13)
-  with ESMTP id 348911877 for linux-acpi@vger.kernel.org; Wed, 07 Oct 2009 12:44:45 +0600
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-
---JTEWvpGgrDDIFGki
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932206AbZJGHcM@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <4ACB59E2.3000600@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Tippett, Matthew" <matthew.tippett@amd.com>
+Cc: Willy Tarreau <w@1wt.eu>, Matthew Garrett <mjg59@srcf.ucam.org>, "Langsdorf, Mark" <mark.langsdorf@amd.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Li, Samuel" <Samuel.Li@amd.com>
+List-Id: linux-acpi@vger.kernel.org
 
+On Tue 2009-10-06 10:53:22, Tippett, Matthew wrote:
+> (Resending as text-only - sorry)
+>
+> Bringing this item back up again.
+>
+> I am not suggesting that the application of any particular policy  
+> appears within the kernel or userspace or a secondary policy engine.    
+> In general I am also against codifying policy within drivers.
+>
+> I am interested seeing the ACPI notifier mechanism expanded to allow  
+> AC/DC state changes propagate to other kernel drivers without requiring  
+> a userspace in between.
+>
+> I can continue to come up with real scenarios that would possibly  
+> require kernel-to-kernel notification, but would rather focus this  
+> discussion of the pure technical issues associated with adding the  
+> notifier to the AC/DC ACPI subsystem. 
 
-This is a copy of http://bugzilla.kernel.org/show_bug.cgi?id=3D14332
+Please do. So far you did not show valid use for such notifier.
 
-ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] 20090521=
- evregion-424
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.E=
-C0_.BST1] (Node f7012e70), AE_TIME
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.CBST] =
-(Node f7015078), AE_TIME
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.BAT0._=
-BST] (Node f7013fa8), AE_TIME
-ACPI Exception: AE_TIME, Evaluating _BST 20090521 battery-385
+(Ok, I know of one. Old amd64 notebooks had cpufreq scaling enabled,
+with battery unable to supply enough current to feed the CPU at
+highest cpufreq setting. At that point, scaling cpufreq down at unplug
+is correctness issue, and AC/DC notifier in kernel makes
+sense.)
 
-or
+So... what do you want to use it for?
+								Pavel
 
-ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] 20090521=
- evregion-424
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.E=
-C0_.EBTS] (Node f7012eb8), AE_TIME
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.SBRG.E=
-C0_.UBCS] (Node f7013ee8), AE_TIME
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.CBST] =
-(Node f7015078), AE_TIME
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.BAT0._=
-BST] (Node f7013fa8), AE_TIME
-ACPI Exception: AE_TIME, Evaluating _BST 20090521 battery-385
-
-
-It doesn't seem to cause any instabilities or failures, but still.
-It also can be interesting that these errors were printed very often when
-I tried ivd/rt2x00.git and wifi interface was up.
-
---=20
-WBR, wRAR (ALT Linux Team)
-
---JTEWvpGgrDDIFGki
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEcBAEBCAAGBQJKzDjVAAoJEOih81koZvPBNzgH/335ZS9HQ+3Ewf97LZpshJXI
-ZaNc+N1vMVfkhwOmYhNSwnGPu/V4ZCe7PEocrx5baarnt74wvD6a8NbXv9VlDtRe
-MI/apHDODP2gYoaK9D/Xc7gVgjV08bc7lHW0Jmh+EOUexsR65OKLxVvTt4ukc3EC
-WGrlfmA4UXuxnJF11RasLbuLJtn89d4/0aUXOawkzSXbFIm1DsuukM8Ussu+XL5G
-L5+nniB3WdFgPkoDYwtPHQDZMXJz89EOgalf/gdneYNYTwg2/Fswvfu+RjJpwgCQ
-5exBAywUJvQDrsUFpITFnzpa5uAuNbYkffaxCVwhJqhnvkIYvILvsITYk/1tE8I=
-=6fXQ
------END PGP SIGNATURE-----
-
---JTEWvpGgrDDIFGki--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
