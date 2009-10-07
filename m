@@ -1,50 +1,63 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: [PATCH][ACPI] AC/DC notifier
-Date: Wed, 7 Oct 2009 18:16:29 +1000
-Message-ID: <21d7e9970910070116h6cf4e472i309537e9b4bb1e08@mail.gmail.com>
-References: <FFAE0590FF35E441901B67BD8BA62E950245ABD9@storexmb3.amd.com>
-	 <20090812005532.GA31003@srcf.ucam.org> <20090814163233.GC1626@ucw.cz>
-	 <20090816074008.GA11624@1wt.eu> <4ACB59E2.3000600@amd.com>
-	 <20091007073121.GA31245@elf.ucw.cz>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: Random AE_TIME exceptions
+Date: Wed, 7 Oct 2009 09:12:31 +0100
+Message-ID: <9b2b86520910070112v3a631014t38e4fffe70d1380c@mail.gmail.com>
+References: <20091007064437.GH6196@wrars-comp.wrarsdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758759AbZJGIRK@vger.kernel.org>
-In-Reply-To: <20091007073121.GA31245@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Tippett, Matthew" <matthew.tippett@amd.com>, Willy Tarreau <w@1wt.eu>, Matthew Garrett <mjg59@srcf.ucam.org>, "Langsdorf, Mark" <mark.langsdorf@amd.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Li, Samuel" <Samuel.Li@amd.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:50532 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933695AbZJGINJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2009 04:13:09 -0400
+Received: by fxm27 with SMTP id 27so4366868fxm.17
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Oct 2009 01:12:31 -0700 (PDT)
+In-Reply-To: <20091007064437.GH6196@wrars-comp.wrarsdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrey Rahmatullin <wrar@altlinux.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Oct 7, 2009 at 5:31 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Tue 2009-10-06 10:53:22, Tippett, Matthew wrote:
->> (Resending as text-only - sorry)
->>
->> Bringing this item back up again.
->>
->> I am not suggesting that the application of any particular policy
->> appears within the kernel or userspace or a secondary policy engine.
->> In general I am also against codifying policy within drivers.
->>
->> I am interested seeing the ACPI notifier mechanism expanded to allow
->> AC/DC state changes propagate to other kernel drivers without requiring
->> a userspace in between.
->>
->> I can continue to come up with real scenarios that would possibly
->> require kernel-to-kernel notification, but would rather focus this
->> discussion of the pure technical issues associated with adding the
->> notifier to the AC/DC ACPI subsystem.
+On 10/7/09, Andrey Rahmatullin <wrar@altlinux.org> wrote:
 >
-> Please do. So far you did not show valid use for such notifier.
+> This is a copy of http://bugzilla.kernel.org/show_bug.cgi?id=14332
 >
-> (Ok, I know of one. Old amd64 notebooks had cpufreq scaling enabled,
-> with battery unable to supply enough current to feed the CPU at
-> highest cpufreq setting. At that point, scaling cpufreq down at unplug
-> is correctness issue, and AC/DC notifier in kernel makes
-> sense.)
+> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] 20090521
+> evregion-424
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.SBRG.EC0_.BST1] (Node f7012e70), AE_TIME
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.CBST]
+> (Node f7015078), AE_TIME
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.BAT0._BST] (Node f7013fa8), AE_TIME
+> ACPI Exception: AE_TIME, Evaluating _BST 20090521 battery-385
 >
-> So... what do you want to use it for?
+> or
+>
+> ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] 20090521
+> evregion-424
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.SBRG.EC0_.EBTS] (Node f7012eb8), AE_TIME
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.SBRG.EC0_.UBCS] (Node f7013ee8), AE_TIME
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.CBST]
+> (Node f7015078), AE_TIME
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.PCI0.BAT0._BST] (Node f7013fa8), AE_TIME
+> ACPI Exception: AE_TIME, Evaluating _BST 20090521 battery-385
+>
+>
+> It doesn't seem to cause any instabilities or failures, but still.
+> It also can be interesting that these errors were printed very often when
+> I tried ivd/rt2x00.git and wifi interface was up.
 
-I'm not sure we have a open driver use case for this, if not I suggest
-we remove it and only add it when a user is added to the kernel.
+Have you tried 2.6.32-rc3?
 
-Dave.
+2.6.32-rc1 included an important rewrite for the "EmbeddedControl"
+(EC) driver.  It was reported that this caused timeouts on some
+machines.  These specific timeouts were then fixed in -rc3.  So it
+would be interesting to see how -rc3 affects the timeout messages you
+are seeing.
+
+Thanks
+Alan.
