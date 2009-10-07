@@ -1,56 +1,136 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 3/6] ACPI: dock: clean up one more error path in dock_add()
-Date: Wed, 07 Oct 2009 16:07:42 -0600
-Message-ID: <20091007220742.15597.91712.stgit@bob.kio>
+Subject: [PATCH 5/6] ACPI: dock: combine add|alloc_dock_dependent_device
+Date: Wed, 07 Oct 2009 16:07:52 -0600
+Message-ID: <20091007220752.15597.25461.stgit@bob.kio>
 References: <20091007220509.15597.65501.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:1160 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755048AbZJGWIT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2009 18:08:19 -0400
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:44703 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755173AbZJGWI3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2009 18:08:29 -0400
 In-Reply-To: <20091007220509.15597.65501.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Remove one final redundant error handling path and reduce repetitiveness.
+There's no real need to have a separate allocation step when adding
+a dock dependent device.
+
+Combining the two functions is both logical and helps with legibility.
 
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/dock.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/dock.c |   55 ++++++++++++++++++---------------------------------
+ 1 files changed, 19 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 390adee..1d693a1 100644
+index e53d49b..ce36b6c 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -968,11 +968,10 @@ static int dock_add(acpi_handle handle)
- 		platform_device_register_simple(dock_device_name,
- 			dock_station_count, NULL, 0);
- 	dock_device = ds->dock_device;
--	if (IS_ERR(dock_device)) {
--		kfree(ds);
--		ds = NULL;
--		return PTR_ERR(dock_device);
--	}
-+	ret = IS_ERR(dock_device) ? PTR_ERR(dock_device) : 0;
-+	if (ret)
-+		goto err_free;
-+
- 	platform_device_add_data(dock_device, &ds,
- 		sizeof(struct dock_station *));
+@@ -93,40 +93,30 @@ struct dock_dependent_device {
+  *                         Dock Dependent device functions                   *
+  *****************************************************************************/
+ /**
+- *  alloc_dock_dependent_device - allocate and init a dependent device
+- *  @handle: the acpi_handle of the dependent device
++ * add_dock_dependent_device - associate a device with the dock station
++ * @handle: handle of the dependent device
++ * @ds: The dock station
+  *
+- *  Allocate memory for a dependent device structure for a device referenced
+- *  by the acpi handle
++ * Add the dependent device to the dock's dependent device list.
+  */
+-static struct dock_dependent_device *
+-alloc_dock_dependent_device(acpi_handle handle)
++static int
++add_dock_dependent_device(acpi_handle handle, struct dock_station *ds)
+ {
+ 	struct dock_dependent_device *dd;
  
-@@ -1036,6 +1035,7 @@ err_unregister1:
- err_unregister:
- 	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
- 	platform_device_unregister(dock_device);
-+err_free:
- 	kfree(ds);
- 	ds = NULL;
- 	return ret;
+ 	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
+-	if (dd) {
+-		dd->handle = handle;
+-		INIT_LIST_HEAD(&dd->list);
+-		INIT_LIST_HEAD(&dd->hotplug_list);
+-	}
+-	return dd;
+-}
++	if (!dd)
++		return -ENOMEM;
++
++	dd->handle = handle;
++	INIT_LIST_HEAD(&dd->list);
++	INIT_LIST_HEAD(&dd->hotplug_list);
+ 
+-/**
+- * add_dock_dependent_device - associate a device with the dock station
+- * @ds: The dock station
+- * @dd: The dependent device
+- *
+- * Add the dependent device to the dock's dependent device list.
+- */
+-static void
+-add_dock_dependent_device(struct dock_station *ds,
+-			  struct dock_dependent_device *dd)
+-{
+ 	spin_lock(&ds->dd_lock);
+ 	list_add_tail(&dd->list, &ds->dependent_devices);
+ 	spin_unlock(&ds->dd_lock);
++
++	return 0;
+ }
+ 
+ /**
+@@ -826,7 +816,6 @@ find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	acpi_status status;
+ 	acpi_handle tmp, parent;
+ 	struct dock_station *ds = context;
+-	struct dock_dependent_device *dd;
+ 
+ 	status = acpi_bus_get_ejd(handle, &tmp);
+ 	if (ACPI_FAILURE(status)) {
+@@ -840,11 +829,9 @@ find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 			goto fdd_out;
+ 	}
+ 
+-	if (tmp == ds->handle) {
+-		dd = alloc_dock_dependent_device(handle);
+-		if (dd)
+-			add_dock_dependent_device(ds, dd);
+-	}
++	if (tmp == ds->handle)
++		add_dock_dependent_device(ds, handle);
++
+ fdd_out:
+ 	return AE_OK;
+ }
+@@ -941,7 +928,6 @@ static DEVICE_ATTR(type, S_IRUGO, show_dock_type, NULL);
+ static int dock_add(acpi_handle handle)
+ {
+ 	int ret;
+-	struct dock_dependent_device *dd;
+ 	struct dock_station *ds;
+ 	struct platform_device *dock_device;
+ 
+@@ -1006,12 +992,9 @@ static int dock_add(acpi_handle handle)
+ 			    NULL);
+ 
+ 	/* add the dock station as a device dependent on itself */
+-	dd = alloc_dock_dependent_device(handle);
+-	if (!dd) {
+-		ret = -ENOMEM;
++	ret = add_dock_dependent_device(ds, handle);
++	if (ret)
+ 		goto err_unregister5;
+-	}
+-	add_dock_dependent_device(ds, dd);
+ 
+ 	dock_station_count++;
+ 	list_add(&ds->sibling, &dock_stations);
 
