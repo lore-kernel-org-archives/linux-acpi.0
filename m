@@ -1,45 +1,29 @@
-From: Andreas Mohr <andi@lisas.de>
-Subject: 2.6.32-rc3: floating-point build failure (undefined reference to
-	`__udivdi3' in menu governor)
-Date: Wed, 7 Oct 2009 12:41:25 +0200
-Message-ID: <20091007104125.GA1449@rhlx01.hs-esslingen.de>
-References: <alpine.LFD.2.01.0910041727310.3432@localhost.localdomain>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH]AC/DC notifier
+Date: Wed, 7 Oct 2009 15:05:41 +0100
+Message-ID: <20091007140541.GB12756@srcf.ucam.org>
+References: <FFAE0590FF35E441901B67BD8BA62E950245ABD9@storexmb3.amd.com> <20090812005532.GA31003@srcf.ucam.org> <20090814163233.GC1626@ucw.cz> <20090816074008.GA11624@1wt.eu> <4ACB59E2.3000600@amd.com> <20091007073121.GA31245@elf.ucw.cz> <21d7e9970910070116h6cf4e472i309537e9b4bb1e08@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:47613 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757432AbZJGKmD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2009 06:42:03 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:42168 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539AbZJGOHP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Oct 2009 10:07:15 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.01.0910041727310.3432@localhost.localdomain>
+In-Reply-To: <21d7e9970910070116h6cf4e472i309537e9b4bb1e08@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Arjan van de Ven <arjan@linux.intel.com>, Adam Belay <abelay@novell.com>, linux-acpi@vger.kernel.org
+To: Dave Airlie <airlied@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, "Tippett, Matthew" <matthew.tippett@amd.com>, Willy Tarreau <w@1wt.eu>, "Langsdorf, Mark" <mark.langsdorf@amd.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Li, Samuel" <Samuel.Li@amd.com>
 
-Hi,
+On Wed, Oct 07, 2009 at 06:16:29PM +1000, Dave Airlie wrote:
 
-didn't find any report about this, so...
+> I'm not sure we have a open driver use case for this, if not I suggest
+> we remove it and only add it when a user is added to the kernel.
 
-  LD      .tmp_vmlinux1
-drivers/built-in.o(.text+0xd85a1): In function `menu_select':
-drivers/cpuidle/governors/menu.c:212: undefined reference to `__udivdi3'
-make: *** [.tmp_vmlinux1] Error 1
+We'll need it once we add scaling support to radeon, so I don't see the 
+harm with it being merged now.
 
-
-The symbol being __udivdi3 sounds to me like it's illegal FP use here.
-
-This is not necessarily a -rc3 regression, though (currently running
-2.6.29-rc7 on this box).
-
-
-# gcc -v
-Reading specs from /usr/lib/gcc-lib/i386-redhat-linux/3.2.3/specs
-Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --enable-threads=posix --disable-checking --with-system-zlib --enable-__cxa_atexit --host=i386-redhat-linux
-Thread model: posix
-gcc version 3.2.3 20030502 (Red Hat Linux 3.2.3-49)
-
-(yes, I know... ;)
-
-Andreas Mohr
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
