@@ -1,42 +1,43 @@
-From: wferi <wferi@niif.hu>
-Subject: Suspend to RAM freeze with kernel modesetting
-Date: Thu, 08 Oct 2009 03:40:34 +0200
-Message-ID: <7ff4351d91a63843e586e595d0c5a5d5@niif.hu>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: [RESEND] [PATCH] fujitsu-laptop: address missed led-class ifdef fixup
+Date: Thu, 8 Oct 2009 13:19:12 +0930 (CST)
+Message-ID: <200910080349.n983nCmJ006616@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rs14.lvs.iif.hu ([193.225.14.164]:52831 "EHLO rs14.lvs.iif.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754858AbZJHBr4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Oct 2009 21:47:56 -0400
-Received: from lipton.aai.niif.hu (HELO testmail.iif.hu) ([193.225.14.195])
-          (envelope-sender <wferi@niif.hu>)
-          by mail.iif.hu (qmail-ldap-1.03) with SMTP
-          for <linux-acpi@vger.kernel.org>; 8 Oct 2009 03:40:34 +0200
+Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:32856 "EHLO
+	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750790AbZJHENN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Oct 2009 00:13:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Hi ACPI folks,
+Hi Len
 
-I'd like to solicit your opinion on the
-https://bugs.freedesktop.org/show_bug.cgi?id=22126 issue.
-In short, if I load the Intel graphics driver with kernel
-modesetting enabled, my ThinkPad R50e won't suspend to RAM
-anymore, it freezes instead (ie. does not enter S3).
-Tracing seems to show that the freeze happens in a
-particular line of drivers/acpi/acpica/hwsleep.c:
+It seems that the following trivial fix-up patch hasn't yet been applied to
+2.6.32-rc.  Hense a resend.
 
-/* Run the _PTS method */
-status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
+Regards
+  jonathan
 
-in acpi_enter_sleep_state_prep, as described in the bug
-report. Can anybody provide a clue why this happens?
-Suspend to disk works invariably, just like suspend to RAM
-until I enable the kernel modesetting by a module option.
+The following patch follows on from "[PATCH] fujitsu-laptop: support
+led-class as module" which has gone into -test.  It's a trivial fix for one
+of the CONFIG_LEDS_CLASS ifdefs which was somehow missed in the original
+patch.
 
-Please Cc me or the bug report, I'm not subscribed to linux-acpi.
+Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Thanks,
-Feri.
+--- a/drivers/platform/x86/fujitsu-laptop.c	2009-08-31 09:52:14.242247260 +0930
++++ b/drivers/platform/x86/fujitsu-laptop.c	2009-08-31 09:53:18.812961106 +0930
+@@ -944,7 +944,7 @@
+ 	struct fujitsu_hotkey_t *fujitsu_hotkey = acpi_driver_data(device);
+ 	struct input_dev *input = fujitsu_hotkey->input;
+ 
+-#ifdef CONFIG_LEDS_CLASS
++#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+ 	if (fujitsu_hotkey->logolamp_registered)
+ 		led_classdev_unregister(&logolamp_led);
+ 
