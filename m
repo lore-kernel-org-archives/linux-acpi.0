@@ -1,70 +1,54 @@
-From: "mail.telia.com" <sarita@mail.doshisha.ac.jp>
-Subject: B=?UTF-8?B?w6Q=?=ste=?UTF-8?B?IA==?=mail.telia.com=?UTF-8?B?IA==?=User=?UTF-8?B?IA==?=Account
-Date: Thu, 8 Oct 2009 10:30:12 +0900 (JST)
-Message-ID: <20091008103011.24EC5599__41795.3413948$1254976615$gmane$org@doshisha.ac.jp>
-Reply-To: technicalsupport@mcom.com
+From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+Subject: [v8 PATCH 0/8]: cpuidle: Cleanup cpuidle/ Introduce cpuidle to POWER.
+Date: Thu, 8 Oct 2009 15:18:28 +0530
+Message-ID: <20091008094828.GA20595@linux.vnet.ibm.com>
+Reply-To: arun@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from celle1.doshisha.ac.jp ([202.23.190.209]:34694 "EHLO
-	celle1.doshisha.ac.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267AbZJHEeT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Oct 2009 00:34:19 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar
+Cc: linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
+
+Please consider this for inclusion into the testing tree.
+
+This patchset introduces cpuidle infrastructure to POWER, prototyping
+for pSeries, and also does a major refactoring of current x86 idle
+power management and a cleanup of cpuidle infrastructure.
+
+Earlier discussions on the same can be found at:
+
+v7 --> http://lkml.org/lkml/2009/10/6/278
+v6 --> http://lkml.org/lkml/2009/9/22/180
+v5 --> http://lkml.org/lkml/2009/9/22/26
+v4 --> http://lkml.org/lkml/2009/9/1/133
+v3 --> http://lkml.org/lkml/2009/8/27/124
+v2 --> http://lkml.org/lkml/2009/8/26/233
+v1 --> http://lkml.org/lkml/2009/8/19/150
 
 
-B=C3=A4ste mail.telia.com User Account,
+Changes in this version:
+--------------------------------------
 
+* Remove redundant poll_idle definition in arch/x86/kernel/process.c
 
-Det kommer att bli en uppgradering av v=C3=A5rt system mellan 5 till 30=
- oktober 2009.
-P=C3=A5 grund av den anonyma registrering av telia.com konton och antal=
- vilande konton, kommer vi att k=C3=B6ra den h=C3=A4r uppgraderingen at=
-t fastst=C3=A4lla det exakta antalet abonnenter vi har i dag.
+* Prevent acpi_driver from registering when boot_option_idle_override
+  is set and let cpuidle_default driver to take over in this case.
 
-Du ombeds att logga in p=C3=A5 ditt telia.com e-postkonto f=C3=B6r att =
-kontrollera att ditt konto =C3=A4r fortfarande giltigt och skicka omede=
-lbart folowing:
+* Enable default_idle when power_save=off in POWER.
 
-
-Login Name: ..................................( Obligatorisk)
-L=C3=B6senord: ....................................( obligatoriskt)
-=46=C3=B6delsedatum .................................( tillval)
-State: ......................................( tillval)
-
-
-Innan du s=C3=A4nder din kontoinformation till oss, =C3=A4r att r=C3=A5=
-da dig att logga in
-den h=C3=A4r l=C3=A4nken nedan: https: / / webmail.telia.com /
-
-
-Observera att om ditt konto loggar in, skicka oss detaljer eller p=C3=A5=
- annat s=C3=A4tt
-Det betyder att det har tagits bort. Ledsen f=C3=B6r inconvinence detta=
- kan
-inneb=C3=A4ra att du f=C3=B6rs=C3=B6ker vi bara f=C3=B6r att du dont f=C3=
-=B6rlora informationer p=C3=A5 dina konton.
-
-
-Allt du beh=C3=B6ver g=C3=B6ra =C3=A4r att klicka p=C3=A5 Svara och l=C3=
-=A4mna den information som ovan,
-ditt konto kommer inte att avbrytas och kommer att forts=C3=A4tta som v=
-anligt.
-
-
-Tack f=C3=B6r er uppm=C3=A4rksamhet p=C3=A5 denna beg=C3=A4ran. =C3=85t=
-erigen Vi ber om urs=C3=A4kt
-f=C3=B6r eventuella ol=C3=A4genheter. Varning! Anv=C3=A4ndare som v=C3=A4=
-grar att uppdatera sina konton efter 5 dagar efter mottagandet av denna=
- varning kommer att f=C3=B6rlora anv=C3=A4ndare
-hans / hennes konto permanent.
-
-2009 =C2=A9 telia.com Post (webmail.telia.com)
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+arun
