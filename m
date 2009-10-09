@@ -1,271 +1,82 @@
-From: Matt Domsch <Matt_Domsch@dell.com>
-Subject: [PATCH] PCIe AER: honor ACPI HEST FIRMWARE FIRST mode
-Date: Fri, 9 Oct 2009 13:33:20 -0500
-Message-ID: <20091009183319.GC24889@mock.linuxdev.us.dell.com>
-References: <20091006173311.GA15751@auslistsprd01.us.dell.com> <4ACEE220.1020705@jp.fujitsu.com> <20091009182810.GB24889@mock.linuxdev.us.dell.com>
-Reply-To: Matt Domsch <Matt_Domsch@dell.com>
+From: Scott Dylewski <scott@dylewski.com>
+Subject: lenovo ideapad s12 dsdt errors...
+Date: Fri, 09 Oct 2009 12:34:07 -0700
+Message-ID: <1255116847.12236.272.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:65511 "EHLO
-	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758241AbZJISd5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 14:33:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20091009182810.GB24889@mock.linuxdev.us.dell.com>
+Received: from hapkido.dreamhost.com ([66.33.216.122]:36194 "EHLO
+	hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753443AbZJITf5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 15:35:57 -0400
+Received: from blingymail-a1.g.dreamhost.com (caibbdcaaaaf.dreamhost.com [208.113.200.5])
+	by hapkido.dreamhost.com (Postfix) with ESMTP id 45F0B17B632
+	for <linux-acpi@vger.kernel.org>; Fri,  9 Oct 2009 12:35:18 -0700 (PDT)
+Received: from [192.168.16.12] (adsl-99-138-86-173.dsl.pltn13.sbcglobal.net [99.138.86.173])
+	by blingymail-a1.g.dreamhost.com (Postfix) with ESMTP id 86EA15CE37
+	for <linux-acpi@vger.kernel.org>; Fri,  9 Oct 2009 12:34:09 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Tom Long Nguyen <tom.l.nguyen@intel.com>, Zhang Yanmin <yanmin.zhang@intel.com>, linux-kernel@vger.kernel.org, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Huong_Nguyen@dell.com
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-For review and comment.  Feedback from Hidetoshi Seto and Kenji
-Kaneshige incorporated.
+I just bought a Lenovo S12 netbook (atom processor) and installed Ubuntu
+Karmic netbook remix on it, and I'm having some issues.  I'm getting
+some long boot times, and wonder if it's related to the ACPI stuff. 
 
-Today, the PCIe Advanced Error Reporting (AER) driver attaches itself
-to every PCIe root port for which BIOS reports it should, via ACPI
-_OSC.
+So I found some stuff online that suggests that my dsdt may have some
+errors, and when I checked, it used a MSFT compiler and had a bunch of
+warnings and errors, but I don't know how to fix them.  Can someone
+direct me a bit and either help me fix the errors if needed, or let me
+know what to do?  
 
-However, _OSC alone is insufficient for newer BIOSes.  Part of ACPI
-4.0 is the new APEI (ACPI Platform Error Interfaces) which is a way
-for OS and BIOS to handshake over which errors for which components
-each will handle.  One table in ACPI 4.0 is the Hardware Error Source
-Table (HEST), where BIOS can define that errors for certain PCIe
-devices (or all devices), should be handled by BIOS ("Firmware First
-mode"), rather than be handled by the OS.
+the weirdest thing is that this netbook/laptop seems to boot and then
+"stall" at various points in the boot process, and touching the trackpad
+will immediately get the process going again...  weird!
 
-Dell PowerEdge 11G server BIOS defines Firmware First mode in HEST, so
-that it may manage such errors, log them to the System Event Log, and
-possibly take other actions.  The aer driver should honor this, and
-not attach itself to devices noted as such.
+So, even if my boot issues aren't due to ACPI, I'm hoping someone could
+check my dsdt.dsl and see if it would help to fix the errors:
 
-Furthermore, Kenji Kaneshige reminded us to disallow changing the AER
-registers when respecting Firmware First mode.  Platform firmware is
-expected to manage these, and if changes to them are allowed, it could
-break that firmware's behavior.
+scott@feynman:~$ iasl -tc dsdt.dsl
 
-The HEST parsing code may be replaced in the future by a more
-feature-rich implementation.  This patch provides the minimum needed
-to prevent breakage until that implementation is available.
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20081204 [Jan 10 2009]
+Copyright (C) 2000 - 2008 Intel Corporation
+Supports ACPI Specification Revision 3.0a
 
-Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
----
- drivers/acpi/Makefile              |    1 +
- drivers/acpi/hest.c                |  106 ++++++++++++++++++++++++++++++++++++
- drivers/pci/pcie/aer/aerdrv_core.c |   26 ++++++++-
- include/acpi/acpi_hest.h           |    8 +++
- include/linux/pci.h                |    1 +
- 5 files changed, 140 insertions(+), 2 deletions(-)
- create mode 100644 drivers/acpi/hest.c
- create mode 100644 include/acpi/acpi_hest.h
+dsdt.dsl    72:     Field (PRT0, DWordAcc, Lock, Preserve)
+Error    4027 -               ^ Access width is greater than region size
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 7702118..9ab0d6d 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -19,6 +19,7 @@ obj-y				+= acpi.o \
- 
- # All the builtin files are in the "acpi." module_param namespace.
- acpi-y				+= osl.o utils.o reboot.o
-+obj-y				+= hest.o
- 
- # sleep related files
- acpi-y				+= wakeup.o
-diff --git a/drivers/acpi/hest.c b/drivers/acpi/hest.c
-new file mode 100644
-index 0000000..9684f50
---- /dev/null
-+++ b/drivers/acpi/hest.c
-@@ -0,0 +1,106 @@
-+#include <linux/acpi.h>
-+#include <linux/pci.h>
-+
-+static unsigned long parse_acpi_hest_ia_machine_check(struct acpi_hest_ia_machine_check *p)
-+{
-+	return sizeof(*p) +
-+		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
-+}
-+
-+static unsigned long parse_acpi_hest_ia_corrected(struct acpi_hest_ia_corrected *p)
-+{
-+	return sizeof(*p) +
-+		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
-+}
-+
-+static unsigned long parse_acpi_hest_ia_nmi(struct acpi_hest_ia_nmi *p)
-+{
-+	return sizeof(*p);
-+}
-+
-+static unsigned long parse_acpi_hest_generic(struct acpi_hest_generic *p)
-+{
-+	return sizeof(*p);
-+}
-+
-+static unsigned long parse_acpi_hest_aer(void *hdr, int type, struct pci_dev *pci, int *firmware_first)
-+{
-+	struct acpi_hest_aer_common *p = hdr + sizeof(struct acpi_hest_header);
-+	unsigned long rc=0;
-+	switch (type) {
-+	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+		rc = sizeof(struct acpi_hest_aer_root);
-+		break;
-+	case ACPI_HEST_TYPE_AER_ENDPOINT:
-+		rc = sizeof(struct acpi_hest_aer);
-+		break;
-+	case ACPI_HEST_TYPE_AER_BRIDGE:
-+		rc = sizeof(struct acpi_hest_aer_bridge);
-+		break;
-+	}
-+
-+	if (p->flags & ACPI_HEST_FIRMWARE_FIRST &&
-+	    (p->flags & ACPI_HEST_GLOBAL ||
-+	     (p->bus      == pci->bus->number &&
-+	      p->device   == PCI_SLOT(pci->devfn) &&
-+	      p->function == PCI_FUNC(pci->devfn))))
-+		*firmware_first = 1;
-+	return rc;
-+}
-+
-+static int acpi_hest_firmware_first(struct acpi_table_header *stdheader, struct pci_dev *pci)
-+{
-+	struct acpi_table_hest *hest = (struct acpi_table_hest *)stdheader;
-+	void *p = (void *)hest + sizeof(*hest); /* defined by the ACPI 4.0 spec */
-+	struct acpi_hest_header *hdr = p;
-+
-+	int i;
-+	int firmware_first = 0;
-+
-+	for (i=0, hdr=p; p < (((void *)hest) + hest->header.length) && i < hest->error_source_count; i++) {
-+		switch (hdr->type) {
-+		case ACPI_HEST_TYPE_IA32_CHECK:
-+			p += parse_acpi_hest_ia_machine_check(p);
-+			break;
-+		case ACPI_HEST_TYPE_IA32_CORRECTED_CHECK:
-+			p += parse_acpi_hest_ia_corrected(p);
-+			break;
-+		case ACPI_HEST_TYPE_IA32_NMI:
-+			p += parse_acpi_hest_ia_nmi(p);
-+			break;
-+		/* These three should never appear */
-+		case ACPI_HEST_TYPE_NOT_USED3:
-+		case ACPI_HEST_TYPE_NOT_USED4:
-+		case ACPI_HEST_TYPE_NOT_USED5:
-+			break;
-+		case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+		case ACPI_HEST_TYPE_AER_ENDPOINT:
-+		case ACPI_HEST_TYPE_AER_BRIDGE:
-+			p += parse_acpi_hest_aer(p, hdr->type, pci, &firmware_first);
-+			break;
-+		case ACPI_HEST_TYPE_GENERIC_ERROR:
-+			p += parse_acpi_hest_generic(p);
-+			break;
-+		/* These should never appear either */
-+		case ACPI_HEST_TYPE_RESERVED:
-+		default:
-+			break;
-+		}
-+	}
-+	return firmware_first;
-+}
-+
-+int acpi_hest_firmware_first_pci(struct pci_dev *pci)
-+{
-+	acpi_status status = AE_NOT_FOUND;
-+	struct acpi_table_header *hest = NULL;
-+	status = acpi_get_table(ACPI_SIG_HEST, 1, &hest);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		if (acpi_hest_firmware_first(hest, pci)) {
-+			return 1;
-+		}
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_hest_firmware_first_pci);
-diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-index 9f5ccbe..aef2db2 100644
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -23,6 +23,7 @@
- #include <linux/pm.h>
- #include <linux/suspend.h>
- #include <linux/delay.h>
-+#include <acpi/acpi_hest.h>
- #include "aerdrv.h"
- 
- static int forceload;
-@@ -35,6 +36,9 @@ int pci_enable_pcie_error_reporting(struct pci_dev *dev)
- 	u16 reg16 = 0;
- 	int pos;
- 
-+	if (dev->aer_firmware_first)
-+		return -EIO;
-+
- 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
- 	if (!pos)
- 		return -EIO;
-@@ -60,6 +64,9 @@ int pci_disable_pcie_error_reporting(struct pci_dev *dev)
- 	u16 reg16 = 0;
- 	int pos;
- 
-+	if (dev->aer_firmware_first)
-+		return -EIO;
-+
- 	pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
- 	if (!pos)
- 		return -EIO;
-@@ -874,8 +881,23 @@ void aer_delete_rootport(struct aer_rpc *rpc)
-  */
- int aer_init(struct pcie_device *dev)
- {
--	if (aer_osc_setup(dev) && !forceload)
--		return -ENXIO;
-+	if (acpi_hest_firmware_first_pci(dev->port)) {
-+		dev_printk(KERN_DEBUG, &dev->device,
-+			   "PCIe device errors handled by platform firmware.\n");
-+		dev->port->aer_firmware_first=1;
-+		goto out;
-+	}
-+
-+	if (aer_osc_setup(dev))
-+		goto out;
- 
- 	return 0;
-+out:
-+	if (forceload) {
-+		dev_printk(KERN_DEBUG, &dev->device,
-+			   "aerdrv forceload requested.\n");
-+		dev->port->aer_firmware_first=0;
-+		return 0;
-+	}
-+	return -ENXIO;
- }
-diff --git a/include/acpi/acpi_hest.h b/include/acpi/acpi_hest.h
-new file mode 100644
-index 0000000..0d41408
---- /dev/null
-+++ b/include/acpi/acpi_hest.h
-@@ -0,0 +1,8 @@
-+#ifndef __ACPI_HEST_H
-+#define __ACPI_HEST_H
-+
-+#include <linux/pci.h>
-+
-+extern int acpi_hest_firmware_first_pci(struct pci_dev *pci);
-+
-+#endif
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index da4128f..9d646e6 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -280,6 +280,7 @@ struct pci_dev {
- 	unsigned int	is_virtfn:1;
- 	unsigned int	reset_fn:1;
- 	unsigned int    is_hotplug_bridge:1;
-+	unsigned int    aer_firmware_first:1;
- 	pci_dev_flags_t dev_flags;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
- 
--- 
-1.6.2.5
+dsdt.dsl    74:         P80H,   8
+Error    4028 -            ^ Access width of Field Unit extends beyond
+region limit
+
+dsdt.dsl   978:             Name (_HID, "*pnp0c14")
+Error    4001 -                                  ^ String must be
+entirely alphanumeric (*pnp0c14)
+
+dsdt.dsl  1007:             Method (_WED, 1, NotSerialized)
+Warning  1087 -                        ^ Not all control paths return a
+value (_WED)
+
+dsdt.dsl  1007:             Method (_WED, 1, NotSerialized)
+Warning  1080 -                        ^ Reserved method must return a
+value (_WED)
+
+dsdt.dsl  4294:                             Method (_CFG, 0,
+NotSerialized)
+Warning  1098 -                  Unknown reserved name ^  (_CFG)
+
+dsdt.dsl  4401:                                     Name (_T_0, 0x00)
+Remark   5110 -                Use of compiler reserved name ^  (_T_0)
+
+ASL Input:  dsdt.dsl - 6286 lines, 233566 bytes, 2384 keywords
+Compilation complete. 3 Errors, 3 Warnings, 1 Remarks, 661 Optimizations
+scott@feynman:~$ 
+
+Should I attach the dsdt.dsl?
+
+thanks!
+
+-scott
 
