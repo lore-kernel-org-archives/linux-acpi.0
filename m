@@ -1,86 +1,48 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Less strict requirements for video device detection (v3)
-Date: Fri, 09 Oct 2009 09:30:29 +0800
-Message-ID: <1255051829.2656.2.camel@rzhang-dt>
-References: <4A8D140F.1090909@canonical.com>
-	 <1250817458.17853.141.camel@rzhang-dt>  <4A8E7022.8000707@canonical.com>
-	 <1251076781.3483.13.camel@rzhang-dt>  <4A92A73C.7010003@canonical.com>
-	 <1251162484.3483.51.camel@rzhang-dt>  <4AC3BE3B.7020304@canonical.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: Suspend to RAM freeze with kernel modesetting
+Date: Fri, 09 Oct 2009 09:34:02 +0800
+Message-ID: <1255052042.3601.2.camel@localhost.localdomain>
+References: <7ff4351d91a63843e586e595d0c5a5d5@niif.hu>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60351 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:55224 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757248AbZJIBcF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Oct 2009 21:32:05 -0400
-In-Reply-To: <4AC3BE3B.7020304@canonical.com>
+	id S1755970AbZJIBfg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Oct 2009 21:35:36 -0400
+In-Reply-To: <7ff4351d91a63843e586e595d0c5a5d5@niif.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Bader <stefan.bader@canonical.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: wferi <wferi@niif.hu>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2009-10-01 at 04:23 +0800, Stefan Bader wrote:
-> Resending. It feels like being lost.
+On Thu, 2009-10-08 at 09:40 +0800, wferi wrote:
+> Hi ACPI folks,
 > 
-> -Stefan
+> I'd like to solicit your opinion on the
+> https://bugs.freedesktop.org/show_bug.cgi?id=22126 issue.
+> In short, if I load the Intel graphics driver with kernel
+> modesetting enabled, my ThinkPad R50e won't suspend to RAM
+> anymore, it freezes instead (ie. does not enter S3).
+> Tracing seems to show that the freeze happens in a
+> particular line of drivers/acpi/acpica/hwsleep.c:
+> /* Run the _PTS method */
+> status = acpi_evaluate_object(NULL, METHOD_NAME__PTS, &arg_list, NULL);
 > 
-Hi, len,
-
-can you apply this patch please? thanks.
-
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: [PATCH] acpi: video: Loosen strictness of video bus detection code
-
-BugLink: http://bugs.launchpad.net/bugs/333386
-
-Currently a video bus device must (beside other criteria) define _DOD and
-_DOS methods to be considered a video device.
-Some broken BIOSes prevented working backlight control by only defining both
-for one (non-existing bus) and only _DOD for the rest. With this patch in
-place the other bus definitions were considered too and backlight control
-started to work again.
-
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/video.c        |    7 ++++++-
- drivers/acpi/video_detect.c |    2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index a4fddb2..518910e 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1109,7 +1109,12 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
- 	 */
- 
- 	/* Does this device support video switching? */
--	if (video->cap._DOS) {
-+	if (video->cap._DOS || video->cap._DOD) {
-+		if (!video->cap._DOS) {
-+			printk(KERN_WARNING FW_BUG
-+				"ACPI(%s) defines _DOD but not _DOS\n",
-+				acpi_device_bid(video->device));
-+		}
- 		video->flags.multihead = 1;
- 		status = 0;
- 	}
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 7032f25..575593a 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -84,7 +84,7 @@ long acpi_is_video_device(struct acpi_device *device)
- 		return 0;
- 
- 	/* Does this device able to support video switching ? */
--	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
-+	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
- 
--- 
-1.5.4.3
-
-
+> in acpi_enter_sleep_state_prep, as described in the bug
+> report. Can anybody provide a clue why this happens?
+> Suspend to disk works invariably, just like suspend to RAM
+> until I enable the kernel modesetting by a module option.
+Will you please attach the output of acpidump on your box?
+Thanks.
+> 
+> Please Cc me or the bug report, I'm not subscribed to linux-acpi.
+> 
+> Thanks,
+> Feri.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
