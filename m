@@ -1,41 +1,55 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: [PATCH 1/1] ACPI: Kconfig, fix proc aggregator text
-Date: Fri,  9 Oct 2009 15:53:24 +0200
-Message-ID: <1255096404-23017-1-git-send-email-jirislaby@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from server1.wserver.cz ([82.113.45.157]:37639 "EHLO
-	server1.wserver.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936AbZJINyD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 09:54:03 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Matt Domsch <Matt_Domsch@dell.com>
+Subject: Re: Fwd: [PATCH] PCIe AER: honor ACPI HEST FIRMWARE FIRST mode
+Date: Fri, 9 Oct 2009 09:31:33 -0500
+Message-ID: <20091009143133.GC19218@mock.linuxdev.us.dell.com>
+References: <20091006173311.GA15751@auslistsprd01.us.dell.com> <851fc09e0910082221q7f832c22xfc0d01ab72a97c3f@mail.gmail.com> <1255067727.5228.111.camel@yhuang-dev.sh.intel.com>
+Reply-To: Matt Domsch <Matt_Domsch@dell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933338AbZJIOcN@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1255067727.5228.111.camel@yhuang-dev.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Tom Long Nguyen <tom.l.nguyen@intel.com>, Zhang Yanmin <yanmin.zhang@intel.com>, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jirislaby@gmail.com>
 
-Fix two typos in the Kconfig text about ACPI_PROCESSOR_AGGREGATOR.
+On Fri, Oct 09, 2009 at 01:55:27PM +0800, Huang Ying wrote:
+> Can you tell me where can I find more about PECI? Or you mean APEI (ACPI
+> Platform Error Interfaces)?
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
----
- drivers/acpi/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Yes, APEI.  My mistake.  Too many acronyms for my little mind.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 0ed42d8..93d2c79 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -218,10 +218,10 @@ config ACPI_PROCESSOR_AGGREGATOR
- 	depends on X86
- 	help
- 	  ACPI 4.0 defines processor Aggregator, which enables OS to perform
--	  specfic processor configuration and control that applies to all
-+	  specific processor configuration and control that applies to all
- 	  processors in the platform. Currently only logical processor idling
- 	  is defined, which is to reduce power consumption. This driver
--	  support the new device.
-+	  supports the new device.
- 
- config ACPI_THERMAL
- 	tristate "Thermal Zone"
+> We are working on APEI supporting now too, mainly on the general part.
+> We will release the code after it passes our internal testing.
+
+Excellent.  If you could post even the untested code, that would be
+helpful. Do you have a timeline for publication?
+
+My patch is fundamentally in response to the fact that your APEI code
+is not present yet, and there is a problem seen at customer sites now
+(particularly SLES 11, as that's the only "Enterprise"-class distro
+version with the AER driver, but also any distro or kernel build that
+includes the AER driver).  But without knowing when the rest of the
+APEI code will land in mainline, I feel it would be safe to do the
+minimum amount of HEST parsing, just enough to know if AER should be
+disabled or not.  My patch can be considered "throw-away" code - to be
+dropped when your APEI code lands in mainline and the distros.
+
+> As H.Seto said, HEST table parsing code should go the general APEI
+> supporting code. We have some HEST table parsing code, hope that can be
+> used by your code too.
+
+I agree completely.  But I need a solution in the short-term, both for
+mainline and which can be backported, until your code is available.
+
+I'm reworking my patch based on Seto-san's comments, and will repost
+soon as linux-next stops crashing on me. :-)
+
+Thanks,
+Matt
+
 -- 
-1.6.4.2
-
+Matt Domsch
+Technology Strategist, Dell Office of the CTO
+linux.dell.com & www.dell.com/linux
