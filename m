@@ -1,118 +1,125 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [RFC][PATCH 1/4] PCI PM: Add function for checking
-	PME status of devices
-Date: Thu, 8 Oct 2009 17:32:02 -0600
-Message-ID: <200910081732.03157.bjorn.helgaas@hp.com>
-References: <200910090051.50932.rjw@sisk.pl> <200910090052.48493.rjw@sisk.pl>
+From: Danny Feng <dfeng@redhat.com>
+Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume	from
+ suspend
+Date: Fri, 09 Oct 2009 09:16:37 +0800
+Message-ID: <4ACE8EF5.5050707@redhat.com>
+References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <20090928173819.GA2441@ldl.fc.hp.com> <4AC16682.50207@redhat.com> <20091001200522.GF31915@ldl.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200910090052.48493.rjw@sisk.pl>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:8158 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755814AbZJIBSF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Oct 2009 21:18:05 -0400
+In-Reply-To: <20091001200522.GF31915@ldl.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alex Chiang <achiang@hp.com>
+Cc: lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday 08 October 2009 04:52:48 pm Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Add function pci_check_pme_status() that will check the PME status
-> bit of given device and clear it along with the PME enable bit.  It
-> will be necessary for PCI run-time power management.
-> 
-> Based on a patch from Shaohua Li <shaohua.li@intel.com>
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+On 10/02/2009 04:05 AM, Alex Chiang wrote:
+> Hi Danny,
+>
+> * Danny Feng<dfeng@redhat.com>:
+>    
+>> Call Trace:
+>>   [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
+>>   [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
+>>   [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
+>>   [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
+>>   [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
+>>   [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
+>>   [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
+>>   [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
+>>   [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
+>>   [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
+>>   [<ffffffff8106a244>] worker_thread+0x251/0x347
+>>   [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
+>>   [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
+>>   [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
+>>   [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
+>>   [<ffffffff8106e0e0>] kthread+0x7f/0x87
+>>   [<ffffffff81012cea>] child_rip+0xa/0x20
+>>   [<ffffffff81012650>] ? restore_args+0x0/0x30
+>>   [<ffffffff8106e061>] ? kthread+0x0/0x87
+>>   [<ffffffff81012ce0>] ? child_rip+0x0/0x20
+>> Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7
+>> 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00<49>  8b
+>> 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
+>> RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
+>>   RSP<ffff88022ee69aa0>
+>> CR2: 0000000000000028
+>> ---[ end trace b5a7793bd9db2a4d ]---
+>>      
+> Can you please reproduce with this debug patch? I'm guessing that
+> we're dying because we have a NULL parent device, but I'm curious
+> as to what causes this situation to occur.
+>
+> Thanks.
+> /ac
 > ---
->  drivers/pci/pci.c |   35 +++++++++++++++++++++++++++++++++++
->  drivers/pci/pci.h |    1 +
->  2 files changed, 36 insertions(+)
-> 
-> Index: linux-2.6/drivers/pci/pci.h
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pci.h
-> +++ linux-2.6/drivers/pci/pci.h
-> @@ -49,6 +49,7 @@ struct pci_platform_pm_ops {
->  extern int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
->  extern void pci_update_current_state(struct pci_dev *dev, pci_power_t state);
->  extern void pci_disable_enabled_device(struct pci_dev *dev);
-> +extern bool pci_check_pme_status(struct pci_dev *dev);
->  extern void pci_pm_init(struct pci_dev *dev);
->  extern void platform_pci_wakeup_init(struct pci_dev *dev);
->  extern void pci_allocate_cap_save_buffers(struct pci_dev *dev);
-> Index: linux-2.6/drivers/pci/pci.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/pci/pci.c
-> +++ linux-2.6/drivers/pci/pci.c
-> @@ -1167,6 +1167,41 @@ int pci_set_pcie_reset_state(struct pci_
->  }
->  
->  /**
-> + * pci_check_pme_status - Check if given device has generated PME.
-> + * @dev: Device to check.
-> + *
-> + * Check the PME status of the device, clear PME status and PME enable.  Return
-> + * 'true' if PME has been generated by the device (and hasn't been spurious) or
-> + * 'false' otherwise.
-
-This comment confuses me because it implies that we always clear PME enable,
-but that's not what the code does.  If PME_STATUS is not asserted, the code
-doesn't write anything.
-
-> + */
-> +bool pci_check_pme_status(struct pci_dev *dev)
-> +{
-> +	int pmcsr_pos;
-> +	u16 pmcsr;
-> +	bool ret = false;
-> +
-> +	if (!dev->pm_cap)
-> +		return false;
-> +
-> +	pmcsr_pos = dev->pm_cap + PCI_PM_CTRL;
-> +	/* clear PME status and disable PME to avoid interrupt flood */
-> +	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
-> +	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
-> +		return false;
-> +
-> +	pmcsr |= PCI_PM_CTRL_PME_STATUS;
-> +	/* Ignore spurious PME or clear PME enable if it's not spurious. */
-> +	if (pmcsr & PCI_PM_CTRL_PME_ENABLE) {
-> +		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
-> +		ret = true;
-> +	}
-> +
-> +	pci_write_config_word(dev, pmcsr_pos, pmcsr);
-
-I can't tell whether the comment or the code is what was intended,
-but I think the following would be a clearer way to implement the
-comment:
-
-	pci_read_config_word(..., &pmcsr);
-	pci_write_config_word(..., (pmcsr | STATUS) & ~ENABLE);
-
-	if ((pmcsr & ENABLE) && (pmcsr & STATUS))
-		return true;
-	return false;
-
-Bjorn
-
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * pci_pme_capable - check the capability of PCI device to generate PME#
->   * @dev: PCI device to handle.
->   * @state: PCI state from which device will issue PME#.
-> 
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index 7338b6a..4c1b128 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -126,6 +126,7 @@ add_dock_dependent_device(struct dock_station *ds,
+>   {
+>   	spin_lock(&ds->dd_lock);
+>   	list_add_tail(&dd->list,&ds->dependent_devices);
+> +	printk("%s adding handle %p\n", __func__, dd->handle);
+>   	spin_unlock(&ds->dd_lock);
+>   }
+>
+> @@ -142,6 +143,8 @@ dock_add_hotplug_device(struct dock_station *ds,
+>   {
+>   	mutex_lock(&ds->hp_lock);
+>   	list_add_tail(&dd->hotplug_list,&ds->hotplug_devices);
+> +	dump_stack();
+> +	printk("%s adding handle %p\n", __func__, dd->handle);
+>   	mutex_unlock(&ds->hp_lock);
+>   }
+>
+> @@ -325,14 +328,17 @@ static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
+>   	acpi_handle parent;
+>   	int ret;
+>
+> +	printk("%s handle %p\n", __func__, handle);
+>   	if (acpi_bus_get_device(handle,&device)) {
+>   		/*
+>   		 * no device created for this object,
+>   		 * so we should create one.
+>   		 */
+>   		acpi_get_parent(handle,&parent);
+> -		if (acpi_bus_get_device(parent,&parent_device))
+> +		if (acpi_bus_get_device(parent,&parent_device)) {
+>   			parent_device = NULL;
+> +			printk("%s no parent, setting NULL\n", __func__);
+> +		}
+>
+>   		ret = acpi_bus_add(&device, parent_device, handle,
+>   			ACPI_BUS_TYPE_DEVICE);
+> @@ -385,8 +391,10 @@ static void hotplug_dock_devices(struct dock_station *ds, u32 event)
+>   	 * First call driver specific hotplug functions
+>   	 */
+>   	list_for_each_entry(dd,&ds->hotplug_devices, hotplug_list) {
+> -		if (dd->ops&&  dd->ops->handler)
+> +		if (dd->ops&&  dd->ops->handler) {
+> +			printk("%s handle %p\n", __func__, dd->handle);
+>   			dd->ops->handler(dd->handle, event, dd->context);
+> +		}
+>   	}
+>
+>   	/*
+> @@ -1041,6 +1049,7 @@ static int dock_add(acpi_handle handle)
+>   		ret = -ENOMEM;
+>   		goto dock_add_err_unregister;
+>   	}
+> +	printk("%s adding self as dependent %p)\n", __func__, dd->handle);
+>   	add_dock_dependent_device(dock_station, dd);
+>
+>   	dock_station_count++;
+>
+>    
+Sorry for the late response, just back from holidays. Will do it soon, 
+thanks.
