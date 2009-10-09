@@ -1,66 +1,41 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC][PATCH 3/4] PCI / ACPI PM: Platform support for
-	PCI PME	wake-up (rev. 2)
-Date: Fri, 9 Oct 2009 12:23:20 +0100
-Message-ID: <20091009112320.GA23990@srcf.ucam.org>
-References: <200910090051.50932.rjw@sisk.pl> <200910090054.18693.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <200910090054.18693.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: [PATCH 1/1] ACPI: Kconfig, fix proc aggregator text
+Date: Fri,  9 Oct 2009 15:53:24 +0200
+Message-ID: <1255096404-23017-1-git-send-email-jirislaby@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from server1.wserver.cz ([82.113.45.157]:37639 "EHLO
+	server1.wserver.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753936AbZJINyD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 09:54:03 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jirislaby@gmail.com>
 
-On Fri, Oct 09, 2009 at 12:54:18AM +0200, Rafael J. Wysocki wrote:
+Fix two typos in the Kconfig text about ACPI_PROCESSOR_AGGREGATOR.
 
-> Unfortunately, the subset of PCI devices that have GPEs associated
-> with them is quite limited and the other devices have to rely on
-> the GPEs associated with their upstream bridges and, possibly, the
-> root bridge to generate ACPI wake-up events in response to PMEs from
-> them.  Moreover, ACPI devices tend to share wake-up GPEs, in which
-> cases it makes sense to install an ACPI notify handler for only one
-> of them and "bind" the other devices to it.  Furthermore, ACPI-based
-> PCI hotplug also uses ACPI notify handlers that in general may
-> conflict with the PM notify handlers, unless this issue is
-> specifically taken care of.
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+---
+ drivers/acpi/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-I'm not sure this approach is correct - for instance, from a Dell 
-system:
-
-        Method (_L0D, 0, NotSerialized)
-        {
-            Store (SMI (0xC6, 0x00), Local0)
-            If (And (Local0, 0x01))
-            {
-                Notify (\_SB.PCI0.AZAL, 0x02)
-            }
-
-            If (And (Local0, 0x02))
-            {
-                Notify (\_SB.PCI0.EHCI, 0x02)
-            }
-
-            If (And (Local0, 0x04))
-            {
-                Notify (\_SB.PCI0.EHC2, 0x02)
-            }
-        }
-
-All these devices share a GPE, but registering only one notify handler 
-would result in us missing the notification in some cases. I also 
-suspect that this should wait until the GPE rework is done.
-
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 0ed42d8..93d2c79 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -218,10 +218,10 @@ config ACPI_PROCESSOR_AGGREGATOR
+ 	depends on X86
+ 	help
+ 	  ACPI 4.0 defines processor Aggregator, which enables OS to perform
+-	  specfic processor configuration and control that applies to all
++	  specific processor configuration and control that applies to all
+ 	  processors in the platform. Currently only logical processor idling
+ 	  is defined, which is to reduce power consumption. This driver
+-	  support the new device.
++	  supports the new device.
+ 
+ config ACPI_THERMAL
+ 	tristate "Thermal Zone"
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.4.2
+
