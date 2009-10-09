@@ -1,53 +1,67 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/6] ACPI: dock: code hygiene
-Date: Fri, 09 Oct 2009 16:55:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0910091654540.3912@localhost.localdomain>
-References: <20091007220509.15597.65501.stgit@bob.kio>
+Subject: Re: [PATCH 5/7] x86/PCI: print resources consistently with %pRt
+Date: Fri, 09 Oct 2009 17:14:16 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0910091707380.3912@localhost.localdomain>
+References: <20091006213259.4272.68068.stgit@bob.kio>
+ <20091006213349.4272.65914.stgit@bob.kio>
+ <86802c440910071143y7ba8b0f8y9efff738eba9d30b@mail.gmail.com>
+ <200910071315.16250.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:13097 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934197AbZJIUzx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 16:55:53 -0400
-In-reply-to: <20091007220509.15597.65501.stgit@bob.kio>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:56981 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754870AbZJIVOy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 17:14:54 -0400
+In-reply-to: <200910071315.16250.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Shaohua Li <shaohua.li@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-series applied to acpi-test
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+> The message changes like this:
+> 
+>   -PCI: Failed to allocate to allocate 0x0-0x3fff from PCI IO for PCI Bus 0000:00
+>   +pci_root PNP0A03:01: can't allocate [io  0x0000-0x3fff]
+> 
+> I don't think changing "PCI IO" to "io" is really a problem.  In fact,
+> strictly speaking, "PCI IO" is the wrong name for ioport_resource --
+> we're talking about a host bridge, and the upstream side is not PCI
+> at all.
+> 
+> However, I do think it would be more useful to mention the fact that
+> we failed to allocate a *window*, e.g., 
+> 
+>   pci_root PNP0A03:00: can't allocate host bridge window [io  0x0000-0x3fff]
+> 
+> I did consider keeping the PCI bus ("0000:00"), but I decided we
+> already have that information here:
+> 
+>   ACPI: PCI Root Bridge [PCI0] (0000:00)
+> 
+> and it doesn't seem worthwhile to me to repeat the bus number in all
+> the host bridge-related messages.  Right now, there's nothing to tie
+> the PCI0 to the PNP0A03:00 (and "PCI0" shouldn't be exposed to users
+> anyway), but someday when I finally convince Len to use dev_printk
+> in ACPI, it could look something like this:
+> 
+>   pci_root PNP0A03:00: PCI host bridge to pci_bus 0000:00
 
-On Wed, 7 Oct 2009, Alex Chiang wrote:
+The last time we looked at using dev_printk() in ACPI,
+it looked like the leading ACPI: would go away, and the
+concern was that would hinder, rather than help, people
+in reporting issues to the right place.
 
-> While poking around in the dock driver debugging the NULL ptr that
-> Rafael fixed, I found the driver a little hard to read.
-> 
-> Here is a modest attempt to clean it up a little, and is intended as
-> 2.6.33 material.
-> 
-> Compile-tested only. I have access to an HP nc6220 and nc6230, but neither
-> of them seem to provide the _DCK method, which is needed for the dock
-> driver.
-> 
-> Thanks.
-> 
-> /ac
-> 
-> ---
-> 
-> Alex Chiang (6):
->       ACPI: dock: clean up error handling paths in dock_add()
->       ACPI: dock: rename local variable 'dock_station' in dock_add()
->       ACPI: dock: clean up one more error path in dock_add()
->       ACPI: dock: add struct dock_station * directly to platform device data
->       ACPI: dock: combine add|alloc_dock_dependent_device
->       ACPI: dock: minor whitespace and style cleanups
-> 
-> 
->  drivers/acpi/dock.c |  259 ++++++++++++++++++++-------------------------------
->  1 files changed, 104 insertions(+), 155 deletions(-)
-> 
+I have no problem with using dev_printk() where it makes sense,
+but only if it makes the message more useful rather than
+less useful.
+
+BTW. I like the consistency provided by the series at hand.
+I assume that it will go through Jesse's, and for that,
+consider the relevant bits...
+
+Acked-by: Len Brown <len.brown@intel.com>
+
+cheers,
+-Len
