@@ -1,78 +1,116 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume from suspend
-Date: Fri, 9 Oct 2009 23:46:57 +0200
-Message-ID: <200910092346.58021.rjw@sisk.pl>
-References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <200910040056.00247.rjw@sisk.pl> <4ACE9F51.5060103@redhat.com>
+Subject: Re: [RFC][PATCH 1/4] PCI PM: Add function for checking
+	PME status of devices
+Date: Sat, 10 Oct 2009 00:11:28 +0200
+Message-ID: <200910100011.28268.rjw@sisk.pl>
+References: <200910090051.50932.rjw@sisk.pl> <200910090052.48493.rjw@sisk.pl>
+	<200910081732.03157.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934486AbZJIVqC@vger.kernel.org>
-In-Reply-To: <4ACE9F51.5060103@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Danny Feng <dfeng@redhat.com>
-Cc: Alex Chiang <achiang@hp.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200910081732.03157.bjorn.helgaas@hp.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 09 October 2009, Danny Feng wrote:
-> On 10/04/2009 06:56 AM, Rafael J. Wysocki wrote:
-> > On Thursday 01 October 2009, Alex Chiang wrote:
-> >> Hi Danny,
-> >>
-> >> * Danny Feng<dfeng@redhat.com>:
-> >>> Call Trace:
-> >>>   [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
-> >>>   [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
-> >>>   [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
-> >>>   [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
-> >>>   [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
-> >>>   [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
-> >>>   [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
-> >>>   [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
-> >>>   [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
-> >>>   [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
-> >>>   [<ffffffff8106a244>] worker_thread+0x251/0x347
-> >>>   [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
-> >>>   [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
-> >>>   [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
-> >>>   [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
-> >>>   [<ffffffff8106e0e0>] kthread+0x7f/0x87
-> >>>   [<ffffffff81012cea>] child_rip+0xa/0x20
-> >>>   [<ffffffff81012650>] ? restore_args+0x0/0x30
-> >>>   [<ffffffff8106e061>] ? kthread+0x0/0x87
-> >>>   [<ffffffff81012ce0>] ? child_rip+0x0/0x20
-> >>> Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7
-> >>> 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00<49>  8b
-> >>> 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
-> >>> RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
-> >>>   RSP<ffff88022ee69aa0>
-> >>> CR2: 0000000000000028
-> >>> ---[ end trace b5a7793bd9db2a4d ]---
-> >>
-> >> Can you please reproduce with this debug patch? I'm guessing that
-> >> we're dying because we have a NULL parent device, but I'm curious
-> >> as to what causes this situation to occur.
-> >
-> > If we had a NULL parent, acpi_get_parent() would return an error.  Also, if we
-> > one of the devices is NULL at the PCI level, pci_get_slot() will return NULL.
-> > The only possibility left is that one of the buses we find in the ACPI tables
-> > doesn't have a secondary PCI bus.
-> >
-> > I think what happens is that on resume we get a dock notification
-> > (via dock_acpi_notifier registered in dock_init()) for a dock station device
-> > that is present in the ACPI tables, but not physically accessible at the moment
-> > (I guess that falls into the "BIOS bug" category, but we can fix this easily in
-> > the kernel).
-> >
-> > So, IMO, the appended patch is the right fix.
-> >
-> > Danny, please test it and report back (in particular, please tell us if you see
-> > the "Secondary bus not present" message in dmesg).
-> Yes, this patch works. I got "ata_piix 0000:00:1f.2: Secondary bus not 
-> present".
+On Friday 09 October 2009, Bjorn Helgaas wrote:
+> On Thursday 08 October 2009 04:52:48 pm Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > Add function pci_check_pme_status() that will check the PME status
+> > bit of given device and clear it along with the PME enable bit.  It
+> > will be necessary for PCI run-time power management.
+> > 
+> > Based on a patch from Shaohua Li <shaohua.li@intel.com>
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/pci/pci.c |   35 +++++++++++++++++++++++++++++++++++
+> >  drivers/pci/pci.h |    1 +
+> >  2 files changed, 36 insertions(+)
+> > 
+> > Index: linux-2.6/drivers/pci/pci.h
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/pci/pci.h
+> > +++ linux-2.6/drivers/pci/pci.h
+> > @@ -49,6 +49,7 @@ struct pci_platform_pm_ops {
+> >  extern int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
+> >  extern void pci_update_current_state(struct pci_dev *dev, pci_power_t state);
+> >  extern void pci_disable_enabled_device(struct pci_dev *dev);
+> > +extern bool pci_check_pme_status(struct pci_dev *dev);
+> >  extern void pci_pm_init(struct pci_dev *dev);
+> >  extern void platform_pci_wakeup_init(struct pci_dev *dev);
+> >  extern void pci_allocate_cap_save_buffers(struct pci_dev *dev);
+> > Index: linux-2.6/drivers/pci/pci.c
+> > ===================================================================
+> > --- linux-2.6.orig/drivers/pci/pci.c
+> > +++ linux-2.6/drivers/pci/pci.c
+> > @@ -1167,6 +1167,41 @@ int pci_set_pcie_reset_state(struct pci_
+> >  }
+> >  
+> >  /**
+> > + * pci_check_pme_status - Check if given device has generated PME.
+> > + * @dev: Device to check.
+> > + *
+> > + * Check the PME status of the device, clear PME status and PME enable.  Return
+> > + * 'true' if PME has been generated by the device (and hasn't been spurious) or
+> > + * 'false' otherwise.
+> 
+> This comment confuses me because it implies that we always clear PME enable,
+> but that's not what the code does.  If PME_STATUS is not asserted, the code
+> doesn't write anything.
 
-Now that's a puzzle!
+Well, that's a shortcut, perhaps going too far.  It should say "clear PME
+status and PME enable, if the PME status was set".  Will fix.
 
-Can you please attach the output of acpidump from this machine?
+> > + */
+> > +bool pci_check_pme_status(struct pci_dev *dev)
+> > +{
+> > +	int pmcsr_pos;
+> > +	u16 pmcsr;
+> > +	bool ret = false;
+> > +
+> > +	if (!dev->pm_cap)
+> > +		return false;
+> > +
+> > +	pmcsr_pos = dev->pm_cap + PCI_PM_CTRL;
+> > +	/* clear PME status and disable PME to avoid interrupt flood */
+> > +	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
+> > +	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
+> > +		return false;
+> > +
+> > +	pmcsr |= PCI_PM_CTRL_PME_STATUS;
+> > +	/* Ignore spurious PME or clear PME enable if it's not spurious. */
+> > +	if (pmcsr & PCI_PM_CTRL_PME_ENABLE) {
+> > +		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
+> > +		ret = true;
+> > +	}
+> > +
+> > +	pci_write_config_word(dev, pmcsr_pos, pmcsr);
+> 
+> I can't tell whether the comment or the code is what was intended,
 
+The code.  I'll fix the comment.
+
+> but I think the following would be a clearer way to implement the
+> comment:
+> 
+> 	pci_read_config_word(..., &pmcsr);
+> 	pci_write_config_word(..., (pmcsr | STATUS) & ~ENABLE);
+> 
+> 	if ((pmcsr & ENABLE) && (pmcsr & STATUS))
+> 		return true;
+> 	return false;
+
+Thanks,
 Rafael
