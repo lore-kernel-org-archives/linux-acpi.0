@@ -1,86 +1,66 @@
-From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
-Subject: Re: [v8 PATCH 2/8]: cpuidle: implement a list based approach to
-	register a set of idle routines.
-Date: Fri, 9 Oct 2009 15:09:27 +0530
-Message-ID: <20091009093927.GA8442@linux.vnet.ibm.com>
-References: <20091008094828.GA20595@linux.vnet.ibm.com>
-	<20091008095027.GC20595@linux.vnet.ibm.com>
-	<1254998162.26976.270.camel@twins>
-	<20091008104249.GJ20595@linux.vnet.ibm.com>
-	<1254999033.26976.272.camel@twins>
-	<20091008110106.GK20595@linux.vnet.ibm.com>
-	<1255001110.26976.292.camel@twins>
-	<20091008120120.GL20595@linux.vnet.ibm.com>
-	<1255004737.26976.307.camel@twins>
-Reply-To: arun@linux.vnet.ibm.com
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC][PATCH 3/4] PCI / ACPI PM: Platform support for
+	PCI PME	wake-up (rev. 2)
+Date: Fri, 9 Oct 2009 12:23:20 +0100
+Message-ID: <20091009112320.GA23990@srcf.ucam.org>
+References: <200910090051.50932.rjw@sisk.pl> <200910090054.18693.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <1255004737.26976.307.camel@twins>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-To: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arun Bharadwaj <arun@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>, linuxppc-dev@lists.ozlabs.org, Arjan van de Ven <arjan@infradead.org>
+In-Reply-To: <200910090054.18693.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-* Peter Zijlstra <a.p.zijlstra@chello.nl> [2009-10-08 14:25:37]:
+On Fri, Oct 09, 2009 at 12:54:18AM +0200, Rafael J. Wysocki wrote:
 
-> On Thu, 2009-10-08 at 17:31 +0530, Arun R Bharadwaj wrote:
-> > 
-> > > Uhm, no, it would mean ACPI putting its idle routines on the same level
-> > > as all others.
-> > > 
-> > 
-> > Putting them all on the same level would mean, we need an
-> > enable/disable routine to enable only the currently active routines.
-> 
-> What's this enable/disable stuff about?
-> 
-> > Also, the way governor works is that, it assumes that idle routines
-> > are indexed in the increasing order of power benefit that can be got
-> > out of the state. So this would get messed up.
-> 
-> Right, which is why I initially had a power-savings field in my
-> proposal, so it could weight the power savings vs the wakeup latency.
-> 
->   http://lkml.org/lkml/2009/8/27/159
-> 
-> There it was said that was exactly what these governors were doing,
-> seems its not.
-> 
-> > > Sounds like something is wrong alright. If you can register an idle
-> > > routine you should be able to unregister it too.
-> > >
-> > 
-> > Yes, we can register and unregister in a clean way now.
-> > Consider this. We have a set of routines A, B, C currently registered.
-> > Now a module comes and registers D and E, and later on at some point
-> > of time wants to unregister. So how do you keep track of what all idle
-> > routines the module registered and unregister only those?
-> > Best way to do that is a stack, which is how I have currently
-> > implemented.
-> 
-> Right, so destroy that inner set thing, that way we only have one
-> left ;-)
-> 
+> Unfortunately, the subset of PCI devices that have GPEs associated
+> with them is quite limited and the other devices have to rely on
+> the GPEs associated with their upstream bridges and, possibly, the
+> root bridge to generate ACPI wake-up events in response to PMEs from
+> them.  Moreover, ACPI devices tend to share wake-up GPEs, in which
+> cases it makes sense to install an ACPI notify handler for only one
+> of them and "bind" the other devices to it.  Furthermore, ACPI-based
+> PCI hotplug also uses ACPI notify handlers that in general may
+> conflict with the PM notify handlers, unless this issue is
+> specifically taken care of.
 
-I'm not convinced with your argument. Why dont we do this
-incrementally. Right now, this set of sets mechanism works fine and
-doesn't look like it has any obvious flaws in it. We have a clean
-register/unregister mechanism which solves all the earlier problems we
-started out to solve.
+I'm not sure this approach is correct - for instance, from a Dell 
+system:
 
-We can gradually build on this and try to come up with a single set
-of idle states for a governor to choose from.
+        Method (_L0D, 0, NotSerialized)
+        {
+            Store (SMI (0xC6, 0x00), Local0)
+            If (And (Local0, 0x01))
+            {
+                Notify (\_SB.PCI0.AZAL, 0x02)
+            }
 
-thanks,
-arun
+            If (And (Local0, 0x02))
+            {
+                Notify (\_SB.PCI0.EHCI, 0x02)
+            }
+
+            If (And (Local0, 0x04))
+            {
+                Notify (\_SB.PCI0.EHC2, 0x02)
+            }
+        }
+
+All these devices share a GPE, but registering only one notify handler 
+would result in us missing the notification in some cases. I also 
+suspect that this should wait until the GPE rework is done.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
