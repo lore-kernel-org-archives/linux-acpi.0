@@ -1,107 +1,86 @@
-From: Danny Feng <dfeng@redhat.com>
-Subject: Re: [PATCH] acpi: pci_root: fix NULL pointer deref after resume from
- suspend
-Date: Fri, 09 Oct 2009 09:17:29 +0800
-Message-ID: <4ACE8F29.3000804@redhat.com>
-References: <1254119480-9730-1-git-send-email-dfeng@redhat.com> <4AC16682.50207@redhat.com> <20091001200522.GF31915@ldl.fc.hp.com> <200910040056.00247.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Less strict requirements for video device detection (v3)
+Date: Fri, 09 Oct 2009 09:30:29 +0800
+Message-ID: <1255051829.2656.2.camel@rzhang-dt>
+References: <4A8D140F.1090909@canonical.com>
+	 <1250817458.17853.141.camel@rzhang-dt>  <4A8E7022.8000707@canonical.com>
+	 <1251076781.3483.13.camel@rzhang-dt>  <4A92A73C.7010003@canonical.com>
+	 <1251162484.3483.51.camel@rzhang-dt>  <4AC3BE3B.7020304@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760179AbZJIBTI@vger.kernel.org>
-In-Reply-To: <200910040056.00247.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alex Chiang <achiang@hp.com>, lenb@kernel.org, bjorn.helgaas@hp.com, andrew.patterson@hp.com, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:60351 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757248AbZJIBcF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Oct 2009 21:32:05 -0400
+In-Reply-To: <4AC3BE3B.7020304@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Stefan Bader <stefan.bader@canonical.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On 10/04/2009 06:56 AM, Rafael J. Wysocki wrote:
-> On Thursday 01 October 2009, Alex Chiang wrote:
->    
->> Hi Danny,
->>
->> * Danny Feng<dfeng@redhat.com>:
->>      
->>> Call Trace:
->>>   [<ffffffff81254193>] acpi_get_pci_dev+0x106/0x167
->>>   [<ffffffff8125545a>] acpi_pci_bind+0x1c/0x86
->>>   [<ffffffff8116230a>] ? sysfs_create_file+0x2a/0x2c
->>>   [<ffffffff8125141f>] acpi_add_single_object+0x964/0xa0c
->>>   [<ffffffff812515a7>] acpi_bus_check_add+0xe0/0x138
->>>   [<ffffffff81251667>] acpi_bus_scan+0x68/0xa0
->>>   [<ffffffff812516f4>] acpi_bus_add+0x2a/0x2e
->>>   [<ffffffff81252c59>] hotplug_dock_devices+0x114/0x13e
->>>   [<ffffffff8125301a>] acpi_dock_deferred_cb+0xbf/0x192
->>>   [<ffffffff8124d6ca>] acpi_os_execute_deferred+0x29/0x36
->>>   [<ffffffff8106a244>] worker_thread+0x251/0x347
->>>   [<ffffffff8106a1ef>] ? worker_thread+0x1fc/0x347
->>>   [<ffffffff8124d6a1>] ? acpi_os_execute_deferred+0x0/0x36
->>>   [<ffffffff8106e426>] ? autoremove_wake_function+0x0/0x39
->>>   [<ffffffff81069ff3>] ? worker_thread+0x0/0x347
->>>   [<ffffffff8106e0e0>] kthread+0x7f/0x87
->>>   [<ffffffff81012cea>] child_rip+0xa/0x20
->>>   [<ffffffff81012650>] ? restore_args+0x0/0x30
->>>   [<ffffffff8106e061>] ? kthread+0x0/0x87
->>>   [<ffffffff81012ce0>] ? child_rip+0x0/0x20
->>> Code: ff 49 89 fc 41 89 f5 a9 00 ff ff 07 74 11 be 87 00 00 00 48 c7 c7
->>> 45 6d 5a 81 e8 f6 2b e3 ff 48 c7 c7 30 ab 68 81 e8 29 77 20 00<49>  8b
->>> 5c 24 28 49 83 c4 28 eb 09 44 39 6b 38 74 10 48 89 c3 48
->>> RIP  [<ffffffff812217e7>] pci_get_slot+0x4c/0x8c
->>>   RSP<ffff88022ee69aa0>
->>> CR2: 0000000000000028
->>> ---[ end trace b5a7793bd9db2a4d ]---
->>>        
->> Can you please reproduce with this debug patch? I'm guessing that
->> we're dying because we have a NULL parent device, but I'm curious
->> as to what causes this situation to occur.
->>      
-> If we had a NULL parent, acpi_get_parent() would return an error.  Also, if we
-> one of the devices is NULL at the PCI level, pci_get_slot() will return NULL.
-> The only possibility left is that one of the buses we find in the ACPI tables
-> doesn't have a secondary PCI bus.
->
-> I think what happens is that on resume we get a dock notification
-> (via dock_acpi_notifier registered in dock_init()) for a dock station device
-> that is present in the ACPI tables, but not physically accessible at the moment
-> (I guess that falls into the "BIOS bug" category, but we can fix this easily in
-> the kernel).
->
-> So, IMO, the appended patch is the right fix.
->
-> Danny, please test it and report back (in particular, please tell us if you see
-> the "Secondary bus not present" message in dmesg).
->
-> Thanks,
-> Rafael
->
->
-> ---
->   drivers/acpi/pci_root.c |   12 ++++++++++++
->   1 file changed, 12 insertions(+)
->
-> Index: linux-2.6/drivers/acpi/pci_root.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/pci_root.c
-> +++ linux-2.6/drivers/acpi/pci_root.c
-> @@ -389,6 +389,18 @@ struct pci_dev *acpi_get_pci_dev(acpi_ha
->
->   		pbus = pdev->subordinate;
->   		pci_dev_put(pdev);
-> +
-> +		/*
-> +		 * During resume from a sleep state we can get a dock
-> +		 * notification for a device that is present in ACPI tables,
-> +		 * but not physically accessible at the moment, so tell the
-> +		 * caller it's not present.
-> +		 */
-> +		if (!pbus) {
-> +			dev_info(&pdev->dev, "Secondary bus not present\n");
-> +			pdev = NULL;
-> +			break;
-> +		}
->   	}
->   out:
->   	list_for_each_entry_safe(node, tmp,&device_list, node)
->
->    
-Sorry for the late response, just back from holidays. Will test it soon, 
-thanks.
+On Thu, 2009-10-01 at 04:23 +0800, Stefan Bader wrote:
+> Resending. It feels like being lost.
+> 
+> -Stefan
+> 
+Hi, len,
+
+can you apply this patch please? thanks.
+
+From: Stefan Bader <stefan.bader@canonical.com>
+Subject: [PATCH] acpi: video: Loosen strictness of video bus detection code
+
+BugLink: http://bugs.launchpad.net/bugs/333386
+
+Currently a video bus device must (beside other criteria) define _DOD and
+_DOS methods to be considered a video device.
+Some broken BIOSes prevented working backlight control by only defining both
+for one (non-existing bus) and only _DOD for the rest. With this patch in
+place the other bus definitions were considered too and backlight control
+started to work again.
+
+Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/video.c        |    7 ++++++-
+ drivers/acpi/video_detect.c |    2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index a4fddb2..518910e 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1109,7 +1109,12 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
+ 	 */
+ 
+ 	/* Does this device support video switching? */
+-	if (video->cap._DOS) {
++	if (video->cap._DOS || video->cap._DOD) {
++		if (!video->cap._DOS) {
++			printk(KERN_WARNING FW_BUG
++				"ACPI(%s) defines _DOD but not _DOS\n",
++				acpi_device_bid(video->device));
++		}
+ 		video->flags.multihead = 1;
+ 		status = 0;
+ 	}
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 7032f25..575593a 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -84,7 +84,7 @@ long acpi_is_video_device(struct acpi_device *device)
+ 		return 0;
+ 
+ 	/* Does this device able to support video switching ? */
+-	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
++	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
+ 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
+ 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
+ 
+-- 
+1.5.4.3
+
+
+
