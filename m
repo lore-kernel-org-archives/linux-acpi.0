@@ -1,442 +1,105 @@
 From: Jeff Mahoney <jeffm@suse.com>
-Subject: [patch 2/2] [PATCH 2/2] ACPI: generic initramfs table override support #3
-Date: Fri, 09 Oct 2009 15:55:10 -0400
-Message-ID: <20091009195907.635574715@suse.com>
+Subject: [patch 1/2] init: move populate_rootfs back to start_kernel
+Date: Fri, 09 Oct 2009 15:55:09 -0400
+Message-ID: <20091009195907.432843620@suse.com>
 References: <20091009195508.694274257@suse.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60939 "EHLO mx2.suse.de"
+Received: from cantor.suse.de ([195.135.220.2]:52739 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753443AbZJIUBb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Oct 2009 16:01:31 -0400
-Content-Disposition: inline; filename=patches.suse/acpi-generic-initramfs-table-override
+	id S1757938AbZJIUBc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Oct 2009 16:01:32 -0400
+Content-Disposition: inline; filename=patches.suse/populate_rootfs-in-start_kernel
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: =?UTF-8?q?=C3=89ric=20Piel?= <Eric.Piel@tremplin-utc.net>, Jan Beulich <JBeulich@novell.com>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@hera.kernel.org>
 
-This patch allows the system administrator to override ACPI tables with
-versions provided in an initramfs.
+ Mainline commit 8d610dd5 introduced the rootfs_initcall and moved
+ populate_rootfs out of start_kernel. This was because of issues
+ with userspace helpers being executed way too early. Things like
+ pipes weren't initialized yet and users were seeing Oopses or
+ unpredictable behavior in certain circumstances.
 
-This works by moving the initialization of populate_rootfs earlier
-in the initialization so that we can use the VFS file system routines.
-The system is initialized enough to support this by acpi_early_init().
-My understanding is that an early version of original patch posted at
-http://gaugusch.at/kernel.shtml may have done something similar.
+ The fix worked by causing the execve to fail because it couldn't lookup
+ the helper in the file system since the file system wasn't populate yet.
+ It turns out that's a really late place to fail since the entire
+ usermodehelper infrastructure depends on a work queue that is already
+ checked to see if it has been initialized. We can fail earlier without
+ having to fork threads that will ultimately fail.
 
-This version provides the infrastructure to override any ACPI table, bu=
-t
-only provides support for overriding DSDT. If other tables are desired,
-extending the support is trivial.
+ This patch moves populate_rootfs back to start_kernel and avoids the
+ race against a very early userspace by moving the initialization of
+ khelper_wq to rootfs_initcall.
 
-During early ACPI initialization, when the initramfs is still loaded,
-we go through a table of override entries which specify the name of the
-table to override, the file name that contains it, and a pointer to the
-data loaded from the file. The override tables and headers are kept in
-memory so that they available to the ACPI subsystem after the __init
-sections and the initramfs have been jettisoned.
-
-Changes:
-v2 - Moved code from acpi/acpica/tbxface.c to acpi/osl.c
-v3 - Moved init code into a separate patch which handles the race initi=
-ally
-     fixed by mainline commit 8d610dd5.
-
-This patch is derived from the work by =C3=89ric Piel <eric.piel@trempl=
-in-utc.net>.
+ This may seem like a small win, but it is essential for my next patch
+ which adds the ability to override ACPI tables at boot-time.
 
 Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 ---
+ include/linux/init.h |    1 +
+ init/initramfs.c     |    3 +--
+ init/main.c          |   10 +++++++++-
+ kernel/kmod.c        |    1 +
+ 4 files changed, 12 insertions(+), 3 deletions(-)
 
- Documentation/acpi/dsdt-override.txt     |    8 +
- Documentation/acpi/initramfs-add-dsdt.sh |   43 +++++++
- Documentation/acpi/table-override.txt    |   21 +++
- Documentation/kernel-parameters.txt      |    4=20
- drivers/acpi/Kconfig                     |   13 ++
- drivers/acpi/bus.c                       |    7 +
- drivers/acpi/osl.c                       |  169 ++++++++++++++++++++++=
-+++++++++
- include/acpi/acpiosxf.h                  |    7 +
- 8 files changed, 271 insertions(+), 1 deletion(-)
-
---- a/Documentation/acpi/dsdt-override.txt
-+++ b/Documentation/acpi/dsdt-override.txt
-@@ -1,7 +1,13 @@
--Linux supports a method of overriding the BIOS DSDT:
-+Linux supports two methods of overriding the BIOS DSDT:
-=20
- CONFIG_ACPI_CUSTOM_DSDT builds the image into the kernel.
-=20
-+CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS loads the image from
-+the initramfs at boot-time. It is more flexible in that it
-+does not need to be built into the kernel and tables other
-+than DSDT can potentially be overridden. Please see
-+Documentation/acpi/table-override.txt for more information.
-+
- When to use this method is described in detail on the
- Linux/ACPI home page:
- http://www.lesswatts.org/projects/acpi/overridingDSDT.php
---- /dev/null
-+++ b/Documentation/acpi/initramfs-add-dsdt.sh
-@@ -0,0 +1,43 @@
-+#!/bin/bash
-+# Adds a DSDT file to the initrd (if it's an initramfs)
-+# first argument is the name of archive
-+# second argument is the name of the file to add
-+# The file will be copied as /DSDT.aml
-+
-+# 20060126: fix "Premature end of file" with some old cpio (Roland Rob=
-ic)
-+# 20060205: this time it should really work
-+
-+# check the arguments
-+if [ $# -ne 2 ]; then
-+	program_name=3D$(basename $0)
-+	echo "\
-+$program_name: too few arguments
-+Usage: $program_name initrd-name.img DSDT-to-add.aml
-+Adds a DSDT file to an initrd (in initramfs format)
-+
-+  initrd-name.img: filename of the initrd in initramfs format
-+  DSDT-to-add.aml: filename of the DSDT file to add
-+  " 1>&2
-+    exit 1
-+fi
-+
-+# we should check it's an initramfs
-+
-+tempcpio=3D$(mktemp -d)
-+# cleanup on exit, hangup, interrupt, quit, termination
-+trap 'rm -rf $tempcpio' 0 1 2 3 15
-+
-+# extract the archive
-+gunzip -c "$1" > "$tempcpio"/initramfs.cpio || exit 1
-+
-+# copy the DSDT file at the root of the directory so that we can call =
-it "/DSDT.aml"
-+cp -f "$2" "$tempcpio"/DSDT.aml
-+
-+# add the file
-+cd "$tempcpio"
-+(echo DSDT.aml | cpio --quiet -H newc -o -A -O "$tempcpio"/initramfs.c=
-pio) || exit 1
-+cd "$OLDPWD"
-+
-+# re-compress the archive
-+gzip -c "$tempcpio"/initramfs.cpio > "$1"
-+
---- /dev/null
-+++ b/Documentation/acpi/table-override.txt
-@@ -0,0 +1,21 @@
-+CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS provides a mechanism for
-+the user to add table images to the initramfs for loading at
-+runtime. Tables used before expansion of the initramfs may not
-+be replaced. Fortunately this list is small and the one most
-+typically used, DSDT, is not one of them.
-+
-+In order to override a table, the image must be placed in the root
-+of the initramfs with a filename of <table-name>.aml (e.g. DSDT.aml).
-+
-+As the ACPI subsystem initializes, it will load the tables into memory
-+and override them as the tables are needed.
-+
-+This option takes precedence over the in-kernel method provided by
-+the ACPI_CUSTOM_DSDT config option.
-+
-+When to use these methods is described in detail on the
-+Linux/ACPI home page:
-+http://www.lesswatts.org/projects/acpi/overridingDSDT.php
-+
-+Documentation/initramfs-add-dsdt.sh is provided for convenience
-+for use with the CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS method.
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -216,6 +216,10 @@ and is between 256 and 4096 characters.
-=20
- 	acpi_no_auto_ssdt	[HW,ACPI] Disable automatic loading of SSDT
-=20
-+	acpi_no_initrd_override		[KNL,ACPI]
-+	acpi_no_initramfs_override	[KNL,ACPI]
-+			Disable loading custom ACPI tables from the initramfs
-+
- 	acpi_os_name=3D	[HW,ACPI] Tell ACPI BIOS the name of the OS
- 			Format: To spoof as Windows 98: =3D"Microsoft Windows"
-=20
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -233,6 +233,19 @@ config ACPI_CUSTOM_DSDT
- 	bool
- 	default ACPI_CUSTOM_DSDT_FILE !=3D ""
-=20
-+config ACPI_CUSTOM_OVERRIDE_INITRAMFS
-+	bool "Load ACPI override tables from initramfs"
-+	depends on BLK_DEV_INITRD
-+	default n
-+	help
-+	  This option supports loading custom replacement tables by optionall=
-y
-+	  loading them from the initramfs.
-+
-+	  See Documentation/acpi/table-override.txt
-+
-+	  If you are not using this feature now, but may use it later,
-+	  it is safe to say Y here.
-+
- config ACPI_BLACKLIST_YEAR
- 	int "Disable ACPI for systems before Jan 1st this year" if X86_32
- 	default 0
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -669,6 +669,13 @@ void __init acpi_early_init(void)
- 		goto error0;
- 	}
-=20
-+	status =3D acpi_load_override_tables();
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_ERR PREFIX
-+			"Unable to load Override Tables\n");
-+		goto error0;
-+	}
-+
- 	status =3D acpi_load_tables();
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -43,6 +43,7 @@
- #include <linux/list.h>
- #include <linux/jiffies.h>
- #include <linux/semaphore.h>
-+#include <linux/syscalls.h>
-=20
- #include <asm/io.h>
- #include <asm/uaccess.h>
-@@ -51,6 +52,15 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/processor.h>
-=20
-+/* We need these to manipulate the global table array. The existing
-+ * accessors in acpica/ only pass back the table header and we need
-+ * the descriptor. */
-+#include "acpica/acconfig.h"
-+#include "acpica/aclocal.h"
-+#include "acpica/acglobal.h"
-+#include "acpica/acutils.h"
-+#include "acpica/actables.h"
-+
- #define _COMPONENT		ACPI_OS_SERVICES
- ACPI_MODULE_NAME("osl");
- #define PREFIX		"ACPI: "
-@@ -96,6 +106,23 @@ static DEFINE_SPINLOCK(acpi_res_lock);
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
-=20
-+#ifdef CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS
-+static int acpi_no_initrd_override;
-+static int __init acpi_no_initrd_override_setup(char *s)
-+{
-+	acpi_no_initrd_override =3D 1;
-+	return 1;
-+}
-+
-+static int __init acpi_no_initramfs_override_setup(char *s)
-+{
-+	return acpi_no_initrd_override_setup(s);
-+}
-+
-+__setup("acpi_no_initrd_override", acpi_no_initrd_override_setup);
-+__setup("acpi_no_initramfs_override", acpi_no_initramfs_override_setup=
-);
-+#endif
-+
- /*
-  * The story of _OSI(Linux)
-  *
-@@ -350,6 +377,144 @@ acpi_os_predefined_override(const struct
- 	return AE_OK;
+--- a/include/linux/init.h
++++ b/include/linux/init.h
+@@ -146,6 +146,7 @@ extern unsigned int reset_devices;
+ /* used by init/main.c */
+ void setup_arch(char **);
+ void prepare_namespace(void);
++int populate_rootfs(void);
+ 
+ extern void (*late_time_init)(void);
+ 
+--- a/init/initramfs.c
++++ b/init/initramfs.c
+@@ -565,7 +565,7 @@ static void __init clean_rootfs(void)
  }
-=20
-+#ifdef CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS
-+struct acpi_override_table_entry
-+{
-+	const char *name;
-+	struct acpi_table_header *table;
-+};
-+
-+static struct acpi_override_table_entry acpi_override_table_entries[] =
-=3D {
-+	{ .name =3D "DSDT", },
-+	{}
-+};
-+
-+acpi_status __init
-+acpi_load_one_override_table(struct acpi_override_table_entry *entry)
-+{
-+	int fd, ret;
-+	acpi_status err =3D AE_OK;
-+	char filename[10]; /* /DSDT.aml\0 */
-+	struct kstat stat;
-+
-+	snprintf(filename, sizeof(filename), "/%.4s.aml", entry->name);
-+
-+	fd =3D sys_open(filename, O_RDONLY, 0);
-+	if (fd < 0)
-+		return AE_NOT_FOUND;
-+
-+	ret =3D vfs_fstat(fd, &stat);
-+	if (ret < 0) {
-+		printk(KERN_ERR "ACPI: fstat failed while trying to read %s\n",
-+		       filename);
-+		err =3D AE_ERROR;
-+		goto out;
-+	}
-+
-+	entry->table =3D kmalloc(stat.size, GFP_KERNEL);
-+	if (!entry->table) {
-+		printk(KERN_ERR "ACPI: Could not allocate memory to "
-+		       "override %s\n", entry->name);
-+		err =3D AE_NO_MEMORY;
-+		goto out;
-+	}
-+
-+	ret =3D sys_read(fd, (char *)entry->table, stat.size);
-+	sys_close(fd);
-+	if (ret !=3D stat.size) {
-+		printk(KERN_ERR "ACPI: Failed to read %s from initramfs\n",
-+		       entry->name);
-+		err =3D AE_ERROR;
-+		goto out;
-+	}
-+
-+out:
-+	if (err !=3D AE_OK) {
-+		kfree(entry->table);
-+		entry->table =3D NULL;
-+	}
-+	sys_close(fd);
-+	return ret;
-+}
-+
-+static void __init
-+acpi_replace_table(struct acpi_table_desc *table, struct acpi_table_he=
-ader *new)
-+{
-+	/* This is the top part of acpi_load_table */
-+	memset(table, 0, sizeof(*table));
-+	table->address =3D ACPI_PTR_TO_PHYSADDR(new);
-+	table->pointer =3D new;
-+	table->length =3D new->length;
-+	table->flags |=3D ACPI_TABLE_ORIGIN_OVERRIDE;
-+	table->flags |=3D ACPI_TABLE_ORIGIN_ALLOCATED;
-+	memcpy(table->signature.ascii, new->signature, ACPI_NAME_SIZE);
-+}
-+
-+/* This replaces tables already opportunistically loaded, but not used=
-=2E
-+ * If the acpica code provided a table descriptor lookup then we would=
-n't
-+ * need to open code this. */
-+static void __init
-+acpi_override_tables(void)
-+{
-+	struct acpi_table_header *new =3D NULL;
-+	struct acpi_table_desc *table;
-+	acpi_status status;
-+	int i;
-+
-+	/* This is early enough that we don't need the mutex yet */
-+	for (i =3D 0; i < acpi_gbl_root_table_list.count; ++i) {
-+		if (acpi_tb_is_table_loaded(i))
-+			continue;
-+
-+		table =3D &acpi_gbl_root_table_list.tables[i];
-+		if (!table->pointer)
-+			status =3D acpi_tb_verify_table(table);
-+
-+		if (ACPI_FAILURE(status) || !table->pointer)
-+			continue;
-+
-+		status =3D acpi_os_table_override(table->pointer, &new);
-+		if (ACPI_SUCCESS(status) && new) {
-+			acpi_replace_table(table, new);
-+			acpi_tb_print_table_header(table->address, new);
-+		}
-+	}
-+}
-+
-+acpi_status __init
-+acpi_load_override_tables(void)
-+{
-+	struct acpi_override_table_entry *entry =3D acpi_override_table_entri=
-es;
-+	while (entry && entry->name) {
-+		acpi_load_one_override_table(entry);
-+		entry++;
-+	}
-+
-+	acpi_override_tables();
-+	return AE_OK;
-+}
-+
-+static struct acpi_table_header *
-+acpi_get_override_table(const char *name)
-+{
-+	struct acpi_override_table_entry *entry =3D acpi_override_table_entri=
-es;
-+
-+	while (entry && entry->name) {
-+		if (!memcmp(name, entry->name, ACPI_NAME_SIZE))
-+			return entry->table;;
-+		entry++;
-+	}
-+
-+	return NULL;
-+}
-+#else
-+acpi_status
-+acpi_load_override_tables(void)
-+{
-+	return AE_OK;
-+}
-+#endif
-+
- acpi_status
- acpi_os_table_override(struct acpi_table_header * existing_table,
- 		       struct acpi_table_header ** new_table)
-@@ -363,6 +528,10 @@ acpi_os_table_override(struct acpi_table
- 	if (strncmp(existing_table->signature, "DSDT", 4) =3D=3D 0)
- 		*new_table =3D (struct acpi_table_header *)AmlCode;
  #endif
-+#ifdef CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS
-+	if (!acpi_no_initrd_override)
-+		*new_table =3D acpi_get_override_table(existing_table->signature);
-+#endif
- 	if (*new_table !=3D NULL) {
- 		printk(KERN_WARNING PREFIX "Override [%4.4s-%8.8s], "
- 			   "this is unsafe: tainting kernel\n",
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -91,6 +91,13 @@ acpi_status
- acpi_os_predefined_override(const struct acpi_predefined_names *init_v=
-al,
- 			    acpi_string * new_val);
-=20
-+#ifdef CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS
-+acpi_status
-+acpi_load_override_tables(void);
-+#else
-+static inline acpi_status acpi_load_override_tables(void) {}
-+#endif
+ 
+-static int __init populate_rootfs(void)
++int __init populate_rootfs(void)
+ {
+ 	char *err = unpack_to_rootfs(__initramfs_start,
+ 			 __initramfs_end - __initramfs_start);
+@@ -605,4 +605,3 @@ static int __init populate_rootfs(void)
+ 	}
+ 	return 0;
+ }
+-rootfs_initcall(populate_rootfs);
+--- a/init/main.c
++++ b/init/main.c
+@@ -747,6 +747,15 @@ asmlinkage void __init start_kernel(void
+ 
+ 	check_bugs();
+ 
++	/*
++	 * Do this before starting ACPI so we can read-in
++	 * override tables before the tables are actually
++	 * loaded. The usermode helper won't be initialized
++	 * until much later so we don't race against things
++	 * calling out to userspace.
++	 */
++	populate_rootfs();
 +
- acpi_status
- acpi_os_table_override(struct acpi_table_header *existing_table,
- 		       struct acpi_table_header **new_table);
+ 	acpi_early_init(); /* before LAPIC and SMP init */
+ 
+ 	ftrace_init();
+@@ -844,7 +853,6 @@ static void __init do_basic_setup(void)
+ 	rcu_init_sched(); /* needed by module_init stage. */
+ 	init_workqueues();
+ 	cpuset_init_smp();
+-	usermodehelper_init();
+ 	init_tmpfs();
+ 	driver_init();
+ 	init_irq_proc();
+--- a/kernel/kmod.c
++++ b/kernel/kmod.c
+@@ -527,3 +527,4 @@ void __init usermodehelper_init(void)
+ 	khelper_wq = create_singlethread_workqueue("khelper");
+ 	BUG_ON(!khelper_wq);
+ }
++rootfs_initcall(usermodehelper_init);
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
