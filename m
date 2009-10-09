@@ -1,32 +1,29 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [patch 2/2] [PATCH 2/2] ACPI: generic initramfs table override
-	support #3
-Date: Fri, 9 Oct 2009 21:19:08 +0100
-Message-ID: <20091009201908.GA1139@srcf.ucam.org>
-References: <20091009195508.694274257@suse.com> <20091009195907.635574715@suse.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RESEND] [PATCH] fujitsu-laptop: address missed led-class ifdef
+ fixup
+Date: Fri, 09 Oct 2009 16:48:49 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0910091648450.3912@localhost.localdomain>
+References: <200910080349.n983nCmJ006616@turbo.physics.adelaide.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:58521 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754804AbZJIUUA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 16:20:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20091009195907.635574715@suse.com>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:57541 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbZJIUto (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 16:49:44 -0400
+Received: from localhost.localdomain ([74.104.150.83])
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KR90000PLTEOH4R@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 09 Oct 2009 15:48:58 -0500 (CDT)
+In-reply-to: <200910080349.n983nCmJ006616@turbo.physics.adelaide.edu.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Mahoney <jeffm@suse.com>
-Cc: linux-acpi@vger.kernel.org, =?iso-8859-1?Q?=C9ric?= Piel <Eric.Piel@tremplin-utc.net>, Jan Beulich <JBeulich@novell.com>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@hera.kernel.org>
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Oct 09, 2009 at 03:55:10PM -0400, Jeff Mahoney wrote:
+applied
 
-> This version provides the infrastructure to override any ACPI table, but
-> only provides support for overriding DSDT. If other tables are desired,
-> extending the support is trivial.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-I'm really unenthusiastic about this. The majority of use cases appear 
-to be people working around Linux bugs and never reporting the bugs to 
-us, leaving everybody worse off.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
