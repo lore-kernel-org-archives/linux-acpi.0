@@ -1,55 +1,86 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH] PCIe AER: honor ACPI HEST FIRMWARE FIRST mode
-Date: Fri, 09 Oct 2009 16:11:28 +0900
-Message-ID: <4ACEE220.1020705@jp.fujitsu.com>
-References: <20091006173311.GA15751@auslistsprd01.us.dell.com>
+From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+Subject: Re: [v8 PATCH 2/8]: cpuidle: implement a list based approach to
+	register a set of idle routines.
+Date: Fri, 9 Oct 2009 15:09:27 +0530
+Message-ID: <20091009093927.GA8442@linux.vnet.ibm.com>
+References: <20091008094828.GA20595@linux.vnet.ibm.com>
+	<20091008095027.GC20595@linux.vnet.ibm.com>
+	<1254998162.26976.270.camel@twins>
+	<20091008104249.GJ20595@linux.vnet.ibm.com>
+	<1254999033.26976.272.camel@twins>
+	<20091008110106.GK20595@linux.vnet.ibm.com>
+	<1255001110.26976.292.camel@twins>
+	<20091008120120.GL20595@linux.vnet.ibm.com>
+	<1255004737.26976.307.camel@twins>
+Reply-To: arun@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:56257 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933078AbZJIHMQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 03:12:16 -0400
-In-Reply-To: <20091006173311.GA15751@auslistsprd01.us.dell.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <1255004737.26976.307.camel@twins>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arun Bharadwaj <arun@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>, linuxppc-dev@lists.ozlabs.org, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Domsch <Matt_Domsch@dell.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Tom Long Nguyen <tom.l.nguyen@intel.com>, Zhang Yanmin <yanmin.zhang@intel.com>, linux-kernel@vger.kernel.org
 
-Matt Domsch wrote:
-> For review and comment.
+* Peter Zijlstra <a.p.zijlstra@chello.nl> [2009-10-08 14:25:37]:
+
+> On Thu, 2009-10-08 at 17:31 +0530, Arun R Bharadwaj wrote:
+> > 
+> > > Uhm, no, it would mean ACPI putting its idle routines on the same level
+> > > as all others.
+> > > 
+> > 
+> > Putting them all on the same level would mean, we need an
+> > enable/disable routine to enable only the currently active routines.
 > 
-> Today, the PCIe Advanced Error Reporting (AER) driver attaches itself
-> to every PCIe root port for which BIOS reports it should, via ACPI
-> _OSC.
+> What's this enable/disable stuff about?
 > 
-> However, _OSC alone is insufficient for newer BIOSes.  Part of ACPI
-> 4.0 is the new Platform Environment Control Interface (PECI), which is
-> a way for OS and BIOS to handshake over which errors for which
-> components each will handle.  One table in ACPI 4.0 is the Hardware
-> Error Source Table (HEST), where BIOS can define that errors for
-> certain PCIe devices (or all devices), should be handled by BIOS
-> ("Firmware First mode"), rather than be handled by the OS.
+> > Also, the way governor works is that, it assumes that idle routines
+> > are indexed in the increasing order of power benefit that can be got
+> > out of the state. So this would get messed up.
 > 
-> Dell PowerEdge 11G server BIOS defines Firmware First mode in HEST, so
-> that it may manage such errors, log them to the System Event Log, and
-> possibly take other actions.  The aer driver should honor this, and
-> not attach itself to devices noted as such.
+> Right, which is why I initially had a power-savings field in my
+> proposal, so it could weight the power savings vs the wakeup latency.
 > 
+>   http://lkml.org/lkml/2009/8/27/159
 > 
-> Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
+> There it was said that was exactly what these governors were doing,
+> seems its not.
+> 
+> > > Sounds like something is wrong alright. If you can register an idle
+> > > routine you should be able to unregister it too.
+> > >
+> > 
+> > Yes, we can register and unregister in a clean way now.
+> > Consider this. We have a set of routines A, B, C currently registered.
+> > Now a module comes and registers D and E, and later on at some point
+> > of time wants to unregister. So how do you keep track of what all idle
+> > routines the module registered and unregister only those?
+> > Best way to do that is a stack, which is how I have currently
+> > implemented.
+> 
+> Right, so destroy that inner set thing, that way we only have one
+> left ;-)
 > 
 
-In the current AER driver implementation, correctable, non-fatal,
-fatal, unsupported request reporting enable bits in PCIe device
-control register can be changed by adapter card drivers through pci_enable_pcie_error_reporting() or pci_disable_pcie_error_reporting()
-APIs, regardless of _OSC evaluation result.
+I'm not convinced with your argument. Why dont we do this
+incrementally. Right now, this set of sets mechanism works fine and
+doesn't look like it has any obvious flaws in it. We have a clean
+register/unregister mechanism which solves all the earlier problems we
+started out to solve.
 
-I'm not sure, but I guess you might need to prevent those bits
-from being changed in the Firmware First mode.
+We can gradually build on this and try to come up with a single set
+of idle states for a governor to choose from.
 
-Thanks,
-Kenji Kaneshige
-
-
+thanks,
+arun
