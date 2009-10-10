@@ -1,9 +1,8 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH] battery: Fix charge_now returned by broken batteries
-Date: Sat, 10 Oct 2009 18:52:24 -0300
-Message-ID: <20091010215224.GA32139@khazad-dum.debian.net>
-References: <200910042246.23712.rjw@sisk.pl>
- <4AC91578.2020807@suse.de>
+Date: Sun, 11 Oct 2009 00:49:58 +0200
+Message-ID: <20091010224958.GA15826@elf.ucw.cz>
+References: <4AC91578.2020807@suse.de>
  <ca2dc2820910041455h18ece909rc2280a40f1899c0a@mail.gmail.com>
  <4AC923F4.9050100@suse.de>
  <ca2dc2820910041653o29d4b253n69270d231e56e447@mail.gmail.com>
@@ -12,62 +11,55 @@ References: <200910042246.23712.rjw@sisk.pl>
  <20091010120448.GB1811@ucw.cz>
  <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
  <20091010212521.GD14051@elf.ucw.cz>
+ <ca2dc2820910101444v16b44645se826ae2bfbdb90a3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:34600 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbZJJVxa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Oct 2009 17:53:30 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755027AbZJJWun@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20091010212521.GD14051@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <ca2dc2820910101444v16b44645se826ae2bfbdb90a3@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 10 Oct 2009, Pavel Machek wrote:
-> > >> In "broken" batteries (is it broken finally? or is it expected
-> > >> behaviour?) like mine the old problem will be corrected, as it was
-> > >> only present in the charged state.
-> > >
-> > > I believe you better work around this in userspace... or agree that
-> > >>100% charge is possible.
-> > 
-> > I agree that >100% charge is possible while charging (because that
-> > would mean the battery is over the last charged level); however, what
-> > does it mean when charged?
+On Sat 2009-10-10 23:44:42, Miguel Ojeda wrote:
+> On Sat, Oct 10, 2009 at 11:25 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> > Hi!
+> >
+> >> >> In "broken" batteries (is it broken finally? or is it expected
+> >> >> behaviour?) like mine the old problem will be corrected, as it was
+> >> >> only present in the charged state.
+> >> >
+> >> > I believe you better work around this in userspace... or agree that
+> >> >>100% charge is possible.
+> >>
+> >> I agree that >100% charge is possible while charging (because that
+> >> would mean the battery is over the last charged level); however, what
+> >> does it mean when charged?
+> >
+> > Well, maybe the battery only updates full_charge_capacity during
+> > powerdown or when the moon is full or something? (IOW you may be
+> > breaking already working machines).
+> >
 > 
-> Well, maybe the battery only updates full_charge_capacity during
-> powerdown or when the moon is full or something? (IOW you may be
-> breaking already working machines).
+> I do not know about batteries as I said, I was waiting for someone to
+> point out how batteries (normally/should) work.
+
+Different batteries work very differently, I'm afraid.
+
+> > Or perhaps add quirk based on DMI or something?
 > 
-> > In any case, my laptop's battery is not charging over 100% its
-> > original capacity anyway, just reporting a wrong value.
-> 
-> True. But I do not think  you are fixing it properly. Maybe ask for
-> fixed BIOS?
-> 
-> Or perhaps add quirk based on DMI or something?
+> My battery is easily identified by its model name, so maybe we can
+> apply the workaround only to known hardware. Still, that is a "heavy"
+> solution, as I suppose there are many many battery models in the
+> world. That is why I was asking whether some kind of standard/unified
+> batteries' values/behavior exists (or implement it) that we can try to
+> achieve easily with some heuristics like the one I proposed, instead
+> of some kind of huge table-based workaround system.
 
-FIW, I do think we should attempt to fix situations that are always wrong,
-we have a long history of doing that, and it doesn't make sense to send to
-userspace stuff that we _know_ to be crap.
-
-The problem is that to, e.g., fix last_full_capacity, you need to be able to
-trust your reports of battery state (needs to be idle or discharging), and
-current capacity.
-
-So it ends up needing to be quirk-based, as different broken crap will fail
-in conflicting ways, so you can't fix them all in one sweep, you'll just
-make it worse.  And the _one_ thing we must never do is to make it worse for
-the hardware/firmware that gets it right...
-
-I agree with Pavel, can you make it quirk-based?
-
+The heuristics you proposed _will_ break other batteries, so it is not
+acceptable without checking for model first.
+									Pavel
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
