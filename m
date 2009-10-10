@@ -1,77 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 3/4] PCI / ACPI PM: Platform support for
-	PCI PME wake-up (rev. 2)
-Date: Sat, 10 Oct 2009 01:05:08 +0200
-Message-ID: <200910100105.08356.rjw@sisk.pl>
-References: <200910090051.50932.rjw@sisk.pl> <200910090054.18693.rjw@sisk.pl>
-	<20091009112320.GA23990@srcf.ucam.org>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: lenovo ideapad s12 dsdt errors...
+Date: Fri, 09 Oct 2009 19:42:29 -0600
+Message-ID: <4ACFE685.1020209@gmail.com>
+References: <1255116847.12236.272.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20091009112320.GA23990@srcf.ucam.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qy0-f172.google.com ([209.85.221.172]:47663 "EHLO
+	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754942AbZJJBnJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2009 21:43:09 -0400
+Received: by qyk2 with SMTP id 2so6995820qyk.21
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Oct 2009 18:42:32 -0700 (PDT)
+In-Reply-To: <1255116847.12236.272.camel@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Scott Dylewski <scott@dylewski.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday 09 October 2009, Matthew Garrett wrote:
-> On Fri, Oct 09, 2009 at 12:54:18AM +0200, Rafael J. Wysocki wrote:
-> 
-> > Unfortunately, the subset of PCI devices that have GPEs associated
-> > with them is quite limited and the other devices have to rely on
-> > the GPEs associated with their upstream bridges and, possibly, the
-> > root bridge to generate ACPI wake-up events in response to PMEs from
-> > them.  Moreover, ACPI devices tend to share wake-up GPEs, in which
-> > cases it makes sense to install an ACPI notify handler for only one
-> > of them and "bind" the other devices to it.  Furthermore, ACPI-based
-> > PCI hotplug also uses ACPI notify handlers that in general may
-> > conflict with the PM notify handlers, unless this issue is
-> > specifically taken care of.
-> 
-> I'm not sure this approach is correct - for instance, from a Dell 
-> system:
-> 
->         Method (_L0D, 0, NotSerialized)
->         {
->             Store (SMI (0xC6, 0x00), Local0)
->             If (And (Local0, 0x01))
->             {
->                 Notify (\_SB.PCI0.AZAL, 0x02)
->             }
-> 
->             If (And (Local0, 0x02))
->             {
->                 Notify (\_SB.PCI0.EHCI, 0x02)
->             }
-> 
->             If (And (Local0, 0x04))
->             {
->                 Notify (\_SB.PCI0.EHC2, 0x02)
->             }
->         }
-> 
-> All these devices share a GPE, but registering only one notify handler 
-> would result in us missing the notification in some cases.
+On 10/09/2009 01:34 PM, Scott Dylewski wrote:
+> I just bought a Lenovo S12 netbook (atom processor) and installed Ubuntu
+> Karmic netbook remix on it, and I'm having some issues.  I'm getting
+> some long boot times, and wonder if it's related to the ACPI stuff.
+>
+> So I found some stuff online that suggests that my dsdt may have some
+> errors, and when I checked, it used a MSFT compiler and had a bunch of
+> warnings and errors, but I don't know how to fix them.  Can someone
+> direct me a bit and either help me fix the errors if needed, or let me
+> know what to do?
 
-Ok, I see.  The notification may be device-specific, although if we receive
-one, we'll need to check all devices sharing the GPE anyway.
+That's probably outdated advice - the kernel normally tries to deal with 
+such issues itself (or handle them the same way as Windows does, which 
+presumably works) and so replacing the DSDT isn't likely to help much. 
+Anyway, it's far from clear that your problem is at all related.
 
-I think that's not going to be difficult to take into account, but I won't be
-able to work on this until after the KS.
-
-> I also suspect that this should wait until the GPE rework is done.
-
-It certainly is better if the GPE rework is done first, although I'm not sure
-it's strictly necessary.  At least I don't see why exactly at the moment.
-
-Thanks,
-Rafael
+Are there any errors showing up in dmesg?
