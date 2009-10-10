@@ -1,100 +1,47 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH 4/6] ACPI: dock: add struct dock_station * directly to
-	platform device data
-Date: Sat, 10 Oct 2009 15:52:30 +0800
-Message-ID: <20091010075230.GA7473@sli10-desk.sh.intel.com>
-References: <20091007220509.15597.65501.stgit@bob.kio> <20091007220747.15597.90592.stgit@bob.kio>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] battery: Fix charge_now returned by broken batteries
+Date: Sat, 10 Oct 2009 14:04:48 +0200
+Message-ID: <20091010120448.GB1811@ucw.cz>
+References: <1254669853.26496.0.camel@carter> <ca2dc2820910041046i47a1c3dhba82266bb14a440c@mail.gmail.com> <4AC8F02B.6080209@suse.de> <200910042246.23712.rjw@sisk.pl> <4AC91578.2020807@suse.de> <ca2dc2820910041455h18ece909rc2280a40f1899c0a@mail.gmail.com> <4AC923F4.9050100@suse.de> <ca2dc2820910041653o29d4b253n69270d231e56e447@mail.gmail.com> <4AC93B45.8090707@suse.de> <ca2dc2820910061005k2beae176lece9792bb15cda90@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3395 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753192AbZJJHxI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Oct 2009 03:53:08 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758389AbZJJMG2@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20091007220747.15597.90592.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <ca2dc2820910061005k2beae176lece9792bb15cda90@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Oct 08, 2009 at 06:07:47AM +0800, Alex Chiang wrote:
-> Instead of adding a (struct dock_station **) to our dock device's
-> platform data, we can add the (struct dock_station *) directly.
-> 
-> This change saves us some silly casting.
-> 
-> Signed-off-by: Alex Chiang <achiang@hp.com>
-> ---
-> 
->  drivers/acpi/dock.c |   19 +++++++------------
->  1 files changed, 7 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 1d693a1..e53d49b 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -857,8 +857,7 @@ static ssize_t show_docked(struct device *dev,
->  {
->  	struct acpi_device *tmp;
->  
-> -	struct dock_station *dock_station = *((struct dock_station **)
-> -		dev->platform_data);
-> +	struct dock_station *dock_station = dev->platform_data;
->  
->  	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
->  		return snprintf(buf, PAGE_SIZE, "1\n");
-> @@ -872,8 +871,7 @@ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
->  static ssize_t show_flags(struct device *dev,
->  			  struct device_attribute *attr, char *buf)
->  {
-> -	struct dock_station *dock_station = *((struct dock_station **)
-> -		dev->platform_data);
-> +	struct dock_station *dock_station = dev->platform_data;
->  	return snprintf(buf, PAGE_SIZE, "%d\n", dock_station->flags);
->  
->  }
-> @@ -886,8 +884,7 @@ static ssize_t write_undock(struct device *dev, struct device_attribute *attr,
->  			   const char *buf, size_t count)
->  {
->  	int ret;
-> -	struct dock_station *dock_station = *((struct dock_station **)
-> -		dev->platform_data);
-> +	struct dock_station *dock_station = dev->platform_data;
->  
->  	if (!count)
->  		return -EINVAL;
-> @@ -905,8 +902,7 @@ static ssize_t show_dock_uid(struct device *dev,
->  			     struct device_attribute *attr, char *buf)
->  {
->  	unsigned long long lbuf;
-> -	struct dock_station *dock_station = *((struct dock_station **)
-> -		dev->platform_data);
-> +	struct dock_station *dock_station = dev->platform_data;
->  	acpi_status status = acpi_evaluate_integer(dock_station->handle,
->  					"_UID", NULL, &lbuf);
->  	if (ACPI_FAILURE(status))
-> @@ -919,8 +915,7 @@ static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
->  static ssize_t show_dock_type(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> -	struct dock_station *dock_station = *((struct dock_station **)
-> -		dev->platform_data);
-> +	struct dock_station *dock_station = dev->platform_data;
->  	char *type;
->  
->  	if (dock_station->flags & DOCK_IS_DOCK)
-> @@ -972,8 +967,8 @@ static int dock_add(acpi_handle handle)
->  	if (ret)
->  		goto err_free;
->  
-> -	platform_device_add_data(dock_device, &ds,
-> -		sizeof(struct dock_station *));
-> +	platform_device_add_data(dock_device, ds,
-> +		sizeof(struct dock_station));
+Hi!
 
-This patch isn't good. platform_device_add_data will malloc a new
-'struct dock_station' and copy old to it, and later the two copy aren't
-consistent. So NACK this one.
+> > current full charge, when the charging is complete. It may end up lower or
+> > greater than
+> > previous value.
+> > Comparing current charge with the last full charge may correctly give you
+> >>100%.
+> 
+> Then maybe we can write something like...
+> 
+> val->intval = acpi_battery_is_charged(battery)
+> 	? min(battery->capacity_now, battery->full_charge_capacity) * 1000
+> 	: battery->capacity_now * 1000;
+> 
+> So we only use the min() operation when it is fully charged (returning
+> to 100%) without losing information when charging.
+> 
+> The problem is that percentage may jump from >100% to 100% in
+> batteries whose full capacity increase, but I think that is OK, since
+> when completely charged, the >100% is the new 100%.
+> 
+> In "broken" batteries (is it broken finally? or is it expected
+> behaviour?) like mine the old problem will be corrected, as it was
+> only present in the charged state.
 
-ACK other 5 patches.
+I believe you better work around this in userspace... or agree that
+>100% charge is possible.
+
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
