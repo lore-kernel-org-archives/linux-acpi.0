@@ -1,56 +1,56 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] battery: Fix charge_now returned by broken batteries
-Date: Sat, 10 Oct 2009 23:25:21 +0200
-Message-ID: <20091010212521.GD14051@elf.ucw.cz>
-References: <4AC8F02B.6080209@suse.de>
- <200910042246.23712.rjw@sisk.pl>
- <4AC91578.2020807@suse.de>
- <ca2dc2820910041455h18ece909rc2280a40f1899c0a@mail.gmail.com>
- <4AC923F4.9050100@suse.de>
- <ca2dc2820910041653o29d4b253n69270d231e56e447@mail.gmail.com>
- <4AC93B45.8090707@suse.de>
- <ca2dc2820910061005k2beae176lece9792bb15cda90@mail.gmail.com>
- <20091010120448.GB1811@ucw.cz>
- <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Bugme-new] [Bug 14365] New: resume from suspend to ram broken after suspend to disk
+Date: Sat, 10 Oct 2009 23:30:33 +0200
+Message-ID: <200910102330.33297.rjw@sisk.pl>
+References: <bug-14365-10286@http.bugzilla.kernel.org/> <20091010103905.7bc562c3.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40010 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761652AbZJJV0E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Oct 2009 17:26:04 -0400
-Content-Disposition: inline
-In-Reply-To: <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54307 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754911AbZJJV3d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Oct 2009 17:29:33 -0400
+In-Reply-To: <20091010103905.7bc562c3.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi!
-
-> >> In "broken" batteries (is it broken finally? or is it expected
-> >> behaviour?) like mine the old problem will be corrected, as it was
-> >> only present in the charged state.
-> >
-> > I believe you better work around this in userspace... or agree that
-> >>100% charge is possible.
+On Saturday 10 October 2009, Andrew Morton wrote:
+> On Sat, 10 Oct 2009 13:40:45 GMT bugzilla-daemon@bugzilla.kernel.org wrote:
 > 
-> I agree that >100% charge is possible while charging (because that
-> would mean the battery is over the last charged level); however, what
-> does it mean when charged?
+> > http://bugzilla.kernel.org/show_bug.cgi?id=14365
+> > 
+> >            Summary: resume from suspend to ram broken after suspend to
+> >                     disk
+> >            Product: Power Management
+> >            Version: 2.5
+> >     Kernel Version: 2.6.31
+> >           Platform: All
+> >         OS/Version: Linux
+> >               Tree: Mainline
+> >             Status: NEW
+> >           Severity: normal
+> >           Priority: P1
+> >          Component: Hibernation/Suspend
+> >         AssignedTo: power-management_other@kernel-bugs.osdl.org
+> >         ReportedBy: corsac@debian.org
+> >         Regression: No
+> 
+> It worries me that we have both "Power management, Hibernation/Suspend"
+> and acpi-power-sleep-wake.
+> 
+> Are these duplicative?
 
-Well, maybe the battery only updates full_charge_capacity during
-powerdown or when the moon is full or something? (IOW you may be
-breaking already working machines).
+acpi-power-sleep-wake is more specific.  Hibernation/Suspend bugs need not be.
+about ACPI.
 
-> In any case, my laptop's battery is not charging over 100% its
-> original capacity anyway, just reporting a wrong value.
+> Should we kill one off?
 
-True. But I do not think  you are fixing it properly. Maybe ask for
-fixed BIOS?
+I don't think that's necessary.
 
-Or perhaps add quirk based on DMI or something?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> Do the acpi developers monitor the "Power Management" category?
+
+Yes, they do, to my knowledge.
