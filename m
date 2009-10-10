@@ -1,51 +1,71 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Bugme-new] [Bug 14365] New: resume from suspend to ram broken
- after suspend to disk
-Date: Sat, 10 Oct 2009 10:39:05 -0700
-Message-ID: <20091010103905.7bc562c3.akpm@linux-foundation.org>
-References: <bug-14365-10286@http.bugzilla.kernel.org/>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Subject: Re: [PATCH] battery: Fix charge_now returned by broken batteries
+Date: Sat, 10 Oct 2009 22:53:39 +0200
+Message-ID: <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
+References: <1254669853.26496.0.camel@carter> <4AC8F02B.6080209@suse.de>
+	 <200910042246.23712.rjw@sisk.pl> <4AC91578.2020807@suse.de>
+	 <ca2dc2820910041455h18ece909rc2280a40f1899c0a@mail.gmail.com>
+	 <4AC923F4.9050100@suse.de>
+	 <ca2dc2820910041653o29d4b253n69270d231e56e447@mail.gmail.com>
+	 <4AC93B45.8090707@suse.de>
+	 <ca2dc2820910061005k2beae176lece9792bb15cda90@mail.gmail.com>
+	 <20091010120448.GB1811@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50524 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932139AbZJJRlf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Oct 2009 13:41:35 -0400
-In-Reply-To: <bug-14365-10286@http.bugzilla.kernel.org/>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964899AbZJJUyT@vger.kernel.org>
+In-Reply-To: <20091010120448.GB1811@ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
 
-On Sat, 10 Oct 2009 13:40:45 GMT bugzilla-daemon@bugzilla.kernel.org wrote:
+On Sat, Oct 10, 2009 at 2:04 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
+>
+>> > current full charge, when the charging is complete. It may end up =
+lower or
+>> > greater than
+>> > previous value.
+>> > Comparing current charge with the last full charge may correctly g=
+ive you
+>> >>100%.
+>>
+>> Then maybe we can write something like...
+>>
+>> val->intval =3D acpi_battery_is_charged(battery)
+>> =A0 =A0 =A0 ? min(battery->capacity_now, battery->full_charge_capaci=
+ty) * 1000
+>> =A0 =A0 =A0 : battery->capacity_now * 1000;
+>>
+>> So we only use the min() operation when it is fully charged (returni=
+ng
+>> to 100%) without losing information when charging.
+>>
+>> The problem is that percentage may jump from >100% to 100% in
+>> batteries whose full capacity increase, but I think that is OK, sinc=
+e
+>> when completely charged, the >100% is the new 100%.
+>>
+>> In "broken" batteries (is it broken finally? or is it expected
+>> behaviour?) like mine the old problem will be corrected, as it was
+>> only present in the charged state.
+>
+> I believe you better work around this in userspace... or agree that
+>>100% charge is possible.
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=14365
-> 
->            Summary: resume from suspend to ram broken after suspend to
->                     disk
->            Product: Power Management
->            Version: 2.5
->     Kernel Version: 2.6.31
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Hibernation/Suspend
->         AssignedTo: power-management_other@kernel-bugs.osdl.org
->         ReportedBy: corsac@debian.org
->         Regression: No
+I agree that >100% charge is possible while charging (because that
+would mean the battery is over the last charged level); however, what
+does it mean when charged?
 
-It worries me that we have both "Power management, Hibernation/Suspend"
-and acpi-power-sleep-wake.
+In any case, my laptop's battery is not charging over 100% its
+original capacity anyway, just reporting a wrong value.
 
-Are these duplicative?
-
-Should we kill one off?
-
-Do the acpi developers monitor the "Power Management" category?
-
-Thanks.
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/hors=
+es/blog.html
+>
