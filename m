@@ -1,70 +1,52 @@
-From: "Leo \"costela\" Antunes" <costela@debian.org>
+From: Jeff Mahoney <jeffm@suse.com>
 Subject: Re: [patch 2/2] [PATCH 2/2] ACPI: generic initramfs table override
-   support #3
-Date: Sat, 10 Oct 2009 16:08:03 +0200
-Message-ID: <haq4g3$ncb$1@ger.gmane.org>
+ support #3
+Date: Sat, 10 Oct 2009 10:32:10 -0400
+Message-ID: <4AD09AEA.70107@suse.com>
 References: <20091009195508.694274257@suse.com> <20091009195907.635574715@suse.com> <20091009201908.GA1139@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:58626 "EHLO lo.gmane.org"
+Received: from cantor.suse.de ([195.135.220.2]:45205 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752260AbZJJOKl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Oct 2009 10:10:41 -0400
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1Mwce4-0007QF-C0
-	for linux-acpi@vger.kernel.org; Sat, 10 Oct 2009 16:10:04 +0200
-Received: from p54bae2cf.dip.t-dialin.net ([84.186.226.207])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sat, 10 Oct 2009 16:10:04 +0200
-Received: from costela by p54bae2cf.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sat, 10 Oct 2009 16:10:04 +0200
+	id S1761502AbZJJOcv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Oct 2009 10:32:51 -0400
 In-Reply-To: <20091009201908.GA1139@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, =?ISO-8859-1?Q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>, Jan Beulich <JBeulich@novell.com>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@hera.kernel.org>
 
-Matthew Garrett wrote:
-> I'm really unenthusiastic about this. The majority of use cases appea=
-r=20
-> to be people working around Linux bugs and never reporting the bugs t=
-o=20
+On 10/09/2009 04:19 PM, Matthew Garrett wrote:
+> On Fri, Oct 09, 2009 at 03:55:10PM -0400, Jeff Mahoney wrote:
+> 
+>> This version provides the infrastructure to override any ACPI table, but
+>> only provides support for overriding DSDT. If other tables are desired,
+>> extending the support is trivial.
+> 
+> I'm really unenthusiastic about this. The majority of use cases appear 
+> to be people working around Linux bugs and never reporting the bugs to 
 > us, leaving everybody worse off.
 
-I can't judge the technical quality of the patch, but I don't think the
-social side of it is a problem (assuming I correctly understood the
-change in question).
+I agree. In an ideal world this would be unnecessary. It's true that
+ACPI bugs have become must less common than they used to be but I think
+users would prefer their machines be usable while the ACPI developers
+are diagnosing why they need a workaround in the first place.
 
-Case in point: I reported a problem[0] with the thermal/fan subsystems
-which was left unanswered and forced me to recompile kernels with
-overridden DSDTs for every new release expecting a fix and eventually
-replace the laptop in question. I'm obviously not demanding that my
-problem be solved, but the point is that not all problems can be solved
-in a timely fashion even when they are reported (for whatever reason:
-lack of manpower, lack of test machines, etc), so avoiding this change
-which could ease the testing of new DSDTs seems a bit sadistic. :)
+In some cases it's just that the MS AML compiler is just so much more
+lax than the Intel one. I had a notebook where I had to extract, fix,
+and rebuild my DSDT and then it worked fine. Without the ability to
+override it, I would've been stuck.
 
-Another point of view to the same argument is that the current situatio=
-n
-doesn't guarantee feedback either. The added hassle of needing a
-recompile doesn't IMHO necessarily mean users report these sort of prob=
-lems.
+BTW, a similar version of this patch was committed to mainline in Feb
+2008 though it was reverted shortly after that. Judging from the commit
+message, it's because it reintroduced the early userspace bugs. I
+believe this patch addresses that by not allowing the usermode helper to
+run until rootfs_initcall has been completed.
 
-Just my technically inapt 0,2 =E2=82=AC. :)
+-Jeff
 
-Cheers
-
-[0] http://thread.gmane.org/gmane.linux.acpi.devel/37612
-
---=20
-Leo "costela" Antunes
-[insert a witty retort here]
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jeff Mahoney
+SUSE Labs
