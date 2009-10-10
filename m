@@ -1,71 +1,56 @@
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH] battery: Fix charge_now returned by broken batteries
-Date: Sat, 10 Oct 2009 22:53:39 +0200
-Message-ID: <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
-References: <1254669853.26496.0.camel@carter> <4AC8F02B.6080209@suse.de>
-	 <200910042246.23712.rjw@sisk.pl> <4AC91578.2020807@suse.de>
-	 <ca2dc2820910041455h18ece909rc2280a40f1899c0a@mail.gmail.com>
-	 <4AC923F4.9050100@suse.de>
-	 <ca2dc2820910041653o29d4b253n69270d231e56e447@mail.gmail.com>
-	 <4AC93B45.8090707@suse.de>
-	 <ca2dc2820910061005k2beae176lece9792bb15cda90@mail.gmail.com>
-	 <20091010120448.GB1811@ucw.cz>
+Date: Sat, 10 Oct 2009 23:25:21 +0200
+Message-ID: <20091010212521.GD14051@elf.ucw.cz>
+References: <4AC8F02B.6080209@suse.de>
+ <200910042246.23712.rjw@sisk.pl>
+ <4AC91578.2020807@suse.de>
+ <ca2dc2820910041455h18ece909rc2280a40f1899c0a@mail.gmail.com>
+ <4AC923F4.9050100@suse.de>
+ <ca2dc2820910041653o29d4b253n69270d231e56e447@mail.gmail.com>
+ <4AC93B45.8090707@suse.de>
+ <ca2dc2820910061005k2beae176lece9792bb15cda90@mail.gmail.com>
+ <20091010120448.GB1811@ucw.cz>
+ <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964899AbZJJUyT@vger.kernel.org>
-In-Reply-To: <20091010120448.GB1811@ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40010 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761652AbZJJV0E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Oct 2009 17:26:04 -0400
+Content-Disposition: inline
+In-Reply-To: <ca2dc2820910101353g65e4591ds82bf9fff8378abd4@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Oct 10, 2009 at 2:04 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
->> > current full charge, when the charging is complete. It may end up =
-lower or
->> > greater than
->> > previous value.
->> > Comparing current charge with the last full charge may correctly g=
-ive you
->> >>100%.
->>
->> Then maybe we can write something like...
->>
->> val->intval =3D acpi_battery_is_charged(battery)
->> =A0 =A0 =A0 ? min(battery->capacity_now, battery->full_charge_capaci=
-ty) * 1000
->> =A0 =A0 =A0 : battery->capacity_now * 1000;
->>
->> So we only use the min() operation when it is fully charged (returni=
-ng
->> to 100%) without losing information when charging.
->>
->> The problem is that percentage may jump from >100% to 100% in
->> batteries whose full capacity increase, but I think that is OK, sinc=
-e
->> when completely charged, the >100% is the new 100%.
->>
->> In "broken" batteries (is it broken finally? or is it expected
->> behaviour?) like mine the old problem will be corrected, as it was
->> only present in the charged state.
->
-> I believe you better work around this in userspace... or agree that
->>100% charge is possible.
+Hi!
 
-I agree that >100% charge is possible while charging (because that
-would mean the battery is over the last charged level); however, what
-does it mean when charged?
+> >> In "broken" batteries (is it broken finally? or is it expected
+> >> behaviour?) like mine the old problem will be corrected, as it was
+> >> only present in the charged state.
+> >
+> > I believe you better work around this in userspace... or agree that
+> >>100% charge is possible.
+> 
+> I agree that >100% charge is possible while charging (because that
+> would mean the battery is over the last charged level); however, what
+> does it mean when charged?
 
-In any case, my laptop's battery is not charging over 100% its
-original capacity anyway, just reporting a wrong value.
+Well, maybe the battery only updates full_charge_capacity during
+powerdown or when the moon is full or something? (IOW you may be
+breaking already working machines).
 
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Pavel
-> --
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/hors=
-es/blog.html
->
+> In any case, my laptop's battery is not charging over 100% its
+> original capacity anyway, just reporting a wrong value.
+
+True. But I do not think  you are fixing it properly. Maybe ask for
+fixed BIOS?
+
+Or perhaps add quirk based on DMI or something?
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
