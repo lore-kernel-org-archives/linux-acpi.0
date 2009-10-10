@@ -1,46 +1,77 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [patch 2/2] [PATCH 2/2] ACPI: generic initramfs table override
-	support #3
-Date: Sat, 10 Oct 2009 15:43:46 +0100
-Message-ID: <20091010144346.GA15681@srcf.ucam.org>
-References: <20091009195508.694274257@suse.com> <20091009195907.635574715@suse.com> <20091009201908.GA1139@srcf.ucam.org> <4AD09AEA.70107@suse.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 5/7] x86/PCI: print resources consistently with %pRt
+Date: Sat, 10 Oct 2009 09:36:40 -0600
+Message-ID: <1255189000.30901.11.camel@dc7800.home>
+References: <20091006213259.4272.68068.stgit@bob.kio>
+	 <20091006213349.4272.65914.stgit@bob.kio>
+	 <86802c440910071143y7ba8b0f8y9efff738eba9d30b@mail.gmail.com>
+	 <200910071315.16250.bjorn.helgaas@hp.com>
+	 <alpine.LFD.2.00.0910091707380.3912@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:55750 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932397AbZJJOoi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Oct 2009 10:44:38 -0400
-Content-Disposition: inline
-In-Reply-To: <4AD09AEA.70107@suse.com>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:31122 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933034AbZJJPkZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Oct 2009 11:40:25 -0400
+In-Reply-To: <alpine.LFD.2.00.0910091707380.3912@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Mahoney <jeffm@suse.com>
-Cc: linux-acpi@vger.kernel.org, =?iso-8859-1?Q?=C9ric?= Piel <Eric.Piel@tremplin-utc.net>, Jan Beulich <JBeulich@novell.com>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@hera.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, Oct 10, 2009 at 10:32:10AM -0400, Jeff Mahoney wrote:
+On Fri, 2009-10-09 at 17:14 -0400, Len Brown wrote:
+> > The message changes like this:
+> > 
+> >   -PCI: Failed to allocate to allocate 0x0-0x3fff from PCI IO for PCI Bus 0000:00
+> >   +pci_root PNP0A03:01: can't allocate [io  0x0000-0x3fff]
+> > 
+> > I don't think changing "PCI IO" to "io" is really a problem.  In fact,
+> > strictly speaking, "PCI IO" is the wrong name for ioport_resource --
+> > we're talking about a host bridge, and the upstream side is not PCI
+> > at all.
+> > 
+> > However, I do think it would be more useful to mention the fact that
+> > we failed to allocate a *window*, e.g., 
+> > 
+> >   pci_root PNP0A03:00: can't allocate host bridge window [io  0x0000-0x3fff]
+> > 
+> > I did consider keeping the PCI bus ("0000:00"), but I decided we
+> > already have that information here:
+> > 
+> >   ACPI: PCI Root Bridge [PCI0] (0000:00)
+> > 
+> > and it doesn't seem worthwhile to me to repeat the bus number in all
+> > the host bridge-related messages.  Right now, there's nothing to tie
+> > the PCI0 to the PNP0A03:00 (and "PCI0" shouldn't be exposed to users
+> > anyway), but someday when I finally convince Len to use dev_printk
+> > in ACPI, it could look something like this:
+> > 
+> >   pci_root PNP0A03:00: PCI host bridge to pci_bus 0000:00
+> 
+> The last time we looked at using dev_printk() in ACPI,
+> it looked like the leading ACPI: would go away, and the
+> concern was that would hinder, rather than help, people
+> in reporting issues to the right place.
+> 
+> I have no problem with using dev_printk() where it makes sense,
+> but only if it makes the message more useful rather than
+> less useful.
 
-> I agree. In an ideal world this would be unnecessary. It's true that
-> ACPI bugs have become must less common than they used to be but I think
-> users would prefer their machines be usable while the ACPI developers
-> are diagnosing why they need a workaround in the first place.
+Yes, I'm sorry, that was kind of a low blow that didn't represent your
+concerns fairly.
 
-If that were the tradeoff then I'd be happy, but what tends to happen is 
-that the section of users who are able to help us debug just work around 
-it instead and the ones who have no idea how to report a bug end up with 
-broken machines.
+> BTW. I like the consistency provided by the series at hand.
+> I assume that it will go through Jesse's, and for that,
+> consider the relevant bits...
+> 
+> Acked-by: Len Brown <len.brown@intel.com>
 
-> In some cases it's just that the MS AML compiler is just so much more
-> lax than the Intel one. I had a notebook where I had to extract, fix,
-> and rebuild my DSDT and then it worked fine. Without the ability to
-> override it, I would've been stuck.
+Thanks.  I'm planning to post an updated series soon.  Joe Perches
+suggested reducing the stack usage in vsprintf, so I'm working on that,
+and I might add another message or two.
 
-For a user who can do these fixups themselves, it's easy enough to 
-rebuild a kernel with the DSDT override. However, pretty much every 
-recent ACPI bug I've seen has had nothing to do with the MS compiler's 
-less strict error checking - we run the in-kernel interpreter in a lax 
-mode that's intended to be bug for bug compatible with the Microsoft 
-one.
+Bjorn
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
