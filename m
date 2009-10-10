@@ -1,52 +1,70 @@
-From: Jeff Mahoney <jeffm@suse.com>
-Subject: Re: [patch 2/2] [PATCH 2/2] ACPI: generic initramfs table override
- support #3
-Date: Sat, 10 Oct 2009 10:32:10 -0400
-Message-ID: <4AD09AEA.70107@suse.com>
-References: <20091009195508.694274257@suse.com> <20091009195907.635574715@suse.com> <20091009201908.GA1139@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: assumptions in acpi drivers
+Date: Sat, 10 Oct 2009 08:39:55 -0600
+Message-ID: <1255185595.30901.7.camel@dc7800.home>
+References: <9b2b86520910100616n38e842e2m9cf306eb4e812077@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:45205 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761502AbZJJOcv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Oct 2009 10:32:51 -0400
-In-Reply-To: <20091009201908.GA1139@srcf.ucam.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:11914 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932395AbZJJOnk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Oct 2009 10:43:40 -0400
+In-Reply-To: <9b2b86520910100616n38e842e2m9cf306eb4e812077@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, =?ISO-8859-1?Q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>, Jan Beulich <JBeulich@novell.com>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@hera.kernel.org>
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 10/09/2009 04:19 PM, Matthew Garrett wrote:
-> On Fri, Oct 09, 2009 at 03:55:10PM -0400, Jeff Mahoney wrote:
+On Sat, 2009-10-10 at 14:16 +0100, Alan Jenkins wrote:
+
+> > The current upstream version of this function also has the kfree
+> > issue.  You're patching a different version, so it might be fixed
+> > there already.  But it seems like all these hotkey drivers (and the
+> > accelerometer driver) use the same pattern of assuming they'll only
+> > see a single device, and then they make assumptions like "hotk ==
+> > acpi_driver_data(device)".  That's just a bad example for people
+> > to follow, and might not even be true for things like accelerometers
+> > where you could imagine having more than one.
 > 
->> This version provides the infrastructure to override any ACPI table, but
->> only provides support for overriding DSDT. If other tables are desired,
->> extending the support is trivial.
+> I've been thinking about this.  Frankly, I can't imagine a machine
+> having multiple ACPI accelerometer devices with the same interface.
+> It doesn't make sense to have multiple instances of any of the drivers
+> under /platform/.  And many of them create platform devices with fixed
+> names, so we can't pretend it would work.
 > 
-> I'm really unenthusiastic about this. The majority of use cases appear 
-> to be people working around Linux bugs and never reporting the bugs to 
-> us, leaving everybody worse off.
+> Perhaps the best approach is to remove the references to
+> device->driverdata, and consistently use "hotk" or equivalent.  The
+> _core_ acpi devices would always provide correct examples of how to
+> use driverdata.
 
-I agree. In an ideal world this would be unnecessary. It's true that
-ACPI bugs have become must less common than they used to be but I think
-users would prefer their machines be usable while the ACPI developers
-are diagnosing why they need a workaround in the first place.
+I think the best pattern is something like this:
 
-In some cases it's just that the MS AML compiler is just so much more
-lax than the Intel one. I had a notebook where I had to extract, fix,
-and rebuild my DSDT and then it worked fine. Without the ability to
-override it, I would've been stuck.
+    struct acpi_device *singleton;
 
-BTW, a similar version of this patch was committed to mainline in Feb
-2008 though it was reverted shortly after that. Judging from the commit
-message, it's because it reintroduced the early userspace bugs. I
-believe this patch addresses that by not allowing the usermode helper to
-run until rootfs_initcall has been completed.
+    xxx_add(struct acpi_device *device, ...)
+    {
+	if (singleton)
+		return -EINVAL;
 
--Jeff
+	xxx_data = kzalloc(...);
+	xxx_data->foo = 0;
 
--- 
-Jeff Mahoney
-SUSE Labs
+	device->driver_data = xxx_data;
+	singleton = xxx_data;
+	return 0;
+    }
+
+    xxx_remove(struct acpi_device *device)
+    {
+	kfree(acpi_driver_data(device));
+    }
+
+That way the assumption that there's only a single device is confined to
+the add() method.  That makes the rest of the driver easier to read and
+verify because it looks like every other ACPI driver.
+
+Bjorn
+
+
