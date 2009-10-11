@@ -1,80 +1,49 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: assumptions in acpi drivers
-Date: Sun, 11 Oct 2009 14:39:10 +0100
-Message-ID: <9b2b86520910110639g57b2c56ao19f9f1f687729f7d@mail.gmail.com>
-References: <9b2b86520910100616n38e842e2m9cf306eb4e812077@mail.gmail.com>
-	 <1255185595.30901.7.camel@dc7800.home>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] pci: increase alignment to make more space for hidden code
+Date: Sun, 11 Oct 2009 14:17:16 -0700
+Message-ID: <4AD24B5C.4050905@kernel.org>
+References: <200908072333.24631.storm@sys49152.net> <alpine.LFD.2.00.0908122350560.22946@localhost.localdomain> <200908160400.03391.storm@sys49152.net> <alpine.LFD.2.00.0910052312140.309@localhost.localdomain> <4ACAC8F1.1050706@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:41812 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752799AbZJKNjr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Oct 2009 09:39:47 -0400
-Received: by fxm27 with SMTP id 27so8103015fxm.17
-        for <linux-acpi@vger.kernel.org>; Sun, 11 Oct 2009 06:39:10 -0700 (PDT)
-In-Reply-To: <1255185595.30901.7.camel@dc7800.home>
+Received: from hera.kernel.org ([140.211.167.34]:39111 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751907AbZJKVSj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Oct 2009 17:18:39 -0400
+In-Reply-To: <4ACAC8F1.1050706@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Ingo Molnar <mingo@elte.hu>
+Cc: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org
 
-On 10/10/09, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Sat, 2009-10-10 at 14:16 +0100, Alan Jenkins wrote:
->
->> > The current upstream version of this function also has the kfree
->> > issue.  You're patching a different version, so it might be fixed
->> > there already.  But it seems like all these hotkey drivers (and the
->> > accelerometer driver) use the same pattern of assuming they'll only
->> > see a single device, and then they make assumptions like "hotk ==
->> > acpi_driver_data(device)".  That's just a bad example for people
->> > to follow, and might not even be true for things like accelerometers
->> > where you could imagine having more than one.
->>
->> I've been thinking about this.  Frankly, I can't imagine a machine
->> having multiple ACPI accelerometer devices with the same interface.
->> It doesn't make sense to have multiple instances of any of the drivers
->> under /platform/.  And many of them create platform devices with fixed
->> names, so we can't pretend it would work.
->>
->> Perhaps the best approach is to remove the references to
->> device->driverdata, and consistently use "hotk" or equivalent.  The
->> _core_ acpi devices would always provide correct examples of how to
->> use driverdata.
->
-> I think the best pattern is something like this:
->
->     struct acpi_device *singleton;
->
->     xxx_add(struct acpi_device *device, ...)
->     {
-> 	if (singleton)
-> 		return -EINVAL;
->
-> 	xxx_data = kzalloc(...);
-> 	xxx_data->foo = 0;
->
-> 	device->driver_data = xxx_data;
-> 	singleton = xxx_data;
-> 	return 0;
->     }
->
->     xxx_remove(struct acpi_device *device)
->     {
-> 	kfree(acpi_driver_data(device));
->     }
->
-> That way the assumption that there's only a single device is confined to
-> the add() method.  That makes the rest of the driver easier to read and
-> verify because it looks like every other ACPI driver.
->
-> Bjorn
+for
 
-Ok, you've prodded me enough to try converting eeepc-laptop.
+http://bugzilla.kernel.org/show_bug.cgi?id=13940
 
-Doesn't the singleton pattern need to be thread-safe though?  I don't
-see any global lock (or a driver-specific one) in device_bind_driver()
-or acpi_bind_device().  That's why I suggested atomics earlier.
+some system when acpi are enabled, acpi clears some BAR for some devices without
+reason, and kernel will need to allocate devices for them.
 
-Regards
-Alan
+try to increase alignment to get more safe range for unassigned devices.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+
+---
+ arch/x86/kernel/e820.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/arch/x86/kernel/e820.c
+===================================================================
+--- linux-2.6.orig/arch/x86/kernel/e820.c
++++ linux-2.6/arch/x86/kernel/e820.c
+@@ -1378,8 +1378,8 @@ static unsigned long ram_alignment(resou
+ 	if (mb < 16)
+ 		return 1024*1024;
+ 
+-	/* To 32MB for anything above that */
+-	return 32*1024*1024;
++	/* To 64MB for anything above that */
++	return 64*1024*1024;
+ }
+ 
+ #define MAX_RESOURCE_SIZE ((resource_size_t)-1)
