@@ -1,53 +1,44 @@
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
-Subject: Re: [v8 PATCH 0/8]: cpuidle: Cleanup cpuidle/ Introduce cpuidle to
-	POWER
-Date: Mon, 12 Oct 2009 15:31:31 +0530
-Message-ID: <20091012100131.GA3007@balbir.in.ibm.com>
-References: <20091008094828.GA20595@linux.vnet.ibm.com>
-Reply-To: balbir@linux.vnet.ibm.com
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] fujitsu-laptop: Fix tests of acpi_evaluate_integer() return
+Date: Mon, 12 Oct 2009 13:14:32 +0200
+Message-ID: <4AD30F98.4010904@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
-Content-Disposition: inline
-In-Reply-To: <20091008094828.GA20595@linux.vnet.ibm.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-To: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
-Cc: linux-arch@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, linuxppc-dev@lists.ozlabs.org, Arjan van de Ven <arjan@infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:43530 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756156AbZJLLFz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2009 07:05:55 -0400
+Received: by ewy4 with SMTP id 4so2351140ewy.37
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2009 04:05:17 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-* Arun R B <arun@linux.vnet.ibm.com> [2009-10-08 15:18:28]:
+The wrong test was used acpi_status status is unsigned.
 
-> Hi
-> 
-> Please consider this for inclusion into the testing tree.
-> 
-> This patchset introduces cpuidle infrastructure to POWER, prototyping
-> for pSeries, and also does a major refactoring of current x86 idle
-> power management and a cleanup of cpuidle infrastructure.
-> 
-> Earlier discussions on the same can be found at:
-> 
-> v7 --> http://lkml.org/lkml/2009/10/6/278
-> v6 --> http://lkml.org/lkml/2009/9/22/180
-> v5 --> http://lkml.org/lkml/2009/9/22/26
-> v4 --> http://lkml.org/lkml/2009/9/1/133
-> v3 --> http://lkml.org/lkml/2009/8/27/124
-> v2 --> http://lkml.org/lkml/2009/8/26/233
-> v1 --> http://lkml.org/lkml/2009/8/19/150
-> 
->
-
-I looked at the changes and they are beginning to look very good. Some
-minor comments about comments in the individual patches. 
-
--- 
-	Balbir
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+index f35aee5..e3c21ee 100644
+--- a/drivers/platform/x86/fujitsu-laptop.c
++++ b/drivers/platform/x86/fujitsu-laptop.c
+@@ -376,7 +376,7 @@ static int get_lcd_level(void)
+ 
+ 	status =
+ 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
+-	if (status < 0)
++	if (ACPI_FAILURE(status))
+ 		return status;
+ 
+ 	fujitsu->brightness_level = state & 0x0fffffff;
+@@ -398,7 +398,7 @@ static int get_max_brightness(void)
+ 
+ 	status =
+ 	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
+-	if (status < 0)
++	if (ACPI_FAILURE(status))
+ 		return status;
+ 
+ 	fujitsu->max_brightness = state;
