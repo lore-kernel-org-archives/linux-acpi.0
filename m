@@ -1,62 +1,37 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] pci: increase alignment to make more space for hidden code
-Date: Mon, 12 Oct 2009 10:59:09 -0600
-Message-ID: <200910121059.10366.bjorn.helgaas@hp.com>
-References: <200908072333.24631.storm@sys49152.net> <4ACAC8F1.1050706@kernel.org> <4AD24B5C.4050905@kernel.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 4/6] ACPI: dock: add struct dock_station * directly to
+	platform device data
+Date: Mon, 12 Oct 2009 11:17:29 -0600
+Message-ID: <20091012171729.GB8636@ldl.fc.hp.com>
+References: <20091007220509.15597.65501.stgit@bob.kio> <20091007220747.15597.90592.stgit@bob.kio> <20091010075230.GA7473@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:16078 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932873AbZJLRAA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2009 13:00:00 -0400
-In-Reply-To: <4AD24B5C.4050905@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932155AbZJLRSI@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20091010075230.GA7473@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Ingo Molnar <mingo@elte.hu>, Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org
 
-On Sunday 11 October 2009 03:17:16 pm Yinghai Lu wrote:
-> for
+Hi Len,
+
+* Shaohua Li <shaohua.li@intel.com>:
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13940
-> 
-> some system when acpi are enabled, acpi clears some BAR for some devices without
-> reason, and kernel will need to allocate devices for them.
+> This patch isn't good. platform_device_add_data will malloc a new
+> 'struct dock_station' and copy old to it, and later the two copy aren't
+> consistent. So NACK this one.
 
-"ACPI clears some BARs"?  I'm dubious.  The handoff state is the same
-whether we boot with "acpi=off" or not, so the BIOS can't be clearing
-them.  I really don't think the ACPI code in Linux clears BARs.  The
-Linux PCI code might be clearing BARs, but it sure would be nice to
-know exactly why.  Did you ever figure that out?
+If you can drop this patch without requiring a respin from me, go
+ahead.
 
-> try to increase alignment to get more safe range for unassigned devices.
-> 
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> 
-> ---
->  arch/x86/kernel/e820.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> Index: linux-2.6/arch/x86/kernel/e820.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/e820.c
-> +++ linux-2.6/arch/x86/kernel/e820.c
-> @@ -1378,8 +1378,8 @@ static unsigned long ram_alignment(resou
->  	if (mb < 16)
->  		return 1024*1024;
->  
-> -	/* To 32MB for anything above that */
-> -	return 32*1024*1024;
-> +	/* To 64MB for anything above that */
-> +	return 64*1024*1024;
+If you can't, go ahead and drop what you need, and I'll respin.
 
-How do we know 64MB is the correct alignment?
+I'm going to chew on this a bit and see if I can still salvage
+it.
 
-This feels like a hack that accidentally covers up the problem.  I
-don't think we understand what's happening well enough.
+> ACK other 5 patches.
 
-Bjorn
+Thanks, Shaohua.
+
+/ac
