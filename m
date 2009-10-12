@@ -1,122 +1,84 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 2/2] eeepc-laptop: Prevent a panic when disabling RT2860 wireless when associated
-Date: Tue, 13 Oct 2009 00:13:33 +0200
-Message-ID: <1255385613-25400-3-git-send-email-corentincj@iksaif.net>
-References: <1255385613-25400-1-git-send-email-corentincj@iksaif.net>
- <1255385613-25400-2-git-send-email-corentincj@iksaif.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:54317 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756646AbZJLWNM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Oct 2009 18:13:12 -0400
-In-Reply-To: <1255385613-25400-2-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / PCI: Fix NULL pointer dereference in
+	acpi_get_pci_dev() (rev. 2)
+Date: Tue, 13 Oct 2009 01:01:57 +0200
+Message-ID: <200910130101.57595.rjw@sisk.pl>
+References: <200910060130.43246.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200910060130.43246.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: chepioq@gmail.com, Alex Chiang <achiang@hp.com>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Danny Feng <dfeng@redhat.com>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Darren Salt <linux@youmustbejoking.demon.co.uk>
 
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This works around what I think is actually a bug in rt2860sta which is
-triggered when the hardware "disappears" from beneath the driver, i.e. when
-wireless is toggled off via ACPI. It does so by ensuring that the rfkill
-soft-block flag is set before the hardware is disabled.
+acpi_get_pci_dev() may be called for a non-PCI device, in which case
+it should return NULL.  However, it assumes that every handle it
+finds in the ACPI CA name space, between given device handle and the
+PCI root bridge handle, corresponds to a PCI-to-PCI bridge with an
+existing secondary bus.  For this reason, when it finds a struct
+pci_dev object corresponding to one of them, it doesn't check if
+its 'subordinate' field is a valid pointer.  This obviously leads to
+a NULL pointer dereference if acpi_get_pci_dev() is called for a
+non-PCI device with a PCI parent which is not a bridge.
 
-I do not know whether this patch is required if rt2800pci is in use instead
-of rt2860sta; at the time of submission of this patch, I've not been able to
-test this.
+To fix this issue make acpi_get_pci_dev() check if pdev->subordinate
+is not NULL for every device it finds on the path between the root
+bridge and the device it's supposed to get to and return NULL if the
+"target" device cannot be found.
 
-(Ref. http://bugzilla.kernel.org/show_bug.cgi?id=13390)
+Fixes http://bugzilla.kernel.org/show_bug.cgi?id=14129, which is a
+regression from 2.6.30.
 
-Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/platform/x86/eeepc-laptop.c |   27 +++++++++++++++++++--------
- 1 files changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 879b2e9..477d8c1 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -151,6 +151,8 @@ struct eeepc_hotk {
- /* The actual device the driver binds to */
- static struct eeepc_hotk *ehotk;
- 
-+static void eeepc_rfkill_hotplug(bool real);
-+
- /* Platform device/driver */
- static int eeepc_hotk_thaw(struct device *device);
- static int eeepc_hotk_restore(struct device *device);
-@@ -344,7 +346,16 @@ static bool eeepc_wlan_rfkill_blocked(void)
- static int eeepc_rfkill_set(void *data, bool blocked)
- {
- 	unsigned long asl = (unsigned long)data;
--	return set_acpi(asl, !blocked);
-+	int ret;
-+
-+	if (asl != CM_ASL_WLAN)
-+		return set_acpi(asl, !blocked);
-+
-+	/* hack to avoid panic with rt2860sta */
-+	if (blocked)
-+		eeepc_rfkill_hotplug(false);
-+	ret = set_acpi(asl, !blocked);
-+	return ret;
- }
- 
- static const struct rfkill_ops eeepc_rfkill_ops = {
-@@ -677,13 +688,13 @@ static int eeepc_get_adapter_status(struct hotplug_slot *hotplug_slot,
- 	return 0;
- }
- 
--static void eeepc_rfkill_hotplug(void)
-+static void eeepc_rfkill_hotplug(bool real)
- {
- 	struct pci_dev *dev;
- 	struct pci_bus *bus;
--	bool blocked = eeepc_wlan_rfkill_blocked();
-+	bool blocked = real ? eeepc_wlan_rfkill_blocked() : true;
- 
--	if (ehotk->wlan_rfkill)
-+	if (real && ehotk->wlan_rfkill)
- 		rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
- 
- 	mutex_lock(&ehotk->hotplug_lock);
-@@ -726,7 +737,7 @@ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
- 	if (event != ACPI_NOTIFY_BUS_CHECK)
- 		return;
- 
--	eeepc_rfkill_hotplug();
-+	eeepc_rfkill_hotplug(true);
- }
- 
- static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
-@@ -884,7 +895,7 @@ static int eeepc_hotk_restore(struct device *device)
- {
- 	/* Refresh both wlan rfkill state and pci hotplug */
- 	if (ehotk->wlan_rfkill)
--		eeepc_rfkill_hotplug();
-+		eeepc_rfkill_hotplug(true);
- 
- 	if (ehotk->bluetooth_rfkill)
- 		rfkill_set_sw_state(ehotk->bluetooth_rfkill,
-@@ -1027,7 +1038,7 @@ static void eeepc_rfkill_exit(void)
- 	 * Refresh pci hotplug in case the rfkill state was changed after
- 	 * eeepc_unregister_rfkill_notifier()
- 	 */
--	eeepc_rfkill_hotplug();
-+	eeepc_rfkill_hotplug(true);
- 	if (ehotk->hotplug_slot)
- 		pci_hp_deregister(ehotk->hotplug_slot);
- 
-@@ -1151,7 +1162,7 @@ static int eeepc_rfkill_init(struct device *dev)
- 	 * Refresh pci hotplug in case the rfkill state was changed during
- 	 * setup.
- 	 */
--	eeepc_rfkill_hotplug();
-+	eeepc_rfkill_hotplug(true);
- 
- exit:
- 	if (result && result != -ENODEV)
--- 
-1.6.5.rc2
+Jesse, Len,
 
+This is a replacement for the original $subject patch (now in the Len's tree
+as commit 5988eaded02e3cca2702f46efc255143468255bd).
+
+The code was correct, but the comment and the changelog were not.  Please
+use the one below instead.
+
+Thanks,
+Rafael
+
+---
+ drivers/acpi/pci_root.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+Index: linux-2.6/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/pci_root.c
++++ linux-2.6/drivers/acpi/pci_root.c
+@@ -389,6 +389,17 @@ struct pci_dev *acpi_get_pci_dev(acpi_ha
+ 
+ 		pbus = pdev->subordinate;
+ 		pci_dev_put(pdev);
++
++		/*
++		 * This function may be called for a non-PCI device that has a
++		 * PCI parent (eg. a disk under a PCI SATA controller).  In that
++		 * case pdev->subordinate will be NULL for the parent.
++		 */
++		if (!pbus) {
++			dev_dbg(&pdev->dev, "Not a PCI-to-PCI bridge\n");
++			pdev = NULL;
++			break;
++		}
+ 	}
+ out:
+ 	list_for_each_entry_safe(node, tmp, &device_list, node)
