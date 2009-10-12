@@ -1,35 +1,65 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: [PATCH] pci: increase alignment to make more space for hidden
-	code
-Date: Mon, 12 Oct 2009 21:22:42 +0200
-Message-ID: <20091012192242.GA2691@elte.hu>
-References: <200908072333.24631.storm@sys49152.net> <4ACAC8F1.1050706@kernel.org> <4AD24B5C.4050905@kernel.org> <200910121059.10366.bjorn.helgaas@hp.com> <4AD37CA4.90601@kernel.org>
+ code
+Date: Mon, 12 Oct 2009 12:44:52 -0700
+Message-ID: <4AD38734.2040600@kernel.org>
+References: <200908072333.24631.storm@sys49152.net> <4ACAC8F1.1050706@kernel.org> <4AD24B5C.4050905@kernel.org> <200910121059.10366.bjorn.helgaas@hp.com> <4AD37CA4.90601@kernel.org> <20091012192242.GA2691@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:46990 "EHLO mx2.mail.elte.hu"
+Received: from hera.kernel.org ([140.211.167.34]:53375 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756811AbZJLTYH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Oct 2009 15:24:07 -0400
-Content-Disposition: inline
-In-Reply-To: <4AD37CA4.90601@kernel.org>
+	id S1758019AbZJLTrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Oct 2009 15:47:16 -0400
+In-Reply-To: <20091012192242.GA2691@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
 Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org
 
-
-* Yinghai Lu <yinghai@kernel.org> wrote:
-
-> > This feels like a hack that accidentally covers up the problem.  I 
-> > don't think we understand what's happening well enough.
+Ingo Molnar wrote:
+> * Yinghai Lu <yinghai@kernel.org> wrote:
 > 
-> yes, we need to figure out why when acpi=on, those BAR are cleared, 
-> before pci code try to scan and read BAR. (node early pic print out 
-> untouched, but after APCI subsystem is enabled, those BAR got 
-> clearred)
+>>> This feels like a hack that accidentally covers up the problem.  I 
+>>> don't think we understand what's happening well enough.
+>> yes, we need to figure out why when acpi=on, those BAR are cleared, 
+>> before pci code try to scan and read BAR. (node early pic print out 
+>> untouched, but after APCI subsystem is enabled, those BAR got 
+>> clearred)
+> 
+> I'm wondering, how did it get cleared - some AML script told the kernel 
+> to clear it?
 
-I'm wondering, how did it get cleared - some AML script told the kernel 
-to clear it?
 
-	Ingo
+[    0.012392] ACPI: Core revision 20090521
+...
+[    0.117217] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+[    0.117223] ACPI: bus type pci registered
+[    0.117292] PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 - 255
+[    0.117297] PCI: Not using MMCONFIG.
+[    0.117301] PCI: Using configuration type 1 for base access
+[    0.118064] bio: create slab <bio-0> at 0
+[    0.118995] ACPI: EC: Look up EC in DSDT
+[    0.125066] ACPI: BIOS _OSI(Linux) query ignored
+[    0.127077] ACPI: EC: non-query interrupt received, switching to interrupt mode
+[    0.632002] ACPI: EC: missing confirmations, switch off interrupt mode.
+[    0.793109] ACPI: Interpreter enabled
+[    0.793114] ACPI: (supports S0 S3 S4 S5)
+[    0.793139] ACPI: Using IOAPIC for interrupt routing
+[    0.793193] PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 - 255
+[    0.795871] PCI: MCFG area at e0000000 reserved in ACPI motherboard resources
+[    0.806419] PCI: Using MMCONFIG at e0000000 - efffffff
+[    0.812767] ACPI: EC: GPE = 0x18, I/O: command/status = 0x66, data = 0x62
+[    0.812772] ACPI: EC: driver started in poll mode
+[    0.813206] ACPI: No dock devices found.
+[    0.813879] ACPI: PCI Root Bridge [PCI0] (0000:00)
+
+could be ACPI EC AML code related.
+
+because with pci=nommconf, the BARs still get cleared.
+
+need the reporter to boot with acpi.debug_layer=0x400000 acpi.debug_level=
+to get more info
+
+YH
