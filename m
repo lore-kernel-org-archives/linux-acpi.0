@@ -1,37 +1,62 @@
-From: Frederik Deweerdt <frederik.deweerdt-kjvbsxwSFqI@public.gmane.org>
-Subject: Re: 2.6.32-rc4: Reported regressions 2.6.30 -> 2.6.31
-Date: Mon, 12 Oct 2009 12:22:01 +0000
-Message-ID: <20091012122201.GA31282@gambetta>
-References: <56acieJJ2fF.A.nEB.Hzl0KB@chimera>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] pci: increase alignment to make more space for hidden code
+Date: Mon, 12 Oct 2009 10:59:09 -0600
+Message-ID: <200910121059.10366.bjorn.helgaas@hp.com>
+References: <200908072333.24631.storm@sys49152.net> <4ACAC8F1.1050706@kernel.org> <4AD24B5C.4050905@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:16078 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932873AbZJLRAA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2009 13:00:00 -0400
+In-Reply-To: <4AD24B5C.4050905@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56acieJJ2fF.A.nEB.Hzl0KB@chimera>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Ingo Molnar <mingo@elte.hu>, Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org
 
-Hi Rafael,
+On Sunday 11 October 2009 03:17:16 pm Yinghai Lu wrote:
+> for
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=13940
+> 
+> some system when acpi are enabled, acpi clears some BAR for some devices without
+> reason, and kernel will need to allocate devices for them.
 
-On Mon, Oct 12, 2009 at 12:41:30AM +0200, Rafael J. Wysocki wrote:
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14185
-> Subject		: Oops in driversbasefirmware_class
-> Submitter	:  <lars_ericsson-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-> Date		: 2009-09-17 05:09 (25 days old)
-> First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=6e03a201bbe8137487f340d26aa662110e324b20
-> 
-> 
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14253
-> Subject		: Oops in driversbasefirmware_class
-> Submitter	: Lars Ericsson <Lars_Ericsson-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-> Date		: 2009-09-16 20:44 (26 days old)
-> References	: http://lkml.org/lkml/2009/9/16/461
-> Handled-By	: Frederik Deweerdt <frederik.deweerdt-kjvbsxwSFqI@public.gmane.org>
-> Patch		: http://patchwork.kernel.org/patch/49914/
-> 
-Those two are refering to the same bug.
+"ACPI clears some BARs"?  I'm dubious.  The handoff state is the same
+whether we boot with "acpi=off" or not, so the BIOS can't be clearing
+them.  I really don't think the ACPI code in Linux clears BARs.  The
+Linux PCI code might be clearing BARs, but it sure would be nice to
+know exactly why.  Did you ever figure that out?
 
-Regards,
-Frederik
+> try to increase alignment to get more safe range for unassigned devices.
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> ---
+>  arch/x86/kernel/e820.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6/arch/x86/kernel/e820.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/kernel/e820.c
+> +++ linux-2.6/arch/x86/kernel/e820.c
+> @@ -1378,8 +1378,8 @@ static unsigned long ram_alignment(resou
+>  	if (mb < 16)
+>  		return 1024*1024;
+>  
+> -	/* To 32MB for anything above that */
+> -	return 32*1024*1024;
+> +	/* To 64MB for anything above that */
+> +	return 64*1024*1024;
+
+How do we know 64MB is the correct alignment?
+
+This feels like a hack that accidentally covers up the problem.  I
+don't think we understand what's happening well enough.
+
+Bjorn
