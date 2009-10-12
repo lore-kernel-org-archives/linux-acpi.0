@@ -1,48 +1,40 @@
-From: Scott Dylewski <scott@dylewski.com>
-Subject: Re: lenovo ideapad s12 dsdt errors...
-Date: Mon, 12 Oct 2009 10:20:39 -0700
-Message-ID: <1255368039.12236.334.camel@localhost>
-References: <1255116847.12236.272.camel@localhost>
-	 <4ACFE685.1020209@gmail.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [v8 PATCH 2/8]: cpuidle: implement a list based approach to register a set of idle routines.
+Date: Mon, 12 Oct 2009 20:00:05 +0200
+Message-ID: <8763akh4re.fsf@basil.nowhere.org>
+References: <20091008094828.GA20595@linux.vnet.ibm.com>
+	<20091008095027.GC20595@linux.vnet.ibm.com>
+	<1254998162.26976.270.camel@twins>
+	<20091008104249.GJ20595@linux.vnet.ibm.com>
+	<1254999033.26976.272.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hapkido.dreamhost.com ([66.33.216.122]:58455 "EHLO
-	hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757120AbZJLRWc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2009 13:22:32 -0400
-Received: from blingymail-a2.g.dreamhost.com (caibbdcaaaaf.dreamhost.com [208.113.200.5])
-	by hapkido.dreamhost.com (Postfix) with ESMTP id F192F184C35
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2009 10:21:54 -0700 (PDT)
-In-Reply-To: <4ACFE685.1020209@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1254999033.26976.272.camel@twins> (Peter Zijlstra's message of "Thu, 08 Oct 2009 12:50:33 +0200")
+Sender: linux-arch-owner@vger.kernel.org
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: arun@linux.vnet.ibm.com, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar Sarma <dipankar@in.ibm.com>, Balbir Singh <balbir@in.ibm.com>, Arjan van de Ven <arjan@infradead.org>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-I don't see any obvious errors in dmesg, but using "acpi=off" on boot
-seems to work much faster (no delays)...  I'll have to diagnose these
-problems tonight when I get home, but do you have any suggestions for
-how to debug the long boot pause and/or the fact that the boot process
-continues as soon as I touch the touchpad or keyboard?
+Peter Zijlstra <a.p.zijlstra@chello.nl> writes:
+>
+> So does it make sense to have a set of sets?
+>
+> Why not integrate them all into one set to be ruled by this governor
+> thing?
 
- On Fri, 2009-10-09 at 19:42 -0600, Robert Hancock wrote:
-> On 10/09/2009 01:34 PM, Scott Dylewski wrote:
-> > I just bought a Lenovo S12 netbook (atom processor) and installed Ubuntu
-> > Karmic netbook remix on it, and I'm having some issues.  I'm getting
-> > some long boot times, and wonder if it's related to the ACPI stuff.
-> >
-> > So I found some stuff online that suggests that my dsdt may have some
-> > errors, and when I checked, it used a MSFT compiler and had a bunch of
-> > warnings and errors, but I don't know how to fix them.  Can someone
-> > direct me a bit and either help me fix the errors if needed, or let me
-> > know what to do?
-> 
-> That's probably outdated advice - the kernel normally tries to deal with 
-> such issues itself (or handle them the same way as Windows does, which 
-> presumably works) and so replacing the DSDT isn't likely to help much. 
-> Anyway, it's far from clear that your problem is at all related.
-> 
-> Are there any errors showing up in dmesg?
+cpuidle is currently optional, that is why the two level hierarchy
+is there so that you can still have simple idle selection without it.
 
+% size drivers/cpuidle/*.o
+   text    data     bss     dec     hex filename
+   5514    1416      44    6974    1b3e drivers/cpuidle/built-in.o
+
+Adding it unconditionally would add ~7k to everyone who wants idle functions.
+
+I think making it unconditional would require putting it on a serious
+diet first.
+
+-Andi
+-- 
+ak@linux.intel.com -- Speaking for myself only.
