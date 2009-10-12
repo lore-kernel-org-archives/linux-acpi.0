@@ -1,41 +1,64 @@
-From: Andrew Patterson <andrew.patterson@hp.com>
-Subject: Re: 2.6.32-rc4: Reported regressions 2.6.30 -> 2.6.31
-Date: Mon, 12 Oct 2009 13:58:48 -0600
-Message-ID: <1255377529.9544.63.camel@bluto.andrew>
-References: <56acieJJ2fF.A.nEB.Hzl0KB@chimera>
+From: Darren Salt <linux-Ym6Ivm/Ks7B65+NM0QMiFAbYiX8G1TQY9dF7HbQ/qKg@public.gmane.org>
+Subject: Re: [PATCH 2.6.32-rc3] Prevent a panic when
+	disabling RT2860 wireless when associated
+Date: Mon, 12 Oct 2009 21:53:05 +0100
+Message-ID: <50AEAEB394%linux@youmustbejoking.demon.co.uk>
+References: <mpro.kr41l600vf1lc0bg3.linux@youmustbejoking.demon.co.uk>
+	<71cd59b00910061418o6a9e3e65n6365972ee0980780@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:3182 "EHLO
-	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400AbZJLT70 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2009 15:59:26 -0400
-In-Reply-To: <56acieJJ2fF.A.nEB.Hzl0KB@chimera>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <71cd59b00910061418o6a9e3e65n6365972ee0980780-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 
-On Mon, 2009-10-12 at 00:41 +0200, Rafael J. Wysocki wrote:
-> 
-> 
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14309
-> Subject		: MCA on hp rx8640
-> Submitter	: Andrew Patterson <andrew.patterson@hp.com>
-> Date		: 2009-09-29 17:20 (13 days old)
-> First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=db8be50c4307dac2b37305fc59c8dc0f978d09ea
-> References	: http://www.spinics.net/lists/linux-usb/msg22799.html
-> 
+I demand that Corentin Chary may or may not have written...
 
-Linus fixed this one with d93a8f829fe1d2f3002f2c6ddb553d12db420412.  It
-also looks like a duplicate of
-http://bugzilla.kernel.org/show_bug.cgi?id=14374
+> On Tue, Oct 6, 2009 at 10:43 PM, Darren Salt
+> <linux-Ym6Ivm/Ks7B65+NM0QMiFAbYiX8G1TQY9dF7HbQ/qKg@public.gmane.org> wrote:
+>> This works around what I think is actually a bug in rt2860sta which is
+>> triggered when the hardware "disappears" from beneath the driver, i.e.
+>> when wireless is toggled off via ACPI. It does so by ensuring that the
+>> rfkill soft-block flag is set before the hardware is disabled.
 
-Thanks,
+>> I do not know whether this patch is required if rt2800pci is in use
+>> instead of rt2860sta; at the time of submission of this patch, I've not
+>> been able to test this.
 
-Andrew
+>> (Ref. http://bugzilla.kernel.org/show_bug.cgi?id=13390)
+[snip]
+> Did you test this patch with other hardware?
+
+All that I've been able to test with is an Intel 3945, temporarily placed in
+my 901. That seems fine anyway, and the patch doesn't affect it in any way.
+
+> Can't we fix that directly in rt2860sta ?
+
+Probably. One of us should bisect to see exactly where this happened;
+however, for me, this workaround will do until that's done or rt2800pci is
+working well enough (whichever happens first). And I think that I'd prefer
+the latter.
+
 -- 
-Andrew Patterson
-Hewlett-Packard
+| Darren Salt            | linux at youmustbejoking | nr. Ashington, | Doon
+| using Debian GNU/Linux | or ds    ,demon,co,uk    | Northumberland | Army
+|   Kill all extremists!
 
+He looked at me as if I was a side dish he hadn't ordered.
+
+------------------------------------------------------------------------------
+Come build with us! The BlackBerry(R) Developer Conference in SF, CA
+is the only developer event you need to attend this year. Jumpstart your
+developing skills, take BlackBerry mobile applications to market and stay 
+ahead of the curve. Join us from November 9 - 12, 2009. Register now!
+http://p.sf.net/sfu/devconference
