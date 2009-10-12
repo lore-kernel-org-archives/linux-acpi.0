@@ -1,65 +1,41 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] pci: increase alignment to make more space for hidden
- code
-Date: Mon, 12 Oct 2009 12:44:52 -0700
-Message-ID: <4AD38734.2040600@kernel.org>
-References: <200908072333.24631.storm@sys49152.net> <4ACAC8F1.1050706@kernel.org> <4AD24B5C.4050905@kernel.org> <200910121059.10366.bjorn.helgaas@hp.com> <4AD37CA4.90601@kernel.org> <20091012192242.GA2691@elte.hu>
+From: Andrew Patterson <andrew.patterson@hp.com>
+Subject: Re: 2.6.32-rc4: Reported regressions 2.6.30 -> 2.6.31
+Date: Mon, 12 Oct 2009 13:58:48 -0600
+Message-ID: <1255377529.9544.63.camel@bluto.andrew>
+References: <56acieJJ2fF.A.nEB.Hzl0KB@chimera>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53375 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758019AbZJLTrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Oct 2009 15:47:16 -0400
-In-Reply-To: <20091012192242.GA2691@elte.hu>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:3182 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400AbZJLT70 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2009 15:59:26 -0400
+In-Reply-To: <56acieJJ2fF.A.nEB.Hzl0KB@chimera>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 
-Ingo Molnar wrote:
-> * Yinghai Lu <yinghai@kernel.org> wrote:
+On Mon, 2009-10-12 at 00:41 +0200, Rafael J. Wysocki wrote:
 > 
->>> This feels like a hack that accidentally covers up the problem.  I 
->>> don't think we understand what's happening well enough.
->> yes, we need to figure out why when acpi=on, those BAR are cleared, 
->> before pci code try to scan and read BAR. (node early pic print out 
->> untouched, but after APCI subsystem is enabled, those BAR got 
->> clearred)
 > 
-> I'm wondering, how did it get cleared - some AML script told the kernel 
-> to clear it?
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14309
+> Subject		: MCA on hp rx8640
+> Submitter	: Andrew Patterson <andrew.patterson@hp.com>
+> Date		: 2009-09-29 17:20 (13 days old)
+> First-Bad-Commit: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=db8be50c4307dac2b37305fc59c8dc0f978d09ea
+> References	: http://www.spinics.net/lists/linux-usb/msg22799.html
+> 
 
+Linus fixed this one with d93a8f829fe1d2f3002f2c6ddb553d12db420412.  It
+also looks like a duplicate of
+http://bugzilla.kernel.org/show_bug.cgi?id=14374
 
-[    0.012392] ACPI: Core revision 20090521
-...
-[    0.117217] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
-[    0.117223] ACPI: bus type pci registered
-[    0.117292] PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 - 255
-[    0.117297] PCI: Not using MMCONFIG.
-[    0.117301] PCI: Using configuration type 1 for base access
-[    0.118064] bio: create slab <bio-0> at 0
-[    0.118995] ACPI: EC: Look up EC in DSDT
-[    0.125066] ACPI: BIOS _OSI(Linux) query ignored
-[    0.127077] ACPI: EC: non-query interrupt received, switching to interrupt mode
-[    0.632002] ACPI: EC: missing confirmations, switch off interrupt mode.
-[    0.793109] ACPI: Interpreter enabled
-[    0.793114] ACPI: (supports S0 S3 S4 S5)
-[    0.793139] ACPI: Using IOAPIC for interrupt routing
-[    0.793193] PCI: MCFG configuration 0: base e0000000 segment 0 buses 0 - 255
-[    0.795871] PCI: MCFG area at e0000000 reserved in ACPI motherboard resources
-[    0.806419] PCI: Using MMCONFIG at e0000000 - efffffff
-[    0.812767] ACPI: EC: GPE = 0x18, I/O: command/status = 0x66, data = 0x62
-[    0.812772] ACPI: EC: driver started in poll mode
-[    0.813206] ACPI: No dock devices found.
-[    0.813879] ACPI: PCI Root Bridge [PCI0] (0000:00)
+Thanks,
 
-could be ACPI EC AML code related.
+Andrew
+-- 
+Andrew Patterson
+Hewlett-Packard
 
-because with pci=nommconf, the BARs still get cleared.
-
-need the reporter to boot with acpi.debug_layer=0x400000 acpi.debug_level=
-to get more info
-
-YH
