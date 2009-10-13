@@ -1,33 +1,47 @@
-From: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>
-Subject: Re: [PATCH] pci: increase alignment to make more space for hidden code
-Date: Tue, 13 Oct 2009 20:05:27 +0100
-Message-ID: <200910132005.27487.storm@sys49152.net>
-References: <200908072333.24631.storm@sys49152.net> <4AD38734.2040600@kernel.org> <1255414115.14484.47.camel@dc7800.home>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v2 1/9] vsprintf: fix io/mem resource width
+Date: Tue, 13 Oct 2009 13:22:00 -0600
+Message-ID: <20091013192200.22336.70382.stgit@bob.kio>
+References: <20091013192040.22336.84876.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760649AbZJMTJX@vger.kernel.org>
-In-Reply-To: <1255414115.14484.47.camel@dc7800.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@elte.hu>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org, andreaorru91@gmail.com, jjorge@free.fr
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:43537 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754454AbZJMTWh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2009 15:22:37 -0400
+In-Reply-To: <20091013192040.22336.84876.stgit@bob.kio>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yhlu.kernel@gmail.com>, Joe Perches <joe@perches.com>, Len Brown <lenb@kernel.org>
 
-On Tuesday 13 October 2009, Bjorn Helgaas wrote: 
-> If anybody can try this, I'd really appreciate it.  Here's what I would
-> like to see:
-> 
->   - start with a current git tree (I used 2caa731819a633be)
->   - apply the patch below
->   - turn on CONFIG_PCI_DEBUG
->   - boot with "pci=earlydump", collect dmesg
->   - boot with "pci=earlydump,use_crs", collect dmesg
->   - boot Windows, collect Device Manager resources for 00:1c.4 and
-> 07:00.0 
+The leading "0x" consumes field width, so leave space for it in addition to
+the 4 or 8 hex digits.  This means we'll print "0x0000-0x01df" rather than
+"0x00-0x1df", for example.
 
-I just did what you requested and added the attachments to the original 
-bugreport. I couldn't boot Windows because i don't have it installed anywhere 
-in the laptop.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ lib/vsprintf.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Booting both latest and 2.6.31 with pci=use_crs, fixes the problem.
+diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+index 33bed5e..7830576 100644
+--- a/lib/vsprintf.c
++++ b/lib/vsprintf.c
+@@ -598,11 +598,11 @@ static char *resource_string(char *buf, char *end, struct resource *res,
+ 				struct printf_spec spec)
+ {
+ #ifndef IO_RSRC_PRINTK_SIZE
+-#define IO_RSRC_PRINTK_SIZE	4
++#define IO_RSRC_PRINTK_SIZE	6
+ #endif
+ 
+ #ifndef MEM_RSRC_PRINTK_SIZE
+-#define MEM_RSRC_PRINTK_SIZE	8
++#define MEM_RSRC_PRINTK_SIZE	10
+ #endif
+ 	struct printf_spec num_spec = {
+ 		.base = 16,
+
