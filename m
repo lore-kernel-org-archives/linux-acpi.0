@@ -1,34 +1,88 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Less strict requirements for video device detection (v3)
-Date: Tue, 13 Oct 2009 02:52:20 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0910130251590.11679@localhost.localdomain>
-References: <4A8D140F.1090909@canonical.com>
- <1250817458.17853.141.camel@rzhang-dt>  <4A8E7022.8000707@canonical.com>
- <1251076781.3483.13.camel@rzhang-dt>  <4A92A73C.7010003@canonical.com>
- <1251162484.3483.51.camel@rzhang-dt>  <4AC3BE3B.7020304@canonical.com>
- <1255051829.2656.2.camel@rzhang-dt>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] pci: increase alignment to make more space for hidden
+	code
+Date: Tue, 13 Oct 2009 08:49:01 +0200
+Message-ID: <20091013064901.GD9470@elte.hu>
+References: <200908072333.24631.storm@sys49152.net> <4ACAC8F1.1050706@kernel.org> <4AD24B5C.4050905@kernel.org> <200910121059.10366.bjorn.helgaas@hp.com> <4AD37CA4.90601@kernel.org> <20091012192242.GA2691@elte.hu> <4AD38734.2040600@kernel.org> <1255414115.14484.47.camel@dc7800.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:38401 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758973AbZJMGxN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2009 02:53:13 -0400
-Received: from localhost.localdomain ([74.104.150.83])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KRF00K3UXRAQ4B1@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 13 Oct 2009 01:52:23 -0500 (CDT)
-In-reply-to: <1255051829.2656.2.camel@rzhang-dt>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:53163 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755046AbZJMGt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Oct 2009 02:49:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1255414115.14484.47.camel@dc7800.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Stefan Bader <stefan.bader@canonical.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jesse Barnes <jesse.barnes@intel.com>, Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Yannick Roehlly <yannick.roehlly@free.fr>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, x86@kernel.org, andreaorru91@gmail.com, jjorge@free.fr
 
-> [PATCH] acpi: video: Loosen strictness of video bus detection code
 
-applied
+* Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+> We've established that the bridge and the NIC are handed off from BIOS 
+> like this:
+> 
+>   pci 0000:00:1c.4: bridge io port: [0x3000-0x3fff]
+>   pci 0000:00:1c.4: bridge 32bit mmio: [0xf4500000-0xf45fffff]
+>   pci 0000:07:00.0: reg 10 64bit mmio: [0xf4500000-0xf4503fff]
+>   pci 0000:07:00.0: reg 18 io port: [0x3000-0x30ff]
+> 
+> Unless we boot with "acpi=off", this configuration is lost, and by the 
+> time we discover them, they look like this:
+> 
+>   pci 0000:00:1c.4: bridge io port: [0x00-0xfff]
+>   pci 0000:00:1c.4: bridge 32bit mmio: [0x000000-0x0fffff]
+>   pci 0000:00:1c.4: bridge 64bit mmio pref: [0x000000-0x0fffff]
+>   pci 0000:07:00.0: reg 10 64bit mmio: [0x000000-0x003fff]
+>   pci 0000:07:00.0: reg 18 io port: [0x00-0xff]
+> 
+> Mystery #1 is why this configuration gets lost, and whether this is 
+> telling us about a Linux defect.  We might get a clue about this if we 
+> could see what resources the NIC uses under Windows.  If it uses the 
+> handoff range (0xf4500000-0xf4503fff), it's likely that Windows 
+> managed to keep the BIOS-programmed resources, and Linux is doing 
+> something wrong.  If it uses some other range, then Windows likely had 
+> to reconfigure the device just like Linux does.
 
+I can see two possibilities here, on the Linux side:
+
+- AML: if there's an ACPI table with an AML script in it, with some BIOS 
+  provided vendor quirk that reprograms those BARs, that would explain 
+  why acpi=off makes the side-effect go away. ACPI does not touch BARs 
+  except if told by the firmware.
+
+- The other possibility would be for there to be some ACPI table driven
+  Linux PCI/driver/chipset quirk somewhere. With acpi=off that quirk 
+  does not get executed.
+
+> Mystery #2 is why, even with the lost configuration, 2.6.30 configures 
+> the NIC so it works, but 2.6.31 does not.  In 2.6.30, we put the NIC 
+> in the [0xb8000000-0xb80fffff] range, and in 2.6.31, we put it in 
+> [0xb6000000-0xb60fffff].  I'd really like to know what the host bridge 
+> _CRS says.  It's possible that we're only supposed to use the range 
+> above 0xb8000000.  If that's the case, the fact that we're ignoring 
+> the _CRS would be another Linux defect.
+
+Another theory would be just pure luck: the device might have a BAR 
+address constraint (which the BIOS knows about but doesnt tell us), and 
+2.6.30 gets it right accidentally while 2.6.31 violates the constraint.
+
+> In the patch below, I added some extra PCI dumps of the bridge and the 
+> NIC around the ACPI EC init.  The patch also removes Yinghai's 
+> workaround so we should see the original failure, just with a little 
+> more debug.
+
+Btw., i'd _strongly_ suggest to finally add some sort of pci=verbose 
+easy-to-use debug toggle for users to enable.
+
+Everything that matters to resource allocation. We should print the BIOS 
+state (Yinghai did a patch for this some time ago and that is upstream 
+already), we should print quirk execution, we should print ACPI AML 
+execution - everything that might matter to PCI allocations.
+
+An easy-to-use 'give me all the debug info' feature is really important. 
+We have apic=verbose for similar reasons.
+
+	Ingo
