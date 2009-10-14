@@ -1,85 +1,62 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v2 0/9] PCI, PNP: print resources consistently
-Date: Wed, 14 Oct 2009 09:52:01 -0600
-Message-ID: <200910140952.02879.bjorn.helgaas@hp.com>
-References: <20091013192040.22336.84876.stgit@bob.kio> <86802c440910132347x1913d2a1taf35f385af50e17c@mail.gmail.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH] ACPI / PCI: Fix NULL pointer dereference
+	in	acpi_get_pci_dev() (rev. 2)
+Date: Wed, 14 Oct 2009 16:41:06 -0600
+Message-ID: <20091014224106.GF22797@ldl.fc.hp.com>
+References: <200910060130.43246.rjw@sisk.pl> <200910130101.57595.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <86802c440910132347x1913d2a1taf35f385af50e17c@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Joe Perches <joe@perches.com>, Len Brown <lenb@kernel.org>
+In-Reply-To: <200910130101.57595.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: chepioq@gmail.com, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Danny Feng <dfeng@redhat.com>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 14 October 2009 12:47:33 am Yinghai Lu wrote:
-> On Tue, Oct 13, 2009 at 12:21 PM, Bjorn Helgaas <bjorn.helgaas@hp.com=
-> wrote:
-> > These enhance %pR so we can print resource types and flags more eas=
-ily.
-> > This doesn't really add anything (other than a couple new messages
-> > about host bridge apertures), but hopefully it will make things mor=
-e
-> > consistent and a bit easier to debug. =A0Sample change (with "pci=3D=
-use_crs"):
-> >
-> > =A0 =A0-pci 0000:00:03.0: reg 10 32bit mmio: [0xf6000000-0xf6ffffff=
-]
-> > =A0 =A0-pci 0000:00:03.0: reg 14 io port: [0x2400-0x24ff]
-> > =A0 =A0-pci 0000:00:03.0: reg 18 32bit mmio: [0xf5ff0000-0xf5ff0fff=
-]
-> > =A0 =A0-pci 0000:00:03.0: reg 30 32bit mmio pref: [0x000000-0x01fff=
-f]
-> > =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x0000-0x0cf=
-f]
-> > =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x0000-0x2cf=
-e]
-> > =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x03b0-0x03b=
-b]
-> > =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x03c0-0x03d=
-f]
-> > =A0 =A0+pci_root PNP0A03:00: host bridge window [mem 0xf5d00000-0xf=
-6ffffff]
-> > =A0 =A0+pci_root PNP0A03:00: host bridge window [mem 0x000a0000-0x0=
-00bffff]
-> > =A0 =A0+pci 0000:00:03.0: reg 10: [mem 0xf6000000-0xf6ffffff]
-> > =A0 =A0+pci 0000:00:03.0: reg 14: [io =A00x2400-0x24ff]
-> > =A0 =A0+pci 0000:00:03.0: reg 18: [mem 0xf5ff0000-0xf5ff0fff]
-> > =A0 =A0+pci 0000:00:03.0: reg 30: [mem 0x00000000-0x0001ffff pref]
->=20
-> can you keep "io port" and "mmio" ?
-> so we can use
-> grep "io port" dmesg.txt or grep "mmio" dmesg.txt
+* Rafael J. Wysocki <rjw@sisk.pl>:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> acpi_get_pci_dev() may be called for a non-PCI device, in which case
+> it should return NULL.  However, it assumes that every handle it
+> finds in the ACPI CA name space, between given device handle and the
+> PCI root bridge handle, corresponds to a PCI-to-PCI bridge with an
+> existing secondary bus.  For this reason, when it finds a struct
+> pci_dev object corresponding to one of them, it doesn't check if
+> its 'subordinate' field is a valid pointer.  This obviously leads to
+> a NULL pointer dereference if acpi_get_pci_dev() is called for a
+> non-PCI device with a PCI parent which is not a bridge.
+> 
+> To fix this issue make acpi_get_pci_dev() check if pdev->subordinate
+> is not NULL for every device it finds on the path between the root
+> bridge and the device it's supposed to get to and return NULL if the
+> "target" device cannot be found.
+> 
+> Fixes http://bugzilla.kernel.org/show_bug.cgi?id=14129, which is a
+> regression from 2.6.30.
+ 
+Acked-by: Alex Chiang <achiang@hp.com>
 
-I don't think that's necessary.  If you want to see only
-resource stuff, these greps will work perfectly:
-
-  # dmesg | grep "\[io "
-  # dmesg | grep "\[mem "
-
-(This is much better than what's in the current tree, where
-resources are labelled with a hodge-podge of mem, mmio, MEM,
-io, I/O, io port, IO, or even nothing at all, so you really
-can't do the grep at all.)
-
-> also put "io" and "mmio" "pref' in the [  ], looks strange.
-> [0xf5ff0000-0xf5ff0fff] is correct range expression.
-
-I could be convinced otherwise, but right now, I don't see a
-correctness issue here -- it's just a matter of what the most
-convenient format for human readers is.  And I personally like
-the fact that everything inside the brackets is an attribute of
-the struct resource.
-
-If these are the alternatives:
-
-  bridge window [io  0x0000-0x0cff]
-  bridge window io  [0x0000-0x0cff]
-
-one nice thing about the first is that the brackets give a clue
-that you should grep for "bridge window", not "bridge window io",
-to find the source of the message.
-
-Bjorn
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+> 
+> Jesse, Len,
+> 
+> This is a replacement for the original $subject patch (now in the Len's tree
+> as commit 5988eaded02e3cca2702f46efc255143468255bd).
+> 
+> The code was correct, but the comment and the changelog were not.  Please
+> use the one below instead.
+> 
+> Thanks,
+> Rafael
+> 
