@@ -1,91 +1,58 @@
-From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
-Subject: Re: [v8 PATCH 1/8]: cpuidle: cleanup drivers/cpuidle/cpuidle.c
-Date: Wed, 14 Oct 2009 11:54:12 +0530
-Message-ID: <20091014062412.GB8605@linux.vnet.ibm.com>
-References: <20091008094828.GA20595@linux.vnet.ibm.com>
-	<20091008094942.GB20595@linux.vnet.ibm.com>
-	<20091012113602.GC3007@balbir.in.ibm.com>
-Reply-To: arun@linux.vnet.ibm.com
+From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: Re: [PATCH v2 0/9] PCI, PNP: print resources consistently
+Date: Tue, 13 Oct 2009 23:47:33 -0700
+Message-ID: <86802c440910132347x1913d2a1taf35f385af50e17c@mail.gmail.com>
+References: <20091013192040.22336.84876.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
-Content-Disposition: inline
-In-Reply-To: <20091012113602.GC3007@balbir.in.ibm.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-To: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: linux-arch@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arun Bharadwaj <arun@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>, linuxppc-dev@lists.ozlabs.org, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:46508 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753211AbZJNGyi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2009 02:54:38 -0400
+In-Reply-To: <20091013192040.22336.84876.stgit@bob.kio>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Joe Perches <joe@perches.com>, Len Brown <lenb@kernel.org>
 
-* Balbir Singh <balbir@linux.vnet.ibm.com> [2009-10-12 17:06:02]:
+On Tue, Oct 13, 2009 at 12:21 PM, Bjorn Helgaas <bjorn.helgaas@hp.com> =
+wrote:
+> These enhance %pR so we can print resource types and flags more easil=
+y.
+> This doesn't really add anything (other than a couple new messages
+> about host bridge apertures), but hopefully it will make things more
+> consistent and a bit easier to debug. =A0Sample change (with "pci=3Du=
+se_crs"):
+>
+> =A0 =A0-pci 0000:00:03.0: reg 10 32bit mmio: [0xf6000000-0xf6ffffff]
+> =A0 =A0-pci 0000:00:03.0: reg 14 io port: [0x2400-0x24ff]
+> =A0 =A0-pci 0000:00:03.0: reg 18 32bit mmio: [0xf5ff0000-0xf5ff0fff]
+> =A0 =A0-pci 0000:00:03.0: reg 30 32bit mmio pref: [0x000000-0x01ffff]
+> =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x0000-0x0cff]
+> =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x0000-0x2cfe]
+> =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x03b0-0x03bb]
+> =A0 =A0+pci_root PNP0A03:00: host bridge window [io =A00x03c0-0x03df]
+> =A0 =A0+pci_root PNP0A03:00: host bridge window [mem 0xf5d00000-0xf6f=
+fffff]
+> =A0 =A0+pci_root PNP0A03:00: host bridge window [mem 0x000a0000-0x000=
+bffff]
+> =A0 =A0+pci 0000:00:03.0: reg 10: [mem 0xf6000000-0xf6ffffff]
+> =A0 =A0+pci 0000:00:03.0: reg 14: [io =A00x2400-0x24ff]
+> =A0 =A0+pci 0000:00:03.0: reg 18: [mem 0xf5ff0000-0xf5ff0fff]
+> =A0 =A0+pci 0000:00:03.0: reg 30: [mem 0x00000000-0x0001ffff pref]
 
-> * Arun R B <arun@linux.vnet.ibm.com> [2009-10-08 15:19:42]:
-> 
-> > * Arun R Bharadwaj <arun@linux.vnet.ibm.com> [2009-10-08 15:18:28]:
-> > 
-> > This patch cleans up drivers/cpuidle/cpuidle.c
-> > Earlier cpuidle assumed pm_idle as the default idle loop. Break that
-> > assumption and make it more generic. cpuidle_idle_call() which is the
-> > main idle loop of cpuidle is to be called by architectures which have
-> > registered to cpuidle.
-> > 
-> > Remove routines cpuidle_install/uninstall_idle_handler() which are not
-> > needed anymore.
-> > 
-> >
-> 
-> [snip]
-> 
->   /**
-> > - * cpuidle_install_idle_handler - installs the cpuidle idle loop handler
-> > - */
-> > -void cpuidle_install_idle_handler(void)
-> > -{
-> > -	if (enabled_devices && (pm_idle != cpuidle_idle_call)) {
-> > -		/* Make sure all changes finished before we switch to new idle */
-> > -		smp_wmb();
-> > -		pm_idle = cpuidle_idle_call;
-> > -	}
-> > -}
-> > -
-> > -/**
-> > - * cpuidle_uninstall_idle_handler - uninstalls the cpuidle idle loop handler
-> > - */
-> > -void cpuidle_uninstall_idle_handler(void)
-> > -{
-> > -	if (enabled_devices && pm_idle_old && (pm_idle != pm_idle_old)) {
-> > -		pm_idle = pm_idle_old;
-> > -		cpuidle_kick_cpus();
-> > -	}
-> > -}
-> > -
-> 
-> I see the routines above being called in from
-> cpuidle_pause/resume_and_lock/unlock below and they are entries from
-> ACPI on ACPI_PROCESSOR_NOTIFY_POWER and from the hotplug path, could
-> you test them to make sure they are not broken. We also seem to be
-> missing a cpuidle_kick_cpus() in cpuidle_pause_and_lock()
-> 
-> [snip]
-> 
+can you keep "io port" and "mmio" ?
+so we can use
+grep "io port" dmesg.txt or grep "mmio" dmesg.txt
 
-Hi Balbir,
+also put "io" and "mmio" "pref' in the [  ], looks strange.
+[0xf5ff0000-0xf5ff0fff] is correct range expression.
 
-yes, we definitely need a cpuidle_kick_cpus() in
-cpuidle_pause_and_lock() since this is used while disabling the
-cpuidle_device and the cpus need to be kicked out of the idle states.
-I will test this modified code and see if it breaks hotplug.
-
-thanks,
-arun
-
-> -- 
-> 	Balbir
+YH
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
