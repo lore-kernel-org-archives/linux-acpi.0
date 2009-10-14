@@ -1,45 +1,60 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: ACPICA Release 20091013 linuxized patches
-Date: Wed, 14 Oct 2009 08:59:03 +0800
-Message-ID: <1255481943.20102.3.camel@minggr.sh.intel.com>
+Subject: Re: ACPICA Release 20091013 linuxized patches
+Date: Wed, 14 Oct 2009 09:06:11 +0800
+Message-ID: <1255482371.20102.6.camel@minggr.sh.intel.com>
+References: <1255481943.20102.3.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-fqHEv3VPZa+FNTPGXcZd"
+Content-Type: multipart/mixed; boundary="=-VBhNw6KBrCTa/1QrthWk"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:42097 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:46062 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753552AbZJNBOb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Oct 2009 21:14:31 -0400
+	id S1753404AbZJNBVi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Oct 2009 21:21:38 -0400
+In-Reply-To: <1255481943.20102.3.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
 
---=-fqHEv3VPZa+FNTPGXcZd
+--=-VBhNw6KBrCTa/1QrthWk
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hi, Len
+Missed the release number patch.
+Please use this one instead.
 
-ACPICA Release 20091013 linuxized patches attached.
-Applied cleanly to linux-acpi-2.6/test branch.
+[PATCH 1/5] ACPICA: Add repair for bad _BIF/_BIX packages
+[PATCH 2/5] ACPICA: Add repair for bad _MAT buffers
+[PATCH 3/5] ACPICA: Remove possibility of executing _REG methods twice
+[PATCH 4/5] ACPICA: Fix possible memory leak for Scope ASL operator
+[PATCH 5/5] ACPICA: Update version to 20091013
 
-[PATCH 1/4] ACPICA: Add repair for bad _BIF/_BIX packages
-[PATCH 2/4] ACPICA: Add repair for bad _MAT buffers
-[PATCH 3/4] ACPICA: Remove possibility of executing _REG methods twice
-[PATCH 4/4] ACPICA: Fix possible memory leak for Scope ASL operator
-
+Thanks,
 Lin Ming
 
---=-fqHEv3VPZa+FNTPGXcZd
+On Wed, 2009-10-14 at 08:59 +0800, Lin Ming wrote:
+> Hi, Len
+> 
+> ACPICA Release 20091013 linuxized patches attached.
+> Applied cleanly to linux-acpi-2.6/test branch.
+> 
+> [PATCH 1/4] ACPICA: Add repair for bad _BIF/_BIX packages
+> [PATCH 2/4] ACPICA: Add repair for bad _MAT buffers
+> [PATCH 3/4] ACPICA: Remove possibility of executing _REG methods twice
+> [PATCH 4/4] ACPICA: Fix possible memory leak for Scope ASL operator
+> 
+> Lin Ming
+
+--=-VBhNw6KBrCTa/1QrthWk
 Content-Disposition: attachment; filename="acpica-v20091013.patch"
 Content-Type: text/x-patch; name="acpica-v20091013.patch"; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 
->From dfdef8feb985a917248d7a2557253e989d895735 Mon Sep 17 00:00:00 2001
+>From d46aca2cf70bb17e9edb661b3d59b57c11322c48 Mon Sep 17 00:00:00 2001
 From: Bob Moore <robert.moore@intel.com>
 Date: Tue, 13 Oct 2009 10:20:33 +0800
-Subject: [PATCH 1/4] ACPICA: Add repair for bad _BIF/_BIX packages
+Subject: [PATCH 1/5] ACPICA: Add repair for bad _BIF/_BIX packages
 
 Add a repair for the "Oem Information" field which is often
 mistakenly returned as an integer. It should always be a string.
@@ -174,10 +189,10 @@ index db2b2a9..dfa31c5 100644
  
  /*******************************************************************************
 
->From 953b94cee310120af1db235b272f2fa03b00a3c2 Mon Sep 17 00:00:00 2001
+>From eec5343132b1d1dd3945d587e96df89723d5c6e5 Mon Sep 17 00:00:00 2001
 From: Lin Ming <ming.m.lin@intel.com>
 Date: Tue, 13 Oct 2009 10:23:20 +0800
-Subject: [PATCH 2/4] ACPICA: Add repair for bad _MAT buffers
+Subject: [PATCH 2/5] ACPICA: Add repair for bad _MAT buffers
 
 _MAT can inadvertently return an Integer instead of a Buffer
 if the return value has been read from a Field whose width is
@@ -242,10 +257,10 @@ index dfa31c5..f2f5269 100644
  			 * The only supported Integer-to-String conversion is to convert
  			 * an integer of value 0 to a NULL string. The last element of
 
->From 7084f212b1c51eb4e43267abce678c9a89b3c5af Mon Sep 17 00:00:00 2001
+>From 04c9003fb758d264350e4537df8b71a9cf1edb6d Mon Sep 17 00:00:00 2001
 From: Lin Ming <ming.m.lin@intel.com>
 Date: Tue, 13 Oct 2009 10:29:30 +0800
-Subject: [PATCH 3/4] ACPICA: Remove possibility of executing _REG methods twice
+Subject: [PATCH 3/5] ACPICA: Remove possibility of executing _REG methods twice
 
 If a custom address space handler is installed by the host
 before the "initialize operation regions" phase of the ACPICA
@@ -352,10 +367,10 @@ index 98c7f9c..c9fa040 100644
  
  	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
 
->From 2d3b7803e3f82fc35dacc4267f0b24e190b60504 Mon Sep 17 00:00:00 2001
+>From fa21833ad9b821d8f0c34229b385845591b719f2 Mon Sep 17 00:00:00 2001
 From: Lin Ming <ming.m.lin@intel.com>
 Date: Tue, 13 Oct 2009 10:34:56 +0800
-Subject: [PATCH 4/4] ACPICA: Fix possible memory leak for Scope ASL operator
+Subject: [PATCH 4/5] ACPICA: Fix possible memory leak for Scope ASL operator
 
 Using Scope(\) to change the scope to the root could cause a
 single object memory leak.
@@ -431,6 +446,33 @@ index 6de3a99..10fc785 100644
  
  		/*
 
+>From 28e7ed759b1f714908edea3aafe3991abbfb73ab Mon Sep 17 00:00:00 2001
+From: Bob Moore <robert.moore@intel.com>
+Date: Wed, 14 Oct 2009 09:01:39 +0800
+Subject: [PATCH 5/5] ACPICA: Update version to 20091013
 
---=-fqHEv3VPZa+FNTPGXcZd--
+Version 20091013.
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ include/acpi/acpixf.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index e723b0f..0e7efea 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -47,7 +47,7 @@
+ 
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20090903
++#define ACPI_CA_VERSION                 0x20091013
+ 
+ #include "actypes.h"
+ #include "actbl.h"
+
+
+--=-VBhNw6KBrCTa/1QrthWk--
 
