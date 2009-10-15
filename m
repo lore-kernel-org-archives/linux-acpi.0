@@ -1,76 +1,46 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 7/8] ACPI: video: Loosen strictness of video bus detection code
-Date: Thu, 15 Oct 2009 00:59:42 -0400
-Message-ID: <3a1151e3f124fd1a2c54b8153f510f1a7c715369.1255582742.git.len.brown@intel.com>
+Subject: [PATCH 1/8] ACPI: add AC/DC notifier
+Date: Thu, 15 Oct 2009 00:59:36 -0400
+Message-ID: <68b92b567c0c5e6f4d0b264d438f97ee5ccbdccc.1255582742.git.len.brown@intel.com>
 References: <1255582783-16088-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:60870 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637AbZJOFAf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2009 01:00:35 -0400
+Received: from vms173019pub.verizon.net ([206.46.173.19]:37803 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808AbZJOFAk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2009 01:00:40 -0400
 Received: from localhost.localdomain ([74.104.150.83])
- by vms173005.mailsrvcs.net
+ by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KRJ00BBFHVT0U4K@vms173005.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 14 Oct 2009 23:59:57 -0500 (CDT)
+ with ESMTPA id <0KRJ00LH8HVOX1Y2@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 14 Oct 2009 23:59:54 -0500 (CDT)
 In-reply-to: <1255582783-16088-1-git-send-email-lenb@kernel.org>
-In-reply-to: <68b92b567c0c5e6f4d0b264d438f97ee5ccbdccc.1255582742.git.len.brown@intel.com>
-References: <68b92b567c0c5e6f4d0b264d438f97ee5ccbdccc.1255582742.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Stefan Bader <stefan.bader@canonical.com>, Len Brown <len.brown@intel.com>
+Cc: Mark Langsdorf <mark.langsdorf@amd.com>, Len Brown <len.brown@intel.com>
 
-From: Stefan Bader <stefan.bader@canonical.com>
+From: Mark Langsdorf <mark.langsdorf@amd.com>
 
-BugLink: http://bugs.launchpad.net/bugs/333386
+Add an ACPI event notifier for AC/DC connect/disconnect events.
 
-Currently a video bus device must (beside other criteria) define _DOD and
-_DOS methods to be considered a video device.
-Some broken BIOSes prevented working backlight control by only defining both
-for one (non-existing bus) and only _DOD for the rest. With this patch in
-place the other bus definitions were considered too and backlight control
-started to work again.
-
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Mark Langsdorf <mark.langsdorf@amd.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/video.c        |    7 ++++++-
- drivers/acpi/video_detect.c |    2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/acpi/ac.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index f6e54bf..64e3c58 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1109,7 +1109,12 @@ static int acpi_video_bus_check(struct acpi_video_bus *video)
- 	 */
- 
- 	/* Does this device support video switching? */
--	if (video->cap._DOS) {
-+	if (video->cap._DOS || video->cap._DOD) {
-+		if (!video->cap._DOS) {
-+			printk(KERN_WARNING FW_BUG
-+				"ACPI(%s) defines _DOD but not _DOS\n",
-+				acpi_device_bid(video->device));
-+		}
- 		video->flags.multihead = 1;
- 		status = 0;
- 	}
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 7032f25..575593a 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -84,7 +84,7 @@ long acpi_is_video_device(struct acpi_device *device)
- 		return 0;
- 
- 	/* Does this device able to support video switching ? */
--	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) &&
-+	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
- 
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 98b9690..b6ed60b 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -245,6 +245,7 @@ static void acpi_ac_notify(struct acpi_device *device, u32 event)
+ 		acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 						  dev_name(&device->dev), event,
+ 						  (u32) ac->state);
++		acpi_notifier_call_chain(device, event, (u32) ac->state);
+ #ifdef CONFIG_ACPI_SYSFS_POWER
+ 		kobject_uevent(&ac->charger.dev->kobj, KOBJ_CHANGE);
+ #endif
 -- 
 1.6.0.6
 
