@@ -1,62 +1,59 @@
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-Subject: Re: [PATCH 6/8] eeepc-laptop: Prevent a panic when disabling RT2860  wireless when associated
-Date: Thu, 15 Oct 2009 19:41:56 +0100
-Message-ID: <50B02E33C0%linux@youmustbejoking.demon.co.uk>
-References: <68b92b567c0c5e6f4d0b264d438f97ee5ccbdccc.1255582742.git.len.brown@intel.com>
- <1255582783-16088-1-git-send-email-lenb@kernel.org>
- <b56ab33d68638e6aafdbfc694025e8354a628f49.1255582742.git.len.brown@intel.com>
- <71cd59b00910150205o1c17d7aase0167848e1360659@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from anchor-post-3.mail.demon.net ([195.173.77.134]:43493 "EHLO
-	anchor-post-3.mail.demon.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935377AbZJOTrg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Oct 2009 15:47:36 -0400
-In-Reply-To: <71cd59b00910150205o1c17d7aase0167848e1360659@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: [PATCH 8/8] trivial: typo and grammar fixes in comments
+Date: Thu, 15 Oct 2009 17:18:39 -0300
+Message-ID: <1255637919-6178-1-git-send-email-cascardo@holoscopio.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763023AbZJOUT1@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: trivial@kernel.org
+Cc: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-I demand that Corentin Chary may or may not have written...
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+---
+ drivers/acpi/video_detect.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-> On Thu, Oct 15, 2009 at 4:59 AM, Len Brown <lenb@kernel.org> wrote:
->> From: Darren Salt <linux@youmustbejoking.demon.co.uk>
->>
->> This works around what I think is actually a bug in rt2860sta which =
-is
->> triggered when the hardware "disappears" from beneath the driver, i.=
-e.
->> when wireless is toggled off via ACPI. It does so by ensuring that t=
-he
->> rfkill soft-block flag is set before the hardware is disabled.
-[snip patch]
-
-> I sent you a revert request 2 days ago for this patch, Darren reporte=
-d
-> some problems with it.
-> You may have missed it, it can be found at:
-> http://marc.info/?l=3Dlinux-acpi&m=3D125542258501548&w=3D2 .
-> Is it still time to revert?
-
-I certainly hope that there's still time =E2=80=93 a much better patch =
-for this
-(which fixes the problem directly in rt2860sta) arrived in Greg KH's
-staging.current queue late yesterday.
-
---=20
-| Darren Salt            | linux at youmustbejoking | nr. Ashington, | =
-Doon
-| using Debian GNU/Linux | or ds    ,demon,co,uk    | Northumberland | =
-Army
-|   Let's keep the pound sterling
-
-Established technology tends to persist in spite of new technology.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 575593a..27c7772 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -7,7 +7,7 @@
+  * video_detect.c:
+  * Provides acpi_is_video_device() for early scanning of ACPI devices in scan.c
+  * There a Linux specific (Spec does not provide a HID for video devices) is
+- * assinged
++ * assigned
+  *
+  * After PCI devices are glued with ACPI devices
+  * acpi_get_pci_dev() can be called to identify ACPI graphics
+@@ -83,16 +83,16 @@ long acpi_is_video_device(struct acpi_device *device)
+ 	if (!device)
+ 		return 0;
+ 
+-	/* Does this device able to support video switching ? */
++	/* Is this device able to support video switching ? */
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
+ 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
+ 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
+ 
+-	/* Does this device able to retrieve a video ROM ? */
++	/* Is this device able to retrieve a video ROM ? */
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM", &h_dummy)))
+ 		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
+ 
+-	/* Does this device able to configure which video head to be POSTed ? */
++	/* Is this device able to configure which video head to be POSTed ? */
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_VPO", &h_dummy)) &&
+ 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_GPD", &h_dummy)) &&
+ 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_SPD", &h_dummy)))
+@@ -137,7 +137,7 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+  *
+  * if NULL is passed as argument all ACPI devices are enumerated and
+  * all graphics capabilities of physically present devices are
+- * summerized and returned. This is cached and done only once.
++ * summarized and returned. This is cached and done only once.
+  */
+ long acpi_video_get_capabilities(acpi_handle graphics_handle)
+ {
+-- 
+1.6.3.3
