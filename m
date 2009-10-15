@@ -1,16 +1,16 @@
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: [PATCH 3/4] ACPI: SBS: Export cycle_count
-Date: Thu, 15 Oct 2009 14:31:37 +0400
-Message-ID: <20091015103137.3853.65255.stgit@thinkpad>
+Subject: [PATCH 4/4] ACPI: Battery: Add support for _BIX extended info method
+Date: Thu, 15 Oct 2009 14:31:44 +0400
+Message-ID: <20091015103144.3853.9717.stgit@thinkpad>
 References: <20091015103122.3853.34760.stgit@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:37217 "EHLO
+Received: from charybdis-ext.suse.de ([195.135.221.2]:48493 "EHLO
 	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757117AbZJOKcP (ORCPT
-	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 15 Oct 2009 06:32:15 -0400
+	with ESMTP id S1758094AbZJOKcW (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Thu, 15 Oct 2009 06:32:22 -0400
 In-Reply-To: <20091015103122.3853.34760.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -20,15 +20,44 @@ Cc: Linux-acpi@vger.kernel.org
 Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 ---
 
- drivers/acpi/sbs.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/acpi/battery.c |   59 +++++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 53 insertions(+), 6 deletions(-)
 
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 52b9db8..38412ec 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -217,6 +217,9 @@ static int acpi_sbs_battery_get_property(struct power_supply *psy,
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 7adc1fa..4ac8f2d 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -54,6 +54,7 @@
+ #define ACPI_BATTERY_DEVICE_NAME	"Battery"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
++#define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
+ 
+ #define _COMPONENT		ACPI_BATTERY_COMPONENT
+ 
+@@ -90,6 +91,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+ 
+ enum {
+ 	ACPI_BATTERY_ALARM_PRESENT,
++	ACPI_BATTERY_XINFO_PRESENT,
+ 	/* For buggy DSDTs that report negative 16-bit values for either charging
+ 	* or discharging current and/or report 0 as 65536 due to bad math.
+ 	*/
+@@ -112,6 +114,12 @@ struct acpi_battery {
+ 	int design_voltage;
+ 	int design_capacity_warning;
+ 	int design_capacity_low;
++	int cycle_count;
++	int measurement_accuracy;
++	int max_sampling_time;
++	int min_sampling_time;
++	int max_averaging_interval;
++	int min_averaging_interval;
+ 	int capacity_granularity_1;
+ 	int capacity_granularity_2;
+ 	int alarm;
+@@ -200,6 +208,9 @@ static int acpi_battery_get_property(struct power_supply *psy,
  	case POWER_SUPPLY_PROP_TECHNOLOGY:
  		val->intval = acpi_battery_technology(battery);
  		break;
@@ -36,9 +65,9 @@ index 52b9db8..38412ec 100644
 +		val->intval = battery->cycle_count;
 +		break;
  	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
- 		val->intval = battery->design_voltage *
- 			acpi_battery_vscale(battery) * 1000;
-@@ -276,6 +279,7 @@ static enum power_supply_property sbs_charge_battery_props[] = {
+ 		val->intval = battery->design_voltage * 1000;
+ 		break;
+@@ -241,6 +252,7 @@ static enum power_supply_property charge_battery_props[] = {
  	POWER_SUPPLY_PROP_STATUS,
  	POWER_SUPPLY_PROP_PRESENT,
  	POWER_SUPPLY_PROP_TECHNOLOGY,
@@ -46,12 +75,103 @@ index 52b9db8..38412ec 100644
  	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
  	POWER_SUPPLY_PROP_VOLTAGE_NOW,
  	POWER_SUPPLY_PROP_CURRENT_NOW,
-@@ -560,6 +564,7 @@ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
- 		   battery->design_voltage * acpi_battery_vscale(battery));
- 	seq_printf(seq, "design capacity warning: unknown\n");
- 	seq_printf(seq, "design capacity low:     unknown\n");
+@@ -256,6 +268,7 @@ static enum power_supply_property energy_battery_props[] = {
+ 	POWER_SUPPLY_PROP_STATUS,
+ 	POWER_SUPPLY_PROP_PRESENT,
+ 	POWER_SUPPLY_PROP_TECHNOLOGY,
++	POWER_SUPPLY_PROP_CYCLE_COUNT,
+ 	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN,
+ 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
+ 	POWER_SUPPLY_PROP_CURRENT_NOW,
+@@ -307,6 +320,28 @@ static struct acpi_offsets info_offsets[] = {
+ 	{offsetof(struct acpi_battery, oem_info), 1},
+ };
+ 
++static struct acpi_offsets extended_info_offsets[] = {
++	{offsetof(struct acpi_battery, power_unit), 0},
++	{offsetof(struct acpi_battery, design_capacity), 0},
++	{offsetof(struct acpi_battery, full_charge_capacity), 0},
++	{offsetof(struct acpi_battery, technology), 0},
++	{offsetof(struct acpi_battery, design_voltage), 0},
++	{offsetof(struct acpi_battery, design_capacity_warning), 0},
++	{offsetof(struct acpi_battery, design_capacity_low), 0},
++	{offsetof(struct acpi_battery, cycle_count), 0},
++	{offsetof(struct acpi_battery, measurement_accuracy), 0},
++	{offsetof(struct acpi_battery, max_sampling_time), 0},
++	{offsetof(struct acpi_battery, min_sampling_time), 0},
++	{offsetof(struct acpi_battery, max_averaging_interval), 0},
++	{offsetof(struct acpi_battery, min_averaging_interval), 0},
++	{offsetof(struct acpi_battery, capacity_granularity_1), 0},
++	{offsetof(struct acpi_battery, capacity_granularity_2), 0},
++	{offsetof(struct acpi_battery, model_number), 1},
++	{offsetof(struct acpi_battery, serial_number), 1},
++	{offsetof(struct acpi_battery, type), 1},
++	{offsetof(struct acpi_battery, oem_info), 1},
++};
++
+ static int extract_package(struct acpi_battery *battery,
+ 			   union acpi_object *package,
+ 			   struct acpi_offsets *offsets, int num)
+@@ -352,22 +387,29 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ {
+ 	int result = -EFAULT;
+ 	acpi_status status = 0;
++	char *name = test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags)?
++			"_BIX" : "_BIF";
++
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 
+ 	if (!acpi_battery_present(battery))
+ 		return 0;
+ 	mutex_lock(&battery->lock);
+-	status = acpi_evaluate_object(battery->device->handle, "_BIF",
+-				      NULL, &buffer);
++	status = acpi_evaluate_object(battery->device->handle, name,
++						NULL, &buffer);
+ 	mutex_unlock(&battery->lock);
+ 
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _BIF"));
++		ACPI_EXCEPTION((AE_INFO, status, "Evaluating %s", name));
+ 		return -ENODEV;
+ 	}
+-
+-	result = extract_package(battery, buffer.pointer,
+-				 info_offsets, ARRAY_SIZE(info_offsets));
++	if (test_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags))
++		result = extract_package(battery, buffer.pointer,
++				extended_info_offsets,
++				ARRAY_SIZE(extended_info_offsets));
++	else
++		result = extract_package(battery, buffer.pointer,
++				info_offsets, ARRAY_SIZE(info_offsets));
+ 	kfree(buffer.pointer);
+ 	return result;
+ }
+@@ -592,6 +634,7 @@ static int acpi_battery_print_info(struct seq_file *seq, int result)
+ 	seq_printf(seq, "design capacity low:     %d %sh\n",
+ 		   battery->design_capacity_low,
+ 		   acpi_battery_units(battery));
 +	seq_printf(seq, "cycle count:		  %i\n", battery->cycle_count);
- 	seq_printf(seq, "capacity granularity 1:  unknown\n");
- 	seq_printf(seq, "capacity granularity 2:  unknown\n");
- 	seq_printf(seq, "model number:            %s\n", battery->device_name);
+ 	seq_printf(seq, "capacity granularity 1:  %d %sh\n",
+ 		   battery->capacity_granularity_1,
+ 		   acpi_battery_units(battery));
+@@ -843,6 +886,7 @@ static int acpi_battery_add(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	struct acpi_battery *battery = NULL;
++	acpi_handle handle;
+ 	if (!device)
+ 		return -EINVAL;
+ 	battery = kzalloc(sizeof(struct acpi_battery), GFP_KERNEL);
+@@ -853,6 +897,9 @@ static int acpi_battery_add(struct acpi_device *device)
+ 	strcpy(acpi_device_class(device), ACPI_BATTERY_CLASS);
+ 	device->driver_data = battery;
+ 	mutex_init(&battery->lock);
++	if (ACPI_SUCCESS(acpi_get_handle(battery->device->handle,
++			"_BIX", &handle)))
++		set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+ 	acpi_battery_update(battery);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
 
