@@ -1,59 +1,42 @@
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Subject: [PATCH 8/8] trivial: typo and grammar fixes in comments
-Date: Thu, 15 Oct 2009 17:18:39 -0300
-Message-ID: <1255637919-6178-1-git-send-email-cascardo@holoscopio.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763023AbZJOUT1@vger.kernel.org>
+From: Tim Hoppen <timhoppen@gmail.com>
+Subject: [PATCH 2/2] Patch for bug with ACPI for Sony VGN-FW351 to acpi_osi_dmi_table Similar to bug http://bugzilla.kernel.org/show_bug.cgi?id=12904 (same video controller)
+Date: Thu, 15 Oct 2009 13:56:31 -0700
+Message-ID: <1255640191-14807-1-git-send-email-timhoppen@gmail.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762970AbZJOVAM@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: trivial@kernel.org
-Cc: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: lenb@kernel.org, rui.zhang@intel.com, jgarzik@redhat.com, tj@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tim Hoppen <timhoppen@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
----
- drivers/acpi/video_detect.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 575593a..27c7772 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -7,7 +7,7 @@
-  * video_detect.c:
-  * Provides acpi_is_video_device() for early scanning of ACPI devices in scan.c
-  * There a Linux specific (Spec does not provide a HID for video devices) is
-- * assinged
-+ * assigned
-  *
-  * After PCI devices are glued with ACPI devices
-  * acpi_get_pci_dev() can be called to identify ACPI graphics
-@@ -83,16 +83,16 @@ long acpi_is_video_device(struct acpi_device *device)
- 	if (!device)
- 		return 0;
+Signed-off-by: Tim Hoppen <timhoppen@gmail.com>
+---
+ drivers/acpi/blacklist.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 01cca5f..782f330 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -212,13 +212,13 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 	{
+-        .callback = dmi_disable_osi_vista,
+-        .ident = "Sony VGN-FW351J",
+-        .matches = {
+-                     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-                     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW351J"),
+-                },
+-        },
++	.callback = dmi_disable_osi_vista,
++	.ident = "Sony VGN-FW351J",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW351J"),
++		},
++	},
  
--	/* Does this device able to support video switching ? */
-+	/* Is this device able to support video switching ? */
- 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOD", &h_dummy)) ||
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_DOS", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
- 
--	/* Does this device able to retrieve a video ROM ? */
-+	/* Is this device able to retrieve a video ROM ? */
- 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_ROM", &h_dummy)))
- 		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
- 
--	/* Does this device able to configure which video head to be POSTed ? */
-+	/* Is this device able to configure which video head to be POSTed ? */
- 	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "_VPO", &h_dummy)) &&
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_GPD", &h_dummy)) &&
- 	    ACPI_SUCCESS(acpi_get_handle(device->handle, "_SPD", &h_dummy)))
-@@ -137,7 +137,7 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
-  *
-  * if NULL is passed as argument all ACPI devices are enumerated and
-  * all graphics capabilities of physically present devices are
-- * summerized and returned. This is cached and done only once.
-+ * summarized and returned. This is cached and done only once.
-  */
- long acpi_video_get_capabilities(acpi_handle graphics_handle)
- {
+ 	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 -- 
-1.6.3.3
+1.6.5
