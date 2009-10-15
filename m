@@ -1,46 +1,29 @@
-From: Daniel Walker <dwalker@fifo99.com>
-Subject: Re: [PATCH 1/1] Added an additional Sony laptop to
- acpi_osi_dmi_table
-Date: Wed, 14 Oct 2009 18:48:49 -0700
-Message-ID: <1255571329.22917.29.camel@desktop>
-References: <1255568391-8400-1-git-send-email-timhoppen@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA Release 20091013 linuxized patches
+Date: Thu, 15 Oct 2009 00:34:14 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.0910150034090.5105@localhost.localdomain>
+References: <1255481943.20102.3.camel@minggr.sh.intel.com>
+ <1255482371.20102.6.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932799AbZJOBu4@vger.kernel.org>
-In-Reply-To: <1255568391-8400-1-git-send-email-timhoppen@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tim Hoppen <timhoppen@gmail.com>
-Cc: lenb@kernel.org, rui.zhang@intel.com, jgarzik@redhat.com, tj@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173001pub.verizon.net ([206.46.173.1]:45229 "EHLO
+	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbZJOEgL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2009 00:36:11 -0400
+Received: from localhost.localdomain ([74.104.150.83])
+ by vms173001.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KRJ00M7LGQU3EYB@vms173001.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 14 Oct 2009 23:35:25 -0500 (CDT)
+In-reply-to: <1255482371.20102.6.camel@minggr.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-10-14 at 17:59 -0700, Tim Hoppen wrote:
-> Signed-off-by: Tim Hoppen <timhoppen@gmail.com>
-> ---
->  drivers/acpi/blacklist.c |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> index e56b2a7..01cca5f 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -211,6 +211,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->  		     DMI_MATCH(DMI_PRODUCT_NAME, "Sony VGN-SR290J"),
->  		},
->  	},
-> +	{
-> +        .callback = dmi_disable_osi_vista,
-> +        .ident = "Sony VGN-FW351J",
-> +        .matches = {
-> +                     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-> +                     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW351J"),
-> +                },
-> +        },
+applied to acpi-test
 
-It looks like your not indenting correctly. The above lines should be
-tabbed instead of just spaced over .. You may have done copy and paste
-on this block from the code around this. Copy and paste usually doesn't
-properly copy the tabs .. Could you resubmit this with the tabbing added
-back in?
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Daniel 
