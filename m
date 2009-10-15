@@ -1,81 +1,62 @@
-From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
-Subject: Re: [RFC] [PATCH 1/2] introduce ALS sysfs class
-Date: Thu, 15 Oct 2009 16:54:32 +0100
-Message-ID: <4AD745B8.3060307@gmail.com>
-References: <1253590755.15763.21.camel@rzhang-dt> <4AB8C62F.5020605@cam.ac.uk> <20090923071857.GC8565@elf.ucw.cz>
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Subject: Re: [PATCH 6/8] eeepc-laptop: Prevent a panic when disabling RT2860  wireless when associated
+Date: Thu, 15 Oct 2009 19:41:56 +0100
+Message-ID: <50B02E33C0%linux@youmustbejoking.demon.co.uk>
+References: <68b92b567c0c5e6f4d0b264d438f97ee5ccbdccc.1255582742.git.len.brown@intel.com>
+ <1255582783-16088-1-git-send-email-lenb@kernel.org>
+ <b56ab33d68638e6aafdbfc694025e8354a628f49.1255582742.git.len.brown@intel.com>
+ <71cd59b00910150205o1c17d7aase0167848e1360659@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ppsw-5.csi.cam.ac.uk ([131.111.8.135]:41316 "EHLO
-	ppsw-5.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758586AbZJOPyz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2009 11:54:55 -0400
-In-Reply-To: <20090923071857.GC8565@elf.ucw.cz>
+Received: from anchor-post-3.mail.demon.net ([195.173.77.134]:43493 "EHLO
+	anchor-post-3.mail.demon.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S935377AbZJOTrg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Oct 2009 15:47:36 -0400
+In-Reply-To: <71cd59b00910150205o1c17d7aase0167848e1360659@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "alan@linux.intel.com" <alan@linux.intel.com>, Len Brown <lenb@kernel.org>, "Cory T. Tusar" <ctusar@videon-central.com>, "Trisal, Kalhan" <kalhan.trisal@intel.com>Jean Delvare <khali@linux-fr.org>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Pavel Machek wrote:
-> On Tue 2009-09-22 13:42:23, Jonathan Cameron wrote:
->   
->> Zhang Rui wrote:
->>     
->>> Hi, Jonathan,
->>>
->>> this is the refresh ALS sysfs class driver.
->>> I just introduced one sysfs attribute "illuminance", because
->>> I didn't catch the exact meaning of the others like "???infrared".
->>> So it would be great if you can generate an incremental patch
->>> to introduce the other optional attributes needed, and update
->>> the documentation as well. :)
->>>       
->> Will do, though may just leave it out of first pass of drivers
->> (as it may be controversial and it would be nice to get something
->> in place before the arguments begin!)
+I demand that Corentin Chary may or may not have written...
+
+> On Thu, Oct 15, 2009 at 4:59 AM, Len Brown <lenb@kernel.org> wrote:
+>> From: Darren Salt <linux@youmustbejoking.demon.co.uk>
 >>
->> All looks nice and clean. The only real question is whether
->> we want to standardize naming of devices under sysfs (like hwmon does)
->> or allow the individual drivers to do the naming?
->>     
->
-> Allow the drivers to do the naming. Having useless name like "als0",
-> with als0/name telling me what the driver is is bad.
->   
-This topic came up again in the discussion of the tsl2550 driver port.
+>> This works around what I think is actually a bug in rt2860sta which =
+is
+>> triggered when the hardware "disappears" from beneath the driver, i.=
+e.
+>> when wireless is toggled off via ACPI. It does so by ensuring that t=
+he
+>> rfkill soft-block flag is set before the hardware is disabled.
+[snip patch]
 
-Jean Delvare raised a point that I'm inclined to agree with (with several
-more ports from elsewhere in the kernel underway).
+> I sent you a revert request 2 days ago for this patch, Darren reporte=
+d
+> some problems with it.
+> You may have missed it, it can be found at:
+> http://marc.info/?l=3Dlinux-acpi&m=3D125542258501548&w=3D2 .
+> Is it still time to revert?
 
-.... (quoted from [PATCH] ALS: TSL2550 driver move from i2c/chips)
+I certainly hope that there's still time =E2=80=93 a much better patch =
+for this
+(which fixes the problem directly in rt2860sta) arrived in Greg KH's
+staging.current queue late yesterday.
 
-> I'd imaging that als-class devices are simply named als%u. Just like
-> > > hwmon devices are named hwmon%u, input devices are names input%u and
-> > > event%u, etc. I don't know of any class pushing the naming down to its
-> > > drivers, do you? The only example I can remember are i2c drivers back
-> > > in year 1999, when they were part of lm-sensors.I have personally put
-> > > an end to this years ago.
-> >
-> > This debate started in the als thread. Personally I couldn't care less
-> > either way but it does need to be put to bed before that subsystem merges.
-> > To my mind either approach is trivially handled in a userspace library
-> > so it doesn't matter.  I don't suppose you can remember what the original
-> > reasons for squashing this naming approach were?
->
-> Code duplication. Having the same unique-id handling code repeated in
-> 50 drivers was no fun, as it did not add any value compared to a
-> central handling.
->
+--=20
+| Darren Salt            | linux at youmustbejoking | nr. Ashington, | =
+Doon
+| using Debian GNU/Linux | or ds    ,demon,co,uk    | Northumberland | =
+Army
+|   Let's keep the pound sterling
 
-So does anyone have a strong objection to moving over the more conventional
-als0/ naming and move the id handling into the als core?
-
-Note that unless there is a clear reason for doing it any other way it will
-probably meet resistance beyond Jean and myself.
-
-Jonathan
-
-
-
-
+Established technology tends to persist in spite of new technology.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
