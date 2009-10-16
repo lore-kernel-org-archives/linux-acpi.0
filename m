@@ -1,66 +1,84 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2 1/6] ACPI: dock: clean up error handling paths in
-	dock_add()
-Date: Thu, 15 Oct 2009 21:36:18 -0700
-Message-ID: <20091016043618.GB11582@core.coreip.homeip.net>
-References: <20091014224415.18044.88208.stgit@bob.kio> <20091014224616.18044.45719.stgit@bob.kio>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH 4/4] ACPI: Battery: Add support for _BIX extended info
+	method
+Date: Fri, 16 Oct 2009 10:08:05 +0100
+Message-ID: <9b2b86520910160208l5bc6e20dkca79ae54505428ed@mail.gmail.com>
+References: <20091015103122.3853.34760.stgit@thinkpad>
+	 <20091015103144.3853.9717.stgit@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:35235 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704AbZJPEg7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Oct 2009 00:36:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20091014224616.18044.45719.stgit@bob.kio>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:49141 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757047AbZJPJIn (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>); Fri, 16 Oct 2009 05:08:43 -0400
+Received: by fxm18 with SMTP id 18so2145164fxm.37
+        for <Linux-acpi@vger.kernel.org>; Fri, 16 Oct 2009 02:08:05 -0700 (PDT)
+In-Reply-To: <20091015103144.3853.9717.stgit@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: lenb@kernel.org, shaohua.li@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-Hi Alex,
-
-On Wed, Oct 14, 2009 at 04:46:16PM -0600, Alex Chiang wrote:
-> Remove some copy/paste code in our error handling paths, which makes
-> the function smaller and slightly easier to read.
-
-Changing individual attributes into attribute_group would greatly
-simplify the code.
-
-> 
-> Signed-off-by: Alex Chiang <achiang@hp.com>
+On 10/15/09, Alexey Starikovskiy <astarikovskiy@suse.de> wrote:
+> Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 > ---
-> 
->  drivers/acpi/dock.c |   75 +++++++++++++++++++--------------------------------
->  1 files changed, 28 insertions(+), 47 deletions(-)
-> 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 7338b6a..642c7dd 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -968,11 +968,9 @@ static int dock_add(acpi_handle handle)
->  		platform_device_register_simple(dock_device_name,
->  			dock_station_count, NULL, 0);
->  	dock_device = dock_station->dock_device;
-> -	if (IS_ERR(dock_device)) {
-> -		kfree(dock_station);
-> -		dock_station = NULL;
-> -		return PTR_ERR(dock_device);
-> -	}
-> +	ret = IS_ERR(dock_device) ? PTR_ERR(dock_device) : 0;
-> +	if (ret)
-> +		goto out;
+>
+>  drivers/acpi/battery.c |   59
+> +++++++++++++++++++++++++++++++++++++++++++-----
+>  1 files changed, 53 insertions(+), 6 deletions(-)
+>
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 7adc1fa..4ac8f2d 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -54,6 +54,7 @@
+>  #define ACPI_BATTERY_DEVICE_NAME	"Battery"
+>  #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+>  #define ACPI_BATTERY_NOTIFY_INFO	0x81
+> +#define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
+>
+>  #define _COMPONENT		ACPI_BATTERY_COMPONENT
+>
+> @@ -90,6 +91,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+>
+>  enum {
+>  	ACPI_BATTERY_ALARM_PRESENT,
+> +	ACPI_BATTERY_XINFO_PRESENT,
+>  	/* For buggy DSDTs that report negative 16-bit values for either charging
+>  	* or discharging current and/or report 0 as 65536 due to bad math.
+>  	*/
+> @@ -112,6 +114,12 @@ struct acpi_battery {
+>  	int design_voltage;
+>  	int design_capacity_warning;
+>  	int design_capacity_low;
+> +	int cycle_count;
+> +	int measurement_accuracy;
+> +	int max_sampling_time;
+> +	int min_sampling_time;
+> +	int max_averaging_interval;
+> +	int min_averaging_interval;
+>  	int capacity_granularity_1;
+>  	int capacity_granularity_2;
+>  	int alarm;
+> @@ -200,6 +208,9 @@ static int acpi_battery_get_property(struct power_supply
+> *psy,
+>  	case POWER_SUPPLY_PROP_TECHNOLOGY:
+>  		val->intval = acpi_battery_technology(battery);
+>  		break;
+> +	case POWER_SUPPLY_PROP_CYCLE_COUNT:
+> +		val->intval = battery->cycle_count;
+> +		break;
 
-I think
+So userspace is supposed to realise that "0" means "this attribute is
+not supported", as opposed to "I am a brand new battery and don't
+remember being factory-tested".
 
-	if (IS_ERR(dock_device)) {
-		ret = PTR_ERR(dock_device);
-		goto out;
-	}
+How about returning -1 for batteries without _BIX?
 
-is more commonly used form.
+<reads spec>.  Particularly since Cycle Count in _BIX is spec'ed to
+return 0xFFFFFFFF for unknown, which we will return as -1, no?
 
-Thanks.
-
--- 
-Dmitry
+Regards
+Alan
