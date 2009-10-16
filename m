@@ -1,41 +1,64 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: assumptions in acpi drivers
-Date: Fri, 16 Oct 2009 10:13:10 +0100
-Message-ID: <9b2b86520910160213o2cdbed8j8f4ef9f3ba47ad6f@mail.gmail.com>
-References: <9b2b86520910100616n38e842e2m9cf306eb4e812077@mail.gmail.com>
-	 <1255185595.30901.7.camel@dc7800.home>
-	 <9b2b86520910110639g57b2c56ao19f9f1f687729f7d@mail.gmail.com>
-	 <1255320452.12547.6.camel@dc7800.home>
-	 <20091016043609.GA11582@core.coreip.homeip.net>
+From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+Subject: [v9 PATCH 0/9]: cpuidle: Cleanup cpuidle/ Introduce cpuidle to POWER.
+Date: Fri, 16 Oct 2009 15:08:50 +0530
+Message-ID: <20091016093850.GB27350@linux.vnet.ibm.com>
+Reply-To: arun@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:49686 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006AbZJPJNs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Oct 2009 05:13:48 -0400
-Received: by fxm18 with SMTP id 18so2149929fxm.37
-        for <linux-acpi@vger.kernel.org>; Fri, 16 Oct 2009 02:13:11 -0700 (PDT)
-In-Reply-To: <20091016043609.GA11582@core.coreip.homeip.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar
+Cc: linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org
 
-On 10/16/09, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
-> On Sun, Oct 11, 2009 at 10:07:32PM -0600, Bjorn Helgaas wrote:
+Hi,
 
->> Ooh, you're right, using atomic_inc_return() is much better.  I don't
->> know whether it needs to be thread-safe or not, but it doesn't hurt, and
->> it's nicer in the sense that it doesn't leave the singleton pointer
->> lying around where people would be tempted to use it instead of using
->> acpi_driver_data(device).
->
-> A small note: while it might not be an issue for ACPI in general drivers
-> can be detached from devices via sysfs bind/unbind attributes and so if
-> using this singleton model xxx_remove() should take care of decrementing
-> the counter and xxx_add() should do the same in error path.
+This patchset introduces cpuidle infrastructure to POWER, prototyping
+for pSeries, and also does a major refactoring of current x86 idle
+power management and a cleanup of cpuidle infrastructure.
 
-I'm sure it does apply to ACPI drivers.  I'll make sure I do that, thanks!
+This patch series has been in discussion for quite a while now and
+below are the links to the previous discussions.
 
-Alan
+Hopefully, this is ready to be included in the -tip tree.
+
+v8 --> http://lkml.org/lkml/2009/10/8/82
+v7 --> http://lkml.org/lkml/2009/10/6/278
+v6 --> http://lkml.org/lkml/2009/9/22/180
+v5 --> http://lkml.org/lkml/2009/9/22/26
+v4 --> http://lkml.org/lkml/2009/9/1/133
+v3 --> http://lkml.org/lkml/2009/8/27/124
+v2 --> http://lkml.org/lkml/2009/8/26/233
+v1 --> http://lkml.org/lkml/2009/8/19/150
+
+
+Changes in this version:
+----------------------------------------
+        *Added documentation for the new design regarding registration
+        of idle routines in Documentation/cpuidle/core.txt
+
+        *Platforms which do not want the code bloat of cpuidle can
+        disable CONFIG_CPU_IDLE. Alternate definition of
+        cpuidle_idle_call is provided which would call the appropriate
+        idle routine provided by the arch without the overhead of
+        registration and governors.
+        (Thanks to Andi for raising this isuue)
+
+        *I had missed a cpuidle_kick_cpus() in
+        cpuidle_pause_and_lock() which is called from the hotplug
+        path. So added that and tested this patchset by subjecting it
+        to cpuhotplug torture.
+        (Thanks to Balbir for noticing this)
+
+
+--arun
