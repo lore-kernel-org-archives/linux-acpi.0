@@ -1,60 +1,45 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH v2 1/6] ACPI: dock: clean up error handling paths in
-	dock_add()
-Date: Fri, 16 Oct 2009 14:50:13 -0600
-Message-ID: <20091016205013.GA24292@grease.lan>
-References: <20091014224415.18044.88208.stgit@bob.kio> <20091014224616.18044.45719.stgit@bob.kio> <20091016043618.GB11582@core.coreip.homeip.net>
+Subject: [PATCH v3 3/6] ACPI: dock: remove global 'dock_device_name'
+Date: Fri, 16 Oct 2009 15:15:09 -0600
+Message-ID: <20091016211509.12126.7985.stgit@bob.kio>
+References: <20091016211323.12126.58457.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:22280 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753806AbZJPVQH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Oct 2009 17:16:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20091016043618.GB11582@core.coreip.homeip.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755219AbZJPVQi@vger.kernel.org>
+In-Reply-To: <20091016211323.12126.58457.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: shaohua.li@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: lenb@kernel.org, shaohua.li@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com>:
-> Hi Alex,
-> 
-> On Wed, Oct 14, 2009 at 04:46:16PM -0600, Alex Chiang wrote:
-> > Remove some copy/paste code in our error handling paths, which makes
-> > the function smaller and slightly easier to read.
-> 
-> Changing individual attributes into attribute_group would greatly
-> simplify the code.
+We only use it in one spot, so it probably gets optimized out, but there's
+still no need to use a global variable for this.
 
-Good advice, I'll do this, thanks.
+Signed-off-by: Alex Chiang <achiang@hp.com>
+---
 
-> > @@ -968,11 +968,9 @@ static int dock_add(acpi_handle handle)
-> >  		platform_device_register_simple(dock_device_name,
-> >  			dock_station_count, NULL, 0);
-> >  	dock_device = dock_station->dock_device;
-> > -	if (IS_ERR(dock_device)) {
-> > -		kfree(dock_station);
-> > -		dock_station = NULL;
-> > -		return PTR_ERR(dock_device);
-> > -	}
-> > +	ret = IS_ERR(dock_device) ? PTR_ERR(dock_device) : 0;
-> > +	if (ret)
-> > +		goto out;
-> 
-> I think
-> 
-> 	if (IS_ERR(dock_device)) {
-> 		ret = PTR_ERR(dock_device);
-> 		goto out;
-> 	}
-> 
-> is more commonly used form.
+ drivers/acpi/dock.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Ok, I'll change to the more idiomatic form.
-
-Thanks for the review.
-
-/ac
-
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 7a95113..766eccb 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -50,7 +50,6 @@ MODULE_PARM_DESC(immediate_undock, "1 (default) will cause the driver to "
+ 	" before undocking");
+ 
+ static struct atomic_notifier_head dock_notifier_list;
+-static char dock_device_name[] = "dock";
+ 
+ static const struct acpi_device_id dock_device_ids[] = {
+ 	{"LNXDOCK", 0},
+@@ -964,7 +963,7 @@ static int dock_add(acpi_handle handle)
+ 
+ 	/* initialize platform device stuff */
+ 	dock_station->dock_device =
+-		platform_device_register_simple(dock_device_name,
++		platform_device_register_simple("dock",
+ 			dock_station_count, NULL, 0);
+ 	dock_device = dock_station->dock_device;
+ 	if (IS_ERR(dock_device)) {
