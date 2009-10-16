@@ -1,27 +1,37 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH 8/8] trivial: typo and grammar fixes in comments
-Date: Fri, 16 Oct 2009 15:24:44 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0910161524300.8582@wotan.suse.de>
-References: <1255637919-6178-1-git-send-email-cascardo@holoscopio.com>
+From: "WEBMAILUPGRADE" <upgradecentre@consultant.com>
+Subject: Dear Webmail User
+Date: Fri, 16 Oct 2009 22:42:19 +0800 (SE Asia Standard Time)
+Message-ID: <b4bd9ee3cea9a24551737e23a69e95d4.squirrel__44472.9025279686$1255704398$gmane$org@mail.camau.gov.vn>
+Reply-To: upgradecenter@8u8.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759470AbZJPNZ0@vger.kernel.org>
-In-Reply-To: <1255637919-6178-1-git-send-email-cascardo@holoscopio.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Cc: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>, Andi Kleen <ak@linux.intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from localhost ([123.30.75.2]:5031 "EHLO mail.camau.gov.vn"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1758431AbZJPOnD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Oct 2009 10:43:03 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 15 Oct 2009, Thadeu Lima de Souza Cascardo wrote:
 
-> Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-> ---
->  drivers/acpi/video_detect.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
 
-Merged together with patches 2-8 from your series and applied to trivial
-queue.
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Dear Webmail User,
+We are really sorry for the inconvenience we are making you pass
+through,we are having problem with our database due to our recent upgrade
+and we can not find your data. Please we need to rectify this problem
+before the next 24-hours if not, you may not be able to send or receive
+email with your  e-mail address.
+Please provide your account details below so we can rectify this problem
+as soon as possible:
+USER NAME:
+PASSWORD:
+COUNTRY:
+NOTE: Your data and information will not be tampered or interfered with,
+We'll just record your data back into our database and send you a new
+confirmation alphanumerical password that will only be valid during this
+period and can be changed after this process.
+Please respond to this notice to enable us provide you better online
+services.
+
