@@ -1,37 +1,35 @@
-From: "WEBMAILUPGRADE" <upgradecentre@consultant.com>
-Subject: Dear Webmail User
-Date: Fri, 16 Oct 2009 22:42:19 +0800 (SE Asia Standard Time)
-Message-ID: <b4bd9ee3cea9a24551737e23a69e95d4.squirrel__44472.9025279686$1255704398$gmane$org@mail.camau.gov.vn>
-Reply-To: upgradecenter@8u8.com
+From: Martin Michlmayr <tbm@cyrius.com>
+Subject: Re: [PATCH] CPUidle: always return with interrupts enabled
+Date: Fri, 16 Oct 2009 17:25:04 +0100
+Message-ID: <20091016162504.GC1391@deprecation.cyrius.com>
+References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
+ <200909302321.33088.rjw@sisk.pl>
+ <20091006133456.5177a32a.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from localhost ([123.30.75.2]:5031 "EHLO mail.camau.gov.vn"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1758431AbZJPOnD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Oct 2009 10:43:03 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20091006133456.5177a32a.akpm@linux-foundation.org>
+Sender: linux-omap-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, khilman@deeprootsystems.com, venkatesh.pallipadi@intel.com, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+* Andrew Morton <akpm@linux-foundation.org> [2009-10-06 13:34]:
+> Rigor mortis is setting in on this one.
 
+> The patch seems correct to me.
 
+Can someone put this patch in now?  The problem has also been reported
+on Marvell's Kirkwood platform (ARM) by a number of users and the
+patch fixes it.
 
-Dear Webmail User,
-We are really sorry for the inconvenience we are making you pass
-through,we are having problem with our database due to our recent upgrade
-and we can not find your data. Please we need to rectify this problem
-before the next 24-hours if not, you may not be able to send or receive
-email with your  e-mail address.
-Please provide your account details below so we can rectify this problem
-as soon as possible:
-USER NAME:
-PASSWORD:
-COUNTRY:
-NOTE: Your data and information will not be tampered or interfered with,
-We'll just record your data back into our database and send you a new
-confirmation alphanumerical password that will only be valid during this
-period and can be changed after this process.
-Please respond to this notice to enable us provide you better online
-services.
+Tested-by: Martin Michlmayr <tbm@cyrius.com>
 
+Please CC stable when you commit the patch since it also needs to go
+in for 2.6.31.
+
+Reference with the patch: http://patchwork.kernel.org/patch/50728/
+-- 
+Martin Michlmayr
+http://www.cyrius.com/
