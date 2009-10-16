@@ -1,47 +1,45 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] CPUidle: always return with interrupts
-	enabled
-Date: Fri, 16 Oct 2009 14:11:04 -0700
-Message-ID: <20091016141104.d794f2c4.akpm@linux-foundation.org>
-References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
-	<200909302321.33088.rjw@sisk.pl>
-	<20091006133456.5177a32a.akpm@linux-foundation.org>
-	<20091016162504.GC1391@deprecation.cyrius.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH v3 0/6] ACPI: dock: code hygiene
+Date: Fri, 16 Oct 2009 15:14:54 -0600
+Message-ID: <20091016211323.12126.58457.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20091016162504.GC1391@deprecation.cyrius.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Martin Michlmayr <tbm@cyrius.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:28701 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751476AbZJPVOu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Oct 2009 17:14:50 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: shaohua.li@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 16 Oct 2009 17:25:04 +0100
-Martin Michlmayr <tbm@cyrius.com> wrote:
+This is v3 of a modest attempt to clean up the dock driver.
 
-> * Andrew Morton <akpm@linux-foundation.org> [2009-10-06 13:34]:
-> > Rigor mortis is setting in on this one.
-> 
-> > The patch seems correct to me.
-> 
-> Can someone put this patch in now?  The problem has also been reported
-> on Marvell's Kirkwood platform (ARM) by a number of users and the
-> patch fixes it.
-> 
-> Tested-by: Martin Michlmayr <tbm@cyrius.com>
+As before, compile tested only, since I don't have any machines
+that provide _DCK.
 
-I have it in my for-2.6.32 queue.
+Thanks.
+/ac
 
-> Please CC stable when you commit the patch since it also needs to go
-> in for 2.6.31.
+v2 -> v3:
+	- now using an attribute_group, as suggested by Dmitry Torokhov
 
-hm, I didn't know that.  So noted, thanks.
+v1 -> v2:
+	- changed how we add platform device data, based on Shaohua Li's
+	  review
+---
+
+Alex Chiang (6):
+      ACPI: dock: convert sysfs attributes to an attribute_group
+      ACPI: dock: combine add|alloc_dock_dependent_device
+      ACPI: dock: remove global 'dock_device_name'
+      ACPI: dock: dock_add - hoist up platform_device_register_simple()
+      ACPI: dock: add struct dock_station * directly to platform device data
+      ACPI: dock: minor whitespace and style cleanups
+
+
+ drivers/acpi/dock.c |  265 ++++++++++++++++++---------------------------------
+ 1 files changed, 92 insertions(+), 173 deletions(-)
+
