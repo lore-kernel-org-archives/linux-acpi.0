@@ -1,51 +1,47 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 2/2] eeepc-laptop: don't enable camera at startup if it's already on.
-Date: Fri, 16 Oct 2009 22:22:47 +0200
-Message-ID: <1255724567-25597-3-git-send-email-corentincj@iksaif.net>
-References: <1255724567-25597-1-git-send-email-corentincj@iksaif.net>
- <1255724567-25597-2-git-send-email-corentincj@iksaif.net>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:43233 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101AbZJPUVt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Oct 2009 16:21:49 -0400
-In-Reply-To: <1255724567-25597-2-git-send-email-corentincj@iksaif.net>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] CPUidle: always return with interrupts
+	enabled
+Date: Fri, 16 Oct 2009 14:11:04 -0700
+Message-ID: <20091016141104.d794f2c4.akpm@linux-foundation.org>
+References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
+	<200909302321.33088.rjw@sisk.pl>
+	<20091006133456.5177a32a.akpm@linux-foundation.org>
+	<20091016162504.GC1391@deprecation.cyrius.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20091016162504.GC1391@deprecation.cyrius.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Martin Michlmayr <tbm@cyrius.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Luca Niccoli <lultimouomo@gmail.com>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-From: Luca Niccoli <lultimouomo@gmail.com>
+On Fri, 16 Oct 2009 17:25:04 +0100
+Martin Michlmayr <tbm@cyrius.com> wrote:
 
-Switching the camera takes 500ms, checking if it's on is almost free...
-The BIOS remembers the setting through reboots, so there's good chance the
-camera is already enabled.
+> * Andrew Morton <akpm@linux-foundation.org> [2009-10-06 13:34]:
+> > Rigor mortis is setting in on this one.
+> 
+> > The patch seems correct to me.
+> 
+> Can someone put this patch in now?  The problem has also been reported
+> on Marvell's Kirkwood platform (ARM) by a number of users and the
+> patch fixes it.
+> 
+> Tested-by: Martin Michlmayr <tbm@cyrius.com>
 
-Signed-off-by: Luca Niccoli <lultimouomo@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/eeepc-laptop.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+I have it in my for-2.6.32 queue.
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 789d6ae..4226e53 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -356,7 +356,8 @@ static void __devinit eeepc_enable_camera(void)
- 	 * If the following call to set_acpi() fails, it's because there's no
- 	 * camera so we can ignore the error.
- 	 */
--	set_acpi(CM_ASL_CAMERA, 1);
-+	if (get_acpi(CM_ASL_CAMERA) == 0)
-+		set_acpi(CM_ASL_CAMERA, 1);
- }
- 
- /*
--- 
-1.6.5.rc2
+> Please CC stable when you commit the patch since it also needs to go
+> in for 2.6.31.
 
+hm, I didn't know that.  So noted, thanks.
