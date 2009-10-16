@@ -1,35 +1,36 @@
-From: Martin Michlmayr <tbm@cyrius.com>
-Subject: Re: [PATCH] CPUidle: always return with interrupts enabled
-Date: Fri, 16 Oct 2009 17:25:04 +0100
-Message-ID: <20091016162504.GC1391@deprecation.cyrius.com>
-References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
- <200909302321.33088.rjw@sisk.pl>
- <20091006133456.5177a32a.akpm@linux-foundation.org>
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH 0/2] eeepc-laptop updates for 2.6.32-rcX
+Date: Fri, 16 Oct 2009 22:22:45 +0200
+Message-ID: <1255724567-25597-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091006133456.5177a32a.akpm@linux-foundation.org>
-Sender: linux-omap-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, khilman@deeprootsystems.com, venkatesh.pallipadi@intel.com, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iksaif.net ([88.191.73.63]:43222 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751437AbZJPUVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Oct 2009 16:21:47 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-* Andrew Morton <akpm@linux-foundation.org> [2009-10-06 13:34]:
-> Rigor mortis is setting in on this one.
+Hi Len,
+Two more patch for eeepc-laptop, the first revert a previous commit:
+> a much better patch for this
+> (which fixes the problem directly in rt2860sta) arrived in Greg KH's
+> staging.current queue late yesterday.
 
-> The patch seems correct to me.
+The second really speed up the boot process for Eeepc.
+Thanks,
 
-Can someone put this patch in now?  The problem has also been reported
-on Marvell's Kirkwood platform (ARM) by a number of users and the
-patch fixes it.
+Corentin Chary (1):
+  Revert "eeepc-laptop: Prevent a panic when disabling RT2860 wireless
+    when associated"
 
-Tested-by: Martin Michlmayr <tbm@cyrius.com>
+Luca Niccoli (1):
+  eeepc-laptop: don't enable camera at startup if it's already on.
 
-Please CC stable when you commit the patch since it also needs to go
-in for 2.6.31.
+ drivers/platform/x86/eeepc-laptop.c |   30 ++++++++++--------------------
+ 1 files changed, 10 insertions(+), 20 deletions(-)
 
-Reference with the patch: http://patchwork.kernel.org/patch/50728/
--- 
-Martin Michlmayr
-http://www.cyrius.com/
