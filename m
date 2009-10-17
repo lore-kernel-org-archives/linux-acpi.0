@@ -1,63 +1,41 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 5/14] drivers/acpi: Move dereference after NULL test
-Date: Sat, 17 Oct 2009 08:34:39 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0910170834200.9213@ask.diku.dk>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 4/4] ACPI: Battery: Add support for _BIX extended info
+ method
+Date: Sat, 17 Oct 2009 12:41:24 -0300
+Message-ID: <20091017154124.GA31182@khazad-dum.debian.net>
+References: <20091015103122.3853.34760.stgit@thinkpad>
+ <20091015103144.3853.9717.stgit@thinkpad>
+ <9b2b86520910160208l5bc6e20dkca79ae54505428ed@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:51658 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751397AbZJQGeh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 Oct 2009 02:34:37 -0400
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:49235 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751988AbZJQPlX (ORCPT
+	<rfc822;Linux-acpi@vger.kernel.org>);
+	Sat, 17 Oct 2009 11:41:23 -0400
+Content-Disposition: inline
+In-Reply-To: <9b2b86520910160208l5bc6e20dkca79ae54505428ed@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <lenb@kernel.org>, Linux-acpi@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+On Fri, 16 Oct 2009, Alan Jenkins wrote:
+> So userspace is supposed to realise that "0" means "this attribute is
+> not supported", as opposed to "I am a brand new battery and don't
+> remember being factory-tested".
+> 
+> How about returning -1 for batteries without _BIX?
 
-If the NULL test on pr is needed, then the dereference should be after the
-NULL test.
+How about NOT registering attributes that don't exist?  That's the proper
+way of doing things in sysfs.
 
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
+When that's not possible, I'd suggest doing the right thing and returning an
+error of some sort (ENXIO, ENOTSUP, etc)...
 
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
-
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/acpi/processor_throttling.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 4c6c14c..1c5d7a8 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -1133,15 +1133,15 @@ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
- 	int result = 0;
- 	struct acpi_processor_throttling *pthrottling;
- 
-+	if (!pr)
-+		return -EINVAL;
-+
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
- 			  pr->throttling.address,
- 			  pr->throttling.duty_offset,
- 			  pr->throttling.duty_width));
- 
--	if (!pr)
--		return -EINVAL;
--
- 	/*
- 	 * Evaluate _PTC, _TSS and _TPC
- 	 * They must all be present or none of them can be used.
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
