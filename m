@@ -1,131 +1,153 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v4 2/6] ACPI: dock: combine add|alloc_dock_dependent_device
-Date: Mon, 19 Oct 2009 15:14:29 -0600
-Message-ID: <20091019211429.5412.41363.stgit@bob.kio>
+Subject: [PATCH v4 5/6] ACPI: dock: add struct dock_station * directly to
+	platform device data
+Date: Mon, 19 Oct 2009 15:14:45 -0600
+Message-ID: <20091019211445.5412.89413.stgit@bob.kio>
 References: <20091019211132.5412.80438.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757685AbZJSVO3@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:28418 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757662AbZJSVOl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Oct 2009 17:14:41 -0400
 In-Reply-To: <20091019211132.5412.80438.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: =shaohua.li@intel.com, lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-There's no real need to have a separate allocation step when adding
-a dock dependent device.
+Instead of adding a (struct dock_station **) to our dock device's
+platform data, we can add the (struct dock_station *) directly.
 
-Combining the two functions is both logical and helps with legibility.
+This change saves us some ugly casting and improves readability.
+
+The cost of making this change is an extra 290 bytes of stack usage,
+but this is an infrequently called code-path and unlikely to cause
+the kernel to blow up.
 
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/dock.c |   55 ++++++++++++++++++---------------------------------
- 1 files changed, 19 insertions(+), 36 deletions(-)
+ drivers/acpi/dock.c |   40 +++++++++++++---------------------------
+ 1 files changed, 13 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 4f2aa98..347ea98 100644
+index 9242004..de6ee18 100644
 --- a/drivers/acpi/dock.c
 +++ b/drivers/acpi/dock.c
-@@ -93,40 +93,30 @@ struct dock_dependent_device {
-  *                         Dock Dependent device functions                   *
-  *****************************************************************************/
- /**
-- *  alloc_dock_dependent_device - allocate and init a dependent device
-- *  @handle: the acpi_handle of the dependent device
-+ * add_dock_dependent_device - associate a device with the dock station
-+ * @handle: handle of the dependent device
-+ * @ds: The dock station
-  *
-- *  Allocate memory for a dependent device structure for a device referenced
-- *  by the acpi handle
-+ * Add the dependent device to the dock's dependent device list.
-  */
--static struct dock_dependent_device *
--alloc_dock_dependent_device(acpi_handle handle)
-+static int
-+add_dock_dependent_device(acpi_handle handle, struct dock_station *ds)
+@@ -843,8 +843,7 @@ static ssize_t show_docked(struct device *dev,
  {
- 	struct dock_dependent_device *dd;
+ 	struct acpi_device *tmp;
  
- 	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
--	if (dd) {
--		dd->handle = handle;
--		INIT_LIST_HEAD(&dd->list);
--		INIT_LIST_HEAD(&dd->hotplug_list);
--	}
--	return dd;
--}
-+	if (!dd)
-+		return -ENOMEM;
-+
-+	dd->handle = handle;
-+	INIT_LIST_HEAD(&dd->list);
-+	INIT_LIST_HEAD(&dd->hotplug_list);
+-	struct dock_station *dock_station = *((struct dock_station **)
+-		dev->platform_data);
++	struct dock_station *dock_station = dev->platform_data;
  
--/**
-- * add_dock_dependent_device - associate a device with the dock station
-- * @ds: The dock station
-- * @dd: The dependent device
-- *
-- * Add the dependent device to the dock's dependent device list.
-- */
--static void
--add_dock_dependent_device(struct dock_station *ds,
--			  struct dock_dependent_device *dd)
--{
- 	spin_lock(&ds->dd_lock);
- 	list_add_tail(&dd->list, &ds->dependent_devices);
- 	spin_unlock(&ds->dd_lock);
-+
-+	return 0;
+ 	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
+ 		return snprintf(buf, PAGE_SIZE, "1\n");
+@@ -858,8 +857,7 @@ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+ static ssize_t show_flags(struct device *dev,
+ 			  struct device_attribute *attr, char *buf)
+ {
+-	struct dock_station *dock_station = *((struct dock_station **)
+-		dev->platform_data);
++	struct dock_station *dock_station = dev->platform_data;
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_station->flags);
+ 
  }
- 
- /**
-@@ -826,7 +816,6 @@ find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	acpi_status status;
- 	acpi_handle tmp, parent;
- 	struct dock_station *ds = context;
--	struct dock_dependent_device *dd;
- 
- 	status = acpi_bus_get_ejd(handle, &tmp);
- 	if (ACPI_FAILURE(status)) {
-@@ -840,11 +829,9 @@ find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
- 			goto fdd_out;
- 	}
- 
--	if (tmp == ds->handle) {
--		dd = alloc_dock_dependent_device(handle);
--		if (dd)
--			add_dock_dependent_device(ds, dd);
--	}
-+	if (tmp == ds->handle)
-+		add_dock_dependent_device(ds, handle);
-+
- fdd_out:
- 	return AE_OK;
- }
-@@ -959,7 +946,6 @@ static struct attribute_group dock_attribute_group = {
- static int dock_add(acpi_handle handle)
+@@ -872,8 +870,7 @@ static ssize_t write_undock(struct device *dev, struct device_attribute *attr,
+ 			   const char *buf, size_t count)
  {
  	int ret;
--	struct dock_dependent_device *dd;
- 	struct dock_station *dock_station;
+-	struct dock_station *dock_station = *((struct dock_station **)
+-		dev->platform_data);
++	struct dock_station *dock_station = dev->platform_data;
+ 
+ 	if (!count)
+ 		return -EINVAL;
+@@ -891,8 +888,7 @@ static ssize_t show_dock_uid(struct device *dev,
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	unsigned long long lbuf;
+-	struct dock_station *dock_station = *((struct dock_station **)
+-		dev->platform_data);
++	struct dock_station *dock_station = dev->platform_data;
+ 	acpi_status status = acpi_evaluate_integer(dock_station->handle,
+ 					"_UID", NULL, &lbuf);
+ 	if (ACPI_FAILURE(status))
+@@ -905,8 +901,7 @@ static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
+ static ssize_t show_dock_type(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct dock_station *dock_station = *((struct dock_station **)
+-		dev->platform_data);
++	struct dock_station *dock_station = dev->platform_data;
+ 	char *type;
+ 
+ 	if (dock_station->flags & DOCK_IS_DOCK)
+@@ -944,20 +939,18 @@ static struct attribute_group dock_attribute_group = {
+  */
+ static int dock_add(acpi_handle handle)
+ {
+-	int ret;
+-	struct dock_station *dock_station;
++	int ret, id;
++	struct dock_station ds, *dock_station;
  	struct platform_device *dock_device;
  
-@@ -1008,12 +994,9 @@ static int dock_add(acpi_handle handle)
- 			    NULL);
++	id = dock_station_count;
+ 	dock_device =
+-		platform_device_register_simple("dock",
+-			dock_station_count, NULL, 0);
++		platform_device_register_data(NULL, "dock",
++			id, &ds, sizeof(ds));
+ 	if (IS_ERR(dock_device))
+ 		return PTR_ERR(dock_device);
  
- 	/* add the dock station as a device dependent on itself */
--	dd = alloc_dock_dependent_device(handle);
--	if (!dd) {
--		ret = -ENOMEM;
-+	ret = add_dock_dependent_device(dock_station, handle);
-+	if (ret)
- 		goto err_rmgroup;
--	}
--	add_dock_dependent_device(dock_station, dd);
+-	/* allocate & initialize the dock_station private data */
+-	dock_station = kzalloc(sizeof(*dock_station), GFP_KERNEL);
+-	if (!dock_station)
+-		return -ENOMEM;
++	dock_station = dock_device->dev.platform_data;
+ 	dock_station->handle = handle;
+ 	dock_station->dock_device = dock_device;
+ 	dock_station->last_dock_time = jiffies - HZ;
+@@ -968,9 +961,6 @@ static int dock_add(acpi_handle handle)
+ 	mutex_init(&dock_station->hp_lock);
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
  
- 	dock_station_count++;
- 	list_add(&dock_station->sibling, &dock_stations);
+-	platform_device_add_data(dock_device, &dock_station,
+-		sizeof(struct dock_station *));
+-
+ 	/* we want the dock device to send uevents */
+ 	dev_set_uevent_suppress(&dock_device->dev, 0);
+ 
+@@ -1003,9 +993,6 @@ err_rmgroup:
+ 	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
+ err_unregister:
+ 	platform_device_unregister(dock_device);
+-out:
+-	kfree(dock_station);
+-	dock_station = NULL;
+ 	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
+ 	return ret;
+ }
+@@ -1026,13 +1013,12 @@ static int dock_remove(struct dock_station *dock_station)
+ 				 list)
+ 	    kfree(dd);
+ 
++	list_del(&dock_station->sibling);
++
+ 	/* cleanup sysfs */
+ 	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
+ 	platform_device_unregister(dock_device);
+ 
+-	/* free dock station memory */
+-	kfree(dock_station);
+-	dock_station = NULL;
+ 	return 0;
+ }
+ 
+
