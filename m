@@ -1,74 +1,156 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 5/7] acpi: fix a bunch of style issues on 'actypes.h'
-Date: Mon, 19 Oct 2009 19:16:07 +0300
-Message-ID: <94a0d4530910190916t2bdd9ecl59a3cfc0cc732852@mail.gmail.com>
-References: <1255906474-25091-1-git-send-email-felipe.contreras@gmail.com>
-	 <1255906474-25091-6-git-send-email-felipe.contreras@gmail.com>
-	 <alpine.LSU.2.00.0910191616290.8582@wotan.suse.de>
-	 <94a0d4530910190757y139c7e20xe6a58f0cbf13a79d@mail.gmail.com>
-	 <alpine.LSU.2.00.0910191658260.8582@wotan.suse.de>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH v3 1/6] ACPI: dock: convert sysfs attributes to an
+	attribute_group
+Date: Mon, 19 Oct 2009 11:21:38 -0600
+Message-ID: <20091019172138.GB23948@ldl.fc.hp.com>
+References: <20091016211323.12126.58457.stgit@bob.kio> <20091016211459.12126.60739.stgit@bob.kio> <20091018071630.GC3935@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:44138 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756833AbZJSQQE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Oct 2009 12:16:04 -0400
-In-Reply-To: <alpine.LSU.2.00.0910191658260.8582@wotan.suse.de>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:28394 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755352AbZJSRVt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Oct 2009 13:21:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20091018071630.GC3935@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: lenb@kernel.org, shaohua.li@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Oct 19, 2009 at 6:03 PM, Jiri Kosina <jkosina@suse.cz> wrote:
-> On Mon, 19 Oct 2009, Felipe Contreras wrote:
->
->> > I have never been in favor of merging whitespace-only patches (in a
->> > sense that the sole purpose of them being to change whitespaces, but
->> > no else value added).
->> If somebody tries to send a patch for that file that doesn't fix the
->> white-space, checkpatch will complain, and people will complain that
->> checkpatch complains, which is precisely what happened,
->
-> Oh, well ... checkpatch warning about this is somewhat controversial. My
-> preferred way would be that it warns about whitespace only if there are
-> also some other (non-whitespace) changes.
+Hi Dmitry,
 
-Huh? I think we are talking about different things. See the next comment.
+* Dmitry Torokhov <dmitry.torokhov@gmail.com>:
+> On Fri, Oct 16, 2009 at 03:14:59PM -0600, Alex Chiang wrote:
+> > As suggested by Dmitry Torokhov, convert the individual sysfs
+> > attributes into an attribute group.
+> > 
+> > This change eliminates quite a bit of copy/paste code in the
+> > error handling paths.
+> > 
+> 
+> Looks much better, one more suggestion though:
+> 
+> > +err_unregister:
+> > +	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
+> 
+> If you want to print error this it should probably go down, right before
+> "return ret".
 
->> and I was requested to write this patch by Daniel Walker (final mail
->> wasn't on the ml):
->>
->> http://lkml.org/lkml/2009/9/14/183
->
-> This is something slightly different -- he asks you to fixup whitespace
-> issue in the code you are newly introducing, right?
+This is true for this patch, 1/6... but by the end of the series,
+the problem has resolved itself.
 
-No, did you read the thread?
+I agree that it's sloppy to have this bit of inconsistency in the
+middle of the patch series, but I'm reluctant to spin the entire
+series again, for sake of a printk.
 
-This was my patch:
--#define ACPI_MIN(a,b)                   (((a)<(b))?(a):(b))
--#define ACPI_MAX(a,b)                   (((a)>(b))?(a):(b))
-+#define ACPI_MIN(a,b)                   min(a, b)
-+#define ACPI_MAX(a,b)                   max(a, b)
+> > +	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
+> 
+> It begs another label right here. There are cases when yo0u already
+> registered the platform device but haven't added the sysfs group, right?
 
-Checkpatch complains, even though my changes are ok. So that's what I
-mean, if somebody wants to do a similar patch in the future so that
-checkpatch doesn't complain; they would have to fix the white-spaces
-again.
+This isn't quite true. In this patch, 1/6, our sequence goes:
 
-Or checkpatch should be fixed.
+	platform_device_register_simple()
+	platform_device_add_data()
+	/* twiddle some state in the platform device, no error paths though */
+	sysfs_create_group()
 
->> > And after today's discussion on kernel summit on this topic, I wouldn't
->> > expect any maintainer to merge it, sorry :)
->> What are you talking about?
->
-> Seems like many kernel maintainers are just tired of
-> 'whitespace-cleanup-only' patches that bring no real added value
-> otherwise.
+Arguably, the platform_device_add_data() call could fail with
+-ENOMEM, but the code today doesn't deal with that error
+condition, and I didn't touch the platform_device_add_data()
+line.
 
-Hm, I wonder what would happen to the current badly formatted code.
-Stay there forever?
+So really, there are no other exit paths between registering the
+platform device and adding the sysfs group.
 
--- 
-Felipe Contreras
+By the end of the patch series, I combine the _register_simple()
+call with the _add_data() call and the final sequence looks like
+this:
+
+	if (platform_device_register_data() == error)
+		return error;
+
+	/* twiddle local state in platform device */
+
+	if (sysfs_create_group())
+		goto err_unregister;
+
+	/* other stuff */
+
+	err_unregister:
+		printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
+		sysfs_remove_group(&dd->dev.kobj, &dock_attribute_group);
+		platform_device_unregister(dd);
+		return ret;
+
+Checking other callsites of sysfs_remove_group(), it seems to be
+valid to call that API even if the creation step failed.
+
+Basically, I don't see the necessity of adding another label.
+
+Below is the final end state of dock_add(). Hopefully the code is
+a lot clearer than before. If there are still semantic issues,
+please let me know and I'll happily respin.
+
+Thanks.
+
+/ac
+
+static int dock_add(acpi_handle handle)
+{
+	int ret, id;
+	struct dock_station ds, *dock_station;
+	struct platform_device *dd;
+
+	id = dock_station_count;
+	dd = platform_device_register_data(NULL, "dock", id, &ds, sizeof(ds));
+	if (IS_ERR(dd))
+		return PTR_ERR(dd);
+
+	dock_station = dd->dev.platform_data;
+
+	dock_station->handle = handle;
+	dock_station->dock_device = dd;
+	dock_station->last_dock_time = jiffies - HZ;
+
+	mutex_init(&dock_station->hp_lock);
+	spin_lock_init(&dock_station->dd_lock);
+	INIT_LIST_HEAD(&dock_station->sibling);
+	INIT_LIST_HEAD(&dock_station->hotplug_devices);
+	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
+	INIT_LIST_HEAD(&dock_station->dependent_devices);
+
+	/* we want the dock device to send uevents */
+	dev_set_uevent_suppress(&dd->dev, 0);
+
+	if (is_dock(handle))
+		dock_station->flags |= DOCK_IS_DOCK;
+	if (is_ata(handle))
+		dock_station->flags |= DOCK_IS_ATA;
+	if (is_battery(handle))
+		dock_station->flags |= DOCK_IS_BAT;
+
+	ret = sysfs_create_group(&dd->dev.kobj, &dock_attribute_group);
+	if (ret)
+		goto err_unregister;
+
+	/* Find dependent devices */
+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
+			    find_dock_devices, dock_station, NULL);
+
+	/* add the dock station as a device dependent on itself */
+	ret = add_dock_dependent_device(dock_station, handle);
+	if (ret)
+		goto err_unregister;
+
+	dock_station_count++;
+	list_add(&dock_station->sibling, &dock_stations);
+	return 0;
+
+err_unregister:
+	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
+	sysfs_remove_group(&dd->dev.kobj, &dock_attribute_group);
+	platform_device_unregister(dd);
+	return ret;
+}
