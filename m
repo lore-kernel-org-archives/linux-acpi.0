@@ -1,83 +1,83 @@
-From: Amit Kucheria <amit.kucheria@canonical.com>
-Subject: [PATCH] acpi: thermal: [TRIVIAL] Add EOL to the trip_point_N_type
-	strings
-Date: Tue, 20 Oct 2009 09:11:14 +0300
-Message-ID: <37786d4b0910192311t7a9aad87i7adc62cf86bc29e2@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] acpi: thermal: [TRIVIAL] Add EOL to the
+ trip_point_N_type strings
+Date: Tue, 20 Oct 2009 14:16:52 +0800
+Message-ID: <1256019412.3838.20.camel@rzhang-dt>
 References: <1255686362-30022-1-git-send-email-amit.kucheria@canonical.com>
+	 <37786d4b0910192311t7a9aad87i7adc62cf86bc29e2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:62313 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395AbZJTGLK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Oct 2009 02:11:10 -0400
-Received: by ewy3 with SMTP id 3so4441515ewy.17
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2009 23:11:14 -0700 (PDT)
-In-Reply-To: <1255686362-30022-1-git-send-email-amit.kucheria@canonical.com>
+Received: from mga09.intel.com ([134.134.136.24]:64079 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424AbZJTGTy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Oct 2009 02:19:54 -0400
+In-Reply-To: <37786d4b0910192311t7a9aad87i7adc62cf86bc29e2@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: Amit Kucheria <amit.kucheria@canonical.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Rui,
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-This patch should perhaps have been cc'ed to you and the linux-acpi
-list as well.
+thanks,
+rui
 
-Regards,
-Amit
+On Tue, 2009-10-20 at 14:11 +0800, Amit Kucheria wrote:
+> Rui,
+> 
+> This patch should perhaps have been cc'ed to you and the linux-acpi
+> list as well.
+> 
+> Regards,
+> Amit
+> 
+> ---------- Forwarded message ----------
+> From:  <amit.kucheria@canonical.com>
+> Date: Fri, Oct 16, 2009 at 12:46 PM
+> Subject: [PATCH] acpi: thermal: [TRIVIAL] Add EOL to the
+> trip_point_N_type strings
+> To: List Linux Kernel <linux-kernel@vger.kernel.org>
+> Cc: len.brown@intel.com, Amit Kucheria <amit.kucheria@canonical.com>
+> 
+> 
+> From: Amit Kucheria <amit.kucheria@canonical.com>
+> 
+> Make the trip_point_N_type sysfs files return a string ending in EOL for
+> consistency with other sysfs files.
+> 
+> Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
+> ---
+>  drivers/thermal/thermal_sys.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 4e83c29..6f8d8f9 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -180,15 +180,15 @@ trip_point_type_show(struct device *dev, struct
+> device_attribute *attr,
+> 
+>        switch (type) {
+>        case THERMAL_TRIP_CRITICAL:
+> -               return sprintf(buf, "critical");
+> +               return sprintf(buf, "critical\n");
+>        case THERMAL_TRIP_HOT:
+> -               return sprintf(buf, "hot");
+> +               return sprintf(buf, "hot\n");
+>        case THERMAL_TRIP_PASSIVE:
+> -               return sprintf(buf, "passive");
+> +               return sprintf(buf, "passive\n");
+>        case THERMAL_TRIP_ACTIVE:
+> -               return sprintf(buf, "active");
+> +               return sprintf(buf, "active\n");
+>        default:
+> -               return sprintf(buf, "unknown");
+> +               return sprintf(buf, "unknown\n");
+>        }
+>  }
+> 
+> --
+> 1.6.3.3
 
----------- Forwarded message ----------
-=46rom:  <amit.kucheria@canonical.com>
-Date: Fri, Oct 16, 2009 at 12:46 PM
-Subject: [PATCH] acpi: thermal: [TRIVIAL] Add EOL to the
-trip_point_N_type strings
-To: List Linux Kernel <linux-kernel@vger.kernel.org>
-Cc: len.brown@intel.com, Amit Kucheria <amit.kucheria@canonical.com>
-
-
-=46rom: Amit Kucheria <amit.kucheria@canonical.com>
-
-Make the trip_point_N_type sysfs files return a string ending in EOL fo=
-r
-consistency with other sysfs files.
-
-Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
----
-=A0drivers/thermal/thermal_sys.c | =A0 10 +++++-----
-=A01 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sy=
-s.c
-index 4e83c29..6f8d8f9 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -180,15 +180,15 @@ trip_point_type_show(struct device *dev, struct
-device_attribute *attr,
-
-=A0 =A0 =A0 =A0switch (type) {
-=A0 =A0 =A0 =A0case THERMAL_TRIP_CRITICAL:
-- =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "critical");
-+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "critical\n");
-=A0 =A0 =A0 =A0case THERMAL_TRIP_HOT:
-- =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "hot");
-+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "hot\n");
-=A0 =A0 =A0 =A0case THERMAL_TRIP_PASSIVE:
-- =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "passive");
-+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "passive\n");
-=A0 =A0 =A0 =A0case THERMAL_TRIP_ACTIVE:
-- =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "active");
-+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "active\n");
-=A0 =A0 =A0 =A0default:
-- =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "unknown");
-+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 return sprintf(buf, "unknown\n");
-=A0 =A0 =A0 =A0}
-=A0}
-
---
-1.6.3.3
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
