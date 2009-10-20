@@ -1,58 +1,43 @@
-From: Luca Niccoli <lultimouomo@gmail.com>
-Subject: Re: [PATCH 2/2] eeepc-laptop: don't enable camera at startup if it's
-	already on.
-Date: Tue, 20 Oct 2009 16:31:34 +0200
-Message-ID: <4e9568870910200731u3fddd1c8q86e1c6cb64d32872@mail.gmail.com>
-References: <1255724567-25597-1-git-send-email-corentincj@iksaif.net>
-	<1255724567-25597-2-git-send-email-corentincj@iksaif.net>
-	<1255724567-25597-3-git-send-email-corentincj@iksaif.net>
-	<20091020083555.GG19095@wrars-comp.wrarsdomain> <9b2b86520910200204n2089bcf1h2535e56d2ec4156e@mail.gmail.com>
-	<20091020092402.GI19095@wrars-comp.wrarsdomain> <9b2b86520910200238u66af0d34v99931cf86507d5ff@mail.gmail.com>
-	<20091020094143.GJ19095@wrars-comp.wrarsdomain> <9b2b86520910200719l34e96c88y739c14f0b9f339be@mail.gmail.com>
+From: Nick Nobody <me@nikosapi.org>
+Subject: ACPI support for Gateway LT3108
+Date: Tue, 20 Oct 2009 10:08:39 -0400
+Message-ID: <1256047719.3526.31.camel@nikosapi-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:48129 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934AbZJTObu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Oct 2009 10:31:50 -0400
-Received: by fxm18 with SMTP id 18so6491180fxm.37
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2009 07:31:54 -0700 (PDT)
-In-Reply-To: <9b2b86520910200719l34e96c88y739c14f0b9f339be@mail.gmail.com>
+Received: from nikosapi.org ([209.123.162.110]:40535 "EHLO nikosapi.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751845AbZJTOs7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Oct 2009 10:48:59 -0400
+Received: from 76-10-183-81.dsl.teksavvy.com ([76.10.183.81] helo=[192.168.0.68])
+	by nikosapi.org with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.63)
+	(envelope-from <nikosapi@nikosapi.org>)
+	id 1N0FOU-0004PM-DY
+	for linux-acpi@vger.kernel.org; Tue, 20 Oct 2009 10:08:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: Andrey Rahmatullin <wrar@altlinux.org>, Corentin Chary <corentincj@iksaif.net>, lenb@kernel.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
-2009/10/20 Alan Jenkins <sourcejedi.lkml@googlemail.com>:
+Hi,
 
-> I guess the argument is that it's better to waste a little power,
-> rather than make life hard for people who install Linux themselves
-> :-/. =A0After all these devices are mainly shipped with Windows, and =
-the
-> original pre-installed Linux (which hacked around this in video
-> applications) is not seriously maintained. =A0The problem is that whe=
-n
-> the pre-installed OS uses the hack, the camera will be disabled in th=
-e
-> BIOS. =A0When you install a generic version of Linux without hacked
-> applications, you either have eeepc-laptop enable the camera, or the
-> user has to learn how to do it themself.
->
-> I don't have a strong opinion myself, so long as it's fixed properly
-> in the long term.
+I just got a netbook and I can't use frequency scaling unless I
+recompile the kernel (2.6.31.4) with a patch for powernow-k8 [1] and a
+custom DSDT [2]. I read that using custom DSDTs are frowned upon so I
+was wondering how I can help getting the laptop working without one.
 
-=46or the short term, I guess that distributions that ship some
-eee-related package could make it include an udev rule - I'm going to
-propose this in Debian.
-=46or the long term:
-if having blanket-enabled autosuspend is shown to rarely raise
-problems, maybe a blacklist could be added in default udev rules?
+I also noticed that it doesn't always wake up from sleep: it'll just
+hang with a black screen. This is with both a 2.6.28.15 (ubuntu kernel)
+and 2.6.31.4 (vanilla from kernel.org). How would I go about debugging
+this?
 
-Luca
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The laptop in question is a Gateway LT3108. It's all AMD/ATI chips with
+a Phoenix BIOS (I checked for updates, there are none). Please let me
+know whatever information you need, I'll send it right along.
+
+nick
+
+[1] http://www.pow.za.net/powernow-k8-git.diff
+[2] http://www.pow.za.net/dsdt.hex.txt
+
