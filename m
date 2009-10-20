@@ -1,83 +1,55 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] acpi: thermal: [TRIVIAL] Add EOL to the
- trip_point_N_type strings
-Date: Tue, 20 Oct 2009 14:16:52 +0800
-Message-ID: <1256019412.3838.20.camel@rzhang-dt>
-References: <1255686362-30022-1-git-send-email-amit.kucheria@canonical.com>
-	 <37786d4b0910192311t7a9aad87i7adc62cf86bc29e2@mail.gmail.com>
+From: Andrey Rahmatullin <wrar@altlinux.org>
+Subject: Re: [PATCH 2/2] eeepc-laptop: don't enable camera at startup if
+ it's already on.
+Date: Tue, 20 Oct 2009 14:35:55 +0600
+Message-ID: <20091020083555.GG19095@wrars-comp.wrarsdomain>
+References: <1255724567-25597-1-git-send-email-corentincj@iksaif.net>
+ <1255724567-25597-2-git-send-email-corentincj@iksaif.net>
+ <1255724567-25597-3-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="EUYUPHVNfBVWjsvu"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64079 "EHLO mga09.intel.com"
+Received: from k66.ru ([87.224.128.21]:53658 "EHLO k66.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424AbZJTGTy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Oct 2009 02:19:54 -0400
-In-Reply-To: <37786d4b0910192311t7a9aad87i7adc62cf86bc29e2@mail.gmail.com>
+	id S1751071AbZJTIfx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Oct 2009 04:35:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1255724567-25597-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@canonical.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Luca Niccoli <lultimouomo@gmail.com>, Len Brown <len.brown@intel.com>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
 
-Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-thanks,
-rui
+--EUYUPHVNfBVWjsvu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2009-10-20 at 14:11 +0800, Amit Kucheria wrote:
-> Rui,
-> 
-> This patch should perhaps have been cc'ed to you and the linux-acpi
-> list as well.
-> 
-> Regards,
-> Amit
-> 
-> ---------- Forwarded message ----------
-> From:  <amit.kucheria@canonical.com>
-> Date: Fri, Oct 16, 2009 at 12:46 PM
-> Subject: [PATCH] acpi: thermal: [TRIVIAL] Add EOL to the
-> trip_point_N_type strings
-> To: List Linux Kernel <linux-kernel@vger.kernel.org>
-> Cc: len.brown@intel.com, Amit Kucheria <amit.kucheria@canonical.com>
-> 
-> 
-> From: Amit Kucheria <amit.kucheria@canonical.com>
-> 
-> Make the trip_point_N_type sysfs files return a string ending in EOL for
-> consistency with other sysfs files.
-> 
-> Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
-> ---
->  drivers/thermal/thermal_sys.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 4e83c29..6f8d8f9 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -180,15 +180,15 @@ trip_point_type_show(struct device *dev, struct
-> device_attribute *attr,
-> 
->        switch (type) {
->        case THERMAL_TRIP_CRITICAL:
-> -               return sprintf(buf, "critical");
-> +               return sprintf(buf, "critical\n");
->        case THERMAL_TRIP_HOT:
-> -               return sprintf(buf, "hot");
-> +               return sprintf(buf, "hot\n");
->        case THERMAL_TRIP_PASSIVE:
-> -               return sprintf(buf, "passive");
-> +               return sprintf(buf, "passive\n");
->        case THERMAL_TRIP_ACTIVE:
-> -               return sprintf(buf, "active");
-> +               return sprintf(buf, "active\n");
->        default:
-> -               return sprintf(buf, "unknown");
-> +               return sprintf(buf, "unknown\n");
->        }
->  }
-> 
-> --
-> 1.6.3.3
+On Fri, Oct 16, 2009 at 10:22:47PM +0200, Corentin Chary wrote:
+> Switching the camera takes 500ms, checking if it's on is almost free...
+So if I don't want camera to be enabled, I should wait 500ms on boot to
+enable it and then other 500ms to disable?
 
+--=20
+WBR, wRAR (ALT Linux Team)
+
+--EUYUPHVNfBVWjsvu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBCAAGBQJK3XZqAAoJEOih81koZvPBrR8H/2BLDWns99DNDsUJgw6ULbyq
+x3Bc4DK5jY7XSPss8NzTVHBfvKdHFP2rs7ltLh3yCQYWM3+lFC5BBQjRWbbsIYYd
+0/TRSpSpWYqkAhGAAaCOSPD+iwaYKbr+J5Q+5szc8d4qwmpIdjwACTyLDhRgUsCJ
+4KG1WjZIa/Vno4AZ8zVLDOymLaxVvaqL3GZP+OFNbZ/aWbpZQD0sqvZFM/ASlWzj
+C+LUXfTdsyfHFZ1sb7uxwqnAOpBj855AMh4PzPbw+ccbcVNmtA7O02ntr9d8r4+K
+3RBNzKVOULifTQAKQFr74utAJ3Fpx2JjiN2Wco+h4W1ptnVFiNKWbGUQ+LTK33U=
+=2HXA
+-----END PGP SIGNATURE-----
+
+--EUYUPHVNfBVWjsvu--
