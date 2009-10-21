@@ -1,52 +1,148 @@
-From: "Darrick J. Wong" <djwong-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i2c-scmi: Quirk to work on IBM machines with broken
-	BIOSes
-Date: Wed, 21 Oct 2009 10:37:33 -0700
-Message-ID: <20091021173733.GN26149@tux1.beaverton.ibm.com>
-References: <20091020231149.GM26149@tux1.beaverton.ibm.com> <20091021023016.GC32413@crane-desktop> <200910210857.13978.bjorn.helgaas@hp.com>
-Reply-To: djwong-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+From: <Stuart_Hayes@Dell.com>
+Subject: [PATCH] dell-laptop: Use buffer with 32-bit physical address
+Date: Wed, 21 Oct 2009 14:04:09 -0500
+Message-ID: <DFEF91B22ED07447AB6AA4B237F913F9039D0A64@ausx3mpc125.aus.amer.dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200910210857.13978.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Crane Cai <crane.cai-5C7GfCeVMHo@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01CA5281.457C3215"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ausxippc101.us.dell.com ([143.166.85.207]:4631 "EHLO
+	ausxippc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903AbZJUTEH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Oct 2009 15:04:07 -0400
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: mjg@redhat.com, Rezwanul_Kabir@Dell.com, Stuart_Hayes@Dell.com
 
-On Wed, Oct 21, 2009 at 08:57:13AM -0600, Bjorn Helgaas wrote:
-> On Tuesday 20 October 2009 08:30:16 pm Crane Cai wrote:
-> > Hi Darrick,
-> > 
-> > On Tue, Oct 20, 2009 at 04:11:49PM -0700, Darrick J. Wong wrote:
-> > > On some old IBM workstations and desktop computers, the BIOS presents in
-> > > the DSDT an SMBus object that is missing the HID identifier that the
-> > > i2c-scmi driver looks for.  It also omits the leading "_" in the method
-> > > names (it should be _SBR, not SBR_).  Modify the ACPI device scan code to
-> > > insert the missing HID if it finds an IBM system with such an object, and
-> > > modify the i2c-scmi driver to handle the odd method names.
-> > I have a suggestion: You can need not to add quirk in acpi part, instead
-> > you can add your ACPI device HID in i2c-scmi with your specificied methods
-> > set.
+This is a multi-part message in MIME format.
 
-The problem is that the BIOS does not provide an HID for the SMBus object at
-all...
+------_=_NextPart_001_01CA5281.457C3215
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> Maybe Darrick understands your suggestion, but I don't.  The only way
-> i2c-scmi ever learns about a device is when acpi_smbus_cmi_add() is
-> called, and that's only called when the Linux/ACPI core has found a
-> device that matches "SMBUS01".
-> 
-> Can you elaborate on your suggestion?
-> 
-> The i2c-scmi driver *could* walk the whole namespace itself, looking
-> for devices with the SBI/SBR/SBW methods, but I like Darrick's quirk
-> approach better because it allows i2c-scmi to continue to use the
-> normal ACPI driver model.
 
-...which is why I need the quirk to stuff one in at the OS level.  Were it as
-simple as recognizing a different HID, I could have written a less intrusive
-patch. :/
+Calls to communicate with system firmware via a SMI (using dcdbas) need
+to use a buffer that has a physical address of 4GB or less.  Currently
+the dell-laptop driver does not guarantee this, and when the buffer
+address is higher than 4GB, the address is truncated to 32 bits and the
+SMI handler writes to the wrong memory address.
 
---D
+Signed-off-by: Stuart Hayes <stuart_hayes@dell.com>
+
+=20
+ <<dell-laptop-buffer-below-4G-for-2.6.31.4.patch>>=20
+
+------_=_NextPart_001_01CA5281.457C3215
+Content-Type: application/octet-stream;
+	name="dell-laptop-buffer-below-4G-for-2.6.31.4.patch"
+Content-Transfer-Encoding: base64
+Content-Description: dell-laptop-buffer-below-4G-for-2.6.31.4.patch
+Content-Disposition: attachment;
+	filename="dell-laptop-buffer-below-4G-for-2.6.31.4.patch"
+
+LS0tIGxpbnV4LTIuNi4zMS9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kZWxsLWxhcHRvcC5jLm9yaWcJ
+MjAwOS0xMC0xOSAxNTozNzoyNC4wMDAwMDAwMDAgLTA1MDAKKysrIGxpbnV4LTIuNi4zMS9kcml2
+ZXJzL3BsYXRmb3JtL3g4Ni9kZWxsLWxhcHRvcC5jCTIwMDktMTAtMTkgMTc6NDU6NTEuMDAwMDAw
+MDAwIC0wNTAwCkBAIC0yMyw2ICsyMyw3IEBACiAjaW5jbHVkZSA8bGludXgvcG93ZXJfc3VwcGx5
+Lmg+CiAjaW5jbHVkZSA8bGludXgvYWNwaS5oPgogI2luY2x1ZGUgPGxpbnV4L2lucHV0Lmg+Cisj
+aW5jbHVkZSA8bGludXgvbW0uaD4KICNpbmNsdWRlICIuLi8uLi9maXJtd2FyZS9kY2RiYXMuaCIK
+IAogI2RlZmluZSBCUklHSFRORVNTX1RPS0VOIDB4N2QKQEAgLTY0LDYgKzY1LDEwIEBAIHN0YXRp
+YyBzdHJ1Y3QgcmZraWxsICp3aWZpX3Jma2lsbDsKIHN0YXRpYyBzdHJ1Y3QgcmZraWxsICpibHVl
+dG9vdGhfcmZraWxsOwogc3RhdGljIHN0cnVjdCByZmtpbGwgKnd3YW5fcmZraWxsOwogCitzdGF0
+aWMgc3RydWN0IHBhZ2UgKmJ1ZmZlcnBhZ2U7CitzdGF0aWMgc3RydWN0IGNhbGxpbmdfaW50ZXJm
+YWNlX2J1ZmZlciAqYnVmZmVyOworREVGSU5FX01VVEVYKGJ1ZmZlcl9tdXRleCk7CisKIHN0YXRp
+YyBjb25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCBfX2luaXRkYXRhIGRlbGxfZGV2aWNlX3RhYmxl
+W10gPSB7CiAJewogCQkuaWRlbnQgPSAiRGVsbCBsYXB0b3AiLApAQCAtNzUsNiArODAsMTcgQEAg
+c3RhdGljIGNvbnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lkIF9faW5pdAogCXsgfQogfTsKIAorc3Rh
+dGljIHZvaWQgZ2V0X2J1ZmZlcih2b2lkKQoreworCW11dGV4X2xvY2soJmJ1ZmZlcl9tdXRleCk7
+CisJbWVtc2V0KGJ1ZmZlciwgMCwgc2l6ZW9mKHN0cnVjdCBjYWxsaW5nX2ludGVyZmFjZV9idWZm
+ZXIpKTsKK30KKworc3RhdGljIHZvaWQgcmVsZWFzZV9idWZmZXIodm9pZCkKK3sKKwltdXRleF91
+bmxvY2soJmJ1ZmZlcl9tdXRleCk7Cit9CisKIHN0YXRpYyB2b2lkIHBhcnNlX2RhX3RhYmxlKGNv
+bnN0IHN0cnVjdCBkbWlfaGVhZGVyICpkbSkKIHsKIAkvKiBGaW5hbCB0b2tlbiBpcyBhIHRlcm1p
+bmF0b3IsIHNvIHdlIGRvbid0IHdhbnQgdG8gY29weSBpdCAqLwpAQCAtMTgxLDI5ICsxOTcsMjkg
+QEAgZGVsbF9zZW5kX3JlcXVlc3Qoc3RydWN0IGNhbGxpbmdfaW50ZXJmYQogCiBzdGF0aWMgaW50
+IGRlbGxfcmZraWxsX3NldCh2b2lkICpkYXRhLCBib29sIGJsb2NrZWQpCiB7Ci0Jc3RydWN0IGNh
+bGxpbmdfaW50ZXJmYWNlX2J1ZmZlciBidWZmZXI7CiAJaW50IGRpc2FibGUgPSBibG9ja2VkID8g
+MSA6IDA7CiAJdW5zaWduZWQgbG9uZyByYWRpbyA9ICh1bnNpZ25lZCBsb25nKWRhdGE7CiAKIAlw
+cmludGsoS0VSTl9XQVJOSU5HICJNQVRDSCwgZGlzYWJsZSBpcyAlZFxuIiwgZGlzYWJsZSk7CiAJ
+cHJpbnRrKEtFUk5fV0FSTklORyAiTUFUQ0gsIHJhZGlvIGlzICV4XG4iLCByYWRpbyk7CiAKLQlt
+ZW1zZXQoJmJ1ZmZlciwgMCwgc2l6ZW9mKHN0cnVjdCBjYWxsaW5nX2ludGVyZmFjZV9idWZmZXIp
+KTsKLQlidWZmZXIuaW5wdXRbMF0gPSAoMSB8IChyYWRpbzw8OCkgfCAoZGlzYWJsZSA8PCAxNikp
+OwotCWRlbGxfc2VuZF9yZXF1ZXN0KCZidWZmZXIsIDE3LCAxMSk7CisJZ2V0X2J1ZmZlcigpOwor
+CWJ1ZmZlci0+aW5wdXRbMF0gPSAoMSB8IChyYWRpbzw8OCkgfCAoZGlzYWJsZSA8PCAxNikpOwor
+CWRlbGxfc2VuZF9yZXF1ZXN0KGJ1ZmZlciwgMTcsIDExKTsKKwlyZWxlYXNlX2J1ZmZlcigpOwog
+CiAJcmV0dXJuIDA7CiB9CiAKIHN0YXRpYyB2b2lkIGRlbGxfcmZraWxsX3F1ZXJ5KHN0cnVjdCBy
+ZmtpbGwgKnJma2lsbCwgdm9pZCAqZGF0YSkKIHsKLQlzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2Vf
+YnVmZmVyIGJ1ZmZlcjsKIAlpbnQgc3RhdHVzOwogCWludCBiaXQgPSAodW5zaWduZWQgbG9uZylk
+YXRhICsgMTY7CiAKLQltZW1zZXQoJmJ1ZmZlciwgMCwgc2l6ZW9mKHN0cnVjdCBjYWxsaW5nX2lu
+dGVyZmFjZV9idWZmZXIpKTsKLQlkZWxsX3NlbmRfcmVxdWVzdCgmYnVmZmVyLCAxNywgMTEpOwot
+CXN0YXR1cyA9IGJ1ZmZlci5vdXRwdXRbMV07CisJZ2V0X2J1ZmZlcigpOworCWRlbGxfc2VuZF9y
+ZXF1ZXN0KGJ1ZmZlciwgMTcsIDExKTsKKwlzdGF0dXMgPSBidWZmZXItPm91dHB1dFsxXTsKKwly
+ZWxlYXNlX2J1ZmZlcigpOwogCiAJcHJpbnRrKEtFUk5fV0FSTklORyAiTUFUQ0gsIHN0YXR1cyBp
+cyAleFxuIiwgc3RhdHVzKTsKIApAQCAtMjI4LDEzICsyNDQsMTMgQEAgc3RhdGljIHZvaWQgZGVs
+bF9yZmtpbGxfdXBkYXRlKHZvaWQpCiAKIHN0YXRpYyBpbnQgZGVsbF9zZXR1cF9yZmtpbGwodm9p
+ZCkKIHsKLQlzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyIGJ1ZmZlcjsKIAlpbnQgc3Rh
+dHVzOwogCWludCByZXQ7CiAKLQltZW1zZXQoJmJ1ZmZlciwgMCwgc2l6ZW9mKHN0cnVjdCBjYWxs
+aW5nX2ludGVyZmFjZV9idWZmZXIpKTsKLQlkZWxsX3NlbmRfcmVxdWVzdCgmYnVmZmVyLCAxNywg
+MTEpOwotCXN0YXR1cyA9IGJ1ZmZlci5vdXRwdXRbMV07CisJZ2V0X2J1ZmZlcigpOworCWRlbGxf
+c2VuZF9yZXF1ZXN0KGJ1ZmZlciwgMTcsIDExKTsKKwlzdGF0dXMgPSBidWZmZXItPm91dHB1dFsx
+XTsKKwlyZWxlYXNlX2J1ZmZlcigpOwogCiAJcHJpbnRrKEtFUk5fV0FSTklORyAiTUFUQ0gsIFNN
+QklPUyBDSSByZXR1cm4gaXMgJXhcbiIsIHN0YXR1cyk7CiAKQEAgLTI5NCwzOSArMzEwLDQ0IEBA
+IGVycl93aWZpOgogCiBzdGF0aWMgaW50IGRlbGxfc2VuZF9pbnRlbnNpdHkoc3RydWN0IGJhY2ts
+aWdodF9kZXZpY2UgKmJkKQogewotCXN0cnVjdCBjYWxsaW5nX2ludGVyZmFjZV9idWZmZXIgYnVm
+ZmVyOwotCi0JbWVtc2V0KCZidWZmZXIsIDAsIHNpemVvZihzdHJ1Y3QgY2FsbGluZ19pbnRlcmZh
+Y2VfYnVmZmVyKSk7Ci0JYnVmZmVyLmlucHV0WzBdID0gZmluZF90b2tlbl9sb2NhdGlvbihCUklH
+SFRORVNTX1RPS0VOKTsKLQlidWZmZXIuaW5wdXRbMV0gPSBiZC0+cHJvcHMuYnJpZ2h0bmVzczsK
+KwlnZXRfYnVmZmVyKCk7CisJYnVmZmVyLT5pbnB1dFswXSA9IGZpbmRfdG9rZW5fbG9jYXRpb24o
+QlJJR0hUTkVTU19UT0tFTik7CisJYnVmZmVyLT5pbnB1dFsxXSA9IGJkLT5wcm9wcy5icmlnaHRu
+ZXNzOwogCi0JaWYgKGJ1ZmZlci5pbnB1dFswXSA9PSAtMSkKKwlpZiAoYnVmZmVyLT5pbnB1dFsw
+XSA9PSAtMSkgeworCQlyZWxlYXNlX2J1ZmZlcigpOwogCQlyZXR1cm4gLUVOT0RFVjsKKwl9CiAK
+IAlpZiAocG93ZXJfc3VwcGx5X2lzX3N5c3RlbV9zdXBwbGllZCgpID4gMCkKLQkJZGVsbF9zZW5k
+X3JlcXVlc3QoJmJ1ZmZlciwgMSwgMik7CisJCWRlbGxfc2VuZF9yZXF1ZXN0KGJ1ZmZlciwgMSwg
+Mik7CiAJZWxzZQotCQlkZWxsX3NlbmRfcmVxdWVzdCgmYnVmZmVyLCAxLCAxKTsKKwkJZGVsbF9z
+ZW5kX3JlcXVlc3QoYnVmZmVyLCAxLCAxKTsKIAorCXJlbGVhc2VfYnVmZmVyKCk7CiAJcmV0dXJu
+IDA7CiB9CiAKIHN0YXRpYyBpbnQgZGVsbF9nZXRfaW50ZW5zaXR5KHN0cnVjdCBiYWNrbGlnaHRf
+ZGV2aWNlICpiZCkKIHsKLQlzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyIGJ1ZmZlcjsK
+KwlpbnQgcmV0OwogCi0JbWVtc2V0KCZidWZmZXIsIDAsIHNpemVvZihzdHJ1Y3QgY2FsbGluZ19p
+bnRlcmZhY2VfYnVmZmVyKSk7Ci0JYnVmZmVyLmlucHV0WzBdID0gZmluZF90b2tlbl9sb2NhdGlv
+bihCUklHSFRORVNTX1RPS0VOKTsKKwlnZXRfYnVmZmVyKCk7CisJYnVmZmVyLT5pbnB1dFswXSA9
+IGZpbmRfdG9rZW5fbG9jYXRpb24oQlJJR0hUTkVTU19UT0tFTik7CiAKLQlpZiAoYnVmZmVyLmlu
+cHV0WzBdID09IC0xKQorCWlmIChidWZmZXItPmlucHV0WzBdID09IC0xKSB7CisJCXJlbGVhc2Vf
+YnVmZmVyKCk7CiAJCXJldHVybiAtRU5PREVWOworCX0KIAogCWlmIChwb3dlcl9zdXBwbHlfaXNf
+c3lzdGVtX3N1cHBsaWVkKCkgPiAwKQotCQlkZWxsX3NlbmRfcmVxdWVzdCgmYnVmZmVyLCAwLCAy
+KTsKKwkJZGVsbF9zZW5kX3JlcXVlc3QoYnVmZmVyLCAwLCAyKTsKIAllbHNlCi0JCWRlbGxfc2Vu
+ZF9yZXF1ZXN0KCZidWZmZXIsIDAsIDEpOworCQlkZWxsX3NlbmRfcmVxdWVzdChidWZmZXIsIDAs
+IDEpOwogCi0JcmV0dXJuIGJ1ZmZlci5vdXRwdXRbMV07CisJcmV0ID0gYnVmZmVyLT5vdXRwdXRb
+MV07CisJcmVsZWFzZV9idWZmZXIoKTsKKwlyZXR1cm4gcmV0OwogfQogCiBzdGF0aWMgc3RydWN0
+IGJhY2tsaWdodF9vcHMgZGVsbF9vcHMgPSB7CkBAIC00MjAsNyArNDQxLDYgQEAgc3RhdGljIHN0
+cnVjdCBpbnB1dF9oYW5kbGVyIGRlbGxfaW5wdXRfaAogCiBzdGF0aWMgaW50IF9faW5pdCBkZWxs
+X2luaXQodm9pZCkKIHsKLQlzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyIGJ1ZmZlcjsK
+IAlpbnQgbWF4X2ludGVuc2l0eSA9IDA7CiAJaW50IHJldDsKIApAQCAtNDM0LDYgKzQ1NCwxMyBA
+QCBzdGF0aWMgaW50IF9faW5pdCBkZWxsX2luaXQodm9pZCkKIAkJcmV0dXJuIC1FTk9ERVY7CiAJ
+fQogCisJaWYgKCEoYnVmZmVycGFnZSA9IGFsbG9jX3BhZ2UoR0ZQX0tFUk5FTCB8IEdGUF9ETUEz
+MikpKQorCQlyZXR1cm4gLUVOT01FTTsKKwlidWZmZXIgPSBwYWdlX2FkZHJlc3MoYnVmZmVycGFn
+ZSk7CisJbXV0ZXhfaW5pdCgmYnVmZmVyX211dGV4KTsKKworCXByaW50aygiTUFUQ0gtLWFsbG9j
+IGdvdCAlcCBmb3IgYnVmZmVyXG4iLGJ1ZmZlcik7CisKIAlyZXQgPSBkZWxsX3NldHVwX3Jma2ls
+bCgpOwogCiAJaWYgKHJldCkgewpAQCAtNDU3LDEzICs0ODQsMTQgQEAgc3RhdGljIGludCBfX2lu
+aXQgZGVsbF9pbml0KHZvaWQpCiAJCXJldHVybiAwOwogI2VuZGlmCiAKLQltZW1zZXQoJmJ1ZmZl
+ciwgMCwgc2l6ZW9mKHN0cnVjdCBjYWxsaW5nX2ludGVyZmFjZV9idWZmZXIpKTsKLQlidWZmZXIu
+aW5wdXRbMF0gPSBmaW5kX3Rva2VuX2xvY2F0aW9uKEJSSUdIVE5FU1NfVE9LRU4pOworCWdldF9i
+dWZmZXIoKTsKKwlidWZmZXItPmlucHV0WzBdID0gZmluZF90b2tlbl9sb2NhdGlvbihCUklHSFRO
+RVNTX1RPS0VOKTsKIAotCWlmIChidWZmZXIuaW5wdXRbMF0gIT0gLTEpIHsKLQkJZGVsbF9zZW5k
+X3JlcXVlc3QoJmJ1ZmZlciwgMCwgMik7Ci0JCW1heF9pbnRlbnNpdHkgPSBidWZmZXIub3V0cHV0
+WzNdOworCWlmIChidWZmZXItPmlucHV0WzBdICE9IC0xKSB7CisJCWRlbGxfc2VuZF9yZXF1ZXN0
+KGJ1ZmZlciwgMCwgMik7CisJCW1heF9pbnRlbnNpdHkgPSBidWZmZXItPm91dHB1dFszXTsKIAl9
+CisJcmVsZWFzZV9idWZmZXIoKTsKIAogCWlmIChtYXhfaW50ZW5zaXR5KSB7CiAJCWRlbGxfYmFj
+a2xpZ2h0X2RldmljZSA9IGJhY2tsaWdodF9kZXZpY2VfcmVnaXN0ZXIoCkBAIC00OTIsNiArNTIw
+LDggQEAgb3V0OgogCWlmICh3d2FuX3Jma2lsbCkKIAkJcmZraWxsX3VucmVnaXN0ZXIod3dhbl9y
+ZmtpbGwpOwogCWtmcmVlKGRhX3Rva2Vucyk7CisJX19mcmVlX3BhZ2UoYnVmZmVycGFnZSk7CiAJ
+cmV0dXJuIHJldDsKIH0KIApAQCAtNTA1LDYgKzUzNSw4IEBAIHN0YXRpYyB2b2lkIF9fZXhpdCBk
+ZWxsX2V4aXQodm9pZCkKIAlpZiAod3dhbl9yZmtpbGwpCiAJCXJma2lsbF91bnJlZ2lzdGVyKHd3
+YW5fcmZraWxsKTsKIAlpbnB1dF91bnJlZ2lzdGVyX2hhbmRsZXIoJmRlbGxfaW5wdXRfaGFuZGxl
+cik7CisJX19mcmVlX3BhZ2UoYnVmZmVycGFnZSk7CiB9CiAKIG1vZHVsZV9pbml0KGRlbGxfaW5p
+dCk7Cg==
+
+------_=_NextPart_001_01CA5281.457C3215--
