@@ -1,61 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] i2c-scmi: Quirk to work on IBM machines with broken
- BIOSes
-Date: Thu, 22 Oct 2009 20:37:46 +0200
-Message-ID: <20091022203746.575d3928@hyperion.delvare>
-References: <20091020231149.GM26149@tux1.beaverton.ibm.com>
-	<20091021023016.GC32413@crane-desktop>
-	<200910210857.13978.bjorn.helgaas@hp.com>
-	<20091021173733.GN26149@tux1.beaverton.ibm.com>
-	<20091022071748.GA17917@crane-desktop>
-	<20091022174304.GO26149@tux1.beaverton.ibm.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH v2 0/9] PCI, PNP: print resources consistently
+Date: Thu, 22 Oct 2009 16:53:52 -0600
+Message-ID: <200910221653.53072.bjorn.helgaas@hp.com>
+References: <20091013192040.22336.84876.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:64453 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756476AbZJVSho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Oct 2009 14:37:44 -0400
-In-Reply-To: <20091022174304.GO26149@tux1.beaverton.ibm.com>
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:22303 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751805AbZJVWxu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2009 18:53:50 -0400
+In-Reply-To: <20091013192040.22336.84876.stgit@bob.kio>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: djwong@us.ibm.com
-Cc: Crane Cai <crane.cai@amd.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yhlu.kernel@gmail.com>, Joe Perches <joe@perches.com>, Len Brown <lenb@kernel.org>
 
-On Thu, 22 Oct 2009 10:43:04 -0700, Darrick J. Wong wrote:
-> On Thu, Oct 22, 2009 at 03:17:53PM +0800, Crane Cai wrote:
-> 
-> > This patch below represents my meanings:
-> > *) add a new HID for IBM SMBus CMI devices
-> > *) add methods for IBM SMBus CMI devices as you did
-> > *) hook different HID with different control methods set
-> > It may be more smooth for i2c-scmi, please consider.
-> 
-> Looks fine to me.
-> 
-> I still need the changes to drivers/acpi/scan.c, but if you push this patch
-> upstream then I'll reroll my patch as a follow-on to yours...
-> 
-> >  static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
-> > -	{"SMBUS01", 0},
-> > +	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
-> > +	{"SMBUSIBM", (kernel_ulong_t)&ibm_smbus_methods},
-> 
-> ...with the custom HID string #define'd in a header file someplace.
-> 
-> Actually, if you'll add a Signed-off-by line to your patch, I'll submit both of
-> them as a patchset and save you a little work. :)
+I'm not planning another version of this series because I don't
+think anybody's raised substantive issues.
 
-As soon as there is an agreement on how the problem would better be
-addressed, I'll be happy to pick the patches.
+The only thing I see as a potential issue is the increased stack usage:
+in resource_string(), the buffer grows from 40 to 73 bytes (64-bit)
+or 24 to 52 bytes (32-bit).  I could imagine using a stack buffer and
+a mutex for this, but I'm not sure it's worth the code complexity yet.
 
-> > +	for (; id->id[0]; id++)
-> 
-> Stylistic nit--would it be clearer to initialize id in the for loop instead of
-> at the beginning of the function?
-
-Definitely, yes.
-
--- 
-Jean Delvare
+Bjorn
