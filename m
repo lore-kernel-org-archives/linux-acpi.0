@@ -1,90 +1,140 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] dell-laptop: Use buffer with 32-bit physical address
-Date: Thu, 22 Oct 2009 09:12:16 -0600
-Message-ID: <200910220912.17684.bjorn.helgaas@hp.com>
-References: <DFEF91B22ED07447AB6AA4B237F913F9039D0A64@ausx3mpc125.aus.amer.dell.com>
+From: <Stuart_Hayes@Dell.com>
+Subject: RE: [PATCH] dell-laptop: Use buffer with 32-bit physical address
+Date: Thu, 22 Oct 2009 11:27:27 -0500
+Message-ID: <DFEF91B22ED07447AB6AA4B237F913F9039D0DBA@ausx3mpc125.aus.amer.dell.com>
+References: <DFEF91B22ED07447AB6AA4B237F913F9039D0A64@ausx3mpc125.aus.amer.dell.com> <20091022015723.GA14946@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01CA5334.8BCEBF45"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:36399 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754666AbZJVPMO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2009 11:12:14 -0400
-In-Reply-To: <DFEF91B22ED07447AB6AA4B237F913F9039D0A64@ausx3mpc125.aus.amer.dell.com>
-Content-Disposition: inline
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:64681 "EHLO
+	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753280AbZJVQ1Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2009 12:27:25 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <20091022015723.GA14946@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stuart_Hayes@dell.com
-Cc: linux-acpi@vger.kernel.org, mjg@redhat.com, Rezwanul_Kabir@dell.com
+To: mjg59@srcf.ucam.org
+Cc: linux-acpi@vger.kernel.org, Rezwanul_Kabir@Dell.com
 
-On Wednesday 21 October 2009 01:04:09 pm Stuart_Hayes@dell.com wrote:
-> 
-> Calls to communicate with system firmware via a SMI (using dcdbas) need
-> to use a buffer that has a physical address of 4GB or less.  Currently
-> the dell-laptop driver does not guarantee this, and when the buffer
-> address is higher than 4GB, the address is truncated to 32 bits and the
-> SMI handler writes to the wrong memory address.
-> 
-> Signed-off-by: Stuart Hayes <stuart_hayes@dell.com>
+This is a multi-part message in MIME format.
 
-+static void get_buffer(void)
-+{
-+	mutex_lock(&buffer_mutex);
-+	memset(buffer, 0, sizeof(struct calling_interface_buffer));
-+}
-+
-+static void release_buffer(void)
-+{
-+	mutex_unlock(&buffer_mutex);
-+}
+------_=_NextPart_001_01CA5334.8BCEBF45
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
 
- static int dell_rfkill_set(void *data, bool blocked)
- {
--	struct calling_interface_buffer buffer;
- 	int disable = blocked ? 1 : 0;
- 	unsigned long radio = (unsigned long)data;
- 
- 	printk(KERN_WARNING "MATCH, disable is %d\n", disable);
- 	printk(KERN_WARNING "MATCH, radio is %x\n", radio);
- 
--	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
--	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
--	dell_send_request(&buffer, 17, 11);
-+	get_buffer();
-+	buffer->input[0] = (1 | (radio<<8) | (disable << 16));
-+	dell_send_request(buffer, 17, 11);
-+	release_buffer();
+Oops... I grabbed the wrong patch file last time.  This is almost the
+same, but not *exactly* the same as the previous patch without the
+printk, so I didn't want to add your ack.
 
 
-I think it would be slightly nicer to do something like this:
+Calls to communicate with system firmware via a SMI (using dcdbas)=20
+need to use a buffer that has a physical address of 4GB or less. =20
+Currently the dell-laptop driver does not guarantee this, and when the=20
+buffer address is higher than 4GB, the address is truncated to 32 bits=20
+and the SMI handler writes to the wrong memory address.
 
-    static struct calling_interface_buffer *get_buffer(void);
+Signed-off-by: Stuart Hayes <stuart_hayes@dell.com>
 
-    static int dell_rfkill_set(void *data, bool blocked)
-    {
-	struct calling_interface_buffer *buffer;
 
-	buffer = get_buffer();
-	...
-	release_buffer(buffer);
-    }
+------_=_NextPart_001_01CA5334.8BCEBF45
+Content-Type: application/octet-stream;
+	name="dell-laptop-buffer-below-4G-for-2.6.31.4-try2.patch"
+Content-Transfer-Encoding: base64
+Content-Description: dell-laptop-buffer-below-4G-for-2.6.31.4-try2.patch
+Content-Disposition: attachment;
+	filename="dell-laptop-buffer-below-4G-for-2.6.31.4-try2.patch"
 
-    static struct calling_interface_buffer *buffer;
-    DEFINE_MUTEX(buffer_mutex);
+LS0tIGxpbnV4LTIuNi4zMS40L2RyaXZlcnMvcGxhdGZvcm0veDg2L2RlbGwtbGFwdG9wLmMudmly
+Z2luCTIwMDktMTAtMjEgMTA6MTI6MzguMDAwMDAwMDAwIC0wNTAwCisrKyBsaW51eC0yLjYuMzEu
+NC9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kZWxsLWxhcHRvcC5jCTIwMDktMTAtMjEgMTA6NDI6NTUu
+MDAwMDAwMDAwIC0wNTAwCkBAIC0yMiw2ICsyMiw3IEBACiAjaW5jbHVkZSA8bGludXgvcmZraWxs
+Lmg+CiAjaW5jbHVkZSA8bGludXgvcG93ZXJfc3VwcGx5Lmg+CiAjaW5jbHVkZSA8bGludXgvYWNw
+aS5oPgorI2luY2x1ZGUgPGxpbnV4L21tLmg+CiAjaW5jbHVkZSAiLi4vLi4vZmlybXdhcmUvZGNk
+YmFzLmgiCiAKICNkZWZpbmUgQlJJR0hUTkVTU19UT0tFTiAweDdkCkBAIC03NCw2ICs3NSwyMCBA
+QCBzdGF0aWMgY29uc3Qgc3RydWN0IGRtaV9zeXN0ZW1faWQgX19pbml0CiAJeyB9CiB9OwogCitz
+dGF0aWMgc3RydWN0IGNhbGxpbmdfaW50ZXJmYWNlX2J1ZmZlciAqYnVmZmVyOworREVGSU5FX01V
+VEVYKGJ1ZmZlcl9tdXRleCk7CisKK3N0YXRpYyB2b2lkIGdldF9idWZmZXIodm9pZCkKK3sKKwlt
+dXRleF9sb2NrKCZidWZmZXJfbXV0ZXgpOworCW1lbXNldChidWZmZXIsIDAsIHNpemVvZihzdHJ1
+Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyKSk7Cit9CisKK3N0YXRpYyB2b2lkIHJlbGVhc2Vf
+YnVmZmVyKHZvaWQpCit7CisJbXV0ZXhfdW5sb2NrKCZidWZmZXJfbXV0ZXgpOworfQorCiBzdGF0
+aWMgdm9pZCBwYXJzZV9kYV90YWJsZShjb25zdCBzdHJ1Y3QgZG1pX2hlYWRlciAqZG0pCiB7CiAJ
+LyogRmluYWwgdG9rZW4gaXMgYSB0ZXJtaW5hdG9yLCBzbyB3ZSBkb24ndCB3YW50IHRvIGNvcHkg
+aXQgKi8KQEAgLTE3NiwyNiArMTkxLDI2IEBAIGRlbGxfc2VuZF9yZXF1ZXN0KHN0cnVjdCBjYWxs
+aW5nX2ludGVyZmEKIAogc3RhdGljIGludCBkZWxsX3Jma2lsbF9zZXQodm9pZCAqZGF0YSwgYm9v
+bCBibG9ja2VkKQogewotCXN0cnVjdCBjYWxsaW5nX2ludGVyZmFjZV9idWZmZXIgYnVmZmVyOwog
+CWludCBkaXNhYmxlID0gYmxvY2tlZCA/IDEgOiAwOwogCXVuc2lnbmVkIGxvbmcgcmFkaW8gPSAo
+dW5zaWduZWQgbG9uZylkYXRhOwogCi0JbWVtc2V0KCZidWZmZXIsIDAsIHNpemVvZihzdHJ1Y3Qg
+Y2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyKSk7Ci0JYnVmZmVyLmlucHV0WzBdID0gKDEgfCAocmFk
+aW88PDgpIHwgKGRpc2FibGUgPDwgMTYpKTsKLQlkZWxsX3NlbmRfcmVxdWVzdCgmYnVmZmVyLCAx
+NywgMTEpOworCWdldF9idWZmZXIoKTsKKwlidWZmZXItPmlucHV0WzBdID0gKDEgfCAocmFkaW88
+PDgpIHwgKGRpc2FibGUgPDwgMTYpKTsKKwlkZWxsX3NlbmRfcmVxdWVzdChidWZmZXIsIDE3LCAx
+MSk7CisJcmVsZWFzZV9idWZmZXIoKTsKIAogCXJldHVybiAwOwogfQogCiBzdGF0aWMgdm9pZCBk
+ZWxsX3Jma2lsbF9xdWVyeShzdHJ1Y3QgcmZraWxsICpyZmtpbGwsIHZvaWQgKmRhdGEpCiB7Ci0J
+c3RydWN0IGNhbGxpbmdfaW50ZXJmYWNlX2J1ZmZlciBidWZmZXI7CiAJaW50IHN0YXR1czsKIAlp
+bnQgYml0ID0gKHVuc2lnbmVkIGxvbmcpZGF0YSArIDE2OwogCi0JbWVtc2V0KCZidWZmZXIsIDAs
+IHNpemVvZihzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyKSk7Ci0JZGVsbF9zZW5kX3Jl
+cXVlc3QoJmJ1ZmZlciwgMTcsIDExKTsKLQlzdGF0dXMgPSBidWZmZXIub3V0cHV0WzFdOworCWdl
+dF9idWZmZXIoKTsKKwlkZWxsX3NlbmRfcmVxdWVzdChidWZmZXIsIDE3LCAxMSk7CisJc3RhdHVz
+ID0gYnVmZmVyLT5vdXRwdXRbMV07CisJcmVsZWFzZV9idWZmZXIoKTsKIAogCWlmIChzdGF0dXMg
+JiBCSVQoYml0KSkKIAkJcmZraWxsX3NldF9od19zdGF0ZShyZmtpbGwsICEhKHN0YXR1cyAmIEJJ
+VCgxNikpKTsKQEAgLTI3MCwzOSArMjg1LDQ1IEBAIGVycl93aWZpOgogCiBzdGF0aWMgaW50IGRl
+bGxfc2VuZF9pbnRlbnNpdHkoc3RydWN0IGJhY2tsaWdodF9kZXZpY2UgKmJkKQogewotCXN0cnVj
+dCBjYWxsaW5nX2ludGVyZmFjZV9idWZmZXIgYnVmZmVyOwogCi0JbWVtc2V0KCZidWZmZXIsIDAs
+IHNpemVvZihzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyKSk7Ci0JYnVmZmVyLmlucHV0
+WzBdID0gZmluZF90b2tlbl9sb2NhdGlvbihCUklHSFRORVNTX1RPS0VOKTsKLQlidWZmZXIuaW5w
+dXRbMV0gPSBiZC0+cHJvcHMuYnJpZ2h0bmVzczsKKwlnZXRfYnVmZmVyKCk7CisJYnVmZmVyLT5p
+bnB1dFswXSA9IGZpbmRfdG9rZW5fbG9jYXRpb24oQlJJR0hUTkVTU19UT0tFTik7CisJYnVmZmVy
+LT5pbnB1dFsxXSA9IGJkLT5wcm9wcy5icmlnaHRuZXNzOwogCi0JaWYgKGJ1ZmZlci5pbnB1dFsw
+XSA9PSAtMSkKKwlpZiAoYnVmZmVyLT5pbnB1dFswXSA9PSAtMSkgeworCQlyZWxlYXNlX2J1ZmZl
+cigpOwogCQlyZXR1cm4gLUVOT0RFVjsKKwl9CiAKIAlpZiAocG93ZXJfc3VwcGx5X2lzX3N5c3Rl
+bV9zdXBwbGllZCgpID4gMCkKLQkJZGVsbF9zZW5kX3JlcXVlc3QoJmJ1ZmZlciwgMSwgMik7CisJ
+CWRlbGxfc2VuZF9yZXF1ZXN0KGJ1ZmZlciwgMSwgMik7CiAJZWxzZQotCQlkZWxsX3NlbmRfcmVx
+dWVzdCgmYnVmZmVyLCAxLCAxKTsKKwkJZGVsbF9zZW5kX3JlcXVlc3QoYnVmZmVyLCAxLCAxKTsK
+IAorCXJlbGVhc2VfYnVmZmVyKCk7CiAJcmV0dXJuIDA7CiB9CiAKIHN0YXRpYyBpbnQgZGVsbF9n
+ZXRfaW50ZW5zaXR5KHN0cnVjdCBiYWNrbGlnaHRfZGV2aWNlICpiZCkKIHsKLQlzdHJ1Y3QgY2Fs
+bGluZ19pbnRlcmZhY2VfYnVmZmVyIGJ1ZmZlcjsKKwlpbnQgcmV0OwogCi0JbWVtc2V0KCZidWZm
+ZXIsIDAsIHNpemVvZihzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyKSk7Ci0JYnVmZmVy
+LmlucHV0WzBdID0gZmluZF90b2tlbl9sb2NhdGlvbihCUklHSFRORVNTX1RPS0VOKTsKKwlnZXRf
+YnVmZmVyKCk7CisJYnVmZmVyLT5pbnB1dFswXSA9IGZpbmRfdG9rZW5fbG9jYXRpb24oQlJJR0hU
+TkVTU19UT0tFTik7CiAKLQlpZiAoYnVmZmVyLmlucHV0WzBdID09IC0xKQorCWlmIChidWZmZXIt
+PmlucHV0WzBdID09IC0xKSB7CisJCXJlbGVhc2VfYnVmZmVyKCk7CiAJCXJldHVybiAtRU5PREVW
+OworCX0KIAogCWlmIChwb3dlcl9zdXBwbHlfaXNfc3lzdGVtX3N1cHBsaWVkKCkgPiAwKQotCQlk
+ZWxsX3NlbmRfcmVxdWVzdCgmYnVmZmVyLCAwLCAyKTsKKwkJZGVsbF9zZW5kX3JlcXVlc3QoYnVm
+ZmVyLCAwLCAyKTsKIAllbHNlCi0JCWRlbGxfc2VuZF9yZXF1ZXN0KCZidWZmZXIsIDAsIDEpOwor
+CQlkZWxsX3NlbmRfcmVxdWVzdChidWZmZXIsIDAsIDEpOwogCi0JcmV0dXJuIGJ1ZmZlci5vdXRw
+dXRbMV07CisJcmV0ID0gYnVmZmVyLT5vdXRwdXRbMV07CisJcmVsZWFzZV9idWZmZXIoKTsKKwly
+ZXR1cm4gcmV0OwogfQogCiBzdGF0aWMgc3RydWN0IGJhY2tsaWdodF9vcHMgZGVsbF9vcHMgPSB7
+CkBAIC0zMTIsOSArMzMzLDkgQEAgc3RhdGljIHN0cnVjdCBiYWNrbGlnaHRfb3BzIGRlbGxfb3Bz
+ID0gewogCiBzdGF0aWMgaW50IF9faW5pdCBkZWxsX2luaXQodm9pZCkKIHsKLQlzdHJ1Y3QgY2Fs
+bGluZ19pbnRlcmZhY2VfYnVmZmVyIGJ1ZmZlcjsKIAlpbnQgbWF4X2ludGVuc2l0eSA9IDA7CiAJ
+aW50IHJldDsKKwlzdHJ1Y3QgcGFnZSAqYnVmZmVycGFnZTsKIAogCWlmICghZG1pX2NoZWNrX3N5
+c3RlbShkZWxsX2RldmljZV90YWJsZSkpCiAJCXJldHVybiAtRU5PREVWOwpAQCAtMzI2LDYgKzM0
+NywxNSBAQCBzdGF0aWMgaW50IF9faW5pdCBkZWxsX2luaXQodm9pZCkKIAkJcmV0dXJuIC1FTk9E
+RVY7CiAJfQogCisJLyoKKwkgKiBBbGxvY2F0ZSBidWZmZXIgYmVsb3cgNEdCIGZvciBTTUkgZGF0
+YS0tb25seSAzMi1iaXQgcGh5c2ljYWwgYWRkcgorCSAqIGlzIHBhc3NlZCB0byBTTUkgaGFuZGxl
+ci4KKwkgKi8KKwlpZiAoIShidWZmZXJwYWdlID0gYWxsb2NfcGFnZShHRlBfS0VSTkVMIHwgR0ZQ
+X0RNQTMyKSkpCisJCXJldHVybiAtRU5PTUVNOworCWJ1ZmZlciA9IHBhZ2VfYWRkcmVzcyhidWZm
+ZXJwYWdlKTsKKwltdXRleF9pbml0KCZidWZmZXJfbXV0ZXgpOworCiAJcmV0ID0gZGVsbF9zZXR1
+cF9yZmtpbGwoKTsKIAogCWlmIChyZXQpIHsKQEAgLTM0MSwxMyArMzcxLDE0IEBAIHN0YXRpYyBp
+bnQgX19pbml0IGRlbGxfaW5pdCh2b2lkKQogCQlyZXR1cm4gMDsKICNlbmRpZgogCi0JbWVtc2V0
+KCZidWZmZXIsIDAsIHNpemVvZihzdHJ1Y3QgY2FsbGluZ19pbnRlcmZhY2VfYnVmZmVyKSk7Ci0J
+YnVmZmVyLmlucHV0WzBdID0gZmluZF90b2tlbl9sb2NhdGlvbihCUklHSFRORVNTX1RPS0VOKTsK
+KwlnZXRfYnVmZmVyKCk7CisJYnVmZmVyLT5pbnB1dFswXSA9IGZpbmRfdG9rZW5fbG9jYXRpb24o
+QlJJR0hUTkVTU19UT0tFTik7CiAKLQlpZiAoYnVmZmVyLmlucHV0WzBdICE9IC0xKSB7Ci0JCWRl
+bGxfc2VuZF9yZXF1ZXN0KCZidWZmZXIsIDAsIDIpOwotCQltYXhfaW50ZW5zaXR5ID0gYnVmZmVy
+Lm91dHB1dFszXTsKKwlpZiAoYnVmZmVyLT5pbnB1dFswXSAhPSAtMSkgeworCQlkZWxsX3NlbmRf
+cmVxdWVzdChidWZmZXIsIDAsIDIpOworCQltYXhfaW50ZW5zaXR5ID0gYnVmZmVyLT5vdXRwdXRb
+M107CiAJfQorCXJlbGVhc2VfYnVmZmVyKCk7CiAKIAlpZiAobWF4X2ludGVuc2l0eSkgewogCQlk
+ZWxsX2JhY2tsaWdodF9kZXZpY2UgPSBiYWNrbGlnaHRfZGV2aWNlX3JlZ2lzdGVyKApAQCAtMzc2
+LDYgKzQwNyw3IEBAIG91dDoKIAlpZiAod3dhbl9yZmtpbGwpCiAJCXJma2lsbF91bnJlZ2lzdGVy
+KHd3YW5fcmZraWxsKTsKIAlrZnJlZShkYV90b2tlbnMpOworCWZyZWVfcGFnZShidWZmZXIpOwog
+CXJldHVybiByZXQ7CiB9CiAKQEAgLTM4OCw2ICs0MjAsNyBAQCBzdGF0aWMgdm9pZCBfX2V4aXQg
+ZGVsbF9leGl0KHZvaWQpCiAJCXJma2lsbF91bnJlZ2lzdGVyKGJsdWV0b290aF9yZmtpbGwpOwog
+CWlmICh3d2FuX3Jma2lsbCkKIAkJcmZraWxsX3VucmVnaXN0ZXIod3dhbl9yZmtpbGwpOworCWZy
+ZWVfcGFnZShidWZmZXIpOwogfQogCiBtb2R1bGVfaW5pdChkZWxsX2luaXQpOwo=
 
-    static struct calling_interface_buffer *get_buffer(void)
-    {
-	mutex_lock(&buffer_mutex);
-	memset(buffer, 0, sizeof(struct calling_interface_buffer));
-	return buffer;
-    }
-
-because it makes it a little harder to mistakenly use the global
-buffer without acquiring the mutex.  With a little work, the
-global buffer could probably even be made static to get_buffer(),
-to make it *impossible* to get the pointer outside the mutex.
-
-Bjorn
+------_=_NextPart_001_01CA5334.8BCEBF45--
