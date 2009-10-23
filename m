@@ -1,30 +1,141 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v2 0/9] PCI, PNP: print resources consistently
-Date: Thu, 22 Oct 2009 16:53:52 -0600
-Message-ID: <200910221653.53072.bjorn.helgaas@hp.com>
-References: <20091013192040.22336.84876.stgit@bob.kio>
+From: Crane Cai <crane.cai@amd.com>
+Subject: Re: [PATCH] i2c-scmi: Quirk to work on IBM machines with broken
+	BIOSes
+Date: Fri, 23 Oct 2009 12:44:51 +0800
+Message-ID: <20091023044451.GB1367@crane-desktop>
+References: <20091020231149.GM26149@tux1.beaverton.ibm.com> <20091021023016.GC32413@crane-desktop> <200910210857.13978.bjorn.helgaas@hp.com> <20091021173733.GN26149@tux1.beaverton.ibm.com> <20091022071748.GA17917@crane-desktop> <20091022174304.GO26149@tux1.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:22303 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751805AbZJVWxu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2009 18:53:50 -0400
-In-Reply-To: <20091013192040.22336.84876.stgit@bob.kio>
+Received: from va3ehsobe005.messaging.microsoft.com ([216.32.180.15]:31642
+	"EHLO VA3EHSOBE006.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750866AbZJWEp3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Oct 2009 00:45:29 -0400
 Content-Disposition: inline
+In-Reply-To: <20091022174304.GO26149@tux1.beaverton.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yhlu.kernel@gmail.com>, Joe Perches <joe@perches.com>, Len Brown <lenb@kernel.org>
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-I'm not planning another version of this series because I don't
-think anybody's raised substantive issues.
+Hi Darrick,
 
-The only thing I see as a potential issue is the increased stack usage:
-in resource_string(), the buffer grows from 40 to 73 bytes (64-bit)
-or 24 to 52 bytes (32-bit).  I could imagine using a stack buffer and
-a mutex for this, but I'm not sure it's worth the code complexity yet.
+Here is the formal one. Please apply.
+IBM SMBus CMI device HID definition depends on you.
 
-Bjorn
+-- 
+Best Regards,
+- Crane
+
+---
+>From 7d6d23c944bb1ce29ad75347c867d323288dc2e2 Mon Sep 17 00:00:00 2001
+From: Crane Cai <crane.cai@amd.com>
+Date: Fri, 23 Oct 2009 10:13:58 +0800
+Subject: [PATCH] i2c-scmi: support IBM SMBus CMI devices
+
+*) add a new HID for IBM SMBus CMI devices
+*) add methods for IBM SMBus CMI devices
+*) hook different HID with different control methods set
+
+Signed-off-by: Crane Cai <crane.cai@amd.com>
+---
+ drivers/i2c/busses/i2c-scmi.c |   31 +++++++++++++++++++++++--------
+ 1 files changed, 23 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+index b4a55d4..a15aaf4 100644
+--- a/drivers/i2c/busses/i2c-scmi.c
++++ b/drivers/i2c/busses/i2c-scmi.c
+@@ -33,6 +33,7 @@ struct acpi_smbus_cmi {
+ 	u8 cap_info:1;
+ 	u8 cap_read:1;
+ 	u8 cap_write:1;
++	struct smbus_methods_t *methods;
+ };
+ 
+ static const struct smbus_methods_t smbus_methods = {
+@@ -41,8 +42,16 @@ static const struct smbus_methods_t smbus_methods = {
+ 	.mt_sbw  = "_SBW",
+ };
+ 
++/* Some IBM BIOSes omit the leading underscore */
++static const struct smbus_methods_t ibm_smbus_methods = {
++	.mt_info = "SBI_",
++	.mt_sbr  = "SBR_",
++	.mt_sbw  = "SBW_",
++};
++
+ static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
+-	{"SMBUS01", 0},
++	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
++	{"SMBUSIBM", (kernel_ulong_t)&ibm_smbus_methods},
+ 	{"", 0}
+ };
+ 
+@@ -150,11 +159,11 @@ acpi_smbus_cmi_access(struct i2c_adapter *adap, u16 addr, unsigned short flags,
+ 
+ 	if (read_write == I2C_SMBUS_READ) {
+ 		protocol |= ACPI_SMBUS_PRTCL_READ;
+-		method = smbus_methods.mt_sbr;
++		method = smbus_cmi->methods->mt_sbr;
+ 		input.count = 3;
+ 	} else {
+ 		protocol |= ACPI_SMBUS_PRTCL_WRITE;
+-		method = smbus_methods.mt_sbw;
++		method = smbus_cmi->methods->mt_sbw;
+ 		input.count = 5;
+ 	}
+ 
+@@ -290,13 +299,13 @@ static int acpi_smbus_cmi_add_cap(struct acpi_smbus_cmi *smbus_cmi,
+ 	union acpi_object *obj;
+ 	acpi_status status;
+ 
+-	if (!strcmp(name, smbus_methods.mt_info)) {
++	if (!strcmp(name, smbus_cmi->methods->mt_info)) {
+ 		status = acpi_evaluate_object(smbus_cmi->handle,
+-					smbus_methods.mt_info,
++					smbus_cmi->methods->mt_info,
+ 					NULL, &buffer);
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_ERROR((AE_INFO, "Evaluating %s: %i",
+-				   smbus_methods.mt_info, status));
++				   smbus_cmi->methods->mt_info, status));
+ 			return -EIO;
+ 		}
+ 
+@@ -319,9 +328,9 @@ static int acpi_smbus_cmi_add_cap(struct acpi_smbus_cmi *smbus_cmi,
+ 
+ 		kfree(buffer.pointer);
+ 		smbus_cmi->cap_info = 1;
+-	} else if (!strcmp(name, smbus_methods.mt_sbr))
++	} else if (!strcmp(name, smbus_cmi->methods->mt_sbr))
+ 		smbus_cmi->cap_read = 1;
+-	else if (!strcmp(name, smbus_methods.mt_sbw))
++	else if (!strcmp(name, smbus_cmi->methods->mt_sbw))
+ 		smbus_cmi->cap_write = 1;
+ 	else
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Unsupported CMI method: %s\n",
+@@ -349,6 +358,7 @@ static acpi_status acpi_smbus_cmi_query_methods(acpi_handle handle, u32 level,
+ static int acpi_smbus_cmi_add(struct acpi_device *device)
+ {
+ 	struct acpi_smbus_cmi *smbus_cmi;
++	struct acpi_device_id *id;
+ 
+ 	smbus_cmi = kzalloc(sizeof(struct acpi_smbus_cmi), GFP_KERNEL);
+ 	if (!smbus_cmi)
+@@ -362,6 +372,11 @@ static int acpi_smbus_cmi_add(struct acpi_device *device)
+ 	smbus_cmi->cap_read = 0;
+ 	smbus_cmi->cap_write = 0;
+ 
++	for (id = (struct acpi_device_id *)acpi_smbus_cmi_ids; id->id[0]; id++)
++		if (!strcmp((char *) id->id, acpi_device_hid(device)))
++			smbus_cmi->methods =
++				(struct smbus_methods_t *) id->driver_data;
++
+ 	acpi_walk_namespace(ACPI_TYPE_METHOD, smbus_cmi->handle, 1,
+ 			    acpi_smbus_cmi_query_methods, smbus_cmi, NULL);
+ 
+-- 
+1.6.0.4
+
