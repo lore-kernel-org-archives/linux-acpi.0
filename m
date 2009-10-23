@@ -1,44 +1,113 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Resend] [PATCH] ACPI: New driver for Lenovo SL laptops
-Date: Fri, 23 Oct 2009 15:43:10 -0600
-Message-ID: <200910231543.12254.bjorn.helgaas@hp.com>
-References: <1253805163-12493-1-git-send-email-ike.pan@canonical.com> <1256325108-22626-1-git-send-email-ike.pan@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+From: Mike Travis <travis@sgi.com>
+Subject: [PATCH 4/8] SGI x86_64 UV: Limit the number of ACPI messages
+Date: Fri, 23 Oct 2009 18:37:47 -0500
+Message-ID: <20091023233754.668088000@alcatraz.americas.sgi.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:11462 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbZJWVnJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2009 17:43:09 -0400
-In-Reply-To: <1256325108-22626-1-git-send-email-ike.pan@canonical.com>
-Content-Disposition: inline
+Received: from relay2.sgi.com ([192.48.179.30]:54743 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752804AbZJWXhv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Oct 2009 19:37:51 -0400
+Content-Disposition: inline; filename=limit_acpi
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ike Panhc <ike.pan@canonical.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Alexandre Rostovtsev <tetromino@gmail.com>
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Jack Steiner <steiner@sgi.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Alexey Dobriyan <adobriyan@gmail.com>, Myron Stowe <myron.stowe@hp.com>, Feng Tang <feng.tang@intel.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday 23 October 2009 01:11:48 pm Ike Panhc wrote:
+Limit number of ACPI messages of the form:
 
-> +static int __init lenovo_sl_laptop_init(void)
-> +{
-> +	int ret;
-> +	acpi_status status;
-> +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
+[    0.000000] ACPI: LSAPIC (acpi_id[0x00] lsapic_id[0x00] lsapic_eid[0x00] enabled)
 
-Don't need this.
+[   99.638655] processor ACPI0007:00: registered as cooling_device0
 
-> +	lenovo_sl_laptop_hkey_handle = lenovo_sl_laptop_ec0_handle = NULL;
-> +	status = acpi_get_handle(NULL, ACPI_HKEY_PATH,
-> +				 &lenovo_sl_laptop_hkey_handle);
-> +	if (ACPI_FAILURE(status)) {
-> +		pr_err("Failed to get ACPI handle for %s\n", ACPI_HKEY_PATH);
-> +		return -ENODEV;
-> +	}
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Myron Stowe <myron.stowe@hp.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Mike Travis <travis@sgi.com>
+---
+ drivers/acpi/fan.c            |    7 ++++++-
+ drivers/acpi/processor_core.c |    8 ++++++--
+ drivers/acpi/tables.c         |   15 ++++++++++-----
+ 3 files changed, 22 insertions(+), 8 deletions(-)
 
-Don't need this; acpi_bus_register_driver() is enough.
+--- linux.orig/drivers/acpi/fan.c
++++ linux/drivers/acpi/fan.c
+@@ -243,6 +243,7 @@
+ 	int result = 0;
+ 	int state = 0;
+ 	struct thermal_cooling_device *cdev;
++	static int msgcnt;
+ 
+ 	if (!device)
+ 		return -EINVAL;
+@@ -267,7 +268,11 @@
+ 		goto end;
+ 	}
+ 
+-	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
++	if (msgcnt < 4 || !limit_console_output(false)) {
++		dev_info(&device->dev,
++			"registered as cooling_device%d\n", cdev->id);
++		msgcnt++;
++	}
+ 
+ 	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+--- linux.orig/drivers/acpi/processor_core.c
++++ linux/drivers/acpi/processor_core.c
+@@ -775,6 +775,7 @@
+ 	struct acpi_processor *pr = NULL;
+ 	int result = 0;
+ 	struct sys_device *sysdev;
++	static int msgcnt;
+ 
+ 	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
+ 	if (!pr)
+@@ -845,8 +846,11 @@
+ 		goto err_power_exit;
+ 	}
+ 
+-	dev_info(&device->dev, "registered as cooling_device%d\n",
+-		 pr->cdev->id);
++	if (msgcnt < 4 || !limit_console_output(false)) {
++		dev_info(&device->dev, "registered as cooling_device%d\n",
++			 pr->cdev->id);
++		msgcnt++;
++	}
+ 
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				   &pr->cdev->device.kobj,
+--- linux.orig/drivers/acpi/tables.c
++++ linux/drivers/acpi/tables.c
+@@ -170,11 +170,16 @@
+ 	case ACPI_MADT_TYPE_LOCAL_SAPIC:
+ 		{
+ 			struct acpi_madt_local_sapic *p =
+-			    (struct acpi_madt_local_sapic *)header;
+-			printk(KERN_INFO PREFIX
+-			       "LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+-			       p->processor_id, p->id, p->eid,
+-			       (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
++				(struct acpi_madt_local_sapic *)header;
++
++			if (p->eid < 8 || !limit_console_output(false))
++				printk(KERN_INFO PREFIX
++					"LSAPIC (acpi_id[0x%02x] "
++						"lsapic_id[0x%02x] "
++						"lsapic_eid[0x%02x] %s)\n",
++					p->processor_id, p->id, p->eid,
++					(p->lapic_flags & ACPI_MADT_ENABLED) ?
++						"enabled" : "disabled");
+ 		}
+ 		break;
+ 
 
-Bjorn
+-- 
