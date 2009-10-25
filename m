@@ -1,50 +1,49 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: ACPI events for laptop special buttons
-Date: Sun, 25 Oct 2009 13:01:29 +0100
-Message-ID: <71cd59b00910250501x369b347ev51f918b0b212d91b@mail.gmail.com>
-References: <477df590910241512v3ecc3b0dj7d0d115cdaea7f7e@mail.gmail.com>
-	 <4AE37CE2.9040304@gmail.com>
-	 <477df590910241606gbd4e38t5e90734ec742639@mail.gmail.com>
+From: Chris Vine <chris@cvine.freeserve.co.uk>
+Subject: ACPI processor module with Atom N270 causes DMA errors
+Date: Sun, 25 Oct 2009 21:07:54 +0000
+Message-ID: <20091025210754.55abdbe6@boulder.homenet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:59721 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407AbZJYMBZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2009 08:01:25 -0400
-Received: by yxe17 with SMTP id 17so9088889yxe.33
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 05:01:30 -0700 (PDT)
-In-Reply-To: <477df590910241606gbd4e38t5e90734ec742639@mail.gmail.com>
+Received: from smtp6.freeserve.com ([193.252.22.191]:17264 "EHLO
+	smtp6.freeserve.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759AbZJYVZo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2009 17:25:44 -0400
+Received: from smtp6.freeserve.com (mwinf3609 [10.232.31.37])
+	by mwinf3610.me.freeserve.com (SMTP Server) with ESMTP id EDDB81C006ED
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 22:10:02 +0100 (CET)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3609.me.freeserve.com (SMTP Server) with ESMTP id 885E31C00081
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 22:09:29 +0100 (CET)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3609.me.freeserve.com (SMTP Server) with ESMTP id 7C2D11C00085
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 22:09:29 +0100 (CET)
+Received: from boulder.homenet (unknown [91.104.2.139])
+	by mwinf3609.me.freeserve.com (SMTP Server) with ESMTP id 43EDA1C00081
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 22:09:29 +0100 (CET)
+Received: from boulder.homenet (IDENT:1000@localhost [127.0.0.1])
+	by boulder.homenet (8.14.3/8.14.3) with ESMTP id n9PL7sZA005081
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 21:07:54 GMT
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?andreas_p=E5lsson?= <andreas.palsson+acpi@gmail.com>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, Oct 25, 2009 at 12:06 AM, andreas p=E5lsson
-<andreas.palsson+acpi@gmail.com> wrote:
-> That is absolutely wonderful!
-> I was digging around in drivers/acpi/* but had trouble to make sense
-> of things, but eeepc-laptop.c seems to be right on the spot of what I
-> was thinking of doing. :)
->
-> Now I just need to figure out how to talk to it from user-mode, and I
-> should be all set.
-> I suppose this is not the list to ask questions related to it?
->
->
-> Thanks!
->
+Hi,
 
-Hi
-You can use this list, or directly acpi4asus mailing list / bug
-tracker at http://acpi4asus.sf.net
+I have a Levono S-12 netbook which uses an Atom N270 processor.
+Loading the ACPI 'processor' module clobbers my DMA, specifically when
+using the b43 driver for a Broadcom BCM4312 802.11b/g [14e4:4315] low
+power phy wireless device.  The b43 driver works correctly if the
+processor ACPI module is blacklisted.
 
---=20
-Corentin Chary
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is with kernel 2.6.32-rc5, but the same occurs with earlier
+pre-2.6.32 kernels.
+
+Please let me know what further information would be helpful (for
+example, the output of dmesg, lspci or lsmod, or other hardware
+information).
+
+Chris
+
+
