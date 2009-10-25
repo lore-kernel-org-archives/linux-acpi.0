@@ -1,150 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 2/2] acpi: support IBM SMBus CMI devices
-Date: Sun, 25 Oct 2009 12:53:53 +0100
-Message-ID: <20091025125353.55d3bfad@hyperion.delvare>
-References: <20091020231149.GM26149@tux1.beaverton.ibm.com>
-	<20091021023016.GC32413@crane-desktop>
-	<200910210857.13978.bjorn.helgaas@hp.com>
-	<20091021173733.GN26149@tux1.beaverton.ibm.com>
-	<20091022071748.GA17917@crane-desktop>
-	<20091022174304.GO26149@tux1.beaverton.ibm.com>
-	<20091023044451.GB1367@crane-desktop>
-	<20091023170311.GC21723@tux1.beaverton.ibm.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: ACPI events for laptop special buttons
+Date: Sun, 25 Oct 2009 13:01:29 +0100
+Message-ID: <71cd59b00910250501x369b347ev51f918b0b212d91b@mail.gmail.com>
+References: <477df590910241512v3ecc3b0dj7d0d115cdaea7f7e@mail.gmail.com>
+	 <4AE37CE2.9040304@gmail.com>
+	 <477df590910241606gbd4e38t5e90734ec742639@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753442AbZJYLxy@vger.kernel.org>
-In-Reply-To: <20091023170311.GC21723@tux1.beaverton.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: djwong@us.ibm.com
-Cc: Crane Cai <crane.cai@amd.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:59721 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407AbZJYMBZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2009 08:01:25 -0400
+Received: by yxe17 with SMTP id 17so9088889yxe.33
+        for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2009 05:01:30 -0700 (PDT)
+In-Reply-To: <477df590910241606gbd4e38t5e90734ec742639@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?ISO-8859-1?Q?andreas_p=E5lsson?= <andreas.palsson+acpi@gmail.com>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi Darrick,
+On Sun, Oct 25, 2009 at 12:06 AM, andreas p=E5lsson
+<andreas.palsson+acpi@gmail.com> wrote:
+> That is absolutely wonderful!
+> I was digging around in drivers/acpi/* but had trouble to make sense
+> of things, but eeepc-laptop.c seems to be right on the spot of what I
+> was thinking of doing. :)
+>
+> Now I just need to figure out how to talk to it from user-mode, and I
+> should be all set.
+> I suppose this is not the list to ask questions related to it?
+>
+>
+> Thanks!
+>
 
-On Fri, 23 Oct 2009 10:03:11 -0700, Darrick J. Wong wrote:
-> On some old IBM workstations and desktop computers, the BIOS presents in the
-> DSDT an SMBus object that is missing the HID identifier that the i2c-scmi
-> driver looks for.  Modify the ACPI device scan code to insert the missing HID
-> if it finds an IBM system with such an object.  This patch requires Crane Cai's
-> update to i2c-scmi to work around incorrectly named methods within the SMBus
-> control object.
-> 
-> Affected machines: IntelliStation Z20/Z30.  Note that the i2c-i801 driver no
-> longer works on these machines because of ACPI resource conflicts.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-> ---
-> 
->  drivers/acpi/scan.c           |   38 ++++++++++++++++++++++++++++++++++++++
->  drivers/i2c/busses/i2c-scmi.c |    2 +-
->  include/acpi/acpi_drivers.h   |    2 ++
->  3 files changed, 41 insertions(+), 1 deletions(-)
-> 
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 14a7481..89f8992 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -8,6 +8,7 @@
->  #include <linux/acpi.h>
->  #include <linux/signal.h>
->  #include <linux/kthread.h>
-> +#include <linux/dmi.h>
->  
->  #include <acpi/acpi_drivers.h>
->  
-> @@ -1014,6 +1015,41 @@ static void acpi_add_id(struct acpi_device *device, const char *dev_id)
->  	list_add_tail(&id->list, &device->pnp.ids);
->  }
->  
-> +/*
-> + * Old IBM workstations have a DSDT bug wherein the SMBus object
-> + * lacks the SMBUS01 HID and the methods do not have the necessary "_"
-> + * prefix.  Work around this.
-> + */
-> +static int probe_ibm_smbus_device(struct acpi_device *device)
-> +{
-> +	acpi_handle h_dummy;
-> +	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
-> +	int result;
-> +
-> +	if (!dmi_name_in_vendors("IBM"))
-> +		return -ENODEV;
-> +
-> +	/* Look for SMBS object */
-> +	result = acpi_get_name(device->handle, ACPI_SINGLE_NAME, &path);
-> +	if (result)
-> +		return result;
-> +
-> +	if (strcmp("SMBS", path.pointer)) {
-> +		result = -ENODEV;
-> +		goto out;
-> +	}
-> +
-> +	/* Does it have the necessary (but misnamed) methods? */
-> +	result = -ENODEV;
-> +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "SBI", &h_dummy)) &&
-> +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBR", &h_dummy)) &&
-> +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBW", &h_dummy)))
-> +		result = 0;
-> +out:
-> +	kfree(path.pointer);
-> +	return result;
-> +}
-> +
->  static void acpi_device_set_id(struct acpi_device *device)
->  {
->  	acpi_status status;
-> @@ -1064,6 +1100,8 @@ static void acpi_device_set_id(struct acpi_device *device)
->  			acpi_add_id(device, ACPI_BAY_HID);
->  		else if (ACPI_SUCCESS(acpi_dock_match(device)))
->  			acpi_add_id(device, ACPI_DOCK_HID);
-> +		else if (!probe_ibm_smbus_device(device))
-> +			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
+Hi
+You can use this list, or directly acpi4asus mailing list / bug
+tracker at http://acpi4asus.sf.net
 
-I am not responsible for the ACPI code, but... wouldn't it make sense
-to rename probe_ibm_smbus_device() to acpi_ibm_smbus_match() and have
-it follow the same convention as acpi_dock_match() and
-acpi_bay_match()? To make the code more consistent.
-
->  
->  		break;
->  	case ACPI_BUS_TYPE_POWER:
-> diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
-> index a15aaf4..22c26c2 100644
-> --- a/drivers/i2c/busses/i2c-scmi.c
-> +++ b/drivers/i2c/busses/i2c-scmi.c
-> @@ -51,7 +51,7 @@ static const struct smbus_methods_t ibm_smbus_methods = {
->  
->  static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
->  	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
-> -	{"SMBUSIBM", (kernel_ulong_t)&ibm_smbus_methods},
-> +	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
-
-As both patches depend on each other and one is useless without the
-other, you might as well sequence them the other way around, so that
-you touch this line only once.
-
->  	{"", 0}
->  };
->  
-> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index f4906f6..83a2960 100644
-> --- a/include/acpi/acpi_drivers.h
-> +++ b/include/acpi/acpi_drivers.h
-> @@ -65,6 +65,8 @@
->  #define ACPI_VIDEO_HID			"LNXVIDEO"
->  #define ACPI_BAY_HID			"LNXIOBAY"
->  #define ACPI_DOCK_HID			"LNXDOCK"
-> +/* Quirk for broken IBM BIOSes */
-> +#define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
->  
->  /*
->   * For fixed hardware buttons, we fabricate acpi_devices with HID
-
-Other that these details, I like the patch. If this helps with ACPI
-resource conflicts, even better :)
-
--- 
-Jean Delvare
+--=20
+Corentin Chary
+http://xf.iksaif.net
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
