@@ -1,29 +1,71 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/3] X86 drivers: Introduce msi-wmi driver
-Date: Mon, 26 Oct 2009 20:10:41 +0000
-Message-ID: <20091026201041.GA8736@srcf.ucam.org>
-References: <1256575458-19269-1-git-send-email-trenn@suse.de> <1256575458-19269-2-git-send-email-trenn@suse.de> <20091026170421.GA3515@srcf.ucam.org> <200910262256.28855.trenn@suse.de>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: 2.6.32-rc1: spurious error message from "ACPI button: provide
+ lid status functions"
+Date: Mon, 26 Oct 2009 13:24:20 -0700
+Message-ID: <20091026132420.2f639966@jbarnes-g45>
+References: <4AC72D09.3040907@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:35032 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754114AbZJZUKm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Oct 2009 16:10:42 -0400
-Content-Disposition: inline
-In-Reply-To: <200910262256.28855.trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754958AbZJZUYV@vger.kernel.org>
+In-Reply-To: <4AC72D09.3040907@tuffmail.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Eric Anholt <eric@anholt.net>, Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Oct 26, 2009 at 10:56:28PM +0100, Thomas Renninger wrote:
+On Sat, 03 Oct 2009 11:52:57 +0100
+Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
 
-> The OS has to react on WMI notifications and the brightness change only
-> happens when writing to IO via ACPI WSAA (WMI set block) function.
-> So I expect the answer to your question is no.
+> ACPI: Waking up from system sleep state S4
+> PM: Device PNP0C0D:00 failed to thaw: error 1
+> 
+> The device appears to be the acpi lid "button".  The error comes from
+> calling acpi_lid_send_state():
+> 
+>     @@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct
+>     acpi_device *device)
+>          /* input layer checks if event is redundant */
+>          input_report_switch(button->input, SW_LID, !state);
+>          input_sync(button->input);
+>     -    return 0;
+>     +
+>     +    ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+>     device);
+>     +    if (ret == NOTIFY_DONE)
+>     +        ret = blocking_notifier_call_chain(&acpi_lid_notifier,
+> state,
+>     +                           device);
+>     +    return ret;
+>      }
+> 
+> 
+> The "error 1" is actually NOTIFY_OK.
+> 
+>     @include/linux/notify.h:
+>     #define NOTIFY_DONE        0x0000        /* Don't care */
+>     #define NOTIFY_OK        0x0001        /* Suits me */
+>     #define NOTIFY_STOP_MASK    0x8000        /* Don't call further */
+>     #define NOTIFY_BAD        (NOTIFY_STOP_MASK|0x0002)
+>                             /* Bad/Veto action */
+>     /*
+>      * Clean way to return from the notifier and stop further calls.
+>      */
+>     #define NOTIFY_STOP        (NOTIFY_OK|NOTIFY_STOP_MASK)
+> 
+> 
+> Clearly acpi_lid_send_state() should return 0 for NOTIFY_OK.  I guess
+> NOTIFY_STOP can be ignored until someone says they need it.
+> 
+> But I don't understand the NOTIFY_DONE case, so I'm not sure.  I can't
+> find any users to reverse engineer it.  IMO it either needs to be
+> removed or commented.
+> 
+> Can you please sort this out, so we don't see this error message on a
+> completely successful resume?
 
-Ok, that's fine.
+I think Len and I sorted this out at KS.  Len did you commit the fix
+suggested above?
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jesse Barnes, Intel Open Source Technology Center
