@@ -1,131 +1,164 @@
-From: "Darrick J. Wong" <djwong@us.ibm.com>
-Subject: [PATCH v2 2/2] i2c-scmi: support IBM SMBus CMI devices
-Date: Mon, 26 Oct 2009 14:00:24 -0700
-Message-ID: <20091026210024.GS26149@tux1.beaverton.ibm.com>
-References: <20091020231149.GM26149@tux1.beaverton.ibm.com> <20091021023016.GC32413@crane-desktop> <200910210857.13978.bjorn.helgaas@hp.com> <20091021173733.GN26149@tux1.beaverton.ibm.com> <20091022071748.GA17917@crane-desktop> <20091022174304.GO26149@tux1.beaverton.ibm.com> <20091023044451.GB1367@crane-desktop> <20091023170311.GC21723@tux1.beaverton.ibm.com> <20091025125353.55d3bfad@hyperion.delvare>
-Reply-To: djwong@us.ibm.com
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [PATCH 4/8] SGI x86_64 UV: Limit the number of ACPI messages
+Date: Mon, 26 Oct 2009 14:25:55 -0700
+Message-ID: <4AE613E3.3060506@sgi.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233754.668088000@alcatraz.americas.sgi.com> <1256354987.17875.6.camel@dc7800.home> <200910262347.46292.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e9.ny.us.ibm.com ([32.97.182.139]:34887 "EHLO e9.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752309AbZJZVAX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Oct 2009 17:00:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20091025125353.55d3bfad@hyperion.delvare>
+Received: from relay2.sgi.com ([192.48.179.30]:35016 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753533AbZJZVZu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Oct 2009 17:25:50 -0400
+In-Reply-To: <200910262347.46292.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Crane Cai <crane.cai@amd.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
-
-From: Crane Cai <crane.cai@amd.com>
-
-*) add a new HID for IBM SMBus CMI devices
-*) add methods for IBM SMBus CMI devices
-*) hook different HID with different control methods set
-*) minor tweaks as suggested by Jean Delvare
-
-Slightly modified by Darrick to use #define'd IBM SMBUS HID from Darrick's ACPI
-scan quirk patch.
-
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Signed-off-by: Crane Cai <crane.cai@amd.com>
----
-
- drivers/i2c/busses/i2c-scmi.c |   31 +++++++++++++++++++++++--------
- 1 files changed, 23 insertions(+), 8 deletions(-)
+To: Thomas Renninger <trenn@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Alexey Dobriyan <adobriyan@gmail.com>, Myron Stowe <myron.stowe@hp.com>, Feng Tang <feng.tang@intel.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
-index b4a55d4..7860cbb 100644
---- a/drivers/i2c/busses/i2c-scmi.c
-+++ b/drivers/i2c/busses/i2c-scmi.c
-@@ -33,6 +33,7 @@ struct acpi_smbus_cmi {
- 	u8 cap_info:1;
- 	u8 cap_read:1;
- 	u8 cap_write:1;
-+	struct smbus_methods_t *methods;
- };
- 
- static const struct smbus_methods_t smbus_methods = {
-@@ -41,8 +42,16 @@ static const struct smbus_methods_t smbus_methods = {
- 	.mt_sbw  = "_SBW",
- };
- 
-+/* Some IBM BIOSes omit the leading underscore */
-+static const struct smbus_methods_t ibm_smbus_methods = {
-+	.mt_info = "SBI_",
-+	.mt_sbr  = "SBR_",
-+	.mt_sbw  = "SBW_",
-+};
-+
- static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
--	{"SMBUS01", 0},
-+	{"SMBUS01", (kernel_ulong_t)&smbus_methods},
-+	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
- 	{"", 0}
- };
- 
-@@ -150,11 +159,11 @@ acpi_smbus_cmi_access(struct i2c_adapter *adap, u16 addr, unsigned short flags,
- 
- 	if (read_write == I2C_SMBUS_READ) {
- 		protocol |= ACPI_SMBUS_PRTCL_READ;
--		method = smbus_methods.mt_sbr;
-+		method = smbus_cmi->methods->mt_sbr;
- 		input.count = 3;
- 	} else {
- 		protocol |= ACPI_SMBUS_PRTCL_WRITE;
--		method = smbus_methods.mt_sbw;
-+		method = smbus_cmi->methods->mt_sbw;
- 		input.count = 5;
- 	}
- 
-@@ -290,13 +299,13 @@ static int acpi_smbus_cmi_add_cap(struct acpi_smbus_cmi *smbus_cmi,
- 	union acpi_object *obj;
- 	acpi_status status;
- 
--	if (!strcmp(name, smbus_methods.mt_info)) {
-+	if (!strcmp(name, smbus_cmi->methods->mt_info)) {
- 		status = acpi_evaluate_object(smbus_cmi->handle,
--					smbus_methods.mt_info,
-+					smbus_cmi->methods->mt_info,
- 					NULL, &buffer);
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_ERROR((AE_INFO, "Evaluating %s: %i",
--				   smbus_methods.mt_info, status));
-+				   smbus_cmi->methods->mt_info, status));
- 			return -EIO;
- 		}
- 
-@@ -319,9 +328,9 @@ static int acpi_smbus_cmi_add_cap(struct acpi_smbus_cmi *smbus_cmi,
- 
- 		kfree(buffer.pointer);
- 		smbus_cmi->cap_info = 1;
--	} else if (!strcmp(name, smbus_methods.mt_sbr))
-+	} else if (!strcmp(name, smbus_cmi->methods->mt_sbr))
- 		smbus_cmi->cap_read = 1;
--	else if (!strcmp(name, smbus_methods.mt_sbw))
-+	else if (!strcmp(name, smbus_cmi->methods->mt_sbw))
- 		smbus_cmi->cap_write = 1;
- 	else
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Unsupported CMI method: %s\n",
-@@ -349,6 +358,7 @@ static acpi_status acpi_smbus_cmi_query_methods(acpi_handle handle, u32 level,
- static int acpi_smbus_cmi_add(struct acpi_device *device)
- {
- 	struct acpi_smbus_cmi *smbus_cmi;
-+	const struct acpi_device_id *id;
- 
- 	smbus_cmi = kzalloc(sizeof(struct acpi_smbus_cmi), GFP_KERNEL);
- 	if (!smbus_cmi)
-@@ -362,6 +372,11 @@ static int acpi_smbus_cmi_add(struct acpi_device *device)
- 	smbus_cmi->cap_read = 0;
- 	smbus_cmi->cap_write = 0;
- 
-+	for (id = acpi_smbus_cmi_ids; id->id[0]; id++)
-+		if (!strcmp(id->id, acpi_device_hid(device)))
-+			smbus_cmi->methods =
-+				(struct smbus_methods_t *) id->driver_data;
-+
- 	acpi_walk_namespace(ACPI_TYPE_METHOD, smbus_cmi->handle, 1,
- 			    acpi_smbus_cmi_query_methods, smbus_cmi, NULL);
- 
+
+Thomas Renninger wrote:
+> On Saturday 24 October 2009 05:29:47 am Bjorn Helgaas wrote:
+>> On Fri, 2009-10-23 at 18:37 -0500, Mike Travis wrote:
+>>> plain text document attachment (limit_acpi)
+>>> Limit number of ACPI messages of the form:
+>>>
+>>> [    0.000000] ACPI: LSAPIC (acpi_id[0x00] lsapic_id[0x00]
+>>> lsapic_eid[0x00] enabled)
+>>>
+>>> [   99.638655] processor ACPI0007:00: registered as cooling_device0
+>>>
+>>> Cc: Zhang Rui <rui.zhang@intel.com>
+>>> Cc: Len Brown <lenb@kernel.org>
+>>> Cc: Thomas Renninger <trenn@suse.de>
+>>> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+>>> Cc: Alexey Dobriyan <adobriyan@gmail.com>
+>>> Cc: Myron Stowe <myron.stowe@hp.com>
+>>> Cc: Feng Tang <feng.tang@intel.com>
+>>> Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+>>> Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+>>> Cc: linux-acpi@vger.kernel.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>> Signed-off-by: Mike Travis <travis@sgi.com>
+>>> ---
+>>>  drivers/acpi/fan.c            |    7 ++++++-
+>>>  drivers/acpi/processor_core.c |    8 ++++++--
+>>>  drivers/acpi/tables.c         |   15 ++++++++++-----
+>>>  3 files changed, 22 insertions(+), 8 deletions(-)
+>>>
+>>> --- linux.orig/drivers/acpi/fan.c
+>>> +++ linux/drivers/acpi/fan.c
+>>> @@ -243,6 +243,7 @@
+>>>  	int result = 0;
+>>>  	int state = 0;
+>>>  	struct thermal_cooling_device *cdev;
+>>> +	static int msgcnt;
+>>>
+>>>  	if (!device)
+>>>  		return -EINVAL;
+>>> @@ -267,7 +268,11 @@
+>>>  		goto end;
+>>>  	}
+>>>
+>>> -	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
+>>> +	if (msgcnt < 4 || !limit_console_output(false)) {
+>>> +		dev_info(&device->dev,
+>>> +			"registered as cooling_device%d\n", cdev->id);
+>>> +		msgcnt++;
+>>> +	}
+>> I'm personally not in favor of printing some, but not all, of these
+>> messages.  That leads to questions when analyzing a dmesg log, such as
+>> "Hmm, I see I have 64 CPUs, but only 0-3 are registered as cooling
+>> devices.  Does that mean something is wrong?"
+>>
+>> But I would be glad to see this particular message removed completely.
+>>
+>>>  	device->driver_data = cdev;
+>>>  	result = sysfs_create_link(&device->dev.kobj,
+>>> --- linux.orig/drivers/acpi/processor_core.c
+>>> +++ linux/drivers/acpi/processor_core.c
+>>> @@ -775,6 +775,7 @@
+>>>  	struct acpi_processor *pr = NULL;
+>>>  	int result = 0;
+>>>  	struct sys_device *sysdev;
+>>> +	static int msgcnt;
+>>>
+>>>  	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
+>>>  	if (!pr)
+>>> @@ -845,8 +846,11 @@
+>>>  		goto err_power_exit;
+>>>  	}
+>>>
+>>> -	dev_info(&device->dev, "registered as cooling_device%d\n",
+>>> -		 pr->cdev->id);
+>>> +	if (msgcnt < 4 || !limit_console_output(false)) {
+>>> +		dev_info(&device->dev, "registered as cooling_device%d\n",
+>>> +			 pr->cdev->id);
+>>> +		msgcnt++;
+>>> +	}
+> If Zhang Rui does not complain you can change these:
+> ..registered as cooling_device..
+> into dev_dbg() without any condition.
+> This isn't critical.
+> 
+> Or why not use the more fine grained
+> ACPI debug facility and change it into:
+> ACPI_DEBUG_PRINT((ACPI_DB_INFO "..."));
+> (compare with Documentation/acpi/debug.txt and other
+> occurences in the same file)
+> You have to pass:
+> acpi_dbg_layer=0x20000000
+> to see it then.
+
+Ok.
+>>>  	result = sysfs_create_link(&device->dev.kobj,
+>>>  				   &pr->cdev->device.kobj,
+>>> --- linux.orig/drivers/acpi/tables.c
+>>> +++ linux/drivers/acpi/tables.c
+>>> @@ -170,11 +170,16 @@
+>>>  	case ACPI_MADT_TYPE_LOCAL_SAPIC:
+>>>  		{
+>>>  			struct acpi_madt_local_sapic *p =
+>>> -			    (struct acpi_madt_local_sapic *)header;
+>>> -			printk(KERN_INFO PREFIX
+>>> -			       "LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x]
+>>> %s)\n", -			       p->processor_id, p->id, p->eid,
+>>> -			       (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" :
+>>> "disabled"); +				(struct acpi_madt_local_sapic *)header;
+>>> +
+>>> +			if (p->eid < 8 || !limit_console_output(false))
+> I can't find limit_console_output(), I expect it got introduced by another one 
+> of your patch series, not send to the acpi list?
+> Still shouldn't this be:
+> limit_console_output(true)
+> instead of:
+> !limit_console_output(false)
+> 
+>        Thomas
+
+Sorry, I used a semi-auto method of calling get_maintainer which filled each patch
+with specific Cc's.  I did send the first one to everyone in hopes that that would
+help find the others.
+
+See http://marc.info/?l=linux-kernel&m=125634109621411&w=4   (the argument specifies
+whether to reduce the console loglevel.  It's currently only used to suppress the
+cpu bootup messages.)
+
+Thanks,
+Mike
+
+> 
+>>> +				printk(KERN_INFO PREFIX
+>>> +					"LSAPIC (acpi_id[0x%02x] "
+>>> +						"lsapic_id[0x%02x] "
+>>> +						"lsapic_eid[0x%02x] %s)\n",
+>>> +					p->processor_id, p->id, p->eid,
+>>> +					(p->lapic_flags & ACPI_MADT_ENABLED) ?
+>>> +						"enabled" : "disabled");
+>> I know we print way too much stuff for every processor, but again, I'd
+>> rather see all CPUs or none.  I think there's a little more value in
+>> this one than the cooling device one (probably because I do a lot of
+>> platform bringup), but it could certainly be made KERN_DEBUG and/or
+>> combined with another processor discovery line.
