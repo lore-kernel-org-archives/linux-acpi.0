@@ -1,66 +1,160 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: WARNING: at drivers/base/sys.c:353 __sysdev_resume+0x54/0xca()
-Date: Mon, 26 Oct 2009 19:04:35 +0100
-Message-ID: <200910261904.35765.rjw@sisk.pl>
-References: <dd18b0c30910251258qde2e54csc07d726e916004f9@mail.gmail.com>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [PATCH 4/8] SGI x86_64 UV: Limit the number of ACPI messages
+Date: Mon, 26 Oct 2009 11:15:10 -0700
+Message-ID: <4AE5E72E.1020702@sgi.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com>	 <20091023233754.668088000@alcatraz.americas.sgi.com> <1256354987.17875.6.camel@dc7800.home>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58948 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753222AbZJZSCw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Oct 2009 14:02:52 -0400
-In-Reply-To: <dd18b0c30910251258qde2e54csc07d726e916004f9@mail.gmail.com>
+Received: from relay3.sgi.com ([192.48.152.1]:56604 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752506AbZJZSPH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Oct 2009 14:15:07 -0400
+In-Reply-To: <1256354987.17875.6.camel@dc7800.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Justin Mattock <justinmattock@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Len Brown <lenb@kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Alexey Dobriyan <adobriyan@gmail.com>, Myron Stowe <myron.stowe@hp.com>, Feng Tang <feng.tang@intel.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sunday 25 October 2009, Justin Mattock wrote:
-> echo mem > /sys/power/state
-> produces this:
-> 
-> [   75.908109] ------------[ cut here ]------------
-> [   75.908114] WARNING: at drivers/base/sys.c:353 __sysdev_resume+0x54/0xca()
-> [   75.908116] Hardware name: iMac9,1
-> [   75.908118] Interrupts enabled after irqrouter_resume+0x0/0x4b
-> [   75.908119] Modules linked in: authenc esp4 ah4
-> xfrm4_mode_transport ctr twofish twofish_common camellia serpent
-> blowfish cast5 des_generic cbc xcbc rmd160 sha256_generic crypto_null
-> xt_tcpudp iptable_nat nf_nat ipt_LOG xt_state nf_conntrack_ftp
-> nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 iptable_filter ip_tables
-> x_tables snd_hda_codec_realtek firewire_ohci firewire_core uvcvideo
-> nvidia(P) ohci1394 snd_hda_intel wl(P) evdev agpgart ieee1394
-> snd_hda_codec snd_hwdep snd_pcm snd_timer snd_page_alloc thermal
-> button uhci_hcd ehci_hcd hci_uart rfcomm btusb hidp l2cap bluetooth
-> coretemp acpi_cpufreq processor appletouch applesmc
-> [   75.908152] Pid: 1691, comm: bash Tainted: P
-> 2.6.32-rc3-00053-g0ba4675 #2
-> [   75.908153] Call Trace:
-> [   75.908157]  [<ffffffff81060e3e>] warn_slowpath_common+0x77/0x8f
-> [   75.908160]  [<ffffffff81060ea3>] warn_slowpath_fmt+0x3c/0x3e
-> [   75.908162]  [<ffffffff8120fd5f>] ? irqrouter_resume+0x0/0x4b
-> [   75.908164]  [<ffffffff81265fdd>] __sysdev_resume+0x54/0xca
-> [   75.908166]  [<ffffffff812660bb>] sysdev_resume+0x68/0xa9
-> [   75.908170]  [<ffffffff81090781>] suspend_devices_and_enter+0xf1/0x168
-> [   75.908172]  [<ffffffff810908a8>] enter_state+0xb0/0xcd
-> [   75.908175]  [<ffffffff81090125>] state_store+0xb1/0xce
-> [   75.908178]  [<ffffffff811d61e7>] kobj_attr_store+0x17/0x19
-> [   75.908181]  [<ffffffff811303c2>] sysfs_write_file+0xf2/0x12e
-> [   75.908184]  [<ffffffff810ed177>] vfs_write+0xad/0x14e
-> [   75.908187]  [<ffffffff8109cdd1>] ? audit_syscall_entry+0x1ba/0x1e6
-> [   75.908189]  [<ffffffff810ed2d1>] sys_write+0x45/0x6c
-> [   75.908192]  [<ffffffff8102cc42>] system_call_fastpath+0x16/0x1b
-> [   75.908194] ---[ end trace f5d0cba363054d63 ]---
-> 
-> 
-> The machine does have to proprietary modules(unfortunately)
-> nvidia and wl(hopefully soon I wont needs these).
 
-I've seen this warning on a system without any proprietary drivers, no idea
-why and how it triggers.
 
-Best,
-Rafael
+Bjorn Helgaas wrote:
+> On Fri, 2009-10-23 at 18:37 -0500, Mike Travis wrote:
+>> plain text document attachment (limit_acpi)
+>> Limit number of ACPI messages of the form:
+>>
+>> [    0.000000] ACPI: LSAPIC (acpi_id[0x00] lsapic_id[0x00] lsapic_eid[0x00] enabled)
+>>
+>> [   99.638655] processor ACPI0007:00: registered as cooling_device0
+>>
+>> Cc: Zhang Rui <rui.zhang@intel.com>
+>> Cc: Len Brown <lenb@kernel.org>
+>> Cc: Thomas Renninger <trenn@suse.de>
+>> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+>> Cc: Alexey Dobriyan <adobriyan@gmail.com>
+>> Cc: Myron Stowe <myron.stowe@hp.com>
+>> Cc: Feng Tang <feng.tang@intel.com>
+>> Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+>> Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+>> Cc: linux-acpi@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Mike Travis <travis@sgi.com>
+>> ---
+>>  drivers/acpi/fan.c            |    7 ++++++-
+>>  drivers/acpi/processor_core.c |    8 ++++++--
+>>  drivers/acpi/tables.c         |   15 ++++++++++-----
+>>  3 files changed, 22 insertions(+), 8 deletions(-)
+>>
+>> --- linux.orig/drivers/acpi/fan.c
+>> +++ linux/drivers/acpi/fan.c
+>> @@ -243,6 +243,7 @@
+>>  	int result = 0;
+>>  	int state = 0;
+>>  	struct thermal_cooling_device *cdev;
+>> +	static int msgcnt;
+>>  
+>>  	if (!device)
+>>  		return -EINVAL;
+>> @@ -267,7 +268,11 @@
+>>  		goto end;
+>>  	}
+>>  
+>> -	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
+>> +	if (msgcnt < 4 || !limit_console_output(false)) {
+>> +		dev_info(&device->dev,
+>> +			"registered as cooling_device%d\n", cdev->id);
+>> +		msgcnt++;
+>> +	}
+> 
+> I'm personally not in favor of printing some, but not all, of these
+> messages.  That leads to questions when analyzing a dmesg log, such as
+> "Hmm, I see I have 64 CPUs, but only 0-3 are registered as cooling
+> devices.  Does that mean something is wrong?"
+> 
+> But I would be glad to see this particular message removed completely.
+
+I didn't want to make the decision to remove messages as the original
+authors might have very good reasons for including them.
+
+Note that the dmesg log (kernel log buffer) still does have every one of
+the messages, only the prints to the console output (which usually is a
+serial connection [or IPMI] on servers) are limited.
+
+> 
+>>  	device->driver_data = cdev;
+>>  	result = sysfs_create_link(&device->dev.kobj,
+>> --- linux.orig/drivers/acpi/processor_core.c
+>> +++ linux/drivers/acpi/processor_core.c
+>> @@ -775,6 +775,7 @@
+>>  	struct acpi_processor *pr = NULL;
+>>  	int result = 0;
+>>  	struct sys_device *sysdev;
+>> +	static int msgcnt;
+>>  
+>>  	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
+>>  	if (!pr)
+>> @@ -845,8 +846,11 @@
+>>  		goto err_power_exit;
+>>  	}
+>>  
+>> -	dev_info(&device->dev, "registered as cooling_device%d\n",
+>> -		 pr->cdev->id);
+>> +	if (msgcnt < 4 || !limit_console_output(false)) {
+>> +		dev_info(&device->dev, "registered as cooling_device%d\n",
+>> +			 pr->cdev->id);
+>> +		msgcnt++;
+>> +	}
+>>  
+>>  	result = sysfs_create_link(&device->dev.kobj,
+>>  				   &pr->cdev->device.kobj,
+>> --- linux.orig/drivers/acpi/tables.c
+>> +++ linux/drivers/acpi/tables.c
+>> @@ -170,11 +170,16 @@
+>>  	case ACPI_MADT_TYPE_LOCAL_SAPIC:
+>>  		{
+>>  			struct acpi_madt_local_sapic *p =
+>> -			    (struct acpi_madt_local_sapic *)header;
+>> -			printk(KERN_INFO PREFIX
+>> -			       "LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+>> -			       p->processor_id, p->id, p->eid,
+>> -			       (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+>> +				(struct acpi_madt_local_sapic *)header;
+>> +
+>> +			if (p->eid < 8 || !limit_console_output(false))
+>> +				printk(KERN_INFO PREFIX
+>> +					"LSAPIC (acpi_id[0x%02x] "
+>> +						"lsapic_id[0x%02x] "
+>> +						"lsapic_eid[0x%02x] %s)\n",
+>> +					p->processor_id, p->id, p->eid,
+>> +					(p->lapic_flags & ACPI_MADT_ENABLED) ?
+>> +						"enabled" : "disabled");
+> 
+> I know we print way too much stuff for every processor, but again, I'd
+> rather see all CPUs or none.  I think there's a little more value in
+> this one than the cooling device one (probably because I do a lot of
+> platform bringup), but it could certainly be made KERN_DEBUG and/or
+> combined with another processor discovery line.
+
+This was the major reason why I left the default as it currently is, and
+made it a startup option that a site can choose to use or not.
+
+The intent of printing a few messages was to give context to the last line
+in this sequence:
+
+[   99.638655] processor ACPI0007:00: registered as cooling_device0
+[   99.648277] processor ACPI0007:01: registered as cooling_device1
+[   99.657976] processor ACPI0007:02: registered as cooling_device2
+[   99.667229] processor ACPI0007:03: registered as cooling_device3
+[   99.676517] printk: further related messages suppressed
+
+Thanks,
+Mike
+
+> 
+> Bjorn
+> 
+>>  		}
+>>  		break;
+>>  
+>>
