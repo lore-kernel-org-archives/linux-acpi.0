@@ -1,71 +1,34 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: 2.6.32-rc1: spurious error message from "ACPI button: provide
- lid status functions"
-Date: Mon, 26 Oct 2009 13:24:20 -0700
-Message-ID: <20091026132420.2f639966@jbarnes-g45>
-References: <4AC72D09.3040907@tuffmail.co.uk>
+From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Re: [PATCH 1/7] vsprintf: fix io/mem resource width
+Date: Mon, 26 Oct 2009 13:40:45 -0700
+Message-ID: <20091026134045.39a92084@jbarnes-g45>
+References: <20091006213259.4272.68068.stgit@bob.kio>
+	<20091006213329.4272.6694.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754958AbZJZUYV@vger.kernel.org>
-In-Reply-To: <4AC72D09.3040907@tuffmail.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Eric Anholt <eric@anholt.net>, Matthew Garrett <mjg59@srcf.ucam.org>, linux acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:13537 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753052AbZJZUko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Oct 2009 16:40:44 -0400
+In-Reply-To: <20091006213329.4272.6694.stgit@bob.kio>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, 03 Oct 2009 11:52:57 +0100
-Alan Jenkins <alan-jenkins@tuffmail.co.uk> wrote:
+On Tue, 06 Oct 2009 15:33:29 -0600
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-> ACPI: Waking up from system sleep state S4
-> PM: Device PNP0C0D:00 failed to thaw: error 1
+> The leading "0x" consumes field width, so leave space for it in
+> addition to the 4 or 8 hex digits.  This means we'll print
+> "0x0000-0x01df" rather than "0x00-0x1df", for example.
 > 
-> The device appears to be the acpi lid "button".  The error comes from
-> calling acpi_lid_send_state():
-> 
->     @@ -242,7 +272,12 @@ static int acpi_lid_send_state(struct
->     acpi_device *device)
->          /* input layer checks if event is redundant */
->          input_report_switch(button->input, SW_LID, !state);
->          input_sync(button->input);
->     -    return 0;
->     +
->     +    ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
->     device);
->     +    if (ret == NOTIFY_DONE)
->     +        ret = blocking_notifier_call_chain(&acpi_lid_notifier,
-> state,
->     +                           device);
->     +    return ret;
->      }
-> 
-> 
-> The "error 1" is actually NOTIFY_OK.
-> 
->     @include/linux/notify.h:
->     #define NOTIFY_DONE        0x0000        /* Don't care */
->     #define NOTIFY_OK        0x0001        /* Suits me */
->     #define NOTIFY_STOP_MASK    0x8000        /* Don't call further */
->     #define NOTIFY_BAD        (NOTIFY_STOP_MASK|0x0002)
->                             /* Bad/Veto action */
->     /*
->      * Clean way to return from the notifier and stop further calls.
->      */
->     #define NOTIFY_STOP        (NOTIFY_OK|NOTIFY_STOP_MASK)
-> 
-> 
-> Clearly acpi_lid_send_state() should return 0 for NOTIFY_OK.  I guess
-> NOTIFY_STOP can be ignored until someone says they need it.
-> 
-> But I don't understand the NOTIFY_DONE case, so I'm not sure.  I can't
-> find any users to reverse engineer it.  IMO it either needs to be
-> removed or commented.
-> 
-> Can you please sort this out, so we don't see this error message on a
-> completely successful resume?
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> ---
 
-I think Len and I sorted this out at KS.  Len did you commit the fix
-suggested above?
+Applied this series to my linux-next tree, thanks.
 
 -- 
 Jesse Barnes, Intel Open Source Technology Center
