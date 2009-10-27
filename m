@@ -1,52 +1,101 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 1/3] Add a generic API for _OSC
-Date: Tue, 27 Oct 2009 09:07:18 -0600
-Message-ID: <200910270907.19103.bjorn.helgaas@hp.com>
-References: <20091027063637.GA22237@sli10-desk.sh.intel.com>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [PATCH 4/8] SGI x86_64 UV: Limit the number of ACPI messages
+Date: Tue, 27 Oct 2009 08:27:35 -0700
+Message-ID: <4AE71167.7060506@sgi.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com>	 <20091023233754.668088000@alcatraz.americas.sgi.com> <1256354987.17875.6.camel@dc7800.home>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:29942 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754346AbZJ0PHl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 11:07:41 -0400
-In-Reply-To: <20091027063637.GA22237@sli10-desk.sh.intel.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755542AbZJ0P1R@vger.kernel.org>
+In-Reply-To: <1256354987.17875.6.camel@dc7800.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Alexey Dobriyan <adobriyan@gmail.com>, Myron Stowe <myron.stowe@hp.com>, Feng Tang <feng.tang@intel.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yhlu.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tuesday 27 October 2009 12:36:37 am Shaohua Li wrote:
-> Add an API to execute _OSC. A lot of devices can have this method, so add a
-> generic API.
+Bjorn Helgaas wrote:
+...
+> 
+> I know we print way too much stuff for every processor, but again, I'd
+> rather see all CPUs or none.  I think there's a little more value in
+> this one than the cooling device one (probably because I do a lot of
+> platform bringup), but it could certainly be made KERN_DEBUG and/or
+> combined with another processor discovery line.
 
-> +	out_obj = context->ret.pointer;
-> +	if (out_obj->type != ACPI_TYPE_BUFFER) {
-> +		printk(KERN_DEBUG "_OSC evaluation returned wrong type\n");
-> +		status = AE_TYPE;
-> +		goto out_kfree;
-> +	}
-> +	/* Need to ignore the bit0 in result code */
-> +	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
-> +	if (errors) {
-> +		if (errors & OSC_REQUEST_ERROR)
-> +			printk(KERN_DEBUG "_OSC request failed\n");
-> +		if (errors & OSC_INVALID_UUID_ERROR)
-> +			printk(KERN_DEBUG "_OSC invalid UUID\n");
-> +		if (errors & OSC_INVALID_REVISION_ERROR)
-> +			printk(KERN_DEBUG "_OSC invalid revision\n");
-> +		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
-> +			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
-> +			    & OSC_QUERY_ENABLE)
-> +				goto out_success;
-> +			printk(KERN_DEBUG
-> +			       "Firmware did not grant requested _OSC control\n");
+Is this more acceptable?
 
-On all these printks, it would be very useful to have some indication
-of what the OS requested and which specific _OSC method we executed,
-e.g., an ACPI device name or a namespace path.
+Thanks,
+Mike
+--- 
 
-Bjorn
+SGI x86_64 UV: Limit the number of ACPI messages
+
+Limit number of ACPI messages of the form:
+
+[    0.000000] ACPI: LSAPIC (acpi_id[0x00] lsapic_id[0x00] lsapic_eid[0x00] enabled)
+
+[   99.638655] processor ACPI0007:00: registered as cooling_device0
+
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Myron Stowe <myron.stowe@hp.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Mike Travis <travis@sgi.com>
+---
+ drivers/acpi/fan.c            |    2 +-
+ drivers/acpi/processor_core.c |    3 +--
+ drivers/acpi/tables.c         |   13 ++++++++-----
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+--- linux.orig/drivers/acpi/fan.c
++++ linux/drivers/acpi/fan.c
+@@ -267,7 +267,7 @@
+ 		goto end;
+ 	}
+ 
+-	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
++	dev_dbg(&device->dev, "registered as cooling_device%d\n", cdev->id);
+ 
+ 	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+--- linux.orig/drivers/acpi/processor_core.c
++++ linux/drivers/acpi/processor_core.c
+@@ -845,8 +845,7 @@
+ 		goto err_power_exit;
+ 	}
+ 
+-	dev_info(&device->dev, "registered as cooling_device%d\n",
+-		 pr->cdev->id);
++	dev_dbg(&device->dev, "registered as cooling_device%d\n", pr->cdev->id);
+ 
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				   &pr->cdev->device.kobj,
+--- linux.orig/drivers/acpi/tables.c
++++ linux/drivers/acpi/tables.c
+@@ -170,11 +170,14 @@
+ 	case ACPI_MADT_TYPE_LOCAL_SAPIC:
+ 		{
+ 			struct acpi_madt_local_sapic *p =
+-			    (struct acpi_madt_local_sapic *)header;
+-			printk(KERN_INFO PREFIX
+-			       "LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+-			       p->processor_id, p->id, p->eid,
+-			       (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
++				(struct acpi_madt_local_sapic *)header;
++
++			printk(KERN_DEBUG PREFIX
++				"LSAPIC (acpi_id[0x%02x] "
++				"lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
++				p->processor_id, p->id, p->eid,
++				(p->lapic_flags & ACPI_MADT_ENABLED) ?
++					"enabled" : "disabled");
+ 		}
+ 		break;
+ 
