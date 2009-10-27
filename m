@@ -1,106 +1,136 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: introduce kernel parameter acpi_sleep=s3_set_sci_en
-Date: Tue, 27 Oct 2009 10:23:52 +0800
-Message-ID: <1256610232.19142.77.camel@rzhang-dt>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH 1/3] Add a generic API for _OSC
+Date: Tue, 27 Oct 2009 14:36:37 +0800
+Message-ID: <20091027063637.GA22237@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26892 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:38043 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753231AbZJ0CZx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Oct 2009 22:25:53 -0400
+	id S1756191AbZJ0Gge (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Oct 2009 02:36:34 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
 
-Introduce kernel parameter acpi_sleep=s3_set_sci_en
+Add an API to execute _OSC. A lot of devices can have this method, so add a
+generic API.
 
-some laptop requires SCI_EN being set directly on resume,
-or else they hung somewhere in the resume code path.
-
-We already have a blacklist for these lattops but we still need
-this option, especially when debugging some suspend/resume problems,
-in case there are systems that need this workaround and are not yet
-in the blacklist.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 ---
- Documentation/kernel-parameters.txt |    5 ++++-
- arch/x86/kernel/acpi/sleep.c        |    4 ++++
- drivers/acpi/sleep.c                |    6 ++++++
- include/linux/acpi.h                |    3 +++
- 4 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/acpi/bus.c   |   72 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |    9 ++++++
+ 2 files changed, 81 insertions(+)
 
-Index: linux-2.6/drivers/acpi/sleep.c
+Index: linux/drivers/acpi/bus.c
 ===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -182,6 +182,12 @@ static void acpi_pm_end(void)
-  */
- static bool set_sci_en_on_resume;
+--- linux.orig/drivers/acpi/bus.c	2009-10-27 13:50:24.000000000 +0800
++++ linux/drivers/acpi/bus.c	2009-10-27 14:02:30.000000000 +0800
+@@ -344,6 +344,78 @@ bool acpi_bus_can_wakeup(acpi_handle han
  
-+void __init acpi_set_sci_en_on_resume(void)
+ EXPORT_SYMBOL(acpi_bus_can_wakeup);
+ 
++acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
 +{
-+	set_sci_en_on_resume = true;
-+	return 0;
-+}
++	acpi_status status;
++	struct acpi_object_list input;
++	union acpi_object in_params[4];
++	union acpi_object *out_obj;
++	u32 errors;
 +
- extern void do_suspend_lowlevel(void);
- 
- static u32 acpi_suspend_states[] = {
-Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
++	if (!context)
++		return AE_ERROR;
++	context->ret.length = ACPI_ALLOCATE_BUFFER;
++	context->ret.pointer = NULL;
++
++	/* Setting up input parameters */
++	input.count = 4;
++	input.pointer = in_params;
++	in_params[0].type 		= ACPI_TYPE_BUFFER;
++	in_params[0].buffer.length 	= 16;
++	in_params[0].buffer.pointer	= context->uuid;
++	in_params[1].type 		= ACPI_TYPE_INTEGER;
++	in_params[1].integer.value 	= context->rev;
++	in_params[2].type 		= ACPI_TYPE_INTEGER;
++	in_params[2].integer.value	= context->cap.length/sizeof(u32);
++	in_params[3].type		= ACPI_TYPE_BUFFER;
++	in_params[3].buffer.length 	= context->cap.length;
++	in_params[3].buffer.pointer 	= context->cap.pointer;
++
++	status = acpi_evaluate_object(handle, "_OSC", &input, &context->ret);
++	if (ACPI_FAILURE(status))
++		return status;
++
++	/* return buffer should have the same length as cap buffer */
++	if (context->ret.length != context->cap.length)
++		return AE_NULL_OBJECT;
++
++	out_obj = context->ret.pointer;
++	if (out_obj->type != ACPI_TYPE_BUFFER) {
++		printk(KERN_DEBUG "_OSC evaluation returned wrong type\n");
++		status = AE_TYPE;
++		goto out_kfree;
++	}
++	/* Need to ignore the bit0 in result code */
++	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
++	if (errors) {
++		if (errors & OSC_REQUEST_ERROR)
++			printk(KERN_DEBUG "_OSC request failed\n");
++		if (errors & OSC_INVALID_UUID_ERROR)
++			printk(KERN_DEBUG "_OSC invalid UUID\n");
++		if (errors & OSC_INVALID_REVISION_ERROR)
++			printk(KERN_DEBUG "_OSC invalid revision\n");
++		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
++			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
++			    & OSC_QUERY_ENABLE)
++				goto out_success;
++			printk(KERN_DEBUG
++			       "Firmware did not grant requested _OSC control\n");
++			status = AE_SUPPORT;
++			goto out_kfree;
++		}
++		status = AE_ERROR;
++		goto out_kfree;
++	}
++out_success:
++	return AE_OK;
++
++out_kfree:
++	kfree(context->ret.pointer);
++	context->ret.pointer = NULL;
++	return status;
++}
++EXPORT_SYMBOL(acpi_run_osc);
++
+ /* --------------------------------------------------------------------------
+                                 Event Management
+    -------------------------------------------------------------------------- */
+Index: linux/include/linux/acpi.h
 ===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-+++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-@@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
- #endif
- 		if (strncmp(str, "old_ordering", 12) == 0)
- 			acpi_old_suspend_ordering();
-+#ifdef CONFIG_SUSPEND
-+		if (strncmp(str, "s3_set_sci_en", 13) == 0)
-+			acpi_set_sci_en_on_resume();
-+#endif /* CONFIG_SUSPEND */
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -251,6 +251,9 @@ int acpi_check_mem_region(resource_size_
- void __init acpi_no_s4_hw_signature(void);
- void __init acpi_old_suspend_ordering(void);
+--- linux.orig/include/linux/acpi.h	2009-10-27 13:50:24.000000000 +0800
++++ linux/include/linux/acpi.h	2009-10-27 13:50:35.000000000 +0800
+@@ -253,6 +253,13 @@ void __init acpi_old_suspend_ordering(vo
  void __init acpi_s4_no_nvs(void);
-+#ifdef CONFIG_SUSPEND
-+void __init acpi_set_sci_en_on_resume(void);
-+#endif /* CONFIG_SUSPEND*/
  #endif /* CONFIG_PM_SLEEP */
  
++struct acpi_osc_context {
++	u8 *uuid;
++	int rev;
++	struct acpi_buffer cap; /* arg2/arg3 */
++	struct acpi_buffer ret; /* free by caller if success */
++};
++
  #define OSC_QUERY_TYPE			0
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -241,7 +241,7 @@ and is between 256 and 4096 characters. 
+ #define OSC_SUPPORT_TYPE 		1
+ #define OSC_CONTROL_TYPE		2
+@@ -265,6 +272,8 @@ void __init acpi_s4_no_nvs(void);
+ #define OSC_INVALID_REVISION_ERROR	8
+ #define OSC_CAPABILITIES_MASK_ERROR	16
  
- 	acpi_sleep=	[HW,ACPI] Sleep options
- 			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
--				  old_ordering, s4_nonvs }
-+				  old_ordering, s4_nonvs, s3_set_sci_en }
- 			See Documentation/power/video.txt for information on
- 			s3_bios and s3_mode.
- 			s3_beep is for debugging; it makes the PC's speaker beep
-@@ -254,6 +254,9 @@ and is between 256 and 4096 characters. 
- 			of _PTS is used by default).
- 			s4_nonvs prevents the kernel from saving/restoring the
- 			ACPI NVS memory during hibernation.
-+			s3_set_sci_en causes the kernel to set SCI_EN directly
-+			on resume from S3 (which is against the ACPI specification,
-+			but some broken systems don't work without it).
- 
- 	acpi_use_timer_override [HW,ACPI]
- 			Use timer override. For some broken Nvidia NF5 boards
-
-
++acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
++
+ /* _OSC DW1 Definition (OS Support Fields) */
+ #define OSC_EXT_PCI_CONFIG_SUPPORT		1
+ #define OSC_ACTIVE_STATE_PWR_SUPPORT 		2
