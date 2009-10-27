@@ -1,66 +1,86 @@
-From: Mike Travis <travis@sgi.com>
-Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
-Date: Tue, 27 Oct 2009 16:02:14 -0700
-Message-ID: <4AE77BF6.2040201@sgi.com>
-References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <4AE75B38.8070301@sgi.com> <alpine.DEB.2.00.0910271345400.9183@chino.kir.corp.google.com>
+From: "Luis R. Rodriguez" <mcgrof@gmail.com>
+Subject: scheduling while atomic acpi_idle_enter_bm
+Date: Tue, 27 Oct 2009 16:40:03 -0700
+Message-ID: <43e72e890910271640n7fafc8edpc14143fcfca7df60@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.sgi.com ([192.48.179.29]:32846 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754217AbZJ0XBx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Oct 2009 19:01:53 -0400
-In-Reply-To: <alpine.DEB.2.00.0910271345400.9183@chino.kir.corp.google.com>
+Received: from mail-iw0-f180.google.com ([209.85.223.180]:33075 "EHLO
+	mail-iw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756843AbZJ0XkS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 19:40:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>
+
+I get this when modprobing some module I am working on. I figured it
+was the module's fault but the EIP points to something else so I am
+not sure. I get the following repeating about 4 times on 2.6.32-rc5:
+
+[ 4806.829545] BUG: scheduling while atomic: swapper/0/0x10010000
+[ 4806.829551] Modules linked in: ath9k_htc ath9k_hw ath_hif_usb
+ath_htc binfmt_misc i915 drm_kms_helper drm i2c_algo_bit bri
+dge stp bnep lp snd_hda_codec_analog snd_hda_intel snd_hda_codec
+snd_pcm_oss snd_mixer_oss snd_pcm arc4 snd_seq_dummy snd_seq
+_oss snd_seq_midi snd_rawmidi ath5k snd_seq_midi_event snd_seq
+snd_timer snd_seq_device mac80211 ath joydev pcmcia ppdev thin
+kpad_acpi snd hid_microsoft video parport_pc psmouse soundcore
+cfg80211 usbhid output yenta_socket rsrc_nonstatic pcmcia_core
+ parport btusb serio_raw pcspkr nvram snd_page_alloc led_class
+intel_agp agpgart iTCO_wdt iTCO_vendor_support ohci1394 ieee13
+94 e1000e
+[ 4806.829683]
+[ 4806.829690] Pid: 0, comm: swapper Not tainted (2.6.32-rc5-wl #27) 7660A14
+[ 4806.829700] EIP: 0060:[<c03a1a7b>] EFLAGS: 00000292 CPU: 0
+[ 4806.829714] EIP is at acpi_idle_enter_bm+0x251/0x282
+[ 4806.829720] EAX: c0884bec EBX: 000002ba ECX: 00000000 EDX: 0137f000
+[ 4806.829727] ESI: 00000000 EDI: f70bacc0 EBP: c0773f9c ESP: c0773f70
+[ 4806.829733]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+[ 4806.829740] CR0: 8005003b CR2: 0804c000 CR3: 00892000 CR4: 00000690
+[ 4806.829748] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+[ 4806.829753] DR6: ffff0ff0 DR7: 00000400
+[ 4806.829758] Call Trace:
+[ 4806.829773]  [<c04a9537>] cpuidle_idle_call+0x77/0xf0
+[ 4806.829784]  [<c01020da>] cpu_idle+0x5a/0x90
+[ 4806.829795]  [<c05913c8>] rest_init+0x58/0x70
+[ 4806.829808]  [<c07e8945>] start_kernel+0x330/0x398
+[ 4806.829818]  [<c07e83ce>] ? unknown_bootoption+0x0/0x1f6
+[ 4806.829828]  [<c07e807e>] i386_start_kernel+0x7e/0xa8
+
+Then I get some 3 of these:
+
+[ 4808.518136] BUG: scheduling while atomic: swapper/0/0x10010000
+[ 4808.518143] Modules linked in: ath9k_htc ath9k_hw ath_hif_usb
+ath_htc binfmt_misc i915 drm_kms_helper drm i2c_algo_bit bridge stp
+bnep lp snd_hda_codec_analog snd_hda_intel snd_hda_codec snd_pcm_oss
+snd_mixer_oss snd_pcm arc4 snd_seq_dummy snd_seq_oss snd_seq_midi
+snd_rawmidi ath5k snd_seq_midi_event snd_seq snd_timer snd_seq_device
+mac80211 ath joydev pcmcia ppdev thinkpad_acpi snd hid_microsoft video
+parport_pc psmouse soundcore cfg80211 usbhid output yenta_socket
+rsrc_nonstatic pcmcia_core parport btusb serio_raw pcspkr nvram
+snd_page_alloc led_class intel_agp agpgart iTCO_wdt
+iTCO_vendor_support ohci1394 ieee1394 e1000e
+[ 4808.518258]
+[ 4808.518264] Pid: 0, comm: swapper Not tainted (2.6.32-rc5-wl #27) 7660A14
+[ 4808.518271] EIP: 0060:[<c05a65cf>] EFLAGS: 00000296 CPU: 1
+[ 4808.518280] EIP is at _spin_unlock_irqrestore+0xf/0x20
+[ 4808.518286] EAX: 00000296 EBX: f70bb008 ECX: 0000195e EDX: 00000296
+[ 4808.518292] ESI: 00000005 EDI: 00000296 EBP: f70b3f20 ESP: f70b3f20
+[ 4808.518299]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+[ 4808.518304] CR0: 8005003b CR2: 08204008 CR3: 36b26000 CR4: 00000690
+[ 4808.518310] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+[ 4808.518315] DR6: ffff0ff0 DR7: 00000400
+[ 4808.518319] Call Trace:
+[ 4808.518328]  [<c017615a>] clockevents_notify+0x3a/0x80
+[ 4808.518338]  [<c03a14d4>] lapic_timer_state_broadcast+0x36/0x39
+[ 4808.518347]  [<c03a1a99>] acpi_idle_enter_bm+0x26f/0x282
+[ 4808.518356]  [<c04a9537>] cpuidle_idle_call+0x77/0xf0
+[ 4808.518364]  [<c01020da>] cpu_idle+0x5a/0x90
+[ 4808.518373]  [<c05a1204>] start_secondary+0x170/0x1dc
+[ 4808.518382]  [<c05a1204>] ? start_secondary+0x170/0x1dc
+
+  Luis
 
 
-
-David Rientjes wrote:
-> On Tue, 27 Oct 2009, Mike Travis wrote:
-> 
->> I applied your previous patch with the change to use static and
->> here's the console output from a live system:
->>
->>
->> [    0.000000] SRAT: PXM 0 -> APIC {0-7,16-23} -> Node 0
->> [    0.000000] SRAT: PXM 1 -> APIC {32-39,48-55} -> Node 1
->> [    0.000000] SRAT: PXM 2 -> APIC {64-71,80-87} -> Node 2
->> [    0.000000] SRAT: PXM 3 -> APIC {96-103,112-119} -> Node 3
->> [    0.000000] SRAT: PXM 4 -> APIC {128-135,144-151} -> Node 4
->> [    0.000000] SRAT: PXM 5 -> APIC {160-167,176-183} -> Node 5
->> [    0.000000] SRAT: PXM 6 -> APIC {192-199,208-215} -> Node 6
->> [    0.000000] SRAT: PXM 7 -> APIC {224-231,240-247} -> Node 7
->> [    0.000000] SRAT: PXM 8 -> APIC {256-263,272-279} -> Node 8
->> [    0.000000] SRAT: PXM 9 -> APIC {288-295,304-311} -> Node 9
->> [    0.000000] SRAT: PXM 10 -> APIC {320-327,336-343} -> Node 10
->> [    0.000000] SRAT: PXM 11 -> APIC {352-359,368-375} -> Node 11
->> [    0.000000] SRAT: PXM 12 -> APIC {384-391,400-407} -> Node 12
->> [    0.000000] SRAT: PXM 13 -> APIC {416-423,432-439} -> Node 13
->> [    0.000000] SRAT: PXM 14 -> APIC {448-455,464-471} -> Node 14
->> [    0.000000] SRAT: PXM 15 -> APIC {480-487,496-503} -> Node 15
->> [    0.000000] SRAT: PXM 16 -> APIC {512-519,528-535} -> Node 16
->> [    0.000000] SRAT: PXM 17 -> APIC {544-551,560-567} -> Node 17
->> [    0.000000] SRAT: PXM 18 -> APIC {576-583,592-599} -> Node 18
->> [    0.000000] SRAT: PXM 19 -> APIC {608-615,624-631} -> Node 19
->> [    0.000000] SRAT: PXM 20 -> APIC {640-647,656-663} -> Node 20
->> [    0.000000] SRAT: PXM 21 -> APIC {672-679,688-695} -> Node 21
->> [    0.000000] SRAT: PXM 22 -> APIC {704-711,720-727} -> Node 22
->> [    0.000000] SRAT: PXM 23 -> APIC {736-743,752-759} -> Node 23   
->>
-> 
-> Quite the system you have there :)  What was once 760 lines has been 
-> reduced to 24 without removing any information.
-> 
-> This seems to be the most we can reduce this particular output since we 
-> don't support mapping multiple pxms to a single node.
-
-Yes, thanks very much for the optimization.
-
-(And you can add my Acked-by or whatever you need.)
-
-Tomorrow I will have more time on the system and will try out all the
-new changes together, mostly with summarizing the Processor stats.
+  Luis
