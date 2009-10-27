@@ -1,86 +1,35 @@
-From: "Luis R. Rodriguez" <mcgrof@gmail.com>
-Subject: scheduling while atomic acpi_idle_enter_bm
-Date: Tue, 27 Oct 2009 16:40:03 -0700
-Message-ID: <43e72e890910271640n7fafc8edpc14143fcfca7df60@mail.gmail.com>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: scheduling while atomic acpi_idle_enter_bm
+Date: Tue, 27 Oct 2009 16:53:45 -0700
+Message-ID: <20091027165345.3237d3df@infradead.org>
+References: <43e72e890910271640n7fafc8edpc14143fcfca7df60@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iw0-f180.google.com ([209.85.223.180]:33075 "EHLO
-	mail-iw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756843AbZJ0XkS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 19:40:18 -0400
+Received: from casper.infradead.org ([85.118.1.10]:47403 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756539AbZJ0Xwf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 19:52:35 -0400
+In-Reply-To: <43e72e890910271640n7fafc8edpc14143fcfca7df60@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>
+To: "Luis R. Rodriguez" <mcgrof@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-I get this when modprobing some module I am working on. I figured it
-was the module's fault but the EIP points to something else so I am
-not sure. I get the following repeating about 4 times on 2.6.32-rc5:
+On Tue, 27 Oct 2009 16:40:03 -0700
+"Luis R. Rodriguez" <mcgrof@gmail.com> wrote:
 
-[ 4806.829545] BUG: scheduling while atomic: swapper/0/0x10010000
-[ 4806.829551] Modules linked in: ath9k_htc ath9k_hw ath_hif_usb
-ath_htc binfmt_misc i915 drm_kms_helper drm i2c_algo_bit bri
-dge stp bnep lp snd_hda_codec_analog snd_hda_intel snd_hda_codec
-snd_pcm_oss snd_mixer_oss snd_pcm arc4 snd_seq_dummy snd_seq
-_oss snd_seq_midi snd_rawmidi ath5k snd_seq_midi_event snd_seq
-snd_timer snd_seq_device mac80211 ath joydev pcmcia ppdev thin
-kpad_acpi snd hid_microsoft video parport_pc psmouse soundcore
-cfg80211 usbhid output yenta_socket rsrc_nonstatic pcmcia_core
- parport btusb serio_raw pcspkr nvram snd_page_alloc led_class
-intel_agp agpgart iTCO_wdt iTCO_vendor_support ohci1394 ieee13
-94 e1000e
-[ 4806.829683]
-[ 4806.829690] Pid: 0, comm: swapper Not tainted (2.6.32-rc5-wl #27) 7660A14
-[ 4806.829700] EIP: 0060:[<c03a1a7b>] EFLAGS: 00000292 CPU: 0
-[ 4806.829714] EIP is at acpi_idle_enter_bm+0x251/0x282
-[ 4806.829720] EAX: c0884bec EBX: 000002ba ECX: 00000000 EDX: 0137f000
-[ 4806.829727] ESI: 00000000 EDI: f70bacc0 EBP: c0773f9c ESP: c0773f70
-[ 4806.829733]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-[ 4806.829740] CR0: 8005003b CR2: 0804c000 CR3: 00892000 CR4: 00000690
-[ 4806.829748] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[ 4806.829753] DR6: ffff0ff0 DR7: 00000400
-[ 4806.829758] Call Trace:
-[ 4806.829773]  [<c04a9537>] cpuidle_idle_call+0x77/0xf0
-[ 4806.829784]  [<c01020da>] cpu_idle+0x5a/0x90
-[ 4806.829795]  [<c05913c8>] rest_init+0x58/0x70
-[ 4806.829808]  [<c07e8945>] start_kernel+0x330/0x398
-[ 4806.829818]  [<c07e83ce>] ? unknown_bootoption+0x0/0x1f6
-[ 4806.829828]  [<c07e807e>] i386_start_kernel+0x7e/0xa8
-
-Then I get some 3 of these:
-
-[ 4808.518136] BUG: scheduling while atomic: swapper/0/0x10010000
-[ 4808.518143] Modules linked in: ath9k_htc ath9k_hw ath_hif_usb
-ath_htc binfmt_misc i915 drm_kms_helper drm i2c_algo_bit bridge stp
-bnep lp snd_hda_codec_analog snd_hda_intel snd_hda_codec snd_pcm_oss
-snd_mixer_oss snd_pcm arc4 snd_seq_dummy snd_seq_oss snd_seq_midi
-snd_rawmidi ath5k snd_seq_midi_event snd_seq snd_timer snd_seq_device
-mac80211 ath joydev pcmcia ppdev thinkpad_acpi snd hid_microsoft video
-parport_pc psmouse soundcore cfg80211 usbhid output yenta_socket
-rsrc_nonstatic pcmcia_core parport btusb serio_raw pcspkr nvram
-snd_page_alloc led_class intel_agp agpgart iTCO_wdt
-iTCO_vendor_support ohci1394 ieee1394 e1000e
-[ 4808.518258]
-[ 4808.518264] Pid: 0, comm: swapper Not tainted (2.6.32-rc5-wl #27) 7660A14
-[ 4808.518271] EIP: 0060:[<c05a65cf>] EFLAGS: 00000296 CPU: 1
-[ 4808.518280] EIP is at _spin_unlock_irqrestore+0xf/0x20
-[ 4808.518286] EAX: 00000296 EBX: f70bb008 ECX: 0000195e EDX: 00000296
-[ 4808.518292] ESI: 00000005 EDI: 00000296 EBP: f70b3f20 ESP: f70b3f20
-[ 4808.518299]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-[ 4808.518304] CR0: 8005003b CR2: 08204008 CR3: 36b26000 CR4: 00000690
-[ 4808.518310] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[ 4808.518315] DR6: ffff0ff0 DR7: 00000400
-[ 4808.518319] Call Trace:
-[ 4808.518328]  [<c017615a>] clockevents_notify+0x3a/0x80
-[ 4808.518338]  [<c03a14d4>] lapic_timer_state_broadcast+0x36/0x39
-[ 4808.518347]  [<c03a1a99>] acpi_idle_enter_bm+0x26f/0x282
-[ 4808.518356]  [<c04a9537>] cpuidle_idle_call+0x77/0xf0
-[ 4808.518364]  [<c01020da>] cpu_idle+0x5a/0x90
-[ 4808.518373]  [<c05a1204>] start_secondary+0x170/0x1dc
-[ 4808.518382]  [<c05a1204>] ? start_secondary+0x170/0x1dc
-
-  Luis
+> I get this when modprobing some module I am working on. I figured it
+> was the module's fault but the EIP points to something else so I am
+> not sure. I get the following repeating about 4 times on 2.6.32-rc5:
 
 
-  Luis
+you can get this if your own code leaves interrupts disabled in a
+kernel thread and then lets the cpu go idle...
+
+
+-- 
+Arjan van de Ven 	Intel Open Source Technology Centre
+For development, discussion and tips for power savings, 
+visit http://www.lesswatts.org
