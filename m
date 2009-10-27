@@ -1,174 +1,137 @@
-From: Alexey Starikovskiy <aystarik@gmail.com>
-Subject: Re: [PATCH 1/3] Add a generic API for _OSC
-Date: Tue, 27 Oct 2009 18:52:45 +0300
-Message-ID: <4AE7174D.8090007@gmail.com>
-References: <20091027063637.GA22237@sli10-desk.sh.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH v2 1/2] acpi: support IBM SMBus CMI devices
+Date: Tue, 27 Oct 2009 18:03:32 +0100
+Message-ID: <20091027180332.62f2c758@hyperion.delvare>
+References: <20091020231149.GM26149@tux1.beaverton.ibm.com>
+	<20091021023016.GC32413@crane-desktop>
+	<200910210857.13978.bjorn.helgaas@hp.com>
+	<20091021173733.GN26149@tux1.beaverton.ibm.com>
+	<20091022071748.GA17917@crane-desktop>
+	<20091022174304.GO26149@tux1.beaverton.ibm.com>
+	<20091023044451.GB1367@crane-desktop>
+	<20091023170311.GC21723@tux1.beaverton.ibm.com>
+	<20091025125353.55d3bfad@hyperion.delvare>
+	<20091026205819.GR26149@tux1.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:57295 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755564AbZJ0Pwn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 11:52:43 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so318763fgg.1
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2009 08:52:48 -0700 (PDT)
-In-Reply-To: <20091027063637.GA22237@sli10-desk.sh.intel.com>
+Received: from poutre.nerim.net ([62.4.16.124]:63387 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756217AbZJ0RDb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Oct 2009 13:03:31 -0400
+In-Reply-To: <20091026205819.GR26149@tux1.beaverton.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: djwong@us.ibm.com
+Cc: Crane Cai <crane.cai@amd.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Shaohua,
-
-Could you also make it take a spec string as argument, not a prepared
-byte buffer?
-
-Regards,
-Alex.
-
-
-Shaohua Li =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> Add an API to execute _OSC. A lot of devices can have this method, so=
- add a
-> generic API.
->
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+On Mon, 26 Oct 2009 13:58:19 -0700, Darrick J. Wong wrote:
+> On some old IBM workstations and desktop computers, the BIOS presents in the
+> DSDT an SMBus object that is missing the HID identifier that the i2c-scmi
+> driver looks for.  Modify the ACPI device scan code to insert the missing HID
+> if it finds an IBM system with such an object.  This patch needs Crane Cai's
+> update to i2c-scmi to work around incorrectly named methods within the SMBus
+> control object.
+> 
+> Affected machines: IntelliStation Z20/Z30.  Note that the i2c-i801 driver no
+> longer works on these machines because of ACPI resource conflicts.
+> 
+> v2 contains minor tweaks suggested by Jean Delvare.
+> 
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 > ---
->  drivers/acpi/bus.c   |   72 ++++++++++++++++++++++++++++++++++++++++=
-+++++++++++
->  include/linux/acpi.h |    9 ++++++
->  2 files changed, 81 insertions(+)
->
-> Index: linux/drivers/acpi/bus.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux.orig/drivers/acpi/bus.c	2009-10-27 13:50:24.000000000 +0800
-> +++ linux/drivers/acpi/bus.c	2009-10-27 14:02:30.000000000 +0800
-> @@ -344,6 +344,78 @@ bool acpi_bus_can_wakeup(acpi_handle han
-> =20
->  EXPORT_SYMBOL(acpi_bus_can_wakeup);
-> =20
-> +acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context=
- *context)
+> 
+>  drivers/acpi/scan.c         |   38 ++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_drivers.h |    2 ++
+>  2 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 14a7481..5a24429 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -8,6 +8,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/signal.h>
+>  #include <linux/kthread.h>
+> +#include <linux/dmi.h>
+>  
+>  #include <acpi/acpi_drivers.h>
+>  
+> @@ -1014,6 +1015,41 @@ static void acpi_add_id(struct acpi_device *device, const char *dev_id)
+>  	list_add_tail(&id->list, &device->pnp.ids);
+>  }
+>  
+> +/*
+> + * Old IBM workstations have a DSDT bug wherein the SMBus object
+> + * lacks the SMBUS01 HID and the methods do not have the necessary "_"
+> + * prefix.  Work around this.
+> + */
+> +static int acpi_ibm_smbus_match(struct acpi_device *device)
 > +{
-> +	acpi_status status;
-> +	struct acpi_object_list input;
-> +	union acpi_object in_params[4];
-> +	union acpi_object *out_obj;
-> +	u32 errors;
+> +	acpi_handle h_dummy;
+> +	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
+> +	int result;
 > +
-> +	if (!context)
-> +		return AE_ERROR;
-> +	context->ret.length =3D ACPI_ALLOCATE_BUFFER;
-> +	context->ret.pointer =3D NULL;
+> +	if (!dmi_name_in_vendors("IBM"))
+> +		return -ENODEV;
 > +
-> +	/* Setting up input parameters */
-> +	input.count =3D 4;
-> +	input.pointer =3D in_params;
-> +	in_params[0].type 		=3D ACPI_TYPE_BUFFER;
-> +	in_params[0].buffer.length 	=3D 16;
-> +	in_params[0].buffer.pointer	=3D context->uuid;
-> +	in_params[1].type 		=3D ACPI_TYPE_INTEGER;
-> +	in_params[1].integer.value 	=3D context->rev;
-> +	in_params[2].type 		=3D ACPI_TYPE_INTEGER;
-> +	in_params[2].integer.value	=3D context->cap.length/sizeof(u32);
-> +	in_params[3].type		=3D ACPI_TYPE_BUFFER;
-> +	in_params[3].buffer.length 	=3D context->cap.length;
-> +	in_params[3].buffer.pointer 	=3D context->cap.pointer;
+> +	/* Look for SMBS object */
+> +	result = acpi_get_name(device->handle, ACPI_SINGLE_NAME, &path);
+> +	if (result)
+> +		return result;
 > +
-> +	status =3D acpi_evaluate_object(handle, "_OSC", &input, &context->r=
-et);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	/* return buffer should have the same length as cap buffer */
-> +	if (context->ret.length !=3D context->cap.length)
-> +		return AE_NULL_OBJECT;
-> +
-> +	out_obj =3D context->ret.pointer;
-> +	if (out_obj->type !=3D ACPI_TYPE_BUFFER) {
-> +		printk(KERN_DEBUG "_OSC evaluation returned wrong type\n");
-> +		status =3D AE_TYPE;
-> +		goto out_kfree;
+> +	if (strcmp("SMBS", path.pointer)) {
+> +		result = -ENODEV;
+> +		goto out;
 > +	}
-> +	/* Need to ignore the bit0 in result code */
-> +	errors =3D *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
-> +	if (errors) {
-> +		if (errors & OSC_REQUEST_ERROR)
-> +			printk(KERN_DEBUG "_OSC request failed\n");
-> +		if (errors & OSC_INVALID_UUID_ERROR)
-> +			printk(KERN_DEBUG "_OSC invalid UUID\n");
-> +		if (errors & OSC_INVALID_REVISION_ERROR)
-> +			printk(KERN_DEBUG "_OSC invalid revision\n");
-> +		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
-> +			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
-> +			    & OSC_QUERY_ENABLE)
-> +				goto out_success;
-> +			printk(KERN_DEBUG
-> +			       "Firmware did not grant requested _OSC control\n");
-> +			status =3D AE_SUPPORT;
-> +			goto out_kfree;
-> +		}
-> +		status =3D AE_ERROR;
-> +		goto out_kfree;
-> +	}
-> +out_success:
-> +	return AE_OK;
 > +
-> +out_kfree:
-> +	kfree(context->ret.pointer);
-> +	context->ret.pointer =3D NULL;
-> +	return status;
+> +	/* Does it have the necessary (but misnamed) methods? */
+> +	result = -ENODEV;
+> +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "SBI", &h_dummy)) &&
+> +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBR", &h_dummy)) &&
+> +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBW", &h_dummy)))
+> +		result = 0;
+> +out:
+> +	kfree(path.pointer);
+> +	return result;
 > +}
-> +EXPORT_SYMBOL(acpi_run_osc);
-> +
->  /* -----------------------------------------------------------------=
----------
->                                  Event Management
->     -----------------------------------------------------------------=
---------- */
-> Index: linux/include/linux/acpi.h
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux.orig/include/linux/acpi.h	2009-10-27 13:50:24.000000000 +08=
-00
-> +++ linux/include/linux/acpi.h	2009-10-27 13:50:35.000000000 +0800
-> @@ -253,6 +253,13 @@ void __init acpi_old_suspend_ordering(vo
->  void __init acpi_s4_no_nvs(void);
->  #endif /* CONFIG_PM_SLEEP */
-> =20
-> +struct acpi_osc_context {
-> +	u8 *uuid;
-> +	int rev;
-> +	struct acpi_buffer cap; /* arg2/arg3 */
-> +	struct acpi_buffer ret; /* free by caller if success */
-> +};
-> +
->  #define OSC_QUERY_TYPE			0
->  #define OSC_SUPPORT_TYPE 		1
->  #define OSC_CONTROL_TYPE		2
-> @@ -265,6 +272,8 @@ void __init acpi_s4_no_nvs(void);
->  #define OSC_INVALID_REVISION_ERROR	8
->  #define OSC_CAPABILITIES_MASK_ERROR	16
-> =20
-> +acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context=
- *context);
-> +
->  /* _OSC DW1 Definition (OS Support Fields) */
->  #define OSC_EXT_PCI_CONFIG_SUPPORT		1
->  #define OSC_ACTIVE_STATE_PWR_SUPPORT 		2
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->  =20
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm only half please with this. You change the function named, but it
+doesn't follow the calling convention of acpi_dock_match(), which is a
+little confusing.
+
+Anyway, I will need an ack from the ACPI people before I can pick this
+patch. Or maybe they should even push it upstream themselves.
+
+> +
+>  static void acpi_device_set_id(struct acpi_device *device)
+>  {
+>  	acpi_status status;
+> @@ -1064,6 +1100,8 @@ static void acpi_device_set_id(struct acpi_device *device)
+>  			acpi_add_id(device, ACPI_BAY_HID);
+>  		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+>  			acpi_add_id(device, ACPI_DOCK_HID);
+> +		else if (!acpi_ibm_smbus_match(device))
+> +			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
+>  
+>  		break;
+>  	case ACPI_BUS_TYPE_POWER:
+> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> index f4906f6..83a2960 100644
+> --- a/include/acpi/acpi_drivers.h
+> +++ b/include/acpi/acpi_drivers.h
+> @@ -65,6 +65,8 @@
+>  #define ACPI_VIDEO_HID			"LNXVIDEO"
+>  #define ACPI_BAY_HID			"LNXIOBAY"
+>  #define ACPI_DOCK_HID			"LNXDOCK"
+> +/* Quirk for broken IBM BIOSes */
+> +#define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+>  
+>  /*
+>   * For fixed hardware buttons, we fabricate acpi_devices with HID
+
+
+-- 
+Jean Delvare
