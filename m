@@ -1,40 +1,57 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [patch v2] x86: reduce srat verbosity in the kernel log
-Date: Tue, 27 Oct 2009 22:24:39 -0700 (PDT)
-Message-ID: <alpine.DEB.2.00.0910272220560.9448@chino.kir.corp.google.com>
-References: <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com>
- <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box> <alpine.DEB.2.00.0910272129250.17260@chino.kir.corp.google.com> <20091028051925.GL7744@basil.fritz.box>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH 1/3] Add a generic API for _OSC
+Date: Wed, 28 Oct 2009 11:02:12 +0300
+Message-ID: <4AE7FA84.1020203@gmail.com>
+References: <20091027063637.GA22237@sli10-desk.sh.intel.com> <4AE7174D.8090007@gmail.com> <20091028021930.GA31320@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:38343 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757297AbZJ1FYm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2009 01:24:42 -0400
-In-Reply-To: <20091028051925.GL7744@basil.fritz.box>
+Received: from fg-out-1718.google.com ([72.14.220.154]:14350 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932628AbZJ1ICK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2009 04:02:10 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1867755fga.1
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 01:02:14 -0700 (PDT)
+In-Reply-To: <20091028021930.GA31320@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Mike Travis <travis@sgi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Wed, 28 Oct 2009, Andi Kleen wrote:
+Shaohua Li =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> On Tue, Oct 27, 2009 at 11:52:45PM +0800, Alexey Starikovskiy wrote:
+>  =20
+>> Hi Shaohua,
+>>
+>> Could you also make it take a spec string as argument, not a prepare=
+d
+>> byte buffer?
+>>    =20
+> Hi,
+> did you mean take the uuid string as an argument of the API? We can
+> add a function to convert a uuid string to binary, but I didn't see
+> any benefit to take the string as argument.
+>
+> Thanks,
+> Shaohua
+>  =20
+Hi,
+Well, right now you are programming in machine codes. If you make
+mistake, no one will notice, even yourself.
+Programming languages were invented to make programs look more readable
+by humans, so that they can see mistakes more easily.
+=46or the same reason ACPI specification declares UUIDs as strings, whi=
+le
+having them in AML as byte arrays.
+=46unction to convert UUID to byte array already exists, you just need =
+to
+use it...
 
-> > +		/*
-> > +		 * If the bitmap cannot be listed in a buffer of length
-> > +		 * APICID_LIST_LEN, then it is suffixed with "...".
-> > +		 */
-> > +		len = bitmap_scnlistprintf(apicid_list, APICID_LIST_LEN,
-> > +					   apicid_map, MAX_LOCAL_APIC);
-> > +		pr_info("SRAT: PXM %u -> APIC {%s%s} -> Node %u\n",
-> > +			i, apicid_list,
-> > +			(len == APICID_LIST_LEN - 1) ? "..." : "",
-> 
-> Is the - 1 really correct? If scnlistprintf follows snprintf semantics then it would not
-> be and my understanding is it is supposed to.
-> 
-
-It is, bitmap_scnlistprintf() returns the number of characters printed to 
-the buffer minus the trailing '\0', which is different from snprintf().  
-APICID_LIST_LEN-1 then identifies when the buffer was max'd out.  It still 
-adds a trailing "..." if the list is exactly 128 characters long, but this 
-isn't addressed to avoid added complexity.
+Regards,
+Alex.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
