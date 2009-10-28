@@ -1,198 +1,30 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: introduce kernel parameter acpi_sleep=s3_set_sci_en
-Date: Wed, 28 Oct 2009 19:52:27 +0100
-Message-ID: <200910281952.27856.rjw@sisk.pl>
-References: <1256610232.19142.77.camel@rzhang-dt> <200910270921.42618.rjw@sisk.pl> <1256693810.19142.87.camel@rzhang-dt>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
+Date: Wed, 28 Oct 2009 13:52:11 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.0910281348590.24785@chino.kir.corp.google.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com>
+ <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box>
+ <4AE8792F.8070200@sgi.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45508 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750747AbZJ1Sue (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Oct 2009 14:50:34 -0400
-In-Reply-To: <1256693810.19142.87.camel@rzhang-dt>
+Received: from smtp-out.google.com ([216.239.33.17]:27444 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755527AbZJ1UwP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2009 16:52:15 -0400
+In-Reply-To: <4AE8792F.8070200@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Brown, Len" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Mike Travis <travis@sgi.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 28 October 2009, Zhang Rui wrote:
-> On Tue, 2009-10-27 at 16:21 +0800, Rafael J. Wysocki wrote:
-> > On Tuesday 27 October 2009, Zhang Rui wrote:
-> > > Introduce kernel parameter acpi_sleep=s3_set_sci_en
-> > > 
-> > > some laptop requires SCI_EN being set directly on resume,
-> > > or else they hung somewhere in the resume code path.
-> > > 
-> > > We already have a blacklist for these lattops but we still need
-> > > this option, especially when debugging some suspend/resume problems,
-> > > in case there are systems that need this workaround and are not yet
-> > > in the blacklist.
-> > > 
-> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > 
-> > I'm generally fine with this, but ...
-> > 
-> > > ---
-> > >  Documentation/kernel-parameters.txt |    5 ++++-
-> > >  arch/x86/kernel/acpi/sleep.c        |    4 ++++
-> > >  drivers/acpi/sleep.c                |    6 ++++++
-> > >  include/linux/acpi.h                |    3 +++
-> > >  4 files changed, 17 insertions(+), 1 deletion(-)
-> > > 
-> > > Index: linux-2.6/drivers/acpi/sleep.c
-> > > ===================================================================
-> > > --- linux-2.6.orig/drivers/acpi/sleep.c
-> > > +++ linux-2.6/drivers/acpi/sleep.c
-> > > @@ -182,6 +182,12 @@ static void acpi_pm_end(void)
-> > >   */
-> > >  static bool set_sci_en_on_resume;
-> > >  
-> > > +void __init acpi_set_sci_en_on_resume(void)
-> > > +{
-> > > +	set_sci_en_on_resume = true;
-> > > +	return 0;
-> > > +}
-> > > +
-> > >  extern void do_suspend_lowlevel(void);
-> > >  
-> > >  static u32 acpi_suspend_states[] = {
-> > > Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-> > > ===================================================================
-> > > --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-> > > +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-> > > @@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
-> > >  #endif
-> > >  		if (strncmp(str, "old_ordering", 12) == 0)
-> > >  			acpi_old_suspend_ordering();
-> > > +#ifdef CONFIG_SUSPEND
-> > > +		if (strncmp(str, "s3_set_sci_en", 13) == 0)
-> > > +			acpi_set_sci_en_on_resume();
-> > > +#endif /* CONFIG_SUSPEND */
-> > 
-> > ... do we really need these #ifdefs?
-> > 
-> yes, we do.
-> acpi_s4_no_nvs also uses #ifdef here.
-> 
-> > >  		str = strchr(str, ',');
-> > >  		if (str != NULL)
-> > >  			str += strspn(str, ", \t");
-> > > Index: linux-2.6/include/linux/acpi.h
-> > > ===================================================================
-> > > --- linux-2.6.orig/include/linux/acpi.h
-> > > +++ linux-2.6/include/linux/acpi.h
-> > > @@ -251,6 +251,9 @@ int acpi_check_mem_region(resource_size_
-> > >  void __init acpi_no_s4_hw_signature(void);
-> > >  void __init acpi_old_suspend_ordering(void);
-> > >  void __init acpi_s4_no_nvs(void);
-> > > +#ifdef CONFIG_SUSPEND
-> > > +void __init acpi_set_sci_en_on_resume(void);
-> > > +#endif /* CONFIG_SUSPEND*/
-> > 
-> > s4_no_nvs is hibernation-specific, but it's not under a #ifdef.
-> > 
-> it's okay to remove this #ifdef.
-> 
-> refreshed patch attached.
-> 
-> Introduce kernel parameter acpi_sleep=s3_set_sci_en
-> 
-> some laptop requires SCI_EN being set directly on resume,
-> or else they hung somewhere in the resume code path.
-> 
-> We already have a blacklist for these lattops but we still need
-> this option, especially when debugging some suspend/resume problems,
-> in case there are systems that need this workaround and are not yet
-> in the blacklist.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+On Wed, 28 Oct 2009, Mike Travis wrote:
 
-This one looks better.
-
-OK, Len, are you going to apply it or do you want me to handle it?
-
-Rafael
-
-
-> ---
->  Documentation/kernel-parameters.txt |    5 ++++-
->  arch/x86/kernel/acpi/sleep.c        |    4 ++++
->  drivers/acpi/sleep.c                |    6 ++++++
->  include/linux/acpi.h                |    1 +
->  4 files changed, 15 insertions(+), 1 deletion(-)
-> 
-> Index: linux-2.6/drivers/acpi/sleep.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/acpi/sleep.c
-> +++ linux-2.6/drivers/acpi/sleep.c
-> @@ -182,6 +182,12 @@ static void acpi_pm_end(void)
->   */
->  static bool set_sci_en_on_resume;
->  
-> +void __init acpi_set_sci_en_on_resume(void)
-> +{
-> +	set_sci_en_on_resume = true;
-> +	return 0;
-> +}
-> +
->  extern void do_suspend_lowlevel(void);
->  
->  static u32 acpi_suspend_states[] = {
-> Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-> ===================================================================
-> --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-> +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-> @@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
->  #endif
->  		if (strncmp(str, "old_ordering", 12) == 0)
->  			acpi_old_suspend_ordering();
-> +#ifdef CONFIG_SUSPEND
-> +		if (strncmp(str, "s3_set_sci_en", 13) == 0)
-> +			acpi_set_sci_en_on_resume();
-> +#endif /* CONFIG_SUSPEND */
->  		str = strchr(str, ',');
->  		if (str != NULL)
->  			str += strspn(str, ", \t");
-> Index: linux-2.6/include/linux/acpi.h
-> ===================================================================
-> --- linux-2.6.orig/include/linux/acpi.h
-> +++ linux-2.6/include/linux/acpi.h
-> @@ -251,6 +251,7 @@ int acpi_check_mem_region(resource_size_
->  void __init acpi_no_s4_hw_signature(void);
->  void __init acpi_old_suspend_ordering(void);
->  void __init acpi_s4_no_nvs(void);
-> +void __init acpi_set_sci_en_on_resume(void);
->  #endif /* CONFIG_PM_SLEEP */
->  
->  #define OSC_QUERY_TYPE			0
-> Index: linux-2.6/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux-2.6.orig/Documentation/kernel-parameters.txt
-> +++ linux-2.6/Documentation/kernel-parameters.txt
-> @@ -241,7 +241,7 @@ and is between 256 and 4096 characters. 
->  
->  	acpi_sleep=	[HW,ACPI] Sleep options
->  			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
-> -				  old_ordering, s4_nonvs }
-> +				  old_ordering, s4_nonvs, s3_set_sci_en }
->  			See Documentation/power/video.txt for information on
->  			s3_bios and s3_mode.
->  			s3_beep is for debugging; it makes the PC's speaker beep
-> @@ -254,6 +254,9 @@ and is between 256 and 4096 characters. 
->  			of _PTS is used by default).
->  			s4_nonvs prevents the kernel from saving/restoring the
->  			ACPI NVS memory during hibernation.
-> +			s3_set_sci_en causes the kernel to set SCI_EN directly
-> +			on resume from S3 (which is against the ACPI specification,
-> +			but some broken systems don't work without it).
->  
->  	acpi_use_timer_override [HW,ACPI]
->  			Use timer override. For some broken Nvidia NF5 boards
-> 
-> 
-> 
+> I don't understand the importance of this when the memory is given back
+> after the system starts up anyway...?
 > 
 
+Printing a list of apic ids longer than 128 characters would pollute the 
+kernel log and this upper bound will probably never be reached based on 
+the way apic ids are created for physical and logical processors: they are 
+normally reduced to ranges instead of comma seperated entities.
