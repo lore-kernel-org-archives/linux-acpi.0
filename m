@@ -1,55 +1,52 @@
-From: Mike Travis <travis@sgi.com>
-Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
-Date: Wed, 28 Oct 2009 15:36:20 -0700
-Message-ID: <4AE8C764.90705@sgi.com>
-References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box> <4AE8792F.8070200@sgi.com> <alpine.DEB.2.00.0910281348590.24785@chino.kir.corp.google.com> <4AE8B933.5020103@sgi.com> <alpine.DEB.2.00.0910281440580.32315@chino.kir.corp.google.com>
+From: Frans Pop <elendil@planet.nl>
+Subject: Re: [PATCH 0/6] [resend] thermal: improvements re. forced passive cooling
+Date: Wed, 28 Oct 2009 23:49:04 +0100
+Message-ID: <200910282349.06322.elendil@planet.nl>
+References: <1256542744-26569-1-git-send-email-elendil@planet.nl> <20091028153551.6c665ca1.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:35193 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753912AbZJ1WgU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Oct 2009 18:36:20 -0400
-In-Reply-To: <alpine.DEB.2.00.0910281440580.32315@chino.kir.corp.google.com>
+Received: from cpsmtpm-eml104.kpnxchange.com ([195.121.3.8]:64597 "EHLO
+	CPSMTPM-EML104.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753849AbZJ1WtD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Oct 2009 18:49:03 -0400
+In-Reply-To: <20091028153551.6c665ca1.akpm@linux-foundation.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Sujith Thomas <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
+Hi Andrew,
 
+On Wednesday 28 October 2009, Andrew Morton wrote:
+> I'm trying to work out what the actual bug is in here.
 
-David Rientjes wrote:
-> On Wed, 28 Oct 2009, Mike Travis wrote:
-> 
->>> Printing a list of apic ids longer than 128 characters would pollute the
->>> kernel log and this upper bound will probably never be reached based on the
->>> way apic ids are created for physical and logical processors: they are
->>> normally reduced to ranges instead of comma seperated entities.
->> Ahh, ok, thanks.
->>
->> Does that mean this 10,649 character line full of periods is illegal?
->>
-> 
-> I'm not saying it would be illegal, merely that it would be harm 
-> readability.  Based on how apic id's are formed from processor ids, 
-> though, I think we're really talking about an upper limit (128) that will 
-> never be reached.
+It turned out there was no bug in the kernel. This patch set is an 
+enhancement of existing kernel functionality.
 
-We actually have many, many more than that by adding on some extra bits
-to the CPU's apicid.  These select which blade in the system to target.
+> afacit some KDE tool put wrong numbers into /proc files, acpi didn't
+> sanity check them sufficiently and permitted the CPU to overheat, yes?
 
-> 
->> [  102.551570] Completing Region/Field/Buffer/Package initialization:
->> ............... [long time later] .........
->> <4>Clocksource tsc unstable (delta = 4396383657849 ns)
->>
->> I'm having trouble finding it.  Does it look familiar to anyone?
->>
-> 
-> It's debugging output from acpi_ns_initialize_objects() and each period is 
-> from acpi_ns_init_one_device().  You can suppress it by disabing 
-> CONFIG_ACPI_DEBUG.
+No. The problem was that the thermal zone that overheated did not have a 
+passive trip point defined in ACPI. So the kernel had no way of knowing 
+the system was overheating.
 
-Ahh, didn't know that was set in the (our) default config.  Is it normally
-set by distros?  
+The kernel already has an option to "force" a passive trip point for such 
+zones (using polling to check it), and that works. But while testing that 
+and looking at the code I spotted some possible enhancements.
+
+> There seems to be rather a lot of non-bugfix stuff in this patch
+> series.  Perhaps too much for 2.6.32, and a real problem if we want to
+> backport something into 2.6.31.x and earlier.
+
+It would have been nice if it had made .32 from my first submission, but 
+now it's fine for .33. It's not stable material.
+
+Thanks for taking the series.
+
+Cheers,
+FJP
