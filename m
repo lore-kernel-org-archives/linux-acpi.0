@@ -1,187 +1,31 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI: introduce kernel parameter
- acpi_sleep=s3_set_sci_en
-Date: Wed, 28 Oct 2009 09:36:50 +0800
-Message-ID: <1256693810.19142.87.camel@rzhang-dt>
-References: <1256610232.19142.77.camel@rzhang-dt>
-	 <200910270921.42618.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH 1/3] Add a generic API for _OSC
+Date: Wed, 28 Oct 2009 10:19:30 +0800
+Message-ID: <20091028021930.GA31320@sli10-desk.sh.intel.com>
+References: <20091027063637.GA22237@sli10-desk.sh.intel.com> <4AE7174D.8090007@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58251 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:48718 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757158AbZJ1Bix (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Oct 2009 21:38:53 -0400
-In-Reply-To: <200910270921.42618.rjw@sisk.pl>
+	id S1757128AbZJ1CT1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Oct 2009 22:19:27 -0400
+Content-Disposition: inline
+In-Reply-To: <4AE7174D.8090007@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Brown, Len" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Tue, 2009-10-27 at 16:21 +0800, Rafael J. Wysocki wrote:
-> On Tuesday 27 October 2009, Zhang Rui wrote:
-> > Introduce kernel parameter acpi_sleep=s3_set_sci_en
-> > 
-> > some laptop requires SCI_EN being set directly on resume,
-> > or else they hung somewhere in the resume code path.
-> > 
-> > We already have a blacklist for these lattops but we still need
-> > this option, especially when debugging some suspend/resume problems,
-> > in case there are systems that need this workaround and are not yet
-> > in the blacklist.
-> > 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+On Tue, Oct 27, 2009 at 11:52:45PM +0800, Alexey Starikovskiy wrote:
+> Hi Shaohua,
 > 
-> I'm generally fine with this, but ...
-> 
-> > ---
-> >  Documentation/kernel-parameters.txt |    5 ++++-
-> >  arch/x86/kernel/acpi/sleep.c        |    4 ++++
-> >  drivers/acpi/sleep.c                |    6 ++++++
-> >  include/linux/acpi.h                |    3 +++
-> >  4 files changed, 17 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-2.6/drivers/acpi/sleep.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/acpi/sleep.c
-> > +++ linux-2.6/drivers/acpi/sleep.c
-> > @@ -182,6 +182,12 @@ static void acpi_pm_end(void)
-> >   */
-> >  static bool set_sci_en_on_resume;
-> >  
-> > +void __init acpi_set_sci_en_on_resume(void)
-> > +{
-> > +	set_sci_en_on_resume = true;
-> > +	return 0;
-> > +}
-> > +
-> >  extern void do_suspend_lowlevel(void);
-> >  
-> >  static u32 acpi_suspend_states[] = {
-> > Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-> > ===================================================================
-> > --- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-> > +++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-> > @@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
-> >  #endif
-> >  		if (strncmp(str, "old_ordering", 12) == 0)
-> >  			acpi_old_suspend_ordering();
-> > +#ifdef CONFIG_SUSPEND
-> > +		if (strncmp(str, "s3_set_sci_en", 13) == 0)
-> > +			acpi_set_sci_en_on_resume();
-> > +#endif /* CONFIG_SUSPEND */
-> 
-> ... do we really need these #ifdefs?
-> 
-yes, we do.
-acpi_s4_no_nvs also uses #ifdef here.
+> Could you also make it take a spec string as argument, not a prepared
+> byte buffer?
+Hi,
+did you mean take the uuid string as an argument of the API? We can
+add a function to convert a uuid string to binary, but I didn't see
+any benefit to take the string as argument.
 
-> >  		str = strchr(str, ',');
-> >  		if (str != NULL)
-> >  			str += strspn(str, ", \t");
-> > Index: linux-2.6/include/linux/acpi.h
-> > ===================================================================
-> > --- linux-2.6.orig/include/linux/acpi.h
-> > +++ linux-2.6/include/linux/acpi.h
-> > @@ -251,6 +251,9 @@ int acpi_check_mem_region(resource_size_
-> >  void __init acpi_no_s4_hw_signature(void);
-> >  void __init acpi_old_suspend_ordering(void);
-> >  void __init acpi_s4_no_nvs(void);
-> > +#ifdef CONFIG_SUSPEND
-> > +void __init acpi_set_sci_en_on_resume(void);
-> > +#endif /* CONFIG_SUSPEND*/
-> 
-> s4_no_nvs is hibernation-specific, but it's not under a #ifdef.
-> 
-it's okay to remove this #ifdef.
-
-refreshed patch attached.
-
-Introduce kernel parameter acpi_sleep=s3_set_sci_en
-
-some laptop requires SCI_EN being set directly on resume,
-or else they hung somewhere in the resume code path.
-
-We already have a blacklist for these lattops but we still need
-this option, especially when debugging some suspend/resume problems,
-in case there are systems that need this workaround and are not yet
-in the blacklist.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- Documentation/kernel-parameters.txt |    5 ++++-
- arch/x86/kernel/acpi/sleep.c        |    4 ++++
- drivers/acpi/sleep.c                |    6 ++++++
- include/linux/acpi.h                |    1 +
- 4 files changed, 15 insertions(+), 1 deletion(-)
-
-Index: linux-2.6/drivers/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/sleep.c
-+++ linux-2.6/drivers/acpi/sleep.c
-@@ -182,6 +182,12 @@ static void acpi_pm_end(void)
-  */
- static bool set_sci_en_on_resume;
- 
-+void __init acpi_set_sci_en_on_resume(void)
-+{
-+	set_sci_en_on_resume = true;
-+	return 0;
-+}
-+
- extern void do_suspend_lowlevel(void);
- 
- static u32 acpi_suspend_states[] = {
-Index: linux-2.6/arch/x86/kernel/acpi/sleep.c
-===================================================================
---- linux-2.6.orig/arch/x86/kernel/acpi/sleep.c
-+++ linux-2.6/arch/x86/kernel/acpi/sleep.c
-@@ -162,6 +162,10 @@ static int __init acpi_sleep_setup(char 
- #endif
- 		if (strncmp(str, "old_ordering", 12) == 0)
- 			acpi_old_suspend_ordering();
-+#ifdef CONFIG_SUSPEND
-+		if (strncmp(str, "s3_set_sci_en", 13) == 0)
-+			acpi_set_sci_en_on_resume();
-+#endif /* CONFIG_SUSPEND */
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-Index: linux-2.6/include/linux/acpi.h
-===================================================================
---- linux-2.6.orig/include/linux/acpi.h
-+++ linux-2.6/include/linux/acpi.h
-@@ -251,6 +251,7 @@ int acpi_check_mem_region(resource_size_
- void __init acpi_no_s4_hw_signature(void);
- void __init acpi_old_suspend_ordering(void);
- void __init acpi_s4_no_nvs(void);
-+void __init acpi_set_sci_en_on_resume(void);
- #endif /* CONFIG_PM_SLEEP */
- 
- #define OSC_QUERY_TYPE			0
-Index: linux-2.6/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.orig/Documentation/kernel-parameters.txt
-+++ linux-2.6/Documentation/kernel-parameters.txt
-@@ -241,7 +241,7 @@ and is between 256 and 4096 characters. 
- 
- 	acpi_sleep=	[HW,ACPI] Sleep options
- 			Format: { s3_bios, s3_mode, s3_beep, s4_nohwsig,
--				  old_ordering, s4_nonvs }
-+				  old_ordering, s4_nonvs, s3_set_sci_en }
- 			See Documentation/power/video.txt for information on
- 			s3_bios and s3_mode.
- 			s3_beep is for debugging; it makes the PC's speaker beep
-@@ -254,6 +254,9 @@ and is between 256 and 4096 characters. 
- 			of _PTS is used by default).
- 			s4_nonvs prevents the kernel from saving/restoring the
- 			ACPI NVS memory during hibernation.
-+			s3_set_sci_en causes the kernel to set SCI_EN directly
-+			on resume from S3 (which is against the ACPI specification,
-+			but some broken systems don't work without it).
- 
- 	acpi_use_timer_override [HW,ACPI]
- 			Use timer override. For some broken Nvidia NF5 boards
-
-
+Thanks,
+Shaohua
