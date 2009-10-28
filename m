@@ -1,28 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] acpi: clean up video.c boundary checks and types
-Date: Wed, 28 Oct 2009 11:56:51 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.0910281151370.18549@localhost.localdomain>
-References: <20091001155139.3b9de603@infradead.org>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
+Date: Wed, 28 Oct 2009 10:02:39 -0700
+Message-ID: <4AE8792F.8070200@sgi.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:56254 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755167AbZJ1Q5O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2009 12:57:14 -0400
-Received: from localhost.localdomain ([74.104.150.83])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KS8000YPEYVR91G@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 28 Oct 2009 10:57:08 -0500 (CDT)
-In-reply-to: <20091001155139.3b9de603@infradead.org>
+Received: from relay1.sgi.com ([192.48.179.29]:51498 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752683AbZJ1RCU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Oct 2009 13:02:20 -0400
+In-Reply-To: <20091028041159.GI7744@basil.fritz.box>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: David Rientjes <rientjes@google.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-applied
 
-thanks,
-Len Brown, Intel Open Source Technology Center
 
+Andi Kleen wrote:
+>> MAX_LOCAL_APIC was definitely an arbitrary choice here and has very little 
+>> relevance.  scnlistprintf will protect against overflow, but we still need 
+>> to decide upon a constant that will emit the most information possible 
+>> while not overly polluting the printk and saving on bss, as you mentioned.  
+>> I suspect we could agree on a value as little as 128 and it would work for 
+>> the overwhelming majority (all?) of users.
+> 
+> For now at least seems reasonable to limit to 128 or so yes (and go
+> back to the stack). if we ever have sparse apic ids for nodes 
+> then that might change; but in this case could still just do
+> a acpidump or teach the printer to be more clever and support
+> strides.
+> 
+> It would be just good to have some indication in the output
+> if there was a overflow.
+> 
+> -Andi
+> 
+
+I don't understand the importance of this when the memory is given back
+after the system starts up anyway...?
+
+Thanks,
+Mike
