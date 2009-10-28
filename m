@@ -1,78 +1,35 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 1/3] Add a generic API for _OSC
-Date: Wed, 28 Oct 2009 12:02:18 +0900
-Message-ID: <4AE7B43A.50204@jp.fujitsu.com>
-References: <20091027063637.GA22237@sli10-desk.sh.intel.com> <200910270907.19103.bjorn.helgaas@hp.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
+Date: Wed, 28 Oct 2009 04:29:54 +0100
+Message-ID: <20091028032954.GD7744@basil.fritz.box>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <4AE75B38.8070301@sgi.com> <alpine.DEB.2.00.0910271345400.9183@chino.kir.corp.google.com> <4AE77BF6.2040201@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:34848 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932465AbZJ1DCg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 23:02:36 -0400
-Received: from m5.gw.fujitsu.co.jp ([10.0.50.75])
-	by fgwmail5.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id n9S32bR8027443
-	for <linux-acpi@vger.kernel.org> (envelope-from kaneshige.kenji@jp.fujitsu.com);
-	Wed, 28 Oct 2009 12:02:37 +0900
-Received: from smail (m5 [127.0.0.1])
-	by outgoing.m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 3EF0045DE4F
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:37 +0900 (JST)
-Received: from s5.gw.fujitsu.co.jp (s5.gw.fujitsu.co.jp [10.0.50.95])
-	by m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 176D045DE52
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:37 +0900 (JST)
-Received: from s5.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
-	by s5.gw.fujitsu.co.jp (Postfix) with ESMTP id F40F9E1800C
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:36 +0900 (JST)
-Received: from m108.s.css.fujitsu.com (m108.s.css.fujitsu.com [10.249.87.108])
-	by s5.gw.fujitsu.co.jp (Postfix) with ESMTP id B0AC4E1800B
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:36 +0900 (JST)
-In-Reply-To: <200910270907.19103.bjorn.helgaas@hp.com>
+Received: from one.firstfloor.org ([213.235.205.2]:48889 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757214AbZJ1D3v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 23:29:51 -0400
+Content-Disposition: inline
+In-Reply-To: <4AE77BF6.2040201@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Mike Travis <travis@sgi.com>
+Cc: David Rientjes <rientjes@google.com>, Ingo Molnar <mingo@elte.hu>, Andi Kleen <andi@firstfloor.org>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Bjorn Helgaas wrote:
-> On Tuesday 27 October 2009 12:36:37 am Shaohua Li wrote:
->> Add an API to execute _OSC. A lot of devices can have this method, so add a
->> generic API.
-> 
->> +	out_obj = context->ret.pointer;
->> +	if (out_obj->type != ACPI_TYPE_BUFFER) {
->> +		printk(KERN_DEBUG "_OSC evaluation returned wrong type\n");
->> +		status = AE_TYPE;
->> +		goto out_kfree;
->> +	}
->> +	/* Need to ignore the bit0 in result code */
->> +	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
->> +	if (errors) {
->> +		if (errors & OSC_REQUEST_ERROR)
->> +			printk(KERN_DEBUG "_OSC request failed\n");
->> +		if (errors & OSC_INVALID_UUID_ERROR)
->> +			printk(KERN_DEBUG "_OSC invalid UUID\n");
->> +		if (errors & OSC_INVALID_REVISION_ERROR)
->> +			printk(KERN_DEBUG "_OSC invalid revision\n");
->> +		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
->> +			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
->> +			    & OSC_QUERY_ENABLE)
->> +				goto out_success;
->> +			printk(KERN_DEBUG
->> +			       "Firmware did not grant requested _OSC control\n");
-> 
-> On all these printks, it would be very useful to have some indication
-> of what the OS requested and which specific _OSC method we executed,
-> e.g., an ACPI device name or a namespace path.
-> 
+>> Quite the system you have there :)  What was once 760 lines has been 
+>> reduced to 24 without removing any information.
+>>
+>> This seems to be the most we can reduce this particular output since we 
+>> don't support mapping multiple pxms to a single node.
+>
+> Yes, thanks very much for the optimization.
+>
+> (And you can add my Acked-by or whatever you need.)
 
-I think the following printk is confusing and should be removed.
+Looks also good to me, thanks. Also Acked-by.
 
->> +			printk(KERN_DEBUG
->> +			       "Firmware did not grant requested _OSC control\n");
+-Andi
 
-People might think something wrong is happening on OS or firmware.
-Actually I had been asked about this message several times.
-
-Thanks,
-Kenji Kaneshige
-
+-- 
+ak@linux.intel.com -- Speaking for myself only.
