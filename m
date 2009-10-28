@@ -1,131 +1,78 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH 1/2] IPMI/ACPI: Locate the IPMI system interface in
-	ACPI namespace
-Date: Wed, 28 Oct 2009 10:50:48 +0800
-Message-ID: <1256698248.12059.65.camel@localhost.localdomain>
-References: <1256564026-9855-1-git-send-email-yakui.zhao@intel.com>
-	 <200910260920.11124.bjorn.helgaas@hp.com>
-	 <1256605375.3563.182.camel@localhost.localdomain>
-	 <200910270938.42527.bjorn.helgaas@hp.com>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH 1/3] Add a generic API for _OSC
+Date: Wed, 28 Oct 2009 12:02:18 +0900
+Message-ID: <4AE7B43A.50204@jp.fujitsu.com>
+References: <20091027063637.GA22237@sli10-desk.sh.intel.com> <200910270907.19103.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:7907 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756354AbZJ1CwM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Oct 2009 22:52:12 -0400
-In-Reply-To: <200910270938.42527.bjorn.helgaas@hp.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:34848 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932465AbZJ1DCg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2009 23:02:36 -0400
+Received: from m5.gw.fujitsu.co.jp ([10.0.50.75])
+	by fgwmail5.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id n9S32bR8027443
+	for <linux-acpi@vger.kernel.org> (envelope-from kaneshige.kenji@jp.fujitsu.com);
+	Wed, 28 Oct 2009 12:02:37 +0900
+Received: from smail (m5 [127.0.0.1])
+	by outgoing.m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 3EF0045DE4F
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:37 +0900 (JST)
+Received: from s5.gw.fujitsu.co.jp (s5.gw.fujitsu.co.jp [10.0.50.95])
+	by m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 176D045DE52
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:37 +0900 (JST)
+Received: from s5.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
+	by s5.gw.fujitsu.co.jp (Postfix) with ESMTP id F40F9E1800C
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:36 +0900 (JST)
+Received: from m108.s.css.fujitsu.com (m108.s.css.fujitsu.com [10.249.87.108])
+	by s5.gw.fujitsu.co.jp (Postfix) with ESMTP id B0AC4E1800B
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2009 12:02:36 +0900 (JST)
+In-Reply-To: <200910270907.19103.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "lenb@kernel.org" <lenb@kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Shaohua Li <shaohua.li@intel.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tue, 2009-10-27 at 23:38 +0800, Bjorn Helgaas wrote:
-> On Monday 26 October 2009 07:02:55 pm ykzhao wrote:
-> > In fact you mention two issues about the two patches:
-> >    1: Load a PNP driver for it to register the IPMI system interfac=
-e.
-> > This is about the first patch.
-> >    2. coding style( for example: comments, the definition about som=
-e
-> > variables).
-> >=20
-> > For the first issue: Before I start the first patch, I consider usi=
-ng
-> > the PNP device driver. But I find that it is so complex because of =
-the
-> > following two points:
-> >     1. One is that we can't register the IPMI system interface if t=
-he
-> > boot option of "pnpacpi=3Doff" is added. This will also depend on t=
-he PNP
-> > module.
->=20
-> This is not a problem.  It is perfectly acceptable for the IPMI drive=
-r
-> to depend on PNP and PNPACPI in order to claim an ACPI device.  If th=
-e
-> users boots with "pnpacpi=3Doff", we just won't find an IPMI device.
-> That is the way it works for TPM devices and serial devices described
-> by ACPI, and IPMI should work the same way.
-=EF=BB=BFYes. Several methods can be used to detect the IPMI system int=
-erface.
-In such case it still can be detected by using other method when the
-ACPI detection mechanism is disabled. But the acpi detection mechanism
-will depend on the ACPI and PNP subsystem if we detect the IMPI system
-interface defined in ACPI table by using PNP device driver.=20
+Bjorn Helgaas wrote:
+> On Tuesday 27 October 2009 12:36:37 am Shaohua Li wrote:
+>> Add an API to execute _OSC. A lot of devices can have this method, so add a
+>> generic API.
+> 
+>> +	out_obj = context->ret.pointer;
+>> +	if (out_obj->type != ACPI_TYPE_BUFFER) {
+>> +		printk(KERN_DEBUG "_OSC evaluation returned wrong type\n");
+>> +		status = AE_TYPE;
+>> +		goto out_kfree;
+>> +	}
+>> +	/* Need to ignore the bit0 in result code */
+>> +	errors = *((u32 *)out_obj->buffer.pointer) & ~(1 << 0);
+>> +	if (errors) {
+>> +		if (errors & OSC_REQUEST_ERROR)
+>> +			printk(KERN_DEBUG "_OSC request failed\n");
+>> +		if (errors & OSC_INVALID_UUID_ERROR)
+>> +			printk(KERN_DEBUG "_OSC invalid UUID\n");
+>> +		if (errors & OSC_INVALID_REVISION_ERROR)
+>> +			printk(KERN_DEBUG "_OSC invalid revision\n");
+>> +		if (errors & OSC_CAPABILITIES_MASK_ERROR) {
+>> +			if (((u32 *)context->cap.pointer)[OSC_QUERY_TYPE]
+>> +			    & OSC_QUERY_ENABLE)
+>> +				goto out_success;
+>> +			printk(KERN_DEBUG
+>> +			       "Firmware did not grant requested _OSC control\n");
+> 
+> On all these printks, it would be very useful to have some indication
+> of what the OS requested and which specific _OSC method we executed,
+> e.g., an ACPI device name or a namespace path.
+> 
 
-At the same time there exist two ACPI detection mechanisms. One is
-defined in SPMI table. The other is defined in ACPI table. We expect
-that the two ACPI detection mechanisms depend on the same judgement
-condition.=20
-So I prefer to detect the IPMI system interface when ACPI enabled
-regardless of the boot option of "pnpacpi=3Doff".
->=20
-> >     2. The second is that there exist so many cases about the IPMI
-> > IO/memory resource definition. Maybe there exist both IO/memory res=
-ource
-> > definition for one IPMI device. In such case we can't know which sh=
-ould
-> > be selected. At the same time we have similar issues about the inte=
-rrupt
-> > type. So I decide to parse the IO/memory/interrupt resource
-> > independently.
->=20
-> This doesn't make any sense.  The fact that an IPMI device might have
-> a variety of IO/memory/IRQ resources is orthogonal to the question of
-> whether you should use pnp_register_driver() or acpi_walk_namespace()=
-=2E
-When we detect the IPMI system interface by loading PNP device driver,
-the advantage is that it can re-use the parse mechanism of
-IO/memory/interrupt. Right?
-In fact we will have to evaluate the following ACPI object:
-	>_IFT, _GPE, _SRV
+I think the following printk is confusing and should be removed.
 
-If there exists the _GPE object, it is unnecessary to parse the resourc=
-e
-related with the interrupt.
+>> +			printk(KERN_DEBUG
+>> +			       "Firmware did not grant requested _OSC control\n");
 
-At the same time as I mentioned in the previous email, sometimes we wil=
-l
-get the two different IO address definitions after evaluating the _CRS
-object. Which should be selected?
-If there exist both IO and memory address definition in _CRS object,
-which should be selected?
+People might think something wrong is happening on OS or firmware.
+Actually I had been asked about this message several times.
 
-> PNPACPI parses the IPMI device resources for every ACPI device,
-> including the IPMI device, before we even know whether there will be
-> a PNP driver for the device.  It's much easier to look at the PNP
-> resources and figure out which to use than it is to use
-> acpi_walk_resources() manually.
->=20
-> The main point is that ipmi_si_intf.c is a device driver, and it shou=
-ld
-> use the normal driver registration mechanisms.  I think it would be
-> simplest and clearest to make a few PNP enhancements so it could use
-> pnp_register_driver(), but even using acpi_bus_register_driver() woul=
-d
-> be fine.  Using acpi_walk_namespace() to do everything by hand is jus=
-t
-> completely wrong.
-The main purpose is to detect the IPMI system interface defined in ACPI
-table.  If the device can be detected correctly, IMO it will be OK.
+Thanks,
+Kenji Kaneshige
 
-Why do think that it is wrong to use the acpi_walk_namespace to parse
-the resource?
-
-In the second patch it will register an ACPI device driver, which is
-used to install the IPMI opregion space handler. After doing so, the
-ACPI AML code can communicate with the IPMI system interface.
-
->=20
-> Bjorn
->=20
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
