@@ -1,47 +1,47 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
-Date: Wed, 28 Oct 2009 14:46:44 -0700 (PDT)
-Message-ID: <alpine.DEB.2.00.0910281440580.32315@chino.kir.corp.google.com>
-References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com>
- <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box> <4AE8792F.8070200@sgi.com>
- <alpine.DEB.2.00.0910281348590.24785@chino.kir.corp.google.com> <4AE8B933.5020103@sgi.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 0/6] [resend] thermal: improvements re. forced passive
+ cooling
+Date: Wed, 28 Oct 2009 15:35:51 -0700
+Message-ID: <20091028153551.6c665ca1.akpm@linux-foundation.org>
+References: <1256542744-26569-1-git-send-email-elendil@planet.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:62110 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947AbZJ1Vqs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2009 17:46:48 -0400
-In-Reply-To: <4AE8B933.5020103@sgi.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34615 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753497AbZJ1Wfy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Oct 2009 18:35:54 -0400
+In-Reply-To: <1256542744-26569-1-git-send-email-elendil@planet.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Frans Pop <elendil@planet.nl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Sujith Thomas <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Wed, 28 Oct 2009, Mike Travis wrote:
+On Mon, 26 Oct 2009 08:38:58 +0100
+Frans Pop <elendil@planet.nl> wrote:
 
-> > Printing a list of apic ids longer than 128 characters would pollute the
-> > kernel log and this upper bound will probably never be reached based on the
-> > way apic ids are created for physical and logical processors: they are
-> > normally reduced to ranges instead of comma seperated entities.
 > 
-> Ahh, ok, thanks.
+> Please consider this patch set for 2.6.32. It was previously submitted
+> for 2.6.31, but AFAICT it has not yet been picked up.
 > 
-> Does that mean this 10,649 character line full of periods is illegal?
+> All patches have been acked by either Rui or Matthew, with the
+> exception of 1/6 and 4/6, but the entire series has been implicitly
+> acked by Rui in http://bugzilla.kernel.org/show_bug.cgi?id=13918#c26.
 > 
-
-I'm not saying it would be illegal, merely that it would be harm 
-readability.  Based on how apic id's are formed from processor ids, 
-though, I think we're really talking about an upper limit (128) that will 
-never be reached.
-
-> [  102.551570] Completing Region/Field/Buffer/Package initialization:
-> ............... [long time later] .........
-> <4>Clocksource tsc unstable (delta = 4396383657849 ns)
+> The patch set closes http://bugzilla.kernel.org/show_bug.cgi?id=13918.
 > 
-> I'm having trouble finding it.  Does it look familiar to anyone?
+> Andrew, could you take the set just in case?
 > 
 
-It's debugging output from acpi_ns_initialize_objects() and each period is 
-from acpi_ns_init_one_device().  You can suppress it by disabing 
-CONFIG_ACPI_DEBUG.
+I'm trying to work out what the actual bug is in here.
+
+afacit some KDE tool put wrong numbers into /proc files, acpi didn't
+sanity check them sufficiently and permitted the CPU to overheat, yes?
+
+There seems to be rather a lot of non-bugfix stuff in this patch
+series.  Perhaps too much for 2.6.32, and a real problem if we want to
+backport something into 2.6.31.x and earlier.
+
+
