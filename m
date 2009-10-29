@@ -1,100 +1,83 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: [linux-pm] intermittent suspend problem again
-Date: Thu, 29 Oct 2009 23:31:51 +0100
-Message-ID: <87fx91q1bc.fsf@tac.ki.iif.hu>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200910281956.44791.rjw@sisk.pl>
-	<87d447m52t.fsf@tac.ki.iif.hu> <200910291936.14082.rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: remove HKEY disable functionality (triggers
+ Ubuntu Karmic regression)
+Date: Thu, 29 Oct 2009 20:46:34 -0200
+Message-ID: <20091029224634.GA15435@khazad-dum.debian.net>
+References: <1238819153-16004-1-git-send-email-hmh@hmh.eng.br>
+	<1238819153-16004-8-git-send-email-hmh@hmh.eng.br>
+	<20091028215838.38b362ad@mark-x41>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:57146 "EHLO tac.ki.iif.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898AbZJ2WcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Oct 2009 18:32:18 -0400
-In-Reply-To: <200910291936.14082.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Thu, 29 Oct 2009 19:36:14 +0100")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091028215838.38b362ad@mark-x41>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Stosberg <mark-WmyhgDpj2fCHT8/ATrE1yw@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+On Wed, 28 Oct 2009, Mark Stosberg wrote:
+> With the release of Karmic upon us, perhaps there a short term fix that 
+> can be made, like making the warning level less severe.
 
-> On Thursday 29 October 2009, Ferenc Wagner wrote:
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->> 
->>> On Wednesday 28 October 2009, Ferenc Wagner wrote:
->>> 
->>>> Something similar to http://bugzilla.kernel.org/show_bug.cgi?id=13894
->>>> raised its ugly head again, please see my last comments on that bug.
->>>
->>> This very well may be a separete bug, so please file a new bugzilla report
->>> on this and mark it as a regression.
->> 
->> Done.
->
-> Which number is this?
+If the userspace in Ubuntu is triggering the warning, and you don't have
+enough time to fix the issue properly (i.e. remove any code that
+attempts to mess with hotkey_enable), the Ubuntu kernel team will have
+to remove the WARN from the driver code, yes.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=14504
-Submitted containing the following paragraph only:
+However, I recommend trying to fix the real bug, first.  There are
+absolutely no known-valid reasons for any program to access the
+hotkey_enable attribute.
 
->>>> 2.6.32-rc5 feels particularly bad, with frequent failures to switch
->>>> off the machine after "S|" or freezes after "Snapshotting system".
->>>> The former does not cause much trouble in itself, as the machine can
->>>> be switched off and resumed all right, but the latter is nasty.
->>>> Suspend to RAM works all the time.  The issue is not reproducible,
->>>> unfortunately, and the kernel change happened almost together with a
->>>> BIOS upgrade.  Yesterday I switched back to 2.6.31 to see whether it
->>>> still works stably with the new BIOS.  I'll report back my findings in
->>>> a couple of days.
->>>
->>> OK, thanks.
->>>
->>> Still, I'm really afraid we won't be able to debug it any further without a
->>> reproducible test case.
->> 
->> I've got another, fully reproducible but nevertheless neglected ACPI
->> problem, already mentioned in #13894:
->> https://bugs.freedesktop.org/show_bug.cgi?id=22126.
->
-> A side note: I'm totally unhappy with _kernel_ bugs being handled at
-> bugs.freedesktop.org without a notice anywhere else.  Even though they are
-> related to the graphics, the kernel developers in general at least deserve the
-> information that the bugs have been reported.
->
-> In this particulare case, the bug is clearly related to ACPI and linux-acpi
-> should have received a notification about it.
 
-When the ACPI relation became clear to me, I notified linux-acpi, see
-http://thread.gmane.org/gmane.linux.acpi.devel/42172/focus=42230
+Please ask someone who can reproduce the warning to check for debug output
+from thinkpad-acpi, it will log to the kernel log the PID of the process
+trying to access the deprecated attributes.  The user should check the PID
+and use the ps command to find out what process corresponts to that PID:
 
->> Well, it's probably far-fetched, but maybe the two are somehow related...
->
-> Very well may be.
->
->> Can't you perhaps suggest a way forward there?  Or some tricks to create a
->> reproducible test case here?
->
-> Well, you can test if the problem is reproducible in the "shutdown" mode of
-> hibernation.
+Run this in a shell window:
 
-Ok, I'll go back to 2.6.32-rc5 for testing that.  Does that make any
-difference in the "Snapshotting system" phase?  Freezes happen that
-time, too, before writing out the image.
+tail -f /var/log/kern.log | grep "thinkpad_acpi"
 
->> Btw. my gut feeling is that hibernation is getting slower with each
->> kernel release.  I didn't measure it, and didn't even care about
->> comparable initial states... But could anything explain this, or is
->> it sheer impatience?
->
-> Which part of it is getting slower?  Saving the image, suspending
-> devices or the entire hibernation overall?
+then run whatever application causes the warnings to happen, or if they
+are common, just wait for one to happen.  Thinkpad-acpi will log the PID
+of the offending processes using a phrase like "access by process with
+PID...".
 
-"Snapshotting system" before saving the image and saving the image as
-well.  If s2disk didn't report funny huge negative ratios all the
-time, I'd probably have tried to correlate this with the number of
-saved pages or similar...  But anyway, this is a minor nit, it's still
-far from being unbearable.  If only it worked all the time!
+I would be interested in the full log output by thinkpad-acpi showing the
+problem.  In fact, I find it surprising that your automated bug report tool
+doesn't attach to the bug report the last 100 lines of the kernel log or
+somesuch...
+
+Anyway, now that the user knows the PID of the process attempting to access
+the deprecated attributes, he should immediately use the "ps PID", where PID
+is the numerical value of the PID logged by thinkpad-acpi, to find out the
+name and parameters of the process who accessed the deprecated attribute.
+
+Maybe the user should also use "pstree -p" to help locate the parent of the
+process if the PID resultued in something unhelpful (e.g. bash).
+
+That could give us a clue about exactly why that attribute is being
+accessed, especially if it is happening when someone is trying to test their
+ALSA setup...
+
 -- 
-Thanks,
-Feri.
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+------------------------------------------------------------------------------
+Come build with us! The BlackBerry(R) Developer Conference in SF, CA
+is the only developer event you need to attend this year. Jumpstart your
+developing skills, take BlackBerry mobile applications to market and stay 
+ahead of the curve. Join us from November 9 - 12, 2009. Register now!
+http://p.sf.net/sfu/devconference
