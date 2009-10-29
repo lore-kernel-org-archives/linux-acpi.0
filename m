@@ -1,286 +1,48 @@
-From: Matt Domsch <Matt_Domsch@dell.com>
-Subject: Re: [PATCH] PCIe AER: honor ACPI HEST FIRMWARE FIRST mode
-Date: Thu, 29 Oct 2009 09:15:59 -0500
-Message-ID: <20091029141559.GB13809@auslistsprd01.us.dell.com>
-References: <20091006173311.GA15751@auslistsprd01.us.dell.com> <4ACEE220.1020705@jp.fujitsu.com> <20091009182810.GB24889@mock.linuxdev.us.dell.com> <20091009183319.GC24889@mock.linuxdev.us.dell.com>
+From: Mike Travis <travis@sgi.com>
+Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
+Date: Thu, 29 Oct 2009 09:34:02 -0700
+Message-ID: <4AE9C3FA.4000305@sgi.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box> <4AE8792F.8070200@sgi.com> <alpine.DEB.2.00.0910281348590.24785@chino.kir.corp.google.com> <4AE8B933.5020103@sgi.com> <alpine.DEB.2.00.0910281440580.32315@chino.kir.corp.google.com> <4AE8C764.90705@sgi.com> <alpine.DEB.2.00.0910290117020.11476@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60pc101.us.dell.com ([143.166.85.206]:26917 "EHLO
-	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530AbZJ2OP4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2009 10:15:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20091009183319.GC24889@mock.linuxdev.us.dell.com>
+Received: from relay1.sgi.com ([192.48.179.29]:50394 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753950AbZJ2QeD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Oct 2009 12:34:03 -0400
+In-Reply-To: <alpine.DEB.2.00.0910290117020.11476@chino.kir.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Tom Long Nguyen <tom.l.nguyen@intel.com>, Zhang Yanmin <yanmin.zhang@intel.com>, linux-kernel@vger.kernel.org, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Huong_Nguyen@dell.com
-
-On Fri, Oct 09, 2009 at 01:33:20PM -0500, Matt Domsch wrote:
-> For review and comment.  Feedback from Hidetoshi Seto and Kenji
-> Kaneshige incorporated.
-
-With no more comments received, I would like to see this applied.
-
-Thanks,
-Matt
-
--- 
-Matt Domsch
-Technology Strategist, Dell Office of the CTO
-linux.dell.com & www.dell.com/linux
+To: David Rientjes <rientjes@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
-Today, the PCIe Advanced Error Reporting (AER) driver attaches itself
-to every PCIe root port for which BIOS reports it should, via ACPI
-_OSC.
 
-However, _OSC alone is insufficient for newer BIOSes.  Part of ACPI
-4.0 is the new APEI (ACPI Platform Error Interfaces) which is a way
-for OS and BIOS to handshake over which errors for which components
-each will handle.  One table in ACPI 4.0 is the Hardware Error Source
-Table (HEST), where BIOS can define that errors for certain PCIe
-devices (or all devices), should be handled by BIOS ("Firmware First
-mode"), rather than be handled by the OS.
+David Rientjes wrote:
+> On Wed, 28 Oct 2009, Mike Travis wrote:
+> 
+>>> I'm not saying it would be illegal, merely that it would be harm
+>>> readability.  Based on how apic id's are formed from processor ids, though,
+>>> I think we're really talking about an upper limit (128) that will never be
+>>> reached.
+>> We actually have many, many more than that by adding on some extra bits
+>> to the CPU's apicid.  These select which blade in the system to target.
+>>
+> 
+> Maybe I've been vague in my rationale for why this limit will probably 
+> never be reached.  The way apic ids are constructed, with physical and 
+> logical processor ids, it tends to lend itself to ranges where 
+> bitmap_scnlistprintf() can specify a large number of apic ids with 
+> relatively few ASCII characters because logical processors typically do 
+> not have differing pxms.  For us to reach the 128 character upper bound, 
+> scnlistprintf() would need to have many, many distinct ranges; your 
+> example showed two ranges per pxm (many more machines would have only a 
+> single range).  In other words, we're not predicting to have 
+> "1-2,4-6,8-9,11-13,15-17," etc, that we often have with nodemasks.
 
-Dell PowerEdge 11G server BIOS defines Firmware First mode in HEST, so
-that it may manage such errors, log them to the System Event Log, and
-possibly take other actions.  The aer driver should honor this, and
-not attach itself to devices noted as such.
+Yes, you are correct.  (I was confused... ;-)
 
-Furthermore, Kenji Kaneshige reminded us to disallow changing the AER
-registers when respecting Firmware First mode.  Platform firmware is
-expected to manage these, and if changes to them are allowed, it could
-break that firmware's behavior.
-
-The HEST parsing code may be replaced in the future by a more
-feature-rich implementation.  This patch provides the minimum needed
-to prevent breakage until that implementation is available.
-
-Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
----
- drivers/acpi/Makefile              |    1 +
- drivers/acpi/hest.c                |  106 ++++++++++++++++++++++++++++++++++++
- drivers/pci/pcie/aer/aerdrv_core.c |   26 ++++++++-
- include/acpi/acpi_hest.h           |    8 +++
- include/linux/pci.h                |    1 +
- 5 files changed, 140 insertions(+), 2 deletions(-)
- create mode 100644 drivers/acpi/hest.c
- create mode 100644 include/acpi/acpi_hest.h
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 7702118..9ab0d6d 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -19,6 +19,7 @@ obj-y				+= acpi.o \
- 
- # All the builtin files are in the "acpi." module_param namespace.
- acpi-y				+= osl.o utils.o reboot.o
-+obj-y				+= hest.o
- 
- # sleep related files
- acpi-y				+= wakeup.o
-diff --git a/drivers/acpi/hest.c b/drivers/acpi/hest.c
-new file mode 100644
-index 0000000..9684f50
---- /dev/null
-+++ b/drivers/acpi/hest.c
-@@ -0,0 +1,106 @@
-+#include <linux/acpi.h>
-+#include <linux/pci.h>
-+
-+static unsigned long parse_acpi_hest_ia_machine_check(struct acpi_hest_ia_machine_check *p)
-+{
-+	return sizeof(*p) +
-+		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
-+}
-+
-+static unsigned long parse_acpi_hest_ia_corrected(struct acpi_hest_ia_corrected *p)
-+{
-+	return sizeof(*p) +
-+		(sizeof(struct acpi_hest_ia_error_bank) * p->num_hardware_banks);
-+}
-+
-+static unsigned long parse_acpi_hest_ia_nmi(struct acpi_hest_ia_nmi *p)
-+{
-+	return sizeof(*p);
-+}
-+
-+static unsigned long parse_acpi_hest_generic(struct acpi_hest_generic *p)
-+{
-+	return sizeof(*p);
-+}
-+
-+static unsigned long parse_acpi_hest_aer(void *hdr, int type, struct pci_dev *pci, int *firmware_first)
-+{
-+	struct acpi_hest_aer_common *p = hdr + sizeof(struct acpi_hest_header);
-+	unsigned long rc=0;
-+	switch (type) {
-+	case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+		rc = sizeof(struct acpi_hest_aer_root);
-+		break;
-+	case ACPI_HEST_TYPE_AER_ENDPOINT:
-+		rc = sizeof(struct acpi_hest_aer);
-+		break;
-+	case ACPI_HEST_TYPE_AER_BRIDGE:
-+		rc = sizeof(struct acpi_hest_aer_bridge);
-+		break;
-+	}
-+
-+	if (p->flags & ACPI_HEST_FIRMWARE_FIRST &&
-+	    (p->flags & ACPI_HEST_GLOBAL ||
-+	     (p->bus      == pci->bus->number &&
-+	      p->device   == PCI_SLOT(pci->devfn) &&
-+	      p->function == PCI_FUNC(pci->devfn))))
-+		*firmware_first = 1;
-+	return rc;
-+}
-+
-+static int acpi_hest_firmware_first(struct acpi_table_header *stdheader, struct pci_dev *pci)
-+{
-+	struct acpi_table_hest *hest = (struct acpi_table_hest *)stdheader;
-+	void *p = (void *)hest + sizeof(*hest); /* defined by the ACPI 4.0 spec */
-+	struct acpi_hest_header *hdr = p;
-+
-+	int i;
-+	int firmware_first = 0;
-+
-+	for (i=0, hdr=p; p < (((void *)hest) + hest->header.length) && i < hest->error_source_count; i++) {
-+		switch (hdr->type) {
-+		case ACPI_HEST_TYPE_IA32_CHECK:
-+			p += parse_acpi_hest_ia_machine_check(p);
-+			break;
-+		case ACPI_HEST_TYPE_IA32_CORRECTED_CHECK:
-+			p += parse_acpi_hest_ia_corrected(p);
-+			break;
-+		case ACPI_HEST_TYPE_IA32_NMI:
-+			p += parse_acpi_hest_ia_nmi(p);
-+			break;
-+		/* These three should never appear */
-+		case ACPI_HEST_TYPE_NOT_USED3:
-+		case ACPI_HEST_TYPE_NOT_USED4:
-+		case ACPI_HEST_TYPE_NOT_USED5:
-+			break;
-+		case ACPI_HEST_TYPE_AER_ROOT_PORT:
-+		case ACPI_HEST_TYPE_AER_ENDPOINT:
-+		case ACPI_HEST_TYPE_AER_BRIDGE:
-+			p += parse_acpi_hest_aer(p, hdr->type, pci, &firmware_first);
-+			break;
-+		case ACPI_HEST_TYPE_GENERIC_ERROR:
-+			p += parse_acpi_hest_generic(p);
-+			break;
-+		/* These should never appear either */
-+		case ACPI_HEST_TYPE_RESERVED:
-+		default:
-+			break;
-+		}
-+	}
-+	return firmware_first;
-+}
-+
-+int acpi_hest_firmware_first_pci(struct pci_dev *pci)
-+{
-+	acpi_status status = AE_NOT_FOUND;
-+	struct acpi_table_header *hest = NULL;
-+	status = acpi_get_table(ACPI_SIG_HEST, 1, &hest);
-+
-+	if (ACPI_SUCCESS(status)) {
-+		if (acpi_hest_firmware_first(hest, pci)) {
-+			return 1;
-+		}
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_hest_firmware_first_pci);
-diff --git a/drivers/pci/pcie/aer/aerdrv_core.c b/drivers/pci/pcie/aer/aerdrv_core.c
-index 9f5ccbe..aef2db2 100644
---- a/drivers/pci/pcie/aer/aerdrv_core.c
-+++ b/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -23,6 +23,7 @@
- #include <linux/pm.h>
- #include <linux/suspend.h>
- #include <linux/delay.h>
-+#include <acpi/acpi_hest.h>
- #include "aerdrv.h"
- 
- static int forceload;
-@@ -35,6 +36,9 @@ int pci_enable_pcie_error_reporting(struct pci_dev *dev)
- 	u16 reg16 = 0;
- 	int pos;
- 
-+	if (dev->aer_firmware_first)
-+		return -EIO;
-+
- 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
- 	if (!pos)
- 		return -EIO;
-@@ -60,6 +64,9 @@ int pci_disable_pcie_error_reporting(struct pci_dev *dev)
- 	u16 reg16 = 0;
- 	int pos;
- 
-+	if (dev->aer_firmware_first)
-+		return -EIO;
-+
- 	pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
- 	if (!pos)
- 		return -EIO;
-@@ -874,8 +881,23 @@ void aer_delete_rootport(struct aer_rpc *rpc)
-  */
- int aer_init(struct pcie_device *dev)
- {
--	if (aer_osc_setup(dev) && !forceload)
--		return -ENXIO;
-+	if (acpi_hest_firmware_first_pci(dev->port)) {
-+		dev_printk(KERN_DEBUG, &dev->device,
-+			   "PCIe device errors handled by platform firmware.\n");
-+		dev->port->aer_firmware_first=1;
-+		goto out;
-+	}
-+
-+	if (aer_osc_setup(dev))
-+		goto out;
- 
- 	return 0;
-+out:
-+	if (forceload) {
-+		dev_printk(KERN_DEBUG, &dev->device,
-+			   "aerdrv forceload requested.\n");
-+		dev->port->aer_firmware_first=0;
-+		return 0;
-+	}
-+	return -ENXIO;
- }
-diff --git a/include/acpi/acpi_hest.h b/include/acpi/acpi_hest.h
-new file mode 100644
-index 0000000..0d41408
---- /dev/null
-+++ b/include/acpi/acpi_hest.h
-@@ -0,0 +1,8 @@
-+#ifndef __ACPI_HEST_H
-+#define __ACPI_HEST_H
-+
-+#include <linux/pci.h>
-+
-+extern int acpi_hest_firmware_first_pci(struct pci_dev *pci);
-+
-+#endif
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index da4128f..9d646e6 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -280,6 +280,7 @@ struct pci_dev {
- 	unsigned int	is_virtfn:1;
- 	unsigned int	reset_fn:1;
- 	unsigned int    is_hotplug_bridge:1;
-+	unsigned int    aer_firmware_first:1;
- 	pci_dev_flags_t dev_flags;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
- 
--- 
-1.6.2.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I believe the disjointed ranges came from the hyperthread cpus..?  Which if
+true means there'll probably be as many distinct ranges as there are threads
+per core?
