@@ -1,34 +1,81 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Subject: Re: [PATCH] PCIe AER: honor ACPI HEST FIRMWARE FIRST mode
-Date: Thu, 29 Oct 2009 09:48:39 -0700
-Message-ID: <20091029094839.143186ac@jbarnes-g45>
-References: <20091006173311.GA15751@auslistsprd01.us.dell.com>
-	<4ACEE220.1020705@jp.fujitsu.com>
-	<20091009182810.GB24889@mock.linuxdev.us.dell.com>
-	<20091009183319.GC24889@mock.linuxdev.us.dell.com>
-	<20091029141559.GB13809@auslistsprd01.us.dell.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] intermittent suspend problem again
+Date: Thu, 29 Oct 2009 19:36:14 +0100
+Message-ID: <200910291936.14082.rjw@sisk.pl>
+References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200910281956.44791.rjw@sisk.pl> <87d447m52t.fsf@tac.ki.iif.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755736AbZJ2Qsj@vger.kernel.org>
-In-Reply-To: <20091029141559.GB13809@auslistsprd01.us.dell.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Domsch <Matt_Domsch@dell.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Tom Long Nguyen <tom.l.nguyen@intel.com>, Zhang Yanmin <yanmin.zhang@intel.com>, linux-kernel@vger.kernel.org, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Huong_Nguyen@dell.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:50926 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754762AbZJ2SfG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Oct 2009 14:35:06 -0400
+In-Reply-To: <87d447m52t.fsf@tac.ki.iif.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ferenc Wagner <wferi@niif.hu>
+Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Thu, 29 Oct 2009 09:15:59 -0500
-Matt Domsch <Matt_Domsch@dell.com> wrote:
-
-> On Fri, Oct 09, 2009 at 01:33:20PM -0500, Matt Domsch wrote:
-> > For review and comment.  Feedback from Hidetoshi Seto and Kenji
-> > Kaneshige incorporated.
+On Thursday 29 October 2009, Ferenc Wagner wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
 > 
-> With no more comments received, I would like to see this applied.
+> > On Wednesday 28 October 2009, Ferenc Wagner wrote:
+> > 
+> >> Something similar to http://bugzilla.kernel.org/show_bug.cgi?id=13894
+> >> raised its ugly head again, please see my last comments on that bug.
+> >
+> > This very well may be a separete bug, so please file a new bugzilla report
+> > on this and mark it as a regression.
+> 
+> Done.
 
-Kenji-san and Hidetoshi-san, are you ok with me adding your Reviewed-by
-tags to this patch?
+Which number is this?
 
-Thanks,
--- 
-Jesse Barnes, Intel Open Source Technology Center
+> >> 2.6.32-rc5 feels particularly bad, with frequent failures to switch
+> >> off the machine after "S|" or freezes after "Snapshotting system".
+> >> The former does not cause much trouble in itself, as the machine can
+> >> be switched off and resumed all right, but the latter is nasty.
+> >> Suspend to RAM works all the time.  The issue is not reproducible,
+> >> unfortunately, and the kernel change happened almost together with a
+> >> BIOS upgrade.  Yesterday I switched back to 2.6.31 to see whether it
+> >> still works stably with the new BIOS.  I'll report back my findings in
+> >> a couple of days.
+> >
+> > OK, thanks.
+> >
+> > Still, I'm really afraid we won't be able to debug it any further without a
+> > reproducible test case.
+> 
+> I've got another, fully reproducible but nevertheless neglected ACPI
+> problem, already mentioned in #13894:
+> https://bugs.freedesktop.org/show_bug.cgi?id=22126.
+
+A side note: I'm totally unhappy with _kernel_ bugs being handled at
+bugs.freedesktop.org without a notice anywhere else.  Even though they are
+related to the graphics, the kernel developers in general at least deserve the
+information that the bugs have been reported.
+
+In this particulare case, the bug is clearly related to ACPI and linux-acpi
+should have received a notification about it.
+
+> Well, it's probably far-fetched, but maybe the two are somehow related...
+
+Very well may be.
+
+> Can't you perhaps suggest a way forward there?  Or some tricks to create a
+> reproducible test case here?
+
+Well, you can test if the problem is reproducible in the "shutdown" mode of
+hibernation.
+
+> Btw. my gut feeling is that hibernation
+> is getting slower with each kernel release.  I didn't measure it, and
+> didn't even care about comparable initial states... But could anything
+> explain this, or is it sheer impatience?
+
+Which part of it is getting slower?  Saving the image, suspending devices or
+the entire hibernation overall?
+
+Rafael
