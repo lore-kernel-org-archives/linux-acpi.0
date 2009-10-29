@@ -1,87 +1,41 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH 3/3]add platform-wide _OSC support
-Date: Thu, 29 Oct 2009 11:05:05 +0800
-Message-ID: <20091029030505.GC5150@sli10-desk.sh.intel.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [patch] x86: reduce srat verbosity in the kernel log
+Date: Thu, 29 Oct 2009 01:21:25 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.0910290117020.11476@chino.kir.corp.google.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com>
+ <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box> <4AE8792F.8070200@sgi.com>
+ <alpine.DEB.2.00.0910281348590.24785@chino.kir.corp.google.com> <4AE8B933.5020103@sgi.com> <alpine.DEB.2.00.0910281440580.32315@chino.kir.corp.google.com> <4AE8C764.90705@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:58518 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754216AbZJ2DFC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Oct 2009 23:05:02 -0400
-Content-Disposition: inline
+Received: from smtp-out.google.com ([216.239.45.13]:1930 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750816AbZJ2IVa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2009 04:21:30 -0400
+In-Reply-To: <4AE8C764.90705@sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, bjorn.helgaas@hp.com, kaneshige.kenji@jp.fujitsu.com, aystarik@gmail.com
+To: Mike Travis <travis@sgi.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Add platform-wide _OSC support.
+On Wed, 28 Oct 2009, Mike Travis wrote:
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
----
- drivers/acpi/bus.c   |   26 ++++++++++++++++++++++++++
- include/linux/acpi.h |    7 +++++++
- 2 files changed, 33 insertions(+)
+> > I'm not saying it would be illegal, merely that it would be harm
+> > readability.  Based on how apic id's are formed from processor ids, though,
+> > I think we're really talking about an upper limit (128) that will never be
+> > reached.
+> 
+> We actually have many, many more than that by adding on some extra bits
+> to the CPU's apicid.  These select which blade in the system to target.
+> 
 
-Index: linux/drivers/acpi/bus.c
-===================================================================
---- linux.orig/drivers/acpi/bus.c	2009-10-29 10:26:43.000000000 +0800
-+++ linux/drivers/acpi/bus.c	2009-10-29 10:31:58.000000000 +0800
-@@ -466,6 +466,30 @@ out_kfree:
- }
- EXPORT_SYMBOL(acpi_run_osc);
- 
-+static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
-+static void acpi_bus_osc_support(void)
-+{
-+	u32 capbuf[2];
-+	struct acpi_osc_context context = {
-+		.uuid_str = sb_uuid_str,
-+		.rev = 1,
-+		.cap.length = 8,
-+		.cap.pointer = capbuf,
-+	};
-+	acpi_handle handle;
-+
-+	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-+	capbuf[OSC_SUPPORT_TYPE] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
-+#ifdef CONFIG_ACPI_PROCESSOR_AGGREGATOR
-+	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PAD_SUPPORT;
-+#endif
-+	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
-+		return;
-+	if (ACPI_SUCCESS(acpi_run_osc(handle, &context)))
-+		kfree(context.ret.pointer);
-+	/* do we need to check the returned cap? Sounds no */
-+}
-+
- /* --------------------------------------------------------------------------
-                                 Event Management
-    -------------------------------------------------------------------------- */
-@@ -856,6 +880,8 @@ static int __init acpi_bus_init(void)
- 	status = acpi_ec_ecdt_probe();
- 	/* Ignore result. Not having an ECDT is not fatal. */
- 
-+	acpi_bus_osc_support();
-+
- 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX "Unable to initialize ACPI objects\n");
-Index: linux/include/linux/acpi.h
-===================================================================
---- linux.orig/include/linux/acpi.h	2009-10-29 10:29:30.000000000 +0800
-+++ linux/include/linux/acpi.h	2009-10-29 10:31:06.000000000 +0800
-@@ -273,6 +273,13 @@ struct acpi_osc_context {
- 
- acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- 
-+/* platform-wide _OSC bits */
-+#define OSC_SB_PAD_SUPPORT		1
-+#define OSC_SB_PPC_OST_SUPPORT		2
-+#define OSC_SB_PR3_SUPPORT		4
-+#define OSC_SB_CPUHP_OST_SUPPORT	8
-+#define OSC_SB_APEI_SUPPORT		16
-+
- /* PCI defined _OSC bits */
- /* _OSC DW1 Definition (OS Support Fields) */
- #define OSC_EXT_PCI_CONFIG_SUPPORT		1
+Maybe I've been vague in my rationale for why this limit will probably 
+never be reached.  The way apic ids are constructed, with physical and 
+logical processor ids, it tends to lend itself to ranges where 
+bitmap_scnlistprintf() can specify a large number of apic ids with 
+relatively few ASCII characters because logical processors typically do 
+not have differing pxms.  For us to reach the 128 character upper bound, 
+scnlistprintf() would need to have many, many distinct ranges; your 
+example showed two ranges per pxm (many more machines would have only a 
+single range).  In other words, we're not predicting to have 
+"1-2,4-6,8-9,11-13,15-17," etc, that we often have with nodemasks.
