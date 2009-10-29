@@ -1,68 +1,270 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [PATCH v4 0/6] ACPI: dock: code hygiene
-Date: Thu, 29 Oct 2009 09:00:35 +0800
-Message-ID: <20091029010035.GA29998@sli10-desk.sh.intel.com>
-References: <20091019211132.5412.80438.stgit@bob.kio> <20091029000743.GA3602@ldl.fc.hp.com>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH 1/2] IPMI/ACPI: Locate the IPMI system
+	interface	in	ACPI namespace
+Date: Thu, 29 Oct 2009 09:06:58 +0800
+Message-ID: <1256778418.12059.104.camel@localhost.localdomain>
+References: <1256564026-9855-1-git-send-email-yakui.zhao@intel.com>
+	 <200910260920.11124.bjorn.helgaas@hp.com>
+	 <1256605375.3563.182.camel@localhost.localdomain>
+	 <200910270938.42527.bjorn.helgaas@hp.com>
+	 <1256698248.12059.65.camel@localhost.localdomain>
+	 <1256706680.29099.7.camel@dc7800.home>
+	 <1256723487.12059.88.camel@localhost.localdomain>
+	 <1256748564.30701.7.camel@dc7800.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:49783 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:49437 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756025AbZJ2BAb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Oct 2009 21:00:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20091029000743.GA3602@ldl.fc.hp.com>
+	id S1756091AbZJ2BIX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Oct 2009 21:08:23 -0400
+In-Reply-To: <1256748564.30701.7.camel@dc7800.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "minyard@acm.org" <minyard@acm.org>, "lenb@kernel.org" <lenb@kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Oct 29, 2009 at 08:07:43AM +0800, Alex Chiang wrote:
-> Hi Len, Shaohua,
-> 
-> Any comments on this patch series?
-> 
-> I did fat-finger Shaohua's email address when I sent out v4, but
-> I thought I bounced all the mails to him privately, off-list.
-I'm ok with the series.
+On Thu, 2009-10-29 at 00:49 +0800, Bjorn Helgaas wrote:
+> On Wed, 2009-10-28 at 17:51 +0800, ykzhao wrote:
+> > On Wed, 2009-10-28 at 13:11 +0800, Bjorn Helgaas wrote:
+> > > On Wed, 2009-10-28 at 10:50 +0800, ykzhao wrote:
+> > > > On Tue, 2009-10-27 at 23:38 +0800, Bjorn Helgaas wrote:
+> > > > > On Monday 26 October 2009 07:02:55 pm ykzhao wrote:
+> > > > > > In fact you mention two issues about the two patches:
+> > > > > >    1: Load a PNP driver for it to register the IPMI system =
+interface.
+> > > > > > This is about the first patch.
+> > > > > >    2. coding style( for example: comments, the definition a=
+bout some
+> > > > > > variables).
+> > > > > >=20
+> > > > > > For the first issue: Before I start the first patch, I cons=
+ider using
+> > > > > > the PNP device driver. But I find that it is so complex bec=
+ause of the
+> > > > > > following two points:
+> > > > > >     1. One is that we can't register the IPMI system interf=
+ace if the
+> > > > > > boot option of "pnpacpi=3Doff" is added. This will also dep=
+end on the PNP
+> > > > > > module.
+> > > > >=20
+> > > > > This is not a problem.  It is perfectly acceptable for the IP=
+MI driver
+> > > > > to depend on PNP and PNPACPI in order to claim an ACPI device=
+=2E  If the
+> > > > > users boots with "pnpacpi=3Doff", we just won't find an IPMI =
+device.
+> > > > > That is the way it works for TPM devices and serial devices d=
+escribed
+> > > > > by ACPI, and IPMI should work the same way.
+> > > > =EF=BB=BFYes. Several methods can be used to detect the IPMI sy=
+stem interface.
+> > > > In such case it still can be detected by using other method whe=
+n the
+> > > > ACPI detection mechanism is disabled. But the acpi detection me=
+chanism
+> > > > will depend on the ACPI and PNP subsystem if we detect the IMPI=
+ system
+> > > > interface defined in ACPI table by using PNP device driver.=20
+> > > >=20
+> > > > At the same time there exist two ACPI detection mechanisms. One=
+ is
+> > > > defined in SPMI table. The other is defined in ACPI table. We e=
+xpect
+> > > > that the two ACPI detection mechanisms depend on the same judge=
+ment
+> > > > condition.=20
+> > > > So I prefer to detect the IPMI system interface when ACPI enabl=
+ed
+> > > > regardless of the boot option of "pnpacpi=3Doff".
+> > >=20
+> > > The IPMI driver is not special.  It should behave like all other
+> > > drivers.  There is no reason it should handle the "pnpacpi=3Doff"=
+ case
+> > > differently than other drivers.
+> > >=20
+> > > But if you change this to use acpi_bus_register_driver(), there w=
+ill be
+> > > no PNP dependency, "pnpacpi=3Doff" will have no effect either way=
+, and
+> > > I'll be happy.  I don't think it's the cleanest solution, but it =
+at
+> > > least gives us a chance to properly bind the driver to the device=
+=2E
+> > This patch set includes two parts. One is to detect the IPMI system
+> > interface defined in ACPI table and register it. The other is to al=
+low
+> > the ACPI AML code to communicate with the IPMI system interface.=20
+> >=20
+> > As an device driver is already bound to the device in the second pa=
+tch,
+> > it is impossible that we load another device driver for the same IP=
+MI
+> > device.
+>=20
+> I know.  That's why in my original responses a month ago, I suggested
+> that you integrate these two parts.  From the Linux point of view, on=
+e
+> piece of hardware gets one driver.  If you need two parts internally,
+> that's an implementation concern of the driver.  From the point of vi=
+ew
+> of the Linux/ACPI and PNP code, there must be a single driver.
+Two patches can work independently. One it to detect and register the
+IPMI system interface. Then the interface can be used by system
+management software. Of course the ACPI AML code can create a channel t=
+o
+communicate with the system interface.
+The second is to create the relationship between ACPI AML code and IPMI
+system interface(BMC). If the same IPMI system interface can be
+registered by several methods(DMI, hardcode, default . etc). This patch
+can work even without the first patch.
 
-Thanks,
-Shaohua
-> * Alex Chiang <achiang@hp.com>:
-> > This is v4 of a modest attempt to clean up the dock driver.
-> > 
-> > As before, compile tested only, since I don't have any machines
-> > that provide _DCK.
-> > 
-> > Thanks.
-> > /ac
-> > 
-> > v3 -> v4:
-> > 	- defensively code in case sysfs_create_group() fails and
-> > 	  sysfs_remove_group() can't handle removing a non-existent group;
-> > 	  suggested by Dmitry Torokhov
-> > 
-> > v2 -> v3:
-> > 	- now using an attribute_group, as suggested by Dmitry Torokhov
-> > 
-> > v1 -> v2:
-> > 	- changed how we add platform device data, based on Shaohua Li's
-> >   	  review
-> > ---
-> > 
-> > Alex Chiang (6):
-> >       ACPI: dock: convert sysfs attributes to an attribute_group
-> >       ACPI: dock: combine add|alloc_dock_dependent_device
-> >       ACPI: dock: remove global 'dock_device_name'
-> >       ACPI: dock: dock_add - hoist up platform_device_register_simple()
-> >       ACPI: dock: add struct dock_station * directly to platform device data
-> >       ACPI: dock: minor whitespace and style cleanups
-> > 
-> > 
-> >  drivers/acpi/dock.c |  266 ++++++++++++++++++---------------------------------
-> >  1 files changed, 93 insertions(+), 173 deletions(-)
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+At the same time we will have to consider another issue. As we know, th=
+e
+IPMI system interface is registered by using the function of
+try_smi_init. But this function is defined as static function and we
+can't call it out of ipmi_si_intf.c.
+If we add the corresponding ACPI driver in the file of ipmi_si_intf.c,
+it will be OK to merge them into one part. But this is a bad idea. The
+acpi driver is located in the IPMI subsystem. Confusing?
+>=20
+> > > > > >     2. The second is that there exist so many cases about t=
+he IPMI
+> > > > > > IO/memory resource definition. Maybe there exist both IO/me=
+mory resource
+> > > > > > definition for one IPMI device. In such case we can't know =
+which should
+> > > > > > be selected. At the same time we have similar issues about =
+the interrupt
+> > > > > > type. So I decide to parse the IO/memory/interrupt resource
+> > > > > > independently.
+> > > > >=20
+> > > > > This doesn't make any sense.  The fact that an IPMI device mi=
+ght have
+> > > > > a variety of IO/memory/IRQ resources is orthogonal to the que=
+stion of
+> > > > > whether you should use pnp_register_driver() or acpi_walk_nam=
+espace().
+> > > > When we detect the IPMI system interface by loading PNP device =
+driver,
+> > > > the advantage is that it can re-use the parse mechanism of
+> > > > IO/memory/interrupt. Right?
+> > > > In fact we will have to evaluate the following ACPI object:
+> > > > 	>_IFT, _GPE, _SRV
+> > > >=20
+> > > > If there exists the _GPE object, it is unnecessary to parse the=
+ resource
+> > > > related with the interrupt.
+> > > >=20
+> > > > At the same time as I mentioned in the previous email, sometime=
+s we will
+> > > > get the two different IO address definitions after evaluating t=
+he _CRS
+> > > > object. Which should be selected?
+> > > > If there exist both IO and memory address definition in _CRS ob=
+ject,
+> > > > which should be selected?
+> > >=20
+> > > You have to decide which address to use whether you learn the add=
+resses
+> > > by using acpi_walk_resources() or by looking through the resource=
+s
+> > > decoded by PNPACPI.  Using acpi_walk_resources() doesn't make tha=
+t
+> > > choice any easier.
+> > >=20
+> > > > > PNPACPI parses the IPMI device resources for every ACPI devic=
+e,
+> > > > > including the IPMI device, before we even know whether there =
+will be
+> > > > > a PNP driver for the device.  It's much easier to look at the=
+ PNP
+> > > > > resources and figure out which to use than it is to use
+> > > > > acpi_walk_resources() manually.
+> > > > >=20
+> > > > > The main point is that ipmi_si_intf.c is a device driver, and=
+ it should
+> > > > > use the normal driver registration mechanisms.  I think it wo=
+uld be
+> > > > > simplest and clearest to make a few PNP enhancements so it co=
+uld use
+> > > > > pnp_register_driver(), but even using acpi_bus_register_drive=
+r() would
+> > > > > be fine.  Using acpi_walk_namespace() to do everything by han=
+d is just
+> > > > > completely wrong.
+> > > > The main purpose is to detect the IPMI system interface defined=
+ in ACPI
+> > > > table.  If the device can be detected correctly, IMO it will be=
+ OK.
+> > >=20
+> > > It is important to detect the device.  It is also important to ha=
+ve a
+> > > mechanism to prevent two drivers from thinking they own the same =
+device.
+> > >=20
+> > > > Why do think that it is wrong to use the acpi_walk_namespace to=
+ parse
+> > > > the resource?
+> > >=20
+> > > You're using acpi_walk_namespace() to locate the device, not to p=
+arse
+> > > the resources.  You use acpi_walk_resources() to parse the resour=
+ces.
+> > Is it wrong to use acpi_walk_namespace to locate the device?
+>=20
+> Yes, for the reason I explained below.  To repeat myself, you must us=
+e
+> acpi_bus_register_driver() (or pnp_register_driver()) so we can preve=
+nt
+> multiple drivers from claiming the same piece of hardware.
+>=20
+> [There is an existing PNPACPI problem in that I think we currently al=
+low
+> a driver using acpi_bus_register_driver() and a driver using
+> pnp_register_driver() to both claim the same device.  But this is an
+> existing issue with the Linux/ACPI and PNPACPI core, not with the
+> drivers themselves.]
+>=20
+> > Why we can't use the acpi_walk_resources directly to parse the
+> > corresponding resource?
+>=20
+> You can.  I think it would be easier in the long run to rely on the
+> resource parsing done by PNPACPI, but you can use acpi_walk_resources=
+()
+> if you want to.
+>=20
+> > > The fact that your patch uses acpi_walk_namespace() to find the
+> > > device means that ipmi_si_intf.c can be talking to a device, but =
+the
+> > > rest of the system doesn't know ipmi_si_intf.c "owns" it.  So ano=
+ther
+> > > driver B could come along and correctly use acpi_bus_register_dri=
+ver()
+> > > with the IPMI IDs.  The Linux ACPI core knows nothing about the f=
+act
+> > > that ipmi_si_intf.c thinks it "owns" the IPMI device, so it will =
+call
+> > > the driver B "add" method.  Now we have two drivers that both thi=
+nk
+> > > they own the device.  This leads to chaos.
+> > Why is it necessary that the reset of the system doesn't know
+> > ipmi_si_intf.c "owns" the IPMI system interface?
+>=20
+> Using acpi_bus_register_driver() lets the Linux/ACPI core make sure t=
+hat
+> only a single driver is bound to the device.  If two drivers bind to =
+it,
+> they will interfere with each other.
+>=20
+> Bjorn
+>=20
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
