@@ -1,52 +1,67 @@
-From: Frans Pop <elendil@planet.nl>
-Subject: Re: [PATCH 0/6] [resend] thermal: improvements re. forced passive cooling
-Date: Wed, 28 Oct 2009 23:49:04 +0100
-Message-ID: <200910282349.06322.elendil@planet.nl>
-References: <1256542744-26569-1-git-send-email-elendil@planet.nl> <20091028153551.6c665ca1.akpm@linux-foundation.org>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH v4 0/6] ACPI: dock: code hygiene
+Date: Wed, 28 Oct 2009 18:07:43 -0600
+Message-ID: <20091029000743.GA3602@ldl.fc.hp.com>
+References: <20091019211132.5412.80438.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cpsmtpm-eml104.kpnxchange.com ([195.121.3.8]:64597 "EHLO
-	CPSMTPM-EML104.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753849AbZJ1WtD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Oct 2009 18:49:03 -0400
-In-Reply-To: <20091028153551.6c665ca1.akpm@linux-foundation.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:46190 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755282AbZJ2AHj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2009 20:07:39 -0400
 Content-Disposition: inline
+In-Reply-To: <20091019211132.5412.80438.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Sujith Thomas <sujith.thomas@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: shaohua.li@intel.com, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Andrew,
+Hi Len, Shaohua,
 
-On Wednesday 28 October 2009, Andrew Morton wrote:
-> I'm trying to work out what the actual bug is in here.
+Any comments on this patch series?
 
-It turned out there was no bug in the kernel. This patch set is an 
-enhancement of existing kernel functionality.
+I did fat-finger Shaohua's email address when I sent out v4, but
+I thought I bounced all the mails to him privately, off-list.
 
-> afacit some KDE tool put wrong numbers into /proc files, acpi didn't
-> sanity check them sufficiently and permitted the CPU to overheat, yes?
+Thanks,
+/ac
 
-No. The problem was that the thermal zone that overheated did not have a 
-passive trip point defined in ACPI. So the kernel had no way of knowing 
-the system was overheating.
-
-The kernel already has an option to "force" a passive trip point for such 
-zones (using polling to check it), and that works. But while testing that 
-and looking at the code I spotted some possible enhancements.
-
-> There seems to be rather a lot of non-bugfix stuff in this patch
-> series.  Perhaps too much for 2.6.32, and a real problem if we want to
-> backport something into 2.6.31.x and earlier.
-
-It would have been nice if it had made .32 from my first submission, but 
-now it's fine for .33. It's not stable material.
-
-Thanks for taking the series.
-
-Cheers,
-FJP
+* Alex Chiang <achiang@hp.com>:
+> This is v4 of a modest attempt to clean up the dock driver.
+> 
+> As before, compile tested only, since I don't have any machines
+> that provide _DCK.
+> 
+> Thanks.
+> /ac
+> 
+> v3 -> v4:
+> 	- defensively code in case sysfs_create_group() fails and
+> 	  sysfs_remove_group() can't handle removing a non-existent group;
+> 	  suggested by Dmitry Torokhov
+> 
+> v2 -> v3:
+> 	- now using an attribute_group, as suggested by Dmitry Torokhov
+> 
+> v1 -> v2:
+> 	- changed how we add platform device data, based on Shaohua Li's
+>   	  review
+> ---
+> 
+> Alex Chiang (6):
+>       ACPI: dock: convert sysfs attributes to an attribute_group
+>       ACPI: dock: combine add|alloc_dock_dependent_device
+>       ACPI: dock: remove global 'dock_device_name'
+>       ACPI: dock: dock_add - hoist up platform_device_register_simple()
+>       ACPI: dock: add struct dock_station * directly to platform device data
+>       ACPI: dock: minor whitespace and style cleanups
+> 
+> 
+>  drivers/acpi/dock.c |  266 ++++++++++++++++++---------------------------------
+>  1 files changed, 93 insertions(+), 173 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
