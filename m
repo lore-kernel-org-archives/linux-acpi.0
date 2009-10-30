@@ -1,53 +1,43 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: intermittent suspend problem again
-Date: Fri, 30 Oct 2009 20:03:50 +0100
-Message-ID: <87k4yc3drd.fsf@tac.ki.iif.hu>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200910291936.14082.rjw@sisk.pl>
-	<87fx91q1bc.fsf@tac.ki.iif.hu> <200910301918.53301.rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from
+ 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
+Date: Fri, 30 Oct 2009 12:47:38 -0700 (PDT)
+Message-ID: <alpine.LFD.2.01.0910301228430.31845@localhost.localdomain>
+References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <6dRYo8ss7vL.A.EqH.Nse5KB@chimera> <200910301948.24473.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200910301918.53301.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Fri, 30 Oct 2009 19:18:53 +0100")
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, yakui.zhao@intel.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43958 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754088AbZJ3TsE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Oct 2009 15:48:04 -0400
+In-Reply-To: <200910301948.24473.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-> On Thursday 29 October 2009, Ferenc Wagner wrote:
+
+On Fri, 30 Oct 2009, Rafael J. Wysocki wrote:
+> 
 >
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->> 
->>> Which part of it is getting slower?  Saving the image, suspending
->>> devices or the entire hibernation overall?
->> 
->> "Snapshotting system" before saving the image
->
-> That may be a result of changing the way in which image memory is reserved.
-> How much memory is there in your machine?
+> 1) Resume works if pcmcia_socket_dev_resume(dev) is moved to the "regular"
+>    resume phase, after resume_device_irqs().
 
-512 MB.
+Hmm. We really probably shouldn't call pcmcia_socket_dev_resume() in 
+early_resume. It takes mutexes etc, and it calls "socket_resume()", which 
+sleeps etc. That per se should be ok these days (since we don't actualyl 
+disable CPU irq's, just device irqs), but it also does that whole card 
+insertion events etc. And _that_ code I wouldn't trust at all.
 
->> and saving the image as well.  If s2disk didn't report funny huge negative
->> ratios all the time,
->
-> Hmm.  This looks like a bug in s2disk.
+The PCMCIA code is better than it used to be a long time ago, but some of 
+it is still pretty crazy. 
 
-Definitely.  Do you also experience this?  Probably an easy one, but
-I've never had the chance to check the CVS version (running 0.7 at the
-moment).  I can probably give 0.8 a spin if you deem necessary.  I
-always thought it wasn't more than a cosmetic flaw.
--- 
-Thanks,
-Feri.
+I get the feeling that we should just revert that commit 0c570cdeb, and 
+instead always do PCMCIA suspend as a "eject" event. That way we have no 
+driver behind it to resume at resume time - and we'll see any plugged-in 
+device as just a new insertion. 
+
+		Linus
