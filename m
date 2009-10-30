@@ -1,59 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
-Date: Fri, 30 Oct 2009 21:32:44 +0100
-Message-ID: <200910302132.44759.rjw@sisk.pl>
-References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <200910301948.24473.rjw@sisk.pl> <alpine.LFD.2.01.0910301228430.31845@localhost.localdomain>
+Subject: Re: [linux-pm] intermittent suspend problem again
+Date: Fri, 30 Oct 2009 21:38:37 +0100
+Message-ID: <200910302138.37938.rjw@sisk.pl>
+References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200910301918.53301.rjw@sisk.pl> <87k4yc3drd.fsf@tac.ki.iif.hu>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56054 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:56071 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754179AbZJ3UbP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Oct 2009 16:31:15 -0400
-In-Reply-To: <alpine.LFD.2.01.0910301228430.31845@localhost.localdomain>
+	id S1757359AbZJ3Ugl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Oct 2009 16:36:41 -0400
+In-Reply-To: <87k4yc3drd.fsf@tac.ki.iif.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>
+To: Ferenc Wagner <wferi@niif.hu>
+Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Friday 30 October 2009, Linus Torvalds wrote:
+On Friday 30 October 2009, Ferenc Wagner wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
 > 
-> On Fri, 30 Oct 2009, Rafael J. Wysocki wrote:
-> > 
+> > On Thursday 29 October 2009, Ferenc Wagner wrote:
 > >
-> > 1) Resume works if pcmcia_socket_dev_resume(dev) is moved to the "regular"
-> >    resume phase, after resume_device_irqs().
+> >> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> >> 
+> >>> Which part of it is getting slower?  Saving the image, suspending
+> >>> devices or the entire hibernation overall?
+> >> 
+> >> "Snapshotting system" before saving the image
+> >
+> > That may be a result of changing the way in which image memory is reserved.
+> > How much memory is there in your machine?
 > 
-> Hmm. We really probably shouldn't call pcmcia_socket_dev_resume() in 
-> early_resume. It takes mutexes etc, and it calls "socket_resume()", which 
-> sleeps etc. That per se should be ok these days (since we don't actualyl 
-> disable CPU irq's, just device irqs), but it also does that whole card 
-> insertion events etc. And _that_ code I wouldn't trust at all.
+> 512 MB.
 
-I thought so when I worked on commit 0c570cdeb, but then it turned out to
-work just fine with a number of boxes.
+So it's likely the slowdown results from the memory management rework.
+Hopefully, it'll improve in the future.
 
-> The PCMCIA code is better than it used to be a long time ago, but some of 
-> it is still pretty crazy. 
+> >> and saving the image as well.  If s2disk didn't report funny huge negative
+> >> ratios all the time,
+> >
+> > Hmm.  This looks like a bug in s2disk.
 > 
-> I get the feeling that we should just revert that commit 0c570cdeb,
+> Definitely.  Do you also experience this?
 
-Well, there's nothing wrong with doing the PCI stuff and restoring the state at
-the _noirq stage IMO, so instead of reverting it altogether, I'd add
-yenta_dev_suspend|resume() that would just call
-pcmcia_socket_dev_suspend|resume() during "regular" suspend|resume.
+Not really, but I use newer versions.
 
-> and instead always do PCMCIA suspend as a "eject" event. That way we have no 
-> driver behind it to resume at resume time - and we'll see any plugged-in 
-> device as just a new insertion. 
+> Probably an easy one, but I've never had the chance to check the CVS version
+> (running 0.7 at the moment).  I can probably give 0.8 a spin if you deem
+> necessary.  I always thought it wasn't more than a cosmetic flaw.
 
-In fact I thought about that.
-
-It looks like I need to find a CardBus adapter somewhere and clean that thing up.
-
-That said, I'd really like to know what's going on in there. :-)
+It probably is.  You can try the current version from my git tree at:
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-utils.git
 
 Thanks,
 Rafael
