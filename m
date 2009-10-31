@@ -1,53 +1,139 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [linux-pm] intermittent suspend problem again
-Date: Sat, 31 Oct 2009 12:02:02 +0000
-Message-ID: <9b2b86520910310502p7fe8e0edmff09220632fab5e2@mail.gmail.com>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200910301918.53301.rjw@sisk.pl>
-	 <87k4yc3drd.fsf@tac.ki.iif.hu> <200910302138.37938.rjw@sisk.pl>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [PATCH 3/3] ACPI: battery: register power_supply subdevice
+ even when battery not present
+Date: Sat, 31 Oct 2009 15:20:51 +0200
+Message-ID: <1256995251.11609.4.camel@localhost.localdomain>
+References: <4A098D0A.6090509@tuffmail.co.uk>
+	 <1252291027.4627.2.camel@maxim-laptop>  <4AA4FCC3.2090805@tuffmail.co.uk>
+	 <1256954298.9681.14.camel@maxim-laptop>  <4AEC15E2.9040004@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:58678 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932131AbZJaMCA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 31 Oct 2009 08:02:00 -0400
-In-Reply-To: <200910302138.37938.rjw@sisk.pl>
+Received: from fg-out-1718.google.com ([72.14.220.154]:11754 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757746AbZJaNUw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 31 Oct 2009 09:20:52 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so221931fga.1
+        for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2009 06:20:56 -0700 (PDT)
+In-Reply-To: <4AEC15E2.9040004@tuffmail.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ferenc Wagner <wferi@niif.hu>, linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On 10/30/09, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Friday 30 October 2009, Ferenc Wagner wrote:
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->>
->> > On Thursday 29 October 2009, Ferenc Wagner wrote:
->> >
->> >> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+On Sat, 2009-10-31 at 10:48 +0000, Alan Jenkins wrote:
+> Maxim Levitsky wrote:
+> > On Mon, 2009-09-07 at 13:29 +0100, Alan Jenkins wrote: 
+> >   
+> >> Maxim Levitsky wrote:
+> >>     
+> >>> On Tue, 2009-05-12 at 15:51 +0100, Alan Jenkins wrote:
+> >>>   
+> >>>       
+> >>>> Keeping this device around lets userspace know that we have a battery
+> >>>> bay, even if there is nothing in it at the moment.  This is what every
+> >>>> other battery driver does, so ACPI should do it as well.
+> >>>>
+> >>>> There is no reason to preserve the old behaviour.  We now correctly
+> >>>> provide the "present" attribute, which will return "0" when the battery
+> >>>> is removed.  HAL was already trying to check this attribute, so
+> >>>> it should be fine.
+> >>>>
+> >>>> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> >>>>     
+> >>>>         
+> >>> What happened to this patch?
+> >>>
+> >>> I still get the issue this patch attempts to fix:
+> >>>
+> >>> maxim@maxim-laptop:~/software/kernel/linux-2.6$
+> >>> ls /sys/class/power_supply/
+> >>> AC
+> >>> maxim@maxim-laptop:~/software/kernel/linux-2.6$
+> >>> ls /sys/class/power_supply/
+> >>> AC  BAT0
+> >>> maxim@maxim-laptop:~/software/kernel/linux-2.6$
+> >>> ls /sys/class/power_supply/
+> >>> AC
+> >>> maxim@maxim-laptop:~/software/kernel/linux-2.6$ uname -r
+> >>> 2.6.31-rc8-next-20090904-next
+> >>> maxim@maxim-laptop:~/software/kernel/linux-2.6$ 
+> >>>
+> >>>
+> >>> When I unplug the battery, its sysfs entry disappears.
+> >>> Thus if system was booted without battery, there will be no way to know
+> >>> system has one.
+> >>>
+> >>> This patch doesn't apply.
+> >>>   
+> >>>       
+> >> I rebased these patches a while back
+> >>
+> >> http://patchwork.kernel.org/patch/33118/
+> >> http://patchwork.kernel.org/patch/33119/
+> >> http://patchwork.kernel.org/patch/33120/
+> >>
+> >> you should find these will still apply.
+> >>
+> >> Regards
+> >> Alan
+> >>     
+> >
+> >
+> > Any progress on adding special battery bay device?
+> >
+> > Best regards,
+> > Maxim Levitsky
+> >   
+> 
+> No, sorry.
+> 
+> I did think of one complication - suspend/resume.  (That's not blocking
+> me though, it's just a matter of time).  Assume the obvious device tree:
+> 
+>     ACPI BAT0 -> battery bay device -> [ battery device ]
+> 
+> The user might suspend with the battery removed, and then add the
+> battery and resume.  But
+> 
+>     1) Parent devices are resumed before their children.
+>     2) The device core won't let you add a child device to a device
+>     which is currently suspended.
+> 
+> So when BAT0 resumes, the battery bay device is still suspended. 
+> Therefore the resume handler for BAT0 cannot directly create the battery
+> device. 
+> 
+> So we either need to
+> 
+> a) provide some sort of resume mechanism attached to the battery bay
+> device, or
+> b) use a different device tree and use symlinks to represent the
+> relationship i.e.
+> 
+> ACPI BAT0 -> battery bay device (with "battery" symlink)
+>                    -> battery device (with "bay" symlink)
+> 
+> I favour b).
+> 
+> Regards
+> Alan
 
->> >> and saving the image as well.  If s2disk didn't report funny huge
->> >> negative
->> >> ratios all the time,
->> >
->> > Hmm.  This looks like a bug in s2disk.
->>
->> Definitely.  Do you also experience this?
->
-> Not really, but I use newer versions.
->
->> Probably an easy one, but I've never had the chance to check the CVS
->> version
->> (running 0.7 at the moment).  I can probably give 0.8 a spin if you deem
->> necessary.  I always thought it wasn't more than a cosmetic flaw.
->
-> It probably is.  You can try the current version from my git tree at:
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-utils.git
->
-> Thanks,
-> Rafael
+Me too.
 
-I seem to recall reporting this and finding that the latest version
-fixed the bug simply by removing the code which printed the ratio :-).
+In fact, I don't think there is need for relationship between bay and
+battery.
 
-Regards
-Alan
+All I need is some way for kernel to notify that batteries might became
+present,  so it would be enough to create a dummy child of the BAT0
+exactly like you said.
+
+Probably even it is possible not to use symlinks.
+
+
+Best regards,
+	Maxim Levitsky
+
+
+
