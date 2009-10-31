@@ -1,60 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] intermittent suspend problem again
-Date: Sat, 31 Oct 2009 20:11:03 +0100
-Message-ID: <200910312011.04005.rjw@sisk.pl>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu> <9b2b86520910310502p7fe8e0edmff09220632fab5e2@mail.gmail.com> <874opfwtde.fsf@tac.ki.iif.hu>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from
+ 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
+Date: Sun, 01 Nov 2009 08:01:30 +1100
+Message-ID: <1257022890.7907.14.camel@pasglop>
+References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera>
+	 <alpine.LFD.2.01.0910301228430.31845@localhost.localdomain>
+	 <1256947041.6372.165.camel@pasglop>  <200910311031.17660.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58874 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933114AbZJaTJp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 31 Oct 2009 15:09:45 -0400
-In-Reply-To: <874opfwtde.fsf@tac.ki.iif.hu>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200910311031.17660.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Ferenc Wagner <wferi@niif.hu>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Saturday 31 October 2009, Ferenc Wagner wrote:
-> Alan Jenkins <sourcejedi.lkml@googlemail.com> writes:
+On Sat, 2009-10-31 at 10:31 +0100, Rafael J. Wysocki wrote:
+
+> > To me the proper approach would be to split it so that
 > 
-> > On 10/30/09, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> On Friday 30 October 2009, Ferenc Wagner wrote:
-> >>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> >>>
-> >>>> On Thursday 29 October 2009, Ferenc Wagner wrote:
-> >>>>
-> >>>>> and saving the image as well.  If s2disk didn't report funny huge
-> >>>>> negative ratios all the time,
-> >>>>
-> >>>> Hmm.  This looks like a bug in s2disk.
-> >>>
-> >>> Definitely.  Do you also experience this?
-> >>
-> >> Not really, but I use newer versions.
-> >>
-> >>> Probably an easy one, but I've never had the chance to check the CVS
-> >>> version (running 0.7 at the moment).  I can probably give 0.8 a spin
-> >>> if you deem necessary.  I always thought it wasn't more than a
-> >>> cosmetic flaw.
-> >>
-> >> It probably is.  You can try the current version from my git tree at:
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-utils.git
-> >
-> > I seem to recall reporting this and finding that the latest version
-> > fixed the bug simply by removing the code which printed the ratio :-).
+> Well, agreed, but ...
 > 
-> Heh, maybe, but the version compiled from Rafael's git tree prints the
-> ratio all right, and its value is even positive and less than 1.  So I
-> confirm that the ratio issue is fixed.  I'll be running with this
-> version from now on, and if it exhibits the same original issue, I'll
-> switch to shutdown mode and gather some experience running that.
+> >  - early_resume() restores power & config space etc... so that existing
+> > devices can move on (might check for removal). There's no other hotplug
+> > activity
+> 
+> ... that's exactly what doesn't work at the moment.
 
-Well, the problem you reported is a kernel issue and switching to the newer
-user space is not likely to help.
+BTW. This is a PCMCIA problem, a Cardbus or both ? I'll see if I can dig
+something on monday ?
 
-Best,
-Rafael
+>From the little email history I caught, it smells like pcmcia old style.
+
+I don't see a problem per-se with the mutex usage with the new interrupt
+masking style as Linus says. socket_resume() also looks reasonably sane,
+it's the whole handling of removal that should be deferred. Maybe
+instead of doing socket_remove_drivers()...send_event() etc.. in there,
+we could simply just shut the socket down (PCMCIA drivers should cope
+with sockets returning ffff's for a short amount of time), flag it dead
+in skt->state and have the "late" resume  actually fire off the driver
+removal and sending of the event.
+
+BTW. Have we ever documented whether it's kosher to ->remove() a driver
+before ->resume()'ing it ? (In which case obviously we wouldn't resume
+it).
+
+Cheers,  
+Ben.
