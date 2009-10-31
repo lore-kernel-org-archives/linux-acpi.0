@@ -1,37 +1,80 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
-Date: Sun, 1 Nov 2009 00:10:07 +0100
-Message-ID: <200911010010.07394.rjw@sisk.pl>
-References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <200910312227.15493.rjw@sisk.pl> <1257029775.7907.21.camel@pasglop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: kerneloops.org report for the week of October 31 2009
+Date: Sun, 1 Nov 2009 00:20:20 +0100
+Message-ID: <200911010020.20284.rjw@sisk.pl>
+References: <20091031160351.26fcc6c5@infradead.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1257029775.7907.21.camel@pasglop>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jose Marino <braket-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:59420 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933338AbZJaXSv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 31 Oct 2009 19:18:51 -0400
+In-Reply-To: <20091031160351.26fcc6c5@infradead.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, linux-acpi@vger.kernel.org, tytso@mit.edu, netdev@vger.kernel.org, Eric Paris <eparis@redhat.com>, akpm@linux-foundation.org, Matt Domsch <Matt_Domsch@dell.com>
 
-On Saturday 31 October 2009, Benjamin Herrenschmidt wrote:
-> On Sat, 2009-10-31 at 22:27 +0100, Rafael J. Wysocki wrote:
+On Sunday 01 November 2009, Arjan van de Ven wrote:
 > 
-> > In the meantime I invented a patch that works, ie. apparently fixes the problem
-> > and if there was a card in the socket during the suspend, it's standard config
-> > space is restored correctly.  I tested it on one of my boxes with two different
-> > CardBus adapters and Jose says it fixes the problem for him.
-> > 
-> > The patch is appended, please have a look.
+> This week, a total of 18023 oopses and warnings have been reported,
+> compared to 5816 reports in the previous week. This number and this
+> report only includes kernel 2.6.31 and later.
 > 
-> Base idea of the patch sounds good, quick browse through looks good too,
+> This week, the Ubuntu 9.10 distribution got released, which includes
+> kerneloops.org integration in the quality feedback system. I'd like
+> to thank the Ubuntu team for their effort in helping to get the quality
+> feedback about the kernel integrated into kerneloops.org.
 > 
-> I'll try to band on it with various PCMCIA & CB gear tomorrow.
+> 
+> One thing to note is that the Ubuntu 9.10 release ships with the kernel
+> debug option CONFIG_PM_TEST_SUSPEND enabled, causing many warnings to 
+> be submitted. This huge volume triggered me to split these reports, as well
+> as the check_bios_for_corruption() reports into a per machine entry.
+> 
+> The top 5 machines for which the suspend test fails:
+>    319 | suspend_test_finish(Latitude D830)
+>    231 | suspend_test_finish(XPS M1530)
+>    225 | suspend_test_finish(MacBook2,1)
+>    171 | suspend_test_finish(Compaq Presario CQ60 Notebook PC)
+>    157 | suspend_test_finish(Studio XPS 1340)
+> 
+> and there is also the very elegant 
+>    267 | suspend_test_finish(To Be Filled By O.E.M)
+> 
+> 
+> The top 5 machines where the BIOS corrupts memory:
+>     80 | check_for_bios_corruption(HP Compaq nx6110)
+>     69 | check_for_bios_corruption(HP Compaq nc6120)
+>     62 | check_for_bios_corruption(HP Pavilion dv6700 Notebook PC)
+>     49 | check_for_bios_corruption(HP Pavilion dv2700 Notebook PC)
+>     32 | check_for_bios_corruption(Compaq Presario F700 Notebook PC)
+> 
+> 
+> The report this week looks different from previous reports; the version
+> cut-off has moved to 2.6.31 so that a lot of older bugs now dropped out of the report.
+> 
+> New this week are some inotify bugs, that have been fixed in Linus' git tree after -rc5.
+> There's also an ext2 warning for when the user unplugs a USB stick, as well as the
+> usual binary and external kernel modules.
+> 
+> If you have (better) descriptions for some of these, let me know and I can add them to the
+> database.
+> 
+> 
+> 
+> 
+> Rank 1: suspend_test_finish(System Product Name) (warning)
+> 	Reported 930 times (1510 total reports)
+> 	This warning was last seen in version 2.6.31, and first seen in 2.6.27.15.
+> 	More info: http://www.kerneloops.org/searchweek.php?search=suspend_test_finish(System Product Name)
 
-Wait, I made a mistake when testing it, didn't notice that my distro ejected
-PCMCIA cards automatically before suspend (sigh).
-
-Working on a better patch right now, will hopefully post it in a while.
+This should be fixed by commit 04bf7539c08d64184736cdc5e4ad617eda77eb0f
+(PM: Make warning in suspend_test_finish() less likely to happen), at least on some
+machines that report it.
 
 Thanks,
 Rafael
