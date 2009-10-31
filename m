@@ -1,53 +1,81 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from
- 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
-Date: Sat, 31 Oct 2009 10:57:21 +1100
-Message-ID: <1256947041.6372.165.camel@pasglop>
-References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera>
-	 <6dRYo8ss7vL.A.EqH.Nse5KB@chimera> <200910301948.24473.rjw@sisk.pl>
-	 <alpine.LFD.2.01.0910301228430.31845@localhost.localdomain>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [PATCH 3/3] ACPI: battery: register power_supply subdevice
+ even when battery not present
+Date: Sat, 31 Oct 2009 03:58:18 +0200
+Message-ID: <1256954298.9681.14.camel@maxim-laptop>
+References: <4A098D0A.6090509@tuffmail.co.uk>
+	 <1252291027.4627.2.camel@maxim-laptop>  <4AA4FCC3.2090805@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933126AbZJ3X5g@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.01.0910301228430.31845@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.153]:47483 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757624AbZJaB6U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Oct 2009 21:58:20 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so72742fga.1
+        for <linux-acpi@vger.kernel.org>; Fri, 30 Oct 2009 18:58:23 -0700 (PDT)
+In-Reply-To: <4AA4FCC3.2090805@tuffmail.co.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
 
-On Fri, 2009-10-30 at 12:47 -0700, Linus Torvalds wrote:
-> 
-> On Fri, 30 Oct 2009, Rafael J. Wysocki wrote:
-> > 
+On Mon, 2009-09-07 at 13:29 +0100, Alan Jenkins wrote: 
+> Maxim Levitsky wrote:
+> > On Tue, 2009-05-12 at 15:51 +0100, Alan Jenkins wrote:
+> >   
+> >> Keeping this device around lets userspace know that we have a battery
+> >> bay, even if there is nothing in it at the moment.  This is what every
+> >> other battery driver does, so ACPI should do it as well.
+> >>
+> >> There is no reason to preserve the old behaviour.  We now correctly
+> >> provide the "present" attribute, which will return "0" when the battery
+> >> is removed.  HAL was already trying to check this attribute, so
+> >> it should be fine.
+> >>
+> >> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+> >>     
 > >
-> > 1) Resume works if pcmcia_socket_dev_resume(dev) is moved to the "regular"
-> >    resume phase, after resume_device_irqs().
+> > What happened to this patch?
+> >
+> > I still get the issue this patch attempts to fix:
+> >
+> > maxim@maxim-laptop:~/software/kernel/linux-2.6$
+> > ls /sys/class/power_supply/
+> > AC
+> > maxim@maxim-laptop:~/software/kernel/linux-2.6$
+> > ls /sys/class/power_supply/
+> > AC  BAT0
+> > maxim@maxim-laptop:~/software/kernel/linux-2.6$
+> > ls /sys/class/power_supply/
+> > AC
+> > maxim@maxim-laptop:~/software/kernel/linux-2.6$ uname -r
+> > 2.6.31-rc8-next-20090904-next
+> > maxim@maxim-laptop:~/software/kernel/linux-2.6$ 
+> >
+> >
+> > When I unplug the battery, its sysfs entry disappears.
+> > Thus if system was booted without battery, there will be no way to know
+> > system has one.
+> >
+> > This patch doesn't apply.
+> >   
 > 
-> Hmm. We really probably shouldn't call pcmcia_socket_dev_resume() in 
-> early_resume. It takes mutexes etc, and it calls "socket_resume()", which 
-> sleeps etc. That per se should be ok these days (since we don't actualyl 
-> disable CPU irq's, just device irqs), but it also does that whole card 
-> insertion events etc. And _that_ code I wouldn't trust at all.
+> I rebased these patches a while back
 > 
-> The PCMCIA code is better than it used to be a long time ago, but some of 
-> it is still pretty crazy. 
+> http://patchwork.kernel.org/patch/33118/
+> http://patchwork.kernel.org/patch/33119/
+> http://patchwork.kernel.org/patch/33120/
 > 
-> I get the feeling that we should just revert that commit 0c570cdeb, and 
-> instead always do PCMCIA suspend as a "eject" event. That way we have no 
-> driver behind it to resume at resume time - and we'll see any plugged-in 
-> device as just a new insertion. 
+> you should find these will still apply.
+> 
+> Regards
+> Alan
 
-To me the proper approach would be to split it so that
 
- - early_resume() restores power & config space etc... so that existing
-devices can move on (might check for removal). There's no other hotplug
-activity
+Any progress on adding special battery bay device?
 
- - normal resume() restarts handling of events such as insertions
+Best regards,
+Maxim Levitsky
 
-Now, while I do have some cardbus & pcmcia stuff somewhere, I also don't
-have much time to hack on this right now...
-
-Cheers,
-Ben.
