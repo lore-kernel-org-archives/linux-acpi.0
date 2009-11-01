@@ -1,79 +1,73 @@
-From: Jean-Denis Girard <jd.girard@sysnux.pf>
-Subject: Backlight not working after resume
-Date: Sun, 01 Nov 2009 11:05:30 -1000
-Message-ID: <4AEDF81A.8070508@sysnux.pf>
+From: Ferenc Wagner <wferi@niif.hu>
+Subject: Re: [linux-pm] intermittent suspend problem again
+Date: Sun, 01 Nov 2009 22:53:17 +0100
+Message-ID: <87iqdtvrn6.fsf@tac.ki.iif.hu>
+References: <87fx93pwv2.fsf@tac.ki.iif.hu>
+	<9b2b86520910310502p7fe8e0edmff09220632fab5e2@mail.gmail.com>
+	<874opfwtde.fsf@tac.ki.iif.hu> <200910312011.04005.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtps0.mana.pf ([202.3.225.97]:34550 "EHLO smtps0.mana.pf"
+Received: from tac.ki.iif.hu ([193.6.222.43]:60576 "EHLO tac.ki.iif.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753447AbZKAVMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Nov 2009 16:12:31 -0500
-Received: from smtps0.mana.pf (localhost [127.0.0.1])
-	by smtps0.mana.pf (Postfix) with ESMTP id 70232C7617
-	for <linux-acpi@vger.kernel.org>; Sun,  1 Nov 2009 11:05:31 -1000 (TAHT)
-Received: from tiare.sysnux.pf (196.244.3.202.dial.dyn.mana.pf [202.3.244.196])
-	by smtps0.mana.pf (Postfix) with ESMTP id 38735C62EA
-	for <linux-acpi@vger.kernel.org>; Sun,  1 Nov 2009 11:05:31 -1000 (TAHT)
-Received: from tiare.sysnux.pf (tiare.sysnux.pf [127.0.0.1])
-	by tiare.sysnux.pf (Postfix) with ESMTP id 29DE12EF90
-	for <linux-acpi@vger.kernel.org>; Sun,  1 Nov 2009 11:05:31 -1000 (TAHT)
+	id S1753091AbZKAVxj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Nov 2009 16:53:39 -0500
+In-Reply-To: <200910312011.04005.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Sat, 31 Oct 2009 20:11:03 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-Hi list,
+> On Saturday 31 October 2009, Ferenc Wagner wrote:
+>
+>> Heh, maybe, but the version compiled from Rafael's git tree prints the
+>> ratio all right, and its value is even positive and less than 1.  So I
+>> confirm that the ratio issue is fixed.  I'll be running with this
+>> version from now on, and if it exhibits the same original issue, I'll
+>> switch to shutdown mode and gather some experience running that.
+>
+> Well, the problem you reported is a kernel issue and switching to the newer
+> user space is not likely to help.
 
-I have a Samsung q30 ultra-portable; ACPI video seems supported by
-standard driver. After boot, backlight control works fine with the
-dedicated laptop keys, but it no longer works after suspend / resume.
-The laptop itself is still working: I can ssh, even X is working. I can
-add an external screen and everything is OK, it's just the panel
-backlight is off. I have tried several methods found on the Internet
-(setpci, xrandr, sysfs) without luck.
+Well, I haven't had my hopes overly high, but wanted to have a concrete
+baseline.  So: with the new s2disk I got a freeze again after S|.  After
+a manual power off and a successful resume, I switched to shutdown mode
+and hibernated again, and got the exact same freeze (apart from a
+slightly different image size).  Power off, resume, switch to reboot
+mode, hibernate, and this worked.  Switch back to shutdown, now that
+worked as well...  Eh.  In my earlier bug report I think I noted that
+after such a hibernation failure a straight shutdown didn't power off
+the computer as it otherwise does, which feels consistent with the
+above.
 
-I can do:
-	echo x >/sys/class/backlight/acpi_video0/brightness
-(x=3D0..7) to adjust brightness after boot. After resume, the command
-works, but has no effect.
+With the uswsusp 0.7, a typical freeze looked like this:
 
-Video is:
-~ Intel Corporation 82852/855GM Integrated Graphics Device
+s2disk: Snapshotting system
+s2disk: System snapshot ready. Preparing to write
+s2disk: Image size: 240872 kilobytes
+s2disk: Free swap: 1333596 kilobytes
+s2disk: Saving 60217 image data pages (press backspace to abort) ... 100% done (60217 pages)
+s2disk: Compression ratio -63208.85
+S|
 
-I'm using KMS since 2.6.31-rc something (it was not working before).
-Before KMS, I used vbetool post to get my screen back on.
+With the new version the ratio is 0.42 with similar numbers, which
+sounds sane at least.  However, 60217 * 4 = 240868 = 240872 - 4, wasn't
+the number of saved pages one off?  The new version seems to get this
+right, though.
 
-I filed a bug at freedesktop.org one month ago, there's more detail
-there (acpidump, ...):
-	http://bugs.freedesktop.org/show_bug.cgi?id=3D24201
+Now something else, which may or may not be related.  I supervise a
+computing farm running a very old OS: Debian Sarge.  The kernel was
+somewhat newer: 2.6.24 until recently, when new machines arrived to the
+lab, which couldn't boot that 2.6.24 kernel.  So I upgraded to 2.6.31,
+which works quite well, apart from one thing: halt doesn't power off the
+machines anymore.  All the same under 2.6.32-rc5: they simply freeze
+after reaching halt -d -f -i -h -p in the shutdown sequence.
 
-Problem persists with kernel version is 2.6.32-rc5.
-
-I can provide more info, and I'm willing to try corrections / patches t=
-o
-solve this problem.
-
-
+I'm pretty much stumped here, but will try to get some SysRq dumps out
+of these machines at least.
+-- 
 Thanks,
-- --
-Jean-Denis Girard
-
-SysNux                  Syst=C3=A8mes  Linux  en Polyn=C3=A9sie fran=C3=
-=A7aise
-http://www.sysnux.pf/   T=C3=A9l: +689 50 10 40 / GSM: +689 79 75 27
------BEGIN PGP SIGNATURE-----
-
-iEYEARECAAYFAkrt+BoACgkQuu7Rv+oOo/hkdwCdEUD7/TE8ZLpvbrStTchliNus
-Z2cAnRsDVUGZFKlqA2klZQDYOsb3NB2n
-=3DfaAb
------END PGP SIGNATURE-----
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Feri.
