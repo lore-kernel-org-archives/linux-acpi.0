@@ -1,73 +1,77 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: [linux-pm] intermittent suspend problem again
-Date: Sun, 01 Nov 2009 22:53:17 +0100
-Message-ID: <87iqdtvrn6.fsf@tac.ki.iif.hu>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu>
-	<9b2b86520910310502p7fe8e0edmff09220632fab5e2@mail.gmail.com>
-	<874opfwtde.fsf@tac.ki.iif.hu> <200910312011.04005.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Thiago Farina <tfransosi@gmail.com>
+Subject: [PATCH] trivial: remove ACPI_ARRAY_LENGTH macro.
+Date: Sun,  1 Nov 2009 17:36:12 -0500
+Message-ID: <1257114972-16039-1-git-send-email-tfransosi@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:60576 "EHLO tac.ki.iif.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091AbZKAVxj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Nov 2009 16:53:39 -0500
-In-Reply-To: <200910312011.04005.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Sat, 31 Oct 2009 20:11:03 +0100")
+Received: from mail-yw0-f202.google.com ([209.85.211.202]:57637 "EHLO
+	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753595AbZKAWgr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Nov 2009 17:36:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: trivial@kernel.org
+Cc: lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, jkosina@suze.cz, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Thiago Farina <tfransosi@gmail.com>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Since the kernel already has a macro (ARRAY_SIZE) that does the same thing,
+just use it instead of defining another macro for the same propose.
 
-> On Saturday 31 October 2009, Ferenc Wagner wrote:
->
->> Heh, maybe, but the version compiled from Rafael's git tree prints the
->> ratio all right, and its value is even positive and less than 1.  So I
->> confirm that the ratio issue is fixed.  I'll be running with this
->> version from now on, and if it exhibits the same original issue, I'll
->> switch to shutdown mode and gather some experience running that.
->
-> Well, the problem you reported is a kernel issue and switching to the newer
-> user space is not likely to help.
+Signed-off-by: Thiago Farina <tfransosi@gmail.com>
+---
+ drivers/acpi/acpica/hwvalid.c |    2 +-
+ drivers/acpi/acpica/uteval.c  |    4 ++--
+ include/acpi/actypes.h        |    4 ----
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
-Well, I haven't had my hopes overly high, but wanted to have a concrete
-baseline.  So: with the new s2disk I got a freeze again after S|.  After
-a manual power off and a successful resume, I switched to shutdown mode
-and hibernated again, and got the exact same freeze (apart from a
-slightly different image size).  Power off, resume, switch to reboot
-mode, hibernate, and this worked.  Switch back to shutdown, now that
-worked as well...  Eh.  In my earlier bug report I think I noted that
-after such a hibernation failure a straight shutdown didn't power off
-the computer as it otherwise does, which feels consistent with the
-above.
-
-With the uswsusp 0.7, a typical freeze looked like this:
-
-s2disk: Snapshotting system
-s2disk: System snapshot ready. Preparing to write
-s2disk: Image size: 240872 kilobytes
-s2disk: Free swap: 1333596 kilobytes
-s2disk: Saving 60217 image data pages (press backspace to abort) ... 100% done (60217 pages)
-s2disk: Compression ratio -63208.85
-S|
-
-With the new version the ratio is 0.42 with similar numbers, which
-sounds sane at least.  However, 60217 * 4 = 240868 = 240872 - 4, wasn't
-the number of saved pages one off?  The new version seems to get this
-right, though.
-
-Now something else, which may or may not be related.  I supervise a
-computing farm running a very old OS: Debian Sarge.  The kernel was
-somewhat newer: 2.6.24 until recently, when new machines arrived to the
-lab, which couldn't boot that 2.6.24 kernel.  So I upgraded to 2.6.31,
-which works quite well, apart from one thing: halt doesn't power off the
-machines anymore.  All the same under 2.6.32-rc5: they simply freeze
-after reaching halt -d -f -i -h -p in the shutdown sequence.
-
-I'm pretty much stumped here, but will try to get some SysRq dumps out
-of these machines at least.
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index ec33f27..ca2eb02 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -103,7 +103,7 @@ static const struct acpi_port_info acpi_protected_ports[] = {
+ 	{"PCI", 0x0CF8, 0x0CFF, ACPI_OSI_WIN_XP}
+ };
+ 
+-#define ACPI_PORT_INFO_ENTRIES  ACPI_ARRAY_LENGTH (acpi_protected_ports)
++#define ACPI_PORT_INFO_ENTRIES  ARRAY_SIZE(acpi_protected_ports)
+ 
+ /******************************************************************************
+  *
+diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
+index 5d54e36..54efbaa 100644
+--- a/drivers/acpi/acpica/uteval.c
++++ b/drivers/acpi/acpica/uteval.c
+@@ -126,7 +126,7 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
+ 
+ 	/* Compare input string to static table of supported interfaces */
+ 
+-	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
++	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
+ 		if (!ACPI_STRCMP(string_desc->string.pointer,
+ 				 acpi_interfaces_supported[i].name)) {
+ 			/*
+@@ -186,7 +186,7 @@ acpi_status acpi_osi_invalidate(char *interface)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
++	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
+ 		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i].name)) {
+ 			*acpi_interfaces_supported[i].name = '\0';
+ 			return AE_OK;
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 153f12d..641d746 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -441,10 +441,6 @@ typedef unsigned long long acpi_integer;
+ #define ACPI_MIN(a,b)                   (((a)<(b))?(a):(b))
+ #define ACPI_MAX(a,b)                   (((a)>(b))?(a):(b))
+ 
+-/* Size calculation */
+-
+-#define ACPI_ARRAY_LENGTH(x)            (sizeof(x) / sizeof((x)[0]))
+-
+ /* Pointer manipulation */
+ 
+ #define ACPI_CAST_PTR(t, p)             ((t *) (acpi_uintptr_t) (p))
 -- 
-Thanks,
-Feri.
+1.6.5.1.61.ge79999
+
