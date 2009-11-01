@@ -1,151 +1,79 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: [PATCH 3/3] ACPI: battery: register power_supply subdevice even
- when battery not present
-Date: Sun, 01 Nov 2009 18:03:37 +0000
-Message-ID: <4AEDCD79.5090008@tuffmail.co.uk>
-References: <4A098D0A.6090509@tuffmail.co.uk>	 <1252291027.4627.2.camel@maxim-laptop>  <4AA4FCC3.2090805@tuffmail.co.uk>	 <1256954298.9681.14.camel@maxim-laptop>  <4AEC15E2.9040004@tuffmail.co.uk> <1256995251.11609.4.camel@localhost.localdomain>
+From: Jean-Denis Girard <jd.girard@sysnux.pf>
+Subject: Backlight not working after resume
+Date: Sun, 01 Nov 2009 11:05:30 -1000
+Message-ID: <4AEDF81A.8070508@sysnux.pf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:58384 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047AbZKASDj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Nov 2009 13:03:39 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so2413141fgg.1
-        for <linux-acpi@vger.kernel.org>; Sun, 01 Nov 2009 10:03:42 -0800 (PST)
-In-Reply-To: <1256995251.11609.4.camel@localhost.localdomain>
+Received: from smtps0.mana.pf ([202.3.225.97]:34550 "EHLO smtps0.mana.pf"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753447AbZKAVMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Nov 2009 16:12:31 -0500
+Received: from smtps0.mana.pf (localhost [127.0.0.1])
+	by smtps0.mana.pf (Postfix) with ESMTP id 70232C7617
+	for <linux-acpi@vger.kernel.org>; Sun,  1 Nov 2009 11:05:31 -1000 (TAHT)
+Received: from tiare.sysnux.pf (196.244.3.202.dial.dyn.mana.pf [202.3.244.196])
+	by smtps0.mana.pf (Postfix) with ESMTP id 38735C62EA
+	for <linux-acpi@vger.kernel.org>; Sun,  1 Nov 2009 11:05:31 -1000 (TAHT)
+Received: from tiare.sysnux.pf (tiare.sysnux.pf [127.0.0.1])
+	by tiare.sysnux.pf (Postfix) with ESMTP id 29DE12EF90
+	for <linux-acpi@vger.kernel.org>; Sun,  1 Nov 2009 11:05:31 -1000 (TAHT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <astarikovskiy@suse.de>
+To: linux-acpi@vger.kernel.org
 
-Maxim Levitsky wrote:
-> On Sat, 2009-10-31 at 10:48 +0000, Alan Jenkins wrote:
->   
->> Maxim Levitsky wrote:
->>     
->>> On Mon, 2009-09-07 at 13:29 +0100, Alan Jenkins wrote: 
->>>   
->>>       
->>>> Maxim Levitsky wrote:
->>>>     
->>>>         
->>>>> On Tue, 2009-05-12 at 15:51 +0100, Alan Jenkins wrote:
->>>>>   
->>>>>       
->>>>>           
->>>>>> Keeping this device around lets userspace know that we have a battery
->>>>>> bay, even if there is nothing in it at the moment.  This is what every
->>>>>> other battery driver does, so ACPI should do it as well.
->>>>>>
->>>>>> There is no reason to preserve the old behaviour.  We now correctly
->>>>>> provide the "present" attribute, which will return "0" when the battery
->>>>>> is removed.  HAL was already trying to check this attribute, so
->>>>>> it should be fine.
->>>>>>
->>>>>> Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
->>>>>>     
->>>>>>         
->>>>>>             
->>>>> What happened to this patch?
->>>>>
->>>>> I still get the issue this patch attempts to fix:
->>>>>
->>>>> maxim@maxim-laptop:~/software/kernel/linux-2.6$
->>>>> ls /sys/class/power_supply/
->>>>> AC
->>>>> maxim@maxim-laptop:~/software/kernel/linux-2.6$
->>>>> ls /sys/class/power_supply/
->>>>> AC  BAT0
->>>>> maxim@maxim-laptop:~/software/kernel/linux-2.6$
->>>>> ls /sys/class/power_supply/
->>>>> AC
->>>>> maxim@maxim-laptop:~/software/kernel/linux-2.6$ uname -r
->>>>> 2.6.31-rc8-next-20090904-next
->>>>> maxim@maxim-laptop:~/software/kernel/linux-2.6$ 
->>>>>
->>>>>
->>>>> When I unplug the battery, its sysfs entry disappears.
->>>>> Thus if system was booted without battery, there will be no way to know
->>>>> system has one.
->>>>>
->>>>> This patch doesn't apply.
->>>>>   
->>>>>       
->>>>>           
->>>> I rebased these patches a while back
->>>>
->>>> http://patchwork.kernel.org/patch/33118/
->>>> http://patchwork.kernel.org/patch/33119/
->>>> http://patchwork.kernel.org/patch/33120/
->>>>
->>>> you should find these will still apply.
->>>>
->>>> Regards
->>>> Alan
->>>>     
->>>>         
->>> Any progress on adding special battery bay device?
->>>
->>> Best regards,
->>> Maxim Levitsky
->>>   
->>>       
->> No, sorry.
->>
->> I did think of one complication - suspend/resume.  (That's not blocking
->> me though, it's just a matter of time).  Assume the obvious device tree:
->>
->>     ACPI BAT0 -> battery bay device -> [ battery device ]
->>
->> The user might suspend with the battery removed, and then add the
->> battery and resume.  But
->>
->>     1) Parent devices are resumed before their children.
->>     2) The device core won't let you add a child device to a device
->>     which is currently suspended.
->>
->> So when BAT0 resumes, the battery bay device is still suspended. 
->> Therefore the resume handler for BAT0 cannot directly create the battery
->> device. 
->>
->> So we either need to
->>
->> a) provide some sort of resume mechanism attached to the battery bay
->> device, or
->> b) use a different device tree and use symlinks to represent the
->> relationship i.e.
->>
->> ACPI BAT0 -> battery bay device (with "battery" symlink)
->>                    -> battery device (with "bay" symlink)
->>
->> I favour b).
->>
->> Regards
->> Alan
->>     
->
-> Me too.
->
-> In fact, I don't think there is need for relationship between bay and
-> battery.
->
-> All I need is some way for kernel to notify that batteries might became
-> present,  so it would be enough to create a dummy child of the BAT0
-> exactly like you said.
->
-> Probably even it is possible not to use symlinks.
->
->
-> Best regards,
-> 	Maxim Levitsky
->   
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I believe there are systems with more than one battery.  I think we 
-should be able to tell userspace "there is one battery present, called 
-BAT0, and one empty battery bay, called BAT1".  The symlinks would 
-provide a reasonably clean way to indicate which battery bay is empty.
+Hi list,
 
-Regards
-Alan
+I have a Samsung q30 ultra-portable; ACPI video seems supported by
+standard driver. After boot, backlight control works fine with the
+dedicated laptop keys, but it no longer works after suspend / resume.
+The laptop itself is still working: I can ssh, even X is working. I can
+add an external screen and everything is OK, it's just the panel
+backlight is off. I have tried several methods found on the Internet
+(setpci, xrandr, sysfs) without luck.
+
+I can do:
+	echo x >/sys/class/backlight/acpi_video0/brightness
+(x=3D0..7) to adjust brightness after boot. After resume, the command
+works, but has no effect.
+
+Video is:
+~ Intel Corporation 82852/855GM Integrated Graphics Device
+
+I'm using KMS since 2.6.31-rc something (it was not working before).
+Before KMS, I used vbetool post to get my screen back on.
+
+I filed a bug at freedesktop.org one month ago, there's more detail
+there (acpidump, ...):
+	http://bugs.freedesktop.org/show_bug.cgi?id=3D24201
+
+Problem persists with kernel version is 2.6.32-rc5.
+
+I can provide more info, and I'm willing to try corrections / patches t=
+o
+solve this problem.
+
+
+Thanks,
+- --
+Jean-Denis Girard
+
+SysNux                  Syst=C3=A8mes  Linux  en Polyn=C3=A9sie fran=C3=
+=A7aise
+http://www.sysnux.pf/   T=C3=A9l: +689 50 10 40 / GSM: +689 79 75 27
+-----BEGIN PGP SIGNATURE-----
+
+iEYEARECAAYFAkrt+BoACgkQuu7Rv+oOo/hkdwCdEUD7/TE8ZLpvbrStTchliNus
+Z2cAnRsDVUGZFKlqA2klZQDYOsb3NB2n
+=3DfaAb
+-----END PGP SIGNATURE-----
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
