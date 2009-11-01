@@ -1,44 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
-Date: Sun, 1 Nov 2009 00:24:11 +0100
-Message-ID: <200911010024.12081.rjw@sisk.pl>
-References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <1257029775.7907.21.camel@pasglop> <200911010010.07394.rjw@sisk.pl>
+Date: Sun, 1 Nov 2009 09:36:10 +0100
+Message-ID: <200911010936.10409.rjw@sisk.pl>
+References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <200911010010.07394.rjw@sisk.pl> <200911010024.12081.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200911010010.07394.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60233 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751520AbZKAIeV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Nov 2009 03:34:21 -0500
+In-Reply-To: <200911010024.12081.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>
-List-Id: linux-acpi@vger.kernel.org
 
 On Sunday 01 November 2009, Rafael J. Wysocki wrote:
-> On Saturday 31 October 2009, Benjamin Herrenschmidt wrote:
-> > On Sat, 2009-10-31 at 22:27 +0100, Rafael J. Wysocki wrote:
-> > 
-> > > In the meantime I invented a patch that works, ie. apparently fixes the problem
-> > > and if there was a card in the socket during the suspend, it's standard config
-> > > space is restored correctly.  I tested it on one of my boxes with two different
-> > > CardBus adapters and Jose says it fixes the problem for him.
+> On Sunday 01 November 2009, Rafael J. Wysocki wrote:
+> > On Saturday 31 October 2009, Benjamin Herrenschmidt wrote:
+> > > On Sat, 2009-10-31 at 22:27 +0100, Rafael J. Wysocki wrote:
 > > > 
-> > > The patch is appended, please have a look.
+> > > > In the meantime I invented a patch that works, ie. apparently fixes the problem
+> > > > and if there was a card in the socket during the suspend, it's standard config
+> > > > space is restored correctly.  I tested it on one of my boxes with two different
+> > > > CardBus adapters and Jose says it fixes the problem for him.
+> > > > 
+> > > > The patch is appended, please have a look.
+> > > 
+> > > Base idea of the patch sounds good, quick browse through looks good too,
+> > > 
+> > > I'll try to band on it with various PCMCIA & CB gear tomorrow.
 > > 
-> > Base idea of the patch sounds good, quick browse through looks good too,
+> > Wait, I made a mistake when testing it, didn't notice that my distro ejected
+> > PCMCIA cards automatically before suspend (sigh).
 > > 
-> > I'll try to band on it with various PCMCIA & CB gear tomorrow.
+> > Working on a better patch right now, will hopefully post it in a while.
 > 
-> Wait, I made a mistake when testing it, didn't notice that my distro ejected
-> PCMCIA cards automatically before suspend (sigh).
+> Here you go.
 > 
-> Working on a better patch right now, will hopefully post it in a while.
+> Waiting for feedback from the reporters of BKO #14334, so there's no sign-off
+> for now.
 
-Here you go.
+Jose confirms that the patch fixes the problem for him, so here it goes again
+with full changelog.
 
-Waiting for feedback from the reporters of BKO #14334, so there's no sign-off
-for now.
+If people don't object, I'll push it through the suspend-2.6 tree along with a
+few other bug fixes.
 
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: PM / yenta: Split resume into early and late parts (rev. 2)
+
+Commit 0c570cdeb8fdfcb354a3e9cd81bfc6a09c19de0c
+(PM / yenta: Fix cardbus suspend/resume regression) caused resume to
+fail on systems with two CardBus bridges.  While the exact nature
+of the failure is not known at the moment, it can be worked around by
+splitting the yenta resume into an early part, executed during the
+early phase of resume, that will only resume the socket and power it
+up if there was a card in it during suspend, and a late part,
+executed during "regular" resume, that will carry out all of the
+remaining yenta resume operations.
+
+Fixes http://bugzilla.kernel.org/show_bug.cgi?id=14334, which is a
+listed regression from 2.6.31.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
  drivers/pcmcia/cs.c           |   79 ++++++++++++++++++++++++++++--------------
  drivers/pcmcia/yenta_socket.c |   12 +++++-
