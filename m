@@ -1,234 +1,62 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH] From: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
-Date: Mon,  2 Nov 2009 12:00:42 -0500
-Message-ID: <1257181242-4952-1-git-send-email-mjg@redhat.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from
+	2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
+Date: Mon, 2 Nov 2009 18:38:43 +0100
+Message-ID: <20091102173843.GA662@comet.dominikbrodowski.net>
+References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <200911010936.10409.rjw@sisk.pl> <alpine.LFD.2.01.0911010914100.31845@localhost.localdomain> <200911021439.28266.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51802 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756014AbZKBRBD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Nov 2009 12:01:03 -0500
+Received: from isilmar.linta.de ([213.133.102.198]:58607 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755529AbZKBRjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Nov 2009 12:39:16 -0500
+Content-Disposition: inline
+In-Reply-To: <200911021439.28266.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, Matthew Garrett <mjg@redhat.com>, Rezwanul Kabir <Rezwanul_Kabir@dell.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-dell-wmi: Add support for new Dell systems
+Hey,
 
-Newer Dell systems support HotKey features differently from legacy
-systems.  A new vendor specifc HotKey SMBIOS table (Type 0xB2) is
-defined. This table contains a mapping between scancode and the
-corresponding predefined keyfunction ( i.e. keycode).. Also, a new
-ACPI-WMI event type (called KeyIDList) with a value of 0x0010 is
-defined. Any BIOS containing 0xB2 table will send hotkey notifications
-using KeyIDList event.
+just two minor nit-pick which we could handle post-2.6.32:
 
-This is Rezwanul's patch, updated to ensure that brightness events are
-not sent if the backlight is controlled via ACPI and with the default
-keycode for the display output switching altered to match desktop
-expectations.
+> +++ linux-2.6/drivers/pcmcia/cs.c
+> @@ -98,10 +98,13 @@ EXPORT_SYMBOL(pcmcia_socket_list_rwsem);
+>   * These functions check for the appropriate struct pcmcia_soket arrays,
+>   * and pass them to the low-level functions pcmcia_{suspend,resume}_socket
 
-Signed-off-by: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/platform/x86/dell-wmi.c |  129 +++++++++++++++++++++++++++++++++++----
- 1 files changed, 116 insertions(+), 13 deletions(-)
+... some documentation of the new functions, especially whether other socket
+drivers should be updated?
 
-diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
-index 0f900cc..67f3fe7 100644
---- a/drivers/platform/x86/dell-wmi.c
-+++ b/drivers/platform/x86/dell-wmi.c
-@@ -31,6 +31,7 @@
- #include <acpi/acpi_drivers.h>
- #include <linux/acpi.h>
- #include <linux/string.h>
-+#include <linux/dmi.h>
- 
- MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
- MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
-@@ -38,6 +39,8 @@ MODULE_LICENSE("GPL");
- 
- #define DELL_EVENT_GUID "9DBB5994-A997-11DA-B012-B622A1EF5492"
- 
-+static int acpi_video;
-+
- MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
- 
- struct key_entry {
-@@ -54,7 +57,7 @@ enum { KE_KEY, KE_SW, KE_IGNORE, KE_END };
-  * via the keyboard controller so should not be sent again.
-  */
- 
--static struct key_entry dell_wmi_keymap[] = {
-+static struct key_entry dell_legacy_wmi_keymap[] = {
- 	{KE_KEY, 0xe045, KEY_PROG1},
- 	{KE_KEY, 0xe009, KEY_EJECTCD},
- 
-@@ -72,7 +75,7 @@ static struct key_entry dell_wmi_keymap[] = {
- 
- 	/* The next device is at offset 6, the active devices are at
- 	   offset 8 and the attached devices at offset 10 */
--	{KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
-+	{KE_KEY, 0xe00b, KEY_SWITCHVIDEOMODE},
- 
- 	{KE_IGNORE, 0xe00c, KEY_KBDILLUMTOGGLE},
- 
-@@ -96,6 +99,47 @@ static struct key_entry dell_wmi_keymap[] = {
- 	{KE_END, 0}
- };
- 
-+static bool dell_new_hk_type;
-+
-+struct dell_new_keymap_entry {
-+	u16 scancode;
-+	u16 keycode;
-+};
-+
-+struct dell_hotkey_table {
-+	struct dmi_header header;
-+	struct dell_new_keymap_entry keymap[];
-+
-+};
-+
-+static struct key_entry *dell_new_wmi_keymap;
-+
-+static u16 bios_to_linux_keycode[256] = {
-+
-+	KEY_MEDIA,	KEY_NEXTSONG,	KEY_PLAYPAUSE, KEY_PREVIOUSSONG,
-+	KEY_STOPCD,	KEY_UNKNOWN,	KEY_UNKNOWN,	KEY_UNKNOWN,
-+	KEY_WWW,	KEY_UNKNOWN,	KEY_VOLUMEDOWN, KEY_MUTE,
-+	KEY_VOLUMEUP,	KEY_UNKNOWN,	KEY_BATTERY,	KEY_EJECTCD,
-+	KEY_UNKNOWN,	KEY_SLEEP,	KEY_PROG1, KEY_BRIGHTNESSDOWN,
-+	KEY_BRIGHTNESSUP,	KEY_UNKNOWN,	KEY_KBDILLUMTOGGLE,
-+	KEY_UNKNOWN,	KEY_SWITCHVIDEOMODE,	KEY_UNKNOWN, KEY_UNKNOWN,
-+	KEY_SWITCHVIDEOMODE,	KEY_UNKNOWN,	KEY_UNKNOWN, KEY_PROG2,
-+	KEY_UNKNOWN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	KEY_PROG3
-+};
-+
-+
-+static struct key_entry *dell_wmi_keymap = dell_legacy_wmi_keymap;
-+
- static struct input_dev *dell_wmi_input_dev;
- 
- static struct key_entry *dell_wmi_get_entry_by_scancode(int code)
-@@ -164,24 +208,78 @@ static void dell_wmi_notify(u32 value, void *context)
- 	obj = (union acpi_object *)response.pointer;
- 
- 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
--		int *buffer = (int *)obj->buffer.pointer;
--		/*
--		 *  The upper bytes of the event may contain
--		 *  additional information, so mask them off for the
--		 *  scancode lookup
--		 */
--		key = dell_wmi_get_entry_by_scancode(buffer[1] & 0xFFFF);
--		if (key) {
-+		int reported_key;
-+		u16 *buffer_entry = (u16 *)obj->buffer.pointer;
-+		if (dell_new_hk_type && (buffer_entry[1] != 0x10)) {
-+			printk(KERN_INFO "dell-wmi: Received unknown WMI event"
-+					 " (0x%x)\n", buffer_entry[1]);
-+			return;
-+		}
-+
-+		if (dell_new_hk_type)
-+			reported_key = (int)buffer_entry[2];
-+		else
-+			reported_key = (int)buffer_entry[1] & 0xffff;
-+
-+		key = dell_wmi_get_entry_by_scancode(reported_key);
-+
-+		if (!key) {
-+			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
-+				reported_key);
-+		} else if ((key->keycode == KEY_BRIGHTNESSUP ||
-+			    key->keycode == KEY_BRIGHTNESSDOWN) && acpi_video) {
-+			/* Don't report brightness notifications that will also
-+			 * come via ACPI */
-+			return;
-+		} else {
- 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
- 			input_sync(dell_wmi_input_dev);
- 			input_report_key(dell_wmi_input_dev, key->keycode, 0);
- 			input_sync(dell_wmi_input_dev);
--		} else if (buffer[1] & 0xFFFF)
--			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
--			       buffer[1] & 0xFFFF);
-+		}
- 	}
- }
- 
-+
-+static void setup_new_hk_map(const struct dmi_header *dm)
-+{
-+
-+	int i;
-+	int hotkey_num = (dm->length-4)/sizeof(struct dell_new_keymap_entry);
-+	struct dell_hotkey_table *table =
-+		container_of(dm, struct dell_hotkey_table, header);
-+
-+	dell_new_wmi_keymap = kzalloc((hotkey_num+1) *
-+				      sizeof(struct key_entry), GFP_KERNEL);
-+
-+	for (i = 0; i < hotkey_num; i++) {
-+		dell_new_wmi_keymap[i].type = KE_KEY;
-+		dell_new_wmi_keymap[i].code = table->keymap[i].scancode;
-+		dell_new_wmi_keymap[i].keycode =
-+			(table->keymap[i].keycode > 255) ? 0 :
-+			bios_to_linux_keycode[table->keymap[i].keycode];
-+	}
-+
-+	dell_new_wmi_keymap[i].type = KE_END;
-+	dell_new_wmi_keymap[i].code = 0;
-+	dell_new_wmi_keymap[i].keycode = 0;
-+
-+	dell_wmi_keymap = dell_new_wmi_keymap;
-+
-+}
-+
-+
-+static void find_hk_type(const struct dmi_header *dm, void *dummy)
-+{
-+
-+	if ((dm->type == 0xb2) && (dm->length > 6)) {
-+		dell_new_hk_type = true;
-+		setup_new_hk_map(dm);
-+	}
-+
-+}
-+
-+
- static int __init dell_wmi_input_setup(void)
- {
- 	struct key_entry *key;
-@@ -226,6 +324,9 @@ static int __init dell_wmi_init(void)
- 	int err;
- 
- 	if (wmi_has_guid(DELL_EVENT_GUID)) {
-+
-+		dmi_walk(find_hk_type, NULL);
-+
- 		err = dell_wmi_input_setup();
- 
- 		if (err)
-@@ -240,6 +341,8 @@ static int __init dell_wmi_init(void)
- 			return err;
- 		}
- 
-+		acpi_video = acpi_video_backlight_support();
-+
- 	} else
- 		printk(KERN_WARNING "dell-wmi: No known WMI GUID found\n");
- 
--- 
-1.6.5.1
+> -static int socket_resume(struct pcmcia_socket *skt)
+> +static void socket_start_resume(struct pcmcia_socket *skt)
+>  {
+> -	int ret;
+> -
+> -	if (!(skt->state & SOCKET_SUSPEND))
+> -		return -EBUSY;
+> -
+>  	skt->socket = dead_socket;
+>  	skt->ops->init(skt);
+>  	skt->ops->set_socket(skt, &skt->socket);
+> +	if (skt->state & SOCKET_PRESENT)
+> +		skt->resume_status = socket_setup(skt, resume_delay);
+> +}
+>  
+> +static int socket_early_resume(struct pcmcia_socket *skt)
+> +{
+> +	socket_start_resume(skt);
+> +	return 0;
+> +}
 
+Why do we need to have two functions doing the same? Wouldn't
+
+static int socket_early_resume(...)
+
+suffice, with the only call to socket_start_resume() being replaced with
+socket_early_resume()?
+
+Best,
+	Dominik
