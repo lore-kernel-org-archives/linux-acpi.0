@@ -1,94 +1,234 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] trivial: remove ACPI_ARRAY_LENGTH macro.
-Date: Mon, 2 Nov 2009 10:49:55 -0600
-Message-ID: <200911020949.58412.bjorn.helgaas@hp.com>
-References: <1257114972-16039-1-git-send-email-tfransosi@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH] From: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
+Date: Mon,  2 Nov 2009 12:00:42 -0500
+Message-ID: <1257181242-4952-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:41288 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755540AbZKBQt4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Nov 2009 11:49:56 -0500
-In-Reply-To: <1257114972-16039-1-git-send-email-tfransosi@gmail.com>
-Content-Disposition: inline
+Received: from cavan.codon.org.uk ([93.93.128.6]:51802 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756014AbZKBRBD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Nov 2009 12:01:03 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thiago Farina <tfransosi@gmail.com>
-Cc: trivial@kernel.org, lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, jkosina@suze.cz, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, Matthew Garrett <mjg@redhat.com>, Rezwanul Kabir <Rezwanul_Kabir@dell.com>
 
-On Sunday 01 November 2009 03:36:12 pm Thiago Farina wrote:
-> Since the kernel already has a macro (ARRAY_SIZE) that does the same thing,
-> just use it instead of defining another macro for the same propose.
+dell-wmi: Add support for new Dell systems
 
-This changes the ACPICA, which is used in several OSes besides Linux.
-The CA is designed to have a small, controlled interface to the host OS.
-This patch would expand that interface, which would work fine on Linux,
-but would cause problems on other OSes that don't provide ARRAY_SIZE().
+Newer Dell systems support HotKey features differently from legacy
+systems.  A new vendor specifc HotKey SMBIOS table (Type 0xB2) is
+defined. This table contains a mapping between scancode and the
+corresponding predefined keyfunction ( i.e. keycode).. Also, a new
+ACPI-WMI event type (called KeyIDList) with a value of 0x0010 is
+defined. Any BIOS containing 0xB2 table will send hotkey notifications
+using KeyIDList event.
 
-It'd be nice to have a little text in Documentation/acpi/ that covered
-issues like this.  It could also talk about the special licensing
-requirements for ACPICA changes.  And MAINTAINERS could mention it for
-the path prefix "drivers/acpi/acpica/".
+This is Rezwanul's patch, updated to ensure that brightness events are
+not sent if the backlight is controlled via ACPI and with the default
+keycode for the display output switching altered to match desktop
+expectations.
 
-Bjorn
+Signed-off-by: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/platform/x86/dell-wmi.c |  129 +++++++++++++++++++++++++++++++++++----
+ 1 files changed, 116 insertions(+), 13 deletions(-)
 
->  drivers/acpi/acpica/hwvalid.c |    2 +-
->  drivers/acpi/acpica/uteval.c  |    4 ++--
->  include/acpi/actypes.h        |    4 ----
->  3 files changed, 3 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
-> index ec33f27..ca2eb02 100644
-> --- a/drivers/acpi/acpica/hwvalid.c
-> +++ b/drivers/acpi/acpica/hwvalid.c
-> @@ -103,7 +103,7 @@ static const struct acpi_port_info acpi_protected_ports[] = {
->  	{"PCI", 0x0CF8, 0x0CFF, ACPI_OSI_WIN_XP}
->  };
->  
-> -#define ACPI_PORT_INFO_ENTRIES  ACPI_ARRAY_LENGTH (acpi_protected_ports)
-> +#define ACPI_PORT_INFO_ENTRIES  ARRAY_SIZE(acpi_protected_ports)
->  
->  /******************************************************************************
->   *
-> diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
-> index 5d54e36..54efbaa 100644
-> --- a/drivers/acpi/acpica/uteval.c
-> +++ b/drivers/acpi/acpica/uteval.c
-> @@ -126,7 +126,7 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
->  
->  	/* Compare input string to static table of supported interfaces */
->  
-> -	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
-> +	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
->  		if (!ACPI_STRCMP(string_desc->string.pointer,
->  				 acpi_interfaces_supported[i].name)) {
->  			/*
-> @@ -186,7 +186,7 @@ acpi_status acpi_osi_invalidate(char *interface)
->  {
->  	int i;
->  
-> -	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
-> +	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
->  		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i].name)) {
->  			*acpi_interfaces_supported[i].name = '\0';
->  			return AE_OK;
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index 153f12d..641d746 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -441,10 +441,6 @@ typedef unsigned long long acpi_integer;
->  #define ACPI_MIN(a,b)                   (((a)<(b))?(a):(b))
->  #define ACPI_MAX(a,b)                   (((a)>(b))?(a):(b))
->  
-> -/* Size calculation */
-> -
-> -#define ACPI_ARRAY_LENGTH(x)            (sizeof(x) / sizeof((x)[0]))
-> -
->  /* Pointer manipulation */
->  
->  #define ACPI_CAST_PTR(t, p)             ((t *) (acpi_uintptr_t) (p))
-
+diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
+index 0f900cc..67f3fe7 100644
+--- a/drivers/platform/x86/dell-wmi.c
++++ b/drivers/platform/x86/dell-wmi.c
+@@ -31,6 +31,7 @@
+ #include <acpi/acpi_drivers.h>
+ #include <linux/acpi.h>
+ #include <linux/string.h>
++#include <linux/dmi.h>
+ 
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+@@ -38,6 +39,8 @@ MODULE_LICENSE("GPL");
+ 
+ #define DELL_EVENT_GUID "9DBB5994-A997-11DA-B012-B622A1EF5492"
+ 
++static int acpi_video;
++
+ MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
+ 
+ struct key_entry {
+@@ -54,7 +57,7 @@ enum { KE_KEY, KE_SW, KE_IGNORE, KE_END };
+  * via the keyboard controller so should not be sent again.
+  */
+ 
+-static struct key_entry dell_wmi_keymap[] = {
++static struct key_entry dell_legacy_wmi_keymap[] = {
+ 	{KE_KEY, 0xe045, KEY_PROG1},
+ 	{KE_KEY, 0xe009, KEY_EJECTCD},
+ 
+@@ -72,7 +75,7 @@ static struct key_entry dell_wmi_keymap[] = {
+ 
+ 	/* The next device is at offset 6, the active devices are at
+ 	   offset 8 and the attached devices at offset 10 */
+-	{KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
++	{KE_KEY, 0xe00b, KEY_SWITCHVIDEOMODE},
+ 
+ 	{KE_IGNORE, 0xe00c, KEY_KBDILLUMTOGGLE},
+ 
+@@ -96,6 +99,47 @@ static struct key_entry dell_wmi_keymap[] = {
+ 	{KE_END, 0}
+ };
+ 
++static bool dell_new_hk_type;
++
++struct dell_new_keymap_entry {
++	u16 scancode;
++	u16 keycode;
++};
++
++struct dell_hotkey_table {
++	struct dmi_header header;
++	struct dell_new_keymap_entry keymap[];
++
++};
++
++static struct key_entry *dell_new_wmi_keymap;
++
++static u16 bios_to_linux_keycode[256] = {
++
++	KEY_MEDIA,	KEY_NEXTSONG,	KEY_PLAYPAUSE, KEY_PREVIOUSSONG,
++	KEY_STOPCD,	KEY_UNKNOWN,	KEY_UNKNOWN,	KEY_UNKNOWN,
++	KEY_WWW,	KEY_UNKNOWN,	KEY_VOLUMEDOWN, KEY_MUTE,
++	KEY_VOLUMEUP,	KEY_UNKNOWN,	KEY_BATTERY,	KEY_EJECTCD,
++	KEY_UNKNOWN,	KEY_SLEEP,	KEY_PROG1, KEY_BRIGHTNESSDOWN,
++	KEY_BRIGHTNESSUP,	KEY_UNKNOWN,	KEY_KBDILLUMTOGGLE,
++	KEY_UNKNOWN,	KEY_SWITCHVIDEOMODE,	KEY_UNKNOWN, KEY_UNKNOWN,
++	KEY_SWITCHVIDEOMODE,	KEY_UNKNOWN,	KEY_UNKNOWN, KEY_PROG2,
++	KEY_UNKNOWN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	KEY_PROG3
++};
++
++
++static struct key_entry *dell_wmi_keymap = dell_legacy_wmi_keymap;
++
+ static struct input_dev *dell_wmi_input_dev;
+ 
+ static struct key_entry *dell_wmi_get_entry_by_scancode(int code)
+@@ -164,24 +208,78 @@ static void dell_wmi_notify(u32 value, void *context)
+ 	obj = (union acpi_object *)response.pointer;
+ 
+ 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
+-		int *buffer = (int *)obj->buffer.pointer;
+-		/*
+-		 *  The upper bytes of the event may contain
+-		 *  additional information, so mask them off for the
+-		 *  scancode lookup
+-		 */
+-		key = dell_wmi_get_entry_by_scancode(buffer[1] & 0xFFFF);
+-		if (key) {
++		int reported_key;
++		u16 *buffer_entry = (u16 *)obj->buffer.pointer;
++		if (dell_new_hk_type && (buffer_entry[1] != 0x10)) {
++			printk(KERN_INFO "dell-wmi: Received unknown WMI event"
++					 " (0x%x)\n", buffer_entry[1]);
++			return;
++		}
++
++		if (dell_new_hk_type)
++			reported_key = (int)buffer_entry[2];
++		else
++			reported_key = (int)buffer_entry[1] & 0xffff;
++
++		key = dell_wmi_get_entry_by_scancode(reported_key);
++
++		if (!key) {
++			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
++				reported_key);
++		} else if ((key->keycode == KEY_BRIGHTNESSUP ||
++			    key->keycode == KEY_BRIGHTNESSDOWN) && acpi_video) {
++			/* Don't report brightness notifications that will also
++			 * come via ACPI */
++			return;
++		} else {
+ 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
+ 			input_sync(dell_wmi_input_dev);
+ 			input_report_key(dell_wmi_input_dev, key->keycode, 0);
+ 			input_sync(dell_wmi_input_dev);
+-		} else if (buffer[1] & 0xFFFF)
+-			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
+-			       buffer[1] & 0xFFFF);
++		}
+ 	}
+ }
+ 
++
++static void setup_new_hk_map(const struct dmi_header *dm)
++{
++
++	int i;
++	int hotkey_num = (dm->length-4)/sizeof(struct dell_new_keymap_entry);
++	struct dell_hotkey_table *table =
++		container_of(dm, struct dell_hotkey_table, header);
++
++	dell_new_wmi_keymap = kzalloc((hotkey_num+1) *
++				      sizeof(struct key_entry), GFP_KERNEL);
++
++	for (i = 0; i < hotkey_num; i++) {
++		dell_new_wmi_keymap[i].type = KE_KEY;
++		dell_new_wmi_keymap[i].code = table->keymap[i].scancode;
++		dell_new_wmi_keymap[i].keycode =
++			(table->keymap[i].keycode > 255) ? 0 :
++			bios_to_linux_keycode[table->keymap[i].keycode];
++	}
++
++	dell_new_wmi_keymap[i].type = KE_END;
++	dell_new_wmi_keymap[i].code = 0;
++	dell_new_wmi_keymap[i].keycode = 0;
++
++	dell_wmi_keymap = dell_new_wmi_keymap;
++
++}
++
++
++static void find_hk_type(const struct dmi_header *dm, void *dummy)
++{
++
++	if ((dm->type == 0xb2) && (dm->length > 6)) {
++		dell_new_hk_type = true;
++		setup_new_hk_map(dm);
++	}
++
++}
++
++
+ static int __init dell_wmi_input_setup(void)
+ {
+ 	struct key_entry *key;
+@@ -226,6 +324,9 @@ static int __init dell_wmi_init(void)
+ 	int err;
+ 
+ 	if (wmi_has_guid(DELL_EVENT_GUID)) {
++
++		dmi_walk(find_hk_type, NULL);
++
+ 		err = dell_wmi_input_setup();
+ 
+ 		if (err)
+@@ -240,6 +341,8 @@ static int __init dell_wmi_init(void)
+ 			return err;
+ 		}
+ 
++		acpi_video = acpi_video_backlight_support();
++
+ 	} else
+ 		printk(KERN_WARNING "dell-wmi: No known WMI GUID found\n");
+ 
+-- 
+1.6.5.1
 
