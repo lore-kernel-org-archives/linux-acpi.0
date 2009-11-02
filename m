@@ -1,63 +1,112 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
-Date: Mon, 2 Nov 2009 19:40:25 +0100
-Message-ID: <200911021940.25111.rjw@sisk.pl>
-References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <200911021439.28266.rjw@sisk.pl> <20091102173843.GA662@comet.dominikbrodowski.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] trivial: remove ACPI_ARRAY_LENGTH macro.
+Date: Mon, 2 Nov 2009 13:35:33 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D8308583B6FCBE0@orsmsx503.amr.corp.intel.com>
+References: <1257114972-16039-1-git-send-email-tfransosi@gmail.com>
+ <200911020949.58412.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091102173843.GA662-S7uyTPAaJ/sb6pqDj42GsMgv3T4z79SOrE5yTffgRl4@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jose Marino <braket-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:48417 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756675AbZKBVfa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Nov 2009 16:35:30 -0500
+In-Reply-To: <200911020949.58412.bjorn.helgaas@hp.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Thiago Farina <tfransosi@gmail.com>
+Cc: "trivial@kernel.org" <trivial@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "jkosina@suze.cz" <jkosina@suze.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Monday 02 November 2009, Dominik Brodowski wrote:
-> Hey,
-> 
-> just two minor nit-pick which we could handle post-2.6.32:
-> 
-> > +++ linux-2.6/drivers/pcmcia/cs.c
-> > @@ -98,10 +98,13 @@ EXPORT_SYMBOL(pcmcia_socket_list_rwsem);
-> >   * These functions check for the appropriate struct pcmcia_soket arrays,
-> >   * and pass them to the low-level functions pcmcia_{suspend,resume}_socket
-> 
-> ... some documentation of the new functions, especially whether other socket
-> drivers should be updated?
+I seem to remember that Len Brown had some text like this.
 
-OK, I'll post a separate patch for that for .33.
 
-> > -static int socket_resume(struct pcmcia_socket *skt)
-> > +static void socket_start_resume(struct pcmcia_socket *skt)
-> >  {
-> > -	int ret;
-> > -
-> > -	if (!(skt->state & SOCKET_SUSPEND))
-> > -		return -EBUSY;
-> > -
-> >  	skt->socket = dead_socket;
-> >  	skt->ops->init(skt);
-> >  	skt->ops->set_socket(skt, &skt->socket);
-> > +	if (skt->state & SOCKET_PRESENT)
-> > +		skt->resume_status = socket_setup(skt, resume_delay);
-> > +}
-> >  
-> > +static int socket_early_resume(struct pcmcia_socket *skt)
-> > +{
-> > +	socket_start_resume(skt);
-> > +	return 0;
-> > +}
-> 
-> Why do we need to have two functions doing the same? Wouldn't
-> 
-> static int socket_early_resume(...)
-> 
-> suffice, with the only call to socket_start_resume() being replaced with
-> socket_early_resume()?
+>-----Original Message-----
+>From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
+>Sent: Monday, November 02, 2009 8:50 AM
+>To: Thiago Farina
+>Cc: trivial@kernel.org; lenb@kernel.org; Lin, Ming M; Moore, Robert;
+>jkosina@suze.cz; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
+>Subject: Re: [PATCH] trivial: remove ACPI_ARRAY_LENGTH macro.
+>
+>On Sunday 01 November 2009 03:36:12 pm Thiago Farina wrote:
+>> Since the kernel already has a macro (ARRAY_SIZE) that does the same
+>thing,
+>> just use it instead of defining another macro for the same propose.
+>
+>This changes the ACPICA, which is used in several OSes besides Linux.
+>The CA is designed to have a small, controlled interface to the host OS.
+>This patch would expand that interface, which would work fine on Linux,
+>but would cause problems on other OSes that don't provide ARRAY_SIZE().
+>
+>It'd be nice to have a little text in Documentation/acpi/ that covered
+>issues like this.  It could also talk about the special licensing
+>requirements for ACPICA changes.  And MAINTAINERS could mention it for
+>the path prefix "drivers/acpi/acpica/".
+>
+>Bjorn
+>
+>>  drivers/acpi/acpica/hwvalid.c |    2 +-
+>>  drivers/acpi/acpica/uteval.c  |    4 ++--
+>>  include/acpi/actypes.h        |    4 ----
+>>  3 files changed, 3 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpica/hwvalid.c
+>b/drivers/acpi/acpica/hwvalid.c
+>> index ec33f27..ca2eb02 100644
+>> --- a/drivers/acpi/acpica/hwvalid.c
+>> +++ b/drivers/acpi/acpica/hwvalid.c
+>> @@ -103,7 +103,7 @@ static const struct acpi_port_info
+>acpi_protected_ports[] = {
+>>  	{"PCI", 0x0CF8, 0x0CFF, ACPI_OSI_WIN_XP}
+>>  };
+>>
+>> -#define ACPI_PORT_INFO_ENTRIES  ACPI_ARRAY_LENGTH (acpi_protected_ports)
+>> +#define ACPI_PORT_INFO_ENTRIES  ARRAY_SIZE(acpi_protected_ports)
+>>
+>>
+>/**************************************************************************
+>****
+>>   *
+>> diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
+>> index 5d54e36..54efbaa 100644
+>> --- a/drivers/acpi/acpica/uteval.c
+>> +++ b/drivers/acpi/acpica/uteval.c
+>> @@ -126,7 +126,7 @@ acpi_status acpi_ut_osi_implementation(struct
+>acpi_walk_state *walk_state)
+>>
+>>  	/* Compare input string to static table of supported interfaces */
+>>
+>> -	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
+>> +	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
+>>  		if (!ACPI_STRCMP(string_desc->string.pointer,
+>>  				 acpi_interfaces_supported[i].name)) {
+>>  			/*
+>> @@ -186,7 +186,7 @@ acpi_status acpi_osi_invalidate(char *interface)
+>>  {
+>>  	int i;
+>>
+>> -	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
+>> +	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
+>>  		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i].name))
+>{
+>>  			*acpi_interfaces_supported[i].name = '\0';
+>>  			return AE_OK;
+>> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+>> index 153f12d..641d746 100644
+>> --- a/include/acpi/actypes.h
+>> +++ b/include/acpi/actypes.h
+>> @@ -441,10 +441,6 @@ typedef unsigned long long acpi_integer;
+>>  #define ACPI_MIN(a,b)                   (((a)<(b))?(a):(b))
+>>  #define ACPI_MAX(a,b)                   (((a)>(b))?(a):(b))
+>>
+>> -/* Size calculation */
+>> -
+>> -#define ACPI_ARRAY_LENGTH(x)            (sizeof(x) / sizeof((x)[0]))
+>> -
+>>  /* Pointer manipulation */
+>>
+>>  #define ACPI_CAST_PTR(t, p)             ((t *) (acpi_uintptr_t) (p))
+>
 
-Yes, it would.  I'll do that in the final version of the patch.
-
-Thanks,
-Rafael
