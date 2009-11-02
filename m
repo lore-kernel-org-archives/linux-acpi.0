@@ -1,112 +1,43 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] trivial: remove ACPI_ARRAY_LENGTH macro.
-Date: Mon, 2 Nov 2009 13:35:33 -0800
-Message-ID: <4911F71203A09E4D9981D27F9D8308583B6FCBE0@orsmsx503.amr.corp.intel.com>
-References: <1257114972-16039-1-git-send-email-tfransosi@gmail.com>
- <200911020949.58412.bjorn.helgaas@hp.com>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from
+ 2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
+Date: Tue, 03 Nov 2009 09:22:03 +1100
+Message-ID: <1257200523.7907.53.camel@pasglop>
+References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera>
+	 <200911010936.10409.rjw@sisk.pl>
+	 <alpine.LFD.2.01.0911010914100.31845@localhost.localdomain>
+	 <200911021439.28266.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48417 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756675AbZKBVfa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Nov 2009 16:35:30 -0500
-In-Reply-To: <200911020949.58412.bjorn.helgaas@hp.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200911021439.28266.rjw-KKrjLPT3xs0@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jose Marino <braket-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Thiago Farina <tfransosi@gmail.com>
-Cc: "trivial@kernel.org" <trivial@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "jkosina@suze.cz" <jkosina@suze.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-I seem to remember that Len Brown had some text like this.
+On Mon, 2009-11-02 at 14:39 +0100, Rafael J. Wysocki wrote:
+> 
+> > That socket _is_ going to be suspended, and testing for it here just seems 
+> > to confuse things. 
+> > 
+> > So I'd remove it from both early_resume and late_resume, and only keep it 
+> > in the case of the legacy user-requested suspend/resume (do we even do 
+> > that any more?).
+> 
+> OK, updated patch is appended.
 
+Test by me delayed to tomorrow ... hit another suspend/resume bug on
+that laptop which took away the time I had to do that test yesterday and
+today I'm off :-)
 
->-----Original Message-----
->From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
->Sent: Monday, November 02, 2009 8:50 AM
->To: Thiago Farina
->Cc: trivial@kernel.org; lenb@kernel.org; Lin, Ming M; Moore, Robert;
->jkosina@suze.cz; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
->Subject: Re: [PATCH] trivial: remove ACPI_ARRAY_LENGTH macro.
->
->On Sunday 01 November 2009 03:36:12 pm Thiago Farina wrote:
->> Since the kernel already has a macro (ARRAY_SIZE) that does the same
->thing,
->> just use it instead of defining another macro for the same propose.
->
->This changes the ACPICA, which is used in several OSes besides Linux.
->The CA is designed to have a small, controlled interface to the host OS.
->This patch would expand that interface, which would work fine on Linux,
->but would cause problems on other OSes that don't provide ARRAY_SIZE().
->
->It'd be nice to have a little text in Documentation/acpi/ that covered
->issues like this.  It could also talk about the special licensing
->requirements for ACPICA changes.  And MAINTAINERS could mention it for
->the path prefix "drivers/acpi/acpica/".
->
->Bjorn
->
->>  drivers/acpi/acpica/hwvalid.c |    2 +-
->>  drivers/acpi/acpica/uteval.c  |    4 ++--
->>  include/acpi/actypes.h        |    4 ----
->>  3 files changed, 3 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/hwvalid.c
->b/drivers/acpi/acpica/hwvalid.c
->> index ec33f27..ca2eb02 100644
->> --- a/drivers/acpi/acpica/hwvalid.c
->> +++ b/drivers/acpi/acpica/hwvalid.c
->> @@ -103,7 +103,7 @@ static const struct acpi_port_info
->acpi_protected_ports[] = {
->>  	{"PCI", 0x0CF8, 0x0CFF, ACPI_OSI_WIN_XP}
->>  };
->>
->> -#define ACPI_PORT_INFO_ENTRIES  ACPI_ARRAY_LENGTH (acpi_protected_ports)
->> +#define ACPI_PORT_INFO_ENTRIES  ARRAY_SIZE(acpi_protected_ports)
->>
->>
->/**************************************************************************
->****
->>   *
->> diff --git a/drivers/acpi/acpica/uteval.c b/drivers/acpi/acpica/uteval.c
->> index 5d54e36..54efbaa 100644
->> --- a/drivers/acpi/acpica/uteval.c
->> +++ b/drivers/acpi/acpica/uteval.c
->> @@ -126,7 +126,7 @@ acpi_status acpi_ut_osi_implementation(struct
->acpi_walk_state *walk_state)
->>
->>  	/* Compare input string to static table of supported interfaces */
->>
->> -	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
->> +	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
->>  		if (!ACPI_STRCMP(string_desc->string.pointer,
->>  				 acpi_interfaces_supported[i].name)) {
->>  			/*
->> @@ -186,7 +186,7 @@ acpi_status acpi_osi_invalidate(char *interface)
->>  {
->>  	int i;
->>
->> -	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
->> +	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
->>  		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i].name))
->{
->>  			*acpi_interfaces_supported[i].name = '\0';
->>  			return AE_OK;
->> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
->> index 153f12d..641d746 100644
->> --- a/include/acpi/actypes.h
->> +++ b/include/acpi/actypes.h
->> @@ -441,10 +441,6 @@ typedef unsigned long long acpi_integer;
->>  #define ACPI_MIN(a,b)                   (((a)<(b))?(a):(b))
->>  #define ACPI_MAX(a,b)                   (((a)>(b))?(a):(b))
->>
->> -/* Size calculation */
->> -
->> -#define ACPI_ARRAY_LENGTH(x)            (sizeof(x) / sizeof((x)[0]))
->> -
->>  /* Pointer manipulation */
->>
->>  #define ACPI_CAST_PTR(t, p)             ((t *) (acpi_uintptr_t) (p))
->
+(Bug was simple but took a while to track down: machine was left in
+storage for a while, battery ran out, RTC went back to Jan 1, 1904,
+which means a negative xtime, and the new timekeeping code will do
+horrible things including hanging at resume when that happens. Fix is to
+make powerpc read_persistent_clock() to ignore the RTC when it contains
+a date older than epoch).
 
+Cheers,
+Ben.
