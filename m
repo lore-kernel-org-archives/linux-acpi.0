@@ -1,53 +1,33 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH 4/7] acpi: processor: fix section mismatch
-Date: Wed, 4 Nov 2009 14:28:10 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911041427400.9988@wotan.suse.de>
-References: <1255906474-25091-1-git-send-email-felipe.contreras@gmail.com> <1255906474-25091-5-git-send-email-felipe.contreras@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Bugme-new] [Bug 14450] New: [2.6.31] Network interfaces are dead with 2.6.31 (iwlagn and sky2)
+Date: Wed, 4 Nov 2009 10:47:26 -0600
+Message-ID: <200911040947.28054.bjorn.helgaas@hp.com>
+References: <bug-14450-10286@http.bugzilla.kernel.org/> <20091103152146.5785195a.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:43263 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756181AbZKDN2G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Nov 2009 08:28:06 -0500
-In-Reply-To: <1255906474-25091-5-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20091103152146.5785195a.akpm@linux-foundation.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: orion.linbug@gmail.com, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-wireless@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Myron Stowe <myron.stowe@hp.com>, linux-acpi@vger.kernel.org
 
-On Mon, 19 Oct 2009, Felipe Contreras wrote:
-
-> WARNING: drivers/acpi/processor.o(.text+0x99a): Section mismatch in
-> reference from the function acpi_processor_add() to the function
-> .cpuinit.text:acpi_processor_power_init()
+On Tuesday 03 November 2009 04:21:46 pm Andrew Morton wrote:
 > 
-> acpi_processor_add replaced acpi_processor_start which had __cpuinit.
-> 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  drivers/acpi/processor_core.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index c567b46..ec742a4 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -770,7 +770,7 @@ static struct notifier_block acpi_cpu_notifier =
->  	    .notifier_call = acpi_cpu_soft_notify,
->  };
->  
-> -static int acpi_processor_add(struct acpi_device *device)
-> +static int __cpuinit acpi_processor_add(struct acpi_device *device)
->  {
->  	struct acpi_processor *pr = NULL;
->  	int result = 0;
+> (switched to email.  Please respond via emailed reply-to-all, not via the
+> bugzilla web interface).
 
-I don't see this patch in today's linux-next ... ACPI guys, are you going 
-to merge it?
+> > http://bugzilla.kernel.org/show_bug.cgi?id=14450
 
-Thanks,
+This looks like a duplicate of http://bugzilla.kernel.org/show_bug.cgi?id=13940
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+There's a patch in that bug that is upstream already:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=15b812f1d0a5ca8f5efe7f5882f468af10682ca8
+
+Please try booting 2.6.31 with "pci=use_crs" and report the result.
+
+If possible, please also try booting an upstream kernel containing
+the patch above (without "pci=use_crs") and report that result, too.
