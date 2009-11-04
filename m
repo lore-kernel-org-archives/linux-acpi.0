@@ -1,252 +1,45 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH] [PATCH] wmi: Add support for module autoloading
-Date: Wed,  4 Nov 2009 14:17:53 -0500
-Message-ID: <1257362273-15405-1-git-send-email-mjg@redhat.com>
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Subject: Re: [PATCH] [PATCH] wmi: Add support for module autoloading
+Date: Wed, 4 Nov 2009 20:40:51 +0000
+Message-ID: <200911042040.51113.carlos@strangeworlds.co.uk>
+References: <1257362273-15405-1-git-send-email-mjg@redhat.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:38155 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756885AbZKDTSG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2009 14:18:06 -0500
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:39447 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932331AbZKDUko (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Nov 2009 15:40:44 -0500
+Received: by ewy3 with SMTP id 3so3548931ewy.37
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2009 12:40:48 -0800 (PST)
+In-Reply-To: <1257362273-15405-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: carlos@strangeworlds.co.uk, lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-WMI provides interface-specific GUIDs that are exported from modules as
-modalises, but the core currently generates no events to trigger module
-loading. This patch adds support for registering devices for each WMI GUID
-and generating the appropriate uevent.
+On Wednesday 04 November 2009 19:17:53 Matthew Garrett wrote:
+> WMI provides interface-specific GUIDs that are exported from modules as
+> modalises, but the core currently generates no events to trigger module
+> loading. This patch adds support for registering devices for each WMI GUID
+> and generating the appropriate uevent.
+> 
+> Based heavily on a patch by Carlos Corbacho (<carlos@strangeworlds.co.uk>).
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-Based heavily on a patch by Carlos Corbacho (<carlos@strangeworlds.co.uk>).
+Works fine on my old Acer Aspire 5020:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/platform/x86/wmi.c |  175 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 173 insertions(+), 2 deletions(-)
+Tested-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 177f8d7..e425a86 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -30,6 +30,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/device.h>
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include <acpi/acpi_bus.h>
-@@ -65,6 +66,7 @@ struct wmi_block {
- 	acpi_handle handle;
- 	wmi_notify_handler handler;
- 	void *handler_data;
-+	struct device *dev;
- };
- 
- static struct wmi_block wmi_blocks;
-@@ -195,6 +197,34 @@ static bool wmi_parse_guid(const u8 *src, u8 *dest)
- 	return true;
- }
- 
-+/*
-+ * Convert a raw GUID to the ACII string representation
-+ */
-+static int wmi_gtoa(const char *in, char *out)
-+{
-+	int i;
-+
-+	for (i = 3; i >= 0; i--)
-+		out += sprintf(out, "%02X", in[i] & 0xFF);
-+
-+	out += sprintf(out, "-");
-+	out += sprintf(out, "%02X", in[5] & 0xFF);
-+	out += sprintf(out, "%02X", in[4] & 0xFF);
-+	out += sprintf(out, "-");
-+	out += sprintf(out, "%02X", in[7] & 0xFF);
-+	out += sprintf(out, "%02X", in[6] & 0xFF);
-+	out += sprintf(out, "-");
-+	out += sprintf(out, "%02X", in[8] & 0xFF);
-+	out += sprintf(out, "%02X", in[9] & 0xFF);
-+	out += sprintf(out, "-");
-+
-+	for (i = 10; i <= 15; i++)
-+		out += sprintf(out, "%02X", in[i] & 0xFF);
-+
-+	out = '\0';
-+	return 0;
-+}
-+
- static bool find_guid(const char *guid_string, struct wmi_block **out)
- {
- 	char tmp[16], guid_input[16];
-@@ -555,6 +585,138 @@ bool wmi_has_guid(const char *guid_string)
- EXPORT_SYMBOL_GPL(wmi_has_guid);
- 
- /*
-+ * sysfs interface
-+ */
-+static ssize_t show_modalias(struct device *dev, struct device_attribute *attr,
-+			     char *buf)
-+{
-+	char guid_string[37];
-+	struct wmi_block *wblock;
-+
-+	wblock = dev_get_drvdata(dev);
-+	if (!wblock)
-+		return -ENOMEM;
-+
-+	wmi_gtoa(wblock->gblock.guid, guid_string);
-+
-+	return sprintf(buf, "wmi:%s\n", guid_string);
-+}
-+static DEVICE_ATTR(modalias, S_IRUGO, show_modalias, NULL);
-+
-+static int wmi_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	char guid_string[37];
-+
-+	struct wmi_block *wblock;
-+
-+	if (add_uevent_var(env, "MODALIAS="))
-+		return -ENOMEM;
-+
-+	wblock = dev_get_drvdata(dev);
-+	if (!wblock)
-+		return -ENOMEM;
-+
-+	wmi_gtoa(wblock->gblock.guid, guid_string);
-+
-+	strcpy(&env->buf[env->buflen - 1], "wmi:");
-+	memcpy(&env->buf[env->buflen - 1 + 4], guid_string, 36);
-+	env->buflen += 40;
-+
-+	return 0;
-+}
-+
-+static void wmi_dev_free(struct device *dev)
-+{
-+	kfree(dev);
-+}
-+
-+static struct class wmi_class = {
-+	.name = "wmi",
-+	.dev_release = wmi_dev_free,
-+	.dev_uevent = wmi_dev_uevent,
-+};
-+
-+static int wmi_create_devs(void)
-+{
-+	int result;
-+	char guid_string[37];
-+	struct guid_block *gblock;
-+	struct wmi_block *wblock;
-+	struct list_head *p;
-+	struct device *guid_dev;
-+
-+	/* Create devices for all the GUIDs */
-+	list_for_each(p, &wmi_blocks.list) {
-+		wblock = list_entry(p, struct wmi_block, list);
-+
-+		guid_dev = kzalloc(sizeof(struct device), GFP_KERNEL);
-+		if (!guid_dev)
-+			return -ENOMEM;
-+
-+		wblock->dev = guid_dev;
-+
-+		guid_dev->class = &wmi_class;
-+		dev_set_drvdata(guid_dev, wblock);
-+
-+		gblock = &wblock->gblock;
-+
-+		wmi_gtoa(gblock->guid, guid_string);
-+		dev_set_name(guid_dev, guid_string);
-+
-+		result = device_register(guid_dev);
-+		if (result)
-+			return result;
-+
-+		result = device_create_file(guid_dev, &dev_attr_modalias);
-+		if (result)
-+			return result;
-+	}
-+
-+	return 0;
-+}
-+
-+static void wmi_remove_devs(void)
-+{
-+	struct guid_block *gblock;
-+	struct wmi_block *wblock;
-+	struct list_head *p;
-+	struct device *guid_dev;
-+
-+	/* Delete devices for all the GUIDs */
-+	list_for_each(p, &wmi_blocks.list) {
-+		wblock = list_entry(p, struct wmi_block, list);
-+
-+		guid_dev = wblock->dev;
-+		gblock = &wblock->gblock;
-+
-+		device_remove_file(guid_dev, &dev_attr_modalias);
-+
-+		device_unregister(guid_dev);
-+	}
-+}
-+
-+static void wmi_class_exit(void)
-+{
-+	wmi_remove_devs();
-+	class_unregister(&wmi_class);
-+}
-+
-+static int wmi_class_init(void)
-+{
-+	int ret;
-+
-+	ret = class_register(&wmi_class);
-+	if (ret)
-+		return ret;
-+
-+	ret = wmi_create_devs();
-+	if (ret)
-+		wmi_class_exit();
-+
-+	return ret;
-+}
-+
-+/*
-  * Parse the _WDG method for the GUID data blocks
-  */
- static __init acpi_status parse_wdg(acpi_handle handle)
-@@ -709,10 +871,17 @@ static int __init acpi_wmi_init(void)
- 
- 	if (result < 0) {
- 		printk(KERN_INFO PREFIX "Error loading mapper\n");
--	} else {
--		printk(KERN_INFO PREFIX "Mapper loaded\n");
-+		return -ENODEV;
-+	}
-+
-+	result = wmi_class_init();
-+	if (result) {
-+		acpi_bus_unregister_driver(&acpi_wmi_driver);
-+		return result;
- 	}
- 
-+	printk(KERN_INFO PREFIX "Mapper loaded\n");
-+
- 	return result;
- }
- 
-@@ -721,6 +890,8 @@ static void __exit acpi_wmi_exit(void)
- 	struct list_head *p, *tmp;
- 	struct wmi_block *wblock;
- 
-+	wmi_class_exit();
-+
- 	acpi_bus_unregister_driver(&acpi_wmi_driver);
- 
- 	list_for_each_safe(p, tmp, &wmi_blocks.list) {
+And FWIW:
+
+Acked-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+
+-Carlos
 -- 
-1.6.5.2
-
+E-Mail: carlos@strangeworlds.co.uk
+Web: strangeworlds.co.uk
+GPG Key ID: 0x23EE722D
