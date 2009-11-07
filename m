@@ -1,43 +1,33 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: New feature proposal "quickwakeup"
-Date: Fri, 6 Nov 2009 18:09:15 +0000
-Message-ID: <20091106180915.GA25582@srcf.ucam.org>
-References: <1257523241.1318.367.camel@xhp836-11> <20091106170321.GA24312@srcf.ucam.org> <1257529341.2528.21.camel@xhp836-11>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Please review power management abstract for LF End User Summit
+Date: Sat, 07 Nov 2009 00:30:08 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0911070025401.4070@localhost.localdomain>
+References: <E87738D94A6AD54789B5B8D1BAEB06CC6EED79B299@azsmsx503.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43515 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868AbZKFSJP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Nov 2009 13:09:15 -0500
-Content-Disposition: inline
-In-Reply-To: <1257529341.2528.21.camel@xhp836-11>
+Received: from vms173007pub.verizon.net ([206.46.173.7]:48174 "EHLO
+	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbZKGFaU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 00:30:20 -0500
+Received: from localhost.localdomain ([74.104.150.83])
+ by vms173007.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KSQ00A184MAW4AI@vms173007.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Fri, 06 Nov 2009 23:30:15 -0600 (CST)
+In-reply-to: <E87738D94A6AD54789B5B8D1BAEB06CC6EED79B299@azsmsx503.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Falempe Jocelyn <jocelyn.falempe@motorola.com>
-Cc: linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>, "Mallick, Asit K" <asit.k.mallick@intel.com>, "Kleen, Andi" <andi.kleen@intel.com>, "'linux-power-mgmt@linux.intel.com'" <linux-power-mgmt@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, Nov 06, 2009 at 06:42:21PM +0100, Falempe Jocelyn wrote:
+Thanks for the suggestions.
 
-> In fact we are doing "retention" in idle and with the suspend path. It's
-> specific to Android, with the global suspend and wakelock framework.
-> When all wakelocks are released (ie screen is black, no running app),
-> the phone goes to suspend, which freeze userspace and also suspend the
-> device driver. This way you can choose the wakeup sources, and stay in
-> suspend during a long time (a few hours). Without this, you have to
-> track down all user space app that wakeup the phone, and it is hard to
-> sleep more than a few second.
+final abstract is here:
+http://events.linuxfoundation.org/eus09hpc4
 
-What's triggering the application wakeups? If it's just timeouts, can't 
-you simply adjust the range timer slop so that the timeouts don't fire?
+presentation being constructed here (currently draft 0.5):
+http://userweb.kernel.org/~lenb/doc/2009-EUS-Server-PM-web/index.html
 
-> The drawback is that when you want to wakeup, it takes a lot of time to
-> unfreeze the userspace, and resume all the device driver. This is what
-> this feature address (for low-level wakeup only).
-> But as this patch is not Android specific, I think other platforms may
-> use it too.
-
-Yeah, I can certainly see the appeal if you have that constraint.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+cheers,
+-Len Brown, Intel Open Source Technology Center
