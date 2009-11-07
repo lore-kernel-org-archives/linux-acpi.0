@@ -1,33 +1,39 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Please review power management abstract for LF End User Summit
-Date: Sat, 07 Nov 2009 00:30:08 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0911070025401.4070@localhost.localdomain>
-References: <E87738D94A6AD54789B5B8D1BAEB06CC6EED79B299@azsmsx503.amr.corp.intel.com>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [PATCH] [PATCH] wmi: Add support for module autoloading
+Date: Sat, 7 Nov 2009 19:14:20 +0000
+Message-ID: <9b2b86520911071114w262c8f5fo7a462f0f8b6abefb@mail.gmail.com>
+References: <1257362273-15405-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173007pub.verizon.net ([206.46.173.7]:48174 "EHLO
-	vms173007pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750767AbZKGFaU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 00:30:20 -0500
-Received: from localhost.localdomain ([74.104.150.83])
- by vms173007.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KSQ00A184MAW4AI@vms173007.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 06 Nov 2009 23:30:15 -0600 (CST)
-In-reply-to: <E87738D94A6AD54789B5B8D1BAEB06CC6EED79B299@azsmsx503.amr.corp.intel.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:57652 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626AbZKGTU5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 14:20:57 -0500
+Received: by bwz27 with SMTP id 27so2226615bwz.21
+        for <linux-acpi@vger.kernel.org>; Sat, 07 Nov 2009 11:21:01 -0800 (PST)
+In-Reply-To: <1257362273-15405-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>, "Mallick, Asit K" <asit.k.mallick@intel.com>, "Kleen, Andi" <andi.kleen@intel.com>, "'linux-power-mgmt@linux.intel.com'" <linux-power-mgmt@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, carlos@strangeworlds.co.uk, lenb@kernel.org
 
-Thanks for the suggestions.
+Hi Matthew
 
-final abstract is here:
-http://events.linuxfoundation.org/eus09hpc4
+On 11/4/09, Matthew Garrett <mjg@redhat.com> wrote:
+> WMI provides interface-specific GUIDs that are exported from modules as
+> modalises, but the core currently generates no events to trigger module
+> loading. This patch adds support for registering devices for each WMI GUID
+> and generating the appropriate uevent.
 
-presentation being constructed here (currently draft 0.5):
-http://userweb.kernel.org/~lenb/doc/2009-EUS-Server-PM-web/index.html
+I just realized there is no mention of "parent" in this patch.  Are
+the WMI devices created without a parent device?  If so I believe they
+would show up in /sys/devices/virtual, which seems wrong.  I think the
+WMI devices ought to be children of the relevant ACPI device.
 
-cheers,
--Len Brown, Intel Open Source Technology Center
+I also wonder if WMI should be a bus, instead of a class.  I guess
+that's more work, but perhaps it can be fixed up some time in the
+future.
+
+Regards
+Alan
