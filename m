@@ -1,583 +1,324 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/12] thermal: sysfs-api.txt - reformat for improved
- readability
-Date: Sat, 07 Nov 2009 21:57:11 -0500
-Message-ID: <38bb0849a6799e05bb474a88f198522ae4ecace2.1257648660.git.len.brown@intel.com>
-References: <1257649034-7494-1-git-send-email-lenb@kernel.org>
+Subject: [git pull request] ACPI & driver patches for 2.6.32-rc6
+Date: Sat, 07 Nov 2009 21:59:13 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0911072157250.4291@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="Boundary_(ID_oN5WhgOFfAsb6j4TSJ7ZXQ)"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:63644 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132AbZKHC5S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 21:57:18 -0500
-Received: from localhost.localdomain ([74.104.150.83])
- by vms173013.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KSR00L71S7N6C64@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Nov 2009 20:57:24 -0600 (CST)
-In-reply-to: <1257649034-7494-1-git-send-email-lenb@kernel.org>
-In-reply-to: <52a2b11cafb1b14bacfc65a20966da5ba3a863e1.1257648659.git.len.brown@intel.com>
-References: <52a2b11cafb1b14bacfc65a20966da5ba3a863e1.1257648659.git.len.brown@intel.com>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:61502 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753249AbZKHC7J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 21:59:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Frans Pop <elendil@planet.nl>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Frans Pop <elendil@planet.nl>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The document currently uses large indentations which make the text
-too wide for easy readability. Also improve general consistency.
+--Boundary_(ID_oN5WhgOFfAsb6j4TSJ7ZXQ)
+Content-type: TEXT/PLAIN; charset=UTF-8
+Content-transfer-encoding: 8BIT
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- Documentation/thermal/sysfs-api.txt |  536 ++++++++++++++++++-----------------
- 1 files changed, 270 insertions(+), 266 deletions(-)
- rewrite Documentation/thermal/sysfs-api.txt (76%)
+Hi Linus,
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-dissimilarity index 76%
-index 70d68ce..895337f 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -1,266 +1,270 @@
--Generic Thermal Sysfs driver How To
--=========================
--
--Written by Sujith Thomas <sujith.thomas@intel.com>, Zhang Rui <rui.zhang@intel.com>
--
--Updated: 2 January 2008
--
--Copyright (c)  2008 Intel Corporation
--
--
--0. Introduction
--
--The generic thermal sysfs provides a set of interfaces for thermal zone devices (sensors)
--and thermal cooling devices (fan, processor...) to register with the thermal management
--solution and to be a part of it.
--
--This how-to focuses on enabling new thermal zone and cooling devices to participate
--in thermal management.
--This solution is platform independent and any type of thermal zone devices and
--cooling devices should be able to make use of the infrastructure.
--
--The main task of the thermal sysfs driver is to expose thermal zone attributes as well
--as cooling device attributes to the user space.
--An intelligent thermal management application can make decisions based on inputs
--from thermal zone attributes (the current temperature and trip point temperature)
--and throttle appropriate devices.
--
--[0-*]	denotes any positive number starting from 0
--[1-*]	denotes any positive number starting from 1
--
--1. thermal sysfs driver interface functions
--
--1.1 thermal zone device interface
--1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name, int trips,
--				void *devdata, struct thermal_zone_device_ops *ops)
--
--	This interface function adds a new thermal zone device (sensor) to
--	/sys/class/thermal folder as thermal_zone[0-*].
--	It tries to bind all the thermal cooling devices registered at the same time.
--
--	name: the thermal zone name.
--	trips: the total number of trip points this thermal zone supports.
--	devdata: device private data
--	ops: thermal zone device call-backs.
--		.bind: bind the thermal zone device with a thermal cooling device.
--		.unbind: unbind the thermal zone device with a thermal cooling device.
--		.get_temp: get the current temperature of the thermal zone.
--		.get_mode: get the current mode (user/kernel) of the thermal zone.
--			   "kernel" means thermal management is done in kernel.
--			   "user" will prevent kernel thermal driver actions upon trip points
--			   so that user applications can take charge of thermal management.
--		.set_mode: set the mode (user/kernel) of the thermal zone.
--		.get_trip_type: get the type of certain trip point.
--		.get_trip_temp: get the temperature above which the certain trip point
--				will be fired.
--
--1.1.2 void thermal_zone_device_unregister(struct thermal_zone_device *tz)
--
--	This interface function removes the thermal zone device.
--	It deletes the corresponding entry form /sys/class/thermal folder and unbind all
--	the thermal cooling devices it uses.
--
--1.2 thermal cooling device interface
--1.2.1 struct thermal_cooling_device *thermal_cooling_device_register(char *name,
--					void *devdata, struct thermal_cooling_device_ops *)
--
--	This interface function adds a new thermal cooling device (fan/processor/...) to
--	/sys/class/thermal/ folder as cooling_device[0-*].
--	It tries to bind itself to all the thermal zone devices register at the same time.
--	name: the cooling device name.
--	devdata: device private data.
--	ops: thermal cooling devices call-backs.
--		.get_max_state: get the Maximum throttle state of the cooling device.
--		.get_cur_state: get the Current throttle state of the cooling device.
--		.set_cur_state: set the Current throttle state of the cooling device.
--
--1.2.2 void thermal_cooling_device_unregister(struct thermal_cooling_device *cdev)
--
--	This interface function remove the thermal cooling device.
--	It deletes the corresponding entry form /sys/class/thermal folder and unbind
--	itself from all	the thermal zone devices using it.
--
--1.3 interface for binding a thermal zone device with a thermal cooling device
--1.3.1 int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
--			int trip, struct thermal_cooling_device *cdev);
--
--	This interface function bind a thermal cooling device to the certain trip point
--	of a thermal zone device.
--	This function is usually called in the thermal zone device .bind callback.
--	tz: the thermal zone device
--	cdev: thermal cooling device
--	trip: indicates which trip point the cooling devices is associated with
--		 in this thermal zone.
--
--1.3.2 int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
--				int trip, struct thermal_cooling_device *cdev);
--
--	This interface function unbind a thermal cooling device from the certain trip point
--	of a thermal zone device.
--	This function is usually called in the thermal zone device .unbind callback.
--	tz: the thermal zone device
--	cdev: thermal cooling device
--	trip: indicates which trip point the cooling devices is associated with
--		in this thermal zone.
--
--2. sysfs attributes structure
--
--RO	read only value
--RW	read/write value
--
--Thermal sysfs attributes will be represented under /sys/class/thermal.
--Hwmon sysfs I/F extension is also available under /sys/class/hwmon
--if hwmon is compiled in or built as a module.
--
--Thermal zone device sys I/F, created once it's registered:
--/sys/class/thermal/thermal_zone[0-*]:
--	|-----type:			Type of the thermal zone
--	|-----temp:			Current temperature
--	|-----mode:			Working mode of the thermal zone
--	|-----trip_point_[0-*]_temp:	Trip point temperature
--	|-----trip_point_[0-*]_type:	Trip point type
--
--Thermal cooling device sys I/F, created once it's registered:
--/sys/class/thermal/cooling_device[0-*]:
--	|-----type :			Type of the cooling device(processor/fan/...)
--	|-----max_state:		Maximum cooling state of the cooling device
--	|-----cur_state:		Current cooling state of the cooling device
--
--
--These two dynamic attributes are created/removed in pairs.
--They represent the relationship between a thermal zone and its associated cooling device.
--They are created/removed for each
--thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device successful execution.
--
--/sys/class/thermal/thermal_zone[0-*]
--	|-----cdev[0-*]:		The [0-*]th cooling device in the current thermal zone
--	|-----cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
--
--Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
--the generic thermal driver also creates a hwmon sysfs I/F for each _type_ of
--thermal zone device. E.g. the generic thermal driver registers one hwmon class device
--and build the associated hwmon sysfs I/F for all the registered ACPI thermal zones.
--/sys/class/hwmon/hwmon[0-*]:
--	|-----name:			The type of the thermal zone devices.
--	|-----temp[1-*]_input:		The current temperature of thermal zone [1-*].
--	|-----temp[1-*]_critical:	The critical trip point of thermal zone [1-*].
--Please read Documentation/hwmon/sysfs-interface for additional information.
--
--***************************
--* Thermal zone attributes *
--***************************
--
--type				Strings which represent the thermal zone type.
--				This is given by thermal zone driver as part of registration.
--				Eg: "acpitz" indicates it's an ACPI thermal device.
--				In order to keep it consistent with hwmon sys attribute,
--				this should be a short, lowercase string,
--				not containing spaces nor dashes.
--				RO
--				Required
--
--temp				Current temperature as reported by thermal zone (sensor)
--				Unit: millidegree Celsius
--				RO
--				Required
--
--mode				One of the predefined values in [kernel, user]
--				This file gives information about the algorithm
--				that is currently managing the thermal zone.
--				It can be either default kernel based algorithm
--				or user space application.
--				RW
--				Optional
--				kernel	= Thermal management in kernel thermal zone driver.
--				user	= Preventing kernel thermal zone driver actions upon
--					  trip points so that user application can take full
--					  charge of the thermal management.
--
--trip_point_[0-*]_temp		The temperature above which trip point will be fired
--				Unit: millidegree Celsius
--				RO
--				Optional
--
--trip_point_[0-*]_type 		Strings which indicate the type of the trip point
--				E.g. it can be one of critical, hot, passive,
--				    active[0-*] for ACPI thermal zone.
--				RO
--				Optional
--
--cdev[0-*]			Sysfs link to the thermal cooling device node where the sys I/F
--				for cooling device throttling control represents.
--				RO
--				Optional
--
--cdev[0-*]_trip_point		The trip point with which cdev[0-*] is associated in this thermal zone
--				-1 means the cooling device is not associated with any trip point.
--				RO
--				Optional
--
--******************************
--* Cooling device  attributes *
--******************************
--
--type				String which represents the type of device
--				eg: For generic ACPI: this should be "Fan",
--				"Processor" or "LCD"
--				eg. For memory controller device on intel_menlow platform:
--				this should be "Memory controller"
--				RO
--				Required
--
--max_state			The maximum permissible cooling state of this cooling device.
--				RO
--				Required
--
--cur_state			The current cooling state of this cooling device.
--				the value can any integer numbers between 0 and max_state,
--				cur_state == 0 means no cooling
--				cur_state == max_state means the maximum cooling.
--				RW
--				Required
--
--3. A simple implementation
--
--ACPI thermal zone may support multiple trip points like critical/hot/passive/active.
--If an ACPI thermal zone supports critical, passive, active[0] and active[1] at the same time,
--it may register itself as a thermal_zone_device (thermal_zone1) with 4 trip points in all.
--It has one processor and one fan, which are both registered as thermal_cooling_device.
--If the processor is listed in _PSL method, and the fan is listed in _AL0 method,
--the sys I/F structure will be built like this:
--
--/sys/class/thermal:
--
--|thermal_zone1:
--	|-----type:			acpitz
--	|-----temp:			37000
--	|-----mode:			kernel
--	|-----trip_point_0_temp:	100000
--	|-----trip_point_0_type:	critical
--	|-----trip_point_1_temp:	80000
--	|-----trip_point_1_type:	passive
--	|-----trip_point_2_temp:	70000
--	|-----trip_point_2_type:	active0
--	|-----trip_point_3_temp:	60000
--	|-----trip_point_3_type:	active1
--	|-----cdev0:			--->/sys/class/thermal/cooling_device0
--	|-----cdev0_trip_point:		1	/* cdev0 can be used for passive */
--	|-----cdev1:			--->/sys/class/thermal/cooling_device3
--	|-----cdev1_trip_point:		2	/* cdev1 can be used for active[0]*/
--
--|cooling_device0:
--	|-----type:			Processor
--	|-----max_state:		8
--	|-----cur_state:		0
--
--|cooling_device3:
--	|-----type:			Fan
--	|-----max_state:		2
--	|-----cur_state:		0
--
--/sys/class/hwmon:
--
--|hwmon0:
--	|-----name:			acpitz
--	|-----temp1_input:		37000
--	|-----temp1_crit:		100000
-+Generic Thermal Sysfs driver How To
-+===================================
-+
-+Written by Sujith Thomas <sujith.thomas@intel.com>, Zhang Rui <rui.zhang@intel.com>
-+
-+Updated: 2 January 2008
-+
-+Copyright (c)  2008 Intel Corporation
-+
-+
-+0. Introduction
-+
-+The generic thermal sysfs provides a set of interfaces for thermal zone
-+devices (sensors) and thermal cooling devices (fan, processor...) to register
-+with the thermal management solution and to be a part of it.
-+
-+This how-to focuses on enabling new thermal zone and cooling devices to
-+participate in thermal management.
-+This solution is platform independent and any type of thermal zone devices
-+and cooling devices should be able to make use of the infrastructure.
-+
-+The main task of the thermal sysfs driver is to expose thermal zone attributes
-+as well as cooling device attributes to the user space.
-+An intelligent thermal management application can make decisions based on
-+inputs from thermal zone attributes (the current temperature and trip point
-+temperature) and throttle appropriate devices.
-+
-+[0-*]	denotes any positive number starting from 0
-+[1-*]	denotes any positive number starting from 1
-+
-+1. thermal sysfs driver interface functions
-+
-+1.1 thermal zone device interface
-+1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name,
-+		int trips, void *devdata, struct thermal_zone_device_ops *ops)
-+
-+    This interface function adds a new thermal zone device (sensor) to
-+    /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
-+    thermal cooling devices registered at the same time.
-+
-+    name: the thermal zone name.
-+    trips: the total number of trip points this thermal zone supports.
-+    devdata: device private data
-+    ops: thermal zone device call-backs.
-+	.bind: bind the thermal zone device with a thermal cooling device.
-+	.unbind: unbind the thermal zone device with a thermal cooling device.
-+	.get_temp: get the current temperature of the thermal zone.
-+	.get_mode: get the current mode (user/kernel) of the thermal zone.
-+	    - "kernel" means thermal management is done in kernel.
-+	    - "user" will prevent kernel thermal driver actions upon trip points
-+	      so that user applications can take charge of thermal management.
-+	.set_mode: set the mode (user/kernel) of the thermal zone.
-+	.get_trip_type: get the type of certain trip point.
-+	.get_trip_temp: get the temperature above which the certain trip point
-+			will be fired.
-+
-+1.1.2 void thermal_zone_device_unregister(struct thermal_zone_device *tz)
-+
-+    This interface function removes the thermal zone device.
-+    It deletes the corresponding entry form /sys/class/thermal folder and
-+    unbind all the thermal cooling devices it uses.
-+
-+1.2 thermal cooling device interface
-+1.2.1 struct thermal_cooling_device *thermal_cooling_device_register(char *name,
-+		void *devdata, struct thermal_cooling_device_ops *)
-+
-+    This interface function adds a new thermal cooling device (fan/processor/...)
-+    to /sys/class/thermal/ folder as cooling_device[0-*]. It tries to bind itself
-+    to all the thermal zone devices register at the same time.
-+    name: the cooling device name.
-+    devdata: device private data.
-+    ops: thermal cooling devices call-backs.
-+	.get_max_state: get the Maximum throttle state of the cooling device.
-+	.get_cur_state: get the Current throttle state of the cooling device.
-+	.set_cur_state: set the Current throttle state of the cooling device.
-+
-+1.2.2 void thermal_cooling_device_unregister(struct thermal_cooling_device *cdev)
-+
-+    This interface function remove the thermal cooling device.
-+    It deletes the corresponding entry form /sys/class/thermal folder and
-+    unbind itself from all the thermal zone devices using it.
-+
-+1.3 interface for binding a thermal zone device with a thermal cooling device
-+1.3.1 int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
-+		int trip, struct thermal_cooling_device *cdev);
-+
-+    This interface function bind a thermal cooling device to the certain trip
-+    point of a thermal zone device.
-+    This function is usually called in the thermal zone device .bind callback.
-+    tz: the thermal zone device
-+    cdev: thermal cooling device
-+    trip: indicates which trip point the cooling devices is associated with
-+	  in this thermal zone.
-+
-+1.3.2 int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
-+		int trip, struct thermal_cooling_device *cdev);
-+
-+    This interface function unbind a thermal cooling device from the certain
-+    trip point of a thermal zone device. This function is usually called in
-+    the thermal zone device .unbind callback.
-+    tz: the thermal zone device
-+    cdev: thermal cooling device
-+    trip: indicates which trip point the cooling devices is associated with
-+	  in this thermal zone.
-+
-+2. sysfs attributes structure
-+
-+RO	read only value
-+RW	read/write value
-+
-+Thermal sysfs attributes will be represented under /sys/class/thermal.
-+Hwmon sysfs I/F extension is also available under /sys/class/hwmon
-+if hwmon is compiled in or built as a module.
-+
-+Thermal zone device sys I/F, created once it's registered:
-+/sys/class/thermal/thermal_zone[0-*]:
-+    |---type:			Type of the thermal zone
-+    |---temp:			Current temperature
-+    |---mode:			Working mode of the thermal zone
-+    |---trip_point_[0-*]_temp:	Trip point temperature
-+    |---trip_point_[0-*]_type:	Trip point type
-+
-+Thermal cooling device sys I/F, created once it's registered:
-+/sys/class/thermal/cooling_device[0-*]:
-+    |---type:			Type of the cooling device(processor/fan/...)
-+    |---max_state:		Maximum cooling state of the cooling device
-+    |---cur_state:		Current cooling state of the cooling device
-+
-+
-+Then next two dynamic attributes are created/removed in pairs. They represent
-+the relationship between a thermal zone and its associated cooling device.
-+They are created/removed for each successful execution of
-+thermal_zone_bind_cooling_device/thermal_zone_unbind_cooling_device.
-+
-+/sys/class/thermal/thermal_zone[0-*]:
-+    |---cdev[0-*]:		[0-*]th cooling device in current thermal zone
-+    |---cdev[0-*]_trip_point:	Trip point that cdev[0-*] is associated with
-+
-+Besides the thermal zone device sysfs I/F and cooling device sysfs I/F,
-+the generic thermal driver also creates a hwmon sysfs I/F for each _type_
-+of thermal zone device. E.g. the generic thermal driver registers one hwmon
-+class device and build the associated hwmon sysfs I/F for all the registered
-+ACPI thermal zones.
-+
-+/sys/class/hwmon/hwmon[0-*]:
-+    |---name:			The type of the thermal zone devices
-+    |---temp[1-*]_input:	The current temperature of thermal zone [1-*]
-+    |---temp[1-*]_critical:	The critical trip point of thermal zone [1-*]
-+
-+Please read Documentation/hwmon/sysfs-interface for additional information.
-+
-+***************************
-+* Thermal zone attributes *
-+***************************
-+
-+type
-+	Strings which represent the thermal zone type.
-+	This is given by thermal zone driver as part of registration.
-+	E.g: "acpitz" indicates it's an ACPI thermal device.
-+	In order to keep it consistent with hwmon sys attribute; this should
-+	be a short, lowercase string, not containing spaces nor dashes.
-+	RO, Required
-+
-+temp
-+	Current temperature as reported by thermal zone (sensor).
-+	Unit: millidegree Celsius
-+	RO, Required
-+
-+mode
-+	One of the predefined values in [kernel, user].
-+	This file gives information about the algorithm that is currently
-+	managing the thermal zone. It can be either default kernel based
-+	algorithm or user space application.
-+	kernel	= Thermal management in kernel thermal zone driver.
-+	user	= Preventing kernel thermal zone driver actions upon
-+		  trip points so that user application can take full
-+		  charge of the thermal management.
-+	RW, Optional
-+
-+trip_point_[0-*]_temp
-+	The temperature above which trip point will be fired.
-+	Unit: millidegree Celsius
-+	RO, Optional
-+
-+trip_point_[0-*]_type
-+	Strings which indicate the type of the trip point.
-+	E.g. it can be one of critical, hot, passive, active[0-*] for ACPI
-+	thermal zone.
-+	RO, Optional
-+
-+cdev[0-*]
-+	Sysfs link to the thermal cooling device node where the sys I/F
-+	for cooling device throttling control represents.
-+	RO, Optional
-+
-+cdev[0-*]_trip_point
-+	The trip point with which cdev[0-*] is associated in this thermal
-+	zone; -1 means the cooling device is not associated with any trip
-+	point.
-+	RO, Optional
-+
-+*****************************
-+* Cooling device attributes *
-+*****************************
-+
-+type
-+	String which represents the type of device, e.g:
-+	- for generic ACPI: should be "Fan", "Processor" or "LCD"
-+	- for memory controller device on intel_menlow platform:
-+	  should be "Memory controller".
-+	RO, Required
-+
-+max_state
-+	The maximum permissible cooling state of this cooling device.
-+	RO, Required
-+
-+cur_state
-+	The current cooling state of this cooling device.
-+	The value can any integer numbers between 0 and max_state:
-+	- cur_state == 0 means no cooling
-+	- cur_state == max_state means the maximum cooling.
-+	RW, Required
-+
-+3. A simple implementation
-+
-+ACPI thermal zone may support multiple trip points like critical, hot,
-+passive, active. If an ACPI thermal zone supports critical, passive,
-+active[0] and active[1] at the same time, it may register itself as a
-+thermal_zone_device (thermal_zone1) with 4 trip points in all.
-+It has one processor and one fan, which are both registered as
-+thermal_cooling_device.
-+
-+If the processor is listed in _PSL method, and the fan is listed in _AL0
-+method, the sys I/F structure will be built like this:
-+
-+/sys/class/thermal:
-+
-+|thermal_zone1:
-+    |---type:			acpitz
-+    |---temp:			37000
-+    |---mode:			kernel
-+    |---trip_point_0_temp:	100000
-+    |---trip_point_0_type:	critical
-+    |---trip_point_1_temp:	80000
-+    |---trip_point_1_type:	passive
-+    |---trip_point_2_temp:	70000
-+    |---trip_point_2_type:	active0
-+    |---trip_point_3_temp:	60000
-+    |---trip_point_3_type:	active1
-+    |---cdev0:			--->/sys/class/thermal/cooling_device0
-+    |---cdev0_trip_point:	1	/* cdev0 can be used for passive */
-+    |---cdev1:			--->/sys/class/thermal/cooling_device3
-+    |---cdev1_trip_point:	2	/* cdev1 can be used for active[0]*/
-+
-+|cooling_device0:
-+    |---type:			Processor
-+    |---max_state:		8
-+    |---cur_state:		0
-+
-+|cooling_device3:
-+    |---type:			Fan
-+    |---max_state:		2
-+    |---cur_state:		0
-+
-+/sys/class/hwmon:
-+
-+|hwmon0:
-+    |---name:			acpitz
-+    |---temp1_input:		37000
-+    |---temp1_crit:		100000
--- 
-1.6.0.6
+please pull from: 
 
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+
+The documentation update is clarification/cleanup relating to the existing API.
+One kernel-oops fix from the kernel summit session.
+A couple of fixes for things that happened within 2.6.32-rc.
+
+This will update the files shown below.
+
+thanks!
+
+--
+Len Brown
+Intel Open Source Technology Center
+
+
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/2.6.32/acpi-release-20090903-2.6.32-rc6.diff.gz
+
+ Documentation/thermal/sysfs-api.txt |  389 ++++++++++++++++++-----------------
+ drivers/acpi/acpica/acconfig.h      |    4 +-
+ drivers/acpi/acpica/exregion.c      |   35 +++-
+ drivers/acpi/power_meter.c          |    6 +-
+ drivers/acpi/proc.c                 |    2 +-
+ drivers/acpi/processor_core.c       |    2 +-
+ drivers/acpi/processor_throttling.c |    6 +-
+ drivers/acpi/sleep.c                |   24 +++
+ drivers/acpi/video.c                |    8 +-
+ drivers/platform/x86/eeepc-laptop.c |   30 +--
+ drivers/thermal/thermal_sys.c       |   10 +-
+ 11 files changed, 281 insertions(+), 235 deletions(-)
+
+through these commits:
+
+Amit Kucheria (1):
+      acpi: thermal: Add EOL to the trip_point_N_type strings
+
+Arjan van de Ven (1):
+      ACPI: clean up video.c boundary checks and types
+
+Bob Moore (1):
+      ACPICA: avoid "Info: mapping multiple BARs. Your kernel is fine."
+
+Corentin Chary (1):
+      Revert "eeepc-laptop: Prevent a panic when disabling RT2860 wireless when associated"
+
+Darrick J. Wong (1):
+      acpi-power-meter: Don't leak ACPI error codes to userspace
+
+Frans Pop (2):
+      thermal: sysfs-api.txt - reformat for improved readability
+      thermal: sysfs-api.txt - document passive attribute for thermal zones
+
+Gustavo Maciel Dias Vieira (1):
+      ACPI: add DMI entry for SCI_EN resume quirk on HP dv4
+
+Julia Lawall (1):
+      ACPI: Move dereference after NULL test
+
+Luca Niccoli (1):
+      eeepc-laptop: don't enable camera at startup if it's already on.
+
+Rakib Mullick (1):
+      ACPI: add __cpuinit to acpi_processor_add()
+
+Vaibhav Verma (1):
+      ACPI: sleep: another HP/Compaq DMI entries for init_set_sci_en_on_resume
+
+with this log:
+
+commit 43758dd88fdf1e5b3897c7a04dfae0afb8313dea
+Merge: 12308a2 2839d39
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Nov 6 01:45:11 2009 -0500
+
+    Merge branch 'bugzilla-13449' into release
+
+commit 2839d396e3ae0891c1fdd87aa1cea218e6f5c4df
+Author: Vaibhav Verma <vaibhav.verma86@gmail.com>
+Date:   Thu Nov 5 23:13:36 2009 -0500
+
+    ACPI: sleep: another HP/Compaq DMI entries for init_set_sci_en_on_resume
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=13745
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8a1cbf64977f89e9e9bc1d80dd01503337424f96
+Author: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
+Date:   Mon Oct 19 09:41:53 2009 -0200
+
+    ACPI: add DMI entry for SCI_EN resume quirk on HP dv4
+    
+    Fixes the missing battery on sleep problem for yet another HP laptop
+    ("HP Pavilion dv4").
+    
+    Fixes:
+    	http://bugzilla.kernel.org/show_bug.cgi?id=13449
+    
+    Signed-off-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 12308a2f2703d135681b3e9cf582009747f588f7
+Merge: 91d3f9b 29226ed 80f0c89 d410ee5
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Nov 5 18:31:18 2009 -0500
+
+    Merge branches 'misc', 'eeepc-laptop' and 'bugzilla-14445' into release
+
+commit 29226ed3c3b5cd0b2b0b1fb40ffeac3f796b80e9
+Author: Frans Pop <elendil@planet.nl>
+Date:   Mon Oct 26 08:39:00 2009 +0100
+
+    thermal: sysfs-api.txt - document passive attribute for thermal zones
+    
+    Signed-off-by: Frans Pop <elendil@planet.nl>
+    Acked-by: Zhang Rui <rui.zhang@intel.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 38bb0849a6799e05bb474a88f198522ae4ecace2
+Author: Frans Pop <elendil@planet.nl>
+Date:   Mon Oct 26 08:38:59 2009 +0100
+
+    thermal: sysfs-api.txt - reformat for improved readability
+    
+    The document currently uses large indentations which make the text
+    too wide for easy readability. Also improve general consistency.
+    
+    Signed-off-by: Frans Pop <elendil@planet.nl>
+    Acked-by: Zhang Rui <rui.zhang@intel.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 625120a42bd4371da98808a4ca3e7589083a06d8
+Author: Amit Kucheria <amit.kucheria@canonical.com>
+Date:   Fri Oct 16 12:46:02 2009 +0300
+
+    acpi: thermal: Add EOL to the trip_point_N_type strings
+    
+    Make the trip_point_N_type sysfs files return a string ending in EOL for
+    consistency with other sysfs files.
+    
+    Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
+    Acked-by: Zhang Rui <rui.zhang@intel.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5cfa245b0b63c3d79568e78a1ee3d00654d5517d
+Author: Julia Lawall <julia@diku.dk>
+Date:   Sat Oct 17 08:34:39 2009 +0200
+
+    ACPI: Move dereference after NULL test
+    
+    If the NULL test on pr is needed, then the dereference should be after the
+    NULL test.
+    
+    A simplified version of the semantic match that detects this problem is as
+    follows (http://coccinelle.lip6.fr/):
+    
+    // <smpl>
+    @match exists@
+    expression x, E;
+    identifier fld;
+    @@
+    
+    * x->fld
+      ... when != \(x = E\|&x\)
+    * x == NULL
+    // </smpl>
+    
+    Signed-off-by: Julia Lawall <julia@diku.dk>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d410ee5109a1633a686a5663c6743a92e1181f9b
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Thu Oct 22 09:11:11 2009 +0800
+
+    ACPICA: avoid "Info: mapping multiple BARs. Your kernel is fine."
+    
+    Ensure that memory mappings created for operation regions
+    do not cross page boundaries.  Crossing a page boundary
+    while mapping regions can cause warnings if the pages have different attributes.
+    
+    Such regions are probably BIOS bugs, and this is the workaround.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=14445
+    
+    [Kernel summit hacking hour]
+    
+    Signed-off-by: Bob Moore <robert.moore@intel.com>
+    Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 941b10fab2cbd90ac7ad6bc2338ffe30e1d3ce53
+Author: Rakib Mullick <rakib.mullick@gmail.com>
+Date:   Thu Nov 5 16:51:40 2009 -0500
+
+    ACPI: add __cpuinit to acpi_processor_add()
+    
+    Annote acpi_processor_add with cpuinit since it calls a cpuinit function
+    acpi_processor_power_init and fixes a section mismatch warning.
+    
+     We were warned by the following warning:
+    
+     LD      drivers/acpi/processor.o
+    WARNING: drivers/acpi/processor.o(.text+0x1829): Section mismatch in
+    reference from the function acpi_processor_add() to the function
+    .cpuinit.text:acpi_processor_power_init()
+    The function acpi_processor_add() references
+    the function __cpuinit acpi_processor_power_init().
+    This is often because acpi_processor_add lacks a __cpuinit
+    annotation or the annotation of acpi_processor_power_init is wrong.
+    
+    Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 22aecebfd9498c4779e5c5bed1d2d054bd99f7a4
+Author: Darrick J. Wong <djwong@us.ibm.com>
+Date:   Wed Oct 21 18:01:37 2009 -0700
+
+    acpi-power-meter: Don't leak ACPI error codes to userspace
+    
+    If the ACPI methods return an error code, we must return -EINVAL to userspace
+    to flag the error.  Right now we pass the (positive) number right through,
+    which causes echo to keep writing bogus values.
+    
+    Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+    Acked-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 80f0c895b57f0d936b420de6afea5167a49f62fa
+Author: Luca Niccoli <lultimouomo@gmail.com>
+Date:   Fri Oct 16 22:22:47 2009 +0200
+
+    eeepc-laptop: don't enable camera at startup if it's already on.
+    
+    Switching the camera takes 500ms, checking if it's on is almost free...
+    The BIOS remembers the setting through reboots, so there's good chance the
+    camera is already enabled.
+    
+    Signed-off-by: Luca Niccoli <lultimouomo@gmail.com>
+    Cc: Corentin Chary <corentincj@iksaif.net>
+    Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+    Cc: Matthew Garrett <mjg@redhat.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 58ce48a9de1dd47acb5dc00e2837214d2be1d92a
+Author: Corentin Chary <corentincj@iksaif.net>
+Date:   Fri Oct 16 22:22:46 2009 +0200
+
+    Revert "eeepc-laptop: Prevent a panic when disabling RT2860 wireless when associated"
+    
+    rt2860sta is fine with the patch as is, but iwl3945 isn't
+    (eeepc_rfkill_set() needs to call eeepc_rfkill_hotplug(true) – which means
+    that we're back to causing the rt2860sta panic
+    
+    This reverts commit b56ab33d68638e6aafdbfc694025e8354a628f49.
+    
+    Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+    Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 52a2b11cafb1b14bacfc65a20966da5ba3a863e1
+Author: Arjan van de Ven <arjan@linux.intel.com>
+Date:   Thu Oct 1 15:48:40 2009 -0700
+
+    ACPI: clean up video.c boundary checks and types
+    
+    proc.c and video.c are a bit sloppy around types and style,
+    confusing gcc for a new feature that'll be in 2.6.33 and will
+    cause a warning on the current code.
+    
+    This patch changes
+    
+    if  (foo + 1 > sizeof bar)
+    
+    into
+    
+    if (foo >= sizeof(bar))
+    
+    which is more kernel-style.
+    
+    it also changes a variable in proc.c to unsigned; it gets assigned
+    a value from an unsigned type, and is then only compared for > not
+    for negative, so using unsigned is just outright the right type
+    
+    Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+--Boundary_(ID_oN5WhgOFfAsb6j4TSJ7ZXQ)--
