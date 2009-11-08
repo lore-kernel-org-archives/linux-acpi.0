@@ -1,59 +1,68 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/12] ACPI: add DMI entry for SCI_EN resume quirk on HP dv4
-Date: Sat, 07 Nov 2009 21:57:13 -0500
-Message-ID: <8a1cbf64977f89e9e9bc1d80dd01503337424f96.1257648660.git.len.brown@intel.com>
-References: <1257649034-7494-1-git-send-email-lenb@kernel.org>
+From: Ken Corbin <kencx@peak.org>
+Subject: Re: Suspend locks up Toshiba Satelite L355-S7915 (no longer)
+Date: Sat, 7 Nov 2009 19:30:50 -0800
+Message-ID: <200911071930.50420.kencx@peak.org>
+References: <200911051928.38825.kencx@peak.org> <200911070809.23947.kencx@peak.org> <alpine.LFD.2.00.0911072138260.4291@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173001pub.verizon.net ([206.46.173.1]:23500 "EHLO
-	vms173001.mailsrvcs.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753460AbZKHDQg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 22:16:36 -0500
-Received: from localhost.localdomain ([unknown] [74.104.150.83])
- by vms173001.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KSR002CFT3MLQJ0@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Sat, 07 Nov 2009 21:16:38 -0600 (CST)
-In-reply-to: <1257649034-7494-1-git-send-email-lenb@kernel.org>
-In-reply-to: <52a2b11cafb1b14bacfc65a20966da5ba3a863e1.1257648659.git.len.brown@intel.com>
-References: <52a2b11cafb1b14bacfc65a20966da5ba3a863e1.1257648659.git.len.brown@intel.com>
+Received: from mailscanner1.peak.org ([69.59.192.37]:46478 "EHLO
+	mailscanner1.peak.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832AbZKHDb4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 22:31:56 -0500
+In-Reply-To: <alpine.LFD.2.00.0911072138260.4291@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Gustavo Maciel Dias Vieira <gustavo@sagui.org>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
 
-Fixes the missing battery on sleep problem for yet another HP laptop
-("HP Pavilion dv4").
 
-Fixes:
-	http://bugzilla.kernel.org/show_bug.cgi?id=13449
+On Saturday 07 November 2009 18:44:46 Len Brown wrote:
+>
+> > There are other problems, but they are minor and can be lived with.  Most
+> > hotkeys do not work.  And the computer doesn't flash the power button
+> > when it is suspended.  There is a omnibook module that purports do do
+> > these functions, but it isn't coded to work with the Satelite L355-S7915.
+> >  I've been looking into fixing that.  But it has occurred to me that that
+> > driver is largely duplicating standard acpi functions.  And that it might
+> > be a better use of my time to look into configuring acpi to work with
+> > this laptop.  Any recommendations?
+>
+> Generally the platform drivers implement support for non-standard
+> features that are not included in the generic ACPI support.
+> Often the non-standard support is implemented with vendor-specific
+> extensions to ACPI.
+>
+> Unfortunately, except in a few cases, hotkeys are non-standard.
+> So extending the platform driver for boxes similar to your own
+> to talk to your box may be the way to go..
+>
+> The LED indicator on sleeping, however, is generally standard
+> (there is a method called "_SST" that we invoke that tells the BIOS
+>  to start & stop blinking the suspend LED)
+>
+> Do you know if the LED blinked when Windows suspended on this laptop?
+>
+> cheers,
+> Len Brown, Intel Open Source Technology Center
 
-Signed-off-by: Gustavo Maciel Dias Vieira <gustavo@sagui.org>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/sleep.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+The LED blinks when suspended under Windows.  It also blinks, at a much slower 
+rate, when suspended in Ubuntu of I have the omnibook module loaded.  I'm 
+still looking at how it does that.   Is this something that we should expect 
+the stock acpi process to take care of?
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index a90afcc..ed9760a 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -413,6 +413,14 @@ static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
- 		},
- 	},
- 	{
-+	.callback = init_set_sci_en_on_resume,
-+	.ident = "Hewlett-Packard Pavilion dv4",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv4"),
-+		},
-+	},
-+	{
- 	.callback = init_old_suspend_ordering,
- 	.ident = "Panasonic CF51-2L",
- 	.matches = {
--- 
-1.6.0.6
+Have a nice day,
+-Ken
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 
