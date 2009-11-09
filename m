@@ -1,165 +1,129 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 1/3] acpi: Provide default GPE handler if the firmware doesn't
-Date: Mon,  9 Nov 2009 17:44:45 -0500
-Message-ID: <1257806687-6608-1-git-send-email-mjg@redhat.com>
+Subject: [PATCH 2/3] acpica: Add support for unregistering ACPI GPE methods
+Date: Mon,  9 Nov 2009 17:44:46 -0500
+Message-ID: <1257806687-6608-2-git-send-email-mjg@redhat.com>
+References: <1257806687-6608-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:49367 "EHLO
+Received: from cavan.codon.org.uk ([93.93.128.6]:49370 "EHLO
 	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754238AbZKIWpF (ORCPT
+	with ESMTP id S1755012AbZKIWpF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2009 17:45:05 -0500
+In-Reply-To: <1257806687-6608-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: rjw@sisk.pl, robert.moore@intel.com, Matthew Garrett <mjg@redhat.com>
 
-Firmware may support using GPEs for system wakeup without providing any
-runtime GPE handlers. This prevents the use runtime power management on
-these devices even if the hardware supports it. This patch adds support
-for providing default GPE handlers if the firmware doesn't, allowing us
-to implement runtime power management on machines where it would be
-otherwise impossible.
+Some vendors ship firmware with untested GPE handlers. The presence of
+these handlers may be sufficient to cause the OS to assume that runtime
+power management of the associated devices is possible, potentially
+resulting in devices being powered down and no wakeup events ever being
+generated.
 
-This implementation adds basic support for Intel chipsets.
+The simplest solution is to add support for the OS to unhook these GPE
+methods when it knows that they are broken. Add a function to the ACPICA
+code to allow this.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/pci/pci-acpi.c |  119 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 119 insertions(+), 0 deletions(-)
+ drivers/acpi/acpica/evxface.c |   69 +++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpixf.h         |    3 ++
+ 2 files changed, 72 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index dae90cc..7fff59c 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -879,6 +879,124 @@ static struct acpi_bus_type acpi_pci_bus = {
- 	.find_bridge = acpi_pci_find_root_bridge,
- };
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index 90cdeae..33b1dc0 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -736,6 +736,75 @@ ACPI_EXPORT_SYMBOL(acpi_remove_gpe_handler)
  
-+static void acpi_pci_bus_notify(struct work_struct *work)
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_remove_gpe_method
++ *
++ * PARAMETERS:  gpe_device      - Namespace node for the GPE (NULL for FADT
++ *                                defined GPEs)
++ *              gpe_number      - The event to remove a handler
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Remove the method for a General Purpose acpi_event.
++ *
++ ******************************************************************************/
++acpi_status
++acpi_remove_gpe_method(acpi_handle gpe_device, u32 gpe_number)
 +{
-+	acpi_handle handle = acpi_get_pci_rootbridge_handle(0, 0);
-+	struct acpi_device *acpi_dev;
-+	struct acpi_pci_root *root;
-+
-+	kfree(work);
-+
-+	if (acpi_bus_get_device(handle, &acpi_dev))
-+		return;
-+
-+	root = acpi_driver_data(acpi_dev);
-+
-+	if (!root)
-+		return;
-+
-+	pci_pme_wakeup_bus(root->bus);
-+}
-+
-+
-+static void acpi_pci_uhci_notify(struct work_struct *work)
-+{
-+	struct pci_dev *pci_dev = NULL;
-+
-+	kfree(work);
-+
-+	while ((pci_dev = pci_get_class(PCI_CLASS_SERIAL_USB_UHCI, pci_dev))) {
-+		pci_pme_wakeup(pci_dev);
-+		pci_dev_put(pci_dev);
-+	}
-+}
-+
-+static void acpi_pci_audio_or_uhci_notify(struct work_struct *work)
-+{
-+	/* FIXME: Need to work out how to check what this actually maps to */
-+	return acpi_pci_uhci_notify(work);
-+}
-+
-+static acpi_status acpi_pci_pme_notify(void *context)
-+{
-+	struct work_struct *work = kzalloc(sizeof(struct work_struct),
-+					   GFP_ATOMIC);
-+
-+	if (work) {
-+		INIT_WORK(work, context);
-+		schedule_work(work);
-+	}
-+	return AE_OK;
-+}
-+
-+struct gpe_fixup {
-+	int gpe;
-+	work_func_t callback;
-+};
-+
-+static struct gpe_fixup acpi_pci_intel_gpes[] = {
-+	{ 0x3, &acpi_pci_uhci_notify, },
-+	{ 0x4, &acpi_pci_uhci_notify, },
-+	{ 0x5, &acpi_pci_audio_or_uhci_notify, },
-+	{ 0xb, &acpi_pci_bus_notify, },
-+	{ 0xc, &acpi_pci_uhci_notify, },
-+	{ 0xd, &acpi_pci_bus_notify, },
-+	{ 0xe, &acpi_pci_uhci_notify, },
-+	{ 0x20, &acpi_pci_uhci_notify, },
-+	{ 0, NULL, },
-+};
-+
-+static void __init acpi_pci_install_gpe(u32 gpe_number,
-+					work_func_t callback, int force)
-+{
++	struct acpi_gpe_event_info *gpe_event_info;
 +	acpi_status status;
-+	acpi_event_status event_status;
++	acpi_cpu_flags flags;
 +
-+	status = acpi_get_gpe_status(NULL, gpe_number, ACPI_NOT_ISR,
-+				     &event_status);
++	ACPI_FUNCTION_TRACE(acpi_remove_gpe_method);
 +
-+	/* Don't override existing methods by default */
-+	if (!force && (event_status & ACPI_EVENT_FLAG_HANDLE))
-+		return;
++	/* Parameter validation */
 +
-+	status = acpi_install_gpe_handler(NULL, gpe_number,
-+					  ACPI_GPE_LEVEL_TRIGGERED,
-+					  acpi_pci_pme_notify, callback);
-+
-+	if (ACPI_FAILURE(status) && status != AE_ALREADY_EXISTS) {
-+		printk(KERN_INFO "Unable to install GPE fixup for %x\n",
-+		       gpe_number);
-+		acpi_remove_gpe_handler(NULL, gpe_number, acpi_pci_pme_notify);
-+	}
-+}
-+
-+static int __init acpi_pci_gpe_fixups(void)
-+{
-+	struct pci_dev *lpc;
-+	struct gpe_fixup *fixups;
-+	int i;
-+
-+	lpc = pci_get_class(PCI_CLASS_BRIDGE_ISA << 8, NULL);
-+
-+	if (!lpc)
-+		return -ENODEV;
-+
-+	switch(lpc->vendor) {
-+	case PCI_VENDOR_ID_INTEL:
-+		fixups = acpi_pci_intel_gpes;
-+		break;
++	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
 +	}
 +
-+	if (fixups)
-+		for (i=0; fixups[i].callback != NULL; i++)
-+			acpi_pci_install_gpe(fixups[i].gpe,
-+					     fixups[i].callback, false);
++	/* Ensure that we have a valid GPE number */
 +
-+	pci_dev_put(lpc);
++	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
++	if (!gpe_event_info) {
++		status = AE_BAD_PARAMETER;
++		goto unlock_and_exit;
++	}
 +
-+	return 0;
++	/* Make sure that a method is indeed installed */
++
++	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) !=
++	    ACPI_GPE_DISPATCH_METHOD) {
++		status = AE_NOT_EXIST;
++		goto unlock_and_exit;
++	}
++
++	/* Make sure all deferred tasks are completed */
++
++	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
++	acpi_os_wait_events_complete(NULL);
++	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Remove the method */
++
++	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
++	gpe_event_info->dispatch.method_node = NULL;
++	gpe_event_info->flags &= ~ACPI_GPE_DISPATCH_METHOD;
++
++	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
++
++      unlock_and_exit:
++	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
++	return_ACPI_STATUS(status);
 +}
 +
- static int __init acpi_pci_init(void)
- {
- 	int ret;
-@@ -900,3 +1018,4 @@ static int __init acpi_pci_init(void)
- 	return 0;
- }
- arch_initcall(acpi_pci_init);
-+late_initcall(acpi_pci_gpe_fixups);
++ACPI_EXPORT_SYMBOL(acpi_remove_gpe_method)
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_acquire_global_lock
+  *
+  * PARAMETERS:  Timeout         - How long the caller is willing to wait
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index bb3c975..f89aa7b 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -258,6 +258,9 @@ acpi_status
+ acpi_remove_gpe_handler(acpi_handle gpe_device,
+ 			u32 gpe_number, acpi_event_handler address);
+ 
++acpi_status
++acpi_remove_gpe_method(acpi_handle gpe_device, u32 gpe_number);
++
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status acpi_install_exception_handler(acpi_exception_handler handler);
+ #endif
 -- 
 1.6.5.2
 
