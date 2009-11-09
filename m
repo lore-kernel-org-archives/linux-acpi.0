@@ -1,43 +1,114 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Set osi=Linux for the ThinkPad X200s
-Date: Mon, 9 Nov 2009 17:54:16 +0000
-Message-ID: <20091109175416.GA29887@srcf.ucam.org>
-References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com> <20091109165420.GA28672@srcf.ucam.org> <cb0375e10911090949o4a51cfd5x4f896d983398a7bc@mail.gmail.com>
+From: lsorense@csclub.uwaterloo.ca (Lennart Sorensen)
+Subject: Re: [PATCH] Add Lenovo SL hotkey support on asus-laptop
+Date: Mon, 9 Nov 2009 19:27:04 +0000
+Message-ID: <20091109192704.GC15159@caffeine.csclub.uwaterloo.ca>
+References: <1257765266-6669-1-git-send-email-ike.pan@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:41003 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751428AbZKIRyU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2009 12:54:20 -0500
+Received: from caffeine.csclub.uwaterloo.ca ([129.97.134.17]:48127 "EHLO
+	caffeine.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752412AbZKIT06 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2009 14:26:58 -0500
 Content-Disposition: inline
-In-Reply-To: <cb0375e10911090949o4a51cfd5x4f896d983398a7bc@mail.gmail.com>
+In-Reply-To: <1257765266-6669-1-git-send-email-ike.pan@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Lutomirski <luto@mit.edu>
-Cc: linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, ibm-acpi@hmh.eng.br
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-On Mon, Nov 09, 2009 at 12:49:56PM -0500, Andrew Lutomirski wrote:
+On Mon, Nov 09, 2009 at 07:14:26PM +0800, Ike Panhc wrote:
+> Lenovo SL series laptop has a very similar DSDT with Asus laptops. We can
+> easily have the extra ACPI function support with little modification in
+> asus-laptop.c
 
-> The Thinkpad mixer is really weird AFAICT.  I have no idea how the
-> mute button works in Windows with the driver, but I'm not sure that it
-> looks like a key press -- I think it does something to the mixer and
-> the driver detects it.
+Wow, so my SL 500 should be happy with the asus-laptop module loaded?
+That seems weird and wrong in some way, but if it works, I will be
+quite happy.  Nice work.
 
-When you hit the mixer button, does the ACPI interrupt count increase? 
-If so, we're certainly in a position to do something with it.
+> Here is the hotkey enablement for Lenovo SL series laptop.
+> 
+> This patch will enable the following hotkey:
+>  - Volumn Up
+>  - Volumn Down
+>  - Mute
+>  - Screen Lock (Fn+F2)
+>  - Battery Status (Fn+F3)
+>  - WLAN switch (Fn+F5)
+>  - Video output switch (Fn+F7)
+>  - Touchpad switch (Fn+F8)
 
-> I actually think the "Linux" behavior makes more sense -- the volume
-> up and down buttons already work on all operating systems, and with
-> this patch the mute button works the same way.
->
-> There's precedent for this hack, and regardless of what we want to
-> convince Lenovo to do, making existing hardware work is nice:
-> http://bugzilla.kernel.org/show_bug.cgi?id=9907
+Yay!  Whoohoo!
 
-But it does nothing to solve the underlying issue, and then we get to 
-apply the same patch again for the next Thinkpad product cycle. If we 
-fix it properly, we don't need to bother.
+>  - Screen Magnifier (Fn+Space)
+> 
+> The following function of Lenovo SL laptop is still need to be enabled:
+>  - Hotkey: KEY_SUSPEND (Fn+F4), KEY_SLEEP (Fn+F12), Dock Eject (Fn+F9)
+>  - Rfkill for bluetooth and wlan
+
+I am OK with the hardware switch for now. :)
+
+>  - LenovoCare LED
+>  - Hwmon for fan speed
+>  - Fingerprint scanner
+
+I have read that some people have got that working with various bits of
+user space code.
+
+>  - Active Protection System
+
+Yeah that one would be nice to fix.  It works under windows with the
+driver installed of course.
+
+I will have to go try it out.
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Len Sorensen
+
+> Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+> ---
+>  drivers/platform/x86/asus-laptop.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+> index b39d2bb..a365636 100644
+> --- a/drivers/platform/x86/asus-laptop.c
+> +++ b/drivers/platform/x86/asus-laptop.c
+> @@ -221,6 +221,7 @@ static struct asus_hotk *hotk;
+>   */
+>  static const struct acpi_device_id asus_device_ids[] = {
+>  	{"ATK0100", 0},
+> +	{"ATK0101", 0},
+>  	{"", 0},
+>  };
+>  MODULE_DEVICE_TABLE(acpi, asus_device_ids);
+> @@ -293,6 +294,11 @@ struct key_entry {
+>  enum { KE_KEY, KE_END };
+>  
+>  static struct key_entry asus_keymap[] = {
+> +	{KE_KEY, 0x02, KEY_SCREENLOCK},
+> +	{KE_KEY, 0x05, KEY_WLAN},
+> +	{KE_KEY, 0x08, BTN_TOUCH},
+> +	{KE_KEY, 0x17, KEY_ZOOM},
+> +	{KE_KEY, 0x1f, KEY_BATTERY},
+>  	{KE_KEY, 0x30, KEY_VOLUMEUP},
+>  	{KE_KEY, 0x31, KEY_VOLUMEDOWN},
+>  	{KE_KEY, 0x32, KEY_MUTE},
+> @@ -312,7 +318,9 @@ static struct key_entry asus_keymap[] = {
+>  	{KE_KEY, 0x5F, KEY_WLAN},
+>  	{KE_KEY, 0x60, KEY_SWITCHVIDEOMODE},
+>  	{KE_KEY, 0x61, KEY_SWITCHVIDEOMODE},
+> +	{KE_KEY, 0x62, KEY_SWITCHVIDEOMODE},
+> +	{KE_KEY, 0x63, KEY_SWITCHVIDEOMODE},
+>  	{KE_KEY, 0x6B, BTN_TOUCH}, /* Lock Mouse */
+>  	{KE_KEY, 0x82, KEY_CAMERA},
+>  	{KE_KEY, 0x8A, KEY_PROG1},
+>  	{KE_KEY, 0x95, KEY_MEDIA},
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
