@@ -1,52 +1,64 @@
-From: Falempe Jocelyn <jocelyn.falempe@motorola.com>
-Subject: Re: New feature proposal "quickwakeup"
-Date: Mon, 09 Nov 2009 15:20:41 +0100
-Message-ID: <1257776441.4904.541.camel@xhp836-11>
-References: <1257523241.1318.367.camel@xhp836-11>
-	 <20091106170321.GA24312@srcf.ucam.org> <1257529341.2528.21.camel@xhp836-11>
-	 <20091106180915.GA25582@srcf.ucam.org>
+From: Andrew Lutomirski <luto@mit.edu>
+Subject: [PATCH] Set osi=Linux for the ThinkPad X200s
+Date: Mon, 9 Nov 2009 11:47:30 -0500
+Message-ID: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail55.messagelabs.com ([216.82.241.163]:39304 "EHLO
-	mail55.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755928AbZKIOV2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2009 09:21:28 -0500
-In-Reply-To: <20091106180915.GA25582@srcf.ucam.org>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:38340 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752958AbZKIQrZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2009 11:47:25 -0500
+Received: by bwz27 with SMTP id 27so3655848bwz.21
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2009 08:47:30 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, 2009-11-06 at 18:09 +0000, Matthew Garrett wrote:
-> On Fri, Nov 06, 2009 at 06:42:21PM +0100, Falempe Jocelyn wrote:
-> 
-> > In fact we are doing "retention" in idle and with the suspend path. It's
-> > specific to Android, with the global suspend and wakelock framework.
-> > When all wakelocks are released (ie screen is black, no running app),
-> > the phone goes to suspend, which freeze userspace and also suspend the
-> > device driver. This way you can choose the wakeup sources, and stay in
-> > suspend during a long time (a few hours). Without this, you have to
-> > track down all user space app that wakeup the phone, and it is hard to
-> > sleep more than a few second.
-> 
-> What's triggering the application wakeups? If it's just timeouts, can't 
-> you simply adjust the range timer slop so that the timeouts don't fire?
+The ThinkPad X200s, like the X61, requires OSI=Linux for the mute
+button to work.  Without this patch (or the equivalent command-line
+parameter), the mute button does not generate a keystroke and,
+instead, messes up the sound hardware.
 
-yes that's a good point. I think google chose the suspend way also
-because it synchronize filesystem, and some driver can enter deeper
-sleep, knowing that the user won't notice the increased latency. it
-protects also the phone against a crashed/bad app that would eat 100%
-cpu always.
+Tested on an X200s.
 
-> 
-> > The drawback is that when you want to wakeup, it takes a lot of time to
-> > unfreeze the userspace, and resume all the device driver. This is what
-> > this feature address (for low-level wakeup only).
-> > But as this patch is not Android specific, I think other platforms may
-> > use it too.
-> 
-> Yeah, I can certainly see the appeal if you have that constraint.
-> 
+Signed-off-by: Andy Lutomirski <luto@mit.edu>
 
+---
+
+This is probably 2.6.33 material.
+
+The X200 and X200T probably have the same problem.  Can someone test
+them and submit similar patches?
+
+Oddly enough, Windows has the same problem as Linux, where the mute
+button does bad things until you install a special driver.
+
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index e56b2a7..ea9f88b 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -224,6 +224,7 @@ static struct dmi_system_id acpi_osi_dmi_table[]
+__initdata = {
+ 	 * _OSI(Linux) helps sound
+ 	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad R61"),
+ 	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T61"),
++	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X200s"),
+ 	 * _OSI(Linux) has Linux specific hooks
+ 	 * DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X61"),
+ 	 * _OSI(Linux) is a NOP:
+@@ -254,6 +255,14 @@ static struct dmi_system_id acpi_osi_dmi_table[]
+__initdata = {
+ 		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X61"),
+ 		},
+ 	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Lenovo X200s",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		     DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X200s"),
++		},
++	},
+ 	{}
+ };
