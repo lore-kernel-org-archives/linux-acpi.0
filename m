@@ -1,43 +1,49 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH] acpi: Disable explicit power state retrieval on fans
-Date: Tue, 10 Nov 2009 15:09:12 -0500
-Message-ID: <1257883752-2163-1-git-send-email-mjg@redhat.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [patch v2] x86: reduce srat verbosity in the kernel log
+Date: Tue, 10 Nov 2009 13:08:23 -0800 (PST)
+Message-ID: <alpine.DEB.2.00.0911101307440.28728@chino.kir.corp.google.com>
+References: <20091023233743.439628000@alcatraz.americas.sgi.com> <20091023233750.702443000@alcatraz.americas.sgi.com> <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com>
+ <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box> <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box>
+ <alpine.DEB.2.00.0910272129250.17260@chino.kir.corp.google.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34904 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757956AbZKJUJ1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 15:09:27 -0500
+Received: from smtp-out.google.com ([216.239.33.17]:25610 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758212AbZKJVI0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 16:08:26 -0500
+In-Reply-To: <alpine.DEB.2.00.0910272129250.17260@chino.kir.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Mike Travis <travis@sgi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
 
-https://bugzilla.redhat.com/show_bug.cgi?id=531916 describes a system
-with a _PSC method for the fan that always returns "on". There's no
-benefit in us always requesting the state of the fan when performing
-transitions - we want to do everything we can to ensure that the fan turns
-on when it should do, not risk hardware damage by believing the hardware
-when it tells us the fan is already on. Given that the Leading Other OS(tm)
-works fine on this machine, it seems likely that it behaves in much this
-way.
+On Tue, 27 Oct 2009, David Rientjes wrote:
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/acpi/fan.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> x86: reduce srat verbosity in the kernel log
+> 
+> It's possible to reduce the number of SRAT messages emitted to the kernel
+> log by printing each valid pxm once and then creating bitmaps to represent
+> the apic ids that map to the same node.
+> 
+> This reduces lines such as
+> 
+> 	SRAT: PXM 0 -> APIC 0 -> Node 0
+> 	SRAT: PXM 0 -> APIC 1 -> Node 0
+> 	SRAT: PXM 1 -> APIC 2 -> Node 1
+> 	SRAT: PXM 1 -> APIC 3 -> Node 1
+> 
+> to
+> 
+> 	SRAT: PXM 0 -> APIC {0-1} -> Node 0
+> 	SRAT: PXM 1 -> APIC {2-3} -> Node 1
+> 
+> The buffer used to store the apic id list is 128 characters in length.
+> If that is too small to represent all the apic id ranges that are bound
+> to a single pxm, a trailing "..." is added.  APICID_LIST_LEN should be
+> manually increased for such configurations.
+> 
+> Acked-by: Mike Travis <travis@sgi.com>
+> Signed-off-by: David Rientjes <rientjes@google.com>
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index f419849..835b55e 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -256,6 +256,7 @@ static int acpi_fan_add(struct acpi_device *device)
- 		goto end;
- 	}
- 
-+	device->power.flags.explicit_get = 0;
- 	device->flags.force_power_state = 1;
- 	acpi_bus_set_power(device->handle, state);
- 	device->flags.force_power_state = 0;
--- 
-1.6.5.2
-
+Ingo, have you had a chance to look at merging this yet?
