@@ -1,33 +1,47 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [PATCH] usb: Add support for runtime power management of the hcd
-Date: Tue, 10 Nov 2009 09:20:03 +0100
-Message-ID: <200911100920.03361.oliver@neukum.org>
-References: <1257806610-6570-1-git-send-email-mjg@redhat.com>
+From: Dan Carpenter <error27@gmail.com>
+Subject: [patch] move null check earlier
+Date: Tue, 10 Nov 2009 10:56:26 +0200 (SAST)
+Message-ID: <alpine.DEB.2.00.0911081929420.10055@bicker>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:52899 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750985AbZKJIRc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 03:17:32 -0500
-In-Reply-To: <1257806610-6570-1-git-send-email-mjg@redhat.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:47467 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752821AbZKJI4b (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 03:56:31 -0500
+Received: by bwz27 with SMTP id 27so4301537bwz.21
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2009 00:56:35 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, rjw@sisk.pl, stern@rowland.harvard.edu
+To: linux-acpi@vger.kernel.org
 
-Am Montag, 9. November 2009 23:43:30 schrieb Matthew Garrett:
-> The PCI runtime power management code means that we can implement support
-> for powering down PCI host controllers. This patchset adds core support
->  code along with a new hcd flag (HCD_RUNTIME_PM) that allows hosts to opt
->  in if they support this functionality. Successfully tested with Intel EHCI
->  and UHCI, though the UHCI code may need to pay more attention to
->  vendor-specific features.
+I moved the null dereference after the check.  It is unlikely to make any 
+difference, but it's the right thing to do and it makes my static checker 
+happy.
 
-Extremely cool. However it makes me wonder about remote wakeup.
-Do you know whether that works?
+regards,
+dan carpenter
 
-	Regards
-		Oliver
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+
+--- orig/drivers/acpi/processor_throttling.c	2009-11-08 19:26:09.000000000 +0200
++++ devel/drivers/acpi/processor_throttling.c	2009-11-08 19:27:10.000000000 +0200
+@@ -1133,15 +1133,15 @@
+ 	int result = 0;
+ 	struct acpi_processor_throttling *pthrottling;
+ 
++	if (!pr)
++		return -EINVAL;
++
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "pblk_address[0x%08x] duty_offset[%d] duty_width[%d]\n",
+ 			  pr->throttling.address,
+ 			  pr->throttling.duty_offset,
+ 			  pr->throttling.duty_width));
+ 
+-	if (!pr)
+-		return -EINVAL;
+-
+ 	/*
+ 	 * Evaluate _PTC, _TSS and _TPC
+ 	 * They must all be present or none of them can be used.
