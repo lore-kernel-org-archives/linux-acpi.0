@@ -1,31 +1,57 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [ltp] Re: [PATCH] Set osi=Linux for the ThinkPad X200s
-Date: Tue, 10 Nov 2009 14:14:06 +0000
-Message-ID: <20091110141406.GB19792@srcf.ucam.org>
-References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com> <20091109165420.GA28672@srcf.ucam.org> <cb0375e10911090949o4a51cfd5x4f896d983398a7bc@mail.gmail.com> <20091109175416.GA29887@srcf.ucam.org> <20091110092418.GC1872@khazad-dum.debian.net> <cb0375e10911100532l484e69aeyd78e422c23d730ce@mail.gmail.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH] usb: Add support for runtime power management of the
+ hcd
+Date: Tue, 10 Nov 2009 10:04:12 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0911100949500.2888-100000@iolanthe.rowland.org>
+References: <20091110141259.GA19792@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51060 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459AbZKJOOO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 09:14:14 -0500
-Content-Disposition: inline
-In-Reply-To: <cb0375e10911100532l484e69aeyd78e422c23d730ce@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091110141259.GA19792-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Lutomirski <luto@mit.edu>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 10, 2009 at 08:32:17AM -0500, Andrew Lutomirski wrote:
+On Tue, 10 Nov 2009, Matthew Garrett wrote:
 
-> What's the point of the IBM mixer (/proc/acpi/ibm/volume)?  We have a
-> perfectly good mixer in the form of ALSA, which already knows how to
-> mute and unmute the sound and even comes with nice user interfaces
-> these days.
+> On Tue, Nov 10, 2009 at 02:08:01PM +0100, Oliver Neukum wrote:
+> 
+> > I was wondering because a tester has reported a race in ehci that
+> > can lead to a loss of wakeup events. Alan posted a patch to fix it.
+> > Does it cooperate with your patch?
+> 
+> Hm. I'll look into that.
 
-I posted a patch a while back that adds ALSA mixer support to the 
-Thinkpad driver.
+There should not be any interaction.  That particular race occurs when
+the root hub is suspended, not when the controller is suspended.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
+But this does raise an interesting point.  We do still have a race 
+between remote wakeup and system sleep.
+
+Suppose we're in the middle of a system sleep transition, and device D
+(such as a USB root hub) has been suspended as part of the normal
+preparation.  But then D generates a remote wakeup IRQ.
+
+D's driver will field the interrupt request and will call something
+like pm_request_resume(), to schedule a workqueue item for a runtime
+resume of D.  However, the runtime-PM workqueues are either frozen or
+in some other way prevented from doing anything while the system sleep
+transition is in progress.
+
+Therefore the wakeup request will get lost.  The information is still
+present, in the form of a work_struct, but it won't get acted on until
+the system wakes up.  In particular, it won't prevent the sleep
+transition from completing and it won't cause the system to wake up
+immediately after going to sleep.
+
+This suggests that pm_request_resume() should abort a sleep transition
+if one is already in progress.  Rafael, what do you think?
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
