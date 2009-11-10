@@ -1,7 +1,8 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 2/3] ACPI: pci_root: save downstream bus range
-Date: Tue, 10 Nov 2009 10:11:38 -0700
-Message-ID: <20091110171138.10645.99610.stgit@bob.kio>
+Subject: [PATCH v2 3/3] ACPI: pci_root: pass acpi_pci_root to arch-specific
+	scan
+Date: Tue, 10 Nov 2009 10:11:43 -0700
+Message-ID: <20091110171143.10645.30432.stgit@bob.kio>
 References: <20091110170802.10645.91272.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,69 +14,82 @@ To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-We need the entire downstream bus range, not just the base bus number, to
-support _CBA.  See the PCI Firmware spec, rev 3.0, sec 4.1.3.  It's clear
-that the bus range is supposed to be in _CRS, but if we don't find it there,
-we'll assume [_BBN - 0xFF].
+The acpi_pci_root structure contains all the individual items (acpi_device,
+domain, bus number) we pass to pci_acpi_scan_root(), so just pass the
+single acpi_pci_root pointer directly.
+
+This will make it easier to add _CBA support later.  For _CBA, we need the
+entire downstream bus range, not just the base bus number.  We have that in
+the acpi_pci_root structure, so passing the pointer makes it available to
+the arch-specific code.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/acpi/pci_root.c |   19 +++++++++++++------
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ arch/ia64/pci/pci.c         |    5 ++++-
+ arch/x86/pci/acpi.c         |    5 ++++-
+ drivers/acpi/pci_root.c     |    2 +-
+ include/acpi/acpi_drivers.h |    3 +--
+ 4 files changed, 10 insertions(+), 5 deletions(-)
 
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 7d51bf4..21c80bc 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -341,8 +341,11 @@ pcibios_setup_root_windows(struct pci_bus *bus, struct pci_controller *ctrl)
+ }
+ 
+ struct pci_bus * __devinit
+-pci_acpi_scan_root(struct acpi_device *device, int domain, int bus)
++pci_acpi_scan_root(struct acpi_pci_root *root)
+ {
++	struct acpi_device *device = root->device;
++	int domain = root->segment;
++	int bus = root->bus_nr;
+ 	struct pci_controller *controller;
+ 	unsigned int windows = 0;
+ 	struct pci_bus *pbus;
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 959e548..419b36d 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -199,8 +199,11 @@ res_alloc_fail:
+ 	return;
+ }
+ 
+-struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
++struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
+ {
++	struct acpi_device *device = root->device;
++	int domain = root->segment;
++	int busnum = root->bus_nr;
+ 	struct pci_bus *bus;
+ 	struct pci_sysdata *sd;
+ 	int node;
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index aa9eeee..a3e6f0e 100644
+index a3e6f0e..cc237a3 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -485,16 +485,22 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+@@ -542,7 +542,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	 * PCI namespace does not get created until this call is made (and 
+ 	 * thus the root bridge's pci_dev does not exist).
+ 	 */
+-	root->bus = pci_acpi_scan_root(device, segment, bus);
++	root->bus = pci_acpi_scan_root(root);
+ 	if (!root->bus) {
+ 		printk(KERN_ERR PREFIX
+ 			    "Bus %04x:%02x not present in PCI namespace\n",
+diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+index f4906f6..0c0522f 100644
+--- a/include/acpi/acpi_drivers.h
++++ b/include/acpi/acpi_drivers.h
+@@ -102,8 +102,7 @@ int acpi_pci_bind_root(struct acpi_device *device);
  
- 	/* Check _CRS first, then _BBN.  If no _BBN, default to zero. */
- 	secondary.start = 0;
-+	secondary.end = 0xFF;
- 	status = try_get_root_bridge_busnr(device->handle, &secondary);
--	if (ACPI_SUCCESS(status)) {
--		bus = secondary.start;
--	} else {
-+	if (ACPI_FAILURE(status)) {
-+		/*
-+		 * We need both the start and end of the downstream bus range
-+		 * to interpret _CBA (MMCONFIG base address), so it really is
-+		 * supposed to be in _CRS.
-+		 */
-+		printk(KERN_WARNING FW_BUG PREFIX
-+		       "no secondary bus range in _CRS\n");
- 		status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN,					       NULL, &bus);
- 		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--			printk(KERN_ERR PREFIX
--			     "no bus number in _CRS and can't evaluate _BBN\n");
-+			printk(KERN_ERR PREFIX "can't evaluate _BBN\n");
- 			return -ENODEV;
- 		}
-+		secondary.start = bus;
- 	}
+ /* Arch-defined function to add a bus to the system */
  
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-@@ -504,7 +510,8 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	INIT_LIST_HEAD(&root->node);
- 	root->device = device;
- 	root->segment = segment & 0xFFFF;
--	root->bus_nr = bus & 0xFF;
-+	root->bus_nr = secondary.start & 0xFF;
-+	root->subordinate_bus_nr = secondary.end & 0xFF;
- 	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
- 	device->driver_data = root;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 3cd9ccd..3d6e6e8 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -371,6 +371,7 @@ struct acpi_pci_root {
- 	struct pci_bus *bus;
- 	u16 segment;
- 	u8 bus_nr;
-+	u8 subordinate_bus_nr;
+-struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain,
+-				   int bus);
++struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root);
  
- 	u32 osc_support_set;	/* _OSC state of support bits */
- 	u32 osc_control_set;	/* _OSC state of control bits */
+ /* --------------------------------------------------------------------------
+                                     Processor
 
