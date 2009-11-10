@@ -1,37 +1,31 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [PATCH] usb: Add support for runtime power management of the
-	hcd
-Date: Tue, 10 Nov 2009 14:12:59 +0000
-Message-ID: <20091110141259.GA19792@srcf.ucam.org>
-References: <1257806610-6570-1-git-send-email-mjg@redhat.com> <200911100920.03361.oliver@neukum.org> <20091110124109.GA18631@srcf.ucam.org> <200911101408.01867.oliver@neukum.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [ltp] Re: [PATCH] Set osi=Linux for the ThinkPad X200s
+Date: Tue, 10 Nov 2009 14:14:06 +0000
+Message-ID: <20091110141406.GB19792@srcf.ucam.org>
+References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com> <20091109165420.GA28672@srcf.ucam.org> <cb0375e10911090949o4a51cfd5x4f896d983398a7bc@mail.gmail.com> <20091109175416.GA29887@srcf.ucam.org> <20091110092418.GC1872@khazad-dum.debian.net> <cb0375e10911100532l484e69aeyd78e422c23d730ce@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:51060 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459AbZKJOOO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 09:14:14 -0500
 Content-Disposition: inline
-In-Reply-To: <200911101408.01867.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
+In-Reply-To: <cb0375e10911100532l484e69aeyd78e422c23d730ce@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Lutomirski <luto@mit.edu>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Nov 10, 2009 at 02:08:01PM +0100, Oliver Neukum wrote:
+On Tue, Nov 10, 2009 at 08:32:17AM -0500, Andrew Lutomirski wrote:
 
-> I was wondering because a tester has reported a race in ehci that
-> can lead to a loss of wakeup events. Alan posted a patch to fix it.
-> Does it cooperate with your patch?
+> What's the point of the IBM mixer (/proc/acpi/ibm/volume)?  We have a
+> perfectly good mixer in the form of ALSA, which already knows how to
+> mute and unmute the sound and even comes with nice user interfaces
+> these days.
 
-Hm. I'll look into that.
-
-> And secondly what happens if you suspend to RAM a system
-> with suspended controllers?
-
-I believe that this currently results in them being woken up and then 
-whatever would normally happen, but would need to check to be sure. 
-Rafael?
+I posted a patch a while back that adds ALSA mixer support to the 
+Thinkpad driver.
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Matthew Garrett | mjg59@srcf.ucam.org
