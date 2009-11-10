@@ -1,57 +1,47 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] usb: Add support for runtime power management of the
- hcd
-Date: Tue, 10 Nov 2009 10:04:12 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0911100949500.2888-100000@iolanthe.rowland.org>
-References: <20091110141259.GA19792@srcf.ucam.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH v2 0/3] pci_root: track downstream bus range for _CBA
+Date: Tue, 10 Nov 2009 10:11:28 -0700
+Message-ID: <20091110170802.10645.91272.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091110141259.GA19792-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:44070 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757089AbZKJRLX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 12:11:23 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Tue, 10 Nov 2009, Matthew Garrett wrote:
+The PCI Firmware Spec requires BIOS to use _CBA, not MCFG, to report
+MMCONFIG regions of hot-pluggable host bridges.  Therefore, if the
+hardware and firmware support host bridge hotplug, we will encounter
+_CBA even if Linux itself doesn't support hotplug.
 
-> On Tue, Nov 10, 2009 at 02:08:01PM +0100, Oliver Neukum wrote:
-> 
-> > I was wondering because a tester has reported a race in ehci that
-> > can lead to a loss of wakeup events. Alan posted a patch to fix it.
-> > Does it cooperate with your patch?
-> 
-> Hm. I'll look into that.
+These patches make the pci_root driver keep track of the downstream
+bus range and make it available so arch-specific code can register
+MMCONFIG regions if necessary.
 
-There should not be any interaction.  That particular race occurs when
-the root hub is suspended, not when the controller is suspended.
+The first patch merely *prints* the downstream range, without saving it.
+I posted that patch alone previously, before I realized that we actually
+need to save the range for _CBA.
+
+---
+
+Bjorn Helgaas (3):
+      ACPI: pci_root: show entire downstream bus range
+      ACPI: pci_root: save downstream bus range
+      ACPI: pci_root: pass acpi_pci_root to arch-specific scan
 
 
-But this does raise an interesting point.  We do still have a race 
-between remote wakeup and system sleep.
+ arch/ia64/pci/pci.c         |    5 ++++-
+ arch/x86/pci/acpi.c         |    5 ++++-
+ drivers/acpi/pci_root.c     |   46 ++++++++++++++++++++++++++-----------------
+ include/acpi/acpi_bus.h     |    1 +
+ include/acpi/acpi_drivers.h |    3 +--
+ 5 files changed, 38 insertions(+), 22 deletions(-)
 
-Suppose we're in the middle of a system sleep transition, and device D
-(such as a USB root hub) has been suspended as part of the normal
-preparation.  But then D generates a remote wakeup IRQ.
-
-D's driver will field the interrupt request and will call something
-like pm_request_resume(), to schedule a workqueue item for a runtime
-resume of D.  However, the runtime-PM workqueues are either frozen or
-in some other way prevented from doing anything while the system sleep
-transition is in progress.
-
-Therefore the wakeup request will get lost.  The information is still
-present, in the form of a work_struct, but it won't get acted on until
-the system wakes up.  In particular, it won't prevent the sleep
-transition from completing and it won't cause the system to wake up
-immediately after going to sleep.
-
-This suggests that pm_request_resume() should abort a sleep transition
-if one is already in progress.  Rafael, what do you think?
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Bjorn
