@@ -1,61 +1,41 @@
-From: Dan Carpenter <error27@gmail.com>
-Subject: [patch] prevent possible NULL dereference.
-Date: Tue, 10 Nov 2009 11:02:49 +0200 (SAST)
-Message-ID: <alpine.DEB.2.00.0911070951060.24084@bicker>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ltp] [PATCH] Set osi=Linux for the ThinkPad X200s
+Date: Tue, 10 Nov 2009 07:19:08 -0200
+Message-ID: <20091110091908.GB1872@khazad-dum.debian.net>
+References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:45487 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbZKJJCy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 04:02:54 -0500
-Received: by ewy3 with SMTP id 3so4001530ewy.37
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2009 01:02:58 -0800 (PST)
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:34976 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750918AbZKJJTF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Nov 2009 04:19:05 -0500
+Content-Disposition: inline
+In-Reply-To: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Andrew Lutomirski <luto@mit.edu>
+Cc: linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Move the check for walk_state->thread before the dereference.
+On Mon, 09 Nov 2009, Andrew Lutomirski wrote:
+> The ThinkPad X200s, like the X61, requires OSI=Linux for the mute
+> button to work.  Without this patch (or the equivalent command-line
 
-Found by smatch static checker.  Compile tested.
+In the X61, The MUTE button always work.  It *changes* the way it works
+based on OSI(Linux), though.  It should be the same on the X200s.  That
+doesn't mean OSI(Linux) is a bad idea for the X200s, it might be the right
+thing to do.
 
-regards,
-dan carpenter
+> parameter), the mute button does not generate a keystroke and,
+> instead, messes up the sound hardware.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Now, that's new.  Messes up the sound hardware?  I was told by Lenovo
+ThinkPad users that MUTE toggled bit 6 of EC register 0x30, like every other
+ThinkPad have done for over a decade...
 
---- orig/drivers/acpi/acpica/exmutex.c	2009-11-07 09:46:53.000000000 +0200
-+++ devel/drivers/acpi/acpica/exmutex.c	2009-11-07 09:48:16.000000000 +0200
-@@ -375,6 +375,15 @@
- 		return_ACPI_STATUS(AE_AML_MUTEX_NOT_ACQUIRED);
- 	}
- 
-+	/* Must have a valid thread ID */
-+
-+	if (!walk_state->thread) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Cannot release Mutex [%4.4s], null thread info",
-+			    acpi_ut_get_node_name(obj_desc->mutex.node)));
-+		return_ACPI_STATUS(AE_AML_INTERNAL);
-+	}
-+
- 	/*
- 	 * The Mutex is owned, but this thread must be the owner.
- 	 * Special case for Global Lock, any thread can release
-@@ -392,15 +401,6 @@
- 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
- 	}
- 
--	/* Must have a valid thread ID */
--
--	if (!walk_state->thread) {
--		ACPI_ERROR((AE_INFO,
--			    "Cannot release Mutex [%4.4s], null thread info",
--			    acpi_ut_get_node_name(obj_desc->mutex.node)));
--		return_ACPI_STATUS(AE_AML_INTERNAL);
--	}
--
- 	/*
- 	 * The sync level of the mutex must be equal to the current sync level. In
- 	 * other words, the current level means that at least one mutex at that
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
