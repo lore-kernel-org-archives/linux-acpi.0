@@ -1,47 +1,115 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v2 0/3] pci_root: track downstream bus range for _CBA
-Date: Tue, 10 Nov 2009 10:11:28 -0700
-Message-ID: <20091110170802.10645.91272.stgit@bob.kio>
+Subject: [PATCH v2 1/3] ACPI: pci_root: show entire downstream bus range
+Date: Tue, 10 Nov 2009 10:11:33 -0700
+Message-ID: <20091110171133.10645.95957.stgit@bob.kio>
+References: <20091110170802.10645.91272.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:44070 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757089AbZKJRLX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 12:11:23 -0500
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:43822 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757266AbZKJRL2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2009 12:11:28 -0500
+In-Reply-To: <20091110170802.10645.91272.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org
 
-The PCI Firmware Spec requires BIOS to use _CBA, not MCFG, to report
-MMCONFIG regions of hot-pluggable host bridges.  Therefore, if the
-hardware and firmware support host bridge hotplug, we will encounter
-_CBA even if Linux itself doesn't support hotplug.
+Previously, we only printed the immediately downstream bus number, but a
+host bridge claims a range of bus numbers.  _CRS tells us the range, and
+it helps understand the system topology, so let's show it.
 
-These patches make the pci_root driver keep track of the downstream
-bus range and make it available so arch-specific code can register
-MMCONFIG regions if necessary.
-
-The first patch merely *prints* the downstream range, without saving it.
-I posted that patch alone previously, before I realized that we actually
-need to save the range for _CBA.
-
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
+ drivers/acpi/pci_root.c |   33 ++++++++++++++++++---------------
+ 1 files changed, 18 insertions(+), 15 deletions(-)
 
-Bjorn Helgaas (3):
-      ACPI: pci_root: show entire downstream bus range
-      ACPI: pci_root: save downstream bus range
-      ACPI: pci_root: pass acpi_pci_root to arch-specific scan
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 1af8081..aa9eeee 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -152,7 +152,7 @@ EXPORT_SYMBOL_GPL(acpi_is_root_bridge);
+ static acpi_status
+ get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+ {
+-	int *busnr = data;
++	struct resource *res = data;
+ 	struct acpi_resource_address64 address;
+ 
+ 	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
+@@ -162,28 +162,27 @@ get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+ 
+ 	acpi_resource_to_address64(resource, &address);
+ 	if ((address.address_length > 0) &&
+-	    (address.resource_type == ACPI_BUS_NUMBER_RANGE))
+-		*busnr = address.minimum;
++	    (address.resource_type == ACPI_BUS_NUMBER_RANGE)) {
++		res->start = address.minimum;
++		res->end = address.minimum + address.address_length - 1;
++	}
+ 
+ 	return AE_OK;
+ }
+ 
+ static acpi_status try_get_root_bridge_busnr(acpi_handle handle,
+-					     unsigned long long *bus)
++					     struct resource *res)
+ {
+ 	acpi_status status;
+-	int busnum;
+ 
+-	busnum = -1;
++	res->start = -1;
+ 	status =
+ 	    acpi_walk_resources(handle, METHOD_NAME__CRS,
+-				get_root_bridge_busnr_callback, &busnum);
++				get_root_bridge_busnr_callback, res);
+ 	if (ACPI_FAILURE(status))
+ 		return status;
+-	/* Check if we really get a bus number from _CRS */
+-	if (busnum == -1)
++	if (res->start == -1)
+ 		return AE_ERROR;
+-	*bus = busnum;
+ 	return AE_OK;
+ }
+ 
+@@ -474,6 +473,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	acpi_handle handle;
+ 	struct acpi_device *child;
+ 	u32 flags, base_flags;
++	struct resource secondary;
+ 
+ 	segment = 0;
+ 	status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
+@@ -484,9 +484,11 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	}
+ 
+ 	/* Check _CRS first, then _BBN.  If no _BBN, default to zero. */
+-	bus = 0;
+-	status = try_get_root_bridge_busnr(device->handle, &bus);
+-	if (ACPI_FAILURE(status)) {
++	secondary.start = 0;
++	status = try_get_root_bridge_busnr(device->handle, &secondary);
++	if (ACPI_SUCCESS(status)) {
++		bus = secondary.start;
++	} else {
+ 		status = acpi_evaluate_integer(device->handle, METHOD_NAME__BBN,					       NULL, &bus);
+ 		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 			printk(KERN_ERR PREFIX
+@@ -521,9 +523,10 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	/* TBD: Locking */
+ 	list_add_tail(&root->node, &acpi_pci_roots);
+ 
+-	printk(KERN_INFO PREFIX "%s [%s] (%04x:%02x)\n",
++	printk(KERN_INFO PREFIX "%s [%s] (domain %04x [bus %02x-%02x])\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+-	       root->segment, root->bus_nr);
++	       root->segment,
++	       (unsigned int) secondary.start, (unsigned int) secondary.end);
+ 
+ 	/*
+ 	 * Scan the Root Bridge
 
-
- arch/ia64/pci/pci.c         |    5 ++++-
- arch/x86/pci/acpi.c         |    5 ++++-
- drivers/acpi/pci_root.c     |   46 ++++++++++++++++++++++++++-----------------
- include/acpi/acpi_bus.h     |    1 +
- include/acpi/acpi_drivers.h |    3 +--
- 5 files changed, 38 insertions(+), 22 deletions(-)
-
--- 
-Bjorn
