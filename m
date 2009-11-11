@@ -1,37 +1,82 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH] x86: make sure wakeup code is below 1M -v2
-Date: Wed, 11 Nov 2009 11:05:38 -0800
-Message-ID: <4AFB0B02.4050306@kernel.org>
-References: <4AF7D820.5040503@kernel.org> <200911091315.13151.rjw@sisk.pl>	 <4AFA210B.3020207@kernel.org> <1257930767.31183.113.camel@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] pci: Updates to Rafael's runtime PCI PM patch set
+Date: Wed, 11 Nov 2009 20:58:20 +0100
+Message-ID: <200911112058.20331.rjw@sisk.pl>
+References: <200910090051.50932.rjw@sisk.pl> <1257806529-6535-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:41062 "EHLO hera.kernel.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:37264 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758469AbZKKTHD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Nov 2009 14:07:03 -0500
-In-Reply-To: <1257930767.31183.113.camel@localhost.localdomain>
+	id S1758593AbZKKT45 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Nov 2009 14:56:57 -0500
+In-Reply-To: <1257806529-6535-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-pm@lists.linux-foundation.org, jbarnes@virtuousgeek.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stern@rowland.harvard.edu, shaohua.li@intel.com, bjorn.helgaas@hp.com
 
-ykzhao wrote:
-> On Wed, 2009-11-11 at 10:27 +0800, Yinghai Lu wrote:
->> try to find_e820_area/reserve_early, and call acpi_reserve_memory early
->>
->> to get area is below 1M
->>
->> -v2: change function name to acpi_reserve_wakeup_memory according to Rafael
-> It seems that the function of find_e820_area is called in several
-> places.
->    >Initmem_init: bootmap = find_e820_area(0, end_pfn<<PAGE_SHIFT,
-> bootmap_size, PAGE_SIZE);
->    
-> If we also call it in the acpi_reserve_wakeup_memory, do we get the same
-> base address as that obtained in initmem_init?
+On Monday 09 November 2009, Matthew Garrett wrote:
+> There's a few quirks with Rafael's PCI runtime PM code - this modifies
+> them a little. The body of it is just porting it to my GPE rewrite, but
+> it also moves the PCI binding earlier (otherwise acpi_pci_bind bails, since
+> it's primarily intended for bridges), and also ensures that the pme bit
+> gets set properly on hardware that requires it.
 
-no. find_e820_area will check the reserve res array that could be updated by reserve_early.
+Well, I thought more changes would be necessary. :-)
 
-YH
+Looking good, a few comments below.
+
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> ---
+>  drivers/acpi/pci_bind.c  |   12 ++++++------
+>  drivers/acpi/wakeup.c    |   36 ------------------------------------
+>  drivers/pci/pci-acpi.c   |   43 ++++++++++++++++---------------------------
+>  drivers/pci/pci-driver.c |    6 ++++++
+>  include/acpi/acpi_bus.h  |    6 ------
+>  5 files changed, 28 insertions(+), 75 deletions(-)
+> 
+...
+> diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+> index eb4f26a..d644db6 100644
+> --- a/drivers/pci/pci-driver.c
+> +++ b/drivers/pci/pci-driver.c
+> @@ -967,6 +967,9 @@ static int pci_pm_runtime_suspend(struct device *dev)
+>  			pci_prepare_to_sleep(pci_dev);
+>  	}
+>  
+> +	if (pci_pme_capable(pci_dev, pci_target_state(pci_dev)))
+> +		pci_pme_active(pci_dev, true);
+> +
+
+The PME was supposed to be turned on by pci_prepare_to_sleep().
+I guess it wasn't in practice?
+
+>  	pci_platform_run_wake(pci_dev, true);
+>  
+>  	return 0;
+> @@ -980,6 +983,9 @@ static int pci_pm_runtime_resume(struct device *dev)
+>  	if (!pm || !pm->runtime_resume)
+>  		return -ENOSYS;
+>  
+> +	if (pci_pme_capable(pci_dev, pci_target_state(pci_dev)))
+> +		pci_pme_active(pci_dev, false);
+> +
+
+Same here, pci_pm_default_resume_early() should cleare the PME theoretically,
+although not for bridges.
+
+>  	pci_platform_run_wake(pci_dev, false);
+>  	pci_pm_default_resume_early(pci_dev);
+>  	pci_pm_default_resume(pci_dev);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 935036e..9541588 100644
+
+Generally, some parts of it belong to the
+"PCI PM: Run-time callbacks for PCI bus type" patch and the others belong
+to "PCI / ACPI PM: Platform support for PCI PME wake-up" patch.  Should I fold
+the changes into them?
+
+Rafael
