@@ -1,60 +1,42 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: [linux-pm] intermittent suspend problem again
-Date: Wed, 11 Nov 2009 12:29:33 +0100
-Message-ID: <87my2tnvtu.fsf@tac.ki.iif.hu>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200910281956.44791.rjw@sisk.pl>
-	<87d447m52t.fsf@tac.ki.iif.hu> <200910291936.14082.rjw@sisk.pl>
+From: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] usb: Add support for runtime power management of the hcd
+Date: Wed, 11 Nov 2009 12:34:43 +0100
+Message-ID: <200911111234.43867.oliver@neukum.org>
+References: <Pine.LNX.4.44L0.0911100949500.2888-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:50596 "EHLO tac.ki.iif.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751496AbZKKLaP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Nov 2009 06:30:15 -0500
-In-Reply-To: <200910291936.14082.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Thu, 29 Oct 2009 19:36:14 +0100")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.0911100949500.2888-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Am Dienstag, 10. November 2009 16:04:12 schrieb Alan Stern:
+> D's driver will field the interrupt request and will call something
+> like pm_request_resume(), to schedule a workqueue item for a runtime
+> resume of D.  However, the runtime-PM workqueues are either frozen or
+> in some other way prevented from doing anything while the system sleep
+> transition is in progress.
+> 
+> Therefore the wakeup request will get lost.  The information is still
+> present, in the form of a work_struct, but it won't get acted on until
+> the system wakes up.  In particular, it won't prevent the sleep
+> transition from completing and it won't cause the system to wake up
+> immediately after going to sleep.
+> 
+> This suggests that pm_request_resume() should abort a sleep transition
+> if one is already in progress.  Rafael, what do you think?
 
-> On Thursday 29 October 2009, Ferenc Wagner wrote:
->
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->> 
->>> On Wednesday 28 October 2009, Ferenc Wagner wrote:
->>> 
->>>> 2.6.32-rc5 feels particularly bad, with frequent failures to switch
->>>> off the machine after "S|" or freezes after "Snapshotting system".
->>>> The former does not cause much trouble in itself, as the machine can
->>>> be switched off and resumed all right, but the latter is nasty.
->>>> Suspend to RAM works all the time.  The issue is not reproducible,
->>>> unfortunately, and the kernel change happened almost together with a
->>>> BIOS upgrade.  Yesterday I switched back to 2.6.31 to see whether it
->>>> still works stably with the new BIOS.  I'll report back my findings in
->>>> a couple of days.
->>>
->>> OK, thanks.
->>>
->>> Still, I'm really afraid we won't be able to debug it any further without a
->>> reproducible test case.
->>
->> Can't you perhaps suggest a way forward there?  Or some tricks to create a
->> reproducible test case here?
->
-> Well, you can test if the problem is reproducible in the "shutdown" mode of
-> hibernation.
+That seems to be a bit harsh. If you do not specify that a device be
+able to wake the whole system, why would it be good for a request
+coming from it to abort a system sleep transition?
 
-Well, both failure modes happen with "shutdown" mode as well (the S|
-freeze with yesterday's git, too), but still not reproducibly.  When
-s2disk is stuck in "Snapshotting system", the system is not completely
-dead, it echoes line feeds and Ctrl-C at least (as added to #14504).
-
-I wonder what you did if the issue was reproducible...  Is that totally
-unapplicable if the problem happens with 10% probability only?  Slow,
-sure, but until I manage to set up an automated testing bench...
--- 
-Thanks,
-Feri.
+	Regards
+		Oliver
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
