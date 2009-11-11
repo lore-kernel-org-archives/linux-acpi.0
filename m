@@ -1,57 +1,68 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [PATCH] usb: Add support for runtime power management of the hcd
-Date: Wed, 11 Nov 2009 23:24:57 +0100
-Message-ID: <200911112324.58076.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0911111400370.6882-100000@netrider.rowland.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] usb: Add support for runtime power management of the
+ hcd
+Date: Wed, 11 Nov 2009 18:05:53 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0911111753500.12919-100000@netrider.rowland.org>
+References: <200911112315.36073.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.0911111400370.6882-100000-pYrvlCTfrz9XsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:45379 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1759596AbZKKXFs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Nov 2009 18:05:48 -0500
+In-Reply-To: <200911112315.36073.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, linux-acpi@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 
-On Wednesday 11 November 2009, Alan Stern wrote:
-> On Wed, 11 Nov 2009, Oliver Neukum wrote:
+On Wed, 11 Nov 2009, Rafael J. Wysocki wrote:
+
+> > But this does raise an interesting point.  We do still have a race 
+> > between remote wakeup and system sleep.
 > 
-> > Am Mittwoch, 11. November 2009 18:08:17 schrieb Alan Stern:
-> > > On Wed, 11 Nov 2009, Oliver Neukum wrote:
+> We do to some extent.  There is the check in dpm_prepare() that will abort
+> system sleep transitions if run-time wake-up has been requested earlier,
+> but later requests will be discarded.
+
+Exactly.  The race I was referring to doesn't involve runtime PM; it 
+occurs when a device is suspended as part of a sleep transition but 
+then generates a wakeup request before the transition has finished.
+
+> > Suppose we're in the middle of a system sleep transition, and device D
+> > (such as a USB root hub) has been suspended as part of the normal
+> > preparation.  But then D generates a remote wakeup IRQ.
 > > 
-> > > > That seems to be a bit harsh. If you do not specify that a device be
-> > > > able to wake the whole system, why would it be good for a request
-> > > > coming from it to abort a system sleep transition?
-> > > 
-> > > The way you specify that a device be able to wake the whole system is
-> > > by enabling its remote wakeup attribute.  If this attribute is not
-> > > enabled then the device will not send remote wakeup requests, so the
-> > > scenario described above will not occur -- no IRQ will be generated.
+> > D's driver will field the interrupt request and will call something
+> > like pm_request_resume(), to schedule a workqueue item for a runtime
+> > resume of D.  However, the runtime-PM workqueues are either frozen or
+> > in some other way prevented from doing anything while the system sleep
+> > transition is in progress.
 > > 
-> > But what happens if a driver has requested remote wakeup requests
-> > to do runtime power management?
+> > Therefore the wakeup request will get lost.  The information is still
+> > present, in the form of a work_struct, but it won't get acted on until
+> > the system wakes up.  In particular, it won't prevent the sleep
+> > transition from completing and it won't cause the system to wake up
+> > immediately after going to sleep.
+> > 
+> > This suggests that pm_request_resume() should abort a sleep transition
+> > if one is already in progress.  Rafael, what do you think?
 > 
-> The driver mustn't tell the device to send remote wakeup requests if
-> the remote wakeup attribute isn't set.  If this means it can't do 
-> effective runtime PM, then so be it.
-> 
-> Now, this does raise another point, which has been mentioned before.  
-> To wit: devices really ought to have _two_ remote-wakeup attributes, 
-> one for runtime PM and one for system sleep.
+> That's not an easy question, becuase there always will be a point after which
+> we can't handle a run-time resume request.  If we are deep enough into the
+> suspend process, we won't receive wakeup interrupts any more, at least on
+> some platforms.
 
-Yes, they do and there's another reason.  Namely, there apparently are
-devices which can wake up the system from a sleep state and that are
-unable to generate runtime wakeup events.
+I don't know how to fix this in general...  The ultimate answer has to 
+be a synchronization point of some sort.  Wakeup requests received 
+before this point should cause the sleep to be aborted.  Requests 
+received later should remain pending in the hardware and cause the 
+system to wake up as soon as it goes to sleep.  But where this point is 
+will depend on the platform.
 
->   But that would introduce  yet more complexity and opportunities for
->   confusion.
+On regular PCs, a likely spot is the place where we disable the IRQ 
+lines.  For other types of system, I don't know.
 
-Nevertheless.
+Alan Stern
 
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
