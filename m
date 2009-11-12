@@ -1,45 +1,36 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [patch v2] x86: reduce srat verbosity in the kernel log
-Date: Thu, 12 Nov 2009 13:20:40 -0800 (PST)
-Message-ID: <alpine.DEB.2.00.0911121316060.15756@chino.kir.corp.google.com>
-References: <87pr8ay6tc.fsf@basil.nowhere.org> <4AE710C9.2070307@sgi.com> <alpine.DEB.2.00.0910271158490.24696@chino.kir.corp.google.com> <4AE75162.7080903@sgi.com> <alpine.DEB.2.00.0910271323410.32543@chino.kir.corp.google.com> <20091028033219.GE7744@basil.fritz.box>
- <alpine.DEB.2.00.0910272041360.8988@chino.kir.corp.google.com> <20091028041159.GI7744@basil.fritz.box> <alpine.DEB.2.00.0910272129250.17260@chino.kir.corp.google.com> <alpine.DEB.2.00.0911101307440.28728@chino.kir.corp.google.com> <20091110213312.GE23196@elte.hu>
- <alpine.DEB.2.00.0911121250140.9544@chino.kir.corp.google.com> <4AFC7AAC.2040607@sgi.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Help needed, Re: [Bug #14334] pcmcia suspend regression from
+	2.6.31.1 to 2.6.31.2 - Dell Inspiron 600m
+Date: Thu, 12 Nov 2009 13:14:55 +0100
+Message-ID: <20091112121455.GA1394@ucw.cz>
+References: <Sj-rRjx6TwF.A.djE.vqe5KB@chimera> <200911010936.10409.rjw@sisk.pl> <alpine.LFD.2.01.0911010914100.31845@localhost.localdomain> <200911021439.28266.rjw@sisk.pl> <1257200523.7907.53.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:62424 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532AbZKLVUm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 16:20:42 -0500
-In-Reply-To: <4AFC7AAC.2040607@sgi.com>
+Received: from artax.karlin.mff.cuni.cz ([195.113.26.195]:45893 "EHLO
+	artax.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754382AbZKLXCv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 18:02:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1257200523.7907.53.camel@pasglop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Jack Steiner <steiner@sgi.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Yinghai Lu <yinghai@kernel.org>, Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kernel Testers List <kernel-testers@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Jose Marino <braket@hotmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>
 
-On Thu, 12 Nov 2009, Mike Travis wrote:
+Hi!
 
-> Also, I think in general that all the apic messages, unless they represent
-> "system boot progress" should be displayed only when asked for, like with
-> apic=debug or verbose?   Something more like:
-> 
+> (Bug was simple but took a while to track down: machine was left in
+> storage for a while, battery ran out, RTC went back to Jan 1, 1904,
+> which means a negative xtime, and the new timekeeping code will do
+> horrible things including hanging at resume when that happens. Fix is to
+> make powerpc read_persistent_clock() to ignore the RTC when it contains
+> a date older than epoch).
 
-That's outside the scope of my patch.  My patch does what the title says, 
-it reduces srat verbosity in the kernel log.  If an additional change 
-would like to suppress that output with a kernel parameter, that's fine, 
-but it's an additional change and not what I was addressing.
+Additionaly, it would be nice if the machine would not hang, no matter
+what RTC says...
+									Pavel
 
-When posting a patchset like this where all patches are related for a 
-common goal and one patch (mine) was proposed during the development of 
-the set, it's normal to include that patch in future postings with proper 
-attribution given by indicating an author other than yourself in the very 
-first line of the email:
-
-	From: David Rientjes <rientjes@google.com>
-
-and retaining your acked-by line, my signed-off-by line, and then adding 
-your own signed-off-by line.
-
-If a subsequent patch were to suppress this for kernels not using a 
-certain parameter, I certainly wouldn't object to it.
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
