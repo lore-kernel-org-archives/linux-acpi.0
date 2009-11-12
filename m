@@ -1,41 +1,35 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 Subject: Re: [PATCH] usb: Add support for runtime power management of the
-	hcd
-Date: Thu, 12 Nov 2009 14:51:22 +0000
-Message-ID: <20091112145121.GB6709@srcf.ucam.org>
-References: <200911112324.58076.rjw@sisk.pl> <Pine.LNX.4.44L0.0911111806100.12919-100000@netrider.rowland.org> <20091112003312.GA27572@srcf.ucam.org> <200911120841.11263.oliver@neukum.org>
+ hcd
+Date: Thu, 12 Nov 2009 11:22:01 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0911121120550.3000-100000@iolanthe.rowland.org>
+References: <20091112003312.GA27572@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:37529 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891AbZKLOvX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 09:51:23 -0500
-Content-Disposition: inline
-In-Reply-To: <200911120841.11263.oliver@neukum.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091112003312.GA27572-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 
-On Thu, Nov 12, 2009 at 08:41:11AM +0100, Oliver Neukum wrote:
-> Am Donnerstag, 12. November 2009 01:33:12 schrieb Matthew Garrett:
-> > On Wed, Nov 11, 2009 at 06:09:24PM -0500, Alan Stern wrote:
-> > > That's okay.  There's no harm in trying to enable remote wakeup on a 
-> > > device which doesn't support it.
-> > 
-> > There's harm if we're using the ability to generate remote waleups as a 
-> > condition for whether we can perform runtime pm on the device...
+On Thu, 12 Nov 2009, Matthew Garrett wrote:
+
+> On Wed, Nov 11, 2009 at 06:09:24PM -0500, Alan Stern wrote:
 > 
-> That I would consider backwards. If the user enables runtime power management
-> of a device, he has to live with remote wakeup being enabled. At most
-> the kernel might resume and switch off remote wakeup on the device,
-> but we might also leave this to user space.
+> > That's okay.  There's no harm in trying to enable remote wakeup on a 
+> > device which doesn't support it.
+> 
+> There's harm if we're using the ability to generate remote waleups as a 
+> condition for whether we can perform runtime pm on the device...
 
-My point was that if we don't have remote wakeup support at runtime, we 
-can't enable runtime PM of the device. So we need to be able to 
-distinguish between runtime remote wakeup and system sleep remote 
-wakeup.
+You misunderstood me.  There's no harm in _trying_ to enable remote 
+wakeup.  The harm comes when the attempt fails but the drivers thinks 
+it succeeded.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
