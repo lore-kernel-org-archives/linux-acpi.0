@@ -1,35 +1,76 @@
-From: Oliver Neukum <oliver@neukum.org>
-Subject: Re: [PATCH] usb: Add support for runtime power management of the hcd
-Date: Thu, 12 Nov 2009 08:41:11 +0100
-Message-ID: <200911120841.11263.oliver@neukum.org>
-References: <200911112324.58076.rjw@sisk.pl> <Pine.LNX.4.44L0.0911111806100.12919-100000@netrider.rowland.org> <20091112003312.GA27572@srcf.ucam.org>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH] x86: make sure wakeup code is below 1M -v2
+Date: Thu, 12 Nov 2009 15:43:38 +0800
+Message-ID: <1258011818.3802.16.camel@localhost.localdomain>
+References: <4AF7D820.5040503@kernel.org> <200911091315.13151.rjw@sisk.pl>
+	 <4AFA210B.3020207@kernel.org>
+	 <1257930767.31183.113.camel@localhost.localdomain>
+	 <4AFB0B02.4050306@kernel.org>
+	 <1257988632.31183.134.camel@localhost.localdomain>
+	 <4AFB7D21.6050004@kernel.org>
+	 <1257997072.3888.4.camel@localhost.localdomain>
+	 <4AFB9B60.7010009@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:44987 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbZKLHii (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 02:38:38 -0500
-In-Reply-To: <20091112003312.GA27572@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751651AbZKLHpK@vger.kernel.org>
+In-Reply-To: <4AFB9B60.7010009@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 
-Am Donnerstag, 12. November 2009 01:33:12 schrieb Matthew Garrett:
-> On Wed, Nov 11, 2009 at 06:09:24PM -0500, Alan Stern wrote:
-> > That's okay.  There's no harm in trying to enable remote wakeup on a 
-> > device which doesn't support it.
-> 
-> There's harm if we're using the ability to generate remote waleups as a 
-> condition for whether we can perform runtime pm on the device...
+On Thu, 2009-11-12 at 13:21 +0800, Yinghai Lu wrote:
+> ykzhao wrote:
+> > On Thu, 2009-11-12 at 11:12 +0800, Yinghai Lu wrote:
+> >> ykzhao wrote:
+> >>> On Thu, 2009-11-12 at 03:05 +0800, Yinghai Lu wrote:
+> >>>> ykzhao wrote:
+> >>>>> On Wed, 2009-11-11 at 10:27 +0800, Yinghai Lu wrote:
+> >>>>>> try to find_e820_area/reserve_early, and call acpi_reserve_mem=
+ory early
+> >>>>>>
+> >>>>>> to get area is below 1M
+> >>>>>>
+> >>>>>> -v2: change function name to acpi_reserve_wakeup_memory accord=
+ing to Rafael
+> >>>>> It seems that the function of find_e820_area is called in sever=
+al
+> >>>>> places.
+> >>>>>    >Initmem_init: bootmap =3D find_e820_area(0, end_pfn<<PAGE_S=
+HIFT,
+> >>>>> bootmap_size, PAGE_SIZE);
+> >>>>>   =20
+> >>>>> If we also call it in the acpi_reserve_wakeup_memory, do we get=
+ the same
+> >>>>> base address as that obtained in initmem_init?
+> >>>> no. find_e820_area will check the reserve res array that could b=
+e updated by reserve_early.
+> >>> It will check the reserved region array when calling the function=
+ of
+> >>> find_e820_area.=20
+> >>> But it seems that the array is not updated when the find_e820_are=
+a is
+> >>> called in the function of initmem_init.
+> >> right after that will use reserve_bootmem for those range in initm=
+em_init.
+> > Yes. The reserve_bootmem is called for the range in initmem_init.
+> > But the reserved_early array is not updated.
+>=20
+> it is not needed anymore because bootmem for that node is ready at th=
+at point, could use=20
+> reserve_bootmem_node directly. and before that early_res_to_bootmem w=
+ill convert that early resource that=20
+> fall into that node range to bootmem reserved too.
+>=20
+> please check code setup_node_bootmem/early_node_mem/early_res_to_boot=
+mem ...and reserve_bootmem_node...
+Sorry that I don't notice that the function
+of =EF=BB=BFacpi_reserve_wakeup_memory is also moved early before initi=
+alizing
+the bootmem allocator.
+If so, there is no problem.
 
-That I would consider backwards. If the user enables runtime power management
-of a device, he has to live with remote wakeup being enabled. At most
-the kernel might resume and switch off remote wakeup on the device,
-but we might also leave this to user space.
-
-	Regards
-		Oliver
+thanks.
+>=20
+> YH
