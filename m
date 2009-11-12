@@ -1,55 +1,41 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: linux-next: Tree for November 12
- (acpi_processor_get_bios_limit)
-Date: Thu, 12 Nov 2009 10:09:56 -0800
-Message-ID: <20091112100956.fc72080e.randy.dunlap@oracle.com>
-References: <20091112195101.63263490.sfr@canb.auug.org.au>
-	<20091112094012.2ef401ad.randy.dunlap@oracle.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH] x86: make sure wakeup code is below 1M -v2
+Date: Thu, 12 Nov 2009 11:25:49 -0800
+Message-ID: <4AFC613D.2060808@kernel.org>
+References: <4AF7D820.5040503@kernel.org> <200911091315.13151.rjw@sisk.pl> <4AFA210B.3020207@kernel.org> <20091112073616.GA11365@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:45291 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030AbZKLSLN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 13:11:13 -0500
-In-Reply-To: <20091112094012.2ef401ad.randy.dunlap@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753493AbZKLT1Z@vger.kernel.org>
+In-Reply-To: <20091112073616.GA11365@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, lenb@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, 12 Nov 2009 09:40:12 -0800 Randy Dunlap wrote:
-
-> On Thu, 12 Nov 2009 19:51:01 +1100 Stephen Rothwell wrote:
+Pavel Machek wrote:
+> On Tue 2009-11-10 18:27:23, Yinghai Lu wrote:
+>> try to find_e820_area/reserve_early, and call acpi_reserve_memory early
+>>
+>> to get area is below 1M
 > 
-> > Hi all,
-> > 
-> > Changes since 20091111:
-> > 
-> > The cpufreq tree gained a conflict against the acpi tree.
+>> -	acpi_realmode = (unsigned long)alloc_bootmem_low(WAKEUP_SIZE);
+>> +	mem = find_e820_area(0, 1<<20, WAKEUP_SIZE, PAGE_SIZE);
+>>  
+>> -	if (!acpi_realmode) {
+>> +	if (mem == -1L) {
+>>  		printk(KERN_ERR "ACPI: Cannot allocate lowmem, S3 disabled.\n");
+>>  		return;
+>>  	}
 > 
-> when CONFIG_CPU_FREQ=n:
-> 
-> arch/x86/kernel/acpi/processor.o: In function `acpi_processor_get_bios_limit':
-> (.text+0x0): multiple definition of `acpi_processor_get_bios_limit'
-> arch/x86/kernel/acpi/cstate.o:(.text+0x0): first defined here
-> 
-> 
-> The function definition in include/apci/procssor.h needs to be "static inline"
-> at line 323.
+> How is it better then old code?
 
----
-however, even with that fixed, when
+could get range below 1M.
 
-CONFIG_CPU_FREQ=y
-CONFIG_ACPI=n
-CONFIG_SFI=y
-CONFIG_APM=y
+alloc_bootmem_low can not make sure get that below 1M.
 
-there is this build error:
+init_memory_mapping could use below 1M as page table...
 
-arch/x86/kernel/cpu/cpufreq/powernow-k7.c:720: error: 'acpi_processor_get_bios_limit' undeclared here (not in a function)
+so need to get some buffer for acpi wakeup realmode code.
 
----
-~Randy
+YH
