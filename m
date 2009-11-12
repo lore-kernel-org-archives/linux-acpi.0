@@ -1,43 +1,35 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] x86: make sure wakeup code is below 1M -v2
-Date: Wed, 11 Nov 2009 23:20:15 -0800
-Message-ID: <4AFBB72F.6070907@zytor.com>
-References: <4AF7D820.5040503@kernel.org> <200911091315.13151.rjw@sisk.pl>	 <4AFA210B.3020207@kernel.org>	 <1257930767.31183.113.camel@localhost.localdomain>	 <4AFB0B02.4050306@kernel.org>	 <1257988632.31183.134.camel@localhost.localdomain>	 <4AFB7D21.6050004@kernel.org>	 <1257997072.3888.4.camel@localhost.localdomain>	 <4AFB9B60.7010009@kernel.org> <1258010067.3802.11.camel@localhost.localdomain>
+From: Oliver Neukum <oliver@neukum.org>
+Subject: Re: [PATCH] usb: Add support for runtime power management of the hcd
+Date: Thu, 12 Nov 2009 08:41:11 +0100
+Message-ID: <200911120841.11263.oliver@neukum.org>
+References: <200911112324.58076.rjw@sisk.pl> <Pine.LNX.4.44L0.0911111806100.12919-100000@netrider.rowland.org> <20091112003312.GA27572@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:49009 "EHLO
-	terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204AbZKLHVF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 02:21:05 -0500
-In-Reply-To: <1258010067.3802.11.camel@localhost.localdomain>
+Received: from smtp-out002.kontent.com ([81.88.40.216]:44987 "EHLO
+	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbZKLHii (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2009 02:38:38 -0500
+In-Reply-To: <20091112003312.GA27572@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 
-On 11/11/2009 11:14 PM, ykzhao wrote:
+Am Donnerstag, 12. November 2009 01:33:12 schrieb Matthew Garrett:
+> On Wed, Nov 11, 2009 at 06:09:24PM -0500, Alan Stern wrote:
+> > That's okay.  There's no harm in trying to enable remote wakeup on a 
+> > device which doesn't support it.
 > 
-> In this patch the find_e820_area is used in the
-> acpi_reserve_wakeup_memory, which is called after initializing the
-> bootmem allocator.
-> Can we still use the find_e820_area after the bootmem allocator is
-> initialized? 
+> There's harm if we're using the ability to generate remote waleups as a 
+> condition for whether we can perform runtime pm on the device...
 
-Obviously not: the bootmem allocator now thinks it owns memory, and it
-wouldn't know not to allocate something that is later claimed by
-find_e820_area.  Problem.
+That I would consider backwards. If the user enables runtime power management
+of a device, he has to live with remote wakeup being enabled. At most
+the kernel might resume and switch off remote wakeup on the device,
+but we might also leave this to user space.
 
-> It seems that the bootmem bitmap is also found by using the
-> find_e820_area. But we don't update the reserved_early array any more.
-> Maybe we will get the overlap address with the bootmem bitmap for the
-> wakeup code.
-
-Not just the bitmap, but any bootmem allocation could conflict...
-
-	-hpa
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
-
+	Regards
+		Oliver
