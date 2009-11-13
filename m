@@ -1,44 +1,55 @@
-From: Larry Finger <Larry.Finger-tQ5ms3gMjBLk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: 64-bit DMA problems with BCM4312 using b43
-Date: Fri, 13 Nov 2009 15:05:18 -0600
-Message-ID: <4AFDCA0E.4080007@lwfinger.net>
-References: <4AFD958E.1000303@lwfinger.net>
-	<20091113201112.GA5540@srcf.ucam.org>
-	<200911132144.24110.mb@bu3sch.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 5/7] acpi: fix a bunch of style issues on 'actypes.h'
+Date: Fri, 13 Nov 2009 13:08:08 -0800
+Message-ID: <4911F71203A09E4D9981D27F9D8308583E43CEEB@orsmsx503.amr.corp.intel.com>
+References: <1255906474-25091-1-git-send-email-felipe.contreras@gmail.com>
+	 <1255906474-25091-6-git-send-email-felipe.contreras@gmail.com>
+	 <alpine.LSU.2.00.0910191616290.8582@wotan.suse.de>
+ <1258145921.6411.18.camel@c-dwalke-linux.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <bcm43xx-dev-bounces-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org>
-In-Reply-To: <200911132144.24110.mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>
-List-Unsubscribe: <https://lists.berlios.de/mailman/listinfo/bcm43xx-dev>,
-	<mailto:bcm43xx-dev-request-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.berlios.de/pipermail/bcm43xx-dev>
-List-Post: <mailto:bcm43xx-dev-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org>
-List-Help: <mailto:bcm43xx-dev-request-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.berlios.de/mailman/listinfo/bcm43xx-dev>,
-	<mailto:bcm43xx-dev-request-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org?subject=subscribe>
-Sender: bcm43xx-dev-bounces-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org
-Errors-To: bcm43xx-dev-bounces-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org
-To: Michael Buesch <mb-fseUSCV1ubazQB+pC5nmwQ@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, bcm43xx-dev-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:13232 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932361AbZKMVIE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Nov 2009 16:08:04 -0500
+In-Reply-To: <1258145921.6411.18.camel@c-dwalke-linux.qualcomm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Walker <dwalker@fifo99.com>, Jiri Kosina <jkosina@suse.cz>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 11/13/2009 02:44 PM, Michael Buesch wrote:
-> On Friday 13 November 2009 21:11:12 Matthew Garrett wrote:
->> On Fri, Nov 13, 2009 at 11:21:18AM -0600, Larry Finger wrote:
+
+>-----Original Message-----
+>From: Daniel Walker [mailto:dwalker@fifo99.com]
+>Sent: Friday, November 13, 2009 12:59 PM
+>To: Jiri Kosina
+>Cc: Felipe Contreras; linux-kernel@vger.kernel.org; Len Brown; Moore,
+>Robert; Lin, Ming M; linux-acpi@vger.kernel.org
+>Subject: Re: [PATCH 5/7] acpi: fix a bunch of style issues on 'actypes.h'
+>
+>On Mon, 2009-10-19 at 16:20 +0200, Jiri Kosina wrote:
+>> On Mon, 19 Oct 2009, Felipe Contreras wrote:
 >>
->>> I do not know enough about either the ACPI or DMA code to begin debugging in
->>> either of those regions. Any suggestions on debugging strategies, or links to
->>> similar problems would be appreciated.
+>> > Many still remain.
+>> >
+>> > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 >>
->> Could the hardware be highly sensitive to DMA latencies? Take a look at 
->> the pm_qos code in ipw2100.
-> 
-> This makes perfect sense, yes. The DMA engine has so many quirks, I wouldn't be
-> surprised if it couldn't handle pm properly.
+>> I have never been in favor of merging whitespace-only patches (in a sense
+>> that the sole purpose of them being to change whitespaces, but no else
+>> value added).
+>>
+>> And after today's discussion on kernel summit on this topic, I wouldn't
+>> expect any maintainer to merge it, sorry :)
+>
+>could you be more specific about what "discussion" you are talking
+>about.
+>
 
-I'm in the process of creating a patch to set the latency to 200 usec. The
-default is 2000. On my fast prosessors, it should not be anything nearly that
-slow. If we determine this to be the problem, then we can try tuning.
+Yes, do tell.
 
-Larry
+
+>Daniel
+
