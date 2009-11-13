@@ -1,40 +1,54 @@
-From: Daniel Walker <dwalker@fifo99.com>
-Subject: Re: [PATCH 4/5] acpi: fix trivial warning
-Date: Fri, 13 Nov 2009 09:43:27 -0800
-Message-ID: <1258134207.6411.0.camel@c-dwalke-linux.qualcomm.com>
-References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-2-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-3-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
-	 <1252936556.28368.215.camel@desktop>
-	 <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
-	 <1252940549.28368.255.camel@desktop>
-	 <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] intermittent suspend problem again
+Date: Fri, 13 Nov 2009 20:59:46 +0100
+Message-ID: <200911132059.46377.rjw@sisk.pl>
+References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200911111547.21149.rjw@sisk.pl> <87my2qwff8.fsf@tac.ki.iif.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756629AbZKMRnd@vger.kernel.org>
-In-Reply-To: <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:48418 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932295AbZKMT6W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Nov 2009 14:58:22 -0500
+In-Reply-To: <87my2qwff8.fsf@tac.ki.iif.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ferenc Wagner <wferi@niif.hu>
+Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Thu, 2009-11-12 at 02:23 +0200, Felipe Contreras wrote:
-> On Mon, Sep 14, 2009 at 5:02 PM, Daniel Walker <dwalker@fifo99.com> wrote:
-> > On Mon, 2009-09-14 at 17:34 +0300, Felipe Contreras wrote:
-> >> I did... the style issues are already there, my patch is not
-> >> introducing them. Do you want me to send a separate patch to fix the
-> >> existing style issues?
-> >
-> > Yes, If your inclined to clean up the whole file, or just the
-> > surrounding code that would be helpful ..
+On Friday 13 November 2009, Ferenc Wagner wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
 > 
-> Nobody seems to like the patch you suggested me to do... did I wasted
-> my time doing it?
-> http://article.gmane.org/gmane.linux.acpi.devel/42383
+> > Yes, echo "core" to /sys/power/pm_test before executing s2disk.
+> 
+> It snapshots the system and returns, producing the same console output
+> as s2ram (is this the expected behaviour?)  I ran this several times in
+> a loop, and experienced no problems at all.  Maybe it depends on the
+> amount of memory used...  I saw a freeze saying "99% done" (ie. not
+> 100%), btw.
 
-Did you get some negative feedback ? I don't see any..
+The number is not always accurate because of rounding errors.  I think we can
+safely assume that it always happens after the entire image has been written.
 
-Daniel
+> Are other pm_test values meaningful with s2disk?  Is this
+> handled explicitly in s2disk, or does simply the kernel act as if it was
+> resumed instead of providing the system image after SNAPSHOT_CREATE_IMAGE?
+
+The latter.
+
+> > On Wednesday 11 November 2009, Ferenc Wagner wrote:
+> >
+> >> I already did the test for STR (see
+> >> http://bugs.freedesktop.org/show_bug.cgi?id=22126#c3), but will redo
+> >> with the current kernel tonight.
+> >
+> > OK, thanks.
+> 
+> No change on this front, FWIW.  But rc7 is out now, I'll test again.
+
+Not sure if that's going to work, but yes please test it.
+
+Thanks,
+Rafael
