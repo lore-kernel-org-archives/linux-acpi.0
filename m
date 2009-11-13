@@ -1,41 +1,51 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] x86: make sure wakeup code is below 1M -v2
-Date: Fri, 13 Nov 2009 09:12:05 +0100
-Message-ID: <20091113081205.GC18054@elte.hu>
-References: <4AF7D820.5040503@kernel.org>
- <4AFA210B.3020207@kernel.org>
- <20091112073616.GA11365@elf.ucw.cz>
- <200911122032.46872.rjw@sisk.pl>
- <20091113073608.GB26127@elte.hu>
- <4AFD12F2.2090103@zytor.com>
+From: Fred Labrosse <ffl@aber.ac.uk>
+Subject: multiple APIC/MADT found
+Date: Fri, 13 Nov 2009 13:38:38 +0000
+Message-ID: <200911131338.38528.ffl@aber.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:37416 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754665AbZKMIM0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Nov 2009 03:12:26 -0500
-Content-Disposition: inline
-In-Reply-To: <4AFD12F2.2090103@zytor.com>
+Received: from braint.aber.ac.uk ([144.124.16.42]:37606 "EHLO
+	braint.aber.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752635AbZKMNuS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Nov 2009 08:50:18 -0500
+Received: from pcffl.dcs.aber.ac.uk ([193.60.10.49] helo=aber.ac.uk)
+	by braint.aber.ac.uk with esmtp (Exim 4.69)
+	(envelope-from <ffl@aber.ac.uk>)
+	id 1N8wMI-0002c5-5q
+	for linux-acpi@vger.kernel.org; Fri, 13 Nov 2009 13:38:38 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, Yinghai Lu <yinghai@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
 
+Hi,
 
-* H. Peter Anvin <hpa@zytor.com> wrote:
+At some point, I discovered that I only had one processor active on my 
+laptop (A VAIO VGN-SZ2M) wich has a centrino duo in (2 cores).  I then 
+discovered in dmesg the lines that say:
 
-> On 11/12/2009 11:36 PM, Ingo Molnar wrote:
-> > 
-> > Physical constraints to allocations (which this is) should be expressed 
-> > early and with high priority, to make sure they can be met.
-> > 
-> 
-> Indeed, and in this case this means before bootmem allocator initialization.
+ACPI: BIOS bug: multiple APIC/MADT found, using 0
+ACPI: If "acpi_apic_instance=2" works better, notify linux-
+acpi@vger.kernel.org
 
-The other advantage of Yinghai's patch is that it removes a bootmem 
-usage from x86, which moves us a bit forward on the road to remove the 
-bootmem allocator altogether and go from early allocators to slab 
-straight away.
+So I did that (acpi_apic_instance=2) and that did give me 2 processors.  
+Which is definitely better, hence my email to the suggested address.
 
-	Ingo
+There is one thing that does not quite work however and I don't know if this 
+is related: ACPI only sees one processor and therefore cpufreq only controls 
+the frequency of one processor.  I think this used to work but I don't know 
+when that stopped.
+
+Hee's the output of uname:
+
+# uname -a
+Linux pcp2ffl 2.6.30-gentoo-r8 #4 SMP PREEMPT Thu Nov 12 18:41:51 GMT 2009 
+i686 Genuine Intel(R) CPU T2300 @ 1.66GHz GenuineIntel GNU/Linux
+
+I have tried with a vanilla kernel too but that made no difference.
+
+Hope this helps.
+
+Fred
