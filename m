@@ -1,107 +1,37 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] thinkpad-acpi: fix detection of old ThinkPads
-Date: Sat, 14 Nov 2009 00:36:51 -0200
-Message-ID: <1258166211-14203-1-git-send-email-hmh@hmh.eng.br>
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: Re: 64-bit DMA problems with BCM4312 using b43
+Date: Fri, 13 Nov 2009 21:40:53 -0600
+Message-ID: <4AFE26C5.5080402@lwfinger.net>
+References: <4AFD958E.1000303@lwfinger.net> <20091113201112.GA5540@srcf.ucam.org> <200911132144.24110.mb@bu3sch.de> <4AFDCA0E.4080007@lwfinger.net> <20091113211306.GA6600@srcf.ucam.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:55919 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753312AbZKNChN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Nov 2009 21:37:13 -0500
+Received: from mail-yw0-f202.google.com ([209.85.211.202]:59899 "EHLO
+	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755465AbZKNDku (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Nov 2009 22:40:50 -0500
+In-Reply-To: <20091113211306.GA6600@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Andrew Morton <akpm@linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Michael Buesch <mb@bu3sch.de>, bcm43xx-dev@lists.berlios.de, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-There is a problem in the quirk tables used by tpacpi_is_fw_known()
-and tpacpi_check_outdated_fw(), which causes outdated BIOSes that are
-lacking the EC firmware ID DMI field to never match.
+On 11/13/2009 03:13 PM, Matthew Garrett wrote:
+> On Fri, Nov 13, 2009 at 03:05:18PM -0600, Larry Finger wrote:
+> 
+>> I'm in the process of creating a patch to set the latency to 200 usec. The
+>> default is 2000. On my fast prosessors, it should not be anything nearly that
+>> slow. If we determine this to be the problem, then we can try tuning.
+> 
+> The latency is the amount of time it takes to get out of deep C states 
+> and into C0. That's a function of the processor design rather than the 
+> frequency.
 
-This breaks module loading on, e.g. a T23 with outdated BIOS, and the
-module will refuse to load unless the "force_load=1" parameter is
-given.
+Thanks for your suggestion. The value of 200 fixed one of the two machines and
+greatly improved the other. He is currently testing with a value of 150, and
+will try 100 if that still fails.
 
-Fix the quirk tables so that they can also match the outdated BIOSes,
-which in turn will both fix the module loading, and also warn the user
-that he is using outdated firmware and should upgrade.
+Larry
 
-This fixes a serious regression, introduced by commit
-e675abafcc0df38125e6e94a9ba91c92fe774f52,
-"thinkpad-acpi: be more strict when detecting a ThinkPad".
-
-Tracked by bugzilla #14597.
-
-Reported-by: Paul Kimoto <kimoto@lightlink.com>
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Tested-by: Paul Kimoto <kimoto@lightlink.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
----
- drivers/platform/x86/thinkpad_acpi.c |   24 ++++++++++++++++++------
- 1 files changed, 18 insertions(+), 6 deletions(-)
-
-Len, this patch needs to go to mainline ASAP, it should be merged before
-2.6.32 ships, in order to avoid nasty surprises for a reasonable number
-of ThinkPad users...
-
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index d93108d..8973af1 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -1680,36 +1680,48 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv)
- 			  | (__bv1) << 8 | (__bv2) }
- 
- #define TPV_Q_X(__v, __bid1, __bid2, __bv1, __bv2,	\
--		__eid1, __eid2, __ev1, __ev2)		\
-+		__eid, __ev1, __ev2)			\
- 	{ .vendor	= (__v),			\
- 	  .bios		= TPID(__bid1, __bid2),		\
--	  .ec		= TPID(__eid1, __eid2),		\
-+	  .ec		= __eid,			\
- 	  .quirks	= (__ev1) << 24 | (__ev2) << 16 \
- 			  | (__bv1) << 8 | (__bv2) }
- 
- #define TPV_QI0(__id1, __id2, __bv1, __bv2) \
- 	TPV_Q(PCI_VENDOR_ID_IBM, __id1, __id2, __bv1, __bv2)
- 
-+/* Outdated IBM BIOSes often lack the EC id string */
- #define TPV_QI1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
- 	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
--		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__id1, __id2),	\
-+		__ev1, __ev2),				\
-+	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
-+		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
-+		__ev1, __ev2)
- 
-+/* Outdated IBM BIOSes often lack the EC id string */
- #define TPV_QI2(__bid1, __bid2, __bv1, __bv2,		\
- 		__eid1, __eid2, __ev1, __ev2) 		\
- 	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
--		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__eid1, __eid2),	\
-+		__ev1, __ev2),				\
-+	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
-+		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
-+		__ev1, __ev2)
- 
- #define TPV_QL0(__id1, __id2, __bv1, __bv2) \
- 	TPV_Q(PCI_VENDOR_ID_LENOVO, __id1, __id2, __bv1, __bv2)
- 
- #define TPV_QL1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
- 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __id1, __id2, 	\
--		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__id1, __id2),	\
-+		__ev1, __ev2)
- 
- #define TPV_QL2(__bid1, __bid2, __bv1, __bv2,		\
- 		__eid1, __eid2, __ev1, __ev2) 		\
- 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __bid1, __bid2, 	\
--		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
-+		__bv1, __bv2, TPID(__eid1, __eid2),	\
-+		__ev1, __ev2)
- 
- static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
- 	/*  Numeric models ------------------ */
--- 
-1.6.5.2
 
