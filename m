@@ -1,53 +1,60 @@
-From: andrej.gelenberg-KJIyc1CJxjQ@public.gmane.org
-Subject: Re: eeepc-laptop: bugreport
-Date: Sun, 15 Nov 2009 20:19:27 +0100
-Message-ID: <cone.1258312767.545625.1812.1000@eeekiste>
-References: <cone.1258203372.445001.1633.1000@eeekiste>
-	<71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com>
-	<cone.1258211472.464906.1633.1000@eeekiste>
-	<71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH 3/10] PCI / PM: Propagate wake-up enable for PCIe devices too
+Date: Mon, 16 Nov 2009 00:51:20 +0100
+Message-ID: <200911160051.20362.rjw@sisk.pl>
+References: <200911160047.46299.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200911160047.46299.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Corentin Chary writes:
+Having read the PM part of the PCIe 2.0 specification more carefully
+I think that it was a mistake to restrict the wake-up enable
+propagation to non-PCIe devices, because if we do not request
+control of the root ports' PME registers via OSC, PCIe PME is
+supposed to be handled by the platform, just like the non-PCIe PME.
+Even if we do that, the wake-up propagation is done to allow the
+devices to wake up the system from sleep states which involves the
+platform anyway, so it won't hurt.
 
-> Hi,
-> We can't apply your patch as-is. But we need to fix that.
-> 
-> Matthew, you added hotplug in commit  5740294ca3a9b113fe146f2826effb69ca50008d,
-> it was needed for 701/900/901. Do you know if it's still needed for 1005ha ?
-> 
-> Thanks,
-> 
-> -- 
-> Corentin Chary
-> http://xf.iksaif.net
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-how about to make hotplug optional?
-http://bugzilla.kernel.org/show_bug.cgi?id=14570#c7
-
-Regards,
-Andrej
-
-
-------------------------------------------------------------------------------
-Let Crystal Reports handle the reporting - Free Crystal Reports 2008 30-Day 
-trial. Simplify your report design, integration and deployment - and focus on 
-what you do best, core application coding. Discover what's new with
-Crystal Reports now.  http://p.sf.net/sfu/bobj-july
+Index: linux-2.6/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci-acpi.c
++++ linux-2.6/drivers/pci/pci-acpi.c
+@@ -112,11 +112,7 @@ static bool acpi_pci_can_wakeup(struct p
+ static void acpi_pci_propagate_wakeup_enable(struct pci_bus *bus, bool enable)
+ {
+ 	while (bus->parent) {
+-		struct pci_dev *bridge = bus->self;
+-		int ret;
+-
+-		ret = acpi_pm_device_sleep_wake(&bridge->dev, enable);
+-		if (!ret || bridge->is_pcie)
++		if (!acpi_pm_device_sleep_wake(&bus->self->dev, enable))
+ 			return;
+ 		bus = bus->parent;
+ 	}
+@@ -131,9 +127,7 @@ static int acpi_pci_sleep_wake(struct pc
+ 	if (acpi_pci_can_wakeup(dev))
+ 		return acpi_pm_device_sleep_wake(&dev->dev, enable);
+ 
+-	if (!dev->is_pcie)
+-		acpi_pci_propagate_wakeup_enable(dev->bus, enable);
+-
++	acpi_pci_propagate_wakeup_enable(dev->bus, enable);
+ 	return 0;
+ }
+ 
