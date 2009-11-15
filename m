@@ -1,60 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 3/10] PCI / PM: Propagate wake-up enable for PCIe devices too
-Date: Mon, 16 Nov 2009 00:51:20 +0100
-Message-ID: <200911160051.20362.rjw@sisk.pl>
-References: <200911160047.46299.rjw@sisk.pl>
+Subject: [RFC][PATCH 0/10] PCI run-time PM support
+Date: Mon, 16 Nov 2009 00:47:46 +0100
+Message-ID: <200911160047.46299.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <200911160047.46299.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi,
 
-Having read the PM part of the PCIe 2.0 specification more carefully
-I think that it was a mistake to restrict the wake-up enable
-propagation to non-PCIe devices, because if we do not request
-control of the root ports' PME registers via OSC, PCIe PME is
-supposed to be handled by the platform, just like the non-PCIe PME.
-Even if we do that, the wake-up propagation is done to allow the
-devices to wake up the system from sleep states which involves the
-platform anyway, so it won't hurt.
+The following series of patches provides run-time power management support
+through ACPI and the native PCIe PME.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/pci/pci-acpi.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+[1/10] - Add flag for marking devices capable of generating wake-up events at run time
 
-Index: linux-2.6/drivers/pci/pci-acpi.c
-===================================================================
---- linux-2.6.orig/drivers/pci/pci-acpi.c
-+++ linux-2.6/drivers/pci/pci-acpi.c
-@@ -112,11 +112,7 @@ static bool acpi_pci_can_wakeup(struct p
- static void acpi_pci_propagate_wakeup_enable(struct pci_bus *bus, bool enable)
- {
- 	while (bus->parent) {
--		struct pci_dev *bridge = bus->self;
--		int ret;
--
--		ret = acpi_pm_device_sleep_wake(&bridge->dev, enable);
--		if (!ret || bridge->is_pcie)
-+		if (!acpi_pm_device_sleep_wake(&bus->self->dev, enable))
- 			return;
- 		bus = bus->parent;
- 	}
-@@ -131,9 +127,7 @@ static int acpi_pci_sleep_wake(struct pc
- 	if (acpi_pci_can_wakeup(dev))
- 		return acpi_pm_device_sleep_wake(&dev->dev, enable);
- 
--	if (!dev->is_pcie)
--		acpi_pci_propagate_wakeup_enable(dev->bus, enable);
--
-+	acpi_pci_propagate_wakeup_enable(dev->bus, enable);
- 	return 0;
- }
- 
+[2/10] - Add function for checking PME status of devices
+
+[3/10] - Modify wake-up enable propagation so that it's done for PCIe devices too
+
+[4/10] - PCIe PME root port service driver
+
+[5/10] - ACPI GPE refcounting from Matthew
+
+[6/10] - ACPI drivers support for GPE refcounting from Matthew
+
+[7/10] - ACPI removal of the old GPE API from Matthew
+
+[8/10] - ACPI add fields for handling run-wake devices
+
+[9/10] - PCI ACPI platform support for run-time power management
+
+[10/10] - Runtime PM callbacks for the PCI bus type
+
+Comments welcome.
+
+Best,
+Rafael
