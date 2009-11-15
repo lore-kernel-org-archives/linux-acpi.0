@@ -1,48 +1,53 @@
-From: Daniel Walker <dwalker@fifo99.com>
-Subject: Re: [PATCH 4/5] acpi: fix trivial warning
-Date: Sun, 15 Nov 2009 09:58:35 -0800
-Message-ID: <1258307915.6428.14.camel@desktop>
-References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
-	 <1252936556.28368.215.camel@desktop>
-	 <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
-	 <1252940549.28368.255.camel@desktop>
-	 <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>
-	 <1258134207.6411.0.camel@c-dwalke-linux.qualcomm.com>
-	 <94a0d4530911131228s6b6b6221o7b24002ca03373e5@mail.gmail.com>
-	 <1258305351.6428.8.camel@desktop>
-	 <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com>
-	 <1258306352.6428.10.camel@desktop>  <4B00403E.3090907@gmail.com>
+From: andrej.gelenberg@udo.edu
+Subject: Re: eeepc-laptop: bugreport
+Date: Sun, 15 Nov 2009 19:05:52 +0100
+Message-ID: <cone.1258308352.527811.1656.1000@eeekiste>
+References: <cone.1258203372.445001.1633.1000@eeekiste> <71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com> <cone.1258211472.464906.1633.1000@eeekiste> <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com> <cone.1258285991.924736.2588.1000@eeekiste> <4AFFF61E.6090707@tuffmail.co.uk> <cone.1258301205.852230.1663.1000@eeekiste> <4B002951.4080704@tuffmail.co.uk> <cone.1258304218.643429.1671.1000@eeekiste> <4B00354A.7000300@tuffmail.co.uk> <71cd59b00911150917k7d677fd0g509ab4edc1786fb1@mail.gmail.com> <cone.1258306366.446137.1656.1000@eeekiste> <4B003DDA.5020508@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; format=flowed; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fifo99.com ([67.223.236.141]:36465 "EHLO fifo99.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753352AbZKOSAl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Nov 2009 13:00:41 -0500
-In-Reply-To: <4B00403E.3090907@gmail.com>
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:35363 "EHLO
+	postserver.uni-dortmund.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753340AbZKOSFt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Nov 2009 13:05:49 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Corentin Chary <corentin.chary@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Sun, 2009-11-15 at 20:54 +0300, Alexey Starikovskiy wrote:
-> You've made changes to automatically generated files, so all the style 
-> changes
-> would be overwritten when next time these files are generated -- all the 
-> files go through
-> Lindent, and almost all your changes were introduced by it. If you 
-> really want to make
-> style changes to ACPICA files, try to play with Lindent, so it produce 
-> what you want.
-> If you have anything beside style patches, please submit them separately
+Alan Jenkins writes:
+
+> andrej.gelenberg@udo.edu wrote:
+>> Hi,
+>>
+>> Corentin Chary writes:
+>>
+>>> Could you try to boot with acpi_osi="Linux" ?
+>>> This might be fixed by
+>>> http://git.iksaif.net/?p=acpi4asus.git;a=commitdiff;h=a57818b9177b521d418e25bf549a609d0e79cd4a;hp=cbf69cbf597b31201038ecd7630c90183543c488 
+>>>
+>>
+>> this patch solved the problem.
+>>
+>> Regards,
+>> Andrej
 > 
+> Ok.  Be aware that there may be more turmoil in future.  The preferred 
+> solution for linux ACPI is to do whatever the More Popular OS does.  See 
+> the recent rejection of a similar patch by thinkpad-acpi developers.
+> 
+> There may be a shiny new ACPI interface we need to write a driver for.  
+> Looking on the bright side, a new driver can easily use different pci 
+> hotplug code (or perhaps no hotplug code).
+> 
+> Regards
+> Alan
 
-AFAIK, Lindent can't produce checkpatch clean output. It has to do with
-various short comings in indent. You really need a human to check up on
-it.
+it has not solved the Problem, that my ethernet-device are unplugt on rfkill-off.
+It solved only the problem with no founded ASUS010.
 
-Daniel
-
+Regards,
+Andrej
