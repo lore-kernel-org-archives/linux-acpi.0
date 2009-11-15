@@ -1,46 +1,72 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: Re: eeepc-laptop: bugreport
-Date: Sun, 15 Nov 2009 17:43:54 +0000
-Message-ID: <4B003DDA.5020508@tuffmail.co.uk>
-References: <cone.1258203372.445001.1633.1000@eeekiste> <71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com> <cone.1258211472.464906.1633.1000@eeekiste> <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com> <cone.1258285991.924736.2588.1000@eeekiste> <4AFFF61E.6090707@tuffmail.co.uk> <cone.1258301205.852230.1663.1000@eeekiste> <4B002951.4080704@tuffmail.co.uk> <cone.1258304218.643429.1671.1000@eeekiste> <4B00354A.7000300@tuffmail.co.uk> <71cd59b00911150917k7d677fd0g509ab4edc1786fb1@mail.gmail.com> <cone.1258306366.446137.1656.1000@eeekiste>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [PATCH 4/5] acpi: fix trivial warning
+Date: Sun, 15 Nov 2009 20:54:06 +0300
+Message-ID: <4B00403E.3090907@gmail.com>
+References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>	 <1252936556.28368.215.camel@desktop>	 <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>	 <1252940549.28368.255.camel@desktop>	 <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>	 <1258134207.6411.0.camel@c-dwalke-linux.qualcomm.com>	 <94a0d4530911131228s6b6b6221o7b24002ca03373e5@mail.gmail.com>	 <1258305351.6428.8.camel@desktop>	 <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com> <1258306352.6428.10.camel@desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:54395 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbZKORnw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2009 12:43:52 -0500
-Received: by bwz27 with SMTP id 27so4948008bwz.21
-        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2009 09:43:56 -0800 (PST)
-In-Reply-To: <cone.1258306366.446137.1656.1000@eeekiste>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753383AbZKORyF@vger.kernel.org>
+In-Reply-To: <1258306352.6428.10.camel@desktop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andrej.gelenberg@udo.edu
-Cc: Corentin Chary <corentin.chary@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>
 
-andrej.gelenberg@udo.edu wrote:
-> Hi,
+You've made changes to automatically generated files, so all the style 
+changes
+would be overwritten when next time these files are generated -- all the 
+files go through
+Lindent, and almost all your changes were introduced by it. If you 
+really want to make
+style changes to ACPICA files, try to play with Lindent, so it produce 
+what you want.
+If you have anything beside style patches, please submit them separately
+
+Regards,
+Alex.
+
+Daniel Walker wrote:
+> On Sun, 2009-11-15 at 19:27 +0200, Felipe Contreras wrote:
+>   
+>> On Sun, Nov 15, 2009 at 7:15 PM, Daniel Walker <dwalker@fifo99.com> wrote:
+>>     
+>>> On Fri, 2009-11-13 at 22:28 +0200, Felipe Contreras wrote:
+>>>       
+>>>> That doesn't seem too positive. Or at least there's no indication that
+>>>> somebody will pick it up.
+>>>>         
+>>> I'd re-submit with a better description of the patch. You should always
+>>> try to describe what your doing as accurately as possible so the
+>>> maintainer doesn't have to work very hard to know what your doing.
+>>>       
+>> There's nothing to add. It's a patch to cleanup the coding style, that's it.
+>>     
 >
-> Corentin Chary writes:
+> How do you know the coding style isn't correct? Did you just visually
+> inspect it?
 >
->> Could you try to boot with acpi_osi="Linux" ?
->> This might be fixed by
->> http://git.iksaif.net/?p=acpi4asus.git;a=commitdiff;h=a57818b9177b521d418e25bf549a609d0e79cd4a;hp=cbf69cbf597b31201038ecd7630c90183543c488 
+>   
+>>> That
+>>> particular patch just has a one liner description that wasn't very
+>>> informative .. Either that or re-submit your series without that patch
+>>> if you don't have confidence in it.
+>>>       
+>> All of my patches have been picked up, except the ones for ACPI. I
+>> haven't received a single comment from them, which would explain the
+>> current state of the code.
 >>
+>> If somebody raised the hand and said; I'll merge this, please resend,
+>> I'd do that, otherwise I think it's a waste of time.
+>>     
 >
-> this patch solved the problem.
+> Patches often times aren't accepted in the first submission, could be
+> for lots of reasons. It's your series tho ..
 >
-> Regards,
-> Andrej
-
-Ok.  Be aware that there may be more turmoil in future.  The preferred 
-solution for linux ACPI is to do whatever the More Popular OS does.  See 
-the recent rejection of a similar patch by thinkpad-acpi developers.
-
-There may be a shiny new ACPI interface we need to write a driver for.  
-Looking on the bright side, a new driver can easily use different pci 
-hotplug code (or perhaps no hotplug code).
-
-Regards
-Alan
+> Daniel
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
