@@ -1,40 +1,38 @@
-From: Daniel Walker <dwalker@fifo99.com>
-Subject: Re: [PATCH 4/5] acpi: fix trivial warning
-Date: Sun, 15 Nov 2009 10:09:39 -0800
-Message-ID: <1258308579.6428.15.camel@desktop>
-References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
-	 <1252936556.28368.215.camel@desktop>
-	 <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
-	 <1252940549.28368.255.camel@desktop>
-	 <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>
-	 <1258134207.6411.0.camel@c-dwalke-linux.qualcomm.com>
-	 <94a0d4530911131228s6b6b6221o7b24002ca03373e5@mail.gmail.com>
-	 <1258305351.6428.8.camel@desktop>
-	 <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com>
-	 <1258306352.6428.10.camel@desktop>  <4B00403E.3090907@gmail.com>
-	 <1258307915.6428.14.camel@desktop>  <4B004413.5090903@gmail.com>
+From: andrej.gelenberg@udo.edu
+Subject: Re: eeepc-laptop: bugreport
+Date: Sun, 15 Nov 2009 19:11:25 +0100
+Message-ID: <cone.1258308685.306474.1656.1000@eeekiste>
+References: <71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com> <cone.1258211472.464906.1633.1000@eeekiste> <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com> <cone.1258285991.924736.2588.1000@eeekiste> <4AFFF61E.6090707@tuffmail.co.uk> <cone.1258301205.852230.1663.1000@eeekiste> <4B002951.4080704@tuffmail.co.uk> <cone.1258304218.643429.1671.1000@eeekiste> <4B00354A.7000300@tuffmail.co.uk> <71cd59b00911150917k7d677fd0g509ab4edc1786fb1@mail.gmail.com> <20091115180630.GA2921@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; format=flowed; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fifo99.com ([67.223.236.141]:43769 "EHLO fifo99.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753346AbZKOSLq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Nov 2009 13:11:46 -0500
-In-Reply-To: <4B004413.5090903@gmail.com>
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:36773 "EHLO
+	postserver.uni-dortmund.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753437AbZKOSLv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Nov 2009 13:11:51 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Corentin Chary <corentin.chary@gmail.com>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Sun, 2009-11-15 at 21:10 +0300, Alexey Starikovskiy wrote:
+Matthew Garrett writes:
 
-> >   
-> It is not really possible. Lindent is not the last step in the process.
+> On Sun, Nov 15, 2009 at 06:17:37PM +0100, Corentin Chary wrote:
+> 
+>> Could you try to boot with acpi_osi="Linux" ?
+>> This might be fixed by
+>> http://git.iksaif.net/?p=acpi4asus.git;a=commitdiff;h=a57818b9177b521d418e25bf549a609d0e79cd4a;hp=cbf69cbf597b31201038ecd7630c90183543c488
+> 
+> Why would the behaviour differ between 2.6.31 and 2.6.32?
+> 
+> -- 
+> Matthew Garrett | mjg59@srcf.ucam.org
 
-What are the steps on the process?
+There was a patch for ACPI with new OSI (for Windows Vista and 7).
+EEE PC ACPI have no support for that, but linux (and older Windows).
 
-Daniel
-
+Regards,
+Andrej
