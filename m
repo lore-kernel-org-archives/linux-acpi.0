@@ -1,46 +1,44 @@
-From: andrej.gelenberg-KJIyc1CJxjQ@public.gmane.org
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Subject: Re: eeepc-laptop: bugreport
-Date: Sun, 15 Nov 2009 17:06:45 +0100
-Message-ID: <cone.1258301205.852230.1663.1000@eeekiste>
-References: <cone.1258203372.445001.1633.1000@eeekiste>
-	<71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com>
-	<cone.1258211472.464906.1633.1000@eeekiste>
-	<71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com>
-	<cone.1258285991.924736.2588.1000@eeekiste>
-	<4AFFF61E.6090707@tuffmail.co.uk>
+Date: Sun, 15 Nov 2009 16:11:40 +0000
+Message-ID: <4B00283C.3040807@tuffmail.co.uk>
+References: <cone.1258203372.445001.1633.1000@eeekiste> <71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com> <cone.1258211472.464906.1633.1000@eeekiste> <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com> <cone.1258285991.924736.2588.1000@eeekiste> <4AFFF7B8.2070508@tuffmail.co.uk> <20091115160201.GC1019@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
-List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
-	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>
-Cc: linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.25]:59028 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753224AbZKOQLi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2009 11:11:38 -0500
+Received: by ey-out-2122.google.com with SMTP id 9so1651662eyd.19
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2009 08:11:43 -0800 (PST)
+In-Reply-To: <20091115160201.GC1019@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: andrej.gelenberg@udo.edu, Corentin Chary <corentin.chary@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net
 
-Hi,
+Matthew Garrett wrote:
+> On Sun, Nov 15, 2009 at 12:44:40PM +0000, Alan Jenkins wrote:
+>
+>   
+>> Unfortunately, the BIOS doesn't tell us in advance which device it is  
+>> going to unplug.  Hence the hardcoded bus/slot.
+>>     
+>
+> Mm. Thinking about it, it does - it's sending a bus check notification, 
+> which means we're supposed to look at children of the device it 
+> notifies. Shouldn't be a difficult fix.
+>   
 
-Alan Jenkins writes:
+We don't really look at the device though.  What we look at is the value 
+of WLDG.
 
-> So your modified device search _should_ work, on either 2.6.31 or 
-> 2.6.32-rc7.  AFAICS the problem is making the same driver work on both 
-> 1005ha and all the previous models.
+Stray notifications on either of the _other_ 2 pcie ports would then 
+cause us to toggle them based on WLDG.
 
-i can't load the eeepc-laptop in last git-revision of 2.6.32. insmod say:
-"no such device". (vanila sources)
+I see a _Lxx handler in my DSDT which looks like it notifies on _all_ 
+the pcie ports.  So I think it's a bit tricky.
 
-Regards,
-Andrej
-
-------------------------------------------------------------------------------
-Let Crystal Reports handle the reporting - Free Crystal Reports 2008 30-Day 
-trial. Simplify your report design, integration and deployment - and focus on 
-what you do best, core application coding. Discover what's new with
-Crystal Reports now.  http://p.sf.net/sfu/bobj-july
+Alan
