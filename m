@@ -1,35 +1,49 @@
-From: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] usb: Add support for runtime power management of the hcd
-Date: Mon, 16 Nov 2009 22:26:02 +0100
-Message-ID: <200911162226.02569.oliver@neukum.org>
-References: <200911112324.58076.rjw@sisk.pl> <200911121800.02383.oliver@neukum.org> <20091112165958.GA9389@srcf.ucam.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/10] PM: Add flag for devices capable of generating
+ run-time wake-up events
+Date: Mon, 16 Nov 2009 16:31:20 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0911161629310.2971-100000@iolanthe.rowland.org>
+References: <20091116210545.GA29696@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091112165958.GA9389-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:48998 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754147AbZKPVbQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2009 16:31:16 -0500
+In-Reply-To: <20091116210545.GA29696@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Am Donnerstag, 12. November 2009 17:59:58 schrieb Matthew Garrett:
-> On Thu, Nov 12, 2009 at 06:00:02PM +0100, Oliver Neukum wrote:
-> > Exactly, but that isn't the same as needing two attributes exported to
-> > user space. That is an absolute requirement only if we can't tell what a
-> > device's capabilities are.
+On Mon, 16 Nov 2009, Matthew Garrett wrote:
+
+> On Mon, Nov 16, 2009 at 04:00:49PM -0500, Alan Stern wrote:
+> > On Mon, 16 Nov 2009, Rafael J. Wysocki wrote:
+> > > Yes, in general.  The platform.
+> > 
+> > And for non-platform devices (hot-pluggable, for example)?  Presumably 
+> > you would want the driver that detects and registers the device to set 
+> > this flag.
 > 
-> Right. I don't see any reason for runtime wakeup to be exposed to 
-> userspace - it's an entirely orthogonal concept to system wakeup. The 
-> relevant userspace policy is whether or not runtime pm is enabled.
+> Are there any cases where the bus code won't know this?
 
-That brings me to a possibly useless, wild idea. Do we want to tristate
-this? Is there any use in a "don't care" setting?
+None that I'm aware of.  I merely wanted to clarify where the flag was 
+supposed to get set.
 
-	Regards
-		Oliver
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > > What if the kernel can't tell whether or not the device can generate 
+> > > > runtime wake-up events?
+> > > 
+> > > Do you have any specific examples in mind?
+> > 
+> > What about Matthew's example of an ACPI GPE which might or might not 
+> > cause a runtime wake-up event, depending on the AML code in the BIOS?
+> 
+> The platform knows whether or not that's the case.
+
+Okay, then it isn't a problem.  Except perhaps in the case of buggy 
+devices which _should_ generate these events but don't.
+
+Alan Stern
+
