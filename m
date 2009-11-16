@@ -1,84 +1,89 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH 4/5] acpi: fix trivial warning
-Date: Mon, 16 Nov 2009 09:27:25 +0800
-Message-ID: <1258334845.17765.23.camel@minggr.sh.intel.com>
-References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
-	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
-	 <1252936556.28368.215.camel@desktop>
-	 <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
-	 <1252940549.28368.255.camel@desktop>
-	 <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>
-	 <1258134207.6411.0.camel@c-dwalke-linux.qualcomm.com>
-	 <94a0d4530911131228s6b6b6221o7b24002ca03373e5@mail.gmail.com>
-	 <1258305351.6428.8.camel@desktop>
-	 <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Subject: Re: [RFC][PATCH 9/10] PCI / ACPI PM: Platform support for PCI PME
+ wake-up (rev. 3)
+Date: Mon, 16 Nov 2009 13:36:50 +0900
+Message-ID: <4B00D6E2.9010404@np.css.fujitsu.com>
+References: <200911160047.46299.rjw@sisk.pl> <200911160057.42421.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52077 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156AbZKPBnG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Nov 2009 20:43:06 -0500
-In-Reply-To: <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:42418 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011AbZKPEhS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2009 23:37:18 -0500
+In-Reply-To: <200911160057.42421.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Daniel Walker <dwalker@fifo99.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Mon, 2009-11-16 at 01:27 +0800, Felipe Contreras wrote:
-> On Sun, Nov 15, 2009 at 7:15 PM, Daniel Walker <dwalker@fifo99.com> wrote:
-> > On Fri, 2009-11-13 at 22:28 +0200, Felipe Contreras wrote:
-> >> That doesn't seem too positive. Or at least there's no indication that
-> >> somebody will pick it up.
-> >
-> > I'd re-submit with a better description of the patch. You should always
-> > try to describe what your doing as accurately as possible so the
-> > maintainer doesn't have to work very hard to know what your doing.
-> 
-> There's nothing to add. It's a patch to cleanup the coding style, that's it.
-> 
-> > That
-> > particular patch just has a one liner description that wasn't very
-> > informative .. Either that or re-submit your series without that patch
-> > if you don't have confidence in it.
-> 
-> All of my patches have been picked up, except the ones for ACPI. I
-> haven't received a single comment from them, which would explain the
-> current state of the code.
+Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> +/**
+> + * pci_acpi_add_pm_notifier - Register PM notifier for given device.
+> + * @dev: ACPI device to add the notifier for.
+> + * @pci_dev: PCI device to check for the PME status if an event is signaled.
+> + * @pci_bus: PCI bus to walk (checking PME status) if an event is signaled.
+> + *
+> + * Check if there is a notifier object for @dev and if that is the case, add
+> + * @pci_dev to it as the device whose PME status should be checked if a PM
+> + * event is signaled for @dev.  Also, add @pci_bus to it as the bus to walk
+> + * checking the PME status of all devices on it if a PM event is signaled for
+> + * @dev.  Otherwise, create a new notifier object for @dev and add both
+> + * @pci_dev and @pci_bus to it.
+> + */
+> +acpi_status pci_acpi_add_pm_notifier(struct acpi_device *dev,
+> +				     struct pci_dev *pci_dev,
+> +				     struct pci_bus *pci_bus)
+> +{
+> +	struct pci_acpi_notifier_block *nb;
+> +	acpi_status status = AE_OK;
+> +
+> +	if (!dev->wakeup.flags.run_wake)
+> +		return AE_BAD_PARAMETER;
+> +
+> +	mutex_lock(&pci_acpi_notifier_mtx);
+> +
+> +	list_for_each_entry(nb, &pci_acpi_runtime_notifiers, entry)
+> +		if (nb->dev == dev) {
+> +			if (nb->pci_dev || nb->pci_bus)
+> +				goto out;
+> +			else
+> +				goto add;
+> +		}
+> +
+> +	nb = new_notifier(dev);
+> +	if (!nb) {
+> +		status = AE_NO_MEMORY;
+> +		goto out;
+> +	}
+> +	list_add_tail(&nb->entry, &pci_acpi_runtime_notifiers);
+> +
+> +	status = acpi_install_notify_handler(dev->handle, ACPI_SYSTEM_NOTIFY,
+> +						pci_acpi_event_fn, nb);
+> +	if (ACPI_FAILURE(status)) {
+> +		list_del(&nb->entry);
+> +		kfree(nb);
+> +	}
 
-Hi, Felipe
+I think when nb is freed, it should be go to "out:".
 
-All files under linux-2.6/drivers/acpi/acpica and most files under
-linux-2.6/include/acpi are ACPICA code, see http://www.acpica.org for
-detail.
-
-The ACPICA's coding style is totally different than linux kernel.
-For example, a function named AcpiEvaluateObject in ACPICA, but in linux
-kernel it is called acpi_evaluate_object.
-
-We have a program "acpisrc" to convert the ACPICA style code to linux
-style and then run lindent on the converted code.
-
-You can download the official ACPICA release from
-http://www.acpica.org/downloads/ , "acpisrc" is included in it.
-
-It's great that you are contributing to ACPICA code.
-All these linuxized ACPICA codes are generated by acpisrc and lindent,
-so we'd better not touch those code directly.
-
-Instead, our process is:
-1. Write patches for ACPICA code.
-2. Send patches to devel.acpica.org, robert.moore@intel.com, ming.m.lin@intel.com
-3. I will generate and send the linuxized ACPICA code to Len Brown <lenb@kernel.org>
-4. Len asks Linus to merge the linuxized ACPICA code.
-
-Thanks,
-Lin Ming
-
-> 
-> If somebody raised the hand and said; I'll merge this, please resend,
-> I'd do that, otherwise I think it's a waste of time.
-> 
+> +
+> + add:
+> +	nb->pci_dev = pci_dev;
+> +	nb->pci_bus = pci_bus;
+> +
+> + out:
+> +	mutex_unlock(&pci_acpi_notifier_mtx);
+> +	return status;
+> +}
+> +
+> +/**
+> + * pci_acpi_remove_pm_notifier - Unregister PM notifier for given device.
+> + * @dev: ACPI device to remove the notifier from.
+> + *
+> + * Find the notifier object for @dev and clear its @pci_dev and @pci_bus fields.
+> + * If the notifier object is not necessary any more after that, remove it too.
+> + */
 
