@@ -1,33 +1,37 @@
-From: Larry Finger <Larry.Finger@lwfinger.net>
-Subject: Re: 2.6.32-rc7-git1: Reported regressions 2.6.30 -> 2.6.31
-Date: Mon, 16 Nov 2009 17:30:37 -0600
-Message-ID: <4B01E09D.3020608@lwfinger.net>
-References: <ipicVA1QUFF.A.zWB.1mdALB@chimera>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -next] acpi: get_bios_limit static inline when CPU_FREQ=n
+Date: Mon, 16 Nov 2009 15:32:37 -0800
+Message-ID: <20091116153237.95f2e42d.randy.dunlap@oracle.com>
+References: <20091116181453.b42247cf.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:56822 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754823AbZKPXae (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2009 18:30:34 -0500
-In-Reply-To: <ipicVA1QUFF.A.zWB.1mdALB@chimera>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20091116181453.b42247cf.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, lenb@kernel.org, akpm <akpm@linux-foundation.org>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Natalie Protasevich <protasnb@gmail.com>, Kernel Testers List <kernel-testers@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM List <linux-pm@lists.linux-foundation.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux Wireless List <linux-wireless@vger.kernel.org>, DRI <dri-devel@lists.sourceforge.net>
 
-On 11/16/2009 04:58 PM, Rafael J. Wysocki wrote:
-> This message contains a list of some regressions introduced between 2.6.30 and
-> 2.6.31, for which there are no fixes in the mainline I know of.  If any of them
-> have been fixed already, please let me know.
-> 
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14181
-> Subject		: b43 causes panic at ifconfig down / shutdown
-> Submitter	: Jeremy Huddleston <jeremyhu@freedesktop.org>
-> Date		: 2009-09-15 18:34 (63 days old)
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This one is fixed by commit d50bae33d1358b909ade05ae121d83d3a60ab63f in
-mainline. The patch was also sent to stable.
+For CONFIG_CPU_FREQ=n, make acpi_processor_get_bios_limit()
+static inline so that multiple source files that use this
+header file do not create multiple definitions of the function.
 
-Larry
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ include/acpi/processor.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-next-20091113.orig/include/acpi/processor.h
++++ linux-next-20091113/include/acpi/processor.h
+@@ -318,7 +318,7 @@ static inline int acpi_processor_ppc_has
+ 	}
+ 	return 0;
+ }
+-int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
++static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ {
+ 	return -ENODEV;
+ }
