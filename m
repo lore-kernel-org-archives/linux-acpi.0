@@ -1,73 +1,49 @@
-From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
-Subject: Re: [v9 PATCH 0/9]: cpuidle: Cleanup cpuidle/ Introduce cpuidle to
- POWER.
-Date: Mon, 16 Nov 2009 16:06:49 +0530
-Message-ID: <20091116103649.GA23142@linux.vnet.ibm.com>
-References: <20091016093850.GB27350@linux.vnet.ibm.com>
-Reply-To: arun@linux.vnet.ibm.com
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: multiple APIC/MADT found
+Date: Mon, 16 Nov 2009 10:40:18 -0600
+Message-ID: <200911160940.24046.bjorn.helgaas@hp.com>
+References: <200911131338.38528.ffl@aber.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp02.in.ibm.com ([122.248.162.2]:45717 "EHLO
-	e28smtp02.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134AbZKPKgw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2009 05:36:52 -0500
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:36253 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234AbZKPQkZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2009 11:40:25 -0500
+In-Reply-To: <200911131338.38528.ffl@aber.ac.uk>
 Content-Disposition: inline
-In-Reply-To: <20091016093850.GB27350@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <a.p.zijlstra@chello.nl>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Fred Labrosse <ffl@aber.ac.uk>
+Cc: linux-acpi@vger.kernel.org
 
-* Arun R Bharadwaj <arun@linux.vnet.ibm.com> [2009-10-16 15:08:50]:
+On Friday 13 November 2009 06:38:38 am Fred Labrosse wrote:
+> At some point, I discovered that I only had one processor active on my 
+> laptop (A VAIO VGN-SZ2M) wich has a centrino duo in (2 cores).  I then 
+> discovered in dmesg the lines that say:
+> 
+> ACPI: BIOS bug: multiple APIC/MADT found, using 0
+> ACPI: If "acpi_apic_instance=2" works better, notify linux-
+> acpi@vger.kernel.org
+> 
+> So I did that (acpi_apic_instance=2) and that did give me 2 processors.  
+> Which is definitely better, hence my email to the suggested address.
 
-> Hi,
-> 
-> This patchset introduces cpuidle infrastructure to POWER, prototyping
-> for pSeries, and also does a major refactoring of current x86 idle
-> power management and a cleanup of cpuidle infrastructure.
-> 
-> This patch series has been in discussion for quite a while now and
-> below are the links to the previous discussions.
-> 
-> Hopefully, this is ready to be included in the -tip tree.
-> 
-> v8 --> http://lkml.org/lkml/2009/10/8/82
-> v7 --> http://lkml.org/lkml/2009/10/6/278
-> v6 --> http://lkml.org/lkml/2009/9/22/180
-> v5 --> http://lkml.org/lkml/2009/9/22/26
-> v4 --> http://lkml.org/lkml/2009/9/1/133
-> v3 --> http://lkml.org/lkml/2009/8/27/124
-> v2 --> http://lkml.org/lkml/2009/8/26/233
-> v1 --> http://lkml.org/lkml/2009/8/19/150
-> 
-> 
-> Changes in this version:
-> ----------------------------------------
->         *Added documentation for the new design regarding registration
->         of idle routines in Documentation/cpuidle/core.txt
-> 
->         *Platforms which do not want the code bloat of cpuidle can
->         disable CONFIG_CPU_IDLE. Alternate definition of
->         cpuidle_idle_call is provided which would call the appropriate
->         idle routine provided by the arch without the overhead of
->         registration and governors.
->         (Thanks to Andi for raising this isuue)
-> 
->         *I had missed a cpuidle_kick_cpus() in
->         cpuidle_pause_and_lock() which is called from the hotplug
->         path. So added that and tested this patchset by subjecting it
->         to cpuhotplug torture.
->         (Thanks to Balbir for noticing this)
-> 
-> 
+I think we need a DMI or similar mechanism to do this automatically,
+so you don't need to use "acpi_apic_instance=2" every time you boot.
+Can you open a bug report at http://bugzilla.kernel.org, attach the
+output of dmidecode, and post the bug URL here?
 
-Hi Peter,
+> There is one thing that does not quite work however and I don't know if this 
+> is related: ACPI only sees one processor and therefore cpufreq only controls 
+> the frequency of one processor.  I think this used to work but I don't know 
+> when that stopped.
 
-Did you get time to look at this series?
-Please let me know if we need any changes to this version to get it
-merged.
+I assume you mean that with "acpi_apic_instance=2", Linux starts both
+CPUs, but cpufreq only works with one.  If so, can you open another
+bug report, attach the dmesg log, and post the URL here?
 
-thanks
-> --arun
-> 
+Thanks,
+  Bjorn
