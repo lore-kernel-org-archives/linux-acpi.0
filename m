@@ -1,121 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 6/10] ACPI: Add support for new refcounted GPE API to drivers
-Date: Mon, 16 Nov 2009 00:55:34 +0100
-Message-ID: <200911160055.34952.rjw@sisk.pl>
-References: <200911160047.46299.rjw@sisk.pl>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH 4/5] acpi: fix trivial warning
+Date: Mon, 16 Nov 2009 09:27:25 +0800
+Message-ID: <1258334845.17765.23.camel@minggr.sh.intel.com>
+References: <1252870707-4824-1-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-4-git-send-email-felipe.contreras@gmail.com>
+	 <1252870707-4824-5-git-send-email-felipe.contreras@gmail.com>
+	 <1252936556.28368.215.camel@desktop>
+	 <94a0d4530909140734q51779b76g2ddc7211ece87171@mail.gmail.com>
+	 <1252940549.28368.255.camel@desktop>
+	 <94a0d4530911111623h1ae3463dte8a3f83ec0ad1f75@mail.gmail.com>
+	 <1258134207.6411.0.camel@c-dwalke-linux.qualcomm.com>
+	 <94a0d4530911131228s6b6b6221o7b24002ca03373e5@mail.gmail.com>
+	 <1258305351.6428.8.camel@desktop>
+	 <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753078AbZKPAAD@vger.kernel.org>
-In-Reply-To: <200911160047.46299.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:52077 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751156AbZKPBnG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Nov 2009 20:43:06 -0500
+In-Reply-To: <94a0d4530911150927l3224e815ha6ff17aab6f19251@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Daniel Walker <dwalker@fifo99.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Andi Kleen <ak@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-From: Matthew Garrett <mjg@redhat.com>
+On Mon, 2009-11-16 at 01:27 +0800, Felipe Contreras wrote:
+> On Sun, Nov 15, 2009 at 7:15 PM, Daniel Walker <dwalker@fifo99.com> wrote:
+> > On Fri, 2009-11-13 at 22:28 +0200, Felipe Contreras wrote:
+> >> That doesn't seem too positive. Or at least there's no indication that
+> >> somebody will pick it up.
+> >
+> > I'd re-submit with a better description of the patch. You should always
+> > try to describe what your doing as accurately as possible so the
+> > maintainer doesn't have to work very hard to know what your doing.
+> 
+> There's nothing to add. It's a patch to cleanup the coding style, that's it.
+> 
+> > That
+> > particular patch just has a one liner description that wasn't very
+> > informative .. Either that or re-submit your series without that patch
+> > if you don't have confidence in it.
+> 
+> All of my patches have been picked up, except the ones for ACPI. I
+> haven't received a single comment from them, which would explain the
+> current state of the code.
 
-Add GPE refcounting support to ACPI drivers that need it. This will
-currently do little until the core is changed over to use the new
-behaviour.
+Hi, Felipe
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by; Rafael J. Wysocki <rjw@sisk.pl>
----
-drivers/acpi/button.c |   12 ++++++++++++
- drivers/acpi/button.c |   12 ++++++++++++
- drivers/acpi/ec.c     |    4 +++-
- drivers/acpi/wakeup.c |    6 ++++++
- 3 files changed, 21 insertions(+), 1 deletion(-)
+All files under linux-2.6/drivers/acpi/acpica and most files under
+linux-2.6/include/acpi are ACPICA code, see http://www.acpica.org for
+detail.
 
-Index: linux-2.6/drivers/acpi/button.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/button.c
-+++ linux-2.6/drivers/acpi/button.c
-@@ -420,6 +420,10 @@ static int acpi_button_add(struct acpi_d
- 				  ACPI_GPE_TYPE_WAKE_RUN);
- 		acpi_enable_gpe(device->wakeup.gpe_device,
- 				device->wakeup.gpe_number);
-+		acpi_ref_runtime_gpe(device->wakeup.gpe_device,
-+				     device->wakeup.gpe_number);
-+		acpi_ref_wakeup_gpe(device->wakeup.gpe_device,
-+				    device->wakeup.gpe_number);
- 		device->wakeup.state.enabled = 1;
- 	}
- 
-@@ -439,6 +443,14 @@ static int acpi_button_remove(struct acp
- {
- 	struct acpi_button *button = acpi_driver_data(device);
- 
-+	if (device->wakeup.flags.valid) {
-+		acpi_unref_runtime_gpe(device->wakeup.gpe_device,
-+			     device->wakeup.gpe_number);
-+		acpi_unref_wakeup_gpe(device->wakeup.gpe_device,
-+				      device->wakeup.gpe_number);
-+		device->wakeup.state.enabled = 0;
-+	}
-+
- 	acpi_button_remove_fs(device);
- 	input_unregister_device(button->input);
- 	kfree(button);
-Index: linux-2.6/drivers/acpi/ec.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/ec.c
-+++ linux-2.6/drivers/acpi/ec.c
-@@ -755,7 +755,7 @@ static int ec_install_handlers(struct ac
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
--	acpi_enable_gpe(NULL, ec->gpe);
-+	acpi_ref_runtime_gpe(NULL, ec->gpe);
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
-@@ -772,6 +772,7 @@ static int ec_install_handlers(struct ac
- 		} else {
- 			acpi_remove_gpe_handler(NULL, ec->gpe,
- 				&acpi_ec_gpe_handler);
-+                        acpi_unref_runtime_gpe(NULL, ec->gpe);
- 			return -ENODEV;
- 		}
- 	}
-@@ -782,6 +783,7 @@ static int ec_install_handlers(struct ac
- 
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
-+	acpi_unref_runtime_gpe(NULL, ec->gpe);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
- 		pr_err(PREFIX "failed to remove space handler\n");
-Index: linux-2.6/drivers/acpi/wakeup.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/wakeup.c
-+++ linux-2.6/drivers/acpi/wakeup.c
-@@ -81,6 +81,8 @@ void acpi_enable_wakeup_device(u8 sleep_
- 		if (!dev->wakeup.flags.run_wake)
- 			acpi_enable_gpe(dev->wakeup.gpe_device,
- 					dev->wakeup.gpe_number);
-+		acpi_ref_wakeup_gpe(dev->wakeup.gpe_device,
-+				    dev->wakeup.gpe_number);
- 	}
- }
- 
-@@ -121,6 +123,8 @@ void acpi_disable_wakeup_device(u8 sleep
- 			acpi_clear_gpe(dev->wakeup.gpe_device,
- 				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
- 		}
-+		acpi_unref_wakeup_gpe(dev->wakeup.gpe_device,
-+				    dev->wakeup.gpe_number);
- 	}
- }
- 
-@@ -141,6 +145,8 @@ int __init acpi_wakeup_device_init(void)
- 				  ACPI_GPE_TYPE_WAKE_RUN);
- 		acpi_enable_gpe(dev->wakeup.gpe_device,
- 				dev->wakeup.gpe_number);
-+		acpi_ref_wakeup_gpe(dev->wakeup.gpe_device,
-+				    dev->wakeup.gpe_number);
- 		dev->wakeup.state.enabled = 1;
- 	}
- 	mutex_unlock(&acpi_device_lock);
+The ACPICA's coding style is totally different than linux kernel.
+For example, a function named AcpiEvaluateObject in ACPICA, but in linux
+kernel it is called acpi_evaluate_object.
+
+We have a program "acpisrc" to convert the ACPICA style code to linux
+style and then run lindent on the converted code.
+
+You can download the official ACPICA release from
+http://www.acpica.org/downloads/ , "acpisrc" is included in it.
+
+It's great that you are contributing to ACPICA code.
+All these linuxized ACPICA codes are generated by acpisrc and lindent,
+so we'd better not touch those code directly.
+
+Instead, our process is:
+1. Write patches for ACPICA code.
+2. Send patches to devel.acpica.org, robert.moore@intel.com, ming.m.lin@intel.com
+3. I will generate and send the linuxized ACPICA code to Len Brown <lenb@kernel.org>
+4. Len asks Linus to merge the linuxized ACPICA code.
+
+Thanks,
+Lin Ming
+
+> 
+> If somebody raised the hand and said; I'll merge this, please resend,
+> I'd do that, otherwise I think it's a waste of time.
+> 
+
