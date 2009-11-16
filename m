@@ -1,37 +1,39 @@
-From: "Henrique de Moraes Holschuh" <hmh@hmh.eng.br>
-Subject: Re: [PATCH] thinkpad-acpi: fix detection of old ThinkPads
-Date: Mon, 16 Nov 2009 17:20:58 -0200
-Message-ID: <1258399258.32446.1345507753@webmail.messagingengine.com>
-References: <1258166211-14203-1-git-send-email-hmh@hmh.eng.br>
- <200911160942.53374.bjorn.helgaas@hp.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 1/10] PM: Add flag for devices capable of generating
+ run-time wake-up events
+Date: Mon, 16 Nov 2009 14:39:03 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0911161436560.2971-100000@iolanthe.rowland.org>
+References: <200911160049.22717.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:35345 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752163AbZKPTUx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Nov 2009 14:20:53 -0500
-In-Reply-To: <200911160942.53374.bjorn.helgaas@hp.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:59250 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752181AbZKPTi6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2009 14:38:58 -0500
+In-Reply-To: <200911160049.22717.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Andrew Morton <akpm@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Mon, 16 Nov 2009 10:42 -0600, "Bjorn Helgaas" <bjorn.helgaas@hp.com> wrote:
-> On Friday 13 November 2009 07:36:51 pm Henrique de Moraes Holschuh wrote:
-> > 
-> > Tracked by bugzilla #14597.
+On Mon, 16 Nov 2009, Rafael J. Wysocki wrote:
+
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> A complete URL here would be more convenient.
+> Apparently, there are devices that can wake up the system from sleep
+> states and yet are incapable of generating wake-up events at run
+> time.  Thus, introduce a flag indicating if given device is capable
+> of generating run-time wake-up events.
 
-I will keep that in mind for the future.  Please don't delay this fix
-on account of this detail.
+This raises the question: Who is responsible for setting the new 
+flag?  The code that registers the device?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+What if the kernel can't tell whether or not the device can generate 
+runtime wake-up events?
+
+What if the user wants to override the kernel's setting?  Should there 
+be a sysfs attribute controlling the flag?
+
+Alan Stern
 
