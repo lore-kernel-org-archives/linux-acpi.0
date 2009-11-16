@@ -1,114 +1,45 @@
-From: Bela Lubkin <blubkin@vmware.com>
-Subject: RE: [Openipmi-developer] [PATCH ] IPMI: Locate the IPMI system
-	interface in ACPI namespace
-Date: Mon, 16 Nov 2009 12:37:07 -0800
-Message-ID: <E0AA796A7E3F4C4E8F1065D15FE4786183AF69A5@EXCH-MBX-4.vmware.com>
-References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC][PATCH 1/10] PM: Add flag for devices capable of generating run-time wake-up events
+Date: Mon, 16 Nov 2009 21:52:38 +0100
+Message-ID: <200911162152.38333.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0911161436560.2971-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([65.115.85.73]:51577 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753476AbZKPUhD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Nov 2009 15:37:03 -0500
-In-Reply-To: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.0911161436560.2971-100000@iolanthe.rowland.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "'yakui.zhao@intel.com'" <yakui.zhao@intel.com>, "minyard@acm.org" <minyard@acm.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>
 
-Hi Yakui,
+On Monday 16 November 2009, Alan Stern wrote:
+> On Mon, 16 Nov 2009, Rafael J. Wysocki wrote:
+> 
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > Apparently, there are devices that can wake up the system from sleep
+> > states and yet are incapable of generating wake-up events at run
+> > time.  Thus, introduce a flag indicating if given device is capable
+> > of generating run-time wake-up events.
+> 
+> This raises the question: Who is responsible for setting the new 
+> flag?  The code that registers the device?
 
->    1. enumerate the ACPI device tree to find the IPMI system interface
-> 	The IPMI device type is IPI0001. When the device is found, it
-> will continue to parse the corresponding resources.
->         For example:
-> 		interface type (KCS, BT, SMIC) (SSIF is not supported)
+Yes, in general.  The platform.
 
-> +	/* Figure out the interface type. */
-> +	switch (spmi->interfacetype) {
-> +	case 1:	/* KCS */
-> +		info->si_type = SI_KCS;
-> +		break;
-> +	case 2:	/* SMIC */
-> +		info->si_type = SI_SMIC;
-> +		break;
-> +	case 3:	/* BT */
-> +		info->si_type = SI_BT;
-> +		break;
-> +	default:
-> +		printk(KERN_INFO "ipmi_si: Unknown ACPI/SPMI SI type %d\n",
-> +			spmi->interfacetype);
-> +		kfree(info);
-> +		return -EIO;
-> +	}
+Actually, I needed it for PCI, but I thought it would be better to put it at
+the core level.
 
-If SSIF is a possible value defined by the standard which specifies ACPI
-identification of IPMI, please display it in the error message.  Then if
-it starts appearing in the future, it will be obvious what support needs
-to be added.  e.g.:
+> What if the kernel can't tell whether or not the device can generate 
+> runtime wake-up events?
 
-   default:
-      printk(KERN_INFO "ipmi_si: ACPI/SPMI SI type %d (%s) is not supported",
-             spmi->interfacetype,
-             (spmi->interfacetype == ??4?? /* SSIF */) ? "SSIF" : "Unknown");
+Do you have any specific examples in mind?
 
-> +	if (spmi->interrupttype & 1) {
-> +		/* We've got a GPE interrupt. */
-> +		info->irq = spmi->gpe;
-> +		info->irq_setup = acpi_gpe_irq_setup;
-> +	} else if (spmi->interrupttype & 2) {
-> +		/* We've got an APIC/SAPIC interrupt. */
-> +		info->irq = spmi->global_interrupt;
-> +		info->irq_setup = std_irq_setup;
-> +	} else {
-> +		/* Use the default interrupt setting. */
+> What if the user wants to override the kernel's setting?  Should there 
+> be a sysfs attribute controlling the flag?
 
-if any other bits are set, should this warn about them?
+I have no plans for adding anything like that.
 
-> +		info->irq = 0;
-> +		info->irq_setup = NULL;
-> +	}
->
-> +	if (spmi->addr.bit_width) {
-> +		/* A (hopefully) properly formed register bit width. */
-
-should this be checked (e.g. warn if bit_width % 8 != 0)?
-
-> +		info->io.regspacing = spmi->addr.bit_width / 8;
-> +	} else {
-> +		info->io.regspacing = DEFAULT_REGSPACING;
-> +	}
-> +	info->io.regsize = info->io.regspacing;
-> +	info->io.regshift = spmi->addr.bit_offset;
-> +
-> +	if (spmi->addr.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +		info->io_setup = mem_setup;
-> +		info->io.addr_type = IPMI_MEM_ADDR_SPACE;
-> +	} else if (spmi->addr.space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-> +		info->io_setup = port_setup;
-> +		info->io.addr_type = IPMI_IO_ADDR_SPACE;
-> +	} else {
-> +		kfree(info);
-> +		printk(KERN_WARNING
-> +		       "ipmi_si: Unknown ACPI I/O Address type\n");
-
-"%d", io.addr_type
-(or maybe %x? -- whatever's right in context)
-
-I'm not going to go line-by-line over the rest, but in general,
-if the code thinks something is wrong, have it show what it
-objects to:
-
-> +			if (irq->interrupt_count != 1) {
-> +				printk(KERN_WARNING "incorrect IRQ is "
-> +					"defined in _CRS\n");
-
-"interrupt_count is %d, must be 1", irq->interrupt_count
-
-etc.
-
->Bela<
+Rafael
