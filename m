@@ -1,40 +1,33 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [Bugme-new] [Bug 14450] New: [2.6.31] Network interfaces are dead with 2.6.31 (iwlagn and sky2)
-Date: Mon, 16 Nov 2009 15:06:30 -0600
-Message-ID: <200911161406.33473.bjorn.helgaas@hp.com>
-References: <bug-14450-10286@http.bugzilla.kernel.org/> <20091103152146.5785195a.akpm@linux-foundation.org> <200911040947.28054.bjorn.helgaas@hp.com>
+From: Oliver Neukum <oliver@neukum.org>
+Subject: Re: [RFC][PATCH 1/10] PM: Add flag for devices capable of generating run-time wake-up events
+Date: Mon, 16 Nov 2009 22:23:15 +0100
+Message-ID: <200911162223.15897.oliver@neukum.org>
+References: <Pine.LNX.4.44L0.0911161557130.2971-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:23240 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754054AbZKPVG3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2009 16:06:29 -0500
-In-Reply-To: <200911040947.28054.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.0911161557130.2971-100000@iolanthe.rowland.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: orion.linbug@gmail.com, bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-wireless@vger.kernel.org
 
-On Wednesday 04 November 2009 09:47:26 am Bjorn Helgaas wrote:
-> On Tuesday 03 November 2009 04:21:46 pm Andrew Morton wrote:
+Am Montag, 16. November 2009 22:00:49 schrieb Alan Stern:
+> > > What if the user wants to override the kernel's setting?  Should there 
+> > > be a sysfs attribute controlling the flag?
+> >
 > > 
-> > (switched to email.  Please respond via emailed reply-to-all, not via the
-> > bugzilla web interface).
+> > I have no plans for adding anything like that.
 > 
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=14450
-> 
-> This looks like a duplicate of http://bugzilla.kernel.org/show_bug.cgi?id=13940
-> 
-> There's a patch in that bug that is upstream already:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=15b812f1d0a5ca8f5efe7f5882f468af10682ca8
-> 
-> Please try booting 2.6.31 with "pci=use_crs" and report the result.
-> 
-> If possible, please also try booting an upstream kernel containing
-> the patch above (without "pci=use_crs") and report that result, too.
+> So if the kernel makes a mistake here, the user won't be able to 
+> correct it.
 
-Ping!  A.G., have you had a chance to try this out?
+If the kernel cannot tell whether a device can generate a request for
+remote wakeup, how would it know the enable such requests?
+Now we might come to a device that has a flatly wrong firmware,
+but has that really been encountered in the wild?
+
+	Regards
+		Oliver
