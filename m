@@ -1,76 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/12] thermal: add sanity check for the passive attribute
-Date: Tue, 17 Nov 2009 14:27:35 -0800
-Message-ID: <200911172227.nAHMRZX8023365@imap1.linux-foundation.org>
+Subject: [patch 01/12] kernel core: add smp_call_function_any()
+Date: Tue, 17 Nov 2009 14:27:27 -0800
+Message-ID: <200911172227.nAHMRR3j023114@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59529 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756411AbZKQW3F (ORCPT
+	by vger.kernel.org with ESMTP id S1756437AbZKQW3R (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:29:05 -0500
+	Tue, 17 Nov 2009 17:29:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, elendil@planet.nl, mjg@redhat.com, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, rusty@rustcorp.com.au, davej@redhat.com, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
 
-From: Frans Pop <elendil@planet.nl>
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Values below 1000 milli-celsius don't make sense and can cause the system
-to go into a thermal heart attack: the actual temperature will always be
-lower and thus the system will be throttled down to its lowest setting.
+Andrew points out that acpi-cpufreq uses cpumask_any, when it really
+would prefer to use the same CPU if possible (to avoid an IPI).  In
+general, this seems a good idea to offer.
 
-An additional problem is that values below 1000 will show as 0 in
-/proc/acpi/thermal/TZx/trip_points:passive.
-
-cat passive
-0
-echo -n 90 >passive
-bash: echo: write error: Invalid argument
-echo -n 90000 >passive
-cat passive
-90000
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=13918
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/thermal/sysfs-api.txt |    1 +
- drivers/thermal/thermal_sys.c       |    6 ++++++
- 2 files changed, 7 insertions(+)
+ include/linux/smp.h |    3 +++
+ kernel/smp.c        |   40 ++++++++++++++++++++++++++++++++++++++++
+ kernel/up.c         |   12 ++++++++++++
+ 3 files changed, 55 insertions(+)
 
-diff -puN Documentation/thermal/sysfs-api.txt~thermal-add-sanity-check-for-the-passive-attribute Documentation/thermal/sysfs-api.txt
---- a/Documentation/thermal/sysfs-api.txt~thermal-add-sanity-check-for-the-passive-attribute
-+++ a/Documentation/thermal/sysfs-api.txt
-@@ -206,6 +206,7 @@ passive
- 	passive trip point for the zone. Activation is done by polling with
- 	an interval of 1 second.
- 	Unit: millidegrees Celsius
-+	Valid values: 0 (disabled) or greater than 1000
- 	RW, Optional
+diff -puN include/linux/smp.h~kernel-core-add-smp_call_function_any include/linux/smp.h
+--- a/include/linux/smp.h~kernel-core-add-smp_call_function_any
++++ a/include/linux/smp.h
+@@ -27,6 +27,9 @@ extern unsigned int total_cpus;
+ int smp_call_function_single(int cpuid, void (*func) (void *info), void *info,
+ 				int wait);
  
- *****************************
-diff -puN drivers/thermal/thermal_sys.c~thermal-add-sanity-check-for-the-passive-attribute drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-add-sanity-check-for-the-passive-attribute
-+++ a/drivers/thermal/thermal_sys.c
-@@ -225,6 +225,12 @@ passive_store(struct device *dev, struct
- 	if (!sscanf(buf, "%d\n", &state))
- 		return -EINVAL;
- 
-+	/* sanity check: values below 1000 millicelcius don't make sense
-+	 * and can cause the system to go into a thermal heart attack
-+	 */
-+	if (state && state < 1000)
-+		return -EINVAL;
++int smp_call_function_any(const struct cpumask *mask,
++			  void (*func)(void *info), void *info, int wait);
 +
- 	if (state && !tz->forced_passive) {
- 		mutex_lock(&thermal_list_lock);
- 		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+ #ifdef CONFIG_SMP
+ 
+ #include <linux/preempt.h>
+diff -puN kernel/smp.c~kernel-core-add-smp_call_function_any kernel/smp.c
+--- a/kernel/smp.c~kernel-core-add-smp_call_function_any
++++ a/kernel/smp.c
+@@ -319,6 +319,46 @@ int smp_call_function_single(int cpu, vo
+ }
+ EXPORT_SYMBOL(smp_call_function_single);
+ 
++/*
++ * smp_call_function_any - Run a function on any of the given cpus
++ * @mask: The mask of cpus it can run on.
++ * @func: The function to run. This must be fast and non-blocking.
++ * @info: An arbitrary pointer to pass to the function.
++ * @wait: If true, wait until function has completed.
++ *
++ * Returns 0 on success, else a negative status code (if no cpus were online).
++ * Note that @wait will be implicitly turned on in case of allocation failures,
++ * since we fall back to on-stack allocation.
++ */
++int smp_call_function_any(const struct cpumask *mask,
++			  void (*func)(void *info), void *info, int wait)
++{
++	unsigned int cpu;
++	const struct cpumask *nodemask;
++	int ret;
++
++	/* Try for same CPU (cheapest) */
++	cpu = get_cpu();
++	if (cpumask_test_cpu(cpu, mask))
++		goto call;
++
++	/* Try for same node. */
++	nodemask = cpumask_of_node(cpu);
++	for (cpu = cpumask_first_and(nodemask, mask); cpu < nr_cpu_ids;
++	     cpu = cpumask_next_and(cpu, nodemask, mask)) {
++		if (cpu_online(cpu))
++			goto call;
++	}
++
++	/* Any online will do: smp_call_function_single handles nr_cpu_ids. */
++	cpu = cpumask_any_and(mask, cpu_online_mask);
++call:
++	ret = smp_call_function_single(cpu, func, info, wait);
++	put_cpu();
++	return ret;
++}
++EXPORT_SYMBOL_GPL(smp_call_function_any);
++
+ /**
+  * __smp_call_function_single(): Run a function on another CPU
+  * @cpu: The CPU to run on.
+diff -puN kernel/up.c~kernel-core-add-smp_call_function_any kernel/up.c
+--- a/kernel/up.c~kernel-core-add-smp_call_function_any
++++ a/kernel/up.c
+@@ -19,3 +19,15 @@ int smp_call_function_single(int cpu, vo
+ 	return 0;
+ }
+ EXPORT_SYMBOL(smp_call_function_single);
++
++int smp_call_function_any(const struct cpumask *mask,
++			  void (*func)(void *info), void *info,
++			  int wait)
++{
++	local_irq_disable();
++	(func)(info);
++	local_irq_enable();
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(smp_call_function_any);
 _
