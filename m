@@ -1,46 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/12] thermal: disable polling if passive_delay and polling_delay are both unset
-Date: Tue, 17 Nov 2009 14:27:36 -0800
-Message-ID: <200911172227.nAHMRaVZ023449@imap1.linux-foundation.org>
+Subject: [patch 11/12] acerhdf: add new BIOS versions
+Date: Tue, 17 Nov 2009 14:27:37 -0800
+Message-ID: <200911172227.nAHMRbeq023522@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36327 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756291AbZKQWhT (ORCPT
+	by vger.kernel.org with ESMTP id S1756381AbZKQWhl (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:37:19 -0500
+	Tue, 17 Nov 2009 17:37:41 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, elendil@planet.nl, mjg@redhat.com, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, petkovbb@gmail.com
 
-From: Frans Pop <elendil@planet.nl>
+From: Peter Feuerer <peter@piie.net>
 
-Otherwise polling will continue for the thermal zone even when it is no
-longer needed, for example because forced passive cooling was disabled.
+Added new BIOS versions for following netbooks: Acer 1410, Gateway LT31,
+Packard Bell DOA150.  As the Gateway LT31 machines have different register
+values for setting and checking the off-state, the "cmd_off" variable has
+been splitted up to "cmd_off" and "chk_off".
 
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Acked-by: Matthew Garrett <mjg@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Borislav Petkov <petkovbb@gmail.com>
+Cc: Andreas Mohr <andi@lisas.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/platform/x86/acerhdf.c |   63 ++++++++++++++++++-------------
+ 1 file changed, 37 insertions(+), 26 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-disable-polling-if-passive_delay-and-polling_delay-are-both-unset
-+++ a/drivers/thermal/thermal_sys.c
-@@ -1019,6 +1019,8 @@ void thermal_zone_device_update(struct t
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
- 	else if (tz->polling_delay)
- 		thermal_zone_device_set_polling(tz, tz->polling_delay);
-+	else
-+		thermal_zone_device_set_polling(tz, 0);
- 	mutex_unlock(&tz->lock);
- }
- EXPORT_SYMBOL(thermal_zone_device_update);
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-added-new-bios-versions drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-added-new-bios-versions
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
+ 
+-#define DRV_VER "0.5.18"
++#define DRV_VER "0.5.20"
+ 
+ /*
+  * According to the Atom N270 datasheet,
+@@ -112,12 +112,14 @@ module_param_string(force_product, force
+ MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
+ 
+ /*
+- * cmd_off: to switch the fan completely off / to check if the fan is off
++ * cmd_off: to switch the fan completely off
++ * chk_off: to check if the fan is off
+  *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
+  *		the fan speed depending on the temperature
+  */
+ struct fancmd {
+ 	u8 cmd_off;
++	u8 chk_off;
+ 	u8 cmd_auto;
+ };
+ 
+@@ -134,32 +136,41 @@ struct bios_settings_t {
+ /* Register addresses and values for different BIOS versions */
+ static const struct bios_settings_t bios_tbl[] = {
+ 	/* AOA110 */
+-	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00} },
+-	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0x00} },
+-	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x00} },
+-	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x1f, 0x00} },
++	{"Acer", "AOA110", "v0.3301", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3304", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3305", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3307", 0x55, 0x58, {0xaf, 0xaf, 0x00} },
++	{"Acer", "AOA110", "v0.3308", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3309", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Acer", "AOA110", "v0.3310", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	/* AOA150 */
+-	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x00} },
+-	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3114", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3301", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3304", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3305", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3307", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3308", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3309", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Acer", "AOA150", "v0.3310", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	/* Acer 1410 */
++	{"Acer", "Aspire 1410", "v0.3120", 0x55, 0x58, {0x9e, 0x9e, 0x00} },
+ 	/* special BIOS / other */
+-	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x00} },
+-	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x00} },
+-	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x00} },
+-	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x00} },
+-	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x00} },
++	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
++		{0x10, 0x0f, 0x00} },
++	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
++		{0x10, 0x0f, 0x00} },
++	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
++		{0x10, 0x0f, 0x00} },
++	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
++	{"Packard Bell", "AOA110", "v0.3105", 0x55, 0x58, {0x21, 0x21, 0x00} },
++	{"Packard Bell", "AOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
+ 	/* pewpew-terminator */
+-	{"", "", "", 0, 0, {0, 0} }
++	{"", "", "", 0, 0, {0, 0, 0} }
+ };
+ 
+ static const struct bios_settings_t *bios_cfg __read_mostly;
+@@ -183,7 +194,7 @@ static int acerhdf_get_fanstate(int *sta
+ 	if (ec_read(bios_cfg->fanreg, &fan))
+ 		return -EINVAL;
+ 
+-	if (fan != bios_cfg->cmd.cmd_off)
++	if (fan != bios_cfg->cmd.chk_off)
+ 		*state = ACERHDF_FAN_AUTO;
+ 	else
+ 		*state = ACERHDF_FAN_OFF;
 _
