@@ -1,95 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [patch for 2.6.32? 1/2] acerhdf: return temperature in milidegree instead of degree
-Date: Tue, 17 Nov 2009 14:07:21 -0800
-Message-ID: <200911172207.nAHM7LdI007536@imap1.linux-foundation.org>
+Subject: [patch for 2.6.32? 2/2] thinkpad-acpi: fix detection of old ThinkPads
+Date: Tue, 17 Nov 2009 14:07:22 -0800
+Message-ID: <200911172207.nAHM7Np5007567@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38810 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753914AbZKQWIG (ORCPT
+	by vger.kernel.org with ESMTP id S1753852AbZKQWII (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:08:06 -0500
+	Tue, 17 Nov 2009 17:08:08 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, petkovbb@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, hmh@hmh.eng.br, bjorn.helgaas@hp.com, kimoto@lightlink.com, rjw@sisk.pl
 
-=46rom: Peter Feuerer <peter@piie.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Return temperature in milidegree instead of degree, as sysfs-api requir=
-es
-the temperature in milidegree.
+There is a problem in the quirk tables used by tpacpi_is_fw_known() and
+tpacpi_check_outdated_fw(), which causes outdated BIOSes that are lacking
+the EC firmware ID DMI field to never match.
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Tested-by: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
+This breaks module loading on, e.g.  a T23 with outdated BIOS, and the
+module will refuse to load unless the "force_load=1" parameter is given.
+
+Fix the quirk tables so that they can also match the outdated BIOSes,
+which in turn will both fix the module loading, and also warn the user
+that he is using outdated firmware and should upgrade.
+
+This fixes a serious regression, introduced by commit
+e675abafcc0df38125e6e94a9ba91c92fe774f52, "thinkpad-acpi: be more strict
+when detecting a ThinkPad".
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14597
+
+Reported-by: Paul Kimoto <kimoto@lightlink.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Tested-by: Paul Kimoto <kimoto@lightlink.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-=
-milidegree-instead-of-degree drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-mili=
-degree-instead-of-degree
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
-=20
--#define DRV_VER "0.5.17"
-+#define DRV_VER "0.5.18"
-=20
- /*
-  * According to the Atom N270 datasheet,
-@@ -61,7 +61,7 @@
-  * measured by the on-die thermal monitor are within 0 <=3D Tj <=3D 90=
-=2E So,
-  * assume 89=C2=B0C is critical temperature.
-  */
--#define ACERHDF_TEMP_CRIT 89
-+#define ACERHDF_TEMP_CRIT 89000
- #define ACERHDF_FAN_OFF 0
- #define ACERHDF_FAN_AUTO 1
-=20
-@@ -69,7 +69,7 @@
-  * No matter what value the user puts into the fanon variable, turn on=
- the fan
-  * at 80 degree Celsius to prevent hardware damage
-  */
--#define ACERHDF_MAX_FANON 80
-+#define ACERHDF_MAX_FANON 80000
-=20
- /*
-  * Maximum interval between two temperature checks is 15 seconds, as t=
-he die
-@@ -85,8 +85,8 @@ static int kernelmode;
- #endif
-=20
- static unsigned int interval =3D 10;
--static unsigned int fanon =3D 63;
--static unsigned int fanoff =3D 58;
-+static unsigned int fanon =3D 63000;
-+static unsigned int fanoff =3D 58000;
- static unsigned int verbose;
- static unsigned int fanstate =3D ACERHDF_FAN_AUTO;
- static char force_bios[16];
-@@ -171,7 +171,7 @@ static int acerhdf_get_temp(int *temp)
- 	if (ec_read(bios_cfg->tempreg, &read_temp))
- 		return -EINVAL;
-=20
--	*temp =3D read_temp;
-+	*temp =3D read_temp * 1000;
-=20
- 	return 0;
- }
+diff -puN drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-detection-of-old-thinkpads drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~thinkpad-acpi-fix-detection-of-old-thinkpads
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -1680,36 +1680,48 @@ static void tpacpi_remove_driver_attribu
+ 			  | (__bv1) << 8 | (__bv2) }
+ 
+ #define TPV_Q_X(__v, __bid1, __bid2, __bv1, __bv2,	\
+-		__eid1, __eid2, __ev1, __ev2)		\
++		__eid, __ev1, __ev2)			\
+ 	{ .vendor	= (__v),			\
+ 	  .bios		= TPID(__bid1, __bid2),		\
+-	  .ec		= TPID(__eid1, __eid2),		\
++	  .ec		= __eid,			\
+ 	  .quirks	= (__ev1) << 24 | (__ev2) << 16 \
+ 			  | (__bv1) << 8 | (__bv2) }
+ 
+ #define TPV_QI0(__id1, __id2, __bv1, __bv2) \
+ 	TPV_Q(PCI_VENDOR_ID_IBM, __id1, __id2, __bv1, __bv2)
+ 
++/* Outdated IBM BIOSes often lack the EC id string */
+ #define TPV_QI1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
+ 	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
+-		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__id1, __id2),	\
++		__ev1, __ev2),				\
++	TPV_Q_X(PCI_VENDOR_ID_IBM, __id1, __id2, 	\
++		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
++		__ev1, __ev2)
+ 
++/* Outdated IBM BIOSes often lack the EC id string */
+ #define TPV_QI2(__bid1, __bid2, __bv1, __bv2,		\
+ 		__eid1, __eid2, __ev1, __ev2) 		\
+ 	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
+-		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__eid1, __eid2),	\
++		__ev1, __ev2),				\
++	TPV_Q_X(PCI_VENDOR_ID_IBM, __bid1, __bid2, 	\
++		__bv1, __bv2, TPACPI_MATCH_UNKNOWN,	\
++		__ev1, __ev2)
+ 
+ #define TPV_QL0(__id1, __id2, __bv1, __bv2) \
+ 	TPV_Q(PCI_VENDOR_ID_LENOVO, __id1, __id2, __bv1, __bv2)
+ 
+ #define TPV_QL1(__id1, __id2, __bv1, __bv2, __ev1, __ev2) \
+ 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __id1, __id2, 	\
+-		__bv1, __bv2, __id1, __id2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__id1, __id2),	\
++		__ev1, __ev2)
+ 
+ #define TPV_QL2(__bid1, __bid2, __bv1, __bv2,		\
+ 		__eid1, __eid2, __ev1, __ev2) 		\
+ 	TPV_Q_X(PCI_VENDOR_ID_LENOVO, __bid1, __bid2, 	\
+-		__bv1, __bv2, __eid1, __eid2, __ev1, __ev2)
++		__bv1, __bv2, TPID(__eid1, __eid2),	\
++		__ev1, __ev2)
+ 
+ static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
+ 	/*  Numeric models ------------------ */
 _
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
