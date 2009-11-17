@@ -1,41 +1,95 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH ] IPMI: Locate the IPMI system interface in ACPI namespace
-Date: Tue, 17 Nov 2009 08:59:06 -0600
-Message-ID: <200911170759.06902.bjorn.helgaas@hp.com>
-References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com> <200911161051.33492.bjorn.helgaas@hp.com> <1258419550.3813.30.camel@localhost.localdomain>
+From: akpm@linux-foundation.org
+Subject: [patch for 2.6.32? 1/2] acerhdf: return temperature in milidegree instead of degree
+Date: Tue, 17 Nov 2009 14:07:21 -0800
+Message-ID: <200911172207.nAHM7LdI007536@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:21401 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbZKQO7D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2009 09:59:03 -0500
-In-Reply-To: <1258419550.3813.30.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38810 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753914AbZKQWIG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Nov 2009 17:08:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, petkovbb@gmail.com
 
-On Monday 16 November 2009 05:59:10 pm ykzhao wrote:
-> On Tue, 2009-11-17 at 01:51 +0800, Bjorn Helgaas wrote:
-> > On Monday 16 November 2009 02:18:09 am yakui.zhao@intel.com wrote:
-> > > From: Zhao Yakui <yakui.zhao@intel.com>
-> > 
-> > In fact, I gave you detailed feedback on previous versions of this
-> > patch, and you've ignored it all.
-> 
-> Understand what you said. You feedback contains two points.
-> a. Load the Pnp device driver to detect the IPMI device so that we can
-> use the IO/memory resource parse mechanism of PNP device. 
-> b. Load a ACPI device driver to detect the IPMI device
+=46rom: Peter Feuerer <peter@piie.net>
 
-Yes, you're right.  I'm sorry I forgot that you *did* respond to
-those.  You didn't agree, and that's fine.  I'll post a sample
-patch to make my suggestion more concrete.
+Return temperature in milidegree instead of degree, as sysfs-api requir=
+es
+the temperature in milidegree.
 
-Bjorn
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Tested-by: Borislav Petkov <petkovbb@gmail.com>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ drivers/platform/x86/acerhdf.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
+diff -puN drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-=
+milidegree-instead-of-degree drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~acerhdf-return-temperature-in-mili=
+degree-instead-of-degree
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
+=20
+-#define DRV_VER "0.5.17"
++#define DRV_VER "0.5.18"
+=20
+ /*
+  * According to the Atom N270 datasheet,
+@@ -61,7 +61,7 @@
+  * measured by the on-die thermal monitor are within 0 <=3D Tj <=3D 90=
+=2E So,
+  * assume 89=C2=B0C is critical temperature.
+  */
+-#define ACERHDF_TEMP_CRIT 89
++#define ACERHDF_TEMP_CRIT 89000
+ #define ACERHDF_FAN_OFF 0
+ #define ACERHDF_FAN_AUTO 1
+=20
+@@ -69,7 +69,7 @@
+  * No matter what value the user puts into the fanon variable, turn on=
+ the fan
+  * at 80 degree Celsius to prevent hardware damage
+  */
+-#define ACERHDF_MAX_FANON 80
++#define ACERHDF_MAX_FANON 80000
+=20
+ /*
+  * Maximum interval between two temperature checks is 15 seconds, as t=
+he die
+@@ -85,8 +85,8 @@ static int kernelmode;
+ #endif
+=20
+ static unsigned int interval =3D 10;
+-static unsigned int fanon =3D 63;
+-static unsigned int fanoff =3D 58;
++static unsigned int fanon =3D 63000;
++static unsigned int fanoff =3D 58000;
+ static unsigned int verbose;
+ static unsigned int fanstate =3D ACERHDF_FAN_AUTO;
+ static char force_bios[16];
+@@ -171,7 +171,7 @@ static int acerhdf_get_temp(int *temp)
+ 	if (ec_read(bios_cfg->tempreg, &read_temp))
+ 		return -EINVAL;
+=20
+-	*temp =3D read_temp;
++	*temp =3D read_temp * 1000;
+=20
+ 	return 0;
+ }
+_
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
