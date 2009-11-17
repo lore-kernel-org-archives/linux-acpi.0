@@ -1,96 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/12] acpi: remove NID_INVAL
-Date: Tue, 17 Nov 2009 14:27:32 -0800
-Message-ID: <200911172227.nAHMRWXr023288@imap1.linux-foundation.org>
+Subject: [patch 07/12] acpi: thermal: display forced passive trip points in proc
+Date: Tue, 17 Nov 2009 14:27:33 -0800
+Message-ID: <200911172227.nAHMRX7i023346@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756336AbZKQW2n (ORCPT
+	by vger.kernel.org with ESMTP id S1756354AbZKQW2p (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Nov 2009 17:28:43 -0500
+	Tue, 17 Nov 2009 17:28:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, Lee.Schermerhorn@hp.com, cl@linux-foundation.org, gorcunov@openvz.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, elendil@planet.nl, mjg59@srcf.ucam.org, rui.zhang@intel.com
 
-From: David Rientjes <rientjes@google.com>
+From: Frans Pop <elendil@planet.nl>
 
-NUMA_NO_NODE has been exported globally and thus it can replace NID_INVAL
-in the acpi code.
+Users can force a passive trip point for a thermal zone that does not have
+_PSV defined in ACPI by setting the passive attribute in sysfs.  It's
+useful to display such trip points in /proc/acpi/thermal_zone.
 
-Also removes the unused acpi_unmap_pxm_to_node() function.
+.../TZ1/cooling_mode:<setting not supported>
+.../TZ1/polling_frequency:polling frequency:       10 seconds
+.../TZ1/state:state:                   ok
+.../TZ1/temperature:temperature:             53 C
+.../TZ1/trip_points:critical (S5):           110 C
+.../TZ1/trip_points:passive (forced):        95 C
 
-[akpm@linux-foundation.org: coding-style fixes]
+And if not set (passive is 0):
+.../TZ1/trip_points:passive (forced):<not set>
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Acked-by: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Reviewed-by: Christoph Lameter <cl@linux-foundation.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ drivers/acpi/thermal.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/acpi/numa.c~acpi-remove-nid_inval drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~acpi-remove-nid_inval
-+++ a/drivers/acpi/numa.c
-@@ -28,6 +28,7 @@
- #include <linux/types.h>
- #include <linux/errno.h>
- #include <linux/acpi.h>
-+#include <linux/numa.h>
- #include <acpi/acpi_bus.h>
+diff -puN drivers/acpi/thermal.c~acpi-thermal-display-forced-passive-trip-points-in-proc drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c~acpi-thermal-display-forced-passive-trip-points-in-proc
++++ a/drivers/acpi/thermal.c
+@@ -1052,6 +1052,13 @@ static int acpi_thermal_trip_seq_show(st
+ 				   acpi_device_bid(device));
+ 		}
+ 		seq_puts(seq, "\n");
++	} else {
++		seq_printf(seq, "passive (forced):");
++		if (tz->thermal_zone->forced_passive)
++			seq_printf(seq, "        %i C\n",
++				   tz->thermal_zone->forced_passive / 1000);
++		else
++			seq_printf(seq, "<not set>\n");
+ 	}
  
- #define PREFIX "ACPI: "
-@@ -40,14 +41,14 @@ static nodemask_t nodes_found_map = NODE
- 
- /* maps to convert between proximity domain and logical node ID */
- static int pxm_to_node_map[MAX_PXM_DOMAINS]
--				= { [0 ... MAX_PXM_DOMAINS - 1] = NID_INVAL };
-+			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
- static int node_to_pxm_map[MAX_NUMNODES]
--				= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
-+			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
- int pxm_to_node(int pxm)
- {
- 	if (pxm < 0)
--		return NID_INVAL;
-+		return NUMA_NO_NODE;
- 	return pxm_to_node_map[pxm];
- }
- 
-@@ -68,9 +69,9 @@ int acpi_map_pxm_to_node(int pxm)
- {
- 	int node = pxm_to_node_map[pxm];
- 
--	if (node < 0){
-+	if (node < 0) {
- 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
--			return NID_INVAL;
-+			return NUMA_NO_NODE;
- 		node = first_unset_node(nodes_found_map);
- 		__acpi_map_pxm_to_node(pxm, node);
- 		node_set(node, nodes_found_map);
-@@ -79,16 +80,6 @@ int acpi_map_pxm_to_node(int pxm)
- 	return node;
- }
- 
--#if 0
--void __cpuinit acpi_unmap_pxm_to_node(int node)
--{
--	int pxm = node_to_pxm_map[node];
--	pxm_to_node_map[pxm] = NID_INVAL;
--	node_to_pxm_map[node] = PXM_INVAL;
--	node_clear(node, nodes_found_map);
--}
--#endif  /*  0  */
--
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
 _
