@@ -1,33 +1,536 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.32-rc7-git1: Reported regressions 2.6.30 -> 2.6.31
-Date: Tue, 17 Nov 2009 00:35:11 +0100
-Message-ID: <200911170035.11575.rjw@sisk.pl>
-References: <ipicVA1QUFF.A.zWB.1mdALB@chimera> <4B01E09D.3020608@lwfinger.net>
+From: ykzhao <yakui.zhao@intel.com>
+Subject: Re: [PATCH ] IPMI: Locate the IPMI system interface in ACPI
+	namespace
+Date: Tue, 17 Nov 2009 08:59:10 +0800
+Message-ID: <1258419550.3813.30.camel@localhost.localdomain>
+References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
+	 <200911161051.33492.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B01E09D.3020608-tQ5ms3gMjBLk1uMJSBkQmQ@public.gmane.org>
-Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Larry Finger <Larry.Finger-tQ5ms3gMjBLk1uMJSBkQmQ@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Natalie Protasevich <protasnb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM List <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux SCSI List <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:33108 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754870AbZKQBBk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Nov 2009 20:01:40 -0500
+In-Reply-To: <200911161051.33492.bjorn.helgaas@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "minyard@acm.org" <minyard@acm.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday 17 November 2009, Larry Finger wrote:
-> On 11/16/2009 04:58 PM, Rafael J. Wysocki wrote:
-> > This message contains a list of some regressions introduced between 2.6.30 and
-> > 2.6.31, for which there are no fixes in the mainline I know of.  If any of them
-> > have been fixed already, please let me know.
-> > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=14181
-> > Subject		: b43 causes panic at ifconfig down / shutdown
-> > Submitter	: Jeremy Huddleston <jeremyhu-CC+yJ3UmIYqDUpFQwHEjaQ@public.gmane.org>
-> > Date		: 2009-09-15 18:34 (63 days old)
+On Tue, 2009-11-17 at 01:51 +0800, Bjorn Helgaas wrote:
+> On Monday 16 November 2009 02:18:09 am yakui.zhao@intel.com wrote:
+> > From: Zhao Yakui <yakui.zhao@intel.com>
 > 
-> This one is fixed by commit d50bae33d1358b909ade05ae121d83d3a60ab63f in
-> mainline. The patch was also sent to stable.
+> When you post a new version of a patch set, please add a "v2", "v3",
+> etc., so we can tell that this is a new version of something we've
+> seen before.
+> 
+> When people have commented on previous versions of your patch, please
+> CC: them when you post a new version.  It's also nice if you mention
+> what changed in your new version if you addressed any feedback.
 
-Thanks, closed.
+Thanks for pointing out this issue.
+I will pay attention to this issue.
+> 
+> In fact, I gave you detailed feedback on previous versions of this
+> patch, and you've ignored it all.
 
-Rafael
+Understand what you said. You feedback contains two points.
+a. Load the Pnp device driver to detect the IPMI device so that we can
+use the IO/memory resource parse mechanism of PNP device. 
+b. Load a ACPI device driver to detect the IPMI device
+
+In fact I also reply the above issues in my email. And I am sorry that I
+don't mention this in this patch.
+For a: There exist several types of IPMI IO/memory resource definition
+for IPMI device in ACPI namespace. And this is also related with the
+IPMI system interface type(KCS, BT, SMIC). Sometimes there exist two
+different IO/memory resource definitions for one IPMI device. In such
+case it is not easy to decide which IO/memory resource should be used.
+So I prefer to parse the resource directly.
+
+For b: This patch set contains two parts.
+      One is to detect and register the IPMI system interface. After the
+system interface is registered, the system management software can use
+this interface to manage and control IPMI device. And this had better be
+put in IPMI subsystem.  
+      The second part is to load the IPMI opregion space handle for the
+IPMI device so that the AML code can communicate with the IPMI device.
+This belongs to the ACPI subsystem. This is a ACPI device driver. 
+
+BTW:  The register function of IPMI system interface is declared as
+static. If we can call it out of IPMI subsystem, we will have to change
+its prototype(The corresponding data structure should also be changed.).
+IMO it is unnecessary to make so big change about it.
+> 
+> This current patch is identical to the one you posted on October 26,
+> except for a minor change in acpi_find_bmc().
+
+> As I've pointed out before, an ACPI driver must not use
+> acpi_walk_namespace() to discover its devices.  It must use
+> acpi_bus_register_driver().
+> 
+> Bjorn
+> 
+> > According to the IPMI 2.0 spec the IPMI system interface can be located with
+> > ACPI. One is located in SPMI table(Service Processor Management Interface
+> > table). Another is located in ACPI namespace.
+> > This patch is to locate the IPMI system interface in ACPI namespace and
+> > register it.
+> > It includes the following two steps:
+> >    1. enumerate the ACPI device tree to find the IPMI system interface
+> >       The IPMI device type is IPI0001. When the device is found, it
+> > will continue to parse the corresponding resources.
+> >         For example:
+> >               interface type (KCS, BT, SMIC) (SSIF is not supported)
+> >               interrupt number and type (_GPE or GSI)
+> >               Memory or IO base address
+> >     2. register the IPMI system interface.
+> >
+> > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> > ---
+> >  drivers/char/ipmi/ipmi_si_intf.c |  401 +++++++++++++++++++++++++++++++++++++-
+> >  1 files changed, 400 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+> > index d2e6980..d6a2c60 100644
+> > --- a/drivers/char/ipmi/ipmi_si_intf.c
+> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
+> > @@ -1813,6 +1813,35 @@ static __devinit void hardcode_find_bmc(void)
+> >   * are no more.
+> >   */
+> >  static int acpi_failure;
+> > +static LIST_HEAD(acpi_ipmi);
+> > +
+> > +struct acpi_device_ipmi {
+> > +     struct list_head link;
+> > +     u8 interfacetype;
+> > +     /*
+> > +      * Bit 0 - SCI interrupt supported
+> > +      * Bit 1 - I/O APIC/SAPIC
+> > +      */
+> > +     u8      interrupttype;
+> > +     /*
+> > +      * If bit 0 of InterruptType is set, then this is the SCI
+> > +      * interrupt in the GPEx_STS register.
+> > +      */
+> > +     u8      gpe;
+> > +     /*
+> > +      * If bit 1 of InterruptType is set, then this is the I/O
+> > +      * APIC/SAPIC interrupt.
+> > +      */
+> > +     u32     global_interrupt;
+> > +
+> > +     /* The actual register address. */
+> > +     struct acpi_generic_address addr;
+> > +     struct acpi_generic_address sm_addr;
+> > +
+> > +     u16 ipmi_revision;
+> > +     u8 resource_count;
+> > +     struct device *dev;
+> > +};
+> >
+> >  /* For GPE-type interrupts. */
+> >  static u32 ipmi_acpi_gpe(void *context)
+> > @@ -2002,6 +2031,367 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
+> >       return 0;
+> >  }
+> >
+> > +static __devinit int try_init_acpi_device(struct acpi_device_ipmi *spmi)
+> > +{
+> > +     struct smi_info  *info;
+> > +     u8               addr_space;
+> > +
+> > +     if (spmi->addr.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> > +             addr_space = IPMI_MEM_ADDR_SPACE;
+> > +     else
+> > +             addr_space = IPMI_IO_ADDR_SPACE;
+> > +
+> > +     info = kzalloc(sizeof(*info), GFP_KERNEL);
+> > +     if (!info) {
+> > +             printk(KERN_ERR "ipmi_si: Could not allocate SI data (3)\n");
+> > +             return -ENOMEM;
+> > +     }
+> > +
+> > +     info->addr_source = "ACPI";
+> > +
+> > +     /* Figure out the interface type. */
+> > +     switch (spmi->interfacetype) {
+> > +     case 1: /* KCS */
+> > +             info->si_type = SI_KCS;
+> > +             break;
+> > +     case 2: /* SMIC */
+> > +             info->si_type = SI_SMIC;
+> > +             break;
+> > +     case 3: /* BT */
+> > +             info->si_type = SI_BT;
+> > +             break;
+> > +     default:
+> > +             printk(KERN_INFO "ipmi_si: Unknown ACPI/SPMI SI type %d\n",
+> > +                     spmi->interfacetype);
+> > +             kfree(info);
+> > +             return -EIO;
+> > +     }
+> > +
+> > +     if (spmi->interrupttype & 1) {
+> > +             /* We've got a GPE interrupt. */
+> > +             info->irq = spmi->gpe;
+> > +             info->irq_setup = acpi_gpe_irq_setup;
+> > +     } else if (spmi->interrupttype & 2) {
+> > +             /* We've got an APIC/SAPIC interrupt. */
+> > +             info->irq = spmi->global_interrupt;
+> > +             info->irq_setup = std_irq_setup;
+> > +     } else {
+> > +             /* Use the default interrupt setting. */
+> > +             info->irq = 0;
+> > +             info->irq_setup = NULL;
+> > +     }
+> > +
+> > +     if (spmi->addr.bit_width) {
+> > +             /* A (hopefully) properly formed register bit width. */
+> > +             info->io.regspacing = spmi->addr.bit_width / 8;
+> > +     } else {
+> > +             info->io.regspacing = DEFAULT_REGSPACING;
+> > +     }
+> > +     info->io.regsize = info->io.regspacing;
+> > +     info->io.regshift = spmi->addr.bit_offset;
+> > +
+> > +     if (spmi->addr.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+> > +             info->io_setup = mem_setup;
+> > +             info->io.addr_type = IPMI_MEM_ADDR_SPACE;
+> > +     } else if (spmi->addr.space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+> > +             info->io_setup = port_setup;
+> > +             info->io.addr_type = IPMI_IO_ADDR_SPACE;
+> > +     } else {
+> > +             kfree(info);
+> > +             printk(KERN_WARNING
+> > +                    "ipmi_si: Unknown ACPI I/O Address type\n");
+> > +             return -EIO;
+> > +     }
+> > +     info->io.addr_data = spmi->addr.address;
+> > +     info->dev = spmi->dev;
+> > +
+> > +     try_smi_init(info);
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static acpi_status
+> > +acpi_parse_io_ports(struct acpi_resource *resource, void *context)
+> > +{
+> > +     struct acpi_device_ipmi *p_ipmi = context;
+> > +
+> > +     if (resource->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ ||
+> > +             resource->type == ACPI_RESOURCE_TYPE_IRQ) {
+> > +             unsigned int irq_number;
+> > +             if (p_ipmi->interrupttype) {
+> > +                     /*
+> > +                      * If it already support the interrupt through GPE,
+> > +                      * it is unnecessary to get this interrupt again.
+> > +                      */
+> > +                     printk(KERN_WARNING "Interrupt through GPE is already"
+> > +                             " supported.\n");
+> > +                     return AE_OK;
+> > +             }
+> > +             if (resource->type == ACPI_RESOURCE_TYPE_IRQ) {
+> > +                     struct acpi_resource_irq *irq;
+> > +                     irq = &resource->data.irq;
+> > +                     if (irq->interrupt_count != 1) {
+> > +                             printk(KERN_WARNING "incorrect IRQ is "
+> > +                                     "defined in _CRS\n");
+> > +                             return AE_OK;
+> > +                     }
+> > +                     irq_number = irq->interrupts[0];
+> > +             } else {
+> > +                     struct acpi_resource_extended_irq *extended_irq;
+> > +                     extended_irq = &resource->data.extended_irq;
+> > +                     if (extended_irq->interrupt_count != 1) {
+> > +                             printk(KERN_WARNING "incorrect IRQ is "
+> > +                                     "defined in _CRS\n");
+> > +                             return AE_OK;
+> > +                     }
+> > +                     irq_number = extended_irq->interrupts[0];
+> > +             }
+> > +             p_ipmi->global_interrupt = irq_number;
+> > +             if (p_ipmi->global_interrupt) {
+> > +                     /* GSI interrupt type */
+> > +                     p_ipmi->interrupttype |= 0x02;
+> > +             }
+> > +             return AE_OK;
+> > +     }
+> > +     if (resource->type == ACPI_RESOURCE_TYPE_IO ||
+> > +             resource->type == ACPI_RESOURCE_TYPE_FIXED_IO) {
+> > +             u16 address;
+> > +             struct acpi_resource_io *io;
+> > +             struct acpi_resource_fixed_io *fixed_io;
+> > +
+> > +             fixed_io = &resource->data.fixed_io;
+> > +             if (p_ipmi->resource_count) {
+> > +                     /*
+> > +                      * Multiply definitions of IO/memory address are
+> > +                      * obtained. It is incorrect. We will continue
+> > +                      * to use the first IO/memory definition.
+> > +                      * If not correct, please fix me.
+> > +                      */
+> > +                     return AE_OK;
+> > +             }
+> > +             if (resource->type == ACPI_RESOURCE_TYPE_IO) {
+> > +                     io = &resource->data.io;
+> > +                     if (!io->minimum) {
+> > +                             /* when IO address is zero, return */
+> > +                             return AE_OK;
+> > +                     }
+> > +                     address = io->minimum;
+> > +             } else {
+> > +                     fixed_io = &resource->data.fixed_io;
+> > +                     if (!fixed_io->address)
+> > +                             return AE_OK;
+> > +                     address = fixed_io->address;
+> > +             }
+> > +             p_ipmi->resource_count++;
+> > +             p_ipmi->addr.space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+> > +             p_ipmi->addr.address = address;
+> > +             return AE_OK;
+> > +     }
+> > +
+> > +     if (resource->type == ACPI_RESOURCE_TYPE_MEMORY32 ||
+> > +             resource->type == ACPI_RESOURCE_TYPE_MEMORY24 ||
+> > +             resource->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
+> > +             u32 address;
+> > +             if (p_ipmi->resource_count) {
+> > +                     /*
+> > +                      * Multiply definitions of IO/memory address are
+> > +                      * obtained. It is incorrect. We will continue
+> > +                      * to use the first IO/memory definition.
+> > +                      * If not correct, please fix me.
+> > +                      */
+> > +                     return AE_OK;
+> > +             }
+> > +             if (resource->type == ACPI_RESOURCE_TYPE_MEMORY32) {
+> > +                     struct acpi_resource_memory32 *memory32;
+> > +                     memory32 = &resource->data.memory32;
+> > +                     address = memory32->minimum;
+> > +             } else if (resource->type == ACPI_RESOURCE_TYPE_MEMORY24) {
+> > +                     struct acpi_resource_memory24 *memory24;
+> > +                     memory24 = &resource->data.memory24;
+> > +                     address = memory24->minimum;
+> > +             } else {
+> > +                     struct acpi_resource_fixed_memory32 *fixed_memory32;
+> > +                     fixed_memory32 = &resource->data.fixed_memory32;
+> > +                     address = fixed_memory32->address;
+> > +             }
+> > +             p_ipmi->resource_count++;
+> > +             p_ipmi->addr.address = (u64) address;
+> > +             p_ipmi->addr.space_id = ACPI_ADR_SPACE_SYSTEM_MEMORY;
+> > +             return AE_OK;
+> > +     }
+> > +     if (resource->type == ACPI_RESOURCE_TYPE_ADDRESS16 ||
+> > +             resource->type == ACPI_RESOURCE_TYPE_ADDRESS32 ||
+> > +             resource->type == ACPI_RESOURCE_TYPE_ADDRESS64) {
+> > +             struct acpi_resource_address64 address64;
+> > +             acpi_resource_to_address64(resource, &address64);
+> > +             if (p_ipmi->resource_count) {
+> > +                     /*
+> > +                      * Multiply definitions of IO/memory address are
+> > +                      * obtained. It is incorrect. We will continue
+> > +                      * to use the first IO/memory definition.
+> > +                      * If not correct, please fix me.
+> > +                      */
+> > +                     return AE_OK;
+> > +             }
+> > +             if (address64.resource_type != ACPI_MEMORY_RANGE &&
+> > +                     address64.resource_type != ACPI_IO_RANGE) {
+> > +                     /* ignore the incorrect resource type */
+> > +                     return AE_OK;
+> > +             }
+> > +             p_ipmi->addr.address = address64.minimum;
+> > +             p_ipmi->resource_count++;
+> > +             if (address64.resource_type == ACPI_MEMORY_RANGE)
+> > +                     p_ipmi->addr.space_id = ACPI_ADR_SPACE_SYSTEM_MEMORY;
+> > +             else
+> > +                     p_ipmi->addr.space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+> > +
+> > +             return AE_OK;
+> > +     }
+> > +
+> > +     return AE_OK;
+> > +}
+> > +
+> > +/*
+> > + *  acpi_parse_bmc_resource -- parse the BMC resources from ACPI
+> > + *  @p_ipmi: the memory to store the BCM resource
+> > + *  @handle: ACPI device handle
+> > + */
+> > +static int acpi_parse_bmc_resource(struct acpi_device_ipmi *p_ipmi,
+> > +                     acpi_handle handle)
+> > +{
+> > +     int parse_ok = false;
+> > +     unsigned long long      temp_data;
+> > +     acpi_status status;
+> > +
+> > +     /* According to IPMI spec there should exist the _IFT method
+> > +      * for the IPMI device. So when there is no _IFT, it is regarded
+> > +      * as the incorrect BMC device and won't parse the resource again.
+> > +      */
+> > +     status = acpi_evaluate_integer(handle, "_IFT", NULL, &temp_data);
+> > +     if (ACPI_FAILURE(status))
+> > +             return parse_ok;
+> > +
+> > +     p_ipmi->interfacetype = temp_data;
+> > +     /* Figure out the interface type. If the interface type is not
+> > +      * KCS/SMIC/BT, it is regared as the incorrect IPMI device.
+> > +      * Of course the SSIF interface type is also defined, but we
+> > +      * can't handle it. So it is not supported */
+> > +     switch (temp_data) {
+> > +     case 1: /* KCS */
+> > +     case 2: /* SMIC */
+> > +     case 3: /* BT */
+> > +             break;
+> > +     default:
+> > +             printk(KERN_INFO "ipmi_si: Unknown ACPI/SPMI SI type %d\n",
+> > +                     p_ipmi->interfacetype);
+> > +             return parse_ok;
+> > +     }
+> > +     /* check whether there exists the _GPE method. If it exists, it
+> > +      * means that interrupt through GPE is supported.
+> > +      */
+> > +     temp_data = 0;
+> > +     status = acpi_evaluate_integer(handle, "_GPE", NULL, &temp_data);
+> > +     if (ACPI_SUCCESS(status)) {
+> > +             p_ipmi->gpe = temp_data;
+> > +             /* set the GPE interrupt type */
+> > +             p_ipmi->interrupttype |= 0x01;
+> > +     }
+> > +     /* get the IPMI revision */
+> > +     temp_data = 0;
+> > +     status = acpi_evaluate_integer(handle, "_SRV", NULL,  &temp_data);
+> > +     if (ACPI_SUCCESS(status))
+> > +             p_ipmi->ipmi_revision = temp_data;
+> > +
+> > +     status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> > +                             acpi_parse_io_ports, p_ipmi);
+> > +     if (ACPI_FAILURE(status)) {
+> > +             printk(KERN_WARNING "Can't parse the _CRS object \n");
+> > +             return parse_ok;
+> > +     }
+> > +     if (!p_ipmi->resource_count) {
+> > +             /* The incorrect IO/Memory address is parsed */
+> > +             printk(KERN_ERR "Incorrect IO/Memory address is parsed\n");
+> > +             return parse_ok;
+> > +     }
+> > +     parse_ok = true;
+> > +
+> > +     return parse_ok;
+> > +}
+> > +
+> > +const struct acpi_device_id ipmi_ids[] = {
+> > +     {"IPI0001", 0},
+> > +     {"", 0},
+> > +};
+> > +
+> > +/*
+> > + * acpi_check_bmc_device -- check whether @handle is a BMC device and then
+> > + *           get its corresponding resource. For example: IO/Mem
+> > + *           address, interface type
+> > + * @handle: ACPI device handle
+> > + * @level : depth in the ACPI namespace tree
+> > + * @context: the number of bmc device. In theory there is not more than
+> > + *   one ACPI BMC device.
+> > + * @rv: a return value to fill if desired (Not use)
+> > + */
+> > +static acpi_status
+> > +acpi_check_bmc_device(acpi_handle handle, u32 level, void *context,
+> > +                     void **return_value)
+> > +{
+> > +     struct acpi_device *acpi_dev;
+> > +     struct acpi_device_ipmi *p_ipmi = NULL;
+> > +     int *count = (int *)context;
+> > +
+> > +     acpi_dev = NULL;
+> > +     /* Get the acpi device for device handle */
+> > +     if (acpi_bus_get_device(handle, &acpi_dev) || !acpi_dev) {
+> > +             /* If there is no ACPI device for handle, return */
+> > +             return AE_OK;
+> > +     }
+> > +
+> > +     if (acpi_match_device_ids(acpi_dev, ipmi_ids))
+> > +             return AE_OK;
+> > +
+> > +     p_ipmi = kzalloc(sizeof(*p_ipmi), GFP_KERNEL);
+> > +     if (!p_ipmi) {
+> > +             printk(KERN_ERR "Can't allocate memory for IPMI device\n");
+> > +             return AE_OK;
+> > +     }
+> > +     p_ipmi->dev = &acpi_dev->dev;
+> > +     if (!acpi_parse_bmc_resource(p_ipmi, handle)) {
+> > +             kfree(p_ipmi);
+> > +     } else {
+> > +             list_add_tail(&p_ipmi->link, &acpi_ipmi);
+> > +             *count = *count + 1;
+> > +     }
+> > +
+> > +     return AE_OK;
+> > +}
+> > +
+> > +static __devinit void acpi_device_find_bmc(void)
+> > +{
+> > +     acpi_status      status;
+> > +     int              device_count = 0;
+> > +     struct acpi_device_ipmi *p_ipmi, *p_ipmi2;
+> > +
+> > +     if (acpi_disabled)
+> > +             return;
+> > +
+> > +     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> > +                             ACPI_UINT32_MAX,
+> > +                             acpi_check_bmc_device, &device_count, NULL);
+> > +     if (!device_count) {
+> > +             /* when no IPMI device is found in ACPI namespace, return */
+> > +             return;
+> > +     }
+> > +     list_for_each_entry_safe(p_ipmi, p_ipmi2, &acpi_ipmi, link) {
+> > +             try_init_acpi_device(p_ipmi);
+> > +             list_del(&p_ipmi->link);
+> > +             kfree(p_ipmi);
+> > +     }
+> > +
+> > +     return;
+> > +}
+> > +
+> >  static __devinit void acpi_find_bmc(void)
+> >  {
+> >       acpi_status      status;
+> > @@ -2014,14 +2404,23 @@ static __devinit void acpi_find_bmc(void)
+> >       if (acpi_failure)
+> >               return;
+> >
+> > +     /* locate the IPMI system interface in ACPI SPMI table */
+> >       for (i = 0; ; i++) {
+> >               status = acpi_get_table(ACPI_SIG_SPMI, i+1,
+> >                                       (struct acpi_table_header **)&spmi);
+> > +             /*
+> > +              * When no SPMI table is found, we will exit the loop and
+> > +              * continue to try another ACPI mechanism to detect the IPMI
+> > +              * device.
+> > +              */
+> >               if (status != AE_OK)
+> > -                     return;
+> > +                     break;
+> >
+> >               try_init_acpi(spmi);
+> >       }
+> > +
+> > +     /* locate the IPMI system interface in ACPI device */
+> > +     acpi_device_find_bmc();
+> >  }
+> >  #endif
+> >
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
