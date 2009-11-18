@@ -1,78 +1,170 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v1 4/5] ipmi: refer to table as "SPMI", not "ACPI"
-Date: Tue, 17 Nov 2009 17:05:29 -0700
-Message-ID: <20091118000529.14214.69672.stgit@bob.kio>
+Subject: [PATCH v1 5/5] ipmi: add PNP discovery (ACPI namespace via PNPACPI)
+Date: Tue, 17 Nov 2009 17:05:34 -0700
+Message-ID: <20091118000534.14214.99332.stgit@bob.kio>
 References: <20091118000427.14214.14043.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:13722 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752771AbZKRAFY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2009 19:05:24 -0500
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:1354 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753185AbZKRAF2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2009 19:05:28 -0500
 In-Reply-To: <20091118000427.14214.14043.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhao Yakui <yakui.zhao@intel.com>
 Cc: Corey Minyard <minyard@acm.org>, Bela Lubkin <blubkin@vmware.com>, linux-acpi@vger.kernel.org, Myron Stowe <myron.stowe@hp.com>, openipmi-developer@lists.sourceforge.net, Len Brown <lenb@kernel.org>
 
-This discovery method uses the SPMI table, not the ACPI namespace.  In
-the future, we will look in the namespace, so let's refer to the table
-as "SPMI" and save "ACPI" for the namespace.
+This allows ipmi_si_intf.c to claim IPMI devices described in the ACPI
+namespace.  Using PNP makes it simpler to parse the IRQ/IO/memory resources
+of the device.
+
+We look at any SPMI tables before looking for devices in the namespace.
+
+This is based on ipmi_pci_probe().
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Myron Stowe <myron.stowe@hp.com>
 ---
- drivers/char/ipmi/ipmi_si_intf.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |  104 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 104 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
-index aaf6ead..b58e587 100644
+index b58e587..679cd08 100644
 --- a/drivers/char/ipmi/ipmi_si_intf.c
 +++ b/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1919,7 +1919,7 @@ struct SPMITable {
- 	s8      spmi_id[1]; /* A '\0' terminated array starts here. */
- };
+@@ -64,6 +64,7 @@
+ #include <linux/dmi.h>
+ #include <linux/string.h>
+ #include <linux/ctype.h>
++#include <linux/pnp.h>
  
--static __devinit int try_init_acpi(struct SPMITable *spmi)
-+static __devinit int try_init_spmi(struct SPMITable *spmi)
- {
- 	struct smi_info  *info;
- 	u8 		 addr_space;
-@@ -1940,7 +1940,7 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
- 		return -ENOMEM;
- 	}
- 
--	info->addr_source = "ACPI";
-+	info->addr_source = "SPMI";
- 
- 	/* Figure out the interface type. */
- 	switch (spmi->InterfaceType) {
-@@ -2002,7 +2002,7 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
- 	return 0;
- }
- 
--static __devinit void acpi_find_bmc(void)
-+static __devinit void spmi_find_bmc(void)
- {
- 	acpi_status      status;
- 	struct SPMITable *spmi;
-@@ -2020,7 +2020,7 @@ static __devinit void acpi_find_bmc(void)
- 		if (status != AE_OK)
- 			return;
- 
--		try_init_acpi(spmi);
-+		try_init_spmi(spmi);
+ #ifdef CONFIG_PPC_OF
+ #include <linux/of_device.h>
+@@ -2023,6 +2024,103 @@ static __devinit void spmi_find_bmc(void)
+ 		try_init_spmi(spmi);
  	}
  }
- #endif
-@@ -3104,7 +3104,7 @@ static __devinit int init_ipmi_si(void)
++
++static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
++				    const struct pnp_device_id *dev_id)
++{
++	struct acpi_device *acpi_dev;
++	struct smi_info *info;
++	acpi_handle handle;
++	acpi_status status;
++	unsigned long long tmp;
++
++	acpi_dev = pnp_acpi_device(dev);
++	if (!acpi_dev)
++		return -ENODEV;
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
++
++	info->addr_source = "ACPI";
++
++	handle = acpi_dev->handle;
++
++	/* _IFT tells us the interface type: KCS, BT, etc */
++	status = acpi_evaluate_integer(handle, "_IFT", NULL, &tmp);
++	if (ACPI_FAILURE(status))
++		goto err_free;
++
++	switch (tmp) {
++	case 1:
++		info->si_type = SI_KCS;
++		break;
++	case 2:
++		info->si_type = SI_SMIC;
++		break;
++	case 3:
++		info->si_type = SI_BT;
++		break;
++	default:
++		dev_info(&dev->dev, "unknown interface type %lld\n", tmp);
++		goto err_free;
++	}
++
++	if (pnp_port_valid(dev, 0)) {
++		info->io_setup = port_setup;
++		info->io.addr_type = IPMI_IO_ADDR_SPACE;
++		info->io.addr_data = pnp_port_start(dev, 0);
++	} else if (pnp_mem_valid(dev, 0)) {
++		info->io_setup = mem_setup;
++		info->io.addr_type = IPMI_MEM_ADDR_SPACE;
++		info->io.addr_data = pnp_mem_start(dev, 0);
++	} else {
++		dev_err(&dev->dev, "no I/O or memory address\n");
++		goto err_free;
++	}
++
++	info->io.regspacing = DEFAULT_REGSPACING;
++	info->io.regsize = DEFAULT_REGSPACING;
++	info->io.regshift = 0;
++
++	/* If _GPE exists, use it; otherwise use standard interrupts */
++	status = acpi_evaluate_integer(handle, "_GPE", NULL, &tmp);
++	if (ACPI_SUCCESS(status)) {
++		info->irq = tmp;
++		info->irq_setup = acpi_gpe_irq_setup;
++	} else if (pnp_irq_valid(dev, 0)) {
++		info->irq = pnp_irq(dev, 0);
++		info->irq_setup = std_irq_setup;
++	}
++
++	info->dev = &acpi_dev->dev;
++	pnp_set_drvdata(dev, info);
++
++	return try_smi_init(info);
++
++err_free:
++	kfree(info);
++	return -EINVAL;
++}
++
++static void __devexit ipmi_pnp_remove(struct pnp_dev *dev)
++{
++	struct smi_info *info = pnp_get_drvdata(dev);
++
++	cleanup_one_si(info);
++}
++
++static const struct pnp_device_id pnp_dev_table[] = {
++	{"IPI0001", 0},
++	{"", 0},
++};
++
++static struct pnp_driver ipmi_pnp_driver = {
++	.name		= DEVICE_NAME,
++	.probe		= ipmi_pnp_probe,
++	.remove		= __devexit_p(ipmi_pnp_remove),
++	.id_table	= pnp_dev_table,
++};
  #endif
  
+ #ifdef CONFIG_DMI
+@@ -3106,6 +3204,9 @@ static __devinit int init_ipmi_si(void)
  #ifdef CONFIG_ACPI
--	acpi_find_bmc();
-+	spmi_find_bmc();
+ 	spmi_find_bmc();
  #endif
++#ifdef CONFIG_PNP
++	pnp_register_driver(&ipmi_pnp_driver);
++#endif
  
  #ifdef CONFIG_PCI
+ 	rv = pci_register_driver(&ipmi_pci_driver);
+@@ -3229,6 +3330,9 @@ static __exit void cleanup_ipmi_si(void)
+ #ifdef CONFIG_PCI
+ 	pci_unregister_driver(&ipmi_pci_driver);
+ #endif
++#ifdef CONFIG_PNP
++	pnp_unregister_driver(&ipmi_pnp_driver);
++#endif
+ 
+ #ifdef CONFIG_PPC_OF
+ 	of_unregister_platform_driver(&ipmi_of_platform_driver);
 
