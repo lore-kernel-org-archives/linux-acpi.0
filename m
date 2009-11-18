@@ -1,123 +1,78 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH v1 1/5] PNPACPI: save struct acpi_device, not just acpi_handle
-Date: Tue, 17 Nov 2009 17:05:14 -0700
-Message-ID: <20091118000514.14214.54731.stgit@bob.kio>
+Subject: [PATCH v1 4/5] ipmi: refer to table as "SPMI", not "ACPI"
+Date: Tue, 17 Nov 2009 17:05:29 -0700
+Message-ID: <20091118000529.14214.69672.stgit@bob.kio>
 References: <20091118000427.14214.14043.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:14070 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752289AbZKRAFM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2009 19:05:12 -0500
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:13722 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752771AbZKRAFY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2009 19:05:24 -0500
 In-Reply-To: <20091118000427.14214.14043.stgit@bob.kio>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhao Yakui <yakui.zhao@intel.com>
 Cc: Corey Minyard <minyard@acm.org>, Bela Lubkin <blubkin@vmware.com>, linux-acpi@vger.kernel.org, Myron Stowe <myron.stowe@hp.com>, openipmi-developer@lists.sourceforge.net, Len Brown <lenb@kernel.org>
 
-Some drivers need to look at things in the acpi_device structure
-besides the handle.
+This discovery method uses the SPMI table, not the ACPI namespace.  In
+the future, we will look in the namespace, so let's refer to the table
+as "SPMI" and save "ACPI" for the namespace.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 ---
- drivers/pnp/pnpacpi/core.c     |   17 ++++++++++++-----
- drivers/pnp/pnpacpi/rsparser.c |    9 ++++++---
- 2 files changed, 18 insertions(+), 8 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index 83b8b5a..b2348fc 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -80,7 +80,8 @@ static int pnpacpi_get_resources(struct pnp_dev *dev)
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index aaf6ead..b58e587 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -1919,7 +1919,7 @@ struct SPMITable {
+ 	s8      spmi_id[1]; /* A '\0' terminated array starts here. */
+ };
  
- static int pnpacpi_set_resources(struct pnp_dev *dev)
+-static __devinit int try_init_acpi(struct SPMITable *spmi)
++static __devinit int try_init_spmi(struct SPMITable *spmi)
  {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	struct acpi_buffer buffer;
- 	int ret;
+ 	struct smi_info  *info;
+ 	u8 		 addr_space;
+@@ -1940,7 +1940,7 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
+ 		return -ENOMEM;
+ 	}
  
-@@ -103,7 +104,8 @@ static int pnpacpi_set_resources(struct pnp_dev *dev)
+-	info->addr_source = "ACPI";
++	info->addr_source = "SPMI";
  
- static int pnpacpi_disable_resources(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	int ret;
- 
- 	dev_dbg(&dev->dev, "disable resources\n");
-@@ -121,6 +123,8 @@ static int pnpacpi_disable_resources(struct pnp_dev *dev)
- #ifdef CONFIG_ACPI_SLEEP
- static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
- {
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	int power_state;
- 
- 	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
-@@ -128,12 +132,15 @@ static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
- 		power_state = (state.event == PM_EVENT_ON) ?
- 				ACPI_STATE_D0 : ACPI_STATE_D3;
- 
--	return acpi_bus_set_power((acpi_handle) dev->data, power_state);
-+	return acpi_bus_set_power(handle, power_state);
+ 	/* Figure out the interface type. */
+ 	switch (spmi->InterfaceType) {
+@@ -2002,7 +2002,7 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
+ 	return 0;
  }
  
- static int pnpacpi_resume(struct pnp_dev *dev)
+-static __devinit void acpi_find_bmc(void)
++static __devinit void spmi_find_bmc(void)
  {
--	return acpi_bus_set_power((acpi_handle) dev->data, ACPI_STATE_D0);
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
-+
-+	return acpi_bus_set_power(handle, ACPI_STATE_D0);
+ 	acpi_status      status;
+ 	struct SPMITable *spmi;
+@@ -2020,7 +2020,7 @@ static __devinit void acpi_find_bmc(void)
+ 		if (status != AE_OK)
+ 			return;
+ 
+-		try_init_acpi(spmi);
++		try_init_spmi(spmi);
+ 	}
  }
  #endif
+@@ -3104,7 +3104,7 @@ static __devinit int init_ipmi_si(void)
+ #endif
  
-@@ -168,7 +175,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	if (!dev)
- 		return -ENOMEM;
+ #ifdef CONFIG_ACPI
+-	acpi_find_bmc();
++	spmi_find_bmc();
+ #endif
  
--	dev->data = device->handle;
-+	dev->data = device;
- 	/* .enabled means the device can decode the resources */
- 	dev->active = device->status.enabled;
- 	status = acpi_get_handle(device->handle, "_SRS", &temp);
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index ef3a2cd..5702b2c 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -465,7 +465,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 
- int pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	acpi_status status;
- 
- 	pnp_dbg(&dev->dev, "parse allocated resources\n");
-@@ -773,7 +774,8 @@ static __init acpi_status pnpacpi_option_resource(struct acpi_resource *res,
- 
- int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	acpi_status status;
- 	struct acpipnp_parse_option_s parse_data;
- 
-@@ -845,7 +847,8 @@ static acpi_status pnpacpi_type_resources(struct acpi_resource *res, void *data)
- int pnpacpi_build_resource_template(struct pnp_dev *dev,
- 				    struct acpi_buffer *buffer)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	struct acpi_resource *resource;
- 	int res_cnt = 0;
- 	acpi_status status;
+ #ifdef CONFIG_PCI
 
