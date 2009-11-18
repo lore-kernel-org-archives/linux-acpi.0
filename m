@@ -1,97 +1,58 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v1 0/5] IPMI devices from ACPI namespace
-Date: Wed, 18 Nov 2009 09:29:18 -0700
-Message-ID: <200911180929.19924.bjorn.helgaas@hp.com>
-References: <20091118000427.14214.14043.stgit@bob.kio> <1258511389.3813.54.camel@localhost.localdomain>
+Subject: IPMI device discovery [was Re: [PATCH ] IPMI:
+	Locate the IPMI system interface in ACPI namespace]
+Date: Wed, 18 Nov 2009 09:45:44 -0700
+Message-ID: <200911180945.45570.bjorn.helgaas@hp.com>
+References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
+	<200911170759.06902.bjorn.helgaas@hp.com>
+	<1258515715.3813.108.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:48069 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757668AbZKRQ3w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2009 11:29:52 -0500
-In-Reply-To: <1258511389.3813.54.camel@localhost.localdomain>
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <1258515715.3813.108.camel@localhost.localdomain>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
 To: ykzhao <yakui.zhao@intel.com>
-Cc: Corey Minyard <minyard@acm.org>, Bela Lubkin <blubkin@vmware.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Myron Stowe <myron.stowe@hp.com>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Myron Stowe <myron.stowe@hp.com>, "minyard@acm.org" <minyard@acm.org>, "lenb@kernel.org" <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 17 November 2009 07:29:49 pm ykzhao wrote:
->     In this patch set the IPMI system interface will be detected by
-> using pnp device driver. In theory it is ok to detect the IPMI system
-> interface by using pnp device driver.
->    But we will have to consider the following two problems:
->    a. how to detect the IPMI system interface defined in ACPI table if
-> the pnp subsystem is disabled? For example: by adding the boot option of
-> "pnpacpi=off". Why does this need to depend on two subsystems(ACPI and
-> pnp)?
+On Tuesday 17 November 2009 08:41:55 pm ykzhao wrote:
+>    a. One is to add the support of detection IPMI system interface in
+> ACPI namespace, which is a complement of ACPI SPMI detection.
 
-This is not a problem.  On an ACPI system, *all* PNP drivers depend
-on PNPACPI.  There's no reason IPMI needs to be handled differently.
-Treating the IPMI system interface the same as every other device
-makes the kernel easier to understand and easier to maintain.
+This is not related to your current patch, which adds namespace
+detection.  This is a new conversation about how I think we should
+make future changes in IPMI device discovery.
 
->    b. There exist several exceptions about the _CRS for the IPMI system
-> interface defined in ACPI table.
+The ACPI namespace is the canonical way to enumerate devices that
+don't have a native enumeration protocol.  I think the only reason
+the SPMI table exists at all is to allow an OS to find an IPMI system
+interface during early boot, before the OS is prepared to parse the
+ACPI namespace.  Anything described by the SPMI should also be described
+in the namespace.
 
-What exceptions are these?  If you're talking about BIOS defects we
-need to work around, we should make the workarounds explicit in the
-code.  If they're not explicit, we're likely to accidentally break
-the workaround later.
+Linux does not need to use IPMI during that early boot phase, so I
+think the SPMI detection should be dropped completely, and we should
+rely *only* on the ACPI namespace and the PCI enumeration.  We may
+have to use SPMI or SMBIOS to work around BIOS defects, but we
+shouldn't use them in general.
 
-> Maybe there exist two IO/memory address 
-> definition for the IPMI system interface and the memory type is declared
-> before IO type. In such case we can't know which should be selected.
-
-Your patch uses the first address (either I/O or memory) from _CRS.
-My patch as posted uses an I/O port address if it exists (even if it
-wasn't the first in _CRS) and falls back to using a memory address if
-there was no I/O port address.
-
-If this is an important difference, we can walk the struct pnp_dev
-resources list, since PNP is careful to maintain that in the same
-order as _CRS.  For example, we could do this:
-
-        struct pnp_resource *pnp_res;
-        struct resource *res;
-
-        list_for_each_entry(pnp_res, &dev->resources, list) {
-                res = &pnp_res->res;
-                if (pnp_resource_type(res) == IORESOURCE_IO) {
-			info->io_setup = port_setup;
-			info->io.addr_type = IPMI_IO_ADDR_SPACE;
-			info->io.addr_data = res->start;
-			break;
-		} else if (pnp_resource_type(res) == IORESOURCE_MEM) {
-			info->io_setup = mem_setup;
-			info->io.addr_type = IPMI_MEM_ADDR_SPACE;
-			info->io.addr_data = res->start;
-			break;
-		}
-	}
-
-But you haven't given an example that proves this is necessary,
-so I don't think the extra complication is worthwhile.
-
-> At the same time in order to enable the communication between the ACPI
-> AML code and IPMI subsystem, too strict dependency is added.
->    In such case if the ACPI IPMI driver is not selected, the IPMI
-> subsystem can't be compiled correctly.
-
-You are right that in my sample patch, ipmi_si_intf.c won't build
-unless CONFIG_ACPI_IPMI=y.  But that's easily fixed by an ifdef in
-ipmi_si_intf.c.  Or ipmi_si_intf.c could export an interface that
-drivers/acpi/ipmi.c could use to register itself.
-
-I don't care as much about those details because they're internal to
-the IPMI driver piece, and they don't affect the ACPI core.
-
-The important thing is that drivers/acpi/ipmi.c is not a driver for
-the IPMI system interface, since it doesn't deal with interrupts or
-IPMI registers, so it shouldn't use acpi_bus_register_driver() or
-pnp_register_driver().
+I have been told that Windows is similar in that it does not use IPMI
+during early boot, and that it does not look at the SPMI table at all,
+so I think relying on the namespace would be fairly safe.
 
 Bjorn
+
+------------------------------------------------------------------------------
+Let Crystal Reports handle the reporting - Free Crystal Reports 2008 30-Day 
+trial. Simplify your report design, integration and deployment - and focus on 
+what you do best, core application coding. Discover what's new with
+Crystal Reports now.  http://p.sf.net/sfu/bobj-july
