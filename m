@@ -1,73 +1,82 @@
 From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH v1 0/5] IPMI devices from ACPI namespace
-Date: Wed, 18 Nov 2009 10:29:49 +0800
-Message-ID: <1258511389.3813.54.camel@localhost.localdomain>
-References: <20091118000427.14214.14043.stgit@bob.kio>
+Subject: Re: [PATCH ] IPMI: Locate the IPMI system interface in ACPI
+	namespace
+Date: Wed, 18 Nov 2009 11:41:55 +0800
+Message-ID: <1258515715.3813.108.camel@localhost.localdomain>
+References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
+	 <200911161051.33492.bjorn.helgaas@hp.com>
+	 <1258419550.3813.30.camel@localhost.localdomain>
+	 <200911170759.06902.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:64557 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:12663 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093AbZKRCcf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Nov 2009 21:32:35 -0500
-In-Reply-To: <20091118000427.14214.14043.stgit@bob.kio>
+	id S1752968AbZKRDom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Nov 2009 22:44:42 -0500
+In-Reply-To: <200911170759.06902.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Corey Minyard <minyard@acm.org>, Bela Lubkin <blubkin@vmware.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Myron Stowe <myron.stowe@hp.com>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Len Brown <lenb@kernel.org>
+Cc: "minyard@acm.org" <minyard@acm.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 2009-11-18 at 08:05 +0800, Bjorn Helgaas wrote:
-> Here's a sample of how I think the ACPI namespace device detection should
-> be done.  I think this is almost functionally equivalent to your "Locate
-> the IPMI system interface in ACPI namespace" patch.
+On Tue, 2009-11-17 at 22:59 +0800, Bjorn Helgaas wrote:
+> On Monday 16 November 2009 05:59:10 pm ykzhao wrote:
+> > On Tue, 2009-11-17 at 01:51 +0800, Bjorn Helgaas wrote:
+> > > On Monday 16 November 2009 02:18:09 am yakui.zhao@intel.com wrote:
+> > > > From: Zhao Yakui <yakui.zhao@intel.com>
+> > > 
+> > > In fact, I gave you detailed feedback on previous versions of this
+> > > patch, and you've ignored it all.
+> > 
+> > Understand what you said. You feedback contains two points.
+> > a. Load the Pnp device driver to detect the IPMI device so that we can
+> > use the IO/memory resource parse mechanism of PNP device. 
+> > b. Load a ACPI device driver to detect the IPMI device
 > 
-> The difference I'm aware of is that your patch doesn't call acpi_register_gsi()
-> for IRQs from the device _CRS, so I don't think those interrupts would work.
-> (I can't test this because I don't have a box that reports an IRQ in _CRS.)
-> PNPACPI takes care of this GSI registration for us.
-> 
-> Patches 3 & 4 are not really related to the main point here, but I left
-> them in because without 4, we'll report both SPMI and ACPI namespace
-> devices as being from "ACPI".
+> Yes, you're right.  I'm sorry I forgot that you *did* respond to
+> those.  You didn't agree, and that's fine.  I'll post a sample
+> patch to make my suggestion more concrete.
 Hi, Bjorn
-    Thanks for your work.
-    In this patch set the IPMI system interface will be detected by
-using pnp device driver. In theory it is ok to detect the IPMI system
-interface by using pnp device driver.
-   But we will have to consider the following two problems:
-   a. how to detect the IPMI system interface defined in ACPI table if
-the pnp subsystem is disabled? For example: by adding the boot option of
-"pnpacpi=off". Why does this need to depend on two subsystems(ACPI and
-pnp)? 
-   b. There exist several exceptions about the _CRS for the IPMI system
-interface defined in ACPI table. Maybe there exist two IO/memory address
-definition for the IPMI system interface and the memory type is declared
-before IO type. In such case we can't know which should be selected.
-    
-At the same time in order to enable the communication between the ACPI
-AML code and IPMI subsystem, too strict dependency is added.
-   In such case if the ACPI IPMI driver is not selected, the IPMI
-subsystem can't be compiled correctly.
+    It is not meaningless to explain viewpoint again. And my explanation
+can't make you accept my viewpoint.
+    In fact this patch set contains two parts. 
+   a. One is to add the support of detection IPMI system interface in
+ACPI namespace, which is a complement of ACPI SPMI detection.(SPMI is
+the abbreviation of Service Process Management Interface). In my patch I
+use the acpi_walk_namepsace directly to detect the IPMI system interface
+in ACPI namespace. I try to make two ACPI detection method depend on one
+ACPI subsystem instead of the PNP subsystem or other subsystem. If you
+think that this is not accepted, you can try to using other mechanism.
+   b. make it possible to communicate between ACPI aml code and IPMI
+subsystem so that the ACPI AML code can access the IPMI system
+interface. 
 
-thanks.
+    The first part belongs to the IPMI subsystem. And the second belongs
+to ACPI subsystem. As this patch set belongs to the two different
+subsystem, we can't assure that they are merged into upstream kernel at
+the same time. In such case we will have to assure that the two patches
+can work independently. 
+   In my test the two patches can work well on one server with the IPMI
+system interface defined ACPI namespace. And even when any patch is
+applied, the system still can work.(Without the second patch the IPMI
+system interface is also detected and registered correctly.  Without the
+first patch it is still possible that ACPI AML code can communicate with
+the IPMI subsystem.). Even when I add the boot option of "pnpacpi=off",
+it still can work.
+
+Hi, Bjorn
+   If you think that you can't accept the detection mechanism in my
+patch, you can go ahead.
+   But you had better not touch the second patch. It is only to do the
+communication between the ACPI AML code and IPMI system interface. And
+it has no relationship with the IPMI system interface detection.
+
+Thanks. 
    Yakui
-    
 > 
-> ---
+> Bjorn
 > 
-> Bjorn Helgaas (5):
->       PNPACPI: save struct acpi_device, not just acpi_handle
->       PNP: add interface to retrieve ACPI device from a PNPACPI device
->       ipmi: remove unused PCI probe code
->       ipmi: refer to table as "SPMI", not "ACPI"
->       ipmi: add PNP discovery (ACPI namespace via PNPACPI)
-> 
-> 
->  drivers/char/ipmi/ipmi_si_intf.c |  118 +++++++++++++++++++++++++++++++++++---
->  drivers/pnp/pnpacpi/core.c       |   19 ++++--
->  drivers/pnp/pnpacpi/rsparser.c   |    9 ++-
->  include/linux/pnp.h              |   13 ++++
->  4 files changed, 141 insertions(+), 18 deletions(-)
 > 
 
