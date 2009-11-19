@@ -1,23 +1,23 @@
 From: Maxim Levitsky <maximlevitsky@gmail.com>
 Subject: ACPI/ACPICA: resume hang (battery related)
-Date: Thu, 19 Nov 2009 22:58:47 +0200
-Message-ID: <1258664327.3611.7.camel@maxim-laptop>
+Date: Thu, 19 Nov 2009 22:59:54 +0200
+Message-ID: <1258664394.3611.8.camel@maxim-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-bwZ4kasiWD+TNImrIEe+"
+Content-Type: multipart/mixed; boundary="=-klOXyKIZHd9BJKEcVdJF"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:33116 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754176AbZKSU76 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2009 15:59:58 -0500
-Received: by fxm21 with SMTP id 21so2883027fxm.21
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2009 13:00:02 -0800 (PST)
+Received: from ey-out-2122.google.com ([74.125.78.26]:57185 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753958AbZKSVAF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2009 16:00:05 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so119785eyf.19
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2009 13:00:09 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 Cc: linux-pm <linux-pm@lists.linux-foundation.org>
 
 
---=-bwZ4kasiWD+TNImrIEe+
+--=-klOXyKIZHd9BJKEcVdJF
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 
@@ -107,7 +107,8 @@ and acpidump output.
 
 
 
---=-bwZ4kasiWD+TNImrIEe+
+
+--=-klOXyKIZHd9BJKEcVdJF
 Content-Type: application/x-bzip-compressed-tar; name="dump.txt.tar.bz2"
 Content-Disposition: attachment; filename="dump.txt.tar.bz2"
 Content-Transfer-Encoding: base64
@@ -871,7 +872,7 @@ PL3oHF1ZLR1UhifFpVA8iRDwDSuvSkCCX4/DD2u9GxXjaQJVSCh9Ba6Cv2V7vwX2sGU/RPQ+CfYS
 5duILP5/8NAxCfaSh5Ngj/+LuSKcKEhJzdwAAI==
 
 
---=-bwZ4kasiWD+TNImrIEe+
+--=-klOXyKIZHd9BJKEcVdJF
 Content-Type: application/x-bzip-compressed-tar; name="dmesg.txt.tar.bz2"
 Content-Disposition: attachment; filename="dmesg.txt.tar.bz2"
 Content-Transfer-Encoding: base64
@@ -1157,5 +1158,5 @@ oiloZS1r4vTC1CVYvRMUpiAnR6y4+xsJYIK60iIZFPKmkwzrDg4YP2gm4E9IAf/F3JFOFCQ8fW+z
 wA==
 
 
---=-bwZ4kasiWD+TNImrIEe+--
+--=-klOXyKIZHd9BJKEcVdJF--
 
