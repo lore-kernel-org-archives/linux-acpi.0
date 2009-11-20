@@ -1,58 +1,80 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [patch for 2.6.32? 2/2] thinkpad-acpi: fix detection of old
- ThinkPads
-Date: Fri, 20 Nov 2009 10:05:28 -0200
-Message-ID: <20091120120528.GB11107@khazad-dum.debian.net>
-References: <200911172207.nAHM7Np5007567@imap1.linux-foundation.org>
+From: Erik Slagter <erik@slagter.name>
+Subject: No c2-c7 states on core i7
+Date: Fri, 20 Nov 2009 15:28:56 +0100
+Message-ID: <4B06A7A8.109@slagter.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:41555 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753142AbZKTMFY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Nov 2009 07:05:24 -0500
-Content-Disposition: inline
-In-Reply-To: <200911172207.nAHM7Np5007567@imap1.linux-foundation.org>
+Received: from eriks.xs4all.nl ([83.160.41.216]:53857 "EHLO eriks.xs4all.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753216AbZKTOl4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Nov 2009 09:41:56 -0500
+Received: from nemesis.slagter.name (nemesis-eth0.ipv4.slagter.name [10.1.7.2])
+	by nemesis.slagter.name (Postfix) with ESMTP id A3C6E3B4E6
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2009 15:28:56 +0100 (CET)
+Received: from artemis.slagter.name (artemis-vlan7.ipv6.slagter.name [IPv6:2001:888:133a:107::1])
+	by nemesis.slagter.name (Postfix) with ESMTP
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2009 15:28:56 +0100 (CET)
+Received: from [IPv6:2001:888:133a:103::2] (skylla.ipv6.slagter.name [IPv6:2001:888:133a:103::2])
+	by artemis.slagter.name (Postfix) with ESMTP id 64CF73930B86
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Nov 2009 15:28:56 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com, kimoto@lightlink.com, rjw@sisk.pl
+To: linux-acpi@vger.kernel.org
 
-On Tue, 17 Nov 2009, akpm@linux-foundation.org wrote:
-> From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> 
-> There is a problem in the quirk tables used by tpacpi_is_fw_known() and
-> tpacpi_check_outdated_fw(), which causes outdated BIOSes that are lacking
-> the EC firmware ID DMI field to never match.
-> 
-> This breaks module loading on, e.g.  a T23 with outdated BIOS, and the
-> module will refuse to load unless the "force_load=1" parameter is given.
-> 
-> Fix the quirk tables so that they can also match the outdated BIOSes,
-> which in turn will both fix the module loading, and also warn the user
-> that he is using outdated firmware and should upgrade.
-> 
-> This fixes a serious regression, introduced by commit
-> e675abafcc0df38125e6e94a9ba91c92fe774f52, "thinkpad-acpi: be more strict
-> when detecting a ThinkPad".
-> 
-> Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14597
-> 
-> Reported-by: Paul Kimoto <kimoto@lightlink.com>
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> Tested-by: Paul Kimoto <kimoto@lightlink.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Hi there,
 
-This patch is not in -rc8.  Andrew, Len, can one of you please send it to
-Linus for merge in mainline?  It will hit enough users that I'd really
-prefer it to not wait for a -stable release.
+I already put on my flame retardant underwear, I know this is a FAQ, but 
+I really need a bit of a jumpstart, google won't tell me where to start, 
+so please be gentle ;-)
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I bought a Gigabyte EX58-UD3R motherboard recently and put a core i7 920 
+on it. This seems to be a fairly common combination.
+
+In short: I know the core i7 does implement several C-states, from 
+memory c1, c1e, c3, c6 and c7. Linux (vanilla, 2.6.31.6) does not 
+recognise any of them.
+
+The kernel configuration is very similar to the one I am running on my 
+laptop with a recent mobile core2duo processor, and this one reports 
+C1,C2,C3 (although it should also report yet another C state, but I 
+guess that one is disabled by the bios or something alike).
+
+Is this normal (WIP?)?
+
+If not, where should I start debugging? I know there is "something" with 
+decoding the DSDT table, but what should I look for?
+
+I seem to remember that with an earlier linux version (before 2.6.30.5) 
+it actually did work, but I am not completely sure.
+
+Thanks for your help in advance!
+
+Additional info that might be useful:
+
+- all options related to power saving and C-states are ENABLED in the BIOS
+- all options related to power management and idling are ENABLED in the 
+kernel, which runs in 64 bits mode
+- frequency switching runs fine using acpi-cpufreq and ondemand governor
+
+If I compare the dmesg from both computers after booting, the laptop 
+says "ACPI: CPU1 (power states: C1[C1] C2[C2] C3[C3])" at some point, 
+this message is not output at all by the server.
+
+Output from proc/acpi/processor/CPU0/info
+processor id:            0
+acpi id:                 0
+bus mastering control:   yes
+power management:        no
+throttling control:      yes
+limit interface:         yes
+
+Output from proc/acpi/processor/CPU0/power
+active state:            C0
+max_cstate:              C8
+maximum allowed latency: 2000000000 usec
+states:
+     C1:                  type[C1] promotion[--] demotion[--] 
+latency[000] usage[00000000] duration[00000000000000000000]
+
