@@ -1,54 +1,58 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [Openipmi-developer] IPMI device discovery [was Re: [PATCH ]
-	IPMI:	Locate the IPMI system interface in ACPI namespace]
-Date: Thu, 19 Nov 2009 19:09:03 +0800
-Message-ID: <1258628943.2933.35.camel@localhost.localdomain>
-References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
-	 <200911180945.45570.bjorn.helgaas@hp.com> <4B045BD9.8070906@hp.com>
-	 <200911181419.27238.bjorn.helgaas@hp.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [patch for 2.6.32? 2/2] thinkpad-acpi: fix detection of old
+ ThinkPads
+Date: Fri, 20 Nov 2009 10:05:28 -0200
+Message-ID: <20091120120528.GB11107@khazad-dum.debian.net>
+References: <200911172207.nAHM7Np5007567@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55085 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758168AbZKTCUp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Nov 2009 21:20:45 -0500
-In-Reply-To: <200911181419.27238.bjorn.helgaas@hp.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:41555 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753142AbZKTMFY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Nov 2009 07:05:24 -0500
+Content-Disposition: inline
+In-Reply-To: <200911172207.nAHM7Np5007567@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Rocky Craig <rocky.craig@hp.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Myron Stowe <myron.stowe@hp.com>, "minyard@acm.org" <minyard@acm.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: akpm@linux-foundation.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com, kimoto@lightlink.com, rjw@sisk.pl
 
-On Thu, 2009-11-19 at 05:19 +0800, Bjorn Helgaas wrote:
-> On Wednesday 18 November 2009 01:40:57 pm Rocky Craig wrote:
-> > Bjorn Helgaas emitted:
-> > 
-> > > Anything described by the SPMI should also be described in the namespace.
-> > 
-> > I believe that distinction/request/requirement was lost "back in the day".
+On Tue, 17 Nov 2009, akpm@linux-foundation.org wrote:
+> From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 > 
-> I disagree that this requirement was lost.  The ACPI spec is regrettably
-> vague, but I think it still contains the very general requirement that
-> the ACPI namespace should describe everything that cannot be found by a
-> standard hardware enumeration mechanism.
-The detection of IPMI system interface in ACPI namespace is not defined
-in ACPI spec. Instead it is defined in IPMI 2.0 spec. The SPMI detection
-is also defined in IPMI 2.0 spec. 
+> There is a problem in the quirk tables used by tpacpi_is_fw_known() and
+> tpacpi_check_outdated_fw(), which causes outdated BIOSes that are lacking
+> the EC firmware ID DMI field to never match.
+> 
+> This breaks module loading on, e.g.  a T23 with outdated BIOS, and the
+> module will refuse to load unless the "force_load=1" parameter is given.
+> 
+> Fix the quirk tables so that they can also match the outdated BIOSes,
+> which in turn will both fix the module loading, and also warn the user
+> that he is using outdated firmware and should upgrade.
+> 
+> This fixes a serious regression, introduced by commit
+> e675abafcc0df38125e6e94a9ba91c92fe774f52, "thinkpad-acpi: be more strict
+> when detecting a ThinkPad".
+> 
+> Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14597
+> 
+> Reported-by: Paul Kimoto <kimoto@lightlink.com>
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Tested-by: Paul Kimoto <kimoto@lightlink.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-ACPI 4.0 spec only defines that the ACPI aml code can access the BMC
-controller. 
-> 
-> That requirement allows the OS to use a single coherent device
-> discovery, driver binding, and resource management scheme to cover
-> all these devices.  If we had to deal with all these devices piece-
-> meal, with an SPMI table here, an SPCR table there, we'd go more
-> mad than we already are.
-> 
-> There may be firmware that has an SPMI but neglects to put the device
-> in the namespace.  In my opinion, that's clearly a defect.  I think
-> it's unlikely since Windows relies on the namespace, but it's certainly
-> a risk.
-> 
-> Bjorn
+This patch is not in -rc8.  Andrew, Len, can one of you please send it to
+Linus for merge in mainline?  It will hit enough users that I'd really
+prefer it to not wait for a -stable release.
 
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
