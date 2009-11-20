@@ -1,58 +1,57 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch for 2.6.32? 2/2] thinkpad-acpi: fix detection of old
- ThinkPads
-Date: Fri, 20 Nov 2009 08:41:43 -0800
-Message-ID: <20091120084143.573258cd.akpm@linux-foundation.org>
-References: <200911172207.nAHM7Np5007567@imap1.linux-foundation.org>
-	<20091120120528.GB11107@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH] acpi/blacklist: enable OSI(Linux) on newer eeepc
+Date: Fri, 20 Nov 2009 22:29:08 +0100
+Message-ID: <1258752548-9299-1-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55616 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754275AbZKTQmt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Nov 2009 11:42:49 -0500
-In-Reply-To: <20091120120528.GB11107@khazad-dum.debian.net>
+Received: from iksaif.net ([88.191.73.63]:39757 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756189AbZKTV24 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Nov 2009 16:28:56 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com, kimoto@lightlink.com, rjw@sisk.pl
+To: Len Brown <lenb@kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Corentin Chary <corentincj@iksaif.net>
 
-On Fri, 20 Nov 2009 10:05:28 -0200 Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+Without this patch, eeepc-laptop won't work on newer Eeepc
+because the interface it uses is disabled.
 
-> On Tue, 17 Nov 2009, akpm@linux-foundation.org wrote:
-> > From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> > 
-> > There is a problem in the quirk tables used by tpacpi_is_fw_known() and
-> > tpacpi_check_outdated_fw(), which causes outdated BIOSes that are lacking
-> > the EC firmware ID DMI field to never match.
-> > 
-> > This breaks module loading on, e.g.  a T23 with outdated BIOS, and the
-> > module will refuse to load unless the "force_load=1" parameter is given.
-> > 
-> > Fix the quirk tables so that they can also match the outdated BIOSes,
-> > which in turn will both fix the module loading, and also warn the user
-> > that he is using outdated firmware and should upgrade.
-> > 
-> > This fixes a serious regression, introduced by commit
-> > e675abafcc0df38125e6e94a9ba91c92fe774f52, "thinkpad-acpi: be more strict
-> > when detecting a ThinkPad".
-> > 
-> > Addresses http://bugzilla.kernel.org/show_bug.cgi?id=14597
-> > 
-> > Reported-by: Paul Kimoto <kimoto@lightlink.com>
-> > Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> > Tested-by: Paul Kimoto <kimoto@lightlink.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> > Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> 
-> This patch is not in -rc8.  Andrew, Len, can one of you please send it to
-> Linus for merge in mainline?  It will hit enough users that I'd really
-> prefer it to not wait for a -stable release.
-> 
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/acpi/blacklist.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-Yes, I'll send it in.
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index e56b2a7..cd7015d 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -218,6 +218,27 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	 */
+ 
+ 	/*
++	 * On newer Eeepc, the interface used by eeepc-laptop (ASUS010)
++	 * is disabled without _OSI(Linux)
++	 */
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Asus Eeepc-1000H",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer INC."),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "1000H"),
++		},
++	},
++	{
++	.callback = dmi_enable_osi_linux,
++	.ident = "Asus Eeepc-1005HA",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer INC."),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "1005HA"),
++		},
++	},
++
++	/*
+ 	 * Lenovo has a mix of systems OSI(Linux) situations
+ 	 * and thus we can not wildcard the vendor.
+ 	 *
+-- 
+1.6.5.2
+
