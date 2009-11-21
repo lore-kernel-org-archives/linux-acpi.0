@@ -1,28 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] acpi/blacklist: enable OSI(Linux) on newer eeepc
-Date: Sat, 21 Nov 2009 18:45:03 +0000
-Message-ID: <20091121184503.GA15141@srcf.ucam.org>
-References: <1258752548-9299-1-git-send-email-corentincj@iksaif.net>
+From: Erik Slagter <erik@slagter.name>
+Subject: Re: No c2-c7 states on core i7
+Date: Sat, 21 Nov 2009 18:45:21 +0100
+Message-ID: <4B082731.30909@slagter.name>
+References: <4B06A7A8.109@slagter.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43999 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741AbZKUSpD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Nov 2009 13:45:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1258752548-9299-1-git-send-email-corentincj@iksaif.net>
+Received: from eriks.xs4all.nl ([83.160.41.216]:37980 "EHLO eriks.xs4all.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756546AbZKURpU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Nov 2009 12:45:20 -0500
+Received: from nemesis.slagter.name (nemesis.ipv4.slagter.name [10.1.3.7])
+	by nemesis.slagter.name (Postfix) with ESMTP id 4ACE03B179
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Nov 2009 18:45:22 +0100 (CET)
+Received: from artemis.slagter.name (artemis-vlan3.ipv6.slagter.name [IPv6:2001:888:133a:103::1])
+	by nemesis.slagter.name (Postfix) with ESMTP
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Nov 2009 18:45:22 +0100 (CET)
+Received: from [IPv6:2001:888:133a:103::2] (skylla.ipv6.slagter.name [IPv6:2001:888:133a:103::2])
+	by artemis.slagter.name (Postfix) with ESMTP id E7C933930B8D
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Nov 2009 18:45:21 +0100 (CET)
+In-Reply-To: <4B06A7A8.109@slagter.name>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Fri, Nov 20, 2009 at 10:29:08PM +0100, Corentin Chary wrote:
-> Without this patch, eeepc-laptop won't work on newer Eeepc
-> because the interface it uses is disabled.
+As always this appears to be a BIOS problem (bug?)
 
-It looks easy to add the WMI interface instead. Please let's not 
-perpetuate this kind of thing.
+As soon as you change the BASECLOCK setting, all C states are withdrawn. 
+I think it's really idiotic, and I am really going to try to enable them 
+anyway.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Interesting fact: the system uses almost exactly the same amount of 
+power when C states are enabled by the BIOS and when they are disabled. 
+Makes you wonder whether they actually do something at all. The linux 
+counters really say they're called, anyway.
+
+So if you don't want a power-wasting board, don't buy a Gigabyte EX58-UD3R.
