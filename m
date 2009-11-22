@@ -1,80 +1,39 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 1/1] sony-laptop: add AVMode key mapping
-Date: Sun, 22 Nov 2009 14:51:02 +0900
-Message-ID: <1258869062-5501-1-git-send-email-malattia@linux.it>
+From: Erik Slagter <erik@slagter.name>
+Subject: c1/c1e/c3/c6/c7 on linux
+Date: Sun, 22 Nov 2009 12:46:16 +0100
+Message-ID: <4B092488.5040801@slagter.name>
+References: <4B06A7A8.109@slagter.name>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:40824
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbZKVF54 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Nov 2009 00:57:56 -0500
+Received: from eriks.xs4all.nl ([83.160.41.216]:40026 "EHLO eriks.xs4all.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751143AbZKVLqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Nov 2009 06:46:12 -0500
+Received: from nemesis.slagter.name (nemesis.ipv4.slagter.name [10.1.3.7])
+	by nemesis.slagter.name (Postfix) with ESMTP id 90C873B4AD
+	for <linux-acpi@vger.kernel.org>; Sun, 22 Nov 2009 12:46:16 +0100 (CET)
+Received: from artemis.slagter.name (artemis-vlan3.ipv6.slagter.name [IPv6:2001:888:133a:103::1])
+	by nemesis.slagter.name (Postfix) with ESMTP
+	for <linux-acpi@vger.kernel.org>; Sun, 22 Nov 2009 12:46:16 +0100 (CET)
+Received: from [IPv6:2001:888:133a:103::2] (skylla.ipv6.slagter.name [IPv6:2001:888:133a:103::2])
+	by artemis.slagter.name (Postfix) with ESMTP id 368363930B8D
+	for <linux-acpi@vger.kernel.org>; Sun, 22 Nov 2009 12:46:16 +0100 (CET)
+In-Reply-To: <4B06A7A8.109@slagter.name>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>, "Matthew W. S. Bell" <matthew@bells23.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-Some models are equipped with an "AVMode" function key that sends
-sony-laptop: Unknown event: 0x100 0xa1
-sony-laptop: Unknown event: 0x100 0x21
-for press and release respectively.
+Ik have two machines, a dell laptop with a mobile core2duo T9300 and a 
+gigabyte desktop with a core i7 920. Both advertise all of these 
+C-states c1/c1e/c3/c6/c7 in the specs (although the core2duo doesn't 
+have c7 I believe).
 
-Cc: "Matthew W. S. Bell" <matthew@bells23.org.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
+It's not clear at all how linux handles these. The kernel on the T9300 
+says it uesde C1/C2/C3 of "type" C1/C2/C3, the core i7 says exactly the 
+same.
 
-Hi Len,
-I almost forgot to send this patch for 2.6.32, do you think there is
-still room to push it?
-Otherwise please take it into consideration for 2.6.33.
+Is this a WiP? A bios issue? It looks like I am missing some states?
 
-Thanks
-mattia
--- 
- drivers/platform/x86/sony-laptop.c |    4 ++++
- include/linux/sonypi.h             |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index a2a742c..9710f70 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -232,6 +232,7 @@ static int sony_laptop_input_index[] = {
- 	56,	/* 69 SONYPI_EVENT_VOLUME_INC_PRESSED */
- 	57,	/* 70 SONYPI_EVENT_VOLUME_DEC_PRESSED */
- 	-1,	/* 71 SONYPI_EVENT_BRIGHTNESS_PRESSED */
-+	58,	/* 72 SONYPI_EVENT_MEDIA_PRESSED */
- };
- 
- static int sony_laptop_input_keycode_map[] = {
-@@ -293,6 +294,7 @@ static int sony_laptop_input_keycode_map[] = {
- 	KEY_F15,	/* 55 SONYPI_EVENT_SETTINGKEY_PRESSED */
- 	KEY_VOLUMEUP,	/* 56 SONYPI_EVENT_VOLUME_INC_PRESSED */
- 	KEY_VOLUMEDOWN,	/* 57 SONYPI_EVENT_VOLUME_DEC_PRESSED */
-+	KEY_MEDIA,	/* 58 SONYPI_EVENT_MEDIA_PRESSED */
- };
- 
- /* release buttons after a short delay if pressed */
-@@ -890,6 +892,8 @@ static struct sony_nc_event sony_100_events[] = {
- 	{ 0x0C, SONYPI_EVENT_FNKEY_RELEASED },
- 	{ 0x9f, SONYPI_EVENT_CD_EJECT_PRESSED },
- 	{ 0x1f, SONYPI_EVENT_ANYBUTTON_RELEASED },
-+	{ 0xa1, SONYPI_EVENT_MEDIA_PRESSED },
-+	{ 0x21, SONYPI_EVENT_ANYBUTTON_RELEASED },
- 	{ 0, 0 },
- };
- 
-diff --git a/include/linux/sonypi.h b/include/linux/sonypi.h
-index 34c4475..4f95c1a 100644
---- a/include/linux/sonypi.h
-+++ b/include/linux/sonypi.h
-@@ -111,6 +111,7 @@
- #define SONYPI_EVENT_VOLUME_INC_PRESSED		69
- #define SONYPI_EVENT_VOLUME_DEC_PRESSED		70
- #define SONYPI_EVENT_BRIGHTNESS_PRESSED		71
-+#define SONYPI_EVENT_MEDIA_PRESSED		72
- 
- /* get/set brightness */
- #define SONYPI_IOCGBRT		_IOR('v', 0, __u8)
--- 
-1.6.5.3
-
+The kernel I am using is 2.6.31.6
