@@ -1,44 +1,88 @@
-From: Otavio Salvador <otavio@ossystems.com.br>
-Subject: Re: Vortex86SX: only works with irqpoll
-Date: Tue, 24 Nov 2009 09:29:25 -0200
-Message-ID: <be7a9f3d0911240329r50ddb22dvd933f01d296295c1@mail.gmail.com>
-References: <be7a9f3d0911191311p45d4438bg84d55234eacdd320@mail.gmail.com>
-	 <20091123134002.bac1e664.akpm@linux-foundation.org>
-	 <4B0B1B62.2030302@gmail.com>
-	 <be7a9f3d0911231601p4dcfa519q4d1504a8ee37fdad@mail.gmail.com>
-	 <4B0B36F0.30109@gmail.com>
+From: Jindrich Makovicka <makovick@gmail.com>
+Subject: Re: No c2-c7 states on core i7
+Date: Tue, 24 Nov 2009 14:34:59 +0100
+Message-ID: <20091124143459.385a0bc9@starbug.prg01.itonis.net>
+References: <4B06A7A8.109@slagter.name>
+	<1258945512.3773.33.camel@localhost.localdomain>
+	<4B0A4D62.2040001@slagter.name>
+	<alpine.LFD.2.00.0911231101150.858@localhost.localdomain>
+	<4B0AE1FD.4030108@slagter.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:39304 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205AbZKXL3U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2009 06:29:20 -0500
-In-Reply-To: <4B0B36F0.30109@gmail.com>
+Received: from lo.gmane.org ([80.91.229.12]:50467 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932874AbZKXNj6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Nov 2009 08:39:58 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NCvch-0002ol-LZ
+	for linux-acpi@vger.kernel.org; Tue, 24 Nov 2009 14:40:03 +0100
+Received: from 193.239.0.25 ([193.239.0.25])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2009 14:40:03 +0100
+Received: from makovick by 193.239.0.25 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2009 14:40:03 +0100
+In-Reply-To: <4B0AE1FD.4030108@slagter.name>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hello Robert,
+On Mon, 23 Nov 2009 20:26:53 +0100
+Erik Slagter <erik@slagter.name> wrote:
 
-On Mon, Nov 23, 2009 at 11:29 PM, Robert Hancock <hancockrwd@gmail.com> wrote:
-> Looking at the BIOS manual on their web site:
->
-> ftp://download@ftp.dmp.com.tw/vortex86sx/Vortex86SX_BIOS_Manual.pdf
->
-> you can try toggling a few of the options: Try switching OnBoard IDE Operate
-> Mode between Legacy Mode and Native Mode. If the kernel and the actual
-> device disagree here, that could cause IRQ delivery problems. You can also
-> try playing with the "Plug & Play OS" setting.
+>  > No, that isn't normal. C-states on modern processors generally
+>  > save a lot of energy.
+>  >
+>  > If you run powertop and you find that you are over 99% idle
+>  > and you save no energy compared to when you are 0% idle
+>  > (say a copy of "cat /dev/zero>  /dev/null" for each core)
+>  > then something is wrong with your system.
+> 
+> I just removed a large story here, I guess the table from my other 
+> message is a lot more informative.
+> 
+>  > It is possible, but as soon as you reverse engineer and over-ride
+>  > something in the BIOS, you are on very thin ice.  Presumably
+>  > the BIOS engineer made a concious decision to disable C-states
+>  > when you over-clock your board and had a reason to do so.
+> 
+> As long as nothing gets fried that's no problem for me.
+> 
+>  > Maybe the more important question is what measurable benefit
+>  > you get when you over-clock your board, and if you really need
+>  > that...
+> 
+> I can understand your doubts on this matter, but I think I do have a 
+> legitimate reasoning. This is a server that almost all of the time
+> does next to nothing. Load 0.02 or similar. It needs to be running
+> 24/24 though because it receives e-mail and answers the telephone. So
+> that's why I want it to be low on power usage. On the other hand I
+> need to transcode movie clips to h264 very regularly. I can use every
+> 4*2 core for the process using x264 and indeed it works very fast.
+> Also I noticed that every mhz higher clock means shorter encoding
+> time, all (virtual-)cores get completely loaded. The "normal" speed
+> of the 920 is 2.8 Ghz (or in fact 2.63 Ghz) and a change to 3.4 Ghz
+> really does make a difference in encoding speed, theoretically 30%,
+> in practise even more.
+> 
+> Intel would really make me happy if they would design a processor
+> with four or more cores and a chipset that would implement C7 and
+> also could scale from 100 Mhz to 3.6 Ghz, in two or three steps, I
+> wouldn't mind, and then would use something like 20 watts in idle,
+> like my laptop does.
 
-The machine with me has no "OnBoard IDE Operate Mode" option. "Plug &
-Play OS" has been tried with "Yes" and "No".
-
-If the kernel and the actual device disagree, could it  also "break"
-the ethernet adaptor? This also doesn't work.
+Most of the overclockers disable C3/C6/C7 anyway for stability reasons,
+probably because sudden changes in core voltage disturb the CPU
+operation. My i5 Lynnfield desktop was actually unusable with C3/C6/C7
+even with default settings (fsck reporting random errors etc.).  I
+ended up disabling the higher C-states and just raised the Base clock
+so I do not need the Turbo mode. As long as you do not disable C1,
+the difference in idle power consumption is rather small.
 
 -- 
-Otavio Salvador                  O.S. Systems
-E-mail: otavio@ossystems.com.br  http://www.ossystems.com.br
-Mobile: +55 53 9981-7854         http://projetos.ossystems.com.br
+Jindrich Makovicka
+
+
