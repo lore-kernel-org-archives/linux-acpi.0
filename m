@@ -1,52 +1,37 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: Avoid C2/C3 idle state
-Date: Tue, 24 Nov 2009 23:29:53 +0100
-Message-ID: <20091124222953.GA5983@isilmar.linta.de>
-References: <642590.96306.qm@web26502.mail.ukl.yahoo.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: Vortex86SX: only works with irqpoll
+Date: Tue, 24 Nov 2009 17:42:02 -0600
+Message-ID: <4B0C6F4A.1080304@gmail.com>
+References: <be7a9f3d0911191311p45d4438bg84d55234eacdd320@mail.gmail.com>	 <20091123134002.bac1e664.akpm@linux-foundation.org>	 <4B0B1B62.2030302@gmail.com>	 <be7a9f3d0911231601p4dcfa519q4d1504a8ee37fdad@mail.gmail.com>	 <4B0B36F0.30109@gmail.com> <be7a9f3d0911240329r50ddb22dvd933f01d296295c1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:44638 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S934070AbZKXW3u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Nov 2009 17:29:50 -0500
-Content-Disposition: inline
-In-Reply-To: <642590.96306.qm@web26502.mail.ukl.yahoo.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934468AbZKXXmI@vger.kernel.org>
+In-Reply-To: <be7a9f3d0911240329r50ddb22dvd933f01d296295c1@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Otavio Salvador <otavio@ossystems.com.br>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex <ambroxa@yahoo.it>
-Cc: linux-acpi@vger.kernel.org
 
-Hey,
+On 11/24/2009 05:29 AM, Otavio Salvador wrote:
+> Hello Robert,
+>
+> On Mon, Nov 23, 2009 at 11:29 PM, Robert Hancock<hancockrwd@gmail.com>  wrote:
+>> Looking at the BIOS manual on their web site:
+>>
+>> ftp://download@ftp.dmp.com.tw/vortex86sx/Vortex86SX_BIOS_Manual.pdf
+>>
+>> you can try toggling a few of the options: Try switching OnBoard IDE Operate
+>> Mode between Legacy Mode and Native Mode. If the kernel and the actual
+>> device disagree here, that could cause IRQ delivery problems. You can also
+>> try playing with the "Plug&  Play OS" setting.
+>
+> The machine with me has no "OnBoard IDE Operate Mode" option. "Plug&
+> Play OS" has been tried with "Yes" and "No".
+>
+> If the kernel and the actual device disagree, could it  also "break"
+> the ethernet adaptor? This also doesn't work.
 
-you can set the maximum C-state to use using the
-"processor.max_cstate=<value>" parameter. No need to recompile.
-
-Best,
-	Dominik
-
-On Tue, Nov 24, 2009 at 09:50:01PM +0000, Alex wrote:
-> I run Ubuntu 8.04.3 LTS server 32bit in a small low power motherboard (VIA LN10000EG) equipped with VIA C7 1GHz CPU.
-> Kernel 2.6.24
-> 
-> I've some problems with serial device: sometimes I've overrun errors when receive data through /dev/ttyS0
-> 
-> After some days of hard work I've discovered that when CPU enter in C2 or C3 state and data come in from serial line, I've the overrun.
-> 
-> I've searched for a solution and I've found that kernel parameter "idle=halt" can avoid CPU enter C2/C3 state, but this parameter is now not supported anymore (it was in the past).
-> So I've completely disabled the ACPI support ("acpi=off" kernel parameter).
-> But I lack support for power button, poweroff command and so on.
-> I wish to re-enable ACPI.
-> 
-> The question is: Howto avoid CPU enter C2/C3 state and re-activate ACPI so CPU can go in C1 state ? C1 is better than nothing at all ....
-> 
-> I have no problem to modify kernel source and recompile it.
-> 
-> Thanks fo suggestions
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well, the ethernet adapter would likely be a different problem. Do you 
+get any interrupts showing up in /proc/interrupts for either the disk or 
+the network adapter?
