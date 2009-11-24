@@ -1,44 +1,69 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Vortex86SX: only works with irqpoll
-Date: Mon, 23 Nov 2009 20:56:43 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0911232053070.858@localhost.localdomain>
-References: <be7a9f3d0911191311p45d4438bg84d55234eacdd320@mail.gmail.com>
- <20091123134002.bac1e664.akpm@linux-foundation.org>
- <4B0B1B62.2030302@gmail.com>
- <be7a9f3d0911231601p4dcfa519q4d1504a8ee37fdad@mail.gmail.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: Toshiba Satellite ACPI problems
+Date: Mon, 23 Nov 2009 20:01:03 -0600
+Message-ID: <4B0B3E5F.4060102@gmail.com>
+References: <525c5a6c0911231620u6d23810fu9fed3605617fe421@mail.gmail.com> <200911240137.39266.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_6kR9S3HC4hvqNW2rWXs2/w)"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173005pub.verizon.net ([206.46.173.5]:38049 "EHLO
-	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757544AbZKXB45 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2009 20:56:57 -0500
-In-reply-to: <be7a9f3d0911231601p4dcfa519q4d1504a8ee37fdad@mail.gmail.com>
+Received: from mail-gx0-f212.google.com ([209.85.217.212]:37664 "EHLO
+	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbZKXCBA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2009 21:01:00 -0500
+In-Reply-To: <200911240137.39266.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Otavio Salvador <otavio@ossystems.com.br>
-Cc: Robert Hancock <hancockrwd@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mike Smith <scgtrp@gmail.com>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 11/23/2009 06:37 PM, Rafael J. Wysocki wrote:
+> [Adding linux-acpi to the CC list.]
+>
+> On Tuesday 24 November 2009, Mike Smith wrote:
+>> I have a brand new Satellite L505D-S5983 which I'm trying to install
+>> Linux on. Whenever I boot a Linux kernel on it with no special
+>> parameters it enters an in(de)finite loop dumping messages like this:
+>>
+>> ACPI Error (uteval-0313): Return object type is incorrect
+>> [\_SB_.HSB1._STA] (Node ffff8800af8121a0), AE_TYPE
+>> ACPI Error: Type returned from _STA was incorrect: Device, expected
+>> Btypes: 1 20090521 uteval-319
+>> ACPI Error (psargs-0359): [DR ] Namespace lookup failure, AE_NOT_FOUND
+>> ACPI Error (psparse-0537): Method parse/execution failed
+>> [\_SB_.VALZ._STA] (Node ffff8800af812540), AE_NOT_FOUND
+>> ACPI Error: Found unknown opcode 39 at AML address ffffc900000132cd
+>> offset 0, ignoring 20090521 psloop-137
+>> [...]
 
---Boundary_(ID_6kR9S3HC4hvqNW2rWXs2/w)
-Content-type: TEXT/PLAIN; charset=ISO-8859-1
-Content-transfer-encoding: 8BIT
+Hmm, that looks really unhappy..
 
-> >>> [    0.000000] ACPI Error: A valid RSDP was not found
+>>
+>> If I boot with acpi=noirq these messages only continue for a few
+>> seconds, although they cause a couple of initscripts to hang later on.
+>> With ACPI fully enabled they keep appearing forever and the system
+>> doesn't finish booting. With acpi=off they don't appear at all (but
+>> the fan stays at low speed and the laptop gets quite hot if run for
+>> more than a few minutes).
+>>
+>> I've found only one other mention of this problem on the internet
+>> (http://ubuntuforums.org/showthread.php?p=8358864#post8358864) from
+>> someone with the same laptop as mine, but there was no working fix
+>> posted to that thread beyond completely disabling ACPI. More research
+>> told me that there used to be a way of fixing up the DSDT and having
+>> it loaded from the initrd but the new policy is to just ask the
+>> manufacturer to fix it and the kernel developers to work around it,
+>> so... here it is. (Angry emails to Toshiba and Best Buy pending.)
+>>
+>> Full dmesg output can be found at http://slexy.org/view/s25zU08AKJ
+>> (By the way, what's the correct way to include dmesg output in a lkml
+>> message if you don't know for sure which parts are relevant? Dumping
+>> all 50k or so of it into the email seems like the wrong thing to
+>> do...)
+>
+> I think it's better if you file a bug report against ACPI at bugzilla.kernel.org.
 
-Are there any BIOS SETUP options for enabling/disabling ACPI?
+Can you extract and post the DSDT in either raw or decompiled form, as 
+described here:
 
-Does any other version of Linux, or any other OS find ACPI support?
-does "acpidump" run as root output anything?
-
-I couldn't follow your link to the BIOS manual, but if there
-are some docs on this system that could tell us what the
-hardware is and if it is supposed to suport ACPI or not,
-that would be a clue.
-
-thanks,
--Len Brown, Intel Open Source Technology Center
-
---Boundary_(ID_6kR9S3HC4hvqNW2rWXs2/w)--
+http://smackerelofopinion.blogspot.com/2009/10/dumping-acpi-tables-using-acpidump-and.html
