@@ -1,64 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Toshiba Satellite ACPI problems
-Date: Tue, 24 Nov 2009 01:37:39 +0100
-Message-ID: <200911240137.39266.rjw@sisk.pl>
-References: <525c5a6c0911231620u6d23810fu9fed3605617fe421@mail.gmail.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: Vortex86SX: only works with irqpoll
+Date: Mon, 23 Nov 2009 19:29:20 -0600
+Message-ID: <4B0B36F0.30109@gmail.com>
+References: <be7a9f3d0911191311p45d4438bg84d55234eacdd320@mail.gmail.com>	 <20091123134002.bac1e664.akpm@linux-foundation.org>	 <4B0B1B62.2030302@gmail.com> <be7a9f3d0911231601p4dcfa519q4d1504a8ee37fdad@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40080 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752540AbZKXAhN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Nov 2009 19:37:13 -0500
-In-Reply-To: <525c5a6c0911231620u6d23810fu9fed3605617fe421@mail.gmail.com>
+Received: from mail-gx0-f212.google.com ([209.85.217.212]:46676 "EHLO
+	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540AbZKXB3U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2009 20:29:20 -0500
+In-Reply-To: <be7a9f3d0911231601p4dcfa519q4d1504a8ee37fdad@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Smith <scgtrp@gmail.com>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Otavio Salvador <otavio@ossystems.com.br>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-[Adding linux-acpi to the CC list.]
+On 11/23/2009 06:01 PM, Otavio Salvador wrote:
+> Hello,
+>
+> On Mon, Nov 23, 2009 at 9:31 PM, Robert Hancock<hancockrwd@gmail.com>  wrote:
+>> On 11/23/2009 03:40 PM, Andrew Morton wrote:
+>>>> [    0.000000] ACPI Error: A valid RSDP was not found
+>>>> (20090903/tbxfroot-219)
+>>>
+>>> No ACPI.
+>>>
+>>> Please raise a report against acpi_bios@kernel-bugs.osdl.org at
+>>> bugzilla.kernel.org, thanks.
+>>
+>> I believe that just means the machine doesn't support ACPI at all..
+>
+> Yes; same as me.
+>
+> Andrew should I report it anyway?
+>
+>  From Alan message I understand that he believes it is a firmware
+> issue. I tried (without success) to contact DM&P about it asking for a
+> newer BIOS but nothing yet.
+>
+> If I could workaround it, it would be nice since it could avoid issues
+> for users of those devices. I did research on Internet and found a lot
+> of users having the network adaptor not work and like and those
+> problems mostly looks like same issue I'm having.
 
-On Tuesday 24 November 2009, Mike Smith wrote:
-> I have a brand new Satellite L505D-S5983 which I'm trying to install
-> Linux on. Whenever I boot a Linux kernel on it with no special
-> parameters it enters an in(de)finite loop dumping messages like this:
-> 
-> ACPI Error (uteval-0313): Return object type is incorrect
-> [\_SB_.HSB1._STA] (Node ffff8800af8121a0), AE_TYPE
-> ACPI Error: Type returned from _STA was incorrect: Device, expected
-> Btypes: 1 20090521 uteval-319
-> ACPI Error (psargs-0359): [DR ] Namespace lookup failure, AE_NOT_FOUND
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.VALZ._STA] (Node ffff8800af812540), AE_NOT_FOUND
-> ACPI Error: Found unknown opcode 39 at AML address ffffc900000132cd
-> offset 0, ignoring 20090521 psloop-137
-> [...]
-> 
-> If I boot with acpi=noirq these messages only continue for a few
-> seconds, although they cause a couple of initscripts to hang later on.
-> With ACPI fully enabled they keep appearing forever and the system
-> doesn't finish booting. With acpi=off they don't appear at all (but
-> the fan stays at low speed and the laptop gets quite hot if run for
-> more than a few minutes).
-> 
-> I've found only one other mention of this problem on the internet
-> (http://ubuntuforums.org/showthread.php?p=8358864#post8358864) from
-> someone with the same laptop as mine, but there was no working fix
-> posted to that thread beyond completely disabling ACPI. More research
-> told me that there used to be a way of fixing up the DSDT and having
-> it loaded from the initrd but the new policy is to just ask the
-> manufacturer to fix it and the kernel developers to work around it,
-> so... here it is. (Angry emails to Toshiba and Best Buy pending.)
-> 
-> Full dmesg output can be found at http://slexy.org/view/s25zU08AKJ
-> (By the way, what's the correct way to include dmesg output in a lkml
-> message if you don't know for sure which parts are relevant? Dumping
-> all 50k or so of it into the email seems like the wrong thing to
-> do...)
+Looking at the BIOS manual on their web site:
 
-I think it's better if you file a bug report against ACPI at bugzilla.kernel.org.
+ftp://download@ftp.dmp.com.tw/vortex86sx/Vortex86SX_BIOS_Manual.pdf
 
-Thanks,
-Rafael
+you can try toggling a few of the options: Try switching OnBoard IDE 
+Operate Mode between Legacy Mode and Native Mode. If the kernel and the 
+actual device disagree here, that could cause IRQ delivery problems. You 
+can also try playing with the "Plug & Play OS" setting.
