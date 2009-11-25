@@ -1,52 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 4/6] thinkpad-acpi: fix sign of ERESTARTSYS return
-Date: Wed, 25 Nov 2009 01:11:58 -0500
-Message-ID: <80a8d1228e90349b4514e8c925c061fa5cbcea75.1259129450.git.len.brown@intel.com>
+Subject: [PATCH 2/6] ACPICA: Silence the warning about _BIF returning the buffer
+Date: Wed, 25 Nov 2009 01:11:56 -0500
+Message-ID: <d0b3b119f4d9460f3947334cf384ae69c5417360.1259129450.git.len.brown@intel.com>
 References: <1259129520-8281-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173015pub.verizon.net ([206.46.173.15]:41538 "EHLO
 	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbZKYGMV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2009 01:12:21 -0500
+	with ESMTP id S1751244AbZKYGMT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2009 01:12:19 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173015.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KTN00052IK5DISQ@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 25 Nov 2009 00:12:06 -0600 (CST)
+ with ESMTPA id <0KTN00G60IK4MKRH@vms173015.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 25 Nov 2009 00:12:05 -0600 (CST)
 In-reply-to: <1259129520-8281-1-git-send-email-lenb@kernel.org>
 In-reply-to: <87c687be055e67bc04189ce476690be73d16063e.1259129450.git.len.brown@intel.com>
 References: <87c687be055e67bc04189ce476690be73d16063e.1259129450.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Roel Kluin <roel.kluin@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, stable@kernel.org, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Len Brown <len.brown@intel.com>
 
-From: Roel Kluin <roel.kluin@gmail.com>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-The returned error should be negative
+_BIF was returning buffer instead of a string since day 1 of ACPI.
+Adding a warning for that is noble, but people don't like
+when someone cries wolf in a production system.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@kernel.org>
+Reference: http://bugzilla.kernel.org/show_bug.cgi?id=14379
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/acpica/acpredef.h |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index d93108d..03c0a56 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -6313,7 +6313,7 @@ static int brightness_write(char *buf)
- 	 * Doing it this way makes the syscall restartable in case of EINTR
- 	 */
- 	rc = brightness_set(level);
--	return (rc == -EINTR)? ERESTARTSYS : rc;
-+	return (rc == -EINTR)? -ERESTARTSYS : rc;
- }
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index cd80d1d..57bdaf6 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -203,8 +203,9 @@ static const union acpi_predefined_info predefined_names[] =
+ 	{{"_BCT", 1, ACPI_RTYPE_INTEGER}},
+ 	{{"_BDN", 0, ACPI_RTYPE_INTEGER}},
+ 	{{"_BFS", 1, 0}},
+-	{{"_BIF", 0, ACPI_RTYPE_PACKAGE}}, /* Fixed-length (9 Int),(4 Str) */
+-			  {{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 9, ACPI_RTYPE_STRING}, 4,0}},
++	{{"_BIF", 0, ACPI_RTYPE_PACKAGE} }, /* Fixed-length (9 Int),(4 Str/Buf) */
++			  {{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 9,
++			     ACPI_RTYPE_STRING | ACPI_RTYPE_BUFFER}, 4, 0} },
  
- static struct ibm_struct brightness_driver_data = {
+ 	{{"_BIX", 0, ACPI_RTYPE_PACKAGE}},	/* Fixed-length (16 Int),(4 Str) */
+ 	{{{ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 16, ACPI_RTYPE_STRING}, 4,
 -- 
 1.6.0.6
 
