@@ -1,53 +1,78 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: Avoid C2/C3 idle state
-Date: Wed, 25 Nov 2009 09:05:37 +0100
-Message-ID: <20091125080537.GA31368@isilmar.linta.de>
-References: <20091124222953.GA5983@isilmar.linta.de> <796045.7445.qm@web26501.mail.ukl.yahoo.com>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: ACPI error during Sandybridge boot
+Date: Wed, 25 Nov 2009 11:09:41 +0300
+Message-ID: <4B0CE645.9000705@gmail.com>
+References: <57C9024A16AD2D4C97DC78E552063EA3E39CC12C@orsmsx505.amr.corp.intel.com> <1259113351.2552.13.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:40975 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750773AbZKYIFe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Nov 2009 03:05:34 -0500
-Content-Disposition: inline
-In-Reply-To: <796045.7445.qm@web26501.mail.ukl.yahoo.com>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:54556 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343AbZKYIJh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2009 03:09:37 -0500
+Received: by fxm5 with SMTP id 5so6674717fxm.28
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2009 00:09:42 -0800 (PST)
+In-Reply-To: <1259113351.2552.13.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex <ambroxa@yahoo.it>
-Cc: linux-acpi@vger.kernel.org
+To: ykzhao <yakui.zhao@intel.com>
+Cc: astarikovskiy@suse.de, linux-acpi@vger.kernel.org, "Kay, Allen M" <allen.m.kay@intel.com>, lenb@kernel.org
 
-On Wed, Nov 25, 2009 at 06:53:14AM +0000, Alex wrote:
-> --- Mar 24/11/09, Dominik Brodowski <linux@dominikbrodowski.net> ha s=
-critto:
->=20
-> > Da: Dominik Brodowski <linux@dominikbrodowski.net>
-> > Oggetto: Re: Avoid C2/C3 idle state
-> > A: "Alex" <ambroxa@yahoo.it>
-> > Cc: linux-acpi@vger.kernel.org
-> > Data: Marted=EC 24 novembre 2009, 23:29
-> > Hey,
-> >=20
-> > you can set the maximum C-state to use using the
-> > "processor.max_cstate=3D<value>" parameter. No need to
-> > recompile.
->=20
-> Thanks for your kind reply.
->=20
-> A stupid qustion:
-> <value> is a numeric value as 1 , 2 , 3  (i.e. processor.max_cstate=3D=
-1 )
-> or is a string like C1 , C2 , C3 (i.e. processor.max_cstate=3DC1 ) ?
+Hi Yakui,
+May I see DSDT? What is the reason to not include ECDT while it's 
+clearly needed by design?
 
-It's the former. I'd suggest you try max_cstate=3D2 first, as that migh=
-t save
-power, reduce heat and still not interfere with the serial device.
+Regards,
+Alex.
 
-Best,
-	Dominik
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ykzhao wrote:
+> Hi, Alexey
+>
+>    The following warning message is complained on one box in the boot
+> phase. And the EC opregion field is accessed in the GPE L01 method.
+> After looking at the source code it seems that the GPE L01 is enabled
+> before installing EC space handler.
+>
+>     There is no ECDT table in the acpidump. And there is no _INI object
+> for the ACPI EC device. 
+>     
+>
+> Any idea about this issue?
+>     Can we also initialize the EC device and installing EC space handler
+> earlier as we have done on the machine with the ECDT table?
+>
+> Thanks.
+>     Yakui    
+>
+>   
+>> [  371.362936] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] 
+>> 20090521 evgpe-568
+>> [  371.484758] ACPI Error: No handler for Region [ECF2] (ffff88006cc0b900) [Embe
+>> ddedControl] 20090521 evregion-319
+>> [  371.484780] ACPI Error: Region EmbeddedControl(3) has no handler 20090521 exf
+>> ldio-294
+>> [  371.484798] ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._
+>> L01] (Node ffff88006cc5c9a0), AE_NOT_EXIST
+>> [  371.484917] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] 
+>> 20090521 evgpe-568
+>> [  371.608737] ACPI Error: No handler for Region [ECF2] (ffff88006cc0b900) [Embe
+>> ddedControl] 20090521 evregion-319
+>> [  371.608760] ACPI Error: Region EmbeddedControl(3) has no handler 20090521 exf
+>> ldio-294
+>> [  371.608785] ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._
+>> L01] (Node ffff88006cc5c9a0), AE_NOT_EXIST
+>> [  371.609012] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] 
+>> 20090521 evgpe-568
+>> [  371.731704] ACPI Error: No handler for Region [ECF2] (ffff88006cc0b900) [Embe
+>> ddedControl] 20090521 evregion-319
+>> [  371.731726] ACPI Error: Region EmbeddedControl(3) has no handler 20090521 exf
+>> ldio-294
+>>     
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
+
