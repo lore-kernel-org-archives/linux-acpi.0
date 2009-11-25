@@ -1,84 +1,51 @@
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Subject: Re: [patch 05/12] fujitsu-laptop: fix tests of acpi_evaluate_integer()
-Date: Wed, 25 Nov 2009 16:59:21 +1030 (CST)
-Message-ID: <200911250629.nAP6TL2u009406@turbo.physics.adelaide.edu.au>
-References: <alpine.LFD.2.00.0911250057060.4058@localhost.localdomain>
+From: Alex <ambroxa@yahoo.it>
+Subject: Re: Avoid C2/C3 idle state
+Date: Wed, 25 Nov 2009 06:53:14 +0000 (GMT)
+Message-ID: <796045.7445.qm@web26501.mail.ukl.yahoo.com>
+References: <20091124222953.GA5983@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelphi.physics.adelaide.edu.au ([129.127.102.1]:45684 "EHLO
-	adelphi.physics.adelaide.edu.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751976AbZKYGjX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Nov 2009 01:39:23 -0500
-In-Reply-To: <alpine.LFD.2.00.0911250057060.4058@localhost.localdomain> from "Len Brown" at Nov 25, 2009 12:58:44 AM
+Received: from web26501.mail.ukl.yahoo.com ([217.146.176.38]:32518 "HELO
+	web26501.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752276AbZKYGxJ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Nov 2009 01:53:09 -0500
+In-Reply-To: <20091124222953.GA5983@isilmar.linta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, roel.kluin@gmail.com, jwoithe@physics.adelaide.edu.au
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: linux-acpi@vger.kernel.org
 
-> > From: Roel Kluin <roel.kluin@gmail.com>
-> > 
-> > The wrong test was used acpi_status status is unsigned.
-> > 
-> > Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> > Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> > 
-> >  drivers/platform/x86/fujitsu-laptop.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
-> > --- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
-> > +++ a/drivers/platform/x86/fujitsu-laptop.c
-> > @@ -376,7 +376,7 @@ static int get_lcd_level(void)
-> >  
-> >  	status =
-> >  	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
-> > -	if (status < 0)
-> > +	if (ACPI_FAILURE(status))
-> >  		return status;
-> 
-> as status is a positive number, shouldn't we be returning something like 
-> -1 here on failure, rather than status?
+--- Mar 24/11/09, Dominik Brodowski <linux@dominikbrodowski.net> ha scr=
+itto:
 
-These functions are called via the backlight_ops structure by the standard
-backlight class framework and it seems, from a real quick look, that the API
-treats numbers >=0 as valid data.  So something like this (untested, off the
-top of my head) might be more appropriate:
+> Da: Dominik Brodowski <linux@dominikbrodowski.net>
+> Oggetto: Re: Avoid C2/C3 idle state
+> A: "Alex" <ambroxa@yahoo.it>
+> Cc: linux-acpi@vger.kernel.org
+> Data: Marted=EC 24 novembre 2009, 23:29
+> Hey,
+>=20
+> you can set the maximum C-state to use using the
+> "processor.max_cstate=3D<value>" parameter. No need to
+> recompile.
 
-diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
---- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
-+++ a/drivers/platform/x86/fujitsu-laptop.c
-@@ -376,7 +376,7 @@ static int get_lcd_level(void)
- 
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
--	if (status < 0)
--		return status;
-+	if (ACPI_FAILURE(status))
-+		return -status;
- 
-      fujitsu->brightness_level = state & 0x0fffffff;
-@@ -398,7 +398,7 @@ static int get_max_brightness(void)
- 
-	status =
-	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
--	if (status < 0)
--		return status;
-+	if (ACPI_FAILURE(status))
-+		return -status;
- 
- 	fujitsu->max_brightness = state;
+Thanks for your kind reply.
+
+A stupid qustion:
+<value> is a numeric value as 1 , 2 , 3  (i.e. processor.max_cstate=3D1=
+ )
+or is a string like C1 , C2 , C3 (i.e. processor.max_cstate=3DC1 ) ?
 
 
-Otherwise "return -1;" would be fine by me.  My only reason for going with
-"-status" is that it might give some clue as to what went wrong.  Thoughts?
 
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
 
-Regards
-  jonathan
+
+     =20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
