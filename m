@@ -1,70 +1,65 @@
-From: Alex <ambroxa@yahoo.it>
-Subject: Re: Avoid C2/C3 idle state
-Date: Wed, 25 Nov 2009 12:05:50 +0000 (GMT)
-Message-ID: <592341.31696.qm@web26506.mail.ukl.yahoo.com>
+From: Jerone Young <jerone.young@canonical.com>
+Subject: Re: [PATCH] Set osi=Linux for the ThinkPad X200s
+Date: Wed, 25 Nov 2009 11:30:25 -0600
+Message-ID: <1259170225.4391.4.camel@laptop>
+References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com>
+	 <alpine.LFD.2.00.0911242347030.4058@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web26506.mail.ukl.yahoo.com ([217.146.176.43]:23239 "HELO
-	web26506.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758747AbZKYMFp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Nov 2009 07:05:45 -0500
+Received: from adelie.canonical.com ([91.189.90.139]:38896 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754471AbZKYRa1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2009 12:30:27 -0500
+In-Reply-To: <alpine.LFD.2.00.0911242347030.4058@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Lutomirski <luto@mit.edu>, linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-> > > Hey,
-> > >=20
-> > > you can set the maximum C-state to use using the
-> > > "processor.max_cstate=3D<value>" parameter.
-> No need to
-> > > recompile.
-> >=20
-> > Thanks for your kind reply.
-> >=20
-> > A stupid qustion:
-> > <value> is a numeric value as 1 , 2 , 3=A0
-> (i.e. processor.max_cstate=3D1 )
-> > or is a string like C1 , C2 , C3 (i.e.
-> processor.max_cstate=3DC1 ) ?
->=20
-> It's the former. I'd suggest you try max_cstate=3D2 first, as
-> that might save
-> power, reduce heat and still not interfere with the serial
-> device.
+I had a set of patches for the different thinkpad lines could test.
+Couldn't verify though with Thinkpads like the T400s needed this.
+
+Here are direct links from the archive:
+
+https://lists.ubuntu.com/archives/kernel-team/2009-August/007065.html
+https://lists.ubuntu.com/archives/kernel-team/2009-August/007068.html
+https://lists.ubuntu.com/archives/kernel-team/2009-August/007064.html
+https://lists.ubuntu.com/archives/kernel-team/2009-August/007066.html
+https://lists.ubuntu.com/archives/kernel-team/2009-August/007067.html
 
 
-MMhh , there is a problem in my kernel 2.6.24 (Ubuntu 8.04.3 original)
-
-[=A0 =A0 0.000000] Kernel command line: root=3DUUID=3D27d1e179-62d3-499=
-6-878e-e4a456bd45f4 ro quiet splash acpi=3Dforce processor.max_cstate=3D=
-2
-[=A0 =A0 0.000000] Unknown boot option `processor.max_cstate=3D2': igno=
-ring
-
-This is a known problem related to Ubuntu 8.04, solved here:
-http://www.inliniac.net/blog/2008/07/25/fixing-noise-on-ubuntu-hardy-80=
-4-aka-setting-max_cstate.html
-
-Really my idea is that my serial problems are involved with C3 state: 8=
-00 microsec. latency and cache loss.
-So I agree with your suggestion to use max_cstate=3D2.
-But it doesn't work: serial overrun still there.
-max_cstate=3D1 works fine : no overrun at all.
-C2 state is buggy too.
-I don't know if it's a hardware problem or acpi code problem, but with =
-C1 it works fine and I'm happy :-)
+			Jerone
 
 
+On Tue, 2009-11-24 at 23:50 -0500, Len Brown wrote:
+> On Mon, 9 Nov 2009, Andrew Lutomirski wrote:
+> 
+> > The ThinkPad X200s, like the X61, requires OSI=Linux for the mute
+> > button to work.  Without this patch (or the equivalent command-line
+> > parameter), the mute button does not generate a keystroke and,
+> > instead, messes up the sound hardware.
+> > 
+> > Tested on an X200s.
+> > 
+> > Signed-off-by: Andy Lutomirski <luto@mit.edu>
+> 
+> I just applied the analogous T400/T500 patch from
+> http://bugzilla.kernel.org/show_bug.cgi?id=13934
+> 
+> and I'd apply this one too if it were not malformed.
+> 
+> 
+> Jerome,
+> Perhaps you can post the patches from the canonical list
+> so we can take care of these "all at once"?
+> 
+> Somebody tell Lenovo (again) that they are being bad.
+> 
+> thanks,
+> -Len Brown, Intel Open Source Technology Center
+> 
+> 
 
 
-
-     =20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
