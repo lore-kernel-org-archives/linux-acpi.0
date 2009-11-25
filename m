@@ -1,61 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: No c2-c7 states on core i7
-Date: Wed, 25 Nov 2009 01:59:55 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0911250154350.8459@localhost.localdomain>
-References: <4B06A7A8.109@slagter.name>
- <1258945512.3773.33.camel@localhost.localdomain>
- <4B0A4D62.2040001@slagter.name>
- <alpine.LFD.2.00.0911231101150.858@localhost.localdomain>
- <4B0AE1FD.4030108@slagter.name>
- <20091124143459.385a0bc9@starbug.prg01.itonis.net>
- <4B0BE5B8.7060402@slagter.name>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: Avoid C2/C3 idle state
+Date: Wed, 25 Nov 2009 09:05:37 +0100
+Message-ID: <20091125080537.GA31368@isilmar.linta.de>
+References: <20091124222953.GA5983@isilmar.linta.de> <796045.7445.qm@web26501.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:56369 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276AbZKYG7u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2009 01:59:50 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KTN006DUKRWLBD5@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 25 Nov 2009 00:59:56 -0600 (CST)
-In-reply-to: <4B0BE5B8.7060402@slagter.name>
+Received: from isilmar.linta.de ([213.133.102.198]:40975 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750773AbZKYIFe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Nov 2009 03:05:34 -0500
+Content-Disposition: inline
+In-Reply-To: <796045.7445.qm@web26501.mail.ukl.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Erik Slagter <erik@slagter.name>
-Cc: Jindrich Makovicka <makovick@gmail.com>, linux-acpi@vger.kernel.org
+To: Alex <ambroxa@yahoo.it>
+Cc: linux-acpi@vger.kernel.org
 
-> Yesterday I raised the clock to 3.4 Ghz and I set all voltages to "normal" and
-> it seems to run fine. I will have to check under really heavy load yet, I will
-> do that tonight. My motherboard has an option "power line load calibration", I
-> guess that has something to do with it :-)
-> 
-> Interesting: I pulled out a "modern" (but cheapo, no fans) pcie vga card and
-> replaced it with a very old pci card (I guess from 1996) and that saves me 20
-> watts! That's more power than I problably ever could save using C states!
+On Wed, Nov 25, 2009 at 06:53:14AM +0000, Alex wrote:
+> --- Mar 24/11/09, Dominik Brodowski <linux@dominikbrodowski.net> ha s=
+critto:
+>=20
+> > Da: Dominik Brodowski <linux@dominikbrodowski.net>
+> > Oggetto: Re: Avoid C2/C3 idle state
+> > A: "Alex" <ambroxa@yahoo.it>
+> > Cc: linux-acpi@vger.kernel.org
+> > Data: Marted=EC 24 novembre 2009, 23:29
+> > Hey,
+> >=20
+> > you can set the maximum C-state to use using the
+> > "processor.max_cstate=3D<value>" parameter. No need to
+> > recompile.
+>=20
+> Thanks for your kind reply.
+>=20
+> A stupid qustion:
+> <value> is a numeric value as 1 , 2 , 3  (i.e. processor.max_cstate=3D=
+1 )
+> or is a string like C1 , C2 , C3 (i.e. processor.max_cstate=3DC1 ) ?
 
-Yep, beware graphics card power.
+It's the former. I'd suggest you try max_cstate=3D2 first, as that migh=
+t save
+power, reduce heat and still not interfere with the serial device.
 
-> BTW on my ancient athlon-mp board, I could enable c2/c3 (although not
-> supported by the bios) and that would save about ~40 watts of power. But it
-> looks I won't see such a difference on modern CPU's, maybe because of the
-> dynamic frequency scaling and enhanced c1? Is there anyone who can give me an
-> indication of what to expect in powersavings by c2-c7 on modern cpu's?
-
-On the mobile parts they used to publish the power limits for C-states,
-but I don't see these numbers in the core i7 datasheet...
-
-However, many have done comparisons of what you might expect for
-idle vs loaded power.  eg.
-http://www.anandtech.com/cpuchipsets/showdoc.aspx?i=3634&p=17
-
-In general, I don't view it as a Linux bug that the MB's BIOS
-disables c-states when it is over-clocked.  Indeed, it is
-quite possibly a BIOS feature.
-
-Len Brown, Intel Open Source Technology Center
-
-
-
+Best,
+	Dominik
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
