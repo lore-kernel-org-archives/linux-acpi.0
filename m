@@ -1,48 +1,71 @@
-From: Jerone Young <jerone.young@canonical.com>
-Subject: Re: [PATCH] Set osi=Linux for the ThinkPad X200s
-Date: Thu, 26 Nov 2009 07:43:53 -0600
-Message-ID: <1259243033.3153.1.camel@laptop>
-References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com>
-	 <alpine.LFD.2.00.0911242347030.4058@localhost.localdomain>
-	 <1259170225.4391.4.camel@laptop>
-	 <alpine.LFD.2.00.0911251317480.3950@localhost.localdomain>
-	 <20091126050748.GA7874@srcf.ucam.org>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: eeepc-laptop: bugreport
+Date: Thu, 26 Nov 2009 16:03:41 +0100
+Message-ID: <71cd59b00911260703r284b5bfdn3144de4db74b7c3a@mail.gmail.com>
+References: <cone.1258203372.445001.1633.1000@eeekiste>
+	 <71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com>
+	 <cone.1258211472.464906.1633.1000@eeekiste>
+	 <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com>
+	 <cone.1258312767.545625.1812.1000@eeekiste>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:41998 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753901AbZKZNn5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Nov 2009 08:43:57 -0500
-In-Reply-To: <20091126050748.GA7874@srcf.ucam.org>
+Received: from mail-vw0-f192.google.com ([209.85.212.192]:35508 "EHLO
+	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760564AbZKZPDf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Nov 2009 10:03:35 -0500
+Received: by vws30 with SMTP id 30so229666vws.33
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2009 07:03:41 -0800 (PST)
+In-Reply-To: <cone.1258312767.545625.1812.1000@eeekiste>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, Andrew Lutomirski <luto@mit.edu>, linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: andrej.gelenberg@udo.edu
+Cc: linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net, Matthew Garrett <mjg@redhat.com>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-On Thu, 2009-11-26 at 05:07 +0000, Matthew Garrett wrote:
-> On Wed, Nov 25, 2009 at 01:24:50PM -0500, Len Brown wrote:
-> 
-> > Have these been verified as necessary to make sound work on
-> > the specified models, or are these speculative patches?
-> 
-> To clarify - these patches do *nothing* to make sound work. They change 
-> the behaviour of the mute key from changing the hardware state of the 
-> mixer and not sending a key event to instead sending a key event and 
-> requring that software perform the change. 
+On Sun, Nov 15, 2009 at 8:19 PM,  <andrej.gelenberg@udo.edu> wrote:
+> Hi,
+>
+> Corentin Chary writes:
+>
+>> Hi,
+>> We can't apply your patch as-is. But we need to fix that.
+>>
+>> Matthew, you added hotplug in commit
+>> =A05740294ca3a9b113fe146f2826effb69ca50008d,
+>> it was needed for 701/900/901. Do you know if it's still needed for =
+1005ha
+>> ?
+>>
+>> Thanks,
+>>
+>> --
+>> Corentin Chary
+>> http://xf.iksaif.net
+>
+> how about to make hotplug optional?
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D14570#c7
+>
+> Regards,
+> Andrej
+>
+>
 
-It's more then cosmetic. On my X301 .. the headphone jack will not mute
-without this if you do not have osi=Linux.
+Hi,
+Making hotplug optional won't fix the problem,
+because this mean you need to ship a specific module for each Eeepc.
 
-	
-			Jerone
-
-> The behavioural change is 
-> primarily cosmetic rather than functional. I'm not convinced that this 
-> is a sensible thing to do at this point in the release cycle, given that 
-> we have no testing of what other behavioural changes the firmware may 
-> make.
-> 
+We need a more generic solution, and we need to implement a driver for
+the new wmi interface.
+I'll start to work on that as soon as I can get the hardware...
+Thanks,
 
 
+--=20
+Corentin Chary
+http://xf.iksaif.net
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
