@@ -1,147 +1,66 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 2/2] als: add unique device-ids to the als device class
-Date: Thu, 26 Nov 2009 16:07:13 +0100
-Message-ID: <20091126160713.5e19eb04@hyperion.delvare>
-References: <1259237081-4403-1-git-send-email-amit.kucheria@verdurent.com>
-	<1259237186-5459-1-git-send-email-amit.kucheria@verdurent.com>
+From: andrej.gelenberg-KJIyc1CJxjQ@public.gmane.org
+Subject: Re: eeepc-laptop: bugreport
+Date: Thu, 26 Nov 2009 17:45:25 +0100
+Message-ID: <cone.1259253925.112628.13921.1000@eeekiste>
+References: <cone.1258203372.445001.1633.1000@eeekiste>
+	<71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com>
+	<cone.1258211472.464906.1633.1000@eeekiste>
+	<71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com>
+	<cone.1258312767.545625.1812.1000@eeekiste>
+	<71cd59b00911260703r284b5bfdn3144de4db74b7c3a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760639AbZKZPHM@vger.kernel.org>
-In-Reply-To: <1259237186-5459-1-git-send-email-amit.kucheria@verdurent.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, rui.zhang@intel.com, jic23@cam.ac.uk, alan@linux.intel.com, linux-acpi@vger.kernel.org, gregkh@suse.de
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Amit,
+Hi,
 
-On Thu, 26 Nov 2009 14:06:26 +0200, Amit Kucheria wrote:
-> Other devices classes such as hwmon and input class handle assignment of
-> unique device-ids inside the core functions instead of pushing it out to
-> individual drivers. This reduces code duplication and resulting bugs.
+i know, what it is not a proper solution, but it work
+for me at the moment. Pleas tell me, if i can help.
+
+I think it is better not to let switch the rfkill
+on button in the driver itself.
+It is more flexible when button send only event and
+userspace-tool handle it. Userspace-tool  can
+choose the right rfkill (or may be multiple rfkills)
+(it can be runned, after wlan-driver was loaded).
+As i can see, other platform-drivers provide
+only rfkill device and do not bind it to
+keys.
+
+Regards,
+Andrej
+
+Corentin Chary writes:
+
+> Hi,
+> Making hotplug optional won't fix the problem,
+> because this mean you need to ship a specific module for each Eeepc.
 > 
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> Cc: Zhang Rui <rui.zhang@intel.com>
-> Cc: Jonathan Cameron <jic23@cam.ac.uk>
+> We need a more generic solution, and we need to implement a driver for
+> the new wmi interface.
+> I'll start to work on that as soon as I can get the hardware...
+> Thanks,
 > 
-> ---
->  drivers/als/als_sys.c |   48 +++++++++++++++++++++++++++++++++++++++++++++---
->  1 files changed, 45 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/als/als_sys.c b/drivers/als/als_sys.c
-> index e1d6395..aa15ad8 100644
-> --- a/drivers/als/als_sys.c
-> +++ b/drivers/als/als_sys.c
-> @@ -26,22 +26,55 @@
->  #include <linux/device.h>
->  #include <linux/err.h>
->  #include <linux/kdev_t.h>
-> +#include <linux/idr.h>
->  
->  MODULE_AUTHOR("Zhang Rui <rui.zhang@intel.com>");
->  MODULE_DESCRIPTION("Ambient Light Sensor sysfs/class support");
->  MODULE_LICENSE("GPL");
->  
-> +#define ALS_ID_PREFIX "als"
-> +#define ALS_ID_FORMAT ALS_ID_PREFIX "%d"
-> +
->  static struct class *als_class;
->  
-> +static DEFINE_IDR(als_idr);
-> +static DEFINE_SPINLOCK(idr_lock);
-> +
->  /**
->   * als_device_register - register a new Ambient Light Sensor class device
->   * @parent:	the device to register.
->   *
->   * Returns the pointer to the new device
->   */
-> -struct device *als_device_register(struct device *dev, char *name)
-> +struct device *als_device_register(struct device *dev)
+> -- 
+> Corentin Chary
+> http://xf.iksaif.net
 
-This is a public function but you forgot to update
-include/linux/als_sys.h accordingly. This will let the build succeed
-but crashes will happen at run time. Fix below.
-
->  {
-> -	return device_create(als_class, dev, MKDEV(0, 0), NULL, name);
-> +	int id, err;
-> +	struct device *alsdev;
-> +
-> +again:
-> +	if (unlikely(idr_pre_get(&als_idr, GFP_KERNEL) == 0))
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	spin_lock(&idr_lock);
-> +	err = idr_get_new(&als_idr, NULL, &id);
-> +	spin_unlock(&idr_lock);
-> +
-> +	if (unlikely(err == -EAGAIN))
-> +		goto again;
-> +	else if (unlikely(err))
-> +		return ERR_PTR(err);
-> +
-> +	id = id & MAX_ID_MASK;
-> +	alsdev = device_create(als_class, dev, MKDEV(0, 0), NULL,
-> +			ALS_ID_FORMAT, id);
-> +
-> +	if (IS_ERR(alsdev)) {
-> +		spin_lock(&idr_lock);
-> +		idr_remove(&als_idr, id);
-> +		spin_unlock(&idr_lock);
-> +	}
-> +
-> +	return alsdev;
->  }
->  EXPORT_SYMBOL(als_device_register);
->  
-> @@ -51,7 +84,16 @@ EXPORT_SYMBOL(als_device_register);
->   */
->  void als_device_unregister(struct device *dev)
->  {
-> -	device_unregister(dev);
-> +	int id;
-> +
-> +	if (likely(sscanf(dev_name(dev), ALS_ID_FORMAT, &id) == 1)) {
-> +		device_unregister(dev);
-> +		spin_lock(&idr_lock);
-> +		idr_remove(&als_idr, id);
-> +		spin_unlock(&idr_lock);
-> +	} else
-> +		dev_dbg(dev->parent,
-> +			"als_device_unregister() failed: bad class ID!\n");
->  }
->  EXPORT_SYMBOL(als_device_unregister);
->  
-
-Other than that I am very happy with this change, which kills 46 lines
-of code in the tsl2550 driver (and virtually the same in every other
-light sensor driver.) Please merge the following fix:
-
---- linux-2.6.32-rc8.orig/include/linux/als_sys.h	2009-11-26 15:32:38.000000000 +0100
-+++ linux-2.6.32-rc8/include/linux/als_sys.h	2009-11-26 15:44:08.000000000 +0100
-@@ -29,7 +29,7 @@
- #define ALS_ILLUMINANCE_MIN 0
- #define ALS_ILLUMINANCE_MAX -1
- 
--struct device *als_device_register(struct device *dev, char *name);
-+struct device *als_device_register(struct device *dev);
- void als_device_unregister(struct device *dev);
- 
- #endif /* __ALS_SYS_H__ */
-
-
-And then you can add:
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
-That being said... If we want user-space to know what device is there,
-we may want to still let drivers pass a name string to
-als_device_register() and let the ALS core create a "name" sysfs
-attribute returning the string in question. This would be much lighter
-(for individual drivers) than the previous situation, as the string in
-question would be a constant (e.g. "TSL2550".) Opinions?
-
--- 
-Jean Delvare
+------------------------------------------------------------------------------
+Let Crystal Reports handle the reporting - Free Crystal Reports 2008 30-Day 
+trial. Simplify your report design, integration and deployment - and focus on 
+what you do best, core application coding. Discover what's new with
+Crystal Reports now.  http://p.sf.net/sfu/bobj-july
