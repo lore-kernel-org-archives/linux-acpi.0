@@ -1,42 +1,87 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: eeepc-laptop: bugreport
-Date: Fri, 27 Nov 2009 21:58:15 +0000
-Message-ID: <20091127215815.GA9173@srcf.ucam.org>
-References: <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com> <cone.1258312767.545625.1812.1000@eeekiste> <71cd59b00911260703r284b5bfdn3144de4db74b7c3a@mail.gmail.com> <cone.1259253925.112628.13921.1000@eeekiste> <20091126164856.GA19208@srcf.ucam.org> <cone.1259320879.557715.3035.1000@eeekiste> <4B0FB7B9.9040902@tuffmail.co.uk> <cone.1259324857.296100.3035.1000@eeekiste> <20091127172522.GA5422@srcf.ucam.org> <cone.1259353583.101492.2926.1000@eeekiste>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Thinkpad X200s
+Date: Fri, 27 Nov 2009 20:11:34 -0200
+Message-ID: <20091127221134.GC21775@khazad-dum.debian.net>
+References: <4B0FB618.7020204@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:32830 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbZK0V6U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2009 16:58:20 -0500
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:47032 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752282AbZK0WLb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Nov 2009 17:11:31 -0500
 Content-Disposition: inline
-In-Reply-To: <cone.1259353583.101492.2926.1000@eeekiste>
+In-Reply-To: <4B0FB618.7020204@collabora.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andrej.gelenberg@udo.edu
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentin.chary@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net
+To: Ian Molton <ian.molton@collabora.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Nov 27, 2009 at 09:26:23PM +0100, andrej.gelenberg@udo.edu wrote:
+On Fri, 27 Nov 2009, Ian Molton wrote:
+> The problem seems to be the rfkill layer getting out of sync with ACPIs
+> idea of the hardware state.
 
-> The eepc-latop-rfkill should be hard block. If the LED is not on,
-> my wlan-card won't transmit. The eeepc-laptop is only driver
-> which use hotplug-subsystem to hide the hardware.
+Hmm... did rfkill drop the suspend/resume support perchance?
 
-No. The *hardware* disables the PCI device, at which point all reads 
-return errors and drivers fall over. The eeepc-laptop driver then hides 
-the device because it's no longer there.
+> If the laptop is suspended with WWAN enabled, it will wake up with it
+> disabled, requiring a toggle of the physical WWAN switch or a prod in
+> /sys to get it going again.
 
-Now, it's entirely possible that this behaviour is no longer present on 
-the 1005h. That's fine, and it necessitates changing the behaviour of 
-the driver. But it's not a reason for removing the functionality 
-entirely, because the 700s, 900s and earlier 1000 series *do* require 
-that PCI hotplugging be peformed.
+Yes.  rfkill is suposed to do proper suspend/resume in the class level,
+which would call back thinkpad-acpi and request the radio to be turned on.
 
-(Well. There's a separate situation where the PCI runtime power 
-management code is going to interfere with the way eeepc-laptop does 
-things, and this functionality is going to need to be added to the PCI 
-core and removed from eeepc-laptop)
+> I wrote a little patch that "cures" this issue (attached), however it is
+> far from perfect.
+
+Indeed, and it is NAK'd.  Let's fix it properly :-)
+
+> For example, even with this patch, when the side switch is used, it
+> overrides the soft setting for the devices completely, so if for example
+> the WWAN was off, then toggling the switch changes its rfkill state from
+> 0 -> 2, and then from 2 -> 1
+
+...
+
+> It *appears* from the code that it should be possible to get the device
+> to power up in the state it was last in, but I cant make mine do it.
+
+Depends only on rfkill, and whatever is handling EV_SW SW_RFKILL_ALL in your
+Linux distribution.  Sometime ago, you could give rfkill-input a parameter
+to change its mode to do just what you want.  I don't know if that's still
+possible.
+
+So, at least for this part of the issue, you have to turn your eyes to
+rfkill and userspace.
+
+> I've also noticed that on recent kernels, I get an extra rfkillswitch
+> for hci0 (bluetooth) in addition to the ACPI one. This vanishes if power
+> is toggled using the ACPI rfkill softswitch, however bluetooth continues
+> to work (when enabled).
+
+Yes.  The thinkpad-acpi rfkill switch powers down the bluetooth hardware,
+thus it disappears.
+
+> +static int wan_resume(pm_message_t state)
+> +{
+> +	int status;
+> +	printk("res\n");
+> +	acpi_evalf(hkey_handle, &status, "GWAN", "d");
+> +	printk("r%d stat.\n", status);
+> +        printk("l%d stat.\n", laststat);
+> +	if(laststat & TP_ACPI_WANCARD_RADIOSSW) {
+> +	acpi_evalf(hkey_handle, NULL, "SWAN", "vd", TP_ACPI_WANCARD_RADIOSSW);
+> +	acpi_evalf(hkey_handle, &status, "GWAN", "d");
+> +	printk("r%d stat.\n", status);
+> +	tpacpi_rfk_update_swstate_all();
+> +	}
+
+This is the right idea, done wrong.  I will fix it properly.  Just let me
+check if it needs fixing in thinkpad-acpi or in rfkill, because if it is in
+rfkill, they might have broken other drivers.
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
