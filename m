@@ -1,136 +1,57 @@
-From: Ian Molton <ian.molton@collabora.co.uk>
-Subject: Thinkpad X200s
-Date: Fri, 27 Nov 2009 11:20:56 +0000
-Message-ID: <4B0FB618.7020204@collabora.co.uk>
+From: andrej.gelenberg@udo.edu
+Subject: Re: eeepc-laptop: bugreport
+Date: Fri, 27 Nov 2009 13:27:37 +0100
+Message-ID: <cone.1259324857.296100.3035.1000@eeekiste>
+References: <cone.1258203372.445001.1633.1000@eeekiste> <71cd59b00911140641i1502e95bt81d87db848feaf0@mail.gmail.com> <cone.1258211472.464906.1633.1000@eeekiste> <71cd59b00911150139i5d7377cawda04a17e5e50d05e@mail.gmail.com> <cone.1258312767.545625.1812.1000@eeekiste> <71cd59b00911260703r284b5bfdn3144de4db74b7c3a@mail.gmail.com> <cone.1259253925.112628.13921.1000@eeekiste> <20091126164856.GA19208@srcf.ucam.org> <cone.1259320879.557715.3035.1000@eeekiste> <4B0FB7B9.9040902@tuffmail.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050108020701060805070804"
+Content-Type: text/plain; format=flowed; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.128.226]:47496 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754258AbZK0L2H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2009 06:28:07 -0500
-Received: from [192.168.1.164] (94-192-117-31.zone6.bethere.co.uk [94.192.117.31])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by bhuna.collabora.co.uk (Postfix) with ESMTPSA id E4EBA600357
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2009 11:21:34 +0000 (GMT)
+Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:41492 "EHLO
+	postserver.uni-dortmund.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751717AbZK0M2B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Nov 2009 07:28:01 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Corentin Chary <corentin.chary@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net
 
-This is a multi-part message in MIME format.
---------------050108020701060805070804
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi folks,
+the problem is, when i press wlan-key, the hotplug-work is triggerd,
+but you can not say, which device to unplug.
 
-I've been investigating a problem with rfkill on the X200s from Lenovo.
-The problem exists in debians 2.6.30-2 kernel and persists right up to -git
+My idea is to separate the key-event and rfkill-handler.
+So you can bind key to userspace-tool, which turn the
+rfkill on and off.
 
-I've found that the WWAN card does not behave as expected on suspend /
-resume.
+Besides i think the hotplug-workaround ist not very
+good solution. If rfkill don't work propper
+on other models, then isn't it better to use
+software-rfkill from wlan-driver?
+(to use staging drivers isn't good,
+and good drivers have it implemented)
 
-The problem seems to be the rfkill layer getting out of sync with ACPIs
-idea of the hardware state.
+The hotplug-workaround can be maded by
+userspace too (fake hotplug driver).
+The benifit is, you can say, which device
+should i unplug (and not hope,
+that it is on slot 0).
 
-If the laptop is suspended with WWAN enabled, it will wake up with it
-disabled, requiring a toggle of the physical WWAN switch or a prod in
-/sys to get it going again.
+Regards,
+Andrej
 
-I wrote a little patch that "cures" this issue (attached), however it is
-far from perfect.
+Alan Jenkins writes:
 
-For example, even with this patch, when the side switch is used, it
-overrides the soft setting for the devices completely, so if for example
-the WWAN was off, then toggling the switch changes its rfkill state from
-0 -> 2, and then from 2 -> 1
-
-It *appears* from the code that it should be possible to get the device
-to power up in the state it was last in, but I cant make mine do it.
-
-I've also noticed that on recent kernels, I get an extra rfkillswitch
-for hci0 (bluetooth) in addition to the ACPI one. This vanishes if power
-is toggled using the ACPI rfkill softswitch, however bluetooth continues
-to work (when enabled).
-
-Has anyone else experienced these issues?
-
--Ian
-
---------------050108020701060805070804
-Content-Type: text/plain;
- name="patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch"
-
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index d93108d..4896af5 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -4055,14 +4055,37 @@ enum {
- };
- 
- #define TPACPI_RFK_WWAN_SW_NAME		"tpacpi_wwan_sw"
-+static int laststat;
- 
- static void wan_suspend(pm_message_t state)
- {
-+	int status;
-+	acpi_evalf(hkey_handle, &status, "GWAN", "d");
-+	laststat = status;
-+        printk("s%d stat.\n", status);
- 	/* Try to make sure radio will resume powered off */
- 	if (!acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
- 		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME))
- 		vdbg_printk(TPACPI_DBG_RFKILL,
- 			"WWAN power down on resume request failed\n");
-+	printk("sus\n");
-+	acpi_evalf(hkey_handle, &status, "GWAN", "d");
-+        printk("s%d stat.\n", status);
-+}
-+
-+static int wan_resume(pm_message_t state)
-+{
-+	int status;
-+	printk("res\n");
-+	acpi_evalf(hkey_handle, &status, "GWAN", "d");
-+	printk("r%d stat.\n", status);
-+        printk("l%d stat.\n", laststat);
-+	if(laststat & TP_ACPI_WANCARD_RADIOSSW) {
-+	acpi_evalf(hkey_handle, NULL, "SWAN", "vd", TP_ACPI_WANCARD_RADIOSSW);
-+	acpi_evalf(hkey_handle, &status, "GWAN", "d");
-+	printk("r%d stat.\n", status);
-+	tpacpi_rfk_update_swstate_all();
-+	}
- }
- 
- static int wan_get_status(void)
-@@ -4078,6 +4101,7 @@ static int wan_get_status(void)
- 	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
- 		return -EIO;
- 
-+	printk("gs: %d\n", status);
- 	return ((status & TP_ACPI_WANCARD_RADIOSSW) != 0) ?
- 			TPACPI_RFK_RADIO_ON : TPACPI_RFK_RADIO_OFF;
- }
-@@ -4103,6 +4127,7 @@ static int wan_set_status(enum tpacpi_rfkill_state state)
- 	else
- 		status = 0;
- 
-+	printk("ss: %d\n", status);
- 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
- 		return -EIO;
- 
-@@ -4239,6 +4264,7 @@ static struct ibm_struct wan_driver_data = {
- 	.read = wan_read,
- 	.write = wan_write,
- 	.exit = wan_exit,
-+	.resume = wan_resume,
- 	.suspend = wan_suspend,
- 	.shutdown = wan_shutdown,
- };
-
---------------050108020701060805070804--
+> andrej.gelenberg@udo.edu wrote:
+>> Hi,
+>>
+>> how? It's not possible at the moment in eeepc-laptop.
+> 
+> CONFIG_RFKILL_INPUT=n. By default this is hidden; you have to enable 
+> CONFIG_EMBEDDED=y.
+> 
+> rfkill-input is alledgedly going to be removed soon, see 
+> Documentation/feature-removal-schedule.txt.
