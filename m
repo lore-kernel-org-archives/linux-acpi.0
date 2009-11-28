@@ -1,43 +1,49 @@
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Subject: Re: Backlight device class redesign
-Date: Sat, 28 Nov 2009 11:30:51 +0100
-Message-ID: <b170af450911280230g4a2f7f8ao64b46ce7e88ec929@mail.gmail.com>
-References: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Thinkpad X200s
+Date: Sat, 28 Nov 2009 10:07:11 -0200
+Message-ID: <20091128120711.GA17894@khazad-dum.debian.net>
+References: <4B0FB618.7020204@collabora.co.uk>
+ <20091127221134.GC21775@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753530AbZK1Kas@vger.kernel.org>
-In-Reply-To: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59105 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753140AbZK1MHH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Nov 2009 07:07:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20091127221134.GC21775@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ian Molton <ian.molton@collabora.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-W dniu 28 listopada 2009 01:30 u=C5=BCytkownik Rafa=C5=82 Mi=C5=82ecki
-<zajec5@gmail.com> napisa=C5=82:
-> Currently we keep all registered controllers in /sys/class/backlgiht/
-> without any grouping per display or per anything. We can not use
-> grouping per GPU (as somewhere proposed) because one GPU can control
-> (for example) two PANELS and TV - 3 displays needing backlight
-> management. The most obvious and stable solution seems to be grouping
-> per display.
+On Fri, 27 Nov 2009, Henrique de Moraes Holschuh wrote:
+> On Fri, 27 Nov 2009, Ian Molton wrote:
+> > The problem seems to be the rfkill layer getting out of sync with ACPIs
+> > idea of the hardware state.
+> 
+> Hmm... did rfkill drop the suspend/resume support perchance?
 
-Just in case I was not clear enough. We should make ACPI, platform and
-GPU drivers register same panel backlight control under same name like
-"panel-0". Backlight class device would create
-/sys/class/backlight/panel-0 only. When touching files in this
-backlight/panel-0/, blacklight class would call functions from the
-most proper (ACPI > platform > GPU) driver.
+Yes, for persistent devices, which are thinkpad-acpi and eeepc-laptop.
+I even ack'd the change that caused this regression, because I didn't
+pay enough attention to the last lines of the patch. ARGH!
 
-I thought if we could use card number for anything. I recalled that
-notebooks with hybrid gpu, where system should switch between weaker
-and more powerful GPU watching load. In case of that notebooks PANEL
-can be controlled by both: card0 and card1.
+This can be worked-around by thinkpad-acpi with a few lines of extra
+code, or fixed in rfkill removing two lines of code, which would allow
+us to remove more LOC from eeepc-laptop as well, as they'd become
+redundant.
 
-So finally I think we should just register panel0 by default
-everywhere. And in future we could add some quirks in drivers (ACPI,
-platform, GPU) that would register panel1, panel2... for such devices.
+It is a regression from 2.6.30, so it will have to go to stable anyway.
+This means it is best to waste a few days checking with the others if it
+would be better fixed in rfkill or thinkpad-acpi, and then get it in
+2.6.32 and 2.6.31 through stable.
 
-Any comments? Should I work on something like specified above?
+I will handle it, either way.
 
---=20
-Rafa=C5=82
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
