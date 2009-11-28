@@ -1,52 +1,36 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: rfkill: persistent device suspend/resume
-Date: Sat, 28 Nov 2009 15:17:54 -0200
-Message-ID: <20091128171754.GB28189@khazad-dum.debian.net>
-References: <4A37A3E1.8060606@tuffmail.co.uk>
- <1245161645.13461.3.camel@johannes.local>
- <4A37AEB7.6060405@tuffmail.co.uk>
- <20090618030806.GE29569@khazad-dum.debian.net>
- <20091128124158.GB17373@khazad-dum.debian.net>
- <1259413945.5428.21.camel@johannes.local>
- <20091128132752.GD17373@khazad-dum.debian.net>
- <1259415589.5428.22.camel@johannes.local>
+Subject: Re: Backlight device class redesign
+Date: Sat, 28 Nov 2009 15:21:27 -0200
+Message-ID: <20091128172127.GC28189@khazad-dum.debian.net>
+References: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
+ <b170af450911280230g4a2f7f8ao64b46ce7e88ec929@mail.gmail.com>
+ <20091128122229.GB17894@khazad-dum.debian.net>
+ <b170af450911280458v66c3741dy2a1d9c5297c8faf5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59879 "EHLO
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:42852 "EHLO
 	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752415AbZK1RRv (ORCPT
+	by vger.kernel.org with ESMTP id S1752415AbZK1RVW (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Nov 2009 12:17:51 -0500
+	Sat, 28 Nov 2009 12:21:22 -0500
 Content-Disposition: inline
-In-Reply-To: <1259415589.5428.22.camel@johannes.local>
+In-Reply-To: <b170af450911280458v66c3741dy2a1d9c5297c8faf5@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Berg <johannes@sipsolutions.net>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Marcel Holtmann <marcel@holtmann.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ian Molton <ian.molton@collabora.co.uk>, linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+To: Rafa?? Mi??ecki <zajec5@gmail.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
 
-On Sat, 28 Nov 2009, Johannes Berg wrote:
-> On Sat, 2009-11-28 at 11:27 -0200, Henrique de Moraes Holschuh wrote:
-> > > static int rfkill_resume(struct device *dev)
-> > > {
-> > >         struct rfkill *rfkill = to_rfkill(dev);
-> > >         bool cur;
-> > > 
-> > >         if (!rfkill->persistent) {
-> > >                 cur = !!(rfkill->state & RFKILL_BLOCK_SW);
-> > >                 rfkill_set_block(rfkill, cur);
-> > >         }
-> > 
-> > The issue I am reporting is _only_ about persistent devices, so it is the
-> > if(!rfkill->persistent) that is the problem.  It works perfectly for the
-> > other devices.
+On Sat, 28 Nov 2009, Rafa?? Mi??ecki wrote:
+> > Meanwhile, I'd like a LOT to know how I could parent the backlight device I
+> > export in a platform driver to the correct PCI or ACPI device for the main
+> > GPU...
 > 
-> So then I don't understand -- if the device specifically said that it
-> was persistent, what kind of help does it need, and why does it not just
-> unset persistent if it needs it?
+> Is actually "parent" used for something? I can see it used in many
+> modules, but not sure where we use that pointer (if we do).
 
-Never mind, Alan gave me various good reasons for the code to remain as is,
-and I will fix it in the driver in another way.
+For one, you get symlinks in sysfs, which would let userspace know what
+backlight is related to what PCI/video/whatever device.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
