@@ -1,74 +1,122 @@
-From: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Subject: Re: rfkill: persistent device suspend/resume
-Date: Sat, 28 Nov 2009 14:39:49 +0100
-Message-ID: <1259415589.5428.22.camel@johannes.local>
-References: <4A37A3E1.8060606@tuffmail.co.uk>
-	 <1245161645.13461.3.camel@johannes.local> <4A37AEB7.6060405@tuffmail.co.uk>
-	 <20090618030806.GE29569@khazad-dum.debian.net>
-	 <20091128124158.GB17373@khazad-dum.debian.net>
-	 <1259413945.5428.21.camel@johannes.local>
-	 <20091128132752.GD17373@khazad-dum.debian.net>
+Date: Sat, 28 Nov 2009 15:32:24 +0000
+Message-ID: <4B114288.2000409@tuffmail.co.uk>
+References: <4A37A3E1.8060606@tuffmail.co.uk> <1245161645.13461.3.camel@johannes.local> <4A37AEB7.6060405@tuffmail.co.uk> <20090618030806.GE29569@khazad-dum.debian.net> <20091128124158.GB17373@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-p/jXZQ+dRDEX7xjYl9Rp"
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091128132752.GD17373-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ian Molton <ian.molton-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Corentin Chary <corentincj-EjuBZuxMvz2sTnJN9+BGXg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.25]:42039 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062AbZK1PcX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Nov 2009 10:32:23 -0500
+In-Reply-To: <20091128124158.GB17373@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Marcel Holtmann <marcel@holtmann.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ian Molton <ian.molton@collabora.co.uk>, linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+
+Henrique de Moraes Holschuh wrote:
+> On Thu, 18 Jun 2009, Henrique de Moraes Holschuh wrote:
+>   
+>>> The setting of the "persistent" flag is also made more explicit using
+>>> a new rfkill_init_sw_state() function, instead of special-casing
+>>> rfkill_set_sw_state() when it is called before registration.
+>>>
+>>> Suspend is a bit of a corner case so we try to get away without adding
+>>> another hack to rfkill-input - it's going to be removed soon.
+>>> If the state does change over suspend, users will simply have to prod
+>>> rfkill-input twice in order to toggle the state.
+>>>       
+>
+> Well, I acked it, but I didn't do my job properly and didn't notice the
+> above.
+>
+> Suspend/resume is not much of a corner case at all:  unless overriden by
+> some weird policy that doesn't even exist right now (the only one that comes
+> to mind is to have it always off upon resume in highly-critical
+> environments), we really want to restore the hardware to the previous soft
+> state, subject to any changes on any hard state that happened while the
+> machine was sleeping.
+>
+> And any "weird policy" we might implement would have to come through the
+> core anyway.  So, we really should be taking advantage of the fact that the
+> rfkill class will resume *after* the device, and let the core call the
+> backend (unconditionally, so it is also a way to make sure the
+> firmware/hardware is in sync with the core) to set the proper state after a
+> resume.
+>
+> The backend will be able to update any hard states before the rfkill class
+> resume code runs, so this will always work fine.   It also allows the
+> backend driver to ask the platform to resume with radios disabled, so that
+> if we _ever_ decide to change the core to have a different policy to what
+> should be done to radios on resume (e.g. leave them off and wait for
+> userspace to tell us what to do :) ), that will need no change to drivers
+> (and radios won't get turned on just to be turned off, etc).
+>
+> It will also let us remove a few LOC from eeepc-laptop and avoid adding a
+> few LOC to thinkpad-acpi (which has a regression since 2.6.30 because failed
+> to notice I would have to handle resume).
+>
+> What do you guys think?   I will cook up a patch to implement the above, but
+> if there are any objections to the idea, I'd like to hear it ASAP, as I do
+> have a regression to fix :)
+>
+> Note: eeepc-laptop and thinkpad-acpi are the only rfkill persistent devices
+> in-tree
+
+"Suspend/resume is not much of a corner case at all"
 
 
---=-p/jXZQ+dRDEX7xjYl9Rp
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, 2009-11-28 at 11:27 -0200, Henrique de Moraes Holschuh wrote:
-
-> > static int rfkill_resume(struct device *dev)
-> > {
-> >         struct rfkill *rfkill =3D to_rfkill(dev);
-> >         bool cur;
-> >=20
-> >         if (!rfkill->persistent) {
-> >                 cur =3D !!(rfkill->state & RFKILL_BLOCK_SW);
-> >                 rfkill_set_block(rfkill, cur);
-> >         }
->=20
-> The issue I am reporting is _only_ about persistent devices, so it is the
-> if(!rfkill->persistent) that is the problem.  It works perfectly for the
-> other devices.
-
-So then I don't understand -- if the device specifically said that it
-was persistent, what kind of help does it need, and why does it not just
-unset persistent if it needs it?
-
-johannes
+Sorry for my naff patch description. The actual corner case is when the 
+soft rfkill state changes between when we suspend and resume.
 
 
---=-p/jXZQ+dRDEX7xjYl9Rp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+"we really want to restore the hardware to the previous soft state"
 
------BEGIN PGP SIGNATURE-----
+Context warning: this only affects "persistent" rfkill devices. We 
+currently do this for everything except thinkpad-acpi and eeepc-laptop.
 
-iQIcBAABAgAGBQJLESgiAAoJEODzc/N7+Qma2TQQAIDyK0af5ZPF0dVRS9cJRDwB
-tq51TN0Oi6zFcDXWHO3BUTA6noRHqltZfHSn31pm/fFVbs151XjX5NM7UG/GE8gr
-ijpSBSTd9Nljwkn5USxBi/7ffHkDiBoWnXzfRU2WodTfoi3/GJTDe9c6S88Jqhkc
-Lml/LzyXBOaRDNJDPW/iK0ywl70HpzHdiGZ2ExkWmN/Cx2x/E9GoRuybphNL2AfJ
-pDRoEvkgPHxPFEPs2yi5oT1w80Ya213zXThbvj2jntWDEQdfy6fasnRJBgN6PhGM
-D6imGfkk7EaZ5XIjw2fUb5BRBTa1Gd92192G5pkKBwFOtoyab0pVUnXqANqpR47e
-Vmi0lD3S6K1XtsxXnnfTGhkfYwRBvOJh4rrrRTVPpTLTczvB4qBDnpHQ1pz+3J0H
-GTCT4s7Hi2KfRmUO2vZvWGQJ+VWaMmf01PPkKhouBBrDNOMwGCh29O5bhHPM++cV
-h9MExFG5JnPnCyzLEmTqswLvNPWkyyMgstwDHg1mub5Fbag4Td8y3PPCGUu7v3h8
-sb4gQDXmq19pYgwQG/zgoRQfwKnN6rp6DEA6/wDhYHuqpf71adajY7q/E2YpA5Tm
-35aHVmDP83SAf4OiCY4SmHsanUIVM62ZHVoLnm5WrFPAVLI6gnZCpPCheOnlWm3G
-RRZ8icCgvOu8nHjiTKmw
-=u9fF
------END PGP SIGNATURE-----
+Blame Marcel, the current choice was his suggestion :). I think his 
+argument was that restoring the state could impose policy, and that this 
+would be bad. I didn't resist too hard because his principle provides a 
+marginal feature in eeepc-laptop.
 
---=-p/jXZQ+dRDEX7xjYl9Rp--
+[That said, I later noticed that it speeds up resume from s2ram. 
+eeepc-laptop is 'special'; its WLDS method takes a whole second to run.]
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To elaborate:
+
+The state in NV-ram may be changed deliberately. On eeepc-laptop, you 
+can change it in the BIOS setup screen - and then resume from 
+hibernation. Marcel suggests that overriding this change would be a 
+policy decision, which userspace should be able to control. The simplest 
+way to do so is to simply preserve the state (and emit an event to 
+notify userspace of the change).
+
+I thought thinkpad-acpi might also allow such changes. At least for some 
+controls, the BIOS defaults to implementing them itself, right? Even if 
+this isn't true for rfkill on the thinkpad, it's a possibility we may 
+encounter in future. Imagine a system where this happens:
+
+- hibernate
+- boot resume kernel
+- user presses rfkill key -> BIOS toggles the rfkill state
+- load kernel from hibernation image
+- rfkill resume now unconditionally overrides the rfkill state
+
+So your suggestion forces users to accept corner case behaviour like 
+this. Marcel's position appears to come from writing a userspace daemon 
+which provides persistent state for all rfkill devices. That is, if we 
+want to keep in-kernel handling of persistent state in the long run, we 
+have to justify it by addressing the corner cases which only the kernel 
+can solve.
+
+rfkill-input is scheduled for removal in anticipation of rfkilld. If you 
+want to schedule removal of persistent rfkill devices in anticipation of 
+"rfkilld with persistence", that would seem just as reasonable :-p. I'm 
+sure Johannes would then accept the small change to the rfkill core to 
+fix this regression.
+
+Alan
