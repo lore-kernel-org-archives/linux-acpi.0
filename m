@@ -1,91 +1,71 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Backlight device class redesign
-Date: Sat, 28 Nov 2009 10:22:29 -0200
-Message-ID: <20091128122229.GB17894@khazad-dum.debian.net>
-References: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
- <b170af450911280230g4a2f7f8ao64b46ce7e88ec929@mail.gmail.com>
+Subject: rfkill: persistent device suspend/resume
+Date: Sat, 28 Nov 2009 10:41:58 -0200
+Message-ID: <20091128124158.GB17373@khazad-dum.debian.net>
+References: <4A37A3E1.8060606@tuffmail.co.uk>
+ <1245161645.13461.3.camel@johannes.local>
+ <4A37AEB7.6060405@tuffmail.co.uk>
+ <20090618030806.GE29569@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:56914 "EHLO
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59468 "EHLO
 	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753950AbZK1MW1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753970AbZK1Mlz (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Nov 2009 07:22:27 -0500
+	Sat, 28 Nov 2009 07:41:55 -0500
 Content-Disposition: inline
-In-Reply-To: <b170af450911280230g4a2f7f8ao64b46ce7e88ec929@mail.gmail.com>
+In-Reply-To: <20090618030806.GE29569@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rafa?? Mi??ecki <zajec5@gmail.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
+To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Johannes Berg <johannes@sipsolutions.net>, Marcel Holtmann <marcel@holtmann.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ian Molton <ian.molton@collabora.co.uk>, linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-Backlight maintainer added to CC.
+On Thu, 18 Jun 2009, Henrique de Moraes Holschuh wrote:
+> > The setting of the "persistent" flag is also made more explicit using
+> > a new rfkill_init_sw_state() function, instead of special-casing
+> > rfkill_set_sw_state() when it is called before registration.
+> > 
+> > Suspend is a bit of a corner case so we try to get away without adding
+> > another hack to rfkill-input - it's going to be removed soon.
+> > If the state does change over suspend, users will simply have to prod
+> > rfkill-input twice in order to toggle the state.
 
-On Sat, 28 Nov 2009, Rafa?? Mi??ecki wrote:
-> W dniu 28 listopada 2009 01:30 u??ytkownik Rafa?? Mi??ecki
-> <zajec5@gmail.com> napisa??:
-> > Currently we keep all registered controllers in /sys/class/backlgiht/
-> > without any grouping per display or per anything. We can not use
-> > grouping per GPU (as somewhere proposed) because one GPU can control
-> > (for example) two PANELS and TV - 3 displays needing backlight
-> > management. The most obvious and stable solution seems to be grouping
-> > per display.
-> 
-> Just in case I was not clear enough. We should make ACPI, platform and
-> GPU drivers register same panel backlight control under same name like
-> "panel-0". Backlight class device would create
-> /sys/class/backlight/panel-0 only. When touching files in this
-> backlight/panel-0/, blacklight class would call functions from the
-> most proper (ACPI > platform > GPU) driver.
-> 
+Well, I acked it, but I didn't do my job properly and didn't notice the
+above.
 
-I once suggested some sort of multiplexer backlight device that would do
-exactly that.  Various drivers (platform, ACPI, display) would register
-backends and specify some sort of dynamic preference so that the kernel
-would have a good bet on the default one, and userspace could switch the
-active backend later if it wanted.
+Suspend/resume is not much of a corner case at all:  unless overriden by
+some weird policy that doesn't even exist right now (the only one that comes
+to mind is to have it always off upon resume in highly-critical
+environments), we really want to restore the hardware to the previous soft
+state, subject to any changes on any hard state that happened while the
+machine was sleeping.
 
-In this case, we'd have to specify properties or some other way to group the
-backends properly and to easily let userspace find the backlight device it
-needs to drive a specific device.
+And any "weird policy" we might implement would have to come through the
+core anyway.  So, we really should be taking advantage of the fact that the
+rfkill class will resume *after* the device, and let the core call the
+backend (unconditionally, so it is also a way to make sure the
+firmware/hardware is in sync with the core) to set the proper state after a
+resume.
 
-> I thought if we could use card number for anything. I recalled that
-> notebooks with hybrid gpu, where system should switch between weaker
-> and more powerful GPU watching load. In case of that notebooks PANEL
-> can be controlled by both: card0 and card1.
+The backend will be able to update any hard states before the rfkill class
+resume code runs, so this will always work fine.   It also allows the
+backend driver to ask the platform to resume with radios disabled, so that
+if we _ever_ decide to change the core to have a different policy to what
+should be done to radios on resume (e.g. leave them off and wait for
+userspace to tell us what to do :) ), that will need no change to drivers
+(and radios won't get turned on just to be turned off, etc).
 
-That would require backends to be able to runtime register and unregister
-themselves with the main backlight device, and that they hook somehow on the
-hotplug stuff, to know when to bind/unbind along with the GPU.
+It will also let us remove a few LOC from eeepc-laptop and avoid adding a
+few LOC to thinkpad-acpi (which has a regression since 2.6.30 because failed
+to notice I would have to handle resume).
 
-> So finally I think we should just register panel0 by default
-> everywhere. And in future we could add some quirks in drivers (ACPI,
-> platform, GPU) that would register panel1, panel2... for such devices.
+What do you guys think?   I will cook up a patch to implement the above, but
+if there are any objections to the idea, I'd like to hear it ASAP, as I do
+have a regression to fix :)
 
-If you're going to design something, do it properly from day one.  Address
-all the main issues: multiple backends for each device, auto-selection of
-the default backend based on data reported by the backend drivers (e.g. a
-platform driver usually knows very well if it should be preferred over ACPI
-and GPU or not...), *and* multiple devices with hotplug.
-
-These are not, after all, overengineering for the future.  It is a problem
-we have _now_ with real world devices that are shipping.
-
-There are other ways to solve this issue, of course, and they're easier:
-publish MORE information on sysfs to properly bind backlight devices to the
-real device they control, as well as more data to help userspace decide
-which one it should use.   It is a cop-out, as we are only solving half the
-problem space in-kernel.  But it works, and it is not a hack, so it is also
-a viable solution.
-
-I prefer the full kernel solution where we export just one backlight
-interface, but when I propesed it, the others made it clear they'd prefer
-the less complex "userspace chooses which backlight backend to drive"
-currently employed.
-
-Meanwhile, I'd like a LOT to know how I could parent the backlight device I
-export in a platform driver to the correct PCI or ACPI device for the main
-GPU...
+Note: eeepc-laptop and thinkpad-acpi are the only rfkill persistent devices
+in-tree.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
