@@ -1,74 +1,32 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: rfkill: persistent device suspend/resume
-Date: Sat, 28 Nov 2009 10:41:58 -0200
-Message-ID: <20091128124158.GB17373@khazad-dum.debian.net>
-References: <4A37A3E1.8060606@tuffmail.co.uk>
- <1245161645.13461.3.camel@johannes.local>
- <4A37AEB7.6060405@tuffmail.co.uk>
- <20090618030806.GE29569@khazad-dum.debian.net>
+From: Ian Molton <ian.molton@collabora.co.uk>
+Subject: Re: Thinkpad X200s
+Date: Sat, 28 Nov 2009 12:49:28 +0000
+Message-ID: <4B111C58.5050006@collabora.co.uk>
+References: <4B0FB618.7020204@collabora.co.uk> <20091127221134.GC21775@khazad-dum.debian.net> <20091128120711.GA17894@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:59468 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753970AbZK1Mlz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Nov 2009 07:41:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20090618030806.GE29569@khazad-dum.debian.net>
+Received: from bhuna.collabora.co.uk ([93.93.128.226]:43665 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753969AbZK1MuD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Nov 2009 07:50:03 -0500
+In-Reply-To: <20091128120711.GA17894@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Johannes Berg <johannes@sipsolutions.net>, Marcel Holtmann <marcel@holtmann.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ian Molton <ian.molton@collabora.co.uk>, linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 18 Jun 2009, Henrique de Moraes Holschuh wrote:
-> > The setting of the "persistent" flag is also made more explicit using
-> > a new rfkill_init_sw_state() function, instead of special-casing
-> > rfkill_set_sw_state() when it is called before registration.
-> > 
-> > Suspend is a bit of a corner case so we try to get away without adding
-> > another hack to rfkill-input - it's going to be removed soon.
-> > If the state does change over suspend, users will simply have to prod
-> > rfkill-input twice in order to toggle the state.
+Henrique de Moraes Holschuh wrote:
 
-Well, I acked it, but I didn't do my job properly and didn't notice the
-above.
+> It is a regression from 2.6.30, so it will have to go to stable anyway.
+> This means it is best to waste a few days checking with the others if it
+> would be better fixed in rfkill or thinkpad-acpi, and then get it in
+> 2.6.32 and 2.6.31 through stable.
+> 
+> I will handle it, either way.
 
-Suspend/resume is not much of a corner case at all:  unless overriden by
-some weird policy that doesn't even exist right now (the only one that comes
-to mind is to have it always off upon resume in highly-critical
-environments), we really want to restore the hardware to the previous soft
-state, subject to any changes on any hard state that happened while the
-machine was sleeping.
+Cheers - I'll keep an eye on this thread so I can test your patch ASAP! :-)
 
-And any "weird policy" we might implement would have to come through the
-core anyway.  So, we really should be taking advantage of the fact that the
-rfkill class will resume *after* the device, and let the core call the
-backend (unconditionally, so it is also a way to make sure the
-firmware/hardware is in sync with the core) to set the proper state after a
-resume.
+-Ian
 
-The backend will be able to update any hard states before the rfkill class
-resume code runs, so this will always work fine.   It also allows the
-backend driver to ask the platform to resume with radios disabled, so that
-if we _ever_ decide to change the core to have a different policy to what
-should be done to radios on resume (e.g. leave them off and wait for
-userspace to tell us what to do :) ), that will need no change to drivers
-(and radios won't get turned on just to be turned off, etc).
-
-It will also let us remove a few LOC from eeepc-laptop and avoid adding a
-few LOC to thinkpad-acpi (which has a regression since 2.6.30 because failed
-to notice I would have to handle resume).
-
-What do you guys think?   I will cook up a patch to implement the above, but
-if there are any objections to the idea, I'd like to hear it ASAP, as I do
-have a regression to fix :)
-
-Note: eeepc-laptop and thinkpad-acpi are the only rfkill persistent devices
-in-tree.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
