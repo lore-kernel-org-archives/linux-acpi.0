@@ -1,33 +1,43 @@
-From: Jan van der Steen <J.van.der.Steen@gobase.org>
-Subject: DMI info
-Date: Sat, 28 Nov 2009 01:24:08 +0100
-Message-ID: <4B106DA8.9000609@gobase.org>
-Reply-To: J.van.der.Steen@gobase.org
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Re: Backlight device class redesign
+Date: Sat, 28 Nov 2009 11:30:51 +0100
+Message-ID: <b170af450911280230g4a2f7f8ao64b46ce7e88ec929@mail.gmail.com>
+References: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from viefep18-int.chello.at ([62.179.121.38]:42725 "EHLO
-	viefep18-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151AbZK1BnZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2009 20:43:25 -0500
-Received: from edge04.upc.biz ([192.168.13.239]) by viefep15-int.chello.at
-          (InterMail vM.7.09.01.00 201-2219-108-20080618) with ESMTP
-          id <20091128002409.XNYY10074.viefep15-int.chello.at@edge04.upc.biz>
-          for <linux-acpi@vger.kernel.org>; Sat, 28 Nov 2009 01:24:09 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753530AbZK1Kas@vger.kernel.org>
+In-Reply-To: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+W dniu 28 listopada 2009 01:30 u=C5=BCytkownik Rafa=C5=82 Mi=C5=82ecki
+<zajec5@gmail.com> napisa=C5=82:
+> Currently we keep all registered controllers in /sys/class/backlgiht/
+> without any grouping per display or per anything. We can not use
+> grouping per GPU (as somewhere proposed) because one GPU can control
+> (for example) two PANELS and TV - 3 displays needing backlight
+> management. The most obvious and stable solution seems to be grouping
+> per display.
 
+Just in case I was not clear enough. We should make ACPI, platform and
+GPU drivers register same panel backlight control under same name like
+"panel-0". Backlight class device would create
+/sys/class/backlight/panel-0 only. When touching files in this
+backlight/panel-0/, blacklight class would call functions from the
+most proper (ACPI > platform > GPU) driver.
 
+I thought if we could use card number for anything. I recalled that
+notebooks with hybrid gpu, where system should switch between weaker
+and more powerful GPU watching load. In case of that notebooks PANEL
+can be controlled by both: card0 and card1.
 
-[   39.384355] ACPI: DMI System Vendor:                                  
-[   39.384356] ACPI: DMI Product Name:                                  
-[   39.384357] ACPI: DMI Product Version:                                  
-[   39.384358] ACPI: DMI Board Name: DG45ID
-[   39.384359] ACPI: DMI BIOS Vendor: Intel Corp.
-[   39.384360] ACPI: DMI BIOS Date: 04/28/2009
+So finally I think we should just register panel0 by default
+everywhere. And in future we could add some quirks in drivers (ACPI,
+platform, GPU) that would register panel1, panel2... for such devices.
 
-best regards,
-Jan van der Steen
+Any comments? Should I work on something like specified above?
+
+--=20
+Rafa=C5=82
