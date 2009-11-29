@@ -1,205 +1,93 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: ACPI error during Sandybridge boot
-Date: Sun, 29 Nov 2009 14:20:00 +0300
-Message-ID: <4B1258E0.7040203@suse.de>
-References: <57C9024A16AD2D4C97DC78E552063EA3E39CC12C@orsmsx505.amr.corp.intel.com>	 <1259113351.2552.13.camel@localhost.localdomain>	 <4B0CE645.9000705@gmail.com> <1259197886.2552.25.camel@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH 2/12] PCI PM: Add function for checking PME status of devices
+Date: Sun, 29 Nov 2009 16:34:47 +0100
+Message-ID: <200911291634.47631.rjw@sisk.pl>
+References: <200911160047.46299.rjw@sisk.pl> <200911291632.44763.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050502000502090600060403"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:49551 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754242AbZK2Lj5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Nov 2009 06:39:57 -0500
-In-Reply-To: <1259197886.2552.25.camel@localhost.localdomain>
+Received: from ogre.sisk.pl ([217.79.144.158]:36394 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751622AbZK2Ppv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Nov 2009 10:45:51 -0500
+In-Reply-To: <200911291632.44763.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ykzhao <yakui.zhao@intel.com>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Kay, Allen M" <allen.m.kay@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 
-This is a multi-part message in MIME format.
---------------050502000502090600060403
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-ykzhao wrote:
-> On Wed, 2009-11-25 at 16:09 +0800, Alexey Starikovskiy wrote:
->> Hi Yakui,
->> May I see DSDT? What is the reason to not include ECDT while it's 
->> clearly needed by design?
->>
-> On this box there is no ECDT table. 
-You don't understand me again... I am asking, why this unreleased box violates spec by not having ECDT?
-> The attached is the dsdt.dsl file. Only the part of EC/_GPE is reserved.
-I'm attaching patch, you could add new DMI workaround for your box similar to ASUS.
+Add function pci_check_pme_status() that will check the PME status
+bit of given device and clear it along with the PME enable bit.  It
+will be necessary for PCI run-time power management.
 
-Regards,
-Alex.
-> 
-> thanks.
-> 
->> Regards,
->> Alex.
->>
->> ykzhao wrote:
->>> Hi, Alexey
->>>
->>>    The following warning message is complained on one box in the boot
->>> phase. And the EC opregion field is accessed in the GPE L01 method.
->>> After looking at the source code it seems that the GPE L01 is enabled
->>> before installing EC space handler.
->>>
->>>     There is no ECDT table in the acpidump. And there is no _INI object
->>> for the ACPI EC device. 
->>>     
->>>
->>> Any idea about this issue?
->>>     Can we also initialize the EC device and installing EC space handler
->>> earlier as we have done on the machine with the ECDT table?
->>>
->>> Thanks.
->>>     Yakui    
->>>
->>>   
->>>> [  371.362936] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] 
->>>> 20090521 evgpe-568
->>>> [  371.484758] ACPI Error: No handler for Region [ECF2] (ffff88006cc0b900) [Embe
->>>> ddedControl] 20090521 evregion-319
->>>> [  371.484780] ACPI Error: Region EmbeddedControl(3) has no handler 20090521 exf
->>>> ldio-294
->>>> [  371.484798] ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._
->>>> L01] (Node ffff88006cc5c9a0), AE_NOT_EXIST
->>>> [  371.484917] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] 
->>>> 20090521 evgpe-568
->>>> [  371.608737] ACPI Error: No handler for Region [ECF2] (ffff88006cc0b900) [Embe
->>>> ddedControl] 20090521 evregion-319
->>>> [  371.608760] ACPI Error: Region EmbeddedControl(3) has no handler 20090521 exf
->>>> ldio-294
->>>> [  371.608785] ACPI Error (psparse-0537): Method parse/execution failed [\_GPE._
->>>> L01] (Node ffff88006cc5c9a0), AE_NOT_EXIST
->>>> [  371.609012] ACPI Exception: AE_NOT_EXIST, while evaluating GPE method [_L01] 
->>>> 20090521 evgpe-568
->>>> [  371.731704] ACPI Error: No handler for Region [ECF2] (ffff88006cc0b900) [Embe
->>>> ddedControl] 20090521 evregion-319
->>>> [  371.731726] ACPI Error: Region EmbeddedControl(3) has no handler 20090521 exf
->>>> ldio-294
->>>>     
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>   
+Based on a patch from Shaohua Li <shaohua.li@intel.com>
 
-
---------------050502000502090600060403
-Content-Type: text/x-diff;
- name="simplify_dmi_scan.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="simplify_dmi_scan.patch"
-
-ACPI: EC: Simplify DMI workarounds scanning
-
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
+ drivers/pci/pci.c |   35 +++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.h |    1 +
+ 2 files changed, 36 insertions(+)
 
- drivers/acpi/ec.c |   31 ++++++++-----------------------
- 1 files changed, 8 insertions(+), 23 deletions(-)
-
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7511029..ce7132c 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -119,8 +119,7 @@ static struct acpi_ec {
- } *boot_ec, *first_ec;
- 
- static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
--static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
--static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
-+static int EC_FLAGS_ASUS; /* Out-of-spec ASUStek BIOS */
- 
- /* --------------------------------------------------------------------------
-                              Transaction Management
-@@ -899,17 +898,10 @@ static const struct acpi_device_id ec_device_ids[] = {
- 	{"", 0},
- };
- 
--/* Some BIOS do not survive early DSDT scan, skip it */
--static int ec_skip_dsdt_scan(const struct dmi_system_id *id)
--{
--	EC_FLAGS_SKIP_DSDT_SCAN = 1;
--	return 0;
--}
--
- /* ASUStek often supplies us with broken ECDT, validate it */
--static int ec_validate_ecdt(const struct dmi_system_id *id)
-+static int ec_flag_asus(const struct dmi_system_id *id)
- {
--	EC_FLAGS_VALIDATE_ECDT = 1;
-+	EC_FLAGS_ASUS = 1;
- 	return 0;
+Index: linux-2.6/drivers/pci/pci.h
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.h
++++ linux-2.6/drivers/pci/pci.h
+@@ -49,6 +49,7 @@ struct pci_platform_pm_ops {
+ extern int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
+ extern void pci_update_current_state(struct pci_dev *dev, pci_power_t state);
+ extern void pci_disable_enabled_device(struct pci_dev *dev);
++extern bool pci_check_pme_status(struct pci_dev *dev);
+ extern void pci_pm_init(struct pci_dev *dev);
+ extern void platform_pci_wakeup_init(struct pci_dev *dev);
+ extern void pci_allocate_cap_save_buffers(struct pci_dev *dev);
+Index: linux-2.6/drivers/pci/pci.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/pci.c
++++ linux-2.6/drivers/pci/pci.c
+@@ -1167,6 +1167,41 @@ int pci_set_pcie_reset_state(struct pci_
  }
  
-@@ -918,16 +910,11 @@ static int ec_flag_msi(const struct dmi_system_id *id)
- {
- 	printk(KERN_DEBUG PREFIX "Detected MSI hardware, enabling workarounds.\n");
- 	EC_FLAGS_MSI = 1;
--	EC_FLAGS_VALIDATE_ECDT = 1;
- 	return 0;
- }
- 
- static struct dmi_system_id __initdata ec_dmi_table[] = {
- 	{
--	ec_skip_dsdt_scan, "Compal JFL92", {
--	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
--	DMI_MATCH(DMI_BOARD_NAME, "JFL92") }, NULL},
--	{
- 	ec_flag_msi, "MSI hardware", {
- 	DMI_MATCH(DMI_BIOS_VENDOR, "Micro-Star")}, NULL},
- 	{
-@@ -937,7 +924,7 @@ static struct dmi_system_id __initdata ec_dmi_table[] = {
- 	ec_flag_msi, "MSI hardware", {
- 	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-Star")}, NULL},
- 	{
--	ec_validate_ecdt, "ASUS hardware", {
-+	ec_flag_asus, "ASUS hardware", {
- 	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
- 	{},
- };
-@@ -966,7 +953,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->handle = ACPI_ROOT_OBJECT;
- 		acpi_get_handle(ACPI_ROOT_OBJECT, ecdt_ptr->id, &boot_ec->handle);
- 		/* Don't trust ECDT, which comes from ASUSTek */
--		if (!EC_FLAGS_VALIDATE_ECDT)
-+		if (!EC_FLAGS_MSI && !EC_FLAGS_ASUS)
- 			goto install;
- 		saved_ec = kmalloc(sizeof(struct acpi_ec), GFP_KERNEL);
- 		if (!saved_ec)
-@@ -975,9 +962,8 @@ int __init acpi_ec_ecdt_probe(void)
- 	/* fall through */
- 	}
- 
--	if (EC_FLAGS_SKIP_DSDT_SCAN)
-+	if (!EC_FLAGS_MSI && !EC_FLAGS_ASUS)
- 		return -ENODEV;
--
- 	/* This workaround is needed only on some broken machines,
- 	 * which require early EC, but fail to provide ECDT */
- 	printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
-@@ -1004,9 +990,8 @@ int __init acpi_ec_ecdt_probe(void)
- 		* Keep boot_ec struct as it will be needed soon.
- 		*/
- 		acpi_handle dummy;
--		if (!dmi_name_in_vendors("ASUS") ||
--		    ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI",
--							&dummy)))
-+		if (EC_FLAGS_ASUS &&
-+		    ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &dummy)))
- 			return -ENODEV;
- 	}
- install:
+ /**
++ * pci_check_pme_status - Check if given device has generated PME.
++ * @dev: Device to check.
++ *
++ * Check the PME status of the device and if set, clear it and clear PME enable
++ * (if set).  Return 'true' if PME status and PME enable were both set or
++ * 'false' otherwise.
++ */
++bool pci_check_pme_status(struct pci_dev *dev)
++{
++	int pmcsr_pos;
++	u16 pmcsr;
++	bool ret = false;
++
++	if (!dev->pm_cap)
++		return false;
++
++	pmcsr_pos = dev->pm_cap + PCI_PM_CTRL;
++	pci_read_config_word(dev, pmcsr_pos, &pmcsr);
++	if (!(pmcsr & PCI_PM_CTRL_PME_STATUS))
++		return false;
++
++	/* Clear PME status. */
++	pmcsr |= PCI_PM_CTRL_PME_STATUS;
++	if (pmcsr & PCI_PM_CTRL_PME_ENABLE) {
++		/* Disable PME to avoid interrupt flood. */
++		pmcsr &= ~PCI_PM_CTRL_PME_ENABLE;
++		ret = true;
++	}
++
++	pci_write_config_word(dev, pmcsr_pos, pmcsr);
++
++	return ret;
++}
++
++/**
+  * pci_pme_capable - check the capability of PCI device to generate PME#
+  * @dev: PCI device to handle.
+  * @state: PCI state from which device will issue PME#.
 
---------------050502000502090600060403--
