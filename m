@@ -1,49 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] intermittent suspend problem again
-Date: Sun, 29 Nov 2009 01:29:25 +0100
-Message-ID: <200911290129.25505.rjw@sisk.pl>
-References: <87fx93pwv2.fsf@tac.ki.iif.hu> <200911182313.14092.rjw@sisk.pl> <87d4324gp7.fsf@tac.ki.iif.hu>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753665AbZK2A3E@vger.kernel.org>
-In-Reply-To: <87d4324gp7.fsf@tac.ki.iif.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ferenc Wagner <wferi@niif.hu>
-Cc: linux-pm@lists.linux-foundation.org, Jesse Barnes <jbarnes@virtuousgeek.org>, Andrew Morton <akpm@linux-foundation.org>, yakui.zhao@intel.com, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH 1/1 resend] sony-laptop: add AVMode key mapping
+Date: Sun, 29 Nov 2009 12:37:07 +0900
+Message-ID: <1259465827-4372-1-git-send-email-malattia@linux.it>
+References: <1258869062-5501-1-git-send-email-malattia@linux.it>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:34131
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847AbZK2DiM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Nov 2009 22:38:12 -0500
+In-Reply-To: <1258869062-5501-1-git-send-email-malattia@linux.it>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>, "Matthew W. S. Bell" <matthew@bells23.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Saturday 28 November 2009, Ferenc Wagner wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> > On Wednesday 18 November 2009, Ferenc Wagner wrote:
-> >
-> >> Ferenc Wagner <wferi@niif.hu> writes:
-> >> 
-> >>> Since I've instrumented s2disk and the hibernation path, no freeze
-> >>> happened during hibernating the machine.
-> >> 
-> >> Not until I removed the delays from hibernation_platform_enter(), which
-> >> were put there previously to get step-by-step feedback.  Removing them
-> >> again resulted in a freeze in short course, maybe just two hibernations
-> >> later.  The instrumentation shows it stuck in dpm_suspend_start(PMSG_HIBERNATE).
-> >> Does it mean that some device driver is at fault?
-> >
-> > A driver or one of the platform hooks.
-> >
-> >> I'll check if it always fails at the same point (although tracing into
-> >> dpm_suspend_start isn't pure fun because of the multitude of devices it
-> >> loops over).  Is there any way to get printk output from that phase?
-> >
-> > Compile with CONFIG_PM_VERBOSE (it does mean exactly that).
-> 
-> The last message now was:
-> 
-> e100: 0000:02:08.0: hibernate, may wakeup
-> 
-> Looks like hibernating the e100 driver is unstable.
+Some models are equipped with an "AVMode" function key that sends
+sony-laptop: Unknown event: 0x100 0xa1
+sony-laptop: Unknown event: 0x100 0x21
+for press and release respectively.
 
-Can you verify that by trying to hibernate without the e100 driver?
+Cc: "Matthew W. S. Bell" <matthew@bells23.org.uk>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+---
 
-Rafael
+Hi Len,
+[resending because of the broken hyphens in the previous email]
+
+I almost forgot to send this patch for 2.6.32, do you think there is
+still room to push it?
+Otherwise please consider for 2.6.33.
+
+Thanks
+mattia
+--- 
+ drivers/platform/x86/sony-laptop.c |    4 ++++
+ include/linux/sonypi.h             |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index a2a742c..9710f70 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -232,6 +232,7 @@ static int sony_laptop_input_index[] = {
+ 	56,	/* 69 SONYPI_EVENT_VOLUME_INC_PRESSED */
+ 	57,	/* 70 SONYPI_EVENT_VOLUME_DEC_PRESSED */
+ 	-1,	/* 71 SONYPI_EVENT_BRIGHTNESS_PRESSED */
++	58,	/* 72 SONYPI_EVENT_MEDIA_PRESSED */
+ };
+ 
+ static int sony_laptop_input_keycode_map[] = {
+@@ -293,6 +294,7 @@ static int sony_laptop_input_keycode_map[] = {
+ 	KEY_F15,	/* 55 SONYPI_EVENT_SETTINGKEY_PRESSED */
+ 	KEY_VOLUMEUP,	/* 56 SONYPI_EVENT_VOLUME_INC_PRESSED */
+ 	KEY_VOLUMEDOWN,	/* 57 SONYPI_EVENT_VOLUME_DEC_PRESSED */
++	KEY_MEDIA,	/* 58 SONYPI_EVENT_MEDIA_PRESSED */
+ };
+ 
+ /* release buttons after a short delay if pressed */
+@@ -890,6 +892,8 @@ static struct sony_nc_event sony_100_events[] = {
+ 	{ 0x0C, SONYPI_EVENT_FNKEY_RELEASED },
+ 	{ 0x9f, SONYPI_EVENT_CD_EJECT_PRESSED },
+ 	{ 0x1f, SONYPI_EVENT_ANYBUTTON_RELEASED },
++	{ 0xa1, SONYPI_EVENT_MEDIA_PRESSED },
++	{ 0x21, SONYPI_EVENT_ANYBUTTON_RELEASED },
+ 	{ 0, 0 },
+ };
+ 
+diff --git a/include/linux/sonypi.h b/include/linux/sonypi.h
+index 34c4475..4f95c1a 100644
+--- a/include/linux/sonypi.h
++++ b/include/linux/sonypi.h
+@@ -111,6 +111,7 @@
+ #define SONYPI_EVENT_VOLUME_INC_PRESSED		69
+ #define SONYPI_EVENT_VOLUME_DEC_PRESSED		70
+ #define SONYPI_EVENT_BRIGHTNESS_PRESSED		71
++#define SONYPI_EVENT_MEDIA_PRESSED		72
+ 
+ /* get/set brightness */
+ #define SONYPI_IOCGBRT		_IOR('v', 0, __u8)
+-- 
+1.6.5.3
+
