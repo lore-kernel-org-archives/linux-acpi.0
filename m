@@ -1,68 +1,62 @@
-From: Bela Lubkin <blubkin@vmware.com>
-Subject: RE: [Openipmi-developer] IPMI device discovery [was Re: [PATCH	]
-	IPMI: Locate the IPMI system interface in ACPI namespace]
-Date: Mon, 30 Nov 2009 15:46:25 -0800
-Message-ID: <E0AA796A7E3F4C4E8F1065D15FE478618CE8B7FC@EXCH-MBX-4.vmware.com>
-References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
-	<200911180945.45570.bjorn.helgaas@hp.com> <4B045BD9.8070906@hp.com>
-	<200911181419.27238.bjorn.helgaas@hp.com>  <4B046CE2.90200@hp.com>
- <1258628508.2933.28.camel@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Thinkpad X200s
+Date: Mon, 30 Nov 2009 21:47:06 -0200
+Message-ID: <20091130234706.GC29580@khazad-dum.debian.net>
+References: <4B0FB618.7020204@collabora.co.uk>
+ <20091127221134.GC21775@khazad-dum.debian.net>
+ <20091128120711.GA17894@khazad-dum.debian.net>
+ <4B111C58.5050006@collabora.co.uk>
+ <20091128181512.GA32630@khazad-dum.debian.net>
+ <4B13954A.9040307@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:43725 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752477AbZK3XqT (ORCPT
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:46309 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753231AbZK3XrE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Nov 2009 18:46:19 -0500
-In-Reply-To: <1258628508.2933.28.camel@localhost.localdomain>
-Content-Language: en-US
+	Mon, 30 Nov 2009 18:47:04 -0500
+Content-Disposition: inline
+In-Reply-To: <4B13954A.9040307@collabora.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'ykzhao' <yakui.zhao@intel.com>, Rocky Craig <rocky.craig@hp.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Myron Stowe <myron.stowe@hp.com>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: Ian Molton <ian.molton@collabora.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-PiBZZXMuIEluIHRoZSBJUE1JIDEuNSBzcGVjIHRoZXJlIGlzIG5vIGRlZmluaXRpb24gb2YgSVBN
-SSANCj4gZGV0ZWN0aW9uIGFib3V0IFNQTUkuDQoNCkl0IHdhcyBhZGRlZDogPGh0dHA6Ly93d3cu
-aW50ZWwuY29tL2Rlc2lnbi9zZXJ2ZXJzL2lwbWkvSVBNSTE1MTFFNS5wZGY+DQpkZWZpbmVzIElQ
-TUkgZGV0ZWN0aW9uIHZpYSBBQ1BJLCBTUE1JIGV0Yy4NCg0KPkJlbGE8DQoNCj4gLS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogeWt6aGFvIFttYWlsdG86eWFrdWkuemhhb0BpbnRl
-bC5jb21dIA0KPiBTZW50OiBUaHVyc2RheSwgTm92ZW1iZXIgMTksIDIwMDkgMzowMiBBTQ0KPiBU
-bzogUm9ja3kgQ3JhaWcNCj4gQ2M6IG1pbnlhcmRAYWNtLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtl
-cm5lbC5vcmc7IE15cm9uIFN0b3dlOyANCj4gb3BlbmlwbWktZGV2ZWxvcGVyQGxpc3RzLnNvdXJj
-ZWZvcmdlLm5ldDsgQmpvcm4gSGVsZ2FhczsgDQo+IGxlbmJAa2VybmVsLm9yZw0KPiBTdWJqZWN0
-OiBSZTogW09wZW5pcG1pLWRldmVsb3Blcl0gSVBNSSBkZXZpY2UgZGlzY292ZXJ5IFt3YXMgDQo+
-IFJlOiBbUEFUQ0ggXSBJUE1JOiBMb2NhdGUgdGhlIElQTUkgc3lzdGVtIGludGVyZmFjZSBpbiBB
-Q1BJIG5hbWVzcGFjZV0NCj4gDQo+IE9uIFRodSwgMjAwOS0xMS0xOSBhdCAwNTo1MyArMDgwMCwg
-Um9ja3kgQ3JhaWcgd3JvdGU6DQo+ID4gQmpvcm4gSGVsZ2FhcyBlbWl0dGVkOg0KPiA+IA0KPiA+
-ID4gSSBkaXNhZ3JlZSB0aGF0IHRoaXMgcmVxdWlyZW1lbnQgd2FzIGxvc3QuLi4uDQo+ID4gDQo+
-ID4gU29ycnksIG15IHdvcmRzIGRpZCBub3QgY29udmV5IG15IGludGVuZGVkIG1lYW5pbmcsIHdo
-aWNoIHdhcyB0aGF0DQo+ID4gImNvbmZvcm1hbmNlIiBvciAiY29oZXJlbmNlIiB3YXMgbG9zdCwg
-d2l0aCBTUE1JIGFsc28gYmVpbmcgbGlzdGVkDQo+ID4gaW4gQUNQSSBnZW5lcmFsIG5hbWVzcGFj
-ZS4NCj4gPiANCj4gPiBZb3UgYWN0dWFsbHkgc3RhdGVkIHRoaXMgd2l0aCBncmVhdGVyIGNsYXJp
-dHk6DQo+ID4gDQo+ID4gPiBUaGVyZSBtYXkgYmUgZmlybXdhcmUgdGhhdCBoYXMgYW4gU1BNSSBi
-dXQgbmVnbGVjdHMgdG8gDQo+IHB1dCB0aGUgZGV2aWNlDQo+ID4gPiBpbiB0aGUgbmFtZXNwYWNl
-Lg0KPiANCj4gPiANCj4gPiBUaGF0IG1heSBiZSB0aGUgY2FzZSBvbiBzb21lIGxlZ2FjeSBzZXJ2
-ZXJzLg0KPiBZZXMuIEluIHRoZSBJUE1JIDEuNSBzcGVjIHRoZXJlIGlzIG5vIGRlZmluaXRpb24g
-b2YgSVBNSSANCj4gZGV0ZWN0aW9uIGFib3V0DQo+IFNQTUkuDQo+IFRoZSBTUE1JIGlzIGFkZGVk
-IGluIElQTUkgMi4wIHNwZWMsIHdoaWNoIGlzIHVzZWQgdG8gZGV0ZWN0IHRoZSBJUE1JDQo+IHN5
-c3RlbSBpbnRlcmZhY2UuIE1heWJlIHRoaXMgbWVjaGFuaXNtIGlzIGFscmVhZHkgdXNlZCBvbiBz
-b21lIGxlZ2FjeQ0KPiBzZXJ2ZXJzLiANCj4gDQo+IO+7v01heWJlIHRoZXJlIGV4aXN0IGJvdGgg
-U1BNSSBhbmQgSVBNSSBzeXN0ZW0gaW50ZXJmYWNlIGRlZmluZWQgaW4gQUNQSQ0KPiBuYW1lc3Bh
-Y2UuIEJ1dCB0aGV5IGFyZSB0aGUgZGlmZmVyZW50IEJNQyBjb250cm9sbGVycy4gDQo+IEluIHN1
-Y2ggY2FzZSB3ZSBoYWQgYmV0dGVyIG5vdCByZW1vdmUgdGhlIGRldGVjdGlvbiBvZiBJUE1JIA0K
-PiBkZXRlY3Rpb24gYnkNCj4gdXNpbmcgU1BNSS4gDQo+IFdlIGNhbiBjaGVjayB3aGV0aGVyIHRo
-ZXkgYXJlIHRoZSBpZGVudGljYWwgZGV2aWNlIGluIGNvdXJzZSBvZg0KPiByZWdpc3RlcmluZyBJ
-UE1JIHN5c3RlbSBpbnRlcmZhY2UuDQo+IA0KPiBUaGFua3MuDQo+IA0KPiANCj4gPiANCj4gPiBS
-b2NreQ0KPiANCj4gDQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IC0tLS0tLS0tLS0tLS0tLS0NCj4gTGV0IENyeXN0YWwg
-UmVwb3J0cyBoYW5kbGUgdGhlIHJlcG9ydGluZyAtIEZyZWUgQ3J5c3RhbCANCj4gUmVwb3J0cyAy
-MDA4IDMwLURheSANCj4gdHJpYWwuIFNpbXBsaWZ5IHlvdXIgcmVwb3J0IGRlc2lnbiwgaW50ZWdy
-YXRpb24gYW5kIA0KPiBkZXBsb3ltZW50IC0gYW5kIGZvY3VzIG9uIA0KPiB3aGF0IHlvdSBkbyBi
-ZXN0LCBjb3JlIGFwcGxpY2F0aW9uIGNvZGluZy4gRGlzY292ZXIgd2hhdCdzIG5ldyB3aXRoDQo+
-IENyeXN0YWwgUmVwb3J0cyBub3cuICBodHRwOi8vcC5zZi5uZXQvc2Z1L2JvYmotanVseQ0KPiBf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBPcGVuaXBt
-aS1kZXZlbG9wZXIgbWFpbGluZyBsaXN0DQo+IE9wZW5pcG1pLWRldmVsb3BlckBsaXN0cy5zb3Vy
-Y2Vmb3JnZS5uZXQNCj4gaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGlu
-Zm8vb3BlbmlwbWktZGV2ZWxvcGVyDQo+IA==
+On Mon, 30 Nov 2009, Ian Molton wrote:
+> Henrique de Moraes Holschuh wrote:
+> > remain disabled if you suspend with they disabled.
+> 
+> Yes   (bluetooth and WWAN)
+> 
+> *BUT* If I toggle the hard RF killswitch, they all forget themselves and
+> reset to 'on' rather than their last known state. IOW, they are
+> disabled, then unconditionally re-enabled.
+
+This might well be userspace or the rfkill core, if the EC queues any
+events and deliver them when the thinkad wakes up, they would enable the
+radios in the default rfkill config.
+
+Unfortunately, that's not something I can test on my T43.  Still, even
+if it is the firmware doing that, I think we could live with it.
+
+That said, please play with the master_switch_mode parameter of the
+rfkill module.  I personally cannot tolerate anything but
+master_switch_mode=1, and I dare think it might solve your problem :)
+
+I think I can consider this patch approved and add your tested-by?
+
+> > If you happen to find out that UWB also retains state across
+> > reboot/shutdown, I'd like to know about it.
+> 
+> I know nothing about the X200s UWB - what module would I need to test?
+
+I don't know if your x200s has an UWB radio.  Does thinkpad-acpi tells
+you it exists?  There is a CONFIG_UWB option which enables UWB and WUSB
+support.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
