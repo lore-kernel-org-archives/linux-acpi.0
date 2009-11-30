@@ -1,55 +1,39 @@
-From: Ian Molton <ian.molton@collabora.co.uk>
-Subject: Re: Thinkpad X200s
-Date: Mon, 30 Nov 2009 09:50:02 +0000
-Message-ID: <4B13954A.9040307@collabora.co.uk>
-References: <4B0FB618.7020204@collabora.co.uk> <20091127221134.GC21775@khazad-dum.debian.net> <20091128120711.GA17894@khazad-dum.debian.net> <4B111C58.5050006@collabora.co.uk> <20091128181512.GA32630@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: [PATCHv2 0/2] Introducing the Ambient Light Sensor (ALS) class
+Date: Mon, 30 Nov 2009 13:45:14 +0200
+Message-ID: <1259581514-15356-1-git-send-email-amit.kucheria@verdurent.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.128.226]:51228 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753405AbZK3Jug (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2009 04:50:36 -0500
-In-Reply-To: <20091128181512.GA32630@khazad-dum.debian.net>
+Received: from smtp.nokia.com ([192.100.105.134]:55299 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217AbZK3Lpa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2009 06:45:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org
+To: List Linux Kernel <linux-kernel@vger.kernel.org>
+Cc: rui.zhang@intel.com, jic23@cam.ac.uk, khali@linux-fr.org, alan@linux.intel.com, linux-acpi@vger.kernel.org, gregkh@suse.de
 
-Henrique de Moraes Holschuh wrote:
+Introduce a new class of devices to handle ambient light sensors. Currently
+only one sysfs inteface, 'illuminance' is introduced. More will be added as
+drivers are ported to use this new class.
 
->> Cheers - I'll keep an eye on this thread so I can test your patch ASAP! :-)
-> 
-> And I will _need_ your help.  Here is a tentative patch.  I can use a much
-> heavier hand than this, but if the firmware cooperates, this one should do
-> it (and it will be faster, to boot).
-> 
-> Please check if WWAN, bluetooth and if at all possible, UWB are doing the
-> right thing:
-> 
-> remain enabled if you suspend with them enabled.
+Amit Kucheria (1):
+  als: add unique device-ids to the als device class
 
-Yes, and:
+Zhang Rui (1):
+  introduce ALS sysfs class
 
-> remain disabled if you suspend with they disabled.
+ Documentation/ABI/testing/sysfs-class-als |    9 ++
+ MAINTAINERS                               |    6 ++
+ drivers/Kconfig                           |    2 +
+ drivers/Makefile                          |    1 +
+ drivers/als/Kconfig                       |   10 +++
+ drivers/als/Makefile                      |    5 +
+ drivers/als/als_sys.c                     |  116 +++++++++++++++++++++++++++++
+ include/linux/als_sys.h                   |   35 +++++++++
+ 8 files changed, 184 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-class-als
+ create mode 100644 drivers/als/Kconfig
+ create mode 100644 drivers/als/Makefile
+ create mode 100644 drivers/als/als_sys.c
+ create mode 100644 include/linux/als_sys.h
 
-Yes   (bluetooth and WWAN)
-
-*BUT* If I toggle the hard RF killswitch, they all forget themselves and
-reset to 'on' rather than their last known state. IOW, they are
-disabled, then unconditionally re-enabled.
-
-> And in the case of WWAN and bluetooth, whether they retain their state
-> (enabled or disabled) across reboots and shutdown.
-
-Yes - although GNOME interferes with that later...
-
-> If you happen to find out that UWB also retains state across
-> reboot/shutdown, I'd like to know about it.
-
-I know nothing about the X200s UWB - what module would I need to test?
-
-Hope this helps,
-
--Ian
