@@ -1,67 +1,55 @@
-From: Jerone Young <jerone.young@canonical.com>
-Subject: Re: [PATCH] Set osi=Linux for the ThinkPad X200s
-Date: Sun, 29 Nov 2009 23:47:41 -0600
-Message-ID: <1259560061.3508.9.camel@laptop>
-References: <cb0375e10911090847n4880f048ga0ef68bf41f968c9@mail.gmail.com>
-	 <alpine.LFD.2.00.0911242347030.4058@localhost.localdomain>
+From: Ian Molton <ian.molton@collabora.co.uk>
+Subject: Re: Thinkpad X200s
+Date: Mon, 30 Nov 2009 09:50:02 +0000
+Message-ID: <4B13954A.9040307@collabora.co.uk>
+References: <4B0FB618.7020204@collabora.co.uk> <20091127221134.GC21775@khazad-dum.debian.net> <20091128120711.GA17894@khazad-dum.debian.net> <4B111C58.5050006@collabora.co.uk> <20091128181512.GA32630@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:56845 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920AbZK3Frl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2009 00:47:41 -0500
-In-Reply-To: <alpine.LFD.2.00.0911242347030.4058@localhost.localdomain>
+Received: from bhuna.collabora.co.uk ([93.93.128.226]:51228 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753405AbZK3Jug (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2009 04:50:36 -0500
+In-Reply-To: <20091128181512.GA32630@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Lutomirski <luto@mit.edu>, linux-thinkpad@linux-thinkpad.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org
 
-I found in the patches are in the Ubuntu karmic kernel git tree, that
-should make things easier. Here are links from git web to them. You can
-pull them from the tree also.
+Henrique de Moraes Holschuh wrote:
 
-http://kernel.ubuntu.com/git?p=ubuntu/ubuntu-karmic.git;a=blob;f=drivers/acpi/blacklist.c;hb=992429cc3eb4277e07811a690cf04905bdc8b756
-http://kernel.ubuntu.com/git?p=ubuntu/ubuntu-karmic.git;a=blob;f=drivers/acpi/blacklist.c;hb=4c0863e159b64424e9d02f846b23705b88785468
-http://kernel.ubuntu.com/git?p=ubuntu/ubuntu-karmic.git;a=blob;f=drivers/acpi/blacklist.c;hb=b7d5194f5e19b7d91808ea8f3dc31819d22f220a
-http://kernel.ubuntu.com/git?p=ubuntu/ubuntu-karmic.git;a=blob;f=drivers/acpi/blacklist.c;hb=f989a47a3f344d0a26ab96038a5221f021a2735e
-http://kernel.ubuntu.com/git?p=ubuntu/ubuntu-karmic.git;a=blob;f=drivers/acpi/blacklist.c;hb=8843ac2d4fdc6f616157c1e86e4826dedfca7f60
+>> Cheers - I'll keep an eye on this thread so I can test your patch ASAP! :-)
+> 
+> And I will _need_ your help.  Here is a tentative patch.  I can use a much
+> heavier hand than this, but if the firmware cooperates, this one should do
+> it (and it will be faster, to boot).
+> 
+> Please check if WWAN, bluetooth and if at all possible, UWB are doing the
+> right thing:
+> 
+> remain enabled if you suspend with them enabled.
 
+Yes, and:
 
-They were reverted in the final tree since they had not made it
-upstream.
+> remain disabled if you suspend with they disabled.
 
-				Jerone
+Yes   (bluetooth and WWAN)
 
+*BUT* If I toggle the hard RF killswitch, they all forget themselves and
+reset to 'on' rather than their last known state. IOW, they are
+disabled, then unconditionally re-enabled.
 
-On Tue, 2009-11-24 at 23:50 -0500, Len Brown wrote:
-> On Mon, 9 Nov 2009, Andrew Lutomirski wrote:
-> 
-> > The ThinkPad X200s, like the X61, requires OSI=Linux for the mute
-> > button to work.  Without this patch (or the equivalent command-line
-> > parameter), the mute button does not generate a keystroke and,
-> > instead, messes up the sound hardware.
-> > 
-> > Tested on an X200s.
-> > 
-> > Signed-off-by: Andy Lutomirski <luto@mit.edu>
-> 
-> I just applied the analogous T400/T500 patch from
-> http://bugzilla.kernel.org/show_bug.cgi?id=13934
-> 
-> and I'd apply this one too if it were not malformed.
-> 
-> 
-> Jerome,
-> Perhaps you can post the patches from the canonical list
-> so we can take care of these "all at once"?
-> 
-> Somebody tell Lenovo (again) that they are being bad.
-> 
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
-> 
-> 
+> And in the case of WWAN and bluetooth, whether they retain their state
+> (enabled or disabled) across reboots and shutdown.
 
+Yes - although GNOME interferes with that later...
 
+> If you happen to find out that UWB also retains state across
+> reboot/shutdown, I'd like to know about it.
+
+I know nothing about the X200s UWB - what module would I need to test?
+
+Hope this helps,
+
+-Ian
