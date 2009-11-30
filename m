@@ -1,74 +1,68 @@
-From: Ken Corbin <kencx@peak.org>
-Subject: Re: Suspend locks up Toshiba Satelite L355-S7915 (no longer)
-Date: Sat, 7 Nov 2009 08:09:23 -0800
-Message-ID: <200911070809.23947.kencx@peak.org>
-References: <200911051928.38825.kencx@peak.org> <4AF39E45.7050803@gmail.com>
+From: Bela Lubkin <blubkin@vmware.com>
+Subject: RE: [Openipmi-developer] IPMI device discovery [was Re: [PATCH	]
+	IPMI: Locate the IPMI system interface in ACPI namespace]
+Date: Mon, 30 Nov 2009 15:46:25 -0800
+Message-ID: <E0AA796A7E3F4C4E8F1065D15FE478618CE8B7FC@EXCH-MBX-4.vmware.com>
+References: <1258363089-26881-1-git-send-email-yakui.zhao@intel.com>
+	<200911180945.45570.bjorn.helgaas@hp.com> <4B045BD9.8070906@hp.com>
+	<200911181419.27238.bjorn.helgaas@hp.com>  <4B046CE2.90200@hp.com>
+ <1258628508.2933.28.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailscanner1.peak.org ([69.59.192.37]:56723 "EHLO
-	mailscanner1.peak.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752239AbZKGQJk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2009 11:09:40 -0500
-In-Reply-To: <4AF39E45.7050803@gmail.com>
-Content-Disposition: inline
+Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:43725 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752477AbZK3XqT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Nov 2009 18:46:19 -0500
+In-Reply-To: <1258628508.2933.28.camel@localhost.localdomain>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: 'ykzhao' <yakui.zhao@intel.com>, Rocky Craig <rocky.craig@hp.com>
+Cc: "minyard@acm.org" <minyard@acm.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Myron Stowe <myron.stowe@hp.com>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Bjorn Helgaas <bjorn.helgaas@hp.com>, "lenb@kernel.org" <lenb@kernel.org>
 
-Too obvious.  And rumors of upgrade problems with 9.10 had me leary of jumping 
-into it.  But I went ahead with the upgrade, had no significant issues.  And 
-sure enough, that fixed my suspend problem.
-
-There are other problems, but they are minor and can be lived with.  Most 
-hotkeys do not work.  And the computer doesn't flash the power button when it 
-is suspended.  There is a omnibook module that purports do do these 
-functions, but it isn't coded to work with the Satelite L355-S7915.  I've 
-been looking into fixing that.  But it has occurred to me that that driver is 
-largely duplicating standard acpi functions.  And that it might be a better 
-use of my time to look into configuring acpi to work with this laptop.  Any 
-recommendations?
-
-Thanks again,
--Ken
-
-
-On Thursday 05 November 2009 19:55:49 Alexey Starikovskiy wrote:
-> Hi Ken,
->
-> Probably the easiest way for you will be to install/upgrade Ubuntu 9.10,
-> which is just out.
-> It has latest kernel, so most probably your problem will be fixed.
->
-> Regards,
-> Alex.
->
-> Ken Corbin wrote:
-> > Hi Folks,
-> >
-> > I've installed Ubuntu 9.04 (kernel version 2.6.28-16) on a new laptop. 
-> > For the most part everything is working, but suspend to disk and suspend
-> > to RAM both lock the box up.  The shutdown looks normal, but then the
-> > screen comes back on with low level backlight, and the system won't
-> > respond to anything. Holding power button down for 5 seconds forces a
-> > poweroff and is the only way to recover.
-> >
-> > I want to do whatever it takes to get this working.  I'm a pretty good C
-> > programmer.  I've never done any kernel hacking but am willing to learn.
-> > What I need now is some pointers where I should start looking.
-> >
-> > Thanks a bunch,
-> > -Ken
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
+PiBZZXMuIEluIHRoZSBJUE1JIDEuNSBzcGVjIHRoZXJlIGlzIG5vIGRlZmluaXRpb24gb2YgSVBN
+SSANCj4gZGV0ZWN0aW9uIGFib3V0IFNQTUkuDQoNCkl0IHdhcyBhZGRlZDogPGh0dHA6Ly93d3cu
+aW50ZWwuY29tL2Rlc2lnbi9zZXJ2ZXJzL2lwbWkvSVBNSTE1MTFFNS5wZGY+DQpkZWZpbmVzIElQ
+TUkgZGV0ZWN0aW9uIHZpYSBBQ1BJLCBTUE1JIGV0Yy4NCg0KPkJlbGE8DQoNCj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogeWt6aGFvIFttYWlsdG86eWFrdWkuemhhb0BpbnRl
+bC5jb21dIA0KPiBTZW50OiBUaHVyc2RheSwgTm92ZW1iZXIgMTksIDIwMDkgMzowMiBBTQ0KPiBU
+bzogUm9ja3kgQ3JhaWcNCj4gQ2M6IG1pbnlhcmRAYWNtLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtl
+cm5lbC5vcmc7IE15cm9uIFN0b3dlOyANCj4gb3BlbmlwbWktZGV2ZWxvcGVyQGxpc3RzLnNvdXJj
+ZWZvcmdlLm5ldDsgQmpvcm4gSGVsZ2FhczsgDQo+IGxlbmJAa2VybmVsLm9yZw0KPiBTdWJqZWN0
+OiBSZTogW09wZW5pcG1pLWRldmVsb3Blcl0gSVBNSSBkZXZpY2UgZGlzY292ZXJ5IFt3YXMgDQo+
+IFJlOiBbUEFUQ0ggXSBJUE1JOiBMb2NhdGUgdGhlIElQTUkgc3lzdGVtIGludGVyZmFjZSBpbiBB
+Q1BJIG5hbWVzcGFjZV0NCj4gDQo+IE9uIFRodSwgMjAwOS0xMS0xOSBhdCAwNTo1MyArMDgwMCwg
+Um9ja3kgQ3JhaWcgd3JvdGU6DQo+ID4gQmpvcm4gSGVsZ2FhcyBlbWl0dGVkOg0KPiA+IA0KPiA+
+ID4gSSBkaXNhZ3JlZSB0aGF0IHRoaXMgcmVxdWlyZW1lbnQgd2FzIGxvc3QuLi4uDQo+ID4gDQo+
+ID4gU29ycnksIG15IHdvcmRzIGRpZCBub3QgY29udmV5IG15IGludGVuZGVkIG1lYW5pbmcsIHdo
+aWNoIHdhcyB0aGF0DQo+ID4gImNvbmZvcm1hbmNlIiBvciAiY29oZXJlbmNlIiB3YXMgbG9zdCwg
+d2l0aCBTUE1JIGFsc28gYmVpbmcgbGlzdGVkDQo+ID4gaW4gQUNQSSBnZW5lcmFsIG5hbWVzcGFj
+ZS4NCj4gPiANCj4gPiBZb3UgYWN0dWFsbHkgc3RhdGVkIHRoaXMgd2l0aCBncmVhdGVyIGNsYXJp
+dHk6DQo+ID4gDQo+ID4gPiBUaGVyZSBtYXkgYmUgZmlybXdhcmUgdGhhdCBoYXMgYW4gU1BNSSBi
+dXQgbmVnbGVjdHMgdG8gDQo+IHB1dCB0aGUgZGV2aWNlDQo+ID4gPiBpbiB0aGUgbmFtZXNwYWNl
+Lg0KPiANCj4gPiANCj4gPiBUaGF0IG1heSBiZSB0aGUgY2FzZSBvbiBzb21lIGxlZ2FjeSBzZXJ2
+ZXJzLg0KPiBZZXMuIEluIHRoZSBJUE1JIDEuNSBzcGVjIHRoZXJlIGlzIG5vIGRlZmluaXRpb24g
+b2YgSVBNSSANCj4gZGV0ZWN0aW9uIGFib3V0DQo+IFNQTUkuDQo+IFRoZSBTUE1JIGlzIGFkZGVk
+IGluIElQTUkgMi4wIHNwZWMsIHdoaWNoIGlzIHVzZWQgdG8gZGV0ZWN0IHRoZSBJUE1JDQo+IHN5
+c3RlbSBpbnRlcmZhY2UuIE1heWJlIHRoaXMgbWVjaGFuaXNtIGlzIGFscmVhZHkgdXNlZCBvbiBz
+b21lIGxlZ2FjeQ0KPiBzZXJ2ZXJzLiANCj4gDQo+IO+7v01heWJlIHRoZXJlIGV4aXN0IGJvdGgg
+U1BNSSBhbmQgSVBNSSBzeXN0ZW0gaW50ZXJmYWNlIGRlZmluZWQgaW4gQUNQSQ0KPiBuYW1lc3Bh
+Y2UuIEJ1dCB0aGV5IGFyZSB0aGUgZGlmZmVyZW50IEJNQyBjb250cm9sbGVycy4gDQo+IEluIHN1
+Y2ggY2FzZSB3ZSBoYWQgYmV0dGVyIG5vdCByZW1vdmUgdGhlIGRldGVjdGlvbiBvZiBJUE1JIA0K
+PiBkZXRlY3Rpb24gYnkNCj4gdXNpbmcgU1BNSS4gDQo+IFdlIGNhbiBjaGVjayB3aGV0aGVyIHRo
+ZXkgYXJlIHRoZSBpZGVudGljYWwgZGV2aWNlIGluIGNvdXJzZSBvZg0KPiByZWdpc3RlcmluZyBJ
+UE1JIHN5c3RlbSBpbnRlcmZhY2UuDQo+IA0KPiBUaGFua3MuDQo+IA0KPiANCj4gPiANCj4gPiBS
+b2NreQ0KPiANCj4gDQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IC0tLS0tLS0tLS0tLS0tLS0NCj4gTGV0IENyeXN0YWwg
+UmVwb3J0cyBoYW5kbGUgdGhlIHJlcG9ydGluZyAtIEZyZWUgQ3J5c3RhbCANCj4gUmVwb3J0cyAy
+MDA4IDMwLURheSANCj4gdHJpYWwuIFNpbXBsaWZ5IHlvdXIgcmVwb3J0IGRlc2lnbiwgaW50ZWdy
+YXRpb24gYW5kIA0KPiBkZXBsb3ltZW50IC0gYW5kIGZvY3VzIG9uIA0KPiB3aGF0IHlvdSBkbyBi
+ZXN0LCBjb3JlIGFwcGxpY2F0aW9uIGNvZGluZy4gRGlzY292ZXIgd2hhdCdzIG5ldyB3aXRoDQo+
+IENyeXN0YWwgUmVwb3J0cyBub3cuICBodHRwOi8vcC5zZi5uZXQvc2Z1L2JvYmotanVseQ0KPiBf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiBPcGVuaXBt
+aS1kZXZlbG9wZXIgbWFpbGluZyBsaXN0DQo+IE9wZW5pcG1pLWRldmVsb3BlckBsaXN0cy5zb3Vy
+Y2Vmb3JnZS5uZXQNCj4gaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGlu
+Zm8vb3BlbmlwbWktZGV2ZWxvcGVyDQo+IA==
