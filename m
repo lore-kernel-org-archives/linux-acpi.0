@@ -1,27 +1,34 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v1 0/5] IPMI devices from ACPI namespace
-Date: Tue, 1 Dec 2009 14:40:02 -0700
-Message-ID: <200912011440.03950.bjorn.helgaas@hp.com>
-References: <20091118000427.14214.14043.stgit@bob.kio>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Linux 2.6.32-rc8 - T500 fails to suspend to RAM
+Date: Tue, 1 Dec 2009 22:46:58 +0100
+Message-ID: <200912012246.58383.rjw@sisk.pl>
+References: <4B151FE2.3090807@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:2132 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754624AbZLAVj6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2009 16:39:58 -0500
-In-Reply-To: <20091118000427.14214.14043.stgit@bob.kio>
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:46689 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752373AbZLAVqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Dec 2009 16:46:12 -0500
+In-Reply-To: <4B151FE2.3090807@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Corey Minyard <minyard@acm.org>, Bela Lubkin <blubkin@vmware.com>, linux-acpi@vger.kernel.org, Myron Stowe <myron.stowe@hp.com>, openipmi-developer@lists.sourceforge.net, Len Brown <lenb@kernel.org>
+To: Lior Dotan <liodot@gmail.com>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Len, Cory,
+On Tuesday 01 December 2009, Lior Dotan wrote:
+> Hi,
+> 
+> Ever since I've upgraded to rc8, my T500 fails to suspend to RAM for the
+> second time. Suspending for the first time works ok but when I resume and
+> later try to suspend again the screen gets blank and the moon LED blinks
+> forever. rc6 & rc7 as well as 2.6.31 worked great with out a problem.
 
-Can you take a look at these?  The latest from Yakui (Nov 27) is that
-he agrees with this patch set.
+Well, I don't see any particular change that might cause the symptoms you
+describe between -rc7 and -rc8.  If this is 100% reproducible, I guess
+bisecting is the only option at the moment.
 
-Bjorn
+Thanks,
+Rafael
