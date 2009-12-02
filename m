@@ -1,31 +1,54 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH 0/8] [RFC/RFT] Implement sparse keymap library
-Date: Wed, 02 Dec 2009 01:24:02 -0800
-Message-ID: <20091202091056.30409.50455.stgit@localhost.localdomain>
+From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+Subject: [v10 PATCH 0/9] cpuidle: cleanup cpuidle/ introduce cpuidle to POWER
+Date: Wed, 2 Dec 2009 15:24:27 +0530
+Message-ID: <20091202095427.GA27251@linux.vnet.ibm.com>
+Reply-To: arun@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f188.google.com ([209.85.216.188]:63864 "EHLO
-	mail-px0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbZLBJ3j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 04:29:39 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar
+Cc: linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
 
 Hi,
 
-It seems that almost everty platform driver out there copied the keymap
-implementation from wistron button driver... That's a lot of duplicated code
-and I think it is high time we split it into a library module that can be
-shared between all these drivers.
+This patchset introduces cpuidle infrastructure to POWER, prototyping
+for pSeries, and also does a major refactoring of current x86 idle
+power management and a cleanup of cpuidle infrastructure.
 
-The code is only compile-tested since I don't have boxes that would run these
-drivers.
+This patch series has been in discussion for quite a while now and
+below are the links to the previous discussions.
 
-Thanks.
+Please consider this for inclusion into the -tip tree.
 
--- 
-Dmitry
+v9 --> http://lkml.org/lkml/2009/10/16/63
+v8 --> http://lkml.org/lkml/2009/10/8/82
+v7 --> http://lkml.org/lkml/2009/10/6/278
+v6 --> http://lkml.org/lkml/2009/9/22/180
+v5 --> http://lkml.org/lkml/2009/9/22/26
+v4 --> http://lkml.org/lkml/2009/9/1/133
+v3 --> http://lkml.org/lkml/2009/8/27/124
+v2 --> http://lkml.org/lkml/2009/8/26/233
+v1 --> http://lkml.org/lkml/2009/8/19/150
+
+
+Change in this version:
+
+        Pavel noticed that the code which calls the cpuidle's idle
+        loop was repeated at many places. So this set optimizes it so
+        that we dont have repetition of code. The rest of the patches
+        are same as the earlier iteration.
+
+
+arun
