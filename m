@@ -1,57 +1,20 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: regression: 2.6.32-rc8 shuts down after reaching critical temperature
-Date: Wed, 2 Dec 2009 14:30:32 +0100
-Message-ID: <20091202133032.GA9265@lst.de>
-References: <20091125102857.GA28310@lst.de> <20091126022311.GB22613@khazad-dum.debian.net> <20091126095202.GA15932@lst.de> <200912021256.21683.trenn@suse.de>
+From: Tony Bekkerman <tonybekkerman@yahoo.com>
+Subject: This is to inform you that your E-mail ID has been awarded the sum of 1,000.000.00 GBP in our Telecom Xmas Splash send your details:
+Date: Wed, 2 Dec 2009 06:19:36 -0800 (PST)
+Message-ID: <921149.50837.qm@web80406.mail.mud.yahoo.com>
+Reply-To: telecomgroup3@9.cn
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754266AbZLBNba@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200912021256.21683.trenn@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from web80406.mail.mud.yahoo.com ([209.191.72.42]:21950 "HELO
+	web80406.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751579AbZLBO0L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 09:26:11 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 02, 2009 at 12:56:20PM +0100, Thomas Renninger wrote:
-> The critical temperature for the shutdown should still be logged in:
-> /var/log/messages
-> Can you grab that one out, please.
 
-brick:/home/hch# grep "Critical temperature reached" /var/log/kern.log.1 
-Nov 23 17:58:27 brick kernel: [  976.674070] Critical temperature reached (100 C), shutting down.
-Nov 23 18:05:59 brick kernel: [  411.639261] Critical temperature reached (102 C), shutting down.
-Nov 23 22:20:43 brick kernel: [15159.677691] Critical temperature reached (102 C), shutting down.
-Nov 25 11:06:33 brick kernel: [10947.132102] Critical temperature reached (103 C), shutting down.
-Nov 25 11:53:50 brick kernel: [ 2795.261765] Critical temperature reached (102 C), shutting down.
-Nov 25 11:53:55 brick kernel: [ 2800.128671] Critical temperature reached (100 C), shutting down.
-Nov 26 11:30:24 brick kernel: [  395.692667] Critical temperature reached (100 C), shutting down.
-Nov 27 13:36:18 brick kernel: [  390.408366] Critical temperature reached (100 C), shutting down.
-
-> 
-> But from what we know, this sounds like a real overheating and not a
-> wrongly read value,
-
-It sounds like that to me, but something in .32-rc causes it to not
-throttle early enough.  .31 goes very close to the max all the time, but
-something thottles it to not actually go over it.
-
-> Can we be sure it's because of the fans?
-
-No idea, really.  The fan rarely every starts when using .31, but comes
-in a lot using .32-rc
-
-> 2.6.31 works?
-
-Yes, perfectly.  Have been running it for a couple of days now again
-after I had all these reproducible .32-rc shutdowns when testiong it.
-
-> Also the latest stable one?
-
-Haven't tried that yet, will do if it helps you.
-
-> Then this one might be unrelated (11.2, 2.6.31.X based, Acer Aspire 5315):
-> [Bug 557850] System Fan is being stopped on boot, CPU goes overheated and shut down instantly
-> https://bugzilla.novell.com/show_bug.cgi?id=557850
-
-Well, I do hear the fan on .32-rc (not on .31 usually).
+NAME
+ADDRESS
+TELEPHONE
+SEX
