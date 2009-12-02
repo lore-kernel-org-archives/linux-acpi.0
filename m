@@ -1,68 +1,57 @@
-From: Lior Dotan <liodot@gmail.com>
-Subject: Re: Linux 2.6.32-rc8 - T500 fails to suspend to RAM
-Date: Wed, 02 Dec 2009 14:40:18 +0200
-Message-ID: <4B166032.8050005@gmail.com>
-References: <4B151FE2.3090807@gmail.com> <200912012246.58383.rjw@sisk.pl>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: regression: 2.6.32-rc8 shuts down after reaching critical temperature
+Date: Wed, 2 Dec 2009 14:30:32 +0100
+Message-ID: <20091202133032.GA9265@lst.de>
+References: <20091125102857.GA28310@lst.de> <20091126022311.GB22613@khazad-dum.debian.net> <20091126095202.GA15932@lst.de> <200912021256.21683.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:58935 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbZLBMlS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 07:41:18 -0500
-In-Reply-To: <200912012246.58383.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754266AbZLBNba@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200912021256.21683.trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Rafael J. Wysocki wrote:
-> On Tuesday 01 December 2009, Lior Dotan wrote:
->   
->> Hi,
->>
->> Ever since I've upgraded to rc8, my T500 fails to suspend to RAM for the
->> second time. Suspending for the first time works ok but when I resume and
->> later try to suspend again the screen gets blank and the moon LED blinks
->> forever. rc6 & rc7 as well as 2.6.31 worked great with out a problem.
->>     
->
-> Well, I don't see any particular change that might cause the symptoms you
-> describe between -rc7 and -rc8.  If this is 100% reproducible, I guess
-> bisecting is the only option at the moment.
->   
-I tried bisecting it, not sure if it's any good but this is what I got:
+On Wed, Dec 02, 2009 at 12:56:20PM +0100, Thomas Renninger wrote:
+> The critical temperature for the shutdown should still be logged in:
+> /var/log/messages
+> Can you grab that one out, please.
 
-ldot@topaz ~/linux/linux-2.6 $ git bisect bad
-Bisecting: 0 revisions left to test after this (roughly 0 steps)
-[1456edbb1476db735715ddcc7ac306de587024eb] kconfig: Make zconf.y work 
-with current bison
-ldot@topaz ~/linux/linux-2.6 $ git bisect log
-git bisect start
-# bad: [648f4e3e50c4793d9dbf9a09afa193631f76fa26] Linux 2.6.32-rc8
-git bisect bad 648f4e3e50c4793d9dbf9a09afa193631f76fa26
-# good: [156171c71a0dc4bce12b4408bb1591f8fe32dc1a] Linux 2.6.32-rc7
-git bisect good 156171c71a0dc4bce12b4408bb1591f8fe32dc1a
-# bad: [b6b24c73d56a166a829318a1f06803ff9b54857b] spi: error status 
-should be negative
-git bisect bad b6b24c73d56a166a829318a1f06803ff9b54857b
-# bad: [82abc2a97a4a3c7635c40e6dff571816062ec506] Merge branch 
-'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/ryusuke/nilfs2
-git bisect bad 82abc2a97a4a3c7635c40e6dff571816062ec506
-# good: [24dfb2b5867df24ba03b6c4418312e23b1300aa8] Merge branch 
-'upstream' of git://ftp.linux-mips.org/pub/scm/upstream-linus
-git bisect good 24dfb2b5867df24ba03b6c4418312e23b1300aa8
-# bad: [e8e63cbf9a339c972eeb5ccf8777c8067bdfd869] oss: Mark loadhex 
-static in hex2hex.c
-git bisect bad e8e63cbf9a339c972eeb5ccf8777c8067bdfd869
-# bad: [ad0cd62ab632afe9b562b5f09343c21e1521505d] 
-arch/alpha/boot/tools/objstrip.c: Mark "usage" static
-git bisect bad ad0cd62ab632afe9b562b5f09343c21e1521505d
-# bad: [65166571800af0f63f21e5576d7db12d2bf73790] kconfig: Mark various 
-internal functions static
-git bisect bad 65166571800af0f63f21e5576d7db12d2bf73790
+brick:/home/hch# grep "Critical temperature reached" /var/log/kern.log.1 
+Nov 23 17:58:27 brick kernel: [  976.674070] Critical temperature reached (100 C), shutting down.
+Nov 23 18:05:59 brick kernel: [  411.639261] Critical temperature reached (102 C), shutting down.
+Nov 23 22:20:43 brick kernel: [15159.677691] Critical temperature reached (102 C), shutting down.
+Nov 25 11:06:33 brick kernel: [10947.132102] Critical temperature reached (103 C), shutting down.
+Nov 25 11:53:50 brick kernel: [ 2795.261765] Critical temperature reached (102 C), shutting down.
+Nov 25 11:53:55 brick kernel: [ 2800.128671] Critical temperature reached (100 C), shutting down.
+Nov 26 11:30:24 brick kernel: [  395.692667] Critical temperature reached (100 C), shutting down.
+Nov 27 13:36:18 brick kernel: [  390.408366] Critical temperature reached (100 C), shutting down.
 
-Cheers,
-Lior
+> 
+> But from what we know, this sounds like a real overheating and not a
+> wrongly read value,
 
+It sounds like that to me, but something in .32-rc causes it to not
+throttle early enough.  .31 goes very close to the max all the time, but
+something thottles it to not actually go over it.
+
+> Can we be sure it's because of the fans?
+
+No idea, really.  The fan rarely every starts when using .31, but comes
+in a lot using .32-rc
+
+> 2.6.31 works?
+
+Yes, perfectly.  Have been running it for a couple of days now again
+after I had all these reproducible .32-rc shutdowns when testiong it.
+
+> Also the latest stable one?
+
+Haven't tried that yet, will do if it helps you.
+
+> Then this one might be unrelated (11.2, 2.6.31.X based, Acer Aspire 5315):
+> [Bug 557850] System Fan is being stopped on boot, CPU goes overheated and shut down instantly
+> https://bugzilla.novell.com/show_bug.cgi?id=557850
+
+Well, I do hear the fan on .32-rc (not on .31 usually).
