@@ -1,29 +1,36 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: support customizing ACPI control methods at runtime
-Date: Wed, 2 Dec 2009 11:34:58 +0100
-Message-ID: <200912021134.58846.trenn@suse.de>
-References: <1259731860.2029.1221.camel@rzhang1-desktop>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: "celandine" <hrsizzffhlimyYong@cadcamstudio.it>
+Subject: Don't let the recession eat your business. Advertise now
+Date: Wed,  2 Dec 2009 15:12:08 +0700 (ICT)
+Message-ID: <20091202081209.14F47584631@aict.com.vn>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:49247 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751461AbZLBKex (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Dec 2009 05:34:53 -0500
-In-Reply-To: <1259731860.2029.1221.camel@rzhang1-desktop>
-Content-Disposition: inline
+Received: from mail.aict.com.vn ([125.234.254.159]:60272 "EHLO
+	mail.aict.com.vn" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957AbZLBLRy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 06:17:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: info@ifh-worldwide.co.uk
+Cc: info@myskincarediva.com, vpang@gallowayresearch.com, mike.herbert@conocophillips.com, linux-acpi@vger.kernel.org, radu.gogu@karto.baug.ethz.ch, writenowtrans@aol.com, office@je-net.ch, lslay@schoolchoiceformissouri.org, info@seedsofsuccess.com
 
-On Wednesday 02 December 2009 06:31:00 Zhang Rui wrote:
-> 
-> Introduce a new debugfs I/F (/sys/kernel/debug/acpi/custom_method) for ACPI,
-> which can be used to customize the ACPI control methods at runtime.
-Still no kernel tainting on a successful override?
-On purpose or unintended?
 
-    Thomas
+
+
+Our Medical Doctor list has contact data for all states and in many different specialties such as anesthesiology, cardiology, dermatology and many more
+This week we are offering it for half price.
+
+To receive an email with breakdowns a few samples and full statistics please email here instead of replying aty9661@furtherquicker.info (please ensure a copy of this email is included in your email)
+
+Should you wish to have your email address excluded from our mailings please send an email to rembox@furtherquicker.info
+
+
+
+
+
+
+
+
+
+
+
+
