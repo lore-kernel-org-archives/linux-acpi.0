@@ -1,32 +1,47 @@
 From: Christoph Hellwig <hch@lst.de>
 Subject: Re: regression: 2.6.32-rc8 shuts down after reaching critical temperature
-Date: Wed, 2 Dec 2009 16:14:25 +0100
-Message-ID: <20091202151425.GA20008@lst.de>
-References: <20091125102857.GA28310@lst.de> <alpine.LFD.2.00.0911251647000.3950@localhost.localdomain>
+Date: Wed, 2 Dec 2009 16:35:36 +0100
+Message-ID: <20091202153536.GA20324@lst.de>
+References: <20091125102857.GA28310@lst.de> <200912021256.21683.trenn@suse.de> <20091202133032.GA9265@lst.de> <200912021607.53237.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.210]:46933 "EHLO verein.lst.de"
+Received: from verein.lst.de ([213.95.11.210]:60914 "EHLO verein.lst.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751429AbZLBPPB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Dec 2009 10:15:01 -0500
+	id S1753500AbZLBPfg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Dec 2009 10:35:36 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0911251647000.3950@localhost.localdomain>
+In-Reply-To: <200912021607.53237.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Nov 25, 2009 at 04:56:19PM -0500, Len Brown wrote:
-> > I've done some attempts at bisecting it, but for most of the 2.6.32-rc
-> > series the system crashes during boot in ACPI code with a backtrace
-> > longer than the screen can display.
+On Wed, Dec 02, 2009 at 04:07:52PM +0100, Thomas Renninger wrote:
+> Some more hints you may want to try:
 > 
-> Hmm, I don't have a T500, but I've not seen such crashes during -rc.
-> Please send along your .config
-> Do you still get them when disabling the thinkpad-acpi driver?
+>   - Does cpufreq work at all?
+>     Does this dir exist: /sys/devices/system/cpu/cpu*/cpufreq
 
-I managed to boot 2.6.32-rc1 nd 2.6.32-rc2 with thinkpad-acpi disabled.
-Both of them show the shutdown propblem, I'm now looking into bisecting
-it further.
+Yes.
 
+>     If temp of:
+>     watch -n1 cat /proc/acpi/thermal_zone/THM1/temperature
+>     goes beyond 96 C
+>     an ACPI processor event must get thrown and this:
+>     /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq
+>     will get limited (lower than ../cpufreq/cpuinfo_max_freq).
+
+The speeds change quite constantly under a kernel compile workload, but
+most of the time it's at 2240800 vs cpuinfo_max_freq which is 2801000
+
+>     echo xy >/sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq
+>     may be bad workaround.
+
+echo 2240800 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+echo 2240800 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq
+
+made it survive a kernel compile for me, with an observed maximum
+temperature of 87 C.
+
+More later..
