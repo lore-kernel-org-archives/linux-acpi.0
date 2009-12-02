@@ -1,313 +1,129 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: [RFC PATCH 1/2] Input: add msi-wmi driver to support hotkeys in
- =?UTF-8?B?TVNJwqBXaW5kdG9w?= AE1900-WT
-Date: Wed, 2 Dec 2009 19:26:03 +0100
-Message-ID: <20091202192603.3e1de98a@destiny.ordissimo>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH v1 3/5] ipmi: remove unused PCI probe coded
+Date: Wed, 2 Dec 2009 12:53:00 -0700
+Message-ID: <200912021253.00726.bjorn.helgaas@hp.com>
+References: <20091118000427.14214.14043.stgit@bob.kio> <20091118000524.14214.41587.stgit@bob.kio> <20091201231841.GA7903@minyard.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:8629 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945AbZLBTxL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 14:53:11 -0500
+In-Reply-To: <20091201231841.GA7903@minyard.local>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: minyard@acm.org
+Cc: Zhao Yakui <yakui.zhao@intel.com>, Bela Lubkin <blubkin@vmware.com>, linux-acpi@vger.kernel.org, Myron Stowe <myron.stowe@hp.com>, openipmi-developer@lists.sourceforge.net, Len Brown <lenb@kernel.org>
 
+On Tuesday 01 December 2009 04:18:41 pm Corey Minyard wrote:
+> On Tue, Nov 17, 2009 at 05:05:24PM -0700, Bjorn Helgaas wrote:
+> > --- a/drivers/char/ipmi/ipmi_si_intf.c
+> > +++ b/drivers/char/ipmi/ipmi_si_intf.c
+> > @@ -2202,7 +2202,6 @@ static int __devinit ipmi_pci_probe(struct pci_dev *pdev,
+> >  	int rv;
+> >  	int class_type = pdev->class & PCI_ERMC_CLASSCODE_TYPE_MASK;
+> >  	struct smi_info *info;
+> > -	int first_reg_offset = 0;
+> >  
+> >  	info = kzalloc(sizeof(*info), GFP_KERNEL);
+> >  	if (!info)
+> > @@ -2241,9 +2240,6 @@ static int __devinit ipmi_pci_probe(struct pci_dev *pdev,
+> >  	info->addr_source_cleanup = ipmi_pci_cleanup;
+> >  	info->addr_source_data = pdev;
+> >  
+> > -	if (pdev->subsystem_vendor == PCI_HP_VENDOR_ID)
+> > -		first_reg_offset = 1;
+> > -
+> >  	if (pci_resource_flags(pdev, 0) & IORESOURCE_IO) {
+> >  		info->io_setup = port_setup;
+> >  		info->io.addr_type = IPMI_IO_ADDR_SPACE;
+> > 
+> 
+> Unfortunately, the above patch points to some missing code later, not dead
+> code.  The patch that follows will set it back to the original function.
+> Since no one has noticed, it may be best to remove the code, but as far
+> as I know, that HP system is the only one that uses PCI.
 
-Signed-off-by: Anisse Astier <anisse@astier.eu>
----
-Hi,
+That's what we get for sticking an unrelated cleanup in the middle
+of this series :-).
 
-This driver (intiated by=20
-http://sysmic.org/dotclear2/index.php?post/2009/06/02/83-msi-wmi-suppor=
-t) is
-aimed at supporting WMI based hotkeys on MSI=C2=A0Windtop all-in-one AE=
-1900-WT.
+> I looked over the other patches in this series and they look fine.
 
-This patch contains both WMI and DMI auto loading. Once Mathew Garrett'=
-s
-patch for wmi autoloading is upstream (now in acpi-test), DMI auto load=
-ing
-could (should?) be removed.
+Great, thanks!
 
-Also, Dmitry is in the process of factoring code for sparse keymaps. Th=
-e=20
-second patch adds support its sparse keymap lib, removing a lot of code=
-=2E
+> On a PCI update, the offset for HP PCI interfaces to the IPMI controller
+> was left off.  Add the offset back in.
+> 
+> Signed-off-by: Corey Minyard <cminyard@mvista.com>
+> 
+> Index: linux-2.6.30/drivers/char/ipmi/ipmi_si_intf.c
+> ===================================================================
+> --- linux-2.6.30.orig/drivers/char/ipmi/ipmi_si_intf.c
+> +++ linux-2.6.30/drivers/char/ipmi/ipmi_si_intf.c
+> @@ -2293,7 +2293,7 @@ static int __devinit ipmi_pci_probe(stru
+>  		info->io_setup = mem_setup;
+>  		info->io.addr_type = IPMI_MEM_ADDR_SPACE;
+>  	}
+> -	info->io.addr_data = pci_resource_start(pdev, 0);
+> +	info->io.addr_data = pci_resource_start(pdev, 0) + first_reg_offset;
+>  
+>  	info->io.regspacing = DEFAULT_REGSPACING;
+>  	info->io.regsize = DEFAULT_REGSPACING;
+> 
 
-These patches are based on linux-input tree, and have been tested on th=
-e
-hardware with and without the sparse keymap patch.
+I guess you're referring to b0defcdbd2b7d?
 
- drivers/platform/x86/Kconfig   |   11 ++
- drivers/platform/x86/Makefile  |    1 +
- drivers/platform/x86/msi-wmi.c |  212 ++++++++++++++++++++++++++++++++=
-++++++++
- 3 files changed, 224 insertions(+), 0 deletions(-)
- create mode 100644 drivers/platform/x86/msi-wmi.c
+Prior to that commit, we did this:
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfi=
-g
-index 1b27e4d..fe142af 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -441,4 +441,15 @@ config ACPI_TOSHIBA
-=20
- 	  If you have a legacy free Toshiba laptop (such as the Libretto L1
- 	  series), say Y.
-+
-+config MSI_WMI
-+	tristate "MSI WMI extras"
-+	depends on ACPI_WMI
-+	depends on INPUT
-+	---help---
-+	 Say Y here if you want to support WMI-based hotkeys on MSI all-in-on=
-e
-+	 WindTop AE1900-WT.
-+
-+	 To compile this driver as a module, choose M here: the module will
-+	 be called msi-wmi.
- endif # X86_PLATFORM_DEVICES
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makef=
-ile
-index d1c1621..22a0c78 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -21,3 +21,4 @@ obj-$(CONFIG_ACPI_WMI)		+=3D wmi.o
- obj-$(CONFIG_ACPI_ASUS)		+=3D asus_acpi.o
- obj-$(CONFIG_TOPSTAR_LAPTOP)	+=3D topstar-laptop.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+=3D toshiba_acpi.o
-+obj-$(CONFIG_MSI_WMI)		+=3D msi-wmi.o
-diff --git a/drivers/platform/x86/msi-wmi.c b/drivers/platform/x86/msi-=
-wmi.c
-new file mode 100644
-index 0000000..fb6d5bd
---- /dev/null
-+++ b/drivers/platform/x86/msi-wmi.c
-@@ -0,0 +1,212 @@
-+/*
-+ * MSI WMI hotkeys
-+ *
-+ * Copyright (C) 2009 J=C3=A9r=C3=B4me Pouiller <jezz@sysmic.org>
-+ *
-+ * Portions based on hp-wmi.c:
-+ * Copyright (C) 2008 Red Hat <mjg@redhat.com>
-+ *
-+ * Portions based on wistron_btns.c:
-+ * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
-+ * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
-+ * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
-+ *
-+ *  This program is free software; you can redistribute it and/or modi=
-fy
-+ *  it under the terms of the GNU General Public License as published =
-by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-13=
-07  USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/input.h>
-+#include <linux/acpi.h>
-+#include <linux/jiffies.h>
-+
-+#define MSIWMI_EVENT_GUID "b6f3eef2-3d2f-49dc-9de3-85bce18c62f2"
-+
-+struct key_entry {
-+	u16 code;
-+	u16 keycode;
-+};
-+
-+static struct key_entry msi_wmi_keymap[] =3D {
-+	/*Brightness keys should be used for a backlight driver*/
-+	{208, KEY_BRIGHTNESSUP},
-+	{209, KEY_BRIGHTNESSDOWN},
-+	{210, KEY_VOLUMEUP},
-+	{211, KEY_VOLUMEDOWN},
-+	{0}
-+};
-+
-+static struct input_dev *msi_wmi_input_dev;
-+static unsigned long long msi_wmi_time_last_press;
-+static unsigned pression_timeout =3D 10;
-+
-+static struct key_entry *msi_wmi_get_entry_by_scancode(int code)
-+{
-+	struct key_entry *key;
-+
-+	for (key =3D msi_wmi_keymap; key->code; key++)
-+		if (code =3D=3D key->code)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static struct key_entry *msi_wmi_get_entry_by_keycode(int keycode)
-+{
-+	struct key_entry *key;
-+
-+	for (key =3D msi_wmi_keymap; key->code; key++)
-+		if (keycode =3D=3D key->keycode)
-+			return key;
-+
-+	return NULL;
-+}
-+
-+static void msi_wmi_notify(u32 value, void *context)
-+{
-+	struct acpi_buffer response =3D { ACPI_ALLOCATE_BUFFER, NULL };
-+	static struct key_entry *key;
-+	union acpi_object *obj;
-+
-+	acpi_status ret;
-+	ret =3D wmi_get_event_data(value, &response);
-+	obj =3D (union acpi_object *)response.pointer;
-+
-+	if (!obj || obj->type !=3D ACPI_TYPE_INTEGER) {
-+		printk(KERN_INFO "MSI WMI: Unknown response received\n");
-+		return;
-+	}
-+
-+	if (jiffies_to_msecs(get_jiffies_64() - msi_wmi_time_last_press)
-+			> pression_timeout) {
-+		printk(KERN_DEBUG
-+				"MSI WMI: event correctly received: %llu\n",
-+				obj->integer.value);
-+		msi_wmi_time_last_press =3D get_jiffies_64();
-+		key =3D msi_wmi_get_entry_by_scancode(obj->integer.value);
-+		input_report_key(msi_wmi_input_dev, key->keycode, 1);
-+		input_sync(msi_wmi_input_dev);
-+		input_report_key(msi_wmi_input_dev, key->keycode, 0);
-+		input_sync(msi_wmi_input_dev);
-+	}
-+}
-+
-+static int msi_wmi_getkeycode(struct input_dev *dev, int scancode, int=
- *keycode)
-+{
-+	struct key_entry *key =3D msi_wmi_get_entry_by_scancode(scancode);
-+
-+	if (key && key->code) {
-+		*keycode =3D key->keycode;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int msi_wmi_setkeycode(struct input_dev *dev, int scancode, int=
- keycode)
-+{
-+	struct key_entry *key;
-+	int old_keycode;
-+
-+	if (keycode < 0 || keycode > KEY_MAX)
-+		return -EINVAL;
-+
-+	key =3D msi_wmi_get_entry_by_scancode(scancode);
-+	if (key && key->code) {
-+		old_keycode =3D key->keycode;
-+		key->keycode =3D keycode;
-+		set_bit(keycode, dev->keybit);
-+		if (!msi_wmi_get_entry_by_keycode(old_keycode))
-+			clear_bit(old_keycode, dev->keybit);
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int __init msi_wmi_input_setup(void)
-+{
-+	struct key_entry *key;
-+	int err;
-+
-+	msi_wmi_input_dev =3D input_allocate_device();
-+
-+	msi_wmi_input_dev->name =3D "MSI WMI hotkeys";
-+	msi_wmi_input_dev->phys =3D "wmi/input0";
-+	msi_wmi_input_dev->id.bustype =3D BUS_HOST;
-+	msi_wmi_input_dev->getkeycode =3D msi_wmi_getkeycode;
-+	msi_wmi_input_dev->setkeycode =3D msi_wmi_setkeycode;
-+
-+	for (key =3D msi_wmi_keymap; key->code; key++) {
-+		set_bit(EV_KEY, msi_wmi_input_dev->evbit);
-+		set_bit(key->keycode, msi_wmi_input_dev->keybit);
-+	}
-+
-+	err =3D input_register_device(msi_wmi_input_dev);
-+
-+	if (err)
-+		input_free_device(msi_wmi_input_dev);
-+
-+	return err;
-+}
-+
-+static int __init msi_wmi_init(void)
-+{
-+	int err;
-+
-+	msi_wmi_time_last_press =3D get_jiffies_64();
-+	if (!wmi_has_guid(MSIWMI_EVENT_GUID)) {
-+		printk(KERN_ERR
-+		       "This machine doesn't have MSI-hotkeys through WMI\n");
-+		goto load_error;
-+	}
-+	err =3D wmi_install_notify_handler(MSIWMI_EVENT_GUID,
-+					 msi_wmi_notify, NULL);
-+	if (err) {
-+		printk(KERN_ERR
-+		       "MSI WMI: Error while installing notify handler\n");
-+		goto load_error;
-+	}
-+
-+	msi_wmi_input_setup();
-+
-+	return 0;
-+load_error:
-+	return -ENODEV;
-+}
-+
-+static void __exit msi_wmi_exit(void)
-+{
-+	if (wmi_has_guid(MSIWMI_EVENT_GUID)) {
-+		wmi_remove_notify_handler(MSIWMI_EVENT_GUID);
-+		input_unregister_device(msi_wmi_input_dev);
-+	}
-+}
-+
-+module_init(msi_wmi_init);
-+module_exit(msi_wmi_exit);
-+module_param(pression_timeout, uint, 0);
-+
-+MODULE_AUTHOR("J=C3=A9r=C3=B4me Pouiller <jezz@sysmic.org>");
-+MODULE_AUTHOR("Michael Bouchaud <michael@substantiel.fr");
-+MODULE_AUTHOR("Anisse Astier <anisse@astier.eu");
-+MODULE_DESCRIPTION("MSI all-in-one WMI hotkeys driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("wmi:" MSIWMI_EVENT_GUID);
-+/*This one is useless if there is wmi-autoloading*/
-+MODULE_ALIAS("dmi:bvnMICRO-STARINTERNATIONALCO.,LTD:*:svnMICRO-STARINT=
-ERNATIO"
-+	     "NALCO.,LTD:pnMS-6638:*:rnMS-7438:*:cvnMICRO-STARINTERNATIONALCO=
-=2E"
-+	     ",LTD:*");
-+MODULE_PARM_DESC(pression_timeout,
-+		 "How much time interrupts are ignored between each pression");
---=20
-1.6.5.3
+	int              fe_rmc = 0;
+	...
+              if (pci_dev && (pci_dev->subsystem_vendor == PCI_HP_VENDOR_ID))
+                      fe_rmc = 1;
+	...
+        if (! fe_rmc)
+              /* Data register starts at base address + 1 in eRMC */
+              ++base_addr;
+	...
+	if (! is_new_interface(-1, IPMI_IO_ADDR_SPACE, base_addr)) {
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your patch above reverses the sense of this adjustment -- the old code
+increments the base for everything *except* HP, while the new code
+increments the base for *only* HP.
+
+The original 5-patch series leaves the PCI base address alone.  That's
+the same as the old behavior for HP devices, and we verified that it
+works on an HP DL380G6 by disabling SMBIOS/SMPI/PNP detection.  (We
+also verified that, as you would expect, it did NOT work if we increment
+the base address).
+
+Using the address straight from the PCI BAR, we located the IPMI interface
+correctly, and we were able to exercise it with ipmitool:
+
+    ipmi message handler version 39.2
+    ipmi device interface
+    IPMI System Interface driver.
+    ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 10
+    PCI: setting IRQ 10 as level-triggered
+    ipmi_si 0000:01:04.6: PCI INT A -> Link[LNKF] -> GSI 10 (level, low) -> IRQ 10
+    ipmi_si: Trying PCI-specified kcs state machine at mem address 0xf1ef0000, slave address 0x0, irq 10
+    IRQ 10/ipmi_si: IRQF_DISABLED is not guaranteed on shared IRQs
+      Using irq 10
+    ipmi: Found new BMC (man_id: 0x00000b,  prod_id: 0x0000, dev_id: 0x11)
+    IPMI kcs interface initialized
+
+    dl380g6a:~# ipmitool sensor
+    UID Light        | 0x0        | discrete   | 0x0080| na        | na        | na        | na        | na        | na
+    Sys. Health LED  | 0x0        | discrete   | 0x0080| na        | na        | na        | na        | na        | na
+    ...
+
+So the question is what to do about non-HP PCI IPMI interfaces.  The
+pre-b0defcdbd2b7d code increments the base address, but that's been
+gone for several years.  Since we've had no complaints, and we don't
+know about any non-HP PCI interfaces, I propose that we just remove
+that HP-specific adjustment completely, i.e., use this series as-is.
+
+Bjorn
