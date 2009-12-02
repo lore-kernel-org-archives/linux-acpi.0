@@ -1,92 +1,68 @@
-From: Ian Molton <ian.molton@collabora.co.uk>
-Subject: Re: Thinkpad X200s
-Date: Wed, 02 Dec 2009 12:10:50 +0000
-Message-ID: <4B16594A.2000101@collabora.co.uk>
-References: <4B0FB618.7020204@collabora.co.uk> <20091127221134.GC21775@khazad-dum.debian.net> <20091128120711.GA17894@khazad-dum.debian.net> <4B111C58.5050006@collabora.co.uk> <20091128181512.GA32630@khazad-dum.debian.net> <4B13954A.9040307@collabora.co.uk> <20091130234706.GC29580@khazad-dum.debian.net>
+From: Lior Dotan <liodot@gmail.com>
+Subject: Re: Linux 2.6.32-rc8 - T500 fails to suspend to RAM
+Date: Wed, 02 Dec 2009 14:40:18 +0200
+Message-ID: <4B166032.8050005@gmail.com>
+References: <4B151FE2.3090807@gmail.com> <200912012246.58383.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.128.226]:41903 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbZLBMLX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 07:11:23 -0500
-In-Reply-To: <20091130234706.GC29580@khazad-dum.debian.net>
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:58935 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752784AbZLBMlS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 07:41:18 -0500
+In-Reply-To: <200912012246.58383.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Henrique de Moraes Holschuh wrote:
+Rafael J. Wysocki wrote:
+> On Tuesday 01 December 2009, Lior Dotan wrote:
+>   
+>> Hi,
+>>
+>> Ever since I've upgraded to rc8, my T500 fails to suspend to RAM for the
+>> second time. Suspending for the first time works ok but when I resume and
+>> later try to suspend again the screen gets blank and the moon LED blinks
+>> forever. rc6 & rc7 as well as 2.6.31 worked great with out a problem.
+>>     
+>
+> Well, I don't see any particular change that might cause the symptoms you
+> describe between -rc7 and -rc8.  If this is 100% reproducible, I guess
+> bisecting is the only option at the moment.
+>   
+I tried bisecting it, not sure if it's any good but this is what I got:
 
-> That said, please play with the master_switch_mode parameter of the
-> rfkill module.  I personally cannot tolerate anything but
-> master_switch_mode=1, and I dare think it might solve your problem :)
+ldot@topaz ~/linux/linux-2.6 $ git bisect bad
+Bisecting: 0 revisions left to test after this (roughly 0 steps)
+[1456edbb1476db735715ddcc7ac306de587024eb] kconfig: Make zconf.y work 
+with current bison
+ldot@topaz ~/linux/linux-2.6 $ git bisect log
+git bisect start
+# bad: [648f4e3e50c4793d9dbf9a09afa193631f76fa26] Linux 2.6.32-rc8
+git bisect bad 648f4e3e50c4793d9dbf9a09afa193631f76fa26
+# good: [156171c71a0dc4bce12b4408bb1591f8fe32dc1a] Linux 2.6.32-rc7
+git bisect good 156171c71a0dc4bce12b4408bb1591f8fe32dc1a
+# bad: [b6b24c73d56a166a829318a1f06803ff9b54857b] spi: error status 
+should be negative
+git bisect bad b6b24c73d56a166a829318a1f06803ff9b54857b
+# bad: [82abc2a97a4a3c7635c40e6dff571816062ec506] Merge branch 
+'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/ryusuke/nilfs2
+git bisect bad 82abc2a97a4a3c7635c40e6dff571816062ec506
+# good: [24dfb2b5867df24ba03b6c4418312e23b1300aa8] Merge branch 
+'upstream' of git://ftp.linux-mips.org/pub/scm/upstream-linus
+git bisect good 24dfb2b5867df24ba03b6c4418312e23b1300aa8
+# bad: [e8e63cbf9a339c972eeb5ccf8777c8067bdfd869] oss: Mark loadhex 
+static in hex2hex.c
+git bisect bad e8e63cbf9a339c972eeb5ccf8777c8067bdfd869
+# bad: [ad0cd62ab632afe9b562b5f09343c21e1521505d] 
+arch/alpha/boot/tools/objstrip.c: Mark "usage" static
+git bisect bad ad0cd62ab632afe9b562b5f09343c21e1521505d
+# bad: [65166571800af0f63f21e5576d7db12d2bf73790] kconfig: Mark various 
+internal functions static
+git bisect bad 65166571800af0f63f21e5576d7db12d2bf73790
 
-Sadly not. It looks like it should, and I've instrumented the rfkill
-module to be sure the parameter is set, which it is. Debug log (WWAN)
-follows. Bluetooth behaves the same way as WWAN - powers up after
-killswitch toggle, regardless of its state prior to that.
+Cheers,
+Lior
 
-# cat /sys/module/rfkill/parameters/master_switch_mode
-1
-
-prior to sleep:
-
-# find /sys | grep rfkill..name | xargs cat
-tpacpi_bluetooth_sw
-tpacpi_wwan_sw
-hci0
-phy0
-
-# find /sys | grep rfkill..state | xargs cat
-1
-1
-1
-1
-
-Turn off WWAN vis /sys:
-
-# echo 0 > /sys/devices/platform/thinkpad_acpi/rfkill/rfkill1/state
-
-Verify it is off:
-
-# find /sys | grep rfkill..state | xargs cat
-1
-0
-1
-1
-
-Flip rfkill (hard) switch to off:
-
-corwyn:/home/collabora# find /sys | grep rfkill..state | xargs cat
-2
-2
-2
-
-note: hci0 goes missing when the hard switch is used. (presumably usb
-power loss)
-
-Flip rfkill (hard) switch back on again:
-
-corwyn:/home/collabora# find /sys | grep rfkill..state | xargs cat
-1
-1
-1
-1
-
-> I think I can consider this patch approved and add your tested-by?
-
-You can certainly add my tested-by for the sleep/resume path patch.
-
-Tested-by: Ian Molton <ian.molton@collabora.co.uk>
-
-> Does thinkpad-acpi tells
-
-acpi -V -s does not list any wireless devices at all. dmesg has a few
-mentions of thinkpad-acpi but only the rfkillswitch as far as wireless
-devices.
-
-Thanks for your quick response too :-)
-
--Ian
