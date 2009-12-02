@@ -1,219 +1,441 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: support customizing ACPI control methods at runtime
-Date: Wed, 02 Dec 2009 13:31:00 +0800
-Message-ID: <1259731860.2029.1221.camel@rzhang1-desktop>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 1/8] Input: add generic support for sparse keymaps
+Date: Wed, 02 Dec 2009 01:24:09 -0800
+Message-ID: <20091202092408.30409.55541.stgit@localhost.localdomain>
+References: <20091202091056.30409.50455.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:39048 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927AbZLBFal (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Dec 2009 00:30:41 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20091202091056.30409.50455.stgit@localhost.localdomain>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Thomas Renninger <trenn@suse.de>
 
+More and more devices choose to reimplement support for sparse keymaps
+first introduced by wistron driver. Move it into a library module so it
+can be easily used by interested parties.
 
-Introduce a new debugfs I/F (/sys/kernel/debug/acpi/custom_method) for ACPI,
-which can be used to customize the ACPI control methods at runtime.
-
-We can use this to debug the AML code level bugs instead of overriding the
-whole DSDT table, without rebuilding/rebooting kernel any more.
-
-Detailed description about how to use this debugfs I/F is stated in
-Documentation/acpi/method-customizing.txt
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 ---
- Documentation/acpi/method-customizing.txt |   66 +++++++++++++++++++++++
- drivers/acpi/debug.c                      |   84 +++++++++++++++++++++++++++++-
- 2 files changed, 149 insertions(+), 1 deletion(-)
 
-Index: linux-2.6/drivers/acpi/debug.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/debug.c
-+++ linux-2.6/drivers/acpi/debug.c
-@@ -8,6 +8,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/moduleparam.h>
-+#include <linux/debugfs.h>
- #include <asm/uaccess.h>
- #include <acpi/acpi_drivers.h>
+ Documentation/DocBook/device-drivers.tmpl |    3 
+ drivers/input/Kconfig                     |   28 +++-
+ drivers/input/Makefile                    |    1 
+ drivers/input/input-polldev.c             |   14 ++
+ drivers/input/sparse-keymap.c             |  186 +++++++++++++++++++++++++++++
+ include/linux/input/sparse-keymap.h       |   52 ++++++++
+ 6 files changed, 272 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/input/sparse-keymap.c
+ create mode 100644 include/linux/input/sparse-keymap.h
+
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index e994d1d..0d6c9ee 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -306,6 +306,9 @@ X!Idrivers/video/console/fonts.c
+      <sect1><title>Matrix keyboars/keypads</title>
+ !Iinclude/linux/input/matrix_keypad.h
+      </sect1>
++     <sect1><title>Sparse keymap support</title>
++!Iinclude/linux/input/sparse-keymap.h
++!Edrivers/input/sparse-keymap.c
+   </chapter>
  
-@@ -196,6 +197,79 @@ module_param_call(trace_state, param_set
- 		  NULL, 0644);
+   <chapter id="spi">
+diff --git a/drivers/input/Kconfig b/drivers/input/Kconfig
+index cd50c00..50af91e 100644
+--- a/drivers/input/Kconfig
++++ b/drivers/input/Kconfig
+@@ -8,7 +8,7 @@ menu "Input device support"
+ config INPUT
+ 	tristate "Generic input layer (needed for keyboard, mouse, ...)" if EMBEDDED
+ 	default y
+-	---help---
++	help
+ 	  Say Y here if you have any input device (mouse, keyboard, tablet,
+ 	  joystick, steering wheel ...) connected to your system and want
+ 	  it to be available to applications. This includes standard PS/2
+@@ -27,8 +27,7 @@ if INPUT
  
- /* --------------------------------------------------------------------------
-+				DebugFS Interface
-+   -------------------------------------------------------------------------- */
+ config INPUT_FF_MEMLESS
+ 	tristate "Support for memoryless force-feedback devices"
+-	default n
+-	---help---
++	help
+ 	  Say Y here if you have memoryless force-feedback input device
+ 	  such as Logitech WingMan Force 3D, ThrustMaster FireStorm Dual
+ 	  Power 2, or similar. You will also need to enable hardware-specific
+@@ -52,12 +51,25 @@ config INPUT_POLLDEV
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called input-polldev.
+ 
++config INPUT_SPARSEKMAP
++	tristate "Sparse keymap support library"
++	help
++	  Say Y here if you are using a driver for an input
++	  device that uses sparse keymap. This option is only
++	  useful for out-of-tree drivers since in-tree drivers
++	  select it automatically.
 +
-+static ssize_t cm_write(struct file *file, const char __user *user_buf,
-+			size_t count, loff_t *ppos)
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called sparse-keymap.
++
+ comment "Userland interfaces"
+ 
+ config INPUT_MOUSEDEV
+ 	tristate "Mouse interface" if EMBEDDED
+ 	default y
+-	---help---
++	help
+ 	  Say Y here if you want your mouse to be accessible as char devices
+ 	  13:32+ - /dev/input/mouseX and 13:63 - /dev/input/mice as an
+ 	  emulated IntelliMouse Explorer PS/2 mouse. That way, all user space
+@@ -73,7 +85,7 @@ config INPUT_MOUSEDEV_PSAUX
+ 	bool "Provide legacy /dev/psaux device"
+ 	default y
+ 	depends on INPUT_MOUSEDEV
+-	---help---
++	help
+ 	  Say Y here if you want your mouse also be accessible as char device
+ 	  10:1 - /dev/psaux. The data available through /dev/psaux is exactly
+ 	  the same as the data from /dev/input/mice.
+@@ -103,7 +115,7 @@ config INPUT_MOUSEDEV_SCREEN_Y
+ 
+ config INPUT_JOYDEV
+ 	tristate "Joystick interface"
+-	---help---
++	help
+ 	  Say Y here if you want your joystick or gamepad to be
+ 	  accessible as char device 13:0+ - /dev/input/jsX device.
+ 
+@@ -125,7 +137,7 @@ config INPUT_EVDEV
+ 
+ config INPUT_EVBUG
+ 	tristate "Event debugging"
+-	---help---
++	help
+ 	  Say Y here if you have a problem with the input subsystem and
+ 	  want all events (keypresses, mouse movements), to be output to
+ 	  the system log. While this is useful for debugging, it's also
+@@ -140,7 +152,7 @@ config INPUT_EVBUG
+ config INPUT_APMPOWER
+ 	tristate "Input Power Event -> APM Bridge" if EMBEDDED
+ 	depends on INPUT && APM_EMULATION
+-	---help---
++	help
+ 	  Say Y here if you want suspend key events to trigger a user
+ 	  requested suspend through APM. This is useful on embedded
+ 	  systems where such behaviour is desired without userspace
+diff --git a/drivers/input/Makefile b/drivers/input/Makefile
+index 4c9c745..7ad212d 100644
+--- a/drivers/input/Makefile
++++ b/drivers/input/Makefile
+@@ -9,6 +9,7 @@ input-core-objs := input.o input-compat.o ff-core.o
+ 
+ obj-$(CONFIG_INPUT_FF_MEMLESS)	+= ff-memless.o
+ obj-$(CONFIG_INPUT_POLLDEV)	+= input-polldev.o
++obj-$(CONFIG_INPUT_SPARSEKMAP)	+= sparse-keymap.o
+ 
+ obj-$(CONFIG_INPUT_MOUSEDEV)	+= mousedev.o
+ obj-$(CONFIG_INPUT_JOYDEV)	+= joydev.o
+diff --git a/drivers/input/input-polldev.c b/drivers/input/input-polldev.c
+index 6a2eb39..aa6713b 100644
+--- a/drivers/input/input-polldev.c
++++ b/drivers/input/input-polldev.c
+@@ -212,7 +212,7 @@ EXPORT_SYMBOL(input_allocate_polled_device);
+  * @dev: device to free
+  *
+  * The function frees memory allocated for polling device and drops
+- * reference to the associated input device (if present).
++ * reference to the associated input device.
+  */
+ void input_free_polled_device(struct input_polled_dev *dev)
+ {
+@@ -258,6 +258,15 @@ int input_register_polled_device(struct input_polled_dev *dev)
+ 		return error;
+ 	}
+ 
++	/*
++	 * Take extra reference to the underlying input device so
++	 * that it survives call to input_unregister_polled_device()
++	 * and is deleted only after input_free_polled_device()
++	 * has been invoked. This is needed to ease task of freeing
++	 * sparse keymaps.
++	 */
++	input_get_device(input);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(input_register_polled_device);
+@@ -269,8 +278,6 @@ EXPORT_SYMBOL(input_register_polled_device);
+  * The function unregisters previously registered polled input
+  * device from input layer. Polling is stopped and device is
+  * ready to be freed with call to input_free_polled_device().
+- * Callers should not attempt to access dev->input pointer
+- * after calling this function.
+  */
+ void input_unregister_polled_device(struct input_polled_dev *dev)
+ {
+@@ -278,7 +285,6 @@ void input_unregister_polled_device(struct input_polled_dev *dev)
+ 			   &input_polldev_attribute_group);
+ 
+ 	input_unregister_device(dev->input);
+-	dev->input = NULL;
+ }
+ EXPORT_SYMBOL(input_unregister_polled_device);
+ 
+diff --git a/drivers/input/sparse-keymap.c b/drivers/input/sparse-keymap.c
+new file mode 100644
+index 0000000..cb769f6
+--- /dev/null
++++ b/drivers/input/sparse-keymap.c
+@@ -0,0 +1,186 @@
++/*
++ * Generic support for sparse keymaps
++ *
++ * Copyright (c) 2009 Dmitry Torokhov
++ *
++ * Derived from wistron button driver:
++ * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
++ * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
++ * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/input.h>
++#include <linux/input/sparse-keymap.h>
++
++MODULE_AUTHOR("Dmitry Torokhov <dtor@mail.ru>");
++MODULE_DESCRIPTION("Generic support for sparse keymaps");
++MODULE_LICENSE("GPL v2");
++MODULE_VERSION("0.1");
++
++/**
++ * sparse_keymap_entry_from_scancode - perform sparse keymap lookup
++ * @dev: Input device using sparse keymap
++ * @code: Scan code
++ *
++ * This function is used to perform &struct key_entry lookup in an
++ * input device using sparse keymap.
++ */
++struct key_entry *sparse_keymap_entry_from_scancode(struct input_dev *dev,
++						    unsigned int code)
 +{
-+	static char *buf;
-+	static int uncopied_bytes;
-+	struct acpi_table_header table;
-+	acpi_status status;
++	struct key_entry *key;
 +
-+	if (!(*ppos)) {
-+		/* parse the table header to get the table length */
-+		if (count <= sizeof(struct acpi_table_header))
-+			return -EINVAL;
-+		if (copy_from_user(&table, user_buf,
-+			sizeof(struct acpi_table_header)))
-+			return -EFAULT;
-+		uncopied_bytes = table.length;
-+		buf = kzalloc(uncopied_bytes, GFP_KERNEL);
-+		if (!buf)
-+			return -ENOMEM;
-+	}
++	for (key = dev->keycode; key->type != KE_END; key++)
++		if (code == key->code)
++			return key;
 +
-+	if (uncopied_bytes < count) {
-+		kfree(buf);
-+		return -EINVAL;
-+	}
-+
-+	if (copy_from_user(buf + (*ppos), user_buf, count)) {
-+		kfree(buf);
-+		return -EFAULT;
-+	}
-+
-+	uncopied_bytes -= count;
-+	*ppos += count;
-+
-+	if (!uncopied_bytes) {
-+		status = acpi_install_method(buf);
-+		kfree(buf);
-+		if (ACPI_FAILURE(status))
-+			return -EINVAL;
-+	}
-+
-+	return count;
++	return NULL;
 +}
++EXPORT_SYMBOL(sparse_keymap_entry_from_scancode);
 +
-+static const struct file_operations cm_fops = {
-+	.write = cm_write,
-+};
-+
-+static int acpi_debugfs_init(void)
++/**
++ * sparse_keymap_entry_from_keycode - perform sparse keymap lookup
++ * @dev: Input device using sparse keymap
++ * @keycode: Key code
++ *
++ * This function is used to perform &struct key_entry lookup in an
++ * input device using sparse keymap.
++ */
++struct key_entry *sparse_keymap_entry_from_keycode(struct input_dev *dev,
++						   unsigned int keycode)
 +{
-+	struct dentry *acpi_dir, *cm_dentry;
++	struct key_entry *key;
 +
-+	acpi_dir = debugfs_create_dir("acpi", NULL);
-+	if (!acpi_dir)
-+		goto err;
++	for (key = dev->keycode; key->type != KE_END; key++)
++		if (key->type == KE_KEY && keycode == key->keycode)
++			return key;
 +
-+	cm_dentry = debugfs_create_file("custom_method", S_IWUGO,
-+					acpi_dir, NULL, &cm_fops);
-+	if (!cm_dentry)
-+		goto err;
++	return NULL;
++}
++EXPORT_SYMBOL(sparse_keymap_entry_from_keycode);
 +
-+	return 0;
++static int sparse_keymap_getkeycode(struct input_dev *dev,
++				    int scancode, int *keycode)
++{
++	const struct key_entry *key =
++			sparse_keymap_entry_from_scancode(dev, scancode);
 +
-+err:
-+	if (acpi_dir)
-+		debugfs_remove(acpi_dir);
++	if (key && key->type == KE_KEY) {
++		*keycode = key->keycode;
++		return 0;
++	}
++
 +	return -EINVAL;
 +}
 +
-+/* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
- #ifdef CONFIG_ACPI_PROCFS
-@@ -286,7 +360,7 @@ static const struct file_operations acpi
- };
- #endif
- 
--int __init acpi_debug_init(void)
-+int __init acpi_procfs_init(void)
- {
- #ifdef CONFIG_ACPI_PROCFS
- 	struct proc_dir_entry *entry;
-@@ -321,3 +395,11 @@ int __init acpi_debug_init(void)
- 	return 0;
- #endif
- }
-+
-+int __init acpi_debug_init(void)
++static int sparse_keymap_setkeycode(struct input_dev *dev,
++				    int scancode, int keycode)
 +{
-+	acpi_debugfs_init();
-+	acpi_procfs_init();
-+	return 0;
-+}
++	struct key_entry *key;
++	int old_keycode;
 +
-Index: linux-2.6/Documentation/acpi/method-customizing.txt
-===================================================================
---- /dev/null
-+++ linux-2.6/Documentation/acpi/method-customizing.txt
-@@ -0,0 +1,66 @@
-+Linux ACPI Custom Control Method How To
-+=======================================
++	if (keycode < 0 || keycode > KEY_MAX)
++		return -EINVAL;
 +
-+Written by Zhang Rui <rui.zhang@intel.com>
-+
-+
-+Linux supports customizing ACPI control methods at runtime.
-+
-+Users can use this to
-+1. override an existing method which may not work correctly,
-+   or just for debugging purposes.
-+2. insert a completely new method in order to create a missing
-+   method such as _OFF, _ON, _STA, _INI, etc.
-+For these cases, it is far simpler to dynamically install a single
-+control method rather than override the entire DSDT, because kernel
-+rebuild/reboot is not needed and test result can be got in minutes.
-+
-+Note: Only ACPI METHOD can be overridden, any other object types like
-+      "Device", "OperationRegion", are not recognized.
-+Note: The same ACPI control method can be overridden for many times,
-+      and it's always the latest one that used by Linux/kernel.
-+
-+1. override an existing method
-+   a) get the ACPI table via ACPI sysfs I/F. e.g. to get the DSDT,
-+      just run "cat /sys/firmware/acpi/tables/DSDT > /tmp/dsdt.dat"
-+   b) disassemble the table by running "iasl -d dsdt.dat".
-+   c) rewrite the ASL code of the method and save it in a new file,
-+   d) package the new file (psr.asl) to an ACPI table format.
-+      Here is an example of a customized \_SB._AC._PSR method,
-+
-+      DefinitionBlock ("", "SSDT", 1, "", "", 0x20080715)
-+      {
-+	External (ACON)
-+
-+	Method (\_SB_.AC._PSR, 0, NotSerialized)
-+	{
-+		Store ("In AC _PSR", Debug)
-+		Return (ACON)
++	key = sparse_keymap_entry_from_scancode(dev, scancode);
++	if (key && key->type == KE_KEY) {
++		old_keycode = key->keycode;
++		key->keycode = keycode;
++		set_bit(keycode, dev->keybit);
++		if (!sparse_keymap_entry_from_keycode(dev, old_keycode))
++			clear_bit(old_keycode, dev->keybit);
++		return 0;
 +	}
-+      }
-+      Note that the full pathname of the method in ACPI namespace
-+      should be used.
-+      And remember to use "External" to declare external objects.
-+   e) assemble the file to generate the AML code of the method.
-+      e.g. "iasl psr.asl" (psr.aml is generated as a result)
-+   f) mount debugfs by "mount -t debugfs none /sys/kernel/debug"
-+   g) override the old method via the debugfs by running
-+      "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method"
 +
-+2. insert a new method
-+   This is easier than overriding an existing method.
-+   We just need to create the ASL code of the method we want to
-+   insert and then follow the step c) ~ g) in section 1.
++	return -EINVAL;
++}
++EXPORT_SYMBOL(sparse_keymap_setkeycode);
 +
-+3. undo your changes
-+   The "undo" operation is not supported for a new inserted method
-+   right now, i.e. we can not remove a method currently.
-+   For an overrided method, in order to undo your changes, please
-+   save a copy of the method original ASL code in step c) section 1,
-+   and redo step c) ~ g) to override the method with the original one.
++/**
++ * sparse_keymap_setup - set up sparse keymap for an input device
++ * @dev: Input device
++ * @keymap: Keymap in form of array of &key_entry structures ending
++ *	with %KE_END type entry
++ * @setup: Function that can be used to adjust keymap entries
++ *	depending on device's deeds, may be %NULL
++ *
++ * The function calculates size and allocates copy of the original
++ * keymap after which sets up input device event bits appropriately.
++ * Before detsroying input device allocated keymap should be freed
++ * with a call to sparse_keymap_free().
++ */
++int sparse_keymap_setup(struct input_dev *dev,
++			const struct key_entry *keymap,
++			int (*setup)(struct input_dev *, struct key_entry *))
++{
++	size_t map_size = 1; /* to account for the last KE_END entry */
++	const struct key_entry *e;
++	struct key_entry *map, *entry;
++	int i;
++	int error;
 +
++	for (e = keymap; e->type != KE_END; e++)
++		map_size++;
 +
-+Note: We can use a kernel with multiple custom ACPI method running,
-+      But each individual write to debugfs can implement a SINGLE
-+      method override. i.e. if we want to insert/override multiple
-+      ACPI methods, we need to redo step c) ~ g) for multiple times.
-
++	map = kcalloc(map_size, sizeof (struct key_entry), GFP_KERNEL);
++	if (!map)
++		return -ENOMEM;
++
++	memcpy(map, keymap, map_size * sizeof (struct key_entry));
++
++	for (i = 0; i < map_size; i++) {
++		entry = &map[i];
++
++		if (setup) {
++			error = setup(dev, entry);
++			if (error)
++				goto err_out;
++		}
++
++		switch (entry->type) {
++		case KE_KEY:
++			__set_bit(EV_KEY, dev->evbit);
++			__set_bit(entry->keycode, dev->keybit);
++			break;
++
++		case KE_SW:
++			__set_bit(EV_SW, dev->evbit);
++			__set_bit(entry->sw.code, dev->swbit);
++			break;
++		}
++	}
++
++	dev->keycode = map;
++	dev->keycodemax = map_size;
++	dev->getkeycode = sparse_keymap_getkeycode;
++	dev->setkeycode = sparse_keymap_setkeycode;
++
++	return 0;
++
++ err_out:
++	kfree(keymap);
++	return error;
++
++}
++EXPORT_SYMBOL(sparse_keymap_setup);
++
++/**
++ * sparse_keymap_free - free memory allocated for sparse keymap
++ * @dev: Input device using sparse keymap
++ *
++ * This function is used to free memory allocated by sparse keymap
++ * in an input device that was set up by sparse_keymap_setup().
++ */
++void sparse_keymap_free(struct input_dev *dev)
++{
++	kfree(dev->keycode);
++	dev->keycode = NULL;
++	dev->keycodemax = 0;
++	dev->getkeycode = NULL;
++	dev->setkeycode = NULL;
++}
++EXPORT_SYMBOL(sparse_keymap_free);
+diff --git a/include/linux/input/sparse-keymap.h b/include/linux/input/sparse-keymap.h
+new file mode 100644
+index 0000000..fae67b1
+--- /dev/null
++++ b/include/linux/input/sparse-keymap.h
+@@ -0,0 +1,52 @@
++#ifndef _SPARSE_KEYMAP_H
++#define _SPARSE_KEYMAP_H
++
++/*
++ * Copyright (c) 2009 Dmitry Torokhov
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#define KE_END		0	/* Indicates end of keymap */
++#define KE_KEY		1	/* Ordinary key/button */
++#define KE_SW		2	/* Switch */
++#define KE_LAST		KE_SW
++
++/**
++ * struct key_entry - keymap entry for use in sparse keymap
++ * @type: Type of the key entry (KE_KEY, KE_SW, KE_END); drivers are
++ *	allowed to extend the list with their own private definitions.
++ * @code: Device-specific data identifying the button/switch
++ * @keycode: KEY_* code assigned to a key/button
++ * @sw.code: SW_* code assigned to a switch
++ * @sw.value: Value that should be sent in an input even when switch
++ *	is toggled.
++ *
++ * This structure defines an entry in a sparse keymap used by some
++ * input devices for which traditional table-based approach is not
++ * suitable.
++ */
++struct key_entry {
++	int type;		/* See KE_* above */
++	u32 code;
++	union {
++		u16 keycode;		/* For KE_KEY */
++		struct {		/* For KE_SW */
++			u8 code;
++			u8 value;
++		} sw;
++	};
++};
++
++struct key_entry *sparse_keymap_entry_from_scancode(struct input_dev *dev,
++						    unsigned int code);
++struct key_entry *sparse_keymap_entry_from_keycode(struct input_dev *dev,
++						   unsigned int code);
++int sparse_keymap_setup(struct input_dev *dev,
++			const struct key_entry *keymap,
++			int (*setup)(struct input_dev *, struct key_entry *));
++void sparse_keymap_free(struct input_dev *dev);
++
++#endif /* _SPARSE_KEYMAP_H */
 
