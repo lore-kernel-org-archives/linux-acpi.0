@@ -1,94 +1,83 @@
-From: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: [PATCH 32/33] input: add KEY_WIRELESS_CYCLE
-Date: Thu, 03 Dec 2009 10:43:32 +0100
-Message-ID: <1259833412.12843.7.camel@johannes.local>
-References: <1259826317-18809-28-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-30-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-31-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-32-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
-	 <20091203075404.GK9121@core.coreip.homeip.net>
-	 <71cd59b00912030012r2f45f474u37c494ad281230cb@mail.gmail.com>
-	 <20091203082120.GL9121@core.coreip.homeip.net>
-	 <71cd59b00912030051w6bf54abfv726f288c2eae1d33@mail.gmail.com>
-	 <20091203085717.GO9121@core.coreip.homeip.net>
-	 <71cd59b00912030122n3d94236ajfa5e55c3b5a9efcd@mail.gmail.com>
+From: Anisse Astier <anisse@astier.eu>
+Subject: Re: [PATCH 4/8] Input: hp-wmi - switch to using sparse keymap
+ library
+Date: Thu, 3 Dec 2009 10:58:11 +0100
+Message-ID: <20091203105811.06571039@destiny.ordissimo>
+References: <20091202091056.30409.50455.stgit@localhost.localdomain>
+	<20091202092425.30409.85617.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Voe8s4HviLIwaKbAhdXv"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <71cd59b00912030122n3d94236ajfa5e55c3b5a9efcd@mail.gmail.com>
+In-Reply-To: <20091202092425.30409.85617.stgit@localhost.localdomain>
 Sender: linux-input-owner@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, networkmanager-list@gnome.org, linux-wireless@vger.kernel.org, kde-hardware-devel@kde.org, dbus@lists.freedesktop.org, hal@lists.freedesktop.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Dmitry,
 
---=-Voe8s4HviLIwaKbAhdXv
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Wed, 02 Dec 2009 01:24:25 -0800, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote :
 
-On Thu, 2009-12-03 at 10:22 +0100, Corentin Chary wrote:
+> diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+> index c284217..8868610 100644
+> --- a/drivers/platform/x86/hp-wmi.c
+> +++ b/drivers/platform/x86/hp-wmi.c
+> @@ -411,14 +342,29 @@ static int __init hp_wmi_input_setup(void)
+>  			    hp_wmi_tablet_state());
+>  	input_sync(hp_wmi_input_dev);
+>  
+> -	err = input_register_device(hp_wmi_input_dev);
+> +	err = wmi_install_notify_handler(HPWMI_EVENT_GUID, hp_wmi_notify, NULL);
+> +	if (err)
+> +		goto err_free_keymap;
+>  
+> -	if (err) {
+> -		input_free_device(hp_wmi_input_dev);
+> -		return err;
+> -	}
+> +	err = input_register_device(hp_wmi_input_dev);
+> +	if (err)
+> +		goto err_uninstall_notifier;
+>  
+>  	return 0;
+> +
+> + err_uninstall_notifier:
+> +	wmi_remove_notify_handler(HPWMI_EVENT_GUID);
+> + err_free_keymap:
+> +	(hp_wmi_input_dev);
+> + err_free_dev:
+> +	input_free_device(hp_wmi_input_dev);
+> +	return err;
+> +}
+> +
+> +static void __exit hp_wmi_input_destroy(void)
+> +{
+> +	wmi_remove_notify_handler(HPWMI_EVENT_GUID);
+> +	input_unregister_device(hp_wmi_input_dev);
+>  }
+I'm not sure if you're calling sparse_keymap_free on the exit path.
 
-> >> > I understand this. I guess the question is whether people working on
-> >> > system infrastructure (dbus, Networkmanager, etc) care about having =
-such
-> >> > functionality on Linux? The reason I am asking is that we added all
-> >> > KEY_WIMAX and so on defines but I am not usre if anyone wants them.
-> >>
-> >> KEY_WIMAX may not be used a lot because there is not a lot of device
-> >> with such a key,
-> >> I think this is not the case for KEY_WIRELESS_CYCLE.
-> >>
-> >> The bad thing is that we will need to patch X11 (and Qt, for
-> >> kde/solid) to make it works.
-> >>
-> >> Maybe we should Cc dbus/network manager/solid/linux-wireless ?
-> >>
-> >
-> > That would be a good idea.
->=20
-> Here it is.
->=20
-> Dear system infrastructure people,
-> Do you think a KEY_WIRELESS_CYCLE key would have any application ?
+>  
+>  static void cleanup_sysfs(struct platform_device *device)
+> @@ -564,10 +509,9 @@ static int __init hp_wmi_init(void)
+>  
+>  static void __exit hp_wmi_exit(void)
+>  {
+> -	if (wmi_has_guid(HPWMI_EVENT_GUID)) {
+> -		wmi_remove_notify_handler(HPWMI_EVENT_GUID);
+> -		input_unregister_device(hp_wmi_input_dev);
+> -	}
+> +	if (wmi_has_guid(HPWMI_EVENT_GUID))
+> +		hp_wmi_input_destroy();
+> +
+>  	if (hp_wmi_platform_dev) {
+>  		platform_device_del(hp_wmi_platform_dev);
+>  		platform_driver_unregister(&hp_wmi_driver);
+> 
+OK, I'm guilty, I copied my sparse keymap adaptation for msi-wmi from this
+patch :-)
 
-Not really.
-
-The naming of the key ultimately will not matter one bit, because it'll
-be misnamed on most platforms anyway, unless we want to do DMI matching
-or something to name the key. And even then, if there's a wifi key but
-no bluetooth key, users may prefer to have the wifi key act as a cycle
-key instead.
-
-Therefore, this ought to all be policy in the rfkill daemon.
-rfkill-input will be going away as soon as somebody writes a simple
-daemon that allows doing such things, I really don't see us adding
-support for a cycle key to the kernel code, and for the userspace code
-it doesn't matter since users will configure it independent of the key
-code anyway.
-
-johannes
-
---=-Voe8s4HviLIwaKbAhdXv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABAgAGBQJLF4hAAAoJEODzc/N7+Qma9sUQAMRJ6Izik2Ab6oPaZx6VA5sw
-su8ggWrcebIhs/Zbiy4i96BvnF0UyhCmdqmK4Le0PQjdlJ7fVMHE83kp48tfoQgt
-HYWcKr4x095rftfnTymBJcuX6nrH8X7hg2t/dR9ZmSJV2HMHRlV52KDHyf90KhEU
-FYaNgoKQAllS/83QqZ90XUMbH7tfMZB5BapQwr5uR8DTpRCRpw0juYQK3pAx5xVn
-WXmTcN4GFT9wOlayZEw2KQc63DLRDvMF8CwV0xFP8VYuFWKEoOtHZW8Zu5+I4j00
-PK/zkZpRC9NexBylJef15vy4mjUSw64y9PiRhzRZio1n9yfDm3+MYKAllatbEkAs
-EONREsQNb4YmBX589YBIK51opOjbW9YMXH2tsZdj9CUha2gwnc3oqHxgciG4hR26
-21Rj2vMblTWE0RcoIZOcgfXeLOOulckEoW4ssG0u64DqdREh49eqpNQ/n3lI6OyJ
-PBztYLJkjqlBvPA88+PDztSGyh00SHPlwzg7UiivO6hhfkVtz1r9wPgyUyVGnqz0
-Kp+Pa01bqZkuPpak4QhVT9drk4HUqw3t2uyiXCUaYbcaVLpHr0RVO8iRt6UhoGYo
-ge604Zy84n29E9AHJsgbdZzdPa+OiAn9YvDzpGYxHMQw70KtRRICHTQOTPA+ABZk
-LE7JT92EcrjP2wWZww9X
-=XC29
------END PGP SIGNATURE-----
-
---=-Voe8s4HviLIwaKbAhdXv--
-
+--
+Anisse
