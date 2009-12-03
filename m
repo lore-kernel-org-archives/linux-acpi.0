@@ -1,180 +1,158 @@
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC PATCH 1/2] =?iso-8859-1?Q?Input?=
-	=?iso-8859-1?Q?=3A_add_msi-wmi_driver_to_support_hotkeys_in_MSI=A0Windto?=
-	=?iso-8859-1?Q?p?= AE1900-WT
-Date: Wed, 2 Dec 2009 19:11:28 -0800
-Message-ID: <20091203031128.GA9121@core.coreip.homeip.net>
-References: <20091202192603.3e1de98a@destiny.ordissimo>
+Subject: [PATCH] sony-laptop - remove private workqueue, use keventd instead
+Date: Wed, 2 Dec 2009 21:07:42 -0800
+Message-ID: <20091203050742.GF9121@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:38087 "EHLO
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:57762 "EHLO
 	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866AbZLCDL0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 22:11:26 -0500
+	with ESMTP id S1750702AbZLCFHk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 00:07:40 -0500
+Received: by pwi3 with SMTP id 3so779216pwi.21
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Dec 2009 21:07:46 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20091202192603.3e1de98a@destiny.ordissimo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Anisse Astier <anisse@astier.eu>
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>
+To: Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org
 
-Hi Anisse,
+If we reschedule work instead of having work function sleep for 10 msecs
+between reads from kfifo we can safely use the main workqueue (keventd)
+and not bother with creating driver-private one.
 
-On Wed, Dec 02, 2009 at 07:26:03PM +0100, Anisse Astier wrote:
-> +
-> +	if (jiffies_to_msecs(get_jiffies_64() - msi_wmi_time_last_press)
-> +			> pression_timeout) {
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-Why don't you use time_after() instead of manual computation?
-
-Also, what is the point of this? If you are trying to debounce the
-buttons this will not quite work. To do debouncing properly you need to
-store the value you just read and fire up a timer. When timer fires -
-that's the stable value.
-
-> +		printk(KERN_DEBUG
-> +				"MSI WMI: event correctly received: %llu\n",
-> +				obj->integer.value);
-
-This is way too noisy for the mainline kernel, pr_debug() perhaps?
-
-> +		msi_wmi_time_last_press =3D get_jiffies_64();
-> +		key =3D msi_wmi_get_entry_by_scancode(obj->integer.value);
-> +		input_report_key(msi_wmi_input_dev, key->keycode, 1);
-> +		input_sync(msi_wmi_input_dev);
-> +		input_report_key(msi_wmi_input_dev, key->keycode, 0);
-> +		input_sync(msi_wmi_input_dev);
-> +	}
-> +}
-> +
-> +static int msi_wmi_getkeycode(struct input_dev *dev, int scancode, i=
-nt *keycode)
-> +{
-> +	struct key_entry *key =3D msi_wmi_get_entry_by_scancode(scancode);
-> +
-> +	if (key && key->code) {
-> +		*keycode =3D key->keycode;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static int msi_wmi_setkeycode(struct input_dev *dev, int scancode, i=
-nt keycode)
-> +{
-> +	struct key_entry *key;
-> +	int old_keycode;
-> +
-> +	if (keycode < 0 || keycode > KEY_MAX)
-> +		return -EINVAL;
-> +
-> +	key =3D msi_wmi_get_entry_by_scancode(scancode);
-> +	if (key && key->code) {
-> +		old_keycode =3D key->keycode;
-> +		key->keycode =3D keycode;
-> +		set_bit(keycode, dev->keybit);
-> +		if (!msi_wmi_get_entry_by_keycode(old_keycode))
-> +			clear_bit(old_keycode, dev->keybit);
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static int __init msi_wmi_input_setup(void)
-> +{
-> +	struct key_entry *key;
-> +	int err;
-> +
-> +	msi_wmi_input_dev =3D input_allocate_device();
-> +
-> +	msi_wmi_input_dev->name =3D "MSI WMI hotkeys";
-> +	msi_wmi_input_dev->phys =3D "wmi/input0";
-> +	msi_wmi_input_dev->id.bustype =3D BUS_HOST;
-> +	msi_wmi_input_dev->getkeycode =3D msi_wmi_getkeycode;
-> +	msi_wmi_input_dev->setkeycode =3D msi_wmi_setkeycode;
-> +
-> +	for (key =3D msi_wmi_keymap; key->code; key++) {
-> +		set_bit(EV_KEY, msi_wmi_input_dev->evbit);
-> +		set_bit(key->keycode, msi_wmi_input_dev->keybit);
-> +	}
-> +
-> +	err =3D input_register_device(msi_wmi_input_dev);
-> +
-> +	if (err)
-> +		input_free_device(msi_wmi_input_dev);
-> +
-> +	return err;
-> +}
-> +
-> +static int __init msi_wmi_init(void)
-> +{
-> +	int err;
-> +
-> +	msi_wmi_time_last_press =3D get_jiffies_64();
-> +	if (!wmi_has_guid(MSIWMI_EVENT_GUID)) {
-> +		printk(KERN_ERR
-> +		       "This machine doesn't have MSI-hotkeys through WMI\n");
-> +		goto load_error;
-> +	}
-> +	err =3D wmi_install_notify_handler(MSIWMI_EVENT_GUID,
-> +					 msi_wmi_notify, NULL);
-> +	if (err) {
-> +		printk(KERN_ERR
-> +		       "MSI WMI: Error while installing notify handler\n");
-> +		goto load_error;
-> +	}
-> +
-> +	msi_wmi_input_setup();
+ drivers/platform/x86/sony-laptop.c |   57 ++++++++++++++++++++----------------
+ 1 files changed, 31 insertions(+), 26 deletions(-)
 
 
-You need to handle errors returned by msi_wmi_input_setup() as well.
-
-> +
-> +	return 0;
-> +load_error:
-> +	return -ENODEV;
-> +}
-> +
-> +static void __exit msi_wmi_exit(void)
-> +{
-> +	if (wmi_has_guid(MSIWMI_EVENT_GUID)) {
-> +		wmi_remove_notify_handler(MSIWMI_EVENT_GUID);
-> +		input_unregister_device(msi_wmi_input_dev);
-> +	}
-> +}
-> +
-> +module_init(msi_wmi_init);
-> +module_exit(msi_wmi_exit);
-> +module_param(pression_timeout, uint, 0);
-> +
-> +MODULE_AUTHOR("J=E9r=F4me Pouiller <jezz@sysmic.org>");
-> +MODULE_AUTHOR("Michael Bouchaud <michael@substantiel.fr");
-> +MODULE_AUTHOR("Anisse Astier <anisse@astier.eu");
-> +MODULE_DESCRIPTION("MSI all-in-one WMI hotkeys driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("wmi:" MSIWMI_EVENT_GUID);
-> +/*This one is useless if there is wmi-autoloading*/
-> +MODULE_ALIAS("dmi:bvnMICRO-STARINTERNATIONALCO.,LTD:*:svnMICRO-STARI=
-NTERNATIO"
-> +	     "NALCO.,LTD:pnMS-6638:*:rnMS-7438:*:cvnMICRO-STARINTERNATIONAL=
-CO."
-> +	     ",LTD:*");
-> +MODULE_PARM_DESC(pression_timeout,
-> +		 "How much time interrupts are ignored between each pression");
-
-This is not the best option name:
-
-MODULE_PARM_DESC(debounce_interval,
-		 "Controls how long driver will wait for button to debounce");
-
---=20
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index a2a742c..b6d2961 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -144,7 +144,6 @@ struct sony_laptop_input_s {
+ 	struct input_dev	*key_dev;
+ 	struct kfifo		*fifo;
+ 	spinlock_t		fifo_lock;
+-	struct workqueue_struct	*wq;
+ };
+ 
+ static struct sony_laptop_input_s sony_laptop_input = {
+@@ -298,17 +297,28 @@ static int sony_laptop_input_keycode_map[] = {
+ /* release buttons after a short delay if pressed */
+ static void do_sony_laptop_release_key(struct work_struct *work)
+ {
++	struct delayed_work *dwork =
++			container_of(work, struct delayed_work, work);
+ 	struct sony_laptop_keypress kp;
+ 
+-	while (kfifo_get(sony_laptop_input.fifo, (unsigned char *)&kp,
+-			 sizeof(kp)) == sizeof(kp)) {
+-		msleep(10);
++	if (kfifo_get(sony_laptop_input.fifo,
++		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
+ 		input_report_key(kp.dev, kp.key, 0);
+ 		input_sync(kp.dev);
+ 	}
++
++	/*
++	 * If there is something in the fifo scnhedule nect release.
++	 * We don't care about locking, at worst we may schedule an
++	 * extra "empty" wakeup. This may be improved with the new
++	 * kfifo API.
++	 */
++	if (__kfifo_len(sony_laptop_input.fifo) != 0)
++		schedule_delayed_work(dwork, msecs_to_jiffies(10));
+ }
+-static DECLARE_WORK(sony_laptop_release_key_work,
+-		do_sony_laptop_release_key);
++
++static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
++			    do_sony_laptop_release_key);
+ 
+ /* forward event to the input subsystem */
+ static void sony_laptop_report_input_event(u8 event)
+@@ -362,12 +372,12 @@ static void sony_laptop_report_input_event(u8 event)
+ 		/* we emit the scancode so we can always remap the key */
+ 		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
+ 		input_sync(kp.dev);
++
++		/* schedule key release */
+ 		kfifo_put(sony_laptop_input.fifo,
+ 			  (unsigned char *)&kp, sizeof(kp));
+-
+-		if (!work_pending(&sony_laptop_release_key_work))
+-			queue_work(sony_laptop_input.wq,
+-					&sony_laptop_release_key_work);
++		schedule_delayed_work(&sony_laptop_release_key_work,
++				      msecs_to_jiffies(10));
+ 	} else
+ 		dprintk("unknown input event %.2x\n", event);
+ }
+@@ -394,20 +404,11 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 		goto err_dec_users;
+ 	}
+ 
+-	/* init workqueue */
+-	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
+-	if (!sony_laptop_input.wq) {
+-		printk(KERN_ERR DRV_PFX
+-				"Unable to create workqueue.\n");
+-		error = -ENXIO;
+-		goto err_free_kfifo;
+-	}
+-
+ 	/* input keys */
+ 	key_dev = input_allocate_device();
+ 	if (!key_dev) {
+ 		error = -ENOMEM;
+-		goto err_destroy_wq;
++		goto err_free_kfifo;
+ 	}
+ 
+ 	key_dev->name = "Sony Vaio Keys";
+@@ -470,9 +471,6 @@ err_unregister_keydev:
+ err_free_keydev:
+ 	input_free_device(key_dev);
+ 
+-err_destroy_wq:
+-	destroy_workqueue(sony_laptop_input.wq);
+-
+ err_free_kfifo:
+ 	kfifo_free(sony_laptop_input.fifo);
+ 
+@@ -483,12 +481,20 @@ err_dec_users:
+ 
+ static void sony_laptop_remove_input(void)
+ {
++	struct sony_laptop_keypress kp = { NULL };
++
+ 	/* cleanup only after the last user has gone */
+ 	if (!atomic_dec_and_test(&sony_laptop_input.users))
+ 		return;
+ 
+-	/* flush workqueue first */
+-	flush_workqueue(sony_laptop_input.wq);
++	cancel_delayed_work_sync(&sony_laptop_release_key_work);
++
++	/* Generate key-up events for remaining keys */
++	while (kfifo_get(sony_laptop_input.fifo,
++			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
++		input_report_key(kp.dev, kp.key, 0);
++		input_sync(kp.dev);
++	}
+ 
+ 	/* destroy input devs */
+ 	input_unregister_device(sony_laptop_input.key_dev);
+@@ -499,7 +505,6 @@ static void sony_laptop_remove_input(void)
+ 		sony_laptop_input.jog_dev = NULL;
+ 	}
+ 
+-	destroy_workqueue(sony_laptop_input.wq);
+ 	kfifo_free(sony_laptop_input.fifo);
+ }
+ 
+-- 
 Dmitry
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
