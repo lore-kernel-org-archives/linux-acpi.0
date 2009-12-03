@@ -1,44 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 32/33] input: add KEY_WIRELESS_CYCLE
-Date: Thu, 3 Dec 2009 08:54:22 -0200
-Message-ID: <20091203105422.GC32571@khazad-dum.debian.net>
-References: <1259826317-18809-25-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-26-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-27-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-28-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-29-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-30-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-31-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-32-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
- <20091203075404.GK9121@core.coreip.homeip.net>
+From: Will Stephenson <wstephenson-RoXCvvDuEio@public.gmane.org>
+Subject: Re: [Kde-hardware-devel] [PATCH 32/33] input: add KEY_WIRELESS_CYCLE
+Date: Thu, 3 Dec 2009 12:23:04 +0100
+Message-ID: <200912031223.04419.wstephenson@kde.org>
+References: <1259826317-18809-28-git-send-email-corentincj@iksaif.net> <71cd59b00912030122n3d94236ajfa5e55c3b5a9efcd@mail.gmail.com> <1259833412.12843.7.camel@johannes.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091203075404.GK9121@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1259833412.12843.7.camel-YfaajirXv2244ywRPIzf9A@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kde-hardware-devel-RoXCvvDuEio@public.gmane.org
+Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dbus-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, networkmanager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 02 Dec 2009, Dmitry Torokhov wrote:
-> On Thu, Dec 03, 2009 at 08:45:16AM +0100, Corentin Chary wrote:
-> > This keycode could be used in a lot of platform specific drivers.
-> > For example, on Asus laptops, Fn+F2 allow to cycle trought wireless
-> > drivers (bt/wl: off/off, on/off, off/on, on/on).
-> > 
-> > Currently, these key are mapped to KEY_WLAN, and KEY_BLUETOOTH/KEY_WIMAX
-> > are rarely used.
+On Thursday 03 December 2009 10:43:32 Johannes Berg wrote:
+> On Thu, 2009-12-03 at 10:22 +0100, Corentin Chary wrote:
+> > Dear system infrastructure people,
+> > Do you think a KEY_WIRELESS_CYCLE key would have any application ?
 > 
-> Is there any application support for such cycling? IOW does anyone cares
-> to do such cycling?
+> Not really.
+> 
+> The naming of the key ultimately will not matter one bit, because it'll
+> be misnamed on most platforms anyway, unless we want to do DMI matching
+> or something to name the key. And even then, if there's a wifi key but
+> no bluetooth key, users may prefer to have the wifi key act as a cycle
+> key instead.
+> 
+> Therefore, this ought to all be policy in the rfkill daemon.
+> rfkill-input will be going away as soon as somebody writes a simple
+> daemon that allows doing such things, I really don't see us adding
+> support for a cycle key to the kernel code, and for the userspace code
+> it doesn't matter since users will configure it independent of the key
+> code anyway.
 
-Well, the default ThinkPad behaviour would be to cycle as well, and I'd use
-this new keycode if it becomes available.
+This sounds reasonable to me, as the wireless guy in the KDE camp.  I don't 
+want to have to handle these keypresses in a user session anyway - I prefer 
+that NetworkManager picks up on them and notifies the client of the state 
+change.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Will
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
