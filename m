@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 32/33] input: add KEY_WIRELESS_CYCLE
-Date: Thu,  3 Dec 2009 08:45:16 +0100
-Message-ID: <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 33/33] asus-laptop: schedule display_get and lcd_switch for removal
+Date: Thu,  3 Dec 2009 08:45:17 +0100
+Message-ID: <1259826317-18809-34-git-send-email-corentincj@iksaif.net>
 References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
@@ -34,42 +34,51 @@ References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-30-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-31-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-32-git-send-email-corentincj@iksaif.net>
+ <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44223 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:44228 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754576AbZLCHoj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1754740AbZLCHoj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 3 Dec 2009 02:44:39 -0500
-In-Reply-To: <1259826317-18809-32-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, linux-input@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
 
-This keycode could be used in a lot of platform specific drivers.
-For example, on Asus laptops, Fn+F2 allow to cycle trought wireless
-drivers (bt/wl: off/off, on/off, off/on, on/on).
-
-Currently, these key are mapped to KEY_WLAN, and KEY_BLUETOOTH/KEY_WIMAX
-are rarely used.
-
-Cc: linux-input@vger.kernel.org
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- include/linux/input.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ Documentation/feature-removal-schedule.txt |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/input.h b/include/linux/input.h
-index c2b1a7d..c961908 100644
---- a/include/linux/input.h
-+++ b/include/linux/input.h
-@@ -376,6 +376,7 @@ struct input_absinfo {
- #define KEY_DISPLAY_OFF		245	/* display device to off state */
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index bc693ff..d1c9e17 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -489,3 +489,23 @@ Why:	With the recent innovations in CPU hardware acceleration technologies
+ Who:	Alok N Kataria <akataria@vmware.com>
  
- #define KEY_WIMAX		246
-+#define KEY_WIRELESS_CYCLE	247
- 
- /* Range 248 - 255 is reserved for special needs of AT keyboard driver */
- 
+ ----------------------------
++
++What:	Support for lcd_switch and display_get in asus-laptop driver
++When:	March 2010
++Why:	These two features use non-standard interfaces. There are the
++	only features that really need multiple path to guess what's
++	the right method name on a specific laptop.
++
++	Removing them will allow to remove a lot of code an significantly
++	clean the drivers.
++
++	This will affect the backlight code which won't be able to know
++	if the backlight is on or off. The platform display file will also be
++	write only (like the one in eeepc-laptop).
++
++	This should'nt affect a lot of user because they usually know
++	when their display is on or off.
++
++Who:	Corentin Chary <corentin.chary@gmail.com>
++
++----------------------------
 -- 
 1.6.5.3
 
