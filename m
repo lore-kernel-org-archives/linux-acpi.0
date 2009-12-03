@@ -1,7 +1,7 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 18/33] eeepc-laptop: simplify acpi initialization
-Date: Thu,  3 Dec 2009 08:45:02 +0100
-Message-ID: <1259826317-18809-19-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 19/33] eeepc-laptop: simplify how the hwmon device reads values from the EC
+Date: Thu,  3 Dec 2009 08:45:03 +0100
+Message-ID: <1259826317-18809-20-git-send-email-corentincj@iksaif.net>
 References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
@@ -20,12 +20,13 @@ References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-16-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-17-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-18-git-send-email-corentincj@iksaif.net>
+ <1259826317-18809-19-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44217 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:44223 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754259AbZLCHof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1754291AbZLCHof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 3 Dec 2009 02:44:35 -0500
-In-Reply-To: <1259826317-18809-18-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1259826317-18809-19-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -33,129 +34,111 @@ Cc: linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-We don't need to store init_flags after using them.  And we don't use
-the result of INIT, so we don't need to allocate a buffer for it.
+The hwmon device uses ec_write() to write values to the EC.  So for
+consistency it should use ec_read() to read values.  The extra layers
+of indirection used did not add any value.
+
+This may mean we no longer take the ACPI global lock for such reads
+(if the EC operation region requires the lock and the EC does not).
+But there is no point locking each one-byte read individually, when
+write operations do not use the lock at all.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
- drivers/platform/x86/eeepc-laptop.c |   55 ++++++++++++++++------------------
- 1 files changed, 26 insertions(+), 29 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   43 +++++++++++++++++------------------
+ 1 files changed, 21 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 9f33e51..50ceaaf 100644
+index 50ceaaf..04a59d3 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -136,7 +136,6 @@ struct eeepc_hotk {
- 	acpi_handle handle;		/* the handle of the hotk device */
- 	u32 cm_supported;		/* the control methods supported
- 					   by this BIOS */
--	uint init_flag;			/* Init flags */
- 	u16 event_count[128];		/* count for each event */
- 	struct input_dev *inputdev;
- 	u16 *keycode_map;
-@@ -256,8 +255,7 @@ MODULE_LICENSE("GPL");
+@@ -118,14 +118,14 @@ static const char *cm_setv[] = {
+ 	NULL, NULL, "PBPS", "TPDS"
+ };
+ 
+-#define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
++#define EEEPC_EC_SC00      0x61
++#define EEEPC_EC_FAN_PWM   (EEEPC_EC_SC00 + 2) /* Fan PWM duty cycle (%) */
++#define EEEPC_EC_FAN_HRPM  (EEEPC_EC_SC00 + 5) /* High byte, fan speed (RPM) */
++#define EEEPC_EC_FAN_LRPM  (EEEPC_EC_SC00 + 6) /* Low byte, fan speed (RPM) */
++
++#define EEEPC_EC_SFB0      0xD0
++#define EEEPC_EC_FAN_CTRL  (EEEPC_EC_SFB0 + 3) /* Byte containing SF25  */
+ 
+-#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" /* Fan PWM duty cycle (%) */
+-#define EEEPC_EC_SC02		0x63
+-#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" /* High byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" /* Low byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" /* Byte containing SF25  */
+-#define EEEPC_EC_SFB3		0xD3
+ 
  /*
-  * ACPI Helpers
+  * This is the main structure, we can use it to store useful information
+@@ -903,35 +903,34 @@ static int eeepc_hotk_restore(struct device *device)
   */
--static int write_acpi_int(acpi_handle handle, const char *method, int val,
--			  struct acpi_buffer *output)
-+static int write_acpi_int(acpi_handle handle, const char *method, int val)
+ static int eeepc_get_fan_pwm(void)
  {
- 	struct acpi_object_list params;
- 	union acpi_object in_obj;
-@@ -268,7 +266,7 @@ static int write_acpi_int(acpi_handle handle, const char *method, int val,
- 	in_obj.type = ACPI_TYPE_INTEGER;
- 	in_obj.integer.value = val;
+-	int value = 0;
++	u8 value = 0;
  
--	status = acpi_evaluate_object(handle, (char *)method, &params, output);
-+	status = acpi_evaluate_object(handle, (char *)method, &params, NULL);
- 	return (status == AE_OK ? 0 : -1);
+-	read_acpi_int(NULL, EEEPC_EC_FAN_PWM, &value);
+-	value = value * 255 / 100;
+-	return (value);
++	ec_read(EEEPC_EC_FAN_PWM, &value);
++	return value * 255 / 100;
  }
  
-@@ -296,7 +294,7 @@ static int set_acpi(int cm, int value)
- 	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
- 		return -ENODEV;
- 
--	if (write_acpi_int(ehotk->handle, method, value, NULL))
-+	if (write_acpi_int(ehotk->handle, method, value))
- 		pr_warning("Error writing %s\n", method);
- 	return 0;
- }
-@@ -624,36 +622,36 @@ static void cmsg_quirks(void)
- 	cmsg_quirk(CM_ASL_TPD, "TPD");
- }
- 
--static int eeepc_hotk_check(void)
-+static int eeepc_hotk_init(void)
+ static void eeepc_set_fan_pwm(int value)
  {
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	unsigned int init_flags;
- 	int result;
- 
- 	result = acpi_bus_get_status(ehotk->device);
- 	if (result)
- 		return result;
--	if (ehotk->device->status.present) {
--		if (write_acpi_int(ehotk->handle, "INIT", ehotk->init_flag,
--				    &buffer)) {
--			pr_err("Hotkey initialization failed\n");
--			return -ENODEV;
--		} else {
--			pr_notice("Hotkey init flags 0x%x\n", ehotk->init_flag);
--		}
--		/* get control methods supported */
--		if (read_acpi_int(ehotk->handle, "CMSG"
--				   , &ehotk->cm_supported)) {
--			pr_err("Get control methods supported failed\n");
--			return -ENODEV;
--		} else {
--			cmsg_quirks();
--			pr_info("Get control methods supported: 0x%x\n",
--				ehotk->cm_supported);
--		}
--	} else {
-+	if (!ehotk->device->status.present) {
- 		pr_err("Hotkey device not present, aborting\n");
--		return -EINVAL;
-+		return -ENODEV;
- 	}
-+
-+	init_flags = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
-+	pr_notice("Hotkey init flags 0x%x\n", init_flags);
-+
-+	if (write_acpi_int(ehotk->handle, "INIT", init_flags)) {
-+		pr_err("Hotkey initialization failed\n");
-+		return -ENODEV;
-+	}
-+
-+	/* get control methods supported */
-+	if (read_acpi_int(ehotk->handle, "CMSG",
-+				&ehotk->cm_supported)) {
-+		pr_err("Get control methods supported failed\n");
-+		return -ENODEV;
-+	}
-+	cmsg_quirks();
-+	pr_info("Get control methods supported: 0x%x\n", ehotk->cm_supported);
-+
- 	return 0;
+ 	value = SENSORS_LIMIT(value, 0, 255);
+ 	value = value * 100 / 255;
+-	ec_write(EEEPC_EC_SC02, value);
++	ec_write(EEEPC_EC_FAN_PWM, value);
  }
  
-@@ -1264,14 +1262,13 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
- 	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
- 	if (!ehotk)
- 		return -ENOMEM;
--	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
- 	ehotk->handle = device->handle;
- 	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
- 	device->driver_data = ehotk;
- 	ehotk->device = device;
+ static int eeepc_get_fan_rpm(void)
+ {
+-	int high = 0;
+-	int low = 0;
++	u8 high = 0;
++	u8 low = 0;
  
--	result = eeepc_hotk_check();
-+	result = eeepc_hotk_init();
- 	if (result)
- 		goto fail_platform_driver;
- 	eeepc_enable_camera();
+-	read_acpi_int(NULL, EEEPC_EC_FAN_HRPM, &high);
+-	read_acpi_int(NULL, EEEPC_EC_FAN_LRPM, &low);
+-	return (high << 8 | low);
++	ec_read(EEEPC_EC_FAN_HRPM, &high);
++	ec_read(EEEPC_EC_FAN_LRPM, &low);
++	return high << 8 | low;
+ }
+ 
+ static int eeepc_get_fan_ctrl(void)
+ {
+-	int value = 0;
++	u8 value = 0;
+ 
+-	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
++	ec_read(EEEPC_EC_FAN_CTRL, &value);
+ 	if (value & 0x02)
+ 		return 1; /* manual */
+ 	else
+@@ -940,14 +939,14 @@ static int eeepc_get_fan_ctrl(void)
+ 
+ static void eeepc_set_fan_ctrl(int manual)
+ {
+-	int value = 0;
++	u8 value = 0;
+ 
+-	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
++	ec_read(EEEPC_EC_FAN_CTRL, &value);
+ 	if (manual == 1)
+ 		value |= 0x02;
+ 	else
+ 		value &= ~0x02;
+-	ec_write(EEEPC_EC_SFB3, value);
++	ec_write(EEEPC_EC_FAN_CTRL, value);
+ }
+ 
+ static ssize_t store_sys_hwmon(void (*set)(int), const char *buf, size_t count)
 -- 
 1.6.5.3
 
