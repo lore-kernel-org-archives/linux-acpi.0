@@ -1,16 +1,17 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 03/33] asus-acpi: Remove redundant NULL checks
-Date: Thu,  3 Dec 2009 08:44:47 +0100
-Message-ID: <1259826317-18809-4-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 04/33] asus-laptop: Remove uneccesary acpi_disabled check
+Date: Thu,  3 Dec 2009 08:44:48 +0100
+Message-ID: <1259826317-18809-5-git-send-email-corentincj@iksaif.net>
 References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
+ <1259826317-18809-4-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44211 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:44214 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751020AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Dec 2009 02:44:31 -0500
-In-Reply-To: <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
+	id S1753479AbZLCHoc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Dec 2009 02:44:32 -0500
+In-Reply-To: <1259826317-18809-4-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -18,53 +19,28 @@ Cc: linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-The acpi device callbacks add, start, remove, suspend and resume can
-never be called with a NULL acpi_device. Each callsite in acpi/scan.c
-has to dereference the device in order to get the ops structure, e.g.
-
-    struct acpi_device *acpi_dev = to_acpi_device(dev);
-    struct acpi_driver *acpi_drv = acpi_dev->driver;
-
-    if (acpi_drv && acpi_drv->ops.suspend)
-        return acpi_drv->ops.suspend(acpi_dev, state);
-
-Remove all checks for acpi_dev == NULL within these callbacks.
-
-Also remove the checks for acpi_driver_data(acpi_dev) == NULL. None of
-these checks could fail unless the driver does something strange
-(which none of them do), the acpi core did something terribly wrong,
-or we have a memory corruption issue. If this does happen then it's
-best to dereference the pointer and crash noisily.
+acpi_bus_register_driver() already checks acpi_disabled, so acpi bus
+drivers don't need to.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
- drivers/platform/x86/asus_acpi.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ drivers/platform/x86/asus-laptop.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
-index ddf5240..25a7d57 100644
---- a/drivers/platform/x86/asus_acpi.c
-+++ b/drivers/platform/x86/asus_acpi.c
-@@ -1334,9 +1334,6 @@ static int asus_hotk_add(struct acpi_device *device)
- 	acpi_status status = AE_OK;
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 8af43e9..4234edb 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -1438,9 +1438,6 @@ static int __init asus_laptop_init(void)
+ {
  	int result;
  
--	if (!device)
--		return -EINVAL;
+-	if (acpi_disabled)
+-		return -ENODEV;
 -
- 	printk(KERN_NOTICE "Asus Laptop ACPI Extras version %s\n",
- 	       ASUS_ACPI_VERSION);
- 
-@@ -1392,9 +1389,6 @@ end:
- 
- static int asus_hotk_remove(struct acpi_device *device, int type)
- {
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
--
- 	asus_hotk_remove_fs(device);
- 
- 	kfree(hotk);
+ 	result = acpi_bus_register_driver(&asus_hotk_driver);
+ 	if (result < 0)
+ 		return result;
 -- 
 1.6.5.3
 
