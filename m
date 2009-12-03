@@ -1,104 +1,124 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 7/8] thinkpad-acpi: expose module parameters
-Date: Thu,  3 Dec 2009 09:41:24 -0200
-Message-ID: <1259840485-2516-8-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 2/8] thinkpad-acpi: preserve rfkill state across suspend/resume
+Date: Thu,  3 Dec 2009 09:41:19 -0200
+Message-ID: <1259840485-2516-3-git-send-email-hmh@hmh.eng.br>
 References: <1259840485-2516-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42117 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54852 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753787AbZLCLlb (ORCPT
+	by vger.kernel.org with ESMTP id S1754001AbZLCLlb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 06:41:31 -0500
 In-Reply-To: <1259840485-2516-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, stable@kernel.org
 
-Export the normal (non-command) module paramenters as mode 0444, so
-that they will show up in sysfs.
+Since the rfkill rework in 2.6.31, the driver is always resuming with
+the radios disabled.
 
-These parameters must not be changed at runtime as a rule, with very
-few exceptions.
+Change thinkpad-acpi to ask the firmware to resume with the radios in
+the last state.  This fixes the Bluetooth and WWAN rfkill switches.
 
-Reported-by: Ferenc Wagner <wferi@niif.hu>
+Note that it means we respect the firmware's oddities.  Should the
+user toggle the hardware rfkill switch on and off, it might cause the
+radios to resume enabled.
+
+UWB is an unknown quantity since it has nowhere the same level of
+firmware support (no control over state storage in NVRAM, for
+example), and might need further fixing.  Testers welcome.
+
+This change fixes a regression from 2.6.30.
+
+Reported-by: Jerone Young <jerone.young@canonical.com>
+Reported-by: Ian Molton <ian.molton@collabora.co.uk>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Tested-by: Ian Molton <ian.molton@collabora.co.uk>
+Cc: stable@kernel.org
 ---
- drivers/platform/x86/thinkpad_acpi.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   32 +++++---------------------------
+ 1 files changed, 5 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index dd8bd07..4b96a96 100644
+index 9c6d5a9..1ee734c 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -8116,32 +8116,32 @@ static int __init set_ibm_param(const char *val, struct kernel_param *kp)
- 	return -EINVAL;
- }
+@@ -3866,15 +3866,6 @@ enum {
  
--module_param(experimental, int, 0);
-+module_param(experimental, int, 0444);
- MODULE_PARM_DESC(experimental,
- 		 "Enables experimental features when non-zero");
+ #define TPACPI_RFK_BLUETOOTH_SW_NAME	"tpacpi_bluetooth_sw"
  
- module_param_named(debug, dbg_level, uint, 0);
- MODULE_PARM_DESC(debug, "Sets debug level bit-mask");
+-static void bluetooth_suspend(pm_message_t state)
+-{
+-	/* Try to make sure radio will resume powered off */
+-	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
+-		   TP_ACPI_BLTH_PWR_OFF_ON_RESUME))
+-		vdbg_printk(TPACPI_DBG_RFKILL,
+-			"bluetooth power down on resume request failed\n");
+-}
+-
+ static int bluetooth_get_status(void)
+ {
+ 	int status;
+@@ -3908,10 +3899,9 @@ static int bluetooth_set_status(enum tpacpi_rfkill_state state)
+ #endif
  
--module_param(force_load, bool, 0);
-+module_param(force_load, bool, 0444);
- MODULE_PARM_DESC(force_load,
- 		 "Attempts to load the driver even on a "
- 		 "mis-identified ThinkPad when true");
+ 	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
++	status = TP_ACPI_BLUETOOTH_RESUMECTRL;
+ 	if (state == TPACPI_RFK_RADIO_ON)
+-		status = TP_ACPI_BLUETOOTH_RADIOSSW;
+-	else
+-		status = 0;
++		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
  
--module_param_named(fan_control, fan_control_allowed, bool, 0);
-+module_param_named(fan_control, fan_control_allowed, bool, 0444);
- MODULE_PARM_DESC(fan_control,
- 		 "Enables setting fan parameters features when true");
+ 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
+ 		return -EIO;
+@@ -4050,7 +4040,6 @@ static struct ibm_struct bluetooth_driver_data = {
+ 	.read = bluetooth_read,
+ 	.write = bluetooth_write,
+ 	.exit = bluetooth_exit,
+-	.suspend = bluetooth_suspend,
+ 	.shutdown = bluetooth_shutdown,
+ };
  
--module_param_named(brightness_mode, brightness_mode, uint, 0);
-+module_param_named(brightness_mode, brightness_mode, uint, 0444);
- MODULE_PARM_DESC(brightness_mode,
- 		 "Selects brightness control strategy: "
- 		 "0=auto, 1=EC, 2=UCMS, 3=EC+NVRAM");
+@@ -4068,15 +4057,6 @@ enum {
  
--module_param(brightness_enable, uint, 0);
-+module_param(brightness_enable, uint, 0444);
- MODULE_PARM_DESC(brightness_enable,
- 		 "Enables backlight control when 1, disables when 0");
+ #define TPACPI_RFK_WWAN_SW_NAME		"tpacpi_wwan_sw"
  
--module_param(hotkey_report_mode, uint, 0);
-+module_param(hotkey_report_mode, uint, 0444);
- MODULE_PARM_DESC(hotkey_report_mode,
- 		 "used for backwards compatibility with userspace, "
- 		 "see documentation");
-@@ -8164,25 +8164,25 @@ TPACPI_PARAM(volume);
- TPACPI_PARAM(fan);
+-static void wan_suspend(pm_message_t state)
+-{
+-	/* Try to make sure radio will resume powered off */
+-	if (!acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
+-		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME))
+-		vdbg_printk(TPACPI_DBG_RFKILL,
+-			"WWAN power down on resume request failed\n");
+-}
+-
+ static int wan_get_status(void)
+ {
+ 	int status;
+@@ -4109,11 +4089,10 @@ static int wan_set_status(enum tpacpi_rfkill_state state)
+ 	}
+ #endif
  
- #ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
--module_param(dbg_wlswemul, uint, 0);
-+module_param(dbg_wlswemul, uint, 0444);
- MODULE_PARM_DESC(dbg_wlswemul, "Enables WLSW emulation");
- module_param_named(wlsw_state, tpacpi_wlsw_emulstate, bool, 0);
- MODULE_PARM_DESC(wlsw_state,
- 		 "Initial state of the emulated WLSW switch");
+-	/* We make sure to keep TP_ACPI_WANCARD_RESUMECTRL off */
++	/* We make sure to set TP_ACPI_WANCARD_RESUMECTRL */
++	status = TP_ACPI_WANCARD_RESUMECTRL;
+ 	if (state == TPACPI_RFK_RADIO_ON)
+-		status = TP_ACPI_WANCARD_RADIOSSW;
+-	else
+-		status = 0;
++		status |= TP_ACPI_WANCARD_RADIOSSW;
  
--module_param(dbg_bluetoothemul, uint, 0);
-+module_param(dbg_bluetoothemul, uint, 0444);
- MODULE_PARM_DESC(dbg_bluetoothemul, "Enables bluetooth switch emulation");
- module_param_named(bluetooth_state, tpacpi_bluetooth_emulstate, bool, 0);
- MODULE_PARM_DESC(bluetooth_state,
- 		 "Initial state of the emulated bluetooth switch");
+ 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
+ 		return -EIO;
+@@ -4251,7 +4230,6 @@ static struct ibm_struct wan_driver_data = {
+ 	.read = wan_read,
+ 	.write = wan_write,
+ 	.exit = wan_exit,
+-	.suspend = wan_suspend,
+ 	.shutdown = wan_shutdown,
+ };
  
--module_param(dbg_wwanemul, uint, 0);
-+module_param(dbg_wwanemul, uint, 0444);
- MODULE_PARM_DESC(dbg_wwanemul, "Enables WWAN switch emulation");
- module_param_named(wwan_state, tpacpi_wwan_emulstate, bool, 0);
- MODULE_PARM_DESC(wwan_state,
- 		 "Initial state of the emulated WWAN switch");
- 
--module_param(dbg_uwbemul, uint, 0);
-+module_param(dbg_uwbemul, uint, 0444);
- MODULE_PARM_DESC(dbg_uwbemul, "Enables UWB switch emulation");
- module_param_named(uwb_state, tpacpi_uwb_emulstate, bool, 0);
- MODULE_PARM_DESC(uwb_state,
 -- 
 1.6.5.2
 
