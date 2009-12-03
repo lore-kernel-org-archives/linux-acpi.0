@@ -1,85 +1,82 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 00/33] acpi4asus updates for 2.6.33
-Date: Thu,  3 Dec 2009 08:44:44 +0100
-Message-ID: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 01/33] eeepc-laptop: disp attribute should be write-only
+Date: Thu,  3 Dec 2009 08:44:45 +0100
+Message-ID: <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
+References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44202 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:44205 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751020AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751329AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 3 Dec 2009 02:44:31 -0500
+In-Reply-To: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentincj@iksaif.net>
 
-Hi Len,
-Here patchs from acpi4asus for 2.6.33.
-You'll find a major rewrite of eeepc-laptop by Alan Jenkins which really
-cleans the code. I'm working one something similar for asus-laptop, this should
-be ready for 2.6.34.
-There is also some fix and updates for asus-laptop and asus-acpi.
-asus-laptop now support Lenovo SL laptop (yep this is strange, but this is the
-same acpi interface).
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-There is two smalls style issues in Alan's patchs, but I made a patch to fix that
-in the serie, it was easier than reworking the whole serie, but I'll try to
-avoid that next time.
+Currently, reading from the disp attribute fails with "No such device",
+which is misleading. According to CMSG table on acpi4asus project site,
+no models have a getter method corresponding to SDSP. Change the file
+permission to disallow reads.
 
-The last two patchs may be controversial.
+If some joker changes the permission to permit reads, then return -EIO
+to be consistent with sysfs' behaviour when no show() method is
+provided.
 
-The first one add the KEY_WIRELESS_CYCLE. This keycode could be used when
-the key is not only for wlan, but could also be used for bluetooth and wimax.
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/eeepc-laptop.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-The last schedule some asus-laptop features for removale, because they are
-not defined in a standard way in the acpi interface.
-Thanks,
-
-Alan Jenkins (25):
-  eeepc-laptop: disp attribute should be write-only
-  asus-laptop: Remove redundant NULL checks
-  asus-acpi: Remove redundant NULL checks
-  asus-laptop: Remove uneccesary acpi_disabled check
-  asus-acpi: Remove uneccesary acpi_disabled checks
-  asus-acpi: set acpi_driver.owner
-  asus-laptop: set acpi_driver.owner
-  eeepc-laptop: Remove redundant NULL checks
-  eeepc-laptop: Remove uneccesary acpi_disabled check
-  eeepc-laptop: set acpi_driver.owner
-  eeepc-laptop: fix value of pwm1_enable to match documentation
-  eeepc-laptop: fix led initialization order
-  eeepc-laptop: fix potential leak (led_init() failure)
-  eeepc-laptop: fix set_acpi() to return non-zero on failure
-  eeepc-laptop: remove redundant NULL checks
-  eeepc-laptop: no need to check argument of set_brightness()
-  eeepc-laptop: simplify acpi initialization
-  eeepc-laptop: simplify how the hwmon device reads values from the EC
-  eeepc-laptop: refactor notifications
-  eeepc-laptop: move platform driver registration out of
-    eeepc_hotk_add()
-  eeepc-laptop: move platform device initialisation to a separate
-    function
-  eeepc-laptop: code movement
-  eeepc-laptop: revise names
-  eeepc-laptop: callbacks should use "driver data" parameter or field
-  eeepc-laptop: re-add check for eeepc->backlight == NULL
-
-Corentin Chary (7):
-  eeepc-laptop: add touchpad led
-  asus-laptop: use KEY_F13 to map "Disable Touchpad" event
-  asus-laptop: Add wlan switch found on V6V
-  eeepc-laptop: map keys found on newer eeepc
-  eeepc-laptop: fix coding style
-  input: add KEY_WIRELESS_CYCLE
-  asus-laptop: schedule display_get and lcd_switch for removal
-
-Ike Panhc (1):
-  asus-laptop: add Lenovo SL hotkey support
-
- Documentation/feature-removal-schedule.txt |   20 +
- drivers/platform/x86/Kconfig               |    2 +
- drivers/platform/x86/asus-laptop.c         |   21 +-
- drivers/platform/x86/asus_acpi.c           |   19 +-
- drivers/platform/x86/eeepc-laptop.c        | 1415 +++++++++++++++------------
- include/linux/input.h                      |    1 +
- 6 files changed, 825 insertions(+), 653 deletions(-)
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 4226e53..2c65a37 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -380,7 +380,7 @@ static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
+ 	if (rv > 0)
+ 		value = set_acpi(cm, value);
+ 	if (value < 0)
+-		return value;
++		return -EIO;
+ 	return rv;
+ }
+ 
+@@ -389,11 +389,11 @@ static ssize_t show_sys_acpi(int cm, char *buf)
+ 	int value = get_acpi(cm);
+ 
+ 	if (value < 0)
+-		return value;
++		return -EIO;
+ 	return sprintf(buf, "%d\n", value);
+ }
+ 
+-#define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
++#define EEEPC_CREATE_DEVICE_ATTR(_name, _mode, _cm)			\
+ 	static ssize_t show_##_name(struct device *dev,			\
+ 				    struct device_attribute *attr,	\
+ 				    char *buf)				\
+@@ -409,14 +409,14 @@ static ssize_t show_sys_acpi(int cm, char *buf)
+ 	static struct device_attribute dev_attr_##_name = {		\
+ 		.attr = {						\
+ 			.name = __stringify(_name),			\
+-			.mode = 0644 },					\
++			.mode = _mode },				\
+ 		.show   = show_##_name,					\
+ 		.store  = store_##_name,				\
+ 	}
+ 
+-EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
+-EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
+-EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
++EEEPC_CREATE_DEVICE_ATTR(camera, 0644, CM_ASL_CAMERA);
++EEEPC_CREATE_DEVICE_ATTR(cardr, 0644, CM_ASL_CARDREADER);
++EEEPC_CREATE_DEVICE_ATTR(disp, 0200, CM_ASL_DISPLAYSWITCH);
+ 
+ struct eeepc_cpufv {
+ 	int num;
+-- 
+1.6.5.3
 
