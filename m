@@ -1,70 +1,41 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 4/8] Input: hp-wmi - switch to using sparse keymap
-	library
-Date: Thu, 3 Dec 2009 02:03:38 -0800
-Message-ID: <20091203100338.GA32433@core.coreip.homeip.net>
-References: <20091202091056.30409.50455.stgit@localhost.localdomain> <20091202092425.30409.85617.stgit@localhost.localdomain> <20091203105811.06571039@destiny.ordissimo>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Backlight device class redesign
+Date: Thu, 3 Dec 2009 08:52:23 -0200
+Message-ID: <20091203105223.GB32571@khazad-dum.debian.net>
+References: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
+ <b170af450911291209o33ebfc36n850826e54096f3b4@mail.gmail.com>
+ <1259827274.27069.50.camel@rzhang1-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:33073 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755887AbZLCKDf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 05:03:35 -0500
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44255 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754518AbZLCKwT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 05:52:19 -0500
 Content-Disposition: inline
-In-Reply-To: <20091203105811.06571039@destiny.ordissimo>
+In-Reply-To: <1259827274.27069.50.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Anisse Astier <anisse@astier.eu>
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Rafa?? Mi??ecki <zajec5@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
 
-On Thu, Dec 03, 2009 at 10:58:11AM +0100, Anisse Astier wrote:
-> Hi Dmitry,
-> 
-> On Wed, 02 Dec 2009 01:24:25 -0800, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote :
-> 
-> > diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
-> > index c284217..8868610 100644
-> > --- a/drivers/platform/x86/hp-wmi.c
-> > +++ b/drivers/platform/x86/hp-wmi.c
-> > @@ -411,14 +342,29 @@ static int __init hp_wmi_input_setup(void)
-> >  			    hp_wmi_tablet_state());
-> >  	input_sync(hp_wmi_input_dev);
-> >  
-> > -	err = input_register_device(hp_wmi_input_dev);
-> > +	err = wmi_install_notify_handler(HPWMI_EVENT_GUID, hp_wmi_notify, NULL);
-> > +	if (err)
-> > +		goto err_free_keymap;
-> >  
-> > -	if (err) {
-> > -		input_free_device(hp_wmi_input_dev);
-> > -		return err;
-> > -	}
-> > +	err = input_register_device(hp_wmi_input_dev);
-> > +	if (err)
-> > +		goto err_uninstall_notifier;
-> >  
-> >  	return 0;
-> > +
-> > + err_uninstall_notifier:
-> > +	wmi_remove_notify_handler(HPWMI_EVENT_GUID);
-> > + err_free_keymap:
-> > +	(hp_wmi_input_dev);
-> > + err_free_dev:
-> > +	input_free_device(hp_wmi_input_dev);
-> > +	return err;
-> > +}
-> > +
-> > +static void __exit hp_wmi_input_destroy(void)
-> > +{
-> > +	wmi_remove_notify_handler(HPWMI_EVENT_GUID);
-> > +	input_unregister_device(hp_wmi_input_dev);
-> >  }
-> I'm not sure if you're calling sparse_keymap_free on the exit path.
-> 
+On Thu, 03 Dec 2009, Zhang Rui wrote:
+> For example, device /sys/class/backlight/panel0 is created the first
+> time a backlight_ops for this display is registered.
+> And create the symbol link from the backlight class device to "physical
+> device" (device that invokes backlight_device_register) in the backlight
+> class device driver, if we really need it.
+> Remove and recreate a link pointing to the new physical device when the
+> backlight mode is changed.
 
-Guilty as charged ;)
+FWIW, I agree the above solution is simple enough and quite good enough.
+
+I just have absolutely _NO_ idea whatsoever how a platform driver can ask
+the PCI or APCI layer "where is the video device driving the LVDS panel so
+that I can bind to it"...
 
 -- 
-Dmitry
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
