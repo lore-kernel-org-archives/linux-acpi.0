@@ -1,170 +1,138 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 4/8] thinkpad-acpi: issue backlight class events
-Date: Thu,  3 Dec 2009 09:41:21 -0200
-Message-ID: <1259840485-2516-5-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 8/8] thinkpad-acpi: log temperatures on termal alarm
+Date: Thu,  3 Dec 2009 09:41:25 -0200
+Message-ID: <1259840485-2516-9-git-send-email-hmh@hmh.eng.br>
 References: <1259840485-2516-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:60275 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59680 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753839AbZLCLld (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 06:41:33 -0500
+	by vger.kernel.org with ESMTP id S1753892AbZLCLlb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 06:41:31 -0500
 In-Reply-To: <1259840485-2516-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg@redhat.com>, Richard Purdie <rpurdie@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Pavel Machek <pavel@ucw.cz>
 
-Take advantage of the new events capabilities of the backlight class to
-notify userspace of backlight changes.
-
-This depends on "backlight: Allow drivers to update the core, and
-generate events on changes", by Matthew Garrett.
+Log temperatures on any of the EC thermal alarms.  It could be
+useful to help tracking down what is happening...
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@linux.intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   51 +++++++-----------------------
- drivers/platform/x86/thinkpad_acpi.c    |   24 ++++++++++++++-
- 2 files changed, 35 insertions(+), 40 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   60 +++++++++++++++++++++++++++------
+ 1 files changed, 49 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index aafcaa6..f5056c7 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -460,6 +460,8 @@ event	code	Key		Notes
- 				For Lenovo ThinkPads with a new
- 				BIOS, it has to be handled either
- 				by the ACPI OSI, or by userspace.
-+				The driver does the right thing,
-+				never mess with this.
- 0x1011	0x10	FN+END		Brightness down.  See brightness
- 				up for details.
- 
-@@ -582,46 +584,15 @@ with hotkey_report_mode.
- 
- Brightness hotkey notes:
- 
--These are the current sane choices for brightness key mapping in
--thinkpad-acpi:
-+Don't mess with the brightness hotkeys in a Thinkpad.  If you want
-+notifications for OSD, use the sysfs backlight class event support.
- 
--For IBM and Lenovo models *without* ACPI backlight control (the ones on
--which thinkpad-acpi will autoload its backlight interface by default,
--and on which ACPI video does not export a backlight interface):
--
--1. Don't enable or map the brightness hotkeys in thinkpad-acpi, as
--   these older firmware versions unfortunately won't respect the hotkey
--   mask for brightness keys anyway, and always reacts to them.  This
--   usually work fine, unless X.org drivers are doing something to block
--   the BIOS.  In that case, use (3) below.  This is the default mode of
--   operation.
--
--2. Enable the hotkeys, but map them to something else that is NOT
--   KEY_BRIGHTNESS_UP/DOWN or any other keycode that would cause
--   userspace to try to change the backlight level, and use that as an
--   on-screen-display hint.
--
--3. IF AND ONLY IF X.org drivers find a way to block the firmware from
--   automatically changing the brightness, enable the hotkeys and map
--   them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN, and feed that to
--   something that calls xbacklight.  thinkpad-acpi will not be able to
--   change brightness in that case either, so you should disable its
--   backlight interface.
--
--For Lenovo models *with* ACPI backlight control:
--
--1. Load up ACPI video and use that.  ACPI video will report ACPI
--   events for brightness change keys.  Do not mess with thinkpad-acpi
--   defaults in this case.  thinkpad-acpi should not have anything to do
--   with backlight events in a scenario where ACPI video is loaded:
--   brightness hotkeys must be disabled, and the backlight interface is
--   to be kept disabled as well.  This is the default mode of operation.
--
--2. Do *NOT* load up ACPI video, enable the hotkeys in thinkpad-acpi,
--   and map them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN.  Process
--   these keys on userspace somehow (e.g. by calling xbacklight).
--   The driver will do this automatically if it detects that ACPI video
--   has been disabled.
-+The driver will issue KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN events
-+automatically for the cases were userspace has to do something to
-+implement brightness changes.  When you override these events, you will
-+either fail to handle properly the ThinkPads that require explicit
-+action to change backlight brightness, or the ThinkPads that require
-+that no action be taken to work properly.
- 
- 
- Bluetooth
-@@ -1465,3 +1436,5 @@ Sysfs interface changelog:
- 		and it is always able to disable hot keys.  Very old
- 		thinkpads are properly supported.  hotkey_bios_mask
- 		is deprecated and marked for removal.
-+
-+0x020600:	Marker for backlight change event support.
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 6160813..4406136 100644
+index 4b96a96..7800232 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -22,7 +22,7 @@
-  */
- 
- #define TPACPI_VERSION "0.23"
--#define TPACPI_SYSFS_VERSION 0x020500
-+#define TPACPI_SYSFS_VERSION 0x020600
- 
- /*
-  *  Changelog:
-@@ -6073,6 +6073,12 @@ static int brightness_get(struct backlight_device *bd)
- 	return status & TP_EC_BACKLIGHT_LVLMSK;
+@@ -3546,49 +3546,57 @@ static bool hotkey_notify_usrevent(const u32 hkey,
+ 	}
  }
  
-+static void tpacpi_brightness_notify_change(void)
++static void thermal_dump_all_sensors(void);
++
+ static bool hotkey_notify_thermal(const u32 hkey,
+ 				 bool *send_acpi_ev,
+ 				 bool *ignore_acpi_ev)
+ {
++	int known = true;
++
+ 	/* 0x6000-0x6FFF: thermal alarms */
+ 	*send_acpi_ev = true;
+ 	*ignore_acpi_ev = false;
+ 
+ 	switch (hkey) {
++	case TP_HKEY_EV_THM_TABLE_CHANGED:
++		printk(TPACPI_INFO
++			"EC reports that Thermal Table has changed\n");
++		/* recommended action: do nothing, we don't have
++		 * Lenovo ATM information */
++		return true;
+ 	case TP_HKEY_EV_ALARM_BAT_HOT:
+ 		printk(TPACPI_CRIT
+ 			"THERMAL ALARM: battery is too hot!\n");
+ 		/* recommended action: warn user through gui */
+-		return true;
++		break;
+ 	case TP_HKEY_EV_ALARM_BAT_XHOT:
+ 		printk(TPACPI_ALERT
+ 			"THERMAL EMERGENCY: battery is extremely hot!\n");
+ 		/* recommended action: immediate sleep/hibernate */
+-		return true;
++		break;
+ 	case TP_HKEY_EV_ALARM_SENSOR_HOT:
+ 		printk(TPACPI_CRIT
+ 			"THERMAL ALARM: "
+ 			"a sensor reports something is too hot!\n");
+ 		/* recommended action: warn user through gui, that */
+ 		/* some internal component is too hot */
+-		return true;
++		break;
+ 	case TP_HKEY_EV_ALARM_SENSOR_XHOT:
+ 		printk(TPACPI_ALERT
+ 			"THERMAL EMERGENCY: "
+ 			"a sensor reports something is extremely hot!\n");
+ 		/* recommended action: immediate sleep/hibernate */
+-		return true;
+-	case TP_HKEY_EV_THM_TABLE_CHANGED:
+-		printk(TPACPI_INFO
+-			"EC reports that Thermal Table has changed\n");
+-		/* recommended action: do nothing, we don't have
+-		 * Lenovo ATM information */
+-		return true;
++		break;
+ 	default:
+ 		printk(TPACPI_ALERT
+ 			 "THERMAL ALERT: unknown thermal alarm received\n");
+-		return false;
++		known = false;
+ 	}
++
++	thermal_dump_all_sensors();
++
++	return known;
+ }
+ 
+ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+@@ -5553,6 +5561,36 @@ static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s)
+ 	return n;
+ }
+ 
++#if TPACPI_MAX_THERMAL_SENSORS > 16
++#error Please adjust thermal_dump_all_sensors()
++#endif
++
++static void thermal_dump_all_sensors(void)
 +{
-+	backlight_force_update(ibm_backlight_device,
-+			       BACKLIGHT_UPDATE_HOTKEY);
++	int n, i;
++	struct ibm_thermal_sensors_struct t;
++
++	n = thermal_get_sensors(&t);
++	if (n <= 0)
++		return;
++
++	for (i = 0; i < n; i++)
++		t.temp[i] = t.temp[i] / 1000;
++
++	/* Fill missing sensors with N/A marker */
++	for (i = n; i < TPACPI_MAX_THERMAL_SENSORS; i++)
++		t.temp[i] = -128;
++
++	/* FIXME: it is ugly */
++	printk(TPACPI_NOTICE
++		"temperatures (Celsius): "
++		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
++		t.temp[0], t.temp[1], t.temp[2], t.temp[3], t.temp[4],
++		t.temp[5], t.temp[6], t.temp[7], t.temp[8], t.temp[9],
++		t.temp[10], t.temp[11], t.temp[12], t.temp[13], t.temp[14],
++		t.temp[15]);
 +}
 +
- static struct backlight_ops ibm_backlight_data = {
- 	.get_brightness = brightness_get,
- 	.update_status  = brightness_update_status,
-@@ -6227,6 +6233,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 	ibm_backlight_device->props.brightness = b & TP_EC_BACKLIGHT_LVLMSK;
- 	backlight_update_status(ibm_backlight_device);
+ /* sysfs temp##_input -------------------------------------------------- */
  
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_BRGHT,
-+			"brightness: registering brightness hotkeys "
-+			"as change notification\n");
-+	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
-+				| TP_ACPI_HKEY_BRGHTUP_MASK
-+				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
- 	return 0;
- }
- 
-@@ -6303,6 +6315,9 @@ static int brightness_write(char *buf)
- 	 * Doing it this way makes the syscall restartable in case of EINTR
- 	 */
- 	rc = brightness_set(level);
-+	if (!rc && ibm_backlight_device)
-+		backlight_force_update(ibm_backlight_device,
-+					BACKLIGHT_UPDATE_SYSFS);
- 	return (rc == -EINTR)? -ERESTARTSYS : rc;
- }
- 
-@@ -7702,6 +7717,13 @@ static struct ibm_struct fan_driver_data = {
-  */
- static void tpacpi_driver_event(const unsigned int hkey_event)
- {
-+	if (ibm_backlight_device) {
-+		switch (hkey_event) {
-+		case TP_HKEY_EV_BRGHT_UP:
-+		case TP_HKEY_EV_BRGHT_DOWN:
-+			tpacpi_brightness_notify_change();
-+		}
-+	}
- }
- 
- 
+ static ssize_t thermal_temp_input_show(struct device *dev,
 -- 
 1.6.5.2
 
