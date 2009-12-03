@@ -1,15 +1,16 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 02/33] asus-laptop: Remove redundant NULL checks
-Date: Thu,  3 Dec 2009 08:44:46 +0100
-Message-ID: <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 03/33] asus-acpi: Remove redundant NULL checks
+Date: Thu,  3 Dec 2009 08:44:47 +0100
+Message-ID: <1259826317-18809-4-git-send-email-corentincj@iksaif.net>
 References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
  <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
+ <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44208 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:44211 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751849AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751020AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 3 Dec 2009 02:44:31 -0500
-In-Reply-To: <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
@@ -37,33 +38,33 @@ best to dereference the pointer and crash noisily.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 ---
- drivers/platform/x86/asus-laptop.c |    6 ------
+ drivers/platform/x86/asus_acpi.c |    6 ------
  1 files changed, 0 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index b39d2bb..8af43e9 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -1240,9 +1240,6 @@ static int asus_hotk_add(struct acpi_device *device)
- {
+diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
+index ddf5240..25a7d57 100644
+--- a/drivers/platform/x86/asus_acpi.c
++++ b/drivers/platform/x86/asus_acpi.c
+@@ -1334,9 +1334,6 @@ static int asus_hotk_add(struct acpi_device *device)
+ 	acpi_status status = AE_OK;
  	int result;
  
 -	if (!device)
 -		return -EINVAL;
 -
- 	pr_notice("Asus Laptop Support version %s\n",
- 	       ASUS_LAPTOP_VERSION);
+ 	printk(KERN_NOTICE "Asus Laptop ACPI Extras version %s\n",
+ 	       ASUS_ACPI_VERSION);
  
-@@ -1306,9 +1303,6 @@ end:
+@@ -1392,9 +1389,6 @@ end:
  
  static int asus_hotk_remove(struct acpi_device *device, int type)
  {
 -	if (!device || !acpi_driver_data(device))
 -		return -EINVAL;
 -
- 	kfree(hotk->name);
- 	kfree(hotk);
+ 	asus_hotk_remove_fs(device);
  
+ 	kfree(hotk);
 -- 
 1.6.5.3
 
