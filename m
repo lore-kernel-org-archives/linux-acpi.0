@@ -1,96 +1,173 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: What's in suspend-2.6.git
-Date: Thu, 3 Dec 2009 22:31:56 +0100
-Message-ID: <200912032231.57072.rjw@sisk.pl>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH] sony-laptop - remove private workqueue, use keventd
+ instead
+Date: Fri, 4 Dec 2009 07:01:07 +0900
+Message-ID: <20091203220107.GA1907@kamineko.org>
+References: <20091203050742.GF9121@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57216 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753363AbZLCVbg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Dec 2009 16:31:36 -0500
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:36938
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752076AbZLCWBD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 17:01:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20091203050742.GF9121@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: pm list <linux-pm@lists.linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, Dec 02, 2009 at 09:07:42PM -0800, Dmitry Torokhov wrote:
+> If we reschedule work instead of having work function sleep for 10 msecs
+> between reads from kfifo we can safely use the main workqueue (keventd)
+> and not bother with creating driver-private one.
+> 
+> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 
-This is a summary of the changes queued on the #linux-next branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git
+Hi Dmitry,
 
-They are going to be pushed to Linus in the next couple of days.
+Looks reasonable to me. Let me take a deeper look and give it a go and
+I'll submit it for inclusion together with another pending patch I have
+for 2.6.33.
 
-PM developers, please speak up if there's anything obviously wrong or missing.
+Thanks
+mattia
 
-
-Alan Stern (2):
-      PM / Runtime: Export the PM runtime workqueue
-      PM / Runtime: Use deferred_resume flag in pm_request_resume
-
-Jaswinder Singh Rajput (1):
-      PM: Fix kernel-doc notation
-
-Jiri Slaby (1):
-      PM / Hibernate: Swap, use KERN_CONT
-
-Nigel Cunningham (2):
-      PM / Hibernate: Move swap functions to kernel/power/swap.c.
-      PM / Hibernate: Shift remaining code from swsusp.c to hibernate.c
-
-Rafael J. Wysocki (15):
-      PM: Introduce PM links framework
-      PM: Asynchronous resume of devices
-      PM: Asynchronous suspend of devices
-      PM: Allow PCI devices to suspend/resume asynchronously
-      PM: Allow ACPI devices to suspend/resume asynchronously
-      PM: Add a switch for disabling/enabling asynchronous suspend/resume
-      PM: Measure device suspend and resume times
-      PM: Add facility for advanced testing of async suspend/resume
-      PM: Measure suspend and resume times for individual devices
-      PM: Allow serio input devices to suspend/resume asynchronously
-      PM / Runtime: Fix lockdep warning in __pm_runtime_set_status()
-      PM / Runtime: Ensure timer_expires is nonzero in pm_schedule_suspend()
-      PM / Runtime: Make documentation of runtime_idle() agree with the code
-      PM / Runtime: Remove unnecessary braces in __pm_runtime_set_status()
-      PM: Add flag for devices capable of generating run-time wake-up events
-
-Stephen Rothwell (1):
-      PM / Suspend: Using TASK_ macros requires sched.h
-
-Tejun Heo (1):
-      PM / freezer: Don't get over-anxious while waiting
-
----------------
-
- Documentation/power/runtime_pm.txt |   12 +-
- drivers/acpi/glue.c                |    3 +
- drivers/acpi/scan.c                |    1 +
- drivers/base/core.c                |    4 +
- drivers/base/power/Makefile        |    2 +-
- drivers/base/power/common.c        |  283 +++++++++++++++
- drivers/base/power/main.c          |  677 +++++++++++++++++++++++++++++++++---
- drivers/base/power/power.h         |   42 ++-
- drivers/base/power/runtime.c       |   27 +-
- drivers/base/power/sysfs.c         |   47 +++
- drivers/input/serio/serio.c        |    1 +
- drivers/pci/pci.c                  |    1 +
- drivers/pci/pcie/portdrv_core.c    |    1 +
- include/linux/device.h             |   11 +
- include/linux/pm.h                 |   21 +-
- include/linux/pm_link.h            |   30 ++
- include/linux/pm_runtime.h         |   12 +
- include/linux/resume-trace.h       |    7 +
- kernel/power/Kconfig               |   14 +
- kernel/power/Makefile              |    2 +-
- kernel/power/hibernate.c           |   26 ++
- kernel/power/main.c                |   32 ++-
- kernel/power/process.c             |   14 +-
- kernel/power/swap.c                |  107 ++++++-
- kernel/power/swsusp.c              |  188 ----------
- 25 files changed, 1281 insertions(+), 284 deletions(-)
-
-Thanks,
-Rafael
+> ---
+> 
+>  drivers/platform/x86/sony-laptop.c |   57 ++++++++++++++++++++----------------
+>  1 files changed, 31 insertions(+), 26 deletions(-)
+> 
+> 
+> diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+> index a2a742c..b6d2961 100644
+> --- a/drivers/platform/x86/sony-laptop.c
+> +++ b/drivers/platform/x86/sony-laptop.c
+> @@ -144,7 +144,6 @@ struct sony_laptop_input_s {
+>  	struct input_dev	*key_dev;
+>  	struct kfifo		*fifo;
+>  	spinlock_t		fifo_lock;
+> -	struct workqueue_struct	*wq;
+>  };
+>  
+>  static struct sony_laptop_input_s sony_laptop_input = {
+> @@ -298,17 +297,28 @@ static int sony_laptop_input_keycode_map[] = {
+>  /* release buttons after a short delay if pressed */
+>  static void do_sony_laptop_release_key(struct work_struct *work)
+>  {
+> +	struct delayed_work *dwork =
+> +			container_of(work, struct delayed_work, work);
+>  	struct sony_laptop_keypress kp;
+>  
+> -	while (kfifo_get(sony_laptop_input.fifo, (unsigned char *)&kp,
+> -			 sizeof(kp)) == sizeof(kp)) {
+> -		msleep(10);
+> +	if (kfifo_get(sony_laptop_input.fifo,
+> +		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
+>  		input_report_key(kp.dev, kp.key, 0);
+>  		input_sync(kp.dev);
+>  	}
+> +
+> +	/*
+> +	 * If there is something in the fifo scnhedule nect release.
+> +	 * We don't care about locking, at worst we may schedule an
+> +	 * extra "empty" wakeup. This may be improved with the new
+> +	 * kfifo API.
+> +	 */
+> +	if (__kfifo_len(sony_laptop_input.fifo) != 0)
+> +		schedule_delayed_work(dwork, msecs_to_jiffies(10));
+>  }
+> -static DECLARE_WORK(sony_laptop_release_key_work,
+> -		do_sony_laptop_release_key);
+> +
+> +static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
+> +			    do_sony_laptop_release_key);
+>  
+>  /* forward event to the input subsystem */
+>  static void sony_laptop_report_input_event(u8 event)
+> @@ -362,12 +372,12 @@ static void sony_laptop_report_input_event(u8 event)
+>  		/* we emit the scancode so we can always remap the key */
+>  		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
+>  		input_sync(kp.dev);
+> +
+> +		/* schedule key release */
+>  		kfifo_put(sony_laptop_input.fifo,
+>  			  (unsigned char *)&kp, sizeof(kp));
+> -
+> -		if (!work_pending(&sony_laptop_release_key_work))
+> -			queue_work(sony_laptop_input.wq,
+> -					&sony_laptop_release_key_work);
+> +		schedule_delayed_work(&sony_laptop_release_key_work,
+> +				      msecs_to_jiffies(10));
+>  	} else
+>  		dprintk("unknown input event %.2x\n", event);
+>  }
+> @@ -394,20 +404,11 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+>  		goto err_dec_users;
+>  	}
+>  
+> -	/* init workqueue */
+> -	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
+> -	if (!sony_laptop_input.wq) {
+> -		printk(KERN_ERR DRV_PFX
+> -				"Unable to create workqueue.\n");
+> -		error = -ENXIO;
+> -		goto err_free_kfifo;
+> -	}
+> -
+>  	/* input keys */
+>  	key_dev = input_allocate_device();
+>  	if (!key_dev) {
+>  		error = -ENOMEM;
+> -		goto err_destroy_wq;
+> +		goto err_free_kfifo;
+>  	}
+>  
+>  	key_dev->name = "Sony Vaio Keys";
+> @@ -470,9 +471,6 @@ err_unregister_keydev:
+>  err_free_keydev:
+>  	input_free_device(key_dev);
+>  
+> -err_destroy_wq:
+> -	destroy_workqueue(sony_laptop_input.wq);
+> -
+>  err_free_kfifo:
+>  	kfifo_free(sony_laptop_input.fifo);
+>  
+> @@ -483,12 +481,20 @@ err_dec_users:
+>  
+>  static void sony_laptop_remove_input(void)
+>  {
+> +	struct sony_laptop_keypress kp = { NULL };
+> +
+>  	/* cleanup only after the last user has gone */
+>  	if (!atomic_dec_and_test(&sony_laptop_input.users))
+>  		return;
+>  
+> -	/* flush workqueue first */
+> -	flush_workqueue(sony_laptop_input.wq);
+> +	cancel_delayed_work_sync(&sony_laptop_release_key_work);
+> +
+> +	/* Generate key-up events for remaining keys */
+> +	while (kfifo_get(sony_laptop_input.fifo,
+> +			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
+> +		input_report_key(kp.dev, kp.key, 0);
+> +		input_sync(kp.dev);
+> +	}
+>  
+>  	/* destroy input devs */
+>  	input_unregister_device(sony_laptop_input.key_dev);
+> @@ -499,7 +505,6 @@ static void sony_laptop_remove_input(void)
+>  		sony_laptop_input.jog_dev = NULL;
+>  	}
+>  
+> -	destroy_workqueue(sony_laptop_input.wq);
+>  	kfifo_free(sony_laptop_input.fifo);
+>  }
+>  
+> -- 
+> Dmitry
+-- 
+mattia
+:wq!
