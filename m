@@ -1,82 +1,69 @@
 From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH 01/33] eeepc-laptop: disp attribute should be write-only
-Date: Thu,  3 Dec 2009 08:44:45 +0100
-Message-ID: <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
+Subject: [PATCH 02/33] asus-laptop: Remove redundant NULL checks
+Date: Thu,  3 Dec 2009 08:44:46 +0100
+Message-ID: <1259826317-18809-3-git-send-email-corentincj@iksaif.net>
 References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
+ <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:44205 "EHLO iksaif.net"
+Received: from iksaif.net ([88.191.73.63]:44208 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751329AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1751849AbZLCHob (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 3 Dec 2009 02:44:31 -0500
-In-Reply-To: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
+In-Reply-To: <1259826317-18809-2-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org, Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Currently, reading from the disp attribute fails with "No such device",
-which is misleading. According to CMSG table on acpi4asus project site,
-no models have a getter method corresponding to SDSP. Change the file
-permission to disallow reads.
+The acpi device callbacks add, start, remove, suspend and resume can
+never be called with a NULL acpi_device. Each callsite in acpi/scan.c
+has to dereference the device in order to get the ops structure, e.g.
 
-If some joker changes the permission to permit reads, then return -EIO
-to be consistent with sysfs' behaviour when no show() method is
-provided.
+    struct acpi_device *acpi_dev = to_acpi_device(dev);
+    struct acpi_driver *acpi_drv = acpi_dev->driver;
+
+    if (acpi_drv && acpi_drv->ops.suspend)
+        return acpi_drv->ops.suspend(acpi_dev, state);
+
+Remove all checks for acpi_dev == NULL within these callbacks.
+
+Also remove the checks for acpi_driver_data(acpi_dev) == NULL. None of
+these checks could fail unless the driver does something strange
+(which none of them do), the acpi core did something terribly wrong,
+or we have a memory corruption issue. If this does happen then it's
+best to dereference the pointer and crash noisily.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/platform/x86/eeepc-laptop.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/platform/x86/asus-laptop.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 4226e53..2c65a37 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -380,7 +380,7 @@ static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
- 	if (rv > 0)
- 		value = set_acpi(cm, value);
- 	if (value < 0)
--		return value;
-+		return -EIO;
- 	return rv;
- }
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index b39d2bb..8af43e9 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -1240,9 +1240,6 @@ static int asus_hotk_add(struct acpi_device *device)
+ {
+ 	int result;
  
-@@ -389,11 +389,11 @@ static ssize_t show_sys_acpi(int cm, char *buf)
- 	int value = get_acpi(cm);
+-	if (!device)
+-		return -EINVAL;
+-
+ 	pr_notice("Asus Laptop Support version %s\n",
+ 	       ASUS_LAPTOP_VERSION);
  
- 	if (value < 0)
--		return value;
-+		return -EIO;
- 	return sprintf(buf, "%d\n", value);
- }
+@@ -1306,9 +1303,6 @@ end:
  
--#define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
-+#define EEEPC_CREATE_DEVICE_ATTR(_name, _mode, _cm)			\
- 	static ssize_t show_##_name(struct device *dev,			\
- 				    struct device_attribute *attr,	\
- 				    char *buf)				\
-@@ -409,14 +409,14 @@ static ssize_t show_sys_acpi(int cm, char *buf)
- 	static struct device_attribute dev_attr_##_name = {		\
- 		.attr = {						\
- 			.name = __stringify(_name),			\
--			.mode = 0644 },					\
-+			.mode = _mode },				\
- 		.show   = show_##_name,					\
- 		.store  = store_##_name,				\
- 	}
+ static int asus_hotk_remove(struct acpi_device *device, int type)
+ {
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+ 	kfree(hotk->name);
+ 	kfree(hotk);
  
--EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
--EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
--EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
-+EEEPC_CREATE_DEVICE_ATTR(camera, 0644, CM_ASL_CAMERA);
-+EEEPC_CREATE_DEVICE_ATTR(cardr, 0644, CM_ASL_CARDREADER);
-+EEEPC_CREATE_DEVICE_ATTR(disp, 0200, CM_ASL_DISPLAYSWITCH);
- 
- struct eeepc_cpufv {
- 	int num;
 -- 
 1.6.5.3
 
