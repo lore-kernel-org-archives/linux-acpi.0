@@ -1,53 +1,50 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH v1 3/5] ipmi: remove unused PCI probe coded
-Date: Wed, 2 Dec 2009 14:42:55 -0700
-Message-ID: <200912021442.56255.bjorn.helgaas@hp.com>
-References: <20091118000427.14214.14043.stgit@bob.kio> <200912021253.00726.bjorn.helgaas@hp.com> <E0AA796A7E3F4C4E8F1065D15FE478618CE8B806@EXCH-MBX-4.vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Keng-Yu Lin <keng-yu.lin@canonical.com>
+Subject: [PATCH] acer-wmi: Add DMI quirk to blacklist Acer Aspire One BA01-DV/JM11-ML.
+Date: Thu,  3 Dec 2009 11:09:05 +0800
+Message-ID: <1259809745-24878-1-git-send-email-keng-yu.lin@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:28706 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755732AbZLBVs1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 16:48:27 -0500
-In-Reply-To: <E0AA796A7E3F4C4E8F1065D15FE478618CE8B806@EXCH-MBX-4.vmware.com>
-Content-Disposition: inline
+Received: from adelie.canonical.com ([91.189.90.139]:39443 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866AbZLCDJJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2009 22:09:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bela Lubkin <blubkin@vmware.com>
-Cc: "minyard@acm.org" <minyard@acm.org>, Zhao Yakui <yakui.zhao@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Myron Stowe <myron.stowe@hp.com>, "openipmi-developer@lists.sourceforge.net" <openipmi-developer@lists.sourceforge.net>, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Keng-Yu Lin <keng-yu.lin@canonical.com>
 
-On Wednesday 02 December 2009 02:04:09 pm Bela Lubkin wrote:
-> Bjorn Helgaas wrote:
-> 
-> > The original 5-patch series leaves the PCI base address alone.  That's
-> > the same as the old behavior for HP devices, and we verified that it
-> > works on an HP DL380G6 by disabling SMBIOS/SMPI/PNP detection.  (We
-> > also verified that, as you would expect, it did NOT work if we increment
-> > the base address).
-> ...
-> > So the question is what to do about non-HP PCI IPMI interfaces.  The
-> > pre-b0defcdbd2b7d code increments the base address, but that's been
-> > gone for several years.  Since we've had no complaints, and we don't
-> > know about any non-HP PCI interfaces, I propose that we just remove
-> > that HP-specific adjustment completely, i.e., use this series as-is.
-> 
-> Much older HP systems had a PCI SMIC interface.  Are you
-> sure those haven't been broken somewhere along the way?
-> 
-> (Please don't say "we don't care about things that old".)
+The two Acer Aspire One models should be blacklisted to prevent from
+reporting rfkill is enabled since it's hardware controlled.
 
-I want to make all machines, including old ones, work :-)
+Signed-off-by: Keng-Yu Lin <keng-yu.lin@canonical.com>
+---
+ drivers/platform/x86/acer-wmi.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-Restoring the behavior of incrementing the base address for HP
-interfaces *might* fix an old machine that has been broken since
-mid 2006 (when b0defcdbd2b7d went in), but we *know* it would
-break current machines.
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index 454970d..b39766c 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -241,6 +241,20 @@ static struct dmi_system_id __devinitdata acer_blacklist[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "AOA150"),
+ 		},
+ 	},
++	{
++		.ident = "Acer Aspire One (BA01-DV)",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "AO531h"),
++		},
++	},
++	{
++		.ident = "Acer Aspire One (JM11-ML)",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "AO751h"),
++		},
++	},
+ 	{}
+ };
+ 
+-- 
+1.6.3.3
 
-At this point, I think the only real option is to preserve the
-behavior we've had since mid 2006 and fix old machines if and
-when we discover them.
-
-Bjorn
