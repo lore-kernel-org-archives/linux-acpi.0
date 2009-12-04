@@ -1,37 +1,81 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: Re: [PATCH] ACPICA: update documentation to reflect correct
- parameter name
-Date: Fri, 4 Dec 2009 15:55:24 +0100
-Message-ID: <20091204155524.5828b40f@destiny.ordissimo>
-References: <20091204153605.73fc9202@destiny.ordissimo>
-	<4911F71203A09E4D9981D27F9D8308583E8F2737@orsmsx503.amr.corp.intel.com>
-	<alpine.LNX.2.00.0912041541150.3755@pobox.suse.cz>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [RFC PATCH 1/2] Input: add msi-wmi driver to support hotkeys in
+ =?iso-8859-1?q?MSI=A0Windtop?= AE1900-WT
+Date: Fri, 4 Dec 2009 16:20:47 +0100
+Message-ID: <200912041620.48791.trenn@suse.de>
+References: <20091202192603.3e1de98a@destiny.ordissimo> <200912041155.54752.trenn@suse.de> <20091204145102.3c6f1669@destiny.ordissimo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f166.google.com ([209.85.220.166]:47537 "EHLO
-	mail-fx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285AbZLDPJZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 10:09:25 -0500
-Received: by fxm6 with SMTP id 6so615009fxm.8
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Dec 2009 07:09:31 -0800 (PST)
-In-Reply-To: <alpine.LNX.2.00.0912041541150.3755@pobox.suse.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20091204145102.3c6f1669@destiny.ordissimo>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: Anisse Astier <anisse@astier.eu>
+Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Fri, 4 Dec 2009 15:41:37 +0100 (CET), Jiri Kosina <jkosina@suse.cz> wrote :
-
-> On Fri, 4 Dec 2009, Moore, Robert wrote:
+On Friday 04 December 2009 14:51:02 Anisse Astier wrote:
+> On Fri, 4 Dec 2009 11:55:53 +0100, Thomas Renninger <trenn@suse.de> wrote :
 > 
-> > > since longer than git can remember.
+> > > 
+> > > > +#define dprintk(msg...)	do {			\
+> > > Isn't reimplementing some kind of dprintk a little outdated with
+> > > DYNAMIC_PRINTK now in kernel?
+> > Eh, DYNAMIC_PRINTK?
+> > grep DYNAMIC_PRINTK include/linux/ -r
+> > is empty...
+> 
+> My mistake, the option name is actually DYNAMIC_DEBUG, and is named "Enable
+> dynamic printk() support" in Kernel Hacking config.
+> cf Documentation/dynamic-debug-howto.txt
+Good catch.
+
+> > > > +			cur = ktime_get_real();
+> > > > +			/* Ignore event if the same event happened in a 50 ms
+> > > > +			   timeframe -> Key press may result in 10-20 GPEs */
+> > > > +			if (ktime_to_us(ktime_sub(cur, key->last_pressed))
+> > > > +			    < 1000 * 50) {
+> > > 
+...
+> I see no problem with the above. It just works fine, whether you use
+> get_jiffies or a ktime.
+> 
+> The thing Dmitry was proposing to do in his review to my patch, is to use a 
+> kernel timer (struct timer_list, mod_timer, etc.), and change the algorithm.
+> Instead  of having as a reference the first interrupt of (or bounce), you use
+> the last one:
+> Every time an interrupt is fired, you call mod_timer() to the kick the timer
+> further in time(say 20ms). Once you didn't have any interrupt for this given
+> period of time, it means your button is stabilized, and the timer will fire 
+> your report_input function.
+
+I see these disadvantages:
+  - It would be more complicated code
+  - You have one extra irq (the one fired by your aimed timer which finally
+    does the work)
+  - You react after the timeout (+50ms delay).
+The latter two are not sever.
+
+The advantage is:
+  - If you get constant irqs over the 30ms/50ms timeout, you would still
+    only switch once.
+
+But in this HW case, it really should be save with a 50ms timeout and I'd vote
+to take the ktime or get_jiffies approach.
+
+> You can see how it's done in drivers/input/keybourd/gpio_keys.c
+> 
 > > 
-> > What does this mean?
-> 
-> That it's not easily trackable who introduced this and when, I'd say ...
-> 
+> > Beside that (backlight) switching takes some time, but this should not
+> > be due to above "debouncing".
+> Yep, I noticed that as well.
+> I verified, backlight behave the same in Windows. Slow switch, and just 6
+> levels.
+Thanks!
 
-Indeed, what I meant is that this documentation error has been present since
-before the introduction of git in kernel 2.6.12-rc2.
+I'd prefer if Len could take on top patches, I don't want to touch this
+again any time soon if not necessary.
+
+    Thomas
