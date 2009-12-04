@@ -1,40 +1,32 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC][PATCH 10/12] PCI / ACPI PM: Platform support for PCI PME
-	wake-up (rev. 4)
-Date: Fri, 4 Dec 2009 16:21:07 +0000
-Message-ID: <20091204162107.GA13371@srcf.ucam.org>
-References: <200911160047.46299.rjw@sisk.pl> <200911291632.44763.rjw@sisk.pl> <200911291642.20172.rjw@sisk.pl>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: Re: [PATCH v2 1/2] acpi: support IBM SMBus CMI devices
+Date: Fri, 4 Dec 2009 09:06:21 -0800
+Message-ID: <20091204170621.GA10356@tux1.beaverton.ibm.com>
+References: <20091021173733.GN26149@tux1.beaverton.ibm.com> <20091022071748.GA17917@crane-desktop> <20091022174304.GO26149@tux1.beaverton.ibm.com> <20091023044451.GB1367@crane-desktop> <20091023170311.GC21723@tux1.beaverton.ibm.com> <20091025125353.55d3bfad@hyperion.delvare> <20091026205819.GR26149@tux1.beaverton.ibm.com> <20091027180332.62f2c758@hyperion.delvare> <20091027173001.GT26149@tux1.beaverton.ibm.com> <20091027183619.16b0b952@hyperion.delvare>
+Reply-To: djwong@us.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932110AbZLDRGU@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200911291642.20172.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
+In-Reply-To: <20091027183619.16b0b952@hyperion.delvare>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, lenb@kernel.org
+Cc: Crane Cai <crane.cai@amd.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Nov 29, 2009 at 04:42:20PM +0100, Rafael J. Wysocki wrote:
+On Tue, Oct 27, 2009 at 06:36:19PM +0100, Jean Delvare wrote:
+> On Tue, 27 Oct 2009 10:30:01 -0700, Darrick J. Wong wrote:
+> > On Tue, Oct 27, 2009 at 06:03:32PM +0100, Jean Delvare wrote:
+> > 
+> > > I'm only half please with this. You change the function named, but it
+> > > doesn't follow the calling convention of acpi_dock_match(), which is a
+> > > little confusing.
+> > > 
+> > > Anyway, I will need an ack from the ACPI people before I can pick this
+> > > patch. Or maybe they should even push it upstream themselves.
 
-> +	if (event == ACPI_NOTIFY_DEVICE_WAKE) {
-> +		if (nb->dev->wakeup.run_wake_count > 0) {
-> +			if (nb->pci_bus)
-> +				pci_pme_wakeup_bus(nb->pci_bus);
-> +			if (nb->pci_dev)
-> +				pci_pme_wakeup(nb->pci_dev);
+Len/Bjorn: Any opinion on this ACPI quirk patch to make i2c-scmi work on IBM
+systems?  I think the i2c-scmi part is in Jean's tree, but I still need this
+second patch to the ACPI code itself.  Did you pick it up, or should I resend?
 
-We may receive wakeup events on devices that aren't PME capable, which 
-is the case for uhci on my test box. In that case we probably want to 
-wake them up unconditionally.
-
-+                       if (nb->pci_dev) {
-+                               if (nb->pci_dev->pm_cap)
-+                                       pci_pme_wakeup(nb->pci_dev);
-+                               else
-+                                       pm_request_resume(&nb->pci_dev->dev);
-
-seems to work, though possibly we should assume that the firmware knows 
-best and always schedule a wake in respose to a resume request?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--D
