@@ -1,173 +1,67 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] sony-laptop - remove private workqueue, use keventd
- instead
-Date: Fri, 4 Dec 2009 07:01:07 +0900
-Message-ID: <20091203220107.GA1907@kamineko.org>
-References: <20091203050742.GF9121@core.coreip.homeip.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Backlight device class redesign
+Date: Fri, 04 Dec 2009 09:50:48 +0800
+Message-ID: <1259891448.27069.83.camel@rzhang1-desktop>
+References: <b170af450911271630k63fb857auf8314cecd6219eba@mail.gmail.com>
+	 <b170af450911291209o33ebfc36n850826e54096f3b4@mail.gmail.com>
+	 <1259827274.27069.50.camel@rzhang1-desktop>
+	 <20091203105223.GB32571@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:36938
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076AbZLCWBD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2009 17:01:03 -0500
-Content-Disposition: inline
-In-Reply-To: <20091203050742.GF9121@core.coreip.homeip.net>
+Received: from mga03.intel.com ([143.182.124.21]:23118 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753564AbZLDBuM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Dec 2009 20:50:12 -0500
+In-Reply-To: <20091203105223.GB32571@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Rafa?? Mi??ecki <zajec5@gmail.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Wed, Dec 02, 2009 at 09:07:42PM -0800, Dmitry Torokhov wrote:
-> If we reschedule work instead of having work function sleep for 10 msecs
-> between reads from kfifo we can safely use the main workqueue (keventd)
-> and not bother with creating driver-private one.
+On Thu, 2009-12-03 at 18:52 +0800, Henrique de Moraes Holschuh wrote:
+> On Thu, 03 Dec 2009, Zhang Rui wrote:
+> > For example, device /sys/class/backlight/panel0 is created the first
+> > time a backlight_ops for this display is registered.
+> > And create the symbol link from the backlight class device to "physical
+> > device" (device that invokes backlight_device_register) in the backlight
+> > class device driver, if we really need it.
+> > Remove and recreate a link pointing to the new physical device when the
+> > backlight mode is changed.
 > 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-
-Hi Dmitry,
-
-Looks reasonable to me. Let me take a deeper look and give it a go and
-I'll submit it for inclusion together with another pending patch I have
-for 2.6.33.
-
-Thanks
-mattia
-
-> ---
+> FWIW, I agree the above solution is simple enough and quite good enough.
 > 
->  drivers/platform/x86/sony-laptop.c |   57 ++++++++++++++++++++----------------
->  1 files changed, 31 insertions(+), 26 deletions(-)
+> I just have absolutely _NO_ idea whatsoever how a platform driver can ask
+> the PCI or APCI layer "where is the video device driving the LVDS panel so
+> that I can bind to it"...
 > 
-> 
-> diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-> index a2a742c..b6d2961 100644
-> --- a/drivers/platform/x86/sony-laptop.c
-> +++ b/drivers/platform/x86/sony-laptop.c
-> @@ -144,7 +144,6 @@ struct sony_laptop_input_s {
->  	struct input_dev	*key_dev;
->  	struct kfifo		*fifo;
->  	spinlock_t		fifo_lock;
-> -	struct workqueue_struct	*wq;
->  };
->  
->  static struct sony_laptop_input_s sony_laptop_input = {
-> @@ -298,17 +297,28 @@ static int sony_laptop_input_keycode_map[] = {
->  /* release buttons after a short delay if pressed */
->  static void do_sony_laptop_release_key(struct work_struct *work)
->  {
-> +	struct delayed_work *dwork =
-> +			container_of(work, struct delayed_work, work);
->  	struct sony_laptop_keypress kp;
->  
-> -	while (kfifo_get(sony_laptop_input.fifo, (unsigned char *)&kp,
-> -			 sizeof(kp)) == sizeof(kp)) {
-> -		msleep(10);
-> +	if (kfifo_get(sony_laptop_input.fifo,
-> +		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
->  		input_report_key(kp.dev, kp.key, 0);
->  		input_sync(kp.dev);
->  	}
-> +
-> +	/*
-> +	 * If there is something in the fifo scnhedule nect release.
-> +	 * We don't care about locking, at worst we may schedule an
-> +	 * extra "empty" wakeup. This may be improved with the new
-> +	 * kfifo API.
-> +	 */
-> +	if (__kfifo_len(sony_laptop_input.fifo) != 0)
-> +		schedule_delayed_work(dwork, msecs_to_jiffies(10));
->  }
-> -static DECLARE_WORK(sony_laptop_release_key_work,
-> -		do_sony_laptop_release_key);
-> +
-> +static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
-> +			    do_sony_laptop_release_key);
->  
->  /* forward event to the input subsystem */
->  static void sony_laptop_report_input_event(u8 event)
-> @@ -362,12 +372,12 @@ static void sony_laptop_report_input_event(u8 event)
->  		/* we emit the scancode so we can always remap the key */
->  		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
->  		input_sync(kp.dev);
-> +
-> +		/* schedule key release */
->  		kfifo_put(sony_laptop_input.fifo,
->  			  (unsigned char *)&kp, sizeof(kp));
-> -
-> -		if (!work_pending(&sony_laptop_release_key_work))
-> -			queue_work(sony_laptop_input.wq,
-> -					&sony_laptop_release_key_work);
-> +		schedule_delayed_work(&sony_laptop_release_key_work,
-> +				      msecs_to_jiffies(10));
->  	} else
->  		dprintk("unknown input event %.2x\n", event);
->  }
-> @@ -394,20 +404,11 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
->  		goto err_dec_users;
->  	}
->  
-> -	/* init workqueue */
-> -	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
-> -	if (!sony_laptop_input.wq) {
-> -		printk(KERN_ERR DRV_PFX
-> -				"Unable to create workqueue.\n");
-> -		error = -ENXIO;
-> -		goto err_free_kfifo;
-> -	}
-> -
->  	/* input keys */
->  	key_dev = input_allocate_device();
->  	if (!key_dev) {
->  		error = -ENOMEM;
-> -		goto err_destroy_wq;
-> +		goto err_free_kfifo;
->  	}
->  
->  	key_dev->name = "Sony Vaio Keys";
-> @@ -470,9 +471,6 @@ err_unregister_keydev:
->  err_free_keydev:
->  	input_free_device(key_dev);
->  
-> -err_destroy_wq:
-> -	destroy_workqueue(sony_laptop_input.wq);
-> -
->  err_free_kfifo:
->  	kfifo_free(sony_laptop_input.fifo);
->  
-> @@ -483,12 +481,20 @@ err_dec_users:
->  
->  static void sony_laptop_remove_input(void)
->  {
-> +	struct sony_laptop_keypress kp = { NULL };
-> +
->  	/* cleanup only after the last user has gone */
->  	if (!atomic_dec_and_test(&sony_laptop_input.users))
->  		return;
->  
-> -	/* flush workqueue first */
-> -	flush_workqueue(sony_laptop_input.wq);
-> +	cancel_delayed_work_sync(&sony_laptop_release_key_work);
-> +
-> +	/* Generate key-up events for remaining keys */
-> +	while (kfifo_get(sony_laptop_input.fifo,
-> +			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
-> +		input_report_key(kp.dev, kp.key, 0);
-> +		input_sync(kp.dev);
-> +	}
->  
->  	/* destroy input devs */
->  	input_unregister_device(sony_laptop_input.key_dev);
-> @@ -499,7 +505,6 @@ static void sony_laptop_remove_input(void)
->  		sony_laptop_input.jog_dev = NULL;
->  	}
->  
-> -	destroy_workqueue(sony_laptop_input.wq);
->  	kfifo_free(sony_laptop_input.fifo);
->  }
->  
-> -- 
-> Dmitry
--- 
-mattia
-:wq!
+well. this is the question I want to ask. :)
+
+IMO, if we want to create one device for one display, we must have a
+unique ID for each display and the ID must be generic enough so that
+both ACPI & platform & graphics driver can understand it.
+
+ACPI&platform drivers have no idea about the display info it's bind to.
+But they're always used to control the integrated panel, no?
+we can use something like DEFAULT_ACPI_DISPLAY/DEFAULT_PLATFORM_DISPLAY
+which stands for the integrated LVDS panel, which can also be understood
+by the graphics driver.
+
+ACPI video driver -->ACPI_DISPLAY-->|
+                                    |
+platform driver->PLATFORM_DISPLAY-->|--->/sys/class/backlight/panel0
+                                    |
+          |-->integrated panel----->|
+          |
+graphics  |-->TV------------------->|--->/sys/class/backlight/tv0
+          |
+          |-->external LCD--------->|--->...
+
+I'm not a graphics guy so I don't if there are any other ways to control
+the TV/external LCD device, if yes, they can use something else as the
+unique ID, say EDID, right?
+
+thanks,
+rui
+
