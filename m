@@ -1,35 +1,28 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: Re: [PATCH 1/9] Input: add generic support for sparse keymaps
-Date: Fri, 4 Dec 2009 09:34:06 +0100
-Message-ID: <20091204093406.36d81aec@destiny.ordissimo>
-References: <20091204060701.28288.91430.stgit@localhost.localdomain>
-	<20091204061158.28288.17664.stgit@localhost.localdomain>
-	<1259913744.3593.62.camel@falcon.domain.org>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 0/3] A few fixes to TC1100-WMI driver
+Date: Fri, 04 Dec 2009 00:36:04 -0800
+Message-ID: <20091204083422.22509.74768.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1259913744.3593.62.camel@falcon.domain.org>
-Sender: linux-input-owner@vger.kernel.org
-To: wuzhangjin@gmail.com
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:41567 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754653AbZLDIgA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 03:36:00 -0500
+Received: by yxe17 with SMTP id 17so1912354yxe.33
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Dec 2009 00:36:06 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: linux-acpi@vger.kernel.org
 
-Hi Wu,
+Hi,
 
-On Fri, 04 Dec 2009 16:02:24 +0800, Wu Zhangjin <wuzhangjin@gmail.com>
-wrote :
+Here are a few small fixes to tc1100-wmi driver. Compile tested only since I
+don't have the hardware in question. Please consider applying.
 
-> 
-> I have tried to apply this patch to the latest 2.6.32 and the linux-mips
-> tree, both rejected.
-> 
-> So, which git tree should I use?
+Thanks.
 
-Last time I had to use Dmitry's input tree:
-git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input.git
-Just checked it, this one applies.
-
-Regards,
-
-Anisse
+-- 
+Dmitry
