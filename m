@@ -1,106 +1,67 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: Can't compile 2.6.32
-Date: Fri, 4 Dec 2009 15:05:42 -0800
-Message-ID: <20091204150542.e361a12a.randy.dunlap@oracle.com>
-References: <c5bd819b0912040532x13b7e564ve7f37badb0aaa521@mail.gmail.com>
-	<20091204142522.6de2c52e.randy.dunlap@oracle.com>
-	<c5bd819b0912041430s78c86710y18097d7dd77bac0e@mail.gmail.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFC][PATCH 0/12] PCI run-time PM support (updated)
+Date: Fri, 4 Dec 2009 15:21:03 -0800
+Message-ID: <20091204152103.779fa2a0@jbarnes-piketon>
+References: <200911160047.46299.rjw@sisk.pl>
+	<200911291632.44763.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:17225 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757374AbZLDXGH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 18:06:07 -0500
-In-Reply-To: <c5bd819b0912041430s78c86710y18097d7dd77bac0e@mail.gmail.com>
+Received: from outbound-mail-149.bluehost.com ([67.222.38.39]:40863 "HELO
+	outbound-mail-149.bluehost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751699AbZLDXVo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 18:21:44 -0500
+In-Reply-To: <200911291632.44763.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grozdan <neutrino8@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 
-On Fri, 4 Dec 2009 23:30:09 +0100 Grozdan wrote:
+On Sun, 29 Nov 2009 16:32:44 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> On Fri, Dec 4, 2009 at 11:25 PM, Randy Dunlap <randy.dunlap@oracle.co=
-m> wrote:
-> > On Fri, 4 Dec 2009 14:32:08 +0100 Grozdan wrote:
-> >
-> >> Hello,
-> >>
-> >> I'm having trouble trying to compile the 2.6.32 kernel on my openS=
-USE
-> >> 11.1 system. While doing so, I see a lot of warnings which seem to
-> >> come from include/acpi/acpiosxf.h and then when the compile proces=
-s
-> >> enters the drivers/acpi directory, it errors out with the followin=
-g:
-> >>
-> >> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0drivers/acpi/tables.o
-> >> In file included from include/acpi/acpi.h:63,
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
- include/linux/acpi.h:39,
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
- drivers/acpi/tables.c:33:
-> >> include/acpi/acpiosxf.h: In function =E2=80=98acpi_load_override_t=
-ables=E2=80=99:
-> >> include/acpi/acpiosxf.h:98: warning: no return statement in functi=
-on
-> >> returning non-void
-> >> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0drivers/acpi/blacklist.o
-> >> In file included from include/acpi/acpi.h:63,
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
- include/linux/acpi.h:39,
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
- drivers/acpi/blacklist.c:33:
-> >> include/acpi/acpiosxf.h: In function =E2=80=98acpi_load_override_t=
-ables=E2=80=99:
-> >> include/acpi/acpiosxf.h:98: warning: no return statement in functi=
-on
-> >> returning non-void
-> >> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0drivers/acpi/osl.o
-> >> In file included from include/acpi/acpi.h:63,
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
- include/linux/acpi.h:39,
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
- drivers/acpi/osl.c:40:
-> >> include/acpi/acpiosxf.h: In function =E2=80=98acpi_load_override_t=
-ables=E2=80=99:
-> >> include/acpi/acpiosxf.h:98: warning: no return statement in functi=
-on
-> >> returning non-void
-> >> drivers/acpi/osl.c: At top level:
-> >> drivers/acpi/osl.c:514: error: redefinition of =E2=80=98acpi_load_=
-override_tables=E2=80=99
-> >> include/acpi/acpiosxf.h:98: error: previous definition of
-> >> =E2=80=98acpi_load_override_tables=E2=80=99 was here
-> >> make[2]: *** [drivers/acpi/osl.o] Error 1
-> >> make[1]: *** [drivers/acpi] Error 2
-> >> make: *** [drivers] Error 2
-> >>
-> >> Thoughts, solutions, etc?
-> >
-> > Please send your failing kernel .config file. =C2=A0Thanks.
->=20
-> Hi Randy
->=20
-> Attached is my config of 2.6.32
+> Hi,
+>  
+> The following (updated) series of patches provides preliminary
+> run-time power management support for PCI devices through ACPI and/or
+> the native PCIe PME.
+> 
+> Some patches have been modified since the previous iteration and two
+> new patches have been added.  Also, I've tested this patchset with
+> the native PCIe PME mechanism using the r8169 driver on the MSI Wind
+> U-100 (see the last patch for details).
+> 
+> [1/12] - Add flag for marking devices capable of generating wake-up
+> events at run time 
+> [2/12] - Add function for checking PME status of devices
+>  
+> [3/12] - Modify wake-up enable propagation so that it's done for PCIe
+> devices too 
+> [4/12] - PCIe PME root port service driver
+> 
+> [5/12][New] - "Don't use MSIs for PME signaling" switch for PCIe
+>  
+> [6/12] - ACPI GPE refcounting, from Matthew
+>  
+> [7/12] - ACPI drivers support for GPE refcounting, from Matthew
+>  
+> [8/12] - ACPI removal of the old GPE API, from Matthew
+>  
+> [9/12] - ACPI add fields for handling run-wake devices
+>  
+> [10/12] - PCI ACPI platform support for run-time power management
+> 
+> [11/12] - Runtime PM callbacks for the PCI bus type
+> 
+> [12/12] - Runtime PM support for r8169 (experimental)
+> 
+> If there are no objections, I think the patches [1-11/12] are ready
+> for merging at this point.
 
-That builds fine for me, after I run make oldconfig and eliminate all o=
-f the
-opensuse config additions.
+Len, it sounds like this patchset is settling down.  Have you or one of
+the ACPI folks had a chance to check out the ACPI GPE changes?  I can
+take it all through my PCI tree if you're ok with it.
 
-It could be acpi-header-related though.  Let's cc: linux-acpi to see if=
- they
-know anything about this.
-
-> >> PS: please CC me as I'm not subscribed to the list.
-> >> --
-
-
----
-~Randy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jesse Barnes, Intel Open Source Technology Center
