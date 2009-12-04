@@ -1,55 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 10/12] PCI / ACPI PM: Platform support for PCI PME wake-up (rev. 4)
-Date: Fri, 4 Dec 2009 22:15:03 +0100
-Message-ID: <200912042215.03776.rjw@sisk.pl>
-References: <200911160047.46299.rjw@sisk.pl> <200911291642.20172.rjw@sisk.pl> <20091204162107.GA13371@srcf.ucam.org>
+From: Anisse Astier <anisse@astier.eu>
+Subject: Re: [PATCH 1/9] Input: add generic support for sparse keymaps
+Date: Fri, 4 Dec 2009 22:15:16 +0100
+Message-ID: <38c9179b0912041315y25d9bc62w633ff5e810a691a3@mail.gmail.com>
+References: <20091204060701.28288.91430.stgit@localhost.localdomain>
+	<20091204061158.28288.17664.stgit@localhost.localdomain> <20091204150621.16e4036e@destiny.ordissimo>
+	<20091204181956.GA25669@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:33708 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757140AbZLDVOj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Dec 2009 16:14:39 -0500
-In-Reply-To: <20091204162107.GA13371@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20091204181956.GA25669@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 
-On Friday 04 December 2009, Matthew Garrett wrote:
-> On Sun, Nov 29, 2009 at 04:42:20PM +0100, Rafael J. Wysocki wrote:
-> 
-> > +	if (event == ACPI_NOTIFY_DEVICE_WAKE) {
-> > +		if (nb->dev->wakeup.run_wake_count > 0) {
-> > +			if (nb->pci_bus)
-> > +				pci_pme_wakeup_bus(nb->pci_bus);
-> > +			if (nb->pci_dev)
-> > +				pci_pme_wakeup(nb->pci_dev);
-> 
-> We may receive wakeup events on devices that aren't PME capable, which 
-> is the case for uhci on my test box. In that case we probably want to 
-> wake them up unconditionally.
-> 
-> +                       if (nb->pci_dev) {
-> +                               if (nb->pci_dev->pm_cap)
-> +                                       pci_pme_wakeup(nb->pci_dev);
-> +                               else
-> +                                       pm_request_resume(&nb->pci_dev->dev);
-> 
-> seems to work, though possibly we should assume that the firmware knows 
-> best and always schedule a wake in respose to a resume request?
+On Fri, Dec 4, 2009 at 19:19, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+>
+> On Fri, Dec 04, 2009 at 03:06:21PM +0100, Anisse Astier wrote:
+> > On Thu, 03 Dec 2009 22:11:58 -0800, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote :
+> >
+> > > +
+> > > +/**
+> > > + * sparse_keymap_report_event - report event corresponding to given key entry
+> > You meant _report_entry ?
+> >
+>
+> Indeed. Can I add your "Reviewed-by:" please?
 
-I  think we can simply do:
+You can, but I didn't review the whole thing, just read the patch
+quickly and checked if it applied.
 
-+        if (nb->pci_dev) {
-+                pci_pme_wakeup(nb->pci_dev);
-+                pm_request_resume(&nb->pci_dev->dev);
-+        }
 
-If the pci_pme_wakeup() spawns a resume request, the other call will just
-return.
 
-Thanks,
-Rafael
+--
+Anisse
