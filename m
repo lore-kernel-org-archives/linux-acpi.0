@@ -1,48 +1,106 @@
-From: Torsten Duwe <duwe@lst.de>
-Subject: Re: [v10 PATCH 2/9]: cpuidle: cleanup drivers/cpuidle/cpuidle.c
-Date: Fri, 4 Dec 2009 23:20:00 +0100
-Message-ID: <200912042320.01320.duwe@lst.de>
-References: <20091202095427.GA27251@linux.vnet.ibm.com> <20091202095705.GC27251@linux.vnet.ibm.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: Can't compile 2.6.32
+Date: Fri, 4 Dec 2009 15:05:42 -0800
+Message-ID: <20091204150542.e361a12a.randy.dunlap@oracle.com>
+References: <c5bd819b0912040532x13b7e564ve7f37badb0aaa521@mail.gmail.com>
+	<20091204142522.6de2c52e.randy.dunlap@oracle.com>
+	<c5bd819b0912041430s78c86710y18097d7dd77bac0e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <20091202095705.GC27251@linux.vnet.ibm.com>
-Content-Disposition: inline
-Sender: linux-arch-owner@vger.kernel.org
-To: arun@linux.vnet.ibm.com
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar Sarma <dipankar@in.ibm.com>, Balbir Singh <balbir@in.ibm.com>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet12.oracle.com ([141.146.126.234]:17225 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757374AbZLDXGH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 18:06:07 -0500
+In-Reply-To: <c5bd819b0912041430s78c86710y18097d7dd77bac0e@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Grozdan <neutrino8@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 02 December 2009, Arun R Bharadwaj wrote:
-> * Arun R Bharadwaj <arun@linux.vnet.ibm.com> [2009-12-02 15:24:27]:
->
-> This patch cleans up drivers/cpuidle/cpuidle.c
-> Earlier cpuidle assumed pm_idle as the default idle loop. Break that
-> assumption and make it more generic.
+On Fri, 4 Dec 2009 23:30:09 +0100 Grozdan wrote:
 
-Is there a problem with the old pm_idle? Couldn't it be integrated more 
-transparently, instead of replacing it this intrusively?
+> On Fri, Dec 4, 2009 at 11:25 PM, Randy Dunlap <randy.dunlap@oracle.co=
+m> wrote:
+> > On Fri, 4 Dec 2009 14:32:08 +0100 Grozdan wrote:
+> >
+> >> Hello,
+> >>
+> >> I'm having trouble trying to compile the 2.6.32 kernel on my openS=
+USE
+> >> 11.1 system. While doing so, I see a lot of warnings which seem to
+> >> come from include/acpi/acpiosxf.h and then when the compile proces=
+s
+> >> enters the drivers/acpi directory, it errors out with the followin=
+g:
+> >>
+> >> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0drivers/acpi/tables.o
+> >> In file included from include/acpi/acpi.h:63,
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
+ include/linux/acpi.h:39,
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
+ drivers/acpi/tables.c:33:
+> >> include/acpi/acpiosxf.h: In function =E2=80=98acpi_load_override_t=
+ables=E2=80=99:
+> >> include/acpi/acpiosxf.h:98: warning: no return statement in functi=
+on
+> >> returning non-void
+> >> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0drivers/acpi/blacklist.o
+> >> In file included from include/acpi/acpi.h:63,
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
+ include/linux/acpi.h:39,
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
+ drivers/acpi/blacklist.c:33:
+> >> include/acpi/acpiosxf.h: In function =E2=80=98acpi_load_override_t=
+ables=E2=80=99:
+> >> include/acpi/acpiosxf.h:98: warning: no return statement in functi=
+on
+> >> returning non-void
+> >> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0drivers/acpi/osl.o
+> >> In file included from include/acpi/acpi.h:63,
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
+ include/linux/acpi.h:39,
+> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0from=
+ drivers/acpi/osl.c:40:
+> >> include/acpi/acpiosxf.h: In function =E2=80=98acpi_load_override_t=
+ables=E2=80=99:
+> >> include/acpi/acpiosxf.h:98: warning: no return statement in functi=
+on
+> >> returning non-void
+> >> drivers/acpi/osl.c: At top level:
+> >> drivers/acpi/osl.c:514: error: redefinition of =E2=80=98acpi_load_=
+override_tables=E2=80=99
+> >> include/acpi/acpiosxf.h:98: error: previous definition of
+> >> =E2=80=98acpi_load_override_tables=E2=80=99 was here
+> >> make[2]: *** [drivers/acpi/osl.o] Error 1
+> >> make[1]: *** [drivers/acpi] Error 2
+> >> make: *** [drivers] Error 2
+> >>
+> >> Thoughts, solutions, etc?
+> >
+> > Please send your failing kernel .config file. =C2=A0Thanks.
+>=20
+> Hi Randy
+>=20
+> Attached is my config of 2.6.32
 
-> --- linux.trees.git.orig/include/linux/cpuidle.h
-> +++ linux.trees.git/include/linux/cpuidle.h
-> @@ -41,7 +41,7 @@ struct cpuidle_state {
->  	unsigned long long	usage;
->  	unsigned long long	time; /* in US */
->
-> -	int (*enter)	(struct cpuidle_device *dev,
-> +	void (*enter)	(struct cpuidle_device *dev,
->  			 struct cpuidle_state *state);
->  };
+That builds fine for me, after I run make oldconfig and eliminate all o=
+f the
+opensuse config additions.
 
-While it may be a good idea to move the residency calculation to one central 
-place, at least in theory a cpuidle_state->enter() function could have a 
-better method to determine its value.
+It could be acpi-header-related though.  Let's cc: linux-acpi to see if=
+ they
+know anything about this.
 
-Either way you're implicitly introducing an API change here, and you're at 
-least missing two functions on ARM and SuperH, respectively. Could you 
-separate this API change out, and not take it for granted in the other 
-patches?
+> >> PS: please CC me as I'm not subscribed to the list.
+> >> --
 
-	Torsten
+
+---
+~Randy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
