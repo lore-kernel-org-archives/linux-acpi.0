@@ -1,219 +1,115 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: [v10 PATCH 8/9]: pSeries: implement pSeries processor idle
- module
-Date: Fri, 04 Dec 2009 21:00:52 +1100
-Message-ID: <1259920852.2076.1274.camel@pasglop>
-References: <20091202095427.GA27251@linux.vnet.ibm.com>
-	 <20091202100255.GI27251@linux.vnet.ibm.com>
-	 <1259894858.2076.1251.camel@pasglop>
-	 <20091204081539.GA5883@linux.vnet.ibm.com>
+From: Anisse Astier <anisse@astier.eu>
+Subject: Re: [RFC PATCH 1/2] Input: add msi-wmi driver to support hotkeys in
+  =?UTF-8?B?TVNJwqBXaW5kdG9w?= AE1900-WT
+Date: Fri, 4 Dec 2009 11:15:06 +0100
+Message-ID: <20091204111506.254dccef@destiny.ordissimo>
+References: <20091202192603.3e1de98a@destiny.ordissimo>
+	<200912031749.08734.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755238AbZLDKB3@vger.kernel.org>
-In-Reply-To: <20091204081539.GA5883@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: arun@linux.vnet.ibm.com
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, Ingo Molnar <mingo@elte.hu>, Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>, Dipankar Sarma <dipankar@in.ibm.com>, Balbir Singh <balbir@in.ibm.com>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.158]:64436 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754375AbZLDKQm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 05:16:42 -0500
+In-Reply-To: <200912031749.08734.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Fri, 2009-12-04 at 13:45 +0530, Arun R Bharadwaj wrote:
+Hi Thomas,
 
-> 
-> Hi Ben,
-> 
-> I forgot to attach the patch which enables cpuidle for the rest of the
-> POWER platforms. Attaching it below.
-> 
-> So for these platforms, ppc_md.power_save will be called from from the
-> cpuidle_idle_call idle loop itself. Also, this cpuidle_idle_call is
-> not a pseries specific idle loop. It is a common loop for Intel and
-> PPC which use cpuidle infrastructure.
+On Thu, 3 Dec 2009 17:49:07 +0100, Thomas Renninger <trenn@suse.de>
+wrote :
 
-Ok, so there was a missing piece in the puzzle ;-)
+> On Wednesday 02 December 2009 19:26:03 Anisse Astier wrote:
+> >=20
+> > Signed-off-by: Anisse Astier <anisse@astier.eu>
+> > ---
+> > Hi,
+> >=20
+> > This driver (intiated by=20
+> > http://sysmic.org/dotclear2/index.php?post/2009/06/02/83-msi-wmi-su=
+pport) is
+> > aimed at supporting WMI based hotkeys on MSI=C2=A0Windtop all-in-on=
+e AE1900-WT.
+> I've already submitted a driver together with some other fixes a mont=
+h ago.
+>=20
+Indeed, I am sorry I didn't see it earlier. Did you write it from scrat=
+ch
+or base it on Jerome's patch?
 
-I'll review asap.
+> My driver not only registers an input device for backlight/volume up,=
+ down,
+> but also registers a backlight driver for software based backlight sw=
+itching.
+Indeed, and that's very nice!
+>=20
+> Not sure whether Len already submitted it to he's test branch, I hope=
+ so:
+> http://patchwork.kernel.org/patch/55944/
+>=20
+> Would be great if you can give it a try.
 
-Cheers,
-Ben.
+I gave it a try, it works great. Buttons works as expected, and the
+backlight interface works as well. Now I have a few questions/comments:
 
-> arun
-> 
-> 
-> 
-> This patch enables cpuidle for the rest of the POWER platforms like
-> 44x, Cell, Pasemi etc.
-> 
-> Signed-off-by: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
-> ---
->  arch/powerpc/include/asm/system.h       |    2 ++
->  arch/powerpc/kernel/idle.c              |   28 ++++++++++++++++++++++++++++
->  arch/powerpc/kernel/setup_32.c          |    8 ++++++--
->  arch/powerpc/platforms/44x/idle.c       |    2 ++
->  arch/powerpc/platforms/cell/pervasive.c |    2 ++
->  arch/powerpc/platforms/pasemi/idle.c    |    2 ++
->  arch/powerpc/platforms/ps3/setup.c      |    2 ++
->  7 files changed, 44 insertions(+), 2 deletions(-)
-> 
-> Index: linux.trees.git/arch/powerpc/include/asm/system.h
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/include/asm/system.h
-> +++ linux.trees.git/arch/powerpc/include/asm/system.h
-> @@ -551,8 +551,10 @@ void cpu_idle_wait(void);
->  
->  #ifdef CONFIG_CPU_IDLE
->  extern void update_smt_snooze_delay(int snooze);
-> +extern void setup_cpuidle_ppc(void);
->  #else
->  static inline void update_smt_snooze_delay(int snooze) {}
-> +static inline void setup_cpuidle_ppc(void) {}
->  #endif
->  
->  #endif /* __KERNEL__ */
-> Index: linux.trees.git/arch/powerpc/kernel/idle.c
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/kernel/idle.c
-> +++ linux.trees.git/arch/powerpc/kernel/idle.c
-> @@ -129,6 +129,34 @@ void default_idle(void)
->  	HMT_very_low();
->  }
->  
-> +#ifdef CONFIG_CPU_IDLE
-> +DEFINE_PER_CPU(struct cpuidle_device, ppc_idle_devices);
-> +struct cpuidle_driver cpuidle_ppc_driver = {
-> +	.name =         "cpuidle_ppc",
-> +};
-> +
-> +static void ppc_idle_loop(struct cpuidle_device *dev, struct cpuidle_state *st)
-> +{
-> +	ppc_md.power_save();
-> +}
-> +
-> +void setup_cpuidle_ppc(void)
-> +{
-> +	struct cpuidle_device *dev;
-> +	int cpu;
-> +
-> +	cpuidle_register_driver(&cpuidle_ppc_driver);
-> +
-> +	for_each_online_cpu(cpu) {
-> +		dev = &per_cpu(ppc_idle_devices, cpu);
-> +		dev->cpu = cpu;
-> +		dev->states[0].enter = ppc_idle_loop;
-> +		dev->state_count = 1;
-> +		cpuidle_register_device(dev);
-> +	}
-> +}
-> +#endif
-> +
->  int powersave_nap;
->  
->  #ifdef CONFIG_SYSCTL
-> Index: linux.trees.git/arch/powerpc/kernel/setup_32.c
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/kernel/setup_32.c
-> +++ linux.trees.git/arch/powerpc/kernel/setup_32.c
-> @@ -133,14 +133,18 @@ notrace void __init machine_init(unsigne
->  
->  #ifdef CONFIG_6xx
->  	if (cpu_has_feature(CPU_FTR_CAN_DOZE) ||
-> -	    cpu_has_feature(CPU_FTR_CAN_NAP))
-> +	    cpu_has_feature(CPU_FTR_CAN_NAP)) {
->  		ppc_md.power_save = ppc6xx_idle;
-> +		setup_cpuidle_ppc();
-> +	}
->  #endif
->  
->  #ifdef CONFIG_E500
->  	if (cpu_has_feature(CPU_FTR_CAN_DOZE) ||
-> -	    cpu_has_feature(CPU_FTR_CAN_NAP))
-> +	    cpu_has_feature(CPU_FTR_CAN_NAP)) {
->  		ppc_md.power_save = e500_idle;
-> +		setup_cpuidle_ppc();
-> +	}
->  #endif
->  	if (ppc_md.progress)
->  		ppc_md.progress("id mach(): done", 0x200);
-> Index: linux.trees.git/arch/powerpc/platforms/44x/idle.c
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/platforms/44x/idle.c
-> +++ linux.trees.git/arch/powerpc/platforms/44x/idle.c
-> @@ -24,6 +24,7 @@
->  #include <linux/of.h>
->  #include <linux/kernel.h>
->  #include <asm/machdep.h>
-> +#include <asm/system.h>
->  
->  static int mode_spin;
->  
-> @@ -46,6 +47,7 @@ int __init ppc44x_idle_init(void)
->  		/* If we are not setting spin mode 
->                     then we set to wait mode */
->  		ppc_md.power_save = &ppc44x_idle;
-> +		setup_cpuidle_ppc();
->  	}
->  
->  	return 0;
-> Index: linux.trees.git/arch/powerpc/platforms/cell/pervasive.c
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/platforms/cell/pervasive.c
-> +++ linux.trees.git/arch/powerpc/platforms/cell/pervasive.c
-> @@ -35,6 +35,7 @@
->  #include <asm/pgtable.h>
->  #include <asm/reg.h>
->  #include <asm/cell-regs.h>
-> +#include <asm/system.h>
->  
->  #include "pervasive.h"
->  
-> @@ -128,5 +129,6 @@ void __init cbe_pervasive_init(void)
->  	}
->  
->  	ppc_md.power_save = cbe_power_save;
-> +	setup_cpuidle_ppc();
->  	ppc_md.system_reset_exception = cbe_system_reset_exception;
->  }
-> Index: linux.trees.git/arch/powerpc/platforms/pasemi/idle.c
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/platforms/pasemi/idle.c
-> +++ linux.trees.git/arch/powerpc/platforms/pasemi/idle.c
-> @@ -27,6 +27,7 @@
->  #include <asm/machdep.h>
->  #include <asm/reg.h>
->  #include <asm/smp.h>
-> +#include <asm/system.h>
->  
->  #include "pasemi.h"
->  
-> @@ -81,6 +82,7 @@ static int __init pasemi_idle_init(void)
->  
->  	ppc_md.system_reset_exception = pasemi_system_reset_exception;
->  	ppc_md.power_save = modes[current_mode].entry;
-> +	setup_cpuidle_ppc();
->  	printk(KERN_INFO "Using PA6T idle loop (%s)\n", modes[current_mode].name);
->  
->  	return 0;
-> Index: linux.trees.git/arch/powerpc/platforms/ps3/setup.c
-> ===================================================================
-> --- linux.trees.git.orig/arch/powerpc/platforms/ps3/setup.c
-> +++ linux.trees.git/arch/powerpc/platforms/ps3/setup.c
-> @@ -33,6 +33,7 @@
->  #include <asm/prom.h>
->  #include <asm/lv1call.h>
->  #include <asm/ps3gpu.h>
-> +#include <asm/system.h>
->  
->  #include "platform.h"
->  
-> @@ -214,6 +215,7 @@ static void __init ps3_setup_arch(void)
->  	prealloc_ps3flash_bounce_buffer();
->  
->  	ppc_md.power_save = ps3_power_save;
-> +	setup_cpuidle_ppc();
->  	ps3_os_area_init();
->  
->  	DBG(" <- %s:%d\n", __func__, __LINE__);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-arch" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +static int backlight_map[] =3D { 0x00, 0x33, 0x66, 0x99, 0xCC, 0xFF =
+};
+Why just 6 levels for backlight? Wasn't it possible to map the whole
+range? Does it work the same way in windows?
+
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/types.h>
+> +#include <linux/input.h>
+> +#include <acpi/acpi_drivers.h>
+> +#include <linux/acpi.h>
+> +#include <linux/string.h>
+> +#include <linux/hrtimer.h>
+> +#include <linux/backlight.h>
+Do you need all these #includes? (e.g string.h)
+
+> +#define dprintk(msg...)	do {			\
+Isn't reimplementing some kind of dprintk a little outdated with
+DYNAMIC_PRINTK now in kernel?
+
+> +	kfree(obj);
+Good thing you're freeing the allocated acpi objects.
+
+
+> +			cur =3D ktime_get_real();
+> +			/* Ignore event if the same event happened in a 50 ms
+> +			   timeframe -> Key press may result in 10-20 GPEs */
+> +			if (ktime_to_us(ktime_sub(cur, key->last_pressed))
+> +			    < 1000 * 50) {
+
+You're debouncing by computing the time difference instead of using
+a kernel timer.
+
+> +static int __init msi_wmi_init(void)
+You're init method could use some gotos to remove code duplication. (an=
+d
+merge some init with input_setup.)=09
+
+
+I would be happy to transform these comments into patches once I have t=
+he
+time, and if you don't mind.
+
+I could also adapt it for sparse keymaps as I did with the other driver
+(would reduce code size).
+
+
+Best Regards,
+
+Anisse
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
