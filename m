@@ -1,537 +1,235 @@
-From: Wu Zhangjin <wuzhangjin@gmail.com>
-Subject: Re: [PATCH 1/9] Input: add generic support for sparse keymaps
-Date: Fri, 04 Dec 2009 16:02:24 +0800
-Message-ID: <1259913744.3593.62.camel@falcon.domain.org>
-References: <20091204060701.28288.91430.stgit@localhost.localdomain>
-	 <20091204061158.28288.17664.stgit@localhost.localdomain>
-Reply-To: wuzhangjin@gmail.com
+From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+Subject: Re: [v10 PATCH 8/9]: pSeries: implement pSeries processor idle module
+Date: Fri, 4 Dec 2009 13:45:39 +0530
+Message-ID: <20091204081539.GA5883@linux.vnet.ibm.com>
+References: <20091202095427.GA27251@linux.vnet.ibm.com>
+	<20091202100255.GI27251@linux.vnet.ibm.com>
+	<1259894858.2076.1251.camel@pasglop>
+Reply-To: arun@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:46404 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754240AbZLDICt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 03:02:49 -0500
-In-Reply-To: <20091204061158.28288.17664.stgit@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <1259894858.2076.1251.camel@pasglop>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: linux-arch@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Arun Bharadwaj <arun@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Anisse Astier <anisse@astier.eu>
 
-On Thu, 2009-12-03 at 22:11 -0800, Dmitry Torokhov wrote:
-> More and more devices choose to reimplement support for sparse keymaps
-> first introduced by wistron driver. Move it into a library module so it
-> can be easily used by interested parties.
+* Benjamin Herrenschmidt <benh@kernel.crashing.org> [2009-12-04 13:47:38]:
 
-Hi, Dmitry
-
-I have tried to apply this patch to the latest 2.6.32 and the linux-mips
-tree, both rejected.
-
-So, which git tree should I use?
-
-Thanks!
-	Wu Zhangjin
-
+> On Wed, 2009-12-02 at 15:32 +0530, Arun R Bharadwaj wrote:
+> > * Arun R Bharadwaj <arun@linux.vnet.ibm.com> [2009-12-02 15:24:27]:
+> > 
+> > This patch creates arch/powerpc/platforms/pseries/processor_idle.c,
+> > which implements the cpuidle infrastructure for pseries.
+> > It implements a pseries_cpuidle_loop() which would be the main idle loop
+> > called from cpu_idle(). It makes decision of entering either
+> > dedicated_snooze_loop or dedicated_cede_loop for dedicated lpar and
+> > shared_cede_loop for shared lpar processor based on the
+> > decision taken by the cpuidle governor.
 > 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
+> So unless I'm mistaken, you removed our powerpc "generic" idle loop that
+> calls into ppc_md.power_save(), and replaced it by some pseries specific
+> idle loops... Now what about all the other powerpc platforms ? native
+> 970 (aka G5) ? 6xx ? Cell ? Or are you still calling ppc_md.power_save
+> somewhere that I missed ?
 > 
->  Documentation/DocBook/device-drivers.tmpl |    4 
->  drivers/input/Kconfig                     |   28 ++-
->  drivers/input/Makefile                    |    1 
->  drivers/input/input-polldev.c             |   14 +-
->  drivers/input/sparse-keymap.c             |  251 +++++++++++++++++++++++++++++
->  include/linux/input/sparse-keymap.h       |   62 +++++++
->  6 files changed, 348 insertions(+), 12 deletions(-)
->  create mode 100644 drivers/input/sparse-keymap.c
->  create mode 100644 include/linux/input/sparse-keymap.h
-> 
-> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-> index e994d1d..f9a6e2c 100644
-> --- a/Documentation/DocBook/device-drivers.tmpl
-> +++ b/Documentation/DocBook/device-drivers.tmpl
-> @@ -306,6 +306,10 @@ X!Idrivers/video/console/fonts.c
->       <sect1><title>Matrix keyboars/keypads</title>
->  !Iinclude/linux/input/matrix_keypad.h
->       </sect1>
-> +     <sect1><title>Sparse keymap support</title>
-> +!Iinclude/linux/input/sparse-keymap.h
-> +!Edrivers/input/sparse-keymap.c
-> +     </sect1>
->    </chapter>
->  
->    <chapter id="spi">
-> diff --git a/drivers/input/Kconfig b/drivers/input/Kconfig
-> index cd50c00..50af91e 100644
-> --- a/drivers/input/Kconfig
-> +++ b/drivers/input/Kconfig
-> @@ -8,7 +8,7 @@ menu "Input device support"
->  config INPUT
->  	tristate "Generic input layer (needed for keyboard, mouse, ...)" if EMBEDDED
->  	default y
-> -	---help---
-> +	help
->  	  Say Y here if you have any input device (mouse, keyboard, tablet,
->  	  joystick, steering wheel ...) connected to your system and want
->  	  it to be available to applications. This includes standard PS/2
-> @@ -27,8 +27,7 @@ if INPUT
->  
->  config INPUT_FF_MEMLESS
->  	tristate "Support for memoryless force-feedback devices"
-> -	default n
-> -	---help---
-> +	help
->  	  Say Y here if you have memoryless force-feedback input device
->  	  such as Logitech WingMan Force 3D, ThrustMaster FireStorm Dual
->  	  Power 2, or similar. You will also need to enable hardware-specific
-> @@ -52,12 +51,25 @@ config INPUT_POLLDEV
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called input-polldev.
->  
-> +config INPUT_SPARSEKMAP
-> +	tristate "Sparse keymap support library"
-> +	help
-> +	  Say Y here if you are using a driver for an input
-> +	  device that uses sparse keymap. This option is only
-> +	  useful for out-of-tree drivers since in-tree drivers
-> +	  select it automatically.
-> +
-> +	  If unsure, say N.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called sparse-keymap.
-> +
->  comment "Userland interfaces"
->  
->  config INPUT_MOUSEDEV
->  	tristate "Mouse interface" if EMBEDDED
->  	default y
-> -	---help---
-> +	help
->  	  Say Y here if you want your mouse to be accessible as char devices
->  	  13:32+ - /dev/input/mouseX and 13:63 - /dev/input/mice as an
->  	  emulated IntelliMouse Explorer PS/2 mouse. That way, all user space
-> @@ -73,7 +85,7 @@ config INPUT_MOUSEDEV_PSAUX
->  	bool "Provide legacy /dev/psaux device"
->  	default y
->  	depends on INPUT_MOUSEDEV
-> -	---help---
-> +	help
->  	  Say Y here if you want your mouse also be accessible as char device
->  	  10:1 - /dev/psaux. The data available through /dev/psaux is exactly
->  	  the same as the data from /dev/input/mice.
-> @@ -103,7 +115,7 @@ config INPUT_MOUSEDEV_SCREEN_Y
->  
->  config INPUT_JOYDEV
->  	tristate "Joystick interface"
-> -	---help---
-> +	help
->  	  Say Y here if you want your joystick or gamepad to be
->  	  accessible as char device 13:0+ - /dev/input/jsX device.
->  
-> @@ -125,7 +137,7 @@ config INPUT_EVDEV
->  
->  config INPUT_EVBUG
->  	tristate "Event debugging"
-> -	---help---
-> +	help
->  	  Say Y here if you have a problem with the input subsystem and
->  	  want all events (keypresses, mouse movements), to be output to
->  	  the system log. While this is useful for debugging, it's also
-> @@ -140,7 +152,7 @@ config INPUT_EVBUG
->  config INPUT_APMPOWER
->  	tristate "Input Power Event -> APM Bridge" if EMBEDDED
->  	depends on INPUT && APM_EMULATION
-> -	---help---
-> +	help
->  	  Say Y here if you want suspend key events to trigger a user
->  	  requested suspend through APM. This is useful on embedded
->  	  systems where such behaviour is desired without userspace
-> diff --git a/drivers/input/Makefile b/drivers/input/Makefile
-> index 4c9c745..7ad212d 100644
-> --- a/drivers/input/Makefile
-> +++ b/drivers/input/Makefile
-> @@ -9,6 +9,7 @@ input-core-objs := input.o input-compat.o ff-core.o
->  
->  obj-$(CONFIG_INPUT_FF_MEMLESS)	+= ff-memless.o
->  obj-$(CONFIG_INPUT_POLLDEV)	+= input-polldev.o
-> +obj-$(CONFIG_INPUT_SPARSEKMAP)	+= sparse-keymap.o
->  
->  obj-$(CONFIG_INPUT_MOUSEDEV)	+= mousedev.o
->  obj-$(CONFIG_INPUT_JOYDEV)	+= joydev.o
-> diff --git a/drivers/input/input-polldev.c b/drivers/input/input-polldev.c
-> index 6a2eb39..aa6713b 100644
-> --- a/drivers/input/input-polldev.c
-> +++ b/drivers/input/input-polldev.c
-> @@ -212,7 +212,7 @@ EXPORT_SYMBOL(input_allocate_polled_device);
->   * @dev: device to free
->   *
->   * The function frees memory allocated for polling device and drops
-> - * reference to the associated input device (if present).
-> + * reference to the associated input device.
->   */
->  void input_free_polled_device(struct input_polled_dev *dev)
->  {
-> @@ -258,6 +258,15 @@ int input_register_polled_device(struct input_polled_dev *dev)
->  		return error;
->  	}
->  
-> +	/*
-> +	 * Take extra reference to the underlying input device so
-> +	 * that it survives call to input_unregister_polled_device()
-> +	 * and is deleted only after input_free_polled_device()
-> +	 * has been invoked. This is needed to ease task of freeing
-> +	 * sparse keymaps.
-> +	 */
-> +	input_get_device(input);
-> +
->  	return 0;
->  }
->  EXPORT_SYMBOL(input_register_polled_device);
-> @@ -269,8 +278,6 @@ EXPORT_SYMBOL(input_register_polled_device);
->   * The function unregisters previously registered polled input
->   * device from input layer. Polling is stopped and device is
->   * ready to be freed with call to input_free_polled_device().
-> - * Callers should not attempt to access dev->input pointer
-> - * after calling this function.
->   */
->  void input_unregister_polled_device(struct input_polled_dev *dev)
->  {
-> @@ -278,7 +285,6 @@ void input_unregister_polled_device(struct input_polled_dev *dev)
->  			   &input_polldev_attribute_group);
->  
->  	input_unregister_device(dev->input);
-> -	dev->input = NULL;
->  }
->  EXPORT_SYMBOL(input_unregister_polled_device);
->  
-> diff --git a/drivers/input/sparse-keymap.c b/drivers/input/sparse-keymap.c
-> new file mode 100644
-> index 0000000..4655c56
-> --- /dev/null
-> +++ b/drivers/input/sparse-keymap.c
-> @@ -0,0 +1,251 @@
-> +/*
-> + * Generic support for sparse keymaps
-> + *
-> + * Copyright (c) 2009 Dmitry Torokhov
-> + *
-> + * Derived from wistron button driver:
-> + * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
-> + * Copyright (C) 2005 Bernhard Rosenkraenzer <bero@arklinux.org>
-> + * Copyright (C) 2005 Dmitry Torokhov <dtor@mail.ru>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#include <linux/input.h>
-> +#include <linux/input/sparse-keymap.h>
-> +
-> +MODULE_AUTHOR("Dmitry Torokhov <dtor@mail.ru>");
-> +MODULE_DESCRIPTION("Generic support for sparse keymaps");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_VERSION("0.1");
-> +
-> +/**
-> + * sparse_keymap_entry_from_scancode - perform sparse keymap lookup
-> + * @dev: Input device using sparse keymap
-> + * @code: Scan code
-> + *
-> + * This function is used to perform &struct key_entry lookup in an
-> + * input device using sparse keymap.
-> + */
-> +struct key_entry *sparse_keymap_entry_from_scancode(struct input_dev *dev,
-> +						    unsigned int code)
-> +{
-> +	struct key_entry *key;
-> +
-> +	for (key = dev->keycode; key->type != KE_END; key++)
-> +		if (code == key->code)
-> +			return key;
-> +
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_entry_from_scancode);
-> +
-> +/**
-> + * sparse_keymap_entry_from_keycode - perform sparse keymap lookup
-> + * @dev: Input device using sparse keymap
-> + * @keycode: Key code
-> + *
-> + * This function is used to perform &struct key_entry lookup in an
-> + * input device using sparse keymap.
-> + */
-> +struct key_entry *sparse_keymap_entry_from_keycode(struct input_dev *dev,
-> +						   unsigned int keycode)
-> +{
-> +	struct key_entry *key;
-> +
-> +	for (key = dev->keycode; key->type != KE_END; key++)
-> +		if (key->type == KE_KEY && keycode == key->keycode)
-> +			return key;
-> +
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_entry_from_keycode);
-> +
-> +static int sparse_keymap_getkeycode(struct input_dev *dev,
-> +				    int scancode, int *keycode)
-> +{
-> +	const struct key_entry *key =
-> +			sparse_keymap_entry_from_scancode(dev, scancode);
-> +
-> +	if (key && key->type == KE_KEY) {
-> +		*keycode = key->keycode;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static int sparse_keymap_setkeycode(struct input_dev *dev,
-> +				    int scancode, int keycode)
-> +{
-> +	struct key_entry *key;
-> +	int old_keycode;
-> +
-> +	if (keycode < 0 || keycode > KEY_MAX)
-> +		return -EINVAL;
-> +
-> +	key = sparse_keymap_entry_from_scancode(dev, scancode);
-> +	if (key && key->type == KE_KEY) {
-> +		old_keycode = key->keycode;
-> +		key->keycode = keycode;
-> +		set_bit(keycode, dev->keybit);
-> +		if (!sparse_keymap_entry_from_keycode(dev, old_keycode))
-> +			clear_bit(old_keycode, dev->keybit);
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_setkeycode);
-> +
-> +/**
-> + * sparse_keymap_setup - set up sparse keymap for an input device
-> + * @dev: Input device
-> + * @keymap: Keymap in form of array of &key_entry structures ending
-> + *	with %KE_END type entry
-> + * @setup: Function that can be used to adjust keymap entries
-> + *	depending on device's deeds, may be %NULL
-> + *
-> + * The function calculates size and allocates copy of the original
-> + * keymap after which sets up input device event bits appropriately.
-> + * Before detsroying input device allocated keymap should be freed
-> + * with a call to sparse_keymap_free().
-> + */
-> +int sparse_keymap_setup(struct input_dev *dev,
-> +			const struct key_entry *keymap,
-> +			int (*setup)(struct input_dev *, struct key_entry *))
-> +{
-> +	size_t map_size = 1; /* to account for the last KE_END entry */
-> +	const struct key_entry *e;
-> +	struct key_entry *map, *entry;
-> +	int i;
-> +	int error;
-> +
-> +	for (e = keymap; e->type != KE_END; e++)
-> +		map_size++;
-> +
-> +	map = kcalloc(map_size, sizeof (struct key_entry), GFP_KERNEL);
-> +	if (!map)
-> +		return -ENOMEM;
-> +
-> +	memcpy(map, keymap, map_size * sizeof (struct key_entry));
-> +
-> +	for (i = 0; i < map_size; i++) {
-> +		entry = &map[i];
-> +
-> +		if (setup) {
-> +			error = setup(dev, entry);
-> +			if (error)
-> +				goto err_out;
-> +		}
-> +
-> +		switch (entry->type) {
-> +		case KE_KEY:
-> +			__set_bit(EV_KEY, dev->evbit);
-> +			__set_bit(entry->keycode, dev->keybit);
-> +			break;
-> +
-> +		case KE_SW:
-> +			__set_bit(EV_SW, dev->evbit);
-> +			__set_bit(entry->sw.code, dev->swbit);
-> +			break;
-> +		}
-> +	}
-> +
-> +	dev->keycode = map;
-> +	dev->keycodemax = map_size;
-> +	dev->getkeycode = sparse_keymap_getkeycode;
-> +	dev->setkeycode = sparse_keymap_setkeycode;
-> +
-> +	return 0;
-> +
-> + err_out:
-> +	kfree(keymap);
-> +	return error;
-> +
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_setup);
-> +
-> +/**
-> + * sparse_keymap_free - free memory allocated for sparse keymap
-> + * @dev: Input device using sparse keymap
-> + *
-> + * This function is used to free memory allocated by sparse keymap
-> + * in an input device that was set up by sparse_keymap_setup().
-> + */
-> +void sparse_keymap_free(struct input_dev *dev)
-> +{
-> +	kfree(dev->keycode);
-> +	dev->keycode = NULL;
-> +	dev->keycodemax = 0;
-> +	dev->getkeycode = NULL;
-> +	dev->setkeycode = NULL;
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_free);
-> +
-> +/**
-> + * sparse_keymap_report_event - report event corresponding to given key entry
-> + * @dev: Input device for which event should be reported
-> + * @ke: key entry describing event
-> + * @value: Value that should be reported (ignored by %KE_SW entries)
-> + * @autorelease: Signals whether release event should be emitted for %KE_KEY
-> + *	entries right after reporting press event, ignored by all other
-> + *	entries
-> + *
-> + * This function is used to report input event described by given
-> + * &struct key_entry.
-> + */
-> +void sparse_keymap_report_entry(struct input_dev *dev, const struct key_entry *ke,
-> +				unsigned int value, bool autorelease)
-> +{
-> +	switch (ke->type) {
-> +	case KE_KEY:
-> +		input_report_key(dev, ke->keycode, value);
-> +		input_sync(dev);
-> +		if (value && autorelease) {
-> +			input_report_key(dev, ke->keycode, 0);
-> +			input_sync(dev);
-> +		}
-> +		break;
-> +
-> +	case KE_SW:
-> +		value = ke->sw.value;
-> +		/* fall through */
-> +
-> +	case KE_VSW:
-> +		input_report_switch(dev, ke->sw.code, value);
-> +		break;
-> +	}
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_report_entry);
-> +
-> +/**
-> + * sparse_keymap_report_event - report event corresponding to given scancode
-> + * @dev: Input device using sparse keymap
-> + * @code: Scan code
-> + * @value: Value that should be reported (ignored by %KE_SW entries)
-> + * @autorelease: Signals whether release event should be emitted for %KE_KEY
-> + *	entries right after reporting press event, ignored by all other
-> + *	entries
-> + *
-> + * This function is used to perform lookup in an input device using sparse
-> + * keymap and report corresponding event. Returns %true if lookup was
-> + * successful and %false otherwise.
-> + */
-> +bool sparse_keymap_report_event(struct input_dev *dev, unsigned int code,
-> +				unsigned int value, bool autorelease)
-> +{
-> +	const struct key_entry *ke =
-> +		sparse_keymap_entry_from_scancode(dev, code);
-> +
-> +	if (ke) {
-> +		sparse_keymap_report_entry(dev, ke, value, autorelease);
-> +		return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_report_event);
-> +
-> diff --git a/include/linux/input/sparse-keymap.h b/include/linux/input/sparse-keymap.h
-> new file mode 100644
-> index 0000000..52db620
-> --- /dev/null
-> +++ b/include/linux/input/sparse-keymap.h
-> @@ -0,0 +1,62 @@
-> +#ifndef _SPARSE_KEYMAP_H
-> +#define _SPARSE_KEYMAP_H
-> +
-> +/*
-> + * Copyright (c) 2009 Dmitry Torokhov
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#define KE_END		0	/* Indicates end of keymap */
-> +#define KE_KEY		1	/* Ordinary key/button */
-> +#define KE_SW		2	/* Switch (predetermined value) */
-> +#define KE_VSW		3	/* Switch (value supplied at runtime) */
-> +#define KE_IGNORE	4	/* Known entry that should be ignored */
-> +#define KE_LAST		KE_IGNORE
-> +
-> +/**
-> + * struct key_entry - keymap entry for use in sparse keymap
-> + * @type: Type of the key entry (KE_KEY, KE_SW, KE_VSW, KE_END);
-> + *	drivers are allowed to extend the list with their own
-> + *	private definitions.
-> + * @code: Device-specific data identifying the button/switch
-> + * @keycode: KEY_* code assigned to a key/button
-> + * @sw.code: SW_* code assigned to a switch
-> + * @sw.value: Value that should be sent in an input even when KE_SW
-> + *	switch is toggled. KE_VSW switches ignore this field and
-> + *	expect driver to supply value for the event.
-> + *
-> + * This structure defines an entry in a sparse keymap used by some
-> + * input devices for which traditional table-based approach is not
-> + * suitable.
-> + */
-> +struct key_entry {
-> +	int type;		/* See KE_* above */
-> +	u32 code;
-> +	union {
-> +		u16 keycode;		/* For KE_KEY */
-> +		struct {		/* For KE_SW, KE_VSW */
-> +			u8 code;
-> +			u8 value;	/* For KE_SW, ignored by KE_VSW */
-> +		} sw;
-> +	};
-> +};
-> +
-> +struct key_entry *sparse_keymap_entry_from_scancode(struct input_dev *dev,
-> +						    unsigned int code);
-> +struct key_entry *sparse_keymap_entry_from_keycode(struct input_dev *dev,
-> +						   unsigned int code);
-> +int sparse_keymap_setup(struct input_dev *dev,
-> +			const struct key_entry *keymap,
-> +			int (*setup)(struct input_dev *, struct key_entry *));
-> +void sparse_keymap_free(struct input_dev *dev);
-> +
-> +void sparse_keymap_report_entry(struct input_dev *dev, const struct key_entry *ke,
-> +				unsigned int value, bool autorelease);
-> +
-> +bool sparse_keymap_report_event(struct input_dev *dev, unsigned int code,
-> +				unsigned int value, bool autorelease);
-> +
-> +#endif /* _SPARSE_KEYMAP_H */
-> 
+> Cheers,
+> Ben.
+
+Hi Ben,
+
+I forgot to attach the patch which enables cpuidle for the rest of the
+POWER platforms. Attaching it below.
+
+So for these platforms, ppc_md.power_save will be called from from the
+cpuidle_idle_call idle loop itself. Also, this cpuidle_idle_call is
+not a pseries specific idle loop. It is a common loop for Intel and
+PPC which use cpuidle infrastructure.
+
+arun
 
 
+
+This patch enables cpuidle for the rest of the POWER platforms like
+44x, Cell, Pasemi etc.
+
+Signed-off-by: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+---
+ arch/powerpc/include/asm/system.h       |    2 ++
+ arch/powerpc/kernel/idle.c              |   28 ++++++++++++++++++++++++++++
+ arch/powerpc/kernel/setup_32.c          |    8 ++++++--
+ arch/powerpc/platforms/44x/idle.c       |    2 ++
+ arch/powerpc/platforms/cell/pervasive.c |    2 ++
+ arch/powerpc/platforms/pasemi/idle.c    |    2 ++
+ arch/powerpc/platforms/ps3/setup.c      |    2 ++
+ 7 files changed, 44 insertions(+), 2 deletions(-)
+
+Index: linux.trees.git/arch/powerpc/include/asm/system.h
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/include/asm/system.h
++++ linux.trees.git/arch/powerpc/include/asm/system.h
+@@ -551,8 +551,10 @@ void cpu_idle_wait(void);
+ 
+ #ifdef CONFIG_CPU_IDLE
+ extern void update_smt_snooze_delay(int snooze);
++extern void setup_cpuidle_ppc(void);
+ #else
+ static inline void update_smt_snooze_delay(int snooze) {}
++static inline void setup_cpuidle_ppc(void) {}
+ #endif
+ 
+ #endif /* __KERNEL__ */
+Index: linux.trees.git/arch/powerpc/kernel/idle.c
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/kernel/idle.c
++++ linux.trees.git/arch/powerpc/kernel/idle.c
+@@ -129,6 +129,34 @@ void default_idle(void)
+ 	HMT_very_low();
+ }
+ 
++#ifdef CONFIG_CPU_IDLE
++DEFINE_PER_CPU(struct cpuidle_device, ppc_idle_devices);
++struct cpuidle_driver cpuidle_ppc_driver = {
++	.name =         "cpuidle_ppc",
++};
++
++static void ppc_idle_loop(struct cpuidle_device *dev, struct cpuidle_state *st)
++{
++	ppc_md.power_save();
++}
++
++void setup_cpuidle_ppc(void)
++{
++	struct cpuidle_device *dev;
++	int cpu;
++
++	cpuidle_register_driver(&cpuidle_ppc_driver);
++
++	for_each_online_cpu(cpu) {
++		dev = &per_cpu(ppc_idle_devices, cpu);
++		dev->cpu = cpu;
++		dev->states[0].enter = ppc_idle_loop;
++		dev->state_count = 1;
++		cpuidle_register_device(dev);
++	}
++}
++#endif
++
+ int powersave_nap;
+ 
+ #ifdef CONFIG_SYSCTL
+Index: linux.trees.git/arch/powerpc/kernel/setup_32.c
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/kernel/setup_32.c
++++ linux.trees.git/arch/powerpc/kernel/setup_32.c
+@@ -133,14 +133,18 @@ notrace void __init machine_init(unsigne
+ 
+ #ifdef CONFIG_6xx
+ 	if (cpu_has_feature(CPU_FTR_CAN_DOZE) ||
+-	    cpu_has_feature(CPU_FTR_CAN_NAP))
++	    cpu_has_feature(CPU_FTR_CAN_NAP)) {
+ 		ppc_md.power_save = ppc6xx_idle;
++		setup_cpuidle_ppc();
++	}
+ #endif
+ 
+ #ifdef CONFIG_E500
+ 	if (cpu_has_feature(CPU_FTR_CAN_DOZE) ||
+-	    cpu_has_feature(CPU_FTR_CAN_NAP))
++	    cpu_has_feature(CPU_FTR_CAN_NAP)) {
+ 		ppc_md.power_save = e500_idle;
++		setup_cpuidle_ppc();
++	}
+ #endif
+ 	if (ppc_md.progress)
+ 		ppc_md.progress("id mach(): done", 0x200);
+Index: linux.trees.git/arch/powerpc/platforms/44x/idle.c
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/platforms/44x/idle.c
++++ linux.trees.git/arch/powerpc/platforms/44x/idle.c
+@@ -24,6 +24,7 @@
+ #include <linux/of.h>
+ #include <linux/kernel.h>
+ #include <asm/machdep.h>
++#include <asm/system.h>
+ 
+ static int mode_spin;
+ 
+@@ -46,6 +47,7 @@ int __init ppc44x_idle_init(void)
+ 		/* If we are not setting spin mode 
+                    then we set to wait mode */
+ 		ppc_md.power_save = &ppc44x_idle;
++		setup_cpuidle_ppc();
+ 	}
+ 
+ 	return 0;
+Index: linux.trees.git/arch/powerpc/platforms/cell/pervasive.c
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/platforms/cell/pervasive.c
++++ linux.trees.git/arch/powerpc/platforms/cell/pervasive.c
+@@ -35,6 +35,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/reg.h>
+ #include <asm/cell-regs.h>
++#include <asm/system.h>
+ 
+ #include "pervasive.h"
+ 
+@@ -128,5 +129,6 @@ void __init cbe_pervasive_init(void)
+ 	}
+ 
+ 	ppc_md.power_save = cbe_power_save;
++	setup_cpuidle_ppc();
+ 	ppc_md.system_reset_exception = cbe_system_reset_exception;
+ }
+Index: linux.trees.git/arch/powerpc/platforms/pasemi/idle.c
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/platforms/pasemi/idle.c
++++ linux.trees.git/arch/powerpc/platforms/pasemi/idle.c
+@@ -27,6 +27,7 @@
+ #include <asm/machdep.h>
+ #include <asm/reg.h>
+ #include <asm/smp.h>
++#include <asm/system.h>
+ 
+ #include "pasemi.h"
+ 
+@@ -81,6 +82,7 @@ static int __init pasemi_idle_init(void)
+ 
+ 	ppc_md.system_reset_exception = pasemi_system_reset_exception;
+ 	ppc_md.power_save = modes[current_mode].entry;
++	setup_cpuidle_ppc();
+ 	printk(KERN_INFO "Using PA6T idle loop (%s)\n", modes[current_mode].name);
+ 
+ 	return 0;
+Index: linux.trees.git/arch/powerpc/platforms/ps3/setup.c
+===================================================================
+--- linux.trees.git.orig/arch/powerpc/platforms/ps3/setup.c
++++ linux.trees.git/arch/powerpc/platforms/ps3/setup.c
+@@ -33,6 +33,7 @@
+ #include <asm/prom.h>
+ #include <asm/lv1call.h>
+ #include <asm/ps3gpu.h>
++#include <asm/system.h>
+ 
+ #include "platform.h"
+ 
+@@ -214,6 +215,7 @@ static void __init ps3_setup_arch(void)
+ 	prealloc_ps3flash_bounce_buffer();
+ 
+ 	ppc_md.power_save = ps3_power_save;
++	setup_cpuidle_ppc();
+ 	ps3_os_area_init();
+ 
+ 	DBG(" <- %s:%d\n", __func__, __LINE__);
