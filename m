@@ -1,90 +1,54 @@
 From: Anisse Astier <anisse@astier.eu>
-Subject: Re: [PATCH 1/9] Input: add generic support for sparse keymaps
-Date: Fri, 4 Dec 2009 15:06:21 +0100
-Message-ID: <20091204150621.16e4036e@destiny.ordissimo>
-References: <20091204060701.28288.91430.stgit@localhost.localdomain>
-	<20091204061158.28288.17664.stgit@localhost.localdomain>
+Subject: [PATCH] ACPICA: update documentation to reflect correct parameter
+ name
+Date: Fri, 4 Dec 2009 15:36:05 +0100
+Message-ID: <20091204153605.73fc9202@destiny.ordissimo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:61240 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755711AbZLDOH6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 09:07:58 -0500
-In-Reply-To: <20091204061158.28288.17664.stgit@localhost.localdomain>
+Received: from mail-ew0-f171.google.com ([209.85.219.171]:63136 "EHLO
+	mail-ew0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752688AbZLDOhv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 09:37:51 -0500
+Received: by ewy19 with SMTP id 19so314807ewy.1
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Dec 2009 06:37:57 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>, Jiri Kosina <jkosina@suse.cz>
 
-On Thu, 03 Dec 2009 22:11:58 -0800, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote :
 
-> +
-> +/**
-> + * sparse_keymap_report_event - report event corresponding to given key entry
-You meant _report_entry ?
+Second parameter for function acpi_ut_copy_iobject_to_eobject is named
+ret_buffer, not buffer_ptr, since longer than git can remember.
 
-> + * @dev: Input device for which event should be reported
-> + * @ke: key entry describing event
-> + * @value: Value that should be reported (ignored by %KE_SW entries)
-> + * @autorelease: Signals whether release event should be emitted for %KE_KEY
-> + *	entries right after reporting press event, ignored by all other
-> + *	entries
-> + *
-> + * This function is used to report input event described by given
-> + * &struct key_entry.
-> + */
-> +void sparse_keymap_report_entry(struct input_dev *dev, const struct key_entry *ke,
-> +				unsigned int value, bool autorelease)
-> +{
-> +	switch (ke->type) {
-> +	case KE_KEY:
-> +		input_report_key(dev, ke->keycode, value);
-> +		input_sync(dev);
-> +		if (value && autorelease) {
-> +			input_report_key(dev, ke->keycode, 0);
-> +			input_sync(dev);
-> +		}
-> +		break;
-> +
-> +	case KE_SW:
-> +		value = ke->sw.value;
-> +		/* fall through */
-> +
-> +	case KE_VSW:
-> +		input_report_switch(dev, ke->sw.code, value);
-> +		break;
-> +	}
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_report_entry);
-> +
-> +/**
-> + * sparse_keymap_report_event - report event corresponding to given scancode
-> + * @dev: Input device using sparse keymap
-> + * @code: Scan code
-> + * @value: Value that should be reported (ignored by %KE_SW entries)
-> + * @autorelease: Signals whether release event should be emitted for %KE_KEY
-> + *	entries right after reporting press event, ignored by all other
-> + *	entries
-> + *
-> + * This function is used to perform lookup in an input device using sparse
-> + * keymap and report corresponding event. Returns %true if lookup was
-> + * successful and %false otherwise.
-> + */
-> +bool sparse_keymap_report_event(struct input_dev *dev, unsigned int code,
-> +				unsigned int value, bool autorelease)
-> +{
-> +	const struct key_entry *ke =
-> +		sparse_keymap_entry_from_scancode(dev, code);
-> +
-> +	if (ke) {
-> +		sparse_keymap_report_entry(dev, ke, value, autorelease);
-> +		return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +EXPORT_SYMBOL(sparse_keymap_report_event);
-> +
+Signed-off-by: Anisse Astier <anisse@astier.eu>
+---
+Hi,
+
+ACPICA is somewhat auto-generated. How can this trivial patch be applied?
+
+Regards,
+
+Anisse
+
+ drivers/acpi/acpica/utcopy.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
+index 0f0c64b..ecfa7f9 100644
+--- a/drivers/acpi/acpica/utcopy.c
++++ b/drivers/acpi/acpica/utcopy.c
+@@ -382,7 +382,7 @@ acpi_ut_copy_ipackage_to_epackage(union
+acpi_operand_object *internal_object,
+  * FUNCTION:    acpi_ut_copy_iobject_to_eobject
+  *
+  * PARAMETERS:  internal_object     - The internal object to be converted
+- *              buffer_ptr          - Where the object is returned
++ *              ret_buffer          - Where the object is returned
+  *
+  * RETURN:      Status
+  *
+-- 
+1.6.5.3
 
