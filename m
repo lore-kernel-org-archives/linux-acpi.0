@@ -1,63 +1,102 @@
-From: Grozdan <neutrino8@gmail.com>
-Subject: Re: Can't compile 2.6.32
-Date: Sat, 5 Dec 2009 03:12:54 +0100
-Message-ID: <c5bd819b0912041812g394aa26eia1b839e1f0c3c98d@mail.gmail.com>
-References: <173abc14-0cbc-4340-b21f-3e8bc15f02dd@default>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] PM updates for 2.6.33
+Date: Sat, 5 Dec 2009 22:16:19 +0100
+Message-ID: <200912052216.19540.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:44029 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093AbZLECMt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2009 21:12:49 -0500
-In-Reply-To: <173abc14-0cbc-4340-b21f-3e8bc15f02dd@default>
+Received: from ogre.sisk.pl ([217.79.144.158]:36008 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754380AbZLEVPz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Dec 2009 16:15:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sat, Dec 5, 2009 at 3:03 AM, Randy Dunlap <randy.dunlap@oracle.com> =
-wrote:
->
-> A bit more info on this. It seems there's a
-> CONFIG_ACPI_CUSTOM_OVERRIDE_INITRAMFS in the "normal" SUSE source RPM
-> package (which in my config is not enabled, but there is an option fo=
-r
-> that) and looking at the drivers/acpi/osl.c and the
-> include/acpi/acpiosxf.h file, there's a define for this in the header
-> which has acpi_load_override_tables(void); and also this is present i=
-n
-> the osl.c file.... see both attachments. I could not find the same
-> thing in the kernel-default-vanilla source RPM package also present i=
-n
-> the repo.
->
-> ~~~~~~~~~~~~~~~~~~ =A0reply: ~~~~~~~~~~~~~~~~~~~~~~~~
->
-> You should take this up with the OpenSUSE people, not lkml.
+Hi Linus,
 
-Yeah I know, and what I've been planning to. But, I enabled this
-option some minutes ago and tried to compile again. It passed
-compilation of osl.c so I think it's all good now. There have been
-quite a lot of complains about how SUSE configures and splits its
-kernel packages; for the new 11.2 release, I've read a lot of them on
-the SUSE forum where people couldn't even boot if the kernel-desktop
-was selected and installed but had no problems with the
-kernel-default. I don't know who configures these kernels (I don't use
-SUSE configured/compiled kernels, only grab them from the build
-service & configure/compile them myself) but it seems it's getting
-progressively worse, not to mention in how many different packages
-they've split the kernel and people are getting confused about this :(
+Please pull power management updates for 2.6.33 from:
 
-Anyways, thanks so far ;)
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git for-linus
 
->
-> Thanks,
-> ~Randy
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+They include:
+
+* Asynchronous suspend and resume infrastructure.  For now, PCI, ACPI and
+  serio devices are enabled to suspend and resume asynchronously.
+
+* Fixes for the runtime PM framework.
+
+* Hibernate cleanups from Nigel and Jiri Slaby.
+
+* Freezer optimisation from Tejun.
+
+
+ Documentation/power/runtime_pm.txt |   12 +-
+ drivers/acpi/glue.c                |    3 +
+ drivers/acpi/scan.c                |    1 +
+ drivers/base/core.c                |    4 +
+ drivers/base/power/Makefile        |    2 +-
+ drivers/base/power/common.c        |  283 +++++++++++++++
+ drivers/base/power/main.c          |  677 +++++++++++++++++++++++++++++++++---
+ drivers/base/power/power.h         |   42 ++-
+ drivers/base/power/runtime.c       |   27 +-
+ drivers/base/power/sysfs.c         |   47 +++
+ drivers/input/serio/serio.c        |    1 +
+ drivers/pci/pci.c                  |    1 +
+ drivers/pci/pcie/portdrv_core.c    |    1 +
+ include/linux/device.h             |   11 +
+ include/linux/pm.h                 |   21 +-
+ include/linux/pm_link.h            |   30 ++
+ include/linux/pm_runtime.h         |   12 +
+ include/linux/resume-trace.h       |    7 +
+ kernel/power/Kconfig               |   14 +
+ kernel/power/Makefile              |    2 +-
+ kernel/power/hibernate.c           |   26 ++
+ kernel/power/main.c                |   32 ++-
+ kernel/power/process.c             |   14 +-
+ kernel/power/swap.c                |  107 ++++++-
+ kernel/power/swsusp.c              |  188 ----------
+ 25 files changed, 1281 insertions(+), 284 deletions(-)
+
+---------------
+
+Alan Stern (2):
+      PM / Runtime: Export the PM runtime workqueue
+      PM / Runtime: Use deferred_resume flag in pm_request_resume
+
+Jaswinder Singh Rajput (1):
+      PM: Fix kernel-doc notation
+
+Jiri Slaby (1):
+      PM / Hibernate: Swap, use KERN_CONT
+
+Nigel Cunningham (2):
+      PM / Hibernate: Move swap functions to kernel/power/swap.c.
+      PM / Hibernate: Shift remaining code from swsusp.c to hibernate.c
+
+Rafael J. Wysocki (15):
+      PM: Introduce PM links framework
+      PM: Asynchronous resume of devices
+      PM: Asynchronous suspend of devices
+      PM: Allow PCI devices to suspend/resume asynchronously
+      PM: Allow ACPI devices to suspend/resume asynchronously
+      PM: Add a switch for disabling/enabling asynchronous suspend/resume
+      PM: Measure device suspend and resume times
+      PM: Add facility for advanced testing of async suspend/resume
+      PM: Measure suspend and resume times for individual devices
+      PM: Allow serio input devices to suspend/resume asynchronously
+      PM / Runtime: Fix lockdep warning in __pm_runtime_set_status()
+      PM / Runtime: Ensure timer_expires is nonzero in pm_schedule_suspend()
+      PM / Runtime: Make documentation of runtime_idle() agree with the code
+      PM / Runtime: Remove unnecessary braces in __pm_runtime_set_status()
+      PM: Add flag for devices capable of generating run-time wake-up events
+
+Stephen Rothwell (1):
+      PM / Suspend: Using TASK_ macros requires sched.h
+
+Tejun Heo (1):
+      PM / freezer: Don't get over-anxious while waiting
+
