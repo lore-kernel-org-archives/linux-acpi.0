@@ -1,84 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Sun, 6 Dec 2009 03:36:23 +0100
-Message-ID: <200912060336.24029.rjw@sisk.pl>
-References: <200912052216.19540.rjw@sisk.pl> <200912060254.10081.rjw@sisk.pl> <alpine.LFD.2.00.0912051758190.3560@localhost.localdomain>
+From: Arun R Bharadwaj <arun@linux.vnet.ibm.com>
+Subject: Re: [v10 PATCH 2/9]: cpuidle: cleanup drivers/cpuidle/cpuidle.c
+Date: Sun, 6 Dec 2009 10:49:28 +0530
+Message-ID: <20091206051928.GA18300@linux.vnet.ibm.com>
+References: <20091202095427.GA27251@linux.vnet.ibm.com>
+	<20091202095705.GC27251@linux.vnet.ibm.com>
+	<200912042320.01320.duwe@lst.de>
+Reply-To: arun@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36565 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754979AbZLFCfn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Dec 2009 21:35:43 -0500
-In-Reply-To: <alpine.LFD.2.00.0912051758190.3560@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <200912042320.01320.duwe@lst.de>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Sender: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+To: Torsten Duwe <duwe@lst.de>
+Cc: linux-arch@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arun Bharadwaj <arun@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
 
-On Sunday 06 December 2009, Linus Torvalds wrote:
-> 
-> On Sun, 6 Dec 2009, Rafael J. Wysocki wrote:
-> > 
-> > While the current settings are probably unsafe (like enabling PCI devices
-> > to be suspended asynchronously by default if there are not any direct
-> > dependences between them), there are provisions to make eveything safe, if
-> > we have enough information (which also is needed to put the required logic into
-> > the drivers).
-> 
-> I disagree.
-> 
-> Think of a situation that we already handle pretty poorly: USB mass 
-> storage devices over a suspend/resume.
-> 
-> > The device tree represents a good deal of the dependences
-> > between devices and the other dependences may be represented as PM links
-> > enforcing specific ordering of the PM callbacks.
-> 
-> The device tree means nothing at all, because it may need to be entirely 
-> rebuilt at resume time. 
+* Torsten Duwe <duwe@lst.de> [2009-12-04 23:20:00]:
 
-With that assumption we have no choice but to leave the async stuff to the
-drivers, which generally I'm fine with, although I really don't expect to see
-it done.
-
-> Optimally, what we _should_ be doing (and aren't) for suspend/resume of 
-> USB is to just tear down the whole topology and rebuild it and re-connect 
-> the things like mass storage devices. IOW, there would be no device tree 
-> to describe the topology, because we're finding it anew. And it's one of 
-> the things we _would_ want to do asynchronously with other things.
-
-I think you should tell that to the USB people, because they don't seem to
-think this way.
-
-[Side note, I do think that at least some information in the device tree will
-remain valid over suspend/resume, but this is a different matter.]
-
-> We don't want to build up some irrelevant PM links and callbacks. We don't 
-> want to have some completely made-up new infrastructure for something that 
-> we _already_ want to handle totally differently for init time.
+> On Wednesday 02 December 2009, Arun R Bharadwaj wrote:
+> > * Arun R Bharadwaj <arun@linux.vnet.ibm.com> [2009-12-02 15:24:27]:
+> >
+> > This patch cleans up drivers/cpuidle/cpuidle.c
+> > Earlier cpuidle assumed pm_idle as the default idle loop. Break that
+> > assumption and make it more generic.
 > 
-> IOW, I argue very strongly against making up something PM-specific, when 
-> there really doesn't seem to be much of an advantage. We're much better 
-> off trying to share the init code than making up something new.
+> Is there a problem with the old pm_idle? Couldn't it be integrated more 
+> transparently, instead of replacing it this intrusively?
 > 
-> > I'd say if there's a worry that the same register may be accessed concurrently
-> > from two different code paths, there should be some locking in place.
+
+Hi Torsten,
+
+Peter objected to the idea of integrating this with the old pm_idle
+because it has already caused a lot of problems on x86 and we wouldn't
+want to be doing the same mistake on POWER. The discussion related to
+that could be found here http://lkml.org/lkml/2009/8/26/233
+
+> > --- linux.trees.git.orig/include/linux/cpuidle.h
+> > +++ linux.trees.git/include/linux/cpuidle.h
+> > @@ -41,7 +41,7 @@ struct cpuidle_state {
+> >  	unsigned long long	usage;
+> >  	unsigned long long	time; /* in US */
+> >
+> > -	int (*enter)	(struct cpuidle_device *dev,
+> > +	void (*enter)	(struct cpuidle_device *dev,
+> >  			 struct cpuidle_state *state);
+> >  };
 > 
-> Yeah. And I wish ACPI didn't exist at all. We don't know.
-> 
-> And we want to _limit_ our exposure to these things.
+> While it may be a good idea to move the residency calculation to one central 
+> place, at least in theory a cpuidle_state->enter() function could have a 
+> better method to determine its value.
+>
 
-Don't worry, I'm not going to touch async suspend/resume again, unless
-somebody makes me do it.
+This would mean a lot of code replication, which Pavel pointed out in
+the previous iteration. So I moved the residency calculation to a
+central place.
 
-BTW, you seem to have some quite strong opinions about power management that
-you only share with people when somebody sends you patches you don't like.  I
-guess it will be much more productive if we know your thoughts about it in
-advance, so I hope you won't mind being sent CCs of core PM patches posted to
-linux-pm for discussions.
-
-Thanks,
-Rafael
+> Either way you're implicitly introducing an API change here, and you're at 
+> least missing two functions on ARM and SuperH, respectively. Could you 
+> separate this API change out, and not take it for granted in the other 
+> patches?
+>
+> 	Torsten
