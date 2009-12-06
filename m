@@ -1,47 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Sun, 6 Dec 2009 02:26:06 +0100
-Message-ID: <200912060226.06217.rjw@sisk.pl>
-References: <200912052216.19540.rjw@sisk.pl> <200912060055.36130.rjw@sisk.pl> <20091205164541.5e0f209a@infradead.org>
+Date: Sat, 5 Dec 2009 17:50:10 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912051745590.3560@localhost.localdomain>
+References: <200912052216.19540.rjw@sisk.pl> <200912060129.19245.rjw@sisk.pl> <alpine.LFD.2.00.0912051648520.3560@localhost.localdomain> <200912060224.37752.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36426 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754740AbZLFBZ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Dec 2009 20:25:28 -0500
-In-Reply-To: <20091205164541.5e0f209a@infradead.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37040 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755381AbZLFBuM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 Dec 2009 20:50:12 -0500
+In-Reply-To: <200912060224.37752.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sunday 06 December 2009, Arjan van de Ven wrote:
-> On Sun, 6 Dec 2009 00:55:36 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+
+
+On Sun, 6 Dec 2009, Rafael J. Wysocki wrote:
 > 
-> > 
-> > Disk spinup/spindown takes time, but also some ACPI devices resume
-> > slowly, serio devices do that too and there are surprisingly many
-> > drivers that wait (using msleep() during suspend and resume).  Apart
-> > from this, every PCI device going from D0 to D3 during suspend and
-> > from D3 to D0 during resume requires us to sleep for 10 ms (the
-> > sleeping is done by the PCI core, so the drivers don't even realize
-> > its there).
+> > Multi-function PCI devices commonly share registers - they're on the same
+> > chip, after all.  And even when the _hardware_ is totally independent, we
+> > often have discovery rules and want to initialize in order because different
+> > drivers  will do things like unregister entirely on suspend, and then
+> > re-register on resume.
 > 
-> maybe a good step is to make a scripts/bootgraph.pl equivalent for
-> suspend/resume (or make a debug mode that outputs in a compatible format
-> so that the script can be used as is.. I don't mind either way, and
-> consider this my offer to help with such a script as long as there's
-> sufficient logging in dmesg ;-)
+> Do any of the PCI drivers do that?
 
-OK, so what kind of logging is needed?
+It used to be common at least for ethernet - there were a number of 
+drivers that essentially did the same thing on suspend/resume and on 
+module unload/reload.
 
-> that way we can SEE which ones are an issue.... and by how much.
+The point is, I don't know. And neither do you. It's much safer to just do 
+drivers one by one, and not touch drivers that people don't test.
 
-Well, why not.
-
-Thanks,
-Rafael
+			Linus
