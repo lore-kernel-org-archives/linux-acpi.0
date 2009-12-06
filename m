@@ -1,48 +1,34 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Sun, 6 Dec 2009 14:54:48 -0800
-Message-ID: <7AB497C7-8495-4535-9E83-81307E008BF4@gmail.com>
-References: <200912052216.19540.rjw@sisk.pl> <200912060055.36130.rjw@sisk.pl> <alpine.LFD.2.00.0912051635330.3560@localhost.localdomain> <200912060254.10081.rjw@sisk.pl> <alpine.LFD.2.00.0912051758190.3560@localhost.localdomain> <20091206113555.5a646713@infradead.org> <alpine.LFD.2.00.0912061144100.3560@localhost.localdomain> <20091206121803.70385c33@infradead.org>
-Mime-Version: 1.0 (iPhone Mail 7C144)
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Anisse Astier <anisse@astier.eu>
+Subject: Re: [PATCH 1/9] Input: add generic support for sparse keymaps
+Date: Sun, 6 Dec 2009 23:57:28 +0100
+Message-ID: <38c9179b0912061457h465b895ftbc83071c30fbefc2@mail.gmail.com>
+References: <20091204060701.28288.91430.stgit@localhost.localdomain>
+	<20091204061158.28288.17664.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:58706 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934338AbZLFWy6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2009 17:54:58 -0500
-In-Reply-To: <20091206121803.70385c33@infradead.org>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:44539 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755068AbZLFW5q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2009 17:57:46 -0500
+In-Reply-To: <20091204061158.28288.17664.stgit@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Herton Ronaldo Krzesinski <herton@mandriva.com.br>, Harald Welte <laforge@gnumonks.org>, Corentin Chary <corentincj@iksaif.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Wu Zhangjin <wuzhangjin@gmail.com>
 
-On Dec 6, 2009, at 12:18 PM, Arjan van de Ven <arjan@infradead.org>  
-wrote:
+Hi Dmitry,
 
-> On Sun, 6 Dec 2009 11:58:44 -0800 (PST)
-> Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Fri, Dec 4, 2009 at 07:11, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> More and more devices choose to reimplement support for sparse keymaps
+> first introduced by wistron driver. Move it into a library module so it
+> can be easily used by interested parties.
 >
->>
->>
->> On Sun, 6 Dec 2009, Arjan van de Ven wrote:
->>>
->>> in suspend, there's a PCI device (:1b) that does take some time,
->>> which is the audio controller. The bulk of the time is in the serio
->>> driver though..
->>
->> That serio thing is disgusting. We had serious problems with the
->> serial driver timeouts for boot-time optimizations too, didn't we?
->
-> isn't serio the PS/2 stuff?
+> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 
-Yes, that's your PS/2 mouse (rather touchpad) and the delay comes from  
-device reset (needed by some keyboard controllers - I remember HP -or  
-it and keyboard will be dead at resume).
+Reviewed-by: Anisse Astier <anisse@astier.eu>
+
+Regards,
 
 -- 
-Dmitry
-
+Anisse
