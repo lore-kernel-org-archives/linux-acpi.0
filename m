@@ -1,73 +1,49 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Sun, 6 Dec 2009 09:39:41 +0100
-Message-ID: <20091206083941.GA2881@elte.hu>
-References: <200912052216.19540.rjw@sisk.pl>
- <200912060055.36130.rjw@sisk.pl>
- <20091205164541.5e0f209a@infradead.org>
- <200912060226.06217.rjw@sisk.pl>
- <20091205175852.2500cdad@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755876AbZLFIkL@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091205175852.2500cdad@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
+From: yakui.zhao@intel.com
+Subject: [PATCH] acpi: Use the ARB_DISABLE for the CPU which model id is less than 0x0f.
+Date: Sun,  6 Dec 2009 20:20:02 +0800
+Message-ID: <1260102002-18624-1-git-send-email-yakui.zhao@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:60266 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754575AbZLFMVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 6 Dec 2009 07:21:47 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-* Arjan van de Ven <arjan@infradead.org> wrote:
+ARB_DISABLE is a NOP on all of the recent Intel platforms. For such platforms,
+reduce contention on c3_lock by skipping the fake ARB_DISABLE.
 
-> On Sun, 6 Dec 2009 02:26:06 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > On Sunday 06 December 2009, Arjan van de Ven wrote:
-> > > On Sun, 6 Dec 2009 00:55:36 +0100
-> > > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > > 
-> > > > 
-> > > > Disk spinup/spindown takes time, but also some ACPI devices resume
-> > > > slowly, serio devices do that too and there are surprisingly many
-> > > > drivers that wait (using msleep() during suspend and resume).
-> > > > Apart from this, every PCI device going from D0 to D3 during
-> > > > suspend and from D3 to D0 during resume requires us to sleep for
-> > > > 10 ms (the sleeping is done by the PCI core, so the drivers don't
-> > > > even realize its there).
-> > > 
-> > > maybe a good step is to make a scripts/bootgraph.pl equivalent for
-> > > suspend/resume (or make a debug mode that outputs in a compatible
-> > > format so that the script can be used as is.. I don't mind either
-> > > way, and consider this my offer to help with such a script as long
-> > > as there's sufficient logging in dmesg ;-)
-> > 
-> > OK, so what kind of logging is needed?
-> 
-> basically the equivalent of the two initcall_debug paths in
-> 
-> init/main.c:do_one_initcall()
-> 
-> which prints a start time and an end time (and a pid) for each init 
-> function; if we have the same for suspend calls (and resume)... we can 
-> make the tool graph it.
->
-> Would be nice to get markers for start and end of the whole suspend 
-> sequence as well as for the resume sequence; those make it easier to 
-> know when the end is (so that the axis can be drawn etc)
-> 
-> shouldn't be too hard to implement...
+The cpu model id on one laptop is 14. If we disable ARB_DISABLE on this box,
+the box can't be booted correctly. But if we still enable ARB_DISABLE on this
+box, the box can be booted correctly.
 
-I think an even better option would be to extend 'perf timechart' to be 
-suspend/resume aware: add a few tracepoint events and teach 'perf 
-timechart' to draw them. (We should be able to do perf timechart record 
-across suspend/resume cycles just fine.)
+So we still use the ARB_DISABLE for the cpu which mode id is less than 0x0f.
 
-( Doing that would also improve the tracing facilities within 
-  suspend/resume quite significantly. It wouldnt just be a 
-  single-purpose thing for graphing, but perf trace and perf stat would 
-  work equally well. )
+http://bugzilla.kernel.org/show_bug.cgi?id=14700
 
-Thanks,
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+cc: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+---
+ arch/x86/kernel/acpi/cstate.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-	Ingo
+diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+index 59cdfa4..2e837f5 100644
+--- a/arch/x86/kernel/acpi/cstate.c
++++ b/arch/x86/kernel/acpi/cstate.c
+@@ -48,7 +48,7 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+ 	 * P4, Core and beyond CPUs
+ 	 */
+ 	if (c->x86_vendor == X86_VENDOR_INTEL &&
+-	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 14)))
++	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 0x0f)))
+ 			flags->bm_control = 0;
+ }
+ EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
+-- 
+1.5.4.5
+
