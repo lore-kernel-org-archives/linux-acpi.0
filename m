@@ -1,57 +1,73 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 32/33] input: add KEY_WIRELESS_CYCLE
-Date: Sun, 6 Dec 2009 09:21:12 +0100
-Message-ID: <71cd59b00912060021w6b9c46fem5a4da45f29d370a@mail.gmail.com>
-References: <1259826317-18809-27-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-29-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-30-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-31-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-32-git-send-email-corentincj@iksaif.net>
-	 <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
-	 <20091203075404.GK9121@core.coreip.homeip.net>
-	 <71cd59b00912030012r2f45f474u37c494ad281230cb@mail.gmail.com>
-	 <20091206065829.GI5340@wrars-comp.wrarsdomain>
-	 <20091206071751.GD14651@core.coreip.homeip.net>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [GIT PULL] PM updates for 2.6.33
+Date: Sun, 6 Dec 2009 09:39:41 +0100
+Message-ID: <20091206083941.GA2881@elte.hu>
+References: <200912052216.19540.rjw@sisk.pl>
+ <200912060055.36130.rjw@sisk.pl>
+ <20091205164541.5e0f209a@infradead.org>
+ <200912060226.06217.rjw@sisk.pl>
+ <20091205175852.2500cdad@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20091206071751.GD14651@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andrey Rahmatullin <wrar@altlinux.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755876AbZLFIkL@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20091205175852.2500cdad@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 6, 2009 at 8:17 AM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Sun, Dec 06, 2009 at 11:58:29AM +0500, Andrey Rahmatullin wrote:
->> On Thu, Dec 03, 2009 at 09:12:52AM +0100, Corentin Chary wrote:
->> > >> This keycode could be used in a lot of platform specific drivers.
->> > >> For example, on Asus laptops, Fn+F2 allow to cycle trought wireless
->> > >> drivers (bt/wl: off/off, on/off, off/on, on/on).
->> > >>
->> > >> Currently, these key are mapped to KEY_WLAN, and KEY_BLUETOOTH/KEY_WIMAX
->> > >> are rarely used.
->> > > Is there any application support for such cycling? IOW does anyone cares
->> > > to do such cycling?
->> > On Asus laptops (both asus and eeepc) the Fn+F2 key cycle
->> > (bluetooth/wlan: on/on, on/off, off/on, off/off) on windows.
->> > On Linux, it only produces a KEY_WLAN keycode.
->> Default eee901's Xandros cycles and even shows an OSD with BT and WLAN
->> state images.
->>
+
+* Arjan van de Ven <arjan@infradead.org> wrote:
+
+> On Sun, 6 Dec 2009 02:26:06 +0100
+> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > On Sunday 06 December 2009, Arjan van de Ven wrote:
+> > > On Sun, 6 Dec 2009 00:55:36 +0100
+> > > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> > > 
+> > > > 
+> > > > Disk spinup/spindown takes time, but also some ACPI devices resume
+> > > > slowly, serio devices do that too and there are surprisingly many
+> > > > drivers that wait (using msleep() during suspend and resume).
+> > > > Apart from this, every PCI device going from D0 to D3 during
+> > > > suspend and from D3 to D0 during resume requires us to sleep for
+> > > > 10 ms (the sleeping is done by the PCI core, so the drivers don't
+> > > > even realize its there).
+> > > 
+> > > maybe a good step is to make a scripts/bootgraph.pl equivalent for
+> > > suspend/resume (or make a debug mode that outputs in a compatible
+> > > format so that the script can be used as is.. I don't mind either
+> > > way, and consider this my offer to help with such a script as long
+> > > as there's sufficient logging in dmesg ;-)
+> > 
+> > OK, so what kind of logging is needed?
+> 
+> basically the equivalent of the two initcall_debug paths in
+> 
+> init/main.c:do_one_initcall()
+> 
+> which prints a start time and an end time (and a pid) for each init 
+> function; if we have the same for suspend calls (and resume)... we can 
+> make the tool graph it.
 >
-> You are describing the visible result. Whether it is done as a custom
-> policy to KEY_WLAN presses or utilizes a separate key definition - is
-> not known.
-Old xandros builds use the acpi event.
-New builds have switched to eeepc-laptop (based on my 2.6.30
-backport), so they may use an input event (KEY_WLAN).
+> Would be nice to get markers for start and end of the whole suspend 
+> sequence as well as for the resume sequence; those make it easier to 
+> know when the end is (so that the axis can be drawn etc)
+> 
+> shouldn't be too hard to implement...
 
-> Anyway, we got the response form wireless developers and infrastructure
-> people and thyy do not care about having a new defintion so I guess that
-> settles it.
-Yep
+I think an even better option would be to extend 'perf timechart' to be 
+suspend/resume aware: add a few tracepoint events and teach 'perf 
+timechart' to draw them. (We should be able to do perf timechart record 
+across suspend/resume cycles just fine.)
 
--- 
-Corentin Chary
-http://xf.iksaif.net
+( Doing that would also improve the tracing facilities within 
+  suspend/resume quite significantly. It wouldnt just be a 
+  single-purpose thing for graphing, but perf trace and perf stat would 
+  work equally well. )
+
+Thanks,
+
+	Ingo
