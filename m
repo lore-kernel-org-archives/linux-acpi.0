@@ -1,64 +1,31 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 8/8] thinkpad-acpi: log temperatures on termal alarm
-Date: Sun, 6 Dec 2009 22:01:27 +0100
-Message-ID: <20091206210126.GD10184@elf.ucw.cz>
-References: <1259840485-2516-1-git-send-email-hmh@hmh.eng.br>
- <1259840485-2516-9-git-send-email-hmh@hmh.eng.br>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] PM updates for 2.6.33
+Date: Sun, 6 Dec 2009 13:08:33 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912061308060.3560@localhost.localdomain>
+References: <200912052216.19540.rjw@sisk.pl> <200912060055.36130.rjw@sisk.pl> <alpine.LFD.2.00.0912051635330.3560@localhost.localdomain> <200912060254.10081.rjw@sisk.pl> <alpine.LFD.2.00.0912051758190.3560@localhost.localdomain> <20091206113555.5a646713@infradead.org>
+ <alpine.LFD.2.00.0912061144100.3560@localhost.localdomain> <20091206121803.70385c33@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45561 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757743AbZLFVBa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2009 16:01:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1259840485-2516-9-git-send-email-hmh@hmh.eng.br>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58071 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933833AbZLFVIj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2009 16:08:39 -0500
+In-Reply-To: <20091206121803.70385c33@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
-
-Hi!
-
-> Log temperatures on any of the EC thermal alarms.  It could be
-> useful to help tracking down what is happening...
-
-Thanks, I applied it locally.
-
->  static bool hotkey_notify_thermal(const u32 hkey,
->  				 bool *send_acpi_ev,
->  				 bool *ignore_acpi_ev)
->  {
-> +	int known = true;
-> +
-
-Oops?
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
 
 
-> +	for (i = 0; i < n; i++)
-> +		t.temp[i] = t.temp[i] / 1000;
-> +
-> +	/* Fill missing sensors with N/A marker */
-> +	for (i = n; i < TPACPI_MAX_THERMAL_SENSORS; i++)
-> +		t.temp[i] = -128;
 
--273 would be better "N/A" marker :-).
+On Sun, 6 Dec 2009, Arjan van de Ven wrote:
+> > That serio thing is disgusting. We had serious problems with the
+> > serial driver timeouts for boot-time optimizations too, didn't we?
+> 
+> isn't serio the PS/2 stuff?
 
-> +	/* FIXME: it is ugly */
-> +	printk(TPACPI_NOTICE
-> +		"temperatures (Celsius): "
-> +		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+Oh, you're right, I just assumed it was regular serial. So it's the 
+keyboard and mouse.
 
-But this indeed is ugly. Why not sometihng like
-
-	printk(TPACPI_NOTICE "temperatures (Celsius): ");
-	for (i = 0; i < n; i++)
-		printk(KERN_CONT "%d ", t.temp[i]);
-	printk(KERN_CONT "\n");
-
-...you'd get rid of #ifdef above, ugly -128 markers, and nasty %d series...
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+		Linus
