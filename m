@@ -1,63 +1,74 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Mon, 7 Dec 2009 10:05:56 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912070956350.3560@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912071217220.2644-100000@iolanthe.rowland.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bugme-new] [Bug 14730] New: sky2 won't work after
+ suspend/resume cycle
+Date: Mon, 7 Dec 2009 11:50:57 -0800
+Message-ID: <20091207115057.424774d3.akpm@linux-foundation.org>
+References: <bug-14730-10286@http.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964859AbZLGSGQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 13:06:16 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912071217220.2644-100000@iolanthe.rowland.org>
+	by vger.kernel.org with ESMTP id S932779AbZLGTva (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 14:51:30 -0500
+In-Reply-To: <bug-14730-10286@http.bugzilla.kernel.org/>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: netdev@vger.kernel.org, linux-acpi@vger.kernel.org, Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: bugzilla-daemon@bugzilla.kernel.org, bugme-daemon@bugzilla.kernel.org, mat@esi.com.pl
 
 
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
 
-On Mon, 7 Dec 2009, Alan Stern wrote:
+On Fri, 4 Dec 2009 09:02:21 GMT
+bugzilla-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=14730
 > 
-> Okay, I think I've got it.  But you're wrong about one thing: Resume
-> isn't _exactly_ the reverse of suspend.
+>            Summary: sky2 won't work after suspend/resume cycle
+>            Product: Power Management
+>            Version: 2.5
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: high
+>           Priority: P1
+>          Component: Hibernation/Suspend
+>         AssignedTo: power-management_other@kernel-bugs.osdl.org
+>         ReportedBy: mat@esi.com.pl
+>         Regression: Yes
+> 
+> 
+> I use sky2 network adapter in my Fujitsu Siemens Esprimo Mobile U9200. It
+> worked fine up until 2.6.31-rc3 (or at least that's the last one I tried it
+> works for me) and in all versions after that I tried it stops working after
+> suspend/resume cycle (I use powersave daemon, but I also tried without it -
+> effect is the same). 
+> 
+> After resume what I see in dmesg is this:
+> 
+> sky2 driver version 1.23
+> sky2 0000:04:00.0: enabling device (0000 -> 0003)
+> sky2 0000:04:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+> sky2 0000:04:00.0: setting latency timer to 64
+> sky2 0000:04:00.0: unsupported chip type 0xff
 
-Yeah, no. But I think I made it much closer by getting rid of pre-suspend 
-and post-resume (my next email to the one you quoted).
+It looks like reads from the device are returning all-ones.  
 
-And yeah, I started thinking along those lines exactly because it wasn't 
-as clean a mirror image as I thought it should be able to be.
+> sky2 0000:04:00.0: PCI INT A disabled
+> sky2: probe of 0000:04:00.0 failed with error -95
+> 
+> So it looks like something is probably not restored correctly after resume or
+> some initializations are not executed.
+> 
+> I use Gentoo sources, but I also tried it on vanilla kernels - 2.6.31 and
+> 2.6.32-rc8 and it doesn't work in any version past 2.6.31-rc3.
+> 
 
-> A non-async driver (i.e., most of them) would ignore the pre- pass
-> entirely and do all its work in the second pass.
+Help.  Do we think this regression is likely to be a sky2 thing, an
+ACPI thing, an x86 arch thing or...?
 
-See my second email, where I think I can get rid of the whole second pass 
-thing. I think you'll agree that it's an even nicer mirror image.
-
-> There's some question about what to do if a suspend or resume fails.  A
-> bunch of async threads will have been launched for other devices, but
-> now there won't be anything to wait for them.  It's not clear how this
-> should be handled.
-
-I think the rule for "suspend fails" is very simple: you can't fail in the 
-async codepath. There's no sane way to return errors, and trying to would 
-be too complex anyway. What would you do? 
-
-In fact, even though we _can_ fail in the synchronous path, I personally 
-consider a device driver that ever fails its suspend to be terminally 
-broken. We're practically always better off suspending and simply turning 
-off the power than saying "uh, I failed the suspend".
-
-I've occasionally hit a few drivers that caused suspend failures, and each 
-and every time it was a driver bug, and the right thing to do was to just 
-ignore the error and suspend anyway - returning an error code and trying 
-to undo the suspend is not what anybody ever really wants, even if our 
-model _allows_ for it.
-
-(And the rule for "resume fails" is even simpler: there's nothing we can 
-really do if something fails to resume - and that's true whether the 
-failure is synchronous or asynchronous. The device is dead. Try to reset 
-it, or remove it from the device tree. Tough).
-
-				Linus
+Thanks.
