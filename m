@@ -1,59 +1,65 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: Re: [PATCH] acpi: Use the ARB_DISABLE for the CPU which model id
- is less than 0x0f.
-Date: Mon, 07 Dec 2009 13:01:36 -0800
-Message-ID: <1260219696.15729.45.camel@localhost.localdomain>
-References: <1260102002-18624-1-git-send-email-yakui.zhao@intel.com>
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH] asus-laptop: change light sens default values.
+Date: Mon,  7 Dec 2009 22:05:50 +0100
+Message-ID: <1260219950-28577-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7133 "EHLO mga01.intel.com"
+Received: from iksaif.net ([88.191.73.63]:59437 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935036AbZLGVBa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Dec 2009 16:01:30 -0500
-In-Reply-To: <1260102002-18624-1-git-send-email-yakui.zhao@intel.com>
+	id S932191AbZLGVFC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Dec 2009 16:05:02 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhao, Yakui" <yakui.zhao@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, stable@kernel.org, Thomas Renninger <trenn@suse.de>, =?UTF-8?q?Peter=20K=C3=BCppers?= <peter-mailbox@web.de>, Michael Franzl <michaelfranzl@gmx.at>, Ian Turner <vectro@vectro.org>
 
+The light sensor disable brightness key and
+/sys/class/backlight/ control. There was a lot of report
+from users who didn't understand why they couldn't change their
+brightness, including:
+* https://bugs.launchpad.net/bugs/222171
+* https://bugzilla.novell.com/show_bug.cgi?id=3D514747
+* http://bugzilla.kernel.org/show_bug.cgi?id=3D13671
 
-Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Now the light sensor is disabled, and if the user want to enable
+it, the level should be ok.
 
+The funny thing is that comments where ok, not code.
 
-On Sun, 2009-12-06 at 04:20 -0800, Zhao, Yakui wrote:
-> From: Zhao Yakui <yakui.zhao@intel.com>
-> 
-> ARB_DISABLE is a NOP on all of the recent Intel platforms. For such platforms,
-> reduce contention on c3_lock by skipping the fake ARB_DISABLE.
-> 
-> The cpu model id on one laptop is 14. If we disable ARB_DISABLE on this box,
-> the box can't be booted correctly. But if we still enable ARB_DISABLE on this
-> box, the box can be booted correctly.
-> 
-> So we still use the ARB_DISABLE for the cpu which mode id is less than 0x0f.
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=14700
-> 
-> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> cc: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
-> ---
->  arch/x86/kernel/acpi/cstate.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-> index 59cdfa4..2e837f5 100644
-> --- a/arch/x86/kernel/acpi/cstate.c
-> +++ b/arch/x86/kernel/acpi/cstate.c
-> @@ -48,7 +48,7 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
->  	 * P4, Core and beyond CPUs
->  	 */
->  	if (c->x86_vendor == X86_VENDOR_INTEL &&
-> -	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 14)))
-> +	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 0x0f)))
->  			flags->bm_control = 0;
->  }
->  EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
+Cc: stable@kernel.org
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Peter K=C3=BCppers <peter-mailbox@web.de>
+Cc: Michael Franzl <michaelfranzl@gmx.at>
+Cc: Ian Turner <vectro@vectro.org>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/asus-laptop.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/=
+asus-laptop.c
+index b39d2bb..849359a 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -1283,8 +1283,8 @@ static int asus_hotk_add(struct acpi_device *devi=
+ce)
+ 	hotk->ledd_status =3D 0xFFF;
+=20
+ 	/* Set initial values of light sensor and level */
+-	hotk->light_switch =3D 1;	/* Default to light sensor disabled */
+-	hotk->light_level =3D 0;	/* level 5 for sensor sensitivity */
++	hotk->light_switch =3D 0;	/* Default to light sensor disabled */
++	hotk->light_level =3D 5;	/* level 5 for sensor sensitivity */
+=20
+ 	if (ls_switch_handle)
+ 		set_light_sens_switch(hotk->light_switch);
+--=20
+1.6.5.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
