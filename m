@@ -1,166 +1,124 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: AER/hotplug _OSC wierdness?
-Date: Sun, 06 Dec 2009 21:55:49 -0600
-Message-ID: <4B1C7CC5.5070709@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [GIT PULL] PM updates for 2.6.33
+Date: Mon, 07 Dec 2009 11:57:59 +0800
+Message-ID: <1260158279.27069.181.camel@rzhang1-desktop>
+References: <Pine.LNX.4.44L0.0912060953190.4442-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:45841 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933300AbZLGD4I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Dec 2009 22:56:08 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NHUhp-0007tM-S7
-	for linux-acpi@vger.kernel.org; Mon, 07 Dec 2009 04:56:13 +0100
-Received: from s0106000c41bb86e1.ss.shawcable.net ([70.76.47.20])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Dec 2009 04:56:13 +0100
-Received: from hancockrwd by s0106000c41bb86e1.ss.shawcable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Dec 2009 04:56:13 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934686AbZLGD5O@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.0912060953190.4442-100000@netrider.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: kaneshige.kenji@jp.fujitsu.com
 
-I've been looking into why I get these messages on bootup on an Asus 
-P7P55D PRO motherboard:
+On Sun, 2009-12-06 at 23:23 +0800, Alan Stern wrote:
+> On Sat, 5 Dec 2009, Linus Torvalds wrote:
+> 
+> > Think of a situation that we already handle pretty poorly: USB mass 
+> > storage devices over a suspend/resume.
+> > 
+> > > The device tree represents a good deal of the dependences
+> > > between devices and the other dependences may be represented as PM links
+> > > enforcing specific ordering of the PM callbacks.
+> > 
+> > The device tree means nothing at all, because it may need to be entirely 
+> > rebuilt at resume time. 
+> 
+> Nonsense.
+> 
+> > Optimally, what we _should_ be doing (and aren't) for suspend/resume of 
+> > USB is to just tear down the whole topology and rebuild it and re-connect 
+> > the things like mass storage devices. IOW, there would be no device tree 
+> > to describe the topology, because we're finding it anew. And it's one of 
+> > the things we _would_ want to do asynchronously with other things.
+> 
+> That's ridiculous.  Having gone to all the trouble of building a device
+> tree, one which is presumably still almost entirely correct, why go to
+> all the trouble of tearing it down only to rebuild it again?  (Note:
+> I'm talking about resume-from-RAM here, not resume-from-hibernation.)
+> 
+> Instead what we do is verify that the devices we remember from before
+> the suspend are still there, and then asynchronously handle new devices
+> which have been plugged in during the meantime.  Doing this involves
+> relatively little extra or new code; most of the routines are shared
+> with the runtime PM and device reset paths.
+> 
+> As for asynchronicity...  At init time, USB device discovery truly is 
+> asynchronous.  It can happen long after you log in (especially if you 
+> don't plug in the device until after you log in!).  But at resume time 
+> we are more highly constrained.  User processes cannot be unfrozen 
+> until all the devices have been resumed; otherwise they would encounter 
+> errors when trying to do I/O to a suspended device.  (With the runtime 
+> PM framework this is much less of a problem, but plenty of drivers 
+> don't support runtime PM yet.)
+> 
+> 
+> > We don't want to build up some irrelevant PM links and callbacks. We don't 
+> > want to have some completely made-up new infrastructure for something that 
+> > we _already_ want to handle totally differently for init time.
+> > 
+> > IOW, I argue very strongly against making up something PM-specific, when 
+> > there really doesn't seem to be much of an advantage. We're much better 
+> > off trying to share the init code than making up something new.
+> 
+> If I understand correctly, what you're suggesting is impractical.  You
+> would have each driver responsible for resuming the devices it
+> registers.  If it registered some children synchronously (during the
+> parent's probe) then it would resume them synchronously (during the
+> parent's resume); if it registered them asynchronously then it would
+> resume them asynchronously.  In essence, every single device_add() or
+> device_register() call would have to be paired with a resume call.
+> 
+> To make such significant changes in every driver would be prohibitively
+> difficult.  What we need is a compromise which gives drivers control
+> over the resume process without making them responsible for actually
+> carrying it out.
+> 
+> So consider this suggestion: Let's define PM groups.  Each device
+> belongs to a group, and each group (except group 0, the initial group)  
+> has an owner device.  By default a device is added to its parent's
+> group during registration, but the driver can request that it be
+> assigned to a different group, which must be owned by that parent.
+> 
+> During resume, each PM group would correspond to an async task.  The 
+> devices in each group would be resumed sequentially, in order of 
+> registration, but asynchronously with respect to other groups.  The 
+> async thread to resume a group would be launched after the group's 
+> owner device was resumed.
+> 
+yes, we've talked about something similar to this before. :)
 
-Firmware did not grant requested _OSC control
-aer 0000:00:03.0:pcie02: AER service couldn't init device: no _OSC support
-pci_hotplug: PCI Hot Plug PCI Core version: 0.5
-Firmware did not grant requested _OSC control
-Firmware did not grant requested _OSC control
-Firmware did not grant requested _OSC control
-Firmware did not grant requested _OSC control
+Hi, Linus,
+can you please look at this patch set and see if the idea is right?
+http://marc.info/?l=linux-kernel&m=124840449826386&w=2
+http://marc.info/?l=linux-acpi&m=124840456826456&w=2
+http://marc.info/?l=linux-acpi&m=124840456926459&w=2
+http://marc.info/?l=linux-acpi&m=124840457026468&w=2
+http://marc.info/?l=linux-acpi&m=124840457126471&w=2
 
-The AML code for _OSC in the DSDT (below) is almost identical to the 
-example code in the ACPI spec. From looking at the _OSC method, I don't 
-see why it should reject any requests for PCI Express hotplug or AER 
-control.
+If yes, I'll pick them up again and rework a patch set, including some
+good thoughts from Rafael.
 
-I can't quite make sense of the ACPI code that is supposed to handle 
-this. When the AER driver calls acpi_pci_osc_control_set, it first does 
-this:
+thanks,
+rui
 
-	/* Need to query controls first before requesting them */
-	if (!root->osc_queried) {
-		status = acpi_pci_query_osc(root, root->osc_support_set);
-		if (ACPI_FAILURE(status))
-			goto out;
-	}
-	if ((root->osc_control_qry & control_req) != control_req) {
-		printk(KERN_DEBUG
-		       "Firmware did not grant requested _OSC control\n");
-		status = AE_SUPPORT;
-		goto out;
-	}
+> So for example, the sibling functions on a PCI card could all be
+> assigned to the same group, but different cards could belong to
+> different groups.  Likewise for ATA and PCMCIA controllers.  Extra
+> cross-group constraints could be added if needed, but there should be
+> relatively few of them.
+> 
+> This way drivers can decide which of their devices will be resumed in 
+> sequence or concurrently, but they won't have to do any of the 
+> necessary work.
+> 
 
-Inside acpi_pci_query_osc:
 
-	/* do _OSC query for all possible controls */
-	support_set = root->osc_support_set | (flags & OSC_SUPPORT_MASKS);
-	capbuf[OSC_QUERY_TYPE] = OSC_QUERY_ENABLE;
-	capbuf[OSC_SUPPORT_TYPE] = support_set;
-	capbuf[OSC_CONTROL_TYPE] = OSC_CONTROL_MASKS;
-
-	status = acpi_pci_run_osc(root->device->handle, capbuf, &result);
-	if (ACPI_SUCCESS(status)) {
-		root->osc_support_set = support_set;
-		root->osc_control_qry = result;
-		root->osc_queried = 1;
-	}
-
-The comment says "do _OSC query for all possible controls", but it 
-doesn't look like that's what the code is actually doing. The first time 
-this gets called, assuming osc_support_set is 0, it looks like 
-support_set passed into _OSC will also be 0. Then osc_queried would be 
-set to 1, _OSC would never get called again and the cached query result 
-is based on 0 support flags being passed into _OSC, which is wrong. Or 
-am I missing something?
-
-     Name (PEHP, One)
-     Name (SHPC, Zero)
-     Name (PEPM, One)
-     Name (PEER, One)
-     Name (PECS, One)
-
-...
-
-         Method (_OSC, 4, NotSerialized)
-         {
-             Name (SUPP, Zero)
-             Name (CTRL, Zero)
-             CreateDWordField (Arg3, Zero, CDW1)
-             CreateDWordField (Arg3, 0x04, CDW2)
-             CreateDWordField (Arg3, 0x08, CDW3)
-             If (LEqual (Arg0, Buffer (0x10)
-                     {
-                         /* 0000 */    0x5B, 0x4D, 0xDB, 0x33, 0xF7, 
-0x1F, 0x1C, 0x40,
-                         /* 0008 */    0x96, 0x57, 0x74, 0x41, 0xC0, 
-0x3D, 0xD7, 0x66
-                     }))
-             {
-                 Store (CDW2, SUPP)
-                 Store (CDW3, CTRL)
-                 If (LNotEqual (And (SUPP, 0x16), 0x16))
-                 {
-                     And (CTRL, 0x1E, CTRL)
-                 }
-
-                 If (LNot (PEHP))
-                 {
-                     And (CTRL, 0x1E, CTRL)
-                 }
-
-                 If (LNot (SHPC))
-                 {
-                     And (CTRL, 0x1D, CTRL)
-                 }
-
-                 If (LNot (PEPM))
-                 {
-                     And (CTRL, 0x1B, CTRL)
-                 }
-
-                 If (LNot (PEER))
-                 {
-                     And (CTRL, 0x15, CTRL)
-                 }
-
-                 If (LNot (PECS))
-                 {
-                     And (CTRL, 0x0F, CTRL)
-                 }
-
-                 If (Not (And (CDW1, One)))
-                 {
-                     If (And (CTRL, One)) {}
-                     If (And (CTRL, 0x04)) {}
-                     If (And (CTRL, 0x10)) {}
-                 }
-
-                 If (LNotEqual (Arg1, One))
-                 {
-                     Or (CDW1, 0x08, CDW1)
-                 }
-
-                 If (LNotEqual (CDW3, CTRL))
-                 {
-                     Or (CDW1, 0x10, CDW1)
-                 }
-
-                 And (CTRL, 0xEF, CTRL)
-                 Store (CTRL, CDW3)
-                 Return (Arg3)
-             }
-             Else
-             {
-                 Or (CDW1, 0x04, CDW1)
-                 Return (Arg3)
-             }
-         }
-
+> Alan Stern
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
