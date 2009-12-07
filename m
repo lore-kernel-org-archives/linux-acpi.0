@@ -1,66 +1,59 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Mon, 7 Dec 2009 12:56:00 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912071249390.3560@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912060953190.4442-100000@netrider.rowland.org> <200912071615.34788.rjw@sisk.pl> <alpine.LFD.2.00.0912070832330.3560@localhost.localdomain> <200912072147.13851.rjw@sisk.pl>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: Re: [PATCH] acpi: Use the ARB_DISABLE for the CPU which model id
+ is less than 0x0f.
+Date: Mon, 07 Dec 2009 13:01:36 -0800
+Message-ID: <1260219696.15729.45.camel@localhost.localdomain>
+References: <1260102002-18624-1-git-send-email-yakui.zhao@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46358 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935593AbZLGU40 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 15:56:26 -0500
-In-Reply-To: <200912072147.13851.rjw@sisk.pl>
+Received: from mga01.intel.com ([192.55.52.88]:7133 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935036AbZLGVBa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Dec 2009 16:01:30 -0500
+In-Reply-To: <1260102002-18624-1-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhang Rui <rui.zhang@intel.com>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: "Zhao, Yakui" <yakui.zhao@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 
+Acked-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Mon, 7 Dec 2009, Rafael J. Wysocki wrote:
+
+On Sun, 2009-12-06 at 04:20 -0800, Zhao, Yakui wrote:
+> From: Zhao Yakui <yakui.zhao@intel.com>
 > 
-> So I guess the only thing we need at the core level is to call
-> async_synchronize_full() after every stage of suspend/resume, right?
+> ARB_DISABLE is a NOP on all of the recent Intel platforms. For such platforms,
+> reduce contention on c3_lock by skipping the fake ARB_DISABLE.
+> 
+> The cpu model id on one laptop is 14. If we disable ARB_DISABLE on this box,
+> the box can't be booted correctly. But if we still enable ARB_DISABLE on this
+> box, the box can be booted correctly.
+> 
+> So we still use the ARB_DISABLE for the cpu which mode id is less than 0x0f.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=14700
+> 
+> Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+> cc: Pallipadi, Venkatesh <venkatesh.pallipadi@intel.com>
+> ---
+>  arch/x86/kernel/acpi/cstate.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+> index 59cdfa4..2e837f5 100644
+> --- a/arch/x86/kernel/acpi/cstate.c
+> +++ b/arch/x86/kernel/acpi/cstate.c
+> @@ -48,7 +48,7 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+>  	 * P4, Core and beyond CPUs
+>  	 */
+>  	if (c->x86_vendor == X86_VENDOR_INTEL &&
+> -	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 14)))
+> +	    (c->x86 > 0xf || (c->x86 == 6 && c->x86_model >= 0x0f)))
+>  			flags->bm_control = 0;
+>  }
+>  EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
 
-Yes and no.
 
-Yes in the sense that _if_ everybody always uses "async_schedule()" (or 
-whatever the call is named - I've really only written pseudo-code and 
-haven't even tried to look up the details), then the only thing you need 
-to do is async_synchronize_full().
-
-But one of the nice things about using just the trivial rwlock model and 
-letting any async users just depend on that is that we could easily just 
-depend entirely on those device locks, and allow drivers to do async 
-shutdowns other ways too.
-
-For example, I could imagine some driver just doing an async suspend (or 
-resume) that gets completed in an interrupt context, rather than being 
-done by 'async_schedule()' at all. 
-
-So in many ways it's nicer to serialize by just doing
-
-	serialize_all_PM_events()
-	{
-		for_each_device() {
-			down_write(dev->lock);
-			up_write(dev->lock);
-		}
-	}
-
-rather than depend on something like async_synchronize_full() that 
-obviously waits for all async events, but doesn't have the capability to 
-wait for any other event that some random driver might be using.
-
-[ That "down+up" is kind of stupid, but I don't think we have a "wait for 
-  unlocked" rwsem operation. We could add one, and it would be cheaper for 
-  the case where the device never did anything async at all, and didn't 
-  really need to dirty that cacheline by doing that write lock/unlock 
-  pair. ]
-
-But that really isn't a big deal. I think it would be perfectly ok to also 
-just say "if you do any async PM, you need to use 'async_schedule()' 
-because that's all we're going to wait for". It's probably perfectly fine.
-
-			Linus
