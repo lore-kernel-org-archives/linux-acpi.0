@@ -1,56 +1,75 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Sun, 6 Dec 2009 22:37:20 -0800
-Message-ID: <20091206223720.77cc8d80@infradead.org>
-References: <Pine.LNX.4.44L0.0912060953190.4442-100000@netrider.rowland.org>
-	<1260158279.27069.181.camel@rzhang1-desktop>
-	<alpine.LFD.2.00.0912062122460.3560@localhost.localdomain>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: Illuminated keyboard on ASUS U50VG laptop, backlight or led ?
+Date: Mon, 7 Dec 2009 08:51:46 +0100
+Message-ID: <71cd59b00912062351y50651282v627f155590eba863@mail.gmail.com>
+References: <71cd59b00907240034m5781fc4ciea2391d5fa17f85e@mail.gmail.com>
+	<200908061248.40340.danny.kukawka@web.de>
+	<71cd59b00908060459y56448912od7f8914f3b44de0e@mail.gmail.com>
+	<200908061820.23412.danny.kukawka@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:44479 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753427AbZLGGfE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 01:35:04 -0500
-In-Reply-To: <alpine.LFD.2.00.0912062122460.3560@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <hal-bounces@lists.freedesktop.org>
+In-Reply-To: <200908061820.23412.danny.kukawka@web.de>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/hal>
+List-Post: <mailto:hal@lists.freedesktop.org>
+List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
+Sender: hal-bounces@lists.freedesktop.org
+Errors-To: hal-bounces@lists.freedesktop.org
+To: Danny Kukawka <danny.kukawka@web.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, acpi4asus-user@lists.sourceforge.net, Alan Jenkins <sourcejedi.lkml@googlemail.com>, hal@lists.freedesktop.org, linux acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sun, 6 Dec 2009 21:57:55 -0800 (PST)
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Thu, Aug 6, 2009 at 5:20 PM, Danny Kukawka <danny.kukawka@web.de> wrote:
+> On Donnerstag, 6. August 2009, Corentin Chary wrote:
+>> On Thu, Aug 6, 2009 at 12:48 PM, Danny Kukawka<danny.kukawka@web.de> wrote:
+> [...]
+>> > Can you please provide a "grep . */*" from /sys/class/leds/ with the
+>> > affected device? If I read the kernel doc for leds (which this device
+>> > is), we don't need a num_levels for it:
+>> >
+>> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f
+>> >=Documentation/leds-class.txt;h=6399557cdab3d6542a0feea0c0cd2c6b2af5ffad;h
+>> >b=HEAD
+>> >
+>> > "... The brightness file will set the brightness of the LED (taking a
+>> > value 0-255). Most LEDs don't have hardware brightness support so will
+>> > just be turned on for non-zero brightness settings. ..."
+>>
+>> The documentation is probably out of date, the led class provide
+>> a max_brightness file. 255 is the default value, but it can be overridden.
+>>
+>> See:
+>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=d
+>>rivers/leds/led-class.c;h=f2cc13d76810f457c752d6f92f53759980f465ea;hb=HEAD#l
+>>76
+>>
+>> leds-dac124s085.c define it to 0xFFF for example.
+>> And asus-laptop will soon use 3 as max_brightness for asus::kbd_backlight.
+>>
+>> But still, it seems that examples/light_sensors_and_keyboard_backlight.py
+>> and others are using something that is not defined in hal-spec-properties.
+>
+> Thanks for the information. Please check out my latest commits:
+> http://cgit.freedesktop.org/~dkukawka/hal/log/
+>
+> I hope this finally solve the problem.
+>
+> Danny
+>
+>
+>
 
-> 
-> Now, the problem remains that when you walk the device tree starting
-> off all these potentially asynchronous events, you don't want to do
-> that serialization part (the "parent suspend") as you walk the tree -
-> because then you would only ever do one single level asynchronously.
-> Which is why I suggested splitting the suspend into a "pre-suspend"
-> phase (and a "post-resume" one). Because then the tree walk goes from
+Hi,
+Was this patch merged upstream ?
+Do we need to do something else for DeviceKit now that hal is deprecated ?
+Thanks
 
-> I dunno. Maybe I'm overlooking something, but the above is much
-> closer to what I think would be worth doing.
 
-with what you're describing I suspect the current async function calls
-could be used;
-in the first tree walk, the drivers do an async_schedule() of the
-things they want done asynchronous;
-all the core then needs to do is a full synchronization step between the
-two tree walks... and we get pretty much all the benefits without
-needing the read-then-write-lock primitive for synchronization.
-
-alternative would be to do the synchronization in the part where we
-know there's a dependency (like your lock is doing); 
-but instead of a lock we could store the async cookie there; and just
-wait on that in the 2nd phase....  this would be more finegrained, and
-an optimization from the "global synchronize"... but I'm not sure it'll
-be worth it in practice; it will if there's significant cost in various
-parts of the tree AND in the 2nd run; if the 2nd run is cheap in
-general, you're not going to get real extra parallelism at the price of
-more complexity.
 -- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+Corentin Chary
+http://xf.iksaif.net
