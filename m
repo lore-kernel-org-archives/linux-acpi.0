@@ -1,7 +1,7 @@
 From: Arjan van de Ven <arjan@infradead.org>
 Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Sun, 6 Dec 2009 16:55:51 -0800
-Message-ID: <20091206165551.2529075f@infradead.org>
+Date: Sun, 6 Dec 2009 17:18:56 -0800
+Message-ID: <20091206171856.394ce6d8@infradead.org>
 References: <200912052216.19540.rjw@sisk.pl>
 	<200912060055.36130.rjw@sisk.pl>
 	<alpine.LFD.2.00.0912051635330.3560@localhost.localdomain>
@@ -15,10 +15,10 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:41418 "EHLO
+Received: from casper.infradead.org ([85.118.1.10]:41425 "EHLO
 	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758436AbZLGBQO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2009 20:16:14 -0500
+	with ESMTP id S1758543AbZLGBQj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2009 20:16:39 -0500
 In-Reply-To: <7AB497C7-8495-4535-9E83-81307E008BF4@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -28,16 +28,13 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sis
 On Sun, 6 Dec 2009 14:54:48 -0800
 Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
 
-> > isn't serio the PS/2 stuff?
-> 
 > Yes, that's your PS/2 mouse (rather touchpad) and the delay comes
 > from device reset (needed by some keyboard controllers - I remember
 > HP -or it and keyboard will be dead at resume).
+> 
 
-and I have a HP laptop... so this makes perfect sense.
-Thanks for the explenation!
-
-Now, the good news is that serio is near invisible on resume...
+btw could we do this reset in an async function call (as long as we
+wait for it to complete before we pull the plug finally) ?
 
 
 -- 
