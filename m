@@ -1,78 +1,70 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCHv2 0/2] Introducing the Ambient Light Sensor (ALS) class
-Date: Mon, 7 Dec 2009 16:04:32 +0100
-Message-ID: <20091207160432.3108e17b@hyperion.delvare>
-References: <1259581514-15356-1-git-send-email-amit.kucheria@verdurent.com>
-	<37786d4b0912070650g7ba7604bv63365a21f980501d@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [GIT PULL] PM updates for 2.6.33
+Date: Mon, 7 Dec 2009 10:13:34 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912071003270.3064-100000@iolanthe.rowland.org>
+References: <alpine.LFD.2.00.0912062122460.3560@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:61719 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935167AbZLGPEa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 10:04:30 -0500
-In-Reply-To: <37786d4b0912070650g7ba7604bv63365a21f980501d@mail.gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:51018 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S935226AbZLGPN2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 10:13:28 -0500
+In-Reply-To: <alpine.LFD.2.00.0912062122460.3560@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, rui.zhang@intel.com, jic23@cam.ac.uk, alan@linux.intel.com, linux-acpi@vger.kernel.org, gregkh@suse.de, Andrew Morton <akpm@linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Mon, 7 Dec 2009 16:50:23 +0200, Amit Kucheria wrote:
-> On Mon, Nov 30, 2009 at 1:45 PM, Amit Kucheria
-> <amit.kucheria@verdurent.com> wrote:
-> > Introduce a new class of devices to handle ambient light sensors. C=
-urrently
-> > only one sysfs inteface, 'illuminance' is introduced. More will be =
-added as
-> > drivers are ported to use this new class.
-> >
-> > Amit Kucheria (1):
-> > =C2=A0als: add unique device-ids to the als device class
-> >
-> > Zhang Rui (1):
-> > =C2=A0introduce ALS sysfs class
-> >
-> > =C2=A0Documentation/ABI/testing/sysfs-class-als | =C2=A0 =C2=A09 ++
-> > =C2=A0MAINTAINERS =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 =C2=A0=
-6 ++
-> > =C2=A0drivers/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 =C2=A02 +
-> > =C2=A0drivers/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0| =C2=A0 =C2=A01 +
-> > =C2=A0drivers/als/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 10 +++
-> > =C2=A0drivers/als/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0| =C2=A0 =C2=A05 +
-> > =C2=A0drivers/als/als_sys.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0116 +++++++++++++++++++++++++++++
-> > =C2=A0include/linux/als_sys.h =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 35 +++++++++
-> > =C2=A08 files changed, 184 insertions(+), 0 deletions(-)
-> > =C2=A0create mode 100644 Documentation/ABI/testing/sysfs-class-als
-> > =C2=A0create mode 100644 drivers/als/Kconfig
-> > =C2=A0create mode 100644 drivers/als/Makefile
-> > =C2=A0create mode 100644 drivers/als/als_sys.c
-> > =C2=A0create mode 100644 include/linux/als_sys.h
-> >
->=20
-> (Bump)
->=20
-> Is there any blocker to adding this for 2.6.33?
+On Sun, 6 Dec 2009, Linus Torvalds wrote:
 
-As far as I am concerned, it's ready to go. And I would love to see it
-in 2.6.33.
+> 	# Phase one: walk the tree synchronously, starting any
+> 	# async work on the leaves
+> 	suspend_prepare(root)
+> 	{
+> 		for_each_child(root) {
+> 			// This may take the parent lock for
+> 			// reading if it does something async
+> 			suspend_prepare(child);
+> 		}
+> 		suspend_prepare_one_node(root);
+> 	}
+> 
+> 	# Phase two: walk the tree synchronously, waiting for
+> 	# and finishing the suspend
+> 	suspend(root)
+> 	{
+> 		for_each_child(root) {
+> 			suspend(child);
+> 		}
+> 		// This serializes with any async children started in phase 1
+> 		write_lock(root->lock);
+> 		suspend_one_node(root);
+> 		write_unlock(root->lock);
+> 	}
+> 
+> and I really think this should work.
 
-> Which maintainer will pick up the ALS framework?
+> No complex concepts. No change to existing tested drivers. No callbacks, 
+> no flags, no nothing. And a pretty simple way for a driver to decide: I'll 
+> do my suspends asynchronously (without parent drivers really ever even 
+> having to know about it).
+> 
+> I dunno. Maybe I'm overlooking something, but the above is much closer to 
+> what I think would be worth doing.
 
-As Rui volunteered to be the maintainer of this new subsystem, it would
-seem fair that he takes care of the initial push as well.
+You're overlooking resume.  It's more difficult than suspend.  The
+issue is that a child can't start its async part until the parent's
+synchronous part is finished.
 
---=20
-Jean Delvare
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So for example, suppose the device listing contains P, C, Q, where C is
+a child of P, Q is unrelated, and P has a long-lasting asynchronous
+requirement.  The resume process will stall upon reaching C, waiting
+for P to finish.  Thus even though P and Q might be able to resume in
+parallel, they won't get the chance.
+
+An approach that handles resume well can probably be adapted to handle 
+suspend too.  The reverse isn't true, as this example shows.
+
+Alan Stern
+
