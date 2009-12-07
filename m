@@ -1,43 +1,83 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 32/33] input: add KEY_WIRELESS_CYCLE
-Date: Mon, 7 Dec 2009 09:47:49 -0200
-Message-ID: <20091207114749.GD20076@khazad-dum.debian.net>
-References: <1259826317-18809-30-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-31-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-32-git-send-email-corentincj@iksaif.net>
- <1259826317-18809-33-git-send-email-corentincj@iksaif.net>
- <20091203075404.GK9121@core.coreip.homeip.net>
- <71cd59b00912030012r2f45f474u37c494ad281230cb@mail.gmail.com>
- <20091206065829.GI5340@wrars-comp.wrarsdomain>
- <20091206071751.GD14651@core.coreip.homeip.net>
- <71cd59b00912060021w6b9c46fem5a4da45f29d370a@mail.gmail.com>
- <20091206145415.GA16414@srcf.ucam.org>
+Subject: Re: [PATCH 8/8] thinkpad-acpi: log temperatures on termal alarm
+Date: Mon, 7 Dec 2009 10:06:29 -0200
+Message-ID: <20091207120629.GE20076@khazad-dum.debian.net>
+References: <1259840485-2516-1-git-send-email-hmh@hmh.eng.br>
+ <1259840485-2516-9-git-send-email-hmh@hmh.eng.br>
+ <20091206210126.GD10184@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42816 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754205AbZLGMGZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 07:06:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20091206145415.GA16414@srcf.ucam.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Corentin Chary <corentin.chary@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andrey Rahmatullin <wrar@altlinux.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org
+In-Reply-To: <20091206210126.GD10184@elf.ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Sun, 06 Dec 2009, Matthew Garrett wrote:
-> On Sun, Dec 06, 2009 at 09:21:12AM +0100, Corentin Chary wrote:
-> > Old xandros builds use the acpi event.
-> > New builds have switched to eeepc-laptop (based on my 2.6.30
-> > backport), so they may use an input event (KEY_WLAN).
+On Sun, 06 Dec 2009, Pavel Machek wrote:
+> > Log temperatures on any of the EC thermal alarms.  It could be
+> > useful to help tracking down what is happening...
 > 
-> Yeah. We should probably change that to KEY_RFKILL once that lands.
+> Thanks, I applied it locally.
+> 
+> >  static bool hotkey_notify_thermal(const u32 hkey,
+> >  				 bool *send_acpi_ev,
+> >  				 bool *ignore_acpi_ev)
+> >  {
+> > +	int known = true;
+> > +
+> 
+> Oops?
 
-Depends on what is being done in userspace to the other KEY_(radio type).
+Yeah, will fix and resend the entire stack, as it has grown a few more
+patches during the weekend :)
 
-What I do know, is that I will miss a keycode that rfkills just my WLAN... I
-use that for power management, it is nice to have a key that is for WLAN
-only, and another that is for bluetooth-only...
+> > +	for (i = 0; i < n; i++)
+> > +		t.temp[i] = t.temp[i] / 1000;
+> > +
+> > +	/* Fill missing sensors with N/A marker */
+> > +	for (i = n; i < TPACPI_MAX_THERMAL_SENSORS; i++)
+> > +		t.temp[i] = -128;
+> 
+> -273 would be better "N/A" marker :-).
 
-It is a pity KEY_RFKILL is arriving too late to avoid the loss of KEY_WLAN
-(or is it?)
+No can do.  The firmware uses -128 (it is a signed 8-bit value), so there is
+an internal driver ABI *and* an userspace ABI since 2.6.13 or thereabouts
+that forces N/A sensors in thinkpad-acpi to return -128...
+
+In sysfs, I return an error code instead, which is arguably a much better
+way of doing that.
+
+But I do agree -273 would be a cooler value to return for N/A :-)
+
+> > +	/* FIXME: it is ugly */
+> > +	printk(TPACPI_NOTICE
+> > +		"temperatures (Celsius): "
+> > +		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+> 
+> But this indeed is ugly. Why not sometihng like
+> 
+> 	printk(TPACPI_NOTICE "temperatures (Celsius): ");
+> 	for (i = 0; i < n; i++)
+> 		printk(KERN_CONT "%d ", t.temp[i]);
+> 	printk(KERN_CONT "\n");
+> 
+> ...you'd get rid of #ifdef above, ugly -128 markers, and nasty %d series...
+
+Can't get rid of -128, unless I print N/A instead, which your for() loop
+would allow.
+
+However, while using KERN_CONT is nicer, that printk is important and needs
+to get out to the logs with no reordering, no long delay, and preferably, no
+other printks interleaved with it.  Please excuse my lack of knowledge on
+this, but wouldn't KERN_CONT make it far more likely that a problem happens
+to the printk that will make it hard to read/useless (if reordering
+happens)?
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
