@@ -1,32 +1,32 @@
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Subject: Re: AER/hotplug _OSC wierdness?
-Date: Mon, 07 Dec 2009 18:26:40 +0900
-Message-ID: <4B1CCA50.80702@jp.fujitsu.com>
+Date: Mon, 07 Dec 2009 19:55:18 +0900
+Message-ID: <4B1CDF16.8050201@jp.fujitsu.com>
 References: <4B1C7CC5.5070709@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45730 "EHLO
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:50255 "EHLO
 	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933589AbZLGJ0p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 04:26:45 -0500
-Received: from m6.gw.fujitsu.co.jp ([10.0.50.76])
-	by fgwmail6.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id nB79Qo2w004219
+	with ESMTP id S932488AbZLGKzW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 05:55:22 -0500
+Received: from m5.gw.fujitsu.co.jp ([10.0.50.75])
+	by fgwmail6.fujitsu.co.jp (Fujitsu Gateway) with ESMTP id nB7AtR2B009162
 	for <linux-acpi@vger.kernel.org> (envelope-from kaneshige.kenji@jp.fujitsu.com);
-	Mon, 7 Dec 2009 18:26:50 +0900
-Received: from smail (m6 [127.0.0.1])
-	by outgoing.m6.gw.fujitsu.co.jp (Postfix) with ESMTP id 8990D2B6A43
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 18:26:48 +0900 (JST)
-Received: from s6.gw.fujitsu.co.jp (s6.gw.fujitsu.co.jp [10.0.50.96])
-	by m6.gw.fujitsu.co.jp (Postfix) with ESMTP id 5AF4E1EF083
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 18:26:48 +0900 (JST)
-Received: from s6.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
-	by s6.gw.fujitsu.co.jp (Postfix) with ESMTP id A234C1DB8040
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 18:26:47 +0900 (JST)
-Received: from ml14.s.css.fujitsu.com (ml14.s.css.fujitsu.com [10.249.87.104])
-	by s6.gw.fujitsu.co.jp (Postfix) with ESMTP id 1892CE3800A
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 18:26:47 +0900 (JST)
+	Mon, 7 Dec 2009 19:55:27 +0900
+Received: from smail (m5 [127.0.0.1])
+	by outgoing.m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 7D05245DE52
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 19:55:27 +0900 (JST)
+Received: from s5.gw.fujitsu.co.jp (s5.gw.fujitsu.co.jp [10.0.50.95])
+	by m5.gw.fujitsu.co.jp (Postfix) with ESMTP id 5847B45DE53
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 19:55:27 +0900 (JST)
+Received: from s5.gw.fujitsu.co.jp (localhost.localdomain [127.0.0.1])
+	by s5.gw.fujitsu.co.jp (Postfix) with ESMTP id 44814E1800B
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 19:55:25 +0900 (JST)
+Received: from ml13.s.css.fujitsu.com (ml13.s.css.fujitsu.com [10.249.87.103])
+	by s5.gw.fujitsu.co.jp (Postfix) with ESMTP id D99B11DB8043
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Dec 2009 19:55:24 +0900 (JST)
 In-Reply-To: <4B1C7CC5.5070709@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -60,11 +60,6 @@ Robert Hancock wrote:
 >         if (ACPI_FAILURE(status))
 >             goto out;
 >     }
-
-
-Just in case, does removing this 'if' statement fix the problem?
-
-
 >     if ((root->osc_control_qry & control_req) != control_req) {
 >         printk(KERN_DEBUG
 >                "Firmware did not grant requested _OSC control\n");
@@ -95,11 +90,89 @@ Just in case, does removing this 'if' statement fix the problem?
 > is based on 0 support flags being passed into _OSC, which is wrong. Or 
 > am I missing something?
 > 
+>     Name (PEHP, One)
+>     Name (SHPC, Zero)
+>     Name (PEPM, One)
+>     Name (PEER, One)
+>     Name (PECS, One)
+> 
+> ...
+> 
+>         Method (_OSC, 4, NotSerialized)
+>         {
+>             Name (SUPP, Zero)
+>             Name (CTRL, Zero)
+>             CreateDWordField (Arg3, Zero, CDW1)
+>             CreateDWordField (Arg3, 0x04, CDW2)
+>             CreateDWordField (Arg3, 0x08, CDW3)
+>             If (LEqual (Arg0, Buffer (0x10)
+>                     {
+>                         /* 0000 */    0x5B, 0x4D, 0xDB, 0x33, 0xF7, 
+> 0x1F, 0x1C, 0x40,
+>                         /* 0008 */    0x96, 0x57, 0x74, 0x41, 0xC0, 
+> 0x3D, 0xD7, 0x66
+>                     }))
+>             {
+>                 Store (CDW2, SUPP)
+>                 Store (CDW3, CTRL)
+>                 If (LNotEqual (And (SUPP, 0x16), 0x16))
+>                 {
+>                     And (CTRL, 0x1E, CTRL)
+>                 }
+> 
+>                 If (LNot (PEHP))
+>                 {
+>                     And (CTRL, 0x1E, CTRL)
+>                 }
+> 
+>                 If (LNot (SHPC))
+>                 {
+>                     And (CTRL, 0x1D, CTRL)
+>                 }
+> 
+>                 If (LNot (PEPM))
+>                 {
+>                     And (CTRL, 0x1B, CTRL)
+>                 }
+> 
+>                 If (LNot (PEER))
+>                 {
+>                     And (CTRL, 0x15, CTRL)
+>                 }
+> 
+>                 If (LNot (PECS))
+>                 {
+>                     And (CTRL, 0x0F, CTRL)
+>                 }
+> 
+>                 If (Not (And (CDW1, One)))
+>                 {
+>                     If (And (CTRL, One)) {}
+>                     If (And (CTRL, 0x04)) {}
+>                     If (And (CTRL, 0x10)) {}
+>                 }
+> 
+>                 If (LNotEqual (Arg1, One))
+>                 {
+>                     Or (CDW1, 0x08, CDW1)
+>                 }
+> 
+>                 If (LNotEqual (CDW3, CTRL))
+>                 {
+>                     Or (CDW1, 0x10, CDW1)
+>                 }
+> 
+>                 And (CTRL, 0xEF, CTRL)
+>                 Store (CTRL, CDW3)
 
-Though I might be missing something, I think _OSC is evaluated
-and osc_control_qry is updated, whenever acpi_pci_osc_support()
-gets called.
+Your ACPI DSDT seems to clear "PCI Express Capability Structure
+control" bit in returned value. Both AER and hotplug driver
+requests this control. I think this is the reason why you
+encountered "Firmware did not grant requested _OSC control".
+
+Please double check.
 
 Thanks,
 Kenji Kaneshige
+
 
