@@ -1,30 +1,46 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Toshiba Bluetooth enabler (rfkill)
-Date: Tue, 8 Dec 2009 15:51:03 +0000
-Message-ID: <20091208155103.GA27118@srcf.ucam.org>
-References: <4B192D08.9080608@gmail.com> <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com> <20091208125530.GA23520@srcf.ucam.org> <4B1E7481.6020902@gmail.com> <20091208154738.GC26435@srcf.ucam.org> <4B1E75AE.5050901@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
+Date: Tue, 8 Dec 2009 10:55:10 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912081049010.3046-100000@iolanthe.rowland.org>
+References: <alpine.LFD.2.00.0912080728590.3560@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51094 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932135AbZLHPvF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 10:51:05 -0500
-Content-Disposition: inline
-In-Reply-To: <4B1E75AE.5050901@gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:57720 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932336AbZLHPzE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 10:55:04 -0500
+In-Reply-To: <alpine.LFD.2.00.0912080728590.3560@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jes Sorensen <jes.sorensen@gmail.com>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, Dec 08, 2009 at 04:50:06PM +0100, Jes Sorensen wrote:
+On Tue, 8 Dec 2009, Linus Torvalds wrote:
 
-> Understand, not sure how to go about this. It doesn't seem to generate
-> an APIC event on off, it just pulls the USB device out of it's plug. Not
-> sure if it would be possible to plug into the USB unplug event?
+> Please just use the lock. Don't make up your own locking crap. Really. 
+> 
+> Your patch is horrible. Exactly because your locking is horribly 
+> mis-designed. You can't say things are complete from an interrupt, for 
+> example, since you made it some random bitfield, which has unknown 
+> characteristics (ie non-atomic read-modify-write etc).
+> 
+> The fact is, any time anybody makes up a new locking mechanism, THEY 
+> ALWAYS GET IT WRONG. Don't do it.
+> 
+> I suggested using the rwsem locking for a good reason. It made sense. It 
+> was simpler. Just do it that way, stop making up crap.
 
-In principle, I guess, but I don't think there's a great deal of 
-advantage in it.
+The semantics needed for this kind of lock aren't really the same as
+for an rwsem (although obviously an rwsem will do the job).  Basically
+it needs to have the capability for multiple users to lock it (no
+blocking when acquiring a lock) and the capability for a user to wait
+until it is totally unlocked.  It could be implemented trivially using
+an atomic_t counter and a waitqueue head.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Is this a standard sort of lock?  It's a lot simpler than most others.  
+I don't recall seeing anything quite like it anywhere; the closest 
+thing might be some kind of barrier.
+
+Alan Stern
+
