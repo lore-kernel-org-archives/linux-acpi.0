@@ -1,96 +1,310 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 08:42:35 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912080833170.3560@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912081049010.3046-100000@iolanthe.rowland.org>
+From: Jes Sorensen <jes.sorensen@gmail.com>
+Subject: Toshiba Bluetooth enabler (v2) (was: Re: [PATCH] Toshiba Bluetooth
+ enabler (rfkill))
+Date: Tue, 08 Dec 2009 17:58:17 +0100
+Message-ID: <4B1E85A9.3030005@gmail.com>
+References: <4B192D08.9080608@gmail.com> <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------070606080301010101040708"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34414 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756007AbZLHQmy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 11:42:54 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912081049010.3046-100000@iolanthe.rowland.org>
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:50287 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756007AbZLHQ6s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 11:58:48 -0500
+In-Reply-To: <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+
+This is a multi-part message in MIME format.
+--------------070606080301010101040708
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+On 12/08/2009 11:05 AM, Alan Jenkins wrote:
+> Cool.  This must be the shortest ACPI driver :-).
+
+Hi Alan,
+
+Here's an updated version that addresses most of your comments.
+
+> Try to send patches inline if possible, it makes them easier to review.
+
+Not possible with Thunderbug, sorry.
+
+>> +static int toshiba_bt_rfkill_add(struct acpi_device *device);
+>
+> I think it's simpler to avoid the need for forward declarations, e.g.
+> by putting the driver structure after the ops functions.  I suppose
+> it's a matter of taste though.
+
+I am going to keep it as is. I find it cleaner and it is more consistent
+with how other drivers are written IMHO.
+
+> Please also set
+> 	.owner = THIS_MODULE,
+
+Good point, thanks!
+
+>> +static int toshiba_bt_resume(struct acpi_device *device)
+>> +{
+>> +	return toshiba_bluetooth_enable(device->handle);
+>> +}
+>
+> Good to see you're handling resume, but what happens if the rfkill
+> switch is _not_ set to on?  It looks like resume will return an error,
+> which will produce a warning message in the kernel log.  I don't think
+> we want that.
+
+Fixed, this version only calls the enabler if the switch is at ON at
+resume time.
+
+>> +	status = acpi_evaluate_integer(device->handle, "_STA", NULL,
+>> +				&bt_present);
+>
+> I think this would benefit from an explanation.
+
+Comments added.
+
+>> +	result = acpi_bus_register_driver(&toshiba_bt_rfkill_driver);
+>> +	if (result<  0) {
+>> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+>> +				  "Error registering driver\n"));
+>> +		return -ENODEV;
+>> +	}
+>
+> I would suggest you return result, instead of ignoring it and always
+> returning ENODEV.
+
+I agree, added.
+
+>
+>> +	depends on RFKILL
+>> +	depends on BT
+>
+> But you doesn't use either of these subsystems :-). The BT one
+> definitely seems bogus; please drop it.
+
+It seemed kinda silly to me to enable this driver on kernels with no
+BT subsystem, but it's not a biggie so I pulled it.
+
+Please find attached v2 of the patch.
+
+Cheers,
+Jes
 
 
+--------------070606080301010101040708
+Content-Type: text/plain;
+ name="0002-toshiba-bluetooth-v2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0002-toshiba-bluetooth-v2.patch"
 
-On Tue, 8 Dec 2009, Alan Stern wrote:
-> 
-> The semantics needed for this kind of lock aren't really the same as
-> for an rwsem (although obviously an rwsem will do the job).  Basically
-> it needs to have the capability for multiple users to lock it (no
-> blocking when acquiring a lock) and the capability for a user to wait
-> until it is totally unlocked.  It could be implemented trivially using
-> an atomic_t counter and a waitqueue head.
-> 
-> Is this a standard sort of lock?
+Toshiba Bluetooth Enabling driver (RFKill handler)
 
-Yes it is.
+This patch adds support for the ACPI events generated by the RFKill
+switch on modern Toshiba laptops, and re-enables the Bluetooth USB
+device when the switch is flipped back to the 'on' position.
 
-It's called a rwlock. The counter is for readers, the exclusion is for 
-writers.
+The RFKill switch brute force pulls out the USB device when flipped to
+'off', but it doesn't automatically re-enable it. Without this driver,
+the Bluetooth is gone until after a reboot on my Portege R500.
 
-Really.
+Signed-off-by: Jes Sorensen <Jes.Sorensen@gmail.com>
+---
 
-And the thing is, you actually do want the rwlock semantics, because on 
-the resume side you want the parent to lock it for writing first (so that 
-the children can wait for the parent to have completed its resume.
+Index: linux-2.6.31.5/drivers/platform/x86/toshiba_bluetooth.c
+===================================================================
+--- /dev/null
++++ linux-2.6.31.5/drivers/platform/x86/toshiba_bluetooth.c
+@@ -0,0 +1,151 @@
++/*
++ * Toshiba Bluetooth Enable Driver
++ *
++ * Copyright (C) 2009 Jes Sorensen <Jes.Sorensen@gmail.com>
++ *
++ * Thanks to Matthew Garrett for background info on ACPI innards which
++ * normal people aren't meant to understand :-)
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Note the Toshiba Bluetooth RFKill switch seems to be a strange
++ * fish. It only provides a BT event when the switch is flipped to
++ * the 'on' position. When flipping it to 'off', the USB device is
++ * simply pulled away underneath us, without any BT event being
++ * delivered.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++
++MODULE_AUTHOR("Jes Sorensen <Jes.Sorensen@gmail.com>");
++MODULE_DESCRIPTION("Toshiba Laptop ACPI Bluetooth Enable Driver");
++MODULE_LICENSE("GPL");
++
++
++static int toshiba_bt_rfkill_add(struct acpi_device *device);
++static int toshiba_bt_rfkill_remove(struct acpi_device *device, int type);
++static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event);
++static int toshiba_bt_resume(struct acpi_device *device);
++
++static const struct acpi_device_id bt_device_ids[] = {
++	{ "TOS6205", 0},
++	{ "", 0},
++};
++MODULE_DEVICE_TABLE(acpi, bt_device_ids);
++
++static struct acpi_driver toshiba_bt_rfkill_driver = {
++	.name =		"Toshiba BT",
++	.class =	"Toshiba",
++	.ids =		bt_device_ids,
++	.ops =		{
++				.add =		toshiba_bt_rfkill_add,
++				.remove =	toshiba_bt_rfkill_remove,
++				.notify =	toshiba_bt_rfkill_notify,
++				.resume =	toshiba_bt_resume,
++			},
++	.owner = 	THIS_MODULE,
++};
++
++
++static int toshiba_bluetooth_enable(acpi_handle handle)
++{
++	acpi_status res1, res2;
++	acpi_integer result;
++
++	/* Query ACPI to verify RFKill switch is set to on */
++	res1 = acpi_evaluate_integer(handle, "BTST", NULL, &result);
++	if (ACPI_FAILURE(res1) || !(result & 0x01))
++		return -EBUSY;
++
++	printk(KERN_INFO "toshiba_bluetooth: Re-enabling Toshiba Bluetooth\n");
++	res1 = acpi_evaluate_object(handle, "AUSB", NULL, NULL);
++	res2 = acpi_evaluate_object(handle, "BTPO", NULL, NULL);
++	if (!ACPI_FAILURE(res1) || !ACPI_FAILURE(res2)) {
++		return 0;
++	}
++	printk(KERN_WARNING "toshiba_bluetooth: Failed to re-enable "
++	       "Toshiba Bluetooth\n");
++
++	return -ENODEV;
++}
++
++static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event)
++{
++	toshiba_bluetooth_enable(device->handle);
++}
++
++static int toshiba_bt_resume(struct acpi_device *device)
++{
++	acpi_status res1;
++	acpi_integer result;
++
++	/*
++	 * Query ACPI to verify RFKill switch is set to on before trying
++	 * to re-enable the device or we will get back an error.
++	 */
++	res1 = acpi_evaluate_integer(device->handle, "BTST", NULL, &result);
++	if (ACPI_FAILURE(res1) || !(result & 0x01))
++		return 0;
++	return toshiba_bluetooth_enable(device->handle);
++}
++
++static int toshiba_bt_rfkill_add(struct acpi_device *device)
++{
++	acpi_status status;
++	acpi_integer bt_present;
++	int result = -ENODEV;
++
++	/*
++	 * Some Toshiba laptops may have a fake TOS6205 device in
++	 * their ACPI BIOS, so query the _STA method to see if there
++	 * is really anything there, before trying to enable it.
++	 */
++	status = acpi_evaluate_integer(device->handle, "_STA", NULL,
++				       &bt_present);
++
++	if (!ACPI_FAILURE(status) && bt_present) {
++		printk(KERN_INFO "Detected Toshiba ACPI Bluetooth device - "
++		      "installing RFKill handler\n");
++		result = toshiba_bluetooth_enable(device->handle);
++	}
++
++	return result;
++}
++
++static int __init toshiba_bt_rfkill_init(void)
++{
++	int result;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	result = acpi_bus_register_driver(&toshiba_bt_rfkill_driver);
++	if (result < 0) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				  "Error registering driver\n"));
++		return result;
++	}
++
++	return 0;
++}
++
++static int toshiba_bt_rfkill_remove(struct acpi_device *device, int type)
++{
++	/* clean up */
++	return 0;
++}
++
++static void __exit toshiba_bt_rfkill_exit(void)
++{
++	acpi_bus_unregister_driver(&toshiba_bt_rfkill_driver);
++}
++
++module_init(toshiba_bt_rfkill_init);
++module_exit(toshiba_bt_rfkill_exit);
+Index: linux-2.6.31.5/drivers/platform/x86/Makefile
+===================================================================
+--- linux-2.6.31.5.orig/drivers/platform/x86/Makefile
++++ linux-2.6.31.5/drivers/platform/x86/Makefile
+@@ -20,3 +20,4 @@ obj-$(CONFIG_INTEL_MENLOW)	+= intel_menl
+ obj-$(CONFIG_ACPI_WMI)		+= wmi.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
++obj-$(CONFIG_TOSHIBA_BT_RFKILL)	+= toshiba_bluetooth.o
+Index: linux-2.6.31.5/drivers/platform/x86/Kconfig
+===================================================================
+--- linux-2.6.31.5.orig/drivers/platform/x86/Kconfig
++++ linux-2.6.31.5/drivers/platform/x86/Kconfig
+@@ -425,4 +425,20 @@ config ACPI_TOSHIBA
+ 
+ 	  If you have a legacy free Toshiba laptop (such as the Libretto L1
+ 	  series), say Y.
++
++config TOSHIBA_BT_RFKILL
++	tristate "Toshiba Bluetooth RFKill switch support"
++	depends on ACPI
++	depends on RFKILL
++	---help---
++	  This driver adds support for Bluetooth events for the RFKill
++	  switch on modern Toshiba laptops with full ACPI support and
++	  an RFKill switch.
++
++	  This driver handles RFKill events for the TOS6205 Bluetooth,
++	  and re-enables it when the switch is set back to the 'on'
++	  position.
++
++	  If you have a modern Toshiba laptop with a Bluetooth and an
++	  RFKill switch (such as the Portege R500), say Y.
+ endif # X86_PLATFORM_DEVICES
 
-So we actually _want_ the full rwlock semantics. 
-
-See the code I posted earlier. Here condensed into one email:
-
- - resume:
-
-        usb_node_resume(node)
-        {
-		// Wait for parent to finish resume
-                down_read(node->parent->lock);
-		// .. before resuming outselves
-                node->resume(node)
-
-		// Now we're all done
-                up_read(node->parent->lock);
-                up_write(node->lock);
-        }
-
-	/* caller: */
-	..
-	// This won't block, because we resume parents before children,
-	// and the children will take the read lock. 
-        down_write(leaf->lock);
-	// Do the blocking part asynchronously
-        async_schedule(usb_node_resume, leaf);
-	..
-
- - suspend:
-
-        usb_node_suspend(node)
-        {
-                // Start our suspend. This will block if we have any
-                // children that are still busy suspending (they will
-                // have done a down_read() in their suspend).
-                down_write(node->lock);
-                node->suspend(node);
-                up_write(node->lock);
-
-                // This lets our parent continue
-                up_read(node->parent->lock);
-        }
-
-	/* caller: */
-
-	// This won't block, because we suspend nodes before parents
-        down_read(node->parent->lock);
-	// Do the part that may block asynchronously
-	async_schedule(do_usb_node_suspend, node);
-
-It really should be that simple. Nothing more, nothing less. And with the 
-above, finishing the suspend (or resume) from interrupts is fine, and you 
-don't have any new lock that has undefined memory ordering issues etc.
-
-		Linus
+--------------070606080301010101040708--
