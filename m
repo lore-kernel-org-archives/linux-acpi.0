@@ -1,18 +1,18 @@
 From: Ike Panhc <ike.pan@canonical.com>
-Subject: [PATCH] asus-laptop: add Lenovo SL LenovoCare LED support
-Date: Tue,  8 Dec 2009 15:26:09 +0800
-Message-ID: <1260257169-7227-1-git-send-email-ike.pan@canonical.com>
+Subject: [Resend] [PATCH] asus-laptop: add Lenovo SL LenovoCare LED support
+Date: Tue,  8 Dec 2009 15:37:09 +0800
+Message-ID: <1260257829-7343-1-git-send-email-ike.pan@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:34704 "EHLO
+Received: from adelie.canonical.com ([91.189.90.139]:35786 "EHLO
 	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751832AbZLHH0J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 02:26:09 -0500
+	with ESMTP id S1752742AbZLHHhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 02:37:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 Cc: Corentin Chary <corentin.chary@gmail.com>, Alexandre Rostovtsev <tetromino@gmail.com>
 
-From: Ike Panhc <ikepanhc@canonical.com>
+Resend because the email address of signed-off is wrong in prior mail
 
 This patch is to enable the LenovoCare LED support on Lenovo SL laptop. Based
 on the found of the control interface by Alexandre Rostovtsev
@@ -24,7 +24,7 @@ Trun off the LenovoCare LED:
 
 The patch against current checkout of acpi4asus is below.
 
-Signed-off-by: Ike Panhc <ikepanhc@canonical.com>
+Signed-off-by: Ike Panhc <ike.pan@canonical.com>
 ---
  drivers/platform/x86/asus-laptop.c |   21 ++++++++++++++++++---
  1 files changed, 18 insertions(+), 3 deletions(-)
