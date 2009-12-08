@@ -1,63 +1,48 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 12:48:24 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912081242550.3560@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912081412450.3046-100000@iolanthe.rowland.org>
+Date: Tue, 8 Dec 2009 21:52:21 +0100
+Message-ID: <200912082152.21910.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912081542350.3046-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49291 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966011AbZLHUsi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 15:48:38 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912081412450.3046-100000@iolanthe.rowland.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:49141 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966079AbZLHUvm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2009 15:51:42 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0912081542350.3046-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-
-
-On Tue, 8 Dec 2009, Alan Stern wrote:
+On Tuesday 08 December 2009, Alan Stern wrote:
+> On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
 > 
-> >   You also need a smp_mb() in the wait_for_lock(), not a smp_rmb(). Can't 
-> >   allow writes to migrate up either.  'atomic_read()' does not imply any
-> >   barriers.
+> > > This is a little more awkward because it requires the parent to iterate 
+> > > through its children.
+> > 
+> > I can live with that.
+> > 
+> > > But it does solve the off-tree dependency  problem for suspends.
+> > 
+> > That's a plus, but I still think we're trying to create a barrier-alike
+> > mechanism using lock.
+> > 
+> > There's one more possibility to consider, though.  What if we use a completion
+> > instead of the flag + wait queue?  It surely is a standard synchronization
+> > mechanism and it seems it might work here.
 > 
-> No, that's not needed.  Unlike reads, writes can't move in front of
-> data or control dependencies.  Or so I've been lead to believe...
+> You're right.  I should have thought of that.  Linus's original
+> approach couldn't use a completion because during suspend it needed to
+> make one task (the parent) wait for a bunch of others (the children).
+> But if you iterate through the children by hand, that objection no
+> longer applies.
 
-Sure they can. Control dependencies are trivial - it's called "branch 
-prediction", and everybody does it, and data dependencies don't exist on 
-many CPU architectures (even to the point of reading through a pointer 
-that you loaded).
+BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
+and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
+here?
 
-But yes, on x86, stores only move down. But that's an x86-specific thing.
-
-[ Not that it's also not very common - write buffering is easy and matters 
-  for performance, so any in-order implementation will generally do it. In 
-  contrast, writes moving up doesn't really help peformance and is harder 
-  to do, but can happen with a weakly ordered memory subsystem especially 
-  if you have multi-way caches where some ways are busy and end up being 
-  congested.
-
-  So the _common_ case is definitely about delaying writes and doing reads 
-  early if possible. But it's not necessarily at all guaranteed in 
-  general. ]
-
-> > That "wait_for_lock()" is equivalent to a 'read_lock()+read_unlock()'.
-> 
-> Not really.  It also corresponds to a 'write_lock()+write_unlock()' (in
-> the suspend routine).  Are you claiming these two compound operations
-> are equivalent?
-
-They have separate semantics, and you just want to pick the one that suits 
-you. Your counting lock doesn't have the "read_lock+read_unlock" version, 
-it only has the write_lock/unlock one (ie it requires totally unlocked 
-thing).
-
-The point being, rwsem's can do everything your counting lock does. And 
-they already exist. And they already know about all the subtleties of 
-architecture-specific memory ordering etc.
-
-				Linus
+Rafael
