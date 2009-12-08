@@ -1,310 +1,56 @@
-From: Jes Sorensen <jes.sorensen@gmail.com>
-Subject: Toshiba Bluetooth enabler (v2) (was: Re: [PATCH] Toshiba Bluetooth
- enabler (rfkill))
-Date: Tue, 08 Dec 2009 17:58:17 +0100
-Message-ID: <4B1E85A9.3030005@gmail.com>
-References: <4B192D08.9080608@gmail.com> <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [Resend] [PATCH] asus-laptop: add Lenovo SL LenovoCare LED
+	support
+Date: Tue, 8 Dec 2009 18:32:15 +0100
+Message-ID: <71cd59b00912080932nf334ba7uf65c70178fec41a5@mail.gmail.com>
+References: <1260257829-7343-1-git-send-email-ike.pan@canonical.com>
+	 <20091208154154.GA26435@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070606080301010101040708"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:50287 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756007AbZLHQ6s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 11:58:48 -0500
-In-Reply-To: <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965419AbZLHRcT@vger.kernel.org>
+In-Reply-To: <20091208154154.GA26435@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Alexandre Rostovtsev <tetromino@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-This is a multi-part message in MIME format.
---------------070606080301010101040708
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 12/08/2009 11:05 AM, Alan Jenkins wrote:
-> Cool.  This must be the shortest ACPI driver :-).
-
-Hi Alan,
-
-Here's an updated version that addresses most of your comments.
-
-> Try to send patches inline if possible, it makes them easier to review.
-
-Not possible with Thunderbug, sorry.
-
->> +static int toshiba_bt_rfkill_add(struct acpi_device *device);
+On Tue, Dec 8, 2009 at 4:41 PM, Matthew Garrett <mjg59@srcf.ucam.org> w=
+rote:
+> On Tue, Dec 08, 2009 at 03:37:09PM +0800, Ike Panhc wrote:
 >
-> I think it's simpler to avoid the need for forward declarations, e.g.
-> by putting the driver structure after the ops functions.  I suppose
-> it's a matter of taste though.
-
-I am going to keep it as is. I find it cleaner and it is more consistent
-with how other drivers are written IMHO.
-
-> Please also set
-> 	.owner = THIS_MODULE,
-
-Good point, thanks!
-
->> +static int toshiba_bt_resume(struct acpi_device *device)
->> +{
->> +	return toshiba_bluetooth_enable(device->handle);
->> +}
+>> =A0ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED"); =A0 =A0 =A0/* W1J=
+C */
+>> =A0ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED"); =A0 =A0 =A0/* A7J=
+ */
+>> =A0ASUS_HANDLE(gled_set, ASUS_HOTK_PREFIX "GLED"); =A0 =A0 =A0/* G1,=
+ G2 (probably) */
 >
-> Good to see you're handling resume, but what happens if the rfkill
-> switch is _not_ set to on?  It looks like resume will return an error,
-> which will produce a warning message in the kernel log.  I don't think
-> we want that.
-
-Fixed, this version only calls the enabler if the switch is at ON at
-resume time.
-
->> +	status = acpi_evaluate_integer(device->handle, "_STA", NULL,
->> +				&bt_present);
+> The driver is controlling the ATKD device, which has a HID of ATK0101=
+=2E
+> These devices are all underneath it...
 >
-> I think this would benefit from an explanation.
-
-Comments added.
-
->> +	result = acpi_bus_register_driver(&toshiba_bt_rfkill_driver);
->> +	if (result<  0) {
->> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
->> +				  "Error registering driver\n"));
->> +		return -ENODEV;
->> +	}
+>> +ASUS_HANDLE(lled_set, "\\_SB_.PCI0.SBRG.EC0_.HKEY.TVLS"); /* Lenovo=
+Care */
 >
-> I would suggest you return result, instead of ignoring it and always
-> returning ENODEV.
-
-I agree, added.
-
+> And this one isn't, which is a bit jarring. Looking closer, it's unde=
+r
+> the LEN0014 device, which means that you're trying to touch a method
+> that belongs to a device other than the one this driver is bound to.
+> That's wrong. You want a separate ACPI driver for the LEN0014 device,
+> and this should be called for there. Looking at it, you seem to get
+> rfkill as well (the GWAN/SWAN, GBDC/SBDF and GUWB/SUWB methods) and
+> maybe some other stuff.
 >
->> +	depends on RFKILL
->> +	depends on BT
->
-> But you doesn't use either of these subsystems :-). The BT one
-> definitely seems bogus; please drop it.
+> So this shouldn't go in asus-laptop. You'll need to add another separ=
+ate
+> driver for the SL-specific functionality.
 
-It seemed kinda silly to me to enable this driver on kernels with no
-BT subsystem, but it's not a biggie so I pulled it.
-
-Please find attached v2 of the patch.
-
-Cheers,
-Jes
+That means asus-laptop and sl-laptop will be both needed for a SL
+laptop, but I don't think this is a problem.
 
 
---------------070606080301010101040708
-Content-Type: text/plain;
- name="0002-toshiba-bluetooth-v2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0002-toshiba-bluetooth-v2.patch"
 
-Toshiba Bluetooth Enabling driver (RFKill handler)
-
-This patch adds support for the ACPI events generated by the RFKill
-switch on modern Toshiba laptops, and re-enables the Bluetooth USB
-device when the switch is flipped back to the 'on' position.
-
-The RFKill switch brute force pulls out the USB device when flipped to
-'off', but it doesn't automatically re-enable it. Without this driver,
-the Bluetooth is gone until after a reboot on my Portege R500.
-
-Signed-off-by: Jes Sorensen <Jes.Sorensen@gmail.com>
----
-
-Index: linux-2.6.31.5/drivers/platform/x86/toshiba_bluetooth.c
-===================================================================
---- /dev/null
-+++ linux-2.6.31.5/drivers/platform/x86/toshiba_bluetooth.c
-@@ -0,0 +1,151 @@
-+/*
-+ * Toshiba Bluetooth Enable Driver
-+ *
-+ * Copyright (C) 2009 Jes Sorensen <Jes.Sorensen@gmail.com>
-+ *
-+ * Thanks to Matthew Garrett for background info on ACPI innards which
-+ * normal people aren't meant to understand :-)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Note the Toshiba Bluetooth RFKill switch seems to be a strange
-+ * fish. It only provides a BT event when the switch is flipped to
-+ * the 'on' position. When flipping it to 'off', the USB device is
-+ * simply pulled away underneath us, without any BT event being
-+ * delivered.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+
-+MODULE_AUTHOR("Jes Sorensen <Jes.Sorensen@gmail.com>");
-+MODULE_DESCRIPTION("Toshiba Laptop ACPI Bluetooth Enable Driver");
-+MODULE_LICENSE("GPL");
-+
-+
-+static int toshiba_bt_rfkill_add(struct acpi_device *device);
-+static int toshiba_bt_rfkill_remove(struct acpi_device *device, int type);
-+static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event);
-+static int toshiba_bt_resume(struct acpi_device *device);
-+
-+static const struct acpi_device_id bt_device_ids[] = {
-+	{ "TOS6205", 0},
-+	{ "", 0},
-+};
-+MODULE_DEVICE_TABLE(acpi, bt_device_ids);
-+
-+static struct acpi_driver toshiba_bt_rfkill_driver = {
-+	.name =		"Toshiba BT",
-+	.class =	"Toshiba",
-+	.ids =		bt_device_ids,
-+	.ops =		{
-+				.add =		toshiba_bt_rfkill_add,
-+				.remove =	toshiba_bt_rfkill_remove,
-+				.notify =	toshiba_bt_rfkill_notify,
-+				.resume =	toshiba_bt_resume,
-+			},
-+	.owner = 	THIS_MODULE,
-+};
-+
-+
-+static int toshiba_bluetooth_enable(acpi_handle handle)
-+{
-+	acpi_status res1, res2;
-+	acpi_integer result;
-+
-+	/* Query ACPI to verify RFKill switch is set to on */
-+	res1 = acpi_evaluate_integer(handle, "BTST", NULL, &result);
-+	if (ACPI_FAILURE(res1) || !(result & 0x01))
-+		return -EBUSY;
-+
-+	printk(KERN_INFO "toshiba_bluetooth: Re-enabling Toshiba Bluetooth\n");
-+	res1 = acpi_evaluate_object(handle, "AUSB", NULL, NULL);
-+	res2 = acpi_evaluate_object(handle, "BTPO", NULL, NULL);
-+	if (!ACPI_FAILURE(res1) || !ACPI_FAILURE(res2)) {
-+		return 0;
-+	}
-+	printk(KERN_WARNING "toshiba_bluetooth: Failed to re-enable "
-+	       "Toshiba Bluetooth\n");
-+
-+	return -ENODEV;
-+}
-+
-+static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event)
-+{
-+	toshiba_bluetooth_enable(device->handle);
-+}
-+
-+static int toshiba_bt_resume(struct acpi_device *device)
-+{
-+	acpi_status res1;
-+	acpi_integer result;
-+
-+	/*
-+	 * Query ACPI to verify RFKill switch is set to on before trying
-+	 * to re-enable the device or we will get back an error.
-+	 */
-+	res1 = acpi_evaluate_integer(device->handle, "BTST", NULL, &result);
-+	if (ACPI_FAILURE(res1) || !(result & 0x01))
-+		return 0;
-+	return toshiba_bluetooth_enable(device->handle);
-+}
-+
-+static int toshiba_bt_rfkill_add(struct acpi_device *device)
-+{
-+	acpi_status status;
-+	acpi_integer bt_present;
-+	int result = -ENODEV;
-+
-+	/*
-+	 * Some Toshiba laptops may have a fake TOS6205 device in
-+	 * their ACPI BIOS, so query the _STA method to see if there
-+	 * is really anything there, before trying to enable it.
-+	 */
-+	status = acpi_evaluate_integer(device->handle, "_STA", NULL,
-+				       &bt_present);
-+
-+	if (!ACPI_FAILURE(status) && bt_present) {
-+		printk(KERN_INFO "Detected Toshiba ACPI Bluetooth device - "
-+		      "installing RFKill handler\n");
-+		result = toshiba_bluetooth_enable(device->handle);
-+	}
-+
-+	return result;
-+}
-+
-+static int __init toshiba_bt_rfkill_init(void)
-+{
-+	int result;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	result = acpi_bus_register_driver(&toshiba_bt_rfkill_driver);
-+	if (result < 0) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				  "Error registering driver\n"));
-+		return result;
-+	}
-+
-+	return 0;
-+}
-+
-+static int toshiba_bt_rfkill_remove(struct acpi_device *device, int type)
-+{
-+	/* clean up */
-+	return 0;
-+}
-+
-+static void __exit toshiba_bt_rfkill_exit(void)
-+{
-+	acpi_bus_unregister_driver(&toshiba_bt_rfkill_driver);
-+}
-+
-+module_init(toshiba_bt_rfkill_init);
-+module_exit(toshiba_bt_rfkill_exit);
-Index: linux-2.6.31.5/drivers/platform/x86/Makefile
-===================================================================
---- linux-2.6.31.5.orig/drivers/platform/x86/Makefile
-+++ linux-2.6.31.5/drivers/platform/x86/Makefile
-@@ -20,3 +20,4 @@ obj-$(CONFIG_INTEL_MENLOW)	+= intel_menl
- obj-$(CONFIG_ACPI_WMI)		+= wmi.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
-+obj-$(CONFIG_TOSHIBA_BT_RFKILL)	+= toshiba_bluetooth.o
-Index: linux-2.6.31.5/drivers/platform/x86/Kconfig
-===================================================================
---- linux-2.6.31.5.orig/drivers/platform/x86/Kconfig
-+++ linux-2.6.31.5/drivers/platform/x86/Kconfig
-@@ -425,4 +425,20 @@ config ACPI_TOSHIBA
- 
- 	  If you have a legacy free Toshiba laptop (such as the Libretto L1
- 	  series), say Y.
-+
-+config TOSHIBA_BT_RFKILL
-+	tristate "Toshiba Bluetooth RFKill switch support"
-+	depends on ACPI
-+	depends on RFKILL
-+	---help---
-+	  This driver adds support for Bluetooth events for the RFKill
-+	  switch on modern Toshiba laptops with full ACPI support and
-+	  an RFKill switch.
-+
-+	  This driver handles RFKill events for the TOS6205 Bluetooth,
-+	  and re-enables it when the switch is set back to the 'on'
-+	  position.
-+
-+	  If you have a modern Toshiba laptop with a Bluetooth and an
-+	  RFKill switch (such as the Portege R500), say Y.
- endif # X86_PLATFORM_DEVICES
-
---------------070606080301010101040708--
+--=20
+Corentin Chary
+http://xf.iksaif.net
