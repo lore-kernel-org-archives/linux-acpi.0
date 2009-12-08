@@ -1,45 +1,57 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 15:16:44 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912081508220.3046-100000@iolanthe.rowland.org>
-References: <200912082044.52098.rjw@sisk.pl>
+Date: Tue, 8 Dec 2009 21:30:14 +0100
+Message-ID: <200912082130.14634.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912081508220.3046-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57990 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S965929AbZLHUQi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 15:16:38 -0500
-In-Reply-To: <200912082044.52098.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:49074 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965757AbZLHU3s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2009 15:29:48 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0912081508220.3046-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Alan Stern <stern@rowland.harvard.edu>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-
-> Suppose we use rwsem and during suspend each child uses a down_read() on a
-> parent and then the parent uses down_write() on itself.  What if, whatever the
-> reason, the parent is a bit early and does the down_write() before one of the
-> children has a chance to do the down_read()?  Aren't we toast?
+On Tuesday 08 December 2009, Alan Stern wrote:
+> On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
 > 
-> Do we need any direct protection against that or does it just work itself out
-> in a way I just don't see right now?
+> > Suppose we use rwsem and during suspend each child uses a down_read() on a
+> > parent and then the parent uses down_write() on itself.  What if, whatever the
+> > reason, the parent is a bit early and does the down_write() before one of the
+> > children has a chance to do the down_read()?  Aren't we toast?
+> > 
+> > Do we need any direct protection against that or does it just work itself out
+> > in a way I just don't see right now?
+> 
+> That's not the way it should be done.  Linus had children taking their
+> parents' locks during suspend, which is simple but leads to
+> difficulties.
+> 
+> Instead, the PM core should do a down_write() on each device before
+> starting the device's async suspend routine, and an up_write() when the
+> routine finishes.  Parents should, at the start of their async routine,
+> do down_read() on each of their children plus whatever other devices
+> they need to wait for.  The core can do the waiting for children part 
+> and the driver's suspend routine can handle any other waiting.
+> 
+> This is a little more awkward because it requires the parent to iterate 
+> through its children.
 
-That's not the way it should be done.  Linus had children taking their
-parents' locks during suspend, which is simple but leads to
-difficulties.
+I can live with that.
 
-Instead, the PM core should do a down_write() on each device before
-starting the device's async suspend routine, and an up_write() when the
-routine finishes.  Parents should, at the start of their async routine,
-do down_read() on each of their children plus whatever other devices
-they need to wait for.  The core can do the waiting for children part 
-and the driver's suspend routine can handle any other waiting.
+> But it does solve the off-tree dependency  problem for suspends.
 
-This is a little more awkward because it requires the parent to iterate 
-through its children.  But it does solve the off-tree dependency 
-problem for suspends.
+That's a plus, but I still think we're trying to create a barrier-alike
+mechanism using lock.
 
-Alan Stern
+There's one more possibility to consider, though.  What if we use a completion
+instead of the flag + wait queue?  It surely is a standard synchronization
+mechanism and it seems it might work here.
 
+Rafael
