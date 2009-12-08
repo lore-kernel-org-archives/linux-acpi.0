@@ -1,41 +1,125 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Mon, 7 Dec 2009 22:27:58 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912072225390.4179-100000@netrider.rowland.org>
-References: <200912080051.13061.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: [PATCH] asus-laptop: add Lenovo SL LenovoCare LED support
+Date: Tue,  8 Dec 2009 15:26:09 +0800
+Message-ID: <1260257169-7227-1-git-send-email-ike.pan@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:59509 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S935760AbZLHD1x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2009 22:27:53 -0500
-In-Reply-To: <200912080051.13061.rjw@sisk.pl>
+Received: from adelie.canonical.com ([91.189.90.139]:34704 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832AbZLHH0J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 02:26:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+Cc: Corentin Chary <corentin.chary@gmail.com>, Alexandre Rostovtsev <tetromino@gmail.com>
 
-On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+From: Ike Panhc <ikepanhc@canonical.com>
 
-> However, the parent can be on a different bus type than the children, so it
-> looks like we can only start the asynchronous path at the core level.
+This patch is to enable the LenovoCare LED support on Lenovo SL laptop. Based
+on the found of the control interface by Alexandre Rostovtsev
 
-Agreed.
+Turn on the LenovoCare LED:
+ (As root privileges) echo 1 > /sys/class/leds/asus\:\:LenovoCare/brightness
+Trun off the LenovoCare LED:
+ (As root privileges) echo 0 > /sys/class/leds/asus\:\:LenovoCare/brightness
 
-> > Unless you want to do _all_ of the async logic in generic code and 
-> > re-introduce the "dev->async_suspend" flag.
-> 
-> Quite frankly, I would like to.
-> 
-> > I would be ok with that now that the infrastructure seems so simple.
-> 
-> Well, perhaps I should dig out my original async suspend/resume patches
-> that didn't contain all of the non-essential stuff and post them here for
-> discussion, after all ...
+The patch against current checkout of acpi4asus is below.
 
-That seems like a very good idea.  IIRC they were quite similar to what 
-we have been discussing.
+Signed-off-by: Ike Panhc <ikepanhc@canonical.com>
+---
+ drivers/platform/x86/asus-laptop.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
-Alan Stern
+diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
+index 3348cc6..f3c52b6 100644
+--- a/drivers/platform/x86/asus-laptop.c
++++ b/drivers/platform/x86/asus-laptop.c
+@@ -87,6 +87,7 @@
+ #define LCD_ON      0x80	/* LCD backlight */
+ #define GPS_ON      0x100	/* GPS */
+ #define KEY_ON      0x200	/* Keyboard backlight */
++#define LLED_ON     0x400	/* Lenovo SL: LenovoCare LED */
+ 
+ #define ASUS_LOG    ASUS_HOTK_FILE ": "
+ #define ASUS_ERR    KERN_ERR    ASUS_LOG
+@@ -123,6 +124,7 @@ ASUS_HANDLE(tled_set, ASUS_HOTK_PREFIX "TLED");
+ ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED");	/* W1JC */
+ ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED");	/* A7J */
+ ASUS_HANDLE(gled_set, ASUS_HOTK_PREFIX "GLED");	/* G1, G2 (probably) */
++ASUS_HANDLE(lled_set, "\\_SB_.PCI0.SBRG.EC0_.HKEY.TVLS"); /* LenovoCare */
+ 
+ /* LEDD */
+ ASUS_HANDLE(ledd_set, ASUS_HOTK_PREFIX "SLCM");
+@@ -285,6 +287,7 @@ ASUS_LED(rled, "record", 1);
+ ASUS_LED(pled, "phone", 1);
+ ASUS_LED(gled, "gaming", 1);
+ ASUS_LED(kled, "kbd_backlight", 3);
++ASUS_LED(lled, "LenovoCare", 1);
+ 
+ struct key_entry {
+ 	char type;
+@@ -419,6 +422,9 @@ static void write_status(acpi_handle handle, int out, int mask)
+ 		handle = (out) ? gps_on_handle : gps_off_handle;
+ 		out = 0x02;
+ 		break;
++	case LLED_ON:
++		out = (out & 0x1) * 0xFF;
++		break;
+ 	default:
+ 		out &= 0x1;
+ 		break;
+@@ -452,6 +458,7 @@ ASUS_LED_HANDLER(pled, PLED_ON);
+ ASUS_LED_HANDLER(rled, RLED_ON);
+ ASUS_LED_HANDLER(tled, TLED_ON);
+ ASUS_LED_HANDLER(gled, GLED_ON);
++ASUS_LED_HANDLER(lled, LLED_ON);
+ 
+ /*
+  * Keyboard backlight
+@@ -1146,6 +1153,7 @@ static int asus_hotk_get_info(void)
+ 	ASUS_HANDLE_INIT(rled_set);
+ 	ASUS_HANDLE_INIT(pled_set);
+ 	ASUS_HANDLE_INIT(gled_set);
++	ASUS_HANDLE_INIT(lled_set);
+ 
+ 	ASUS_HANDLE_INIT(ledd_set);
+ 
+@@ -1338,6 +1346,7 @@ static void asus_led_exit(void)
+ 	ASUS_LED_UNREGISTER(rled);
+ 	ASUS_LED_UNREGISTER(gled);
+ 	ASUS_LED_UNREGISTER(kled);
++	ASUS_LED_UNREGISTER(lled);
+ }
+ 
+ static void asus_input_exit(void)
+@@ -1417,19 +1426,25 @@ static int asus_led_init(struct device *dev)
+ 	if (rv)
+ 		goto out4;
+ 
++	rv = ASUS_LED_REGISTER(lled, dev);
++	if (rv)
++		goto out5;
++
+ 	if (kled_set_handle && kled_get_handle)
+ 		rv = ASUS_LED_REGISTER(kled, dev);
+ 	if (rv)
+-		goto out5;
++		goto out6;
+ 
+ 	led_workqueue = create_singlethread_workqueue("led_workqueue");
+ 	if (!led_workqueue)
+-		goto out6;
++		goto out7;
+ 
+ 	return 0;
+-out6:
++out7:
+ 	rv = -ENOMEM;
+ 	ASUS_LED_UNREGISTER(kled);
++out6:
++	ASUS_LED_UNREGISTER(lled);
+ out5:
+ 	ASUS_LED_UNREGISTER(gled);
+ out4:
+-- 
+1.6.3.3
 
