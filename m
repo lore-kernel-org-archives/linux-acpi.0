@@ -1,39 +1,40 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 07:35:27 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912080728590.3560@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912072225390.4179-100000@netrider.rowland.org> <200912081323.50606.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Resend] [PATCH] asus-laptop: add Lenovo SL LenovoCare LED
+	support
+Date: Tue, 8 Dec 2009 15:41:54 +0000
+Message-ID: <20091208154154.GA26435@srcf.ucam.org>
+References: <1260257829-7343-1-git-send-email-ike.pan@canonical.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57488 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756067AbZLHPfs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 10:35:48 -0500
-In-Reply-To: <200912081323.50606.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932274AbZLHPmC@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1260257829-7343-1-git-send-email-ike.pan@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ike Panhc <ike.pan@canonical.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Corentin Chary <corentin.chary@gmail.com>, Alexandre Rostovtsev <tetromino@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
+On Tue, Dec 08, 2009 at 03:37:09PM +0800, Ike Panhc wrote:
 
+>  ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED");	/* W1JC */
+>  ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED");	/* A7J */
+>  ASUS_HANDLE(gled_set, ASUS_HOTK_PREFIX "GLED");	/* G1, G2 (probably) */
 
-On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-> 
-> The wait queue plus the op_complete flag combo plays the role of the locking
-> in the Linus' picture
+The driver is controlling the ATKD device, which has a HID of ATK0101. 
+These devices are all underneath it...
 
-Please just use the lock. Don't make up your own locking crap. Really. 
+> +ASUS_HANDLE(lled_set, "\\_SB_.PCI0.SBRG.EC0_.HKEY.TVLS"); /* LenovoCare */
 
-Your patch is horrible. Exactly because your locking is horribly 
-mis-designed. You can't say things are complete from an interrupt, for 
-example, since you made it some random bitfield, which has unknown 
-characteristics (ie non-atomic read-modify-write etc).
+And this one isn't, which is a bit jarring. Looking closer, it's under 
+the LEN0014 device, which means that you're trying to touch a method 
+that belongs to a device other than the one this driver is bound to. 
+That's wrong. You want a separate ACPI driver for the LEN0014 device, 
+and this should be called for there. Looking at it, you seem to get 
+rfkill as well (the GWAN/SWAN, GBDC/SBDF and GUWB/SUWB methods) and 
+maybe some other stuff.
 
-The fact is, any time anybody makes up a new locking mechanism, THEY 
-ALWAYS GET IT WRONG. Don't do it.
+So this shouldn't go in asus-laptop. You'll need to add another separate 
+driver for the SL-specific functionality.
 
-I suggested using the rwsem locking for a good reason. It made sense. It 
-was simpler. Just do it that way, stop making up crap.
-
-		Linus
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
