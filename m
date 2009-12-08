@@ -1,46 +1,96 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 10:55:10 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912081049010.3046-100000@iolanthe.rowland.org>
-References: <alpine.LFD.2.00.0912080728590.3560@localhost.localdomain>
+Date: Tue, 8 Dec 2009 08:42:35 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912080833170.3560@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912081049010.3046-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57720 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932336AbZLHPzE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 10:55:04 -0500
-In-Reply-To: <alpine.LFD.2.00.0912080728590.3560@localhost.localdomain>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34414 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756007AbZLHQmy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 11:42:54 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0912081049010.3046-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Alan Stern <stern@rowland.harvard.edu>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, 8 Dec 2009, Linus Torvalds wrote:
 
-> Please just use the lock. Don't make up your own locking crap. Really. 
+
+On Tue, 8 Dec 2009, Alan Stern wrote:
 > 
-> Your patch is horrible. Exactly because your locking is horribly 
-> mis-designed. You can't say things are complete from an interrupt, for 
-> example, since you made it some random bitfield, which has unknown 
-> characteristics (ie non-atomic read-modify-write etc).
+> The semantics needed for this kind of lock aren't really the same as
+> for an rwsem (although obviously an rwsem will do the job).  Basically
+> it needs to have the capability for multiple users to lock it (no
+> blocking when acquiring a lock) and the capability for a user to wait
+> until it is totally unlocked.  It could be implemented trivially using
+> an atomic_t counter and a waitqueue head.
 > 
-> The fact is, any time anybody makes up a new locking mechanism, THEY 
-> ALWAYS GET IT WRONG. Don't do it.
-> 
-> I suggested using the rwsem locking for a good reason. It made sense. It 
-> was simpler. Just do it that way, stop making up crap.
+> Is this a standard sort of lock?
 
-The semantics needed for this kind of lock aren't really the same as
-for an rwsem (although obviously an rwsem will do the job).  Basically
-it needs to have the capability for multiple users to lock it (no
-blocking when acquiring a lock) and the capability for a user to wait
-until it is totally unlocked.  It could be implemented trivially using
-an atomic_t counter and a waitqueue head.
+Yes it is.
 
-Is this a standard sort of lock?  It's a lot simpler than most others.  
-I don't recall seeing anything quite like it anywhere; the closest 
-thing might be some kind of barrier.
+It's called a rwlock. The counter is for readers, the exclusion is for 
+writers.
 
-Alan Stern
+Really.
 
+And the thing is, you actually do want the rwlock semantics, because on 
+the resume side you want the parent to lock it for writing first (so that 
+the children can wait for the parent to have completed its resume.
+
+So we actually _want_ the full rwlock semantics. 
+
+See the code I posted earlier. Here condensed into one email:
+
+ - resume:
+
+        usb_node_resume(node)
+        {
+		// Wait for parent to finish resume
+                down_read(node->parent->lock);
+		// .. before resuming outselves
+                node->resume(node)
+
+		// Now we're all done
+                up_read(node->parent->lock);
+                up_write(node->lock);
+        }
+
+	/* caller: */
+	..
+	// This won't block, because we resume parents before children,
+	// and the children will take the read lock. 
+        down_write(leaf->lock);
+	// Do the blocking part asynchronously
+        async_schedule(usb_node_resume, leaf);
+	..
+
+ - suspend:
+
+        usb_node_suspend(node)
+        {
+                // Start our suspend. This will block if we have any
+                // children that are still busy suspending (they will
+                // have done a down_read() in their suspend).
+                down_write(node->lock);
+                node->suspend(node);
+                up_write(node->lock);
+
+                // This lets our parent continue
+                up_read(node->parent->lock);
+        }
+
+	/* caller: */
+
+	// This won't block, because we suspend nodes before parents
+        down_read(node->parent->lock);
+	// Do the part that may block asynchronously
+	async_schedule(do_usb_node_suspend, node);
+
+It really should be that simple. Nothing more, nothing less. And with the 
+above, finishing the suspend (or resume) from interrupts is fine, and you 
+don't have any new lock that has undefined memory ordering issues etc.
+
+		Linus
