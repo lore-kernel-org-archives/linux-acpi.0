@@ -1,57 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 21:30:14 +0100
-Message-ID: <200912082130.14634.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912081508220.3046-100000@iolanthe.rowland.org>
+Date: Tue, 8 Dec 2009 15:44:00 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912081542350.3046-100000@iolanthe.rowland.org>
+References: <200912082130.14634.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49074 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965757AbZLHU3s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2009 15:29:48 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912081508220.3046-100000@iolanthe.rowland.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:34572 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S937883AbZLHUnz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 15:43:55 -0500
+In-Reply-To: <200912082130.14634.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tuesday 08 December 2009, Alan Stern wrote:
-> On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+
+> > This is a little more awkward because it requires the parent to iterate 
+> > through its children.
 > 
-> > Suppose we use rwsem and during suspend each child uses a down_read() on a
-> > parent and then the parent uses down_write() on itself.  What if, whatever the
-> > reason, the parent is a bit early and does the down_write() before one of the
-> > children has a chance to do the down_read()?  Aren't we toast?
-> > 
-> > Do we need any direct protection against that or does it just work itself out
-> > in a way I just don't see right now?
+> I can live with that.
 > 
-> That's not the way it should be done.  Linus had children taking their
-> parents' locks during suspend, which is simple but leads to
-> difficulties.
+> > But it does solve the off-tree dependency  problem for suspends.
 > 
-> Instead, the PM core should do a down_write() on each device before
-> starting the device's async suspend routine, and an up_write() when the
-> routine finishes.  Parents should, at the start of their async routine,
-> do down_read() on each of their children plus whatever other devices
-> they need to wait for.  The core can do the waiting for children part 
-> and the driver's suspend routine can handle any other waiting.
+> That's a plus, but I still think we're trying to create a barrier-alike
+> mechanism using lock.
 > 
-> This is a little more awkward because it requires the parent to iterate 
-> through its children.
+> There's one more possibility to consider, though.  What if we use a completion
+> instead of the flag + wait queue?  It surely is a standard synchronization
+> mechanism and it seems it might work here.
 
-I can live with that.
+You're right.  I should have thought of that.  Linus's original
+approach couldn't use a completion because during suspend it needed to
+make one task (the parent) wait for a bunch of others (the children).
+But if you iterate through the children by hand, that objection no
+longer applies.
 
-> But it does solve the off-tree dependency  problem for suspends.
+Alan Stern
 
-That's a plus, but I still think we're trying to create a barrier-alike
-mechanism using lock.
-
-There's one more possibility to consider, though.  What if we use a completion
-instead of the flag + wait queue?  It surely is a standard synchronization
-mechanism and it seems it might work here.
-
-Rafael
