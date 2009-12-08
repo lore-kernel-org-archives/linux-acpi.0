@@ -1,44 +1,71 @@
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Tue, 8 Dec 2009 22:52:51 +0100
-Message-ID: <200912082252.51916.borntraeger@de.ibm.com>
-References: <Pine.LNX.4.44L0.0912081626400.3046-100000@iolanthe.rowland.org>
+Date: Tue, 8 Dec 2009 23:03:12 +0100
+Message-ID: <200912082303.12758.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912072225390.4179-100000@netrider.rowland.org> <alpine.LFD.2.00.0912081256310.3560@localhost.localdomain> <200912082240.42773.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S966523AbZLHVw4@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0912081626400.3046-100000@iolanthe.rowland.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S966493AbZLHWCr@vger.kernel.org>
+In-Reply-To: <200912082240.42773.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> > Sure they can. Control dependencies are trivial - it's called "branch 
-> > prediction", and everybody does it, and data dependencies don't exist on 
-> > many CPU architectures (even to the point of reading through a pointer 
-> > that you loaded).
+On Tuesday 08 December 2009, Rafael J. Wysocki wrote:
+> On Tuesday 08 December 2009, Linus Torvalds wrote:
+> > 
+> > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+> > > 
+> > > Anyway, if we use an rwsem, it won't be checkable from interrupt context just
+> > > as well.
+> > 
+> > You can't do a lock() from an interrupt, but the unlocks should be 
+> > irq-safe. 
+> > 
+> > > Suppose we use rwsem and during suspend each child uses a down_read() on a
+> > > parent and then the parent uses down_write() on itself.  What if, whatever the
+> > > reason, the parent is a bit early and does the down_write() before one of the
+> > > children has a chance to do the down_read()?  Aren't we toast?
+> > 
+> > We're toast, but we're toast for a totally unrealted reason: it means that 
+> > you tried to resume a child before a parent, which would be a major bug to 
+> > begin with.
+> > 
+> > Look, I even wrote out the comments, so let me repeat the code one more 
+> > time.
+> > 
+> >  - suspend time calling:
+> >         // This won't block, because we suspend nodes before parents
+> >         down_read(node->parent->lock);
+> >         // Do the part that may block asynchronously
+> >         async_schedule(do_usb_node_suspend, node);
+> > 
+> >  - resume time calling:
+> >         // This won't block, because we resume parents before children,
+> >         // and the children will take the read lock. 
+> >         down_write(leaf->lock);
+> >         // Do the blocking part asynchronously
+> >         async_schedule(usb_node_resume, leaf);
+> > 
+> > See? So when we take the parent lock for suspend, we are guaranteed to do 
+> > so _before_ the parent node itself suspends. And conversely, when we take 
+> > the parent lock (asynchronously) for resume, we're guaranteed to do that 
+> > _after_ the parent node has done its own down_write.
+> > 
+> > And that all depends on just one trivial thing; that the suspend and 
+> > resume is called in the right order (children first vs parent first 
+> > respectively). And that is such a _major_ correctness issue that if that 
+> > isn't correct, your suspend isn't going to work _anyway_.
 > 
-> Wait a second.  Are you saying that with code like this:
+> Understood (I think).
 > 
-> 	if (x == 1)
-> 		y = 5;
-> 
-> the CPU may write to y before it has finished reading the value of x?  
-> And this write is visible to other CPUs, so that if x was initially 0
-> and a second CPU sets x to 1, the second CPU may see y == 5 before it
-> executes the write to x (whatever that may mean)?
+> Let's try it, then.  Below is the resume patch based on my previous one in this
+> thread (I have only verified that it builds).
 
-No, the write really depends on x being 1 at any time before the comparison.
-On the other hand x being != 0 during the comparison does not prevent the 
-write without proper locking or barriers.
+Ah, I need to check if dev->parent is not NULL before trying to lock it, but
+apart from this it doesn't break things at least.
 
-
-Have a look at
-
-http://www.linuxjournal.com/article/8211
-http://www.linuxjournal.com/article/8212
-
-especially at the alpha part what can happen when dealing with pointer accesses.
-
-Christian
+Rafael
