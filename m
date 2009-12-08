@@ -1,283 +1,95 @@
 From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH 2/4] acpi, apei, HEST table parsing
-Date: Tue, 08 Dec 2009 15:55:13 +0800
-Message-ID: <1260258913.13131.27.camel@yhuang-dev.sh.intel.com>
+Subject: [PATCH 4/4] acpi, apei, Document for APEI
+Date: Tue, 08 Dec 2009 15:55:17 +0800
+Message-ID: <1260258917.13131.29.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:13260 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:18961 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754579AbZLHHzJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2009 02:55:09 -0500
+	id S1755230AbZLHHzN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2009 02:55:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-HEST describes error sources in detail; communicating operational
-parameters (i.e. severity levels, masking bits, and threshold values)
-to OS as necessary. It also allows the platform to report error
-sources for which OS would typically not implement support (for
-example, chipset-specific error registers).
-
-HEST information may be needed by other subsystems. For example, HEST
-PCIE AER error source information describes whether a PCIE root port
-works in "firmware first" mode, this is needed by general PCIE AER
-error subsystem. So a public HEST tabling parsing interface is
-provided.
+Add document for APEI, including kernel parameters and EINJ debug file
+sytem interface.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
- drivers/acpi/apei/Makefile        |    2 
- drivers/acpi/apei/apei-base.c     |   20 +++++
- drivers/acpi/apei/apei-internal.h |    3 
- drivers/acpi/apei/hest.c          |  151 ++++++++++++++++++++++++++++++++++++++
- include/acpi/apei.h               |   13 +++
- 5 files changed, 188 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/apei/hest.c
- create mode 100644 include/acpi/apei.h
+ Documentation/acpi/apei/einj.txt    |   49 ++++++++++++++++++++++++++++++++++++
+ Documentation/kernel-parameters.txt |    5 +++
+ 2 files changed, 54 insertions(+)
+ create mode 100644 Documentation/acpi/apei/einj.txt
 
---- a/drivers/acpi/apei/Makefile
-+++ b/drivers/acpi/apei/Makefile
-@@ -1,3 +1,3 @@
- obj-$(CONFIG_ACPI_APEI)		+= apei.o
- 
--apei-y := apei-base.o
-+apei-y := apei-base.o hest.o
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -55,6 +55,9 @@ EXPORT_SYMBOL_GPL(apei_debug_dir);
-  * handler.
-  */
- 
-+int hest_disable;
-+EXPORT_SYMBOL(hest_disable);
-+
- static LIST_HEAD(apei_iomaps);
- /*
-  * Used for mutual exclusion between writers of apei_iomaps list, for
-@@ -878,15 +881,30 @@ EXPORT_SYMBOL_GPL(apei_exec_collect_reso
- 
- static int __init apei_init(void)
- {
-+	int rc;
-+
- 	apei_debug_dir = debugfs_create_dir("apei", NULL);
- 	if (!apei_debug_dir)
- 		return -ENOMEM;
-+	if (!hest_disable) {
-+		rc = hest_init();
-+		if (rc) {
-+			hest_disable = 1;
-+			if (rc != -ENODEV)
-+				pr_err(
-+				"ACPI: APEI: Failed to initialize Hardware "
-+				"Error Source Table (HEST) subsystem\n");
-+		}
-+	}
- 
- 	return 0;
- }
- 
- static void __exit apei_exit(void)
- {
-+	if (!hest_disable)
-+		hest_exit();
-+
- 	debugfs_remove_recursive(apei_debug_dir);
- 	WARN_ON(!list_empty(&apei_iomaps));
- }
-@@ -894,6 +912,8 @@ static void __exit apei_exit(void)
- module_init(apei_init);
- module_exit(apei_exit);
- 
-+module_param(hest_disable, int, 0444);
-+
- MODULE_AUTHOR("Huang Ying");
- MODULE_DESCRIPTION("ACPI Platform Error Interface support");
- MODULE_LICENSE("GPL");
---- a/drivers/acpi/apei/apei-internal.h
-+++ b/drivers/acpi/apei/apei-internal.h
-@@ -6,6 +6,9 @@
- #ifndef APEI_INTERNAL_H
- #define APEI_INTERNAL_H
- 
-+int hest_init(void);
-+void hest_exit(void);
-+
- int apei_ioremap_gar(struct acpi_generic_address *reg);
- int apei_iounmap_gar(struct acpi_generic_address *reg);
- 
 --- /dev/null
-+++ b/drivers/acpi/apei/hest.c
-@@ -0,0 +1,151 @@
-+/*
-+ * APEI Hardware Error Souce Table support
-+ *
-+ * HEST describes error sources in detail; communicates operational
-+ * parameters (i.e. severity levels, masking bits, and threshold
-+ * values) to OS as necessary. It also allows the platform to report
-+ * error sources for which OS would typically not implement support
-+ * (for example, chipset-specific error registers).
-+ *
-+ * For more information about HEST, please refer to ACPI Specification
-+ * version 4.0, section 17.3.2.
-+ *
-+ * Copyright 2009 Intel Corp.
-+ *   Author: Huang Ying <ying.huang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation;
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
++++ b/Documentation/acpi/apei/einj.txt
+@@ -0,0 +1,49 @@
++			APEI Error INJection
++			~~~~~~~~~~~~~~~~~~~~
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <linux/kdebug.h>
-+#include <linux/highmem.h>
-+#include <linux/io.h>
-+#include <acpi/apei.h>
++EINJ provides a hardware error injection mechanism, it is very useful
++for debugging and testing of other APEI and RAS features.
 +
-+#include "apei-internal.h"
++To use EINJ, make the following is enabled in your kernel
++configuration:
 +
-+#define HEST_PFX "HEST: "
++CONFIG_DEBUG_FS
++CONFIG_ACPI_APEI
++CONFIG_ACPI_APEI_EINJ
 +
-+/* HEST table parsing */
++The user interface of EINJ is in debug file system, under the
++directory apei/einj. The following files are provided.
 +
-+static struct acpi_table_hest *hest_tab;
++- available_error_type
++  Read this file will return the error injection capability of the
++  platform, that is, which error types are supported. The error type
++  definition is as follow, the left field is the error type value, the
++  right field is error description.
 +
-+static int hest_void_parse(struct acpi_hest_header *hest_hdr, void *data)
-+{
-+	return 0;
-+}
++    0x00000001	Processor Correctable
++    0x00000002	Processor Uncorrectable non-fatal
++    0x00000004	Processor Uncorrectable fatal
++    0x00000008  Memory Correctable
++    0x00000010  Memory Uncorrectable non-fatal
++    0x00000020  Memory Uncorrectable fatal
++    0x00000040	PCI Express Correctable
++    0x00000080	PCI Express Uncorrectable fatal
++    0x00000100	PCI Express Uncorrectable non-fatal
++    0x00000200	Platform Correctable
++    0x00000400	Platform Uncorrectable non-fatal
++    0x00000800	Platform Uncorrectable fatal
 +
-+static int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVED] = {
-+	[ACPI_HEST_TYPE_IA32_CHECK] = -1,	/* need further calculation */
-+	[ACPI_HEST_TYPE_IA32_CORRECTED_CHECK] = -1,
-+	[ACPI_HEST_TYPE_IA32_NMI] = sizeof(struct acpi_hest_ia_nmi),
-+	[ACPI_HEST_TYPE_AER_ROOT_PORT] = sizeof(struct acpi_hest_aer_root),
-+	[ACPI_HEST_TYPE_AER_ENDPOINT] = sizeof(struct acpi_hest_aer),
-+	[ACPI_HEST_TYPE_AER_BRIDGE] = sizeof(struct acpi_hest_aer_bridge),
-+	[ACPI_HEST_TYPE_GENERIC_ERROR] = sizeof(struct acpi_hest_generic),
-+};
++  The format of file contents are as above, except there are only the
++  available error type lines.
 +
-+static int hest_esrc_len(struct acpi_hest_header *hest_hdr)
-+{
-+	u16 hest_type = hest_hdr->type;
-+	int len;
++- error_type
++  This file is used to set the error type value. The error type value
++  is defined in "available_error_type" description.
 +
-+	if (hest_type >= ACPI_HEST_TYPE_RESERVED)
-+		return 0;
++- error_inject
++  Write any integer to this file to trigger the error
++  injection. Before this, please specify all necessary error
++  parameters.
 +
-+	len = hest_esrc_len_tab[hest_type];
++For more information about EINJ, please refer to ACPI specification
++version 4.0, section 17.5.
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -338,6 +338,11 @@ and is between 256 and 4096 characters. 
+ 			not play well with APC CPU idle - disable it if you have
+ 			APC and your system crashes randomly.
+ 
++	apei.hest_disable= [ACPI]
++			Disable Hardware Error Source Table (HEST) support,
++			corresponding firmware-first mode error processing
++			logic will be disabled.
 +
-+	if (hest_type == ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) {
-+		struct acpi_hest_ia_corrected *cmc;
-+		cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
-+		len = sizeof(*cmc) + cmc->num_hardware_banks *
-+			sizeof(struct acpi_hest_ia_error_bank);
-+	} else if (hest_type == ACPI_HEST_TYPE_IA32_CHECK) {
-+		struct acpi_hest_ia_machine_check *mc;
-+		mc = (struct acpi_hest_ia_machine_check *)hest_hdr;
-+		len = sizeof(*mc) + mc->num_hardware_banks *
-+			sizeof(struct acpi_hest_ia_error_bank);
-+	}
-+	BUG_ON(len == -1);
-+
-+	return len;
-+};
-+
-+int apei_hest_parse(apei_hest_func_t func, void *data)
-+{
-+	struct acpi_hest_header *hest_hdr;
-+	int i, rc, len;
-+
-+	if (hest_disable)
-+		return -EINVAL;
-+
-+	hest_hdr = (struct acpi_hest_header *)(hest_tab + 1);
-+	for (i = 0; i < hest_tab->error_source_count; i++) {
-+		len = hest_esrc_len(hest_hdr);
-+		if (!len) {
-+			pr_info(HEST_PFX "Unknown or unused hardware error "
-+				"source type: %d\n", hest_hdr->type);
-+			return -EINVAL;
-+		}
-+		if ((void *)hest_hdr + len >
-+		    (void *)hest_tab + hest_tab->header.length) {
-+			pr_info(HEST_PFX "Table contents overflow!\n");
-+			return -EINVAL;
-+		}
-+
-+		rc = func(hest_hdr, data);
-+		if (rc)
-+			return rc;
-+
-+		hest_hdr = (void *)hest_hdr + len;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(apei_hest_parse);
-+
-+int __init hest_init(void)
-+{
-+	acpi_status status;
-+	int rc;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	status = acpi_get_table(ACPI_SIG_HEST, 0,
-+				(struct acpi_table_header **)&hest_tab);
-+	if (status == AE_NOT_FOUND) {
-+		pr_info(HEST_PFX "Table is not found!\n");
-+		return -ENODEV;
-+	} else if (ACPI_FAILURE(status)) {
-+		const char *msg = acpi_format_exception(status);
-+		pr_info(HEST_PFX "Failed to get table, %s\n", msg);
-+		return -EINVAL;
-+	}
-+
-+	rc = apei_hest_parse(hest_void_parse, NULL);
-+	if (rc)
-+		return rc;
-+
-+	pr_info(HEST_PFX "HEST table parsing is initialized.\n");
-+
-+	return 0;
-+}
-+
-+void __exit hest_exit(void)
-+{
-+}
---- /dev/null
-+++ b/include/acpi/apei.h
-@@ -0,0 +1,13 @@
-+/*
-+ * apei.h - ACPI Platform Error Interface
-+ */
-+
-+#ifndef ACPI_APEI_H
-+#define ACPI_APEI_H
-+
-+extern int hest_disable;
-+
-+typedef int (*apei_hest_func_t)(struct acpi_hest_header *hest_hdr, void *data);
-+int apei_hest_parse(apei_hest_func_t func, void *data);
-+
-+#endif
+ 	apic=		[APIC,X86-32] Advanced Programmable Interrupt Controller
+ 			Change the output verbosity whilst booting
+ 			Format: { quiet (default) | verbose | debug }
 
 
