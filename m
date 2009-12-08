@@ -1,125 +1,58 @@
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: [Resend] [PATCH] asus-laptop: add Lenovo SL LenovoCare LED support
-Date: Tue,  8 Dec 2009 15:37:09 +0800
-Message-ID: <1260257829-7343-1-git-send-email-ike.pan@canonical.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:35786 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742AbZLHHhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 02:37:09 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Resend] [PATCH] asus-laptop: add Lenovo SL
+	LenovoCare LED support
+Date: Tue, 8 Dec 2009 08:43:13 +0100
+Message-ID: <71cd59b00912072343g2fe258b6sc495337cdccd169e@mail.gmail.com>
+References: <1260257829-7343-1-git-send-email-ike.pan@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1260257829-7343-1-git-send-email-ike.pan-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=acpi4asus-user>
+List-Post: <mailto:acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi4asus-user>,
+	<mailto:acpi4asus-user-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: acpi4asus-user-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ike Panhc <ike.pan-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Rostovtsev <tetromino-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
-Cc: Corentin Chary <corentin.chary@gmail.com>, Alexandre Rostovtsev <tetromino@gmail.com>
 
-Resend because the email address of signed-off is wrong in prior mail
+On Tue, Dec 8, 2009 at 8:37 AM, Ike Panhc <ike.pan-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org> wrote:
+> Resend because the email address of signed-off is wrong in prior mail
+>
+> This patch is to enable the LenovoCare LED support on Lenovo SL laptop. B=
+ased
+> on the found of the control interface by Alexandre Rostovtsev
+>
+> Turn on the LenovoCare LED:
+> =A0(As root privileges) echo 1 > /sys/class/leds/asus\:\:LenovoCare/brigh=
+tness
+> Trun off the LenovoCare LED:
+> =A0(As root privileges) echo 0 > /sys/class/leds/asus\:\:LenovoCare/brigh=
+tness
+>
+> The patch against current checkout of acpi4asus is below.
+>
+> Signed-off-by: Ike Panhc <ike.pan-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
-This patch is to enable the LenovoCare LED support on Lenovo SL laptop. Based
-on the found of the control interface by Alexandre Rostovtsev
+Hi,
+Is there another method to control that led in _SB.ATKD ?
+Could you re-send me some Leveno dsdt (if possible, more than one) ?
+Thanks,
 
-Turn on the LenovoCare LED:
- (As root privileges) echo 1 > /sys/class/leds/asus\:\:LenovoCare/brightness
-Trun off the LenovoCare LED:
- (As root privileges) echo 0 > /sys/class/leds/asus\:\:LenovoCare/brightness
 
-The patch against current checkout of acpi4asus is below.
+-- =
 
-Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+Corentin Chary
+http://xf.iksaif.net
+
+---------------------------------------------------------------------------=
 ---
- drivers/platform/x86/asus-laptop.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 3348cc6..f3c52b6 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -87,6 +87,7 @@
- #define LCD_ON      0x80	/* LCD backlight */
- #define GPS_ON      0x100	/* GPS */
- #define KEY_ON      0x200	/* Keyboard backlight */
-+#define LLED_ON     0x400	/* Lenovo SL: LenovoCare LED */
- 
- #define ASUS_LOG    ASUS_HOTK_FILE ": "
- #define ASUS_ERR    KERN_ERR    ASUS_LOG
-@@ -123,6 +124,7 @@ ASUS_HANDLE(tled_set, ASUS_HOTK_PREFIX "TLED");
- ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED");	/* W1JC */
- ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED");	/* A7J */
- ASUS_HANDLE(gled_set, ASUS_HOTK_PREFIX "GLED");	/* G1, G2 (probably) */
-+ASUS_HANDLE(lled_set, "\\_SB_.PCI0.SBRG.EC0_.HKEY.TVLS"); /* LenovoCare */
- 
- /* LEDD */
- ASUS_HANDLE(ledd_set, ASUS_HOTK_PREFIX "SLCM");
-@@ -285,6 +287,7 @@ ASUS_LED(rled, "record", 1);
- ASUS_LED(pled, "phone", 1);
- ASUS_LED(gled, "gaming", 1);
- ASUS_LED(kled, "kbd_backlight", 3);
-+ASUS_LED(lled, "LenovoCare", 1);
- 
- struct key_entry {
- 	char type;
-@@ -419,6 +422,9 @@ static void write_status(acpi_handle handle, int out, int mask)
- 		handle = (out) ? gps_on_handle : gps_off_handle;
- 		out = 0x02;
- 		break;
-+	case LLED_ON:
-+		out = (out & 0x1) * 0xFF;
-+		break;
- 	default:
- 		out &= 0x1;
- 		break;
-@@ -452,6 +458,7 @@ ASUS_LED_HANDLER(pled, PLED_ON);
- ASUS_LED_HANDLER(rled, RLED_ON);
- ASUS_LED_HANDLER(tled, TLED_ON);
- ASUS_LED_HANDLER(gled, GLED_ON);
-+ASUS_LED_HANDLER(lled, LLED_ON);
- 
- /*
-  * Keyboard backlight
-@@ -1146,6 +1153,7 @@ static int asus_hotk_get_info(void)
- 	ASUS_HANDLE_INIT(rled_set);
- 	ASUS_HANDLE_INIT(pled_set);
- 	ASUS_HANDLE_INIT(gled_set);
-+	ASUS_HANDLE_INIT(lled_set);
- 
- 	ASUS_HANDLE_INIT(ledd_set);
- 
-@@ -1338,6 +1346,7 @@ static void asus_led_exit(void)
- 	ASUS_LED_UNREGISTER(rled);
- 	ASUS_LED_UNREGISTER(gled);
- 	ASUS_LED_UNREGISTER(kled);
-+	ASUS_LED_UNREGISTER(lled);
- }
- 
- static void asus_input_exit(void)
-@@ -1417,19 +1426,25 @@ static int asus_led_init(struct device *dev)
- 	if (rv)
- 		goto out4;
- 
-+	rv = ASUS_LED_REGISTER(lled, dev);
-+	if (rv)
-+		goto out5;
-+
- 	if (kled_set_handle && kled_get_handle)
- 		rv = ASUS_LED_REGISTER(kled, dev);
- 	if (rv)
--		goto out5;
-+		goto out6;
- 
- 	led_workqueue = create_singlethread_workqueue("led_workqueue");
- 	if (!led_workqueue)
--		goto out6;
-+		goto out7;
- 
- 	return 0;
--out6:
-+out7:
- 	rv = -ENOMEM;
- 	ASUS_LED_UNREGISTER(kled);
-+out6:
-+	ASUS_LED_UNREGISTER(lled);
- out5:
- 	ASUS_LED_UNREGISTER(gled);
- out4:
--- 
-1.6.3.3
-
+Return on Information:
+Google Enterprise Search pays you back
+Get the facts.
+http://p.sf.net/sfu/google-dev2dev
