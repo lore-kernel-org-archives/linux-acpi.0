@@ -1,75 +1,48 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCHv2 0/2] Introducing the Ambient Light Sensor (ALS) class
-Date: Wed, 09 Dec 2009 09:51:37 +0800
-Message-ID: <1260323497.27069.279.camel@rzhang1-desktop>
-References: <1259581514-15356-1-git-send-email-amit.kucheria@verdurent.com>
-	 <37786d4b0912070650g7ba7604bv63365a21f980501d@mail.gmail.com>
-	 <20091207160432.3108e17b@hyperion.delvare>
-	 <20091208140005.GA3125@everest.lan>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 10/10] thinkpad-acpi: sync input device
+	EV_SW state directly
+Date: Tue, 8 Dec 2009 17:45:14 -0800
+Message-ID: <200912081745.14725.dmitry.torokhov@gmail.com>
+References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
+	<1260322590-5571-11-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45032 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753112AbZLIBuQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2009 20:50:16 -0500
-In-Reply-To: <20091208140005.GA3125@everest.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1260322590-5571-11-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, "jic23@cam.ac.uk" <jic23@cam.ac.uk>, "alan@linux.intel.com" <alan@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Jean Delvare <khali@linux-fr.org>
 
-On Tue, 2009-12-08 at 22:00 +0800, Amit Kucheria wrote:
-> On Mon, Dec 7, 2009 at 5:04 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Mon, 7 Dec 2009 16:50:23 +0200, Amit Kucheria wrote:
-> >> On Mon, Nov 30, 2009 at 1:45 PM, Amit Kucheria
-> >> <amit.kucheria@verdurent.com> wrote:
-> >> > Introduce a new class of devices to handle ambient light sensors. Currently
-> >> > only one sysfs inteface, 'illuminance' is introduced. More will be added as
-> >> > drivers are ported to use this new class.
-> >> >
-> >> > Amit Kucheria (1):
-> >> >  als: add unique device-ids to the als device class
-> >> >
-> >> > Zhang Rui (1):
-> >> >  introduce ALS sysfs class
-> >> >
-> >> >  Documentation/ABI/testing/sysfs-class-als |    9 ++
-> >> >  MAINTAINERS                               |    6 ++
-> >> >  drivers/Kconfig                           |    2 +
-> >> >  drivers/Makefile                          |    1 +
-> >> >  drivers/als/Kconfig                       |   10 +++
-> >> >  drivers/als/Makefile                      |    5 +
-> >> >  drivers/als/als_sys.c                     |  116 +++++++++++++++++++++++++++++
-> >> >  include/linux/als_sys.h                   |   35 +++++++++
-> >> >  8 files changed, 184 insertions(+), 0 deletions(-)
-> >> >  create mode 100644 Documentation/ABI/testing/sysfs-class-als
-> >> >  create mode 100644 drivers/als/Kconfig
-> >> >  create mode 100644 drivers/als/Makefile
-> >> >  create mode 100644 drivers/als/als_sys.c
-> >> >  create mode 100644 include/linux/als_sys.h
-> >> >
-> >>
-> >> (Bump)
-> >>
-> >> Is there any blocker to adding this for 2.6.33?
-> >
-> > As far as I am concerned, it's ready to go. And I would love to see it
-> > in 2.6.33.
-> >
-> >> Which maintainer will pick up the ALS framework?
-> >
-> > As Rui volunteered to be the maintainer of this new subsystem, it would
-> > seem fair that he takes care of the initial push as well.
+On Tuesday 08 December 2009 05:36:30 pm Henrique de Moraes Holschuh wrote:
+> Before we register the input device, sync the input layer EV_SW state
+> directly by setting the bitmaps, to avoid issuing a gratuitous event
+> for the initial state of these switches.
 > 
-> Rui,
+> I will propose a clean input layer API for this and change the driver
+> to use it later, but I'd rather get the driver fix in mainline ASAP.
 > 
-> Not sure about the LKML netiquette here, but I could track this patchset to
-> get it merged. Let me know.
 
-that would be great.
+Just do input_report_switch() before registering the device, it will do
+the right thing.
 
-thanks,
-rui
+Input core guarantees (and will continue doing so) that it is safe to
+pass events to the device as soon as it was allocated with
+input_allocate_device().
 
+-- 
+Dmitry
+
+------------------------------------------------------------------------------
+Return on Information:
+Google Enterprise Search pays you back
+Get the facts.
+http://p.sf.net/sfu/google-dev2dev
