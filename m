@@ -1,170 +1,66 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 04/10] thinkpad-acpi: issue backlight class events
-Date: Tue,  8 Dec 2009 23:36:24 -0200
-Message-ID: <1260322590-5571-5-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 09/10] thinkpad-acpi: use input_set_capability
+Date: Tue,  8 Dec 2009 23:36:29 -0200
+Message-ID: <1260322590-5571-10-git-send-email-hmh@hmh.eng.br>
 References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55714 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59393 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967094AbZLIBgd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:33 -0500
+	by vger.kernel.org with ESMTP id S967105AbZLIBge (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:34 -0500
 In-Reply-To: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg@redhat.com>, Richard Purdie <rpurdie@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Dmitry Torokhov <dtor@mail.ru>
 
-Take advantage of the new events capabilities of the backlight class to
-notify userspace of backlight changes.
-
-This depends on "backlight: Allow drivers to update the core, and
-generate events on changes", by Matthew Garrett.
+Use input_set_capability() instead of set_bit.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Richard Purdie <rpurdie@linux.intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   51 +++++++-----------------------
- drivers/platform/x86/thinkpad_acpi.c    |   24 ++++++++++++++-
- 2 files changed, 35 insertions(+), 40 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   14 +++++---------
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index aafcaa6..f5056c7 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -460,6 +460,8 @@ event	code	Key		Notes
- 				For Lenovo ThinkPads with a new
- 				BIOS, it has to be handled either
- 				by the ACPI OSI, or by userspace.
-+				The driver does the right thing,
-+				never mess with this.
- 0x1011	0x10	FN+END		Brightness down.  See brightness
- 				up for details.
- 
-@@ -582,46 +584,15 @@ with hotkey_report_mode.
- 
- Brightness hotkey notes:
- 
--These are the current sane choices for brightness key mapping in
--thinkpad-acpi:
-+Don't mess with the brightness hotkeys in a Thinkpad.  If you want
-+notifications for OSD, use the sysfs backlight class event support.
- 
--For IBM and Lenovo models *without* ACPI backlight control (the ones on
--which thinkpad-acpi will autoload its backlight interface by default,
--and on which ACPI video does not export a backlight interface):
--
--1. Don't enable or map the brightness hotkeys in thinkpad-acpi, as
--   these older firmware versions unfortunately won't respect the hotkey
--   mask for brightness keys anyway, and always reacts to them.  This
--   usually work fine, unless X.org drivers are doing something to block
--   the BIOS.  In that case, use (3) below.  This is the default mode of
--   operation.
--
--2. Enable the hotkeys, but map them to something else that is NOT
--   KEY_BRIGHTNESS_UP/DOWN or any other keycode that would cause
--   userspace to try to change the backlight level, and use that as an
--   on-screen-display hint.
--
--3. IF AND ONLY IF X.org drivers find a way to block the firmware from
--   automatically changing the brightness, enable the hotkeys and map
--   them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN, and feed that to
--   something that calls xbacklight.  thinkpad-acpi will not be able to
--   change brightness in that case either, so you should disable its
--   backlight interface.
--
--For Lenovo models *with* ACPI backlight control:
--
--1. Load up ACPI video and use that.  ACPI video will report ACPI
--   events for brightness change keys.  Do not mess with thinkpad-acpi
--   defaults in this case.  thinkpad-acpi should not have anything to do
--   with backlight events in a scenario where ACPI video is loaded:
--   brightness hotkeys must be disabled, and the backlight interface is
--   to be kept disabled as well.  This is the default mode of operation.
--
--2. Do *NOT* load up ACPI video, enable the hotkeys in thinkpad-acpi,
--   and map them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN.  Process
--   these keys on userspace somehow (e.g. by calling xbacklight).
--   The driver will do this automatically if it detects that ACPI video
--   has been disabled.
-+The driver will issue KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN events
-+automatically for the cases were userspace has to do something to
-+implement brightness changes.  When you override these events, you will
-+either fail to handle properly the ThinkPads that require explicit
-+action to change backlight brightness, or the ThinkPads that require
-+that no action be taken to work properly.
- 
- 
- Bluetooth
-@@ -1465,3 +1436,5 @@ Sysfs interface changelog:
- 		and it is always able to disable hot keys.  Very old
- 		thinkpads are properly supported.  hotkey_bios_mask
- 		is deprecated and marked for removal.
-+
-+0x020600:	Marker for backlight change event support.
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 6160813..4406136 100644
+index b3e256b..53d6c33 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -22,7 +22,7 @@
-  */
+@@ -3348,16 +3348,14 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 			TPACPI_HOTKEY_MAP_SIZE);
+ 	}
  
- #define TPACPI_VERSION "0.23"
--#define TPACPI_SYSFS_VERSION 0x020500
-+#define TPACPI_SYSFS_VERSION 0x020600
+-	set_bit(EV_KEY, tpacpi_inputdev->evbit);
+-	set_bit(EV_MSC, tpacpi_inputdev->evbit);
+-	set_bit(MSC_SCAN, tpacpi_inputdev->mscbit);
++	input_set_capability(tpacpi_inputdev, EV_MSC, MSC_SCAN);
+ 	tpacpi_inputdev->keycodesize = TPACPI_HOTKEY_MAP_TYPESIZE;
+ 	tpacpi_inputdev->keycodemax = TPACPI_HOTKEY_MAP_LEN;
+ 	tpacpi_inputdev->keycode = hotkey_keycode_map;
+ 	for (i = 0; i < TPACPI_HOTKEY_MAP_LEN; i++) {
+ 		if (hotkey_keycode_map[i] != KEY_RESERVED) {
+-			set_bit(hotkey_keycode_map[i],
+-				tpacpi_inputdev->keybit);
++			input_set_capability(tpacpi_inputdev, EV_KEY,
++						hotkey_keycode_map[i]);
+ 		} else {
+ 			if (i < sizeof(hotkey_reserved_mask)*8)
+ 				hotkey_reserved_mask |= 1 << i;
+@@ -3365,12 +3363,10 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	}
  
- /*
-  *  Changelog:
-@@ -6073,6 +6073,12 @@ static int brightness_get(struct backlight_device *bd)
- 	return status & TP_EC_BACKLIGHT_LVLMSK;
- }
+ 	if (tp_features.hotkey_wlsw) {
+-		set_bit(EV_SW, tpacpi_inputdev->evbit);
+-		set_bit(SW_RFKILL_ALL, tpacpi_inputdev->swbit);
++		input_set_capability(tpacpi_inputdev, EV_SW, SW_RFKILL_ALL);
+ 	}
+ 	if (tp_features.hotkey_tablet) {
+-		set_bit(EV_SW, tpacpi_inputdev->evbit);
+-		set_bit(SW_TABLET_MODE, tpacpi_inputdev->swbit);
++		input_set_capability(tpacpi_inputdev, EV_SW, SW_TABLET_MODE);
+ 	}
  
-+static void tpacpi_brightness_notify_change(void)
-+{
-+	backlight_force_update(ibm_backlight_device,
-+			       BACKLIGHT_UPDATE_HOTKEY);
-+}
-+
- static struct backlight_ops ibm_backlight_data = {
- 	.get_brightness = brightness_get,
- 	.update_status  = brightness_update_status,
-@@ -6227,6 +6233,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 	ibm_backlight_device->props.brightness = b & TP_EC_BACKLIGHT_LVLMSK;
- 	backlight_update_status(ibm_backlight_device);
- 
-+	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_BRGHT,
-+			"brightness: registering brightness hotkeys "
-+			"as change notification\n");
-+	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
-+				| TP_ACPI_HKEY_BRGHTUP_MASK
-+				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
- 	return 0;
- }
- 
-@@ -6303,6 +6315,9 @@ static int brightness_write(char *buf)
- 	 * Doing it this way makes the syscall restartable in case of EINTR
- 	 */
- 	rc = brightness_set(level);
-+	if (!rc && ibm_backlight_device)
-+		backlight_force_update(ibm_backlight_device,
-+					BACKLIGHT_UPDATE_SYSFS);
- 	return (rc == -EINTR)? -ERESTARTSYS : rc;
- }
- 
-@@ -7702,6 +7717,13 @@ static struct ibm_struct fan_driver_data = {
-  */
- static void tpacpi_driver_event(const unsigned int hkey_event)
- {
-+	if (ibm_backlight_device) {
-+		switch (hkey_event) {
-+		case TP_HKEY_EV_BRGHT_UP:
-+		case TP_HKEY_EV_BRGHT_DOWN:
-+			tpacpi_brightness_notify_change();
-+		}
-+	}
- }
- 
- 
+ 	/* Do not issue duplicate brightness change events to
 -- 
 1.6.5.4
 
