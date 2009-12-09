@@ -1,35 +1,55 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [GIT PATCH v2] thinkpad-acpi first set of changes for 2.6.33
- (v2)
-Date: Wed, 9 Dec 2009 20:32:44 -0200
-Message-ID: <20091209223244.GA24162@khazad-dum.debian.net>
-References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
- <alpine.LFD.2.00.0912091546510.24891@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: spinlock in completion_done() (was: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33))
+Date: Wed, 9 Dec 2009 23:37:52 +0100
+Message-ID: <200912092337.52492.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org> <200912082248.14138.rjw@sisk.pl> <20091209092922.GC28428@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53990 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758186AbZLIWck (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 17:32:40 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0912091546510.24891@localhost.localdomain>
+Received: from ogre.sisk.pl ([217.79.144.158]:55515 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758292AbZLIWhT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Dec 2009 17:37:19 -0500
+In-Reply-To: <20091209092922.GC28428@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, David Chinner <david@fromorbit.com>, Lachlan McIlroy <lachlan@sgi.com>
 
-On Wed, 09 Dec 2009, Len Brown wrote:
-> 1-9 applied to acpi-test
+On Wednesday 09 December 2009, Ingo Molnar wrote:
+> 
+> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> 
+> > On Tuesday 08 December 2009, Alan Stern wrote:
+> > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+> > > 
+> > > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
+> > > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
+> > > > here?
+> > > 
+> > > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
+> > > these routines were not intended to be called with interrupts disabled, 
+> > > but that requirement doesn't seem to be documented.  And it isn't a 
+> > > natural requirement anyway.
+> > 
+> > OK, let's ask Ingo about that.
+> > 
+> > Ingo, is there any particular reason why completion_done() and
+> > try_wait_for_completion() don't use spin_lock_irqsave() and
+> > spin_unlock_irqrestore()?
+> 
+> that's a bug that should be fixed - all the wakeup side (and atomic) 
+> variants of completetion API should be irq safe.
+> 
+> It appears that these new completion APIs were added via the XFS tree 
+> about a year ago:
+> 
+>   39d2f1a: [XFS] extend completions to provide XFS object flush requirements
+> 
+> Please Cc: scheduler folks to all scheduler patches.
 
-Thanks.  I will respin patch 10, add a trivial patch for bug 13600, and work
-on the seq_file patch while I wait for comments on the other stack of 4
-patches I sent for review.
+If you haven't fixed it locally yet, would you mind me posting a fix?
 
-I will submit them all to you in a second batch, in a few days.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Rafael
