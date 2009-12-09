@@ -1,39 +1,43 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Wed, 9 Dec 2009 10:57:12 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912091051450.4120-100000@iolanthe.rowland.org>
-References: <alpine.LFD.2.00.0912090728200.3560@localhost.localdomain>
+Date: Wed, 9 Dec 2009 16:02:56 +0000
+Message-ID: <20091209160256.GA3229@rakim.wolfsonmicro.main>
+References: <20091209133829.GF9018@sirena.org.uk>
+ <Pine.LNX.4.44L0.0912091044340.4120-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:40652 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752645AbZLIP5G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 10:57:06 -0500
-In-Reply-To: <alpine.LFD.2.00.0912090728200.3560@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756153AbZLIQCx@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0912091044340.4120-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, 9 Dec 2009, Linus Torvalds wrote:
+On Wed, Dec 09, 2009 at 10:49:56AM -0500, Alan Stern wrote:
+> On Wed, 9 Dec 2009, Mark Brown wrote:
 
-> That's partly why I realy did suggest that we do the async stuff purely in 
-> the USB layer, rather than try to put it deeper in the device layer. And 
-> if we do support it "natively" in the device layer like Rafael's latest 
-> patch, I still think we should be very very nervous about making devices 
-> async unless there is a measured - and very noticeable - advantage.
+> > There's some potential for this in embedded audio - it wants to bring
+> > down the entire embedded audio subsystem at once before the individual
+> > devices (and their parents) get suspended since bringing them down out
 
-Agreed.  Arjan's measurements indicated that USB was one of the biggest
-offenders; everything else other than the PS/2 mouse was much faster.  
-Given these results there isn't much incentive to do anything else
-asynchronously.
+> For something like bringing down the entire embedded audio subsystem, 
+> which isn't directly tied to a single device, you would probably be 
+> better off doing it when the PM core broadcasts a suspend notification
+> (see register_pm_notifier() in include/linux/suspend.h).  This occurs 
+> before any devices are suspended, so synchronization isn't an issue.
 
-(However other devices not present on Arjan's machine may be a
-different story.  Spinning up multiple external disks is a good example 
--- although here it may be necessary for the driver to take charge, 
-because spinning up a disk requires a lot of power and doing too many 
-of them at the same time could be bad.)
+I'm not convinced that helps with the fact that the suspend may take a
+long time - ideally we'd be able to start the suspend process off but
+let other things carry on while it completes without having to worry
+about something we're relying on getting suspended underneath us.
 
-Alan Stern
+> > Embedded audio does potentially - the resume needs all the individual
+> > overall resume time.  Currently we get away with a combination of
 
+> You can do the same thing with the resume notifier.
+
+Similarly, the length of time the resume may take to complete means it'd
+be nice to start as soon as we've got the devices and complete it at our
+leisure.  This is less pressing since we can tell the PM core we've
+resumed but still block userspace.
