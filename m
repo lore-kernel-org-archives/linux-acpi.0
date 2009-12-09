@@ -1,124 +1,50 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 02/10] thinkpad-acpi: preserve rfkill state across suspend/resume
-Date: Tue,  8 Dec 2009 23:36:22 -0200
-Message-ID: <1260322590-5571-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 03/10] thinkpad-acpi: fix some version quirks
+Date: Tue,  8 Dec 2009 23:36:23 -0200
+Message-ID: <1260322590-5571-4-git-send-email-hmh@hmh.eng.br>
 References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42942 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57663 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967098AbZLIBgd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:33 -0500
+	by vger.kernel.org with ESMTP id S967093AbZLIBgb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:31 -0500
 In-Reply-To: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Since the rfkill rework in 2.6.31, the driver is always resuming with
-the radios disabled.
+Update some of the BIOS/EC version quirks.
 
-Change thinkpad-acpi to ask the firmware to resume with the radios in
-the last state.  This fixes the Bluetooth and WWAN rfkill switches.
-
-Note that it means we respect the firmware's oddities.  Should the
-user toggle the hardware rfkill switch on and off, it might cause the
-radios to resume enabled.
-
-UWB is an unknown quantity since it has nowhere the same level of
-firmware support (no control over state storage in NVRAM, for
-example), and might need further fixing.  Testers welcome.
-
-This change fixes a regression from 2.6.30.
-
-Reported-by: Jerone Young <jerone.young@canonical.com>
-Reported-by: Ian Molton <ian.molton@collabora.co.uk>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Tested-by: Ian Molton <ian.molton@collabora.co.uk>
-Cc: stable@kernel.org
 ---
- drivers/platform/x86/thinkpad_acpi.c |   32 +++++---------------------------
- 1 files changed, 5 insertions(+), 27 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 9c6d5a9..1ee734c 100644
+index 1ee734c..6160813 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3866,15 +3866,6 @@ enum {
+@@ -1779,7 +1779,7 @@ static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
  
- #define TPACPI_RFK_BLUETOOTH_SW_NAME	"tpacpi_bluetooth_sw"
+ 	TPV_QL1('7', '9',  'E', '3',  '5', '0'), /* T60/p */
+ 	TPV_QL1('7', 'C',  'D', '2',  '2', '2'), /* R60, R60i */
+-	TPV_QL0('7', 'E',  'D', '0'),		 /* R60e, R60i */
++	TPV_QL1('7', 'E',  'D', '0',  '1', '5'), /* R60e, R60i */
  
--static void bluetooth_suspend(pm_message_t state)
--{
--	/* Try to make sure radio will resume powered off */
--	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
--		   TP_ACPI_BLTH_PWR_OFF_ON_RESUME))
--		vdbg_printk(TPACPI_DBG_RFKILL,
--			"bluetooth power down on resume request failed\n");
--}
--
- static int bluetooth_get_status(void)
- {
- 	int status;
-@@ -3908,10 +3899,9 @@ static int bluetooth_set_status(enum tpacpi_rfkill_state state)
- #endif
+ 	/*      BIOS FW    BIOS VERS  EC FW     EC VERS */
+ 	TPV_QI2('1', 'W',  '9', '0',  '1', 'V', '2', '8'), /* R50e (1) */
+@@ -1795,8 +1795,8 @@ static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
+ 	TPV_QI1('7', '4',  '6', '4',  '2', '7'), /* X41 (0) */
+ 	TPV_QI1('7', '5',  '6', '0',  '2', '0'), /* X41t (0) */
  
- 	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
-+	status = TP_ACPI_BLUETOOTH_RESUMECTRL;
- 	if (state == TPACPI_RFK_RADIO_ON)
--		status = TP_ACPI_BLUETOOTH_RADIOSSW;
--	else
--		status = 0;
-+		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
+-	TPV_QL0('7', 'B',  'D', '7'),		 /* X60/s */
+-	TPV_QL0('7', 'J',  '3', '0'),		 /* X60t */
++	TPV_QL1('7', 'B',  'D', '7',  '4', '0'), /* X60/s */
++	TPV_QL1('7', 'J',  '3', '0',  '1', '3'), /* X60t */
  
- 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
- 		return -EIO;
-@@ -4050,7 +4040,6 @@ static struct ibm_struct bluetooth_driver_data = {
- 	.read = bluetooth_read,
- 	.write = bluetooth_write,
- 	.exit = bluetooth_exit,
--	.suspend = bluetooth_suspend,
- 	.shutdown = bluetooth_shutdown,
- };
- 
-@@ -4068,15 +4057,6 @@ enum {
- 
- #define TPACPI_RFK_WWAN_SW_NAME		"tpacpi_wwan_sw"
- 
--static void wan_suspend(pm_message_t state)
--{
--	/* Try to make sure radio will resume powered off */
--	if (!acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
--		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME))
--		vdbg_printk(TPACPI_DBG_RFKILL,
--			"WWAN power down on resume request failed\n");
--}
--
- static int wan_get_status(void)
- {
- 	int status;
-@@ -4109,11 +4089,10 @@ static int wan_set_status(enum tpacpi_rfkill_state state)
- 	}
- #endif
- 
--	/* We make sure to keep TP_ACPI_WANCARD_RESUMECTRL off */
-+	/* We make sure to set TP_ACPI_WANCARD_RESUMECTRL */
-+	status = TP_ACPI_WANCARD_RESUMECTRL;
- 	if (state == TPACPI_RFK_RADIO_ON)
--		status = TP_ACPI_WANCARD_RADIOSSW;
--	else
--		status = 0;
-+		status |= TP_ACPI_WANCARD_RADIOSSW;
- 
- 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
- 		return -EIO;
-@@ -4251,7 +4230,6 @@ static struct ibm_struct wan_driver_data = {
- 	.read = wan_read,
- 	.write = wan_write,
- 	.exit = wan_exit,
--	.suspend = wan_suspend,
- 	.shutdown = wan_shutdown,
- };
- 
+ 	/* (0) - older versions lack DMI EC fw string and functionality */
+ 	/* (1) - older versions known to lack functionality */
 -- 
 1.6.5.4
 
