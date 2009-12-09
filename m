@@ -1,12 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/14] ACPICA: Add additional module-level code support
-Date: Wed, 09 Dec 2009 12:22:14 -0500
-Message-ID: <9a884ab64a4d092b4c3bf24fd9a30f7fbd4591e7.1260379153.git.len.brown@intel.com>
+Subject: [PATCH 12/14] ACPICA: Deploy new create integer interface where
+ appropriate
+Date: Wed, 09 Dec 2009 12:22:13 -0500
+Message-ID: <dc95a270c684e771b25dce0b60559cc80c033f22.1260379153.git.len.brown@intel.com>
 References: <1260379335-24263-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:57852 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756316AbZLIR6R (ORCPT
+	with ESMTP id S1756349AbZLIR6R (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 12:58:17 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
@@ -19,195 +20,305 @@ References: <2752699392b828edf3123f911f6e8b4dd7daeb56.1260379153.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-This change will execute module-level code that is not at the
-root of the namespace (under a Device object, etc.).
-ACPICA BZ 762.
+Simplifies creation of simple integer objects.
+ACPICA BZ 823.
 
-http://www.acpica.org/bugzilla/show_bug.cgi?id=762
+http://www.acpica.org/bugzilla/show_bug.cgi?id=823
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/nseval.c |   50 +++++++++++++++++++++++++++++------------
- drivers/acpi/acpica/psloop.c |   32 +++++++++++++++++++++-----
- 2 files changed, 61 insertions(+), 21 deletions(-)
+ drivers/acpi/acpica/dsmthdat.c |    4 +---
+ drivers/acpi/acpica/evregion.c |   11 ++++-------
+ drivers/acpi/acpica/exconfig.c |    4 +---
+ drivers/acpi/acpica/exconvrt.c |    3 +--
+ drivers/acpi/acpica/exfield.c  |    3 +--
+ drivers/acpi/acpica/exoparg1.c |   38 +++++++++++++++++---------------------
+ drivers/acpi/acpica/exoparg6.c |    7 ++-----
+ drivers/acpi/acpica/psparse.c  |    8 ++------
+ drivers/acpi/acpica/psxface.c  |    4 +---
+ 9 files changed, 30 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nseval.c b/drivers/acpi/acpica/nseval.c
-index 846d113..f771e97 100644
---- a/drivers/acpi/acpica/nseval.c
-+++ b/drivers/acpi/acpica/nseval.c
-@@ -366,33 +366,49 @@ static void
- acpi_ns_exec_module_code(union acpi_operand_object *method_obj,
- 			 struct acpi_evaluate_info *info)
- {
--	union acpi_operand_object *root_obj;
-+	union acpi_operand_object *parent_obj;
-+	struct acpi_namespace_node *parent_node;
-+	acpi_object_type type;
- 	acpi_status status;
+diff --git a/drivers/acpi/acpica/dsmthdat.c b/drivers/acpi/acpica/dsmthdat.c
+index 7d077bb..0ba19f8 100644
+--- a/drivers/acpi/acpica/dsmthdat.c
++++ b/drivers/acpi/acpica/dsmthdat.c
+@@ -409,13 +409,11 @@ acpi_ds_method_data_get_value(u8 type,
+ 		/* If slack enabled, init the local_x/arg_x to an Integer of value zero */
  
- 	ACPI_FUNCTION_TRACE(ns_exec_module_code);
+ 		if (acpi_gbl_enable_interpreter_slack) {
+-			object =
+-			    acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++			object = acpi_ut_create_integer_object((u64) 0);
+ 			if (!object) {
+ 				return_ACPI_STATUS(AE_NO_MEMORY);
+ 			}
  
-+	/*
-+	 * Get the parent node. We cheat by using the next_object field
-+	 * of the method object descriptor.
-+	 */
-+	parent_node = ACPI_CAST_PTR(struct acpi_namespace_node,
-+				    method_obj->method.next_object);
-+	type = acpi_ns_get_type(parent_node);
-+
-+	/* Must clear next_object (acpi_ns_attach_object needs the field) */
-+
-+	method_obj->method.next_object = NULL;
-+
- 	/* Initialize the evaluation information block */
- 
- 	ACPI_MEMSET(info, 0, sizeof(struct acpi_evaluate_info));
--	info->prefix_node = acpi_gbl_root_node;
-+	info->prefix_node = parent_node;
- 
- 	/*
--	 * Get the currently attached root object. Add a reference, because the
-+	 * Get the currently attached parent object. Add a reference, because the
- 	 * ref count will be decreased when the method object is installed to
--	 * the root node.
-+	 * the parent node.
- 	 */
--	root_obj = acpi_ns_get_attached_object(acpi_gbl_root_node);
--	acpi_ut_add_reference(root_obj);
-+	parent_obj = acpi_ns_get_attached_object(parent_node);
-+	if (parent_obj) {
-+		acpi_ut_add_reference(parent_obj);
-+	}
- 
--	/* Install the method (module-level code) in the root node */
-+	/* Install the method (module-level code) in the parent node */
- 
--	status = acpi_ns_attach_object(acpi_gbl_root_node, method_obj,
-+	status = acpi_ns_attach_object(parent_node, method_obj,
- 				       ACPI_TYPE_METHOD);
- 	if (ACPI_FAILURE(status)) {
- 		goto exit;
- 	}
- 
--	/* Execute the root node as a control method */
-+	/* Execute the parent node as a control method */
- 
- 	status = acpi_ns_evaluate(info);
- 
-@@ -401,15 +417,19 @@ acpi_ns_exec_module_code(union acpi_operand_object *method_obj,
- 
- 	/* Detach the temporary method object */
- 
--	acpi_ns_detach_object(acpi_gbl_root_node);
-+	acpi_ns_detach_object(parent_node);
- 
--	/* Restore the original root object */
-+	/* Restore the original parent object */
- 
--	status =
--	    acpi_ns_attach_object(acpi_gbl_root_node, root_obj,
--				  ACPI_TYPE_DEVICE);
-+	if (parent_obj) {
-+		status = acpi_ns_attach_object(parent_node, parent_obj, type);
-+	} else {
-+		parent_node->type = (u8)type;
-+	}
- 
-       exit:
--	acpi_ut_remove_reference(root_obj);
-+	if (parent_obj) {
-+		acpi_ut_remove_reference(parent_obj);
-+	}
- 	return_VOID;
- }
-diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-index cd7995b..0988e4a 100644
---- a/drivers/acpi/acpica/psloop.c
-+++ b/drivers/acpi/acpica/psloop.c
-@@ -87,7 +87,8 @@ acpi_ps_complete_final_op(struct acpi_walk_state *walk_state,
- 			  union acpi_parse_object *op, acpi_status status);
- 
- static void
--acpi_ps_link_module_code(u8 *aml_start, u32 aml_length, acpi_owner_id owner_id);
-+acpi_ps_link_module_code(union acpi_parse_object *parent_op,
-+			 u8 *aml_start, u32 aml_length, acpi_owner_id owner_id);
- 
- /*******************************************************************************
-  *
-@@ -479,11 +480,14 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
- 				 */
- 				if (walk_state->pass_number ==
- 				    ACPI_IMODE_LOAD_PASS1) {
--					acpi_ps_link_module_code(aml_op_start,
--								 walk_state->
-+					acpi_ps_link_module_code(op->common.
-+								 parent,
-+								 aml_op_start,
-+								 (u32)
-+								 (walk_state->
- 								 parser_state.
- 								 pkg_end -
--								 aml_op_start,
-+								 aml_op_start),
- 								 walk_state->
- 								 owner_id);
- 				}
-@@ -598,7 +602,8 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
-  *
-  * FUNCTION:    acpi_ps_link_module_code
-  *
-- * PARAMETERS:  aml_start           - Pointer to the AML
-+ * PARAMETERS:  parent_op           - Parent parser op
-+ *              aml_start           - Pointer to the AML
-  *              aml_length          - Length of executable AML
-  *              owner_id            - owner_id of module level code
-  *
-@@ -611,11 +616,13 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
-  ******************************************************************************/
- 
- static void
--acpi_ps_link_module_code(u8 *aml_start, u32 aml_length, acpi_owner_id owner_id)
-+acpi_ps_link_module_code(union acpi_parse_object *parent_op,
-+			 u8 *aml_start, u32 aml_length, acpi_owner_id owner_id)
- {
- 	union acpi_operand_object *prev;
- 	union acpi_operand_object *next;
- 	union acpi_operand_object *method_obj;
-+	struct acpi_namespace_node *parent_node;
- 
- 	/* Get the tail of the list */
- 
-@@ -639,11 +646,24 @@ acpi_ps_link_module_code(u8 *aml_start, u32 aml_length, acpi_owner_id owner_id)
- 			return;
+-			object->integer.value = 0;
+ 			node->object = object;
  		}
  
-+		if (parent_op->common.node) {
-+			parent_node = parent_op->common.node;
-+		} else {
-+			parent_node = acpi_gbl_root_node;
-+		}
-+
- 		method_obj->method.aml_start = aml_start;
- 		method_obj->method.aml_length = aml_length;
- 		method_obj->method.owner_id = owner_id;
- 		method_obj->method.flags |= AOPOBJ_MODULE_LEVEL;
+diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
+index 582b0af..0bc807c 100644
+--- a/drivers/acpi/acpica/evregion.c
++++ b/drivers/acpi/acpica/evregion.c
+@@ -289,23 +289,20 @@ acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
+ 	 *  connection status 1 for connecting the handler, 0 for disconnecting
+ 	 *  the handler (Passed as a parameter)
+ 	 */
+-	args[0] = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++	args[0] =
++	    acpi_ut_create_integer_object((u64) region_obj->region.space_id);
+ 	if (!args[0]) {
+ 		status = AE_NO_MEMORY;
+ 		goto cleanup1;
+ 	}
  
-+		/*
-+		 * Save the parent node in next_object. This is cheating, but we
-+		 * don't want to expand the method object.
-+		 */
-+		method_obj->method.next_object =
-+		    ACPI_CAST_PTR(union acpi_operand_object, parent_node);
-+
- 		if (!prev) {
- 			acpi_gbl_module_code_list = method_obj;
- 		} else {
+-	args[1] = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++	args[1] = acpi_ut_create_integer_object((u64) function);
+ 	if (!args[1]) {
+ 		status = AE_NO_MEMORY;
+ 		goto cleanup2;
+ 	}
+ 
+-	/* Setup the parameter objects */
+-
+-	args[0]->integer.value = region_obj->region.space_id;
+-	args[1]->integer.value = function;
+-	args[2] = NULL;
++	args[2] = NULL;		/* Terminate list */
+ 
+ 	/* Execute the method, no return value */
+ 
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 24afef8..46adfa5 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -170,14 +170,12 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
+ 
+ 		/* Table not found, return an Integer=0 and AE_OK */
+ 
+-		ddb_handle = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		ddb_handle = acpi_ut_create_integer_object((u64) 0);
+ 		if (!ddb_handle) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+ 
+-		ddb_handle->integer.value = 0;
+ 		*return_desc = ddb_handle;
+-
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
+index 37d0d39..51d5f22 100644
+--- a/drivers/acpi/acpica/exconvrt.c
++++ b/drivers/acpi/acpica/exconvrt.c
+@@ -167,7 +167,7 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
+ 
+ 	/* Create a new integer */
+ 
+-	return_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++	return_desc = acpi_ut_create_integer_object(result);
+ 	if (!return_desc) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+@@ -177,7 +177,6 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
+ 
+ 	/* Save the Result */
+ 
+-	return_desc->integer.value = result;
+ 	acpi_ex_truncate_for32bit_table(return_desc);
+ 	*result_desc = return_desc;
+ 	return_ACPI_STATUS(AE_OK);
+diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+index 0b33d6c..1588a2d 100644
+--- a/drivers/acpi/acpica/exfield.c
++++ b/drivers/acpi/acpica/exfield.c
+@@ -162,13 +162,12 @@ acpi_ex_read_data_from_field(struct acpi_walk_state *walk_state,
+ 	} else {
+ 		/* Field will fit within an Integer (normal case) */
+ 
+-		buffer_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		buffer_desc = acpi_ut_create_integer_object((u64) 0);
+ 		if (!buffer_desc) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+ 
+ 		length = acpi_gbl_integer_byte_width;
+-		buffer_desc->integer.value = 0;
+ 		buffer = &buffer_desc->integer.value;
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/exoparg1.c b/drivers/acpi/acpica/exoparg1.c
+index 9635d21..752fe48 100644
+--- a/drivers/acpi/acpica/exoparg1.c
++++ b/drivers/acpi/acpica/exoparg1.c
+@@ -100,12 +100,12 @@ acpi_status acpi_ex_opcode_0A_0T_1R(struct acpi_walk_state *walk_state)
+ 
+ 		/* Create a return object of type Integer */
+ 
+-		return_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		return_desc =
++		    acpi_ut_create_integer_object(acpi_os_get_timer());
+ 		if (!return_desc) {
+ 			status = AE_NO_MEMORY;
+ 			goto cleanup;
+ 		}
+-		return_desc->integer.value = acpi_os_get_timer();
+ 		break;
+ 
+ 	default:		/*  Unknown opcode  */
+@@ -599,7 +599,7 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
+ 	switch (walk_state->opcode) {
+ 	case AML_LNOT_OP:	/* LNot (Operand) */
+ 
+-		return_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		return_desc = acpi_ut_create_integer_object((u64) 0);
+ 		if (!return_desc) {
+ 			status = AE_NO_MEMORY;
+ 			goto cleanup;
+@@ -702,13 +702,11 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
+ 
+ 		/* Allocate a descriptor to hold the type. */
+ 
+-		return_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		return_desc = acpi_ut_create_integer_object((u64) type);
+ 		if (!return_desc) {
+ 			status = AE_NO_MEMORY;
+ 			goto cleanup;
+ 		}
+-
+-		return_desc->integer.value = type;
+ 		break;
+ 
+ 	case AML_SIZE_OF_OP:	/* size_of (source_object) */
+@@ -777,13 +775,11 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
+ 		 * Now that we have the size of the object, create a result
+ 		 * object to hold the value
+ 		 */
+-		return_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		return_desc = acpi_ut_create_integer_object(value);
+ 		if (!return_desc) {
+ 			status = AE_NO_MEMORY;
+ 			goto cleanup;
+ 		}
+-
+-		return_desc->integer.value = value;
+ 		break;
+ 
+ 	case AML_REF_OF_OP:	/* ref_of (source_object) */
+@@ -946,24 +942,24 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
+ 					 * NOTE: index into a buffer is NOT a pointer to a
+ 					 * sub-buffer of the main buffer, it is only a pointer to a
+ 					 * single element (byte) of the buffer!
++					 *
++					 * Since we are returning the value of the buffer at the
++					 * indexed location, we don't need to add an additional
++					 * reference to the buffer itself.
+ 					 */
+ 					return_desc =
+-					    acpi_ut_create_internal_object
+-					    (ACPI_TYPE_INTEGER);
++					    acpi_ut_create_integer_object((u64)
++									  temp_desc->
++									  buffer.
++									  pointer
++									  [operand
++									   [0]->
++									   reference.
++									   value]);
+ 					if (!return_desc) {
+ 						status = AE_NO_MEMORY;
+ 						goto cleanup;
+ 					}
+-
+-					/*
+-					 * Since we are returning the value of the buffer at the
+-					 * indexed location, we don't need to add an additional
+-					 * reference to the buffer itself.
+-					 */
+-					return_desc->integer.value =
+-					    temp_desc->buffer.
+-					    pointer[operand[0]->reference.
+-						    value];
+ 					break;
+ 
+ 				case ACPI_TYPE_PACKAGE:
+diff --git a/drivers/acpi/acpica/exoparg6.c b/drivers/acpi/acpica/exoparg6.c
+index ae43f76..295542e 100644
+--- a/drivers/acpi/acpica/exoparg6.c
++++ b/drivers/acpi/acpica/exoparg6.c
+@@ -253,18 +253,15 @@ acpi_status acpi_ex_opcode_6A_0T_1R(struct acpi_walk_state * walk_state)
+ 		}
+ 
+ 		/* Create an integer for the return value */
++		/* Default return value is ACPI_INTEGER_MAX if no match found */
+ 
+-		return_desc = acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		return_desc = acpi_ut_create_integer_object(ACPI_INTEGER_MAX);
+ 		if (!return_desc) {
+ 			status = AE_NO_MEMORY;
+ 			goto cleanup;
+ 
+ 		}
+ 
+-		/* Default return value if no match found */
+-
+-		return_desc->integer.value = ACPI_INTEGER_MAX;
+-
+ 		/*
+ 		 * Examine each element until a match is found. Both match conditions
+ 		 * must be satisfied for a match to occur. Within the loop,
+diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
+index 70838e9..4df8f13 100644
+--- a/drivers/acpi/acpica/psparse.c
++++ b/drivers/acpi/acpica/psparse.c
+@@ -610,17 +610,13 @@ acpi_status acpi_ps_parse_aml(struct acpi_walk_state *walk_state)
+ 					    implicit_return_obj) {
+ 						previous_walk_state->
+ 						    implicit_return_obj =
+-						    acpi_ut_create_internal_object
+-						    (ACPI_TYPE_INTEGER);
++						    acpi_ut_create_integer_object
++						    ((u64) 0);
+ 						if (!previous_walk_state->
+ 						    implicit_return_obj) {
+ 							return_ACPI_STATUS
+ 							    (AE_NO_MEMORY);
+ 						}
+-
+-						previous_walk_state->
+-						    implicit_return_obj->
+-						    integer.value = 0;
+ 					}
+ 
+ 					/* Restart the calling control method */
+diff --git a/drivers/acpi/acpica/psxface.c b/drivers/acpi/acpica/psxface.c
+index dd9731c..12934ad 100644
+--- a/drivers/acpi/acpica/psxface.c
++++ b/drivers/acpi/acpica/psxface.c
+@@ -306,14 +306,12 @@ acpi_status acpi_ps_execute_method(struct acpi_evaluate_info *info)
+ 	 */
+ 	if (acpi_gbl_enable_interpreter_slack) {
+ 		walk_state->implicit_return_obj =
+-		    acpi_ut_create_internal_object(ACPI_TYPE_INTEGER);
++		    acpi_ut_create_integer_object((u64) 0);
+ 		if (!walk_state->implicit_return_obj) {
+ 			status = AE_NO_MEMORY;
+ 			acpi_ds_delete_walk_state(walk_state);
+ 			goto cleanup;
+ 		}
+-
+-		walk_state->implicit_return_obj->integer.value = 0;
+ 	}
+ 
+ 	/* Parse the AML */
 -- 
 1.6.0.6
 
