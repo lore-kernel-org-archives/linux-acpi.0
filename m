@@ -1,43 +1,124 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 05/10] thinkpad-acpi: silence bogus complain during rmmod
-Date: Tue,  8 Dec 2009 23:36:25 -0200
-Message-ID: <1260322590-5571-6-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 02/10] thinkpad-acpi: preserve rfkill state across suspend/resume
+Date: Tue,  8 Dec 2009 23:36:22 -0200
+Message-ID: <1260322590-5571-3-git-send-email-hmh@hmh.eng.br>
 References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:52536 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42942 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967094AbZLIBgc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:32 -0500
+	by vger.kernel.org with ESMTP id S967098AbZLIBgd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:33 -0500
 In-Reply-To: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, stable@kernel.org
 
-Fix this bogus warning during module shutdown, when
-backlight event reporting is enabled:
+Since the rfkill rework in 2.6.31, the driver is always resuming with
+the radios disabled.
 
-"thinkpad_acpi: required events 0x00018000 not enabled!"
+Change thinkpad-acpi to ask the firmware to resume with the radios in
+the last state.  This fixes the Bluetooth and WWAN rfkill switches.
 
+Note that it means we respect the firmware's oddities.  Should the
+user toggle the hardware rfkill switch on and off, it might cause the
+radios to resume enabled.
+
+UWB is an unknown quantity since it has nowhere the same level of
+firmware support (no control over state storage in NVRAM, for
+example), and might need further fixing.  Testers welcome.
+
+This change fixes a regression from 2.6.30.
+
+Reported-by: Jerone Young <jerone.young@canonical.com>
+Reported-by: Ian Molton <ian.molton@collabora.co.uk>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Tested-by: Ian Molton <ian.molton@collabora.co.uk>
+Cc: stable@kernel.org
 ---
- drivers/platform/x86/thinkpad_acpi.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   32 +++++---------------------------
+ 1 files changed, 5 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 4406136..86418cd 100644
+index 9c6d5a9..1ee734c 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -2189,7 +2189,8 @@ static int hotkey_mask_set(u32 mask)
- 		       fwmask, hotkey_acpi_mask);
+@@ -3866,15 +3866,6 @@ enum {
+ 
+ #define TPACPI_RFK_BLUETOOTH_SW_NAME	"tpacpi_bluetooth_sw"
+ 
+-static void bluetooth_suspend(pm_message_t state)
+-{
+-	/* Try to make sure radio will resume powered off */
+-	if (!acpi_evalf(NULL, NULL, "\\BLTH", "vd",
+-		   TP_ACPI_BLTH_PWR_OFF_ON_RESUME))
+-		vdbg_printk(TPACPI_DBG_RFKILL,
+-			"bluetooth power down on resume request failed\n");
+-}
+-
+ static int bluetooth_get_status(void)
+ {
+ 	int status;
+@@ -3908,10 +3899,9 @@ static int bluetooth_set_status(enum tpacpi_rfkill_state state)
+ #endif
+ 
+ 	/* We make sure to keep TP_ACPI_BLUETOOTH_RESUMECTRL off */
++	status = TP_ACPI_BLUETOOTH_RESUMECTRL;
+ 	if (state == TPACPI_RFK_RADIO_ON)
+-		status = TP_ACPI_BLUETOOTH_RADIOSSW;
+-	else
+-		status = 0;
++		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
+ 
+ 	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
+ 		return -EIO;
+@@ -4050,7 +4040,6 @@ static struct ibm_struct bluetooth_driver_data = {
+ 	.read = bluetooth_read,
+ 	.write = bluetooth_write,
+ 	.exit = bluetooth_exit,
+-	.suspend = bluetooth_suspend,
+ 	.shutdown = bluetooth_shutdown,
+ };
+ 
+@@ -4068,15 +4057,6 @@ enum {
+ 
+ #define TPACPI_RFK_WWAN_SW_NAME		"tpacpi_wwan_sw"
+ 
+-static void wan_suspend(pm_message_t state)
+-{
+-	/* Try to make sure radio will resume powered off */
+-	if (!acpi_evalf(NULL, NULL, "\\WGSV", "qvd",
+-		   TP_ACPI_WGSV_PWR_OFF_ON_RESUME))
+-		vdbg_printk(TPACPI_DBG_RFKILL,
+-			"WWAN power down on resume request failed\n");
+-}
+-
+ static int wan_get_status(void)
+ {
+ 	int status;
+@@ -4109,11 +4089,10 @@ static int wan_set_status(enum tpacpi_rfkill_state state)
  	}
+ #endif
  
--	hotkey_mask_warn_incomplete_mask();
-+	if (tpacpi_lifecycle != TPACPI_LIFE_EXITING)
-+		hotkey_mask_warn_incomplete_mask();
+-	/* We make sure to keep TP_ACPI_WANCARD_RESUMECTRL off */
++	/* We make sure to set TP_ACPI_WANCARD_RESUMECTRL */
++	status = TP_ACPI_WANCARD_RESUMECTRL;
+ 	if (state == TPACPI_RFK_RADIO_ON)
+-		status = TP_ACPI_WANCARD_RADIOSSW;
+-	else
+-		status = 0;
++		status |= TP_ACPI_WANCARD_RADIOSSW;
  
- 	return rc;
- }
+ 	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
+ 		return -EIO;
+@@ -4251,7 +4230,6 @@ static struct ibm_struct wan_driver_data = {
+ 	.read = wan_read,
+ 	.write = wan_write,
+ 	.exit = wan_exit,
+-	.suspend = wan_suspend,
+ 	.shutdown = wan_shutdown,
+ };
+ 
 -- 
 1.6.5.4
 
