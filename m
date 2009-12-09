@@ -1,181 +1,339 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 3/4] thinkpad-acpi: disable volume control
-Date: Tue,  8 Dec 2009 23:48:21 -0200
-Message-ID: <1260323302-6040-4-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 2/4] thinkpad-acpi: support MUTE-only ThinkPads
+Date: Tue,  8 Dec 2009 23:48:20 -0200
+Message-ID: <1260323302-6040-3-git-send-email-hmh@hmh.eng.br>
 References: <1260323302-6040-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:33214 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:53456 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752836AbZLIBs3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:48:29 -0500
+	by vger.kernel.org with ESMTP id S1756185AbZLIBsa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:48:30 -0500
 In-Reply-To: <1260323302-6040-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lorne Applebaum <lorne.applebaum@gmail.com>, Matthew Garrett <mjg@redhat.com>
 
-Disable volume control by default.  It can be enabled at module load
-time by a module parameter (volume_control=1).
+Lenovo removed the extra mixer since the T61 and thereabouts.
+Newer Lenovo models only have the mute gate function, and leave
+the volume control to the HDA mixer.
 
-The audio control mixer that thinkpad-acpi interacts with is fully
-functional without any drivers, and operated by hotkeys.
+Until a way to automatically query the firmware about its audio
+control capabilities is discovered (there might not be any), use a
+white/black list.
 
-The idea behind the console audio control is that the human operator
-is the only one that can interact with it.  The ThinkVantage suite in
-Windows does not allow any software-based overrides, and only does OSD
-(on-screen-display) functions.
-
-The Linux driver will, with the addition of the ALSA interface, try to
-follow and enforce the ThinkVantage UI design:
-
-The user is supposed to use the keyboard hotkeys to interact with the
-console audio control.  The kernel and the desktop environment is
-supposed to cooperate to provide proper user feedback through
-on-screen-display functions.
-
-Distros are urged to not to enable volume control by default.
-Enabling this must be a local admin's decision.  This is the reason
-why there is no Kconfig option.
-
-Keep in mind that all ThinkPads have a normal, main mixer (AC97 or
-HDA) for regular software-based audio control.  We are not talking
-about that mixer here.
-
-Advanced users are, of course, free to enable volume control and do as
-they please.
+We will likely need to ask T60 (old and new model) and Z60/Z61 users
+whether they have volume control to populate the black/white list.
+Meanwhile, provide a volume_capabilities parameter that can be used to
+override the defaults.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Lorne Applebaum <lorne.applebaum@gmail.com>
 Cc: Matthew Garrett <mjg@redhat.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   13 ++++++++
- drivers/platform/x86/thinkpad_acpi.c    |   47 +++++++++++++++++++++++++++---
- 2 files changed, 55 insertions(+), 5 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   19 ++++-
+ drivers/platform/x86/thinkpad_acpi.c    |  159 +++++++++++++++++++++++++-----
+ 2 files changed, 149 insertions(+), 29 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index bd87682..6a58143 100644
+index 96687d0..bd87682 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1097,6 +1097,18 @@ Volume control
- 
+@@ -1098,18 +1098,31 @@ Volume control
  procfs: /proc/acpi/ibm/volume
  
-+NOTE: by default, the volume control interface operates in read-only
-+mode, as it is supposed to be used for on-screen-display purposes.
-+The read/write mode can be enabled through the use of the
-+"volume_control=1" module parameter.
-+
-+NOTE: distros are urged to not enable volume_control by default, this
-+should be done by the local admin only.  The ThinkPad UI is for the
-+console audio control to be done through the volume keys only, and for
-+the desktop environment to just provide on-screen-display feedback.
-+Software volume control should be done only in the main AC97/HDA
-+mixer.
-+
  This feature allows volume control on ThinkPad models with a digital
- volume knob (when available, not all models have it), as well as
- mute/unmute control.  The available commands are:
-@@ -1465,3 +1477,4 @@ Sysfs interface changelog:
- 0x020600:	Marker for backlight change event support.
+-volume knob, as well as mute/unmute control.  The available commands are:
++volume knob (when available, not all models have it), as well as
++mute/unmute control.  The available commands are:
  
- 0x020700:	Support for mute-only mixers.
-+		Volume control in read-only mode by default.
+ 	echo up   >/proc/acpi/ibm/volume
+ 	echo down >/proc/acpi/ibm/volume
+ 	echo mute >/proc/acpi/ibm/volume
++	echo unmute >/proc/acpi/ibm/volume
+ 	echo 'level <level>' >/proc/acpi/ibm/volume
+ 
+ The <level> number range is 0 to 14 although not all of them may be
+ distinct. The unmute the volume after the mute command, use either the
+-up or down command (the level command will not unmute the volume).
++up or down command (the level command will not unmute the volume), or
++the unmute command.
++
+ The current volume level and mute state is shown in the file.
+ 
++You can use the volume_capabilities parameter to tell the driver
++whether your thinkpad has volume control or mute-only control:
++volume_capabilities=1 for mixers with mute and volume control,
++volume_capabilities=2 for mixers with only mute control.
++
++If the driver misdetects the capabilities for your ThinkPad model,
++please report this to ibm-acpi-devel@lists.sourceforge.net, so that we
++can update the driver.
++
+ There are two strategies for volume control.  To select which one
+ should be used, use the volume_mode module parameter: volume_mode=1
+ selects EC mode, and volume_mode=3 selects EC mode with NVRAM backing
+@@ -1450,3 +1463,5 @@ Sysfs interface changelog:
+ 		is deprecated and marked for removal.
+ 
+ 0x020600:	Marker for backlight change event support.
++
++0x020700:	Support for mute-only mixers.
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 1b7e7f8..c1b45d4 100644
+index c7400b4..1b7e7f8 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -311,6 +311,7 @@ static struct {
+@@ -22,7 +22,7 @@
+  */
  
- static struct {
- 	u16 hotkey_mask_ff:1;
-+	u16 volume_ctrl_forbidden:1;
- } tp_warned;
+ #define TPACPI_VERSION "0.23"
+-#define TPACPI_SYSFS_VERSION 0x020600
++#define TPACPI_SYSFS_VERSION 0x020700
  
- struct thinkpad_id_data {
-@@ -6429,6 +6430,7 @@ static enum tpacpi_volume_access_mode volume_mode =
+ /*
+  *  Changelog:
+@@ -299,6 +299,7 @@ static struct {
+ 	u32 fan_ctrl_status_undef:1;
+ 	u32 second_fan:1;
+ 	u32 beep_needs_two_args:1;
++	u32 mixer_no_level_control:1;
+ 	u32 input_device_registered:1;
+ 	u32 platform_drv_registered:1;
+ 	u32 platform_drv_attrs_registered:1;
+@@ -426,6 +427,12 @@ static void tpacpi_log_usertask(const char * const what)
+ 	  .ec = TPACPI_MATCH_ANY,		\
+ 	  .quirks = (__quirk) }
+ 
++#define TPACPI_QEC_LNV(__id1, __id2, __quirk)	\
++	{ .vendor = PCI_VENDOR_ID_LENOVO,	\
++	  .bios = TPACPI_MATCH_ANY,		\
++	  .ec = TPID(__id1, __id2),		\
++	  .quirks = (__quirk) }
++
+ struct tpacpi_quirk {
+ 	unsigned int vendor;
+ 	u16 bios;
+@@ -6411,9 +6418,17 @@ enum tpacpi_volume_access_mode {
+ 	TPACPI_VOL_MODE_MAX
+ };
+ 
++enum tpacpi_volume_capabilities {
++	TPACPI_VOL_CAP_AUTO = 0,	/* Use white/blacklist */
++	TPACPI_VOL_CAP_VOLMUTE,		/* Output vol and mute */
++	TPACPI_VOL_CAP_MUTEONLY,	/* Output mute only */
++	TPACPI_VOL_CAP_MAX
++};
++
+ static enum tpacpi_volume_access_mode volume_mode =
  	TPACPI_VOL_MODE_MAX;
  
- static enum tpacpi_volume_capabilities volume_capabilities;
-+static int volume_control_allowed;
++static enum tpacpi_volume_capabilities volume_capabilities;
  
  /*
   * Used to syncronize writers to TP_EC_AUDIO and
-@@ -6444,6 +6446,8 @@ static void tpacpi_volume_checkpoint_nvram(void)
+@@ -6425,7 +6440,7 @@ static void tpacpi_volume_checkpoint_nvram(void)
+ {
+ 	u8 lec = 0;
+ 	u8 b_nvram;
+-	const u8 ec_mask = TP_EC_AUDIO_LVL_MSK | TP_EC_AUDIO_MUTESW_MSK;
++	u8 ec_mask;
  
  	if (volume_mode != TPACPI_VOL_MODE_ECNVRAM)
  		return;
-+	if (!volume_control_allowed)
-+		return;
- 
+@@ -6433,6 +6448,11 @@ static void tpacpi_volume_checkpoint_nvram(void)
  	vdbg_printk(TPACPI_DBG_MIXER,
  		"trying to checkpoint mixer state to NVRAM...\n");
-@@ -6686,6 +6690,12 @@ static int __init volume_init(struct ibm_init_struct *iibm)
- 			"mute is supported, volume control is %s\n",
- 			str_supported(!tp_features.mixer_no_level_control));
  
-+	printk(TPACPI_INFO
-+		"Console audio control enabled, mode: %s\n",
-+		(volume_control_allowed) ?
-+			"override (read/write)" :
-+			"monitor (read only)");
++	if (tp_features.mixer_no_level_control)
++		ec_mask = TP_EC_AUDIO_MUTESW_MSK;
++	else
++		ec_mask = TP_EC_AUDIO_MUTESW_MSK | TP_EC_AUDIO_LVL_MSK;
 +
- 	return 0;
+ 	if (mutex_lock_killable(&volume_mutex) < 0)
+ 		return;
+ 
+@@ -6570,8 +6590,36 @@ static void volume_exit(void)
+ 	tpacpi_volume_checkpoint_nvram();
  }
  
-@@ -6706,11 +6716,16 @@ static int volume_read(char *p)
- 		len += sprintf(p + len, "mute:\t\t%s\n",
- 				onoff(status, TP_EC_AUDIO_MUTESW));
++#define TPACPI_VOL_Q_MUTEONLY	0x0001	/* Mute-only control available */
++#define TPACPI_VOL_Q_LEVEL	0x0002  /* Volume control available */
++
++static const struct tpacpi_quirk volume_quirk_table[] __initconst = {
++	/* Whitelist volume level on all IBM by default */
++	{ .vendor = PCI_VENDOR_ID_IBM,
++	  .bios   = TPACPI_MATCH_ANY,
++	  .ec     = TPACPI_MATCH_ANY,
++	  .quirks = TPACPI_VOL_Q_LEVEL },
++
++	/* Lenovo models with volume control (needs confirmation) */
++	TPACPI_QEC_LNV('7', 'C', TPACPI_VOL_Q_LEVEL), /* R60/i */
++	TPACPI_QEC_LNV('7', 'E', TPACPI_VOL_Q_LEVEL), /* R60e/i */
++	TPACPI_QEC_LNV('7', '9', TPACPI_VOL_Q_LEVEL), /* T60/p */
++	TPACPI_QEC_LNV('7', 'B', TPACPI_VOL_Q_LEVEL), /* X60/s */
++	TPACPI_QEC_LNV('7', 'J', TPACPI_VOL_Q_LEVEL), /* X60t */
++	TPACPI_QEC_LNV('7', '7', TPACPI_VOL_Q_LEVEL), /* Z60 */
++	TPACPI_QEC_LNV('7', 'F', TPACPI_VOL_Q_LEVEL), /* Z61 */
++
++	/* Whitelist mute-only on all Lenovo by default */
++	{ .vendor = PCI_VENDOR_ID_LENOVO,
++	  .bios   = TPACPI_MATCH_ANY,
++	  .ec	  = TPACPI_MATCH_ANY,
++	  .quirks = TPACPI_VOL_Q_MUTEONLY }
++};
++
+ static int __init volume_init(struct ibm_init_struct *iibm)
+ {
++	unsigned long quirks;
++
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing volume subdriver\n");
  
--		len += sprintf(p + len, "commands:\tunmute, mute\n");
--		if (!tp_features.mixer_no_level_control) {
--			len += sprintf(p + len, "commands:\tup, down\n");
--			len += sprintf(p + len, "commands:\tlevel <level>"
--			       " (<level> is 0-%d)\n", TP_EC_VOLUME_MAX);
-+		if (volume_control_allowed) {
-+			len += sprintf(p + len, "commands:\tunmute, mute\n");
-+			if (!tp_features.mixer_no_level_control) {
-+				len += sprintf(p + len,
-+					       "commands:\tup, down\n");
-+				len += sprintf(p + len,
-+					       "commands:\tlevel <level>"
-+					       " (<level> is 0-%d)\n",
-+					       TP_EC_VOLUME_MAX);
-+			}
- 		}
+ 	mutex_init(&volume_mutex);
+@@ -6591,6 +6639,36 @@ static int __init volume_init(struct ibm_init_struct *iibm)
+ 		return 1;
  	}
  
-@@ -6725,6 +6740,23 @@ static int volume_write(char *buf)
- 	char *cmd;
- 	int rc;
- 
-+	/*
-+	 * We do allow volume control at driver startup, so that the
-+	 * user can set initial state through the volume=... parameter hack.
-+	 */
-+	if (!volume_control_allowed && tpacpi_lifecycle != TPACPI_LIFE_INIT) {
-+		if (unlikely(!tp_warned.volume_ctrl_forbidden)) {
-+			tp_warned.volume_ctrl_forbidden = 1;
-+			printk(TPACPI_NOTICE
-+				"Console audio control in monitor mode, "
-+				"changes are not allowed.\n");
-+			printk(TPACPI_NOTICE
-+				"Use the volume_control=1 module parameter "
-+				"to enable volume control\n");
-+		}
-+		return -EPERM;
++	if (volume_capabilities >= TPACPI_VOL_CAP_MAX)
++		return -EINVAL;
++
++	quirks = tpacpi_check_quirks(volume_quirk_table,
++				     ARRAY_SIZE(volume_quirk_table));
++
++	switch (volume_capabilities) {
++	case TPACPI_VOL_CAP_AUTO:
++		if (quirks & TPACPI_VOL_Q_MUTEONLY)
++			tp_features.mixer_no_level_control = 1;
++		else if (quirks & TPACPI_VOL_Q_LEVEL)
++			tp_features.mixer_no_level_control = 0;
++		else
++			return 1; /* no mixer */
++		break;
++	case TPACPI_VOL_CAP_VOLMUTE:
++		tp_features.mixer_no_level_control = 0;
++		break;
++	case TPACPI_VOL_CAP_MUTEONLY:
++		tp_features.mixer_no_level_control = 1;
++		break;
++	default:
++		return 1;
 +	}
 +
- 	rc = volume_get_status(&s);
- 	if (rc < 0)
- 		return rc;
-@@ -8510,6 +8542,11 @@ MODULE_PARM_DESC(volume_capabilities,
- 		 "Selects the mixer capabilites: "
- 		 "0=auto, 1=volume and mute, 2=mute only");
++	if (volume_capabilities != TPACPI_VOL_CAP_AUTO)
++		dbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_MIXER,
++				"using user-supplied volume_capabilities=%d\n",
++				volume_capabilities);
++
+ 	if (volume_mode == TPACPI_VOL_MODE_AUTO ||
+ 	    volume_mode == TPACPI_VOL_MODE_MAX) {
+ 		volume_mode = TPACPI_VOL_MODE_ECNVRAM;
+@@ -6605,7 +6683,8 @@ static int __init volume_init(struct ibm_init_struct *iibm)
+ 	}
  
-+module_param_named(volume_control, volume_control_allowed, bool, 0444);
-+MODULE_PARM_DESC(volume_control,
-+		 "Enables software override for the console audio "
-+		 "control when true");
+ 	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_MIXER,
+-			"volume is supported\n");
++			"mute is supported, volume control is %s\n",
++			str_supported(!tp_features.mixer_no_level_control));
+ 
+ 	return 0;
+ }
+@@ -6618,13 +6697,21 @@ static int volume_read(char *p)
+ 	if (volume_get_status(&status) < 0) {
+ 		len += sprintf(p + len, "level:\t\tunreadable\n");
+ 	} else {
+-		len += sprintf(p + len, "level:\t\t%d\n",
+-				status & TP_EC_AUDIO_LVL_MSK);
++		if (tp_features.mixer_no_level_control)
++			len += sprintf(p + len, "level:\t\tunsupported\n");
++		else
++			len += sprintf(p + len, "level:\t\t%d\n",
++					status & TP_EC_AUDIO_LVL_MSK);
++
+ 		len += sprintf(p + len, "mute:\t\t%s\n",
+ 				onoff(status, TP_EC_AUDIO_MUTESW));
+-		len += sprintf(p + len, "commands:\tup, down, mute\n");
+-		len += sprintf(p + len, "commands:\tlevel <level>"
++
++		len += sprintf(p + len, "commands:\tunmute, mute\n");
++		if (!tp_features.mixer_no_level_control) {
++			len += sprintf(p + len, "commands:\tup, down\n");
++			len += sprintf(p + len, "commands:\tlevel <level>"
+ 			       " (<level> is 0-%d)\n", TP_EC_VOLUME_MAX);
++		}
+ 	}
+ 
+ 	return len;
+@@ -6646,30 +6733,43 @@ static int volume_write(char *buf)
+ 	new_mute  = s & TP_EC_AUDIO_MUTESW_MSK;
+ 
+ 	while ((cmd = next_cmd(&buf))) {
+-		if (strlencmp(cmd, "up") == 0) {
+-			if (new_mute)
+-				new_mute = 0;
+-			else if (new_level < TP_EC_VOLUME_MAX)
+-				new_level++;
+-		} else if (strlencmp(cmd, "down") == 0) {
+-			if (new_mute)
+-				new_mute = 0;
+-			else if (new_level > 0)
+-				new_level--;
+-		} else if (sscanf(cmd, "level %u", &l) == 1 &&
+-			   l >= 0 && l <= TP_EC_VOLUME_MAX) {
+-				new_level = l;
+-		} else if (strlencmp(cmd, "mute") == 0) {
++		if (!tp_features.mixer_no_level_control) {
++			if (strlencmp(cmd, "up") == 0) {
++				if (new_mute)
++					new_mute = 0;
++				else if (new_level < TP_EC_VOLUME_MAX)
++					new_level++;
++				continue;
++			} else if (strlencmp(cmd, "down") == 0) {
++				if (new_mute)
++					new_mute = 0;
++				else if (new_level > 0)
++					new_level--;
++				continue;
++			} else if (sscanf(cmd, "level %u", &l) == 1 &&
++				   l >= 0 && l <= TP_EC_VOLUME_MAX) {
++					new_level = l;
++				continue;
++			}
++		}
++		if (strlencmp(cmd, "mute") == 0)
+ 			new_mute = TP_EC_AUDIO_MUTESW_MSK;
+-		} else
++		else if (strlencmp(cmd, "unmute") == 0)
++			new_mute = 0;
++		else
+ 			return -EINVAL;
+ 	}
+ 
+-	tpacpi_disclose_usertask("procfs volume",
+-				"%smute and set level to %d\n",
+-				new_mute ? "" : "un", new_level);
+-
+-	rc = volume_set_status(new_mute | new_level);
++	if (tp_features.mixer_no_level_control) {
++		tpacpi_disclose_usertask("procfs volume", "%smute\n",
++					new_mute ? "" : "un");
++		rc = volume_set_mute(!!new_mute);
++	} else {
++		tpacpi_disclose_usertask("procfs volume",
++					"%smute and set level to %d\n",
++					new_mute ? "" : "un", new_level);
++		rc = volume_set_status(new_mute | new_level);
++	}
+ 
+ 	return (rc == -EINTR) ? -ERESTARTSYS : rc;
+ }
+@@ -8405,6 +8505,11 @@ MODULE_PARM_DESC(volume_mode,
+ 		 "Selects volume control strategy: "
+ 		 "0=auto, 1=EC, 2=N/A, 3=EC+NVRAM");
+ 
++module_param_named(volume_capabilities, volume_capabilities, uint, 0444);
++MODULE_PARM_DESC(volume_capabilities,
++		 "Selects the mixer capabilites: "
++		 "0=auto, 1=volume and mute, 2=mute only");
 +
  #define TPACPI_PARAM(feature) \
  	module_param_call(feature, set_ibm_param, NULL, NULL, 0); \
