@@ -1,86 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ rwsems (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Wed, 9 Dec 2009 00:24:24 +0100
-Message-ID: <200912090024.24199.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912072225390.4179-100000@netrider.rowland.org> <200912082303.12758.rjw@sisk.pl> <200912082355.00711.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [GIT PATCH v2] thinkpad-acpi first set of changes for 2.6.33 (v2)
+Date: Tue,  8 Dec 2009 23:36:20 -0200
+Message-ID: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49781 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756415AbZLHXXw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2009 18:23:52 -0500
-In-Reply-To: <200912082355.00711.rjw@sisk.pl>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:39098 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S967095AbZLIBgc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Tuesday 08 December 2009, Rafael J. Wysocki wrote:
-> On Tuesday 08 December 2009, Rafael J. Wysocki wrote:
-> > On Tuesday 08 December 2009, Rafael J. Wysocki wrote:
-> > > On Tuesday 08 December 2009, Linus Torvalds wrote:
-> > > > 
-> > > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-> > > > > 
-> > > > > Anyway, if we use an rwsem, it won't be checkable from interrupt context just
-> > > > > as well.
-> > > > 
-> > > > You can't do a lock() from an interrupt, but the unlocks should be 
-> > > > irq-safe. 
-> > > > 
-> > > > > Suppose we use rwsem and during suspend each child uses a down_read() on a
-> > > > > parent and then the parent uses down_write() on itself.  What if, whatever the
-> > > > > reason, the parent is a bit early and does the down_write() before one of the
-> > > > > children has a chance to do the down_read()?  Aren't we toast?
-> > > > 
-> > > > We're toast, but we're toast for a totally unrealted reason: it means that 
-> > > > you tried to resume a child before a parent, which would be a major bug to 
-> > > > begin with.
-> > > > 
-> > > > Look, I even wrote out the comments, so let me repeat the code one more 
-> > > > time.
-> > > > 
-> > > >  - suspend time calling:
-> > > >         // This won't block, because we suspend nodes before parents
-> > > >         down_read(node->parent->lock);
-> > > >         // Do the part that may block asynchronously
-> > > >         async_schedule(do_usb_node_suspend, node);
-> > > > 
-> > > >  - resume time calling:
-> > > >         // This won't block, because we resume parents before children,
-> > > >         // and the children will take the read lock. 
-> > > >         down_write(leaf->lock);
-> > > >         // Do the blocking part asynchronously
-> > > >         async_schedule(usb_node_resume, leaf);
-> > > > 
-> > > > See? So when we take the parent lock for suspend, we are guaranteed to do 
-> > > > so _before_ the parent node itself suspends. And conversely, when we take 
-> > > > the parent lock (asynchronously) for resume, we're guaranteed to do that 
-> > > > _after_ the parent node has done its own down_write.
-> > > > 
-> > > > And that all depends on just one trivial thing; that the suspend and 
-> > > > resume is called in the right order (children first vs parent first 
-> > > > respectively). And that is such a _major_ correctness issue that if that 
-> > > > isn't correct, your suspend isn't going to work _anyway_.
-> > > 
-> > > Understood (I think).
-> > > 
-> > > Let's try it, then.  Below is the resume patch based on my previous one in this
-> > > thread (I have only verified that it builds).
-> > 
-> > Ah, I need to check if dev->parent is not NULL before trying to lock it, but
-> > apart from this it doesn't break things at least.
-> 
-> For completness, below is the full async suspend/resume patch with rwlocks,
-> that has been (very slightly) tested and doesn't seem to break things.
-> 
-> [Note to Alan: lockdep doesn't seem to complain about the not annotated nested
-> locks.]
+Len,
 
-BTW, I can easily change it so that it uses completions for synchronization,
-but I'm not sure if that's worth spending time on, so please let me know.
+This is the second version of the first batch of changes for thinkpad-acpi, for
+the merge window.
 
-Rafael
+Patch 4 is already in linux-next through the backlight tree, but it has a merge
+problem there, so I have included it on this batch.  I will coordinate with the
+backlight maintainer, so that the patch can be merged in mainline through the
+acpi tree.
+
+Changes since the last post:
+  patch 08 has been refactored as per comments.
+  patches 09 and 10 are new.
+
+Please apply to acpi-test.
+
+Thank you!
+
+Shortlog:
+Henrique de Moraes Holschuh (10):
+      thinkpad-acpi: fix default brightness_mode for R50e/R51
+      thinkpad-acpi: preserve rfkill state across suspend/resume
+      thinkpad-acpi: fix some version quirks
+      thinkpad-acpi: issue backlight class events
+      thinkpad-acpi: silence bogus complain during rmmod
+      thinkpad-acpi: adopt input device
+      thinkpad-acpi: expose module parameters
+      thinkpad-acpi: log temperatures on termal alarm (v2)
+      thinkpad-acpi: use input_set_capability
+      thinkpad-acpi: sync input device EV_SW state directly
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
