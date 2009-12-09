@@ -1,62 +1,106 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [ibm-acpi-devel] [PATCH 10/10] thinkpad-acpi: sync input
-	device EV_SW state directly
-Date: Wed, 9 Dec 2009 12:59:26 -0800
-Message-ID: <20091209205926.GD10138@core.coreip.homeip.net>
-References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br> <1260322590-5571-11-git-send-email-hmh@hmh.eng.br> <200912081745.14725.dmitry.torokhov@gmail.com> <20091209163041.GA29575@khazad-dum.debian.net> <20091209172119.GB4456@core.coreip.homeip.net> <20091209203201.GC29575@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 00/33] acpi4asus updates for 2.6.33
+Date: Wed, 09 Dec 2009 16:04:01 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912091603290.24891@localhost.localdomain>
+References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:59990 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757684AbZLIU7Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 15:59:25 -0500
-Received: by pwj9 with SMTP id 9so2620254pwj.21
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Dec 2009 12:59:32 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20091209203201.GC29575@khazad-dum.debian.net>
+Received: from vms173013pub.verizon.net ([206.46.173.13]:34868 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755083AbZLIVEJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 16:04:09 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KUE002OHL6QD4LJ@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 09 Dec 2009 15:04:03 -0600 (CST)
+In-reply-to: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, ibm-acpi-devel@lists.sourceforge.net
+To: Corentin Chary <corentincj@iksaif.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Dec 09, 2009 at 06:32:01PM -0200, Henrique de Moraes Holschuh wrote:
-> On Wed, 09 Dec 2009, Dmitry Torokhov wrote:
-> > > input_report_switch() will call input_event(), which will have a 50% chance
-> > > of doing the wrong thing at startup (i.e. issue an event) since it will look
-> > > at the state of the sw bitmap to decide whether to issue an event or not.
-> > > 
-> > 
-> > It will not propagate events because until you register the device there
-> > won't be any consumers attached to it. So the only thing that will
-> > happen is that it will sync internal state of the device from input core
-> > point of view with the true state of the hardware.
+all but #32 applied to acpi-test
+
+thanks,
+Len Brown, Intel Open Source Technology Center
+
+On Thu, 3 Dec 2009, Corentin Chary wrote:
+
+> Hi Len,
+> Here patchs from acpi4asus for 2.6.33.
+> You'll find a major rewrite of eeepc-laptop by Alan Jenkins which really
+> cleans the code. I'm working one something similar for asus-laptop, this should
+> be ready for 2.6.34.
+> There is also some fix and updates for asus-laptop and asus-acpi.
+> asus-laptop now support Lenovo SL laptop (yep this is strange, but this is the
+> same acpi interface).
 > 
-> Ah, I see.  Cute trick, and yes, that would work just fine.  I will do that,
-> it certainly beats accessing the sw bitmap directly.
+> There is two smalls style issues in Alan's patchs, but I made a patch to fix that
+> in the serie, it was easier than reworking the whole serie, but I'll try to
+> avoid that next time.
 > 
-> Is it documented anywhere?
-
-Not explicetiley, no.
-
+> The last two patchs may be controversial.
 > 
-> Still, please look at the patch below...  Would something like this be a
-> cleaner API?  It is certainly more obvious, and it is cleaner on the driver
-> side (one function call does everything, instead of a call to
-> input_set_capability plus a call to whatever the driver needs to issue the
-> initial EV_SW event)...
+> The first one add the KEY_WIRELESS_CYCLE. This keycode could be used when
+> the key is not only for wlan, but could also be used for bluetooth and wimax.
 > 
-
-Yes, I think it is a good idea. However why don't we change it to:
-
-input_setup_event(dev, type, code, value)
-{
-	input_set_capability(...);
-	input_event(...);
-}
-
-So it would work for everything (who knows, maybe down the road some
-driver wants to init its ABS axes properly and so on)?
-
--- 
-Dmitry
+> The last schedule some asus-laptop features for removale, because they are
+> not defined in a standard way in the acpi interface.
+> Thanks,
+> 
+> Alan Jenkins (25):
+>   eeepc-laptop: disp attribute should be write-only
+>   asus-laptop: Remove redundant NULL checks
+>   asus-acpi: Remove redundant NULL checks
+>   asus-laptop: Remove uneccesary acpi_disabled check
+>   asus-acpi: Remove uneccesary acpi_disabled checks
+>   asus-acpi: set acpi_driver.owner
+>   asus-laptop: set acpi_driver.owner
+>   eeepc-laptop: Remove redundant NULL checks
+>   eeepc-laptop: Remove uneccesary acpi_disabled check
+>   eeepc-laptop: set acpi_driver.owner
+>   eeepc-laptop: fix value of pwm1_enable to match documentation
+>   eeepc-laptop: fix led initialization order
+>   eeepc-laptop: fix potential leak (led_init() failure)
+>   eeepc-laptop: fix set_acpi() to return non-zero on failure
+>   eeepc-laptop: remove redundant NULL checks
+>   eeepc-laptop: no need to check argument of set_brightness()
+>   eeepc-laptop: simplify acpi initialization
+>   eeepc-laptop: simplify how the hwmon device reads values from the EC
+>   eeepc-laptop: refactor notifications
+>   eeepc-laptop: move platform driver registration out of
+>     eeepc_hotk_add()
+>   eeepc-laptop: move platform device initialisation to a separate
+>     function
+>   eeepc-laptop: code movement
+>   eeepc-laptop: revise names
+>   eeepc-laptop: callbacks should use "driver data" parameter or field
+>   eeepc-laptop: re-add check for eeepc->backlight == NULL
+> 
+> Corentin Chary (7):
+>   eeepc-laptop: add touchpad led
+>   asus-laptop: use KEY_F13 to map "Disable Touchpad" event
+>   asus-laptop: Add wlan switch found on V6V
+>   eeepc-laptop: map keys found on newer eeepc
+>   eeepc-laptop: fix coding style
+>   input: add KEY_WIRELESS_CYCLE
+>   asus-laptop: schedule display_get and lcd_switch for removal
+> 
+> Ike Panhc (1):
+>   asus-laptop: add Lenovo SL hotkey support
+> 
+>  Documentation/feature-removal-schedule.txt |   20 +
+>  drivers/platform/x86/Kconfig               |    2 +
+>  drivers/platform/x86/asus-laptop.c         |   21 +-
+>  drivers/platform/x86/asus_acpi.c           |   19 +-
+>  drivers/platform/x86/eeepc-laptop.c        | 1415 +++++++++++++++------------
+>  include/linux/input.h                      |    1 +
+>  6 files changed, 825 insertions(+), 653 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
