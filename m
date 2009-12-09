@@ -1,60 +1,45 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] [PATCH 10/10] thinkpad-acpi: sync input
- device EV_SW state directly
-Date: Wed, 9 Dec 2009 14:30:41 -0200
-Message-ID: <20091209163041.GA29575@khazad-dum.debian.net>
-References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
- <1260322590-5571-11-git-send-email-hmh@hmh.eng.br>
- <200912081745.14725.dmitry.torokhov@gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
+Date: Wed, 9 Dec 2009 16:46:54 +0000
+Message-ID: <20091209164653.GI9018@sirena.org.uk>
+References: <20091209160256.GA3229@rakim.wolfsonmicro.main> <Pine.LNX.4.44L0.0912091117080.4120-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:54326 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755746AbZLIQai (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 11:30:38 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:58021 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750733AbZLIQqz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 11:46:55 -0500
 Content-Disposition: inline
-In-Reply-To: <200912081745.14725.dmitry.torokhov@gmail.com>
+In-Reply-To: <Pine.LNX.4.44L0.0912091117080.4120-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, ibm-acpi-devel@lists.sourceforge.net, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <lenb@kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Tue, 08 Dec 2009, Dmitry Torokhov wrote:
-> On Tuesday 08 December 2009 05:36:30 pm Henrique de Moraes Holschuh wrote:
-> > Before we register the input device, sync the input layer EV_SW state
-> > directly by setting the bitmaps, to avoid issuing a gratuitous event
-> > for the initial state of these switches.
-> > 
-> > I will propose a clean input layer API for this and change the driver
-> > to use it later, but I'd rather get the driver fix in mainline ASAP.
-> > 
-> 
-> Just do input_report_switch() before registering the device, it will do
-> the right thing.
+On Wed, Dec 09, 2009 at 11:23:00AM -0500, Alan Stern wrote:
+> On Wed, 9 Dec 2009, Mark Brown wrote:
 
-At device startup, the input core doesn't know the initial state of the
-switch. It assumes the switch is "off" (all bits clear in the sw bitmap).
+> > I'm not convinced that helps with the fact that the suspend may take a
+> > long time - ideally we'd be able to start the suspend process off but
+> > let other things carry on while it completes without having to worry
+> > about something we're relying on getting suspended underneath us.
 
-input_report_switch() will call input_event(), which will have a 50% chance
-of doing the wrong thing at startup (i.e. issue an event) since it will look
-at the state of the sw bitmap to decide whether to issue an event or not.
+> The suspend procedure is oriented around device structures, and what 
+> you're talking about isn't.  It's something separate which has to be 
+> finished before _any_ of the audio devices are suspended.
 
-> Input core guarantees (and will continue doing so) that it is safe to
-> pass events to the device as soon as it was allocated with
-> input_allocate_device().
+In this context the "subsystem" actually has a struct device associated
+with it so does appear in the device flow.
 
-Well, there really isn't a transparent way to do this...
+> How long does it take to bring down the entire embedded audio 
+> subsystem?  And how critical is the timing for typical systems?
 
-Either you change the core to use the first event reported to init the
-switch and never issue that first event outside the core (we will also have
-to make sure all drivers know they have to issue this initial event), or you
-add an API for the drivers to directly inform the core of the initial state
-of the switches (I have this already written) and check all drivers that
-export EV_SW events to make sure they use the API (I haven't done this yet).
+Worst case is about a second for both resume and suspend which means two
+seconds total but it's very hardware dependant.  
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+The latency budget for suspend and resume are both zero in an ideal
+world, users want to be able to suspend as much as possible which means
+they'd like it to take no perceptible time at the human level.  Some
+hardware is at the point where that's getting realistic but the folks on
+older hardware still want to get as close to that as they can.
