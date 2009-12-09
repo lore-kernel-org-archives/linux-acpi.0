@@ -1,76 +1,80 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Wed, 9 Dec 2009 14:06:46 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912091356200.4120-100000@iolanthe.rowland.org>
-References: <alpine.LFD.2.00.0912081339040.3560@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: [patch] prevent possible NULL dereference. (fwd)
+Date: Wed, 09 Dec 2009 14:34:56 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912091433040.24891@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:40646 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756804AbZLITGo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 14:06:44 -0500
-In-Reply-To: <alpine.LFD.2.00.0912081339040.3560@localhost.localdomain>
+Received: from vms173011pub.verizon.net ([206.46.173.11]:48462 "EHLO
+	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755145AbZLITez (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 14:34:55 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173011.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KUE00DTWH29MHMV@vms173011.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 09 Dec 2009 13:34:58 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: devel@acpica.org
+Cc: linux-acpi@vger.kernel.org, Dan Carpenter <error27@gmail.com>
 
-On Tue, 8 Dec 2009, Linus Torvalds wrote:
+forwarded to devel@acpica.org
 
-> > Wait a second.  Are you saying that with code like this:
-> > 
-> > 	if (x == 1)
-> > 		y = 5;
-> > 
-> > the CPU may write to y before it has finished reading the value of x?  
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-> > And this write is visible to other CPUs, so that if x was initially 0
-> > and a second CPU sets x to 1, the second CPU may see y == 5 before it
-> > executes the write to x (whatever that may mean)?
-> 
-> Well, yes and no. CPU1 above won't release the '5' until it has confirmed 
-> the '1' (even if it does so by reading it late). but assuming the other 
-> CPU also does speculation, then yes, the situation you describe could 
-> happen. If the other CPU does
-> 
-> 		z = y;
-> 		x = 1;
-> 
-> then it's certainly possible that 'z' contains 5 at the end (even if both 
-> x and y started out zero). Because now the read of 'y' on that other CPU 
-> might be delayed, and the write of 'x' goes ahead, CPU1 sees the 1, and 
-> commits its write of 5, sp when CPU2 gets the cacheline, z will now 
-> contain 5.
+---------- Forwarded message ----------
+Date: Tue, 10 Nov 2009 11:02:49 +0200 (SAST)
+From: Dan Carpenter <error27@gmail.com>
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org
+Subject: [patch] prevent possible NULL dereference.
 
-That could be attributed to reordering on CPU2, so let's take CPU2's
-peculiarities out of the picture (initially everything is set to 0):
+Move the check for walk_state->thread before the dereference.
 
-	CPU1			CPU2
-	----			----
-	if (x == 1)		z = y;
-		y = 5;		mb();
-				x = 1;
+Found by smatch static checker.  Compile tested.
 
-This gets at the heart of the question: Can a write move up past a
-control dependency?  Similar questions apply to the two types of data 
-dependency:
+regards,
+dan carpenter
 
-	CPU1			CPU2
-	----			----
-	y = x + 4;		z = y;
-				mb();
-				x = 1;
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-(Initially p points to x, not y):
-
-	CPU1			CPU2
-	----			----
-	*p = 5;			z = y;
-				mb();
-				p = &y;
-
-Can z end up equal to 5 in any of these examples?
-
-Alan Stern
-
+--- orig/drivers/acpi/acpica/exmutex.c	2009-11-07 09:46:53.000000000 +0200
++++ devel/drivers/acpi/acpica/exmutex.c	2009-11-07 09:48:16.000000000 +0200
+@@ -375,6 +375,15 @@
+ 		return_ACPI_STATUS(AE_AML_MUTEX_NOT_ACQUIRED);
+ 	}
+ 
++	/* Must have a valid thread ID */
++
++	if (!walk_state->thread) {
++		ACPI_ERROR((AE_INFO,
++			    "Cannot release Mutex [%4.4s], null thread info",
++			    acpi_ut_get_node_name(obj_desc->mutex.node)));
++		return_ACPI_STATUS(AE_AML_INTERNAL);
++	}
++
+ 	/*
+ 	 * The Mutex is owned, but this thread must be the owner.
+ 	 * Special case for Global Lock, any thread can release
+@@ -392,15 +401,6 @@
+ 		return_ACPI_STATUS(AE_AML_NOT_OWNER);
+ 	}
+ 
+-	/* Must have a valid thread ID */
+-
+-	if (!walk_state->thread) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Cannot release Mutex [%4.4s], null thread info",
+-			    acpi_ut_get_node_name(obj_desc->mutex.node)));
+-		return_ACPI_STATUS(AE_AML_INTERNAL);
+-	}
+-
+ 	/*
+ 	 * The sync level of the mutex must be equal to the current sync level. In
+ 	 * other words, the current level means that at least one mutex at that
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
