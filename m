@@ -1,53 +1,32 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: spinlock in completion_done() (was: Re: Async resume patch (was:
- Re: [GIT PULL] PM updates for 2.6.33))
-Date: Wed, 9 Dec 2009 10:29:22 +0100
-Message-ID: <20091209092922.GC28428@elte.hu>
-References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org>
- <200912082248.14138.rjw@sisk.pl>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 08/10] thinkpad-acpi: log temperatures on termal alarm
+	(v2)
+Date: Wed, 9 Dec 2009 11:46:13 +0100
+Message-ID: <20091209104612.GA7957@ucw.cz>
+References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br> <1260322590-5571-9-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:52019 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752611AbZLIJaT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Dec 2009 04:30:19 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39345 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754793AbZLIKqP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 05:46:15 -0500
 Content-Disposition: inline
-In-Reply-To: <200912082248.14138.rjw@sisk.pl>
+In-Reply-To: <1260322590-5571-9-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, David Chinner <david@fromorbit.com>, Lachlan McIlroy <lachlan@sgi.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-
-* Rafael J. Wysocki <rjw@sisk.pl> wrote:
-
-> On Tuesday 08 December 2009, Alan Stern wrote:
-> > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-> > 
-> > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
-> > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
-> > > here?
-> > 
-> > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
-> > these routines were not intended to be called with interrupts disabled, 
-> > but that requirement doesn't seem to be documented.  And it isn't a 
-> > natural requirement anyway.
+On Tue 2009-12-08 23:36:28, Henrique de Moraes Holschuh wrote:
+> Log temperatures on any of the EC thermal alarms.  It could be
+> useful to help tracking down what is happening...
 > 
-> OK, let's ask Ingo about that.
-> 
-> Ingo, is there any particular reason why completion_done() and
-> try_wait_for_completion() don't use spin_lock_irqsave() and
-> spin_unlock_irqrestore()?
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Cc: Pavel Machek <pavel@ucw.cz>
 
-that's a bug that should be fixed - all the wakeup side (and atomic) 
-variants of completetion API should be irq safe.
+ACK.
 
-It appears that these new completion APIs were added via the XFS tree 
-about a year ago:
-
-  39d2f1a: [XFS] extend completions to provide XFS object flush requirements
-
-Please Cc: scheduler folks to all scheduler patches.
-
-	Ingo
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
