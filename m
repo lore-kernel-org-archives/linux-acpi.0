@@ -1,50 +1,59 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 03/10] thinkpad-acpi: fix some version quirks
-Date: Tue,  8 Dec 2009 23:36:23 -0200
-Message-ID: <1260322590-5571-4-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 01/10] thinkpad-acpi: fix default brightness_mode for R50e/R51
+Date: Tue,  8 Dec 2009 23:36:21 -0200
+Message-ID: <1260322590-5571-2-git-send-email-hmh@hmh.eng.br>
 References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:57663 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:38136 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967093AbZLIBgb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:31 -0500
+	by vger.kernel.org with ESMTP id S967097AbZLIBgc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2009 20:36:32 -0500
 In-Reply-To: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, stable@kernel.org
 
-Update some of the BIOS/EC version quirks.
+According to a report, the R50e wants EC-based brightness control,
+even if it uses an Intel GPU.  The current driver default was reported
+to not work at all.
 
+This bug can be worked around by the "brightness_mode=3" module
+parameter.
+
+Change the default of the R50e and R51 2xxx models (which use the same
+EC firmware, 1V) to TPACPI_BRGHT_Q_EC, but keep TPACPI_BRGHT_Q_ASK set
+for now, as I'd like to get more reports.
+
+This fixes a regression caused by commit
+59fe4fe34d7afdf63208124f313be9056feaa2f4,
+"thinkpad-acpi: fix incorrect use of TPACPI_BRGHT_MODE_ECNVRAM"
+
+Kernel 2.6.31 also needs this fix.
+
+Reported-by: Ferenc Wagner <wferi@niif.hu>
+Tested-by: Ferenc Wagner <wferi@niif.hu>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: stable@kernel.org
 ---
- drivers/platform/x86/thinkpad_acpi.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 1ee734c..6160813 100644
+index a848c7e..9c6d5a9 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -1779,7 +1779,7 @@ static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
+@@ -6123,8 +6123,8 @@ static const struct tpacpi_quirk brightness_quirk_table[] __initconst = {
  
- 	TPV_QL1('7', '9',  'E', '3',  '5', '0'), /* T60/p */
- 	TPV_QL1('7', 'C',  'D', '2',  '2', '2'), /* R60, R60i */
--	TPV_QL0('7', 'E',  'D', '0'),		 /* R60e, R60i */
-+	TPV_QL1('7', 'E',  'D', '0',  '1', '5'), /* R60e, R60i */
+ 	/* Models with Intel Extreme Graphics 2 */
+ 	TPACPI_Q_IBM('1', 'U', TPACPI_BRGHT_Q_NOEC),
+-	TPACPI_Q_IBM('1', 'V', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
+-	TPACPI_Q_IBM('1', 'W', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_NOEC),
++	TPACPI_Q_IBM('1', 'V', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
++	TPACPI_Q_IBM('1', 'W', TPACPI_BRGHT_Q_ASK|TPACPI_BRGHT_Q_EC),
  
- 	/*      BIOS FW    BIOS VERS  EC FW     EC VERS */
- 	TPV_QI2('1', 'W',  '9', '0',  '1', 'V', '2', '8'), /* R50e (1) */
-@@ -1795,8 +1795,8 @@ static const struct tpacpi_quirk tpacpi_bios_version_qtable[] __initconst = {
- 	TPV_QI1('7', '4',  '6', '4',  '2', '7'), /* X41 (0) */
- 	TPV_QI1('7', '5',  '6', '0',  '2', '0'), /* X41t (0) */
- 
--	TPV_QL0('7', 'B',  'D', '7'),		 /* X60/s */
--	TPV_QL0('7', 'J',  '3', '0'),		 /* X60t */
-+	TPV_QL1('7', 'B',  'D', '7',  '4', '0'), /* X60/s */
-+	TPV_QL1('7', 'J',  '3', '0',  '1', '3'), /* X60t */
- 
- 	/* (0) - older versions lack DMI EC fw string and functionality */
- 	/* (1) - older versions known to lack functionality */
+ 	/* Models with Intel GMA900 */
+ 	TPACPI_Q_IBM('7', '0', TPACPI_BRGHT_Q_NOEC),	/* T43, R52 */
 -- 
 1.6.5.4
 
