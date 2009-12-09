@@ -1,43 +1,47 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Wed, 9 Dec 2009 16:02:56 +0000
-Message-ID: <20091209160256.GA3229@rakim.wolfsonmicro.main>
-References: <20091209133829.GF9018@sirena.org.uk>
- <Pine.LNX.4.44L0.0912091044340.4120-100000@iolanthe.rowland.org>
+Date: Wed, 9 Dec 2009 11:23:00 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912091117080.4120-100000@iolanthe.rowland.org>
+References: <20091209160256.GA3229@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756153AbZLIQCx@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.0912091044340.4120-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:47620 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752851AbZLIQWx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 11:22:53 -0500
+In-Reply-To: <20091209160256.GA3229@rakim.wolfsonmicro.main>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, Dec 09, 2009 at 10:49:56AM -0500, Alan Stern wrote:
-> On Wed, 9 Dec 2009, Mark Brown wrote:
+On Wed, 9 Dec 2009, Mark Brown wrote:
 
-> > There's some potential for this in embedded audio - it wants to bring
-> > down the entire embedded audio subsystem at once before the individual
-> > devices (and their parents) get suspended since bringing them down out
+> On Wed, Dec 09, 2009 at 10:49:56AM -0500, Alan Stern wrote:
+> > On Wed, 9 Dec 2009, Mark Brown wrote:
+> 
+> > > There's some potential for this in embedded audio - it wants to bring
+> > > down the entire embedded audio subsystem at once before the individual
+> > > devices (and their parents) get suspended since bringing them down out
+> 
+> > For something like bringing down the entire embedded audio subsystem, 
+> > which isn't directly tied to a single device, you would probably be 
+> > better off doing it when the PM core broadcasts a suspend notification
+> > (see register_pm_notifier() in include/linux/suspend.h).  This occurs 
+> > before any devices are suspended, so synchronization isn't an issue.
+> 
+> I'm not convinced that helps with the fact that the suspend may take a
+> long time - ideally we'd be able to start the suspend process off but
+> let other things carry on while it completes without having to worry
+> about something we're relying on getting suspended underneath us.
 
-> For something like bringing down the entire embedded audio subsystem, 
-> which isn't directly tied to a single device, you would probably be 
-> better off doing it when the PM core broadcasts a suspend notification
-> (see register_pm_notifier() in include/linux/suspend.h).  This occurs 
-> before any devices are suspended, so synchronization isn't an issue.
+The suspend procedure is oriented around device structures, and what 
+you're talking about isn't.  It's something separate which has to be 
+finished before _any_ of the audio devices are suspended.
 
-I'm not convinced that helps with the fact that the suspend may take a
-long time - ideally we'd be able to start the suspend process off but
-let other things carry on while it completes without having to worry
-about something we're relying on getting suspended underneath us.
+How long does it take to bring down the entire embedded audio 
+subsystem?  And how critical is the timing for typical systems?
 
-> > Embedded audio does potentially - the resume needs all the individual
-> > overall resume time.  Currently we get away with a combination of
+Alan Stern
 
-> You can do the same thing with the resume notifier.
-
-Similarly, the length of time the resume may take to complete means it'd
-be nice to start as soon as we've got the devices and complete it at our
-leisure.  This is less pressing since we can tell the PM core we've
-resumed but still block userspace.
