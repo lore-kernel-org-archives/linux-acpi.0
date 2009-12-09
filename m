@@ -1,106 +1,126 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 00/33] acpi4asus updates for 2.6.33
-Date: Wed, 09 Dec 2009 16:04:01 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912091603290.24891@localhost.localdomain>
-References: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
+Date: Wed, 9 Dec 2009 13:52:44 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912091317330.3560@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912091356200.4120-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:34868 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083AbZLIVEJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 16:04:09 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173013.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KUE002OHL6QD4LJ@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 09 Dec 2009 15:04:03 -0600 (CST)
-In-reply-to: <1259826317-18809-1-git-send-email-corentincj@iksaif.net>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50479 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757080AbZLIVyA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 16:54:00 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0912091356200.4120-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentincj@iksaif.net>
-Cc: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-all but #32 applied to acpi-test
 
-thanks,
-Len Brown, Intel Open Source Technology Center
 
-On Thu, 3 Dec 2009, Corentin Chary wrote:
+On Wed, 9 Dec 2009, Alan Stern wrote:
+> 
+> That could be attributed to reordering on CPU2, so let's take CPU2's
+> peculiarities out of the picture (initially everything is set to 0):
+> 
+> 	CPU1			CPU2
+> 	----			----
+> 	if (x == 1)		z = y;
+> 		y = 5;		mb();
+> 				x = 1;
+> 
+> This gets at the heart of the question: Can a write move up past a
+> control dependency?
+>  [ .. ]
+> Can z end up equal to 5 in any of these examples?
 
-> Hi Len,
-> Here patchs from acpi4asus for 2.6.33.
-> You'll find a major rewrite of eeepc-laptop by Alan Jenkins which really
-> cleans the code. I'm working one something similar for asus-laptop, this should
-> be ready for 2.6.34.
-> There is also some fix and updates for asus-laptop and asus-acpi.
-> asus-laptop now support Lenovo SL laptop (yep this is strange, but this is the
-> same acpi interface).
-> 
-> There is two smalls style issues in Alan's patchs, but I made a patch to fix that
-> in the serie, it was easier than reworking the whole serie, but I'll try to
-> avoid that next time.
-> 
-> The last two patchs may be controversial.
-> 
-> The first one add the KEY_WIRELESS_CYCLE. This keycode could be used when
-> the key is not only for wlan, but could also be used for bluetooth and wimax.
-> 
-> The last schedule some asus-laptop features for removale, because they are
-> not defined in a standard way in the acpi interface.
-> Thanks,
-> 
-> Alan Jenkins (25):
->   eeepc-laptop: disp attribute should be write-only
->   asus-laptop: Remove redundant NULL checks
->   asus-acpi: Remove redundant NULL checks
->   asus-laptop: Remove uneccesary acpi_disabled check
->   asus-acpi: Remove uneccesary acpi_disabled checks
->   asus-acpi: set acpi_driver.owner
->   asus-laptop: set acpi_driver.owner
->   eeepc-laptop: Remove redundant NULL checks
->   eeepc-laptop: Remove uneccesary acpi_disabled check
->   eeepc-laptop: set acpi_driver.owner
->   eeepc-laptop: fix value of pwm1_enable to match documentation
->   eeepc-laptop: fix led initialization order
->   eeepc-laptop: fix potential leak (led_init() failure)
->   eeepc-laptop: fix set_acpi() to return non-zero on failure
->   eeepc-laptop: remove redundant NULL checks
->   eeepc-laptop: no need to check argument of set_brightness()
->   eeepc-laptop: simplify acpi initialization
->   eeepc-laptop: simplify how the hwmon device reads values from the EC
->   eeepc-laptop: refactor notifications
->   eeepc-laptop: move platform driver registration out of
->     eeepc_hotk_add()
->   eeepc-laptop: move platform device initialisation to a separate
->     function
->   eeepc-laptop: code movement
->   eeepc-laptop: revise names
->   eeepc-laptop: callbacks should use "driver data" parameter or field
->   eeepc-laptop: re-add check for eeepc->backlight == NULL
-> 
-> Corentin Chary (7):
->   eeepc-laptop: add touchpad led
->   asus-laptop: use KEY_F13 to map "Disable Touchpad" event
->   asus-laptop: Add wlan switch found on V6V
->   eeepc-laptop: map keys found on newer eeepc
->   eeepc-laptop: fix coding style
->   input: add KEY_WIRELESS_CYCLE
->   asus-laptop: schedule display_get and lcd_switch for removal
-> 
-> Ike Panhc (1):
->   asus-laptop: add Lenovo SL hotkey support
-> 
->  Documentation/feature-removal-schedule.txt |   20 +
->  drivers/platform/x86/Kconfig               |    2 +
->  drivers/platform/x86/asus-laptop.c         |   21 +-
->  drivers/platform/x86/asus_acpi.c           |   19 +-
->  drivers/platform/x86/eeepc-laptop.c        | 1415 +++++++++++++++------------
->  include/linux/input.h                      |    1 +
->  6 files changed, 825 insertions(+), 653 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+In any _practical_ microarchitecture I know of, the above will never 
+result in 'z' being 5, even though CPU1 doesn't really have a memory 
+barrier. But if I read the alpha memory ordering guarantees rigth, then at 
+least in theory you really can end up with z=5.
+
+Let me write that as five events (with the things in brackets being what 
+the alpha memory ordering manual calls them):
+
+ - A is "read of x returns 1" on CPU1   [ P1:R(x,1) ]
+ - B is "write of value 5 to y" on CPU1 [ P1:W(y,5) ]
+ - C is "read of y returns 5" on CPU2   [ P2:R(y,5) ]
+ - D is "write of value 1 to x" on CPU2 [ P2:W(x,1) ]
+ - 'MB' is the mb() on CPU2             [ P2:MB ]
+
+(The write of 'z' is irrelevant, we can think of it as a register, the end 
+result is the same).
+
+And yes, if I read the alpha memory ordering rules correctly, you really 
+can end up with z=5, although I don't think you will ever find an alpha 
+_implementation_ that does it.
+
+Why?
+
+The alpha memory ordering literally defines ordering in two ways:
+
+ - "location access order". But that is _only_ defined per actual 
+   location, so while 'x' can have a location access order specified by 
+   seeing certain values, there is no "location access order" for two 
+   different memory locations (x and y).
+
+   The alpha architecture manual uses "A << B" to say "event A" is before 
+   "event B" when there is a defined ordering.
+
+   So in the example above, there is a location access ordering between 
+
+	P2:W(x,1) << P1:R(x, 1)
+
+   and
+
+	P2:R(y,5) << P1:W(y,5)
+
+   ie you have D << A and B << C.
+
+   Good so far, but that doesn't define anything else: there's only 
+   ordering between the pairs (D,A) and (B,C), nothing between them.
+
+ - "Processor issue order" for two instruction is _only_ defined by either 
+   (a) memory barriers or (b) accesses to the _same_ locations. The alpha 
+   architecture manual uses "A < B" to say that "event A" is before "event 
+   B" in processor issue order.
+
+   So there is a "Processor issue order" on CPU2 due to the memory 
+   barrier: P2:R(y,5) < P2:MB < P2:W(x,1), or put another way C < MB < D: 
+   C < D.
+
+Now, the question is, can we actually get the behaviour of reading 5 on 
+CPU2 (ie P2:R(y,5)), and that is only possible if we can find an ordering 
+that satisfies all the constraints. We have
+
+	D << A
+	B << C
+	C < D
+
+and it seems to be that it is a possible situation: "B C D A" 
+really does satisfy all the constraints afaik.
+
+So yes, according to the actual alpha architecture memory ordering rules, 
+you can see '5' from that first read of 'y'. DESPITE having a mb() on 
+CPU2.
+
+In order to not see 5, you need to also specify "A < B", and the _only_ 
+way to do that processor issue order specification is with a memory 
+barrier (or if the locations are the same, which they aren't).
+
+"Causality" simply is nowhere in the officially defined alpha memory 
+ordering. The fact that we test 'x == 1' and conditionally do the write 
+simply doesn't enter the picture. I suspect you'd have a really hard time 
+not having causality in practice, but there _are_ things that can break 
+causality (value prediction etc), so it's not like you'd have to actually 
+violate physics of reality to do it.
+
+IOW, you could at least in theory implement a CPU that does every 
+instruction speculatively in parallel, and then validates the end result 
+afterwards according to the architecture rules. And that CPU would require 
+the memory barrier on alpha.
+
+(On x86, 'causality' is defined to be part of the memory ordering rules, 
+so on x86, you _do_ have a 'A < B' relationship. But not on alpha).
+
+				Linus
