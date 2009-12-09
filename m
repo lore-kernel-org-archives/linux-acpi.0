@@ -1,44 +1,50 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async resume patch (was: Re: [GIT PULL] PM updates for 2.6.33)
-Date: Wed, 9 Dec 2009 09:57:22 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912090953200.3560@localhost.localdomain>
-References: <20091209160256.GA3229@rakim.wolfsonmicro.main> <Pine.LNX.4.44L0.0912091117080.4120-100000@iolanthe.rowland.org> <20091209164653.GI9018@sirena.org.uk> <alpine.LFD.2.00.0912090851540.3560@localhost.localdomain>
- <20091209174537.GJ9018@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 14/14] ACPICA: Update version to 20091112.
+Date: Wed, 09 Dec 2009 12:22:15 -0500
+Message-ID: <b00eb796f1b67c46036b5490e83b31741f1eebaf.1260379153.git.len.brown@intel.com>
+References: <1260379335-24263-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60706 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754136AbZLIR5X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 12:57:23 -0500
-In-Reply-To: <20091209174537.GJ9018@sirena.org.uk>
+Received: from vms173019pub.verizon.net ([206.46.173.19]:57852 "EHLO
+	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754482AbZLIR6Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2009 12:58:16 -0500
+Received: from localhost.localdomain ([unknown] [74.104.151.18])
+ by vms173019.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0KUE007Q3CKWILQ0@vms173019.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 09 Dec 2009 11:58:14 -0600 (CST)
+In-reply-to: <1260379335-24263-1-git-send-email-lenb@kernel.org>
+In-reply-to: <2752699392b828edf3123f911f6e8b4dd7daeb56.1260379153.git.len.brown@intel.com>
+References: <2752699392b828edf3123f911f6e8b4dd7daeb56.1260379153.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
+From: Bob Moore <robert.moore@intel.com>
 
+Version 20091112.
 
-On Wed, 9 Dec 2009, Mark Brown wrote:
-> 
-> The problem comes when you've got audio outputs referenced to something
-> other than ground which used to happen because no negative supplies were
-> available in these systems.  To bring these up from cold you need to
-> bring the outputs up to the reference level but if you do that by just
-> turning on the power you get an audible (often loud) noise in the output
-> from the square(ish) waveform that results which users don't find
-> acceptable.
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ include/acpi/acpixf.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Ouch. A second still sounds way too long - but whatever.
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index f9b8b28..5e1ad3c 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -47,7 +47,7 @@
+ 
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20091013
++#define ACPI_CA_VERSION                 0x20091112
+ 
+ #include "actypes.h"
+ #include "actbl.h"
+-- 
+1.6.0.6
 
-However, it sounds like the nice way to do that isn't by doing it 
-synchronously in the suspend/resume code itself, but simply ramping it 
-down (and up) from a timer. It would be asynchronous, but not because the 
-suspend itself is in any way asynchronous.
-
-Done right, it might even result in a nice volume fade of the sound (ie if 
-the hw allows for it, stop the actual sound engine late on suspend, and 
-start it early on resume, so that sound works _while_ the whole reference 
-volume rampdown/up is going on)
-
-			Linus
