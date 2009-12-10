@@ -1,65 +1,50 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: spinlock in completion_done() (was: Re: Async resume patch (was:
- Re: [GIT PULL] PM updates for 2.6.33))
-Date: Thu, 10 Dec 2009 08:59:47 +0100
-Message-ID: <20091210075947.GD25549@elte.hu>
-References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org>
- <200912082248.14138.rjw@sisk.pl>
- <20091209092922.GC28428@elte.hu>
- <200912092337.52492.rjw@sisk.pl>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ACPICA: don't cond_resched() when irq_disabled or
+	in_atomic
+Date: Thu, 10 Dec 2009 11:09:08 +0100
+Message-ID: <20091210100907.GA2446@ucw.cz>
+References: <1259900760-6424-1-git-send-email-dfeng@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:46271 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760650AbZLJIAF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Dec 2009 03:00:05 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933596AbZLJKer@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200912092337.52492.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1259900760-6424-1-git-send-email-dfeng@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xiaotian Feng <dfeng@redhat.com>
+Cc: lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, David Chinner <david@fromorbit.com>, Lachlan McIlroy <lachlan@sgi.com>
 
-
-* Rafael J. Wysocki <rjw@sisk.pl> wrote:
-
-> On Wednesday 09 December 2009, Ingo Molnar wrote:
-> > 
-> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > 
-> > > On Tuesday 08 December 2009, Alan Stern wrote:
-> > > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-> > > > 
-> > > > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
-> > > > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
-> > > > > here?
-> > > > 
-> > > > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
-> > > > these routines were not intended to be called with interrupts disabled, 
-> > > > but that requirement doesn't seem to be documented.  And it isn't a 
-> > > > natural requirement anyway.
-> > > 
-> > > OK, let's ask Ingo about that.
-> > > 
-> > > Ingo, is there any particular reason why completion_done() and
-> > > try_wait_for_completion() don't use spin_lock_irqsave() and
-> > > spin_unlock_irqrestore()?
-> > 
-> > that's a bug that should be fixed - all the wakeup side (and atomic) 
-> > variants of completetion API should be irq safe.
-> > 
-> > It appears that these new completion APIs were added via the XFS tree 
-> > about a year ago:
-> > 
-> >   39d2f1a: [XFS] extend completions to provide XFS object flush requirements
-> > 
-> > Please Cc: scheduler folks to all scheduler patches.
+On Fri 2009-12-04 12:26:00, Xiaotian Feng wrote:
+> commit 8bd108d adds preemption point after each opcode parse, then
+> a sleeping function called from invalid context bug was founded
+> during suspend/resume stage. this was fixed in commit abe1dfa by
+> don't cond_resched when irq_disabled. But recent commit 138d156 changes
+> the behaviour to don't cond_resched when in_atomic. This makes the
+> sleeping function called from invalid context bug happen again, which
+> is reported in http://lkml.org/lkml/2009/12/1/371.
 > 
-> If you haven't fixed it locally yet, would you mind me posting a fix?
+> The fix is to cond_sched() only when preemptible, which means not in
+> irq_disabled or in_atomic.
+> 
+> @@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_cache_t * cache)
+>  #include <linux/hardirq.h>
+>  #define ACPI_PREEMPTION_POINT() \
+>  	do { \
+> -		if (!in_atomic_preempt_off()) \
+> +		if (preemptible()) \
+>  			cond_resched(); \
+>  	} while (0)
 
-I wouldnt mind it at all.
+Note that this is ugly as hell. It means we have two acpi
+interpretters in kernel, one for preemptible, one for non-preemptible,
+with very different behaviour.
 
-Thanks,
+It would be slightly nicer to pass the "preemptible" info explicitely,
+as function parameters.
 
-	Ingo
+It would be even better not to need that difference.
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
