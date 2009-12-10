@@ -1,7 +1,7 @@
 From: Anisse Astier <anisse@astier.eu>
-Subject: [PATCH 6/7] msi-wmi: replace one-condition switch-case with if statement
-Date: Thu, 10 Dec 2009 14:18:18 +0100
-Message-ID: <1260451099-25620-7-git-send-email-anisse@astier.eu>
+Subject: [PATCH 2/7] msi-wmi: remove useless includes
+Date: Thu, 10 Dec 2009 14:18:14 +0100
+Message-ID: <1260451099-25620-3-git-send-email-anisse@astier.eu>
 References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
 Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <1260451099-25620-1-git-send-email-anisse@astier.eu>
@@ -12,40 +12,28 @@ List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Anisse Astier <anisse@astier.eu>
 ---
- drivers/platform/x86/msi-wmi.c |   13 ++++---------
- 1 files changed, 4 insertions(+), 9 deletions(-)
+ drivers/platform/x86/msi-wmi.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/platform/x86/msi-wmi.c b/drivers/platform/x86/msi-wmi.c
-index d757935..2c2afc1 100644
+index 7e0dab6..fb988d8 100644
 --- a/drivers/platform/x86/msi-wmi.c
 +++ b/drivers/platform/x86/msi-wmi.c
-@@ -243,14 +243,10 @@ static void msi_wmi_notify(u32 value, void *context)
- 			}
- 			key->last_pressed = cur;
+@@ -23,14 +23,8 @@
  
--			switch (key->type) {
--			case KE_KEY:
--				/* Brightness is served via acpi video driver */
--				if (!backlight &&
--				    (key->keycode == KEY_BRIGHTNESSUP ||
--				     key->keycode == KEY_BRIGHTNESSDOWN))
--					break;
--
-+			if (key->type == KE_KEY &&
-+			/* Brightness is served via acpi video driver */
-+			(backlight || (key->keycode != KEY_BRIGHTNESSUP &&
-+			key->keycode != KEY_BRIGHTNESSDOWN))) {
- 				dprintk("Send key: 0x%X - "
- 					"Input layer keycode: %d\n", key->code,
- 					 key->keycode);
-@@ -260,7 +256,6 @@ static void msi_wmi_notify(u32 value, void *context)
- 				input_report_key(msi_wmi_input_dev,
- 						 key->keycode, 0);
- 				input_sync(msi_wmi_input_dev);
--				break;
- 			}
- 		} else
- 			printk(KERN_INFO "Unknown key pressed - %x\n",
+ 
+ #include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/types.h>
+ #include <linux/input.h>
+-#include <acpi/acpi_drivers.h>
+ #include <linux/acpi.h>
+-#include <linux/string.h>
+-#include <linux/hrtimer.h>
+ #include <linux/backlight.h>
+ 
+ MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
 -- 
 1.6.5.3
 
