@@ -1,79 +1,67 @@
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
-Subject: Re: [PATCH -V2] acpi: don't cond_resched if irq is disabled
-Date: Thu, 10 Dec 2009 15:21:06 +0300
-Message-ID: <4B20E7B2.1010208@suse.de>
-References: <20091210100907.GA2446@ucw.cz> <1260446205-16868-1-git-send-email-dfeng@redhat.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [ibm-acpi-devel] [PATCH 10/10] thinkpad-acpi: sync input
+ device EV_SW state directly
+Date: Thu, 10 Dec 2009 11:19:18 -0200
+Message-ID: <20091210131918.GA18283@khazad-dum.debian.net>
+References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
+ <1260322590-5571-11-git-send-email-hmh@hmh.eng.br>
+ <200912081745.14725.dmitry.torokhov@gmail.com>
+ <20091209163041.GA29575@khazad-dum.debian.net>
+ <20091209172119.GB4456@core.coreip.homeip.net>
+ <20091209203201.GC29575@khazad-dum.debian.net>
+ <20091209205926.GD10138@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.3]:35773 "EHLO
-	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932805AbZLJMVC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 07:21:02 -0500
-In-Reply-To: <1260446205-16868-1-git-send-email-dfeng@redhat.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44303 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758892AbZLJNTP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2009 08:19:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20091209205926.GD10138@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xiaotian Feng <dfeng@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Pavel Machek <pavel@ucw.cz>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, ibm-acpi-devel@lists.sourceforge.net
 
-Hi Xiaotian,
+On Wed, 09 Dec 2009, Dmitry Torokhov wrote:
+> > Still, please look at the patch below...  Would something like this be a
+> > cleaner API?  It is certainly more obvious, and it is cleaner on the driver
+> > side (one function call does everything, instead of a call to
+> > input_set_capability plus a call to whatever the driver needs to issue the
+> > initial EV_SW event)...
+> > 
+> 
+> Yes, I think it is a good idea. However why don't we change it to:
+> 
+> input_setup_event(dev, type, code, value)
+> {
+> 	input_set_capability(...);
+> 	input_event(...);
+> }
+> 
+> So it would work for everything (who knows, maybe down the road some
+> driver wants to init its ABS axes properly and so on)?
 
-I think, this is another round of "armor vs. bullet" race... It will ho=
-ld until
-might_sleep() logic changes again.
+Well, we already have input_set_abs_params, I'd say that's the correct place
+to init the axes... and you'd compile-break any drivers that need love to
+properly init the axes, so it is a win-win situation as it would make sure
+the patch is feature-complete (i.e. converts all drivers to the new call and
+makes sure they all init their abs params properly).
 
-Please consider using preemptible() -- IMHO this is the check we should=
- perform=20
-in our case of voluntary preemption.
+The only other event that needs initialization are the switches, so I'd
+argue that we might as well use my proposed patch, which is specific and
+more lightweight, and convert the in-tree drivers to it.  A few might be
+missing the before-registering input_event...
 
-Regards,
-Alex.
+BTW, looking at input.h, wouldn't it be better to force the init functions
+to be run before registering the input device, doing a BUG_ON() if they're
+misused?   I'd also suggest a BUG_ON(!dev), or at least an if (!dev) return
+-EINVAL; to the top of input_register_device(...)...
 
-
-Xiaotian Feng =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> commit 8bd108d adds preemption point after each opcode parse, then
-> a sleeping function called from invalid context bug was founded
-> during suspend/resume stage. this was fixed in commit abe1dfa by
-> don't cond_resched when irq_disabled. But recent commit 138d156 chang=
-es
-> the behaviour to don't cond_resched when in_atomic. This makes the
-> sleeping function called from invalid context bug happen again, which
-> is reported in http://lkml.org/lkml/2009/12/1/371.
->=20
-> This patch also fixes http://bugzilla.kernel.org/show_bug.cgi?id=3D14=
-483
->=20
-> Reported-and-bisected-by: Larry Finger <Larry.Finger@lwfinger.net>
-> Reported-and-bisected-by: Justin P. Mattock <justinmattock@gmail.com>
-> Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Bob Moore <robert.moore@intel.com>
-> Cc: Lin Ming <ming.m.lin@intel.com>
-> Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> ---
->  include/acpi/platform/aclinux.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/=
-aclinux.h
-> index 9d7febd..0946997 100644
-> --- a/include/acpi/platform/aclinux.h
-> +++ b/include/acpi/platform/aclinux.h
-> @@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi_c=
-ache_t * cache)
->  #include <linux/hardirq.h>
->  #define ACPI_PREEMPTION_POINT() \
->  	do { \
-> -		if (!in_atomic_preempt_off()) \
-> +		if (!in_atomic_preempt_off() && !irqs_disabled()) \
->  			cond_resched(); \
->  	} while (0)
-> =20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
