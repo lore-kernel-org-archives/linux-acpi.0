@@ -1,70 +1,101 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Thu, 10 Dec 2009 17:17:00 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912101653120.2680-100000@iolanthe.rowland.org>
-References: <200912102214.40310.rjw@sisk.pl>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: [PATCH] ACPICA: don't cond_resched() when irq_disabled or in_atomic
+Date: Thu, 10 Dec 2009 14:46:02 -0800
+Message-ID: <4B217A2A.2040708@gmail.com>
+References: <1259900760-6424-1-git-send-email-dfeng@redhat.com> <20091210100907.GA2446@ucw.cz> <4B2136D5.1030402@gmail.com> <20091210181800.GM19454@elf.ucw.cz> <4B214007.2080409@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:41673 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1761947AbZLJWQ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 17:16:56 -0500
-In-Reply-To: <200912102214.40310.rjw@sisk.pl>
+Received: from mail-yw0-f176.google.com ([209.85.211.176]:63012 "EHLO
+	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755456AbZLJWpk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 17:45:40 -0500
+In-Reply-To: <4B214007.2080409@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Xiaotian Feng <dfeng@redhat.com>, lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 10 Dec 2009, Rafael J. Wysocki wrote:
+On 12/10/09 10:37, Alexey Starikovskiy wrote:
+> Pavel Machek =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>> On Thu 2009-12-10 20:58:45, Alexey Starikovskiy wrote:
+>>
+>>> Hi Pavel,
+>>>
+>>> Please elaborate... Your comments "ugly as hell" are too often to b=
+e
+>>> specific...
+>>> There is only one use of ACPI_PREEMPTION_POINT(), and it is in the
+>>> ACPICA code,
+>>> which we all agreed to keep OS independent, thus the need for #defi=
+ne.
+>>> Do you see any other way to add preemption point without introducin=
+g
+>>> Linux-specific
+>>> code into ACPICA?
+>>>
+>>
+>> I believe we want linux-specific code in acpica at this point.
+>>
+>>
+> The point there we call cond_resched() in ACPICA is an interpreter pa=
+rse
+> loop. This parse loop may be executed from within atomic context and =
+even
+> with interrupts off. In this case, cond_resched() should not be calle=
+d
+> to not make
+> might_sleep() guards angry.
+>
+> Please post the code, which will do the above and will not look "ugly=
+ as
+> hell".
+> I still don't follow your vague comments.
+>> (Or maybe... I guess other systems have concept of preemption and no=
+t
+>> all actions are permitted from all contexts, so maybe something like
+>> that would be important for them, too?)
+>>
+> None of them cared about it up to this point.
+> With the macro above we allowed them to follow Linux, but to go or no=
+t
+> is their call.
+>
+> Regards,
+> Alex.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
 
-> > You should see how badly lockdep complains about the rwsems.  If it 
-> > really doesn't like them then using completions makes sense.
-> 
-> It does complain about them, but when the nested _down operations are marked
-> as nested, it stops complaining (that's in the version where there's no async
-> in the _noirq phases).
+o.k. I went did a pull to update
+the kernel, and then changed
+aclinux.h to the above post.
 
-Did you set the async_suspend flag for any devices during the test?  
-And did you run more than one suspend/resume cycle?
+I'm am not seeing this warning message
+upon wake-up.
+but with the acpi merge stuff with
+acpi_walk_namespace seems to break nvidia
+(nvidia's problem now)
 
-> +extern int __dpm_wait(struct device *dev, void *ign);
-> +
-> +static inline void dpm_wait(struct device *dev)
-> +{
-> +	__dpm_wait(dev, NULL);
-> +}
+there is also some thing where the machine
+takes a good 30 secs or so to wake up
+(not sure if this is from the updated patch)
+in dmesg I see:
 
-Sorry, I intended to mention this before but forgot.  This design is
-inelegant.  You shouldn't have inlines calling functions with extra
-unused arguments; they just waste code space.  Make dpm_wait() be a
-real routine and add a shim to the device_for_each_child() loop.
+platform microcode: firmware requesting intel-ucode/06-17-0a
+firmware microcode: parent mocrocode should not be sleeping.
 
-> @@ -366,7 +388,7 @@ void dpm_resume_noirq(pm_message_t state
->  
->  	mutex_lock(&dpm_list_mtx);
->  	transition_started = false;
-> -	list_for_each_entry(dev, &dpm_list, power.entry)
-> +	list_for_each_entry(dev, &dpm_list, power.entry) {
->  		if (dev->power.status > DPM_OFF) {
->  			int error;
->  
-> @@ -375,23 +397,27 @@ void dpm_resume_noirq(pm_message_t state
->  			if (error)
->  				pm_dev_err(dev, state, " early", error);
->  		}
-> +		/* Needed by the subsequent dpm_resume(). */
-> +		INIT_COMPLETION(dev->power.completion);
+I'm thinking I need something in /lib/firmare
 
-You're still doing it.  Don't initialize the completions in a totally
-different phase!  Initialize them directly before they are used.  
-Namely, at the start of device_resume() and device_suspend().
-
-One more thing.  A logical time to check for errors is just after
-waiting for the children in __device_suspend(), instead of beforehand 
-in async_suspend().  After all, if an error occurs then it's likely to 
-happen while we are waiting.
-
-Alan Stern
-
+Justin P. Mattock
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
