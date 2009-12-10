@@ -1,7 +1,7 @@
 From: Anisse Astier <anisse@astier.eu>
-Subject: [PATCH 5/7] msi-wmi: remove unused field 'instance' in key_entry structure
-Date: Thu, 10 Dec 2009 14:18:17 +0100
-Message-ID: <1260451099-25620-6-git-send-email-anisse@astier.eu>
+Subject: [PATCH 6/7] msi-wmi: replace one-condition switch-case with if statement
+Date: Thu, 10 Dec 2009 14:18:18 +0100
+Message-ID: <1260451099-25620-7-git-send-email-anisse@astier.eu>
 References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
 Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <1260451099-25620-1-git-send-email-anisse@astier.eu>
@@ -12,36 +12,40 @@ List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Anisse Astier <anisse@astier.eu>
 ---
- drivers/platform/x86/msi-wmi.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/platform/x86/msi-wmi.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/platform/x86/msi-wmi.c b/drivers/platform/x86/msi-wmi.c
-index 75e422b..d757935 100644
+index d757935..2c2afc1 100644
 --- a/drivers/platform/x86/msi-wmi.c
 +++ b/drivers/platform/x86/msi-wmi.c
-@@ -56,7 +56,6 @@ struct key_entry {
- 	char type;		/* See KE_* below */
- 	u16 code;
- 	u16 keycode;
--	int instance;
- 	ktime_t last_pressed;
- };
+@@ -243,14 +243,10 @@ static void msi_wmi_notify(u32 value, void *context)
+ 			}
+ 			key->last_pressed = cur;
  
-@@ -67,10 +66,10 @@ struct key_entry {
- enum { KE_KEY, KE_END };
- 
- static struct key_entry msi_wmi_keymap[] = {
--	{ KE_KEY, 0xd0, KEY_BRIGHTNESSUP,   0, {0, } },
--	{ KE_KEY, 0xd1, KEY_BRIGHTNESSDOWN, 1, {0, } },
--	{ KE_KEY, 0xd2, KEY_VOLUMEUP,	2, {0, } },
--	{ KE_KEY, 0xd3, KEY_VOLUMEDOWN,	3, {0, } },
-+	{ KE_KEY, 0xd0, KEY_BRIGHTNESSUP,   {0, } },
-+	{ KE_KEY, 0xd1, KEY_BRIGHTNESSDOWN, {0, } },
-+	{ KE_KEY, 0xd2, KEY_VOLUMEUP,	{0, } },
-+	{ KE_KEY, 0xd3, KEY_VOLUMEDOWN,	{0, } },
- 	{ KE_END, 0}
- };
- 
+-			switch (key->type) {
+-			case KE_KEY:
+-				/* Brightness is served via acpi video driver */
+-				if (!backlight &&
+-				    (key->keycode == KEY_BRIGHTNESSUP ||
+-				     key->keycode == KEY_BRIGHTNESSDOWN))
+-					break;
+-
++			if (key->type == KE_KEY &&
++			/* Brightness is served via acpi video driver */
++			(backlight || (key->keycode != KEY_BRIGHTNESSUP &&
++			key->keycode != KEY_BRIGHTNESSDOWN))) {
+ 				dprintk("Send key: 0x%X - "
+ 					"Input layer keycode: %d\n", key->code,
+ 					 key->keycode);
+@@ -260,7 +256,6 @@ static void msi_wmi_notify(u32 value, void *context)
+ 				input_report_key(msi_wmi_input_dev,
+ 						 key->keycode, 0);
+ 				input_sync(msi_wmi_input_dev);
+-				break;
+ 			}
+ 		} else
+ 			printk(KERN_INFO "Unknown key pressed - %x\n",
 -- 
 1.6.5.3
 
