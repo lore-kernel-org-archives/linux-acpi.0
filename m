@@ -1,88 +1,65 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] asus-laptop: change light sens default values.
-Date: Thu, 10 Dec 2009 08:16:12 +0100
-Message-ID: <71cd59b00912092316r31228507hc34cbffe98031c56@mail.gmail.com>
-References: <1260219950-28577-1-git-send-email-corentincj@iksaif.net>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: spinlock in completion_done() (was: Re: Async resume patch (was:
+ Re: [GIT PULL] PM updates for 2.6.33))
+Date: Thu, 10 Dec 2009 08:59:47 +0100
+Message-ID: <20091210075947.GD25549@elte.hu>
+References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org>
+ <200912082248.14138.rjw@sisk.pl>
+ <20091209092922.GC28428@elte.hu>
+ <200912092337.52492.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.221.202]:59171 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760550AbZLJHWV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 02:22:21 -0500
-Received: by qyk40 with SMTP id 40so3578658qyk.22
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Dec 2009 23:22:26 -0800 (PST)
-In-Reply-To: <1260219950-28577-1-git-send-email-corentincj@iksaif.net>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:46271 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760650AbZLJIAF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2009 03:00:05 -0500
+Content-Disposition: inline
+In-Reply-To: <200912092337.52492.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, stable@kernel.org, Thomas Renninger <trenn@suse.de>, =?ISO-8859-1?Q?Peter_K=FCppers?= <peter-mailbox@web.de>, Michael Franzl <michaelfranzl@gmx.at>, Ian Turner <vectro@vectro.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, David Chinner <david@fromorbit.com>, Lachlan McIlroy <lachlan@sgi.com>
 
-Hi Len,
-please don't forget that one (it is easy to do so as it is not part of
-the last series).
+
+* Rafael J. Wysocki <rjw@sisk.pl> wrote:
+
+> On Wednesday 09 December 2009, Ingo Molnar wrote:
+> > 
+> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > 
+> > > On Tuesday 08 December 2009, Alan Stern wrote:
+> > > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+> > > > 
+> > > > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
+> > > > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
+> > > > > here?
+> > > > 
+> > > > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
+> > > > these routines were not intended to be called with interrupts disabled, 
+> > > > but that requirement doesn't seem to be documented.  And it isn't a 
+> > > > natural requirement anyway.
+> > > 
+> > > OK, let's ask Ingo about that.
+> > > 
+> > > Ingo, is there any particular reason why completion_done() and
+> > > try_wait_for_completion() don't use spin_lock_irqsave() and
+> > > spin_unlock_irqrestore()?
+> > 
+> > that's a bug that should be fixed - all the wakeup side (and atomic) 
+> > variants of completetion API should be irq safe.
+> > 
+> > It appears that these new completion APIs were added via the XFS tree 
+> > about a year ago:
+> > 
+> >   39d2f1a: [XFS] extend completions to provide XFS object flush requirements
+> > 
+> > Please Cc: scheduler folks to all scheduler patches.
+> 
+> If you haven't fixed it locally yet, would you mind me posting a fix?
+
+I wouldnt mind it at all.
+
 Thanks,
 
-On Mon, Dec 7, 2009 at 10:05 PM, Corentin Chary <corentincj@iksaif.net>=
- wrote:
-> The light sensor disable brightness key and
-> /sys/class/backlight/ control. There was a lot of report
-> from users who didn't understand why they couldn't change their
-> brightness, including:
-> * https://bugs.launchpad.net/bugs/222171
-> * https://bugzilla.novell.com/show_bug.cgi?id=3D514747
-> * http://bugzilla.kernel.org/show_bug.cgi?id=3D13671
->
-> Now the light sensor is disabled, and if the user want to enable
-> it, the level should be ok.
->
-> The funny thing is that comments where ok, not code.
->
-> Cc: stable@kernel.org
-> Cc: Thomas Renninger <trenn@suse.de>
-> Cc: Peter K=FCppers <peter-mailbox@web.de>
-> Cc: Michael Franzl <michaelfranzl@gmx.at>
-> Cc: Ian Turner <vectro@vectro.org>
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
-> ---
-> =A0drivers/platform/x86/asus-laptop.c | =A0 =A04 ++--
-> =A01 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x8=
-6/asus-laptop.c
-> index b39d2bb..849359a 100644
-> --- a/drivers/platform/x86/asus-laptop.c
-> +++ b/drivers/platform/x86/asus-laptop.c
-> @@ -1283,8 +1283,8 @@ static int asus_hotk_add(struct acpi_device *de=
-vice)
-> =A0 =A0 =A0 =A0hotk->ledd_status =3D 0xFFF;
->
-> =A0 =A0 =A0 =A0/* Set initial values of light sensor and level */
-> - =A0 =A0 =A0 hotk->light_switch =3D 1; /* Default to light sensor di=
-sabled */
-> - =A0 =A0 =A0 hotk->light_level =3D 0; =A0/* level 5 for sensor sensi=
-tivity */
-> + =A0 =A0 =A0 hotk->light_switch =3D 0; /* Default to light sensor di=
-sabled */
-> + =A0 =A0 =A0 hotk->light_level =3D 5; =A0/* level 5 for sensor sensi=
-tivity */
->
-> =A0 =A0 =A0 =A0if (ls_switch_handle)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0set_light_sens_switch(hotk->light_swit=
-ch);
-> --
-> 1.6.5.4
->
->
-
-
-
---=20
-Corentin Chary
-http://xf.iksaif.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Ingo
