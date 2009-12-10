@@ -1,53 +1,36 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: PATCH: Toshiba Bluetooth enabler (v3)
-Date: Thu, 10 Dec 2009 17:00:04 +0000
-Message-ID: <9b2b86520912100900p5796bc35q702af615d3f27a0c@mail.gmail.com>
-References: <4B192D08.9080608@gmail.com>
-	 <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>
-	 <4B1E85A9.3030005@gmail.com>
-	 <9b2b86520912090517l458bc21cobbb138d460e11f53@mail.gmail.com>
-	 <4B211346.2000205@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 0/7] msi-wmi driver and cleanups
+Date: Thu, 10 Dec 2009 09:47:50 -0800
+Message-ID: <20091210174749.GA23717@core.coreip.homeip.net>
+References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:48582 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963AbZLJRAA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 12:00:00 -0500
-In-Reply-To: <4B211346.2000205@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1260451099-25620-1-git-send-email-anisse@astier.eu>
+Sender: linux-input-owner@vger.kernel.org
+To: Anisse Astier <anisse@astier.eu>
+Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Matt Chen <machen@novell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jes Sorensen <jes.sorensen@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 12/10/09, Jes Sorensen <jes.sorensen@gmail.com> wrote:
-> On 12/09/2009 02:17 PM, Alan Jenkins wrote:
->>> Fixed, this version only calls the enabler if the switch is at ON at
->>> resume time.
->>
->> Ah... I think add() has the same problem as well though?  I.e. the
->> driver will not work if the switch is disabled at load time.
->>
->> I would change it in enable() (and then try to think of a new name for
->> it, maybe try_enable()).
->
-> Sorta did that, it should do the right thing in all those cases now.
+On Thu, Dec 10, 2009 at 02:18:12PM +0100, Anisse Astier wrote:
+> This driver adds support for WMI-based hotkeys and backlight for some MSI 
+> laptops and all-in-one computers.
+> 
+> This driver was sent in the end of october by Thomas Renninger
+> (cf http://patchwork.kernel.org/patch/55944/ ). I'm re-sending it as-is (I
+> just added my Reviewed-by:); it is the first patch of this serie because 
+> it doesn't look like it has been integrated yet in Len's ACPI tree.
+> 
+> Other patches are just a follow-up to my previous comments on this driver,
+> that I would like to see merged for 2.6.33.
+> 
+> Please note that the last patch of this serie requires Dmitry's input next
+> tree to have the sparse keymap library.
+> 
 
-Great, looks good.
+FWIW sparse keymap module is in mainline now. The last patch looks good
+BTW.
 
-> Otherwise I am pretty pleased with it now. Unless there's strong
-> objections, I'd say it's good to go.
->
-> Cheers,
-> Jes
-
-I did question "depends on RFKILL".  If you manually configure a
-kernel, you will miss "If you have a modern Toshiba laptop with a
-Bluetooth and an RFKill switch (such as the Portege R500), say Y."
-unless you enable RFKILL first.  (Which is unnecessary since the
-driver will work exactly the same with RFKILL=n).  I wouldn't call it
-a strong objection, but it would be nice to hear the reason you
-included this dependency.
-
-Everything else looks fine.  Thanks for working on this.
-Alan
+-- 
+Dmitry
