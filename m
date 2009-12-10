@@ -1,131 +1,106 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 2/2] dell-laptop: Update rfkill state on kill switch
-Date: Thu, 10 Dec 2009 18:25:33 -0500
-Message-ID: <1260487533-4960-2-git-send-email-mjg@redhat.com>
-References: <20091209203939.GC10138@core.coreip.homeip.net>
- <1260487533-4960-1-git-send-email-mjg@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:48522 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755528AbZLJXZx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 18:25:53 -0500
-In-Reply-To: <1260487533-4960-1-git-send-email-mjg@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
+ suspend-resume patch w/ rwsems)
+Date: Thu, 10 Dec 2009 15:30:13 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912101507550.3560@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912100018.19723.rjw@sisk.pl> <alpine.LFD.2.00.0912091835280.3560@localhost.localdomain> <200912102040.11063.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761715AbZLJXaR@vger.kernel.org>
+In-Reply-To: <200912102040.11063.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: dmitry.torokhov@gmail.com
-Cc: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, Matthew Garrett <mjg@redhat.com>
 
-The rfkill interface on Dells only sends a notification that the switch
-has been changed via the keyboard controller. Add a filter so we can
-pick these notifications up and update the rfkill state appropriately.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
----
- drivers/platform/x86/Kconfig       |    1 +
- drivers/platform/x86/dell-laptop.c |   43 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 55ca39d..4d42e95 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -79,6 +79,7 @@ config DELL_LAPTOP
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on RFKILL || RFKILL = n
- 	depends on POWER_SUPPLY
-+	depends on SERIO_I8042
- 	default n
- 	---help---
- 	This driver adds support for rfkill and backlight control to Dell
-diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
-index 9061111..0071b56 100644
---- a/drivers/platform/x86/dell-laptop.c
-+++ b/drivers/platform/x86/dell-laptop.c
-@@ -22,6 +22,7 @@
- #include <linux/rfkill.h>
- #include <linux/power_supply.h>
- #include <linux/acpi.h>
-+#include <linux/i8042.h>
- #include "../../firmware/dcdbas.h"
- 
- #define BRIGHTNESS_TOKEN 0x7d
-@@ -206,6 +207,16 @@ static const struct rfkill_ops dell_rfkill_ops = {
- 	.query = dell_rfkill_query,
- };
- 
-+static void dell_rfkill_update(void)
-+{
-+	if (wifi_rfkill)
-+		dell_rfkill_query(wifi_rfkill, (void *)1);
-+	if (bluetooth_rfkill)
-+		dell_rfkill_query(bluetooth_rfkill, (void *)2);
-+	if (wwan_rfkill)
-+		dell_rfkill_query(wwan_rfkill, (void *)3);
-+}
-+
- static int dell_setup_rfkill(void)
- {
- 	struct calling_interface_buffer buffer;
-@@ -310,6 +321,29 @@ static struct backlight_ops dell_ops = {
- 	.update_status  = dell_send_intensity,
- };
- 
-+bool dell_laptop_i8042_filter(unsigned char data, unsigned char str,
-+			      struct serio *port)
-+{
-+	static bool extended;
-+
-+	if (str & 0x20)
-+		return false;
-+
-+	if (unlikely(data == 0xe0)) {
-+		extended = true;
-+		return false;
-+	} else if (unlikely(extended)) {
-+		switch (data) {
-+		case 0x8:
-+			dell_rfkill_update();
-+			break;
-+		}
-+		extended = false;
-+	}
-+
-+	return false;
-+}
-+
- static int __init dell_init(void)
- {
- 	struct calling_interface_buffer buffer;
-@@ -333,6 +367,13 @@ static int __init dell_init(void)
- 		goto out;
- 	}
- 
-+	ret = i8042_install_filter(dell_laptop_i8042_filter);
-+	if (ret) {
-+		printk(KERN_WARNING
-+		       "dell-laptop: Unable to install key filter\n");
-+		goto out;
-+	}
-+
- #ifdef CONFIG_ACPI
- 	/* In the event of an ACPI backlight being available, don't
- 	 * register the platform controller.
-@@ -369,6 +410,7 @@ static int __init dell_init(void)
- 
- 	return 0;
- out:
-+	i8042_remove_filter(dell_laptop_i8042_filter);
- 	if (wifi_rfkill)
- 		rfkill_unregister(wifi_rfkill);
- 	if (bluetooth_rfkill)
-@@ -381,6 +423,7 @@ out:
- 
- static void __exit dell_exit(void)
- {
-+	i8042_remove_filter(dell_laptop_i8042_filter);
- 	backlight_device_unregister(dell_backlight_device);
- 	if (wifi_rfkill)
- 		rfkill_unregister(wifi_rfkill);
--- 
-1.6.5.2
+On Thu, 10 Dec 2009, Rafael J. Wysocki wrote:
+> 
+> OK, why don't you just say you won't merge anything that doesn't use rwsems
 
+I did! Here's a quote (and it's pretty much the whole email, so it's not 
+like it was hidden):
+
+ - alpine.LFD.2.00.0912081309370.3560@localhost.localdomain:
+
+   "Let me put this simply: I've told you guys how to do it simply, with 
+    _zero_ crap. No "iterating over children". No games. No data structures. 
+    No new infrastructure. Just a single new rwlock per device, and _trivial_ 
+    code.
+
+    So here's the challenge: try it my simple way first. I've quoted the code 
+    about five million times already. If you _actually_ see some problems, 
+    explain them. Don't make up stupid "iterate over each child" things. Don't 
+    claim totally made-up "leads to difficulties". Don't make it any more 
+    complicated than it needs to be.
+
+    Keep it simple. And once you have tried that simple approach, and you 
+    really can show why it doesn't work, THEN you can try something else.
+
+    But before you try the simple approach and explain why it wouldn't work, I 
+    simply will not pull anything more complex. Understood and agreed?"
+
+And then later about completions:
+
+ - alpine.LFD.2.00.0912081416470.3560@localhost.localdomain:
+
+   "So I think completions should work, if done right. That whole "make the 
+    parent wait for all the children to complete" is fine in that sense. And 
+    I'll happily take such an approach if my rwlock thing doesn't work."
+
+IOW, I'll happily take the completions version, but dammit, I refuse to 
+take it when there is a simpler approach that does NOT need to iterate, 
+and does NOT need to re-initialize the data structures each round etc.
+
+That's what I've been arguing against the whole time. It started as 
+arguing against complex and unnecessary infrastructure, and trying to show 
+that it _can_ be done so much simpler using existing basic locking.
+
+And I get annoyed when you guys continually seem to want to make it more 
+complex than it needs to be. 
+
+> > And this, for example, is pretty disgusting. Not only is that 
+> > INIT_COMPLETION purely brought on by the whole problem with completions 
+> > (they are fundamentally one-shot, but you want to use them over and over
+> 
+> Actually, twice.  However, since I don't want to do any async handling in the
+> _noirq phases any more, I can get rid of this whole function.  Thanks for
+> pointing that out to me.
+
+Well, my point was that you'll need to do that
+
+	INIT_COMPLETION(dev->power.completion);
+
+thing each suspend and each resume. Exactly because completions are 
+designed to be "onw-way" things, so you end up having to reset them each 
+cycle (you just reset them even _more_ than you needed).
+
+Again, my point was that using locks is actually a very _natural_ thing to 
+do. I really don't understand what problems you and Alan have with just 
+using locks - we have way more locks in the kernel than we have 
+completions, so they are the "default" thing to do, and they really are 
+very natural to use.
+
+[ Ok, so admittedly the actual use of 'struct rw_semaphore' is pretty 
+  unusual, but my point is that people are used to locking semantics in 
+  general, more so than the semantics of completions ]
+
+Completions were literally designed to be used for one-off things - one of 
+the most common uses is that the 'struct completion' is on the _stack_. It 
+doesn't get much more one-off than that - and the completions are really 
+very explicitly designed so that you can do a 'complete()' on something 
+that will literally disappear from under you as you do it (because the 
+struct completion might be on the stack of the thing that is waiting for 
+it, and gets de-allocated when the waiter goes ahead).
+
+That is why 'wait_for_completion()' always has to take the spinlock, for 
+example - there is no fastpath for completion, because the races for the 
+waiter releasing things too early are too nasty.
+
+So completions are actually very subtle things - and you don't need any of 
+that subtlety. I realize that from a user perspective, completions look 
+very simple, but in many ways they actually have subtler semantics than a 
+regular lock has.
+
+			Linus
