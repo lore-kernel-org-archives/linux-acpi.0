@@ -1,47 +1,99 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: spinlock in completion_done() (was: Re: Async resume patch
-	(was: Re: [GIT PULL] PM updates for 2.6.33))
-Date: Fri, 11 Dec 2009 15:10:41 +1100
-Message-ID: <20091211041041.GJ30608@discord.disaster>
-References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org> <200912082248.14138.rjw@sisk.pl> <20091209092922.GC28428@elte.hu> <200912092337.52492.rjw@sisk.pl> <20091210075947.GD25549@elte.hu>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH -V2] acpi: don't cond_resched if irq is disabled
+Date: Fri, 11 Dec 2009 13:46:13 +0800
+Message-ID: <1260510373.10543.17.camel@minggr.sh.intel.com>
+References: <20091210100907.GA2446@ucw.cz>
+	 <1260446205-16868-1-git-send-email-dfeng@redhat.com>
+	 <4B20E7B2.1010208@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757287AbZLKEKy@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091210075947.GD25549@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Lachlan McIlroy <lachlan@sgi.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:37494 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751493AbZLKGAk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Dec 2009 01:00:40 -0500
+In-Reply-To: <4B20E7B2.1010208@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Xiaotian Feng <dfeng@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Pavel Machek <pavel@ucw.cz>
 
-On Thu, Dec 10, 2009 at 08:59:47AM +0100, Ingo Molnar wrote:
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Wednesday 09 December 2009, Ingo Molnar wrote:
-> > > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > On Tuesday 08 December 2009, Alan Stern wrote:
-> > > > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-> > > > > 
-> > > > > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
-> > > > > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
-> > > > > > here?
-> > > > > 
-> > > > > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
-> > > > > these routines were not intended to be called with interrupts disabled, 
-> > > > > but that requirement doesn't seem to be documented.  And it isn't a 
-> > > > > natural requirement anyway.
+On Thu, 2009-12-10 at 20:21 +0800, Alexey Starikovskiy wrote:
+> Hi Xiaotian,
+>=20
+> I think, this is another round of "armor vs. bullet" race... It will =
+hold until
+> might_sleep() logic changes again.
+>=20
+> Please consider using preemptible() -- IMHO this is the check we shou=
+ld perform=20
+> in our case of voluntary preemption.
 
-When I implemented them they were not called from anywhere that
-disabled interrupts.  IIRC the main reason I used spin_lock_irq()
-was because that is what wait_for_completion() used at the time....
+preemptible() may not work here because it always returns 0 for
+non-preemptible kernel.
 
-> > > that's a bug that should be fixed - all the wakeup side (and atomic) 
-> > > variants of completetion API should be irq safe.
+#ifdef CONFIG_PREEMPT
+# define preemptible()  (preempt_count() =3D=3D 0 && !irqs_disabled())
+# define IRQ_EXIT_OFFSET (HARDIRQ_OFFSET-1)
+#else
+# define preemptible()  0
+# define IRQ_EXIT_OFFSET HARDIRQ_OFFSET
+#endif
 
-I see no problems with that ;)
+Lin Ming
 
-Cheers,
+>=20
+> Regards,
+> Alex.
+>=20
+>=20
+> Xiaotian Feng =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> > commit 8bd108d adds preemption point after each opcode parse, then
+> > a sleeping function called from invalid context bug was founded
+> > during suspend/resume stage. this was fixed in commit abe1dfa by
+> > don't cond_resched when irq_disabled. But recent commit 138d156 cha=
+nges
+> > the behaviour to don't cond_resched when in_atomic. This makes the
+> > sleeping function called from invalid context bug happen again, whi=
+ch
+> > is reported in http://lkml.org/lkml/2009/12/1/371.
+> >=20
+> > This patch also fixes http://bugzilla.kernel.org/show_bug.cgi?id=3D=
+14483
+> >=20
+> > Reported-and-bisected-by: Larry Finger <Larry.Finger@lwfinger.net>
+> > Reported-and-bisected-by: Justin P. Mattock <justinmattock@gmail.co=
+m>
+> > Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Bob Moore <robert.moore@intel.com>
+> > Cc: Lin Ming <ming.m.lin@intel.com>
+> > Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+> > Cc: Pavel Machek <pavel@ucw.cz>
+> > ---
+> >  include/acpi/platform/aclinux.h |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >=20
+> > diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platfor=
+m/aclinux.h
+> > index 9d7febd..0946997 100644
+> > --- a/include/acpi/platform/aclinux.h
+> > +++ b/include/acpi/platform/aclinux.h
+> > @@ -152,7 +152,7 @@ static inline void *acpi_os_acquire_object(acpi=
+_cache_t * cache)
+> >  #include <linux/hardirq.h>
+> >  #define ACPI_PREEMPTION_POINT() \
+> >  	do { \
+> > -		if (!in_atomic_preempt_off()) \
+> > +		if (!in_atomic_preempt_off() && !irqs_disabled()) \
+> >  			cond_resched(); \
+> >  	} while (0)
+> > =20
+>=20
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
