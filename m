@@ -1,49 +1,58 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] [PATCH 10/10] thinkpad-acpi: sync input
- device EV_SW state directly
-Date: Fri, 11 Dec 2009 13:02:13 -0200
-Message-ID: <20091211150213.GA25156@khazad-dum.debian.net>
-References: <1260322590-5571-11-git-send-email-hmh@hmh.eng.br>
- <200912081745.14725.dmitry.torokhov@gmail.com>
- <20091209163041.GA29575@khazad-dum.debian.net>
- <20091209172119.GB4456@core.coreip.homeip.net>
- <20091209203201.GC29575@khazad-dum.debian.net>
- <20091209205926.GD10138@core.coreip.homeip.net>
- <20091210131918.GA18283@khazad-dum.debian.net>
- <20091210185922.GD23717@core.coreip.homeip.net>
- <20091211004602.GB24245@khazad-dum.debian.net>
- <20091211075458.GB30274@core.coreip.homeip.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH -V2] acpi: don't cond_resched if irq is disabled
+Date: Fri, 11 Dec 2009 17:15:49 +0100
+Message-ID: <20091211161549.GA15760@elf.ucw.cz>
+References: <20091210100907.GA2446@ucw.cz>
+ <1260446205-16868-1-git-send-email-dfeng@redhat.com>
+ <4B20E7B2.1010208@suse.de>
+ <1260510373.10543.17.camel@minggr.sh.intel.com>
+ <4B223185.80202@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:37485 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758583AbZLKPCJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Dec 2009 10:02:09 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54745 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932508AbZLKQPw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 11:15:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20091211075458.GB30274@core.coreip.homeip.net>
+In-Reply-To: <4B223185.80202@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, Len Brown <lenb@kernel.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, ibm-acpi-devel@lists.sourceforge.net
+To: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Lin Ming <ming.m.lin@intel.com>, Xiaotian Feng <dfeng@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Thu, 10 Dec 2009, Dmitry Torokhov wrote:
-> > > > The only other event that needs initialization are the switches, so I'd
-> > > > argue that we might as well use my proposed patch, which is specific and
-> > > > more lightweight, and convert the in-tree drivers to it.  A few might be
-> > > > missing the before-registering input_event...
-> > > 
-> > > As I think about it even more I think we should leave it asd is. You
+On Fri 2009-12-11 14:48:21, Alexey Starikovskiy wrote:
+> Lin Ming ??????????:
+> > On Thu, 2009-12-10 at 20:21 +0800, Alexey Starikovskiy wrote:
+> >> Hi Xiaotian,
+> >>
+> >> I think, this is another round of "armor vs. bullet" race... It will hold until
+> >> might_sleep() logic changes again.
+> >>
+> >> Please consider using preemptible() -- IMHO this is the check we should perform 
+> >> in our case of voluntary preemption.
 > > 
-> > It needs to be documented somewhere, at least.
-> 
-> Something like the patch below?
+> > preemptible() may not work here because it always returns 0 for
+> > non-preemptible kernel.
+> Right, and it means that this machine does not care about low latency that much.
+> The reason we introduced the preemption point in the first place, was unacceptable latency
+> due to very long AML methods on some machines. We don't need this preemption point for normal
+> operation, this is exactly what voluntary preemption does -- allows those in hurry to pass by.
+> If there are none, fine.
+> > 
+> > #ifdef CONFIG_PREEMPT
+> > # define preemptible()  (preempt_count() == 0 && !irqs_disabled())
+> > # define IRQ_EXIT_OFFSET (HARDIRQ_OFFSET-1)
+> > #else
+> > # define preemptible()  0
+> > # define IRQ_EXIT_OFFSET HARDIRQ_OFFSET
+> > #endif
 
-ACK.
+Well, normally we want low latency even for !CONFIG_PREEMPT kernels.
 
+Actually, explicit preemption points are NOPs for CONFIG_PREEMPT
+kernels, right?
+									Pavel
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
