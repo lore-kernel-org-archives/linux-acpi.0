@@ -1,108 +1,56 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 5/5 -v2] acpi, apei, Document for APEI
-Date: Fri, 11 Dec 2009 09:58:28 -0700
-Message-ID: <200912110958.29319.bjorn.helgaas@hp.com>
-References: <1260429424.15264.397.camel@yhuang-dev.sh.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ACPICA: don't cond_resched() when irq_disabled or
+ in_atomic
+Date: Fri, 11 Dec 2009 18:33:33 +0100
+Message-ID: <20091211173333.GB15760@elf.ucw.cz>
+References: <1259900760-6424-1-git-send-email-dfeng@redhat.com>
+ <20091210100907.GA2446@ucw.cz>
+ <4B2136D5.1030402@gmail.com>
+ <20091210181800.GM19454@elf.ucw.cz>
+ <4B214007.2080409@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:31880 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755850AbZLKQ6Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 11:58:24 -0500
-In-Reply-To: <1260429424.15264.397.camel@yhuang-dev.sh.intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58588 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755919AbZLKRdd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 12:33:33 -0500
 Content-Disposition: inline
+In-Reply-To: <4B214007.2080409@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: lenb@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Xiaotian Feng <dfeng@redhat.com>, lenb@kernel.org, ming.m.lin@intel.com, robert.moore@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday 10 December 2009 12:17:04 am Huang Ying wrote:
-> Add document for APEI, including kernel parameters and EINJ debug file
-> sytem interface.
+On Thu 2009-12-10 21:37:59, Alexey Starikovskiy wrote:
+> Pavel Machek ??????????:
+> > On Thu 2009-12-10 20:58:45, Alexey Starikovskiy wrote:
+> >   
+> >> Hi Pavel,
+> >>
+> >> Please elaborate... Your comments "ugly as hell" are too often to be
+> >> specific...
+> >> There is only one use of ACPI_PREEMPTION_POINT(), and it is in the
+> >> ACPICA code,
+> >> which we all agreed to keep OS independent, thus the need for #define.
+> >> Do you see any other way to add preemption point without introducing
+> >> Linux-specific
+> >> code into ACPICA?
+> >>     
+> >
+> > I believe we want linux-specific code in acpica at this point.
+> >
+> >   
+> The point there we call cond_resched() in ACPICA is an interpreter parse
+> loop. This parse loop may be executed from within atomic context and even
+> with interrupts off. In this case, cond_resched() should not be called
+> to not make
+> might_sleep() guards angry.
 
->From a stylistic point of view, I think it's better if the
-documentation is added by the same patch that adds the functionality.
-Having them in separate patches means there's a point in time where
-the tree contains the functionality but not the documentation, or
-vice versa.
-
-Bjorn
-
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> ---
->  Documentation/acpi/apei/einj.txt    |   49 ++++++++++++++++++++++++++++++++++++
->  Documentation/kernel-parameters.txt |    5 +++
->  2 files changed, 54 insertions(+)
->  create mode 100644 Documentation/acpi/apei/einj.txt
-> 
-> --- /dev/null
-> +++ b/Documentation/acpi/apei/einj.txt
-> @@ -0,0 +1,49 @@
-> +			APEI Error INJection
-> +			~~~~~~~~~~~~~~~~~~~~
-> +
-> +EINJ provides a hardware error injection mechanism, it is very useful
-> +for debugging and testing of other APEI and RAS features.
-> +
-> +To use EINJ, make the following is enabled in your kernel
-> +configuration:
-> +
-> +CONFIG_DEBUG_FS
-> +CONFIG_ACPI_APEI
-> +CONFIG_ACPI_APEI_EINJ
-> +
-> +The user interface of EINJ is in debug file system, under the
-> +directory apei/einj. The following files are provided.
-> +
-> +- available_error_type
-> +  Read this file will return the error injection capability of the
-> +  platform, that is, which error types are supported. The error type
-> +  definition is as follow, the left field is the error type value, the
-> +  right field is error description.
-> +
-> +    0x00000001	Processor Correctable
-> +    0x00000002	Processor Uncorrectable non-fatal
-> +    0x00000004	Processor Uncorrectable fatal
-> +    0x00000008  Memory Correctable
-> +    0x00000010  Memory Uncorrectable non-fatal
-> +    0x00000020  Memory Uncorrectable fatal
-> +    0x00000040	PCI Express Correctable
-> +    0x00000080	PCI Express Uncorrectable fatal
-> +    0x00000100	PCI Express Uncorrectable non-fatal
-> +    0x00000200	Platform Correctable
-> +    0x00000400	Platform Uncorrectable non-fatal
-> +    0x00000800	Platform Uncorrectable fatal
-> +
-> +  The format of file contents are as above, except there are only the
-> +  available error type lines.
-> +
-> +- error_type
-> +  This file is used to set the error type value. The error type value
-> +  is defined in "available_error_type" description.
-> +
-> +- error_inject
-> +  Write any integer to this file to trigger the error
-> +  injection. Before this, please specify all necessary error
-> +  parameters.
-> +
-> +For more information about EINJ, please refer to ACPI specification
-> +version 4.0, section 17.5.
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -338,6 +338,11 @@ and is between 256 and 4096 characters. 
->  			not play well with APC CPU idle - disable it if you have
->  			APC and your system crashes randomly.
->  
-> +	apei.hest_disable= [ACPI]
-> +			Disable Hardware Error Source Table (HEST) support,
-> +			corresponding firmware-first mode error processing
-> +			logic will be disabled.
-> +
->  	apic=		[APIC,X86-32] Advanced Programmable Interrupt Controller
->  			Change the output verbosity whilst booting
->  			Format: { quiet (default) | verbose | debug }
-> 
-> 
+Yes, so pass explicit argument to the interpretter, telling it what
+kind of context it runs on. Similar to kmalloc's GFP_KERNEL
+vs. GFP_ATOMIC.
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
