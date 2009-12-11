@@ -1,130 +1,79 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
-Date: Fri, 11 Dec 2009 10:36:14 -0700
-Message-ID: <200912111036.15063.bjorn.helgaas@hp.com>
-References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/2]ACPI: assign different lockdep key for acpi works
+Date: Fri, 11 Dec 2009 13:57:16 -0800
+Message-ID: <20091211135716.b6d577a1.akpm@linux-foundation.org>
+References: <20091211030458.GB7772@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:40498 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756068AbZLKRk6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 12:40:58 -0500
-In-Reply-To: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58127 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761483AbZLKV6D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Dec 2009 16:58:03 -0500
+In-Reply-To: <20091211030458.GB7772@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: lenb@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, mingo@elte.hu
 
-I see you posted a first version of this series a couple days
-ago, but there weren't any responses (at least on linux-acpi),
-and you didn't say anything about what you changed between
--v1 and -v2.
+On Fri, 11 Dec 2009 11:04:58 +0800
+Shaohua Li <shaohua.li@intel.com> wrote:
 
-On Thursday 10 December 2009 12:16:53 am Huang Ying wrote:
-> Some ACPI IO accessing need to be done in atomic context. For example,
-> APEI ERST operations may be used for permanent storage in hardware
-> error handler. That is, it may be called in atomic contexts such as
-> IRQ or NMI, etc. And, ERST/EINJ implement their operations via IO
-> memory/port accessing.  But the IO memory accessing method provided by
-> ACPI (acpi_read/acpi_write) maps the IO memory during it is accessed,
-> so it can not be used in atomic context. To solve the issue, the IO
-> memory should be pre-mapped during EINJ/ERST initializing. A linked
-> list is used to record which memory area has been mapped, when memory
-> is accessed in hardware error handler, search the linked list for the
-> mapped virtual address from the given physical address.
-
-The ACPI CA has functions called acpi_hw_read() and acpi_hw_write()
-that have similar prototypes and functionality (but of course, they
-don't work in atomic context).  It'd be nice if your new functions
-had similar names, e.g., acpi_hw_map(), acpi_hw_unmap(),
-acpi_hw_read_atomic(), acpi_hw_write_atomic().
-
-I think your code would be simpler if acpi_pre_map_gar() returned a
-struct acpi_iomap pointer (from the caller's point of view, this would
-be an opaque cookie).  Then you could just supply that cookie to
-acpi_atomic_write(), and you wouldn't have to look it up again.  Maybe
-you could even get rid of the list and all the fancy RCU & kref stuff
-then, too.
-
-> +/* In NMI handler, should set silent = 1 */
-> +static int acpi_check_gar(struct acpi_generic_address *reg,
-> +			  u64 *paddr, int silent)
-> +{
-> +	u32 width;
+> Differentiate works for three different workqueue in ACPI. This fixes
+> a fase alarm from lockdep, as acpi hotplug workqueue waits other
+> workqueues.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=14553
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> ---
+>  drivers/acpi/osl.c |   12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> Index: linux/drivers/acpi/osl.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/osl.c	2009-12-10 10:40:15.000000000 +0800
+> +++ linux/drivers/acpi/osl.c	2009-12-10 10:43:25.000000000 +0800
+> @@ -729,6 +729,8 @@ static acpi_status __acpi_os_execute(acp
+>  	struct acpi_os_dpc *dpc;
+>  	struct workqueue_struct *queue;
+>  	int ret;
+> +	static struct lock_class_key hp_key, notify_key, acpid_key;
 > +
-> +	/* Handle possible alignment issues */
-> +	memcpy(paddr, &reg->address, sizeof(*paddr));
-> +	if (!*paddr) {
-> +		if (!silent)
-> +			pr_info(
-> +			"Invalid physical address in GAR, firmware bug?\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	width = reg->bit_width;
-> +	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
-> +		if (!silent)
-> +			pr_info(
-> +			"Invalid bit width in GAR, firmware bug?\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-> +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
-> +		if (!silent)
-> +			pr_info(
-> +			"Invalid address space type in GAR, firmware bug?\n");
+>  	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+>  			  "Scheduling function [%p(%p)] for deferred execution.\n",
+>  			  function, context));
+> @@ -758,7 +760,15 @@ static acpi_status __acpi_os_execute(acp
+>  	queue = hp ? kacpi_hotplug_wq :
+>  		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+>  	dpc->wait = hp ? 1 : 0;
+> -	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+> +	if (queue == kacpi_hotplug_wq)
+> +		INIT_WORK_KEY(&dpc->work, acpi_os_execute_deferred,
+> +				hp_key, "acpi_hp_work");
+> +	else if (queue == kacpi_notify_wq)
+> +		INIT_WORK_KEY(&dpc->work, acpi_os_execute_deferred,
+> +				notify_key, "acpi_notify_work");
+> +	else
+> +		INIT_WORK_KEY(&dpc->work, acpi_os_execute_deferred,
+> +				acpid_key, "acpi_acpid_work");
+>  	ret = queue_work(queue, &dpc->work);
+>  
+>  	if (!ret) {
 
-Error messages with constant text are nearly useless because they
-don't give much of a clue about where to look for a problem.
-Personally, for something this, I would just return failure and
-never print anything.  If a map fails, the caller should notice
-and you then have a good idea of where to look.
+Yes, that's a shortcoming in the present INIT_WORK().  However I think
+you can solve this more simply, without introducing INIT_WORK_KEY():
 
-> +static int acpi_atomic_read_port(u64 port, u32 *val, u32 width)
-> +{
-> +	switch (width) {
-> +	case 8:
-> +		*val = inb(port);
-> +		break;
-> +	case 16:
-> +		*val = inw(port);
-> +		break;
-> +	case 32:
-> +		*val = inl(port);
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
+	if (queue == kacpi_hotplug_wq)
+		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+	else if (queue == kacpi_notify_wq)
+		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+	else
+		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
 
-Can you use acpi_os_read_port() and acpi_os_write_port() instead of
-duplicating this code?
+it looks silly, but I think the compiler will do the right thing with it
+- you'll get a separate lock_class_key at each site.
 
-> +static int acpi_atomic_write_port(u64 port, u32 val, u32 width)
-> +{
-> +	switch (width) {
-> +	case 8:
-> +		outb(val, port);
-> +		break;
-> +	case 16:
-> +		outw(val, port);
-> +		break;
-> +	case 32:
-> +		outl(val, port);
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-
-Bjorn
-
+Obviously it would need an explanatory comment.
