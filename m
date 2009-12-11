@@ -1,133 +1,92 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Thu, 10 Dec 2009 22:42:11 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912102155390.12136-100000@netrider.rowland.org>
-References: <alpine.LFD.2.00.0912101713440.3560@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] acpi: Disable explicit power state retrieval on fans
+Date: Fri, 11 Dec 2009 11:52:49 +0800
+Message-ID: <1260503569.27069.326.camel@rzhang1-desktop>
+References: <1257883752-2163-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:42551 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754442AbZLKDmG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2009 22:42:06 -0500
-In-Reply-To: <alpine.LFD.2.00.0912101713440.3560@localhost.localdomain>
+Received: from mga14.intel.com ([143.182.124.37]:3098 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756299AbZLKDvJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2009 22:51:09 -0500
+In-Reply-To: <1257883752-2163-1-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-Up front: This is my personal view of the matter.  Which probably isn't
-of much interest to anybody, so I won't bother to defend these views or
-comment any further on them.  The decision about what version to use is
-up to the two of you.  The fact is, either implementation would get the 
-job done.
-
-On Thu, 10 Dec 2009, Linus Torvalds wrote:
-
-> Completions really are "locks that were initialized to locked". That is, 
-> in fact, how completions came to be: we literally used to use semaphores 
-> for them, and the reason for completions is literally the magic lifetime 
-> rules they have.
+On Wed, 2009-11-11 at 04:09 +0800, Matthew Garrett wrote:
+> https://bugzilla.redhat.com/show_bug.cgi?id=531916 describes a system
+> with a _PSC method for the fan that always returns "on". There's no
+> benefit in us always requesting the state of the fan when performing
+> transitions - we want to do everything we can to ensure that the fan turns
+> on when it should do, not risk hardware damage by believing the hardware
+> when it tells us the fan is already on. Given that the Leading Other OS(tm)
+> works fine on this machine, it seems likely that it behaves in much this
+> way.
 > 
-> So when you do
+sounds reasonable.
+But how can we get the power state if power resources is not available?
+
+In acpi_bus_get_power, why not make acpi_power_get_inferred_state as the
+first choice, instead of evaluating _PSC? like the patch attached.
+
+---
+ drivers/acpi/bus.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+Index: linux-2.6/drivers/acpi/bus.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/bus.c
++++ linux-2.6/drivers/acpi/bus.c
+@@ -190,16 +190,17 @@ int acpi_bus_get_power(acpi_handle handl
+ 		 * Get the device's power state either directly (via _PSC) or
+ 		 * indirectly (via power resources).
+ 		 */
+-		if (device->power.flags.explicit_get) {
++
++		if (device->power.flags.power_resources) {
++			result = acpi_power_get_inferred_state(device);
++			if (result)
++				return result;
++		} else if (device->power.flags.explicit_get) {
+ 			status = acpi_evaluate_integer(device->handle, "_PSC",
+ 						       NULL, &psc);
+ 			if (ACPI_FAILURE(status))
+ 				return -ENODEV;
+ 			device->power.state = (int)psc;
+-		} else if (device->power.flags.power_resources) {
+-			result = acpi_power_get_inferred_state(device);
+-			if (result)
+-				return result;
+ 		}
+ 
+ 		*state = device->power.state;
+
+
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> ---
+>  drivers/acpi/fan.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> 	INIT_COMPLETION(dev->power.completion);
-> 
-> that really is historically, logically, and conceptually exactly the same 
-> thing as initializing a lock to the locked state. We literally used to do 
-> it with the equivalent of
-> 
-> 	init_MUTEX_LOCKED()
-> 
-> way back when (well, except we didn't have mutexes back then, we had only 
-> counting semaphores) and instead of "complete()", we had "up()" on the 
-> semaphore to complete it.
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index f419849..835b55e 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -256,6 +256,7 @@ static int acpi_fan_add(struct acpi_device *device)
+>  		goto end;
+>  	}
+>  
+> +	device->power.flags.explicit_get = 0;
+>  	device->flags.force_power_state = 1;
+>  	acpi_bus_set_power(device->handle, state);
+>  	device->flags.force_power_state = 0;
 
-You think of it that way because you have been closely involved in the
-development of the various kinds of locks.  Speaking as an outsider who
-has relatively little interest in the internal details, completions
-appear simpler than rwsems.  Mostly because they have a smaller API:  
-complete() (or complete_all()) and wait_for_completion() as opposed to
-down_read(), up_read(), down_write(), and up_write().
+at least we should clear the explicit_get flag 6 lines above, i.e.
+before getting the fan state?
 
-> > Besides, suppose a device driver wants some off-tree constraints to be
-> > satisfied.
-> 
-> .. and I've told you several times that we should simply not do such 
-> devices asynchronously. At least not unless there is some _overriding_ 
-> reason to. And so far, nobody has suggested anything even remotely 
-> likely for that.
-
-Agreed.  The fact that async non-tree suspend constraints are difficult 
-with rwsems isn't a drawback if nobody needs to use them.
-
-> > Well, why actually do we need to preserve the state of the data structure from
-> > one cycle to another?  There's no need whatsoever.
-> 
-> My point is, with locks, none of that is necessary. Because they 
-> automatically do the right thing.
-> 
-> By picking the right concept, you don't have any of those "oh, we need to 
-> re-initialize things" issues. They just work.
-
-That's true, but it's not entirely clear.  There are subtle questions
-about what happens if you stop in the middle or a device gets
-unregistered or registered in the middle.  They require careful thought
-in both approaches.
-
-Having to reinitialize a completion each time doesn't bother me.  It's 
-merely an indication that each suspend & resume is independent of all 
-the others.
-
-> > I still don't think there are many places where locks are used in a way you're
-> > suggesting.  I would even say it's quite unusual to use locks this way.
-> 
-> See above. It's what completions _are_.
-
-This is almost a philosophical issue.  If each A_i must wait for some
-B_j's, is the onus on each A_i to test the B_j's it's interested in?  
-Or is the onus on each B_j to tell the A_i's waiting for it that they
-may proceed?  As Humpty-Dumpty said, "The question is which is to be
-master -- that's all".
-
-> > Well, I guess your point is that the implementation of completions is much
-> > more complicated that we really need, but I'm not sure if that really hurts.
-> 
-> No. The implementation of completions is actually pretty simple, exactly 
-> because they have that spinlock that is required to protect them. 
-> 
-> That wasn't the point. The point was that locks are actually the "normal" 
-> thing to use. 
-> 
-> You are arguing as if completions are somehow the simpler model. That's 
-> simply not true. Completions are just a _special_case_of_locking_.
-
-Doesn't that make them simpler by definition?  Special cases always 
-have less to worry about than the general case.
-
-> So why not just use regular locks instead, when it's actually the natural 
-> way to do it, and results in simpler code?
-
-Simpler but also more subtle, IMO.  If you didn't already know how the
-algorithm worked, figuring it out from the code would be harder with
-rwsems than with completions.  Partly because of the way readers and
-writers exchange roles in suspend vs. resume, and partly because
-sometimes devices lock themselves and sometimes they lock other
-devices.  With completions each device has its own, and each device
-waits for other devices' completions -- easier to keep track of 
-mentally.
-
-(I still think this whole readers vs. writers thing is a red herring.  
-The essential property is that there are two opposing classes of lock
-holders.  The fact that multiple writers can't hold the lock at the
-same time whereas multiple readers can is of no importance; the
-algorithm would work just as well if multiple writers _could_ hold the
-lock simultaneously.)
-
-Balancing the additional conceptual complexity of the rwsem approach is 
-the conceptual simplicity afforded by not needing to check all the 
-children.  To me this makes it pretty much a toss-up.
-
-Alan Stern
+thanks,
+rui
 
