@@ -1,43 +1,42 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] ACPI: support customizing ACPI control methods at runtime
-Date: Fri, 11 Dec 2009 10:54:57 +0100
-Message-ID: <200912111054.58857.trenn@suse.de>
-References: <1259731860.2029.1221.camel@rzhang1-desktop> <alpine.LFD.2.00.0912110150310.6502@localhost.localdomain> <037F493892196B458CD3E193E8EBAD4F01F03F4A2A@pdsmsx502.ccr.corp.intel.com>
+From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Subject: Re: [RESEND] [PATCH 1/3] ACPI: battery: Fix CONFIG_ACPI_SYSFS_POWER=n
+Date: Fri, 11 Dec 2009 10:50:29 +0000
+Message-ID: <9b2b86520912110250r7b5bb77bwd654696eff8e9d4f@mail.gmail.com>
+References: <4A4A219C.2020802@tuffmail.co.uk>
+	 <1252339562.28499.13.camel@maxim-laptop>
+	 <4AA7E438.4070905@tuffmail.co.uk>
+	 <1252531271.4174.5.camel@maxim-laptop>
+	 <9b2b86520909100411o6dc850a5mc80792285411aff3@mail.gmail.com>
+	 <alpine.LFD.2.00.0912092349030.24891@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59798 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753892AbZLKJyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Dec 2009 04:54:53 -0500
-In-Reply-To: <037F493892196B458CD3E193E8EBAD4F01F03F4A2A@pdsmsx502.ccr.corp.intel.com>
-Content-Disposition: inline
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:43758 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754435AbZLKKuY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 05:50:24 -0500
+Received: by bwz27 with SMTP id 27so500601bwz.21
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Dec 2009 02:50:29 -0800 (PST)
+In-Reply-To: <alpine.LFD.2.00.0912092349030.24891@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
-On Friday 11 December 2009 08:25:49 Zhang, Rui wrote:
-> Do you mean some kernel info that suggests an acpi
-> control method is overridden by users?
-Tainting is used for distris to verify whether the customer
-still has support and shows up in kernel oopses, dmesg, etc.
-It can also be useful for bugzilla logs, so that developers
-quickly get an idea that the user has done something he
-should not do.
+On 12/10/09, Len Brown <lenb@kernel.org> wrote:
+>>
+>> $ git fetch alan.bundle battery-check:battery-check
+>> $ git checkout battery-check
+>>
+>> so long as you have the acpi-test commit I based it on.
+>
+> apparently I don't.  Can you re-send this as a plain patch?
+>
+> thanks,
+> -Len
 
-With
-grep TAINT include/linux/kernel.h
-you see possible reasons to taint a kernel.
+Sure.  I'll resend the first two patches in this series (the patch 3/3
+was wrong and should not be applied).
 
-Adding:
-   add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
-when the user successfully modified an AML method should
-get added.
-
-Thanks,
-
-    Thomas
-
+Thanks
+Alan
