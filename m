@@ -1,101 +1,66 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Thu, 10 Dec 2009 17:25:46 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912101713440.3560@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912102040.11063.rjw@sisk.pl> <alpine.LFD.2.00.0912101507550.3560@localhost.localdomain> <200912110202.28536.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH 1/2]workqueue:introduce INIT_WORK_KEY()
+Date: Fri, 11 Dec 2009 11:04:31 +0800
+Message-ID: <20091211030431.GA7772@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54123 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759018AbZLKBZq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Dec 2009 20:25:46 -0500
-In-Reply-To: <200912110202.28536.rjw@sisk.pl>
+Received: from mga02.intel.com ([134.134.136.20]:5797 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751585AbZLKDE1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2009 22:04:27 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: mingo@elte.hu, akpm@linux-foundation.org, lenb@kernel.org
 
+Introduce INIT_WORK_KEY(). lockdep key is static in a function. If a function
+uses INIT_WORK() to initialize works for different workqueue, the works will
+share a lockdep key incorrectly and cause lockdep fase alarm sometimes.
+Next patch will use the new API to solve one ACPI issue.
 
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+---
+ include/linux/workqueue.h |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-On Fri, 11 Dec 2009, Rafael J. Wysocki wrote:
-> 
-> I don't think it really is that simple.  For example, the fact that the outer
-> lock has to be taken by one thread and released by another is not exactly
-> straightforward.  [One might ask what's the critical section in this case.]
-
-Why is that any different from initializing the completion in one thread, 
-and completing it in another?
-
-It's exactly equivalent.
-
-Completions really are "locks that were initialized to locked". That is, 
-in fact, how completions came to be: we literally used to use semaphores 
-for them, and the reason for completions is literally the magic lifetime 
-rules they have.
-
-So when you do
-
-	INIT_COMPLETION(dev->power.completion);
-
-that really is historically, logically, and conceptually exactly the same 
-thing as initializing a lock to the locked state. We literally used to do 
-it with the equivalent of
-
-	init_MUTEX_LOCKED()
-
-way back when (well, except we didn't have mutexes back then, we had only 
-counting semaphores) and instead of "complete()", we had "up()" on the 
-semaphore to complete it.
-
-> Besides, suppose a device driver wants some off-tree constraints to be
-> satisfied.
-
-.. and I've told you several times that we should simply not do such 
-devices asynchronously. At least not unless there is some _overriding_ 
-reason to. And so far, nobody has suggested anything even remotely 
-likely for that.
-
-Again - KISS: Keep It Simple, Stupid!
-
-Don't try to make up problems. The _only_ subsystem we know wants this is 
-USB, and we know USB is purely a tree.
-
-> > 	INIT_COMPLETION(dev->power.completion);
-> > 
-> > thing each suspend and each resume. Exactly because completions are 
-> > designed to be "onw-way" things, so you end up having to reset them each 
-> > cycle (you just reset them even _more_ than you needed).
-> 
-> Well, why actually do we need to preserve the state of the data structure from
-> one cycle to another?  There's no need whatsoever.
-
-My point is, with locks, none of that is necessary. Because they 
-automatically do the right thing.
-
-By picking the right concept, you don't have any of those "oh, we need to 
-re-initialize things" issues. They just work.
-
-> I still don't think there are many places where locks are used in a way you're
-> suggesting.  I would even say it's quite unusual to use locks this way.
-
-See above. It's what completions _are_.
-
-> Well, I guess your point is that the implementation of completions is much
-> more complicated that we really need, but I'm not sure if that really hurts.
-
-No. The implementation of completions is actually pretty simple, exactly 
-because they have that spinlock that is required to protect them. 
-
-That wasn't the point. The point was that locks are actually the "normal" 
-thing to use. 
-
-You are arguing as if completions are somehow the simpler model. That's 
-simply not true. Completions are just a _special_case_of_locking_.
-
-So why not just use regular locks instead, when it's actually the natural 
-way to do it, and results in simpler code?
-
-		Linus
+Index: linux/include/linux/workqueue.h
+===================================================================
+--- linux.orig/include/linux/workqueue.h	2009-12-10 10:14:56.000000000 +0800
++++ linux/include/linux/workqueue.h	2009-12-10 10:39:30.000000000 +0800
+@@ -99,15 +99,20 @@ struct execute_work {
+  * to generate better code.
+  */
+ #ifdef CONFIG_LOCKDEP
+-#define INIT_WORK(_work, _func)						\
++#define INIT_WORK_KEY(_work, _func, _key, _key_name) 			\
+ 	do {								\
+-		static struct lock_class_key __key;			\
+-									\
+ 		(_work)->data = (atomic_long_t) WORK_DATA_INIT();	\
+-		lockdep_init_map(&(_work)->lockdep_map, #_work, &__key, 0);\
++		lockdep_init_map(&(_work)->lockdep_map, _key_name, 	\
++				&_key, 0);				\
+ 		INIT_LIST_HEAD(&(_work)->entry);			\
+ 		PREPARE_WORK((_work), (_func));				\
+ 	} while (0)
++
++#define INIT_WORK(_work, _func)						\
++	do {								\
++		static struct lock_class_key __key;			\
++		INIT_WORK_KEY(_work, _func, __key, #_work);		\
++	} while (0)
+ #else
+ #define INIT_WORK(_work, _func)						\
+ 	do {								\
+@@ -115,6 +120,9 @@ struct execute_work {
+ 		INIT_LIST_HEAD(&(_work)->entry);			\
+ 		PREPARE_WORK((_work), (_func));				\
+ 	} while (0)
++
++#define INIT_WORK_KEY(_work, _func, _key, _key_name) 			\
++	INIT_WORK(_work, _func)
+ #endif
+ 
+ #define INIT_DELAYED_WORK(_work, _func)				\
