@@ -1,48 +1,60 @@
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Subject: [PATCH 2/2] ACPI: battery drivers should call power_supply_changed()
-Date: Fri, 11 Dec 2009 11:05:55 +0000
-Message-ID: <4B222793.3020902@tuffmail.co.uk>
-References: <4B22274A.1000003@tuffmail.co.uk>
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: Re: [PATCH -V2] acpi: don't cond_resched if irq is disabled
+Date: Fri, 11 Dec 2009 14:48:21 +0300
+Message-ID: <4B223185.80202@suse.de>
+References: <20091210100907.GA2446@ucw.cz>	 <1260446205-16868-1-git-send-email-dfeng@redhat.com>	 <4B20E7B2.1010208@suse.de> <1260510373.10543.17.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:52022 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756945AbZLKLFw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 06:05:52 -0500
-Received: by fxm21 with SMTP id 21so852972fxm.1
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Dec 2009 03:05:58 -0800 (PST)
-In-Reply-To: <4B22274A.1000003@tuffmail.co.uk>
+Received: from nat.nue.novell.com ([195.135.221.3]:47939 "EHLO
+	emea5-mh.id5.novell.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1761013AbZLKLsU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 06:48:20 -0500
+In-Reply-To: <1260510373.10543.17.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Xiaotian Feng <dfeng@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Pavel Machek <pavel@ucw.cz>
 
-Calling kobject_uevent() directly is a layering violation.  In
-particular, it means we'll miss updating the generic LED trigger.
+Lin Ming =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> On Thu, 2009-12-10 at 20:21 +0800, Alexey Starikovskiy wrote:
+>> Hi Xiaotian,
+>>
+>> I think, this is another round of "armor vs. bullet" race... It will=
+ hold until
+>> might_sleep() logic changes again.
+>>
+>> Please consider using preemptible() -- IMHO this is the check we sho=
+uld perform=20
+>> in our case of voluntary preemption.
+>=20
+> preemptible() may not work here because it always returns 0 for
+> non-preemptible kernel.
+Right, and it means that this machine does not care about low latency t=
+hat much.
+The reason we introduced the preemption point in the first place, was u=
+nacceptable latency
+due to very long AML methods on some machines. We don't need this preem=
+ption point for normal
+operation, this is exactly what voluntary preemption does -- allows tho=
+se in hurry to pass by.
+If there are none, fine.
+>=20
+> #ifdef CONFIG_PREEMPT
+> # define preemptible()  (preempt_count() =3D=3D 0 && !irqs_disabled()=
+)
+> # define IRQ_EXIT_OFFSET (HARDIRQ_OFFSET-1)
+> #else
+> # define preemptible()  0
+> # define IRQ_EXIT_OFFSET HARDIRQ_OFFSET
+> #endif
+>=20
+Regards,
+Alex.
 
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-CC: Alexey Starikovskiy <astarikovskiy@suse.de>
----
- drivers/acpi/battery.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index ed4aeab..ec3138c 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -833,7 +833,7 @@ static void acpi_battery_notify(struct acpi_device *device, u32 event)
- #ifdef CONFIG_ACPI_SYSFS_POWER
- 	/* acpi_batter_update could remove power_supply object */
- 	if (battery->bat.dev)
--		kobject_uevent(&battery->bat.dev->kobj, KOBJ_CHANGE);
-+		power_supply_changed(&battery->bat);
- #endif
- }
- 
--- 
-1.6.3.3
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
