@@ -1,34 +1,55 @@
-From: Jes Sorensen <jes.sorensen@gmail.com>
-Subject: Re: PATCH: Toshiba Bluetooth enabler (v3)
-Date: Fri, 11 Dec 2009 11:51:18 +0100
-Message-ID: <4B222426.8000904@gmail.com>
-References: <4B192D08.9080608@gmail.com>	 <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>	 <4B1E85A9.3030005@gmail.com>	 <9b2b86520912090517l458bc21cobbb138d460e11f53@mail.gmail.com>	 <4B211346.2000205@gmail.com> <9b2b86520912100900p5796bc35q702af615d3f27a0c@mail.gmail.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: [PATCH 1/2] ACPI: battery: Fix CONFIG_ACPI_SYSFS_POWER=n
+Date: Fri, 11 Dec 2009 11:04:42 +0000
+Message-ID: <4B22274A.1000003@tuffmail.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761013AbZLKKu7@vger.kernel.org>
-In-Reply-To: <9b2b86520912100900p5796bc35q702af615d3f27a0c@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:47567 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756803AbZLKLEo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 06:04:44 -0500
+Received: by fxm21 with SMTP id 21so851872fxm.1
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Dec 2009 03:04:50 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-On 12/10/09 18:00, Alan Jenkins wrote:
-> I did question "depends on RFKILL".  If you manually configure a
-> kernel, you will miss "If you have a modern Toshiba laptop with a
-> Bluetooth and an RFKill switch (such as the Portege R500), say Y."
-> unless you enable RFKILL first.  (Which is unnecessary since the
-> driver will work exactly the same with RFKILL=n).  I wouldn't call it
-> a strong objection, but it would be nice to hear the reason you
-> included this dependency.
->
-> Everything else looks fine.  Thanks for working on this.
-> Alan
+Disabling CONFIG_ACPI_SYSFS_POWER changes the behaviour of
+acpi_battery_update().  It will call acpi_battery_get_info()
+even if the battery is not present.  I haven't noticed this
+causing any problem, but it does look like a bad idea.
 
-The driver is acting as RFKill functionality, even if it doesn't
-provide it in full. We can pull that depend if you like, however
-I still think it's awkward to offer a driver for a functionality
-the user had previously said no to.
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+CC: Alexey Starikovskiy <astarikovskiy@suse.de>
+---
+ drivers/acpi/battery.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Cheers,
-Jes
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 3f4602b..ed4aeab 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -522,13 +522,13 @@ static int acpi_battery_update(struct acpi_battery *battery)
+ 	result = acpi_battery_get_status(battery);
+ 	if (result)
+ 		return result;
+-#ifdef CONFIG_ACPI_SYSFS_POWER
+ 	if (!acpi_battery_present(battery)) {
++#ifdef CONFIG_ACPI_SYSFS_POWER
+ 		sysfs_remove_battery(battery);
++#endif
+ 		battery->update_time = 0;
+ 		return 0;
+ 	}
+-#endif
+ 	if (!battery->update_time ||
+ 	    old_present != acpi_battery_present(battery)) {
+ 		result = acpi_battery_get_info(battery);
+-- 
+1.6.3.3
+
+
+
