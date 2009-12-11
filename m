@@ -1,42 +1,34 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [RESEND] [PATCH 1/3] ACPI: battery: Fix CONFIG_ACPI_SYSFS_POWER=n
-Date: Fri, 11 Dec 2009 10:50:29 +0000
-Message-ID: <9b2b86520912110250r7b5bb77bwd654696eff8e9d4f@mail.gmail.com>
-References: <4A4A219C.2020802@tuffmail.co.uk>
-	 <1252339562.28499.13.camel@maxim-laptop>
-	 <4AA7E438.4070905@tuffmail.co.uk>
-	 <1252531271.4174.5.camel@maxim-laptop>
-	 <9b2b86520909100411o6dc850a5mc80792285411aff3@mail.gmail.com>
-	 <alpine.LFD.2.00.0912092349030.24891@localhost.localdomain>
+From: Jes Sorensen <jes.sorensen@gmail.com>
+Subject: Re: PATCH: Toshiba Bluetooth enabler (v3)
+Date: Fri, 11 Dec 2009 11:51:18 +0100
+Message-ID: <4B222426.8000904@gmail.com>
+References: <4B192D08.9080608@gmail.com>	 <9b2b86520912080205x478b47eek2377dacdbe44a522@mail.gmail.com>	 <4B1E85A9.3030005@gmail.com>	 <9b2b86520912090517l458bc21cobbb138d460e11f53@mail.gmail.com>	 <4B211346.2000205@gmail.com> <9b2b86520912100900p5796bc35q702af615d3f27a0c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:43758 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754435AbZLKKuY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 05:50:24 -0500
-Received: by bwz27 with SMTP id 27so500601bwz.21
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Dec 2009 02:50:29 -0800 (PST)
-In-Reply-To: <alpine.LFD.2.00.0912092349030.24891@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761013AbZLKKu7@vger.kernel.org>
+In-Reply-To: <9b2b86520912100900p5796bc35q702af615d3f27a0c@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lenb@kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
-On 12/10/09, Len Brown <lenb@kernel.org> wrote:
->>
->> $ git fetch alan.bundle battery-check:battery-check
->> $ git checkout battery-check
->>
->> so long as you have the acpi-test commit I based it on.
+On 12/10/09 18:00, Alan Jenkins wrote:
+> I did question "depends on RFKILL".  If you manually configure a
+> kernel, you will miss "If you have a modern Toshiba laptop with a
+> Bluetooth and an RFKill switch (such as the Portege R500), say Y."
+> unless you enable RFKILL first.  (Which is unnecessary since the
+> driver will work exactly the same with RFKILL=n).  I wouldn't call it
+> a strong objection, but it would be nice to hear the reason you
+> included this dependency.
 >
-> apparently I don't.  Can you re-send this as a plain patch?
->
-> thanks,
-> -Len
+> Everything else looks fine.  Thanks for working on this.
+> Alan
 
-Sure.  I'll resend the first two patches in this series (the patch 3/3
-was wrong and should not be applied).
+The driver is acting as RFKill functionality, even if it doesn't
+provide it in full. We can pull that depend if you like, however
+I still think it's awkward to offer a driver for a functionality
+the user had previously said no to.
 
-Thanks
-Alan
+Cheers,
+Jes
