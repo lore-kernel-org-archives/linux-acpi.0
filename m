@@ -1,53 +1,54 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH] ACPI: support customizing ACPI control methods at
- runtime
-Date: Fri, 11 Dec 2009 15:25:49 +0800
-Message-ID: <037F493892196B458CD3E193E8EBAD4F01F03F4A2A@pdsmsx502.ccr.corp.intel.com>
-References: <1259731860.2029.1221.camel@rzhang1-desktop>
- <200912021134.58846.trenn@suse.de>
- <alpine.LFD.2.00.0912110150310.6502@localhost.localdomain>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: spinlock in completion_done() (was: Re: Async resume patch (was:
+ Re: [GIT PULL] PM updates for 2.6.33))
+Date: Fri, 11 Dec 2009 08:54:08 +0100
+Message-ID: <20091211075408.GB31149@elte.hu>
+References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org>
+ <200912082248.14138.rjw@sisk.pl>
+ <20091209092922.GC28428@elte.hu>
+ <200912092337.52492.rjw@sisk.pl>
+ <20091210075947.GD25549@elte.hu>
+ <20091211041041.GJ30608@discord.disaster>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:9197 "EHLO mga09.intel.com"
+Received: from mx3.mail.elte.hu ([157.181.1.138]:50757 "EHLO mx3.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751765AbZLKH0A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 02:26:00 -0500
-In-Reply-To: <alpine.LFD.2.00.0912110150310.6502@localhost.localdomain>
-Content-Language: en-US
+	id S1760691AbZLKHyg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Dec 2009 02:54:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20091211041041.GJ30608@discord.disaster>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-Do you mean some kernel info that suggests an acpi control method is overridden by users?
-
-Thanks,
-rui
-
------Original Message-----
-From: Len Brown [mailto:lenb@kernel.org] 
-Sent: Friday, December 11, 2009 2:51 PM
-To: Thomas Renninger
-Cc: Zhang, Rui; linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] ACPI: support customizing ACPI control methods at runtime
+To: Dave Chinner <david@fromorbit.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Lachlan McIlroy <lachlan@sgi.com>
 
 
-On Wed, 2 Dec 2009, Thomas Renninger wrote:
+* Dave Chinner <david@fromorbit.com> wrote:
 
-> On Wednesday 02 December 2009 06:31:00 Zhang Rui wrote:
-> > 
-> > Introduce a new debugfs I/F (/sys/kernel/debug/acpi/custom_method) for ACPI,
-> > which can be used to customize the ACPI control methods at runtime.
-> Still no kernel tainting on a successful override?
-> On purpose or unintended?
+> On Thu, Dec 10, 2009 at 08:59:47AM +0100, Ingo Molnar wrote:
+> > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Wednesday 09 December 2009, Ingo Molnar wrote:
+> > > > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > > > On Tuesday 08 December 2009, Alan Stern wrote:
+> > > > > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
+> > > > > > 
+> > > > > > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
+> > > > > > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
+> > > > > > > here?
+> > > > > > 
+> > > > > > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
+> > > > > > these routines were not intended to be called with interrupts disabled, 
+> > > > > > but that requirement doesn't seem to be documented.  And it isn't a 
+> > > > > > natural requirement anyway.
+> 
+> When I implemented them they were not called from anywhere that
+> disabled interrupts.  IIRC the main reason I used spin_lock_irq()
+> was because that is what wait_for_completion() used at the time....
 
-unintended.
+Obviously wait_for_competion() as a non-atomic API that can block will 
+(and should) use _irq() - but atomic variants (complete, but also the 
+try-wait thing) use irqsafe methods. A fair portion of completions 
+happen in IRQ context.
 
-Rui, please send a follow-on patch to taint,
-just like when we override the DSDT.
-
-thanks,
--Len Brown, Intel Open Source Technology Center
-
+	Ingo
