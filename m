@@ -1,31 +1,69 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 0/5] IPMI devices from ACPI namespace
-Date: Fri, 11 Dec 2009 01:29:49 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912110128580.6502@localhost.localdomain>
-References: <20091118000427.14214.14043.stgit@bob.kio>
+Subject: Re: regression: 2.6.32-rc8 shuts down after reaching critical
+ temperature
+Date: Fri, 11 Dec 2009 01:49:07 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912110136310.6502@localhost.localdomain>
+References: <20091125102857.GA28310@lst.de> <200912021256.21683.trenn@suse.de>
+ <20091202133032.GA9265@lst.de> <200912021607.53237.trenn@suse.de>
+ <20091202153536.GA20324@lst.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:60304 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757281AbZLKGaJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 01:30:09 -0500
-Received: from localhost.localdomain ([unknown] [74.104.151.18])
- by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0KUH00IQE61RKYU7@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Fri, 11 Dec 2009 00:29:56 -0600 (CST)
-In-reply-to: <20091118000427.14214.14043.stgit@bob.kio>
+Received: from vms173015pub.verizon.net ([206.46.173.15]:50749 "EHLO
+	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368AbZLKGtO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2009 01:49:14 -0500
+In-reply-to: <20091202153536.GA20324@lst.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Zhao Yakui <yakui.zhao@intel.com>, Corey Minyard <minyard@acm.org>, Bela Lubkin <blubkin@vmware.com>, linux-acpi@vger.kernel.org, Myron Stowe <myron.stowe@hp.com>, openipmi-developer@lists.sourceforge.net
+To: Christoph Hellwig <hch@lst.de>
+Cc: Thomas Renninger <trenn@suse.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Corey, Bjorn,
+On Wed, 2 Dec 2009, Christoph Hellwig wrote:
 
-To keep things simple, I've put the 5 patches in this series
-together in the acpi-test tree.  Let me know if that is
-a bad idea.
+> On Wed, Dec 02, 2009 at 04:07:52PM +0100, Thomas Renninger wrote:
+> > Some more hints you may want to try:
+> > 
+> >   - Does cpufreq work at all?
+> >     Does this dir exist: /sys/devices/system/cpu/cpu*/cpufreq
+> 
+> Yes.
+> 
+> >     If temp of:
+> >     watch -n1 cat /proc/acpi/thermal_zone/THM1/temperature
+> >     goes beyond 96 C
+> >     an ACPI processor event must get thrown and this:
+> >     /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq
+> >     will get limited (lower than ../cpufreq/cpuinfo_max_freq).
+> 
+> The speeds change quite constantly under a kernel compile workload, but
+> most of the time it's at 2240800 vs cpuinfo_max_freq which is 2801000
+> 
+> >     echo xy >/sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq
+> >     may be bad workaround.
+> 
+> echo 2240800 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+> echo 2240800 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq
+> 
+> made it survive a kernel compile for me, with an observed maximum
+> temperature of 87 C.
+
+Interesting.  I wonder if the T500 is using P-states for thermal control,
+or if it is relying on us to hit passive trip and pull the P-states down.
+In either case, the mystery remains what is different after 2.6.31.
+
+Perhaps we can simplify...
+Say you run two copies of "# cat /dev/zero > /dev/null" on 2.6.31.
+Does the frequency go up to max and stay there forever,
+or does it come down?
+
+If it stays there, what do you see for the temperature,
+and do you hear the fans?  Presumably the same test
+under 2.6.32 will result in a prompt thermal shutdown.
+
+please send the output from 
+grep . /sys/devices/system/cpu/cpu*/cpufreq/*
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len Brown, Intel Open Source Technology Center
+
