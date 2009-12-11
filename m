@@ -1,85 +1,114 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [PATCH 10/10] thinkpad-acpi: sync input device
- EV_SW state directly
-Date: Thu, 10 Dec 2009 22:46:02 -0200
-Message-ID: <20091211004602.GB24245@khazad-dum.debian.net>
-References: <1260322590-5571-1-git-send-email-hmh@hmh.eng.br>
-	<1260322590-5571-11-git-send-email-hmh@hmh.eng.br>
-	<200912081745.14725.dmitry.torokhov@gmail.com>
-	<20091209163041.GA29575@khazad-dum.debian.net>
-	<20091209172119.GB4456@core.coreip.homeip.net>
-	<20091209203201.GC29575@khazad-dum.debian.net>
-	<20091209205926.GD10138@core.coreip.homeip.net>
-	<20091210131918.GA18283@khazad-dum.debian.net>
-	<20091210185922.GD23717@core.coreip.homeip.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Fri, 11 Dec 2009 02:02:28 +0100
+Message-ID: <200912110202.28536.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912102040.11063.rjw@sisk.pl> <alpine.LFD.2.00.0912101507550.3560@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091210185922.GD23717-WlK9ik9hQGAhIp7JRqBPierSzoNAToWh@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Alan Jenkins <alan-jenkins-cCz0Lq7MMjm9FHfhHBbuYA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:60623 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754849AbZLKBCF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2009 20:02:05 -0500
+In-Reply-To: <alpine.LFD.2.00.0912101507550.3560@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 10 Dec 2009, Dmitry Torokhov wrote:
-> Right, input_set_abs_params()... No, I don't really want to go through
-> all touchpad, touchscreen and joystick drivers at once, thank you vey
-> much ;) Besides, for the vast majority of uses 0 is the proper initial
-> value for absolute axis.
-
-Heh.
-
-> > The only other event that needs initialization are the switches, so I'd
-> > argue that we might as well use my proposed patch, which is specific and
-> > more lightweight, and convert the in-tree drivers to it.  A few might be
-> > missing the before-registering input_event...
+On Friday 11 December 2009, Linus Torvalds wrote:
 > 
-> As I think about it even more I think we should leave it asd is. You
-
-It needs to be documented somewhere, at least.
-
-> > BTW, looking at input.h, wouldn't it be better to force the init functions
-> > to be run before registering the input device, doing a BUG_ON() if they're
-> > misused?
+> On Thu, 10 Dec 2009, Rafael J. Wysocki wrote:
+...
 > 
-> What function are you referring to? Input devices are in useable state
+> IOW, I'll happily take the completions version, but dammit, I refuse to 
+> take it when there is a simpler approach that does NOT need to iterate, 
+> and does NOT need to re-initialize the data structures each round etc.
 
-The ones proposed in this subthread, which shouldn't be used after
-registering.
+I don't think it really is that simple.  For example, the fact that the outer
+lock has to be taken by one thread and released by another is not exactly
+straightforward.  [One might ask what's the critical section in this case.]
 
-> as returned by input_allocate_device().
+Besides, suppose a device driver wants some off-tree constraints to be
+satisfied.  What's the driver writer supposed to do?  He only can lock the
+other device, but that will cause lockdep to complain, because this lock
+is going to be nested.  Moreover, it's already too late, because his async
+thread has started and there's no guarantee that the other device hasn't
+acquired its rwsem yet.
 
-Unless, of course, someone screws up verifying if input_alocate_device
-returned NULL...
+With completions, the driver doesn't have to take any action to prevent another
+one from suspending too early.  Instead, the other one has to wait for its
+suspend to complete, and for me personally this is a much more natural thing
+to do.  IOW, if I were a driver writed, I'd probably prefer to wait on a
+completion than to use a lock in a tricky manner.
 
-> >   I'd also suggest a BUG_ON(!dev), or at least an if (!dev) return
-> > -EINVAL; to the top of input_register_device(...)...
+> That's what I've been arguing against the whole time. It started as 
+> arguing against complex and unnecessary infrastructure, and trying to show 
+> that it _can_ be done so much simpler using existing basic locking.
 > 
-> Nah, just let it crash (the same effect as BUG_ON really).
+> And I get annoyed when you guys continually seem to want to make it more 
+> complex than it needs to be. 
+> 
+> > > And this, for example, is pretty disgusting. Not only is that 
+> > > INIT_COMPLETION purely brought on by the whole problem with completions 
+> > > (they are fundamentally one-shot, but you want to use them over and over
+> > 
+> > Actually, twice.  However, since I don't want to do any async handling in the
+> > _noirq phases any more, I can get rid of this whole function.  Thanks for
+> > pointing that out to me.
+> 
+> Well, my point was that you'll need to do that
+> 
+> 	INIT_COMPLETION(dev->power.completion);
+> 
+> thing each suspend and each resume. Exactly because completions are 
+> designed to be "onw-way" things, so you end up having to reset them each 
+> cycle (you just reset them even _more_ than you needed).
 
-There's a difference, and it is not small if it happens outside of a driver
-developer's test kernel.
+Well, why actually do we need to preserve the state of the data structure from
+one cycle to another?  There's no need whatsoever.
 
-Not that I'd expect anyone to ship code so broken, that would manage to
-input_register_device(NULL), so I don't have any strong feelings on this.
+> Again, my point was that using locks is actually a very _natural_ thing to 
+> do. I really don't understand what problems you and Alan have with just 
+> using locks - we have way more locks in the kernel than we have 
+> completions, so they are the "default" thing to do, and they really are 
+> very natural to use.
+> 
+> [ Ok, so admittedly the actual use of 'struct rw_semaphore' is pretty 
+>   unusual, but my point is that people are used to locking semantics in 
+>   general, more so than the semantics of completions ]
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I still don't think there are many places where locks are used in a way you're
+suggesting.  I would even say it's quite unusual to use locks this way.
 
-------------------------------------------------------------------------------
-Return on Information:
-Google Enterprise Search pays you back
-Get the facts.
-http://p.sf.net/sfu/google-dev2dev
+> Completions were literally designed to be used for one-off things - one of 
+> the most common uses is that the 'struct completion' is on the _stack_. It 
+> doesn't get much more one-off than that - and the completions are really 
+> very explicitly designed so that you can do a 'complete()' on something 
+> that will literally disappear from under you as you do it (because the 
+> struct completion might be on the stack of the thing that is waiting for 
+> it, and gets de-allocated when the waiter goes ahead).
+
+We could literally throw away a completion after all of the potentially waiting
+threads have finished their operations and then allocate it back again when
+necessary.  We only need the synchronization in this particular phase of
+suspend or resume and it doesn't need to extend to the other phases or other
+cycles, because all of the concurrent threads we need to synchronize will
+only live during this one particular phase of suspend or resume.  They will
+all exit when it's finished anyway.
+
+> That is why 'wait_for_completion()' always has to take the spinlock, for 
+> example - there is no fastpath for completion, because the races for the 
+> waiter releasing things too early are too nasty.
+> 
+> So completions are actually very subtle things - and you don't need any of 
+> that subtlety. I realize that from a user perspective, completions look 
+> very simple, but in many ways they actually have subtler semantics than a 
+> regular lock has.
+
+Well, I guess your point is that the implementation of completions is much
+more complicated that we really need, but I'm not sure if that really hurts.
+
+Rafael
