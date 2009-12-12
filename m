@@ -1,158 +1,91 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 2/2] sony-laptop - remove private workqueue, use keventd instead
-Date: Sat, 12 Dec 2009 14:09:39 +0900
-Message-ID: <1260594579-16027-3-git-send-email-malattia@linux.it>
-References: <1260594579-16027-1-git-send-email-malattia@linux.it>
- <1260594579-16027-2-git-send-email-malattia@linux.it>
+From: "Youquan,Song" <youquan.song@linux.intel.com>
+Subject: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
+Date: Sat, 12 Dec 2009 13:14:42 -0500
+Message-ID: <20091212181442.GA22832@youquan-linux.bj.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:55351
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757838AbZLLFKF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2009 00:10:05 -0500
-In-Reply-To: <1260594579-16027-2-git-send-email-malattia@linux.it>
+Received: from mga12.intel.com ([143.182.124.36]:52653 "EHLO
+	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1761471AbZLLKjD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2009 05:39:03 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Mattia Dongili <malattia@linux.it>
+To: lenb@kernel.org
+Cc: venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
 
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+On Nehalem-EX, CPU C3 is mapped to ACPI C3, but C-states information in /proc
+ and /sys are conflicting with ACPI C2 mapping and confused user.
 
-If we reschedule work instead of having work function sleep for 10 msecs
-between reads from kfifo we can safely use the main workqueue (keventd)
-and not bother with creating driver-private one.
+/proc/acpi/processor/CPUx/power
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+    C1:                  type[C1] promotion[--] demotion[--] 
+    C2:                  type[C3] promotion[--] demotion[--] 
+
+While
+/sys/devices/system/cpu/cpux/cpuidle/state1
+ACPI FFH INTEL MWAIT 0x0
+1
+C1
+1000
+58312355
+323873
+
+/sys/devices/system/cpu/cpux/cpuidle/state2
+ACPI FFH INTEL MWAIT 0x10
+17
+C2
+500
+83706664055
+18926855
+
+In /proc, "type[C3]" mean acpi C3, but from its title "C2:" mean processor
+support max C-state is ACPI C2.
+In /sys, there is no any information show that this processor support ACPI C3. 
+
+these issues are rooted cause to ACPI C2 miss at some platforms, ACPI C3 is
+wrongly mapped to C2.
+
+This patch will invalidate ACPI C2 when platform does not support ACPI C2.
+
+After apply the patch, the C-state information in /proc and /sys are reasonable
+
+/proc/acpi/processor/CPUx/power
+    C1:                  type[C1] promotion[--] demotion[--] 
+    C2:                  <not supported>
+    C3:                  type[C3] promotion[--] demotion[--] 
+/sys/devices/system/cpu/cpux/cpuidle/state1/
+ACPI FFH INTEL MWAIT 0x0
+1
+C1
+1000
+65220
+1923
+
+/sys/devices/system/cpu/cpux/cpuidle/state2/
+ACPI FFH INTEL MWAIT 0x10
+17
+C3
+500
+5794034076
+1530073
+
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c |   57 +++++++++++++++++++----------------
- 1 files changed, 31 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 9710f70..b2dccf4 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -144,7 +144,6 @@ struct sony_laptop_input_s {
- 	struct input_dev	*key_dev;
- 	struct kfifo		*fifo;
- 	spinlock_t		fifo_lock;
--	struct workqueue_struct	*wq;
- };
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index bbd066e..302d656 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -459,6 +459,10 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+ 		cx.power = obj->integer.value;
  
- static struct sony_laptop_input_s sony_laptop_input = {
-@@ -300,17 +299,28 @@ static int sony_laptop_input_keycode_map[] = {
- /* release buttons after a short delay if pressed */
- static void do_sony_laptop_release_key(struct work_struct *work)
- {
-+	struct delayed_work *dwork =
-+			container_of(work, struct delayed_work, work);
- 	struct sony_laptop_keypress kp;
- 
--	while (kfifo_get(sony_laptop_input.fifo, (unsigned char *)&kp,
--			 sizeof(kp)) == sizeof(kp)) {
--		msleep(10);
-+	if (kfifo_get(sony_laptop_input.fifo,
-+		      (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
- 		input_report_key(kp.dev, kp.key, 0);
- 		input_sync(kp.dev);
- 	}
+ 		current_count++;
 +
-+	/*
-+	 * If there is something in the fifo scnhedule nect release.
-+	 * We don't care about locking, at worst we may schedule an
-+	 * extra "empty" wakeup. This may be improved with the new
-+	 * kfifo API.
-+	 */
-+	if (__kfifo_len(sony_laptop_input.fifo) != 0)
-+		schedule_delayed_work(dwork, msecs_to_jiffies(10));
- }
--static DECLARE_WORK(sony_laptop_release_key_work,
--		do_sony_laptop_release_key);
++		if (current_count == 2 && cx.type != ACPI_STATE_C2)
++			current_count++;
 +
-+static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
-+			    do_sony_laptop_release_key);
+ 		memcpy(&(pr->power.states[current_count]), &cx, sizeof(cx));
  
- /* forward event to the input subsystem */
- static void sony_laptop_report_input_event(u8 event)
-@@ -364,12 +374,12 @@ static void sony_laptop_report_input_event(u8 event)
- 		/* we emit the scancode so we can always remap the key */
- 		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
- 		input_sync(kp.dev);
-+
-+		/* schedule key release */
- 		kfifo_put(sony_laptop_input.fifo,
- 			  (unsigned char *)&kp, sizeof(kp));
--
--		if (!work_pending(&sony_laptop_release_key_work))
--			queue_work(sony_laptop_input.wq,
--					&sony_laptop_release_key_work);
-+		schedule_delayed_work(&sony_laptop_release_key_work,
-+				      msecs_to_jiffies(10));
- 	} else
- 		dprintk("unknown input event %.2x\n", event);
- }
-@@ -396,20 +406,11 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
- 		goto err_dec_users;
- 	}
- 
--	/* init workqueue */
--	sony_laptop_input.wq = create_singlethread_workqueue("sony-laptop");
--	if (!sony_laptop_input.wq) {
--		printk(KERN_ERR DRV_PFX
--				"Unable to create workqueue.\n");
--		error = -ENXIO;
--		goto err_free_kfifo;
--	}
--
- 	/* input keys */
- 	key_dev = input_allocate_device();
- 	if (!key_dev) {
- 		error = -ENOMEM;
--		goto err_destroy_wq;
-+		goto err_free_kfifo;
- 	}
- 
- 	key_dev->name = "Sony Vaio Keys";
-@@ -472,9 +473,6 @@ err_unregister_keydev:
- err_free_keydev:
- 	input_free_device(key_dev);
- 
--err_destroy_wq:
--	destroy_workqueue(sony_laptop_input.wq);
--
- err_free_kfifo:
- 	kfifo_free(sony_laptop_input.fifo);
- 
-@@ -485,12 +483,20 @@ err_dec_users:
- 
- static void sony_laptop_remove_input(void)
- {
-+	struct sony_laptop_keypress kp = { NULL };
-+
- 	/* cleanup only after the last user has gone */
- 	if (!atomic_dec_and_test(&sony_laptop_input.users))
- 		return;
- 
--	/* flush workqueue first */
--	flush_workqueue(sony_laptop_input.wq);
-+	cancel_delayed_work_sync(&sony_laptop_release_key_work);
-+
-+	/* Generate key-up events for remaining keys */
-+	while (kfifo_get(sony_laptop_input.fifo,
-+			 (unsigned char *)&kp, sizeof(kp)) == sizeof(kp)) {
-+		input_report_key(kp.dev, kp.key, 0);
-+		input_sync(kp.dev);
-+	}
- 
- 	/* destroy input devs */
- 	input_unregister_device(sony_laptop_input.key_dev);
-@@ -501,7 +507,6 @@ static void sony_laptop_remove_input(void)
- 		sony_laptop_input.jog_dev = NULL;
- 	}
- 
--	destroy_workqueue(sony_laptop_input.wq);
- 	kfifo_free(sony_laptop_input.fifo);
- }
- 
--- 
-1.6.5.4
-
+ 		/*
