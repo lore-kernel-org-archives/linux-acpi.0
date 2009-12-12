@@ -1,91 +1,56 @@
-From: "Youquan,Song" <youquan.song@linux.intel.com>
-Subject: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
-Date: Sat, 12 Dec 2009 13:14:42 -0500
-Message-ID: <20091212181442.GA22832@youquan-linux.bj.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re:
+	Async suspend-resume patch w/ rwsems)
+Date: Sat, 12 Dec 2009 18:35:40 +0100
+Message-ID: <200912121835.40663.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912111938310.32493-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga12.intel.com ([143.182.124.36]:52653 "EHLO
-	azsmga102.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1761471AbZLLKjD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2009 05:39:03 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.44L0.0912111938310.32493-100000@netrider.rowland.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
 
-On Nehalem-EX, CPU C3 is mapped to ACPI C3, but C-states information in /proc
- and /sys are conflicting with ACPI C2 mapping and confused user.
+On Saturday 12 December 2009, Alan Stern wrote:
+> On Sat, 12 Dec 2009, Rafael J. Wysocki wrote:
+> 
+> > Below is a patch I've just tested, but there's a lockdep problem in it I don't
+> > know how to solve.  Namely, lockdep is apparently unhappy with us not releasing
+> > the lock taken in device_suspend() and it complains we take it twice in a row
+> > (which we do, but for another device).  I need to use down_read_non_owner()
+> > to make it shut up and then I also need to use up_read_non_owner() in
+> > __device_suspend(), although there's the comment in include/linux/rwsem.h
+> > saying exatly this about that:
+> > 
+> > /*
+> >  * Take/release a lock when not the owner will release it.
+> >  *
+> >  * [ This API should be avoided as much as possible - the
+> >  *   proper abstraction for this case is completions. ]
+> >  */
+> > 
+> > (I'd like to know your opinion about that).  Yet, that's not all, because next
+> > it complains during resume that __device_resume() releases a lock it didn't
+> > acquire, which it clearly does, but that is intentional.  Unfortunately,
+> > there's no up_write_non_owner() ...
+> 
+> Hah!  I knew it!
+> 
+> How come lockdep didn't complain earlier?  What's different about this 
+> patch?  Only the nesting annotations?  Why should adding annotations 
+> make lockdep less happy?
 
-/proc/acpi/processor/CPUx/power
+I'm not sure.  Perhaps I made a mistake during the previous tests.
 
-    C1:                  type[C1] promotion[--] demotion[--] 
-    C2:                  type[C3] promotion[--] demotion[--] 
-
-While
-/sys/devices/system/cpu/cpux/cpuidle/state1
-ACPI FFH INTEL MWAIT 0x0
-1
-C1
-1000
-58312355
-323873
-
-/sys/devices/system/cpu/cpux/cpuidle/state2
-ACPI FFH INTEL MWAIT 0x10
-17
-C2
-500
-83706664055
-18926855
-
-In /proc, "type[C3]" mean acpi C3, but from its title "C2:" mean processor
-support max C-state is ACPI C2.
-In /sys, there is no any information show that this processor support ACPI C3. 
-
-these issues are rooted cause to ACPI C2 miss at some platforms, ACPI C3 is
-wrongly mapped to C2.
-
-This patch will invalidate ACPI C2 when platform does not support ACPI C2.
-
-After apply the patch, the C-state information in /proc and /sys are reasonable
-
-/proc/acpi/processor/CPUx/power
-    C1:                  type[C1] promotion[--] demotion[--] 
-    C2:                  <not supported>
-    C3:                  type[C3] promotion[--] demotion[--] 
-/sys/devices/system/cpu/cpux/cpuidle/state1/
-ACPI FFH INTEL MWAIT 0x0
-1
-C1
-1000
-65220
-1923
-
-/sys/devices/system/cpu/cpux/cpuidle/state2/
-ACPI FFH INTEL MWAIT 0x10
-17
-C3
-500
-5794034076
-1530073
-
-Signed-off-by: Youquan, Song <youquan.song@intel.com>
----
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index bbd066e..302d656 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -459,6 +459,10 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 		cx.power = obj->integer.value;
- 
- 		current_count++;
-+
-+		if (current_count == 2 && cx.type != ACPI_STATE_C2)
-+			current_count++;
-+
- 		memcpy(&(pr->power.states[current_count]), &cx, sizeof(cx));
- 
- 		/*
+Rafael
