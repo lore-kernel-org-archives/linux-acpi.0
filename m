@@ -1,122 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] sched: Make wakeup side variants of completion
-	API irq safe (was: Re: spinlock in completion_done())
-Date: Sun, 13 Dec 2009 00:07:30 +0100
-Message-ID: <200912130007.30541.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912081633540.3046-100000@iolanthe.rowland.org>
-	<200912092337.52492.rjw@sisk.pl> <20091210075947.GD25549@elte.hu>
+From: "Youquan,Song" <youquan.song@linux.intel.com>
+Subject: Re: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
+Date: Sat, 12 Dec 2009 18:55:49 -0500
+Message-ID: <20091212235549.GA7753@youquan-linux.bj.intel.com>
+References: <20091212181442.GA22832@youquan-linux.bj.intel.com> <20091212142727.GA6867@comet.dominikbrodowski.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20091210075947.GD25549@elte.hu>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, David Chinner <david@fromorbit.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lachlan McIlroy <lachlan@sgi.com>, Linus Torvalds <torvalds@linux-foundation.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([143.182.124.22]:27097 "HELO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S933599AbZLMBgq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2009 20:36:46 -0500
+Content-Disposition: inline
+In-Reply-To: <20091212142727.GA6867@comet.dominikbrodowski.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: "Youquan,Song" <youquan.song@linux.intel.com>, lenb@kernel.org, venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
 
-On Thursday 10 December 2009, Ingo Molnar wrote:
+On Sat, Dec 12, 2009 at 03:27:27PM +0100, Dominik Brodowski wrote:
+> On Sat, Dec 12, 2009 at 01:14:42PM -0500, Youquan,Song wrote:
+> > On Nehalem-EX, CPU C3 is mapped to ACPI C3, but C-states information in /proc
+> >  and /sys are conflicting with ACPI C2 mapping and confused user.
 > 
-> * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> 
-> > On Wednesday 09 December 2009, Ingo Molnar wrote:
-> > > 
-> > > * Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > 
-> > > > On Tuesday 08 December 2009, Alan Stern wrote:
-> > > > > On Tue, 8 Dec 2009, Rafael J. Wysocki wrote:
-> > > > > 
-> > > > > > BTW, is there a good reason why completion_done() doesn't use spin_lock_irqsave
-> > > > > > and spin_unlock_irqrestore?  complete() and complete_all() use them, so why not
-> > > > > > here?
-> > > > > 
-> > > > > And likewise in try_wait_for_completion().  It looks like a bug.  Maybe 
-> > > > > these routines were not intended to be called with interrupts disabled, 
-> > > > > but that requirement doesn't seem to be documented.  And it isn't a 
-> > > > > natural requirement anyway.
-> > > > 
-> > > > OK, let's ask Ingo about that.
-> > > > 
-> > > > Ingo, is there any particular reason why completion_done() and
-> > > > try_wait_for_completion() don't use spin_lock_irqsave() and
-> > > > spin_unlock_irqrestore()?
-> > > 
-> > > that's a bug that should be fixed - all the wakeup side (and atomic) 
-> > > variants of completetion API should be irq safe.
-> > > 
-> > > It appears that these new completion APIs were added via the XFS tree 
-> > > about a year ago:
-> > > 
-> > >   39d2f1a: [XFS] extend completions to provide XFS object flush requirements
-> > > 
-> > > Please Cc: scheduler folks to all scheduler patches.
-> > 
-> > If you haven't fixed it locally yet, would you mind me posting a fix?
-> 
-> I wouldnt mind it at all.
+> Well, isn't the "type" only losely related to the C-state number anyway, if
+> you have more than 3 states?
 
-Is appended.
+That's true, if CPU has more 3 states such as C3, C6, C7, there are
+all mapped to ACPI C3.   But the current situation is that if platform
+does NOT support ACPI C2, the user interface /sys show us ACPI C2 is
+ supported which actual is ACPI C3.
 
-Thanks,
-Rafael
+As you know, ACPI C3 and ACPI C2 have much different, such as: BUS SNOOP
+ or not, ACPI C3 has better power saving etc. we should not mix them.
 
----
-From: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: sched: Make wakeup side variants of completion API irq safe
+Thanks.
 
-All the wakeup side variants of the completion API shoild be irq
-safe, but completion_done() and try_wait_for_completion() aren't.
-Fix the problem by making them use spin_lock_irqsave() and
-spin_lock_irqrestore().
+-Youquan
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/sched.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-Index: linux-2.6/kernel/sched.c
-===================================================================
---- linux-2.6.orig/kernel/sched.c
-+++ linux-2.6/kernel/sched.c
-@@ -5931,14 +5931,15 @@ EXPORT_SYMBOL(wait_for_completion_killab
-  */
- bool try_wait_for_completion(struct completion *x)
- {
-+	unsigned long flags;
- 	int ret = 1;
- 
--	spin_lock_irq(&x->wait.lock);
-+	spin_lock_irqsave(&x->wait.lock, flags);
- 	if (!x->done)
- 		ret = 0;
- 	else
- 		x->done--;
--	spin_unlock_irq(&x->wait.lock);
-+	spin_unlock_irqrestore(&x->wait.lock, flags);
- 	return ret;
- }
- EXPORT_SYMBOL(try_wait_for_completion);
-@@ -5953,12 +5954,13 @@ EXPORT_SYMBOL(try_wait_for_completion);
-  */
- bool completion_done(struct completion *x)
- {
-+	unsigned long flags;
- 	int ret = 1;
- 
--	spin_lock_irq(&x->wait.lock);
-+	spin_lock_irqsave(&x->wait.lock, flags);
- 	if (!x->done)
- 		ret = 0;
--	spin_unlock_irq(&x->wait.lock);
-+	spin_unlock_irqrestore(&x->wait.lock, flags);
- 	return ret;
- }
- EXPORT_SYMBOL(completion_done);
