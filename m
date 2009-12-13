@@ -1,52 +1,77 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] Async suspend-resume patch w/ completions (was: Re:
- Async suspend-resume patch w/ rwsems)
-Date: Sun, 13 Dec 2009 14:02:17 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912131349400.2857-100000@netrider.rowland.org>
-References: <Pine.LNX.4.44L0.0912131221210.1111-100000@netrider.rowland.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753893AbZLMTC0@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.0912131221210.1111-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+From: Corentin Chary <corentincj@iksaif.net>
+Subject: [PATCH] eeepc-laptop: disable pci hotplug code when all notifiers fail to load
+Date: Sun, 13 Dec 2009 22:16:11 +0100
+Message-ID: <1260738971-25456-1-git-send-email-corentincj@iksaif.net>
+References: <20091207212848.GA9171@srcf.ucam.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iksaif.net ([88.191.73.63]:55306 "HELO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754155AbZLMUT5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Dec 2009 15:19:57 -0500
+In-Reply-To: <20091207212848.GA9171@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: andrej.gelenberg@udo.edu
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net, Corentin Chary <corentincj@iksaif.net>
 
-On Sun, 13 Dec 2009, Alan Stern wrote:
+This is a short term workaround for Eeepc 1005HA.
 
-> > Namely that there's no apparent sane way to say "don't wait for children".
-> > 
-> > PCI bridges that don't suspend at all - or any other device that only 
-> > suspends in the 'suspend_late()' thing, for that matter - don't have any 
-> > reason what-so-ever to wait for children, since they aren't actually 
-> > suspending in the first place. But you make them wait regardless, which 
-> > then serializes things unnecessarily (for example, two unrelated USB 
-> > controllers).
+refs: <http://bugzilla.kernel.org/show_bug.cgi?id=14570>
 
-> In short, allowing devices to suspend before their children would be 
-> dangerous and probably would not save a significant amount of time.
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/platform/x86/eeepc-laptop.c |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
 
-There's more to be said.  Even without this "don't wait for children"  
-thing, there can be bad interactions causing unnecessary delays.  For
-example, suppose A (async) is the parent of B (sync), B comes before C
-(sync) in dpm_list, and C is the parent of D (async).  Even if A & B
-are unrelated to C & D, they will be forced to wait for them.  It 
-doesn't matter that A and D are unrelated and so could suspend 
-concurrently.
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 356ca11..45c3f52 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -177,6 +177,7 @@ struct eeepc_laptop {
+ 
+ 	struct hotplug_slot *hotplug_slot;
+ 	struct mutex hotplug_lock;
++	bool hotplug_enabled;
+ 
+ 	struct led_classdev tpd_led;
+ 	int tpd_led_wk;
+@@ -642,6 +643,7 @@ static int eeepc_register_rfkill_notifier(struct eeepc_laptop *eeepc,
+ 						     eeepc);
+ 		if (ACPI_FAILURE(status))
+ 			pr_warning("Failed to register notify on %s\n", node);
++		eeepc->hotplug_enabled = true;
+ 	} else
+ 		return -ENODEV;
+ 
+@@ -845,7 +847,17 @@ static int eeepc_rfkill_init(struct eeepc_laptop *eeepc)
+ 	if (result && result != -ENODEV)
+ 		goto exit;
+ 
+-	result = eeepc_setup_pci_hotplug(eeepc);
++	/*
++	 * Register notifiers first, if they all fail, we won't enable
++	 * pci hotplug because it's probably not needed for this model
++	 * (eg: 1005HA)
++	 */
++	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P5");
++	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P6");
++	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P7");
++
++	if (eeepc->hotplug_enabled)
++		result = eeepc_setup_pci_hotplug(eeepc);
+ 	/*
+ 	 * If we get -EBUSY then something else is handling the PCI hotplug -
+ 	 * don't fail in this case
+@@ -853,9 +865,6 @@ static int eeepc_rfkill_init(struct eeepc_laptop *eeepc)
+ 	if (result == -EBUSY)
+ 		result = 0;
+ 
+-	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P5");
+-	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P6");
+-	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P7");
+ 	/*
+ 	 * Refresh pci hotplug in case the rfkill state was changed during
+ 	 * setup.
+-- 
+1.6.5.4
 
-In essence, every synchonrous device is treated as though it depends on 
-all the synchronous devices preceding it in dpm_list.  That's a lot of 
-unnecessary constraints.  At the moment we have no choice, because we 
-have to assume that some of those constraints actually are necessary -- 
-and we don't know which ones.
-
-It's an inescapable fact: If there are unnecessary ordering constraints
-then you generally can't be 100% efficient in carrying out parallel
-operations.  Compared with all these extra "synchronous" constraints,
-the relatively small number of "don't need to wait for children"  
-constraints is harmless.  I bet that if we got rid of all unnecessary
-constraints except for making parents always wait for their children,
-we'd attain more than 95% of the ideal speedup.
-
-Alan Stern
