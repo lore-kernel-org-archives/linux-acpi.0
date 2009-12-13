@@ -1,728 +1,88 @@
-From: yakui.zhao@intel.com
-Subject: [PATCH] ACPI: Install the IPMI space handler to enable ACPI to access the BMC controller
-Date: Sun, 13 Dec 2009 18:57:32 +0800
-Message-ID: <1260701852-1255-1-git-send-email-yakui.zhao@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19428 "HELO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750792AbZLMK7G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Dec 2009 05:59:06 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re:
+	Async suspend-resume patch w/ rwsems)
+Date: Sun, 13 Dec 2009 14:08:57 +0100
+Message-ID: <200912131408.57960.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org>
+	<200912121848.33062.rjw@sisk.pl>
+	<alpine.LFD.2.00.0912121049390.3526@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <alpine.LFD.2.00.0912121049390.3526@localhost.localdomain>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-From: Zhao Yakui <yakui.zhao@intel.com>
+On Saturday 12 December 2009, Linus Torvalds wrote:
+> 
+> On Sat, 12 Dec 2009, Rafael J. Wysocki wrote:
+> > 
+> > I'd like to put it into my tree in this form, if you don't mind.
+> 
+> This version still has a major problem, which is not related to 
+> completions vs rwsems, but simply to the fact that you wanted to do this 
+> at the generic device layer level rather than do it at the actual 
+> low-level suspend/resume level.
+> 
+> Namely that there's no apparent sane way to say "don't wait for children".
 
-V1->V2: Accordint to Bjorn's comment, we won't install the IPMI space handler
-by loading an ACPI device driver. Instead we will enumerate the ACPI IPMI
-device directly in ACPI device tree and then install the IPMI space handler.
-Then ACPI AML code and access the BMC controller through the IPMI space
-handler.
+There is, if the partent would really do something that could disturb the
+children.  This isn't always the case, but at least in a few important cases
+it is (think of a USB controller and USB devices behind it, for example).
 
-ACPI 4.0 spec adds the ACPI IPMI opregion, which means that the ACPI AML
-code can also communicate with the BMC controller. This is to install
-the ACPI IPMI opregion and enable the ACPI to access the BMC controller
-through the IPMI message.
+I thought we had this discussion already, but perhaps that was with someone
+else and in a slightly different context.
 
-     It will create IPMI user interface for every IPMI device detected
-in ACPI namespace and install the corresponding IPMI opregion space handler.
-Then it can enable ACPI to access the BMC controller through the IPMI
-message.
+The main reasons why I think it's useful to do this at the generic device layer
+level are that, if we do it this way:
 
-The following describes how to process the IPMI request in IPMI space handler:
-    1. format the IPMI message based on the request in AML code.
-    IPMI system address. Now the address type is SYSTEM_INTERFACE_ADDR_TYPE
-    IPMI net function & command
-    IPMI message payload
-    2. send the IPMI message by using the function of ipmi_request_settime
-    3. wait for the completion of IPMI message. It can be done in different
-routes: One is in handled in IPMI user recv callback function. Another is
-handled in timeout function.
-    4. format the IPMI response and return it to ACPI AML code.
+a. Drivers that don't want to be "asynchronous" don't need to care in any case.
 
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
----
- drivers/acpi/Kconfig  |   12 +
- drivers/acpi/Makefile |    1 +
- drivers/acpi/ipmi.c   |  632 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 645 insertions(+), 0 deletions(-)
- create mode 100644 drivers/acpi/ipmi.c
+b. Drivers whose suspend and resume routines are guaranteed not to disturb
+   anyone else can mark their devices as "async" and be done with it, no other
+   modification of the code is needed (drivers that do nothing in their suspend
+   and resume routines also fall into this category).
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 93d2c79..23cd08a 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -204,6 +204,18 @@ config ACPI_PROCESSOR
- 
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called processor.
-+config ACPI_IPMI
-+	tristate "IPMI"
-+	depends on EXPERIMENTAL
-+	default n
-+	select IPMI_HANDLER
-+	select IPMI_SI
-+	help
-+	  This driver enables the ACPI to access the BMC controller. And it
-+	  uses the IPMI request/response message to communicate with BMC
-+	  controller, which can be found on on the server.
-+
-+	  To compile this driver as a module, choose M here:
- 
- config ACPI_HOTPLUG_CPU
- 	bool
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 7702118..61077b7 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -57,6 +57,7 @@ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
- obj-$(CONFIG_ACPI_SBS)		+= sbs.o
- obj-$(CONFIG_ACPI_POWER_METER)	+= power_meter.o
-+obj-$(CONFIG_ACPI_IPMI)		+= ipmi.o
- 
- # processor has its own "processor." module_param namespace
- processor-y			:= processor_core.o processor_throttling.o
-diff --git a/drivers/acpi/ipmi.c b/drivers/acpi/ipmi.c
-new file mode 100644
-index 0000000..6150683
---- /dev/null
-+++ b/drivers/acpi/ipmi.c
-@@ -0,0 +1,632 @@
-+/*
-+ *  ipmi.c - ACPI IPMI opregion
-+ *
-+ *  Copyright (C) 2009 Intel Corporation
-+ *  Copyright (C) 2009 Zhao Yakui <yakui.zhao@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/delay.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <linux/interrupt.h>
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
-+#include <linux/io.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/ipmi.h>
-+#include <acpi/acpixf.h>
-+
-+MODULE_AUTHOR("Zhao Yakui");
-+MODULE_DESCRIPTION("ACPI IPMI Opregion driver");
-+MODULE_LICENSE("GPL");
-+
-+#define ACPI_IPMI_CLASS			"IPMI"
-+#define ACPI_IPMI_DEVICE_NAME		"IPMI_dev"
-+#define IPMI_FLAGS_HANDLER_INSTALL	0
-+
-+#define ACPI_IPMI_OK			0
-+#define ACPI_IPMI_TIMEOUT		0x10
-+#define ACPI_IPMI_UNKNOWN		0x07
-+/* the IPMI timeout is 30s */
-+#define IPMI_TIMEOUT			(30 * HZ)
-+
-+
-+struct acpi_ipmi_device {
-+	acpi_handle handle;
-+	struct acpi_device *device;
-+	/* the device list attached to driver_data.ipmi_devices */
-+	struct list_head head;
-+	ipmi_user_t 	user_interface;
-+	struct mutex	mutex_lock;
-+	/* the IPMI request message list */
-+	struct list_head tx_msg_list;
-+	long curr_msgid;
-+	/* IPMI flags */
-+	unsigned long flags;
-+};
-+
-+struct ipmi_driver_data {
-+	int device_count;
-+	struct list_head	ipmi_devices;
-+	struct ipmi_smi_watcher	bmc_events;
-+	struct ipmi_user_hndl	ipmi_hndlrs;
-+};
-+
-+struct acpi_ipmi_msg {
-+	/* message list */
-+	struct list_head head;
-+	/*
-+	 * General speaking the addr type should be SI_ADDR_TYPE. And
-+	 * the addr channel should be BMC.
-+	 * In fact it can also be IPMB type. But we will have to
-+	 * parse it from the Netfn command buffer. It is so complex
-+	 * that it is skipped.
-+	 */
-+	struct ipmi_addr addr;
-+	/* tx message id */
-+	long tx_msgid;
-+	/* it is used to track whether the IPMI message is finished */
-+	struct completion tx_complete;
-+	struct kernel_ipmi_msg tx_message;
-+	int	msg_done;
-+	/* tx data . And copy it from ACPI object buffer */
-+	u8	tx_data[64];
-+	int	tx_len;
-+	/* get the response data */
-+	u8	rx_data[64];
-+	/* the response length. The netfn & cmd is excluded. */
-+	int	rx_len;
-+	struct acpi_ipmi_device *device;
-+};
-+
-+/*
-+ * IPMI request/response buffer.
-+ * The length is 66 bytes.
-+ */
-+struct acpi_ipmi_buffer {
-+	/* status code of a given IPMI command */
-+	u8 status_code;
-+	/* the length of the payload */
-+	u8 length;
-+	/*
-+	 * the payload. Before the operation is carried out, it represents the
-+	 * request message payload. After the operation is carried out, it
-+	 * stores the response message returned by IPMI command.
-+	 */
-+	u8 data[64];
-+};
-+
-+static void ipmi_register_bmc(int iface, struct device *dev);
-+static void ipmi_bmc_gone(int iface);
-+static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
-+
-+static struct ipmi_driver_data driver_data = {
-+	.ipmi_devices = LIST_HEAD_INIT(driver_data.ipmi_devices),
-+	.bmc_events = {
-+		.owner = THIS_MODULE,
-+		.new_smi = ipmi_register_bmc,
-+		.smi_gone = ipmi_bmc_gone,
-+	},
-+	.ipmi_hndlrs = {
-+		.ipmi_recv_hndl = ipmi_msg_handler,
-+	},
-+};
-+
-+static
-+struct acpi_ipmi_msg *acpi_alloc_ipmi_msg(struct acpi_ipmi_device *ipmi)
-+{
-+	struct acpi_ipmi_msg *ipmi_msg;
-+
-+	ipmi_msg = kzalloc(sizeof(struct acpi_ipmi_msg), GFP_KERNEL);
-+	if (!ipmi_msg)	{
-+		printk(KERN_DEBUG "Can't allocate memory for ipmi_msg\n");
-+		return NULL;
-+	}
-+	init_completion(&ipmi_msg->tx_complete);
-+	INIT_LIST_HEAD(&ipmi_msg->head);
-+	ipmi_msg->device = ipmi;
-+	return ipmi_msg;
-+}
-+
-+static void acpi_format_ipmi_msg(struct acpi_ipmi_msg *tx_msg,
-+		acpi_physical_address address,
-+		acpi_integer *value)
-+{
-+	struct kernel_ipmi_msg *msg;
-+	u8	temp_value;
-+	struct acpi_ipmi_buffer *buffer;
-+	struct acpi_ipmi_device *device;
-+
-+	msg = &tx_msg->tx_message;
-+	/* get the netfn */
-+	temp_value = (address >> 8) & 0xff;
-+	msg->netfn = temp_value;
-+	/* get the command */
-+	temp_value = address & 0xff;
-+	msg->cmd = temp_value;
-+	msg->data = tx_msg->tx_data;
-+	/*
-+	 * value is the parameter passed by the IPMI opregion space handler.
-+	 * It points to the IPMI request message buffer
-+	 */
-+	buffer = (struct acpi_ipmi_buffer *)value;
-+	/* copy the tx message data */
-+	msg->data_len = buffer->length;
-+	memcpy(tx_msg->tx_data, buffer->data, msg->data_len);
-+	/*
-+	 * now the default type is SYSTEM_INTERFACE and channel type is BMC.
-+	 * If the netfn is APP_REQUEST and the cmd is SEND_MESSAGE,
-+	 * the addr type should be changed to IPMB.
-+	 */
-+	tx_msg->addr.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
-+	tx_msg->addr.channel = IPMI_BMC_CHANNEL;
-+	tx_msg->addr.data[0] = 0;
-+
-+	/*
-+	 * If the netfn is APP_REQUEST and the cmd is SEND_MESSAGE, we should
-+	 * parse the IPMI request message buffer to get the IPMB address.
-+	 * If so, please fix me.
-+	 */
-+
-+	/* Get the msgid */
-+	device = tx_msg->device;
-+	mutex_lock(&device->mutex_lock);
-+	device->curr_msgid++;
-+	tx_msg->tx_msgid = device->curr_msgid;
-+	mutex_unlock(&device->mutex_lock);
-+}
-+
-+static void acpi_format_ipmi_response(struct acpi_ipmi_msg *msg,
-+		acpi_integer *value, int timeout)
-+{
-+	struct acpi_ipmi_buffer *buffer;
-+
-+	/*
-+	 * value is also used as output parameter. It represents the response
-+	 * IPMI message returned by IPMI command.
-+	 */
-+	buffer = (struct acpi_ipmi_buffer *)value;
-+	/* when timeout is zero, it means that the timeout happens */
-+	if (!timeout) {
-+		/* the status code is ACPI_IPMI_TIMEOUT */
-+		buffer->status_code = ACPI_IPMI_TIMEOUT;
-+		return;
-+	}
-+	/*
-+	 * If the flag of msg_done is not set, it means that the IPMI command
-+	 * is not executed correctly.
-+	 * The status code will be ACPI_IPMI_UNKNOWN.
-+	 */
-+	if (!msg->msg_done) {
-+		buffer->status_code = ACPI_IPMI_UNKNOWN;
-+		return;
-+	}
-+	/*
-+	 * If the IPMI response message is obtained correctly, the status code
-+	 * will be ACPI_IPMI_OK
-+	 */
-+	buffer->status_code = ACPI_IPMI_OK;
-+	buffer->length = msg->rx_len;
-+	memcpy(buffer->data, msg->rx_data, msg->rx_len);
-+	return;
-+}
-+static void ipmi_destroy_tx_msg(struct acpi_ipmi_device *ipmi)
-+{
-+	struct acpi_ipmi_msg *tx_msg = NULL, *temp;
-+	int count = 20;
-+
-+	list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
-+		/* wake up the sleep thread on the Tx msg */
-+		complete(&tx_msg->tx_complete);
-+	}
-+	/* wait for about 20 ticks to flush the tx message list */
-+	while (count--) {
-+		if (list_empty(&ipmi->tx_msg_list))
-+			break;
-+		schedule_timeout(1);
-+	}
-+	if (!list_empty(&ipmi->tx_msg_list))
-+		printk(KERN_DEBUG "tx msg list is not NULL\n");
-+
-+}
-+
-+static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
-+{
-+	struct acpi_ipmi_device *ipmi_device =
-+			(struct acpi_ipmi_device *)user_msg_data;
-+	int msg_found = 0;
-+	struct acpi_ipmi_msg *tx_msg = NULL;
-+
-+	if (msg->user != ipmi_device->user_interface) {
-+		printk(KERN_DEBUG "Incorrect IPMI user\n");
-+		ipmi_free_recv_msg(msg);
-+		return;
-+	}
-+	mutex_lock(&ipmi_device->mutex_lock);
-+	list_for_each_entry(tx_msg, &ipmi_device->tx_msg_list, head) {
-+		if (msg->msgid == tx_msg->tx_msgid) {
-+			/* find the message id */
-+			msg_found = 1;
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&ipmi_device->mutex_lock);
-+	if (!msg_found) {
-+		/* no matched msg is found . But we should free it */
-+		ipmi_free_recv_msg(msg);
-+		printk(KERN_DEBUG "Incorrect MSG is found \n");
-+		return;
-+	}
-+
-+	if (msg->msg.data_len > 1) {
-+		/* copy the response data to Rx_data buffer */
-+		memcpy(tx_msg->rx_data, msg->msg_data, msg->msg.data_len);
-+		tx_msg->rx_len = msg->msg.data_len;
-+		tx_msg->msg_done = 1;
-+	}
-+	complete(&tx_msg->tx_complete);
-+	ipmi_free_recv_msg(msg);
-+};
-+
-+static void ipmi_register_bmc(int iface, struct device *dev)
-+{
-+	struct acpi_ipmi_device *ipmi_device;
-+	struct acpi_device *device;
-+	ipmi_user_t		user;
-+	int err;
-+
-+	if (list_empty(&driver_data.ipmi_devices))
-+		return;
-+
-+	list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
-+		device = ipmi_device->device;
-+		if (ipmi_device->user_interface) {
-+			/*
-+			 * Only one user interface is allowed to be registered
-+			 * for one IPMI device.
-+			 * If we already create the user interface for
-+			 * one IPMI device, skip it
-+			 */
-+			continue;
-+		}
-+		if (dev == &device->dev) {
-+			/*
-+			 * If the dev is identical to the ACPI device,
-+			 * create the user interface.
-+			 */
-+			err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
-+						ipmi_device, &user);
-+			if (err == 0)
-+				ipmi_device->user_interface = user;
-+
-+			continue;
-+		}
-+		/*
-+		 * In fact maybe the IPMI interface can be registered by
-+		 * other methods. For example: SPMI, DMI, PCI
-+		 * So we should also create the user interface.
-+		 */
-+		err = ipmi_create_user(iface, &driver_data.ipmi_hndlrs,
-+						ipmi_device, &user);
-+		if (err == 0)
-+			ipmi_device->user_interface = user;
-+	}
-+	return;
-+}
-+
-+static void ipmi_bmc_gone(int iface)
-+{
-+	struct acpi_ipmi_device *ipmi_device;
-+
-+	if (list_empty(&driver_data.ipmi_devices))
-+		return;
-+
-+	list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
-+		if (ipmi_device->user_interface) {
-+			ipmi_destroy_user(ipmi_device->user_interface);
-+			ipmi_device->user_interface = NULL;
-+			/* we should also destory tx msg list */
-+			ipmi_destroy_tx_msg(ipmi_device);
-+		}
-+	}
-+}
-+/* --------------------------------------------------------------------------
-+ * 			Address Space Management
-+   -------------------------------------------------------------------------- */
-+/*
-+ * This is the IPMI opregion space handler.
-+ * @function: indicates the read/write. In fact as the IPMI message is driven
-+ * by command, only write is meaningful.
-+ * @address: This contains the netfn/command of IPMI request message.
-+ * @bits   : not used.
-+ * @value  : it is an in/out parameter. It points to the IPMI message buffer.
-+ *	     Before the IPMI message is sent, it represents the actual request
-+ *	     IPMI message. After the IPMI message is finished, it represents
-+ *	     the response IPMI message returned by IPMI command.
-+ * @handler_context: IPMI device context.
-+ */
-+
-+static acpi_status
-+acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
-+		      u32 bits, acpi_integer *value,
-+		      void *handler_context, void *region_context)
-+{
-+	struct acpi_ipmi_msg *tx_msg = NULL;
-+	struct acpi_ipmi_device *ipmi_device =
-+			(struct acpi_ipmi_device *) handler_context;
-+	int err;
-+	acpi_status status;
-+	/*
-+	 * IPMI opregion message.
-+	 * IPMI message is firstly written to the BMC and system software
-+	 * can get the respsonse. So it is unmeaningful for the IPMI read
-+	 * access.
-+	 */
-+	if ((function & ACPI_IO_MASK) == ACPI_READ) {
-+		/* Read function is not supported. AE_TYPE is returned. */
-+		return AE_TYPE;
-+	}
-+	if (!ipmi_device->user_interface) {
-+		/* there doesn't exist user interface*/
-+		return AE_NOT_EXIST;
-+	}
-+	tx_msg = acpi_alloc_ipmi_msg(ipmi_device);
-+	if (!tx_msg) {
-+		/* no memory is allocated */
-+		return AE_NO_MEMORY;
-+	}
-+	acpi_format_ipmi_msg(tx_msg, address, value);
-+	mutex_lock(&ipmi_device->mutex_lock);
-+	list_add_tail(&tx_msg->head, &ipmi_device->tx_msg_list);
-+	mutex_unlock(&ipmi_device->mutex_lock);
-+	err = ipmi_request_settime(ipmi_device->user_interface,
-+					&tx_msg->addr,
-+					tx_msg->tx_msgid,
-+					&tx_msg->tx_message,
-+					NULL, 0, 0, 0);
-+	if (err) {
-+		status = AE_ERROR;
-+		goto end_label;
-+	}
-+	err = wait_for_completion_timeout(&tx_msg->tx_complete, IPMI_TIMEOUT);
-+
-+end_label:
-+	acpi_format_ipmi_response(tx_msg, value, err);
-+	status = AE_OK;
-+	mutex_lock(&ipmi_device->mutex_lock);
-+	list_del(&tx_msg->head);
-+	mutex_unlock(&ipmi_device->mutex_lock);
-+	kfree(tx_msg);
-+	return status;
-+}
-+
-+static void ipmi_remove_handler(struct acpi_ipmi_device *ipmi)
-+{
-+	if (!test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
-+		return;
-+	acpi_remove_address_space_handler(ipmi->handle,
-+				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler);
-+
-+	clear_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
-+}
-+
-+static int ipmi_install_handler(struct acpi_ipmi_device *ipmi)
-+{
-+	acpi_status status;
-+
-+	if (test_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags))
-+		return 0;
-+
-+	status = acpi_install_address_space_handler(ipmi->handle,
-+						    ACPI_ADR_SPACE_IPMI,
-+						    &acpi_ipmi_space_handler,
-+						    NULL, ipmi);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_DEBUG "Can't register IPMI opregion %s\n",
-+					acpi_device_bid(ipmi->device));
-+		return -EINVAL;
-+	}
-+	set_bit(IPMI_FLAGS_HANDLER_INSTALL, &ipmi->flags);
-+	return 0;
-+}
-+
-+static const struct acpi_device_id ipmi_ids[] = {
-+	{"IPI0001", 0},
-+	{"", 0},
-+};
-+
-+/*
-+ *  check_ipmi_iftype --check whether the ipmi interface type is correct.
-+ *  @handle: ACPI device handle
-+ */
-+static int check_ipmi_iftype(acpi_handle handle)
-+{
-+	int parse_ok = false;
-+	unsigned long long	temp_data;
-+	acpi_status status;
-+
-+	/* According to IPMI spec there should exist the _IFT method
-+	 * for the IPMI device. So when there is no _IFT, it is regarded
-+	 * as the incorrect BMC device.
-+	 */
-+	status = acpi_evaluate_integer(handle, "_IFT", NULL, &temp_data);
-+	if (ACPI_FAILURE(status))
-+		return parse_ok;
-+
-+	/* Figure out the interface type. If the interface type is not
-+	 * KCS/SMIC/BT, it is regared as the incorrect IPMI device.
-+	 * Of course the SSIF interface type is also defined, but we
-+	 * can't handle it. So it is not supported */
-+	switch (temp_data) {
-+	case 1:	/* KCS */
-+	case 2:	/* SMIC */
-+	case 3:	/* BT */
-+		break;
-+	default:
-+		printk(KERN_INFO "ipmi_si: Unknown ACPI/SPMI SI type %d\n",
-+			(int) temp_data);
-+		return parse_ok;
-+	}
-+	parse_ok = true;
-+	return parse_ok;
-+}
-+/*
-+ * acpi_check_bmc_device -- check whether @handle is a BMC device and then
-+ * add it to BMC list.
-+ * @handle: ACPI device handle
-+ * @level : depth in the ACPI namespace tree
-+ * @context: the number of bmc device. In theory there is not more than
-+ * 	one ACPI BMC device.
-+ * @rv: a return value to fill if desired (Not use)
-+ */
-+static acpi_status
-+find_ipmi_device(acpi_handle handle, u32 level, void *context,
-+				void **return_value)
-+{
-+	struct acpi_device *acpi_dev;
-+	struct acpi_ipmi_device *p_ipmi = NULL;
-+
-+	acpi_dev = NULL;
-+	/* Get the acpi device for device handle */
-+	if (acpi_bus_get_device(handle, &acpi_dev) || !acpi_dev) {
-+		/* If there is no ACPI device for handle, return */
-+		return AE_OK;
-+	}
-+
-+	if (acpi_match_device_ids(acpi_dev, ipmi_ids))
-+		return AE_OK;
-+
-+	p_ipmi = kzalloc(sizeof(*p_ipmi), GFP_KERNEL);
-+	if (!p_ipmi) {
-+		printk(KERN_ERR "Can't allocate memory for IPMI device\n");
-+		return AE_OK;
-+	}
-+	p_ipmi->device = acpi_dev;
-+	p_ipmi->handle = handle;
-+	if (!check_ipmi_iftype(handle)) {
-+		/* the interface type is incorrect */
-+		kfree(p_ipmi);
-+	} else {
-+		/* add it to the IPMI device list */
-+		list_add_tail(&p_ipmi->head, &driver_data.ipmi_devices);
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static void acpi_register_ipmi_handlers(void)
-+{
-+	struct acpi_ipmi_device *ipmi_device;
-+
-+	list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
-+		mutex_init(&ipmi_device->mutex_lock);
-+		INIT_LIST_HEAD(&ipmi_device->tx_msg_list);
-+
-+		if (ipmi_install_handler(ipmi_device)) {
-+			/*
-+			 * can't register the IPMI opregion. We will print
-+			 * some debug info and continue to register ipmi
-+			 * opregion for next device.
-+			 */
-+			printk(KERN_DEBUG "Can't register IPMI opregion %s\n",
-+					acpi_device_bid(ipmi_device->device));
-+			continue;
-+		}
-+	}
-+	return;
-+}
-+
-+static void acpi_remove_ipmi_handlers(void)
-+{
-+	struct acpi_ipmi_device *ipmi_device, *temp;
-+
-+	list_for_each_entry_safe(ipmi_device, temp, &driver_data.ipmi_devices,
-+					head) {
-+		if (ipmi_device->user_interface) {
-+			/*
-+			 * If the IPMI user interface is created, it
-+			 * should be destroyed.
-+			 */
-+			ipmi_destroy_user(ipmi_device->user_interface);
-+			ipmi_device->user_interface = NULL;
-+		}
-+		list_del(&ipmi_device->head);
-+		if (!list_empty(&ipmi_device->tx_msg_list)) {
-+			/* destroy the Tx_msg list */
-+			ipmi_destroy_tx_msg(ipmi_device);
-+		}
-+		ipmi_remove_handler(ipmi_device);
-+		kfree(ipmi_device);
-+	}
-+	return;
-+}
-+
-+static int __init acpi_ipmi_init(void)
-+{
-+	int result = 0;
-+
-+	if (acpi_disabled)
-+		return result;
-+
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+				ACPI_UINT32_MAX, find_ipmi_device,
-+				NULL, NULL, NULL);
-+
-+	if (list_empty(&driver_data.ipmi_devices)) {
-+		/* NO IPMI device is found in ACPI table. */
-+		printk(KERN_DEBUG "No IPMI device is found in ACPI table\n");
-+		return 0;
-+	}
-+	acpi_register_ipmi_handlers();
-+
-+	result = ipmi_smi_watcher_register(&driver_data.bmc_events);
-+
-+	if (result) {
-+		/* Uninstall the IPMI opregion handler */
-+		acpi_remove_ipmi_handlers();
-+	}
-+
-+	return result;
-+}
-+
-+static void __exit acpi_ipmi_exit(void)
-+{
-+	if (acpi_disabled)
-+		return;
-+
-+	if (list_empty(&driver_data.ipmi_devices))
-+		return;
-+	/* Uninstall the IPMI opregion handler for every IPMI device */
-+	acpi_remove_ipmi_handlers();
-+
-+	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
-+
-+	return;
-+}
-+
-+module_init(acpi_ipmi_init);
-+module_exit(acpi_ipmi_exit);
--- 
-1.5.4.5
+Now, if it's done at the low-level suspend/resume level, a. will not be true
+any more in general.  Say device A has parent B and the driver of A wants to
+suspend asynchrnously.  It needs to split its suspend into synchronous and
+asynchronous part and at one point start an async thread to run the latter.
+Now assume B has a real reason not to suspend before the suspens of A has
+finished.  Then, the driver of B has to be modified so that it waits for the
+A's async suspend to complete (some sort of synchronization between the two
+has to be added).  So, even if B is "synchronous", its driver has to be
+modified to handle the asynchronous suspend of A.
 
+Similarly, b. will no longer be true if it's done at the low-level
+suspend/resume level, because now every driver that wants to be
+"asynchronous" will need to take care of running an async thread etc.
+Moreover, it will need to make sure that the device parent's driver doesn't
+need to be modified, because the parent's suspend may do something that will
+disturb the child's asynchronous suspend.  Furthermore, if the parent's driver
+doesn't need to be modified, it will need to consider the parent of the parent,
+because that one may potentially disturb the asynchronous suspend of its
+grand child and so on up to a device without a parent.
+
+That already is a pain to a driver writer, but the problem you're saying would
+be solved by doing this at the low-level suspend/resume level is still there
+in general!  Namely, go back do the example with devices A and B and say B
+_really_ has to wait for A's suspend to complete.  Then, since B is after A in
+dpm_list, the PM core will not start the suspend of any device after B until
+the suspend of B returns.  Now, if the suspend of B waits for the suspend of
+A, then the PM core will effectively wait for the suspend of A to complete
+before suspending any other devices.  Worse yet, if that happens, we can't do
+anything about it at the low-level suspend/resume level, althouth at the PM
+core level we can.
+
+Rafael
