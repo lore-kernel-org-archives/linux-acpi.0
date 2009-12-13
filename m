@@ -1,161 +1,41 @@
-From: Alan Jenkins <sourcejedi.lkml@googlemail.com>
-Subject: Re: [PATCH 1/7] X86 drivers: Introduce msi-wmi driver
-Date: Sat, 12 Dec 2009 17:37:36 +0000
-Message-ID: <9b2b86520912120937i548b1158k50f517af7fd5ed21@mail.gmail.com>
-References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
-	 <1260451099-25620-2-git-send-email-anisse@astier.eu>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
+Date: Sun, 13 Dec 2009 09:43:17 +0100
+Message-ID: <20091213084317.GA15989@isilmar.linta.de>
+References: <20091212181442.GA22832@youquan-linux.bj.intel.com> <20091212142727.GA6867@comet.dominikbrodowski.net> <20091212235549.GA7753@youquan-linux.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:44323 "HELO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752477AbZLMCve (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2009 21:51:34 -0500
-Received: by bwz27 with SMTP id 27so1372420bwz.21
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Dec 2009 18:51:33 -0800 (PST)
-In-Reply-To: <1260451099-25620-2-git-send-email-anisse@astier.eu>
+Received: from isilmar.linta.de ([213.133.102.198]:44782 "HELO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751795AbZLMInT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Dec 2009 03:43:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20091212235549.GA7753@youquan-linux.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Anisse Astier <anisse@astier.eu>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Matt Chen <machen@novell.com>
+To: "Youquan,Song" <youquan.song@linux.intel.com>
+Cc: lenb@kernel.org, venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
 
-Hi Anisse
+On Sat, Dec 12, 2009 at 06:55:49PM -0500, Youquan,Song wrote:
+> On Sat, Dec 12, 2009 at 03:27:27PM +0100, Dominik Brodowski wrote:
+> > On Sat, Dec 12, 2009 at 01:14:42PM -0500, Youquan,Song wrote:
+> > > On Nehalem-EX, CPU C3 is mapped to ACPI C3, but C-states information in /proc
+> > >  and /sys are conflicting with ACPI C2 mapping and confused user.
+> > 
+> > Well, isn't the "type" only losely related to the C-state number anyway, if
+> > you have more than 3 states?
+> 
+> That's true, if CPU has more 3 states such as C3, C6, C7, there are
+> all mapped to ACPI C3.   But the current situation is that if platform
+> does NOT support ACPI C2, the user interface /sys show us ACPI C2 is
+>  supported which actual is ACPI C3.
+> 
+> As you know, ACPI C3 and ACPI C2 have much different, such as: BUS SNOOP
+>  or not, ACPI C3 has better power saving etc. we should not mix them.
 
-I think there are a few theoretical issues remaining in this driver
-(although I've not read your followup patches, I just checked the
-subject lines).
+Yes, but what happens if there are two states of type C2? The whole concept
+of "type C<number>" and "state C<number>" was broken from the beginning...
 
-On 12/10/09, Anisse Astier <anisse@astier.eu> wrote:
-> +config MSI_WMI
-> +	tristate "MSI WMI extras"
-> +	depends on ACPI_WMI
-> +	depends on INPUT
-
-I think this driver depends on BACKLIGHT_CLASS_DEVICE as well.
-
-> +	help
-> +	 Say Y here if you want to support WMI-based hotkeys on MSI laptops.
-> +
-> +	 To compile this driver as a module, choose M here: the module will
-> +	 be called msi-wmi.
-> +
-
-
-> +static int bl_get(struct backlight_device *bd)
-> +{
-> +	int level, err, ret = 0;
-> +
-> +	/* Instance 1 is "get backlight", cmp with DSDT */
-> +	err = msi_wmi_query_block(1, &ret);
-> +	if (err)
-> +		printk(KERN_ERR DRV_PFX "Could not query backlight: %d\n", err);
-
-It looks like we continue despite this error, and return 0?  I think
-an error code would be more appropriate.  It would definitely be
-better to use an explicit return statement here (and not set ret = 0
-beforehand).
-
-In reality the current backlight class doesn't support error codes...
-but I figure it's better to give userspace an obviously wrong number,
-rather than falsely claiming we know that the blacklight is set to 0.
-
-
-> +	dprintk("Get: Query block returned: %d\n", ret);
-> +	for (level = 0; level < ARRAY_SIZE(backlight_map); level++) {
-> +		if (backlight_map[level] == ret) {
-> +			dprintk("Current backlight level: 0x%X - index: %d\n",
-> +				backlight_map[level], level);
-> +			break;
-> +		}
-> +	}
-> +	if (level == ARRAY_SIZE(backlight_map)) {
-> +		printk(KERN_ERR DRV_PFX "get: Invalid brightness value: 0x%X\n",
-> +		       ret);
-> +		return -EINVAL;
-> +	}
-> +	return level;
-> +}
-
-> +static int bl_set_status(struct backlight_device *bd)
-> +{
-> +	int bright = bd->props.brightness;
-> +	if (bright >= ARRAY_SIZE(backlight_map) || bright < 0)
-> +		return -EINVAL;
-> +
-> +	/* Instance 0 is "set backlight" */
-> +	return msi_wmi_set_block(0, backlight_map[bright]);
-> +}
-> +
-> +static struct backlight_ops msi_backlight_ops = {
-> +	.get_brightness	= bl_get,
-> +	.update_status	= bl_set_status,
-> +};
-
-> +static void msi_wmi_notify(u32 value, void *context)
-> +{
-> +	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
-> +	static struct key_entry *key;
-> +	union acpi_object *obj;
-> +	ktime_t cur;
-> +
-> +	wmi_get_event_data(value, &response);
-> +
-> +	obj = (union acpi_object *)response.pointer;
-> +
-> +	if (obj && obj->type == ACPI_TYPE_INTEGER) {
-> +		int eventcode = obj->integer.value;
-> +		dprintk("Eventcode: 0x%x\n", eventcode);
-> +		key = msi_wmi_get_entry_by_scancode(eventcode);
-> +		if (key) {
-> +			cur = ktime_get_real();
-> +			/* Ignore event if the same event happened in a 50 ms
-> +			   timeframe -> Key press may result in 10-20 GPEs */
-> +			if (ktime_to_us(ktime_sub(cur, key->last_pressed))
-> +			    < 1000 * 50) {
-> +				dprintk("Suppressed key event 0x%X - "
-> +					"Last press was %lld us ago\n",
-> +					 key->code,
-> +					 ktime_to_us(ktime_sub(cur,
-> +						       key->last_pressed)));
-> +				return;
-> +			}
-> +			key->last_pressed = cur;
-> +
-> +			switch (key->type) {
-> +			case KE_KEY:
-> +				/* Brightness is served via acpi video driver */
-> +				if (!backlight &&
-> +				    (key->keycode == KEY_BRIGHTNESSUP ||
-> +				     key->keycode == KEY_BRIGHTNESSDOWN))
-> +					break;
-
-Given backlight == NULL, this will mysteriously prevent users from
-remapping the volume keys to use as a brightness control.  I think it
-would be better to check the original scancodes.
-
-Also, can you please confirm that the ACPI BIOS does _not_ change the
-brightness level in response to these keys?  If it does, the driver
-should really use backlight_force_update() instead of generating
-KEY_BRIGHTNESS* events.
-
-> +				dprintk("Send key: 0x%X - "
-> +					"Input layer keycode: %d\n", key->code,
-> +					 key->keycode);
-> +				input_report_key(msi_wmi_input_dev,
-> +						 key->keycode, 1);
-> +				input_sync(msi_wmi_input_dev);
-> +				input_report_key(msi_wmi_input_dev,
-> +						 key->keycode, 0);
-> +				input_sync(msi_wmi_input_dev);
-> +				break;
-> +			}
-> +		} else
-> +			printk(KERN_INFO "Unknown key pressed - %x\n",
-> +			       eventcode);
-> +	} else
-> +		printk(KERN_INFO DRV_PFX "Unknown event received\n");
-> +	kfree(response.pointer);
-> +}
-
-Regards
-Alan
+Best,
+	Dominik
