@@ -1,77 +1,85 @@
-From: Corentin Chary <corentincj@iksaif.net>
-Subject: [PATCH] eeepc-laptop: disable pci hotplug code when all notifiers fail to load
-Date: Sun, 13 Dec 2009 22:16:11 +0100
-Message-ID: <1260738971-25456-1-git-send-email-corentincj@iksaif.net>
-References: <20091207212848.GA9171@srcf.ucam.org>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH 2/2]ACPI: assign different lockdep key for acpi works
+Date: Mon, 14 Dec 2009 09:08:29 +0800
+Message-ID: <20091214010829.GA11436@sli10-desk.sh.intel.com>
+References: <20091211030458.GB7772@sli10-desk.sh.intel.com>
+ <20091211135716.b6d577a1.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.net ([88.191.73.63]:55306 "HELO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754155AbZLMUT5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Dec 2009 15:19:57 -0500
-In-Reply-To: <20091207212848.GA9171@srcf.ucam.org>
+Received: from mga14.intel.com ([143.182.124.37]:43643 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755366AbZLNBIc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Dec 2009 20:08:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20091211135716.b6d577a1.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andrej.gelenberg@udo.edu
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net, Corentin Chary <corentincj@iksaif.net>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "mingo@elte.hu" <mingo@elte.hu>
 
-This is a short term workaround for Eeepc 1005HA.
+On Sat, Dec 12, 2009 at 05:57:16AM +0800, Andrew Morton wrote:
+> On Fri, 11 Dec 2009 11:04:58 +0800
+> Shaohua Li <shaohua.li@intel.com> wrote:
+> 
+> > Differentiate works for three different workqueue in ACPI. This fixes
+> > a fase alarm from lockdep, as acpi hotplug workqueue waits other
+> > workqueues.
+> > 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=14553
+> > 
+> > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> > ---
+> >  drivers/acpi/osl.c |   12 +++++++++++-
+> >  1 file changed, 11 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux/drivers/acpi/osl.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/osl.c	2009-12-10 10:40:15.000000000 +0800
+> > +++ linux/drivers/acpi/osl.c	2009-12-10 10:43:25.000000000 +0800
+> > @@ -729,6 +729,8 @@ static acpi_status __acpi_os_execute(acp
+> >  	struct acpi_os_dpc *dpc;
+> >  	struct workqueue_struct *queue;
+> >  	int ret;
+> > +	static struct lock_class_key hp_key, notify_key, acpid_key;
+> > +
+> >  	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+> >  			  "Scheduling function [%p(%p)] for deferred execution.\n",
+> >  			  function, context));
+> > @@ -758,7 +760,15 @@ static acpi_status __acpi_os_execute(acp
+> >  	queue = hp ? kacpi_hotplug_wq :
+> >  		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+> >  	dpc->wait = hp ? 1 : 0;
+> > -	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+> > +	if (queue == kacpi_hotplug_wq)
+> > +		INIT_WORK_KEY(&dpc->work, acpi_os_execute_deferred,
+> > +				hp_key, "acpi_hp_work");
+> > +	else if (queue == kacpi_notify_wq)
+> > +		INIT_WORK_KEY(&dpc->work, acpi_os_execute_deferred,
+> > +				notify_key, "acpi_notify_work");
+> > +	else
+> > +		INIT_WORK_KEY(&dpc->work, acpi_os_execute_deferred,
+> > +				acpid_key, "acpi_acpid_work");
+> >  	ret = queue_work(queue, &dpc->work);
+> >  
+> >  	if (!ret) {
+> 
+> Yes, that's a shortcoming in the present INIT_WORK().  However I think
+> you can solve this more simply, without introducing INIT_WORK_KEY():
+> 
+> 	if (queue == kacpi_hotplug_wq)
+> 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+> 	else if (queue == kacpi_notify_wq)
+> 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+> 	else
+> 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+> 
+> it looks silly, but I think the compiler will do the right thing with it
+> - you'll get a separate lock_class_key at each site.
+> 
+> Obviously it would need an explanatory comment.
+Yes, I tried this way before, it centainly works. I just thought maybe
+others need similar API. If I'm over thinking, let's take your way.
 
-refs: <http://bugzilla.kernel.org/show_bug.cgi?id=14570>
-
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/platform/x86/eeepc-laptop.c |   17 +++++++++++++----
- 1 files changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 356ca11..45c3f52 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -177,6 +177,7 @@ struct eeepc_laptop {
- 
- 	struct hotplug_slot *hotplug_slot;
- 	struct mutex hotplug_lock;
-+	bool hotplug_enabled;
- 
- 	struct led_classdev tpd_led;
- 	int tpd_led_wk;
-@@ -642,6 +643,7 @@ static int eeepc_register_rfkill_notifier(struct eeepc_laptop *eeepc,
- 						     eeepc);
- 		if (ACPI_FAILURE(status))
- 			pr_warning("Failed to register notify on %s\n", node);
-+		eeepc->hotplug_enabled = true;
- 	} else
- 		return -ENODEV;
- 
-@@ -845,7 +847,17 @@ static int eeepc_rfkill_init(struct eeepc_laptop *eeepc)
- 	if (result && result != -ENODEV)
- 		goto exit;
- 
--	result = eeepc_setup_pci_hotplug(eeepc);
-+	/*
-+	 * Register notifiers first, if they all fail, we won't enable
-+	 * pci hotplug because it's probably not needed for this model
-+	 * (eg: 1005HA)
-+	 */
-+	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P5");
-+	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P6");
-+	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P7");
-+
-+	if (eeepc->hotplug_enabled)
-+		result = eeepc_setup_pci_hotplug(eeepc);
- 	/*
- 	 * If we get -EBUSY then something else is handling the PCI hotplug -
- 	 * don't fail in this case
-@@ -853,9 +865,6 @@ static int eeepc_rfkill_init(struct eeepc_laptop *eeepc)
- 	if (result == -EBUSY)
- 		result = 0;
- 
--	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P5");
--	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P6");
--	eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P7");
- 	/*
- 	 * Refresh pci hotplug in case the rfkill state was changed during
- 	 * setup.
--- 
-1.6.5.4
-
+Thanks,
+Shaohua
