@@ -1,48 +1,39 @@
-From: Justin Mattock <justinmattock@gmail.com>
-Subject: [PATCH] Fix a typo in drivers/acpi/battery.c
-Date: Sun, 13 Dec 2009 18:34:02 -0800
-Message-ID: <dd18b0c30912131834se50a980hff01fe06751f3a2d@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: add kernel tainting after overriding an ACPI control
+ method
+Date: Mon, 14 Dec 2009 11:24:18 +0800
+Message-ID: <1260761058.27069.329.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:63577 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753274AbZLNCeG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Dec 2009 21:34:06 -0500
-Received: by pzk1 with SMTP id 1so1952548pzk.33
-        for <linux-acpi@vger.kernel.org>; Sun, 13 Dec 2009 18:34:02 -0800 (PST)
+Received: from mga14.intel.com ([143.182.124.37]:26230 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932181AbZLNDWT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Dec 2009 22:22:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>
 
->From d77442e6ec529d4b675e2cd63ef91ecacbab0d42 Mon Sep 17 00:00:00 2001
-From: Justin P. Mattock <justinmattock@gmail.com>
-Date: Sun, 13 Dec 2009 14:42:36 -0800
-Subject: [PATCH] Fix a typo in drivers/acpi/battery.c
+Add kernel tainting after overriding an ACPI control method successfully.
 
-
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/battery.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/debug.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 3f4602b..cada73f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -831,7 +831,7 @@ static void acpi_battery_notify(struct acpi_device
-*device, u32 event)
- 					dev_name(&device->dev), event,
- 					acpi_battery_present(battery));
- #ifdef CONFIG_ACPI_SYSFS_POWER
--	/* acpi_batter_update could remove power_supply object */
-+	/* acpi_battery_update could remove power_supply object */
- 	if (battery->bat.dev)
- 		kobject_uevent(&battery->bat.dev->kobj, KOBJ_CHANGE);
- #endif
--- 
-1.6.5.5
+Index: linux-2.6/drivers/acpi/debug.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/debug.c
++++ linux-2.6/drivers/acpi/debug.c
+@@ -239,6 +239,7 @@ static ssize_t cm_write(struct file *fil
+ 		kfree(buf);
+ 		if (ACPI_FAILURE(status))
+ 			return -EINVAL;
++		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
+ 	}
+ 
+ 	return count;
 
--- 
-Justin P. Mattock
+
