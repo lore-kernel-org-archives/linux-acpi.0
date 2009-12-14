@@ -1,66 +1,55 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
-Date: Mon, 14 Dec 2009 11:12:20 -0800
-Message-ID: <E9B3B63B4561864CB95EB36DAD19BB2D5819FF2C@orsmsx505.amr.corp.intel.com>
-References: <20091212181442.GA22832@youquan-linux.bj.intel.com>
- <20091212142727.GA6867@comet.dominikbrodowski.net>
- <20091212235549.GA7753@youquan-linux.bj.intel.com>
- <20091213084317.GA15989@isilmar.linta.de>
- <20091214100200.GA17243@youquan-linux.bj.intel.com>
- <20091214131255.GA4126@youquan-linux.bj.intel.com>
+From: Mike Travis <travis@sgi.com>
+Subject: [PATCH] ACPI: Remove repeated registered as cooling_device messages
+Date: Mon, 14 Dec 2009 13:38:30 -0800
+Message-ID: <4B26B056.3080708@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2430 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932379AbZLNTHi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2009 14:07:38 -0500
-In-Reply-To: <20091214131255.GA4126@youquan-linux.bj.intel.com>
-Content-Language: en-US
+Received: from relay2.sgi.com ([192.48.179.30]:53524 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751253AbZLNVi3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 16:38:29 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Youquan,Song" <youquan.song@linux.intel.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, "lenb@kernel.org" <lenb@kernel.org>, "Liu, Kent" <kent.liu@intel.com>, "Guo, Chaohong" <chaohong.guo@intel.com>, "Song, Youquan" <youquan.song@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
+ACPI: Remove repeated registered as cooling_device messages
+
+This message shows up for each cpu.  Print as debug messages.
+
+[   12.893967] processor ACPI0007:00: registered as cooling_device0
+[   12.907838] processor ACPI0007:01: registered as cooling_device1
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/acpi/fan.c            |    2 +-
+ drivers/acpi/processor_core.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+--- linux.orig/drivers/acpi/fan.c
++++ linux/drivers/acpi/fan.c
+@@ -267,7 +267,7 @@
+ 		goto end;
+ 	}
  
-
->-----Original Message-----
->From: Youquan,Song [mailto:youquan.song@linux.intel.com] 
->Sent: Monday, December 14, 2009 5:13 AM
->To: linux@dominikbrodowski.net
->Cc: Dominik Brodowski; lenb@kernel.org; Pallipadi, Venkatesh; 
->Liu, Kent; Guo, Chaohong; Song, Youquan; linux-acpi@vger.kernel.org
->Subject: Re: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
->
->> > Yes, but what happens if there are two states of type C2? 
->The whole concept
->> > of "type C<number>" and "state C<number>" was broken from 
->the beginning...
->> 
->> Sorry. In my mind, there is no two states of ACPI C2. If processor C3
->> above are mapped to ACPI C3, so processor C1 is mapped to ACPI C1,
->> processor C2 is mapped to ACPI C2.  
->> Len Brown, Am I right?
->> 
->> If I am wrong, I will file another patches for it.  
->
->This patch handle the ACPI C2 invlidation on some platform.
->Another patch "acpi c-states: Fix multiply C-states name
->disturbance" will unify multiply C-states name.
->
-
-I assume this patch is not needed with your other patch
-"acpi c-states: Fix multiply C-states name
-disturbance".
-
-I don't like
-/proc/acpi/processor/CPUx/power
-    C1:                  type[C1] promotion[--] demotion[--] 
-    C2:                  <not supported>
-    C3:                  type[C3] promotion[--] demotion[--] 
-
-Because there are systems with more than one ACPI C3 C-state and this change will not help such systems. Also, this has potential to break applications like powertop that depend on current output format.
-
-Thanks,
-Venki
+-	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
++	dev_dbg(&device->dev, "registered as cooling_device%d\n", cdev->id);
+ 
+ 	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+--- linux.orig/drivers/acpi/processor_core.c
++++ linux/drivers/acpi/processor_core.c
+@@ -845,7 +845,7 @@
+ 		goto err_power_exit;
+ 	}
+ 
+-	dev_info(&device->dev, "registered as cooling_device%d\n",
++	dev_dbg(&device->dev, "registered as cooling_device%d\n",
+ 		 pr->cdev->id);
+ 
+ 	result = sysfs_create_link(&device->dev.kobj,
