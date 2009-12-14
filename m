@@ -1,52 +1,72 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Mon, 14 Dec 2009 10:21:38 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912141015240.26135@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912121848.33062.rjw@sisk.pl> <alpine.LFD.2.00.0912121049390.3526@localhost.localdomain> <200912122334.08367.rjw@sisk.pl>
+From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: Re: [PATCH] acpi: fix for lapic_timer_propagate_broadcast()
+Date: Mon, 14 Dec 2009 10:37:22 -0800
+Message-ID: <1260815843.4243.1.camel@sbs-t61.sc.intel.com>
+References: <4B25F2DE.4000703@jp.fujitsu.com>
+Reply-To: Suresh Siddha <suresh.b.siddha@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45077 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932356AbZLNSWY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Dec 2009 13:22:24 -0500
-In-Reply-To: <200912122334.08367.rjw@sisk.pl>
+Received: from mga02.intel.com ([134.134.136.20]:42110 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750870AbZLNSin (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 13:38:43 -0500
+In-Reply-To: <4B25F2DE.4000703@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-
-
-On Sat, 12 Dec 2009, Rafael J. Wysocki wrote:
+On Mon, 2009-12-14 at 00:10 -0800, Hidetoshi Seto wrote:
+> I got following warning on ia64 box:
+>   In function 'acpi_processor_power_verify':
+>   642: warning: passing argument 2 of 'smp_call_function_single' from
+>   incompatible pointer type
 > 
-> One solution that we have discussed on linux-pm is to start a bunch of async
-> threads searching for async devices that can be suspended and suspending
-> them (assuming suspend is considered) out of order with respect to dpm_list.
+> This smp_call_function_single() was introduced by a commit
+> f833bab87fca5c3ce13778421b1365845843b976:
+> 
+>  > @@ -162,8 +162,9 @@
+>  >               pr->power.timer_broadcast_on_state = state;
+>  >  }
+>  >
+>  > -static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
+>  > +static void lapic_timer_propagate_broadcast(void *arg)
+>  >  {
+>  > +       struct acpi_processor *pr = (struct acpi_processor *) arg;
+>  >         unsigned long reason;
+>  >
+>  >         reason = pr->power.timer_broadcast_on_state < INT_MAX ?
+>  > @@ -635,7 +636,8 @@
+>  >                 working++;
+>  >         }
+>  >
+>  > -       lapic_timer_propagate_broadcast(pr);
+>  > +       smp_call_function_single(pr->id, lapic_timer_propagate_broadcast,
+>  > +                                pr, 1);
+>  >
+>  >         return (working);
+>  >  }
+> 
+> The problem is that the lapic_timer_propagate_broadcast() has 2 versions:
+> One is real code that modified in the above commit, and the other is NOP
+> code that used when !ARCH_APICTIMER_STOPS_ON_C3:
+> 
+>   static void lapic_timer_propagate_broadcast(struct acpi_processor *pr) { }
+> 
+> So I got warning because of !ARCH_APICTIMER_STOPS_ON_C3.
+> 
+> We really want to do nothing here on !ARCH_APICTIMER_STOPS_ON_C3, so
+> modify lapic_timer_propagate_broadcast() of real version to use
+> smp_call_function_single() in it.
+> 
+> Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 
-Ok, guys, stop the crazy.
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
 
-That's another of those "ok, that's just ttoally stupid and clearly too 
-complex" ideas that I would never pull.
+Len, please push this in to your tree.
 
-I should seriously suggest that people just stop discussing architectural 
-details on the pm list if they all end up being this level of crazy.
+thanks,
+suresh
 
-The sane thing to do is to just totally ignore the async layer on PCI 
-bridges and other things that only have a late-suspend/early-resume thing. 
-No need for the above kind of obviously idiotic crap.
-
-However, my point was really that we wouldn't even have _needed_ that kind 
-of special case if we had just decided to let the subsystems do it. But 
-whatever. At worst, the PCI layer can even just mark such devices with 
-just late/early suspend/resume as being asynchronous, even though that 
-ends up resulting in some totally pointless async work that doesn't do 
-anything.
-
-But please guys - reign in the crazy ideas on the pm list. It's not like 
-our suspend/resume has gotten so stable as to be boring, and we want it to 
-become unreliable again.
-
-			Linus
