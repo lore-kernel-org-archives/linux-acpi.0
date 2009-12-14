@@ -1,106 +1,47 @@
-From: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Subject: [PATCH] acpi: fix for lapic_timer_propagate_broadcast()
-Date: Mon, 14 Dec 2009 17:10:06 +0900
-Message-ID: <4B25F2DE.4000703@jp.fujitsu.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
+Date: Mon, 14 Dec 2009 09:13:50 +0100
+Message-ID: <20091214081350.GA19266@dominikbrodowski.net>
+References: <20091212181442.GA22832@youquan-linux.bj.intel.com>
+ <20091212142727.GA6867@comet.dominikbrodowski.net>
+ <20091212235549.GA7753@youquan-linux.bj.intel.com>
+ <20091213084317.GA15989@isilmar.linta.de>
+ <20091214100200.GA17243@youquan-linux.bj.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:41808 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755214AbZLNIK7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2009 03:10:59 -0500
+Received: from isilmar.linta.de ([213.133.102.198]:34657 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750910AbZLNIQ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 03:16:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20091214100200.GA17243@youquan-linux.bj.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>, Len Brown <len.brown@intel.com>
+To: "Youquan,Song" <youquan.song@linux.intel.com>
+Cc: lenb@kernel.org, venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
 
-I got following warning on ia64 box:
-  In function 'acpi_processor_power_verify':
-  642: warning: passing argument 2 of 'smp_call_function_single' from
-  incompatible pointer type
+Hey,
 
-This smp_call_function_single() was introduced by a commit
-f833bab87fca5c3ce13778421b1365845843b976:
+On Mon, Dec 14, 2009 at 05:02:00AM -0500, Youquan,Song wrote:
+> > > That's true, if CPU has more 3 states such as C3, C6, C7, there are
+> > > all mapped to ACPI C3.   But the current situation is that if platform
+> > > does NOT support ACPI C2, the user interface /sys show us ACPI C2 is
+> > >  supported which actual is ACPI C3.
+> > > 
+> > > As you know, ACPI C3 and ACPI C2 have much different, such as: BUS SNOOP
+> > >  or not, ACPI C3 has better power saving etc. we should not mix them.
+> > 
+> > Yes, but what happens if there are two states of type C2? The whole concept
+> > of "type C<number>" and "state C<number>" was broken from the beginning...
+> 
+> Sorry. In my mind, there is no two states of ACPI C2. If processor C3
+> above are mapped to ACPI C3, so processor C1 is mapped to ACPI C1,
+> processor C2 is mapped to ACPI C2.  
 
- > @@ -162,8 +162,9 @@
- >               pr->power.timer_broadcast_on_state = state;
- >  }
- >
- > -static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
- > +static void lapic_timer_propagate_broadcast(void *arg)
- >  {
- > +       struct acpi_processor *pr = (struct acpi_processor *) arg;
- >         unsigned long reason;
- >
- >         reason = pr->power.timer_broadcast_on_state < INT_MAX ?
- > @@ -635,7 +636,8 @@
- >                 working++;
- >         }
- >
- > -       lapic_timer_propagate_broadcast(pr);
- > +       smp_call_function_single(pr->id, lapic_timer_propagate_broadcast,
- > +                                pr, 1);
- >
- >         return (working);
- >  }
+Well, there may be none now, but the ACPI spec 4.0 provides for it in section
+8.1.5... The whole mapping of ACPI C-state Types to C-state numbers _is_
+confusing.
 
-The problem is that the lapic_timer_propagate_broadcast() has 2 versions:
-One is real code that modified in the above commit, and the other is NOP
-code that used when !ARCH_APICTIMER_STOPS_ON_C3:
-
-  static void lapic_timer_propagate_broadcast(struct acpi_processor *pr) { }
-
-So I got warning because of !ARCH_APICTIMER_STOPS_ON_C3.
-
-We really want to do nothing here on !ARCH_APICTIMER_STOPS_ON_C3, so
-modify lapic_timer_propagate_broadcast() of real version to use
-smp_call_function_single() in it.
-
-Signed-off-by: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Len Brown <len.brown@intel.com>
----
- drivers/acpi/processor_idle.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index bbd066e..d1676b1 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -164,7 +164,7 @@ static void lapic_timer_check_state(int state, struct acpi_processor *pr,
- 		pr->power.timer_broadcast_on_state = state;
- }
- 
--static void lapic_timer_propagate_broadcast(void *arg)
-+static void __lapic_timer_propagate_broadcast(void *arg)
- {
- 	struct acpi_processor *pr = (struct acpi_processor *) arg;
- 	unsigned long reason;
-@@ -175,6 +175,12 @@ static void lapic_timer_propagate_broadcast(void *arg)
- 	clockevents_notify(reason, &pr->id);
- }
- 
-+static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
-+{
-+	smp_call_function_single(pr->id, __lapic_timer_propagate_broadcast,
-+				 (void *)pr, 1);
-+}
-+
- /* Power(C) State timer broadcast control */
- static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- 				       struct acpi_processor_cx *cx,
-@@ -638,8 +644,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 		working++;
- 	}
- 
--	smp_call_function_single(pr->id, lapic_timer_propagate_broadcast,
--				 pr, 1);
-+	lapic_timer_propagate_broadcast(pr);
- 
- 	return (working);
- }
--- 
-1.6.5.6
-
-
+Best,
+	Dominik
