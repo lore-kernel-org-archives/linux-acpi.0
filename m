@@ -1,55 +1,64 @@
-From: Mike Travis <travis@sgi.com>
-Subject: [PATCH] ACPI: Remove repeated registered as cooling_device messages
-Date: Mon, 14 Dec 2009 13:38:30 -0800
-Message-ID: <4B26B056.3080708@sgi.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Mon, 14 Dec 2009 23:11:31 +0100
+Message-ID: <200912142311.31658.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912122334.08367.rjw@sisk.pl> <alpine.LFD.2.00.0912141015240.26135@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.sgi.com ([192.48.179.30]:53524 "EHLO relay.sgi.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751253AbZLNVi3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Dec 2009 16:38:29 -0500
+Received: from ogre.sisk.pl ([217.79.144.158]:48951 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932676AbZLNWLF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 17:11:05 -0500
+In-Reply-To: <alpine.LFD.2.00.0912141015240.26135@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-ACPI: Remove repeated registered as cooling_device messages
+On Monday 14 December 2009, Linus Torvalds wrote:
+> 
+> On Sat, 12 Dec 2009, Rafael J. Wysocki wrote:
+> > 
+> > One solution that we have discussed on linux-pm is to start a bunch of async
+> > threads searching for async devices that can be suspended and suspending
+> > them (assuming suspend is considered) out of order with respect to dpm_list.
+> 
+> Ok, guys, stop the crazy.
+> 
+> That's another of those "ok, that's just ttoally stupid and clearly too 
+> complex" ideas that I would never pull.
+> 
+> I should seriously suggest that people just stop discussing architectural 
+> details on the pm list if they all end up being this level of crazy.
+> 
+> The sane thing to do is to just totally ignore the async layer on PCI 
+> bridges and other things that only have a late-suspend/early-resume thing. 
+> No need for the above kind of obviously idiotic crap.
+> 
+> However, my point was really that we wouldn't even have _needed_ that kind 
+> of special case if we had just decided to let the subsystems do it. But 
+> whatever. At worst, the PCI layer can even just mark such devices with 
+> just late/early suspend/resume as being asynchronous, even though that 
+> ends up resulting in some totally pointless async work that doesn't do 
+> anything.
+> 
+> But please guys - reign in the crazy ideas on the pm list. It's not like 
+> our suspend/resume has gotten so stable as to be boring, and we want it to 
+> become unreliable again.
 
-This message shows up for each cpu.  Print as debug messages.
+Indeed.
 
-[   12.893967] processor ACPI0007:00: registered as cooling_device0
-[   12.907838] processor ACPI0007:01: registered as cooling_device1
+OK, what about a two-pass approach in which the first pass only inits the
+completions and starts async threads for leaf "async" devices?  I think leaf
+devices are most likely to take much time to suspend, so this will give us
+a chance to save quite some time.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- drivers/acpi/fan.c            |    2 +-
- drivers/acpi/processor_core.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+A more aggressive version of this might start the async threads for all async
+devices in the first pass and then only handle the sychronous ones in the
+second pass - as long as there are only a few async devices that should be
+quite efficient.
 
---- linux.orig/drivers/acpi/fan.c
-+++ linux/drivers/acpi/fan.c
-@@ -267,7 +267,7 @@
- 		goto end;
- 	}
- 
--	dev_info(&device->dev, "registered as cooling_device%d\n", cdev->id);
-+	dev_dbg(&device->dev, "registered as cooling_device%d\n", cdev->id);
- 
- 	device->driver_data = cdev;
- 	result = sysfs_create_link(&device->dev.kobj,
---- linux.orig/drivers/acpi/processor_core.c
-+++ linux/drivers/acpi/processor_core.c
-@@ -845,7 +845,7 @@
- 		goto err_power_exit;
- 	}
- 
--	dev_info(&device->dev, "registered as cooling_device%d\n",
-+	dev_dbg(&device->dev, "registered as cooling_device%d\n",
- 		 pr->cdev->id);
- 
- 	result = sysfs_create_link(&device->dev.kobj,
+Rafael
