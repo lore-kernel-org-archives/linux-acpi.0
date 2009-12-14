@@ -1,47 +1,36 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH]acpi c-states: Fix ACPI C3 is wrongly mapped to C2
-Date: Mon, 14 Dec 2009 09:13:50 +0100
-Message-ID: <20091214081350.GA19266@dominikbrodowski.net>
-References: <20091212181442.GA22832@youquan-linux.bj.intel.com>
- <20091212142727.GA6867@comet.dominikbrodowski.net>
- <20091212235549.GA7753@youquan-linux.bj.intel.com>
- <20091213084317.GA15989@isilmar.linta.de>
- <20091214100200.GA17243@youquan-linux.bj.intel.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 5/5 -v2] acpi, apei, Document for APEI
+Date: Mon, 14 Dec 2009 16:44:55 +0800
+Message-ID: <1260780295.12561.118.camel@yhuang-dev.sh.intel.com>
+References: <1260429424.15264.397.camel@yhuang-dev.sh.intel.com>
+	 <200912110958.29319.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.133.102.198]:34657 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750910AbZLNIQ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Dec 2009 03:16:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20091214100200.GA17243@youquan-linux.bj.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:29378 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753962AbZLNIo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 03:44:58 -0500
+In-Reply-To: <200912110958.29319.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Youquan,Song" <youquan.song@linux.intel.com>
-Cc: lenb@kernel.org, venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hey,
-
-On Mon, Dec 14, 2009 at 05:02:00AM -0500, Youquan,Song wrote:
-> > > That's true, if CPU has more 3 states such as C3, C6, C7, there are
-> > > all mapped to ACPI C3.   But the current situation is that if platform
-> > > does NOT support ACPI C2, the user interface /sys show us ACPI C2 is
-> > >  supported which actual is ACPI C3.
-> > > 
-> > > As you know, ACPI C3 and ACPI C2 have much different, such as: BUS SNOOP
-> > >  or not, ACPI C3 has better power saving etc. we should not mix them.
-> > 
-> > Yes, but what happens if there are two states of type C2? The whole concept
-> > of "type C<number>" and "state C<number>" was broken from the beginning...
+On Sat, 2009-12-12 at 00:58 +0800, Bjorn Helgaas wrote: 
+> On Thursday 10 December 2009 12:17:04 am Huang Ying wrote:
+> > Add document for APEI, including kernel parameters and EINJ debug file
+> > sytem interface.
 > 
-> Sorry. In my mind, there is no two states of ACPI C2. If processor C3
-> above are mapped to ACPI C3, so processor C1 is mapped to ACPI C1,
-> processor C2 is mapped to ACPI C2.  
+> From a stylistic point of view, I think it's better if the
+> documentation is added by the same patch that adds the functionality.
+> Having them in separate patches means there's a point in time where
+> the tree contains the functionality but not the documentation, or
+> vice versa.
 
-Well, there may be none now, but the ACPI spec 4.0 provides for it in section
-8.1.5... The whole mapping of ACPI C-state Types to C-state numbers _is_
-confusing.
+Sounds reasonable, I will change this.
 
-Best,
-	Dominik
+Best Regards,
+Huang Ying
+
