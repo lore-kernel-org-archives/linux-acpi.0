@@ -1,64 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Mon, 14 Dec 2009 23:11:31 +0100
-Message-ID: <200912142311.31658.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912122334.08367.rjw@sisk.pl> <alpine.LFD.2.00.0912141015240.26135@localhost.localdomain>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
+ suspend-resume patch w/ rwsems)
+Date: Mon, 14 Dec 2009 14:41:41 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912141416040.26135@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912122334.08367.rjw@sisk.pl> <alpine.LFD.2.00.0912141015240.26135@localhost.localdomain> <200912142311.31658.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48951 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932676AbZLNWLF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Dec 2009 17:11:05 -0500
-In-Reply-To: <alpine.LFD.2.00.0912141015240.26135@localhost.localdomain>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35032 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754805AbZLNWmN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 17:42:13 -0500
+In-Reply-To: <200912142311.31658.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Monday 14 December 2009, Linus Torvalds wrote:
-> 
-> On Sat, 12 Dec 2009, Rafael J. Wysocki wrote:
-> > 
-> > One solution that we have discussed on linux-pm is to start a bunch of async
-> > threads searching for async devices that can be suspended and suspending
-> > them (assuming suspend is considered) out of order with respect to dpm_list.
-> 
-> Ok, guys, stop the crazy.
-> 
-> That's another of those "ok, that's just ttoally stupid and clearly too 
-> complex" ideas that I would never pull.
-> 
-> I should seriously suggest that people just stop discussing architectural 
-> details on the pm list if they all end up being this level of crazy.
-> 
-> The sane thing to do is to just totally ignore the async layer on PCI 
-> bridges and other things that only have a late-suspend/early-resume thing. 
-> No need for the above kind of obviously idiotic crap.
-> 
-> However, my point was really that we wouldn't even have _needed_ that kind 
-> of special case if we had just decided to let the subsystems do it. But 
-> whatever. At worst, the PCI layer can even just mark such devices with 
-> just late/early suspend/resume as being asynchronous, even though that 
-> ends up resulting in some totally pointless async work that doesn't do 
-> anything.
-> 
-> But please guys - reign in the crazy ideas on the pm list. It's not like 
-> our suspend/resume has gotten so stable as to be boring, and we want it to 
-> become unreliable again.
 
-Indeed.
 
-OK, what about a two-pass approach in which the first pass only inits the
-completions and starts async threads for leaf "async" devices?  I think leaf
-devices are most likely to take much time to suspend, so this will give us
-a chance to save quite some time.
+On Mon, 14 Dec 2009, Rafael J. Wysocki wrote:
+>
+> OK, what about a two-pass approach in which the first pass only inits the
+> completions and starts async threads for leaf "async" devices?  I think leaf
+> devices are most likely to take much time to suspend, so this will give us
+> a chance to save quite some time.
 
-A more aggressive version of this might start the async threads for all async
-devices in the first pass and then only handle the sychronous ones in the
-second pass - as long as there are only a few async devices that should be
-quite efficient.
+Why?
 
-Rafael
+Really.
+
+Again, stop making it harder than it needs to be.
+
+Why do you make up these crazy schemes that are way more complex than they 
+need to be?
+
+Here's an untested one-liner that has a 10-line comment.
+
+I agree it is ugly, but it is ugly exactly because the generic device 
+layer _forces_ us to wait for children even when we don't want to. With 
+this, that unnecessary wait is now done asynchronously.
+
+I'd rather do it some other way - perhaps having an explicit flag that 
+says "don't wait for children because I'm not going to suspend myself 
+until 'suspend_late' _anyway_". But at least this is _simple_.
+
+		Linus
+
+---
+ drivers/pci/probe.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 98ffb2d..4e0ad7b 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -437,6 +437,17 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ 	}
+ 	bridge->subordinate = child;
+ 
++	/*
++	 * We don't really suspend PCI buses asyncronously.
++	 *
++	 * However, since we don't actually suspend them at all until
++	 * the late phase, we might as well lie to the device layer
++	 * and it to do our no-op not-suspend asynchronously, so that
++	 * we end up not synchronizing with any of our child devices
++	 * that might want to be asynchronous.
++	 */
++	bridge->dev.power.async_suspend = 1;
++
+ 	return child;
+ }
+ 
