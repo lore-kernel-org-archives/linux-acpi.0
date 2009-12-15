@@ -1,63 +1,70 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: Re: [PATCH 0/7] msi-wmi driver and cleanups
-Date: Tue, 15 Dec 2009 10:55:31 +0100
-Message-ID: <20091215105531.6d796b0b@destiny.ordissimo>
-References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Tue, 15 Dec 2009 12:03:22 +0100
+Message-ID: <200912151203.22916.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912150018.11837.rjw@sisk.pl> <alpine.LFD.2.00.0912141609020.14385@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1260451099-25620-1-git-send-email-anisse@astier.eu>
-Sender: linux-input-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Anisse Astier <anisse@astier.eu>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Matt Chen <machen@novell.com>, Alan Jenkins <sourcejedi.lkml@googlemail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:51600 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753219AbZLOLCp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2009 06:02:45 -0500
+In-Reply-To: <alpine.LFD.2.00.0912141609020.14385@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Thu, 10 Dec 2009 14:18:12 +0100, Anisse Astier <anisse@astier.eu> wrote :
+On Tuesday 15 December 2009, Linus Torvalds wrote:
+> 
+> On Tue, 15 Dec 2009, Rafael J. Wysocki wrote:
+> > 
+> > Because the PCI bridges are not the only case where it matters (I'd say they
+> > are really a corner case).  Basically, any two async devices separeted by a
+> > series of sync ones are likely not to be suspended (or resumed) in parallel
+> > with each other, because the parent is usually next to its children in dpm_list.
+> 
+> Give a real example that matters.
 
-> This driver adds support for WMI-based hotkeys and backlight for some MSI 
-> laptops and all-in-one computers.
-> 
-> This driver was sent in the end of october by Thomas Renninger
-> (cf http://patchwork.kernel.org/patch/55944/ ). I'm re-sending it as-is (I
-> just added my Reviewed-by:); it is the first patch of this serie because 
-> it doesn't look like it has been integrated yet in Len's ACPI tree.
-> 
-> Other patches are just a follow-up to my previous comments on this driver,
-> that I would like to see merged for 2.6.33.
-> 
-> Please note that the last patch of this serie requires Dmitry's input next
-> tree to have the sparse keymap library.
-> 
-> Regards,
-> 
-> Anisse
-> 
-> 
-> Anisse Astier (6):
- Anisse Astier (7):
->   msi-wmi: remove useless includes
->   msi-wmi: rework init
->   msi-wmi: remove custom runtime debug implementation
->   msi-wmi: remove unused field 'instance' in key_entry structure
->   msi-wmi: replace one-condition switch-case with if statement
->   msi-wmi: switch to using input sparse keymap library
-   msi-wmi: depend on backlight and fix corner-cases problems
-> 
-> Thomas Renninger (1):
->   X86 drivers: Introduce msi-wmi driver
-> 
->  drivers/platform/x86/Kconfig   |   11 ++
->  drivers/platform/x86/Makefile  |    1 +
->  drivers/platform/x86/msi-wmi.c |  286 ++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 298 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/platform/x86/msi-wmi.c
-> 
+I'll try.  Let -> denote child-parent relationships and assume dpm_list looks
+like this:
 
-So, if there is no other objection on this, what path can this (small) driver
-take to go upstream?
-Thomas' goal was to have it through Len's ACPI tree. Len, what's you opinion?
+..., A->B->C, D, E->F->G, ...
 
-Regards,
+where A, B, E, F are all async and C, D, G are sync (E, F, G may be USB and
+A, B, C may be serio input devices and D is a device that just happens to be in
+dpm_list between them).  Say A and C take the majority of the total suspend
+time and assume we traverse the dpm_list from left to right.
 
-Anisse
+Now, during suspend, C waits for B that waits for A and G waits for F that
+waits for E.  Moreover, since C is sync, the PM core won't start the suspend
+of D until the suspend of C has returned.  In turn, since D is sync, the
+suspend of E won't be started until the suspend of D has returned.  So in
+this situation the gain from the async suspends of A, B, E, F is zero.
+
+However, it won't be zero if we start the async suspends of A, B, E, F
+upfront.
+
+I'm not sure if this is sufficiently "real life" for you, but this is how
+dpm_list looks on one of my test boxes, more or less.
+
+> Really. 
+> 
+> How hard can it be to understand: KISS. Keep It Simple, Stupid.
+> 
+> I get really tired of this whole stupid async discussion, because you're 
+> overdesigning it.
+> 
+> To a first approximation, THE ONLY THING THAT MATTERS IS USB.
+
+If this applies to _resume_ only, then I agree, but the Arjan's data clearly
+show that serio devices take much more time to suspend than USB.
+
+But if we only talk about resume, the PCI bridges don't really matter,
+because they are resumed before all devices that depend on them, so they don't
+really need to wait for anyone anyway.
+
+Rafael
