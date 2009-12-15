@@ -1,128 +1,137 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [Resend PATCH] ACPI: Add the IPMI opregion driver to enable
-	ACPI to access BMC controller
-Date: Tue, 15 Dec 2009 08:59:52 +0800
-Message-ID: <1260838792.3846.11.camel@localhost.localdomain>
-References: <1260323925-25701-1-git-send-email-yakui.zhao@intel.com>
-	 <200912090757.41148.bjorn.helgaas@hp.com>
-	 <1260699627.4162.21.camel@localhost.localdomain>
-	 <200912141718.21714.bjorn.helgaas@hp.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
+Date: Tue, 15 Dec 2009 09:04:13 +0800
+Message-ID: <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>
+References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>
+	 <200912111036.15063.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26801 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:44713 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757449AbZLOBBl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Dec 2009 20:01:41 -0500
-In-Reply-To: <200912141718.21714.bjorn.helgaas@hp.com>
+	id S1757695AbZLOBET (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2009 20:04:19 -0500
+In-Reply-To: <200912111036.15063.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, 2009-12-15 at 08:18 +0800, Bjorn Helgaas wrote:
-> On Sunday 13 December 2009 03:20:27 am ykzhao wrote:
-> > On Wed, 2009-12-09 at 22:57 +0800, Bjorn Helgaas wrote:
-> > > On Tuesday 08 December 2009 06:58:45 pm yakui.zhao@intel.com wrote:
-> > > > From: Zhao Yakui <yakui.zhao@intel.com>
-> > > >
-> > > > Add the IPMI opregion driver so that the AML code can communicate with BMC
-> > > > throught IPMI message.
-> > > >      It will create IPMI user interface for every IPMI device detected
-> > > > in ACPI namespace and install the corresponding IPMI opregion space handler.
-> > > >
-> > > > The following describes how to process the IPMI request in IPMI space handler:
-> > > >     1. format the IPMI message based on the request in AML code.
-> > > >     IPMI system address. Now the address type is SYSTEM_INTERFACE_ADDR_TYPE
-> > > >     IPMI net function & command
-> > > >     IPMI message payload
-> > > >     2. send the IPMI message by using the function of ipmi_request_settime
-> > > >     3. wait for the completion of IPMI message. It can be done in different
-> > > > routes: One is in handled in IPMI user recv callback function. Another is
-> > > > handled in timeout function.
-> > > >     4. format the IPMI response and return it to ACPI AML code.
-> > > 
-> > > I think this should be part of the ipmi_si_intf module, not a separate
-> > > module.  This opregion code is of no use without ipmi_si_intf.  The
-> > > opregion code can still be under its own config option, but I don't
-> > > see the value in having it be a separate module.
-> > 
-> > This opregion code can't work if the IPMI subsystem is not loaded. this
-> > is right. I also agree with this point.
-> > But this doesn't mean that this must be put into the module of
-> > ipmi_si_intf.
-> > In fact this opregion code only uses the IPMI API function to
-> > communicate with IPMI system interface. At the same time its main
-> > purpose is to handle the request from ACPI AML code. It had better be
-> > put into the ACPI subsystem. I think that it is unnecessary to put it
-> > into the ipmi_si_intf module.
-> > 
-> > 
-> > BTW: Several modules(for example: drivers/hwmon/ibmaem.c ,
-> > drivers/hwmon/ibmpex.c) also use the IPMI system interface to
-> > communicate with the IPMI subsystem. But they are the different part of
-> > ipmi_si_intf module.
-> > 
-> > > The opregion code should definitely not use acpi_bus_register_driver()
-> > > to claim IPI0001 devices.  The ipmi_si_intf driver already uses
-> > > pnp_register_driver() to claim IPI0001 devices.  The fact that Linux
-> > > allows two drivers to claim the same device (one via pnp_register_driver()
-> > > and the other via acpi_bus_register_driver()) is a defect in Linux, and
-> > > we shouldn't take advantage of that.
-> > 
-> > If you think that this code had better not use the
-> > acpi_bus_register_driver, I will try to enumerate this device from ACPI
-> > device tree directly and then install the IPMI opregion handler for it.
+On Sat, 2009-12-12 at 01:36 +0800, Bjorn Helgaas wrote: 
+> I see you posted a first version of this series a couple days
+> ago, but there weren't any responses (at least on linux-acpi),
+> and you didn't say anything about what you changed between
+> -v1 and -v2.
+
+The only change between -v1 and -v2 is that atomic ACPI read/write is
+separated from drivers/acpi/apei/apei-base.c to drivers/acpi/atomicio.c
+and in a separated patch.
+
+> On Thursday 10 December 2009 12:16:53 am Huang Ying wrote:
+> > Some ACPI IO accessing need to be done in atomic context. For example,
+> > APEI ERST operations may be used for permanent storage in hardware
+> > error handler. That is, it may be called in atomic contexts such as
+> > IRQ or NMI, etc. And, ERST/EINJ implement their operations via IO
+> > memory/port accessing.  But the IO memory accessing method provided by
+> > ACPI (acpi_read/acpi_write) maps the IO memory during it is accessed,
+> > so it can not be used in atomic context. To solve the issue, the IO
+> > memory should be pre-mapped during EINJ/ERST initializing. A linked
+> > list is used to record which memory area has been mapped, when memory
+> > is accessed in hardware error handler, search the linked list for the
+> > mapped virtual address from the given physical address.
 > 
-> I think there are two questions here: (1) should this be part of
-> ipmi_si_intf? and (2) how should it be registered?
+> The ACPI CA has functions called acpi_hw_read() and acpi_hw_write()
+> that have similar prototypes and functionality (but of course, they
+> don't work in atomic context).  It'd be nice if your new functions
+> had similar names, e.g., acpi_hw_map(), acpi_hw_unmap(),
+> acpi_hw_read_atomic(), acpi_hw_write_atomic().
+
+acpi_hw_read/write is the 32-bit optimized version of acpi_read/write.
+So I think it is better to follow the naming convention of
+acpi_read/write.
+
+> I think your code would be simpler if acpi_pre_map_gar() returned a
+> struct acpi_iomap pointer (from the caller's point of view, this would
+> be an opaque cookie).  Then you could just supply that cookie to
+> acpi_atomic_write(), and you wouldn't have to look it up again.  Maybe
+> you could even get rid of the list and all the fancy RCU & kref stuff
+> then, too.
+
+The interface chosen is based on usage model, which is:
+
+1. In init function, all GARs needed are pre-mapped
+2. In atomic context, pre-mapped GARs are accessed
+3. In exit function, all GARs are post-unmapped
+
+In 3), if struct acpi_iomap* is used as parameter for post-unmap
+function, we need to record that pointer in another list. In 2), we need
+find mapped address from GAR.
+
+> > +/* In NMI handler, should set silent = 1 */
+> > +static int acpi_check_gar(struct acpi_generic_address *reg,
+> > +			  u64 *paddr, int silent)
+> > +{
+> > +	u32 width;
+> > +
+> > +	/* Handle possible alignment issues */
+> > +	memcpy(paddr, &reg->address, sizeof(*paddr));
+> > +	if (!*paddr) {
+> > +		if (!silent)
+> > +			pr_info(
+> > +			"Invalid physical address in GAR, firmware bug?\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	width = reg->bit_width;
+> > +	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
+> > +		if (!silent)
+> > +			pr_info(
+> > +			"Invalid bit width in GAR, firmware bug?\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
+> > +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
+> > +		if (!silent)
+> > +			pr_info(
+> > +			"Invalid address space type in GAR, firmware bug?\n");
 > 
-> For (1), I see your point that we do have existing modules that are
-> separate modules, and this is conceptually similar to those.  So
-> maybe this should be a separate module, too.  If they're separate
-> modules, I think the issues are how they communicate and how we get
-> the opregion part autoloaded.  It's easy to see how ipmi_si_intf
-> gets autoloaded -- the PNP or PCI core discovers a device and emits
-> a uevent that udev can match with a driver.  I don't think we want
-> the user to have to explicitly modprobe the opregion driver, so we
-> need some uevent or similar hook that udev can use to load it
-> automatically when appropriate.
+> Error messages with constant text are nearly useless because they
+> don't give much of a clue about where to look for a problem.
+> Personally, for something this, I would just return failure and
+> never print anything.  If a map fails, the caller should notice
+> and you then have a good idea of where to look.
 
->From the source code it seems that the ipmi_si_intf module only detects
-the available BMC device. It doesn't care which part communicates with
-the BMC device. So it will be better to put this code out of
-ipmi_si_intf module. 
+The checking here is for bug in firmware not software. I think it is
+necessary for the user to know where the bugs may come from, and it is
+hard to express the bug in return code.
 
-Whether the opregion code should used depends on the user configuration.
-If we expect that the ACPI aml code can communicate with the BMC, we
-will select this part. Correspondingly the IPMI subsystem will also be
-selected as this part depends on the IPMI subsystem. If the user doesn't
-care whether the AML code can communicate with the BMC, they can leave
-it alone. If we expect to use the uevent, that is not related with this
-patch.
-
+> > +static int acpi_atomic_read_port(u64 port, u32 *val, u32 width)
+> > +{
+> > +	switch (width) {
+> > +	case 8:
+> > +		*val = inb(port);
+> > +		break;
+> > +	case 16:
+> > +		*val = inw(port);
+> > +		break;
+> > +	case 32:
+> > +		*val = inl(port);
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
 > 
-> For (2), I don't think using acpi_walk_namespace() to determine when
-> to install the IPMI opregion handler is quite the right thing either.
+> Can you use acpi_os_read_port() and acpi_os_write_port() instead of
+> duplicating this code?
 
+Yes. You are right. I will use that.
 
-> This opregion handler allows AML to use IPMI services.  Using
-> acpi_walk_namespace() means that we'll only install the handler
-> when we have an ACPI IPMI device.  But I think the opregion should
-> be independent of the type of IPMI device, i.e., I think we want
-> this opregion to work even if the underlying IPMI interface is PCI.
+Thanks,
+Huang Ying
 
-This opregion code is only to enable the ACPI AML code to communicate
-with the BMC device. If AML code wants to access the BMC controller, we
-must declare the corresponding IPMI device in ACPI namespace and add the
-opregion field definition. If the IPMI device is not declared explicitly
-in ACPI table, this code won't work even when there exists the BMC
-device on the system.
-
-thanks.
-    Yakui
-
-> 
-> Bjorn
 
