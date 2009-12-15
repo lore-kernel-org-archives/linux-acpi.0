@@ -1,29 +1,50 @@
-From: "info@thebigbiglotto.co.uk" <ga01640@galnet.dk>
-Subject: Congratulations...
-Date: Tue, 15 Dec 2009 13:00:12 +0100
-Message-ID: <61ef97b0b22ac109b23070667f74e82b__20119.60888417$1260879653$gmane$org@localhost>
-Reply-To: mr.benhamcole@windowslive.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: yakui.zhao@intel.com
+Subject: [PATCH] acpi: Use the return result of ACPI lid notifier chain correctly
+Date: Tue, 15 Dec 2009 22:01:57 +0800
+Message-ID: <1260885717-16098-1-git-send-email-yakui.zhao@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from webmail1.ode.cdnet.dk ([85.218.129.42]:55590 "EHLO webmail1.ode"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760126AbZLOMUo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2009 07:20:44 -0500
+Received: from mga09.intel.com ([134.134.136.24]:24706 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754004AbZLOODu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2009 09:03:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Zhao Yakui <yakui.zhao@intel.com>
 
+From: Zhao Yakui <yakui.zhao@intel.com>
 
+On some laptops it will return NOTIFY_OK(non-zero) when calling the ACPI LID
+notifier. Then it is used as the result of ACPI LID resume function, which
+will complain the following warning message in course of suspend/resume:
 
---=20
-Your e-mail address attached to Winning ticket number 00002765649541,Se=
-rial
-number BIG-3673050706-07 and lucky numbers (46)0023/4440/20/89 won
-=C2=A3500,000.00 GBP. Contact Mr Benham Cole for info. Email:
-benham.cole2009@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+     >PM: Device PNP0C0D:00 failed to resume: error 1
+
+This patch is to eliminate the above warning message.
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+---
+ drivers/acpi/button.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 0c9c6a9..8a95e83 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -282,6 +282,13 @@ static int acpi_lid_send_state(struct acpi_device *device)
+ 	if (ret == NOTIFY_DONE)
+ 		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+ 						   device);
++	if (ret == NOTIFY_DONE || ret == NOTIFY_OK) {
++		/*
++		 * It is also regarded as success if the notifier_chain
++		 * returns NOTIFY_OK or NOTIFY_DONE.
++		 */
++		ret = 0;
++	}
+ 	return ret;
+ }
+ 
+-- 
+1.5.4.5
+
