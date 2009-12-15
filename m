@@ -1,61 +1,63 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH] cpufreq: Processor Clocking Control interface driver
-Date: Tue, 15 Dec 2009 19:33:31 +0100
-Message-ID: <20091215183331.GA5560@comet.dominikbrodowski.net>
-References: <20091128034424.6796.75673.sendpatchset@localhost.localdomain>
- <20091211231233.GA4291@isilmar.linta.de>
- <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE3CB7@GVW0676EXC.americas.hpqcorp.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
+ suspend-resume patch w/ rwsems)
+Date: Tue, 15 Dec 2009 10:57:25 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912151051580.14385@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912151047410.3566-100000@iolanthe.rowland.org> <alpine.LFD.2.00.0912150803250.14385@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933333AbZLOSds@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE3CB7@GVW0676EXC.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>
-Cc: "davej@redhat.com" <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg@redhat.com" <mjg@redhat.com>, "trenn@suse.de" <trenn@suse.de>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33971 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752189AbZLOS6U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2009 13:58:20 -0500
+In-Reply-To: <alpine.LFD.2.00.0912150803250.14385@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-Hey,
 
-On Tue, Dec 15, 2009 at 06:08:08PM +0000, Chumbalkar, Nagananda wrote:
-> Hi, I have addressed your concerns below: 
 
-Thanks!
-
-> >If this is _really_ necessary... Doesn't the driver version 
-> >relate to some
-> >Linux kernel version anyway?
-> >
+On Tue, 15 Dec 2009, Linus Torvalds wrote:
 > 
-> If distros backport this driver to different kernel versions, it will be
-> easy to keep track of which driver version is in the distro.
-
-Well, IMVHO it's ugly, but if Linux ACPI and cpufreq folks are fine with
-it, so be it.
-
-> Yes, it works fine. Both "ondemand" and "conservative" sanitize the
-> latency value, and set it to a default value which is good.
-
-OK. Any way to fix the spec for the next revision, though?
-
-> >> +	if (target_freq <= 
-> >(ioread32(&pcch_hdr->minimum_frequency) * 1000)) {
-> >> +		target_freq = 
-> >ioread32(&pcch_hdr->minimum_frequency) * 1000;
-> >> +		dprintk("target: target_freq for cpu %d was 
-> >below limit, "
-> >> +			"converted it to %d\n", cpu, target_freq);
-> >> +	}
-> >
-> >why not do this in the _verify() step? Does pcch_hdr->minimum_frequency
-> >even change "on the fly"?
+> And even when you know it's PCI, our rules are actually not simple at all. 
+> Our rules for PCI devices (and this strictly speaking is true for bridges 
+> too) are rather complex:
 > 
-> pcch_hdr->minimum_frequency does not change "on the fly". Also, there is no
-> need for those IO accesses:
+>  - do we have _any_ legacy PM support (ie the "direct" driver 
+>    suspend/resume functions in the driver ops, rather than having a 
+>    "struct dev_pm_ops" pointer)? If so, call "->suspend()"
+> 
+>  - If not - do we have that "dev_pm_ops" thing? If so, call it.
+> 
+>  - If not - just disable the device entirely _UNLESS_ you're a PCI bridge.
+> 
+> Notice? The way things are set up, if you have no suspend routine, you'll 
+> not get suspended, but you will get disabled. 
 
-target_freq cannot be below policy->min or above policy->max. If it were,
-the whole cpufreq subsystem is broken. So there's no need for these checks,
-AFAICS.
+Side note - what I think might be a clean solution for PCI at least is to 
+do something like the following:
 
-Best,
-	Dominik
+ - move that "disable the device entirely" thing to suspend_late, rather 
+   than the earlier suspend phase. Now PCI devices without drivers or PM 
+   will not be touched at all in the first suspend phase.
+
+ - initialize all PCI devices to have 'async_suspend = 1' on discovery
+
+ - whenever we bind a driver to the PCI device, we'd then look at whether 
+   that driver implements suspend/resume callbacks (legacy or new), and 
+   clear the async_suspend bit if so.
+
+That way we'd have the same old synchronous behavior for all PCI suspend 
+and resume events (unless the driver itself then sets the async_suspend 
+bit at device init time, which it could do, of course), while still always 
+doing async "no-op" events.
+
+That would avoid the ugly one-liner that just "knows" that PCI bridges are 
+special and don't do anything at suspend time (even though they aren't 
+really - a PCI bridge _could_ have a driver associated with it that does 
+something that might not be happy being asynchronous).
+
+			Linus
