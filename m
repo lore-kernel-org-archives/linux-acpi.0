@@ -1,143 +1,287 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
-Date: Tue, 15 Dec 2009 10:47:13 -0700
-Message-ID: <200912151047.14196.bjorn.helgaas@hp.com>
-References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com> <200912111036.15063.bjorn.helgaas@hp.com> <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>
+From: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>
+Subject: RE: [PATCH] cpufreq: Processor Clocking Control interface driver
+Date: Tue, 15 Dec 2009 18:08:08 +0000
+Message-ID: <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE3CB7@GVW0676EXC.americas.hpqcorp.net>
+References: <20091128034424.6796.75673.sendpatchset@localhost.localdomain>
+ <20091211231233.GA4291@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:16144 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642AbZLORrQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 12:47:16 -0500
-In-Reply-To: <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>
-Content-Disposition: inline
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:13466 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673AbZLOSIm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 13:08:42 -0500
+In-Reply-To: <20091211231233.GA4291@isilmar.linta.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: "davej@redhat.com" <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg@redhat.com" <mjg@redhat.com>, "trenn@suse.de" <trenn@suse.de>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Monday 14 December 2009 06:04:13 pm Huang Ying wrote:
-> On Sat, 2009-12-12 at 01:36 +0800, Bjorn Helgaas wrote: 
-> > The ACPI CA has functions called acpi_hw_read() and acpi_hw_write()
-> > that have similar prototypes and functionality (but of course, they
-> > don't work in atomic context).  It'd be nice if your new functions
-> > had similar names, e.g., acpi_hw_map(), acpi_hw_unmap(),
-> > acpi_hw_read_atomic(), acpi_hw_write_atomic().
-> 
-> acpi_hw_read/write is the 32-bit optimized version of acpi_read/write.
-> So I think it is better to follow the naming convention of
-> acpi_read/write.
+Hi, I have addressed your concerns below: 
 
-You're right; I didn't notice that.  I agree that it's better to
-follow the convention of acpi_read().
+>-----Original Message-----
+>From: Dominik Brodowski [mailto:linux@dominikbrodowski.net] 
+>Sent: Friday, December 11, 2009 5:13 PM
+>To: Chumbalkar, Nagananda
+>Cc: davej@redhat.com; linux-kernel@vger.kernel.org; 
+>cpufreq@vger.kernel.org; linux-acpi@vger.kernel.org; 
+>mjg@redhat.com; trenn@suse.de; lenb@kernel.org
+>Subject: Re: [PATCH] cpufreq: Processor Clocking Control 
+>interface driver
+>
+>Hey,
+>
+>On Fri, Dec 11, 2009 at 10:55:40PM +0000, Naga Chumbalkar wrote:
+>> +The VERSION number for the driver will be of the format v.xy.ab.
+>> +eg: 1.00.02
+>> +   ----- --
+>> +    |    |
+>> +    |    -- this will increase with bug fixes/enhancements 
+>to the driver
+>> +    |-- this is the version of the PCC specification the 
+>driver adheres to
+>
+>If this is _really_ necessary... Doesn't the driver version 
+>relate to some
+>Linux kernel version anyway?
+>
 
-> > I think your code would be simpler if acpi_pre_map_gar() returned a
-> > struct acpi_iomap pointer (from the caller's point of view, this would
-> > be an opaque cookie).  Then you could just supply that cookie to
-> > acpi_atomic_write(), and you wouldn't have to look it up again.  Maybe
-> > you could even get rid of the list and all the fancy RCU & kref stuff
-> > then, too.
-> 
-> The interface chosen is based on usage model, which is:
-> 
-> 1. In init function, all GARs needed are pre-mapped
-> 2. In atomic context, pre-mapped GARs are accessed
-> 3. In exit function, all GARs are post-unmapped
-> 
-> In 3), if struct acpi_iomap* is used as parameter for post-unmap
-> function, we need to record that pointer in another list. In 2), we need
-> find mapped address from GAR.
+If distros backport this driver to different kernel versions, it will be
+easy to keep track of which driver version is in the distro.
 
-I understand that my proposal would require a slight change in your
-usage model.  I am suggesting that you make it follow the same pattern
-as pci_iomap(), e.g.:
 
-	void *pci_iomap(struct pci_dev *, int bar, unsigned long len);
-	unsigned int ioread32(void *);
-	void pci_iounmap(struct pci_dev *, void *);
+>> +2.1 scaling_available_frequencies:
+>> +----------------------------------
+>> +scaling_available_frequencies indicates the minimum and 
+>maximum speed
+>> +the CPU can take as advertised by the BIOS. No intermediate 
+>frequencies are
+>> +listed because the BIOS will try to achieve any 
+>intermediate frequency
+>> +requested by the governor. An intermediate frequency does 
+>not have to be
+>> +strictly associated with a P-state.
+>
+>Why do you export scaling_available_frequencies anyway? It's 
+>made available
+>by the _optional_ freq-table helper module, which is wrong to 
+>use in this
+>case anyway.
+>
 
-	void *acpi_map_generic_address(struct acpi_generic_address *);
-	u64 acpi_read_atomic(void *);
-	void acpi_unmap_generic_address(void *);
+You are correct. I don't need the dependency on CPU_FREQ_TABLE. I ripped
+it out and made suitable changes:
 
-acpi_map_generic_address() would validate the GAR and do the ioremap().
-If the validation or ioremap() failed, it would return a NULL pointer.
+diff -bur orig/pcc-cpufreq.c fix/pcc-cpufreq.c
+--- orig/pcc-cpufreq.c	2009-11-30 20:05:23.000000000 -0600
++++ fix/pcc-cpufreq.c	2009-11-30 21:14:31.000000000 -0600
+@@ -111,15 +111,11 @@
+ 
+ static struct pcc_cpu *pcc_cpu_info;
+ 
+-static struct cpufreq_frequency_table pcc_freq_table[] = {
+-	{0x1, 0},
+-	{0x2, 0},
+-	{0, CPUFREQ_TABLE_END},
+-};
+-
+ static int pcc_cpufreq_verify(struct cpufreq_policy *policy)
+ {
+-	return cpufreq_frequency_table_verify(policy, pcc_freq_table);
++	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
++				     policy->cpuinfo.max_freq);
++	return 0;
+ }
+ 
+ static inline void pcc_cmd(void)
+@@ -534,10 +530,6 @@
+ 		goto pcch_free;
+ 	}
+ 
+-	pcc_freq_table[0].frequency =
+-		ioread32(&pcch_hdr->minimum_frequency) * 1000;
+-	pcc_freq_table[1].frequency = ioread32(&pcch_hdr->nominal) * 1000;
+-
+ 	printk(KERN_DEBUG "pcc-cpufreq: (v%s) driver loaded with frequency"
+ 	       " limits: %d MHz, %d MHz\n", PCC_VERSION,
+ 	       ioread32(&pcch_hdr->minimum_frequency),
+@@ -576,12 +568,6 @@
+ 	dprintk("init: policy->max is %d, policy->min is %d\n",
+ 		policy->max, policy->min);
+ 
+-	result = cpufreq_frequency_table_cpuinfo(policy, pcc_freq_table);
+-	if (result)
+-		goto free;
+-
+-	cpufreq_frequency_table_get_attr(pcc_freq_table, policy->cpu);
+-
+ 	return 0;
+ free:
+ 	pcc_clear_mapping();
+@@ -592,15 +578,9 @@
+ 
+ static int pcc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+ {
+-	cpufreq_frequency_table_put_attr(policy->cpu);
+ 	return 0;
+ }
+ 
+-static struct freq_attr *pcc_cpufreq_attr[] = {
+-	&cpufreq_freq_attr_scaling_available_freqs,
+-	NULL,
+-};
+-
+ static struct cpufreq_driver pcc_cpufreq_driver = {
+ 	.flags = CPUFREQ_CONST_LOOPS,
+ 	.get = pcc_get_freq,
+@@ -610,7 +590,6 @@
+ 	.exit = pcc_cpufreq_cpu_exit,
+ 	.name = "pcc-cpufreq",
+ 	.owner = THIS_MODULE,
+-	.attr = pcc_cpufreq_attr,
+ };
+ 
+ static int __init pcc_cpufreq_init(void)
 
-This would require the caller of acpi_map_generic_address() to hang onto
-the pointer returned (just as callers of pci_iomap() must hang onto the
-pointer it returns).
 
-The pointer would be supplied to acpi_read_atomic(), so it would not
-need to do acpi_check_gar() because we know it was done successfully
-in acpi_map_generic_address().  It wouldn't need to look up the GAR
-in the list because the list entry was passed in.  Since all the
-possible failure conditions were checked in acpi_map_generic_address(),
-acpi_read_atomic() doesn't need to return status and could simply
-return the u64 directly.
+diff -bur orig/pcc-cpufreq.txt fix/pcc-cpufreq.txt
+--- orig/pcc-cpufreq.txt	2009-11-30 20:05:55.000000000 -0600
++++ fix/pcc-cpufreq.txt	2009-11-30 21:15:10.000000000 -0600
+@@ -152,11 +152,10 @@
+ 
+ 2.1 scaling_available_frequencies:
+ ----------------------------------
+-scaling_available_frequencies indicates the minimum and maximum speed
+-the CPU can take as advertised by the BIOS. No intermediate frequencies are
+-listed because the BIOS will try to achieve any intermediate frequency
+-requested by the governor. An intermediate frequency does not have to be
+-strictly associated with a P-state.
++scaling_available_frequencies is not created in /sys. No intermediate
++frequencies need to be listed because the BIOS will try to achieve any
++frequency, within limits, requested by the governor. A frequency does not have
++to be strictly associated with a P-state.
+ 
+ 2.2 cpuinfo_transition_latency:
+ -------------------------------
+@@ -203,7 +202,7 @@
+ 
+ 3. Caveats:
+ -----------
+-Currently, the "cpufreq_stats" module in its present form cannot be loaded and
+-expected to work with the PCC driver. A patch to cpufreq_stats will be
+-submitted to fix this.
++The "cpufreq_stats" module in its present form cannot be loaded and
++expected to work with the PCC driver. Since the "cpufreq_stats" module
++provides information wrt each P-state, it is not applicable to the PCC driver.
+ 
 
-> > > +/* In NMI handler, should set silent = 1 */
-> > > +static int acpi_check_gar(struct acpi_generic_address *reg,
-> > > +			  u64 *paddr, int silent)
-> > > +{
-> > > +	u32 width;
-> > > +
-> > > +	/* Handle possible alignment issues */
-> > > +	memcpy(paddr, &reg->address, sizeof(*paddr));
-> > > +	if (!*paddr) {
-> > > +		if (!silent)
-> > > +			pr_info(
-> > > +			"Invalid physical address in GAR, firmware bug?\n");
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	width = reg->bit_width;
-> > > +	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
-> > > +		if (!silent)
-> > > +			pr_info(
-> > > +			"Invalid bit width in GAR, firmware bug?\n");
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-> > > +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
-> > > +		if (!silent)
-> > > +			pr_info(
-> > > +			"Invalid address space type in GAR, firmware bug?\n");
-> > 
-> > Error messages with constant text are nearly useless because they
-> > don't give much of a clue about where to look for a problem.
-> > Personally, for something this, I would just return failure and
-> > never print anything.  If a map fails, the caller should notice
-> > and you then have a good idea of where to look.
-> 
-> The checking here is for bug in firmware not software. I think it is
-> necessary for the user to know where the bugs may come from, and it is
-> hard to express the bug in return code.
 
-Yes, I understand that this is checking for firmware bugs.  My point
-is that when a user sees this in his dmesg log:
+>> +2.2 cpuinfo_transition_latency:
+>> +-------------------------------
+>> +The cpuinfo_transition_latency field is 0. The PCC 
+>specification does
+>> +not include a field to expose this value currently.
+>
+>Uh, bad specification... So does it work properly with ondemand and/or
+>conservative (which read out this field, and if latency=0 use a minimum
+>value)?
+>
 
-	Invalid bit width in GAR, firmware bug?
+Yes, it works fine. Both "ondemand" and "conservative" sanitize the
+latency value, and set it to a default value which is good.
 
-we have no context, and even a kernel developer can't figure out what
-to do.  We could ask for a copy of the FADT and DSDT, but even then,
-we don't know *which* GAR structure to look at, so we'll probably have
-to add some instrumentation and ask the user to reproduce the problem.
+>> +config X86_PCC_CPUFREQ
+>> +	tristate "Processor Clocking Control interface driver"
+>> +	select CPU_FREQ_TABLE
+>Uh, see above.
+>
 
-If the check were in the caller, it could at least say something like:
+diff -bur orig/Kconfig fix/Kconfig
+--- orig/Kconfig	2009-11-30 20:05:32.000000000 -0600
++++ fix/Kconfig	2009-11-30 21:14:47.000000000 -0600
+@@ -12,7 +12,6 @@
+ 
+ config X86_PCC_CPUFREQ
+ 	tristate "Processor Clocking Control interface driver"
+-	select CPU_FREQ_TABLE
+ 	depends on ACPI && ACPI_PROCESSOR
+ 	help
+ 	  This driver adds support for the PCC interface.
 
-	ACPI: couldn't map generic address [io 0xcf8] for PCI config access
 
-which would give us more useful information.
+>> +static int pcc_cpufreq_verify(struct cpufreq_policy *policy)
+>> +{
+>> +	return cpufreq_frequency_table_verify(policy, pcc_freq_table);
+>> +}
+>
+>Well, AFAICS, this limits the whole interface to two values: 
+>min or max. So
+>let's allow for any intermediate value:
+>
+>static int pcc_cpufreq_verify(struct cpufreq_policy *policy)
+>{
+>	cpufreq_verify_within_limits(policy, 
+>policy->cpuinfo.min_freq, policy->cpuinfo.max_freq);
+>}
+>
 
-I guess your assumption is that *both* the caller and acpi_check_gar()
-would print something, so then we'd know which GAR was bad and also
-exactly what was wrong with it.  My opinion (and this is just my opinion)
-is that knowing with GAR is bad is the important part.  A GAR is simple
-enough that if we know which one to look at, the problem will be obvious,
-so we only need the message from the caller.
+Took this suggestion, (see the first "diff" changeset above), especially
+since I cannot use the freq-table helper function anymore.
 
-Bjorn
+
+>but well... later on, you check this
+>
+>> +	if (target_freq <= 
+>(ioread32(&pcch_hdr->minimum_frequency) * 1000)) {
+>> +		target_freq = 
+>ioread32(&pcch_hdr->minimum_frequency) * 1000;
+>> +		dprintk("target: target_freq for cpu %d was 
+>below limit, "
+>> +			"converted it to %d\n", cpu, target_freq);
+>> +	}
+>
+>why not do this in the _verify() step? Does pcch_hdr->minimum_frequency
+>even change "on the fly"?
+
+pcch_hdr->minimum_frequency does not change "on the fly". Also, there is no
+need for those IO accesses:
+
+diff -bur orig/pcc-cpufreq.c fix/pcc-cpufreq.c
+--- orig/pcc-cpufreq.c	2009-12-15 10:52:01.000000000 -0600
++++ fix/pcc-cpufreq.c	2009-12-15 10:52:06.000000000 -0600
+@@ -212,12 +212,18 @@
+ 
+ 	pcc_cpu_data = per_cpu_ptr(pcc_cpu_info, cpu);
+ 
+-	if (target_freq <= (ioread32(&pcch_hdr->minimum_frequency) * 1000)) {
+-		target_freq = ioread32(&pcch_hdr->minimum_frequency) * 1000;
++	if (target_freq < policy->min) {
++		target_freq = policy->min;
+ 		dprintk("target: target_freq for cpu %d was below limit, "
+ 			"converted it to %d\n", cpu, target_freq);
+ 	}
+ 
++	if (target_freq > policy->max) {
++		target_freq = policy->max;
++		dprintk("target: target_freq for cpu %d was above limit, "
++			"converted it to %d\n", cpu, target_freq);
++	}
++
+ 	dprintk("target: CPU %d should go to target freq: %d "
+ 		"(virtual) input_offset is 0x%x\n",
+ 		cpu, target_freq,
+
+>
+>So, I'd propose to NACK this patch at the moment.
+>
+>Best,
+>	Dominik
+>
+
+If you are okay with the changes, I will send v2 of the patch.
+
+Thanks,
+- naga -
+
