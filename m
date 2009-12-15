@@ -1,53 +1,102 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 8/8] thinkpad-acpi: bump version to 0.24
-Date: Tue, 15 Dec 2009 21:51:13 -0200
-Message-ID: <1260921073-7686-9-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 1/8] thinkpad-acpi: sync input device EV_SW initial state
+Date: Tue, 15 Dec 2009 21:51:06 -0200
+Message-ID: <1260921073-7686-2-git-send-email-hmh@hmh.eng.br>
 References: <1260921073-7686-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43384 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:40929 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760874AbZLOXvV (ORCPT
+	by vger.kernel.org with ESMTP id S1755789AbZLOXvU (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2009 18:51:21 -0500
+	Tue, 15 Dec 2009 18:51:20 -0500
 In-Reply-To: <1260921073-7686-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Johannes Berg <johannes@sipsolutions.net>, Dmitry Torokhov <dtor@mail.ru>
 
+Before we register the input device, sync the input layer EV_SW state
+through a call to input_report_switch(), to avoid issuing a gratuitous
+event for the initial state of these switches.
+
+This fixes some annoyances caused by the interaction with rfkill and
+EV_SW SW_RFKILL_ALL events.
+
+Reported-by: Kevin Locke <kevin@kevinlocke.name>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 ---
- Documentation/laptops/thinkpad-acpi.txt |    4 ++--
- drivers/platform/x86/thinkpad_acpi.c    |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index b4ed30c..169091f 100644
---- a/Documentation/laptops/thinkpad-acpi.txt
-+++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1,7 +1,7 @@
- 		     ThinkPad ACPI Extras Driver
- 
--                            Version 0.23
--                          April 10th, 2009
-+                            Version 0.24
-+                        December 11th,  2009
- 
-                Borislav Deianov <borislav@users.sf.net>
-              Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index c21c35e..af23525 100644
+index 53d6c33..3daf349 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -21,7 +21,7 @@
-  *  02110-1301, USA.
-  */
+@@ -3186,6 +3186,8 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	int res, i;
+ 	int status;
+ 	int hkeyv;
++	bool radiosw_state  = false;
++	bool tabletsw_state = false;
  
--#define TPACPI_VERSION "0.23"
-+#define TPACPI_VERSION "0.24"
- #define TPACPI_SYSFS_VERSION 0x020700
+ 	unsigned long quirks;
  
- /*
+@@ -3291,6 +3293,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ #ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
+ 	if (dbg_wlswemul) {
+ 		tp_features.hotkey_wlsw = 1;
++		radiosw_state = !!tpacpi_wlsw_emulstate;
+ 		printk(TPACPI_INFO
+ 			"radio switch emulation enabled\n");
+ 	} else
+@@ -3298,6 +3301,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	/* Not all thinkpads have a hardware radio switch */
+ 	if (acpi_evalf(hkey_handle, &status, "WLSW", "qd")) {
+ 		tp_features.hotkey_wlsw = 1;
++		radiosw_state = !!status;
+ 		printk(TPACPI_INFO
+ 			"radio switch found; radios are %s\n",
+ 			enabled(status, 0));
+@@ -3309,11 +3313,11 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	/* For X41t, X60t, X61t Tablets... */
+ 	if (!res && acpi_evalf(hkey_handle, &status, "MHKG", "qd")) {
+ 		tp_features.hotkey_tablet = 1;
++		tabletsw_state = !!(status & TP_HOTKEY_TABLET_MASK);
+ 		printk(TPACPI_INFO
+ 			"possible tablet mode switch found; "
+ 			"ThinkPad in %s mode\n",
+-			(status & TP_HOTKEY_TABLET_MASK)?
+-				"tablet" : "laptop");
++			(tabletsw_state) ? "tablet" : "laptop");
+ 		res = add_to_attr_set(hotkey_dev_attributes,
+ 				&dev_attr_hotkey_tablet_mode.attr);
+ 	}
+@@ -3364,9 +3368,13 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 
+ 	if (tp_features.hotkey_wlsw) {
+ 		input_set_capability(tpacpi_inputdev, EV_SW, SW_RFKILL_ALL);
++		input_report_switch(tpacpi_inputdev,
++				    SW_RFKILL_ALL, radiosw_state);
+ 	}
+ 	if (tp_features.hotkey_tablet) {
+ 		input_set_capability(tpacpi_inputdev, EV_SW, SW_TABLET_MODE);
++		input_report_switch(tpacpi_inputdev,
++				    SW_TABLET_MODE, tabletsw_state);
+ 	}
+ 
+ 	/* Do not issue duplicate brightness change events to
+@@ -3433,8 +3441,6 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	tpacpi_inputdev->close = &hotkey_inputdev_close;
+ 
+ 	hotkey_poll_setup_safe(true);
+-	tpacpi_send_radiosw_update();
+-	tpacpi_input_send_tabletsw();
+ 
+ 	return 0;
+ 
 -- 
 1.6.5.4
 
