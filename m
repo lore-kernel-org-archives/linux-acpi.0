@@ -1,88 +1,29 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Tue, 15 Dec 2009 17:27:58 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912151719300.4055-100000@iolanthe.rowland.org>
-References: <alpine.LFD.2.00.0912151337350.14385@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA release 20091214 linuxized patch
+Date: Tue, 15 Dec 2009 17:30:07 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912151730010.6885@localhost.localdomain>
+References: <1260853945.3834.48.camel@minggr.sh.intel.com>
+ <1260853993.3834.49.camel@minggr.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43280 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755570AbZLOW2F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 17:28:05 -0500
-In-Reply-To: <alpine.LFD.2.00.0912151337350.14385@localhost.localdomain>
+Received: from vms173017pub.verizon.net ([206.46.173.17]:54159 "EHLO
+	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760181AbZLOWbP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 17:31:15 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173017.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KUP009D4T7K9A1F@vms173017.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 15 Dec 2009 16:30:57 -0600 (CST)
+In-reply-to: <1260853993.3834.49.camel@minggr.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Tue, 15 Dec 2009, Linus Torvalds wrote:
+applied to acpi-test
 
-> On Tue, 15 Dec 2009, Alan Stern wrote:
-> > 
-> > Okay.  This obviously implies that if/when cardbus bridges are
-> > converted to async suspend/resume, the driver should make sure that the
-> > lower-numbered devices wait for their sibling higher-numbered devices
-> > to suspend (and vice versa for resume).  Awkward though it may be.
-> 
-> Yes. However, this is an excellent case where the whole "the device layer 
-> does things asynchronously" is really rather awkward.
-> 
-> For cardbus, the nicest model really would be for the _driver_ to decide 
-> to do some things asynchronously, after having done some other things 
-> synchronously (to make sure of ordering).
-
-Have you considered the possibility of augmenting the design to allow 
-this?  Perhaps reserve a particular return code from the suspend 
-routine to mean that asynchronous operations are still underway, so the 
-PM core shouldn't automatically do the complete_all().
-
-> So I suspect that we _can_ just do cardbus bridges asynchronously too, but 
-> it really needs some care. I suspect to a first approximation we would 
-> want to do the easy cases first, and ignore cardbus as being "known to 
-> possibly have issues".
-
-Certainly.  Start with the easy things and leave harder devices like 
-cardbus bridges for later.
-
-> > > Subtle? Hell yes.
-> > 
-> > I don't disagree.  However the subtlety lies mainly in the matter of
-> > non-obvious dependencies.
-> 
-> Yes. But we don't necessarily even _know_ those dependencies.
-
-Yep.  Both non-obvious and non-known.
-
-> The Cardbus ones I know about, but really only because I wrote much of 
-> that code initially when converting cardbus to look like the PCI bridge it 
-> largely is. But how many other cases like that do we have that we have 
-> perhaps never even hit, because we've never done anything out of order.
-> 
-> > The ACPI relations are definitely something to worry about.  It would
-> > be a good idea, at an early stage, to add those dependencies
-> > explicitly.  I don't know enough about them to say more; perhaps Rafael 
-> > does.
-> 
-> Quite frankly, I would really not want to do ACPI first at all.
-
-Dear me, no!  I wasn't saying ACPI should be made async; I was saying
-that ACPI "shadow" devices should be made to wait for their async PCI
-counterparts.
-
-> > Indeed.  Perhaps you were too hasty in suggesting that PCI bridges 
-> > should be async.
-> 
-> Oh, yes. I would suggest that first we do _nothing_ async except for 
-> within just a single USB tree, and perhaps some individual drivers like 
-> the PS/2 keyboard controller (and do even that perhaps only for the PC 
-> version, which we know is on the southbridge and not anywhere else).
-> 
-> If that ends up meaning that we block due to PCI bridges, so be it. I 
-> really would prefer baby steps over anything more complete.
-
-Agreed.  I'm not in any hurry.
-
-Alan Stern
+thanks,
+Len Brown, Intel Open Source Technology Center
 
