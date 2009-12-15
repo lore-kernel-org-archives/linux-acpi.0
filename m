@@ -1,61 +1,53 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 2/8] thinkpad-acpi: log initial state of rfkill switches
-Date: Tue, 15 Dec 2009 21:51:07 -0200
-Message-ID: <1260921073-7686-3-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 8/8] thinkpad-acpi: bump version to 0.24
+Date: Tue, 15 Dec 2009 21:51:13 -0200
+Message-ID: <1260921073-7686-9-git-send-email-hmh@hmh.eng.br>
 References: <1260921073-7686-1-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:55470 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43384 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754950AbZLOXvU (ORCPT
+	by vger.kernel.org with ESMTP id S1760874AbZLOXvV (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2009 18:51:20 -0500
+	Tue, 15 Dec 2009 18:51:21 -0500
 In-Reply-To: <1260921073-7686-1-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Josip Rodin <joy+kernel@entuzijast.net>
-
-We already log the initial state of the hardware rfkill switch (WLSW),
-might as well log the state of the softswitches as well.
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Josip Rodin <joy+kernel@entuzijast.net>
 ---
- drivers/platform/x86/thinkpad_acpi.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |    4 ++--
+ drivers/platform/x86/thinkpad_acpi.c    |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index b4ed30c..169091f 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -1,7 +1,7 @@
+ 		     ThinkPad ACPI Extras Driver
+ 
+-                            Version 0.23
+-                          April 10th, 2009
++                            Version 0.24
++                        December 11th,  2009
+ 
+                Borislav Deianov <borislav@users.sf.net>
+              Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 3daf349..05714ab 100644
+index c21c35e..af23525 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -1264,6 +1264,7 @@ static int __init tpacpi_new_rfkill(const enum tpacpi_rfk_id id,
- 	struct tpacpi_rfk *atp_rfk;
- 	int res;
- 	bool sw_state = false;
-+	bool hw_state;
- 	int sw_status;
+@@ -21,7 +21,7 @@
+  *  02110-1301, USA.
+  */
  
- 	BUG_ON(id >= TPACPI_RFK_SW_MAX || tpacpi_rfkill_switches[id]);
-@@ -1298,7 +1299,8 @@ static int __init tpacpi_new_rfkill(const enum tpacpi_rfk_id id,
- 			rfkill_init_sw_state(atp_rfk->rfkill, sw_state);
- 		}
- 	}
--	rfkill_set_hw_state(atp_rfk->rfkill, tpacpi_rfk_check_hwblock_state());
-+	hw_state = tpacpi_rfk_check_hwblock_state();
-+	rfkill_set_hw_state(atp_rfk->rfkill, hw_state);
+-#define TPACPI_VERSION "0.23"
++#define TPACPI_VERSION "0.24"
+ #define TPACPI_SYSFS_VERSION 0x020700
  
- 	res = rfkill_register(atp_rfk->rfkill);
- 	if (res < 0) {
-@@ -1311,6 +1313,9 @@ static int __init tpacpi_new_rfkill(const enum tpacpi_rfk_id id,
- 	}
- 
- 	tpacpi_rfkill_switches[id] = atp_rfk;
-+
-+	printk(TPACPI_INFO "rfkill switch %s: radio is %sblocked\n",
-+		name, (sw_state || hw_state) ? "" : "un");
- 	return 0;
- }
- 
+ /*
 -- 
 1.6.5.4
 
