@@ -1,35 +1,29 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 12/12] PM / r8169: Add simplified run-time PM
-	support
-Date: Tue, 15 Dec 2009 12:49:56 +0100
-Message-ID: <20091215114956.GA1415@ucw.cz>
-References: <200911160047.46299.rjw@sisk.pl> <200911291632.44763.rjw@sisk.pl> <200911291644.27288.rjw@sisk.pl>
+From: "info@thebigbiglotto.co.uk" <ga01640@galnet.dk>
+Subject: Congratulations...
+Date: Tue, 15 Dec 2009 13:00:12 +0100
+Message-ID: <61ef97b0b22ac109b23070667f74e82b__20119.60888417$1260879653$gmane$org@localhost>
+Reply-To: mr.benhamcole@windowslive.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39442 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758233AbZLOLuF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 06:50:05 -0500
-Content-Disposition: inline
-In-Reply-To: <200911291644.27288.rjw@sisk.pl>
+Received: from webmail1.ode.cdnet.dk ([85.218.129.42]:55590 "EHLO webmail1.ode"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1760126AbZLOMUo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2009 07:20:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 
-Hi!
 
-> Use the PCI run-time power management framework to add simplified
-> run-time PM support to the r8169 driver.  Namely, make the driver
-> suspend the device when the link is off and set it up for generating
-> wake-up event after the link has been detected again.
 
-Nice!
-
-Do you have any idea how much power it saves?
-								Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--=20
+Your e-mail address attached to Winning ticket number 00002765649541,Se=
+rial
+number BIG-3673050706-07 and lucky numbers (46)0023/4440/20/89 won
+=C2=A3500,000.00 GBP. Contact Mr Benham Cole for info. Email:
+benham.cole2009@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
