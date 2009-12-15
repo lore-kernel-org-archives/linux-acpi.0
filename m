@@ -1,135 +1,143 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Tue, 15 Dec 2009 08:28:22 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912150803250.14385@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912151047410.3566-100000@iolanthe.rowland.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
+Date: Tue, 15 Dec 2009 10:47:13 -0700
+Message-ID: <200912151047.14196.bjorn.helgaas@hp.com>
+References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com> <200912111036.15063.bjorn.helgaas@hp.com> <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45710 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754496AbZLOQ3P (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2009 11:29:15 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912151047410.3566-100000@iolanthe.rowland.org>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:16144 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751642AbZLORrQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 12:47:16 -0500
+In-Reply-To: <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-
-
-On Tue, 15 Dec 2009, Alan Stern wrote:
+On Monday 14 December 2009 06:04:13 pm Huang Ying wrote:
+> On Sat, 2009-12-12 at 01:36 +0800, Bjorn Helgaas wrote: 
+> > The ACPI CA has functions called acpi_hw_read() and acpi_hw_write()
+> > that have similar prototypes and functionality (but of course, they
+> > don't work in atomic context).  It'd be nice if your new functions
+> > had similar names, e.g., acpi_hw_map(), acpi_hw_unmap(),
+> > acpi_hw_read_atomic(), acpi_hw_write_atomic().
 > 
-> It doesn't feel like an ugly hack to me.  It seems like exactly the 
-> Right Thing To Do: Make as many devices as possible use async 
-> suspend/resume.
+> acpi_hw_read/write is the 32-bit optimized version of acpi_read/write.
+> So I think it is better to follow the naming convention of
+> acpi_read/write.
 
-The reason it's a ugly hack is that it's actually not a simple decision to 
-make. The devil is in the details:
+You're right; I didn't notice that.  I agree that it's better to
+follow the convention of acpi_read().
 
-> The only reason we don't make every device async is because we don't
-> know whether it's safe.  In the case of PCI bridges we _do_ know --
-> because they don't have any work to do outside of
-> late_suspend/early_resume -- and so they _should_ be async.
+> > I think your code would be simpler if acpi_pre_map_gar() returned a
+> > struct acpi_iomap pointer (from the caller's point of view, this would
+> > be an opaque cookie).  Then you could just supply that cookie to
+> > acpi_atomic_write(), and you wouldn't have to look it up again.  Maybe
+> > you could even get rid of the list and all the fancy RCU & kref stuff
+> > then, too.
+> 
+> The interface chosen is based on usage model, which is:
+> 
+> 1. In init function, all GARs needed are pre-mapped
+> 2. In atomic context, pre-mapped GARs are accessed
+> 3. In exit function, all GARs are post-unmapped
+> 
+> In 3), if struct acpi_iomap* is used as parameter for post-unmap
+> function, we need to record that pointer in another list. In 2), we need
+> find mapped address from GAR.
 
-That's the theory, yes. And it was worth the comment to spell out that 
-theory. But..
+I understand that my proposal would require a slight change in your
+usage model.  I am suggesting that you make it follow the same pattern
+as pci_iomap(), e.g.:
 
-It's a very subtle theory, and it's not necessarily always 100% true. For 
-example, a cardbus bridge is strictly speaking very much a PCI bridge, but 
-for cardbus bridges we _do_ have a suspend/resume function.
+	void *pci_iomap(struct pci_dev *, int bar, unsigned long len);
+	unsigned int ioread32(void *);
+	void pci_iounmap(struct pci_dev *, void *);
 
-And perhaps worse than that, cardbus bridges are one of the canonical 
-examples where two different PCI devices actually share registers. It's 
-quite common that some of the control registers are shared across the two 
-subfunctions of a two-slot cardbus controller (and we generally don't even 
-have full docs for them!)
+	void *acpi_map_generic_address(struct acpi_generic_address *);
+	u64 acpi_read_atomic(void *);
+	void acpi_unmap_generic_address(void *);
 
-> The same goes for devices that don't have suspend or resume methods.
+acpi_map_generic_address() would validate the GAR and do the ioremap().
+If the validation or ioremap() failed, it would return a NULL pointer.
 
-Yes and no. 
+This would require the caller of acpi_map_generic_address() to hang onto
+the pointer returned (just as callers of pci_iomap() must hang onto the
+pointer it returns).
 
-Again, the "async_suspend" flag is done at the generic device layer, but 
-99% of all suspend/resume methods are _not_ done at that level: they are 
-bus-specific functions, where the bus has a generic suspend-resume 
-function that it exposes to the generic device layer, and that knows about 
-the bus-specific rules.
+The pointer would be supplied to acpi_read_atomic(), so it would not
+need to do acpi_check_gar() because we know it was done successfully
+in acpi_map_generic_address().  It wouldn't need to look up the GAR
+in the list because the list entry was passed in.  Since all the
+possible failure conditions were checked in acpi_map_generic_address(),
+acpi_read_atomic() doesn't need to return status and could simply
+return the u64 directly.
 
-So if you are a PCI device (to take just that example - but it's true of 
-just about all other buses too), and you don't have any suspend or resume 
-methods, it's actually impossible to see that fact from the generic device 
-layer.
+> > > +/* In NMI handler, should set silent = 1 */
+> > > +static int acpi_check_gar(struct acpi_generic_address *reg,
+> > > +			  u64 *paddr, int silent)
+> > > +{
+> > > +	u32 width;
+> > > +
+> > > +	/* Handle possible alignment issues */
+> > > +	memcpy(paddr, &reg->address, sizeof(*paddr));
+> > > +	if (!*paddr) {
+> > > +		if (!silent)
+> > > +			pr_info(
+> > > +			"Invalid physical address in GAR, firmware bug?\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	width = reg->bit_width;
+> > > +	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
+> > > +		if (!silent)
+> > > +			pr_info(
+> > > +			"Invalid bit width in GAR, firmware bug?\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
+> > > +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
+> > > +		if (!silent)
+> > > +			pr_info(
+> > > +			"Invalid address space type in GAR, firmware bug?\n");
+> > 
+> > Error messages with constant text are nearly useless because they
+> > don't give much of a clue about where to look for a problem.
+> > Personally, for something this, I would just return failure and
+> > never print anything.  If a map fails, the caller should notice
+> > and you then have a good idea of where to look.
+> 
+> The checking here is for bug in firmware not software. I think it is
+> necessary for the user to know where the bugs may come from, and it is
+> hard to express the bug in return code.
 
-And even when you know it's PCI, our rules are actually not simple at all. 
-Our rules for PCI devices (and this strictly speaking is true for bridges 
-too) are rather complex:
+Yes, I understand that this is checking for firmware bugs.  My point
+is that when a user sees this in his dmesg log:
 
- - do we have _any_ legacy PM support (ie the "direct" driver 
-   suspend/resume functions in the driver ops, rather than having a 
-   "struct dev_pm_ops" pointer)? If so, call "->suspend()"
+	Invalid bit width in GAR, firmware bug?
 
- - If not - do we have that "dev_pm_ops" thing? If so, call it.
+we have no context, and even a kernel developer can't figure out what
+to do.  We could ask for a copy of the FADT and DSDT, but even then,
+we don't know *which* GAR structure to look at, so we'll probably have
+to add some instrumentation and ask the user to reproduce the problem.
 
- - If not - just disable the device entirely _UNLESS_ you're a PCI bridge.
+If the check were in the caller, it could at least say something like:
 
-Notice? The way things are set up, if you have no suspend routine, you'll 
-not get suspended, but you will get disabled. 
+	ACPI: couldn't map generic address [io 0xcf8] for PCI config access
 
-So it's _not_ actually safe to asynchronously suspend a PCI device if that 
-device has no driver or no suspend routines - because even in the absense 
-of a driver and suspend routines, we'll still least disable it. And if 
-there is some subtle dependency on that device that isn't obvious (say, it 
-might be used indirectly for some ACPI thing), then that async suspend is 
-the wrong thing to do.
+which would give us more useful information.
 
-Subtle? Hell yes.
+I guess your assumption is that *both* the caller and acpi_check_gar()
+would print something, so then we'd know which GAR was bad and also
+exactly what was wrong with it.  My opinion (and this is just my opinion)
+is that knowing with GAR is bad is the important part.  A GAR is simple
+enough that if we know which one to look at, the problem will be obvious,
+so we only need the message from the caller.
 
-So the whole thing about "we can do PCI bridges asynchronously because 
-they are obviously no-op" is kind of true - except for the "obviously" 
-part. It's not obvious at all. It's rather subtle.
-
-As an example of this kind of subtlety - iirc PCIE bridges used to have 
-suspend and resume bugs when we initially switched over to the "new world" 
-suspend/resume exactly because they actually did things at "suspend" time 
-(rather than suspend_late), and that broke devices behind them (this was 
-not related to async, of course, but the point is that even when you look 
-like a PCI bridge, you might be doing odd things).
-
-So just saying "let's do it asynchronously" is _not_ always guaranteed to 
-be the right thing at all. It's _probably_ safe for at least regular PCI 
-bridges. Cardbus bridges? Probably not, but since most modern laptop have 
-just a single slot - and people who have multiple slots seldom use them 
-all - most people will probably never see the problems that it _could_ 
-introduce.
-
-And PCIE bridges? Should be safe these days, but it wasn't quite as 
-obvious, because a PCIE bridge actually has a driver unlike a regular 
-plain PCI-PCI bridge.
-
-Subtle, subtle.
-
-> There remains a separate question: Should async devices also be forced
-> to wait for their children?  I don't see why not.  For PCI bridges it
-> won't make any significant difference.  As long as the async code
-> doesn't have to do anything, who cares when it runs?
-
-That's why I just set the "async_resume = 1" thing.
-
-But there might actually be reasons why we care. Like the fact that we 
-actually throttle the amount of parallel work we do in async_schedule(). 
-So doing even a "no-op" asynchronously isn't actually a no-op: while it is 
-pending (and those things can be pending for a long time, since they have 
-to wait for those slow devices underneath them), it can cause _other_ 
-async work - that isn't necessarily a no-op at all - to be then done 
-synchronously.
-
-Now, admittedly our async throttling limits are high enough that the above 
-kind of detail will probably never ever realy matter (default 256 worker 
-threads etc). But it's an example of how practice is different from theory 
-- in _theory_ it doesn't make any difference if you wait for something 
-asynchronously, but in practice it could make a difference under some 
-circumstances.
-
-			Linus
+Bjorn
