@@ -1,334 +1,645 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 102/103] ACPI: dock: minor whitespace and style cleanups
-Date: Wed, 16 Dec 2009 03:36:53 -0500
-Message-ID: <747479a3fb42849fe73b9b1f7545d751bde7d632.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 041/103] eeepc-laptop: revise names
+Date: Wed, 16 Dec 2009 03:35:52 -0500
+Message-ID: <a7624b63fdf50d7f460170891a49397280f08758.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:47186 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761992AbZLPLFz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:55 -0500
+	with ESMTP id S1761998AbZLPLF4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:56 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KUQ00BZPS5OJK34@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:52 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:53 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Removed some stray whitespaces
-Added whitespace when needed for legibility
-Removed unneeded curly braces
-Removed useless void casts
-Removed unnecessary local variable initialization
-Renamed variables to help out with 80-column fixes
+eeepc-laptop now does a lot more than just hotkeys.  Replace the "hotk"
+names used throughout the driver with some slightly more appropriate
+names.  The actual strings used in kernel messages and sysfs are left
+unchanged.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Acked-by: Shaohua Li <shaohua.li@intel.com>
+e.g.
+	EEEPC_HOTK_FILE  -> EEEPC_LAPTOP_FILE
+	EEEPC_HOTK_HID   -> EEEPC_ACPI_HID
+
+	eeepc_hotk_notify -> eeepc_acpi_notify
+	struct eeepc_hotk -> struct eeepc_laptop
+	ehotk             -> eeepc
+
+I'm about to refactor the entire driver to remove the global "ehotk"
+variable, and I don't wish to add "struct eeepc_hotk *ehotk" to
+functions which have nothing to do with hotkeys.
+
+Also
+ - fix the name of "eepc_get_entry_by_keycode()"
+ - remove the unused definition of NOTIFY_WLAN_ON.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c |  103 ++++++++++++++++++++++----------------------------
- 1 files changed, 45 insertions(+), 58 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |  253 +++++++++++++++++------------------
+ 1 files changed, 125 insertions(+), 128 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index cfcd8ee..d4c3d82 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -238,6 +238,7 @@ static int is_battery(acpi_handle handle)
- static int is_ejectable_bay(acpi_handle handle)
- {
- 	acpi_handle phandle;
-+
- 	if (!is_ejectable(handle))
- 		return 0;
- 	if (is_battery(handle) || is_ata(handle))
-@@ -264,14 +265,13 @@ int is_dock_device(acpi_handle handle)
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index f457587..b9b5aeb 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -1,5 +1,5 @@
+ /*
+- *  eepc-laptop.c - Asus Eee PC extras
++ *  eeepc-laptop.c - Asus Eee PC extras
+  *
+  *  Based on asus_acpi.c as patched for the Eee PC by Asus:
+  *  ftp://ftp.asus.com/pub/ASUS/EeePC/701/ASUS_ACPI_071126.rar
+@@ -37,21 +37,20 @@
+ #include <linux/leds.h>
  
- 	if (is_dock(handle))
- 		return 1;
--	list_for_each_entry(dock_station, &dock_stations, sibling) {
-+
-+	list_for_each_entry(dock_station, &dock_stations, sibling)
- 		if (find_dock_dependent_device(dock_station, handle))
- 			return 1;
--	}
+ #define EEEPC_LAPTOP_VERSION	"0.1"
++#define EEEPC_LAPTOP_NAME	"Eee PC Hotkey Driver"
++#define EEEPC_LAPTOP_FILE	"eeepc"
  
- 	return 0;
- }
--
- EXPORT_SYMBOL_GPL(is_dock_device);
+-#define EEEPC_HOTK_NAME		"Eee PC Hotkey Driver"
+-#define EEEPC_HOTK_FILE		"eeepc"
+-#define EEEPC_HOTK_CLASS	"hotkey"
+-#define EEEPC_HOTK_DEVICE_NAME	"Hotkey"
+-#define EEEPC_HOTK_HID		"ASUS010"
++#define EEEPC_ACPI_CLASS	"hotkey"
++#define EEEPC_ACPI_DEVICE_NAME	"Hotkey"
++#define EEEPC_ACPI_HID		"ASUS010"
  
- /**
-@@ -294,8 +294,6 @@ static int dock_present(struct dock_station *ds)
- 	return 0;
- }
+ MODULE_AUTHOR("Corentin Chary, Eric Cooper");
+-MODULE_DESCRIPTION(EEEPC_HOTK_NAME);
++MODULE_DESCRIPTION(EEEPC_LAPTOP_NAME);
+ MODULE_LICENSE("GPL");
  
--
--
- /**
-  * dock_create_acpi_device - add new devices to acpi
-  * @handle - handle of the device to add
-@@ -309,7 +307,7 @@ static int dock_present(struct dock_station *ds)
+ /*
+  * Definitions for Asus EeePC
   */
- static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
+-#define	NOTIFY_WLAN_ON	0x10
+ #define NOTIFY_BRN_MIN	0x20
+ #define NOTIFY_BRN_MAX	0x2f
+ 
+@@ -152,9 +151,8 @@ static struct key_entry eeepc_keymap[] = {
+ 
+ /*
+  * This is the main structure, we can use it to store useful information
+- * about the hotk device
+  */
+-struct eeepc_hotk {
++struct eeepc_laptop {
+ 	struct acpi_device *device;	/* the device we are in */
+ 	acpi_handle handle;		/* the handle of the hotk device */
+ 	u32 cm_supported;		/* the control methods supported
+@@ -171,7 +169,7 @@ struct eeepc_hotk {
+ };
+ 
+ /* The actual device the driver binds to */
+-static struct eeepc_hotk *ehotk;
++static struct eeepc_laptop *eeepc;
+ 
+ /* The platform device */
+ static struct platform_device *platform_device;
+@@ -222,10 +220,10 @@ static int set_acpi(int cm, int value)
+ 
+ 	if (method == NULL)
+ 		return -ENODEV;
+-	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
++	if ((eeepc->cm_supported & (0x1 << cm)) == 0)
+ 		return -ENODEV;
+ 
+-	if (write_acpi_int(ehotk->handle, method, value))
++	if (write_acpi_int(eeepc->handle, method, value))
+ 		pr_warning("Error writing %s\n", method);
+ 	return 0;
+ }
+@@ -237,10 +235,10 @@ static int get_acpi(int cm)
+ 
+ 	if (method == NULL)
+ 		return -ENODEV;
+-	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
++	if ((eeepc->cm_supported & (0x1 << cm)) == 0)
+ 		return -ENODEV;
+ 
+-	if (read_acpi_int(ehotk->handle, method, &value))
++	if (read_acpi_int(eeepc->handle, method, &value))
+ 		pr_warning("Error reading %s\n", method);
+ 	return value;
+ }
+@@ -395,7 +393,7 @@ static int eeepc_platform_init(void)
  {
--	struct acpi_device *device = NULL;
-+	struct acpi_device *device;
- 	struct acpi_device *parent_device;
- 	acpi_handle parent;
- 	int ret;
-@@ -326,8 +324,7 @@ static struct acpi_device * dock_create_acpi_device(acpi_handle handle)
- 		ret = acpi_bus_add(&device, parent_device, handle,
- 			ACPI_BUS_TYPE_DEVICE);
- 		if (ret) {
--			pr_debug("error adding bus, %x\n",
--				-ret);
-+			pr_debug("error adding bus, %x\n", -ret);
- 			return NULL;
- 		}
+ 	int result;
+ 
+-	platform_device = platform_device_alloc(EEEPC_HOTK_FILE, -1);
++	platform_device = platform_device_alloc(EEEPC_LAPTOP_FILE, -1);
+ 	if (!platform_device)
+ 		return -ENOMEM;
+ 
+@@ -501,12 +499,12 @@ static void eeepc_rfkill_hotplug(void)
+ 	struct pci_bus *bus;
+ 	bool blocked = eeepc_wlan_rfkill_blocked();
+ 
+-	if (ehotk->wlan_rfkill)
+-		rfkill_set_sw_state(ehotk->wlan_rfkill, blocked);
++	if (eeepc->wlan_rfkill)
++		rfkill_set_sw_state(eeepc->wlan_rfkill, blocked);
+ 
+-	mutex_lock(&ehotk->hotplug_lock);
++	mutex_lock(&eeepc->hotplug_lock);
+ 
+-	if (ehotk->hotplug_slot) {
++	if (eeepc->hotplug_slot) {
+ 		bus = pci_find_bus(0, 1);
+ 		if (!bus) {
+ 			pr_warning("Unable to find PCI bus 1?\n");
+@@ -536,7 +534,7 @@ static void eeepc_rfkill_hotplug(void)
  	}
-@@ -353,7 +350,6 @@ static void dock_remove_acpi_device(acpi_handle handle)
- 	}
+ 
+ out_unlock:
+-	mutex_unlock(&ehotk->hotplug_lock);
++	mutex_unlock(&eeepc->hotplug_lock);
  }
  
--
- /**
-  * hotplug_dock_devices - insert or remove devices on the dock station
-  * @ds: the dock station
-@@ -373,10 +369,9 @@ static void hotplug_dock_devices(struct dock_station *ds, u32 event)
+ static void eeepc_rfkill_notify(acpi_handle handle, u32 event, void *data)
+@@ -619,22 +617,22 @@ static int eeepc_setup_pci_hotplug(void)
+ 		return -ENODEV;
+ 	}
+ 
+-	ehotk->hotplug_slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
+-	if (!ehotk->hotplug_slot)
++	eeepc->hotplug_slot = kzalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
++	if (!eeepc->hotplug_slot)
+ 		goto error_slot;
+ 
+-	ehotk->hotplug_slot->info = kzalloc(sizeof(struct hotplug_slot_info),
++	eeepc->hotplug_slot->info = kzalloc(sizeof(struct hotplug_slot_info),
+ 					    GFP_KERNEL);
+-	if (!ehotk->hotplug_slot->info)
++	if (!eeepc->hotplug_slot->info)
+ 		goto error_info;
+ 
+-	ehotk->hotplug_slot->private = ehotk;
+-	ehotk->hotplug_slot->release = &eeepc_cleanup_pci_hotplug;
+-	ehotk->hotplug_slot->ops = &eeepc_hotplug_slot_ops;
+-	eeepc_get_adapter_status(ehotk->hotplug_slot,
+-				 &ehotk->hotplug_slot->info->adapter_status);
++	eeepc->hotplug_slot->private = eeepc;
++	eeepc->hotplug_slot->release = &eeepc_cleanup_pci_hotplug;
++	eeepc->hotplug_slot->ops = &eeepc_hotplug_slot_ops;
++	eeepc_get_adapter_status(eeepc->hotplug_slot,
++				 &eeepc->hotplug_slot->info->adapter_status);
+ 
+-	ret = pci_hp_register(ehotk->hotplug_slot, bus, 0, "eeepc-wifi");
++	ret = pci_hp_register(eeepc->hotplug_slot, bus, 0, "eeepc-wifi");
+ 	if (ret) {
+ 		pr_err("Unable to register hotplug slot - %d\n", ret);
+ 		goto error_register;
+@@ -643,10 +641,10 @@ static int eeepc_setup_pci_hotplug(void)
+ 	return 0;
+ 
+ error_register:
+-	kfree(ehotk->hotplug_slot->info);
++	kfree(eeepc->hotplug_slot->info);
+ error_info:
+-	kfree(ehotk->hotplug_slot);
+-	ehotk->hotplug_slot = NULL;
++	kfree(eeepc->hotplug_slot);
++	eeepc->hotplug_slot = NULL;
+ error_slot:
+ 	return ret;
+ }
+@@ -695,33 +693,33 @@ static void eeepc_rfkill_exit(void)
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P5");
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P6");
+ 	eeepc_unregister_rfkill_notifier("\\_SB.PCI0.P0P7");
+-	if (ehotk->wlan_rfkill) {
+-		rfkill_unregister(ehotk->wlan_rfkill);
+-		rfkill_destroy(ehotk->wlan_rfkill);
+-		ehotk->wlan_rfkill = NULL;
++	if (eeepc->wlan_rfkill) {
++		rfkill_unregister(eeepc->wlan_rfkill);
++		rfkill_destroy(eeepc->wlan_rfkill);
++		eeepc->wlan_rfkill = NULL;
+ 	}
  	/*
- 	 * First call driver specific hotplug functions
+ 	 * Refresh pci hotplug in case the rfkill state was changed after
+ 	 * eeepc_unregister_rfkill_notifier()
  	 */
--	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
-+	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list)
- 		if (dd->ops && dd->ops->handler)
- 			dd->ops->handler(dd->handle, event, dd->context);
--	}
+ 	eeepc_rfkill_hotplug();
+-	if (ehotk->hotplug_slot)
+-		pci_hp_deregister(ehotk->hotplug_slot);
++	if (eeepc->hotplug_slot)
++		pci_hp_deregister(eeepc->hotplug_slot);
  
- 	/*
- 	 * Now make sure that an acpi_device is created for each
-@@ -415,6 +410,7 @@ static void dock_event(struct dock_station *ds, u32 event, int num)
- 	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list)
- 		if (dd->ops && dd->ops->uevent)
- 			dd->ops->uevent(dd->handle, event, dd->context);
-+
- 	if (num != DOCK_EVENT)
- 		kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
- }
-@@ -445,8 +441,8 @@ static void eject_dock(struct dock_station *ds)
- 	arg.type = ACPI_TYPE_INTEGER;
- 	arg.integer.value = 1;
- 
--	if (ACPI_FAILURE(acpi_evaluate_object(ds->handle, "_EJ0",
--					      &arg_list, NULL)))
-+	status = acpi_evaluate_object(ds->handle, "_EJ0", &arg_list, NULL);
-+	if (ACPI_FAILURE(status))
- 		pr_debug("Failed to evaluate _EJ0!\n");
- }
- 
-@@ -566,7 +562,6 @@ int register_dock_notifier(struct notifier_block *nb)
- 
- 	return atomic_notifier_chain_register(&dock_notifier_list, nb);
- }
--
- EXPORT_SYMBOL_GPL(register_dock_notifier);
- 
- /**
-@@ -580,7 +575,6 @@ void unregister_dock_notifier(struct notifier_block *nb)
- 
- 	atomic_notifier_chain_unregister(&dock_notifier_list, nb);
- }
--
- EXPORT_SYMBOL_GPL(unregister_dock_notifier);
- 
- /**
-@@ -625,7 +619,6 @@ register_hotplug_dock_device(acpi_handle handle, struct acpi_dock_ops *ops,
- 
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(register_hotplug_dock_device);
- 
- /**
-@@ -646,7 +639,6 @@ void unregister_hotplug_dock_device(acpi_handle handle)
- 			dock_del_hotplug_device(dock_station, dd);
+-	if (ehotk->bluetooth_rfkill) {
+-		rfkill_unregister(ehotk->bluetooth_rfkill);
+-		rfkill_destroy(ehotk->bluetooth_rfkill);
+-		ehotk->bluetooth_rfkill = NULL;
++	if (eeepc->bluetooth_rfkill) {
++		rfkill_unregister(eeepc->bluetooth_rfkill);
++		rfkill_destroy(eeepc->bluetooth_rfkill);
++		eeepc->bluetooth_rfkill = NULL;
+ 	}
+-	if (ehotk->wwan3g_rfkill) {
+-		rfkill_unregister(ehotk->wwan3g_rfkill);
+-		rfkill_destroy(ehotk->wwan3g_rfkill);
+-		ehotk->wwan3g_rfkill = NULL;
++	if (eeepc->wwan3g_rfkill) {
++		rfkill_unregister(eeepc->wwan3g_rfkill);
++		rfkill_destroy(eeepc->wwan3g_rfkill);
++		eeepc->wwan3g_rfkill = NULL;
+ 	}
+-	if (ehotk->wimax_rfkill) {
+-		rfkill_unregister(ehotk->wimax_rfkill);
+-		rfkill_destroy(ehotk->wimax_rfkill);
+-		ehotk->wimax_rfkill = NULL;
++	if (eeepc->wimax_rfkill) {
++		rfkill_unregister(eeepc->wimax_rfkill);
++		rfkill_destroy(eeepc->wimax_rfkill);
++		eeepc->wimax_rfkill = NULL;
  	}
  }
--
- EXPORT_SYMBOL_GPL(unregister_hotplug_dock_device);
  
- /**
-@@ -761,7 +753,7 @@ struct dock_data {
- 
- static void acpi_dock_deferred_cb(void *context)
+@@ -729,30 +727,30 @@ static int eeepc_rfkill_init(struct device *dev)
  {
--	struct dock_data *data = (struct dock_data *)context;
-+	struct dock_data *data = context;
+ 	int result = 0;
  
- 	dock_notify(data->handle, data->event, data->ds);
- 	kfree(data);
-@@ -771,23 +763,22 @@ static int acpi_dock_notifier_call(struct notifier_block *this,
- 	unsigned long event, void *data)
+-	mutex_init(&ehotk->hotplug_lock);
++	mutex_init(&eeepc->hotplug_lock);
+ 
+-	result = eeepc_new_rfkill(&ehotk->wlan_rfkill,
++	result = eeepc_new_rfkill(&eeepc->wlan_rfkill,
+ 				  "eeepc-wlan", dev,
+ 				  RFKILL_TYPE_WLAN, CM_ASL_WLAN);
+ 
+ 	if (result && result != -ENODEV)
+ 		goto exit;
+ 
+-	result = eeepc_new_rfkill(&ehotk->bluetooth_rfkill,
++	result = eeepc_new_rfkill(&eeepc->bluetooth_rfkill,
+ 				  "eeepc-bluetooth", dev,
+ 				  RFKILL_TYPE_BLUETOOTH, CM_ASL_BLUETOOTH);
+ 
+ 	if (result && result != -ENODEV)
+ 		goto exit;
+ 
+-	result = eeepc_new_rfkill(&ehotk->wwan3g_rfkill,
++	result = eeepc_new_rfkill(&eeepc->wwan3g_rfkill,
+ 				  "eeepc-wwan3g", dev,
+ 				  RFKILL_TYPE_WWAN, CM_ASL_3G);
+ 
+ 	if (result && result != -ENODEV)
+ 		goto exit;
+ 
+-	result = eeepc_new_rfkill(&ehotk->wimax_rfkill,
++	result = eeepc_new_rfkill(&eeepc->wimax_rfkill,
+ 				  "eeepc-wimax", dev,
+ 				  RFKILL_TYPE_WIMAX, CM_ASL_WIMAX);
+ 
+@@ -785,9 +783,9 @@ exit:
+ /*
+  * Platform driver - hibernate/resume callbacks
+  */
+-static int eeepc_hotk_thaw(struct device *device)
++static int eeepc_thaw(struct device *device)
  {
- 	struct dock_station *dock_station;
--	acpi_handle handle = (acpi_handle)data;
-+	acpi_handle handle = data;
+-	if (ehotk->wlan_rfkill) {
++	if (eeepc->wlan_rfkill) {
+ 		bool wlan;
  
- 	if (event != ACPI_NOTIFY_BUS_CHECK && event != ACPI_NOTIFY_DEVICE_CHECK
- 	   && event != ACPI_NOTIFY_EJECT_REQUEST)
- 		return 0;
- 	list_for_each_entry(dock_station, &dock_stations, sibling) {
- 		if (dock_station->handle == handle) {
--			struct dock_data *dock_data;
-+			struct dock_data *dd;
+ 		/*
+@@ -802,33 +800,33 @@ static int eeepc_hotk_thaw(struct device *device)
+ 	return 0;
+ }
  
--			dock_data = kmalloc(sizeof(*dock_data), GFP_KERNEL);
--			if (!dock_data)
-+			dd = kmalloc(sizeof(*dd), GFP_KERNEL);
-+			if (!dd)
- 				return 0;
--			dock_data->handle = handle;
--			dock_data->event = event;
--			dock_data->ds = dock_station;
--			acpi_os_hotplug_execute(acpi_dock_deferred_cb,
--				dock_data);
-+			dd->handle = handle;
-+			dd->event = event;
-+			dd->ds = dock_station;
-+			acpi_os_hotplug_execute(acpi_dock_deferred_cb, dd);
- 			return 0 ;
+-static int eeepc_hotk_restore(struct device *device)
++static int eeepc_restore(struct device *device)
+ {
+ 	/* Refresh both wlan rfkill state and pci hotplug */
+-	if (ehotk->wlan_rfkill)
++	if (eeepc->wlan_rfkill)
+ 		eeepc_rfkill_hotplug();
+ 
+-	if (ehotk->bluetooth_rfkill)
+-		rfkill_set_sw_state(ehotk->bluetooth_rfkill,
++	if (eeepc->bluetooth_rfkill)
++		rfkill_set_sw_state(eeepc->bluetooth_rfkill,
+ 				    get_acpi(CM_ASL_BLUETOOTH) != 1);
+-	if (ehotk->wwan3g_rfkill)
+-		rfkill_set_sw_state(ehotk->wwan3g_rfkill,
++	if (eeepc->wwan3g_rfkill)
++		rfkill_set_sw_state(eeepc->wwan3g_rfkill,
+ 				    get_acpi(CM_ASL_3G) != 1);
+-	if (ehotk->wimax_rfkill)
+-		rfkill_set_sw_state(ehotk->wimax_rfkill,
++	if (eeepc->wimax_rfkill)
++		rfkill_set_sw_state(eeepc->wimax_rfkill,
+ 				    get_acpi(CM_ASL_WIMAX) != 1);
+ 
+ 	return 0;
+ }
+ 
+ static struct dev_pm_ops eeepc_pm_ops = {
+-	.thaw = eeepc_hotk_thaw,
+-	.restore = eeepc_hotk_restore,
++	.thaw = eeepc_thaw,
++	.restore = eeepc_restore,
+ };
+ 
+ static struct platform_driver platform_driver = {
+ 	.driver = {
+-		.name = EEEPC_HOTK_FILE,
++		.name = EEEPC_LAPTOP_FILE,
+ 		.owner = THIS_MODULE,
+ 		.pm = &eeepc_pm_ops,
+ 	}
+@@ -1018,7 +1016,7 @@ static int eeepc_backlight_init(struct device *dev)
+ {
+ 	struct backlight_device *bd;
+ 
+-	bd = backlight_device_register(EEEPC_HOTK_FILE, dev,
++	bd = backlight_device_register(EEEPC_LAPTOP_FILE, dev,
+ 				       NULL, &eeepcbl_ops);
+ 	if (IS_ERR(bd)) {
+ 		pr_err("Could not register eeepc backlight device\n");
+@@ -1063,12 +1061,12 @@ static void eeepc_input_notify(int event)
+ 	if (key) {
+ 		switch (key->type) {
+ 		case KE_KEY:
+-			input_report_key(ehotk->inputdev, key->keycode,
++			input_report_key(eeepc->inputdev, key->keycode,
+ 						1);
+-			input_sync(ehotk->inputdev);
+-			input_report_key(ehotk->inputdev, key->keycode,
++			input_sync(eeepc->inputdev);
++			input_report_key(eeepc->inputdev, key->keycode,
+ 						0);
+-			input_sync(ehotk->inputdev);
++			input_sync(eeepc->inputdev);
+ 			break;
  		}
  	}
-@@ -941,28 +932,28 @@ static int dock_add(acpi_handle handle)
+@@ -1123,30 +1121,30 @@ static int eeepc_input_init(struct device *dev)
+ 	const struct key_entry *key;
+ 	int result;
+ 
+-	ehotk->inputdev = input_allocate_device();
+-	if (!ehotk->inputdev) {
++	eeepc->inputdev = input_allocate_device();
++	if (!eeepc->inputdev) {
+ 		pr_info("Unable to allocate input device\n");
+ 		return -ENOMEM;
+ 	}
+-	ehotk->inputdev->name = "Asus EeePC extra buttons";
+-	ehotk->inputdev->dev.parent = dev;
+-	ehotk->inputdev->phys = EEEPC_HOTK_FILE "/input0";
+-	ehotk->inputdev->id.bustype = BUS_HOST;
+-	ehotk->inputdev->getkeycode = eeepc_getkeycode;
+-	ehotk->inputdev->setkeycode = eeepc_setkeycode;
++	eeepc->inputdev->name = "Asus EeePC extra buttons";
++	eeepc->inputdev->dev.parent = dev;
++	eeepc->inputdev->phys = EEEPC_LAPTOP_FILE "/input0";
++	eeepc->inputdev->id.bustype = BUS_HOST;
++	eeepc->inputdev->getkeycode = eeepc_getkeycode;
++	eeepc->inputdev->setkeycode = eeepc_setkeycode;
+ 
+ 	for (key = eeepc_keymap; key->type != KE_END; key++) {
+ 		switch (key->type) {
+ 		case KE_KEY:
+-			set_bit(EV_KEY, ehotk->inputdev->evbit);
+-			set_bit(key->keycode, ehotk->inputdev->keybit);
++			set_bit(EV_KEY, eeepc->inputdev->evbit);
++			set_bit(key->keycode, eeepc->inputdev->keybit);
+ 			break;
+ 		}
+ 	}
+-	result = input_register_device(ehotk->inputdev);
++	result = input_register_device(eeepc->inputdev);
+ 	if (result) {
+ 		pr_info("Unable to register input device\n");
+-		input_free_device(ehotk->inputdev);
++		input_free_device(eeepc->inputdev);
+ 		return result;
+ 	}
+ 	return 0;
+@@ -1154,23 +1152,23 @@ static int eeepc_input_init(struct device *dev)
+ 
+ static void eeepc_input_exit(void)
  {
- 	int ret, id;
- 	struct dock_station ds, *dock_station;
--	struct platform_device *dock_device;
-+	struct platform_device *dd;
+-	if (ehotk->inputdev)
+-		input_unregister_device(ehotk->inputdev);
++	if (eeepc->inputdev)
++		input_unregister_device(eeepc->inputdev);
+ }
  
- 	id = dock_station_count;
--	dock_device =
--		platform_device_register_data(NULL, "dock",
--			id, &ds, sizeof(ds));
--	if (IS_ERR(dock_device))
--		return PTR_ERR(dock_device);
-+	dd = platform_device_register_data(NULL, "dock", id, &ds, sizeof(ds));
-+	if (IS_ERR(dd))
-+		return PTR_ERR(dd);
-+
-+	dock_station = dd->dev.platform_data;
+ /*
+  * ACPI driver
+  */
+-static void eeepc_hotk_notify(struct acpi_device *device, u32 event)
++static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
+ {
+ 	u16 count;
  
--	dock_station = dock_device->dev.platform_data;
- 	dock_station->handle = handle;
--	dock_station->dock_device = dock_device;
-+	dock_station->dock_device = dd;
- 	dock_station->last_dock_time = jiffies - HZ;
--	INIT_LIST_HEAD(&dock_station->dependent_devices);
--	INIT_LIST_HEAD(&dock_station->hotplug_devices);
--	INIT_LIST_HEAD(&dock_station->sibling);
--	spin_lock_init(&dock_station->dd_lock);
-+
- 	mutex_init(&dock_station->hp_lock);
-+	spin_lock_init(&dock_station->dd_lock);
-+	INIT_LIST_HEAD(&dock_station->sibling);
-+	INIT_LIST_HEAD(&dock_station->hotplug_devices);
- 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
-+	INIT_LIST_HEAD(&dock_station->dependent_devices);
+ 	if (event > ACPI_MAX_SYS_NOTIFY)
+ 		return;
+-	count = ehotk->event_count[event % 128]++;
+-	acpi_bus_generate_proc_event(ehotk->device, event, count);
+-	acpi_bus_generate_netlink_event(ehotk->device->pnp.device_class,
+-					dev_name(&ehotk->device->dev), event,
++	count = eeepc->event_count[event % 128]++;
++	acpi_bus_generate_proc_event(eeepc->device, event, count);
++	acpi_bus_generate_netlink_event(eeepc->device->pnp.device_class,
++					dev_name(&eeepc->device->dev), event,
+ 					count);
  
- 	/* we want the dock device to send uevents */
--	dev_set_uevent_suppress(&dock_device->dev, 0);
-+	dev_set_uevent_suppress(&dd->dev, 0);
+ 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX) {
+@@ -1202,11 +1200,11 @@ static void cmsg_quirk(int cm, const char *name)
  
- 	if (is_dock(handle))
- 		dock_station->flags |= DOCK_IS_DOCK;
-@@ -971,14 +962,13 @@ static int dock_add(acpi_handle handle)
- 	if (is_battery(handle))
- 		dock_station->flags |= DOCK_IS_BAT;
+ 	/* Some BIOSes do not report cm although it is avaliable.
+ 	   Check if cm_getv[cm] works and, if yes, assume cm should be set. */
+-	if (!(ehotk->cm_supported & (1 << cm))
+-	    && !read_acpi_int(ehotk->handle, cm_getv[cm], &dummy)) {
++	if (!(eeepc->cm_supported & (1 << cm))
++	    && !read_acpi_int(eeepc->handle, cm_getv[cm], &dummy)) {
+ 		pr_info("%s (%x) not reported by BIOS,"
+ 			" enabling anyway\n", name, 1 << cm);
+-		ehotk->cm_supported |= 1 << cm;
++		eeepc->cm_supported |= 1 << cm;
+ 	}
+ }
  
--	ret = sysfs_create_group(&dock_device->dev.kobj, &dock_attribute_group);
-+	ret = sysfs_create_group(&dd->dev.kobj, &dock_attribute_group);
- 	if (ret)
- 		goto err_unregister;
+@@ -1218,15 +1216,15 @@ static void cmsg_quirks(void)
+ 	cmsg_quirk(CM_ASL_TPD, "TPD");
+ }
  
- 	/* Find dependent devices */
--	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX, find_dock_devices, dock_station,
--			    NULL);
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX,
-+			    find_dock_devices, dock_station, NULL);
+-static int eeepc_hotk_init(void)
++static int eeepc_acpi_init(void)
+ {
+ 	unsigned int init_flags;
+ 	int result;
  
- 	/* add the dock station as a device dependent on itself */
- 	ret = add_dock_dependent_device(dock_station, handle);
-@@ -990,9 +980,9 @@ static int dock_add(acpi_handle handle)
+-	result = acpi_bus_get_status(ehotk->device);
++	result = acpi_bus_get_status(eeepc->device);
+ 	if (result)
+ 		return result;
+-	if (!ehotk->device->status.present) {
++	if (!eeepc->device->status.present) {
+ 		pr_err("Hotkey device not present, aborting\n");
+ 		return -ENODEV;
+ 	}
+@@ -1234,18 +1232,18 @@ static int eeepc_hotk_init(void)
+ 	init_flags = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
+ 	pr_notice("Hotkey init flags 0x%x\n", init_flags);
+ 
+-	if (write_acpi_int(ehotk->handle, "INIT", init_flags)) {
++	if (write_acpi_int(eeepc->handle, "INIT", init_flags)) {
+ 		pr_err("Hotkey initialization failed\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	/* get control methods supported */
+-	if (read_acpi_int(ehotk->handle, "CMSG", &ehotk->cm_supported)) {
++	if (read_acpi_int(eeepc->handle, "CMSG", &eeepc->cm_supported)) {
+ 		pr_err("Get control methods supported failed\n");
+ 		return -ENODEV;
+ 	}
+ 	cmsg_quirks();
+-	pr_info("Get control methods supported: 0x%x\n", ehotk->cm_supported);
++	pr_info("Get control methods supported: 0x%x\n", eeepc->cm_supported);
+ 
+ 	return 0;
+ }
+@@ -1260,22 +1258,22 @@ static void __devinit eeepc_enable_camera(void)
+ 		set_acpi(CM_ASL_CAMERA, 1);
+ }
+ 
+-static int __devinit eeepc_hotk_add(struct acpi_device *device)
++static int __devinit eeepc_acpi_add(struct acpi_device *device)
+ {
+ 	struct device *dev;
+ 	int result;
+ 
+-	pr_notice(EEEPC_HOTK_NAME "\n");
+-	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
+-	if (!ehotk)
++	pr_notice(EEEPC_LAPTOP_NAME "\n");
++	eeepc = kzalloc(sizeof(struct eeepc_laptop), GFP_KERNEL);
++	if (!eeepc)
+ 		return -ENOMEM;
+-	ehotk->handle = device->handle;
+-	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
+-	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
+-	device->driver_data = ehotk;
+-	ehotk->device = device;
++	eeepc->handle = device->handle;
++	strcpy(acpi_device_name(device), EEEPC_ACPI_DEVICE_NAME);
++	strcpy(acpi_device_class(device), EEEPC_ACPI_CLASS);
++	device->driver_data = eeepc;
++	eeepc->device = device;
+ 
+-	result = eeepc_hotk_init();
++	result = eeepc_acpi_init();
+ 	if (result)
+ 		goto fail_platform;
+ 	eeepc_enable_camera();
+@@ -1283,7 +1281,6 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
+ 	result = eeepc_platform_init();
+ 	if (result)
+ 		goto fail_platform;
+-
+ 	dev = &platform_device->dev;
+ 
+ 	if (!acpi_video_backlight_support()) {
+@@ -1322,12 +1319,12 @@ fail_input:
+ fail_backlight:
+ 	eeepc_platform_exit();
+ fail_platform:
+-	kfree(ehotk);
++	kfree(eeepc);
+ 
+ 	return result;
+ }
+ 
+-static int eeepc_hotk_remove(struct acpi_device *device, int type)
++static int eeepc_acpi_remove(struct acpi_device *device, int type)
+ {
+ 	eeepc_backlight_exit();
+ 	eeepc_rfkill_exit();
+@@ -1336,27 +1333,27 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
+ 	eeepc_led_exit();
+ 	eeepc_platform_exit();
+ 
+-	kfree(ehotk);
++	kfree(eeepc);
+ 	return 0;
+ }
+ 
+ 
+ static const struct acpi_device_id eeepc_device_ids[] = {
+-	{EEEPC_HOTK_HID, 0},
++	{EEEPC_ACPI_HID, 0},
+ 	{"", 0},
+ };
+ MODULE_DEVICE_TABLE(acpi, eeepc_device_ids);
+ 
+-static struct acpi_driver eeepc_hotk_driver = {
+-	.name = EEEPC_HOTK_NAME,
+-	.class = EEEPC_HOTK_CLASS,
++static struct acpi_driver eeepc_acpi_driver = {
++	.name = EEEPC_LAPTOP_NAME,
++	.class = EEEPC_ACPI_CLASS,
+ 	.owner = THIS_MODULE,
+ 	.ids = eeepc_device_ids,
+ 	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+ 	.ops = {
+-		.add = eeepc_hotk_add,
+-		.remove = eeepc_hotk_remove,
+-		.notify = eeepc_hotk_notify,
++		.add = eeepc_acpi_add,
++		.remove = eeepc_acpi_remove,
++		.notify = eeepc_acpi_notify,
+ 	},
+ };
+ 
+@@ -1369,17 +1366,17 @@ static int __init eeepc_laptop_init(void)
+ 	if (result < 0)
+ 		return result;
+ 
+-	result = acpi_bus_register_driver(&eeepc_hotk_driver);
++	result = acpi_bus_register_driver(&eeepc_acpi_driver);
+ 	if (result < 0)
+ 		goto fail_acpi_driver;
+-	if (!ehotk) {
++	if (!eeepc) {
+ 		result = -ENODEV;
+ 		goto fail_no_device;
+ 	}
  	return 0;
  
- err_rmgroup:
--	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
-+	sysfs_remove_group(&dd->dev.kobj, &dock_attribute_group);
- err_unregister:
--	platform_device_unregister(dock_device);
-+	platform_device_unregister(dd);
- 	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
- 	return ret;
- }
-@@ -1000,20 +990,19 @@ err_unregister:
- /**
-  * dock_remove - free up resources related to the dock station
-  */
--static int dock_remove(struct dock_station *dock_station)
-+static int dock_remove(struct dock_station *ds)
+ fail_no_device:
+-	acpi_bus_unregister_driver(&eeepc_hotk_driver);
++	acpi_bus_unregister_driver(&eeepc_acpi_driver);
+ fail_acpi_driver:
+ 	platform_driver_unregister(&platform_driver);
+ 	return result;
+@@ -1387,7 +1384,7 @@ fail_acpi_driver:
+ 
+ static void __exit eeepc_laptop_exit(void)
  {
- 	struct dock_dependent_device *dd, *tmp;
--	struct platform_device *dock_device = dock_station->dock_device;
-+	struct platform_device *dock_device = ds->dock_device;
- 
- 	if (!dock_station_count)
- 		return 0;
- 
- 	/* remove dependent devices */
--	list_for_each_entry_safe(dd, tmp, &dock_station->dependent_devices,
--				 list)
--	    kfree(dd);
-+	list_for_each_entry_safe(dd, tmp, &ds->dependent_devices, list)
-+		kfree(dd);
- 
--	list_del(&dock_station->sibling);
-+	list_del(&ds->sibling);
- 
- 	/* cleanup sysfs */
- 	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
-@@ -1036,11 +1025,10 @@ find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	acpi_status status = AE_OK;
- 
--	if (is_dock(handle)) {
--		if (dock_add(handle) >= 0) {
-+	if (is_dock(handle))
-+		if (dock_add(handle) >= 0)
- 			status = AE_CTRL_TERMINATE;
--		}
--	}
-+
- 	return status;
+-	acpi_bus_unregister_driver(&eeepc_hotk_driver);
++	acpi_bus_unregister_driver(&eeepc_acpi_driver);
+ 	platform_driver_unregister(&platform_driver);
  }
  
-@@ -1078,8 +1066,7 @@ static int __init dock_init(void)
- 
- static void __exit dock_exit(void)
- {
--	struct dock_station *dock_station;
--	struct dock_station *tmp;
-+	struct dock_station *tmp, *dock_station;
- 
- 	unregister_acpi_bus_notifier(&dock_acpi_notifier);
- 	list_for_each_entry_safe(dock_station, tmp, &dock_stations, sibling)
 -- 
 1.6.0.6
 
