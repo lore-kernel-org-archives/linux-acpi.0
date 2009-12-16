@@ -1,13 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 087/103] thinkpad-acpi: disable volume control
-Date: Wed, 16 Dec 2009 03:36:38 -0500
-Message-ID: <c7ac6291ea7ebc568a1fce16fed87d102898f264.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 012/103] thinkpad-acpi: issue backlight class events
+Date: Wed, 16 Dec 2009 03:35:23 -0500
+Message-ID: <347a26860e2293b1347996876d3550499c7bb31f.1260952471.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:61722 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:61822 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761584AbZLPMGJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:06:09 -0500
+	with ESMTP id S1761162AbZLPMGH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:06:07 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
@@ -19,177 +19,162 @@ References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lorne Applebaum <lorne.applebaum@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Matthew Garrett <mjg@redhat.com>, Richard Purdie <rpurdie@linux.intel.com>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Disable volume control by default.  It can be enabled at module load
-time by a module parameter (volume_control=1).
+Take advantage of the new events capabilities of the backlight class to
+notify userspace of backlight changes.
 
-The audio control mixer that thinkpad-acpi interacts with is fully
-functional without any drivers, and operated by hotkeys.
-
-The idea behind the console audio control is that the human operator
-is the only one that can interact with it.  The ThinkVantage suite in
-Windows does not allow any software-based overrides, and only does OSD
-(on-screen-display) functions.
-
-The Linux driver will, with the addition of the ALSA interface, try to
-follow and enforce the ThinkVantage UI design:
-
-The user is supposed to use the keyboard hotkeys to interact with the
-console audio control.  The kernel and the desktop environment is
-supposed to cooperate to provide proper user feedback through
-on-screen-display functions.
-
-Distros are urged to not to enable volume control by default.
-Enabling this must be a local admin's decision.  This is the reason
-why there is no Kconfig option.
-
-Keep in mind that all ThinkPads have a normal, main mixer (AC97 or
-HDA) for regular software-based audio control.  We are not talking
-about that mixer here.
-
-Advanced users are, of course, free to enable volume control and do as
-they please.
+This depends on "backlight: Allow drivers to update the core, and
+generate events on changes", by Matthew Garrett.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Lorne Applebaum <lorne.applebaum@gmail.com>
 Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Richard Purdie <rpurdie@linux.intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/laptops/thinkpad-acpi.txt |   13 ++++++++
- drivers/platform/x86/thinkpad_acpi.c    |   47 +++++++++++++++++++++++++++---
- 2 files changed, 55 insertions(+), 5 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   51 +++++++-----------------------
+ drivers/platform/x86/thinkpad_acpi.c    |   24 ++++++++++++++-
+ 2 files changed, 35 insertions(+), 40 deletions(-)
 
 diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
-index bd87682..6a58143 100644
+index aafcaa6..f5056c7 100644
 --- a/Documentation/laptops/thinkpad-acpi.txt
 +++ b/Documentation/laptops/thinkpad-acpi.txt
-@@ -1097,6 +1097,18 @@ Volume control
+@@ -460,6 +460,8 @@ event	code	Key		Notes
+ 				For Lenovo ThinkPads with a new
+ 				BIOS, it has to be handled either
+ 				by the ACPI OSI, or by userspace.
++				The driver does the right thing,
++				never mess with this.
+ 0x1011	0x10	FN+END		Brightness down.  See brightness
+ 				up for details.
  
- procfs: /proc/acpi/ibm/volume
+@@ -582,46 +584,15 @@ with hotkey_report_mode.
  
-+NOTE: by default, the volume control interface operates in read-only
-+mode, as it is supposed to be used for on-screen-display purposes.
-+The read/write mode can be enabled through the use of the
-+"volume_control=1" module parameter.
+ Brightness hotkey notes:
+ 
+-These are the current sane choices for brightness key mapping in
+-thinkpad-acpi:
++Don't mess with the brightness hotkeys in a Thinkpad.  If you want
++notifications for OSD, use the sysfs backlight class event support.
+ 
+-For IBM and Lenovo models *without* ACPI backlight control (the ones on
+-which thinkpad-acpi will autoload its backlight interface by default,
+-and on which ACPI video does not export a backlight interface):
+-
+-1. Don't enable or map the brightness hotkeys in thinkpad-acpi, as
+-   these older firmware versions unfortunately won't respect the hotkey
+-   mask for brightness keys anyway, and always reacts to them.  This
+-   usually work fine, unless X.org drivers are doing something to block
+-   the BIOS.  In that case, use (3) below.  This is the default mode of
+-   operation.
+-
+-2. Enable the hotkeys, but map them to something else that is NOT
+-   KEY_BRIGHTNESS_UP/DOWN or any other keycode that would cause
+-   userspace to try to change the backlight level, and use that as an
+-   on-screen-display hint.
+-
+-3. IF AND ONLY IF X.org drivers find a way to block the firmware from
+-   automatically changing the brightness, enable the hotkeys and map
+-   them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN, and feed that to
+-   something that calls xbacklight.  thinkpad-acpi will not be able to
+-   change brightness in that case either, so you should disable its
+-   backlight interface.
+-
+-For Lenovo models *with* ACPI backlight control:
+-
+-1. Load up ACPI video and use that.  ACPI video will report ACPI
+-   events for brightness change keys.  Do not mess with thinkpad-acpi
+-   defaults in this case.  thinkpad-acpi should not have anything to do
+-   with backlight events in a scenario where ACPI video is loaded:
+-   brightness hotkeys must be disabled, and the backlight interface is
+-   to be kept disabled as well.  This is the default mode of operation.
+-
+-2. Do *NOT* load up ACPI video, enable the hotkeys in thinkpad-acpi,
+-   and map them to KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN.  Process
+-   these keys on userspace somehow (e.g. by calling xbacklight).
+-   The driver will do this automatically if it detects that ACPI video
+-   has been disabled.
++The driver will issue KEY_BRIGHTNESS_UP and KEY_BRIGHTNESS_DOWN events
++automatically for the cases were userspace has to do something to
++implement brightness changes.  When you override these events, you will
++either fail to handle properly the ThinkPads that require explicit
++action to change backlight brightness, or the ThinkPads that require
++that no action be taken to work properly.
+ 
+ 
+ Bluetooth
+@@ -1465,3 +1436,5 @@ Sysfs interface changelog:
+ 		and it is always able to disable hot keys.  Very old
+ 		thinkpads are properly supported.  hotkey_bios_mask
+ 		is deprecated and marked for removal.
 +
-+NOTE: distros are urged to not enable volume_control by default, this
-+should be done by the local admin only.  The ThinkPad UI is for the
-+console audio control to be done through the volume keys only, and for
-+the desktop environment to just provide on-screen-display feedback.
-+Software volume control should be done only in the main AC97/HDA
-+mixer.
-+
- This feature allows volume control on ThinkPad models with a digital
- volume knob (when available, not all models have it), as well as
- mute/unmute control.  The available commands are:
-@@ -1465,3 +1477,4 @@ Sysfs interface changelog:
- 0x020600:	Marker for backlight change event support.
- 
- 0x020700:	Support for mute-only mixers.
-+		Volume control in read-only mode by default.
++0x020600:	Marker for backlight change event support.
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 4d909d5..2d74926 100644
+index 6160813..4406136 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -311,6 +311,7 @@ static struct {
+@@ -22,7 +22,7 @@
+  */
  
- static struct {
- 	u16 hotkey_mask_ff:1;
-+	u16 volume_ctrl_forbidden:1;
- } tp_warned;
- 
- struct thinkpad_id_data {
-@@ -6434,6 +6435,7 @@ static enum tpacpi_volume_access_mode volume_mode =
- 	TPACPI_VOL_MODE_MAX;
- 
- static enum tpacpi_volume_capabilities volume_capabilities;
-+static int volume_control_allowed;
+ #define TPACPI_VERSION "0.23"
+-#define TPACPI_SYSFS_VERSION 0x020500
++#define TPACPI_SYSFS_VERSION 0x020600
  
  /*
-  * Used to syncronize writers to TP_EC_AUDIO and
-@@ -6449,6 +6451,8 @@ static void tpacpi_volume_checkpoint_nvram(void)
+  *  Changelog:
+@@ -6073,6 +6073,12 @@ static int brightness_get(struct backlight_device *bd)
+ 	return status & TP_EC_BACKLIGHT_LVLMSK;
+ }
  
- 	if (volume_mode != TPACPI_VOL_MODE_ECNVRAM)
- 		return;
-+	if (!volume_control_allowed)
-+		return;
- 
- 	vdbg_printk(TPACPI_DBG_MIXER,
- 		"trying to checkpoint mixer state to NVRAM...\n");
-@@ -6691,6 +6695,12 @@ static int __init volume_init(struct ibm_init_struct *iibm)
- 			"mute is supported, volume control is %s\n",
- 			str_supported(!tp_features.mixer_no_level_control));
- 
-+	printk(TPACPI_INFO
-+		"Console audio control enabled, mode: %s\n",
-+		(volume_control_allowed) ?
-+			"override (read/write)" :
-+			"monitor (read only)");
++static void tpacpi_brightness_notify_change(void)
++{
++	backlight_force_update(ibm_backlight_device,
++			       BACKLIGHT_UPDATE_HOTKEY);
++}
 +
+ static struct backlight_ops ibm_backlight_data = {
+ 	.get_brightness = brightness_get,
+ 	.update_status  = brightness_update_status,
+@@ -6227,6 +6233,12 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	ibm_backlight_device->props.brightness = b & TP_EC_BACKLIGHT_LVLMSK;
+ 	backlight_update_status(ibm_backlight_device);
+ 
++	vdbg_printk(TPACPI_DBG_INIT | TPACPI_DBG_BRGHT,
++			"brightness: registering brightness hotkeys "
++			"as change notification\n");
++	tpacpi_hotkey_driver_mask_set(hotkey_driver_mask
++				| TP_ACPI_HKEY_BRGHTUP_MASK
++				| TP_ACPI_HKEY_BRGHTDWN_MASK);;
  	return 0;
  }
  
-@@ -6711,11 +6721,16 @@ static int volume_read(char *p)
- 		len += sprintf(p + len, "mute:\t\t%s\n",
- 				onoff(status, TP_EC_AUDIO_MUTESW));
+@@ -6303,6 +6315,9 @@ static int brightness_write(char *buf)
+ 	 * Doing it this way makes the syscall restartable in case of EINTR
+ 	 */
+ 	rc = brightness_set(level);
++	if (!rc && ibm_backlight_device)
++		backlight_force_update(ibm_backlight_device,
++					BACKLIGHT_UPDATE_SYSFS);
+ 	return (rc == -EINTR)? -ERESTARTSYS : rc;
+ }
  
--		len += sprintf(p + len, "commands:\tunmute, mute\n");
--		if (!tp_features.mixer_no_level_control) {
--			len += sprintf(p + len, "commands:\tup, down\n");
--			len += sprintf(p + len, "commands:\tlevel <level>"
--			       " (<level> is 0-%d)\n", TP_EC_VOLUME_MAX);
-+		if (volume_control_allowed) {
-+			len += sprintf(p + len, "commands:\tunmute, mute\n");
-+			if (!tp_features.mixer_no_level_control) {
-+				len += sprintf(p + len,
-+					       "commands:\tup, down\n");
-+				len += sprintf(p + len,
-+					       "commands:\tlevel <level>"
-+					       " (<level> is 0-%d)\n",
-+					       TP_EC_VOLUME_MAX);
-+			}
- 		}
- 	}
- 
-@@ -6730,6 +6745,23 @@ static int volume_write(char *buf)
- 	char *cmd;
- 	int rc;
- 
-+	/*
-+	 * We do allow volume control at driver startup, so that the
-+	 * user can set initial state through the volume=... parameter hack.
-+	 */
-+	if (!volume_control_allowed && tpacpi_lifecycle != TPACPI_LIFE_INIT) {
-+		if (unlikely(!tp_warned.volume_ctrl_forbidden)) {
-+			tp_warned.volume_ctrl_forbidden = 1;
-+			printk(TPACPI_NOTICE
-+				"Console audio control in monitor mode, "
-+				"changes are not allowed.\n");
-+			printk(TPACPI_NOTICE
-+				"Use the volume_control=1 module parameter "
-+				"to enable volume control\n");
+@@ -7702,6 +7717,13 @@ static struct ibm_struct fan_driver_data = {
+  */
+ static void tpacpi_driver_event(const unsigned int hkey_event)
+ {
++	if (ibm_backlight_device) {
++		switch (hkey_event) {
++		case TP_HKEY_EV_BRGHT_UP:
++		case TP_HKEY_EV_BRGHT_DOWN:
++			tpacpi_brightness_notify_change();
 +		}
-+		return -EPERM;
 +	}
-+
- 	rc = volume_get_status(&s);
- 	if (rc < 0)
- 		return rc;
-@@ -8515,6 +8547,11 @@ MODULE_PARM_DESC(volume_capabilities,
- 		 "Selects the mixer capabilites: "
- 		 "0=auto, 1=volume and mute, 2=mute only");
+ }
  
-+module_param_named(volume_control, volume_control_allowed, bool, 0444);
-+MODULE_PARM_DESC(volume_control,
-+		 "Enables software override for the console audio "
-+		 "control when true");
-+
- #define TPACPI_PARAM(feature) \
- 	module_param_call(feature, set_ibm_param, NULL, NULL, 0); \
- 	MODULE_PARM_DESC(feature, "Simulates thinkpad-acpi procfs command " \
+ 
 -- 
 1.6.0.6
 
