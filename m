@@ -1,19 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 029/103] eeepc-laptop: fix value of pwm1_enable to match
- documentation
-Date: Wed, 16 Dec 2009 03:35:40 -0500
-Message-ID: <487186880d31821eaaba0cc1f27d5a581c56981d.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 032/103] eeepc-laptop: fix set_acpi() to return non-zero on
+ failure
+Date: Wed, 16 Dec 2009 03:35:43 -0500
+Message-ID: <13f70029daa3cd7f9983e4aec82f32939b1a6e6a.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:41516 "EHLO
+Received: from vms173011pub.verizon.net ([206.46.173.11]:41634 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760929AbZLPKGG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:06 -0500
+	with ESMTP id S1760877AbZLPKGA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:00 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ00A4HPDO02XA@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:56 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:54 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
@@ -24,63 +24,65 @@ Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Documentation/hwmon/sysfs-interface tells us that automatic fan speed
-control should be represented by a value of 2 or above for pwm1_enable.
-Fix eeepc_get_fan_ctrl() to return 2 for automatic fan control.
-
-Setting "1" for manual control is already consistent with the
-documentation, so this remains unchanged.
-
-Let's preserve the ABI for this specific driver, so that writing "0"
-will still invoke automatic control.
-
-(The documentation says setting "0" should leave the fan at full speed
-all the time.  This mode is not directly supported by our hardware. Full
-speed is rather noisy on my 701 and the automatic control has never used
-it.  If you really want this e.g. to prolong the life of an EeePC used
-as a server, you can always use manual mode.  hwmon has always been
-fairly machine-specific, and you're in a tiny minority (or elite :-).
-I'm sure you're smart enough to notice that the fan doesn't turn on to
-full speed when you try this mode, either by ear or checking
-fan_input1.
-
-We could even claim to be honouring the spirit of the documentation.
-"0" really means "safe mode".  EeePCs default to automatic mode, ie that
-is what Asus will actually test.  Since we do not provide any way to
-tamper with the temperature threshold, automatic mode _is_ the safe
-option).
+If the control method does not exist, return -ENODEV for consistency
+with get_acpi()
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   34 +++++++++++++++++++---------------
+ 1 files changed, 19 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 1c04c87..6c982d6 100644
+index 8b686b5..abd7389 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -935,7 +935,10 @@ static int eeepc_get_fan_ctrl(void)
- 	int value = 0;
+@@ -289,26 +289,30 @@ static int read_acpi_int(acpi_handle handle, const char *method, int *val)
  
- 	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
--	return ((value & 0x02 ? 1 : 0));
-+	if (value & 0x02)
-+		return 1; /* manual */
-+	else
-+		return 2; /* automatic */
+ static int set_acpi(int cm, int value)
+ {
+-	if (ehotk->cm_supported & (0x1 << cm)) {
+-		const char *method = cm_setv[cm];
+-		if (method == NULL)
+-			return -ENODEV;
+-		if (write_acpi_int(ehotk->handle, method, value, NULL))
+-			pr_warning("Error writing %s\n", method);
+-	}
++	const char *method = cm_setv[cm];
++
++	if (method == NULL)
++		return -ENODEV;
++	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
++		return -ENODEV;
++
++	if (write_acpi_int(ehotk->handle, method, value, NULL))
++		pr_warning("Error writing %s\n", method);
+ 	return 0;
  }
  
- static void eeepc_set_fan_ctrl(int manual)
-@@ -943,7 +946,7 @@ static void eeepc_set_fan_ctrl(int manual)
- 	int value = 0;
+ static int get_acpi(int cm)
+ {
+-	int value = -ENODEV;
+-	if ((ehotk->cm_supported & (0x1 << cm))) {
+-		const char *method = cm_getv[cm];
+-		if (method == NULL)
+-			return -ENODEV;
+-		if (read_acpi_int(ehotk->handle, method, &value))
+-			pr_warning("Error reading %s\n", method);
+-	}
++	const char *method = cm_getv[cm];
++	int value;
++
++	if (method == NULL)
++		return -ENODEV;
++	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
++		return -ENODEV;
++
++	if (read_acpi_int(ehotk->handle, method, &value))
++		pr_warning("Error reading %s\n", method);
+ 	return value;
+ }
  
- 	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
--	if (manual)
-+	if (manual == 1)
- 		value |= 0x02;
- 	else
- 		value &= ~0x02;
 -- 
 1.6.0.6
 
