@@ -1,28 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 0/2] aggregator device driver update
-Date: Tue, 15 Dec 2009 23:00:59 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912152300260.6885@localhost.localdomain>
-References: <1260754949-11239-1-git-send-email-gong.chen@linux.intel.com>
+From: "Justin P. mattock" <justinmattock@gmail.com>
+Subject: Re: [PATCH] Fix a typo in drivers/acpi/battery.c
+Date: Tue, 15 Dec 2009 20:02:40 -0800
+Message-ID: <4B285BE0.7010109@gmail.com>
+References: <dd18b0c30912131834se50a980hff01fe06751f3a2d@mail.gmail.com> <alpine.LFD.2.00.0912152256230.6885@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:23422 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754523AbZLPEBR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 23:01:17 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173009.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KUQ00G4K8HOGZAF@vms173009.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 15 Dec 2009 22:01:06 -0600 (CST)
-In-reply-to: <1260754949-11239-1-git-send-email-gong.chen@linux.intel.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:54500 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753484AbZLPECd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 23:02:33 -0500
+Received: by yxe17 with SMTP id 17so585602yxe.33
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2009 20:02:32 -0800 (PST)
+In-Reply-To: <alpine.LFD.2.00.0912152256230.6885@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-applied to acpi-test, pending shaohua's ack
+On 12/15/09 19:56, Len Brown wrote:
+> applied (by hand)
+>
+> please seek a mailer that doesn't corrupt patches
+>
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+>
+>
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+hmm.. copy/past from
+git format-patch
+seems to get things messed up,
+but if I send the patch via
+git send-email things are fine.
 
+I just will send them through git.
+sorry applying the patch messd things up
+
+
+Justin P. Mattock
