@@ -1,19 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 065/103] ACPICA: Update internal namespace node/handle
- interfaces
-Date: Wed, 16 Dec 2009 03:36:16 -0500
-Message-ID: <f24b664dc44a4ab4df61db2258cea298eeb43a8e.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 066/103] ACPICA: Add more conversions to predefined name repair
+ module
+Date: Wed, 16 Dec 2009 03:36:17 -0500
+Message-ID: <47e11d54d2a516461d89cbb3f2fb87084056af72.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:61722 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760671AbZLPMF5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:05:57 -0500
+	with ESMTP id S1759667AbZLPMF6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:05:58 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ0025QUXOD4MD@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 06:05:52 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 06:05:53 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
@@ -24,420 +24,499 @@ Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Bro
 
 From: Bob Moore <robert.moore@intel.com>
 
-This change deletes the unnecessary acpi_ns_convert_entry_to_handle
-interface and renames the acpi_ns_map_handle_to_node interface to
-acpi_ns_validate_handle.  ACPICA BZ 798.
-
-http://www.acpica.org/bugzilla/show_bug.cgi?id=798
+This change enhances the automatic repairs/conversions for
+predefined name return values to make Integers, Strings, and
+Buffers fully interchangeable. Also, a Buffer can be converted
+to a Package of Integers if necessary. The nsrepair.c module was
+completely restructured.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/acnamesp.h |    4 +--
- drivers/acpi/acpica/evregion.c |    4 +-
- drivers/acpi/acpica/evxface.c  |    4 +-
- drivers/acpi/acpica/evxfevnt.c |    4 +-
- drivers/acpi/acpica/evxfregn.c |    4 +-
- drivers/acpi/acpica/nsdump.c   |    2 +-
- drivers/acpi/acpica/nsnames.c  |    2 +-
- drivers/acpi/acpica/nsutils.c  |   57 +++++++--------------------------------
- drivers/acpi/acpica/nsxfeval.c |   10 +++---
- drivers/acpi/acpica/nsxfname.c |   10 +++---
- drivers/acpi/acpica/nsxfobj.c  |   14 +++++-----
- drivers/acpi/acpica/rsxface.c  |    2 +-
- 12 files changed, 40 insertions(+), 77 deletions(-)
+ drivers/acpi/acpica/nsrepair.c |  403 ++++++++++++++++++++++++++++++++--------
+ 1 files changed, 327 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
-index ab83919..14cef45 100644
---- a/drivers/acpi/acpica/acnamesp.h
-+++ b/drivers/acpi/acpica/acnamesp.h
-@@ -354,9 +354,7 @@ acpi_ns_externalize_name(u32 internal_name_length,
- 			 const char *internal_name,
- 			 u32 * converted_name_length, char **converted_name);
+diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
+index d563f1a..10629fa 100644
+--- a/drivers/acpi/acpica/nsrepair.c
++++ b/drivers/acpi/acpica/nsrepair.c
+@@ -45,13 +45,52 @@
+ #include "accommon.h"
+ #include "acnamesp.h"
+ #include "acinterp.h"
+-#include "acpredef.h"
  
--struct acpi_namespace_node *acpi_ns_map_handle_to_node(acpi_handle handle);
--
--acpi_handle acpi_ns_convert_entry_to_handle(struct acpi_namespace_node *node);
-+struct acpi_namespace_node *acpi_ns_validate_handle(acpi_handle handle);
- 
- void acpi_ns_terminate(void);
- 
-diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index 0bc807c..5336d91 100644
---- a/drivers/acpi/acpica/evregion.c
-+++ b/drivers/acpi/acpica/evregion.c
-@@ -718,7 +718,7 @@ acpi_ev_install_handler(acpi_handle obj_handle,
- 
- 	/* Convert and validate the device handle */
- 
--	node = acpi_ns_map_handle_to_node(obj_handle);
-+	node = acpi_ns_validate_handle(obj_handle);
- 	if (!node) {
- 		return (AE_BAD_PARAMETER);
- 	}
-@@ -1087,7 +1087,7 @@ acpi_ev_reg_run(acpi_handle obj_handle,
- 
- 	/* Convert and validate the device handle */
- 
--	node = acpi_ns_map_handle_to_node(obj_handle);
-+	node = acpi_ns_validate_handle(obj_handle);
- 	if (!node) {
- 		return (AE_BAD_PARAMETER);
- 	}
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index 10b8543..2fe0809 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -259,7 +259,7 @@ acpi_install_notify_handler(acpi_handle device,
- 
- 	/* Convert and validate the device handle */
- 
--	node = acpi_ns_map_handle_to_node(device);
-+	node = acpi_ns_validate_handle(device);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -425,7 +425,7 @@ acpi_remove_notify_handler(acpi_handle device,
- 
- 	/* Convert and validate the device handle */
- 
--	node = acpi_ns_map_handle_to_node(device);
-+	node = acpi_ns_validate_handle(device);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
-index 4721f58..eed7a38 100644
---- a/drivers/acpi/acpica/evxfevnt.c
-+++ b/drivers/acpi/acpica/evxfevnt.c
-@@ -610,7 +610,7 @@ acpi_install_gpe_block(acpi_handle gpe_device,
- 		return (status);
- 	}
- 
--	node = acpi_ns_map_handle_to_node(gpe_device);
-+	node = acpi_ns_validate_handle(gpe_device);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -698,7 +698,7 @@ acpi_status acpi_remove_gpe_block(acpi_handle gpe_device)
- 		return (status);
- 	}
- 
--	node = acpi_ns_map_handle_to_node(gpe_device);
-+	node = acpi_ns_validate_handle(gpe_device);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-diff --git a/drivers/acpi/acpica/evxfregn.c b/drivers/acpi/acpica/evxfregn.c
-index 7c3d2d3..c98aa7c 100644
---- a/drivers/acpi/acpica/evxfregn.c
-+++ b/drivers/acpi/acpica/evxfregn.c
-@@ -89,7 +89,7 @@ acpi_install_address_space_handler(acpi_handle device,
- 
- 	/* Convert and validate the device handle */
- 
--	node = acpi_ns_map_handle_to_node(device);
-+	node = acpi_ns_validate_handle(device);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -155,7 +155,7 @@ acpi_remove_address_space_handler(acpi_handle device,
- 
- 	/* Convert and validate the device handle */
- 
--	node = acpi_ns_map_handle_to_node(device);
-+	node = acpi_ns_validate_handle(device);
- 	if (!node ||
- 	    ((node->type != ACPI_TYPE_DEVICE) &&
- 	     (node->type != ACPI_TYPE_PROCESSOR) &&
-diff --git a/drivers/acpi/acpica/nsdump.c b/drivers/acpi/acpica/nsdump.c
-index 2deb986..e37836e 100644
---- a/drivers/acpi/acpica/nsdump.c
-+++ b/drivers/acpi/acpica/nsdump.c
-@@ -180,7 +180,7 @@ acpi_ns_dump_one_object(acpi_handle obj_handle,
- 		return (AE_OK);
- 	}
- 
--	this_node = acpi_ns_map_handle_to_node(obj_handle);
-+	this_node = acpi_ns_validate_handle(obj_handle);
- 	if (!this_node) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Invalid object handle %p\n",
- 				  obj_handle));
-diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
-index af8e6bc..8f9a487 100644
---- a/drivers/acpi/acpica/nsnames.c
-+++ b/drivers/acpi/acpica/nsnames.c
-@@ -232,7 +232,7 @@ acpi_ns_handle_to_pathname(acpi_handle target_handle,
- 
- 	ACPI_FUNCTION_TRACE_PTR(ns_handle_to_pathname, target_handle);
- 
--	node = acpi_ns_map_handle_to_node(target_handle);
-+	node = acpi_ns_validate_handle(target_handle);
- 	if (!node) {
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index ea55ab4..47d91e6 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -671,24 +671,25 @@ acpi_ns_externalize_name(u32 internal_name_length,
+ #define _COMPONENT          ACPI_NAMESPACE
+ ACPI_MODULE_NAME("nsrepair")
  
  /*******************************************************************************
   *
-- * FUNCTION:    acpi_ns_map_handle_to_node
-+ * FUNCTION:    acpi_ns_validate_handle
++ * This module attempts to repair or convert objects returned by the
++ * predefined methods to an object type that is expected, as per the ACPI
++ * specification. The need for this code is dictated by the many machines that
++ * return incorrect types for the standard predefined methods. Performing these
++ * conversions here, in one place, eliminates the need for individual ACPI
++ * device drivers to do the same. Note: Most of these conversions are different
++ * than the internal object conversion routines used for implicit object
++ * conversion.
++ *
++ * The following conversions can be performed as necessary:
++ *
++ * Integer -> String
++ * Integer -> Buffer
++ * String  -> Integer
++ * String  -> Buffer
++ * Buffer  -> Integer
++ * Buffer  -> String
++ * Buffer  -> Package of Integers
++ * Package -> Package of one Package
++ *
++ ******************************************************************************/
++/* Local prototypes */
++static acpi_status
++acpi_ns_convert_to_integer(union acpi_operand_object *original_object,
++			   union acpi_operand_object **return_object);
++
++static acpi_status
++acpi_ns_convert_to_string(union acpi_operand_object *original_object,
++			  union acpi_operand_object **return_object);
++
++static acpi_status
++acpi_ns_convert_to_buffer(union acpi_operand_object *original_object,
++			  union acpi_operand_object **return_object);
++
++static acpi_status
++acpi_ns_convert_to_package(union acpi_operand_object *original_object,
++			   union acpi_operand_object **return_object);
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ns_repair_object
   *
-- * PARAMETERS:  Handle          - Handle to be converted to an Node
-+ * PARAMETERS:  Handle          - Handle to be validated and typecast to a
-+ *                                namespace node.
-  *
-- * RETURN:      A Name table entry pointer
-+ * RETURN:      A pointer to a namespace node
-  *
-- * DESCRIPTION: Convert a namespace handle to a real Node
-+ * DESCRIPTION: Convert a namespace handle to a namespace node. Handles special
-+ *              cases for the root node.
-  *
-- * Note: Real integer handles would allow for more verification
-+ * NOTE: Real integer handles would allow for more verification
-  *       and keep all pointers within this subsystem - however this introduces
-- *       more (and perhaps unnecessary) overhead.
-- *
-- * The current implemenation is basically a placeholder until such time comes
-- * that it is needed.
-+ *       more overhead and has not been necessary to this point. Drivers
-+ *       holding handles are typically notified before a node becomes invalid
-+ *       due to a table unload.
+  * PARAMETERS:  Data                - Pointer to validation data structure
+@@ -68,6 +107,7 @@ ACPI_MODULE_NAME("nsrepair")
+  *              not expected.
   *
   ******************************************************************************/
- 
--struct acpi_namespace_node *acpi_ns_map_handle_to_node(acpi_handle handle)
-+struct acpi_namespace_node *acpi_ns_validate_handle(acpi_handle handle)
++
+ acpi_status
+ acpi_ns_repair_object(struct acpi_predefined_data *data,
+ 		      u32 expected_btypes,
+@@ -76,32 +116,205 @@ acpi_ns_repair_object(struct acpi_predefined_data *data,
  {
+ 	union acpi_operand_object *return_object = *return_object_ptr;
+ 	union acpi_operand_object *new_object;
+-	acpi_size length;
+ 	acpi_status status;
  
- 	ACPI_FUNCTION_ENTRY();
-@@ -710,42 +711,6 @@ struct acpi_namespace_node *acpi_ns_map_handle_to_node(acpi_handle handle)
+ 	/*
+ 	 * At this point, we know that the type of the returned object was not
+ 	 * one of the expected types for this predefined name. Attempt to
+-	 * repair the object. Only a limited number of repairs are possible.
++	 * repair the object by converting it to one of the expected object
++	 * types for this predefined name.
++	 */
++	if (expected_btypes & ACPI_RTYPE_INTEGER) {
++		status = acpi_ns_convert_to_integer(return_object, &new_object);
++		if (ACPI_SUCCESS(status)) {
++			goto object_repaired;
++		}
++	}
++	if (expected_btypes & ACPI_RTYPE_STRING) {
++		status = acpi_ns_convert_to_string(return_object, &new_object);
++		if (ACPI_SUCCESS(status)) {
++			goto object_repaired;
++		}
++	}
++	if (expected_btypes & ACPI_RTYPE_BUFFER) {
++		status = acpi_ns_convert_to_buffer(return_object, &new_object);
++		if (ACPI_SUCCESS(status)) {
++			goto object_repaired;
++		}
++	}
++	if (expected_btypes & ACPI_RTYPE_PACKAGE) {
++		status = acpi_ns_convert_to_package(return_object, &new_object);
++		if (ACPI_SUCCESS(status)) {
++			goto object_repaired;
++		}
++	}
++
++	/* We cannot repair this object */
++
++	return (AE_AML_OPERAND_TYPE);
++
++      object_repaired:
++
++	/* Object was successfully repaired */
++
++	/*
++	 * If the original object is a package element, we need to:
++	 * 1. Set the reference count of the new object to match the
++	 *    reference count of the old object.
++	 * 2. Decrement the reference count of the original object.
+ 	 */
+-	switch (return_object->common.type) {
++	if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
++		new_object->common.reference_count =
++		    return_object->common.reference_count;
++
++		if (return_object->common.reference_count > 1) {
++			return_object->common.reference_count--;
++		}
++
++		ACPI_INFO_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
++				      "Converted %s to expected %s at index %u",
++				      acpi_ut_get_object_type_name
++				      (return_object),
++				      acpi_ut_get_object_type_name(new_object),
++				      package_index));
++	} else {
++		ACPI_INFO_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
++				      "Converted %s to expected %s",
++				      acpi_ut_get_object_type_name
++				      (return_object),
++				      acpi_ut_get_object_type_name
++				      (new_object)));
++	}
++
++	/* Delete old object, install the new return object */
++
++	acpi_ut_remove_reference(return_object);
++	*return_object_ptr = new_object;
++	data->flags |= ACPI_OBJECT_REPAIRED;
++	return (AE_OK);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_convert_to_integer
++ *
++ * PARAMETERS:  original_object     - Object to be converted
++ *              return_object       - Where the new converted object is returned
++ *
++ * RETURN:      Status. AE_OK if conversion was successful.
++ *
++ * DESCRIPTION: Attempt to convert a String/Buffer object to an Integer.
++ *
++ ******************************************************************************/
++
++static acpi_status
++acpi_ns_convert_to_integer(union acpi_operand_object *original_object,
++			   union acpi_operand_object **return_object)
++{
++	union acpi_operand_object *new_object;
++	acpi_status status;
++	u64 value = 0;
++	u32 i;
++
++	switch (original_object->common.type) {
++	case ACPI_TYPE_STRING:
++
++		/* String-to-Integer conversion */
++
++		status = acpi_ut_strtoul64(original_object->string.pointer,
++					   ACPI_ANY_BASE, &value);
++		if (ACPI_FAILURE(status)) {
++			return (status);
++		}
++		break;
++
+ 	case ACPI_TYPE_BUFFER:
  
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ns_convert_entry_to_handle
-- *
-- * PARAMETERS:  Node          - Node to be converted to a Handle
-- *
-- * RETURN:      A user handle
-- *
-- * DESCRIPTION: Convert a real Node to a namespace handle
-- *
-- ******************************************************************************/
+-		/* Does the method/object legally return a string? */
++		/* Buffer-to-Integer conversion. Max buffer size is 64 bits. */
+ 
+-		if (!(expected_btypes & ACPI_RTYPE_STRING)) {
++		if (original_object->buffer.length > 8) {
+ 			return (AE_AML_OPERAND_TYPE);
+ 		}
+ 
++		/* Extract each buffer byte to create the integer */
++
++		for (i = 0; i < original_object->buffer.length; i++) {
++			value |=
++			    ((u64) original_object->buffer.
++			     pointer[i] << (i * 8));
++		}
++		break;
++
++	default:
++		return (AE_AML_OPERAND_TYPE);
++	}
++
++	new_object = acpi_ut_create_integer_object(value);
++	if (!new_object) {
++		return (AE_NO_MEMORY);
++	}
++
++	*return_object = new_object;
++	return (AE_OK);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_convert_to_string
++ *
++ * PARAMETERS:  original_object     - Object to be converted
++ *              return_object       - Where the new converted object is returned
++ *
++ * RETURN:      Status. AE_OK if conversion was successful.
++ *
++ * DESCRIPTION: Attempt to convert a Integer/Buffer object to a String.
++ *
++ ******************************************************************************/
++
++static acpi_status
++acpi_ns_convert_to_string(union acpi_operand_object *original_object,
++			  union acpi_operand_object **return_object)
++{
++	union acpi_operand_object *new_object;
++	acpi_size length;
++	acpi_status status;
++
++	switch (original_object->common.type) {
++	case ACPI_TYPE_INTEGER:
++		/*
++		 * Integer-to-String conversion. Commonly, convert
++		 * an integer of value 0 to a NULL string. The last element of
++		 * _BIF and _BIX packages occasionally need this fix.
++		 */
++		if (original_object->integer.value == 0) {
++
++			/* Allocate a new NULL string object */
++
++			new_object = acpi_ut_create_string_object(0);
++			if (!new_object) {
++				return (AE_NO_MEMORY);
++			}
++		} else {
++			status =
++			    acpi_ex_convert_to_string(original_object,
++						      &new_object,
++						      ACPI_IMPLICIT_CONVERT_HEX);
++			if (ACPI_FAILURE(status)) {
++				return (status);
++			}
++		}
++		break;
++
++	case ACPI_TYPE_BUFFER:
+ 		/*
+-		 * Have a Buffer, expected a String, convert. Use a to_string
++		 * Buffer-to-String conversion. Use a to_string
+ 		 * conversion, no transform performed on the buffer data. The best
+ 		 * example of this is the _BIF method, where the string data from
+ 		 * the battery is often (incorrectly) returned as buffer object(s).
+ 		 */
+ 		length = 0;
+-		while ((length < return_object->buffer.length) &&
+-		       (return_object->buffer.pointer[length])) {
++		while ((length < original_object->buffer.length) &&
++		       (original_object->buffer.pointer[length])) {
+ 			length++;
+ 		}
+ 
+@@ -117,94 +330,132 @@ acpi_ns_repair_object(struct acpi_predefined_data *data,
+ 		 * terminated at Length+1.
+ 		 */
+ 		ACPI_MEMCPY(new_object->string.pointer,
+-			    return_object->buffer.pointer, length);
++			    original_object->buffer.pointer, length);
+ 		break;
+ 
+-	case ACPI_TYPE_INTEGER:
++	default:
++		return (AE_AML_OPERAND_TYPE);
++	}
+ 
+-		/* 1) Does the method/object legally return a buffer? */
++	*return_object = new_object;
++	return (AE_OK);
++}
+ 
+-		if (expected_btypes & ACPI_RTYPE_BUFFER) {
+-			/*
+-			 * Convert the Integer to a packed-byte buffer. _MAT needs
+-			 * this sometimes, if a read has been performed on a Field
+-			 * object that is less than or equal to the global integer
+-			 * size (32 or 64 bits).
+-			 */
+-			status =
+-			    acpi_ex_convert_to_buffer(return_object,
+-						      &new_object);
+-			if (ACPI_FAILURE(status)) {
+-				return (status);
+-			}
+-		}
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_convert_to_buffer
++ *
++ * PARAMETERS:  original_object     - Object to be converted
++ *              return_object       - Where the new converted object is returned
++ *
++ * RETURN:      Status. AE_OK if conversion was successful.
++ *
++ * DESCRIPTION: Attempt to convert a Integer/String object to a Buffer.
++ *
++ ******************************************************************************/
+ 
+-		/* 2) Does the method/object legally return a string? */
++static acpi_status
++acpi_ns_convert_to_buffer(union acpi_operand_object *original_object,
++			  union acpi_operand_object **return_object)
++{
++	union acpi_operand_object *new_object;
++	acpi_status status;
+ 
+-		else if (expected_btypes & ACPI_RTYPE_STRING) {
+-			/*
+-			 * The only supported Integer-to-String conversion is to convert
+-			 * an integer of value 0 to a NULL string. The last element of
+-			 * _BIF and _BIX packages occasionally need this fix.
+-			 */
+-			if (return_object->integer.value != 0) {
+-				return (AE_AML_OPERAND_TYPE);
+-			}
++	switch (original_object->common.type) {
++	case ACPI_TYPE_INTEGER:
++		/*
++		 * Integer-to-Buffer conversion.
++		 * Convert the Integer to a packed-byte buffer. _MAT and other
++		 * objects need this sometimes, if a read has been performed on a
++		 * Field object that is less than or equal to the global integer
++		 * size (32 or 64 bits).
++		 */
++		status =
++		    acpi_ex_convert_to_buffer(original_object, &new_object);
++		if (ACPI_FAILURE(status)) {
++			return (status);
++		}
++		break;
+ 
+-			/* Allocate a new NULL string object */
++	case ACPI_TYPE_STRING:
+ 
+-			new_object = acpi_ut_create_string_object(0);
+-			if (!new_object) {
+-				return (AE_NO_MEMORY);
+-			}
+-		} else {
+-			return (AE_AML_OPERAND_TYPE);
++		/* String-to-Buffer conversion. Simple data copy */
++
++		new_object =
++		    acpi_ut_create_buffer_object(original_object->string.
++						 length);
++		if (!new_object) {
++			return (AE_NO_MEMORY);
+ 		}
++
++		ACPI_MEMCPY(new_object->buffer.pointer,
++			    original_object->string.pointer,
++			    original_object->string.length);
+ 		break;
+ 
+ 	default:
 -
--acpi_handle acpi_ns_convert_entry_to_handle(struct acpi_namespace_node *node)
--{
+-		/* We cannot repair this object */
 -
+ 		return (AE_AML_OPERAND_TYPE);
+ 	}
+ 
+-	/* Object was successfully repaired */
++	*return_object = new_object;
++	return (AE_OK);
++}
+ 
 -	/*
--	 * Simple implementation for now;
+-	 * If the original object is a package element, we need to:
+-	 * 1. Set the reference count of the new object to match the
+-	 *    reference count of the old object.
+-	 * 2. Decrement the reference count of the original object.
 -	 */
--	return ((acpi_handle) node);
--
--/* Example future implementation ---------------------
--
--	if (!Node)
--	{
--		return (NULL);
--	}
--
--	if (Node == acpi_gbl_root_node)
--	{
--		return (ACPI_ROOT_OBJECT);
--	}
--
--	return ((acpi_handle) Node);
--------------------------------------------------------*/
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_ns_terminate
-  *
-  * PARAMETERS:  none
-diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
-index f2bd1da..f0c0892 100644
---- a/drivers/acpi/acpica/nsxfeval.c
-+++ b/drivers/acpi/acpica/nsxfeval.c
-@@ -190,7 +190,7 @@ acpi_evaluate_object(acpi_handle handle,
+-	if (package_index != ACPI_NOT_PACKAGE_ELEMENT) {
+-		new_object->common.reference_count =
+-		    return_object->common.reference_count;
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_convert_to_package
++ *
++ * PARAMETERS:  original_object     - Object to be converted
++ *              return_object       - Where the new converted object is returned
++ *
++ * RETURN:      Status. AE_OK if conversion was successful.
++ *
++ * DESCRIPTION: Attempt to convert a Buffer object to a Package. Each byte of
++ *              the buffer is converted to a single integer package element.
++ *
++ ******************************************************************************/
  
- 	/* Convert and validate the device handle */
- 
--	info->prefix_node = acpi_ns_map_handle_to_node(handle);
-+	info->prefix_node = acpi_ns_validate_handle(handle);
- 	if (!info->prefix_node) {
- 		status = AE_BAD_PARAMETER;
- 		goto cleanup;
-@@ -552,7 +552,7 @@ acpi_ns_get_device_callback(acpi_handle obj_handle,
- 		return (status);
- 	}
- 
--	node = acpi_ns_map_handle_to_node(obj_handle);
-+	node = acpi_ns_validate_handle(obj_handle);
- 	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 	if (ACPI_FAILURE(status)) {
- 		return (status);
-@@ -729,7 +729,7 @@ acpi_attach_data(acpi_handle obj_handle,
- 
- 	/* Convert and validate the handle */
- 
--	node = acpi_ns_map_handle_to_node(obj_handle);
-+	node = acpi_ns_validate_handle(obj_handle);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -775,7 +775,7 @@ acpi_detach_data(acpi_handle obj_handle, acpi_object_handler handler)
- 
- 	/* Convert and validate the handle */
- 
--	node = acpi_ns_map_handle_to_node(obj_handle);
-+	node = acpi_ns_validate_handle(obj_handle);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -822,7 +822,7 @@ acpi_get_data(acpi_handle obj_handle, acpi_object_handler handler, void **data)
- 
- 	/* Convert and validate the handle */
- 
--	node = acpi_ns_map_handle_to_node(obj_handle);
-+	node = acpi_ns_validate_handle(obj_handle);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
-index ddc84af..e611dd9 100644
---- a/drivers/acpi/acpica/nsxfname.c
-+++ b/drivers/acpi/acpica/nsxfname.c
-@@ -93,7 +93,7 @@ acpi_get_handle(acpi_handle parent,
- 	/* Convert a parent handle to a prefix node */
- 
- 	if (parent) {
--		prefix_node = acpi_ns_map_handle_to_node(parent);
-+		prefix_node = acpi_ns_validate_handle(parent);
- 		if (!prefix_node) {
- 			return (AE_BAD_PARAMETER);
+-		if (return_object->common.reference_count > 1) {
+-			return_object->common.reference_count--;
++static acpi_status
++acpi_ns_convert_to_package(union acpi_operand_object *original_object,
++			   union acpi_operand_object **return_object)
++{
++	union acpi_operand_object *new_object;
++	union acpi_operand_object **elements;
++	u32 length;
++	u8 *buffer;
++
++	switch (original_object->common.type) {
++	case ACPI_TYPE_BUFFER:
++
++		/* Buffer-to-Package conversion */
++
++		length = original_object->buffer.length;
++		new_object = acpi_ut_create_package_object(length);
++		if (!new_object) {
++			return (AE_NO_MEMORY);
  		}
-@@ -114,7 +114,7 @@ acpi_get_handle(acpi_handle parent,
  
- 		if (!ACPI_STRCMP(pathname, ACPI_NS_ROOT_PATH)) {
- 			*ret_handle =
--			    acpi_ns_convert_entry_to_handle(acpi_gbl_root_node);
-+			    ACPI_CAST_PTR(acpi_handle, acpi_gbl_root_node);
- 			return (AE_OK);
- 		}
- 	} else if (!prefix_node) {
-@@ -129,7 +129,7 @@ acpi_get_handle(acpi_handle parent,
- 	status =
- 	    acpi_ns_get_node(prefix_node, pathname, ACPI_NS_NO_UPSEARCH, &node);
- 	if (ACPI_SUCCESS(status)) {
--		*ret_handle = acpi_ns_convert_entry_to_handle(node);
-+		*ret_handle = ACPI_CAST_PTR(acpi_handle, node);
- 	}
+-		ACPI_INFO_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
+-				      "Converted %s to expected %s at index %u",
+-				      acpi_ut_get_object_type_name
+-				      (return_object),
+-				      acpi_ut_get_object_type_name(new_object),
+-				      package_index));
+-	} else {
+-		ACPI_INFO_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
+-				      "Converted %s to expected %s",
+-				      acpi_ut_get_object_type_name
+-				      (return_object),
+-				      acpi_ut_get_object_type_name
+-				      (new_object)));
+-	}
++		/* Convert each buffer byte to an integer package element */
  
- 	return (status);
-@@ -186,7 +186,7 @@ acpi_get_name(acpi_handle handle, u32 name_type, struct acpi_buffer * buffer)
- 		return (status);
- 	}
+-	/* Delete old object, install the new return object */
++		elements = new_object->package.elements;
++		buffer = original_object->buffer.pointer;
  
--	node = acpi_ns_map_handle_to_node(handle);
-+	node = acpi_ns_validate_handle(handle);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -291,7 +291,7 @@ acpi_get_object_info(acpi_handle handle,
- 		goto cleanup;
- 	}
+-	acpi_ut_remove_reference(return_object);
+-	*return_object_ptr = new_object;
+-	data->flags |= ACPI_OBJECT_REPAIRED;
++		while (length--) {
++			*elements = acpi_ut_create_integer_object(*buffer);
++			if (!*elements) {
++				acpi_ut_remove_reference(new_object);
++				return (AE_NO_MEMORY);
++			}
++			elements++;
++			buffer++;
++		}
++		break;
++
++	default:
++		return (AE_AML_OPERAND_TYPE);
++	}
++
++	*return_object = new_object;
+ 	return (AE_OK);
+ }
  
--	node = acpi_ns_map_handle_to_node(handle);
-+	node = acpi_ns_validate_handle(handle);
- 	if (!node) {
- 		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 		return (AE_BAD_PARAMETER);
-diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
-index 4071bad..0cc6ba0 100644
---- a/drivers/acpi/acpica/nsxfobj.c
-+++ b/drivers/acpi/acpica/nsxfobj.c
-@@ -79,7 +79,7 @@ acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
- 
- 	/* Convert and validate the handle */
- 
--	node = acpi_ns_map_handle_to_node(handle);
-+	node = acpi_ns_validate_handle(handle);
- 	if (!node) {
- 		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 		return (AE_BAD_PARAMETER);
-@@ -132,7 +132,7 @@ acpi_status acpi_get_type(acpi_handle handle, acpi_object_type * ret_type)
- 
- 	/* Convert and validate the handle */
- 
--	node = acpi_ns_map_handle_to_node(handle);
-+	node = acpi_ns_validate_handle(handle);
- 	if (!node) {
- 		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 		return (AE_BAD_PARAMETER);
-@@ -182,7 +182,7 @@ acpi_status acpi_get_parent(acpi_handle handle, acpi_handle * ret_handle)
- 
- 	/* Convert and validate the handle */
- 
--	node = acpi_ns_map_handle_to_node(handle);
-+	node = acpi_ns_validate_handle(handle);
- 	if (!node) {
- 		status = AE_BAD_PARAMETER;
- 		goto unlock_and_exit;
-@@ -191,7 +191,7 @@ acpi_status acpi_get_parent(acpi_handle handle, acpi_handle * ret_handle)
- 	/* Get the parent entry */
- 
- 	parent_node = acpi_ns_get_parent_node(node);
--	*ret_handle = acpi_ns_convert_entry_to_handle(parent_node);
-+	*ret_handle = ACPI_CAST_PTR(acpi_handle, parent_node);
- 
- 	/* Return exception if parent is null */
- 
-@@ -251,7 +251,7 @@ acpi_get_next_object(acpi_object_type type,
- 
- 		/* Start search at the beginning of the specified scope */
- 
--		parent_node = acpi_ns_map_handle_to_node(parent);
-+		parent_node = acpi_ns_validate_handle(parent);
- 		if (!parent_node) {
- 			status = AE_BAD_PARAMETER;
- 			goto unlock_and_exit;
-@@ -260,7 +260,7 @@ acpi_get_next_object(acpi_object_type type,
- 		/* Non-null handle, ignore the parent */
- 		/* Convert and validate the handle */
- 
--		child_node = acpi_ns_map_handle_to_node(child);
-+		child_node = acpi_ns_validate_handle(child);
- 		if (!child_node) {
- 			status = AE_BAD_PARAMETER;
- 			goto unlock_and_exit;
-@@ -276,7 +276,7 @@ acpi_get_next_object(acpi_object_type type,
- 	}
- 
- 	if (ret_handle) {
--		*ret_handle = acpi_ns_convert_entry_to_handle(node);
-+		*ret_handle = ACPI_CAST_PTR(acpi_handle, node);
- 	}
- 
-       unlock_and_exit:
-diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
-index 395212b..f27feb4 100644
---- a/drivers/acpi/acpica/rsxface.c
-+++ b/drivers/acpi/acpica/rsxface.c
-@@ -104,7 +104,7 @@ acpi_rs_validate_parameters(acpi_handle device_handle,
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
- 
--	node = acpi_ns_map_handle_to_node(device_handle);
-+	node = acpi_ns_validate_handle(device_handle);
- 	if (!node) {
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
 -- 
 1.6.0.6
 
