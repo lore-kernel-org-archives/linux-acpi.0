@@ -1,39 +1,77 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Wed, 16 Dec 2009 10:22:55 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912161018100.2909-100000@iolanthe.rowland.org>
-References: <200912160311.05915.rjw@sisk.pl>
+From: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>
+Subject: RE: [PATCH] cpufreq: Processor Clocking Control interface driver
+Date: Wed, 16 Dec 2009 15:31:48 +0000
+Message-ID: <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE4166@GVW0676EXC.americas.hpqcorp.net>
+References: <20091128034424.6796.75673.sendpatchset@localhost.localdomain>
+ <20091211231233.GA4291@isilmar.linta.de>
+ <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE3CB7@GVW0676EXC.americas.hpqcorp.net>
+ <20091215183331.GA5560@comet.dominikbrodowski.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:52571 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758694AbZLPPW4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 10:22:56 -0500
-In-Reply-To: <200912160311.05915.rjw@sisk.pl>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:45513 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932283AbZLPPcc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 10:32:32 -0500
+In-Reply-To: <20091215183331.GA5560@comet.dominikbrodowski.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: "davej@redhat.com" <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg@redhat.com" <mjg@redhat.com>, "trenn@suse.de" <trenn@suse.de>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Wed, 16 Dec 2009, Rafael J. Wysocki wrote:
 
-> I measured the total time of suspending and resuming devices as shown by the
-> code added by this patch:
-> http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=commitdiff_plain;h=c1b8fc0a8bff7707c10f31f3d26bfa88e18ccd94;hp=087dbf5f079f1b55cbd3964c9ce71268473d5b67
-> on two boxes, HP nx6325 and MSI Wind U100 (hardware-wise they are quite
-> different and the HP was running 64-bit kernel and user space).
+>> >> +	if (target_freq <= 
+>> >(ioread32(&pcch_hdr->minimum_frequency) * 1000)) {
+>> >> +		target_freq = 
+>> >ioread32(&pcch_hdr->minimum_frequency) * 1000;
+>> >> +		dprintk("target: target_freq for cpu %d was 
+>> >below limit, "
+>> >> +			"converted it to %d\n", cpu, target_freq);
+>> >> +	}
+>> >
+>> >why not do this in the _verify() step? Does 
+>pcch_hdr->minimum_frequency
+>> >even change "on the fly"?
+>> 
+>> pcch_hdr->minimum_frequency does not change "on the fly". 
+>Also, there is no
+>> need for those IO accesses:
+>
+>target_freq cannot be below policy->min or above policy->max. 
+>If it were,
+>the whole cpufreq subsystem is broken. So there's no need for 
+>these checks,
+>AFAICS.
+>
 
-> I carried out 5 consecutive suspend-resume cycles (started from under X) on
-> each box in each case, and the raw data are here (all times in milliseconds):
-> http://www.sisk.pl/kernel/data/async-suspend.pdf
+I think the "ondemand" governor can ask for a target frequency that is
+below policy->min.
 
-I'd like to see much more detailed data.  For each device, let's get 
-the device name, the parent's name, and the start time, end time, and 
-duration for suspend or resume.  The start time should be measured when 
-you have finished waiting for the children.  The end time should be 
-measured just before the complete_all().
+Let's say that at a given snapshot, the frequency of a CPU is policy->cur.
+At the next sampling, if the "load" on the CPU drops to a level that 
+satisifies the equation below, then freq_next requested by "ondemand" 
+will be below policy->min:
 
-Alan Stern
+	load < (threshold - differential) * policy->min / policy->cur
+
+A patch such as below may be needed to sanitize the target frequency 
+requested by "ondemand". The "conservative" governor already has this check: 
+
+# diff -bur ./drivers/cpufreq/cpufreq_ondemand.c.orig ./drivers/cpufreq/cpufreq_ondemand.c
+--- ./drivers/cpufreq/cpufreq_ondemand.c.orig   2009-12-11 15:06:02.000000000 -0600
++++ ./drivers/cpufreq/cpufreq_ondemand.c        2009-12-15 20:27:57.000000000 -0600
+@@ -554,6 +554,9 @@
+                                (dbs_tuners_ins.up_threshold -
+                                 dbs_tuners_ins.down_differential);
+
++               if (freq_next < policy->min)
++                       freq_next = policy->min;
++
+                if (!dbs_tuners_ins.powersave_bias) {
+                        __cpufreq_driver_target(policy, freq_next,
+                                        CPUFREQ_RELATION_L);
+
+- naga -
 
