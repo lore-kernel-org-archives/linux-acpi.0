@@ -1,45 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/3] hp-wmi: Fix memleaks by freeing acpi buffers delcared
- as ACPI_ALLOCATE_BUFFER
-Date: Wed, 16 Dec 2009 14:20:13 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912161419140.10371@localhost.localdomain>
-References: <1256575458-19269-1-git-send-email-trenn@suse.de>
- <1256575458-19269-3-git-send-email-trenn@suse.de>
- <alpine.LFD.2.00.0912161303070.6089@localhost.localdomain>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFC][PATCH 3/12] PCI / PM: Propagate wake-up enable for PCIe
+ devices too
+Date: Wed, 16 Dec 2009 11:19:39 -0800
+Message-ID: <20091216111939.1a756377@jbarnes-piketon>
+References: <200911160047.46299.rjw@sisk.pl>
+	<200911291632.44763.rjw@sisk.pl>
+	<200911291635.54352.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_hu5vqdYlNlGTVG4/waDSHw)"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:50583 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935357AbZLPTUQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 14:20:16 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173003.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KUR00ARZF1RVA31@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 13:20:15 -0600 (CST)
-In-reply-to: <alpine.LFD.2.00.0912161303070.6089@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200911291635.54352.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Oliver Neukum <oliver@neukum.org>, Shaohua Li <shaohua.li@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Francois Romieu <romieu@fr.zoreil.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Sun, 29 Nov 2009 16:35:54 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
---Boundary_(ID_hu5vqdYlNlGTVG4/waDSHw)
-Content-type: TEXT/PLAIN; charset=ISO-8859-7
-Content-transfer-encoding: 8BIT
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Having read the PM part of the PCIe 2.0 specification more carefully
+> I think that it was a mistake to restrict the wake-up enable
+> propagation to non-PCIe devices, because if we do not request
+> control of the root ports' PME registers via OSC, PCIe PME is
+> supposed to be handled by the platform, just like the non-PCIe PME.
+> Even if we do that, the wake-up propagation is done to allow the
+> devices to wake up the system from sleep states which involves the
+> platform anyway, so it won't hurt.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/pci/pci-acpi.c |   10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
 
-dropped.
+Applied after fixing up conflicts related to dev->is_pcie.
 
-maybe this patch is stale or i screwed up merging it...
-
-drivers/platform/x86/hp-wmi.c: In function ¡hp_wmi_notify¢:
-drivers/platform/x86/hp-wmi.c:390: error: request for member ¡pointer¢ in 
-something not a structure or union
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
---Boundary_(ID_hu5vqdYlNlGTVG4/waDSHw)--
+Thanks,
+-- 
+Jesse Barnes, Intel Open Source Technology Center
