@@ -1,51 +1,25 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: Dock OOPSing with recent acpi-test
-Date: Wed, 16 Dec 2009 09:30:32 -0800
-Message-ID: <20091216173032.GB6800@core.coreip.homeip.net>
-References: <200911180958.34121.dmitry.torokhov@gmail.com> <alpine.LFD.2.00.0912160130310.30935@localhost.localdomain> <20091216063429.GA20352@ldl.fc.hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/7] X86 drivers: Introduce msi-wmi driver
+Date: Wed, 16 Dec 2009 12:44:44 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912161238290.6089@localhost.localdomain>
+References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
+ <1260451099-25620-2-git-send-email-anisse@astier.eu>
+ <9b2b86520912120937i548b1158k50f517af7fd5ed21@mail.gmail.com>
+ <20091214105533.6634312b@destiny.ordissimo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:40942 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbZLPRak (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 12:30:40 -0500
-Received: by pzk1 with SMTP id 1so851872pzk.33
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2009 09:30:39 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20091216063429.GA20352@ldl.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-input-owner@vger.kernel.org>
+In-reply-to: <20091214105533.6634312b@destiny.ordissimo>
+Sender: linux-input-owner@vger.kernel.org
+To: Anisse Astier <anisse@astier.eu>
+Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Matt Chen <machen@novell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Chiang <achiang@hp.com>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-[ Resending because I somehow managed to drop Len and acpi
-  list off the recipent list, but I believe Alex already
-  found the root of the problem...]
+> [PATCH] msi-wmi: depend on backlight and fix corner-cases problems
 
-On Tue, Dec 15, 2009 at 11:34:29PM -0700, Alex Chiang wrote:
-> * Len Brown <lenb@kernel.org>:
-> > On Wed, 18 Nov 2009, Dmitry Torokhov wrote:
-> > 
-> > > The day before yesterday pull from acpi-test + Linux's tip produces the
-> > > following oops in the dock driver (see screenshot).
-> > 
-> > Dmitry, do you still see this?
-> > If you build with drivers/acpi/dock.c from 2.6.32 does it go away?
-> 
-> btw, Dmitry, I'm very sorry that I didn't respond earlier. I
-> didn't even know about this oops until lenb poked me on irc just
-> tonight.
-> 
-> It never landed in my inbox, and upon checking the mail archives,
-> it never landed there either. :(
-> 
-> Are you still seeing the issue with latest 2.6.32?
->
+8 patches applied to acpi-test
 
-I dropped acpi-test from my working tree for now but I have never seen
-it in mainline (unless you pushed something new in last coupe of days).
-2.6.32 is definitely clean.
- 
--- 
-Dmitry
+The driver needs a MAINTAINERS entry, Thomas, Anisse?
+
+thanks,
+Len Brown, Intel Open Source Technology Center
