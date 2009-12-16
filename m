@@ -1,41 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
-Date: Wed, 16 Dec 2009 18:01:41 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912161757410.10371@localhost.localdomain>
-References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
- <20091216222718.GA22197@kamineko.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
+ suspend-resume patch w/ rwsems)
+Date: Wed, 16 Dec 2009 18:04:08 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912161753540.2643-100000@iolanthe.rowland.org>
+References: <200912162257.00771.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173015pub.verizon.net ([206.46.173.15]:64114 "EHLO
-	vms173015pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964877AbZLPXBq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 18:01:46 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173015.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KUR000K1PAV24M3@vms173015.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 17:01:45 -0600 (CST)
-In-reply-to: <20091216222718.GA22197@kamineko.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:53418 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S935314AbZLPXEL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 18:04:11 -0500
+In-Reply-To: <200912162257.00771.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-> Len,
-> I guess none of my emails about sony-laptop and sony-laptop patches got
-> to you, not even the reply to your patch list earlier where I was
-> pointing out that you missed sony-laptop patches.
+On Wed, 16 Dec 2009, Rafael J. Wysocki wrote:
+
+> I've just put the first set of data, for the HP nx6325 at:
+> http://www.sisk.pl/kernel/data/nx6325/
+>  
+> The *-dmesg.log files contain full dmesg outputs starting from a cold boot and
+> including one suspend-resume cycle in each case, with debug_initcall enabled.
 > 
-> Sigh... I'm starting to feel a bit frustrated.
+> The *-suspend.log files are excerpts from the *-dmesg.log files containing
+> the suspend messages only, and analogously for *-resume.log.
 
-Sorry I've neglected you, Mattia.
+I've just started looking at the sync-suspend.log file.  What are all 
+the '+' characters and " @ 3368" strings after the device names?
 
-I'm certain that you have company.
-I've been somewhat sick recently,
-so I've been very behind and unprepared for this merge window.
-I do see your messages now.  I'll try to catch up.
+You didn't print out the parent name for each device, so the tree 
+structure has been lost.
 
-thank you for your patience,
--Len
+Why do those "sd 0:0:0:0 [sda]" messages appear in between two 
+callbacks?  The cache-synchronization and the spin-down commands are
+not executed asynchronously.
+
+Alan Stern
 
