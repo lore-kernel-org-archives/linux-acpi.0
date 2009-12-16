@@ -1,18 +1,19 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 027/103] eeepc-laptop: Remove uneccesary acpi_disabled check
-Date: Wed, 16 Dec 2009 03:35:38 -0500
-Message-ID: <2adb8bd380314feb8170d58b3852cad2c374d20f.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 056/103] dell-laptop: remove duplicate Kconfig entry under
+ drivers/misc
+Date: Wed, 16 Dec 2009 03:36:07 -0500
+Message-ID: <8c5d30e590593495c5bb8bd4a2519ce1ac909a22.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:62434 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761862AbZLPJF6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 04:05:58 -0500
+	with ESMTP id S1756400AbZLPJGO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 04:06:14 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ0055NMLOFSID@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 03:05:51 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 03:05:58 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
@@ -23,28 +24,40 @@ Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-acpi_bus_register_driver() already checks acpi_disabled, so acpi bus
-drivers don't need to.
+This showed up as an unselectable option when using xconfig and
+searching for "dell".  It must been overlooked when dell-laptop
+was moved to drivers/platform/x86.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/misc/Kconfig |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 7dde47a..f5efe8d 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -1359,8 +1359,6 @@ static int __init eeepc_laptop_init(void)
- {
- 	int result;
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index df1f86b..ba137c8 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -210,19 +210,6 @@ config SGI_GRU_DEBUG
+ 	This option enables addition debugging code for the SGI GRU driver. If
+ 	you are unsure, say N.
  
--	if (acpi_disabled)
--		return -ENODEV;
- 	result = acpi_bus_register_driver(&eeepc_hotk_driver);
- 	if (result < 0)
- 		return result;
+-config DELL_LAPTOP
+-	tristate "Dell Laptop Extras (EXPERIMENTAL)"
+-	depends on X86
+-	depends on DCDBAS
+-	depends on EXPERIMENTAL
+-	depends on BACKLIGHT_CLASS_DEVICE
+-	depends on RFKILL
+-	depends on POWER_SUPPLY
+-	default n
+-	---help---
+-	This driver adds support for rfkill and backlight control to Dell
+-	laptops.
+-
+ config ISL29003
+ 	tristate "Intersil ISL29003 ambient light sensor"
+ 	depends on I2C && SYSFS
 -- 
 1.6.0.6
 
