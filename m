@@ -1,44 +1,55 @@
-From: "Youquan,Song" <youquan.song@linux.intel.com>
-Subject: [PATCH]acpi cpuidle: Fix kernel oops when tickless is not enabled
-Date: Wed, 16 Dec 2009 09:17:22 -0500
-Message-ID: <20091216141721.GA27614@youquan-linux.bj.intel.com>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: Dock OOPSing with recent acpi-test
+Date: Tue, 15 Dec 2009 23:45:25 -0700
+Message-ID: <20091216064525.GB20352@ldl.fc.hp.com>
+References: <200911180958.34121.dmitry.torokhov@gmail.com> <alpine.LFD.2.00.0912160130310.30935@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:10961 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932378AbZLPGl5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 01:41:57 -0500
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:36054 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030AbZLPGp0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 01:45:26 -0500
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0912160130310.30935@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, jane.lv@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org
 
-Current kernel, if tickless is disabled,cpuidle governor ladder is built in,
- the kernel will boot oops on Boxboro-EX. 
+* Len Brown <lenb@kernel.org>:
+> On Wed, 18 Nov 2009, Dmitry Torokhov wrote:
+> 
+> > The day before yesterday pull from acpi-test + Linux's tip produces the
+> > following oops in the dock driver (see screenshot).
+> 
+> Dmitry, do you still see this?
+> If you build with drivers/acpi/dock.c from 2.6.32 does it go away?
 
-After check in driver/cpuidle/Kconfig, menu governor built in kernel depends 
-on tickless,but ladder governor has no such dependency.
+I figured out what the issue was:
 
-This patch add depnencey for ladder governor, so when tickless is disabled,
- ladder governor will not be built in.
+http://www.spinics.net/lists/linux-acpi/msg25223.html
 
-This is workround patch and the complete fix need be done at tickless. 
++static int
++add_dock_dependent_device(acpi_handle handle, struct dock_station *ds)
 
-Signed-off-by: Youquan, Song <youquan.song@intel.com>
----
+...
 
-diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-index 7dbc4a8..78d6d74 100644
---- a/drivers/cpuidle/Kconfig
-+++ b/drivers/cpuidle/Kconfig
-@@ -11,7 +11,7 @@ config CPU_IDLE
- 
- config CPU_IDLE_GOV_LADDER
- 	bool
--	depends on CPU_IDLE
-+	depends on CPU_IDLE && NO_HZ
- 	default y
- 
- config CPU_IDLE_GOV_MENU
++	if (tmp == ds->handle)
++		add_dock_dependent_device(ds, handle);
+
+...
+
++	ret = add_dock_dependent_device(dock_station, handle);
++	if (ret)
+ 		goto err_rmgroup;
+
+I wrote the function signature one way, but called it a different
+way. How odd, I never got a compiler type warning (that I can
+recall).
+
+Queueing up a patch for Len now.
+
+Sorry about that.
+/ac
+
