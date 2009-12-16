@@ -1,67 +1,48 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re:
- Async suspend-resume patch w/ rwsems)
-Date: Wed, 16 Dec 2009 07:47:43 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912160737350.7454@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org>
-	<200912151203.22916.rjw@sisk.pl>
-	<alpine.LFD.2.00.0912150722310.14385@localhost.localdomain>
-	<200912160311.05915.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Resend PATCH] ACPI: Add the IPMI opregion driver to enable ACPI to access BMC controller
+Date: Wed, 16 Dec 2009 08:51:58 -0700
+Message-ID: <200912160851.59524.bjorn.helgaas@hp.com>
+References: <1260323925-25701-1-git-send-email-yakui.zhao@intel.com> <200912150827.52420.bjorn.helgaas@hp.com> <1260925710.3732.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200912160311.05915.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:14893 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116AbZLPPwB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 10:52:01 -0500
+In-Reply-To: <1260925710.3732.8.camel@localhost.localdomain>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ykzhao <yakui.zhao@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>
 
+On Tuesday 15 December 2009 06:08:30 pm ykzhao wrote:
+> On Tue, 2009-12-15 at 23:27 +0800, Bjorn Helgaas wrote:
 
-
-On Wed, 16 Dec 2009, Rafael J. Wysocki wrote:
+> > If we want the opregion code only for ACPI devices, the easiest way
+> > to accomplish this is to set it up when we discover the ACPI device.
+> > It's much harder to do it later, because you have to look through all
+> > the IPMI interfaces and figure out which ones are ACPI devices.
 > 
-> The summarized data are below (the "big" numbers are averages and the +/-
-> numbers are standard deviations, all in milliseconds):
+> To discover the ACPI device happens very early. So it is inappropriate
+> to install the IPMI opregion space handler for ACPI in the phase of
+> discovering the ACPI device. 
 > 
-> 			HP nx6325		MSI Wind U100
-> 
-> sync suspend		1482 (+/- 40)	1180 (+/- 24)
-> sync resume		2955 (+/- 2)	3597 (+/- 25)
-> 
-> async suspend		1553 (+/- 49)	1177 (+/- 32)
-> async resume		2692 (+/- 326)	3556  (+/- 33)
-> 
-> async+one-liner suspend	1600 (+/- 39)	1212 (+/- 41)
-> async+one-liner resume	2692 (+/- 324)	3579 (+/- 24)
-> 
-> async+extra suspend	1496 (+/- 37)	1217 (+/- 38)
-> async+extra resume	1859 (+/- 114)	1923 (+/- 35)
-> 
-> So, in my opinion, with the above set of "async" devices, it doesn't
-> make sense to do async suspend at all, because the sync suspend is actually
-> the fastest on both machines.
+> But We can put the ACPI detection mechanism in the first order and we
+> can record which IPMI smi_info is registered by ACPI mechanism. Then we
+> can install the IPMI opregion space handler for the corresponding IPMI
+> device.
 
-Hmm. I certainly agree - your numbers do not seem to support any async at 
-all.
+ipmi_pnp_probe() does not happen very early.  If ipmi_si_intf.c is built
+statically, it happens during driver init; otherwise it happens when the
+module is loaded.
 
-However, I do note that for the "extra patch" makes a big difference at 
-resume time. That implies that the resume serializes on some slow device 
-that wasn't marked async - and starting the async ones early avoids that. 
+Either way, I think ipmi_si_intf.c will discover the IPI0001 device
+after all the Linux/ACPI core stuff is initialized, so I don't see the
+problem with installing the opregion handler immediately.  If you see
+a specific problem, please point it out.
 
-But without the per-device timings, it's hard to even guess what device 
-that was.
-
-But even that doesn't really help the suspend cases, only resume.
-
-Do you have any sample timing output with devices listed?
-
-			Linus
+Bjorn
