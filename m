@@ -1,244 +1,256 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 057/103] dell-wmi: Add support for new Dell systems
-Date: Wed, 16 Dec 2009 03:36:08 -0500
-Message-ID: <5ea2559726b786283236835dc2905c23b36ac91c.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 064/103] ACPICA: Add repair for bad _FDE/_GTM buffers
+Date: Wed, 16 Dec 2009 03:36:15 -0500
+Message-ID: <34c39c755347c1ca3d06284bad2273c6a9c3108a.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173013pub.verizon.net ([206.46.173.13]:61722 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759667AbZLPMFu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:05:50 -0500
+	with ESMTP id S1760782AbZLPMFw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:05:52 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ0025QUXOD4MD@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 06:05:50 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 06:05:51 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Rezwanul Kabir <Rezwanul_Kabir@dell.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
+From: Bob Moore <robert.moore@intel.com>
 
-Newer Dell systems support HotKey features differently from legacy
-systems.  A new vendor specifc HotKey SMBIOS table (Type 0xB2) is
-defined. This table contains a mapping between scancode and the
-corresponding predefined keyfunction ( i.e. keycode).. Also, a new
-ACPI-WMI event type (called KeyIDList) with a value of 0x0010 is
-defined. Any BIOS containing 0xB2 table will send hotkey notifications
-using KeyIDList event.
+The expected return value for both names is a Buffer of 5 DWORDS.
+This repair fixes two possible problems (both seen in the field):
+A package of integers is returned, or a buffer of BYTEs is returned.
 
-This is Rezwanul's patch, updated to ensure that brightness events are
-not sent if the backlight is controlled via ACPI and with the default
-keycode for the display output switching altered to match desktop
-expectations.
-
-Signed-off-by: Rezwanul Kabir <Rezwanul_Kabir@dell.com>
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/dell-wmi.c |  129 +++++++++++++++++++++++++++++++++++----
- 1 files changed, 116 insertions(+), 13 deletions(-)
+ drivers/acpi/acpica/nspredef.c  |   14 ++--
+ drivers/acpi/acpica/nsrepair2.c |  149 ++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 152 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
-index 0f900cc..67f3fe7 100644
---- a/drivers/platform/x86/dell-wmi.c
-+++ b/drivers/platform/x86/dell-wmi.c
-@@ -31,6 +31,7 @@
- #include <acpi/acpi_drivers.h>
- #include <linux/acpi.h>
- #include <linux/string.h>
-+#include <linux/dmi.h>
+diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
+index b05f429..1782c3d 100644
+--- a/drivers/acpi/acpica/nspredef.c
++++ b/drivers/acpi/acpica/nspredef.c
+@@ -222,23 +222,21 @@ acpi_ns_check_predefined_names(struct acpi_namespace_node *node,
+ 	status = acpi_ns_check_object_type(data, return_object_ptr,
+ 					   predefined->info.expected_btypes,
+ 					   ACPI_NOT_PACKAGE_ELEMENT);
+-	if (ACPI_FAILURE(status)) {
+-		goto check_validation_status;
+-	}
++	if (ACPI_SUCCESS(status)) {
  
- MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
- MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
-@@ -38,6 +39,8 @@ MODULE_LICENSE("GPL");
+-	/* For returned Package objects, check the type of all sub-objects */
++		/* For returned Package objects, check the type of all sub-objects */
  
- #define DELL_EVENT_GUID "9DBB5994-A997-11DA-B012-B622A1EF5492"
- 
-+static int acpi_video;
-+
- MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
- 
- struct key_entry {
-@@ -54,7 +57,7 @@ enum { KE_KEY, KE_SW, KE_IGNORE, KE_END };
-  * via the keyboard controller so should not be sent again.
-  */
- 
--static struct key_entry dell_wmi_keymap[] = {
-+static struct key_entry dell_legacy_wmi_keymap[] = {
- 	{KE_KEY, 0xe045, KEY_PROG1},
- 	{KE_KEY, 0xe009, KEY_EJECTCD},
- 
-@@ -72,7 +75,7 @@ static struct key_entry dell_wmi_keymap[] = {
- 
- 	/* The next device is at offset 6, the active devices are at
- 	   offset 8 and the attached devices at offset 10 */
--	{KE_KEY, 0xe00b, KEY_DISPLAYTOGGLE},
-+	{KE_KEY, 0xe00b, KEY_SWITCHVIDEOMODE},
- 
- 	{KE_IGNORE, 0xe00c, KEY_KBDILLUMTOGGLE},
- 
-@@ -96,6 +99,47 @@ static struct key_entry dell_wmi_keymap[] = {
- 	{KE_END, 0}
- };
- 
-+static bool dell_new_hk_type;
-+
-+struct dell_new_keymap_entry {
-+	u16 scancode;
-+	u16 keycode;
-+};
-+
-+struct dell_hotkey_table {
-+	struct dmi_header header;
-+	struct dell_new_keymap_entry keymap[];
-+
-+};
-+
-+static struct key_entry *dell_new_wmi_keymap;
-+
-+static u16 bios_to_linux_keycode[256] = {
-+
-+	KEY_MEDIA,	KEY_NEXTSONG,	KEY_PLAYPAUSE, KEY_PREVIOUSSONG,
-+	KEY_STOPCD,	KEY_UNKNOWN,	KEY_UNKNOWN,	KEY_UNKNOWN,
-+	KEY_WWW,	KEY_UNKNOWN,	KEY_VOLUMEDOWN, KEY_MUTE,
-+	KEY_VOLUMEUP,	KEY_UNKNOWN,	KEY_BATTERY,	KEY_EJECTCD,
-+	KEY_UNKNOWN,	KEY_SLEEP,	KEY_PROG1, KEY_BRIGHTNESSDOWN,
-+	KEY_BRIGHTNESSUP,	KEY_UNKNOWN,	KEY_KBDILLUMTOGGLE,
-+	KEY_UNKNOWN,	KEY_SWITCHVIDEOMODE,	KEY_UNKNOWN, KEY_UNKNOWN,
-+	KEY_SWITCHVIDEOMODE,	KEY_UNKNOWN,	KEY_UNKNOWN, KEY_PROG2,
-+	KEY_UNKNOWN, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-+	KEY_PROG3
-+};
-+
-+
-+static struct key_entry *dell_wmi_keymap = dell_legacy_wmi_keymap;
-+
- static struct input_dev *dell_wmi_input_dev;
- 
- static struct key_entry *dell_wmi_get_entry_by_scancode(int code)
-@@ -164,24 +208,78 @@ static void dell_wmi_notify(u32 value, void *context)
- 	obj = (union acpi_object *)response.pointer;
- 
- 	if (obj && obj->type == ACPI_TYPE_BUFFER) {
--		int *buffer = (int *)obj->buffer.pointer;
--		/*
--		 *  The upper bytes of the event may contain
--		 *  additional information, so mask them off for the
--		 *  scancode lookup
--		 */
--		key = dell_wmi_get_entry_by_scancode(buffer[1] & 0xFFFF);
--		if (key) {
-+		int reported_key;
-+		u16 *buffer_entry = (u16 *)obj->buffer.pointer;
-+		if (dell_new_hk_type && (buffer_entry[1] != 0x10)) {
-+			printk(KERN_INFO "dell-wmi: Received unknown WMI event"
-+					 " (0x%x)\n", buffer_entry[1]);
-+			return;
-+		}
-+
-+		if (dell_new_hk_type)
-+			reported_key = (int)buffer_entry[2];
-+		else
-+			reported_key = (int)buffer_entry[1] & 0xffff;
-+
-+		key = dell_wmi_get_entry_by_scancode(reported_key);
-+
-+		if (!key) {
-+			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
-+				reported_key);
-+		} else if ((key->keycode == KEY_BRIGHTNESSUP ||
-+			    key->keycode == KEY_BRIGHTNESSDOWN) && acpi_video) {
-+			/* Don't report brightness notifications that will also
-+			 * come via ACPI */
-+			return;
-+		} else {
- 			input_report_key(dell_wmi_input_dev, key->keycode, 1);
- 			input_sync(dell_wmi_input_dev);
- 			input_report_key(dell_wmi_input_dev, key->keycode, 0);
- 			input_sync(dell_wmi_input_dev);
--		} else if (buffer[1] & 0xFFFF)
--			printk(KERN_INFO "dell-wmi: Unknown key %x pressed\n",
--			       buffer[1] & 0xFFFF);
+-	if (return_object->common.type == ACPI_TYPE_PACKAGE) {
+-		status = acpi_ns_check_package(data, return_object_ptr);
++		if (return_object->common.type == ACPI_TYPE_PACKAGE) {
++			status = acpi_ns_check_package(data, return_object_ptr);
 +		}
  	}
- }
  
+ 	/*
+ 	 * Perform additional, more complicated repairs on a per-name
+-	 * basis.
++	 * basis. Do this regardless of the status from above.
+ 	 */
+ 	status = acpi_ns_complex_repairs(data, node, status, return_object_ptr);
+ 
+-check_validation_status:
+ 	/*
+ 	 * If the object validation failed or if we successfully repaired one
+ 	 * or more objects, mark the parent node to suppress further warning
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index d07b686..6c35b57 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -74,6 +74,10 @@ acpi_ns_repair_ALR(struct acpi_predefined_data *data,
+ 		   union acpi_operand_object **return_object_ptr);
+ 
+ static acpi_status
++acpi_ns_repair_FDE(struct acpi_predefined_data *data,
++		   union acpi_operand_object **return_object_ptr);
 +
-+static void setup_new_hk_map(const struct dmi_header *dm)
++static acpi_status
+ acpi_ns_repair_PSS(struct acpi_predefined_data *data,
+ 		   union acpi_operand_object **return_object_ptr);
+ 
+@@ -104,17 +108,27 @@ acpi_ns_sort_list(union acpi_operand_object **elements,
+  * This table contains the names of the predefined methods for which we can
+  * perform more complex repairs.
+  *
+- * _ALR: Sort the list ascending by ambient_illuminance if necessary
+- * _PSS: Sort the list descending by Power if necessary
+- * _TSS: Sort the list descending by Power if necessary
++ * As necessary:
++ *
++ * _ALR: Sort the list ascending by ambient_illuminance
++ * _FDE: Convert a Package or Buffer of BYTEs to a Buffer of DWORDs
++ * _GTM: Convert a Package or Buffer of BYTEs to a Buffer of DWORDs
++ * _PSS: Sort the list descending by Power
++ * _TSS: Sort the list descending by Power
+  */
+ static const struct acpi_repair_info acpi_ns_repairable_names[] = {
+ 	{"_ALR", acpi_ns_repair_ALR},
++	{"_FDE", acpi_ns_repair_FDE},
++	{"_GTM", acpi_ns_repair_FDE},	/* _GTM has same repair as _FDE */
+ 	{"_PSS", acpi_ns_repair_PSS},
+ 	{"_TSS", acpi_ns_repair_TSS},
+ 	{{0, 0, 0, 0}, NULL}	/* Table terminator */
+ };
+ 
++#define ACPI_FDE_FIELD_COUNT        5
++#define ACPI_FDE_BYTE_BUFFER_SIZE   5
++#define ACPI_FDE_DWORD_BUFFER_SIZE  (ACPI_FDE_FIELD_COUNT * sizeof (u32))
++
+ /******************************************************************************
+  *
+  * FUNCTION:    acpi_ns_complex_repairs
+@@ -215,6 +229,135 @@ acpi_ns_repair_ALR(struct acpi_predefined_data *data,
+ 
+ /******************************************************************************
+  *
++ * FUNCTION:    acpi_ns_repair_FDE
++ *
++ * PARAMETERS:  Data                - Pointer to validation data structure
++ *              return_object_ptr   - Pointer to the object returned from the
++ *                                    evaluation of a method or object
++ *
++ * RETURN:      Status. AE_OK if object is OK or was repaired successfully
++ *
++ * DESCRIPTION: Repair for the _FDE and _GTM objects. The expected return
++ *              value is a Buffer of 5 DWORDs. This function repairs two
++ *              possible problems:
++ *              1) The return value is a Buffer of BYTEs, not DWORDs
++ *              2) The return value is a Package of Integer objects
++ *
++ *****************************************************************************/
++
++static acpi_status
++acpi_ns_repair_FDE(struct acpi_predefined_data *data,
++		   union acpi_operand_object **return_object_ptr)
 +{
++	union acpi_operand_object *return_object = *return_object_ptr;
++	union acpi_operand_object **elements;
++	union acpi_operand_object *buffer_object;
++	u8 *byte_buffer;
++	u32 *dword_buffer;
++	u32 count;
++	u32 i;
 +
-+	int i;
-+	int hotkey_num = (dm->length-4)/sizeof(struct dell_new_keymap_entry);
-+	struct dell_hotkey_table *table =
-+		container_of(dm, struct dell_hotkey_table, header);
++	switch (return_object->common.type) {
++	case ACPI_TYPE_BUFFER:
 +
-+	dell_new_wmi_keymap = kzalloc((hotkey_num+1) *
-+				      sizeof(struct key_entry), GFP_KERNEL);
++		/* This is the expected type. Length should be (at least) 5 DWORDs */
 +
-+	for (i = 0; i < hotkey_num; i++) {
-+		dell_new_wmi_keymap[i].type = KE_KEY;
-+		dell_new_wmi_keymap[i].code = table->keymap[i].scancode;
-+		dell_new_wmi_keymap[i].keycode =
-+			(table->keymap[i].keycode > 255) ? 0 :
-+			bios_to_linux_keycode[table->keymap[i].keycode];
++		if (return_object->buffer.length >= ACPI_FDE_DWORD_BUFFER_SIZE) {
++			return (AE_OK);
++		}
++
++		/* We can only repair if we have exactly 5 BYTEs */
++
++		if (return_object->buffer.length != ACPI_FDE_BYTE_BUFFER_SIZE) {
++			ACPI_WARN_PREDEFINED((AE_INFO, data->pathname,
++					      data->node_flags,
++					      "Incorrect return buffer length %u, expected %u",
++					      return_object->buffer.length,
++					      ACPI_FDE_DWORD_BUFFER_SIZE));
++
++			return (AE_AML_OPERAND_TYPE);
++		}
++
++		/* Create the new (larger) buffer object */
++
++		buffer_object =
++		    acpi_ut_create_buffer_object(ACPI_FDE_DWORD_BUFFER_SIZE);
++		if (!buffer_object) {
++			return (AE_NO_MEMORY);
++		}
++
++		/* Expand each byte to a DWORD */
++
++		byte_buffer = return_object->buffer.pointer;
++		dword_buffer =
++		    ACPI_CAST_PTR(u32, buffer_object->buffer.pointer);
++
++		for (i = 0; i < ACPI_FDE_FIELD_COUNT; i++) {
++			*dword_buffer = (u32) *byte_buffer;
++			dword_buffer++;
++			byte_buffer++;
++		}
++
++		ACPI_INFO_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
++				      "Expanded Byte Buffer to expected DWord Buffer"));
++		break;
++
++	case ACPI_TYPE_PACKAGE:
++
++		/* All elements of the Package must be integers */
++
++		elements = return_object->package.elements;
++		count =
++		    ACPI_MIN(ACPI_FDE_FIELD_COUNT,
++			     return_object->package.count);
++
++		for (i = 0; i < count; i++) {
++			if ((!*elements) ||
++			    ((*elements)->common.type != ACPI_TYPE_INTEGER)) {
++				return (AE_AML_OPERAND_TYPE);
++			}
++			elements++;
++		}
++
++		/* Create the new buffer object to replace the Package */
++
++		buffer_object =
++		    acpi_ut_create_buffer_object(ACPI_FDE_DWORD_BUFFER_SIZE);
++		if (!buffer_object) {
++			return (AE_NO_MEMORY);
++		}
++
++		/* Copy the package elements (integers) to the buffer */
++
++		elements = return_object->package.elements;
++		dword_buffer =
++		    ACPI_CAST_PTR(u32, buffer_object->buffer.pointer);
++
++		for (i = 0; i < count; i++) {
++			*dword_buffer = (u32) (*elements)->integer.value;
++			dword_buffer++;
++			elements++;
++		}
++
++		ACPI_INFO_PREDEFINED((AE_INFO, data->pathname, data->node_flags,
++				      "Converted Package to expected Buffer"));
++		break;
++
++	default:
++		return (AE_AML_OPERAND_TYPE);
 +	}
 +
-+	dell_new_wmi_keymap[i].type = KE_END;
-+	dell_new_wmi_keymap[i].code = 0;
-+	dell_new_wmi_keymap[i].keycode = 0;
++	/* Delete the original return object, return the new buffer object */
 +
-+	dell_wmi_keymap = dell_new_wmi_keymap;
++	acpi_ut_remove_reference(return_object);
++	*return_object_ptr = buffer_object;
 +
++	data->flags |= ACPI_OBJECT_REPAIRED;
++	return (AE_OK);
 +}
 +
-+
-+static void find_hk_type(const struct dmi_header *dm, void *dummy)
-+{
-+
-+	if ((dm->type == 0xb2) && (dm->length > 6)) {
-+		dell_new_hk_type = true;
-+		setup_new_hk_map(dm);
-+	}
-+
-+}
-+
-+
- static int __init dell_wmi_input_setup(void)
- {
- 	struct key_entry *key;
-@@ -226,6 +324,9 @@ static int __init dell_wmi_init(void)
- 	int err;
- 
- 	if (wmi_has_guid(DELL_EVENT_GUID)) {
-+
-+		dmi_walk(find_hk_type, NULL);
-+
- 		err = dell_wmi_input_setup();
- 
- 		if (err)
-@@ -240,6 +341,8 @@ static int __init dell_wmi_init(void)
- 			return err;
- 		}
- 
-+		acpi_video = acpi_video_backlight_support();
-+
- 	} else
- 		printk(KERN_WARNING "dell-wmi: No known WMI GUID found\n");
- 
++/******************************************************************************
++ *
+  * FUNCTION:    acpi_ns_repair_TSS
+  *
+  * PARAMETERS:  Data                - Pointer to validation data structure
 -- 
 1.6.0.6
 
