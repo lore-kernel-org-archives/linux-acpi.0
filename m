@@ -1,29 +1,41 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Wed, 16 Dec 2009 14:11:09 -0800 (PST)
-Message-ID: <alpine.LFD.2.00.0912161410120.3556@localhost.localdomain>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912162027.16574.rjw@sisk.pl> <alpine.LFD.2.00.0912161255080.3556@localhost.localdomain> <200912162257.00771.rjw@sisk.pl>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Thu, 17 Dec 2009 07:27:18 +0900
+Message-ID: <20091216222718.GA22197@kamineko.org>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42215 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935801AbZLPWLu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2009 17:11:50 -0500
-In-Reply-To: <200912162257.00771.rjw@sisk.pl>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:48118
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935211AbZLPW1V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 17:27:21 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
+[removed a few recipients that might not be interested]
 
+On Wed, Dec 16, 2009 at 03:06:40PM -0500, Len Brown wrote:
+> Hi Linus,
+> 
+> please pull from: 
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+...
+> The bulk of the platform driver updates should be in here,
+> though I do expect some smaller updates still.
 
-Btw, what are the timings if you just force everything async? I think that 
-worked on yur laptops, no?
+Len,
+I guess none of my emails about sony-laptop and sony-laptop patches got
+to you, not even the reply to your patch list earlier where I was
+pointing out that you missed sony-laptop patches.
 
-It would be interestign to know - if only to see what the asymptotic upper 
-bound is for all of this is..
+Sigh... I'm starting to feel a bit frustrated.
 
-		Linus
+-- 
+mattia
+:wq!
