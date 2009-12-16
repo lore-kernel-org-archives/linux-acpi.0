@@ -1,111 +1,195 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 083/103] thinkpad-acpi: sync input device EV_SW initial state
-Date: Wed, 16 Dec 2009 03:36:34 -0500
-Message-ID: <d89a727aff649f6768f7a34ee57f031ebf8bab4c.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 087/103] thinkpad-acpi: disable volume control
+Date: Wed, 16 Dec 2009 03:36:38 -0500
+Message-ID: <c7ac6291ea7ebc568a1fce16fed87d102898f264.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:61822 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:61722 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761808AbZLPMGS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:06:18 -0500
+	with ESMTP id S1761584AbZLPMGJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 07:06:09 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ0025QUXOD4MD@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 06:06:01 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 06:05:58 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Johannes Berg <johannes@sipsolutions.net>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Lorne Applebaum <lorne.applebaum@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Before we register the input device, sync the input layer EV_SW state
-through a call to input_report_switch(), to avoid issuing a gratuitous
-event for the initial state of these switches.
+Disable volume control by default.  It can be enabled at module load
+time by a module parameter (volume_control=1).
 
-This fixes some annoyances caused by the interaction with rfkill and
-EV_SW SW_RFKILL_ALL events.
+The audio control mixer that thinkpad-acpi interacts with is fully
+functional without any drivers, and operated by hotkeys.
 
-Reported-by: Kevin Locke <kevin@kevinlocke.name>
+The idea behind the console audio control is that the human operator
+is the only one that can interact with it.  The ThinkVantage suite in
+Windows does not allow any software-based overrides, and only does OSD
+(on-screen-display) functions.
+
+The Linux driver will, with the addition of the ALSA interface, try to
+follow and enforce the ThinkVantage UI design:
+
+The user is supposed to use the keyboard hotkeys to interact with the
+console audio control.  The kernel and the desktop environment is
+supposed to cooperate to provide proper user feedback through
+on-screen-display functions.
+
+Distros are urged to not to enable volume control by default.
+Enabling this must be a local admin's decision.  This is the reason
+why there is no Kconfig option.
+
+Keep in mind that all ThinkPads have a normal, main mixer (AC97 or
+HDA) for regular software-based audio control.  We are not talking
+about that mixer here.
+
+Advanced users are, of course, free to enable volume control and do as
+they please.
+
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Lorne Applebaum <lorne.applebaum@gmail.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ Documentation/laptops/thinkpad-acpi.txt |   13 ++++++++
+ drivers/platform/x86/thinkpad_acpi.c    |   47 +++++++++++++++++++++++++++---
+ 2 files changed, 55 insertions(+), 5 deletions(-)
 
+diff --git a/Documentation/laptops/thinkpad-acpi.txt b/Documentation/laptops/thinkpad-acpi.txt
+index bd87682..6a58143 100644
+--- a/Documentation/laptops/thinkpad-acpi.txt
++++ b/Documentation/laptops/thinkpad-acpi.txt
+@@ -1097,6 +1097,18 @@ Volume control
+ 
+ procfs: /proc/acpi/ibm/volume
+ 
++NOTE: by default, the volume control interface operates in read-only
++mode, as it is supposed to be used for on-screen-display purposes.
++The read/write mode can be enabled through the use of the
++"volume_control=1" module parameter.
++
++NOTE: distros are urged to not enable volume_control by default, this
++should be done by the local admin only.  The ThinkPad UI is for the
++console audio control to be done through the volume keys only, and for
++the desktop environment to just provide on-screen-display feedback.
++Software volume control should be done only in the main AC97/HDA
++mixer.
++
+ This feature allows volume control on ThinkPad models with a digital
+ volume knob (when available, not all models have it), as well as
+ mute/unmute control.  The available commands are:
+@@ -1465,3 +1477,4 @@ Sysfs interface changelog:
+ 0x020600:	Marker for backlight change event support.
+ 
+ 0x020700:	Support for mute-only mixers.
++		Volume control in read-only mode by default.
 diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 53d6c33..3daf349 100644
+index 4d909d5..2d74926 100644
 --- a/drivers/platform/x86/thinkpad_acpi.c
 +++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3186,6 +3186,8 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	int res, i;
- 	int status;
- 	int hkeyv;
-+	bool radiosw_state  = false;
-+	bool tabletsw_state = false;
+@@ -311,6 +311,7 @@ static struct {
  
- 	unsigned long quirks;
+ static struct {
+ 	u16 hotkey_mask_ff:1;
++	u16 volume_ctrl_forbidden:1;
+ } tp_warned;
  
-@@ -3291,6 +3293,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- #ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
- 	if (dbg_wlswemul) {
- 		tp_features.hotkey_wlsw = 1;
-+		radiosw_state = !!tpacpi_wlsw_emulstate;
- 		printk(TPACPI_INFO
- 			"radio switch emulation enabled\n");
- 	} else
-@@ -3298,6 +3301,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	/* Not all thinkpads have a hardware radio switch */
- 	if (acpi_evalf(hkey_handle, &status, "WLSW", "qd")) {
- 		tp_features.hotkey_wlsw = 1;
-+		radiosw_state = !!status;
- 		printk(TPACPI_INFO
- 			"radio switch found; radios are %s\n",
- 			enabled(status, 0));
-@@ -3309,11 +3313,11 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	/* For X41t, X60t, X61t Tablets... */
- 	if (!res && acpi_evalf(hkey_handle, &status, "MHKG", "qd")) {
- 		tp_features.hotkey_tablet = 1;
-+		tabletsw_state = !!(status & TP_HOTKEY_TABLET_MASK);
- 		printk(TPACPI_INFO
- 			"possible tablet mode switch found; "
- 			"ThinkPad in %s mode\n",
--			(status & TP_HOTKEY_TABLET_MASK)?
--				"tablet" : "laptop");
-+			(tabletsw_state) ? "tablet" : "laptop");
- 		res = add_to_attr_set(hotkey_dev_attributes,
- 				&dev_attr_hotkey_tablet_mode.attr);
- 	}
-@@ -3364,9 +3368,13 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ struct thinkpad_id_data {
+@@ -6434,6 +6435,7 @@ static enum tpacpi_volume_access_mode volume_mode =
+ 	TPACPI_VOL_MODE_MAX;
  
- 	if (tp_features.hotkey_wlsw) {
- 		input_set_capability(tpacpi_inputdev, EV_SW, SW_RFKILL_ALL);
-+		input_report_switch(tpacpi_inputdev,
-+				    SW_RFKILL_ALL, radiosw_state);
- 	}
- 	if (tp_features.hotkey_tablet) {
- 		input_set_capability(tpacpi_inputdev, EV_SW, SW_TABLET_MODE);
-+		input_report_switch(tpacpi_inputdev,
-+				    SW_TABLET_MODE, tabletsw_state);
- 	}
+ static enum tpacpi_volume_capabilities volume_capabilities;
++static int volume_control_allowed;
  
- 	/* Do not issue duplicate brightness change events to
-@@ -3433,8 +3441,6 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	tpacpi_inputdev->close = &hotkey_inputdev_close;
+ /*
+  * Used to syncronize writers to TP_EC_AUDIO and
+@@ -6449,6 +6451,8 @@ static void tpacpi_volume_checkpoint_nvram(void)
  
- 	hotkey_poll_setup_safe(true);
--	tpacpi_send_radiosw_update();
--	tpacpi_input_send_tabletsw();
+ 	if (volume_mode != TPACPI_VOL_MODE_ECNVRAM)
+ 		return;
++	if (!volume_control_allowed)
++		return;
  
+ 	vdbg_printk(TPACPI_DBG_MIXER,
+ 		"trying to checkpoint mixer state to NVRAM...\n");
+@@ -6691,6 +6695,12 @@ static int __init volume_init(struct ibm_init_struct *iibm)
+ 			"mute is supported, volume control is %s\n",
+ 			str_supported(!tp_features.mixer_no_level_control));
+ 
++	printk(TPACPI_INFO
++		"Console audio control enabled, mode: %s\n",
++		(volume_control_allowed) ?
++			"override (read/write)" :
++			"monitor (read only)");
++
  	return 0;
+ }
  
+@@ -6711,11 +6721,16 @@ static int volume_read(char *p)
+ 		len += sprintf(p + len, "mute:\t\t%s\n",
+ 				onoff(status, TP_EC_AUDIO_MUTESW));
+ 
+-		len += sprintf(p + len, "commands:\tunmute, mute\n");
+-		if (!tp_features.mixer_no_level_control) {
+-			len += sprintf(p + len, "commands:\tup, down\n");
+-			len += sprintf(p + len, "commands:\tlevel <level>"
+-			       " (<level> is 0-%d)\n", TP_EC_VOLUME_MAX);
++		if (volume_control_allowed) {
++			len += sprintf(p + len, "commands:\tunmute, mute\n");
++			if (!tp_features.mixer_no_level_control) {
++				len += sprintf(p + len,
++					       "commands:\tup, down\n");
++				len += sprintf(p + len,
++					       "commands:\tlevel <level>"
++					       " (<level> is 0-%d)\n",
++					       TP_EC_VOLUME_MAX);
++			}
+ 		}
+ 	}
+ 
+@@ -6730,6 +6745,23 @@ static int volume_write(char *buf)
+ 	char *cmd;
+ 	int rc;
+ 
++	/*
++	 * We do allow volume control at driver startup, so that the
++	 * user can set initial state through the volume=... parameter hack.
++	 */
++	if (!volume_control_allowed && tpacpi_lifecycle != TPACPI_LIFE_INIT) {
++		if (unlikely(!tp_warned.volume_ctrl_forbidden)) {
++			tp_warned.volume_ctrl_forbidden = 1;
++			printk(TPACPI_NOTICE
++				"Console audio control in monitor mode, "
++				"changes are not allowed.\n");
++			printk(TPACPI_NOTICE
++				"Use the volume_control=1 module parameter "
++				"to enable volume control\n");
++		}
++		return -EPERM;
++	}
++
+ 	rc = volume_get_status(&s);
+ 	if (rc < 0)
+ 		return rc;
+@@ -8515,6 +8547,11 @@ MODULE_PARM_DESC(volume_capabilities,
+ 		 "Selects the mixer capabilites: "
+ 		 "0=auto, 1=volume and mute, 2=mute only");
+ 
++module_param_named(volume_control, volume_control_allowed, bool, 0444);
++MODULE_PARM_DESC(volume_control,
++		 "Enables software override for the console audio "
++		 "control when true");
++
+ #define TPACPI_PARAM(feature) \
+ 	module_param_call(feature, set_ibm_param, NULL, NULL, 0); \
+ 	MODULE_PARM_DESC(feature, "Simulates thinkpad-acpi procfs command " \
 -- 
 1.6.0.6
 
