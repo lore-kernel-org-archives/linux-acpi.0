@@ -1,78 +1,26 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Useless thermal acpi driver ?
-Date: Wed, 16 Dec 2009 00:21:39 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912160009100.28497@localhost.localdomain>
-References: <20091209232608.25aed4ca@werewolf.home>
- <4B20483C.6090309@gmail.com>
- <alpine.LFD.2.00.0912110122570.24891@localhost.localdomain>
- <20091211094515.4b4872ef@werewolf.home>
- <alpine.LFD.2.00.0912142159540.9446@localhost.localdomain>
- <20091215234619.62d0ebc1@werewolf.home>
+Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
+Date: Wed, 16 Dec 2009 00:38:00 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912160032450.28497@localhost.localdomain>
+References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1091088405-1260940899=:28497"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:51827 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821AbZLPFWF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 00:22:05 -0500
-In-reply-to: <20091215234619.62d0ebc1@werewolf.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756523AbZLPFia@vger.kernel.org>
+In-reply-to: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-15?Q?J=2EA=2E_Magall=F3n?= <jamagallon@ono.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Please use git send-email for sending a patch series,
+or some other tool that will properly format the Subject line,
+and result in the series being properly threaded in my e-mail reader
+rather than being a collection of unrelated messages.
 
---8323328-1091088405-1260940899=:28497
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+As these patches were sent as independent e-mails
+and had a typo in the manaully typed in subject line,
+I didn't find 1/5 when I was looking at 2/5.
+(and these should be preceeded with 0/5, per previous feedback)
 
-On Tue, 15 Dec 2009, J.A. Magallón wrote:
-
-> On Mon, 14 Dec 2009 22:00:25 -0500 (EST), Len Brown <lenb@kernel.org> wrote:
-> 
-> > this DSDT returns a constant temperature, always:
-> > 
-> >             Method (_TMP, 0, NotSerialized)
-> >             {
-> >                 Return (0x0BB8)
-> >             }
-> > 
-> > 
-> > so in this case, Linux is just reporting the (lack of) news:-)
-> > 
-> 
-> So, lets see...:
-> 
-> - Someone decided ACPI is the only-real-good-way
-> - Only a few devices are ported to ACPI
-> - The old way is unusable
-> - We can not return to the old way
-> 
-> So, any solution ? Thermal ACPI info in this boards (and I suspect in many
-> others) is useless. We can not disable that part of ACPI, we can not enable
-> sensors. So no thermal monitoring.
-> Nice.
-> 
-> Ayways, as in this case the ACPI part does not any real work, is still
-> present the problem of two drivers poking the same hardware or could I use
-> that 'lax' trick ?
-> 
-> And second, can the traditional sensor drivers be ported to offer an ACPI
-> device replacing the default one, or is that a stupid question ?
-> 
-
-Check, for an updated BIOS from the vendor.
-If there is none, then express your displeasure to the vendor
-and consider a different one for your next purchase.
-
-For the box you have, try "acpi_enforce_resources=lax"
-and load your native sensor driver.
-Likely you'll be happy with that -- I just can't guarantee it.
-
-cheers,
--Len Brown, Intel Open Source Technology Center
-
-
---8323328-1091088405-1260940899=:28497--
+thanks,
+Len Brown, Intel Open Source Technology Center
