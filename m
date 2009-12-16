@@ -1,100 +1,44 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
-	suspend-resume patch w/ rwsems)
-Date: Tue, 15 Dec 2009 22:40:25 -0800
-Message-ID: <20091216064025.GB2699@core.coreip.homeip.net>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912151203.22916.rjw@sisk.pl> <alpine.LFD.2.00.0912150722310.14385@localhost.localdomain> <200912160311.05915.rjw@sisk.pl>
+From: "Youquan,Song" <youquan.song@linux.intel.com>
+Subject: [PATCH]acpi cpuidle: Fix kernel oops when tickless is not enabled
+Date: Wed, 16 Dec 2009 09:17:22 -0500
+Message-ID: <20091216141721.GA27614@youquan-linux.bj.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:44077 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932179AbZLPGkb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 01:40:31 -0500
+Received: from mga06.intel.com ([134.134.136.21]:10961 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932378AbZLPGl5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 01:41:57 -0500
 Content-Disposition: inline
-In-Reply-To: <200912160311.05915.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: lenb@kernel.org
+Cc: venkatesh.pallipadi@intel.com, kent.liu@intel.com, chaohong.guo@intel.com, jane.lv@intel.com, youquan.song@intel.com, linux-acpi@vger.kernel.org
 
-On Wed, Dec 16, 2009 at 03:11:05AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday 15 December 2009, Linus Torvalds wrote:
-> > 
-> > On Tue, 15 Dec 2009, Rafael J. Wysocki wrote:
-> > > > 
-> > > > Give a real example that matters.
-> > > 
-> > > I'll try.  Let -> denote child-parent relationships and assume dpm_list looks
-> > > like this:
-> > 
-> > No. 
-> > 
-> > I mean something real - something like
-> > 
-> >  - if you run on a non-PC with two USB buses behind non-PCI controllers.
-> > 
-> >  - device xyz.
-> > 
-> > > If this applies to _resume_ only, then I agree, but the Arjan's data clearly
-> > > show that serio devices take much more time to suspend than USB.
-> > 
-> > I mean in general - something where you actually have hard data that some 
-> > device really needs anythign more than my one-liner, and really _needs_ 
-> > some complex infrastructure.
-> > 
-> > Not "let's imagine a case like xyz".
-> 
-> As I said I would, I made some measurements.
-> 
-> I measured the total time of suspending and resuming devices as shown by the
-> code added by this patch:
-> http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=commitdiff_plain;h=c1b8fc0a8bff7707c10f31f3d26bfa88e18ccd94;hp=087dbf5f079f1b55cbd3964c9ce71268473d5b67
-> on two boxes, HP nx6325 and MSI Wind U100 (hardware-wise they are quite
-> different and the HP was running 64-bit kernel and user space).
-> 
-> I took four cases into consideration:
-> (1) synchronous suspend and resume (/sys/power/pm_async = 0)
-> (2) asynchronous suspend and resume as introduced by the async branch at:
->     http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=shortlog;h=refs/heads/async
-> (3) asynchronous suspend and resume like in (2), but with your one-liner setting
->     the power.async_suspend flag for PCI bridges on top
-> (4) asynchronous suspend and resume like in (2), but with an extra patch that
->     is appended on top
-> 
-> For those tests I set power.async_suspend for all USB devices, all serio input
-> devices, the ACPI battery and the USB PCI controllers (to see the impact of the
-> one-liner, if any).
-> 
-> I carried out 5 consecutive suspend-resume cycles (started from under X) on
-> each box in each case, and the raw data are here (all times in milliseconds):
-> http://www.sisk.pl/kernel/data/async-suspend.pdf
-> 
-> The summarized data are below (the "big" numbers are averages and the +/-
-> numbers are standard deviations, all in milliseconds):
-> 
-> 			HP nx6325		MSI Wind U100
-> 
-> sync suspend		1482 (+/- 40)	1180 (+/- 24)
-> sync resume		2955 (+/- 2)	3597 (+/- 25)
-> 
-> async suspend		1553 (+/- 49)	1177 (+/- 32)
-> async resume		2692 (+/- 326)	3556  (+/- 33)
-> 
-> async+one-liner suspend	1600 (+/- 39)	1212 (+/- 41)
-> async+one-liner resume	2692 (+/- 324)	3579 (+/- 24)
-> 
-> async+extra suspend	1496 (+/- 37)	1217 (+/- 38)
-> async+extra resume	1859 (+/- 114)	1923 (+/- 35)
-> 
-> So, in my opinion, with the above set of "async" devices, it doesn't
-> make sense to do async suspend at all, because the sync suspend is actually
-> the fastest on both machines.
+Current kernel, if tickless is disabled,cpuidle governor ladder is built in,
+ the kernel will boot oops on Boxboro-EX. 
 
-I think the async suspend is not asynchronous enough then - what kind of
-time do you get if you simply comment out call to psmouse_reset() in
-drivers/input/mouse/psmouse-base.c:psmouse_cleanup()?  (Just for testing
-purposes only, I don't think we want to do that by default.)
+After check in driver/cpuidle/Kconfig, menu governor built in kernel depends 
+on tickless,but ladder governor has no such dependency.
 
--- 
-Dmitry
+This patch add depnencey for ladder governor, so when tickless is disabled,
+ ladder governor will not be built in.
+
+This is workround patch and the complete fix need be done at tickless. 
+
+Signed-off-by: Youquan, Song <youquan.song@intel.com>
+---
+
+diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
+index 7dbc4a8..78d6d74 100644
+--- a/drivers/cpuidle/Kconfig
++++ b/drivers/cpuidle/Kconfig
+@@ -11,7 +11,7 @@ config CPU_IDLE
+ 
+ config CPU_IDLE_GOV_LADDER
+ 	bool
+-	depends on CPU_IDLE
++	depends on CPU_IDLE && NO_HZ
+ 	default y
+ 
+ config CPU_IDLE_GOV_MENU
