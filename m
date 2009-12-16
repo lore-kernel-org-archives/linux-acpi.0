@@ -1,161 +1,170 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 016/103] thinkpad-acpi: log temperatures on termal alarm (v2)
-Date: Wed, 16 Dec 2009 03:35:27 -0500
-Message-ID: <9ebd9e833648745fa5ac6998b9e0153ccd3ba839.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 025/103] eeepc-laptop: add touchpad led
+Date: Wed, 16 Dec 2009 03:35:36 -0500
+Message-ID: <3c0eb510697dbbb53674c72544350624a04ab5b4.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:47186 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761973AbZLPLFv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:51 -0500
+	with ESMTP id S1751348AbZLPLFu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:50 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KUQ00BZPS5OJK34@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:50 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:49 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Corentin Chary <corentincj@iksaif.net>
 
-Log temperatures on any of the EC thermal alarms.  It could be
-useful to help tracking down what is happening...
+This led can be found on Eeepc 1005 series.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   57 ++++++++++++++++++++++++++-------
- 1 files changed, 45 insertions(+), 12 deletions(-)
+ drivers/platform/x86/Kconfig        |    2 +
+ drivers/platform/x86/eeepc-laptop.c |   67 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 4b96a96..b3e256b 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3546,49 +3546,57 @@ static bool hotkey_notify_usrevent(const u32 hkey,
- 	}
- }
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 55ca39d..e5e4312 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -334,6 +334,8 @@ config EEEPC_LAPTOP
+ 	depends on HOTPLUG_PCI
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select HWMON
++	select LEDS_CLASS
++	select NEW_LEDS
+ 	---help---
+ 	  This driver supports the Fn-Fx keys on Eee PC laptops.
  
-+static void thermal_dump_all_sensors(void);
-+
- static bool hotkey_notify_thermal(const u32 hkey,
- 				 bool *send_acpi_ev,
- 				 bool *ignore_acpi_ev)
- {
-+	bool known = true;
-+
- 	/* 0x6000-0x6FFF: thermal alarms */
- 	*send_acpi_ev = true;
- 	*ignore_acpi_ev = false;
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 2c65a37..9130434 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -34,6 +34,7 @@
+ #include <linux/rfkill.h>
+ #include <linux/pci.h>
+ #include <linux/pci_hotplug.h>
++#include <linux/leds.h>
  
- 	switch (hkey) {
-+	case TP_HKEY_EV_THM_TABLE_CHANGED:
-+		printk(TPACPI_INFO
-+			"EC reports that Thermal Table has changed\n");
-+		/* recommended action: do nothing, we don't have
-+		 * Lenovo ATM information */
-+		return true;
- 	case TP_HKEY_EV_ALARM_BAT_HOT:
- 		printk(TPACPI_CRIT
- 			"THERMAL ALARM: battery is too hot!\n");
- 		/* recommended action: warn user through gui */
--		return true;
-+		break;
- 	case TP_HKEY_EV_ALARM_BAT_XHOT:
- 		printk(TPACPI_ALERT
- 			"THERMAL EMERGENCY: battery is extremely hot!\n");
- 		/* recommended action: immediate sleep/hibernate */
--		return true;
-+		break;
- 	case TP_HKEY_EV_ALARM_SENSOR_HOT:
- 		printk(TPACPI_CRIT
- 			"THERMAL ALARM: "
- 			"a sensor reports something is too hot!\n");
- 		/* recommended action: warn user through gui, that */
- 		/* some internal component is too hot */
--		return true;
-+		break;
- 	case TP_HKEY_EV_ALARM_SENSOR_XHOT:
- 		printk(TPACPI_ALERT
- 			"THERMAL EMERGENCY: "
- 			"a sensor reports something is extremely hot!\n");
- 		/* recommended action: immediate sleep/hibernate */
--		return true;
--	case TP_HKEY_EV_THM_TABLE_CHANGED:
--		printk(TPACPI_INFO
--			"EC reports that Thermal Table has changed\n");
--		/* recommended action: do nothing, we don't have
--		 * Lenovo ATM information */
--		return true;
-+		break;
- 	default:
- 		printk(TPACPI_ALERT
- 			 "THERMAL ALERT: unknown thermal alarm received\n");
--		return false;
-+		known = false;
- 	}
-+
-+	thermal_dump_all_sensors();
-+
-+	return known;
- }
+ #define EEEPC_LAPTOP_VERSION	"0.1"
  
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
-@@ -5462,8 +5470,11 @@ enum { /* TPACPI_THERMAL_TPEC_* */
- 	TP_EC_THERMAL_TMP0 = 0x78,	/* ACPI EC regs TMP 0..7 */
- 	TP_EC_THERMAL_TMP8 = 0xC0,	/* ACPI EC regs TMP 8..15 */
- 	TP_EC_THERMAL_TMP_NA = -128,	/* ACPI EC sensor not available */
-+
-+	TPACPI_THERMAL_SENSOR_NA = -128000, /* Sensor not available */
+@@ -507,6 +508,39 @@ static struct attribute_group platform_attribute_group = {
  };
  
+ /*
++ * LEDs
++ */
++/*
++ * These functions actually update the LED's, and are called from a
++ * workqueue. By doing this as separate work rather than when the LED
++ * subsystem asks, we avoid messing with the Asus ACPI stuff during a
++ * potentially bad time, such as a timer interrupt.
++ */
++static int tpd_led_wk;
 +
- #define TPACPI_MAX_THERMAL_SENSORS 16	/* Max thermal sensors supported */
- struct ibm_thermal_sensors_struct {
- 	s32 temp[TPACPI_MAX_THERMAL_SENSORS];
-@@ -5553,6 +5564,28 @@ static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s)
- 	return n;
- }
- 
-+static void thermal_dump_all_sensors(void)
++static void tpd_led_update(struct work_struct *ignored)
 +{
-+	int n, i;
-+	struct ibm_thermal_sensors_struct t;
-+
-+	n = thermal_get_sensors(&t);
-+	if (n <= 0)
-+		return;
-+
-+	printk(TPACPI_NOTICE
-+		"temperatures (Celsius):");
-+
-+	for (i = 0; i < n; i++) {
-+		if (t.temp[i] != TPACPI_THERMAL_SENSOR_NA)
-+			printk(KERN_CONT " %d", (int)(t.temp[i] / 1000));
-+		else
-+			printk(KERN_CONT " N/A");
-+	}
-+
-+	printk(KERN_CONT "\n");
++	int value = tpd_led_wk;
++	set_acpi(CM_ASL_TPD, value);
 +}
 +
- /* sysfs temp##_input -------------------------------------------------- */
++static struct workqueue_struct *led_workqueue;
++static DECLARE_WORK(tpd_led_work, tpd_led_update);
++
++static void tpd_led_set(struct led_classdev *led_cdev,
++			enum led_brightness value)
++{
++	tpd_led_wk = (value > 0) ? 1 : 0;
++	queue_work(led_workqueue, &tpd_led_work);
++}
++
++static struct led_classdev tpd_led = {
++	.name           = "eeepc::touchpad",
++	.brightness_set = tpd_led_set,
++	.max_brightness = 1
++};
++
++/*
+  * Hotkey functions
+  */
+ static struct key_entry *eepc_get_entry_by_scancode(int code)
+@@ -1034,6 +1068,14 @@ static void eeepc_hwmon_exit(void)
+ 	eeepc_hwmon_device = NULL;
+ }
  
- static ssize_t thermal_temp_input_show(struct device *dev,
-@@ -5568,7 +5601,7 @@ static ssize_t thermal_temp_input_show(struct device *dev,
- 	res = thermal_get_sensor(idx, &value);
- 	if (res)
- 		return res;
--	if (value == TP_EC_THERMAL_TMP_NA * 1000)
-+	if (value == TPACPI_THERMAL_SENSOR_NA)
- 		return -ENXIO;
++static void eeepc_led_exit(void)
++{
++	if (led_workqueue)
++		destroy_workqueue(led_workqueue);
++	if (tpd_led.dev)
++		led_classdev_unregister(&tpd_led);
++}
++
+ static int eeepc_new_rfkill(struct rfkill **rfkill,
+ 			    const char *name, struct device *dev,
+ 			    enum rfkill_type type, int cm)
+@@ -1190,6 +1232,24 @@ static int eeepc_input_init(struct device *dev)
+ 	return 0;
+ }
  
- 	return snprintf(buf, PAGE_SIZE, "%d\n", value);
++static int eeepc_led_init(struct device *dev)
++{
++	int rv;
++
++	if (get_acpi(CM_ASL_TPD) == -ENODEV)
++		return 0;
++
++	rv = led_classdev_register(dev, &tpd_led);
++	if (rv)
++		return rv;
++
++	led_workqueue = create_singlethread_workqueue("led_workqueue");
++	if (!led_workqueue)
++		return -ENOMEM;
++
++	return 0;
++}
++
+ static int __devinit eeepc_hotk_add(struct acpi_device *device)
+ {
+ 	struct device *dev;
+@@ -1248,6 +1308,10 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
+ 	if (result)
+ 		goto fail_hwmon;
+ 
++	result = eeepc_led_init(dev);
++	if (result)
++		goto fail_led;
++
+ 	result = eeepc_rfkill_init(dev);
+ 	if (result)
+ 		goto fail_rfkill;
+@@ -1255,6 +1319,8 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
+ 	return 0;
+ 
+ fail_rfkill:
++	eeepc_led_exit();
++fail_led:
+ 	eeepc_hwmon_exit();
+ fail_hwmon:
+ 	eeepc_input_exit();
+@@ -1284,6 +1350,7 @@ static int eeepc_hotk_remove(struct acpi_device *device, int type)
+ 	eeepc_rfkill_exit();
+ 	eeepc_input_exit();
+ 	eeepc_hwmon_exit();
++	eeepc_led_exit();
+ 	sysfs_remove_group(&platform_device->dev.kobj,
+ 			   &platform_attribute_group);
+ 	platform_device_unregister(platform_device);
 -- 
 1.6.0.6
 
