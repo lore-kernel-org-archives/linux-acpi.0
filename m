@@ -1,88 +1,135 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 077/103] PNP: add interface to retrieve ACPI device from a
- PNPACPI device
-Date: Wed, 16 Dec 2009 03:36:28 -0500
-Message-ID: <9065ce4500085b9ca66b19d3c4d21a73cb410173.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 036/103] eeepc-laptop: simplify how the hwmon device reads
+ values from the EC
+Date: Wed, 16 Dec 2009 03:35:47 -0500
+Message-ID: <463b4e474ed0905ffc27ee347648739dbfb03acc.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:41516 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760814AbZLPKGF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:05 -0500
+	with ESMTP id S1761479AbZLPKGJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:09 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ00A4HPDO02XA@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:55 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:58 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Add pnp_acpi_device(pnp_dev), which takes a PNP device and returns the
-associated ACPI device (or NULL, if the device is not a PNPACPI device).
+The hwmon device uses ec_write() to write values to the EC.  So for
+consistency it should use ec_read() to read values.  The extra layers
+of indirection used did not add any value.
 
-This allows us to write a PNP driver that can manage both traditional
-PNPBIOS and ACPI devices, treating ACPI-only functionality as an optional
-extension.
+This may mean we no longer take the ACPI global lock for such reads
+(if the EC operation region requires the lock and the EC does not).
+But there is no point locking each one-byte read individually, when
+write operations do not use the lock at all.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/pnpacpi/core.c |    3 ++-
- include/linux/pnp.h        |   13 +++++++++++++
- 2 files changed, 15 insertions(+), 1 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   43 +++++++++++++++++------------------
+ 1 files changed, 21 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index b2348fc..5314bf6 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -144,7 +144,7 @@ static int pnpacpi_resume(struct pnp_dev *dev)
- }
- #endif
- 
--static struct pnp_protocol pnpacpi_protocol = {
-+struct pnp_protocol pnpacpi_protocol = {
- 	.name	 = "Plug and Play ACPI",
- 	.get	 = pnpacpi_get_resources,
- 	.set	 = pnpacpi_set_resources,
-@@ -154,6 +154,7 @@ static struct pnp_protocol pnpacpi_protocol = {
- 	.resume = pnpacpi_resume,
- #endif
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 50ceaaf..04a59d3 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -118,14 +118,14 @@ static const char *cm_setv[] = {
+ 	NULL, NULL, "PBPS", "TPDS"
  };
-+EXPORT_SYMBOL(pnpacpi_protocol);
  
- static int __init pnpacpi_add_device(struct acpi_device *device)
+-#define EEEPC_EC	"\\_SB.PCI0.SBRG.EC0."
++#define EEEPC_EC_SC00      0x61
++#define EEEPC_EC_FAN_PWM   (EEEPC_EC_SC00 + 2) /* Fan PWM duty cycle (%) */
++#define EEEPC_EC_FAN_HRPM  (EEEPC_EC_SC00 + 5) /* High byte, fan speed (RPM) */
++#define EEEPC_EC_FAN_LRPM  (EEEPC_EC_SC00 + 6) /* Low byte, fan speed (RPM) */
++
++#define EEEPC_EC_SFB0      0xD0
++#define EEEPC_EC_FAN_CTRL  (EEEPC_EC_SFB0 + 3) /* Byte containing SF25  */
+ 
+-#define EEEPC_EC_FAN_PWM	EEEPC_EC "SC02" /* Fan PWM duty cycle (%) */
+-#define EEEPC_EC_SC02		0x63
+-#define EEEPC_EC_FAN_HRPM	EEEPC_EC "SC05" /* High byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_LRPM	EEEPC_EC "SC06" /* Low byte, fan speed (RPM) */
+-#define EEEPC_EC_FAN_CTRL	EEEPC_EC "SFB3" /* Byte containing SF25  */
+-#define EEEPC_EC_SFB3		0xD3
+ 
+ /*
+  * This is the main structure, we can use it to store useful information
+@@ -903,35 +903,34 @@ static int eeepc_hotk_restore(struct device *device)
+  */
+ static int eeepc_get_fan_pwm(void)
  {
-diff --git a/include/linux/pnp.h b/include/linux/pnp.h
-index fddfafa..7c4193e 100644
---- a/include/linux/pnp.h
-+++ b/include/linux/pnp.h
-@@ -334,6 +334,19 @@ extern struct pnp_protocol pnpbios_protocol;
- #define pnp_device_is_pnpbios(dev) 0
- #endif
+-	int value = 0;
++	u8 value = 0;
  
-+#ifdef CONFIG_PNPACPI
-+extern struct pnp_protocol pnpacpi_protocol;
-+
-+static inline struct acpi_device *pnp_acpi_device(struct pnp_dev *dev)
-+{
-+	if (dev->protocol == &pnpacpi_protocol)
-+		return dev->data;
-+	return NULL;
-+}
-+#else
-+#define pnp_acpi_device(dev) 0
-+#endif
-+
- /* status */
- #define PNP_READY		0x0000
- #define PNP_ATTACHED		0x0001
+-	read_acpi_int(NULL, EEEPC_EC_FAN_PWM, &value);
+-	value = value * 255 / 100;
+-	return (value);
++	ec_read(EEEPC_EC_FAN_PWM, &value);
++	return value * 255 / 100;
+ }
+ 
+ static void eeepc_set_fan_pwm(int value)
+ {
+ 	value = SENSORS_LIMIT(value, 0, 255);
+ 	value = value * 100 / 255;
+-	ec_write(EEEPC_EC_SC02, value);
++	ec_write(EEEPC_EC_FAN_PWM, value);
+ }
+ 
+ static int eeepc_get_fan_rpm(void)
+ {
+-	int high = 0;
+-	int low = 0;
++	u8 high = 0;
++	u8 low = 0;
+ 
+-	read_acpi_int(NULL, EEEPC_EC_FAN_HRPM, &high);
+-	read_acpi_int(NULL, EEEPC_EC_FAN_LRPM, &low);
+-	return (high << 8 | low);
++	ec_read(EEEPC_EC_FAN_HRPM, &high);
++	ec_read(EEEPC_EC_FAN_LRPM, &low);
++	return high << 8 | low;
+ }
+ 
+ static int eeepc_get_fan_ctrl(void)
+ {
+-	int value = 0;
++	u8 value = 0;
+ 
+-	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
++	ec_read(EEEPC_EC_FAN_CTRL, &value);
+ 	if (value & 0x02)
+ 		return 1; /* manual */
+ 	else
+@@ -940,14 +939,14 @@ static int eeepc_get_fan_ctrl(void)
+ 
+ static void eeepc_set_fan_ctrl(int manual)
+ {
+-	int value = 0;
++	u8 value = 0;
+ 
+-	read_acpi_int(NULL, EEEPC_EC_FAN_CTRL, &value);
++	ec_read(EEEPC_EC_FAN_CTRL, &value);
+ 	if (manual == 1)
+ 		value |= 0x02;
+ 	else
+ 		value &= ~0x02;
+-	ec_write(EEEPC_EC_SFB3, value);
++	ec_write(EEEPC_EC_FAN_CTRL, value);
+ }
+ 
+ static ssize_t store_sys_hwmon(void (*set)(int), const char *buf, size_t count)
 -- 
 1.6.0.6
 
