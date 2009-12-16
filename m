@@ -1,14 +1,13 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 100/103] ACPI: dock: dock_add - hoist up
- platform_device_register_simple()
-Date: Wed, 16 Dec 2009 03:36:51 -0500
-Message-ID: <9751cb721ef650729e981c7b39abb7676cd646e1.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 026/103] eeepc-laptop: Remove redundant NULL checks
+Date: Wed, 16 Dec 2009 03:35:37 -0500
+Message-ID: <fbe3d8942e8fd1e947e4d11a3e9e15675a1cac7e.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:41516 "EHLO
+Received: from vms173011pub.verizon.net ([206.46.173.11]:41634 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760796AbZLPKF5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:05:57 -0500
+	with ESMTP id S1760839AbZLPKF6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:05:58 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
@@ -20,59 +19,57 @@ References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Move the call to platform_device_register_simple so that we do it
-before allocating and initializing our struct dock_station.
+The acpi device callbacks add, start, remove, suspend and resume can
+never be called with a NULL acpi_device. Each callsite in acpi/scan.c
+has to dereference the device in order to get the ops structure, e.g.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Acked-by: Shaohua Li <shaohua.li@intel.com>
+    struct acpi_device *acpi_dev = to_acpi_device(dev);
+    struct acpi_driver *acpi_drv = acpi_dev->driver;
+
+    if (acpi_drv && acpi_drv->ops.suspend)
+        return acpi_drv->ops.suspend(acpi_dev, state);
+
+Remove all checks for acpi_dev == NULL within these callbacks.
+
+Also remove the checks for acpi_driver_data(acpi_dev) == NULL. None of
+these checks could fail unless the driver does something strange
+(which none of them do), the acpi core did something terribly wrong,
+or we have a memory corruption issue. If this does happen then it's
+best to dereference the pointer and crash noisily.
+
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c |   16 +++++++---------
- 1 files changed, 7 insertions(+), 9 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 0a12218..3bd8982 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -948,11 +948,18 @@ static int dock_add(acpi_handle handle)
- 	struct dock_station *dock_station;
- 	struct platform_device *dock_device;
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 9130434..7dde47a 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -1255,8 +1255,6 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
+ 	struct device *dev;
+ 	int result;
  
-+	dock_device =
-+		platform_device_register_simple("dock",
-+			dock_station_count, NULL, 0);
-+	if (IS_ERR(dock_device))
-+		return PTR_ERR(dock_device);
-+
- 	/* allocate & initialize the dock_station private data */
- 	dock_station = kzalloc(sizeof(*dock_station), GFP_KERNEL);
- 	if (!dock_station)
- 		return -ENOMEM;
- 	dock_station->handle = handle;
-+	dock_station->dock_device = dock_device;
- 	dock_station->last_dock_time = jiffies - HZ;
- 	INIT_LIST_HEAD(&dock_station->dependent_devices);
- 	INIT_LIST_HEAD(&dock_station->hotplug_devices);
-@@ -961,15 +968,6 @@ static int dock_add(acpi_handle handle)
- 	mutex_init(&dock_station->hp_lock);
- 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
+-	if (!device)
+-		return -EINVAL;
+ 	pr_notice(EEEPC_HOTK_NAME "\n");
+ 	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
+ 	if (!ehotk)
+@@ -1343,9 +1341,6 @@ fail_platform_driver:
  
--	/* initialize platform device stuff */
--	dock_station->dock_device =
--		platform_device_register_simple("dock",
--			dock_station_count, NULL, 0);
--	dock_device = dock_station->dock_device;
--	if (IS_ERR(dock_device)) {
--		ret = PTR_ERR(dock_device);
--		goto out;
--	}
- 	platform_device_add_data(dock_device, &dock_station,
- 		sizeof(struct dock_station *));
- 
+ static int eeepc_hotk_remove(struct acpi_device *device, int type)
+ {
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+ 	eeepc_backlight_exit();
+ 	eeepc_rfkill_exit();
+ 	eeepc_input_exit();
 -- 
 1.6.0.6
 
