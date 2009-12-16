@@ -1,12 +1,12 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 020/103] asus-acpi: Remove redundant NULL checks
-Date: Wed, 16 Dec 2009 03:35:31 -0500
-Message-ID: <2d5db0be4ce36b265f9ddd8debab40acd8580403.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 079/103] ipmi: refer to table as "SPMI", not "ACPI"
+Date: Wed, 16 Dec 2009 03:36:30 -0500
+Message-ID: <18a3e0bfbcd589599d0affbfd484ba9a97e5f122.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:41516 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760814AbZLPKFy (ORCPT
+	with ESMTP id S1760796AbZLPKFy (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:05:54 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173011.mailsrvcs.net
@@ -19,58 +19,69 @@ References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@i
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
 
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The acpi device callbacks add, start, remove, suspend and resume can
-never be called with a NULL acpi_device. Each callsite in acpi/scan.c
-has to dereference the device in order to get the ops structure, e.g.
+This discovery method uses the SPMI table, not the ACPI namespace.  In
+the future, we will look in the namespace, so let's refer to the table
+as "SPMI" and save "ACPI" for the namespace.
 
-    struct acpi_device *acpi_dev = to_acpi_device(dev);
-    struct acpi_driver *acpi_drv = acpi_dev->driver;
-
-    if (acpi_drv && acpi_drv->ops.suspend)
-        return acpi_drv->ops.suspend(acpi_dev, state);
-
-Remove all checks for acpi_dev == NULL within these callbacks.
-
-Also remove the checks for acpi_driver_data(acpi_dev) == NULL. None of
-these checks could fail unless the driver does something strange
-(which none of them do), the acpi core did something terribly wrong,
-or we have a memory corruption issue. If this does happen then it's
-best to dereference the pointer and crash noisily.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/asus_acpi.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/platform/x86/asus_acpi.c b/drivers/platform/x86/asus_acpi.c
-index ddf5240..25a7d57 100644
---- a/drivers/platform/x86/asus_acpi.c
-+++ b/drivers/platform/x86/asus_acpi.c
-@@ -1334,9 +1334,6 @@ static int asus_hotk_add(struct acpi_device *device)
- 	acpi_status status = AE_OK;
- 	int result;
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index aaf6ead..b58e587 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -1919,7 +1919,7 @@ struct SPMITable {
+ 	s8      spmi_id[1]; /* A '\0' terminated array starts here. */
+ };
  
--	if (!device)
--		return -EINVAL;
--
- 	printk(KERN_NOTICE "Asus Laptop ACPI Extras version %s\n",
- 	       ASUS_ACPI_VERSION);
- 
-@@ -1392,9 +1389,6 @@ end:
- 
- static int asus_hotk_remove(struct acpi_device *device, int type)
+-static __devinit int try_init_acpi(struct SPMITable *spmi)
++static __devinit int try_init_spmi(struct SPMITable *spmi)
  {
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
--
- 	asus_hotk_remove_fs(device);
+ 	struct smi_info  *info;
+ 	u8 		 addr_space;
+@@ -1940,7 +1940,7 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
+ 		return -ENOMEM;
+ 	}
  
- 	kfree(hotk);
+-	info->addr_source = "ACPI";
++	info->addr_source = "SPMI";
+ 
+ 	/* Figure out the interface type. */
+ 	switch (spmi->InterfaceType) {
+@@ -2002,7 +2002,7 @@ static __devinit int try_init_acpi(struct SPMITable *spmi)
+ 	return 0;
+ }
+ 
+-static __devinit void acpi_find_bmc(void)
++static __devinit void spmi_find_bmc(void)
+ {
+ 	acpi_status      status;
+ 	struct SPMITable *spmi;
+@@ -2020,7 +2020,7 @@ static __devinit void acpi_find_bmc(void)
+ 		if (status != AE_OK)
+ 			return;
+ 
+-		try_init_acpi(spmi);
++		try_init_spmi(spmi);
+ 	}
+ }
+ #endif
+@@ -3104,7 +3104,7 @@ static __devinit int init_ipmi_si(void)
+ #endif
+ 
+ #ifdef CONFIG_ACPI
+-	acpi_find_bmc();
++	spmi_find_bmc();
+ #endif
+ 
+ #ifdef CONFIG_PCI
 -- 
 1.6.0.6
 
