@@ -1,42 +1,58 @@
-From: "Justin P. mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH] Fix a typo in drivers/acpi/battery.c
-Date: Tue, 15 Dec 2009 20:02:40 -0800
-Message-ID: <4B285BE0.7010109@gmail.com>
-References: <dd18b0c30912131834se50a980hff01fe06751f3a2d@mail.gmail.com> <alpine.LFD.2.00.0912152256230.6885@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 5/5 -v2] acpi, apei, Document for APEI
+Date: Tue, 15 Dec 2009 23:32:16 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912152322110.6885@localhost.localdomain>
+References: <1260429424.15264.397.camel@yhuang-dev.sh.intel.com>
+ <200912110958.29319.bjorn.helgaas@hp.com>
+ <1260780295.12561.118.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:54500 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753484AbZLPECd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 23:02:33 -0500
-Received: by yxe17 with SMTP id 17so585602yxe.33
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2009 20:02:32 -0800 (PST)
-In-Reply-To: <alpine.LFD.2.00.0912152256230.6885@localhost.localdomain>
+Received: from vms173005pub.verizon.net ([206.46.173.5]:46861 "EHLO
+	vms173005pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755447AbZLPEdJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2009 23:33:09 -0500
+In-reply-to: <1260780295.12561.118.camel@yhuang-dev.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 12/15/09 19:56, Len Brown wrote:
-> applied (by hand)
->
-> please seek a mailer that doesn't corrupt patches
->
-> thanks,
-> Len Brown, Intel Open Source Technology Center
->
->
+On Mon, 14 Dec 2009, Huang Ying wrote:
 
-hmm.. copy/past from
-git format-patch
-seems to get things messed up,
-but if I send the patch via
-git send-email things are fine.
+> On Sat, 2009-12-12 at 00:58 +0800, Bjorn Helgaas wrote: 
+> > On Thursday 10 December 2009 12:17:04 am Huang Ying wrote:
+> > > Add document for APEI, including kernel parameters and EINJ debug file
+> > > sytem interface.
+> > 
+> > From a stylistic point of view, I think it's better if the
+> > documentation is added by the same patch that adds the functionality.
+> > Having them in separate patches means there's a point in time where
+> > the tree contains the functionality but not the documentation, or
+> > vice versa.
+> 
+> Sounds reasonable, I will change this.
 
-I just will send them through git.
-sorry applying the patch messd things up
+I don't mind if the documentation preceeds or follows the code
+in a patch series.  Personally, I'd probably put it in its own
+patch like you did just as a lazy way to keep the patches small.
+Anybody looking at this code will be looking at the whole series
+and it isn't as if documentation is going to break bisect...
 
+What I do mind from a patch submitting style point of view
+is to start a series with [PATCH 2/5 -v2].
 
-Justin P. Mattock
+Please start with 0/5 explaining the difference between v1 and v2;
+and then number staring with 1, not 2; else at first glance,
+everybody thinks that the most important patch is missing...
+
+That said, all this code is under its own config option,
+making it relatively low risk.  The question is if there
+would be a significant benefit to merging this code upstream
+while we know there is still going to be some significant
+movement in this area before it is fully baked...
+
+(that would be another thing to describe in 0/5...)
+
+thanks,
+-Len Brown, Intel Open Source Technology Center
