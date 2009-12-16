@@ -1,77 +1,67 @@
-From: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>
-Subject: RE: [PATCH] cpufreq: Processor Clocking Control interface driver
-Date: Wed, 16 Dec 2009 15:31:48 +0000
-Message-ID: <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE4166@GVW0676EXC.americas.hpqcorp.net>
-References: <20091128034424.6796.75673.sendpatchset@localhost.localdomain>
- <20091211231233.GA4291@isilmar.linta.de>
- <66D9D2F0CDB5C9428E6166B01EC85EE161DEEE3CB7@GVW0676EXC.americas.hpqcorp.net>
- <20091215183331.GA5560@comet.dominikbrodowski.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re:
+ Async suspend-resume patch w/ rwsems)
+Date: Wed, 16 Dec 2009 07:47:43 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912160737350.7454@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org>
+	<200912151203.22916.rjw@sisk.pl>
+	<alpine.LFD.2.00.0912150722310.14385@localhost.localdomain>
+	<200912160311.05915.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:45513 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932283AbZLPPcc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 10:32:32 -0500
-In-Reply-To: <20091215183331.GA5560@comet.dominikbrodowski.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <200912160311.05915.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: "davej@redhat.com" <davej@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mjg@redhat.com" <mjg@redhat.com>, "trenn@suse.de" <trenn@suse.de>, "lenb@kernel.org" <lenb@kernel.org>
 
 
->> >> +	if (target_freq <= 
->> >(ioread32(&pcch_hdr->minimum_frequency) * 1000)) {
->> >> +		target_freq = 
->> >ioread32(&pcch_hdr->minimum_frequency) * 1000;
->> >> +		dprintk("target: target_freq for cpu %d was 
->> >below limit, "
->> >> +			"converted it to %d\n", cpu, target_freq);
->> >> +	}
->> >
->> >why not do this in the _verify() step? Does 
->pcch_hdr->minimum_frequency
->> >even change "on the fly"?
->> 
->> pcch_hdr->minimum_frequency does not change "on the fly". 
->Also, there is no
->> need for those IO accesses:
->
->target_freq cannot be below policy->min or above policy->max. 
->If it were,
->the whole cpufreq subsystem is broken. So there's no need for 
->these checks,
->AFAICS.
->
 
-I think the "ondemand" governor can ask for a target frequency that is
-below policy->min.
+On Wed, 16 Dec 2009, Rafael J. Wysocki wrote:
+> 
+> The summarized data are below (the "big" numbers are averages and the +/-
+> numbers are standard deviations, all in milliseconds):
+> 
+> 			HP nx6325		MSI Wind U100
+> 
+> sync suspend		1482 (+/- 40)	1180 (+/- 24)
+> sync resume		2955 (+/- 2)	3597 (+/- 25)
+> 
+> async suspend		1553 (+/- 49)	1177 (+/- 32)
+> async resume		2692 (+/- 326)	3556  (+/- 33)
+> 
+> async+one-liner suspend	1600 (+/- 39)	1212 (+/- 41)
+> async+one-liner resume	2692 (+/- 324)	3579 (+/- 24)
+> 
+> async+extra suspend	1496 (+/- 37)	1217 (+/- 38)
+> async+extra resume	1859 (+/- 114)	1923 (+/- 35)
+> 
+> So, in my opinion, with the above set of "async" devices, it doesn't
+> make sense to do async suspend at all, because the sync suspend is actually
+> the fastest on both machines.
 
-Let's say that at a given snapshot, the frequency of a CPU is policy->cur.
-At the next sampling, if the "load" on the CPU drops to a level that 
-satisifies the equation below, then freq_next requested by "ondemand" 
-will be below policy->min:
+Hmm. I certainly agree - your numbers do not seem to support any async at 
+all.
 
-	load < (threshold - differential) * policy->min / policy->cur
+However, I do note that for the "extra patch" makes a big difference at 
+resume time. That implies that the resume serializes on some slow device 
+that wasn't marked async - and starting the async ones early avoids that. 
 
-A patch such as below may be needed to sanitize the target frequency 
-requested by "ondemand". The "conservative" governor already has this check: 
+But without the per-device timings, it's hard to even guess what device 
+that was.
 
-# diff -bur ./drivers/cpufreq/cpufreq_ondemand.c.orig ./drivers/cpufreq/cpufreq_ondemand.c
---- ./drivers/cpufreq/cpufreq_ondemand.c.orig   2009-12-11 15:06:02.000000000 -0600
-+++ ./drivers/cpufreq/cpufreq_ondemand.c        2009-12-15 20:27:57.000000000 -0600
-@@ -554,6 +554,9 @@
-                                (dbs_tuners_ins.up_threshold -
-                                 dbs_tuners_ins.down_differential);
+But even that doesn't really help the suspend cases, only resume.
 
-+               if (freq_next < policy->min)
-+                       freq_next = policy->min;
-+
-                if (!dbs_tuners_ins.powersave_bias) {
-                        __cpufreq_driver_target(policy, freq_next,
-                                        CPUFREQ_RELATION_L);
+Do you have any sample timing output with devices listed?
 
-- naga -
-
+			Linus
