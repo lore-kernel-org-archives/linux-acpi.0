@@ -1,90 +1,77 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 018/103] eeepc-laptop: disp attribute should be write-only
-Date: Wed, 16 Dec 2009 03:35:29 -0500
-Message-ID: <6dff29b63a5bf2eaf3313cb8a84f0b7520c43401.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 063/103] ACPICA: Fix two additional Scope override error
+ messages
+Date: Wed, 16 Dec 2009 03:36:14 -0500
+Message-ID: <ebdca3edd5ac61e37f2f5e7c11006c1a68d3cc7e.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:47226 "EHLO
+Received: from vms173019pub.verizon.net ([206.46.173.19]:47186 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762010AbZLPLGJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:06:09 -0500
+	with ESMTP id S1762006AbZLPLGB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:06:01 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KUQ00BZPS5OJK34@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:58 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:57 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+From: Bob Moore <robert.moore@intel.com>
 
-Currently, reading from the disp attribute fails with "No such device",
-which is misleading. According to CMSG table on acpi4asus project site,
-no models have a getter method corresponding to SDSP. Change the file
-permission to disallow reads.
+These messages were using the internal path for the message
+instead of using the node name.
 
-If some joker changes the permission to permit reads, then return -EIO
-to be consistent with sysfs' behaviour when no show() method is
-provided.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/dswload.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 4226e53..2c65a37 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -380,7 +380,7 @@ static ssize_t store_sys_acpi(int cm, const char *buf, size_t count)
- 	if (rv > 0)
- 		value = set_acpi(cm, value);
- 	if (value < 0)
--		return value;
-+		return -EIO;
- 	return rv;
- }
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index 1bab934..9cc2289 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -700,15 +700,16 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
+ 		case ACPI_TYPE_BUFFER:
  
-@@ -389,11 +389,11 @@ static ssize_t show_sys_acpi(int cm, char *buf)
- 	int value = get_acpi(cm);
+ 			/*
+-			 * These types we will allow, but we will change the type. This
+-			 * enables some existing code of the form:
++			 * These types we will allow, but we will change the type.
++			 * This enables some existing code of the form:
+ 			 *
+ 			 *  Name (DEB, 0)
+ 			 *  Scope (DEB) { ... }
+ 			 */
+ 			ACPI_WARNING((AE_INFO,
+-				      "Type override - [%4.4s] had invalid type (%s) for Scope operator, changed to (Scope)",
+-				      buffer_ptr,
++				      "Type override - [%4.4s] had invalid type (%s) "
++				      "for Scope operator, changed to type ANY\n",
++				      acpi_ut_get_node_name(node),
+ 				      acpi_ut_get_type_name(node->type)));
  
- 	if (value < 0)
--		return value;
-+		return -EIO;
- 	return sprintf(buf, "%d\n", value);
- }
+ 			node->type = ACPI_TYPE_ANY;
+@@ -720,9 +721,10 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
+ 			/* All other types are an error */
  
--#define EEEPC_CREATE_DEVICE_ATTR(_name, _cm)				\
-+#define EEEPC_CREATE_DEVICE_ATTR(_name, _mode, _cm)			\
- 	static ssize_t show_##_name(struct device *dev,			\
- 				    struct device_attribute *attr,	\
- 				    char *buf)				\
-@@ -409,14 +409,14 @@ static ssize_t show_sys_acpi(int cm, char *buf)
- 	static struct device_attribute dev_attr_##_name = {		\
- 		.attr = {						\
- 			.name = __stringify(_name),			\
--			.mode = 0644 },					\
-+			.mode = _mode },				\
- 		.show   = show_##_name,					\
- 		.store  = store_##_name,				\
- 	}
+ 			ACPI_ERROR((AE_INFO,
+-				    "Invalid type (%s) for target of Scope operator [%4.4s]",
++				    "Invalid type (%s) for target of "
++				    "Scope operator [%4.4s] (Cannot override)",
+ 				    acpi_ut_get_type_name(node->type),
+-				    buffer_ptr));
++				    acpi_ut_get_node_name(node)));
  
--EEEPC_CREATE_DEVICE_ATTR(camera, CM_ASL_CAMERA);
--EEEPC_CREATE_DEVICE_ATTR(cardr, CM_ASL_CARDREADER);
--EEEPC_CREATE_DEVICE_ATTR(disp, CM_ASL_DISPLAYSWITCH);
-+EEEPC_CREATE_DEVICE_ATTR(camera, 0644, CM_ASL_CAMERA);
-+EEEPC_CREATE_DEVICE_ATTR(cardr, 0644, CM_ASL_CARDREADER);
-+EEEPC_CREATE_DEVICE_ATTR(disp, 0200, CM_ASL_DISPLAYSWITCH);
- 
- struct eeepc_cpufv {
- 	int num;
+ 			return (AE_AML_OPERAND_TYPE);
+ 		}
 -- 
 1.6.0.6
 
