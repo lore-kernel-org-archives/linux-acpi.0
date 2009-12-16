@@ -1,162 +1,152 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 101/103] ACPI: dock: add struct dock_station * directly to
- platform device data
-Date: Wed, 16 Dec 2009 03:36:52 -0500
-Message-ID: <fe06fba292af5ed5c1c6ad9af3a9ef68da7a5088.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 035/103] eeepc-laptop: simplify acpi initialization
+Date: Wed, 16 Dec 2009 03:35:46 -0500
+Message-ID: <6b188a7b218cb33d918e72f24995341f949297d2.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:47186 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761972AbZLPLFw (ORCPT
+	with ESMTP id S1751348AbZLPLFw (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:52 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KUQ00BZPS5OJK34@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:51 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:50 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alex Chiang <achiang@hp.com>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Alex Chiang <achiang@hp.com>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Instead of adding a (struct dock_station **) to our dock device's
-platform data, we can add the (struct dock_station *) directly.
+We don't need to store init_flags after using them.  And we don't use
+the result of INIT, so we don't need to allocate a buffer for it.
 
-This change saves us some ugly casting and improves readability.
-
-The cost of making this change is an extra 290 bytes of stack usage,
-but this is an infrequently called code-path and unlikely to cause
-the kernel to blow up.
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Acked-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/dock.c |   40 +++++++++++++---------------------------
- 1 files changed, 13 insertions(+), 27 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   55 ++++++++++++++++------------------
+ 1 files changed, 26 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 3bd8982..cfcd8ee 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -843,8 +843,7 @@ static ssize_t show_docked(struct device *dev,
- {
- 	struct acpi_device *tmp;
- 
--	struct dock_station *dock_station = *((struct dock_station **)
--		dev->platform_data);
-+	struct dock_station *dock_station = dev->platform_data;
- 
- 	if (ACPI_SUCCESS(acpi_bus_get_device(dock_station->handle, &tmp)))
- 		return snprintf(buf, PAGE_SIZE, "1\n");
-@@ -858,8 +857,7 @@ static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
- static ssize_t show_flags(struct device *dev,
- 			  struct device_attribute *attr, char *buf)
- {
--	struct dock_station *dock_station = *((struct dock_station **)
--		dev->platform_data);
-+	struct dock_station *dock_station = dev->platform_data;
- 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_station->flags);
- 
- }
-@@ -872,8 +870,7 @@ static ssize_t write_undock(struct device *dev, struct device_attribute *attr,
- 			   const char *buf, size_t count)
- {
- 	int ret;
--	struct dock_station *dock_station = *((struct dock_station **)
--		dev->platform_data);
-+	struct dock_station *dock_station = dev->platform_data;
- 
- 	if (!count)
- 		return -EINVAL;
-@@ -891,8 +888,7 @@ static ssize_t show_dock_uid(struct device *dev,
- 			     struct device_attribute *attr, char *buf)
- {
- 	unsigned long long lbuf;
--	struct dock_station *dock_station = *((struct dock_station **)
--		dev->platform_data);
-+	struct dock_station *dock_station = dev->platform_data;
- 	acpi_status status = acpi_evaluate_integer(dock_station->handle,
- 					"_UID", NULL, &lbuf);
- 	if (ACPI_FAILURE(status))
-@@ -905,8 +901,7 @@ static DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
- static ssize_t show_dock_type(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct dock_station *dock_station = *((struct dock_station **)
--		dev->platform_data);
-+	struct dock_station *dock_station = dev->platform_data;
- 	char *type;
- 
- 	if (dock_station->flags & DOCK_IS_DOCK)
-@@ -944,20 +939,18 @@ static struct attribute_group dock_attribute_group = {
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 9f33e51..50ceaaf 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -136,7 +136,6 @@ struct eeepc_hotk {
+ 	acpi_handle handle;		/* the handle of the hotk device */
+ 	u32 cm_supported;		/* the control methods supported
+ 					   by this BIOS */
+-	uint init_flag;			/* Init flags */
+ 	u16 event_count[128];		/* count for each event */
+ 	struct input_dev *inputdev;
+ 	u16 *keycode_map;
+@@ -256,8 +255,7 @@ MODULE_LICENSE("GPL");
+ /*
+  * ACPI Helpers
   */
- static int dock_add(acpi_handle handle)
+-static int write_acpi_int(acpi_handle handle, const char *method, int val,
+-			  struct acpi_buffer *output)
++static int write_acpi_int(acpi_handle handle, const char *method, int val)
  {
--	int ret;
--	struct dock_station *dock_station;
-+	int ret, id;
-+	struct dock_station ds, *dock_station;
- 	struct platform_device *dock_device;
+ 	struct acpi_object_list params;
+ 	union acpi_object in_obj;
+@@ -268,7 +266,7 @@ static int write_acpi_int(acpi_handle handle, const char *method, int val,
+ 	in_obj.type = ACPI_TYPE_INTEGER;
+ 	in_obj.integer.value = val;
  
-+	id = dock_station_count;
- 	dock_device =
--		platform_device_register_simple("dock",
--			dock_station_count, NULL, 0);
-+		platform_device_register_data(NULL, "dock",
-+			id, &ds, sizeof(ds));
- 	if (IS_ERR(dock_device))
- 		return PTR_ERR(dock_device);
- 
--	/* allocate & initialize the dock_station private data */
--	dock_station = kzalloc(sizeof(*dock_station), GFP_KERNEL);
--	if (!dock_station)
--		return -ENOMEM;
-+	dock_station = dock_device->dev.platform_data;
- 	dock_station->handle = handle;
- 	dock_station->dock_device = dock_device;
- 	dock_station->last_dock_time = jiffies - HZ;
-@@ -968,9 +961,6 @@ static int dock_add(acpi_handle handle)
- 	mutex_init(&dock_station->hp_lock);
- 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
- 
--	platform_device_add_data(dock_device, &dock_station,
--		sizeof(struct dock_station *));
--
- 	/* we want the dock device to send uevents */
- 	dev_set_uevent_suppress(&dock_device->dev, 0);
- 
-@@ -1003,9 +993,6 @@ err_rmgroup:
- 	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
- err_unregister:
- 	platform_device_unregister(dock_device);
--out:
--	kfree(dock_station);
--	dock_station = NULL;
- 	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
- 	return ret;
+-	status = acpi_evaluate_object(handle, (char *)method, &params, output);
++	status = acpi_evaluate_object(handle, (char *)method, &params, NULL);
+ 	return (status == AE_OK ? 0 : -1);
  }
-@@ -1026,13 +1013,12 @@ static int dock_remove(struct dock_station *dock_station)
- 				 list)
- 	    kfree(dd);
  
-+	list_del(&dock_station->sibling);
+@@ -296,7 +294,7 @@ static int set_acpi(int cm, int value)
+ 	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
+ 		return -ENODEV;
+ 
+-	if (write_acpi_int(ehotk->handle, method, value, NULL))
++	if (write_acpi_int(ehotk->handle, method, value))
+ 		pr_warning("Error writing %s\n", method);
+ 	return 0;
+ }
+@@ -624,36 +622,36 @@ static void cmsg_quirks(void)
+ 	cmsg_quirk(CM_ASL_TPD, "TPD");
+ }
+ 
+-static int eeepc_hotk_check(void)
++static int eeepc_hotk_init(void)
+ {
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	unsigned int init_flags;
+ 	int result;
+ 
+ 	result = acpi_bus_get_status(ehotk->device);
+ 	if (result)
+ 		return result;
+-	if (ehotk->device->status.present) {
+-		if (write_acpi_int(ehotk->handle, "INIT", ehotk->init_flag,
+-				    &buffer)) {
+-			pr_err("Hotkey initialization failed\n");
+-			return -ENODEV;
+-		} else {
+-			pr_notice("Hotkey init flags 0x%x\n", ehotk->init_flag);
+-		}
+-		/* get control methods supported */
+-		if (read_acpi_int(ehotk->handle, "CMSG"
+-				   , &ehotk->cm_supported)) {
+-			pr_err("Get control methods supported failed\n");
+-			return -ENODEV;
+-		} else {
+-			cmsg_quirks();
+-			pr_info("Get control methods supported: 0x%x\n",
+-				ehotk->cm_supported);
+-		}
+-	} else {
++	if (!ehotk->device->status.present) {
+ 		pr_err("Hotkey device not present, aborting\n");
+-		return -EINVAL;
++		return -ENODEV;
+ 	}
 +
- 	/* cleanup sysfs */
- 	sysfs_remove_group(&dock_device->dev.kobj, &dock_attribute_group);
- 	platform_device_unregister(dock_device);
- 
--	/* free dock station memory */
--	kfree(dock_station);
--	dock_station = NULL;
++	init_flags = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
++	pr_notice("Hotkey init flags 0x%x\n", init_flags);
++
++	if (write_acpi_int(ehotk->handle, "INIT", init_flags)) {
++		pr_err("Hotkey initialization failed\n");
++		return -ENODEV;
++	}
++
++	/* get control methods supported */
++	if (read_acpi_int(ehotk->handle, "CMSG",
++				&ehotk->cm_supported)) {
++		pr_err("Get control methods supported failed\n");
++		return -ENODEV;
++	}
++	cmsg_quirks();
++	pr_info("Get control methods supported: 0x%x\n", ehotk->cm_supported);
++
  	return 0;
  }
  
+@@ -1264,14 +1262,13 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
+ 	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
+ 	if (!ehotk)
+ 		return -ENOMEM;
+-	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
+ 	ehotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
+ 	device->driver_data = ehotk;
+ 	ehotk->device = device;
+ 
+-	result = eeepc_hotk_check();
++	result = eeepc_hotk_init();
+ 	if (result)
+ 		goto fail_platform_driver;
+ 	eeepc_enable_camera();
 -- 
 1.6.0.6
 
