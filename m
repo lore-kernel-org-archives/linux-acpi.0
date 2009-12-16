@@ -1,114 +1,135 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 015/103] thinkpad-acpi: expose module parameters
-Date: Wed, 16 Dec 2009 03:35:26 -0500
-Message-ID: <b09c72259e88cec3d602aef987a3209297f3a9c2.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 054/103] dell-laptop: create a platform device as a parent for
+ the rfkill devices etc.
+Date: Wed, 16 Dec 2009 03:36:05 -0500
+Message-ID: <ada3248a5d38654b33b0ae2eabe1d7e3d9a9ffce.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:41634 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760927AbZLPKGJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:09 -0500
+	with ESMTP id S1761921AbZLPKGK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:10 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ00A4HPDO02XA@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:58 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:59 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Export the normal (non-command) module paramenters as mode 0444, so
-that they will show up in sysfs.
+dell-laptop may not need to export any sysfs files, but it should still
+create a platform device as a parent for the rfkill and backlight
+devices.  Otherwise sysfs will display these as "virtual" devices,
+with no connection to either physical hardware or the dell-laptop
+module.
 
-These parameters must not be changed at runtime as a rule, with very
-few exceptions.
+Apparently this is useful for hardware detection.
 
-Reported-by: Ferenc Wagner <wferi@niif.hu>
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/platform/x86/dell-laptop.c |   38 ++++++++++++++++++++++++++++++++---
+ 1 files changed, 34 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index dd8bd07..4b96a96 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -8116,32 +8116,32 @@ static int __init set_ibm_param(const char *val, struct kernel_param *kp)
- 	return -EINVAL;
+diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/dell-laptop.c
+index 94139d5..a4ce642 100644
+--- a/drivers/platform/x86/dell-laptop.c
++++ b/drivers/platform/x86/dell-laptop.c
+@@ -58,6 +58,14 @@ static int da_command_code;
+ static int da_num_tokens;
+ static struct calling_interface_token *da_tokens;
+ 
++static struct platform_driver platform_driver = {
++	.driver = {
++		.name = "dell-laptop",
++		.owner = THIS_MODULE,
++	}
++};
++
++static struct platform_device *platform_device;
+ static struct backlight_device *dell_backlight_device;
+ static struct rfkill *wifi_rfkill;
+ static struct rfkill *bluetooth_rfkill;
+@@ -217,7 +225,8 @@ static int dell_setup_rfkill(void)
+ 	status = buffer.output[1];
+ 
+ 	if ((status & (1<<2|1<<8)) == (1<<2|1<<8)) {
+-		wifi_rfkill = rfkill_alloc("dell-wifi", NULL, RFKILL_TYPE_WLAN,
++		wifi_rfkill = rfkill_alloc("dell-wifi", &platform_device->dev,
++					   RFKILL_TYPE_WLAN,
+ 					   &dell_rfkill_ops, (void *) 1);
+ 		if (!wifi_rfkill) {
+ 			ret = -ENOMEM;
+@@ -229,7 +238,8 @@ static int dell_setup_rfkill(void)
+ 	}
+ 
+ 	if ((status & (1<<3|1<<9)) == (1<<3|1<<9)) {
+-		bluetooth_rfkill = rfkill_alloc("dell-bluetooth", NULL,
++		bluetooth_rfkill = rfkill_alloc("dell-bluetooth",
++						&platform_device->dev,
+ 						RFKILL_TYPE_BLUETOOTH,
+ 						&dell_rfkill_ops, (void *) 2);
+ 		if (!bluetooth_rfkill) {
+@@ -242,7 +252,9 @@ static int dell_setup_rfkill(void)
+ 	}
+ 
+ 	if ((status & (1<<4|1<<10)) == (1<<4|1<<10)) {
+-		wwan_rfkill = rfkill_alloc("dell-wwan", NULL, RFKILL_TYPE_WWAN,
++		wwan_rfkill = rfkill_alloc("dell-wwan",
++					   &platform_device->dev,
++					   RFKILL_TYPE_WWAN,
+ 					   &dell_rfkill_ops, (void *) 3);
+ 		if (!wwan_rfkill) {
+ 			ret = -ENOMEM;
+@@ -342,6 +354,18 @@ static int __init dell_init(void)
+ 		return -ENODEV;
+ 	}
+ 
++	ret = platform_driver_register(&platform_driver);
++	if (ret)
++		goto fail_platform_driver;
++	platform_device = platform_device_alloc("dell-laptop", -1);
++	if (!platform_device) {
++		ret = -ENOMEM;
++		goto fail_platform_device1;
++	}
++	ret = platform_device_add(platform_device);
++	if (ret)
++		goto fail_platform_device2;
++
+ 	ret = dell_setup_rfkill();
+ 
+ 	if (ret) {
+@@ -368,7 +392,7 @@ static int __init dell_init(void)
+ 	if (max_intensity) {
+ 		dell_backlight_device = backlight_device_register(
+ 			"dell_backlight",
+-			NULL, NULL,
++			&platform_device->dev, NULL,
+ 			&dell_ops);
+ 
+ 		if (IS_ERR(dell_backlight_device)) {
+@@ -388,6 +412,12 @@ static int __init dell_init(void)
+ fail_backlight:
+ 	dell_cleanup_rfkill();
+ fail_rfkill:
++	platform_device_del(platform_device);
++fail_platform_device2:
++	platform_device_put(platform_device);
++fail_platform_device1:
++	platform_driver_unregister(&platform_driver);
++fail_platform_driver:
+ 	kfree(da_tokens);
+ 	return ret;
  }
- 
--module_param(experimental, int, 0);
-+module_param(experimental, int, 0444);
- MODULE_PARM_DESC(experimental,
- 		 "Enables experimental features when non-zero");
- 
- module_param_named(debug, dbg_level, uint, 0);
- MODULE_PARM_DESC(debug, "Sets debug level bit-mask");
- 
--module_param(force_load, bool, 0);
-+module_param(force_load, bool, 0444);
- MODULE_PARM_DESC(force_load,
- 		 "Attempts to load the driver even on a "
- 		 "mis-identified ThinkPad when true");
- 
--module_param_named(fan_control, fan_control_allowed, bool, 0);
-+module_param_named(fan_control, fan_control_allowed, bool, 0444);
- MODULE_PARM_DESC(fan_control,
- 		 "Enables setting fan parameters features when true");
- 
--module_param_named(brightness_mode, brightness_mode, uint, 0);
-+module_param_named(brightness_mode, brightness_mode, uint, 0444);
- MODULE_PARM_DESC(brightness_mode,
- 		 "Selects brightness control strategy: "
- 		 "0=auto, 1=EC, 2=UCMS, 3=EC+NVRAM");
- 
--module_param(brightness_enable, uint, 0);
-+module_param(brightness_enable, uint, 0444);
- MODULE_PARM_DESC(brightness_enable,
- 		 "Enables backlight control when 1, disables when 0");
- 
--module_param(hotkey_report_mode, uint, 0);
-+module_param(hotkey_report_mode, uint, 0444);
- MODULE_PARM_DESC(hotkey_report_mode,
- 		 "used for backwards compatibility with userspace, "
- 		 "see documentation");
-@@ -8164,25 +8164,25 @@ TPACPI_PARAM(volume);
- TPACPI_PARAM(fan);
- 
- #ifdef CONFIG_THINKPAD_ACPI_DEBUGFACILITIES
--module_param(dbg_wlswemul, uint, 0);
-+module_param(dbg_wlswemul, uint, 0444);
- MODULE_PARM_DESC(dbg_wlswemul, "Enables WLSW emulation");
- module_param_named(wlsw_state, tpacpi_wlsw_emulstate, bool, 0);
- MODULE_PARM_DESC(wlsw_state,
- 		 "Initial state of the emulated WLSW switch");
- 
--module_param(dbg_bluetoothemul, uint, 0);
-+module_param(dbg_bluetoothemul, uint, 0444);
- MODULE_PARM_DESC(dbg_bluetoothemul, "Enables bluetooth switch emulation");
- module_param_named(bluetooth_state, tpacpi_bluetooth_emulstate, bool, 0);
- MODULE_PARM_DESC(bluetooth_state,
- 		 "Initial state of the emulated bluetooth switch");
- 
--module_param(dbg_wwanemul, uint, 0);
-+module_param(dbg_wwanemul, uint, 0444);
- MODULE_PARM_DESC(dbg_wwanemul, "Enables WWAN switch emulation");
- module_param_named(wwan_state, tpacpi_wwan_emulstate, bool, 0);
- MODULE_PARM_DESC(wwan_state,
- 		 "Initial state of the emulated WWAN switch");
- 
--module_param(dbg_uwbemul, uint, 0);
-+module_param(dbg_uwbemul, uint, 0444);
- MODULE_PARM_DESC(dbg_uwbemul, "Enables UWB switch emulation");
- module_param_named(uwb_state, tpacpi_uwb_emulstate, bool, 0);
- MODULE_PARM_DESC(uwb_state,
 -- 
 1.6.0.6
 
