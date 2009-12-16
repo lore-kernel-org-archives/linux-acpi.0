@@ -1,29 +1,61 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: ACPI & platform driver patches for 2.6.33.merge
-Date: Wed, 16 Dec 2009 23:20:01 +0900
-Message-ID: <20091216142001.GD18459@kamineko.org>
-References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: yakui.zhao@intel.com
+Subject: [PATCH 2/3] ipmi/acpi: use ACPI detection mechanism firstly to detect IPMI system interface
+Date: Wed, 16 Dec 2009 22:40:30 +0800
+Message-ID: <1260974431-4330-2-git-send-email-yakui.zhao@intel.com>
+References: <1260974431-4330-1-git-send-email-yakui.zhao@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:43607
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934173AbZLPOUE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 09:20:04 -0500
-Content-Disposition: inline
-In-Reply-To: <1260952614-3152-1-git-send-email-lenb@kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:3431 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762169AbZLPOmT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2009 09:42:19 -0500
+In-Reply-To: <1260974431-4330-1-git-send-email-yakui.zhao@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, minyard@acm.org, openipmi-developer@lists.sourceforege.net, Zhao Yakui <yakui.zhao@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Wed, Dec 16, 2009 at 03:35:11AM -0500, Len Brown wrote:
-> Here's the next train.
-> Let me know if any cars are off the rails or if we left any behind.
+From: Zhao Yakui <yakui.zhao@intel.com>
 
-Can I point at sony-laptop? :)
-I'm about to send an updated version with two additional patches, if you
-give me an hour I'll send them to you and the list.
+Sometimes one IPMI system interface will be detected by several methods.
+For example: ACPI mechanism, SPMI table, DMI or hardcode mechanism.
+In such case when one IPMI system interface can be detected in two mechanism,
+the second mechanism will fail in the detection and can't record which IPMI
+system interface is detected by it.
+
+Use the ACPI detection mechanism firstly to detect the IPMI system interface
+so that we can know which IPMI system interface is detected in ACPI namespace.
+
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+---
+ drivers/char/ipmi/ipmi_si_intf.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index 679cd08..99fecd2 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -3195,6 +3195,10 @@ static __devinit int init_ipmi_si(void)
+ 
+ 	printk(KERN_INFO "IPMI System Interface driver.\n");
+ 
++#ifdef CONFIG_PNP
++	pnp_register_driver(&ipmi_pnp_driver);
++#endif
++
+ 	hardcode_find_bmc();
+ 
+ #ifdef CONFIG_DMI
+@@ -3204,9 +3208,6 @@ static __devinit int init_ipmi_si(void)
+ #ifdef CONFIG_ACPI
+ 	spmi_find_bmc();
+ #endif
+-#ifdef CONFIG_PNP
+-	pnp_register_driver(&ipmi_pnp_driver);
+-#endif
+ 
+ #ifdef CONFIG_PCI
+ 	rv = pci_register_driver(&ipmi_pci_driver);
 -- 
-mattia
-:wq!
+1.5.4.5
+
