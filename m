@@ -1,19 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 032/103] eeepc-laptop: fix set_acpi() to return non-zero on
- failure
-Date: Wed, 16 Dec 2009 03:35:43 -0500
-Message-ID: <13f70029daa3cd7f9983e4aec82f32939b1a6e6a.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 048/103] eeepc-laptop: re-add check for eeepc->backlight == NULL
+Date: Wed, 16 Dec 2009 03:35:59 -0500
+Message-ID: <325fb8e9aeddf7bf8a7a892869dca00e7305c41e.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173011pub.verizon.net ([206.46.173.11]:41634 "EHLO
 	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760877AbZLPKGA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:00 -0500
+	with ESMTP id S1760855AbZLPKGI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:08 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173011.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ00A4HPDO02XA@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:54 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:05:57 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
@@ -24,65 +23,77 @@ Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-If the control method does not exist, return -ENODEV for consistency
-with get_acpi()
+As Corentin points out, we do not create a backlight device if the ACPI
+video driver is able to provide equivalent functionality. So we do need
+to check before we try to update the backlight device.
+
+We now ignore brightness events completely if we have not created a
+backlight device.  This is slightly more cautious than the original
+check.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   34 +++++++++++++++++++---------------
- 1 files changed, 19 insertions(+), 15 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |   42 ++++++++++++++++++++--------------
+ 1 files changed, 25 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 8b686b5..abd7389 100644
+index 5f0eb76..d07a4c0 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -289,26 +289,30 @@ static int read_acpi_int(acpi_handle handle, const char *method, int *val)
+@@ -1230,27 +1230,35 @@ static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
+ 					dev_name(&device->dev), event,
+ 					count);
  
- static int set_acpi(int cm, int value)
- {
--	if (ehotk->cm_supported & (0x1 << cm)) {
--		const char *method = cm_setv[cm];
--		if (method == NULL)
--			return -ENODEV;
--		if (write_acpi_int(ehotk->handle, method, value, NULL))
--			pr_warning("Error writing %s\n", method);
--	}
-+	const char *method = cm_setv[cm];
++	/* Brightness events are special */
+ 	if (event >= NOTIFY_BRN_MIN && event <= NOTIFY_BRN_MAX) {
+-		int old_brightness, new_brightness;
+ 
+-		/* Update backlight device. */
+-		old_brightness = eeepc_backlight_notify(eeepc);
+-
+-		/* Convert brightness event to keypress (obsolescent hack). */
+-		new_brightness = event - NOTIFY_BRN_MIN;
+-
+-		if (new_brightness < old_brightness) {
+-			event = NOTIFY_BRN_MIN; /* brightness down */
+-		} else if (new_brightness > old_brightness) {
+-			event = NOTIFY_BRN_MAX; /* brightness up */
+-		} else {
+-			/*
+-			 * no change in brightness - already at min/max,
+-			 * event will be desired value (or else ignored).
+-			 */
++		/* Ignore them completely if the acpi video driver is used */
++		if (eeepc->backlight_device != NULL) {
++			int old_brightness, new_brightness;
 +
-+	if (method == NULL)
-+		return -ENODEV;
-+	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
-+		return -ENODEV;
++			/* Update the backlight device. */
++			old_brightness = eeepc_backlight_notify(eeepc);
 +
-+	if (write_acpi_int(ehotk->handle, method, value, NULL))
-+		pr_warning("Error writing %s\n", method);
- 	return 0;
++			/* Convert event to keypress (obsolescent hack) */
++			new_brightness = event - NOTIFY_BRN_MIN;
++
++			if (new_brightness < old_brightness) {
++				event = NOTIFY_BRN_MIN; /* brightness down */
++			} else if (new_brightness > old_brightness) {
++				event = NOTIFY_BRN_MAX; /* brightness up */
++			} else {
++				/*
++				* no change in brightness - already at min/max,
++				* event will be desired value (or else ignored)
++				*/
++			}
++			eeepc_input_notify(eeepc, event);
+ 		}
++	} else {
++		/* Everything else is a bona-fide keypress event */
++		eeepc_input_notify(eeepc, event);
+ 	}
+-	eeepc_input_notify(eeepc, event);
  }
  
- static int get_acpi(int cm)
- {
--	int value = -ENODEV;
--	if ((ehotk->cm_supported & (0x1 << cm))) {
--		const char *method = cm_getv[cm];
--		if (method == NULL)
--			return -ENODEV;
--		if (read_acpi_int(ehotk->handle, method, &value))
--			pr_warning("Error reading %s\n", method);
--	}
-+	const char *method = cm_getv[cm];
-+	int value;
-+
-+	if (method == NULL)
-+		return -ENODEV;
-+	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
-+		return -ENODEV;
-+
-+	if (read_acpi_int(ehotk->handle, method, &value))
-+		pr_warning("Error reading %s\n", method);
- 	return value;
- }
- 
+ static void cmsg_quirk(struct eeepc_laptop *eeepc, int cm, const char *name)
 -- 
 1.6.0.6
 
