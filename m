@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 035/103] eeepc-laptop: simplify acpi initialization
-Date: Wed, 16 Dec 2009 03:35:46 -0500
-Message-ID: <6b188a7b218cb33d918e72f24995341f949297d2.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 050/103] hp-wmi: improve rfkill support
+Date: Wed, 16 Dec 2009 03:36:01 -0500
+Message-ID: <e5fbba85a7acc2626d4fe14501816811d702f3e9.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173019pub.verizon.net ([206.46.173.19]:47186 "EHLO
 	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348AbZLPLFw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:52 -0500
+	with ESMTP id S1761990AbZLPLFy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 06:05:54 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173019.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KUQ00BZPS5OJK34@vms173019.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:50 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 05:05:52 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
@@ -23,130 +23,241 @@ Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
 
 From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-We don't need to store init_flags after using them.  And we don't use
-the result of INIT, so we don't need to allocate a buffer for it.
+1) Add support for reading the hardware blocked state.  Previously
+   we read a combination of the hardware and software blocked states,
+   reporting it as the software blocked state.  This caused some
+   confusing behaviour.
+
+2) The software state is persistent, mark it as such.
+
+3) Check rfkill in the resume handler.  Both the hard and soft
+   blocked states may change over hibernation.
 
 Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Acked-by: Matthew Garrett <mjg@redhat.com>
+Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   55 ++++++++++++++++------------------
- 1 files changed, 26 insertions(+), 29 deletions(-)
+ drivers/platform/x86/hp-wmi.c |  139 +++++++++++++++++++++++++----------------
+ 1 files changed, 84 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 9f33e51..50ceaaf 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -136,7 +136,6 @@ struct eeepc_hotk {
- 	acpi_handle handle;		/* the handle of the hotk device */
- 	u32 cm_supported;		/* the control methods supported
- 					   by this BIOS */
--	uint init_flag;			/* Init flags */
- 	u16 event_count[128];		/* count for each event */
- 	struct input_dev *inputdev;
- 	u16 *keycode_map;
-@@ -256,8 +255,7 @@ MODULE_LICENSE("GPL");
- /*
-  * ACPI Helpers
-  */
--static int write_acpi_int(acpi_handle handle, const char *method, int val,
--			  struct acpi_buffer *output)
-+static int write_acpi_int(acpi_handle handle, const char *method, int val)
+diff --git a/drivers/platform/x86/hp-wmi.c b/drivers/platform/x86/hp-wmi.c
+index c284217..804cfdb 100644
+--- a/drivers/platform/x86/hp-wmi.c
++++ b/drivers/platform/x86/hp-wmi.c
+@@ -51,6 +51,12 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE91-3D44E2C707E4");
+ #define HPWMI_WIRELESS_QUERY 0x5
+ #define HPWMI_HOTKEY_QUERY 0xc
+ 
++enum hp_wmi_radio {
++	HPWMI_WIFI = 0,
++	HPWMI_BLUETOOTH = 1,
++	HPWMI_WWAN = 2,
++};
++
+ static int __init hp_wmi_bios_setup(struct platform_device *device);
+ static int __exit hp_wmi_bios_remove(struct platform_device *device);
+ static int hp_wmi_resume_handler(struct device *device);
+@@ -175,8 +181,8 @@ static int hp_wmi_tablet_state(void)
+ 
+ static int hp_wmi_set_block(void *data, bool blocked)
  {
- 	struct acpi_object_list params;
- 	union acpi_object in_obj;
-@@ -268,7 +266,7 @@ static int write_acpi_int(acpi_handle handle, const char *method, int val,
- 	in_obj.type = ACPI_TYPE_INTEGER;
- 	in_obj.integer.value = val;
+-	unsigned long b = (unsigned long) data;
+-	int query = BIT(b + 8) | ((!blocked) << b);
++	enum hp_wmi_radio r = (enum hp_wmi_radio) data;
++	int query = BIT(r + 8) | ((!blocked) << r);
  
--	status = acpi_evaluate_object(handle, (char *)method, &params, output);
-+	status = acpi_evaluate_object(handle, (char *)method, &params, NULL);
- 	return (status == AE_OK ? 0 : -1);
+ 	return hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 1, query);
  }
+@@ -185,31 +191,23 @@ static const struct rfkill_ops hp_wmi_rfkill_ops = {
+ 	.set_block = hp_wmi_set_block,
+ };
  
-@@ -296,7 +294,7 @@ static int set_acpi(int cm, int value)
- 	if ((ehotk->cm_supported & (0x1 << cm)) == 0)
- 		return -ENODEV;
- 
--	if (write_acpi_int(ehotk->handle, method, value, NULL))
-+	if (write_acpi_int(ehotk->handle, method, value))
- 		pr_warning("Error writing %s\n", method);
- 	return 0;
- }
-@@ -624,36 +622,36 @@ static void cmsg_quirks(void)
- 	cmsg_quirk(CM_ASL_TPD, "TPD");
- }
- 
--static int eeepc_hotk_check(void)
-+static int eeepc_hotk_init(void)
+-static bool hp_wmi_wifi_state(void)
+-{
+-	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+-
+-	if (wireless & 0x100)
+-		return false;
+-	else
+-		return true;
+-}
+-
+-static bool hp_wmi_bluetooth_state(void)
++static bool hp_wmi_get_sw_state(enum hp_wmi_radio r)
  {
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	unsigned int init_flags;
- 	int result;
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
++	int mask = 0x200 << (r * 8);
  
- 	result = acpi_bus_get_status(ehotk->device);
- 	if (result)
- 		return result;
--	if (ehotk->device->status.present) {
--		if (write_acpi_int(ehotk->handle, "INIT", ehotk->init_flag,
--				    &buffer)) {
--			pr_err("Hotkey initialization failed\n");
--			return -ENODEV;
--		} else {
--			pr_notice("Hotkey init flags 0x%x\n", ehotk->init_flag);
--		}
--		/* get control methods supported */
--		if (read_acpi_int(ehotk->handle, "CMSG"
--				   , &ehotk->cm_supported)) {
--			pr_err("Get control methods supported failed\n");
--			return -ENODEV;
--		} else {
--			cmsg_quirks();
--			pr_info("Get control methods supported: 0x%x\n",
--				ehotk->cm_supported);
--		}
--	} else {
-+	if (!ehotk->device->status.present) {
- 		pr_err("Hotkey device not present, aborting\n");
--		return -EINVAL;
-+		return -ENODEV;
+-	if (wireless & 0x10000)
++	if (wireless & mask)
+ 		return false;
+ 	else
+ 		return true;
+ }
+ 
+-static bool hp_wmi_wwan_state(void)
++static bool hp_wmi_get_hw_state(enum hp_wmi_radio r)
+ {
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
++	int mask = 0x800 << (r * 8);
+ 
+-	if (wireless & 0x1000000)
++	if (wireless & mask)
+ 		return false;
+ 	else
+ 		return true;
+@@ -334,49 +332,55 @@ static void hp_wmi_notify(u32 value, void *context)
+ 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	static struct key_entry *key;
+ 	union acpi_object *obj;
++	int eventcode;
+ 
+ 	wmi_get_event_data(value, &response);
+ 
+ 	obj = (union acpi_object *)response.pointer;
+ 
+-	if (obj && obj->type == ACPI_TYPE_BUFFER && obj->buffer.length == 8) {
+-		int eventcode = *((u8 *) obj->buffer.pointer);
+-		if (eventcode == 0x4)
+-			eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
+-							 0);
+-		key = hp_wmi_get_entry_by_scancode(eventcode);
+-		if (key) {
+-			switch (key->type) {
+-			case KE_KEY:
+-				input_report_key(hp_wmi_input_dev,
+-						 key->keycode, 1);
+-				input_sync(hp_wmi_input_dev);
+-				input_report_key(hp_wmi_input_dev,
+-						 key->keycode, 0);
+-				input_sync(hp_wmi_input_dev);
+-				break;
+-			}
+-		} else if (eventcode == 0x1) {
+-			input_report_switch(hp_wmi_input_dev, SW_DOCK,
+-					    hp_wmi_dock_state());
+-			input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
+-					    hp_wmi_tablet_state());
++	if (!obj || obj->type != ACPI_TYPE_BUFFER || obj->buffer.length != 8) {
++		printk(KERN_INFO "HP WMI: Unknown response received\n");
++		return;
++	}
++
++	eventcode = *((u8 *) obj->buffer.pointer);
++	if (eventcode == 0x4)
++		eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
++						0);
++	key = hp_wmi_get_entry_by_scancode(eventcode);
++	if (key) {
++		switch (key->type) {
++		case KE_KEY:
++			input_report_key(hp_wmi_input_dev,
++					 key->keycode, 1);
++			input_sync(hp_wmi_input_dev);
++			input_report_key(hp_wmi_input_dev,
++					 key->keycode, 0);
+ 			input_sync(hp_wmi_input_dev);
+-		} else if (eventcode == 0x5) {
+-			if (wifi_rfkill)
+-				rfkill_set_sw_state(wifi_rfkill,
+-						    hp_wmi_wifi_state());
+-			if (bluetooth_rfkill)
+-				rfkill_set_sw_state(bluetooth_rfkill,
+-						    hp_wmi_bluetooth_state());
+-			if (wwan_rfkill)
+-				rfkill_set_sw_state(wwan_rfkill,
+-						    hp_wmi_wwan_state());
+-		} else
+-			printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
+-			       eventcode);
++			break;
++		}
++	} else if (eventcode == 0x1) {
++		input_report_switch(hp_wmi_input_dev, SW_DOCK,
++				    hp_wmi_dock_state());
++		input_report_switch(hp_wmi_input_dev, SW_TABLET_MODE,
++				    hp_wmi_tablet_state());
++		input_sync(hp_wmi_input_dev);
++	} else if (eventcode == 0x5) {
++		if (wifi_rfkill)
++			rfkill_set_states(wifi_rfkill,
++					  hp_wmi_get_sw_state(HPWMI_WIFI),
++					  hp_wmi_get_hw_state(HPWMI_WIFI));
++		if (bluetooth_rfkill)
++			rfkill_set_states(bluetooth_rfkill,
++					  hp_wmi_get_sw_state(HPWMI_BLUETOOTH),
++					  hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
++		if (wwan_rfkill)
++			rfkill_set_states(wwan_rfkill,
++					  hp_wmi_get_sw_state(HPWMI_WWAN),
++					  hp_wmi_get_hw_state(HPWMI_WWAN));
+ 	} else
+-		printk(KERN_INFO "HP WMI: Unknown response received\n");
++		printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
++			eventcode);
+ }
+ 
+ static int __init hp_wmi_input_setup(void)
+@@ -455,7 +459,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 		wifi_rfkill = rfkill_alloc("hp-wifi", &device->dev,
+ 					   RFKILL_TYPE_WLAN,
+ 					   &hp_wmi_rfkill_ops,
+-					   (void *) 0);
++					   (void *) HPWMI_WIFI);
++		rfkill_init_sw_state(wifi_rfkill,
++				     hp_wmi_get_sw_state(HPWMI_WIFI));
++		rfkill_set_hw_state(wifi_rfkill,
++				    hp_wmi_get_hw_state(HPWMI_WIFI));
+ 		err = rfkill_register(wifi_rfkill);
+ 		if (err)
+ 			goto register_wifi_error;
+@@ -465,7 +473,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 		bluetooth_rfkill = rfkill_alloc("hp-bluetooth", &device->dev,
+ 						RFKILL_TYPE_BLUETOOTH,
+ 						&hp_wmi_rfkill_ops,
+-						(void *) 1);
++						(void *) HPWMI_BLUETOOTH);
++		rfkill_init_sw_state(bluetooth_rfkill,
++				     hp_wmi_get_sw_state(HPWMI_BLUETOOTH));
++		rfkill_set_hw_state(bluetooth_rfkill,
++				    hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
+ 		err = rfkill_register(bluetooth_rfkill);
+ 		if (err)
+ 			goto register_bluetooth_error;
+@@ -475,7 +487,11 @@ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ 		wwan_rfkill = rfkill_alloc("hp-wwan", &device->dev,
+ 					   RFKILL_TYPE_WWAN,
+ 					   &hp_wmi_rfkill_ops,
+-					   (void *) 2);
++					   (void *) HPWMI_WWAN);
++		rfkill_init_sw_state(wwan_rfkill,
++				     hp_wmi_get_sw_state(HPWMI_WWAN));
++		rfkill_set_hw_state(wwan_rfkill,
++				    hp_wmi_get_hw_state(HPWMI_WWAN));
+ 		err = rfkill_register(wwan_rfkill);
+ 		if (err)
+ 			goto register_wwan_err;
+@@ -533,6 +549,19 @@ static int hp_wmi_resume_handler(struct device *device)
+ 		input_sync(hp_wmi_input_dev);
  	}
-+
-+	init_flags = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
-+	pr_notice("Hotkey init flags 0x%x\n", init_flags);
-+
-+	if (write_acpi_int(ehotk->handle, "INIT", init_flags)) {
-+		pr_err("Hotkey initialization failed\n");
-+		return -ENODEV;
-+	}
-+
-+	/* get control methods supported */
-+	if (read_acpi_int(ehotk->handle, "CMSG",
-+				&ehotk->cm_supported)) {
-+		pr_err("Get control methods supported failed\n");
-+		return -ENODEV;
-+	}
-+	cmsg_quirks();
-+	pr_info("Get control methods supported: 0x%x\n", ehotk->cm_supported);
+ 
++	if (wifi_rfkill)
++		rfkill_set_states(wifi_rfkill,
++				  hp_wmi_get_sw_state(HPWMI_WIFI),
++				  hp_wmi_get_hw_state(HPWMI_WIFI));
++	if (bluetooth_rfkill)
++		rfkill_set_states(bluetooth_rfkill,
++				  hp_wmi_get_sw_state(HPWMI_BLUETOOTH),
++				  hp_wmi_get_hw_state(HPWMI_BLUETOOTH));
++	if (wwan_rfkill)
++		rfkill_set_states(wwan_rfkill,
++				  hp_wmi_get_sw_state(HPWMI_WWAN),
++				  hp_wmi_get_hw_state(HPWMI_WWAN));
 +
  	return 0;
  }
  
-@@ -1264,14 +1262,13 @@ static int __devinit eeepc_hotk_add(struct acpi_device *device)
- 	ehotk = kzalloc(sizeof(struct eeepc_hotk), GFP_KERNEL);
- 	if (!ehotk)
- 		return -ENOMEM;
--	ehotk->init_flag = DISABLE_ASL_WLAN | DISABLE_ASL_DISPLAYSWITCH;
- 	ehotk->handle = device->handle;
- 	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
- 	device->driver_data = ehotk;
- 	ehotk->device = device;
- 
--	result = eeepc_hotk_check();
-+	result = eeepc_hotk_init();
- 	if (result)
- 		goto fail_platform_driver;
- 	eeepc_enable_camera();
 -- 
 1.6.0.6
 
