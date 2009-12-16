@@ -1,41 +1,34 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
-Date: Thu, 17 Dec 2009 07:27:18 +0900
-Message-ID: <20091216222718.GA22197@kamineko.org>
-References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Wed, 16 Dec 2009 23:33:57 +0100
+Message-ID: <200912162333.57245.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912162257.00771.rjw@sisk.pl> <alpine.LFD.2.00.0912161410120.3556@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:48118
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935211AbZLPW1V (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 17:27:21 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
+Received: from ogre.sisk.pl ([217.79.144.158]:59427 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935250AbZLPWdc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2009 17:33:32 -0500
+In-Reply-To: <alpine.LFD.2.00.0912161410120.3556@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-[removed a few recipients that might not be interested]
-
-On Wed, Dec 16, 2009 at 03:06:40PM -0500, Len Brown wrote:
-> Hi Linus,
+On Wednesday 16 December 2009, Linus Torvalds wrote:
 > 
-> please pull from: 
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-...
-> The bulk of the platform driver updates should be in here,
-> though I do expect some smaller updates still.
+> Btw, what are the timings if you just force everything async? I think that 
+> worked on yur laptops, no?
 
-Len,
-I guess none of my emails about sony-laptop and sony-laptop patches got
-to you, not even the reply to your patch list earlier where I was
-pointing out that you missed sony-laptop patches.
+No, it didn't.  I could make all PCI async, provided that the ACPI subtree was
+resumed before any PCI devices.  [Theoretically I can make that happen by
+moving ACPI resume to the _noirq phase (just for testing of course).  So I can
+try to make PCI async in addition to serio and USB, plus i8042 perhaps, which
+should be sfficient for the nx6325 I think.]
 
-Sigh... I'm starting to feel a bit frustrated.
+Making all async always hanged the boxes on resume.
 
--- 
-mattia
-:wq!
+Rafael
