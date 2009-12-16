@@ -1,132 +1,120 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 058/103] PNPACPI: save struct acpi_device, not just acpi_handle
-Date: Wed, 16 Dec 2009 03:36:09 -0500
-Message-ID: <c4da6940a7a41c72781ff2d62ebd4b99f3749f14.1260952472.git.len.brown@intel.com>
-References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH] eeepc-laptop: disable pci hotplug code when all notifiers
+	fail to load
+Date: Wed, 16 Dec 2009 11:58:39 +0100
+Message-ID: <71cd59b00912160258m35038f27j2862315826149c8d@mail.gmail.com>
+References: <20091207212848.GA9171@srcf.ucam.org>
+	 <1260738971-25456-1-git-send-email-corentincj@iksaif.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:41516 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760839AbZLPKGM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:06:12 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KUQ00A4HPDO02XA@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 04:06:00 -0600 (CST)
-In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
-In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
-References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
+Received: from mail-vw0-f192.google.com ([209.85.212.192]:63257 "EHLO
+	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755556AbZLPK6l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 05:58:41 -0500
+Received: by vws30 with SMTP id 30so261065vws.33
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2009 02:58:40 -0800 (PST)
+In-Reply-To: <1260738971-25456-1-git-send-email-corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Jenkins <alan-jenkins@tuffmail.co.uk>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user@lists.sourceforge.net, Corentin Chary <corentincj@iksaif.net>, andrej.gelenberg@udo.edu
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Hi Len,
+Please merge this patch too, I forgot so send it to you earlier.
+Thanks,
 
-Some drivers need to look at things in the acpi_device structure
-besides the handle.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/pnp/pnpacpi/core.c     |   17 ++++++++++++-----
- drivers/pnp/pnpacpi/rsparser.c |    9 ++++++---
- 2 files changed, 18 insertions(+), 8 deletions(-)
+On Sun, Dec 13, 2009 at 10:16 PM, Corentin Chary <corentincj@iksaif.net=
+> wrote:
+> This is a short term workaround for Eeepc 1005HA.
+>
+> refs: <http://bugzilla.kernel.org/show_bug.cgi?id=3D14570>
+>
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> ---
+> =A0drivers/platform/x86/eeepc-laptop.c | =A0 17 +++++++++++++----
+> =A01 files changed, 13 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x=
+86/eeepc-laptop.c
+> index 356ca11..45c3f52 100644
+> --- a/drivers/platform/x86/eeepc-laptop.c
+> +++ b/drivers/platform/x86/eeepc-laptop.c
+> @@ -177,6 +177,7 @@ struct eeepc_laptop {
+>
+> =A0 =A0 =A0 =A0struct hotplug_slot *hotplug_slot;
+> =A0 =A0 =A0 =A0struct mutex hotplug_lock;
+> + =A0 =A0 =A0 bool hotplug_enabled;
+>
+> =A0 =A0 =A0 =A0struct led_classdev tpd_led;
+> =A0 =A0 =A0 =A0int tpd_led_wk;
+> @@ -642,6 +643,7 @@ static int eeepc_register_rfkill_notifier(struct =
+eeepc_laptop *eeepc,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 eeepc);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ACPI_FAILURE(status))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_warning("Failed to =
+register notify on %s\n", node);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 eeepc->hotplug_enabled =3D true;
+> =A0 =A0 =A0 =A0} else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
+>
+> @@ -845,7 +847,17 @@ static int eeepc_rfkill_init(struct eeepc_laptop=
+ *eeepc)
+> =A0 =A0 =A0 =A0if (result && result !=3D -ENODEV)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto exit;
+>
+> - =A0 =A0 =A0 result =3D eeepc_setup_pci_hotplug(eeepc);
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* Register notifiers first, if they all fail, we won=
+'t enable
+> + =A0 =A0 =A0 =A0* pci hotplug because it's probably not needed for t=
+his model
+> + =A0 =A0 =A0 =A0* (eg: 1005HA)
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P5"=
+);
+> + =A0 =A0 =A0 eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P6"=
+);
+> + =A0 =A0 =A0 eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P7"=
+);
+> +
+> + =A0 =A0 =A0 if (eeepc->hotplug_enabled)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D eeepc_setup_pci_hotplug(eeep=
+c);
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * If we get -EBUSY then something else is handling th=
+e PCI hotplug -
+> =A0 =A0 =A0 =A0 * don't fail in this case
+> @@ -853,9 +865,6 @@ static int eeepc_rfkill_init(struct eeepc_laptop =
+*eeepc)
+> =A0 =A0 =A0 =A0if (result =3D=3D -EBUSY)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0result =3D 0;
+>
+> - =A0 =A0 =A0 eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P5"=
+);
+> - =A0 =A0 =A0 eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P6"=
+);
+> - =A0 =A0 =A0 eeepc_register_rfkill_notifier(eeepc, "\\_SB.PCI0.P0P7"=
+);
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * Refresh pci hotplug in case the rfkill state was ch=
+anged during
+> =A0 =A0 =A0 =A0 * setup.
+> --
+> 1.6.5.4
+>
+>
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index 83b8b5a..b2348fc 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -80,7 +80,8 @@ static int pnpacpi_get_resources(struct pnp_dev *dev)
- 
- static int pnpacpi_set_resources(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	struct acpi_buffer buffer;
- 	int ret;
- 
-@@ -103,7 +104,8 @@ static int pnpacpi_set_resources(struct pnp_dev *dev)
- 
- static int pnpacpi_disable_resources(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	int ret;
- 
- 	dev_dbg(&dev->dev, "disable resources\n");
-@@ -121,6 +123,8 @@ static int pnpacpi_disable_resources(struct pnp_dev *dev)
- #ifdef CONFIG_ACPI_SLEEP
- static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
- {
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	int power_state;
- 
- 	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
-@@ -128,12 +132,15 @@ static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
- 		power_state = (state.event == PM_EVENT_ON) ?
- 				ACPI_STATE_D0 : ACPI_STATE_D3;
- 
--	return acpi_bus_set_power((acpi_handle) dev->data, power_state);
-+	return acpi_bus_set_power(handle, power_state);
- }
- 
- static int pnpacpi_resume(struct pnp_dev *dev)
- {
--	return acpi_bus_set_power((acpi_handle) dev->data, ACPI_STATE_D0);
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
-+
-+	return acpi_bus_set_power(handle, ACPI_STATE_D0);
- }
- #endif
- 
-@@ -168,7 +175,7 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
- 	if (!dev)
- 		return -ENOMEM;
- 
--	dev->data = device->handle;
-+	dev->data = device;
- 	/* .enabled means the device can decode the resources */
- 	dev->active = device->status.enabled;
- 	status = acpi_get_handle(device->handle, "_SRS", &temp);
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index ef3a2cd..5702b2c 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -465,7 +465,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 
- int pnpacpi_parse_allocated_resource(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	acpi_status status;
- 
- 	pnp_dbg(&dev->dev, "parse allocated resources\n");
-@@ -773,7 +774,8 @@ static __init acpi_status pnpacpi_option_resource(struct acpi_resource *res,
- 
- int __init pnpacpi_parse_resource_option_data(struct pnp_dev *dev)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	acpi_status status;
- 	struct acpipnp_parse_option_s parse_data;
- 
-@@ -845,7 +847,8 @@ static acpi_status pnpacpi_type_resources(struct acpi_resource *res, void *data)
- int pnpacpi_build_resource_template(struct pnp_dev *dev,
- 				    struct acpi_buffer *buffer)
- {
--	acpi_handle handle = dev->data;
-+	struct acpi_device *acpi_dev = dev->data;
-+	acpi_handle handle = acpi_dev->handle;
- 	struct acpi_resource *resource;
- 	int res_cnt = 0;
- 	acpi_status status;
--- 
-1.6.0.6
 
+
+--=20
+Corentin Chary
+http://xf.iksaif.net
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
