@@ -1,72 +1,54 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 030/103] eeepc-laptop: fix led initialization order
-Date: Wed, 16 Dec 2009 03:35:41 -0500
-Message-ID: <2b56f1c170fc6338a7d907d6a7132669f9ccdf62.1260952472.git.len.brown@intel.com>
+Subject: [PATCH 046/103] eeepc-laptop: map keys found on newer eeepc
+Date: Wed, 16 Dec 2009 03:35:57 -0500
+Message-ID: <b39b85e74acfd62a22afc33a88a7bda36beb3367.1260952472.git.len.brown@intel.com>
 References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:62434 "EHLO
+Received: from vms173013pub.verizon.net ([206.46.173.13]:62407 "EHLO
 	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761900AbZLPJGU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 04:06:20 -0500
+	with ESMTP id S1761884AbZLPJGM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 04:06:12 -0500
 Received: from localhost.localdomain ([74.104.151.18])
  by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
  with ESMTPA id <0KUQ0055NMLOFSID@vms173013.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 03:06:00 -0600 (CST)
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 03:05:56 -0600 (CST)
 In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alan Jenkins <alan-jenkins@tuffmail.co.uk>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+From: Corentin Chary <corentincj@iksaif.net>
 
-Create the workqueue thread used by tpd_led_set() *before* we register
-the led device.  (And vice versa for unregistration).
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/eeepc-laptop.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/platform/x86/eeepc-laptop.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index 6c982d6..ac45faf 100644
+index 935ec44..920d9d9 100644
 --- a/drivers/platform/x86/eeepc-laptop.c
 +++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -1074,10 +1074,10 @@ static void eeepc_hwmon_exit(void)
- 
- static void eeepc_led_exit(void)
- {
--	if (led_workqueue)
--		destroy_workqueue(led_workqueue);
- 	if (tpd_led.dev)
- 		led_classdev_unregister(&tpd_led);
-+	if (led_workqueue)
-+		destroy_workqueue(led_workqueue);
- }
- 
- static int eeepc_new_rfkill(struct rfkill **rfkill,
-@@ -1243,14 +1243,14 @@ static int eeepc_led_init(struct device *dev)
- 	if (get_acpi(CM_ASL_TPD) == -ENODEV)
- 		return 0;
- 
--	rv = led_classdev_register(dev, &tpd_led);
--	if (rv)
--		return rv;
--
- 	led_workqueue = create_singlethread_workqueue("led_workqueue");
- 	if (!led_workqueue)
- 		return -ENOMEM;
- 
-+	rv = led_classdev_register(dev, &tpd_led);
-+	if (rv)
-+		return rv;
-+
- 	return 0;
- }
+@@ -136,6 +136,7 @@ static const struct key_entry eeepc_keymap[] = {
+ 	{KE_KEY, 0x13, KEY_MUTE },
+ 	{KE_KEY, 0x14, KEY_VOLUMEDOWN },
+ 	{KE_KEY, 0x15, KEY_VOLUMEUP },
++	{KE_KEY, 0x16, KEY_DISPLAY_OFF },
+ 	{KE_KEY, 0x1a, KEY_COFFEE },
+ 	{KE_KEY, 0x1b, KEY_ZOOM },
+ 	{KE_KEY, 0x1c, KEY_PROG2 },
+@@ -145,6 +146,8 @@ static const struct key_entry eeepc_keymap[] = {
+ 	{KE_KEY, 0x30, KEY_SWITCHVIDEOMODE },
+ 	{KE_KEY, 0x31, KEY_SWITCHVIDEOMODE },
+ 	{KE_KEY, 0x32, KEY_SWITCHVIDEOMODE },
++	{KE_KEY, 0x37, KEY_F13 }, /* Disable Touchpad */
++	{KE_KEY, 0x38, KEY_F14 },
+ 	{KE_END, 0},
+ };
  
 -- 
 1.6.0.6
