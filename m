@@ -1,143 +1,217 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
-Date: Wed, 16 Dec 2009 09:23:15 +0800
-Message-ID: <1260926595.12561.1188.camel@yhuang-dev.sh.intel.com>
-References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>
-	 <200912111036.15063.bjorn.helgaas@hp.com>
-	 <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>
-	 <200912151047.14196.bjorn.helgaas@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Wed, 16 Dec 2009 03:11:05 +0100
+Message-ID: <200912160311.05915.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912151203.22916.rjw@sisk.pl> <alpine.LFD.2.00.0912150722310.14385@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:37032 "EHLO mga02.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:54872 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756534AbZLPBXT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2009 20:23:19 -0500
-In-Reply-To: <200912151047.14196.bjorn.helgaas@hp.com>
+	id S934489AbZLPCKd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2009 21:10:33 -0500
+In-Reply-To: <alpine.LFD.2.00.0912150722310.14385@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, 2009-12-16 at 01:47 +0800, Bjorn Helgaas wrote: 
-> On Monday 14 December 2009 06:04:13 pm Huang Ying wrote:
-> > On Sat, 2009-12-12 at 01:36 +0800, Bjorn Helgaas wrote: 
-> > > I think your code would be simpler if acpi_pre_map_gar() returned a
-> > > struct acpi_iomap pointer (from the caller's point of view, this would
-> > > be an opaque cookie).  Then you could just supply that cookie to
-> > > acpi_atomic_write(), and you wouldn't have to look it up again.  Maybe
-> > > you could even get rid of the list and all the fancy RCU & kref stuff
-> > > then, too.
-> > 
-> > The interface chosen is based on usage model, which is:
-> > 
-> > 1. In init function, all GARs needed are pre-mapped
-> > 2. In atomic context, pre-mapped GARs are accessed
-> > 3. In exit function, all GARs are post-unmapped
-> > 
-> > In 3), if struct acpi_iomap* is used as parameter for post-unmap
-> > function, we need to record that pointer in another list. In 2), we need
-> > find mapped address from GAR.
+On Tuesday 15 December 2009, Linus Torvalds wrote:
 > 
-> I understand that my proposal would require a slight change in your
-> usage model.  I am suggesting that you make it follow the same pattern
-> as pci_iomap(), e.g.:
-> 
-> 	void *pci_iomap(struct pci_dev *, int bar, unsigned long len);
-> 	unsigned int ioread32(void *);
-> 	void pci_iounmap(struct pci_dev *, void *);
-> 
-> 	void *acpi_map_generic_address(struct acpi_generic_address *);
-> 	u64 acpi_read_atomic(void *);
-> 	void acpi_unmap_generic_address(void *);
-> 
-> acpi_map_generic_address() would validate the GAR and do the ioremap().
-> If the validation or ioremap() failed, it would return a NULL pointer.
-> 
-> This would require the caller of acpi_map_generic_address() to hang onto
-> the pointer returned (just as callers of pci_iomap() must hang onto the
-> pointer it returns).
-> 
-> The pointer would be supplied to acpi_read_atomic(), so it would not
-> need to do acpi_check_gar() because we know it was done successfully
-> in acpi_map_generic_address().  It wouldn't need to look up the GAR
-> in the list because the list entry was passed in.  Since all the
-> possible failure conditions were checked in acpi_map_generic_address(),
-> acpi_read_atomic() doesn't need to return status and could simply
-> return the u64 directly.
-
-The usage model is different. Please take a look at
-__apei_exec_read_register(). We need to get virtual address from
-physical address in GAR. And many small-size GARs in ERST or EINJ may
-share same page, so some kind of virtual space optimization is
-necessary.
-
-> > > > +/* In NMI handler, should set silent = 1 */
-> > > > +static int acpi_check_gar(struct acpi_generic_address *reg,
-> > > > +			  u64 *paddr, int silent)
-> > > > +{
-> > > > +	u32 width;
-> > > > +
-> > > > +	/* Handle possible alignment issues */
-> > > > +	memcpy(paddr, &reg->address, sizeof(*paddr));
-> > > > +	if (!*paddr) {
-> > > > +		if (!silent)
-> > > > +			pr_info(
-> > > > +			"Invalid physical address in GAR, firmware bug?\n");
-> > > > +		return -EINVAL;
-> > > > +	}
-> > > > +
-> > > > +	width = reg->bit_width;
-> > > > +	if ((width != 8) && (width != 16) && (width != 32) && (width != 64)) {
-> > > > +		if (!silent)
-> > > > +			pr_info(
-> > > > +			"Invalid bit width in GAR, firmware bug?\n");
-> > > > +		return -EINVAL;
-> > > > +	}
-> > > > +
-> > > > +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-> > > > +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
-> > > > +		if (!silent)
-> > > > +			pr_info(
-> > > > +			"Invalid address space type in GAR, firmware bug?\n");
+> On Tue, 15 Dec 2009, Rafael J. Wysocki wrote:
 > > > 
-> > > Error messages with constant text are nearly useless because they
-> > > don't give much of a clue about where to look for a problem.
-> > > Personally, for something this, I would just return failure and
-> > > never print anything.  If a map fails, the caller should notice
-> > > and you then have a good idea of where to look.
+> > > Give a real example that matters.
 > > 
-> > The checking here is for bug in firmware not software. I think it is
-> > necessary for the user to know where the bugs may come from, and it is
-> > hard to express the bug in return code.
+> > I'll try.  Let -> denote child-parent relationships and assume dpm_list looks
+> > like this:
 > 
-> Yes, I understand that this is checking for firmware bugs.  My point
-> is that when a user sees this in his dmesg log:
+> No. 
 > 
-> 	Invalid bit width in GAR, firmware bug?
+> I mean something real - something like
 > 
-> we have no context, and even a kernel developer can't figure out what
-> to do.  We could ask for a copy of the FADT and DSDT, but even then,
-> we don't know *which* GAR structure to look at, so we'll probably have
-> to add some instrumentation and ask the user to reproduce the problem.
+>  - if you run on a non-PC with two USB buses behind non-PCI controllers.
 > 
-> If the check were in the caller, it could at least say something like:
+>  - device xyz.
 > 
-> 	ACPI: couldn't map generic address [io 0xcf8] for PCI config access
+> > If this applies to _resume_ only, then I agree, but the Arjan's data clearly
+> > show that serio devices take much more time to suspend than USB.
 > 
-> which would give us more useful information.
+> I mean in general - something where you actually have hard data that some 
+> device really needs anythign more than my one-liner, and really _needs_ 
+> some complex infrastructure.
+> 
+> Not "let's imagine a case like xyz".
 
-En... Yes, some information about the invalid GAR is helpful. But the
-GAR information is available in acpi_check_gar too, so we can output
-something as follow in acpi_check_gar:
+As I said I would, I made some measurements.
 
-    Invalid bit width in GAR [mem 0x8029ff8 24], firmware bug?
+I measured the total time of suspending and resuming devices as shown by the
+code added by this patch:
+http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=commitdiff_plain;h=c1b8fc0a8bff7707c10f31f3d26bfa88e18ccd94;hp=087dbf5f079f1b55cbd3964c9ce71268473d5b67
+on two boxes, HP nx6325 and MSI Wind U100 (hardware-wise they are quite
+different and the HP was running 64-bit kernel and user space).
 
-Your message looks like a software issue instead of firmware bug. This
-may confuse the user and developer.
+I took four cases into consideration:
+(1) synchronous suspend and resume (/sys/power/pm_async = 0)
+(2) asynchronous suspend and resume as introduced by the async branch at:
+    http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=shortlog;h=refs/heads/async
+(3) asynchronous suspend and resume like in (2), but with your one-liner setting
+    the power.async_suspend flag for PCI bridges on top
+(4) asynchronous suspend and resume like in (2), but with an extra patch that
+    is appended on top
 
-Best Regards,
-Huang Ying
+For those tests I set power.async_suspend for all USB devices, all serio input
+devices, the ACPI battery and the USB PCI controllers (to see the impact of the
+one-liner, if any).
 
+I carried out 5 consecutive suspend-resume cycles (started from under X) on
+each box in each case, and the raw data are here (all times in milliseconds):
+http://www.sisk.pl/kernel/data/async-suspend.pdf
 
+The summarized data are below (the "big" numbers are averages and the +/-
+numbers are standard deviations, all in milliseconds):
+
+			HP nx6325		MSI Wind U100
+
+sync suspend		1482 (+/- 40)	1180 (+/- 24)
+sync resume		2955 (+/- 2)	3597 (+/- 25)
+
+async suspend		1553 (+/- 49)	1177 (+/- 32)
+async resume		2692 (+/- 326)	3556  (+/- 33)
+
+async+one-liner suspend	1600 (+/- 39)	1212 (+/- 41)
+async+one-liner resume	2692 (+/- 324)	3579 (+/- 24)
+
+async+extra suspend	1496 (+/- 37)	1217 (+/- 38)
+async+extra resume	1859 (+/- 114)	1923 (+/- 35)
+
+So, in my opinion, with the above set of "async" devices, it doesn't
+make sense to do async suspend at all, because the sync suspend is actually
+the fastest on both machines.
+
+However, it surely is worth doing async _resume_ with the extra patch appended
+below, because that allows us to save 1 second or more on both machines with
+respect to the sync case.  The other variants of async resume also produce some
+time savings, but (on the nx6325) at the expense of huge fluctuations from one
+cycle to another (so they can actually be slower than the sync resume).  Only
+the async resume with the extra patch is consistently better than the sync one.
+The impact of the one-liner is either negligible or slightly negative.
+
+Now, what does the extra patch do?  Exactly the thing I was talking about, it
+starts all async suspends and resumes upfront.
+
+So, it looks like we both were wrong.  I was wrong, because I thought the
+extra patch would help suspend, but not resume, while in fact it appears to
+help resume big time.  You were wrong, because you thought that the one-liner
+would have positive impact, while in fact it doesn't.
+
+Concluding, at this point I'd opt for implementing asynchronous resume alone,
+_without_ asynchronous suspend, which is more complicated and doesn't really
+give us any time savings.  At the same time, I'd implement the asynchronous
+resume in such a way that all of the async resume threads would be started
+before the synchronous suspend thread, because that would give us the best
+results.
+
+Rafael
+
+---
+ drivers/base/power/main.c |   48 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 31 insertions(+), 17 deletions(-)
+
+Index: linux-2.6/drivers/base/power/main.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/main.c
++++ linux-2.6/drivers/base/power/main.c
+@@ -523,14 +523,9 @@ static void async_resume(void *data, asy
+ 
+ static int device_resume(struct device *dev)
+ {
+-	INIT_COMPLETION(dev->power.completion);
+-
+-	if (pm_async_enabled && dev->power.async_suspend
+-	    && !pm_trace_is_enabled()) {
+-		get_device(dev);
+-		async_schedule(async_resume, dev);
++	if (dev->power.async_suspend && pm_async_enabled
++	    && !pm_trace_is_enabled())
+ 		return 0;
+-	}
+ 
+ 	return __device_resume(dev, pm_transition, false);
+ }
+@@ -545,14 +540,28 @@ static int device_resume(struct device *
+ static void dpm_resume(pm_message_t state)
+ {
+ 	struct list_head list;
++	struct device *dev;
+ 	ktime_t starttime = ktime_get();
+ 
+ 	INIT_LIST_HEAD(&list);
+ 	mutex_lock(&dpm_list_mtx);
+ 	pm_transition = state;
+-	while (!list_empty(&dpm_list)) {
+-		struct device *dev = to_device(dpm_list.next);
+ 
++	list_for_each_entry(dev, &dpm_list, power.entry) {
++		if (dev->power.status < DPM_OFF)
++			continue;
++
++		INIT_COMPLETION(dev->power.completion);
++
++		if (dev->power.async_suspend && pm_async_enabled
++		    && !pm_trace_is_enabled()) {
++			get_device(dev);
++			async_schedule(async_resume, dev);
++		}
++	}
++
++	while (!list_empty(&dpm_list)) {
++		dev = to_device(dpm_list.next);
+ 		get_device(dev);
+ 		if (dev->power.status >= DPM_OFF) {
+ 			int error;
+@@ -809,13 +818,8 @@ static void async_suspend(void *data, as
+ 
+ static int device_suspend(struct device *dev)
+ {
+-	INIT_COMPLETION(dev->power.completion);
+-
+-	if (pm_async_enabled && dev->power.async_suspend) {
+-		get_device(dev);
+-		async_schedule(async_suspend, dev);
++	if (pm_async_enabled && dev->power.async_suspend)
+ 		return 0;
+-	}
+ 
+ 	return __device_suspend(dev, pm_transition, false);
+ }
+@@ -827,6 +831,7 @@ static int device_suspend(struct device 
+ static int dpm_suspend(pm_message_t state)
+ {
+ 	struct list_head list;
++	struct device *dev;
+ 	ktime_t starttime = ktime_get();
+ 	int error = 0;
+ 
+@@ -834,9 +839,18 @@ static int dpm_suspend(pm_message_t stat
+ 	mutex_lock(&dpm_list_mtx);
+ 	pm_transition = state;
+ 	async_error = 0;
+-	while (!list_empty(&dpm_list)) {
+-		struct device *dev = to_device(dpm_list.prev);
+ 
++	list_for_each_entry_reverse(dev, &dpm_list, power.entry) {
++		INIT_COMPLETION(dev->power.completion);
++
++		if (pm_async_enabled && dev->power.async_suspend) {
++			get_device(dev);
++			async_schedule(async_suspend, dev);
++		}
++	}
++
++	while (!list_empty(&dpm_list)) {
++		dev = to_device(dpm_list.prev);
+ 		get_device(dev);
+ 		mutex_unlock(&dpm_list_mtx);
+ 
