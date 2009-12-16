@@ -1,64 +1,49 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Please review power management abstract for LF End User Summit
-Date: Wed, 16 Dec 2009 03:46:23 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912160341460.30935@localhost.localdomain>
-References: <E87738D94A6AD54789B5B8D1BAEB06CC6EED79B299@azsmsx503.amr.corp.intel.com>
- <alpine.LFD.2.00.0911070025401.4070@localhost.localdomain>
- <4AFEDA59.1060804@gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 082/103] ACPI: add kernel tainting after overriding an ACPI
+ control method
+Date: Wed, 16 Dec 2009 03:36:33 -0500
+Message-ID: <4bab30a041a2f27807b0b2a7fd36c8c8695c90c8.1260952472.git.len.brown@intel.com>
+References: <1260952614-3152-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173003pub.verizon.net ([206.46.173.3]:37283 "EHLO
-	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbZLPIqY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 03:46:24 -0500
+Received: from vms173013pub.verizon.net ([206.46.173.13]:62407 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761839AbZLPJFt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 04:05:49 -0500
 Received: from localhost.localdomain ([74.104.151.18])
- by vms173003.mailsrvcs.net
+ by vms173013.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KUQ008HWLPB0P70@vms173003.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 02:46:24 -0600 (CST)
-In-reply-to: <4AFEDA59.1060804@gmail.com>
+ with ESMTPA id <0KUQ0055NMLOFSID@vms173013.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Wed, 16 Dec 2009 03:05:49 -0600 (CST)
+In-reply-to: <1260952614-3152-1-git-send-email-lenb@kernel.org>
+In-reply-to: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
+References: <5f46c2f25cfbb5faca7550738ac42c4d1491ddc8.1260952471.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "Van De Ven, Arjan" <arjan.van.de.ven@intel.com>, "Mallick, Asit K" <asit.k.mallick@intel.com>, "Kleen, Andi" <andi.kleen@intel.com>, "'linux-power-mgmt@linux.intel.com'" <linux-power-mgmt@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-On Sat, 14 Nov 2009, Robert Hancock wrote:
+From: Zhang Rui <rui.zhang@intel.com>
 
-> On 11/06/2009 11:30 PM, Len Brown wrote:
-> > Thanks for the suggestions.
-> > 
-> > final abstract is here:
-> > http://events.linuxfoundation.org/eus09hpc4
-> > 
-> > presentation being constructed here (currently draft 0.5):
-> > http://userweb.kernel.org/~lenb/doc/2009-EUS-Server-PM-web/index.html
+Add kernel tainting after overriding an ACPI control method successfully.
 
-> I noticed you mention that "power off is a valid power management strategy"..
-> indeed you can use WOL to power up again, and Linux can boot quickly,
-> unfortunately the boot speed on most server platforms in the BIOS before even
-> starting to boot the OS is abysmal, and seems to be getting worse there as it
-> improves in desktop systems. Some IBM servers take MINUTES just to initialize
-> the RAID controller.. this sort of thing isn't exactly conducive to rapid
-> power-up of servers when required.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ drivers/acpi/debug.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Agreed, though not all systems have these delays -- choose wisely:-)
-
-> Also, the power-off power usage of some servers isn't great either - some of
-> them even have to keep the power supply fans running when powered off,
-> otherwise presumably the PS would heat up too much..
-
-ditto.
-
-> Presumably in both of these cases it's because of a lack of demand for better
-> behavior (fast power-up on desktops is demanded by Microsoft "designed for
-> Windows" specs, and low power-off power usage is required by Energy Star, EU
-> standards, etc.)
-
-Yes, I agree think that these external forces are effective in getting
-system vendors in line.  Another is formal RFQ's for large purchases
-where the customer specifies exactly what they want.
-
-cheers,
--Len
+diff --git a/drivers/acpi/debug.c b/drivers/acpi/debug.c
+index 0bedd15..cc421b7 100644
+--- a/drivers/acpi/debug.c
++++ b/drivers/acpi/debug.c
+@@ -239,6 +239,7 @@ static ssize_t cm_write(struct file *file, const char __user *user_buf,
+ 		kfree(buf);
+ 		if (ACPI_FAILURE(status))
+ 			return -EINVAL;
++		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
+ 	}
+ 
+ 	return count;
+-- 
+1.6.0.6
 
