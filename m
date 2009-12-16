@@ -1,25 +1,86 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/7] X86 drivers: Introduce msi-wmi driver
-Date: Wed, 16 Dec 2009 12:44:44 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912161238290.6089@localhost.localdomain>
-References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
- <1260451099-25620-2-git-send-email-anisse@astier.eu>
- <9b2b86520912120937i548b1158k50f517af7fd5ed21@mail.gmail.com>
- <20091214105533.6634312b@destiny.ordissimo>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
+Date: Wed, 16 Dec 2009 10:54:18 -0700
+Message-ID: <200912161054.19951.bjorn.helgaas@hp.com>
+References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com> <200912151047.14196.bjorn.helgaas@hp.com> <1260926595.12561.1188.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-input-owner@vger.kernel.org>
-In-reply-to: <20091214105533.6634312b@destiny.ordissimo>
-Sender: linux-input-owner@vger.kernel.org
-To: Anisse Astier <anisse@astier.eu>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Matt Chen <machen@novell.com>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:33901 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751872AbZLPRyW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2009 12:54:22 -0500
+In-Reply-To: <1260926595.12561.1188.camel@yhuang-dev.sh.intel.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> [PATCH] msi-wmi: depend on backlight and fix corner-cases problems
+On Tuesday 15 December 2009 06:23:15 pm Huang Ying wrote:
+> On Wed, 2009-12-16 at 01:47 +0800, Bjorn Helgaas wrote: 
+> > On Monday 14 December 2009 06:04:13 pm Huang Ying wrote:
+> > > On Sat, 2009-12-12 at 01:36 +0800, Bjorn Helgaas wrote: 
+> > > > I think your code would be simpler if acpi_pre_map_gar() returned a
+> > > > struct acpi_iomap pointer (from the caller's point of view, this would
+> > > > be an opaque cookie).  Then you could just supply that cookie to
+> > > > acpi_atomic_write(), and you wouldn't have to look it up again.  Maybe
+> > > > you could even get rid of the list and all the fancy RCU & kref stuff
+> > > > then, too.
+> > > 
+> > > The interface chosen is based on usage model, which is:
+> > > 
+> > > 1. In init function, all GARs needed are pre-mapped
+> > > 2. In atomic context, pre-mapped GARs are accessed
+> > > 3. In exit function, all GARs are post-unmapped
+> > > 
+> > > In 3), if struct acpi_iomap* is used as parameter for post-unmap
+> > > function, we need to record that pointer in another list. In 2), we need
+> > > find mapped address from GAR.
+> > 
+> > I understand that my proposal would require a slight change in your
+> > usage model.  I am suggesting that you make it follow the same pattern
+> > as pci_iomap(), e.g.:
+> > 
+> > 	void *pci_iomap(struct pci_dev *, int bar, unsigned long len);
+> > 	unsigned int ioread32(void *);
+> > 	void pci_iounmap(struct pci_dev *, void *);
+> > 
+> > 	void *acpi_map_generic_address(struct acpi_generic_address *);
+> > 	u64 acpi_read_atomic(void *);
+> > 	void acpi_unmap_generic_address(void *);
+> > 
+> > acpi_map_generic_address() would validate the GAR and do the ioremap().
+> > If the validation or ioremap() failed, it would return a NULL pointer.
+> > 
+> > This would require the caller of acpi_map_generic_address() to hang onto
+> > the pointer returned (just as callers of pci_iomap() must hang onto the
+> > pointer it returns).
+> > 
+> > The pointer would be supplied to acpi_read_atomic(), so it would not
+> > need to do acpi_check_gar() because we know it was done successfully
+> > in acpi_map_generic_address().  It wouldn't need to look up the GAR
+> > in the list because the list entry was passed in.  Since all the
+> > possible failure conditions were checked in acpi_map_generic_address(),
+> > acpi_read_atomic() doesn't need to return status and could simply
+> > return the u64 directly.
+> 
+> The usage model is different. Please take a look at
+> __apei_exec_read_register(). We need to get virtual address from
+> physical address in GAR. And many small-size GARs in ERST or EINJ may
+> share same page, so some kind of virtual space optimization is
+> necessary.
 
-8 patches applied to acpi-test
+The sharing could be done with a reference count in the map/unmap
+path.
 
-The driver needs a MAINTAINERS entry, Thomas, Anisse?
+I don't have time to fully understand your patch series, but I suspect
+the issue is that you're interpreting opcodes, and those contain or
+reference generic_address structures, and you think it's easier just
+pass around the GAR pointer than it is to remember a (GAR, mapped-GAR)
+association made by pre_map_gar() and use the mapped-GAR when executing
+the "read" opcode.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Bjorn
