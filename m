@@ -1,44 +1,45 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 4/4] sony-laptop: enumerate rfkill devices using SN06
-Date: Fri, 18 Dec 2009 07:48:54 +0900
-Message-ID: <20091217224854.GC13295@kamineko.org>
-References: <1260976116-6369-1-git-send-email-malattia@linux.it>
- <1260976116-6369-2-git-send-email-malattia@linux.it>
- <1260976116-6369-3-git-send-email-malattia@linux.it>
- <1260976116-6369-4-git-send-email-malattia@linux.it>
- <1260976116-6369-5-git-send-email-malattia@linux.it>
- <alpine.LFD.2.00.0912162221030.10371@localhost.localdomain>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 3/3] ipmi/acpi: Install the IPMI space handler to enable ACPI to access the BMC controller
+Date: Thu, 17 Dec 2009 15:54:38 -0700
+Message-ID: <200912171554.39534.bjorn.helgaas@hp.com>
+References: <1260974431-4330-1-git-send-email-yakui.zhao@intel.com> <1260974431-4330-2-git-send-email-yakui.zhao@intel.com> <1260974431-4330-3-git-send-email-yakui.zhao@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:57402
-	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760111AbZLQWs4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2009 17:48:56 -0500
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:4792 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752413AbZLQXEE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2009 18:04:04 -0500
+In-Reply-To: <1260974431-4330-3-git-send-email-yakui.zhao@intel.com>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0912162221030.10371@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: yakui.zhao@intel.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, minyard@acm.org, openipmi-developer@lists.sourceforege.net
 
-On Wed, Dec 16, 2009 at 10:30:04PM -0500, Len Brown wrote:
-> Mattia,
-> The mystery is (partially) solved.
+On Wednesday 16 December 2009 07:40:31 am yakui.zhao@intel.com wrote:
+> From: Zhao Yakui <yakui.zhao@intel.com>
 > 
-> This one wouldn't merge b/c in my mailbox it has a copy of the
-> 1st patch appended to it.  I don't know how that happened,
-> maybe the the formail processing I use to delete
-> duplicates in my mailbox got confused, as the message
-> does not have this issue in the list archives.
+> V2->V3: According to Bjorn's comment, this IPMI opregion code is put into
+> the IPMI subsystem(ipmi_si_intf.c). In such case the part of IPMI opregion
+> code  will be installed automatically when IPMI detection module is loaded.
+> When the IPMI system interface is detected by loading PNP device driver, we
+> will record every IPMI system interface defined in ACPI namespace and then
+> install the corresponding IPMI opregion space handler, which is used to enable
+> ACPI AML code to access the BMC controller.
+> 
+> V1->V2: According to Bjorn's comment, we won't install the IPMI space handler
+> by loading an ACPI device driver. Instead we will enumerate the ACPI IPMI
+> device directly in ACPI device tree and then install the IPMI space handler.
+> Then ACPI AML code and access the BMC controller through the IPMI space
+> handler.
 
-I slightly changed the subject of one of them (the private workqueue
-one), could that be the reason?
+Oh, BTW, it's handy if you add a [0/n] email with the overview, and
+put the V2->V3 stuff in there.  The [0/n] text doesn't become part of
+the commit, so the logs don't get cluttered with all the development
+history.  Also, please include the version in the subject somewhere,
+e.g., "[PATCH v3 0/n] ..."
 
-> Anyway, with that repaired, this 4th patch joins
-> the previous 3 in the acpi-test tree.
-
-Thanks!
--- 
-mattia
-:wq!
+Bjorn
