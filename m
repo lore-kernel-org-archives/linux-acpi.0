@@ -1,55 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Thu, 17 Dec 2009 00:18:05 +0100
-Message-ID: <200912170018.05175.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912161753540.2643-100000@iolanthe.rowland.org>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [PATCH 2/2] update mutex usage in aggregator driver
+Date: Thu, 17 Dec 2009 08:54:33 +0800
+Message-ID: <20091217005433.GA12894@sli10-desk.sh.intel.com>
+References: <1260754949-11239-1-git-send-email-gong.chen@linux.intel.com>
+ <1260754949-11239-2-git-send-email-gong.chen@linux.intel.com>
+ <1260754949-11239-3-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59622 "EHLO ogre.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:23302 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935295AbZLPXRh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2009 18:17:37 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912161753540.2643-100000@iolanthe.rowland.org>
+	id S1755798AbZLQAyf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2009 19:54:35 -0500
+Content-Disposition: inline
+In-Reply-To: <1260754949-11239-3-git-send-email-gong.chen@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thursday 17 December 2009, Alan Stern wrote:
-> On Wed, 16 Dec 2009, Rafael J. Wysocki wrote:
-> 
-> > I've just put the first set of data, for the HP nx6325 at:
-> > http://www.sisk.pl/kernel/data/nx6325/
-> >  
-> > The *-dmesg.log files contain full dmesg outputs starting from a cold boot and
-> > including one suspend-resume cycle in each case, with debug_initcall enabled.
-> > 
-> > The *-suspend.log files are excerpts from the *-dmesg.log files containing
-> > the suspend messages only, and analogously for *-resume.log.
-> 
-> I've just started looking at the sync-suspend.log file.  What are all 
-> the '+' characters and " @ 3368" strings after the device names?
+On Mon, Dec 14, 2009 at 09:42:29AM +0800, Chen Gong wrote:
+> I have 2 issues.
+>  1. I consider thread creation and RR thread execution don't share the
+> global data, so the serialization execution is not necessary. It is
+> enough to use another different mutex to lock thread exectuion itself
+> when these threads running concurrently.
+>  2. part of sysfs interfaces doesn't need to own mutex with thread createion.
+> Though some data maybe are not identical, it is not a big deal.
+ACK the first patch.
+NACK this one. I don't see any reason we need two locks here. This isn't hot
+code path, fine-grained lock just makes thing complex.
 
-I think the + is necessary for the Arjan's graph-generating script and the
-@ number is the value of current (ie. the PID of the calling task).
-
-> You didn't print out the parent name for each device, so the tree 
-> structure has been lost.
-
-That's because the original Arjan's patch doesn't do that, I'm adding it
-right now.
-
-> Why do those "sd 0:0:0:0 [sda]" messages appear in between two 
-> callbacks?  The cache-synchronization and the spin-down commands are
-> not executed asynchronously.
-
-Because the data are incomplete.  :-(
-
-I've just realized that the Arjan's patch only covers bus types and classes
-that have been converted to dev_pm_ops already, so I'm extending it to the
-"legacy" ones at the moment.
-
-Rafael
+Thanks,
+Shaohua 
