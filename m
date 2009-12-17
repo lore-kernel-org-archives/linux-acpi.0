@@ -1,87 +1,63 @@
-From: ykzhao <yakui.zhao@intel.com>
-Subject: Re: [PATCH 1/3] ipmi/acpi: Fix the building error in ipmi module
-Date: Thu, 17 Dec 2009 09:16:41 +0800
-Message-ID: <1261012601.3732.21.camel@localhost.localdomain>
-References: <1260974431-4330-1-git-send-email-yakui.zhao@intel.com>
-	 <200912160852.43206.bjorn.helgaas@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Thu, 17 Dec 2009 02:30:24 +0100
+Message-ID: <200912170230.24147.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912161753540.2643-100000@iolanthe.rowland.org> <200912170018.05175.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:42208 "EHLO mga03.intel.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:60046 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756042AbZLQBSZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2009 20:18:25 -0500
-In-Reply-To: <200912160852.43206.bjorn.helgaas@hp.com>
+	id S935967AbZLQB3w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2009 20:29:52 -0500
+In-Reply-To: <200912170018.05175.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "openipmi-developer@lists.sourceforege.net" <openipmi-developer@lists.sourceforege.net>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Wed, 2009-12-16 at 23:52 +0800, Bjorn Helgaas wrote:
-> On Wednesday 16 December 2009 07:40:29 am yakui.zhao@intel.com wrote:
-> > From: Zhao Yakui <yakui.zhao@intel.com>
+On Thursday 17 December 2009, Rafael J. Wysocki wrote:
+> On Thursday 17 December 2009, Alan Stern wrote:
+> > On Wed, 16 Dec 2009, Rafael J. Wysocki wrote:
 > > 
-> > When the IPMI module is selected as module, it will complain the
-> > following building error.
-> > >ERROR: "pnpacpi_protocol" [drivers/char/ipmi/ipmi_si.ko] undefined!
+> > > I've just put the first set of data, for the HP nx6325 at:
+> > > http://www.sisk.pl/kernel/data/nx6325/
+> > >  
+> > > The *-dmesg.log files contain full dmesg outputs starting from a cold boot and
+> > > including one suspend-resume cycle in each case, with debug_initcall enabled.
+> > > 
+> > > The *-suspend.log files are excerpts from the *-dmesg.log files containing
+> > > the suspend messages only, and analogously for *-resume.log.
 > > 
-> > Fix the above building error.
+> > I've just started looking at the sync-suspend.log file.  What are all 
+> > the '+' characters and " @ 3368" strings after the device names?
 > 
-> This is already fixed in Len's tree, so we don't need this patch.
-Yes. Just now I checked Len's tree and this is already fixed.
+> I think the + is necessary for the Arjan's graph-generating script and the
+> @ number is the value of current (ie. the PID of the calling task).
+> 
+> > You didn't print out the parent name for each device, so the tree 
+> > structure has been lost.
+> 
+> That's because the original Arjan's patch doesn't do that, I'm adding it
+> right now.
+> 
+> > Why do those "sd 0:0:0:0 [sda]" messages appear in between two 
+> > callbacks?  The cache-synchronization and the spin-down commands are
+> > not executed asynchronously.
+> 
+> Because the data are incomplete.  :-(
+> 
+> I've just realized that the Arjan's patch only covers bus types and classes
+> that have been converted to dev_pm_ops already, so I'm extending it to the
+> "legacy" ones at the moment.
 
-Thanks.
-> 
-> > Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-> > cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > ---
-> >  drivers/pnp/pnpacpi/core.c |    7 +++++++
-> >  include/linux/pnp.h        |   11 +++--------
-> >  2 files changed, 10 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> > index 8dd0f37..8eebbe4 100644
-> > --- a/drivers/pnp/pnpacpi/core.c
-> > +++ b/drivers/pnp/pnpacpi/core.c
-> > @@ -155,6 +155,13 @@ struct pnp_protocol pnpacpi_protocol = {
-> >  #endif
-> >  };
-> >  
-> > +struct acpi_device *pnp_acpi_device(struct pnp_dev *dev)
-> > +{
-> > +	if (dev->protocol == &pnpacpi_protocol)
-> > +		return dev->data;
-> > +	return NULL;
-> > +}
-> > +EXPORT_SYMBOL_GPL(pnp_acpi_device);
-> >  static int __init pnpacpi_add_device(struct acpi_device *device)
-> >  {
-> >  	acpi_handle temp = NULL;
-> > diff --git a/include/linux/pnp.h b/include/linux/pnp.h
-> > index 7c4193e..0ae2c64 100644
-> > --- a/include/linux/pnp.h
-> > +++ b/include/linux/pnp.h
-> > @@ -335,16 +335,11 @@ extern struct pnp_protocol pnpbios_protocol;
-> >  #endif
-> >  
-> >  #ifdef CONFIG_PNPACPI
-> > -extern struct pnp_protocol pnpacpi_protocol;
-> >  
-> > -static inline struct acpi_device *pnp_acpi_device(struct pnp_dev *dev)
-> > -{
-> > -	if (dev->protocol == &pnpacpi_protocol)
-> > -		return dev->data;
-> > -	return NULL;
-> > -}
-> > +extern struct acpi_device *pnp_acpi_device(struct pnp_dev *dev);
-> >  #else
-> > -#define pnp_acpi_device(dev) 0
-> > +static inline struct acpi_device *pnp_acpi_device(struct pnp_dev *dev)
-> > +{ return NULL; }
-> >  #endif
-> >  
-> >  /* status */
-> 
-> 
+New data files have been uploaded to:
 
+http://www.sisk.pl/kernel/data/nx6325/
+http://www.sisk.pl/kernel/data/wind/
+
+Please let me know if you need more information.
+
+Rafael
