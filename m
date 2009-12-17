@@ -1,57 +1,128 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: [PATCH] MAINTAINERS: add maintainer for msi-wmi driver
-Date: Thu, 17 Dec 2009 11:28:49 +0100
-Message-ID: <20091217112849.561aee8e@destiny.ordissimo>
-References: <1260451099-25620-1-git-send-email-anisse@astier.eu>
-	<1260451099-25620-2-git-send-email-anisse@astier.eu>
-	<9b2b86520912120937i548b1158k50f517af7fd5ed21@mail.gmail.com>
-	<20091214105533.6634312b@destiny.ordissimo>
-	<alpine.LFD.2.00.0912161238290.6089@localhost.localdomain>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [RESEND PATCH v2 1/2] ACPI: Quirk to make SMBus objects work on
+  IBM machines with broken BIOSes
+Date: Thu, 17 Dec 2009 15:02:43 +0100
+Message-ID: <20091217150243.0d2749a2@hyperion.delvare>
+References: <20091021173733.GN26149@tux1.beaverton.ibm.com>
+	<20091027183619.16b0b952@hyperion.delvare>
+	<20091204170621.GA10356@tux1.beaverton.ibm.com>
+	<200912041036.36686.bjorn.helgaas@hp.com>
+	<20091204181103.GN10295@tux1.beaverton.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:10790 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbZLQKch (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2009 05:32:37 -0500
-In-Reply-To: <alpine.LFD.2.00.0912161238290.6089@localhost.localdomain>
+Received: from bamako.nerim.net ([62.4.17.28]:63961 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753572AbZLQOCs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Dec 2009 09:02:48 -0500
+In-Reply-To: <20091204181103.GN10295@tux1.beaverton.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alan Jenkins <sourcejedi.lkml@googlemail.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Matt Chen <machen@novell.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: djwong@us.ibm.com, lenb@kernel.org, Crane Cai <crane.cai@amd.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Fri, 4 Dec 2009 10:11:03 -0800, Darrick J. Wong wrote:
+> On some old IBM workstations and desktop computers, the BIOS presents in the
+> DSDT an SMBus object that is missing the HID identifier that the i2c-scmi
+> driver looks for.  Modify the ACPI device scan code to insert the missing HID
+> if it finds an IBM system with such an object.  This patch requires Crane Cai's
+> update to i2c-scmi to work around incorrectly named methods within the SMBus
+> control object.
+> 
+> Affected machines: ThinkCenter M52, IntelliStation Z20/Z30.  Note that the
+> i2c-i801 driver no longer works on these machines because of ACPI resource
+> conflicts.
+> 
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+> ---
+> 
+>  drivers/acpi/scan.c         |   38 ++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_drivers.h |    2 ++
+>  2 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 14a7481..5a24429 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -8,6 +8,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/signal.h>
+>  #include <linux/kthread.h>
+> +#include <linux/dmi.h>
+>  
+>  #include <acpi/acpi_drivers.h>
+>  
+> @@ -1014,6 +1015,41 @@ static void acpi_add_id(struct acpi_device *device, const char *dev_id)
+>  	list_add_tail(&id->list, &device->pnp.ids);
+>  }
+>  
+> +/*
+> + * Old IBM workstations have a DSDT bug wherein the SMBus object
+> + * lacks the SMBUS01 HID and the methods do not have the necessary "_"
+> + * prefix.  Work around this.
+> + */
+> +static int acpi_ibm_smbus_match(struct acpi_device *device)
+> +{
+> +	acpi_handle h_dummy;
+> +	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
+> +	int result;
+> +
+> +	if (!dmi_name_in_vendors("IBM"))
+> +		return -ENODEV;
+> +
+> +	/* Look for SMBS object */
+> +	result = acpi_get_name(device->handle, ACPI_SINGLE_NAME, &path);
+> +	if (result)
+> +		return result;
+> +
+> +	if (strcmp("SMBS", path.pointer)) {
+> +		result = -ENODEV;
+> +		goto out;
+> +	}
+> +
+> +	/* Does it have the necessary (but misnamed) methods? */
+> +	result = -ENODEV;
+> +	if (ACPI_SUCCESS(acpi_get_handle(device->handle, "SBI", &h_dummy)) &&
+> +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBR", &h_dummy)) &&
+> +	    ACPI_SUCCESS(acpi_get_handle(device->handle, "SBW", &h_dummy)))
+> +		result = 0;
+> +out:
+> +	kfree(path.pointer);
+> +	return result;
+> +}
+> +
+>  static void acpi_device_set_id(struct acpi_device *device)
+>  {
+>  	acpi_status status;
+> @@ -1064,6 +1100,8 @@ static void acpi_device_set_id(struct acpi_device *device)
+>  			acpi_add_id(device, ACPI_BAY_HID);
+>  		else if (ACPI_SUCCESS(acpi_dock_match(device)))
+>  			acpi_add_id(device, ACPI_DOCK_HID);
+> +		else if (!acpi_ibm_smbus_match(device))
+> +			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
+>  
+>  		break;
+>  	case ACPI_BUS_TYPE_POWER:
+> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> index f4906f6..83a2960 100644
+> --- a/include/acpi/acpi_drivers.h
+> +++ b/include/acpi/acpi_drivers.h
+> @@ -65,6 +65,8 @@
+>  #define ACPI_VIDEO_HID			"LNXVIDEO"
+>  #define ACPI_BAY_HID			"LNXIOBAY"
+>  #define ACPI_DOCK_HID			"LNXDOCK"
+> +/* Quirk for broken IBM BIOSes */
+> +#define ACPI_SMBUS_IBM_HID		"SMBUSIBM"
+>  
+>  /*
+>   * For fixed hardware buttons, we fabricate acpi_devices with HID
 
-Signed-off-by: Anisse Astier <anisse@astier.eu>
----
-Hi Len,
+Bjorn, Len, can you please apply this quickly? The i2c-scmi side of the
+changes is pending for weeks now, but I can't apply it as long as the
+ACPI parts aren't in.
 
-I'm willing to take maintainership for this driver, as long as I have access
-to hardware (i.e my current job).
-
-Regards,
-
-Anisse
-
- MAINTAINERS |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0a32c3e..b2d551c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3635,6 +3635,11 @@ W:	http://0pointer.de/lennart/tchibo.html
- S:	Maintained
- F:	drivers/platform/x86/msi-laptop.c
- 
-+MSI WMI SUPPORT
-+M:	Anisse Astier <anisse@astier.eu>
-+S:	Supported
-+F:	drivers/platform/x86/msi-wmi.c
-+
- MULTIFUNCTION DEVICES (MFD)
- M:	Samuel Ortiz <sameo@linux.intel.com>
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-2.6.git
+Thanks,
 -- 
-1.6.5.3
-
+Jean Delvare
