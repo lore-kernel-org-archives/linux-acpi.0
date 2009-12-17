@@ -1,61 +1,117 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Thu, 17 Dec 2009 21:36:36 +0100
-Message-ID: <200912172136.36277.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912171444040.2645-100000@iolanthe.rowland.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 3/3] ipmi/acpi: Install the IPMI space handler to enable ACPI to access the BMC controller
+Date: Thu, 17 Dec 2009 15:00:27 -0700
+Message-ID: <200912171500.29512.bjorn.helgaas@hp.com>
+References: <1260974431-4330-1-git-send-email-yakui.zhao@intel.com> <200912160940.16740.bjorn.helgaas@hp.com> <1261014720.3732.52.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35491 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759915AbZLQUf5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Dec 2009 15:35:57 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912171444040.2645-100000@iolanthe.rowland.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:29315 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1765436AbZLQWAb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2009 17:00:31 -0500
+In-Reply-To: <1261014720.3732.52.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: ykzhao <yakui.zhao@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, "openipmi-developer@lists.sourceforege.net" <openipmi-developer@lists.sourceforege.net>
 
-On Thursday 17 December 2009, Alan Stern wrote:
-> On Thu, 17 Dec 2009, Rafael J. Wysocki wrote:
-> 
-> > That actually is correct.  On the nx6325 suspend is totally dominated by disk
-> > spindown, almost everything else is negligible compared to it (well, except for
-> > the audio), so we can't go down below 1 s during suspend on this box.
+On Wednesday 16 December 2009 06:52:00 pm ykzhao wrote:
+> On Thu, 2009-12-17 at 00:40 +0800, Bjorn Helgaas wrote:
+
+> > > +     struct acpi_ipmi_device *ipmi_device =
+> > > +                     (struct acpi_ipmi_device *) handler_context;
 > > 
-> > On the Wind, disk spindown time is comparable with serio suspend time,
-> > so at least in principle we should be able to get .5 s suspend on this box - 
-> > if the disk spindown in async.
+> > I don't think you need this cast.
+> 
+> Without the initialization or cast type, it still can work. But it is
+> not wrong.
+> Right? Of course I can remove it.
+
+The initialization and cast aren't *wrong*,  they're just unnecessary.
+In this case, it also makes it look different from other Linux code,
+which makes it harder to read.
+
+> > > +static int acpi_ipmi_opregion_init(void)
+> > > +{
+> > > +     int result = 0;
+> > > +
+> > > +     if (acpi_disabled)
+> > > +             return result;
 > > 
-> > In turn, the resume on the Wind is dominated by disk spinup, so we can't
-> > go below 1.5 s on this box during resume (notice that the "async+extra"
-> > approach brings us close to this limit, although we could save .5 s more in
-> > principle by making more devices async).
+> > I don't think you need this check.
+> 
+> It is also ok to delete this check. 
+> But in fact it is unnecessary to register the smi_watcher again when
+> ACPI is disabled.  Otherwise after we register it, it will call the
+> corresponding callback defined in smi_watcher when one IPMI system
+> interface is registered/unregistered. 
+> 
+> So IMO we can register the smi_watcher only when ACPI is enabled.
+
+This is connected with my opinion that you should call
+acpi_ipmi_opregion_init() from ipmi_pnp_probe(), not from the
+driver init function.
+
+We only need the watcher when we have an IPI0001 device, so I
+don't see the point of registering it before we find one.  And if
+we find one, we know ACPI is enabled, so we don't need to check
+acpi_disabled.
+
+> > > @@ -2096,17 +2576,33 @@ static int __devinit ipmi_pnp_probe(struct pnp_dev *dev,
+> > >       info->dev = &acpi_dev->dev;
+> > >       pnp_set_drvdata(dev, info);
+> > >
+> > > -     return try_smi_init(info);
+> > > +     acpi_dev->driver_data = p_ipmi;
 > > 
-> > Resume on the nx6325 is a different story, though, as it is dominated by USB
-> > and PCI devices, so marking those as async would probably bring us close to
-> > the limit.
+> > I don't think we should use both the pnp_dev driver_data
+> > and the acpi_dev driver_data.  There's only one underlying
+> > physical device, and the fact that we have two ways to get
+> > at it is a Linux design problem.  It would be better to add
+> > the p_ipmi pointer to the smi_info structure, and use only
+> > pnp_set_drvdata().
 > 
-> The implications seem pretty clear.  If the following sorts of devices
-> were async:
+> Understand what you said.
 > 
-> 	USB (devices and interfaces), PCI, serio, SCSI (hosts, targets,
-> 	devices)
+> It is not a good idea to add a new pointer in smi_info structure. In
+> fact the smi_info is the abstract layer of IPMI system interface. To add
+> a definition in smi_info seems a bit confusing.
 
-Plus ACPI battery.
+If you can figure out another place to put it, that's OK with me.
+I just don't want to use acpi_dev->driver_data because someday I
+want to get rid of the acpi_dev for PNP devices.  We shouldn't have
+both a pnp_dev and and acpi_dev for the same device.
 
-> then we would reap close to the maximum benefit -- providing:
+> > > @@ -3207,6 +3703,7 @@ static __devinit int init_ipmi_si(void)
+> > >
+> > >  #ifdef CONFIG_ACPI
+> > >       spmi_find_bmc();
+> > > +     acpi_ipmi_opregion_init();
+> > 
+> > I don't think this belongs in the IPMI driver init.  It should be done
+> > in ipmi_pnp_probe() when we actually discover an IPI0001 device.
 > 
-> 	async threads are started in a first pass without waiting
-> 	for synchronous devices, and
+> This function is mainly to register the smi_watcher. When one IPMI
+> system interface(smi_info) is registered/unregistered, it will call the
+> corresponding callback function to create/destroy the corresponding IPMI
+> user interface between the user and IPMI system interface.(In our code
+> the user is the ACPI IPMI device defined in ACPI namespace). 
+> That means that it can create the corresponding user interface for more
+> than one ACPI IPMI devices. 
+> So IMO this had better not be added in the ipmi_pnp_probe/remove
+> function.
 
-Agreed.
- 
-> It's not clear that making all these types of devices async will really 
-> work, but it's worth testing.
+We don't need the watcher unless we find an IPI0001 device, so I think
+it makes sense to put it in ipmi_pnp_probe().  You might have to have
+some static state so you only call acpi_ipmi_opregion_init() on the
+*first* probe and do the cleanup on the *last* call to ipmi_pnp_remove().
 
-I'm working on it.
+Thanks for being so patient with all this.  I know I'm being picky,
+but it's much easier to fix up as much as we can before it goes into
+the tree.
 
-Rafael
+Bjorn
