@@ -1,55 +1,49 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
-Date: Fri, 18 Dec 2009 06:14:57 +0100
-Message-ID: <20091218051457.GB417@elte.hu>
-References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
- <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
- <20091218022112.GA30333@sli10-desk.sh.intel.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] sony-laptop - switch from workqueue to a timer
+Date: Thu, 17 Dec 2009 22:08:57 -0800
+Message-ID: <20091218060857.GA21231@core.coreip.homeip.net>
+References: <20091217080907.GA12790@core.coreip.homeip.net> <20091217224609.GB13295@kamineko.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:40886 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751060AbZLRFPP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Dec 2009 00:15:15 -0500
+Received: from mail-px0-f174.google.com ([209.85.216.174]:44685 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440AbZLRGJC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Dec 2009 01:09:02 -0500
+Received: by pxi4 with SMTP id 4so2021806pxi.33
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Dec 2009 22:09:02 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20091218022112.GA30333@sli10-desk.sh.intel.com>
+In-Reply-To: <20091217224609.GB13295@kamineko.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-
-* Shaohua Li <shaohua.li@intel.com> wrote:
-
-> On Fri, Dec 18, 2009 at 09:28:50AM +0800, Yinghai Lu wrote:
-> > On Wed, Dec 16, 2009 at 12:06 PM, Len Brown <lenb@kernel.org> wrote:
-> > > Hi Linus,
-> > >
-> > > please pull from:
-> > >
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> > >
-> > ;..
-> > >
-> > > Shaohua Li (3):
-> > > ? ? ?ACPI: Add a generic API for _OSC -v2
-> > > ? ? ?ACPI: cleanup pci_root _OSC code.
-> > > ? ? ?ACPI: Add platform-wide _OSC support.
+On Fri, Dec 18, 2009 at 07:46:09AM +0900, Mattia Dongili wrote:
+> On Thu, Dec 17, 2009 at 12:09:07AM -0800, Dmitry Torokhov wrote:
+> > The function that is executing in workqueue context does not need
+> > to sleep so let's switch to a timer which is more lightweight.
 > > 
-> > it seems these three patches broke the _OSC on my intel new systems.
+> > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> > ---
 > > 
-> > revert them fix the problem with AER and pciehp and etc
->
-> can you give more details? I just cleaned up the _OSC code for AER and 
-> pciehp, no function changes.
+> > Mattia,
+> > 
+> > After looking at the sony-laptop driver again I realized that since
+> > we don't sleep in do_sony_laptop_release_key() we don't need to use
+> > workqueue but can simply fire up a timer.
+> > 
+> > Please consider applying (or maybe folding into the other patch
+> > removing private workqueue).
+> 
+> Hi Dmitry,
+> 
+> it looks like there is a bit of other clean-ups here and there included
+> in this patch, do you mind if I split it (or sending two separate
+> patches if you get around it before I do this weekend)?
+> 
 
-Famous last words ;-)
+Sure, sending out...
 
-Yinghai, i suspect Shaohua needs the kind of info you'd need if you tried to 
-fix it: acpidump, before/after debug boot log, a description of what goes bad, 
-etc.
-
-Thanks,
-
-	Ingo
+-- 
+Dmitry
