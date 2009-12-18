@@ -1,84 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Fri, 18 Dec 2009 02:51:22 +0100
-Message-ID: <200912180251.22655.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912162257.00771.rjw@sisk.pl> <200912170249.00676.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Fri, 18 Dec 2009 10:21:12 +0800
+Message-ID: <20091218022112.GA30333@sli10-desk.sh.intel.com>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
+ <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36215 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:33283 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087AbZLRBuz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Dec 2009 20:50:55 -0500
-In-Reply-To: <200912170249.00676.rjw@sisk.pl>
+	id S1752912AbZLRCVP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Dec 2009 21:21:15 -0500
+Content-Disposition: inline
+In-Reply-To: <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Thursday 17 December 2009, Rafael J. Wysocki wrote:
-...
-> Tomorrow I'll try to mark as many devices as reasonably possible as async
-> and see how the total suspend-resume times change.
+On Fri, Dec 18, 2009 at 09:28:50AM +0800, Yinghai Lu wrote:
+> On Wed, Dec 16, 2009 at 12:06 PM, Len Brown <lenb@kernel.org> wrote:
+> > Hi Linus,
+> >
+> > please pull from:
+> >
+> > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.g=
+it release
+> >
+> ;..
+> >
+> > Shaohua Li (3):
+> > =A0 =A0 =A0ACPI: Add a generic API for _OSC -v2
+> > =A0 =A0 =A0ACPI: cleanup pci_root _OSC code.
+> > =A0 =A0 =A0ACPI: Add platform-wide _OSC support.
+>=20
+> it seems these three patches broke the _OSC on my intel new systems.
+>=20
+> revert them fix the problem with AER and pciehp and etc
+can you give more details? I just cleaned up the _OSC code for AER and =
+pciehp,
+no function changes.
 
-I didn't manage to do that, but I was able to mark sd and i8042 as async and
-see the impact of this.
-
-The raw data are in the usual place:
-
-http://www.sisk.pl/kernel/data/async-suspend-resume.pdf
-
-and the individual device timings and logs are in:
-
-http://www.sisk.pl/kernel/data/nx6325/
-http://www.sisk.pl/kernel/data/wind/
-
-This is the summary (previous results are inculded for easier reference):
-
-			HP nx6325	MSI Wind U100
-
-sync suspend		1482 (+/- 40)	1180 (+/- 24)
-sync resume		2955 (+/- 2)	3597 (+/- 25)
-
-async suspend		1553 (+/- 49)	1177 (+/- 32)
-async resume		2692 (+/- 326)	3556 (+/- 33)
-
-async+one-liner suspend	1600 (+/- 39)	1212 (+/- 41)
-async+one-liner resume	2692 (+/- 324)	3579 (+/- 24)
-
-async+extra suspend	1496 (+/- 37)	1217 (+/- 38)
-async+extra resume	1859 (+/- 114)	1923 (+/- 35)
-
-with "async" i8042 and sd:
-
-async suspend		1319 (+/- 51)	1045 (+/- 41)
-async resume		2929 (+/- 3)	3546 (+/- 27)
-
-async+extra suspend	1327 (+/- 36)	(didn't work)
-async+extra resume	1742 (+/- 164)	1896 (+/- 28)
-
-(the summary is also available at: http://www.sisk.pl/kernel/data/results.txt).
-
-So, it actually makes the case for async suspend!  Although it's not very
-strong, with these two additional devices marked as "async" we get noticeable
-suspend time improvement.
-
-Still, the "extra" patch doesn't help on suspend at all and on the Wind the
-suspend part of it didn't even work (I'm yet to figure out which of the two
-devices crashed the suspend).  Nevertheless the resume part of the "extra"
-patch worked in both cases and worked better than without the two additional
-"async" devices.
-
-To me, this means that the suspend part of the "extra" patch is not really
-useful.  However, the resume part of it is _very_ useful, so I'd like to add
-that part only to the async patchset.  The explanation why it helps so much
-is also straightforward to me.  Namely, if slow async devices are last to
-resume, then without the "extra" patch they need to wait for all of the
-preceding sync devices and the speedup from executing their resume routines
-asynchronously is very limited.  Now, with the "extra" patch their resume
-routines start as soon as their parents complete resuming and that may be
-early enough for the speedup to be significant.
-
-Rafael
+Thanks,
+Shaohua
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
