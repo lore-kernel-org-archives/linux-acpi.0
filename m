@@ -1,34 +1,40 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/2] x86 platform drivers, wmi: Remove needless dmi
-	MODULE_ALIAS
-Date: Fri, 18 Dec 2009 17:54:32 +0000
-Message-ID: <20091218175432.GA29522@srcf.ucam.org>
-References: <1261146563-2228-1-git-send-email-trenn@suse.de> <20091218184458.464be49c@destiny.ordissimo>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/5 -v2] acpi, apei, APEI supporting infrastructure
+Date: Fri, 18 Dec 2009 19:11:23 +0100
+Message-ID: <20091218181123.GA1470@ucw.cz>
+References: <1260429417.15264.394.camel@yhuang-dev.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34015 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932237AbZLRRyv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Dec 2009 12:54:51 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932433AbZLRSLl@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20091218184458.464be49c@destiny.ordissimo>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1260429417.15264.394.camel@yhuang-dev.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: lenb@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Anisse Astier <anisse@astier.eu>
-Cc: Thomas Renninger <trenn@suse.de>, lenb@kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org
 
-On Fri, Dec 18, 2009 at 06:44:58PM +0100, Anisse Astier wrote:
+On Thu 2009-12-10 15:16:57, Huang Ying wrote:
+> APEI stands for ACPI Platform Error Interface, which allows to report
+> errors (for example from the chipset) to the operating system. This
+> improves NMI handling especially. In addition it supports error
+> serialization and error injection.
+> 
+> For more information about APEI, please refer to ACPI Specification
+> version 4.0, chapter 17.
+> 
+> This patch provides some common functions used by more than one APEI
+> tables, mainly framework of interpreter for EINJ and ERST.
+> 
+> A machine readable language is defined for EINJ and ERST for OS to
+> execute, and so to drive the firmware to fulfill the corresponding
+> functions. The machine language for EINJ and ERST is compatible, so a
+> common framework is defined for them.
 
-> For this to work properly you need to have wmi built in your kernel, or have
-> your distribution load the wmi module. Maybe there should be some kind of
-> auto-loading for the wmi subsystem (acpi-based?).
+Does this mean we'll now try to run acpi interrpretter from NMI
+context?
 
-[mjg59@2530p ~]$ modinfo wmi | grep alias
-alias:          acpi*:pnp0c14:*
-alias:          acpi*:PNP0C14:*
-
-Should work already.
+I don't see how that can work; NMI is really special... 
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
