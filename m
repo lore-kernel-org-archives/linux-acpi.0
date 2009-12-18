@@ -1,62 +1,30 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATH 1/5 -v2] acpi, IO memory pre-mapping and atomic accessing
-Date: Fri, 18 Dec 2009 14:42:38 +0100
-Message-ID: <4B2B86CE.4020304@suse.de>
-References: <1260429413.15264.393.camel@yhuang-dev.sh.intel.com>	 <200912111036.15063.bjorn.helgaas@hp.com>	 <1260839053.12561.1098.camel@yhuang-dev.sh.intel.com>	 <200912151047.14196.bjorn.helgaas@hp.com> <1260926595.12561.1188.camel@yhuang-dev.sh.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] dell-wmi - do not keep driver loaded on unsupported
+	boxes
+Date: Fri, 18 Dec 2009 14:28:22 +0000
+Message-ID: <20091218142822.GB25150@srcf.ucam.org>
+References: <20091218061941.GD21231@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:55575 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751225AbZLRNnr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Dec 2009 08:43:47 -0500
-In-Reply-To: <1260926595.12561.1188.camel@yhuang-dev.sh.intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:53453 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133AbZLRO2e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Dec 2009 09:28:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20091218061941.GD21231@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andi Kleen <ak@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On 12/16/2009 02:23 AM, Huang Ying wrote:
-> On Wed, 2009-12-16 at 01:47 +0800, Bjorn Helgaas wrote: 
->> On Monday 14 December 2009 06:04:13 pm Huang Ying wrote:
-...
->>> The checking here is for bug in firmware not software. I think it is
->>> necessary for the user to know where the bugs may come from, and it is
->>> hard to express the bug in return code.
->>
->> Yes, I understand that this is checking for firmware bugs.  My point
->> is that when a user sees this in his dmesg log:
->>
->> 	Invalid bit width in GAR, firmware bug?
->>
->> we have no context, and even a kernel developer can't figure out what
->> to do.  We could ask for a copy of the FADT and DSDT, but even then,
->> we don't know *which* GAR structure to look at, so we'll probably have
->> to add some instrumentation and ask the user to reproduce the problem.
->>
->> If the check were in the caller, it could at least say something like:
->>
->> 	ACPI: couldn't map generic address [io 0xcf8] for PCI config access
->>
->> which would give us more useful information.
+On Thu, Dec 17, 2009 at 10:19:42PM -0800, Dmitry Torokhov wrote:
+> There is no point in having the driver loaded in memory if we fail
+> to locate particular WMI GUID.
 > 
-> En... Yes, some information about the invalid GAR is helpful. But the
-> GAR information is available in acpi_check_gar too, so we can output
-> something as follow in acpi_check_gar:
-> 
->     Invalid bit width in GAR [mem 0x8029ff8 24], firmware bug?
-> 
-> Your message looks like a software issue instead of firmware bug. This
-> may confuse the user and developer.
+> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 
-Please use one of these (cmp. with include/linux/kernel.h when to use
-which):
-#define FW_BUG          "[Firmware Bug]: "
-#define FW_WARN         "[Firmware Warn]: "
-#define FW_INFO         "[Firmware Info]: "
+Acked-by: Matthew Garrett <mjg@redhat.com>
 
-It's great that someone cares to tell syslog/users that it's a firmware
-bug, that should get more common...
-
-      Thomas
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
