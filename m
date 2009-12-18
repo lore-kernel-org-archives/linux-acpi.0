@@ -1,52 +1,41 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: [GIT PULL] PM updates for 2.6.33
-Date: Fri, 18 Dec 2009 10:28:19 +1100
-Message-ID: <1261092499.6682.44.camel@pasglop>
-References: <Pine.LNX.4.44L0.0912060953190.4442-100000@netrider.rowland.org>
-	 <1260158279.27069.181.camel@rzhang1-desktop>
-	 <alpine.LFD.2.00.0912062122460.3560@localhost.localdomain>
-	 <alpine.LFD.2.00.0912062204431.3560@localhost.localdomain>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] acpi: Disable explicit power state retrieval on fans
+Date: Fri, 18 Dec 2009 09:02:32 +0800
+Message-ID: <1261098152.27291.32.camel@rzhang1-desktop>
+References: <1257883752-2163-1-git-send-email-mjg@redhat.com>
+	 <1260503569.27069.326.camel@rzhang1-desktop>
+	 <1261036928.27291.21.camel@rzhang1-desktop>
+	 <20091217191353.GA11041@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gate.crashing.org ([63.228.1.57]:49455 "EHLO gate.crashing.org"
+Received: from mga02.intel.com ([134.134.136.20]:62633 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751245AbZLQXcS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Dec 2009 18:32:18 -0500
-In-Reply-To: <alpine.LFD.2.00.0912062204431.3560@localhost.localdomain>
+	id S1750788AbZLRA7n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Dec 2009 19:59:43 -0500
+In-Reply-To: <20091217191353.GA11041@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Sun, 2009-12-06 at 22:15 -0800, Linus Torvalds wrote:
+On Fri, 2009-12-18 at 03:13 +0800, Matthew Garrett wrote:
+> On Thu, Dec 17, 2009 at 04:02:08PM +0800, Zhang Rui wrote:
 > 
-> The same is true of the prepare_suspend/suspend split I'm proposing:
-> I 
-> suspect that for something like USB, it would make most sense to just
-> do 
-> normal node suspend in prepare_suspend, which would do everything 
-> asynchronously. Only USB hub devices would get involved at the later 
-> 'suspend()' phase.
+> > If the ACPI power state can be got both directly and indirectly,
+> > we prefer to get it indirectly.
+> 
+> I guess this would be fine, but it seems to be a rather bigger change - 
+> I'd feel safer limiting it to fans. We might as well give it a go, 
+> though.
+> 
+only ACPI fan and several other devices that invokes
+acpi_bus_set/get_power.
+If it brings some problems, it won't take us a lot of efforts to debug.
+I think it's a good candidate for -rc1.
 
-Wasn't part of the goal with prepare_suspend() vs. suspend() to handle
-the problem of backing store vs the VM ?
-
-IE. Once any device potentially in the VM path is suspended, things like
-kmalloc() or gfp() can potentially stall until resume or did we address
-that recently ?
-
-Iirc, part of the idea behind prepare_* is that it's safe vs. the above.
-Now if you start suspending USB devices at prepare() then you break that
-assumption since those could be mass storage with dirty mmap'ed pages on
-them.
-
-Now, I'm all for fixing it at the VM/allocator level (if we didn't
-already) turning pretty much everything into NO_IO once we start
-suspending devices but that's a whole different matter :-)
-
-Cheers,
-Ben.
+thanks,
+rui
 
 
