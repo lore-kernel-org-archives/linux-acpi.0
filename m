@@ -1,41 +1,44 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] acpi: Disable explicit power state retrieval on fans
-Date: Fri, 18 Dec 2009 09:02:32 +0800
-Message-ID: <1261098152.27291.32.camel@rzhang1-desktop>
-References: <1257883752-2163-1-git-send-email-mjg@redhat.com>
-	 <1260503569.27069.326.camel@rzhang1-desktop>
-	 <1261036928.27291.21.camel@rzhang1-desktop>
-	 <20091217191353.GA11041@srcf.ucam.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Thu, 17 Dec 2009 17:28:50 -0800
+Message-ID: <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62633 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750788AbZLRA7n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Dec 2009 19:59:43 -0500
-In-Reply-To: <20091217191353.GA11041@srcf.ucam.org>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:40935 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268AbZLRB2y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2009 20:28:54 -0500
+In-Reply-To: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 
-On Fri, 2009-12-18 at 03:13 +0800, Matthew Garrett wrote:
-> On Thu, Dec 17, 2009 at 04:02:08PM +0800, Zhang Rui wrote:
-> 
-> > If the ACPI power state can be got both directly and indirectly,
-> > we prefer to get it indirectly.
-> 
-> I guess this would be fine, but it seems to be a rather bigger change - 
-> I'd feel safer limiting it to fans. We might as well give it a go, 
-> though.
-> 
-only ACPI fan and several other devices that invokes
-acpi_bus_set/get_power.
-If it brings some problems, it won't take us a lot of efforts to debug.
-I think it's a good candidate for -rc1.
+On Wed, Dec 16, 2009 at 12:06 PM, Len Brown <lenb@kernel.org> wrote:
+> Hi Linus,
+>
+> please pull from:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git=
+ release
+>
+;..
+>
+> Shaohua Li (3):
+> =A0 =A0 =A0ACPI: Add a generic API for _OSC -v2
+> =A0 =A0 =A0ACPI: cleanup pci_root _OSC code.
+> =A0 =A0 =A0ACPI: Add platform-wide _OSC support.
 
-thanks,
-rui
+it seems these three patches broke the _OSC on my intel new systems.
 
+revert them fix the problem with AER and pciehp and etc
 
+YH
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
