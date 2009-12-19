@@ -1,51 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Sun, 20 Dec 2009 00:40:18 +0100
-Message-ID: <200912200040.18944.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912200010.19899.rjw@sisk.pl> <alpine.LFD.2.00.0912191521180.3712@localhost.localdomain>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
+ suspend-resume patch w/ rwsems)
+Date: Sat, 19 Dec 2009 15:46:04 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912191542570.3712@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912200010.19899.rjw@sisk.pl> <alpine.LFD.2.00.0912191521180.3712@localhost.localdomain> <200912200040.18944.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36100 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753324AbZLSXjR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 Dec 2009 18:39:17 -0500
-In-Reply-To: <alpine.LFD.2.00.0912191521180.3712@localhost.localdomain>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51725 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754072AbZLSXqM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 Dec 2009 18:46:12 -0500
+In-Reply-To: <200912200040.18944.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sunday 20 December 2009, Linus Torvalds wrote:
+
+
+On Sun, 20 Dec 2009, Rafael J. Wysocki wrote:
 > 
-> On Sun, 20 Dec 2009, Rafael J. Wysocki wrote:
-> > 
-> > Well, I guess this is the example of the off-tree dependencies that actually
-> > matter Linus wanted. :-)
-> 
-> It's also the kind of dependency where I say "if we get into these kinds 
-> of messes, then the whole async crap isn't worth it".
-> 
-> Really. Having to try to match things up with ACPI and PnP is a nightmare. 
-> Especially since I doubt Windows does anything like this, which means that 
-> there's no reason for BIOS vendors to do the tables so that we'd even 
-> know.
+> OK, so this means we can just forget about suspending/resuming i8042
+> asynchronously, which is a pity, because that gave us some real suspend
+> speedup on my test systems.
 
-OK, so this means we can just forget about suspending/resuming i8042
-asynchronously, which is a pity, because that gave us some real suspend
-speedup on my test systems.
+No. What it means is that you shouldn't try to come up with these idiotic 
+scenarios just trying to make trouble for yourself, and using it as an 
+excuse for crap.
 
-Well, whatever.
+I suggest you try to treat the i8042 controller async, and see if it is 
+problematic. If it isn't, don't do that then. But we actually have no real 
+reason to believe that it would be problematic, at least on a PC where the 
+actual logic is on the SB (presumably behind the LPC controller).
 
-So, seriously, do you think it makes sense to do asynchronous suspend at all?
-I'm asking, because we're likely to get into troubles like this during suspend
-for other kinds of devices too and without resolving them we won't get any
-significant speedup from asynchronous suspend.
+Why would it be?
 
-That said, to me it's definitely worth doing asynchronous resume with the
-"start asynch threads upfront" modification, as the results of the tests show
-that quite clearly.  I hope you agree.
+The fact that PnP and ACPI enumerates those devices has exactly _what_ to 
+do with anything?
 
-Rafael
+		Linus
