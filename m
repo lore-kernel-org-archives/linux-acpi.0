@@ -1,7 +1,8 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 04/11] ACPI: processor: factor out common _PDC settings
-Date: Sun, 20 Dec 2009 12:30:44 -0700
-Message-ID: <20091220193044.5545.4738.stgit@bob.kio>
+Subject: [PATCH v2 10/11] ACPI: processor: change acpi_processor_set_pdc()
+	interface
+Date: Sun, 20 Dec 2009 12:31:14 -0700
+Message-ID: <20091220193114.5545.71356.stgit@bob.kio>
 References: <20091220192731.5545.20582.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,95 +11,97 @@ Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <20091220192731.5545.20582.stgit@bob.kio>
 Sender: linux-ia64-owner@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, lenb@kernel.org
-Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Both x86 and ia64 initialize _PDC with mostly common bit settings.
+When calling _PDC, we really only need the handle to the processor
+to call the method; we don't look at any other parts of the
+struct acpi_processor * given to us.
 
-Factor out the common settings and leave the arch-specific ones alone.
+In the early path, when we walk the namespace, we are given the
+handle directly, so just pass it through to acpi_processor_set_pdc()
+without stuffing it into a wasteful struct acpi_processor allocated
+on the stack each time
 
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+This saves 2834 bytes of stack.
+
+Update the interface accordingly.
+
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- arch/ia64/kernel/acpi-processor.c |   10 +---------
- arch/x86/kernel/acpi/processor.c  |   10 +---------
- drivers/acpi/processor_pdc.c      |   11 +++++++++++
- 3 files changed, 13 insertions(+), 18 deletions(-)
+ drivers/acpi/processor_core.c |    2 +-
+ drivers/acpi/processor_pdc.c  |   18 +++---------------
+ include/acpi/processor.h      |    2 +-
+ 3 files changed, 5 insertions(+), 17 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi-processor.c b/arch/ia64/kernel/acpi-processor.c
-index ab72d46..ebe23f5 100644
---- a/arch/ia64/kernel/acpi-processor.c
-+++ b/arch/ia64/kernel/acpi-processor.c
-@@ -18,15 +18,7 @@ static void init_intel_pdc(struct acpi_processor *pr)
- {
- 	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
- 
--	buf[0] = ACPI_PDC_REVISION_ID;
--	buf[1] = 1;
--	buf[2] = ACPI_PDC_EST_CAPABILITY_SMP;
--	/*
--	 * The default of PDC_SMP_T_SWCOORD bit is set for IA64 cpu so
--	 * that OSPM is capable of native ACPI throttling software
--	 * coordination using BIOS supplied _TSD info.
--	 */
--	buf[2] |= ACPI_PDC_SMP_T_SWCOORD;
-+	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
- 
- 	return;
- }
-diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
-index 967860b..d722ca8 100644
---- a/arch/x86/kernel/acpi/processor.c
-+++ b/arch/x86/kernel/acpi/processor.c
-@@ -16,16 +16,8 @@ static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
- {
- 	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
- 
--	buf[0] = ACPI_PDC_REVISION_ID;
--	buf[1] = 1;
--	buf[2] = ACPI_PDC_C_CAPABILITY_SMP;
-+	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
- 
--	/*
--	 * The default of PDC_SMP_T_SWCOORD bit is set for intel x86 cpu so
--	 * that OSPM is capable of native ACPI throttling software
--	 * coordination using BIOS supplied _TSD info.
--	 */
--	buf[2] |= ACPI_PDC_SMP_T_SWCOORD;
- 	if (cpu_has(c, X86_FEATURE_EST))
- 		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
- 
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index 87946b6..ccda7c9 100644
---- a/drivers/acpi/processor_pdc.c
-+++ b/drivers/acpi/processor_pdc.c
-@@ -33,6 +33,15 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
- 	{},
- };
- 
-+static void acpi_set_pdc_bits(u32 *buf)
-+{
-+	buf[0] = ACPI_PDC_REVISION_ID;
-+	buf[1] = 1;
-+
-+	/* Enable coordination with firmware's _TSD info */
-+	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
-+}
-+
- static void acpi_processor_init_pdc(struct acpi_processor *pr)
- {
- 	struct acpi_object_list *obj_list;
-@@ -63,6 +72,8 @@ static void acpi_processor_init_pdc(struct acpi_processor *pr)
- 		return;
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index a19a4ff..9863c98 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -763,7 +763,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
  	}
  
-+	acpi_set_pdc_bits(buf);
-+
- 	obj->type = ACPI_TYPE_BUFFER;
- 	obj->buffer.length = 12;
- 	obj->buffer.pointer = (u8 *) buf;
+ 	/* _PDC call should be done before doing anything else (if reqd.). */
+-	acpi_processor_set_pdc(pr);
++	acpi_processor_set_pdc(pr->handle);
+ 
+ #ifdef CONFIG_CPU_FREQ
+ 	acpi_processor_ppc_has_changed(pr, 0);
+diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
+index deeba22..30e4dc0 100644
+--- a/drivers/acpi/processor_pdc.c
++++ b/drivers/acpi/processor_pdc.c
+@@ -125,7 +125,7 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+ 	return status;
+ }
+ 
+-void acpi_processor_set_pdc(struct acpi_processor *pr)
++void acpi_processor_set_pdc(acpi_handle handle)
+ {
+ 	struct acpi_object_list *obj_list;
+ 
+@@ -136,7 +136,7 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
+ 	if (!obj_list)
+ 		return;
+ 
+-	acpi_processor_eval_pdc(pr->handle, obj_list);
++	acpi_processor_eval_pdc(handle, obj_list);
+ 
+ 	kfree(obj_list->pointer->buffer.pointer);
+ 	kfree(obj_list->pointer);
+@@ -147,19 +147,7 @@ EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
+ static acpi_status
+ early_init_pdc(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+-	struct acpi_processor pr;
+-
+-	pr.handle = handle;
+-
+-	/* x86 implementation looks at pr.id to determine some
+-	 * CPU capabilites. We can just hard code to 0 since we're
+-	 * assuming the CPUs in the system are homogenous and all
+-	 * have the same capabilities.
+-	 */
+-	pr.id = 0;
+-
+-	acpi_processor_set_pdc(&pr);
+-
++	acpi_processor_set_pdc(handle);
+ 	return AE_OK;
+ }
+ 
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 0873cd5..7cc433d 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -323,7 +323,7 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ #endif				/* CONFIG_CPU_FREQ */
+ 
+ /* in processor_pdc.c */
+-void acpi_processor_set_pdc(struct acpi_processor *pr);
++void acpi_processor_set_pdc(acpi_handle handle);
+ 
+ /* in processor_throttling.c */
+ int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
 
