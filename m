@@ -1,8 +1,7 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 08/11] ACPI: processor: change acpi_processor_eval_pdc
-	interface
-Date: Sun, 20 Dec 2009 12:19:45 -0700
-Message-ID: <20091220191944.4274.97945.stgit@bob.kio>
+Subject: [PATCH 04/11] ACPI: processor: factor out common _PDC settings
+Date: Sun, 20 Dec 2009 12:19:24 -0700
+Message-ID: <20091220191924.4274.27963.stgit@bob.kio>
 References: <20091220190434.4274.67855.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,59 +10,95 @@ Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <20091220190434.4274.67855.stgit@bob.kio>
 Sender: linux-ia64-owner@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
-acpi_processor_eval_pdc() really only needs a handle and an
-acpi_object_list * to do its work.
+Both x86 and ia64 initialize _PDC with mostly common bit settings.
 
-No need to pass in a struct acpi_processor *, so let's be more specific
-about what we want.
+Factor out the common settings and leave the arch-specific ones alone.
 
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_pdc.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+ arch/ia64/kernel/acpi-processor.c |   10 +---------
+ arch/x86/kernel/acpi/processor.c  |   10 +---------
+ drivers/acpi/processor_pdc.c      |   11 +++++++++++
+ 3 files changed, 13 insertions(+), 18 deletions(-)
 
+diff --git a/arch/ia64/kernel/acpi-processor.c b/arch/ia64/kernel/acpi-processor.c
+index ab72d46..ebe23f5 100644
+--- a/arch/ia64/kernel/acpi-processor.c
++++ b/arch/ia64/kernel/acpi-processor.c
+@@ -18,15 +18,7 @@ static void init_intel_pdc(struct acpi_processor *pr)
+ {
+ 	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
+ 
+-	buf[0] = ACPI_PDC_REVISION_ID;
+-	buf[1] = 1;
+-	buf[2] = ACPI_PDC_EST_CAPABILITY_SMP;
+-	/*
+-	 * The default of PDC_SMP_T_SWCOORD bit is set for IA64 cpu so
+-	 * that OSPM is capable of native ACPI throttling software
+-	 * coordination using BIOS supplied _TSD info.
+-	 */
+-	buf[2] |= ACPI_PDC_SMP_T_SWCOORD;
++	buf[2] |= ACPI_PDC_EST_CAPABILITY_SMP;
+ 
+ 	return;
+ }
+diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
+index 967860b..d722ca8 100644
+--- a/arch/x86/kernel/acpi/processor.c
++++ b/arch/x86/kernel/acpi/processor.c
+@@ -16,16 +16,8 @@ static void init_intel_pdc(struct acpi_processor *pr, struct cpuinfo_x86 *c)
+ {
+ 	u32 *buf = (u32 *)pr->pdc->pointer->buffer.pointer;
+ 
+-	buf[0] = ACPI_PDC_REVISION_ID;
+-	buf[1] = 1;
+-	buf[2] = ACPI_PDC_C_CAPABILITY_SMP;
++	buf[2] |= ACPI_PDC_C_CAPABILITY_SMP;
+ 
+-	/*
+-	 * The default of PDC_SMP_T_SWCOORD bit is set for intel x86 cpu so
+-	 * that OSPM is capable of native ACPI throttling software
+-	 * coordination using BIOS supplied _TSD info.
+-	 */
+-	buf[2] |= ACPI_PDC_SMP_T_SWCOORD;
+ 	if (cpu_has(c, X86_FEATURE_EST))
+ 		buf[2] |= ACPI_PDC_EST_CAPABILITY_SWSMP;
+ 
 diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index 23d2828..974de4e 100644
+index 87946b6..ccda7c9 100644
 --- a/drivers/acpi/processor_pdc.c
 +++ b/drivers/acpi/processor_pdc.c
-@@ -97,13 +97,11 @@ static struct acpi_object_list *acpi_processor_alloc_pdc(void)
-  * _PDC is required for a BIOS-OS handshake for most of the newer
-  * ACPI processor features.
-  */
--static int acpi_processor_eval_pdc(struct acpi_processor *pr)
-+static int
-+acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
+@@ -33,6 +33,15 @@ static struct dmi_system_id __cpuinitdata processor_idle_dmi_table[] = {
+ 	{},
+ };
+ 
++static void acpi_set_pdc_bits(u32 *buf)
++{
++	buf[0] = ACPI_PDC_REVISION_ID;
++	buf[1] = 1;
++
++	/* Enable coordination with firmware's _TSD info */
++	buf[2] = ACPI_PDC_SMP_T_SWCOORD;
++}
++
+ static void acpi_processor_init_pdc(struct acpi_processor *pr)
  {
--	struct acpi_object_list *pdc_in = pr->pdc;
- 	acpi_status status = AE_OK;
- 
--	if (!pdc_in)
--		return status;
- 	if (idle_nomwait) {
- 		/*
- 		 * If mwait is disabled for CPU C-states, the C2C3_FFH access
-@@ -118,7 +116,7 @@ static int acpi_processor_eval_pdc(struct acpi_processor *pr)
- 		buffer[2] &= ~(ACPI_PDC_C_C2C3_FFH | ACPI_PDC_C_C1_FFH);
- 
- 	}
--	status = acpi_evaluate_object(pr->handle, "_PDC", pdc_in, NULL);
-+	status = acpi_evaluate_object(handle, "_PDC", pdc_in, NULL);
- 
- 	if (ACPI_FAILURE(status))
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-@@ -148,9 +146,7 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
- 	if (!obj_list)
+ 	struct acpi_object_list *obj_list;
+@@ -63,6 +72,8 @@ static void acpi_processor_init_pdc(struct acpi_processor *pr)
  		return;
+ 	}
  
--	pr->pdc = obj_list;
--
--	acpi_processor_eval_pdc(pr);
-+	acpi_processor_eval_pdc(pr->handle, obj_list);
- 	acpi_processor_cleanup_pdc(pr);
- }
- EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
++	acpi_set_pdc_bits(buf);
++
+ 	obj->type = ACPI_TYPE_BUFFER;
+ 	obj->buffer.length = 12;
+ 	obj->buffer.pointer = (u8 *) buf;
 
