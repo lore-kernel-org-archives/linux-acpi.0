@@ -1,38 +1,75 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
-	suspend-resume patch w/ rwsems)
-Date: Sat, 19 Dec 2009 18:45:04 -0800
-Message-ID: <20091220024503.GD4073@core.coreip.homeip.net>
-References: <Pine.LNX.4.44L0.0912091729530.2672-100000@iolanthe.rowland.org> <200912200040.18944.rjw@sisk.pl> <alpine.LFD.2.00.0912191542570.3712@localhost.localdomain> <200912200053.45988.rjw@sisk.pl>
+ suspend-resume patch w/ rwsems)
+Date: Sat, 19 Dec 2009 22:48:44 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912192232360.6618-100000@netrider.rowland.org>
+References: <200912192241.03991.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:51674 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754931AbZLTCpJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 Dec 2009 21:45:09 -0500
-Content-Disposition: inline
-In-Reply-To: <200912200053.45988.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754931AbZLTDss@vger.kernel.org>
+In-Reply-To: <200912192241.03991.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 20, 2009 at 12:53:45AM +0100, Rafael J. Wysocki wrote:
-> On Sunday 20 December 2009, Linus Torvalds wrote:
+On Sat, 19 Dec 2009, Rafael J. Wysocki wrote:
+
+> On Friday 18 December 2009, Alan Stern wrote:
+> > On Fri, 18 Dec 2009, Rafael J. Wysocki wrote:
 > > 
-> > If it isn't, don't do that then. But we actually have no real 
-> > reason to believe that it would be problematic, at least on a PC where the 
-> > actual logic is on the SB (presumably behind the LPC controller).
+> > > I didn't manage to do that, but I was able to mark sd and i8042 as async and
+> > > see the impact of this.
 > > 
-> > Why would it be?
+> > Apparently this didn't do what you wanted.  In the nx6325
+> > sd+i8042+async+extra log, the 0:0:0:0 device (which is a SCSI disk) was
+
+To be precise, the device is an ATA or SATA disk but it is managed by 
+the sd driver.
+
+> > suspended by the main thread instead of an async thread.
 > 
-> The embedded controller may depend on it.
->
+> Hm, that's odd, because there's a noticeable time difference between the
+> two cases in which the sd is sync and async.  I'll look into it further.
 
-No, not really depend but rather wierd things may happen if you
-accessing both. Witness regressions where touching embedded controller
-makes us lose data from touchpad, I think you are CCed on that bug.
+I don't know what the whole story is, but the PID number tells the 
+tale.
 
--- 
-Dmitry
+> > There's an important point I neglected to mention before.  Your logs 
+> > don't show anything for devices with no suspend callbacks at all.  
+> > Nevertheless, these devices sit on the device list and prevent other
+> > devices from suspending or resuming as soon as they could.
+> 
+> Unless they are async, that is.
+
+Yes.  It would be simpler to make them async.  But first we ought to
+know what they are.  Can you add an extra line to the log for such
+devices?
+
+What I'm afraid of is that there might be a "normal" device with a
+"normal" ancestor but with "abnormal" devices in between (where
+"normal" means there is a suspend or resume routine and "abnormal"  
+means all the method pointers are NULL).  I know that this happens when
+there's a USB mass-storage device, for example.  If we complete the
+intermediate devices immediately, then there won't be anything to
+prevent the ancestor from suspending before the device or the device
+from resuming before the ancestor.  Forcing the "abnormal" devices to
+be async, even if they aren't marked that way, would avoid these
+problems.
+
+> > For example, the fingerprint sensor (3-1) took the most time to resume.  
+> > But other devices were delayed until after it finished because it had
+> > children with no callbacks, and they delayed the devices following
+> > them in the list.
+> > 
+> > What would happen if you completed these devices immediately, as part 
+> > of the first pass?
+> 
+> OK.  How do the PM core is supposed to check if a device has null suspend
+> and resume?  Check all of the function pointers in the first pass?
+
+All the relevant pointers (including the legacy pointers).  That is, 
+you check only the suspend pointers during the first suspend pass, and 
+likewise for resume.
+
+Alan Stern
