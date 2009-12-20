@@ -1,36 +1,49 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
- suspend-resume patch w/ rwsems)
-Date: Sun, 20 Dec 2009 12:12:09 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912201210300.24162-100000@netrider.rowland.org>
-References: <200912201352.07689.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
+Date: Sun, 20 Dec 2009 19:10:26 +0100
+Message-ID: <200912201910.26895.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912201210300.24162-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755629AbZLTRMX@vger.kernel.org>
-In-Reply-To: <200912201352.07689.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:37390 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755840AbZLTSJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Dec 2009 13:09:57 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0912201210300.24162-100000@netrider.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-On Sun, 20 Dec 2009, Rafael J. Wysocki wrote:
-
-> > It's too early to come to this sort of conclusion (i.e., that suspend
-> > and resume react very differently to an asynchronous approach).  Unless
-> > you have some definite _reason_ for thinking that resume will benefit
-> > more than suspend, you shouldn't try to generalize so much from tests
-> > on only two systems.
+On Sunday 20 December 2009, Alan Stern wrote:
+> On Sun, 20 Dec 2009, Rafael J. Wysocki wrote:
 > 
-> In fact I have one reason.  Namely, the things that drivers do on suspend and
-> resume are evidently quite different and on these two systems I was able to
-> test they apparently took different amounts of time to complete.
+> > > It's too early to come to this sort of conclusion (i.e., that suspend
+> > > and resume react very differently to an asynchronous approach).  Unless
+> > > you have some definite _reason_ for thinking that resume will benefit
+> > > more than suspend, you shouldn't try to generalize so much from tests
+> > > on only two systems.
+> > 
+> > In fact I have one reason.  Namely, the things that drivers do on suspend and
+> > resume are evidently quite different and on these two systems I was able to
+> > test they apparently took different amounts of time to complete.
+> > 
+> > The very fact that on both systems resume is substantially longer than suspend,
+> > even if all devices are suspended and resumed synchronously, is quite
+> > interesting.
 > 
-> The very fact that on both systems resume is substantially longer than suspend,
-> even if all devices are suspended and resumed synchronously, is quite
-> interesting.
+> Yes, it is.  But it doesn't mean that suspend won't benefit from 
+> asynchronicity; it just means that the benefits might not be as large 
+> as they are for resume.
 
-Yes, it is.  But it doesn't mean that suspend won't benefit from 
-asynchronicity; it just means that the benefits might not be as large 
-as they are for resume.
+Agreed, although that rises the question whether they are sufficiently
+significant.  I guess time will tell.  With the i8042 done asynchronously they
+are IMO.
 
-Alan Stern
+BTW, what's the right place to call device_enable_async_suspend() for USB
+devices?
+
+Rafael
