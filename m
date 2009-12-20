@@ -1,99 +1,41 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 02/11] ACPI: processor: introduce arch_has_acpi_pdc
-Date: Sun, 20 Dec 2009 12:30:34 -0700
-Message-ID: <20091220193033.5545.96316.stgit@bob.kio>
-References: <20091220192731.5545.20582.stgit@bob.kio>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async
+ suspend-resume patch w/ rwsems)
+Date: Sun, 20 Dec 2009 14:38:23 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0912201434340.27137-100000@netrider.rowland.org>
+References: <200912201910.26895.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:19887 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756111AbZLTTaf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 14:30:35 -0500
-In-Reply-To: <20091220192731.5545.20582.stgit@bob.kio>
+Received: from netrider.rowland.org ([192.131.102.5]:59649 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754192AbZLTTiY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 14:38:24 -0500
+In-Reply-To: <200912201910.26895.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, lenb@kernel.org
-Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
 
-arch dependent helper function that tells us if we should attempt to
-evaluate _PDC on this machine or not.
+On Sun, 20 Dec 2009, Rafael J. Wysocki wrote:
 
-The x86 implementation assumes that the CPUs in the machine must be
-homogeneous, and that you cannot mix CPUs of different vendors.
+> BTW, what's the right place to call device_enable_async_suspend() for USB
+> devices?
 
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Alex Chiang <achiang@hp.com>
----
+For USB devices, it's in drivers/usb/core/hub.c:usb_new_device() 
+anywhere before the call to usb_device_add().
 
- arch/ia64/include/asm/acpi.h     |    2 ++
- arch/x86/include/asm/acpi.h      |    7 +++++++
- arch/x86/kernel/acpi/processor.c |    4 +---
- drivers/acpi/processor_pdc.c     |    3 +++
- 4 files changed, 13 insertions(+), 3 deletions(-)
+For USB interfaces, it's in 
+drivers/usb/core/message.c:usb_set_configuration() before the call to 
+device_add().
 
-diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-index 91df968..3b78882 100644
---- a/arch/ia64/include/asm/acpi.h
-+++ b/arch/ia64/include/asm/acpi.h
-@@ -132,6 +132,8 @@ extern int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
- extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
- #endif
- 
-+static inline bool arch_has_acpi_pdc(void) { return true; }
-+
- #define acpi_unlazy_tlb(x)
- 
- #ifdef CONFIG_ACPI_NUMA
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 60d2b2d..d787e6e 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -142,6 +142,13 @@ static inline unsigned int acpi_processor_cstate_check(unsigned int max_cstate)
- 		return max_cstate;
- }
- 
-+static inline bool arch_has_acpi_pdc(void)
-+{
-+	struct cpuinfo_x86 *c = &cpu_data(0);
-+	return (c->x86_vendor == X86_VENDOR_INTEL ||
-+		c->x86_vendor == X86_VENDOR_CENTAUR);
-+}
-+
- #else /* !CONFIG_ACPI */
- 
- #define acpi_lapic 0
-diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
-index d85d1b2..bcb6efe 100644
---- a/arch/x86/kernel/acpi/processor.c
-+++ b/arch/x86/kernel/acpi/processor.c
-@@ -79,9 +79,7 @@ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
- 	struct cpuinfo_x86 *c = &cpu_data(pr->id);
- 
- 	pr->pdc = NULL;
--	if (c->x86_vendor == X86_VENDOR_INTEL ||
--	    c->x86_vendor == X86_VENDOR_CENTAUR)
--		init_intel_pdc(pr, c);
-+	init_intel_pdc(pr, c);
- 
- 	return;
- }
-diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index b416c32..931e735 100644
---- a/drivers/acpi/processor_pdc.c
-+++ b/drivers/acpi/processor_pdc.c
-@@ -69,6 +69,9 @@ static int acpi_processor_eval_pdc(struct acpi_processor *pr)
- 
- void acpi_processor_set_pdc(struct acpi_processor *pr)
- {
-+	if (arch_has_acpi_pdc() == false)
-+		return;
-+
- 	arch_acpi_processor_init_pdc(pr);
- 	acpi_processor_eval_pdc(pr);
- 	arch_acpi_processor_cleanup_pdc(pr);
+For USB endpoints, it's in 
+drivers/usb/core/endpoint.c:usb_create_ep_devs() before the call to 
+device_register().
+
+However you won't need to do it for interfaces and endpoints if you 
+automatically treat as async any device without suspend/resume 
+callbacks.
+
+Alan Stern
 
