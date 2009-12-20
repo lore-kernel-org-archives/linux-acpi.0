@@ -1,49 +1,28 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Sun, 20 Dec 2009 19:10:26 +0100
-Message-ID: <200912201910.26895.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912201210300.24162-100000@netrider.rowland.org>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Re: [PATCH 2/5 -v2] acpi, apei, APEI supporting infrastructure
+Date: Sun, 20 Dec 2009 19:57:01 +0100
+Message-ID: <4B2E737D.2060902@linux.intel.com>
+References: <1260429417.15264.394.camel@yhuang-dev.sh.intel.com> <20091218181123.GA1470@ucw.cz>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37390 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755840AbZLTSJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Dec 2009 13:09:57 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912201210300.24162-100000@netrider.rowland.org>
+Received: from mga07.intel.com ([143.182.124.22]:5957 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753265AbZLTS5I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 13:57:08 -0500
+In-Reply-To: <20091218181123.GA1470@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Huang Ying <ying.huang@intel.com>, lenb@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Sunday 20 December 2009, Alan Stern wrote:
-> On Sun, 20 Dec 2009, Rafael J. Wysocki wrote:
+
 > 
-> > > It's too early to come to this sort of conclusion (i.e., that suspend
-> > > and resume react very differently to an asynchronous approach).  Unless
-> > > you have some definite _reason_ for thinking that resume will benefit
-> > > more than suspend, you shouldn't try to generalize so much from tests
-> > > on only two systems.
-> > 
-> > In fact I have one reason.  Namely, the things that drivers do on suspend and
-> > resume are evidently quite different and on these two systems I was able to
-> > test they apparently took different amounts of time to complete.
-> > 
-> > The very fact that on both systems resume is substantially longer than suspend,
-> > even if all devices are suspended and resumed synchronously, is quite
-> > interesting.
-> 
-> Yes, it is.  But it doesn't mean that suspend won't benefit from 
-> asynchronicity; it just means that the benefits might not be as large 
-> as they are for resume.
+> Does this mean we'll now try to run acpi interrpretter from NMI
+> context?
 
-Agreed, although that rises the question whether they are sufficiently
-significant.  I guess time will tell.  With the i8042 done asynchronously they
-are IMO.
+No. They have a very minimal interpreter for an own very simple byte code.
+That code is NMI safe.
 
-BTW, what's the right place to call device_enable_async_suspend() for USB
-devices?
-
-Rafael
+-Andi
