@@ -1,102 +1,99 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 07/11] ACPI: processor: introduce acpi_processor_alloc_pdc()
-Date: Sun, 20 Dec 2009 12:30:59 -0700
-Message-ID: <20091220193059.5545.23552.stgit@bob.kio>
+Subject: [PATCH v2 02/11] ACPI: processor: introduce arch_has_acpi_pdc
+Date: Sun, 20 Dec 2009 12:30:34 -0700
+Message-ID: <20091220193033.5545.96316.stgit@bob.kio>
 References: <20091220192731.5545.20582.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:19887 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756111AbZLTTaf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 14:30:35 -0500
 In-Reply-To: <20091220192731.5545.20582.stgit@bob.kio>
-Sender: linux-ia64-owner@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, lenb@kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-acpi_processor_init_pdc() isn't really doing anything interesting
-with the struct acpi_processor * parameter. Its real job is to allocate
-the buffer for the _PDC bits.
+arch dependent helper function that tells us if we should attempt to
+evaluate _PDC on this machine or not.
 
-So rename the function to acpi_processor_alloc_pdc(), and just return
-the struct acpi_object_list * it's supposed to allocate.
+The x86 implementation assumes that the CPUs in the machine must be
+homogeneous, and that you cannot mix CPUs of different vendors.
 
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_pdc.c |   22 +++++++++++++---------
- 1 files changed, 13 insertions(+), 9 deletions(-)
+ arch/ia64/include/asm/acpi.h     |    2 ++
+ arch/x86/include/asm/acpi.h      |    7 +++++++
+ arch/x86/kernel/acpi/processor.c |    4 +---
+ drivers/acpi/processor_pdc.c     |    3 +++
+ 4 files changed, 13 insertions(+), 3 deletions(-)
 
+diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+index 91df968..3b78882 100644
+--- a/arch/ia64/include/asm/acpi.h
++++ b/arch/ia64/include/asm/acpi.h
+@@ -132,6 +132,8 @@ extern int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
+ extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+ #endif
+ 
++static inline bool arch_has_acpi_pdc(void) { return true; }
++
+ #define acpi_unlazy_tlb(x)
+ 
+ #ifdef CONFIG_ACPI_NUMA
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index 60d2b2d..d787e6e 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -142,6 +142,13 @@ static inline unsigned int acpi_processor_cstate_check(unsigned int max_cstate)
+ 		return max_cstate;
+ }
+ 
++static inline bool arch_has_acpi_pdc(void)
++{
++	struct cpuinfo_x86 *c = &cpu_data(0);
++	return (c->x86_vendor == X86_VENDOR_INTEL ||
++		c->x86_vendor == X86_VENDOR_CENTAUR);
++}
++
+ #else /* !CONFIG_ACPI */
+ 
+ #define acpi_lapic 0
+diff --git a/arch/x86/kernel/acpi/processor.c b/arch/x86/kernel/acpi/processor.c
+index d85d1b2..bcb6efe 100644
+--- a/arch/x86/kernel/acpi/processor.c
++++ b/arch/x86/kernel/acpi/processor.c
+@@ -79,9 +79,7 @@ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+ 	struct cpuinfo_x86 *c = &cpu_data(pr->id);
+ 
+ 	pr->pdc = NULL;
+-	if (c->x86_vendor == X86_VENDOR_INTEL ||
+-	    c->x86_vendor == X86_VENDOR_CENTAUR)
+-		init_intel_pdc(pr, c);
++	init_intel_pdc(pr, c);
+ 
+ 	return;
+ }
 diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index e786e2c..23d2828 100644
+index b416c32..931e735 100644
 --- a/drivers/acpi/processor_pdc.c
 +++ b/drivers/acpi/processor_pdc.c
-@@ -54,26 +54,24 @@ static void acpi_set_pdc_bits(u32 *buf)
- 	arch_acpi_set_pdc_bits(buf);
- }
- 
--static void acpi_processor_init_pdc(struct acpi_processor *pr)
-+static struct acpi_object_list *acpi_processor_alloc_pdc(void)
- {
- 	struct acpi_object_list *obj_list;
- 	union acpi_object *obj;
- 	u32 *buf;
- 
--	pr->pdc = NULL;
--
- 	/* allocate and initialize pdc. It will be used later. */
- 	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
- 	if (!obj_list) {
- 		printk(KERN_ERR "Memory allocation error\n");
--		return;
-+		return NULL;
- 	}
- 
- 	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
- 	if (!obj) {
- 		printk(KERN_ERR "Memory allocation error\n");
- 		kfree(obj_list);
--		return;
-+		return NULL;
- 	}
- 
- 	buf = kmalloc(12, GFP_KERNEL);
-@@ -81,7 +79,7 @@ static void acpi_processor_init_pdc(struct acpi_processor *pr)
- 		printk(KERN_ERR "Memory allocation error\n");
- 		kfree(obj);
- 		kfree(obj_list);
--		return;
-+		return NULL;
- 	}
- 
- 	acpi_set_pdc_bits(buf);
-@@ -91,9 +89,8 @@ static void acpi_processor_init_pdc(struct acpi_processor *pr)
- 	obj->buffer.pointer = (u8 *) buf;
- 	obj_list->count = 1;
- 	obj_list->pointer = obj;
--	pr->pdc = obj_list;
- 
--	return;
-+	return obj_list;
- }
- 
- /*
-@@ -142,10 +139,17 @@ static void acpi_processor_cleanup_pdc(struct acpi_processor *pr)
+@@ -69,6 +69,9 @@ static int acpi_processor_eval_pdc(struct acpi_processor *pr)
  
  void acpi_processor_set_pdc(struct acpi_processor *pr)
  {
-+	struct acpi_object_list *obj_list;
-+
- 	if (arch_has_acpi_pdc() == false)
- 		return;
- 
--	acpi_processor_init_pdc(pr);
-+	obj_list = acpi_processor_alloc_pdc();
-+	if (!obj_list)
++	if (arch_has_acpi_pdc() == false)
 +		return;
 +
-+	pr->pdc = obj_list;
-+
+ 	arch_acpi_processor_init_pdc(pr);
  	acpi_processor_eval_pdc(pr);
- 	acpi_processor_cleanup_pdc(pr);
- }
+ 	arch_acpi_processor_cleanup_pdc(pr);
 
