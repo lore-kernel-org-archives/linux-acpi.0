@@ -1,92 +1,107 @@
 From: Mattia Dongili <malattia@linux.it>
-Subject: [PATCH 1/3] sony-laptop: documentation updates
-Date: Sun, 20 Dec 2009 23:17:37 +0900
-Message-ID: <1261318659-5980-2-git-send-email-malattia@linux.it>
+Subject: [PATCH 2/3] sony-laptop: switch from workqueue to a timer
+Date: Sun, 20 Dec 2009 23:17:38 +0900
+Message-ID: <1261318659-5980-3-git-send-email-malattia@linux.it>
 References: <1261318659-5980-1-git-send-email-malattia@linux.it>
+ <1261318659-5980-2-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:54544
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:54550
 	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201AbZLTOR4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 09:17:56 -0500
-In-Reply-To: <1261318659-5980-1-git-send-email-malattia@linux.it>
+	with ESMTP id S1752553AbZLTOR6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 09:17:58 -0500
+In-Reply-To: <1261318659-5980-2-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Mattia Dongili <malattia@linux.it>
 
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+
+The function that is executing in workqueue context does not need
+to sleep so let's switch to a timer which is more lightweight.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- Documentation/laptops/sony-laptop.txt |   37 ++++++++++++++++++++++++++------
- 1 files changed, 30 insertions(+), 7 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/laptops/sony-laptop.txt b/Documentation/laptops/sony-laptop.txt
-index 23ce7d3..2bd4e82 100644
---- a/Documentation/laptops/sony-laptop.txt
-+++ b/Documentation/laptops/sony-laptop.txt
-@@ -14,7 +14,8 @@ Some models report hotkeys through the SNC or SPIC devices, such events are
- reported both through the ACPI subsystem as acpi events and through the INPUT
- subsystem. See the logs of acpid or /proc/acpi/event and
- /proc/bus/input/devices to find out what those events are and which input
--devices are created by the driver.
-+devices are created by the driver. Additionally, loading the driver with the
-+debug option will report all events in the kernel log.
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index 7d15b97..90400f0 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -145,6 +145,7 @@ struct sony_laptop_input_s {
+ 	struct input_dev	*key_dev;
+ 	struct kfifo		*fifo;
+ 	spinlock_t		fifo_lock;
++	struct timer_list	release_key_timer;
+ };
  
- Backlight control:
- ------------------
-@@ -64,6 +65,16 @@ powers off the sound card,
- 	# echo "1" > /sys/devices/platform/sony-laptop/audiopower
- powers on the sound card.
+ static struct sony_laptop_input_s sony_laptop_input = {
+@@ -298,10 +299,8 @@ static int sony_laptop_input_keycode_map[] = {
+ };
  
+ /* release buttons after a short delay if pressed */
+-static void do_sony_laptop_release_key(struct work_struct *work)
++static void do_sony_laptop_release_key(unsigned long unused)
+ {
+-	struct delayed_work *dwork =
+-			container_of(work, struct delayed_work, work);
+ 	struct sony_laptop_keypress kp;
+ 
+ 	if (kfifo_get(sony_laptop_input.fifo,
+@@ -311,18 +310,16 @@ static void do_sony_laptop_release_key(struct work_struct *work)
+ 	}
+ 
+ 	/*
+-	 * If there is something in the fifo scnhedule nect release.
++	 * If there is something in the fifo schedule next release.
+ 	 * We don't care about locking, at worst we may schedule an
+ 	 * extra "empty" wakeup. This may be improved with the new
+ 	 * kfifo API.
+ 	 */
+ 	if (__kfifo_len(sony_laptop_input.fifo) != 0)
+-		schedule_delayed_work(dwork, msecs_to_jiffies(10));
++		mod_timer(&sony_laptop_input.release_key_timer,
++			  jiffies + msecs_to_jiffies(10));
+ }
+ 
+-static DECLARE_DELAYED_WORK(sony_laptop_release_key_work,
+-			    do_sony_laptop_release_key);
+-
+ /* forward event to the input subsystem */
+ static void sony_laptop_report_input_event(u8 event)
+ {
+@@ -379,8 +376,8 @@ static void sony_laptop_report_input_event(u8 event)
+ 		/* schedule key release */
+ 		kfifo_put(sony_laptop_input.fifo,
+ 			  (unsigned char *)&kp, sizeof(kp));
+-		schedule_delayed_work(&sony_laptop_release_key_work,
+-				      msecs_to_jiffies(10));
++		mod_timer(&sony_laptop_input.release_key_timer,
++			  jiffies + msecs_to_jiffies(10));
+ 	} else
+ 		dprintk("unknown input event %.2x\n", event);
+ }
+@@ -407,6 +404,9 @@ static int sony_laptop_setup_input(struct acpi_device *acpi_device)
+ 		goto err_dec_users;
+ 	}
+ 
++	setup_timer(&sony_laptop_input.release_key_timer,
++		    do_sony_laptop_release_key, 0);
 +
-+RFkill control:
-+---------------
-+More recent Vaio models expose a consistent set of ACPI methods to
-+control radio frequency emitting devices. If you are a lucky owner of
-+such a laptop you will find the necessary rfkill devices under
-+/sys/class/rfkill. Check those starting with sony-* in
-+	# grep . /sys/class/rfkill/*/{state,name}
-+
-+
- Development:
- ------------
+ 	/* input keys */
+ 	key_dev = input_allocate_device();
+ 	if (!key_dev) {
+@@ -490,7 +490,7 @@ static void sony_laptop_remove_input(void)
+ 	if (!atomic_dec_and_test(&sony_laptop_input.users))
+ 		return;
  
-@@ -75,8 +86,21 @@ pass the option 'debug=1'.
- REPEAT: DON'T DO THIS IF YOU DON'T LIKE RISKY BUSINESS.
+-	cancel_delayed_work_sync(&sony_laptop_release_key_work);
++	del_timer_sync(&sony_laptop_input.release_key_timer);
  
- In your kernel logs you will find the list of all ACPI methods
--the SNC device has on your laptop. You can see the GCDP/GCDP methods
--used to pwer on/off the CD drive, but there are others.
-+the SNC device has on your laptop.
-+
-+* For new models you will see a long list of meaningless method names,
-+reading the DSDT table source should reveal that:
-+(1) the SNC device uses an internal capability lookup table
-+(2) SN00 is used to find values in the lookup table
-+(3) SN06 and SN07 are used to call into the real methods based on
-+    offsets you can obtain iterating the table using SN00
-+(4) SN02 used to enable events.
-+Some values in the capability lookup table are more or less known, see
-+the code for all sony_call_snc_handle calls, others are more obscure.
-+
-+* For old models you can see the GCDP/GCDP methods used to pwer on/off
-+the CD drive, but there are others and they are usually different from
-+model to model.
- 
- I HAVE NO IDEA WHAT THOSE METHODS DO.
- 
-@@ -108,9 +132,8 @@ Bugs/Limitations:
-   laptop, including permanent damage.
- 
- * The sony-laptop and sonypi drivers do not interact at all. In the
--  future, sonypi could use sony-laptop to do (part of) its business.
-+  future, sonypi will be removed and replaced by sony-laptop.
- 
- * spicctrl, which is the userspace tool used to communicate with the
--  sonypi driver (through /dev/sonypi) does not try to use the
--  sony-laptop driver. In the future, spicctrl could try sonypi first,
--  and if it isn't present, try sony-laptop instead.
-+  sonypi driver (through /dev/sonypi) is deprecated as well since all
-+  its features are now available under the sysfs tree via sony-laptop.
+ 	/* Generate key-up events for remaining keys */
+ 	while (kfifo_get(sony_laptop_input.fifo,
 -- 
 1.6.5.7
 
