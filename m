@@ -1,68 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Async suspend-resume patch w/ completions (was: Re: Async suspend-resume patch w/ rwsems)
-Date: Sun, 20 Dec 2009 13:55:45 +0100
-Message-ID: <200912201355.45760.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.0912192232360.6618-100000@netrider.rowland.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH 0/3] sony-laptop updates
+Date: Sun, 20 Dec 2009 23:17:36 +0900
+Message-ID: <1261318659-5980-1-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36882 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753523AbZLTMyo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Dec 2009 07:54:44 -0500
-In-Reply-To: <Pine.LNX.4.44L0.0912192232360.6618-100000@netrider.rowland.org>
+Received: from static-220-247-10-204.b-man.svips.gol.ne.jp ([220.247.10.204]:54540
+	"EHLO smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751550AbZLTORw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 09:17:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
 
-On Sunday 20 December 2009, Alan Stern wrote:
-> On Sat, 19 Dec 2009, Rafael J. Wysocki wrote:
-> 
-> > On Friday 18 December 2009, Alan Stern wrote:
-> > > On Fri, 18 Dec 2009, Rafael J. Wysocki wrote:
-> > > 
-> > > > I didn't manage to do that, but I was able to mark sd and i8042 as async and
-> > > > see the impact of this.
-> > > 
-> > > Apparently this didn't do what you wanted.  In the nx6325
-> > > sd+i8042+async+extra log, the 0:0:0:0 device (which is a SCSI disk) was
-> 
-> To be precise, the device is an ATA or SATA disk but it is managed by 
-> the sd driver.
-> 
-> > > suspended by the main thread instead of an async thread.
-> > 
-> > Hm, that's odd, because there's a noticeable time difference between the
-> > two cases in which the sd is sync and async.  I'll look into it further.
-> 
-> I don't know what the whole story is, but the PID number tells the 
-> tale.
-> 
-> > > There's an important point I neglected to mention before.  Your logs 
-> > > don't show anything for devices with no suspend callbacks at all.  
-> > > Nevertheless, these devices sit on the device list and prevent other
-> > > devices from suspending or resuming as soon as they could.
-> > 
-> > Unless they are async, that is.
-> 
-> Yes.  It would be simpler to make them async.  But first we ought to
-> know what they are.  Can you add an extra line to the log for such
-> devices?
+Hi Len,
 
-Sure, I'll do that.
+a few more updates. Nothing exciting, some cleanups from Dmitry and a
+documentation update.
+Please apply together with my previous submission.
 
-> What I'm afraid of is that there might be a "normal" device with a
-> "normal" ancestor but with "abnormal" devices in between (where
-> "normal" means there is a suspend or resume routine and "abnormal"  
-> means all the method pointers are NULL).  I know that this happens when
-> there's a USB mass-storage device, for example.  If we complete the
-> intermediate devices immediately, then there won't be anything to
-> prevent the ancestor from suspending before the device or the device
-> from resuming before the ancestor.
+Thanks!
 
-I'm afraid of that too.
 
-Rafael
+Dmitry Torokhov (2):
+  sony-laptop: switch from workqueue to a timer
+  sony-laptop: simplify keymap initialization
+
+Mattia Dongili (1):
+  sony-laptop: documentation updates
+
+ Documentation/laptops/sony-laptop.txt |   37 +++++++++++++++++++++++-----
+ drivers/platform/x86/sony-laptop.c    |   42 +++++++++++++++------------------
+ 2 files changed, 49 insertions(+), 30 deletions(-)
+
