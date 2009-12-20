@@ -1,63 +1,102 @@
 From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 09/11] ACPI: processor: open code acpi_processor_cleanup_pdc
-Date: Sun, 20 Dec 2009 12:31:09 -0700
-Message-ID: <20091220193109.5545.705.stgit@bob.kio>
+Subject: [PATCH v2 07/11] ACPI: processor: introduce acpi_processor_alloc_pdc()
+Date: Sun, 20 Dec 2009 12:30:59 -0700
+Message-ID: <20091220193059.5545.23552.stgit@bob.kio>
 References: <20091220192731.5545.20582.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:4477 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756185AbZLTTbL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 14:31:11 -0500
+Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <20091220192731.5545.20582.stgit@bob.kio>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-ia64-owner@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-We have the acpi_object_list * right there in acpi_processor_set_pdc()
-so it doesn't seem necessary for an entire helper function just to
-free it.
+acpi_processor_init_pdc() isn't really doing anything interesting
+with the struct acpi_processor * parameter. Its real job is to allocate
+the buffer for the _PDC bits.
+
+So rename the function to acpi_processor_alloc_pdc(), and just return
+the struct acpi_object_list * it's supposed to allocate.
 
 Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/acpi/processor_pdc.c |   15 ++++-----------
- 1 files changed, 4 insertions(+), 11 deletions(-)
+ drivers/acpi/processor_pdc.c |   22 +++++++++++++---------
+ 1 files changed, 13 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/processor_pdc.c b/drivers/acpi/processor_pdc.c
-index 974de4e..deeba22 100644
+index e786e2c..23d2828 100644
 --- a/drivers/acpi/processor_pdc.c
 +++ b/drivers/acpi/processor_pdc.c
-@@ -125,16 +125,6 @@ acpi_processor_eval_pdc(acpi_handle handle, struct acpi_object_list *pdc_in)
- 	return status;
+@@ -54,26 +54,24 @@ static void acpi_set_pdc_bits(u32 *buf)
+ 	arch_acpi_set_pdc_bits(buf);
  }
  
--static void acpi_processor_cleanup_pdc(struct acpi_processor *pr)
--{
--	if (pr->pdc) {
--		kfree(pr->pdc->pointer->buffer.pointer);
--		kfree(pr->pdc->pointer);
--		kfree(pr->pdc);
--		pr->pdc = NULL;
--	}
--}
--
- void acpi_processor_set_pdc(struct acpi_processor *pr)
+-static void acpi_processor_init_pdc(struct acpi_processor *pr)
++static struct acpi_object_list *acpi_processor_alloc_pdc(void)
  {
  	struct acpi_object_list *obj_list;
-@@ -147,7 +137,10 @@ void acpi_processor_set_pdc(struct acpi_processor *pr)
+ 	union acpi_object *obj;
+ 	u32 *buf;
+ 
+-	pr->pdc = NULL;
+-
+ 	/* allocate and initialize pdc. It will be used later. */
+ 	obj_list = kmalloc(sizeof(struct acpi_object_list), GFP_KERNEL);
+ 	if (!obj_list) {
+ 		printk(KERN_ERR "Memory allocation error\n");
+-		return;
++		return NULL;
+ 	}
+ 
+ 	obj = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+ 	if (!obj) {
+ 		printk(KERN_ERR "Memory allocation error\n");
+ 		kfree(obj_list);
+-		return;
++		return NULL;
+ 	}
+ 
+ 	buf = kmalloc(12, GFP_KERNEL);
+@@ -81,7 +79,7 @@ static void acpi_processor_init_pdc(struct acpi_processor *pr)
+ 		printk(KERN_ERR "Memory allocation error\n");
+ 		kfree(obj);
+ 		kfree(obj_list);
+-		return;
++		return NULL;
+ 	}
+ 
+ 	acpi_set_pdc_bits(buf);
+@@ -91,9 +89,8 @@ static void acpi_processor_init_pdc(struct acpi_processor *pr)
+ 	obj->buffer.pointer = (u8 *) buf;
+ 	obj_list->count = 1;
+ 	obj_list->pointer = obj;
+-	pr->pdc = obj_list;
+ 
+-	return;
++	return obj_list;
+ }
+ 
+ /*
+@@ -142,10 +139,17 @@ static void acpi_processor_cleanup_pdc(struct acpi_processor *pr)
+ 
+ void acpi_processor_set_pdc(struct acpi_processor *pr)
+ {
++	struct acpi_object_list *obj_list;
++
+ 	if (arch_has_acpi_pdc() == false)
  		return;
  
- 	acpi_processor_eval_pdc(pr->handle, obj_list);
--	acpi_processor_cleanup_pdc(pr);
+-	acpi_processor_init_pdc(pr);
++	obj_list = acpi_processor_alloc_pdc();
++	if (!obj_list)
++		return;
 +
-+	kfree(obj_list->pointer->buffer.pointer);
-+	kfree(obj_list->pointer);
-+	kfree(obj_list);
++	pr->pdc = obj_list;
++
+ 	acpi_processor_eval_pdc(pr);
+ 	acpi_processor_cleanup_pdc(pr);
  }
- EXPORT_SYMBOL_GPL(acpi_processor_set_pdc);
- 
 
