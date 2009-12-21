@@ -1,41 +1,45 @@
-From: Nigel Cunningham <ncunningham@crca.org.au>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
-Date: Mon, 21 Dec 2009 18:25:35 +1100
-Message-ID: <4B2F22EF.6040500@crca.org.au>
-References: <200912210140.19713.rjw@sisk.pl>
+Date: Sun, 20 Dec 2009 23:35:55 -0800
+Message-ID: <20091221073555.GB3234@core.coreip.homeip.net>
+References: <200912210140.19713.rjw@sisk.pl> <4B2F22EF.6040500@crca.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751773AbZLUHZj@vger.kernel.org>
-In-Reply-To: <200912210140.19713.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-px0-f189.google.com ([209.85.216.189]:64791 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751557AbZLUHgP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 02:36:15 -0500
+Content-Disposition: inline
+In-Reply-To: <4B2F22EF.6040500@crca.org.au>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Nigel Cunningham <ncunningham@crca.org.au>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi.
+Hi Nigel,
 
-Rafael J. Wysocki wrote:
-> I'm not sure what the next step should be at this point.  To me, the picture is
-> quite clear now, but perhaps we ought to run more tests on some other machines
-> or something.  Please let me know what you think.
+On Mon, Dec 21, 2009 at 06:25:35PM +1100, Nigel Cunningham wrote:
+> Hi.
+> 
+> Rafael J. Wysocki wrote:
+> > I'm not sure what the next step should be at this point.  To me, the picture is
+> > quite clear now, but perhaps we ought to run more tests on some other machines
+> > or something.  Please let me know what you think.
+> 
+> Looks great. If you do decide you want other machines tested, I'll
+> happily try the machines around here:
+> 
+> - Dell M1530
+> - Omnibook XE3-GF.
+> - Via LN10000 based Mythtv Box
+> - Desktop machine - Some Intel-based mobo I've forgotten the name of.
+> 
 
-Looks great. If you do decide you want other machines tested, I'll
-happily try the machines around here:
+Would you mind also testing patch that I just posted that changes full
+PS/2 keyboard and mouse resets to more lightweight versions?
 
-- Dell M1530
-- Omnibook XE3-GF.
-- Via LN10000 based Mythtv Box
-- Desktop machine - Some Intel-based mobo I've forgotten the name of.
+Thanks!
 
-I've been quietly following the thread, but have lost track of what
-iteration of the patch you're on, so if you'd give me a pointer to it,
-I'd be grateful.
-
-By the way, I haven't forgotten about sending some real patches for
-swsusp (ie more than just cleanups). I'm just busy with other things and
-also thinking carefully about what order to do things in.
-
-Regards,
-
-Nigel
+-- 
+Dmitry
