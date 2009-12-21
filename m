@@ -1,49 +1,54 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: Re: ACPI error during boot - does it need fixing ?
-Date: Mon, 21 Dec 2009 09:47:49 +0100
-Message-ID: <20091221084749.GA14145@tangens.sinus.cz>
-References: <20091220070223.GA8334@tangens.sinus.cz> <1261357849.27291.276.camel@rzhang1-desktop> <20091221041119.GA27565@tangens.sinus.cz> <1261373160.12263.0.camel@rzhang1-desktop> <20091221060430.GA2839@tangens.sinus.cz> <1261381508.12263.11.camel@rzhang1-desktop> <20091221074746.GA9895@tangens.sinus.cz> <1261383857.12263.24.camel@rzhang1-desktop>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [GIT PULL] PM updates for 2.6.33
+Date: Mon, 21 Dec 2009 10:01:47 +0100
+Message-ID: <20091221090147.GA1405@ucw.cz>
+References: <200912060254.10081.rjw@sisk.pl> <alpine.LFD.2.00.0912051758190.3560@localhost.localdomain> <20091206113555.5a646713@infradead.org> <alpine.LFD.2.00.0912061144100.3560@localhost.localdomain> <20091206121803.70385c33@infradead.org> <7AB497C7-8495-4535-9E83-81307E008BF4@gmail.com> <20091206165551.2529075f@infradead.org> <20091207022756.GB20770@core.coreip.homeip.net> <20091206212600.44806308@infradead.org> <20091207060053.GA21451@core.coreip.homeip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([89.250.251.168]:32915 "EHLO tangens.sinus.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753321AbZLUIry (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 03:47:54 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33950 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459AbZLUJBz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 04:01:55 -0500
 Content-Disposition: inline
-In-Reply-To: <1261383857.12263.24.camel@rzhang1-desktop>
+In-Reply-To: <20091207060053.GA21451@core.coreip.homeip.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Pavel Troller <patrol@sinus.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Arjan van de Ven <arjan@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>
 
+On Sun 2009-12-06 22:00:53, Dmitry Torokhov wrote:
+> On Sun, Dec 06, 2009 at 09:26:00PM -0800, Arjan van de Ven wrote:
+> > On Sun, 6 Dec 2009 18:27:56 -0800
+> > Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
 > > 
-> > Hi!
-> >   OK, here are the tables (I hope I've found the addresses right :-) ).
+> > > On Sun, Dec 06, 2009 at 04:55:51PM -0800, Arjan van de Ven wrote:
+> > > > On Sun, 6 Dec 2009 14:54:48 -0800
+> > > > Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> > > > 
+> > > > > > isn't serio the PS/2 stuff?
+> > > > > 
+> > > > > Yes, that's your PS/2 mouse (rather touchpad) and the delay comes
+> > > > > from device reset (needed by some keyboard controllers - I
+> > > > > remember HP -or it and keyboard will be dead at resume).
+> > > > 
+> > > > and I have a HP laptop... so this makes perfect sense.
+> > > > Thanks for the explenation!
+> > > > 
+> > > 
+> > > Well, we do it for everyone, it's just a particular series of HPs
+> > > forced us to add it.
+> > > 
+> > wonder if it should be a DMI based quirk instead...
+> > 
 > 
-> yes.
-> I have found the root caused of this issue.
-> 
-> BIOS provides duplicate ACPI method _CST, which is used for processor
-> c-state control, for each processor. And the error message is printed
-> out when ACPI tries to install the second _CST method.
-> 
-> This is a BIOS problem to me.
-> 
-> But anyway, it's harmless, the two _CST methods are the same, and the
-> second _CST will be ignored automatically.
-> 
-> If you still don't like this warning message, you need to upgrade your
-> BIOS to see if they have already been fixed. :)
-> 
-> thanks,
-> rui
-> 
-Hi Rui,
-  thanks for your expertise.
-  There is not a BIOS update yet for this motherboard, this was the first thing
-I was checking before I started this thread. So, if it is harmless, I will let
-it be.
-  With regards,
-    Pavel.
+> I have not received reports where it causes harm or reduces
+> functionality so I'd prefer having it by default and not try to race
+> with manufacturers.
+
+Well, it slows down everyone... and people are actually testing with
+linux, so it makes this problem more common on new systems.
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
