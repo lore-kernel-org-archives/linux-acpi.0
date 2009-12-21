@@ -1,60 +1,75 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: Re: [PATCH 1/2] x86 platform drivers, wmi: Remove needless dmi
-	MODULE_ALIAS
-Date: Sun, 20 Dec 2009 21:15:00 +0100
-Message-ID: <38c9179b0912201215k65ac9ed8t45468a28a534e063@mail.gmail.com>
-References: <1261146563-2228-1-git-send-email-trenn@suse.de>
-	<20091218184458.464be49c@destiny.ordissimo> <20091218175432.GA29522@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC] Asynchronous suspend/resume - test results
+Date: Mon, 21 Dec 2009 01:40:19 +0100
+Message-ID: <200912210140.19713.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:45523 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754366AbZLTUPY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2009 15:15:24 -0500
-Received: by fxm21 with SMTP id 21so4196086fxm.21
-        for <linux-acpi@vger.kernel.org>; Sun, 20 Dec 2009 12:15:22 -0800 (PST)
-Received: by fxm21 with SMTP id 21so4196073fxm.21
-        for <linux-acpi@vger.kernel.org>; Sun, 20 Dec 2009 12:15:20 -0800 (PST)
-In-Reply-To: <20091218175432.GA29522@srcf.ucam.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:37991 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756206AbZLUAjv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Dec 2009 19:39:51 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Renninger <trenn@suse.de>, lenb@kernel.org, Carlos Corbacho <carlos@strangeworlds.co.uk>, linux-acpi@vger.kernel.org
+To: pm list <linux-pm@lists.linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Fri, Dec 18, 2009 at 18:54, Matthew Garrett <mjg59@srcf.ucam.org> wr=
-ote:
-> On Fri, Dec 18, 2009 at 06:44:58PM +0100, Anisse Astier wrote:
->
->> For this to work properly you need to have wmi built in your kernel,=
- or have
->> your distribution load the wmi module. Maybe there should be some ki=
-nd of
->> auto-loading for the wmi subsystem (acpi-based?).
->
-> [mjg59@2530p ~]$ modinfo wmi | grep alias
-> alias: =A0 =A0 =A0 =A0 =A0acpi*:pnp0c14:*
-> alias: =A0 =A0 =A0 =A0 =A0acpi*:PNP0C14:*
->
-> Should work already.
->
+Hi,
 
-Indeed, it does, my mistake.
+After the Dmitry's suggestion to use PSMOUSE_CMD_RESET_DIS during suspend
+(and analogously for atkbd), I found that it reduced the suspend time
+significantly and changed the picture quite a bit.  For this reason I re-ran
+the async suspend and resume tests on the nx6325 and Wind U100.
 
-I completely forgot about those lines. In fact, the reason I started
-hacking on msi-wmi (the previous driver), was because it didn't have a
-proper auto-loading, and thus we packaged it out of kernel tree.
+This time I marked the following devices as "async":
+- all USB devices (including interfaces and endpoints)
+- ACPI battery
+- sd and its parent
+- serio and i8042
+- all PCI devices (including bridges)
+for all tests (except for the sync suspend/resume test).
 
-It was using dmi auto-loading with those standard wmi strings (pnp0c14)=
-=2E
+The results are as follows (all times in milliseconds):
 
-Regards,
+			HP nx6325	MSI Wind U100
 
---
-Anisse
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+sync suspend		1391 (+/- 32)	 703 (+/- 26)
+sync resume		3027 (+/- 6)	3562 (+/- 25)
+
+async suspend		1306 (+/- 66)	 659 (+/- 22)
+async resume		2809 (+/- 250)	3564 (+/- 35)
+
+async "upfront" suspend	1038 (+/- 46)	 564 (+/- 50)
+async "upfront" resume	1783 (+/- 7)	1925 (+/- 41)
+
+where the "upfront" versions are with all of the async threads started in an
+additional loop over dpm_list before the main "sync" suspend/resume loop.
+
+The raw data are at:
+
+http://www.sisk.pl/kernel/data/async-suspend-new.pdf
+http://www.sisk.pl/kernel/data/nx6325/
+http://www.sisk.pl/kernel/data/wind/
+
+(hopefully this time I didn't make mistakes in the file names).
+
+The data seem to suggest that "normal" async suspend and resume may be a little
+(10% - 20%) faster than sync suspend and resume, but not as much as the
+versions where all of the async threads had been started before the main
+suspend (resume) thread began handling the "sync" devices.
+
+IMO it also is worth noting that the "async upfront suspend" time on the Wind
+is pretty close to the suspend time of the slowest device (~ .5 s).  The same
+applies to the "async upfront resume" time on the Wind (the slowest device
+resumes in ~1.5 s) and the "async upfront suspend" time on the nx6325 (the
+slowest device suspends in ~1 s).  So, it looks like with the above set of
+async devices we can approach pretty close to the achievable limit on both
+test boxes.
+
+I'm not sure what the next step should be at this point.  To me, the picture is
+quite clear now, but perhaps we ought to run more tests on some other machines
+or something.  Please let me know what you think.
+
+Rafael
