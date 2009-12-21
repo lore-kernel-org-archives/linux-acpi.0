@@ -1,31 +1,53 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC] Asynchronous suspend/resume - test results
-Date: Mon, 21 Dec 2009 15:54:36 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0912211551580.2643-100000@iolanthe.rowland.org>
-References: <200912212136.12665.rjw@sisk.pl>
+From: Alex Chiang <achiang@hp.com>
+Subject: Re: [PATCH 00/11] ACPI: early _PDC eval and unify x86/ia64
+Date: Mon, 21 Dec 2009 14:17:24 -0700
+Message-ID: <20091221211724.GB28569@ldl.fc.hp.com>
+References: <20091220190434.4274.67855.stgit@bob.kio> <20091221081550.GA1648@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:56023 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757152AbZLUUyh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 15:54:37 -0500
-In-Reply-To: <200912212136.12665.rjw@sisk.pl>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:24664 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756998AbZLUVR0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 16:17:26 -0500
+Content-Disposition: inline
+In-Reply-To: <20091221081550.GA1648@isilmar.linta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Dominik Brodowski <linux@dominikbrodowski.net>, venkatesh.pallipadi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 21 Dec 2009, Rafael J. Wysocki wrote:
+* Dominik Brodowski <linux@dominikbrodowski.net>:
+> 
+> On Sun, Dec 20, 2009 at 12:19:04PM -0700, Alex Chiang wrote:
+> > This does introduce a boot time namespace walk for all the CPUs
+> > in the system, looking for and evaluating _PDC. Hopefully that
+> > will not make life miserable for the giant SGI clusters. If worse
+> > comes to worse, maybe we can quirk them and avoid the namespace
+> > walk.
+> 
+> Could this be done async, with completion before EC initialization?
 
-> Do you think it's a good idea to mark all SCSI devices as async?  Well, for
-> testing it probably is, but I doubt in general.
+I don't think I understand your suggestion.
 
-That would be a good question to post on Linux-SCSI.
+On some platforms, we need to finish evaluating _PDC before we
+initialize the EC. That's what I discovered with the Envy 15. At
+that point in boot, we're single-threaded and going through early
+ACPI initialization. Each step has to finish before the next, in
+order for later initialization to succeed.
 
-In most respects it's probably okay.  But some people with large disk
-farms might not like it if their drives should suddenly start to spin
-up (with a correspondingly large power draw) all at the same time.
+There's nothing else going on except for waiting for _PDC to
+finish so that we can initialize the EC.
 
-Alan Stern
+My fear was that on a huge compute cluster, walking the namespace
+for every CPU object to evaluate _PDC might take a long time, and
+is also probably unnecessary, since their hardware/firmware
+probably doesn't load dynamic tables in _PDC.
+
+In that case, my suggestion was to avoid the walk with a quirk.
+
+But maybe it's not necessary to worry about that until it's
+actually proven to be a problem.
+
+Thanks,
+/ac
 
