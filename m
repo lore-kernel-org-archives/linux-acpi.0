@@ -1,28 +1,28 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: Pavel Troller <patrol@sinus.cz>
 Subject: Re: ACPI error during boot - does it need fixing ?
-Date: Mon, 21 Dec 2009 15:47:22 +0800
-Message-ID: <1261381642.12263.13.camel@rzhang1-desktop>
-References: <20091220070223.GA8334@tangens.sinus.cz>
-	 <1261357849.27291.276.camel@rzhang1-desktop>
-	 <20091221041119.GA27565@tangens.sinus.cz>
-	 <1261373160.12263.0.camel@rzhang1-desktop>
-	 <20091221060430.GA2839@tangens.sinus.cz>
-	 <1261381508.12263.11.camel@rzhang1-desktop>
+Date: Mon, 21 Dec 2009 08:47:46 +0100
+Message-ID: <20091221074746.GA9895@tangens.sinus.cz>
+References: <20091220070223.GA8334@tangens.sinus.cz> <1261357849.27291.276.camel@rzhang1-desktop> <20091221041119.GA27565@tangens.sinus.cz> <1261373160.12263.0.camel@rzhang1-desktop> <20091221060430.GA2839@tangens.sinus.cz> <1261381508.12263.11.camel@rzhang1-desktop>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="J2SCkAp4GZ/dPZZf"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:8518 "EHLO mga11.intel.com"
+Received: from tangens.sinus.cz ([89.250.251.168]:42901 "EHLO tangens.sinus.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751557AbZLUHnw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 02:43:52 -0500
+	id S1751557AbZLUHrx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Dec 2009 02:47:53 -0500
+Content-Disposition: inline
 In-Reply-To: <1261381508.12263.11.camel@rzhang1-desktop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Troller <patrol@sinus.cz>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Pavel Troller <patrol@sinus.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, 2009-12-21 at 15:45 +0800, Zhang Rui wrote:
+
+--J2SCkAp4GZ/dPZZf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
 > On Mon, 2009-12-21 at 14:04 +0800, Pavel Troller wrote:
 > > > On Mon, 2009-12-21 at 12:11 +0800, Pavel Troller wrote:
 > > > > > On Sun, 2009-12-20 at 15:02 +0800, Pavel Troller wrote:
@@ -77,21 +77,25 @@ On Mon, 2009-12-21 at 15:45 +0800, Zhang Rui wrote:
 > "acpidump --addr 0xCDCEE580 --length 0x0000018A >cpu1cst.dat"
 > "acpidump --addr 0xCDCEE580 --length 0x0000018A >cpu1cst.dat"
 > 
-Sorry, I mean
-"acpidump --addr 0xCDCEE3F0 --length 0x0000018A >cpu1cst.dat"
-"acpidump --addr 0xCDCEE580 --length 0x0000018A >cpu1cst.dat"
-"acpidump --addr 0xCDCEE710 --length 0x0000018A >cpu2cst.dat"
-"acpidump --addr 0xCDCEE8A0 --length 0x0000018A >cpu3cst.dat"
-
-thanks,
-rui
 > 
-> >      Pavel
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+Hi!
+  OK, here are the tables (I hope I've found the addresses right :-) ).
+    Pavel
 
+--J2SCkAp4GZ/dPZZf
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="cpuxcst.tar.bz2"
+Content-Transfer-Encoding: base64
+
+QlpoOTFBWSZTWd2xHa8AA0R/9f3cd0NIAX+Ab+feBO8C3ijRVAEARAAAAIBABBhAAjwAAHGT
+JoYjE0YBGAmEAYCaaNMjQDHGTJoYjE0YBGAmEAYCaaNMjQDHGTJoYjE0YBGAmEAYCaaNMjQD
+BVEpk0TJgoDIPQE0PUeoaZMJoMmjTTGSVEOgPwNYsjvtExEKWwhYSQXiElskQwELCgh0EEiN
+nat+nZLwpXsTJWcxciIyl8KcBunSVlREf0khrEQ0iSgoUI3SS0Q0l8ZTXKxURI2SNo2zMbA3
+iN4SGsXzhPcOAYg2iEhIboUIsJGMYSDOKjtKFDlLhEdZBrnEXSDxkFYsIkkXzQGqRrEGTc29
++s4iThJN8gxGAwnUVlZ9zOWGQvYA8UgkuBm61aqorKzGVkltnoWVwqUpFoyUmhKpnKoWLlqm
+IksiZ1ClzjyGMj/Ec4sL125d5iOc5T2EfYjcNQ+ZoH4JMBYaODRo6TsMJpLhQ/hnNcsxEx9D
+qOM6is9Z2GPNGXLly3TAXztMJdHcPD3TMzM9xjiO0qKjMWy2SaSNI0mgOQhnP0NUMhyEHC9p
+NU1HnLR3lRQO8iKygj/i7kinChIbtiO14A==
+
+--J2SCkAp4GZ/dPZZf--
