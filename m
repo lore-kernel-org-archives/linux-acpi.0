@@ -1,73 +1,40 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] fujitsu-laptop: driver [un]registration fixes
-Date: Mon, 21 Dec 2009 14:46:32 -0800
-Message-ID: <200912211446.32380.dmitry.torokhov@gmail.com>
-References: <200912212232.nBLMWe5r016214@turbo.physics.adelaide.edu.au>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC] Asynchronous suspend/resume - test results
+Date: Mon, 21 Dec 2009 15:00:56 -0800 (PST)
+Message-ID: <alpine.LFD.2.00.0912211456320.21722@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0912211200200.2979-100000@iolanthe.rowland.org> <200912212136.12665.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:48908 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756012AbZLUWqp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 17:46:45 -0500
-In-Reply-To: <200912212232.nBLMWe5r016214@turbo.physics.adelaide.edu.au>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53418 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755997AbZLUXBD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Dec 2009 18:01:03 -0500
+In-Reply-To: <200912212136.12665.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Hi Jonathan,
 
-On Monday 21 December 2009 02:32:40 pm Jonathan Woithe wrote:
-> Hi Dmitry
+
+On Mon, 21 Dec 2009, Rafael J. Wysocki wrote:
 > 
-> > On Wed, Jul 29, 2009 at 10:15:33PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> > > @@ -722,22 +722,22 @@ static int acpi_fujitsu_add(struct acpi_
-> > >
-> > >  	return result;
-> > >
-> > > -end:
-> > > +err_unregister_input_dev:
-> > > +	input_unregister_device(input);
-> > >  err_free_input_dev:
-> > >  	input_free_device(input);
-> > >  err_stop:
-> >
-> > Just noticed it scanning ACPI list. You must not use input_free_device()
-> > after calling input_unregister_device() since unregister likely drops the
-> > last reference to the device and it will get freed by input core.
-> 
-> So what's the correct way to deal with that in this case?  Something like
-> 
-> -end:
-> +err_unregister_input_dev:
-> +	input_unregister_device(input);
-> +	goto err_stop;
->  err_free_input_dev:
->  	input_free_device(input);
->  err_stop:
-> 
-> (with a short comment to explain the goto) would circumvent the problem but
-> it looks ugly (at least to my eyes - I've never really liked "goto"s :-) ).
+> Do you think it's a good idea to mark all SCSI devices as async?  Well, for
+> testing it probably is, but I doubt in general.
 
-Just do "input = NULL;" after calling  input_unregister_device() -
-input_free_device() is like kfree() and will happily ignore passed NULL 
-pointers.
+As long as things aren't multi-path, or multi-lun, it's probably fine.
 
-Or rearrange the code to register device last, when everything is ready.
+With multi-path (ie same disk reachable multiple ways), it's probably fine 
+too, but let's face it, who the hell knows? But it's not going to be an 
+issue for laptops and normal desktops.
 
-> 
-> > For polled input devices you need to use both unregister and free though
-> > because polled device structure is not refcounted (but underlying input
-> > device is).
-> 
-> This isn't a polled input device AFAIK so this doesn't apply here, right?
+For multi-lun, I suspect the luns are related, and there might be some 
+ordering issues. But it's _likely_ all fine there too.
 
-Right, it was more of a general statement so I don't get bunch of patches 
-removing input_free_polled_device() after calls to
-input_unregister_polled_device() ;)
+The nice thing about systems with wires (ie USB, SCSI, SATA) is that it's 
+really hard to make different devices have odd dependencies on each other. 
+The wires tend to _be_ the topology.
 
--- 
-Dmitry
+			Linus
