@@ -1,101 +1,87 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: Re: ACPI error during boot - does it need fixing ?
-Date: Mon, 21 Dec 2009 08:47:46 +0100
-Message-ID: <20091221074746.GA9895@tangens.sinus.cz>
-References: <20091220070223.GA8334@tangens.sinus.cz> <1261357849.27291.276.camel@rzhang1-desktop> <20091221041119.GA27565@tangens.sinus.cz> <1261373160.12263.0.camel@rzhang1-desktop> <20091221060430.GA2839@tangens.sinus.cz> <1261381508.12263.11.camel@rzhang1-desktop>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: disable _OSI(Windows 2009) on Asus K50IJ
+Date: Mon, 21 Dec 2009 16:13:15 +0800
+Message-ID: <1261383195.12263.16.camel@rzhang1-desktop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="J2SCkAp4GZ/dPZZf"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([89.250.251.168]:42901 "EHLO tangens.sinus.cz"
+Received: from mga01.intel.com ([192.55.52.88]:57686 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751557AbZLUHrx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 02:47:53 -0500
-Content-Disposition: inline
-In-Reply-To: <1261381508.12263.11.camel@rzhang1-desktop>
+	id S1751025AbZLUIJp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Dec 2009 03:09:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Pavel Troller <patrol@sinus.cz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Alex.Haeussler@googlemail.com
 
 
---J2SCkAp4GZ/dPZZf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Fix a win7 compability issue on Asus K50IJ.
 
-> On Mon, 2009-12-21 at 14:04 +0800, Pavel Troller wrote:
-> > > On Mon, 2009-12-21 at 12:11 +0800, Pavel Troller wrote:
-> > > > > On Sun, 2009-12-20 at 15:02 +0800, Pavel Troller wrote:
-> > > > > > Hi!
-> > > > > >   On my new system with Gigabyte G41M-ES2H mobo and Intel Core Quad Q8300 CPU,
-> > > > > > there are the following errors reported on boot:
-> > > > > > 
-> > > > > > ACPI: SSDT 00000000cdcedb10 0022A (v01  PmRef  Cpu0Ist 00003000 INTL 20040311)
-> > > > > > Marking TSC unstable due to TSC halts in idle
-> > > > > > Switching to clocksource hpet
-> > > > > > processor LNXCPU:00: registered as cooling_device0
-> > > > > > ACPI: SSDT 00000000cdcedfd0 00152 (v01  PmRef  Cpu1Ist 00003000 INTL 20040311)
-> > > > > > ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU1._PDC] (Node ffff88012f815a00), AE_ALREADY_EXISTS
-> > > > > > ACPI: Marking method _PDC as Serialized because of AE_ALREADY_EXISTS error
-> > > > > > processor LNXCPU:01: registered as cooling_device1
-> > > > > > ACPI: SSDT 00000000cdcee130 00152 (v01  PmRef  Cpu2Ist 00003000 INTL 20040311)
-> > > > > > ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU2._PDC] (Node ffff88012f815a80), AE_ALREADY_EXISTS
-> > > > > > ACPI: Marking method _PDC as Serialized because of AE_ALREADY_EXISTS error
-> > > > > > processor LNXCPU:02: registered as cooling_device2
-> > > > > > ACPI: SSDT 00000000cdcee290 00152 (v01  PmRef  Cpu3Ist 00003000 INTL 20040311)
-> > > > > > ACPI Error (psparse-0537): Method parse/execution failed [\_PR_.CPU3._PDC] (Node ffff88012f815b00), AE_ALREADY_EXISTS
-> > > > > > ACPI: Marking method _PDC as Serialized because of AE_ALREADY_EXISTS error
-> > > > > > processor LNXCPU:03: registered as cooling_device3
-> > > > > > 
-> > > > > >   Is this error just cosmetic, or is it worth fixing ? There is no BIOS update
-> > > > > > for this motherboard yet. Are the SSDT tables replaceable the same way as DSDT
-> > > > > > is ? 
-> > > > > > 
-> > > > > please attach the acpidump output.
-> > > > > please run "acpidump --addr 0xcdcedb10 --length 0x22a > ssdt1.dat"
-> > > > > "acpidump --addr 0xcdcedfd0 --length 0x152 > ssdt2.dat" "acpidump --addr
-> > > > > 0xcdcee130 --length -x--152 > ssdt3.dat" "acpidump --addr 0xcdcee290
-> > > > > --length -x152 > ssdt4.dat" and attach the ssdt*.dat files here.
-> > > > > 
-> > > > > thanks
-> > > > > rui.
-> > > > 
-> > > > Hi Rui,
-> > > >   the tables are here. Thank your for your reply!
-> > > 
-> > > you need to run "acpidump > acpidump.dat" and attach the acpidump.dat as
-> > > well. :)
-> > > 
-> > > thanks,
-> > > rui
-> > 
-> > Oh, sorry, I forgot this one.
-> >   Here it is.
-> 
-> please attach these tables as well,
-> "acpidump --addr 0xCDCEE580 --length 0x0000018A >cpu1cst.dat"
-> "acpidump --addr 0xCDCEE580 --length 0x0000018A >cpu1cst.dat"
-> "acpidump --addr 0xCDCEE580 --length 0x0000018A >cpu1cst.dat"
-> 
-> 
+Here is the _BCM method of this laptop:
+                    Method (_BCM, 1, NotSerialized)
+                    {
+                        If (LGreaterEqual (OSFG, OSVT))
+                        {
+                            If (LNotEqual (OSFG, OSW7))
+                            {
+                                Store (One, BCMD)
+                                Store (GCBL (Arg0), Local0)
+                                Subtract (0x0F, Local0, LBTN)
+                                ^^^SBRG.EC0.STBR ()
+                                ...
+                            }
+                            Else
+                            {
+                                DBGR (0x0B, Zero, Zero, Arg0)
+                                Store (Arg0, LBTN)
+                                ^^^SBRG.EC0.STBR ()
+                                ...
+                            }
+                        }
+                    }
+LBTN is used to store the index of the brightness level in the _BCL.
+GCBL is a method that convert the percentage value to the index value.
+If _OSI(Windows 2009) is not disabled, LBTN is stored a percentage
+value which is surely beyond the end of _BCL package.
+http://bugzilla.kernel.org/show_bug.cgi?id=14753
 
-Hi!
-  OK, here are the tables (I hope I've found the addresses right :-) ).
-    Pavel
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/blacklist.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---J2SCkAp4GZ/dPZZf
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename="cpuxcst.tar.bz2"
-Content-Transfer-Encoding: base64
+Index: linux-2.6/drivers/acpi/blacklist.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/blacklist.c
++++ linux-2.6/drivers/acpi/blacklist.c
+@@ -185,6 +185,12 @@ static int __init dmi_disable_osi_vista(
+ 	acpi_osi_setup("!Windows 2006");
+ 	return 0;
+ }
++static int __init dmi_disable_osi_win7(const struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
++	acpi_osi_setup("!Windows 2009");
++	return 0;
++}
+ 
+ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	{
+@@ -211,6 +217,14 @@ static struct dmi_system_id acpi_osi_dmi
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "Sony VGN-SR290J"),
+ 		},
+ 	},
++	{
++	.callback = dmi_disable_osi_win7,
++	.ident = "ASUS K50IJ",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "K50IJ"),
++		},
++	},
+ 
+ 	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 
-QlpoOTFBWSZTWd2xHa8AA0R/9f3cd0NIAX+Ab+feBO8C3ijRVAEARAAAAIBABBhAAjwAAHGT
-JoYjE0YBGAmEAYCaaNMjQDHGTJoYjE0YBGAmEAYCaaNMjQDHGTJoYjE0YBGAmEAYCaaNMjQD
-BVEpk0TJgoDIPQE0PUeoaZMJoMmjTTGSVEOgPwNYsjvtExEKWwhYSQXiElskQwELCgh0EEiN
-nat+nZLwpXsTJWcxciIyl8KcBunSVlREf0khrEQ0iSgoUI3SS0Q0l8ZTXKxURI2SNo2zMbA3
-iN4SGsXzhPcOAYg2iEhIboUIsJGMYSDOKjtKFDlLhEdZBrnEXSDxkFYsIkkXzQGqRrEGTc29
-+s4iThJN8gxGAwnUVlZ9zOWGQvYA8UgkuBm61aqorKzGVkltnoWVwqUpFoyUmhKpnKoWLlqm
-IksiZ1ClzjyGMj/Ec4sL125d5iOc5T2EfYjcNQ+ZoH4JMBYaODRo6TsMJpLhQ/hnNcsxEx9D
-qOM6is9Z2GPNGXLly3TAXztMJdHcPD3TMzM9xjiO0qKjMWy2SaSNI0mgOQhnP0NUMhyEHC9p
-NU1HnLR3lRQO8iKygj/i7kinChIbtiO14A==
 
---J2SCkAp4GZ/dPZZf--
