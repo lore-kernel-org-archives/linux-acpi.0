@@ -1,53 +1,54 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: Re: [PATCH 00/11] ACPI: early _PDC eval and unify x86/ia64
-Date: Mon, 21 Dec 2009 14:17:24 -0700
-Message-ID: <20091221211724.GB28569@ldl.fc.hp.com>
-References: <20091220190434.4274.67855.stgit@bob.kio> <20091221081550.GA1648@isilmar.linta.de>
+From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Subject: Re: [PATCH] fujitsu-laptop: driver [un]registration fixes
+Date: Tue, 22 Dec 2009 09:02:40 +1030 (CST)
+Message-ID: <200912212232.nBLMWe5r016214@turbo.physics.adelaide.edu.au>
+References: <200912211003.22227.dmitry.torokhov@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:24664 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756998AbZLUVR0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 16:17:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20091221081550.GA1648@isilmar.linta.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754822AbZLUWcs@vger.kernel.org>
+In-Reply-To: <200912211003.22227.dmitry.torokhov@gmail.com> from "Dmitry Torokhov" at Dec 21, 2009 10:03:21 AM
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>, venkatesh.pallipadi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Dominik Brodowski <linux@dominikbrodowski.net>:
+Hi Dmitry
+
+> On Wed, Jul 29, 2009 at 10:15:33PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> > @@ -722,22 +722,22 @@ static int acpi_fujitsu_add(struct acpi_
+> >  
+> >  	return result;
+> >  
+> > -end:
+> > +err_unregister_input_dev:
+> > +	input_unregister_device(input);
+> >  err_free_input_dev:
+> >  	input_free_device(input);
+> >  err_stop:
 > 
-> On Sun, Dec 20, 2009 at 12:19:04PM -0700, Alex Chiang wrote:
-> > This does introduce a boot time namespace walk for all the CPUs
-> > in the system, looking for and evaluating _PDC. Hopefully that
-> > will not make life miserable for the giant SGI clusters. If worse
-> > comes to worse, maybe we can quirk them and avoid the namespace
-> > walk.
-> 
-> Could this be done async, with completion before EC initialization?
+> Just noticed it scanning ACPI list. You must not use input_free_device()
+> after calling input_unregister_device() since unregister likely drops the
+> last reference to the device and it will get freed by input core.
 
-I don't think I understand your suggestion.
+So what's the correct way to deal with that in this case?  Something like
 
-On some platforms, we need to finish evaluating _PDC before we
-initialize the EC. That's what I discovered with the Envy 15. At
-that point in boot, we're single-threaded and going through early
-ACPI initialization. Each step has to finish before the next, in
-order for later initialization to succeed.
+-end:
++err_unregister_input_dev:
++	input_unregister_device(input);
++	goto err_stop;
+ err_free_input_dev:
+ 	input_free_device(input);
+ err_stop:
 
-There's nothing else going on except for waiting for _PDC to
-finish so that we can initialize the EC.
+(with a short comment to explain the goto) would circumvent the problem but
+it looks ugly (at least to my eyes - I've never really liked "goto"s :-) ).
 
-My fear was that on a huge compute cluster, walking the namespace
-for every CPU object to evaluate _PDC might take a long time, and
-is also probably unnecessary, since their hardware/firmware
-probably doesn't load dynamic tables in _PDC.
+> For polled input devices you need to use both unregister and free though
+> because polled device structure is not refcounted (but underlying input
+> device is).
 
-In that case, my suggestion was to avoid the walk with a quirk.
+This isn't a polled input device AFAIK so this doesn't apply here, right?
 
-But maybe it's not necessary to worry about that until it's
-actually proven to be a problem.
-
-Thanks,
-/ac
-
+Regards
+  jonathan
