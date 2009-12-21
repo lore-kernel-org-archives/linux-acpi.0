@@ -1,47 +1,59 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] fujitsu-laptop: driver [un]registration fixes
-Date: Mon, 21 Dec 2009 10:03:21 -0800
-Message-ID: <200912211003.22227.dmitry.torokhov@gmail.com>
-References: <200907292215.33182.bzolnier@gmail.com>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
+Date: Mon, 21 Dec 2009 21:58:19 +0200
+Message-ID: <1261425499.4328.10.camel@maxim-laptop>
+References: <200912210140.19713.rjw@sisk.pl>  <4B2F22EF.6040500@crca.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([65.115.85.69]:36826 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751549AbZLUSDX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 13:03:23 -0500
-In-Reply-To: <200907292215.33182.bzolnier@gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:44553 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbZLUT60 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2009 14:58:26 -0500
+In-Reply-To: <4B2F22EF.6040500@crca.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Nigel Cunningham <ncunningham@crca.org.au>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Bartlomiej,
+On Mon, 2009-12-21 at 18:25 +1100, Nigel Cunningham wrote: 
+> Hi.
+> 
+> Rafael J. Wysocki wrote:
+> > I'm not sure what the next step should be at this point.  To me, the picture is
+> > quite clear now, but perhaps we ought to run more tests on some other machines
+> > or something.  Please let me know what you think.
+> 
+> Looks great. If you do decide you want other machines tested, I'll
+> happily try the machines around here:
+> 
+> - Dell M1530
+> - Omnibook XE3-GF.
+> - Via LN10000 based Mythtv Box
+> - Desktop machine - Some Intel-based mobo I've forgotten the name of.
+> 
+> I've been quietly following the thread, but have lost track of what
+> iteration of the patch you're on, so if you'd give me a pointer to it,
+> I'd be grateful.
+> 
+> By the way, I haven't forgotten about sending some real patches for
+> swsusp (ie more than just cleanups). I'm just busy with other things and
+> also thinking carefully about what order to do things in.
 
-On Wed, Jul 29, 2009 at 10:15:33PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> @@ -722,22 +722,22 @@ static int acpi_fujitsu_add(struct acpi_
->  
->  	return result;
->  
-> -end:
-> +err_unregister_input_dev:
-> +	input_unregister_device(input);
->  err_free_input_dev:
->  	input_free_device(input);
->  err_stop:
+I vote for ability to save all ram to the disk.
+After several days of testing I managed to make my system do s2disk
+really reliable (~300 cycles tested), but suspending when memory is
+tight still fails sometimes.
 
-Just noticed it scanning ACPI list. You must not use input_free_device()
-after calling input_unregister_device() since unregister likely drops the
-last reference to the device and it will get freed by input core.
+I didn't yet use your tuxonice system  though.
 
-For polled input devices you need to use both unregister and free though 
-because polled device structure is not refcounted (but underlying input device 
-is).
+Best regards,
+Maxim Levisky
 
-Thanks.
 
--- 
-Dmitry
+
+
+
+
+
