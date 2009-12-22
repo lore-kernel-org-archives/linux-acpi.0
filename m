@@ -1,55 +1,64 @@
-From: =?iso-8859-1?Q?Bj=F6rn?= Steinbrink <B.Steinbrink@gmx.de>
-Subject: Re: BUG printk with not null-terminated string in driver
- /drivers/acpi/osl.c
-Date: Tue, 22 Dec 2009 18:12:48 +0100
-Message-ID: <20091222171248.GA20318@atjola.homenet>
-References: <200912221846.02318.strakh@ispras.ru>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFD] Asynchronous suspend/resume of PCI devices
+Date: Tue, 22 Dec 2009 20:10:27 +0100
+Message-ID: <200912222010.28046.rjw@sisk.pl>
+References: <200912200031.38775.rjw@sisk.pl> <20091222083001.10ce3948@jbarnes-x200>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42899 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751554AbZLVRM5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Dec 2009 12:12:57 -0500
-Content-Disposition: inline
-In-Reply-To: <200912221846.02318.strakh@ispras.ru>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20091222083001.10ce3948@jbarnes-x200>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Greg KH <gregkh@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alexander Strakh <strakh@ispras.ru>
-Cc: Matthew Wilcox <willy@linux.intel.com>, Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, Andy Grover <andrew.grover@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2009.12.22 18:46:02 +0000, Alexander Strakh wrote:
->         In driver drivers/acpi/osl.c in function acpi_osi_setup:
-> 1. If in line 555 *osi_additional_string =3D=3D 0 then we goto line 1=
-039
+On Tuesday 22 December 2009, Jesse Barnes wrote:
+> On Sun, 20 Dec 2009 00:31:38 +0100
+> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > Hi,
+> > 
+> > I'd like to know your opinions about the viability of suspending and
+> > resuming PCI devices asynchronously during system-wide PM transitions
+> > (suspend to RAM and hibernation).
+> > 
+> > Linus says it's generally dangerous, because some PCI devices may
+> > indirectly depend on the others, but if that's the case, I wonder if
+> > we really can power manage PCI devices at run time.
+> > 
+> > It follows from my experiments that suspending and resuming PCI
+> > devices asynchronously doesn't lead to problems as long as we make
+> > sure that every PCI device is suspended before and resumed after its
+> > ACPI "shadow" partner. However, I'm not sure if this is generally
+> > correct.
+> > 
+> > What are possible problems we can run into while doing asynchronous
+> > suspend and resume of PCI devices?  What do we need to do in general
+> > to avoid that problems?
+> > 
+> > Please tell me what you think.
+> 
+> AFAIK it should be *mostly* safe.  Individual drivers are generally
+> independent of one another.  However, there are quite a few
+> multifunction devices (some exposed as such, some exposed as multiple
+> busses and devices on the same device) where interdependencies are
+> possible.  In some cases, we just won't see power savings until the
+> whole chip is powered down (which may require extra code in the form of
+> a "bus" driver of some sort), in other cases a driver may inadvertently
+> power down a piece of a device needed by another driver.
+> 
+> That said, the best practice for those sorts of devices is to create a
+> bus driver anyway, that binds to the master device and has a few
+> child drivers, so maybe even that case won't be much trouble...
 
-I guess that's meant to be line 1038?
+My current idea is to mark all PCI devices as async and introduce mutexes
+for the devices that shouldn't be suspended/resumed at the same time.
+Perhaps we can start with just one mutex to be acquired in ->suspend() and
+->resume() by the drivers that have to be serialized with respect to one
+another.
 
-> 2. In line 1039: if length of str > OSI_STRING_LENGTH_MAX then=20
-> osi_additional_string not have 0 at the end.
-> 3. In line 1040 printk called with not null-terminated string.
+What do you think?
 
-That printk uses str, not osi_additional_string.
-
-> diff --git a/./0000/drivers/acpi/osl.c b/./0001/drivers/acpi/osl.c
-> index 02e8464..9c759f8 100644
-> --- a/./0000/drivers/acpi/osl.c
-> +++ b/./0001/drivers/acpi/osl.c
-> @@ -1037,6 +1037,7 @@ int __init acpi_osi_setup(char *str)
->  		acpi_cmdline_osi_linux(1);	/* enable */
->  	} else if (*osi_additional_string =3D=3D '\0') {
->  		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
-> +		osi_additional_string[OSI_STRING_LENGTH_MAX - 1] =3D 0;
-
-That will break the test in acpi_os_validate_interface for strings
-longer than OSI_STRING_LENGTH_MAX (incl. the NUL byte). And that's the
-only other user of osi_additional_string and doesn't require the
-terminating NUL byte. So this shouldn't be needed.
-
-Bj=F6rn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
