@@ -1,75 +1,51 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 3/9] fujitsu-laptop: fix tests of acpi_evaluate_integer()
- return
-Date: Tue, 22 Dec 2009 15:28:45 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912221515560.5153@localhost.localdomain>
-References: <200912220020.nBM0K065004744@imap1.linux-foundation.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Tue, 22 Dec 2009 12:41:45 -0800
+Message-ID: <4B312F09.5020602@kernel.org>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain> <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com> <alpine.LFD.2.00.0912212107560.5520@localhost.localdomain> <4B3035B0.9030303@kernel.org> <alpine.LFD.2.00.0912220253080.7435@localhost.localdomain> <4B307C4D.501@kernel.org> <alpine.LFD.2.00.0912221440440.5153@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173011pub.verizon.net ([206.46.173.11]:61932 "EHLO
-	vms173011pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935AbZLVU2x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2009 15:28:53 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173011.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KV200A6GM7ZQDV1@vms173011.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 22 Dec 2009 14:28:50 -0600 (CST)
-In-reply-to: <200912220020.nBM0K065004744@imap1.linux-foundation.org>
+Received: from hera.kernel.org ([140.211.167.34]:59818 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752376AbZLVUnV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Dec 2009 15:43:21 -0500
+In-Reply-To: <alpine.LFD.2.00.0912221440440.5153@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, roel.kluin@gmail.com, jwoithe@physics.adelaide.edu.au
+To: Len Brown <lenb@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 
-NAK, this patch is incorrect
-
-On Mon, 21 Dec 2009, akpm@linux-foundation.org wrote:
-
-> From: Roel Kluin <roel.kluin@gmail.com>
+Len Brown wrote:
+> On Mon, 21 Dec 2009, Yinghai Lu wrote:
 > 
-> The wrong test was used acpi_status status is unsigned.
+>> Len Brown wrote:
+>>> Does 3563ff964fdc36358cef0330936fdac28e65142a work or fail on your system? 
+>>> I didn't ask about reverting it, I asked if it works or fails.
+>> i don't know.
+>>
+>> anything i should search in the bootlog?
 > 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+> Please check out a branch at the commit identified above
+> and tell us if the following issue:
 > 
->  drivers/platform/x86/fujitsu-laptop.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> "it seems these three patches broke the _OSC on my intel new systems."
 > 
-> diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
-> --- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
-> +++ a/drivers/platform/x86/fujitsu-laptop.c
-> @@ -376,7 +376,7 @@ static int get_lcd_level(void)
->  
->  	status =
->  	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
-> -	if (status < 0)
-> +	if (ACPI_FAILURE(status))
->  		return status;
-
-backlight_show_actual_brightness() will stuff this return value in sysfs
-no matter what you return.
-
-I'm sure we don't want to return an acpi_status.
-
-Looks like it should return 0 on failure, like thinkpad does.
-
->  
->  	fujitsu->brightness_level = state & 0x0fffffff;
-> @@ -398,7 +398,7 @@ static int get_max_brightness(void)
->  
->  	status =
->  	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
-> -	if (status < 0)
-> +	if (ACPI_FAILURE(status))
->  		return status;
-
-needs to be return -1, since show_max_brightness is testing for < 0.
-
->  
->  	fujitsu->max_brightness = state;
-> _
+> "revert them fix the problem with AER and pciehp and etc"
 > 
+> is present or absent on that branch.
+> 
+> If the answer is yes, when stock 2.6.32 works, then the 3 patches
+> between that commit and 2.6.32 are at fault.  If the answer is no,
+> yet reverting those patches helps top of tree, then the issue must
+> be a merge conflict with other changes in 2.6.33.
+
+
+8aedf8a6ae98d5d4df3254b6afb7e4432d9d8600
+the one just before acpi release was merged to mainline
+<fter pci merge...>
+
+it works.
+
+YH
