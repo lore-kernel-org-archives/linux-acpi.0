@@ -1,53 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/9] fujitsu-laptop: fix tests of acpi_evaluate_integer() return
-Date: Mon, 21 Dec 2009 16:20:00 -0800
-Message-ID: <200912220020.nBM0K065004744@imap1.linux-foundation.org>
+Subject: [patch 2/9] dell_laptop: when the "hardware" switch is disabled, don't actually allow changing the softblock status.
+Date: Mon, 21 Dec 2009 16:19:59 -0800
+Message-ID: <200912220019.nBM0JxNK004741@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46742 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbZLVAUw (ORCPT
+	by vger.kernel.org with ESMTP id S1752208AbZLVAVH (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:20:52 -0500
+	Mon, 21 Dec 2009 19:21:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, roel.kluin@gmail.com, jwoithe@physics.adelaide.edu.au
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, Mario_Limonciello@Dell.com
 
-From: Roel Kluin <roel.kluin@gmail.com>
+From: Mario Limonciello <Mario_Limonciello@Dell.com>
 
-The wrong test was used acpi_status status is unsigned.
+The "hardware" switch is tied directly to a BIOS interface that will
+connect and disconnect the hardware from the bus.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Acked-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
-Cc: Len Brown <lenb@kernel.org>
+If you use the software interface to request the BIOS to make these
+changes, the HW switch will be in an inconsistent state and LEDs may not
+reflect the state of the HW.
+
+Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/fujitsu-laptop.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/x86/dell-laptop.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return drivers/platform/x86/fujitsu-laptop.c
---- a/drivers/platform/x86/fujitsu-laptop.c~fujitsu-laptop-fix-tests-of-acpi_evaluate_integer-return
-+++ a/drivers/platform/x86/fujitsu-laptop.c
-@@ -376,7 +376,7 @@ static int get_lcd_level(void)
+diff -puN drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status drivers/platform/x86/dell-laptop.c
+--- a/drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status
++++ a/drivers/platform/x86/dell-laptop.c
+@@ -181,6 +181,10 @@ static int dell_rfkill_set(void *data, b
+ 	unsigned long radio = (unsigned long)data;
  
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
--	if (status < 0)
-+	if (ACPI_FAILURE(status))
- 		return status;
+ 	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
++	dell_send_request(&buffer, 17, 11);
++	if (!(buffer.output[1] & BIT(16)))
++		return -EINVAL;
++
+ 	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
+ 	dell_send_request(&buffer, 17, 11);
  
- 	fujitsu->brightness_level = state & 0x0fffffff;
-@@ -398,7 +398,7 @@ static int get_max_brightness(void)
- 
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
--	if (status < 0)
-+	if (ACPI_FAILURE(status))
- 		return status;
- 
- 	fujitsu->max_brightness = state;
 _
