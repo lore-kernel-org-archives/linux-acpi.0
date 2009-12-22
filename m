@@ -1,64 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFD] Asynchronous suspend/resume of PCI devices
-Date: Tue, 22 Dec 2009 20:10:27 +0100
-Message-ID: <200912222010.28046.rjw@sisk.pl>
-References: <200912200031.38775.rjw@sisk.pl> <20091222083001.10ce3948@jbarnes-x200>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Tue, 22 Dec 2009 14:45:11 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912221440440.5153@localhost.localdomain>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
+ <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
+ <alpine.LFD.2.00.0912212107560.5520@localhost.localdomain>
+ <4B3035B0.9030303@kernel.org>
+ <alpine.LFD.2.00.0912220253080.7435@localhost.localdomain>
+ <4B307C4D.501@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20091222083001.10ce3948@jbarnes-x200>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Greg KH <gregkh@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vms173009pub.verizon.net ([206.46.173.9]:29842 "EHLO
+	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474AbZLVTpa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2009 14:45:30 -0500
+In-reply-to: <4B307C4D.501@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 
-On Tuesday 22 December 2009, Jesse Barnes wrote:
-> On Sun, 20 Dec 2009 00:31:38 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+On Mon, 21 Dec 2009, Yinghai Lu wrote:
+
+> Len Brown wrote:
+> > 
+> > Does 3563ff964fdc36358cef0330936fdac28e65142a work or fail on your system? 
+> > I didn't ask about reverting it, I asked if it works or fails.
 > 
-> > Hi,
-> > 
-> > I'd like to know your opinions about the viability of suspending and
-> > resuming PCI devices asynchronously during system-wide PM transitions
-> > (suspend to RAM and hibernation).
-> > 
-> > Linus says it's generally dangerous, because some PCI devices may
-> > indirectly depend on the others, but if that's the case, I wonder if
-> > we really can power manage PCI devices at run time.
-> > 
-> > It follows from my experiments that suspending and resuming PCI
-> > devices asynchronously doesn't lead to problems as long as we make
-> > sure that every PCI device is suspended before and resumed after its
-> > ACPI "shadow" partner. However, I'm not sure if this is generally
-> > correct.
-> > 
-> > What are possible problems we can run into while doing asynchronous
-> > suspend and resume of PCI devices?  What do we need to do in general
-> > to avoid that problems?
-> > 
-> > Please tell me what you think.
+> i don't know.
 > 
-> AFAIK it should be *mostly* safe.  Individual drivers are generally
-> independent of one another.  However, there are quite a few
-> multifunction devices (some exposed as such, some exposed as multiple
-> busses and devices on the same device) where interdependencies are
-> possible.  In some cases, we just won't see power savings until the
-> whole chip is powered down (which may require extra code in the form of
-> a "bus" driver of some sort), in other cases a driver may inadvertently
-> power down a piece of a device needed by another driver.
-> 
-> That said, the best practice for those sorts of devices is to create a
-> bus driver anyway, that binds to the master device and has a few
-> child drivers, so maybe even that case won't be much trouble...
+> anything i should search in the bootlog?
 
-My current idea is to mark all PCI devices as async and introduce mutexes
-for the devices that shouldn't be suspended/resumed at the same time.
-Perhaps we can start with just one mutex to be acquired in ->suspend() and
-->resume() by the drivers that have to be serialized with respect to one
-another.
+Please check out a branch at the commit identified above
+and tell us if the following issue:
 
-What do you think?
+"it seems these three patches broke the _OSC on my intel new systems."
 
-Rafael
+"revert them fix the problem with AER and pciehp and etc"
+
+is present or absent on that branch.
+
+If the answer is yes, when stock 2.6.32 works, then the 3 patches
+between that commit and 2.6.32 are at fault.  If the answer is no,
+yet reverting those patches helps top of tree, then the issue must
+be a merge conflict with other changes in 2.6.33.
+
+thanks,
+-Len Brown
+Intel Open Source Technolgy Center
+
