@@ -1,125 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 9/9] drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
-Date: Mon, 21 Dec 2009 16:20:06 -0800
-Message-ID: <200912220020.nBM0K6ro004764@imap1.linux-foundation.org>
+Subject: [patch 1/9] arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c: avoid cross-CPU interrupts by using smp_call_function_any()
+Date: Mon, 21 Dec 2009 16:19:58 -0800
+Message-ID: <200912220019.nBM0Jwbq004738@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752215AbZLVAVF (ORCPT
+	by vger.kernel.org with ESMTP id S1752226AbZLVAVU (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:21:05 -0500
+	Mon, 21 Dec 2009 19:21:20 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, hpa@zytor.com, mingo@elte.hu, petkovbb@gmail.com, tglx@linutronix.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, davej@redhat.com, efault@gmx.de, jaswinder@kernel.org, len.brown@intel.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, venkatesh.pallipadi@intel.com, yakui.zhao@intel.com, yanmin_zhang@linux.intel.com
 
-From: Peter Feuerer <peter@piie.net>
+From: Andrew Morton <akpm@linux-foundation.org>
 
-BIOS information is now checked whether it begins with the strings stored
-in the BIOS table.  Previous method did a strcmp, what lead to problems if
-BIOS information has appended whitespaces.
+Presently acpi-cpufreq will perform the MSR read on the first CPU in the
+mask.  That's inefficient if that CPU differs from the current CPU. 
+Because we have to perform a cross-CPU call, but we could have run the
+rdmsr on the current CPU.
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: Len Brown <lenb@kernel.org>
+So switch to using the new smp_call_function_any(), which will perform the
+call on the current CPU if that CPU is present in the mask (it is).
+
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Dave Jones <davej@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |   46 ++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -52,7 +52,7 @@
-  */
- #undef START_IN_KERNEL_MODE
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~arch-x86-kernel-cpu-cpufreq-acpi-cpufreqc-avoid-cross-cpu-interrupts-by-using-smp_call_function_any
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -190,9 +190,11 @@ static void do_drv_write(void *_cmd)
  
--#define DRV_VER "0.5.21"
-+#define DRV_VER "0.5.22"
- 
- /*
-  * According to the Atom N270 datasheet,
-@@ -165,12 +165,9 @@ static const struct bios_settings_t bios
- 	/* Gateway */
- 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
--	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
--		{0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3103", 0x55, 0x58, {0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3201", 0x55, 0x58, {0x10, 0x0f, 0x00} },
-+	{"Gateway", "LT31", "v1.3302", 0x55, 0x58, {0x10, 0x0f, 0x00} },
- 	/* Packard Bell */
- 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
- 	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
-@@ -495,13 +492,26 @@ static struct platform_driver acerhdf_dr
- 	.remove = acerhdf_remove,
- };
- 
-+/* checks if str begins with start */
-+static int str_starts_with(const char *str, const char *start)
-+{
-+	unsigned long str_len = 0, start_len = 0;
-+
-+	str_len = strlen(str);
-+	start_len = strlen(start);
-+
-+	if (str_len >= start_len &&
-+			!strncmp(str, start, start_len))
-+		return 1;
-+
-+	return 0;
-+}
- 
- /* check hardware */
- static int acerhdf_check_hardware(void)
+ static void drv_read(struct drv_cmd *cmd)
  {
- 	char const *vendor, *version, *product;
--	int i;
--	unsigned long prod_len = 0;
-+	const struct bios_settings_t *bt = NULL;
++	int err;
+ 	cmd->val = 0;
  
- 	/* get BIOS data */
- 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
-@@ -523,20 +533,20 @@ static int acerhdf_check_hardware(void)
- 		kernelmode = 0;
- 	}
+-	smp_call_function_single(cpumask_any(cmd->mask), do_drv_read, cmd, 1);
++	err = smp_call_function_any(cmd->mask, do_drv_read, cmd, 1);
++	WARN_ON_ONCE(err);	/* smp_call_function_any() was buggy? */
+ }
  
--	prod_len = strlen(product);
--
- 	if (verbose)
- 		pr_info("BIOS info: %s %s, product: %s\n",
- 			vendor, version, product);
- 
- 	/* search BIOS version and vendor in BIOS settings table */
--	for (i = 0; bios_tbl[i].version[0]; i++) {
--		if (strlen(bios_tbl[i].product) >= prod_len &&
--		    !strncmp(bios_tbl[i].product, product,
--			   strlen(bios_tbl[i].product)) &&
--		    !strcmp(bios_tbl[i].vendor, vendor) &&
--		    !strcmp(bios_tbl[i].version, version)) {
--			bios_cfg = &bios_tbl[i];
-+	for (bt = bios_tbl; bt->vendor[0]; bt++) {
-+		/*
-+		 * check if actual hardware BIOS vendor, product and version
-+		 * IDs start with the strings of BIOS table entry
-+		 */
-+		if (str_starts_with(vendor, bt->vendor) &&
-+				str_starts_with(product, bt->product) &&
-+				str_starts_with(version, bt->version)) {
-+			bios_cfg = bt;
- 			break;
- 		}
- 	}
+ static void drv_write(struct drv_cmd *cmd)
 _
