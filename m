@@ -1,49 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/9] dell_laptop: when the "hardware" switch is disabled, don't actually allow changing the softblock status.
-Date: Mon, 21 Dec 2009 16:19:59 -0800
-Message-ID: <200912220019.nBM0JxNK004741@imap1.linux-foundation.org>
+Subject: [patch 9/9] drivers/platform/x86/acerhdf.c: check BIOS information whether it begins with string of table
+Date: Mon, 21 Dec 2009 16:20:06 -0800
+Message-ID: <200912220020.nBM0K6ro004764@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752208AbZLVAVH (ORCPT
+	by vger.kernel.org with ESMTP id S1752215AbZLVAVF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:21:07 -0500
+	Mon, 21 Dec 2009 19:21:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, Mario_Limonciello@Dell.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, peter@piie.net, andi@lisas.de, hpa@zytor.com, mingo@elte.hu, petkovbb@gmail.com, tglx@linutronix.de
 
-From: Mario Limonciello <Mario_Limonciello@Dell.com>
+From: Peter Feuerer <peter@piie.net>
 
-The "hardware" switch is tied directly to a BIOS interface that will
-connect and disconnect the hardware from the bus.
+BIOS information is now checked whether it begins with the strings stored
+in the BIOS table.  Previous method did a strcmp, what lead to problems if
+BIOS information has appended whitespaces.
 
-If you use the software interface to request the BIOS to make these
-changes, the HW switch will be in an inconsistent state and LEDs may not
-reflect the state of the HW.
-
-Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
+Signed-off-by: Peter Feuerer <peter@piie.net>
+Cc: Borislav Petkov <petkovbb@gmail.com>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/dell-laptop.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/platform/x86/acerhdf.c |   46 ++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 18 deletions(-)
 
-diff -puN drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status drivers/platform/x86/dell-laptop.c
---- a/drivers/platform/x86/dell-laptop.c~dell_laptop-when-the-hardware-switch-is-disabled-dont-actually-allow-changing-the-softblock-status
-+++ a/drivers/platform/x86/dell-laptop.c
-@@ -181,6 +181,10 @@ static int dell_rfkill_set(void *data, b
- 	unsigned long radio = (unsigned long)data;
+diff -puN drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table drivers/platform/x86/acerhdf.c
+--- a/drivers/platform/x86/acerhdf.c~drivers-platform-x86-acerhdfc-check-bios-information-whether-it-begins-with-string-of-table
++++ a/drivers/platform/x86/acerhdf.c
+@@ -52,7 +52,7 @@
+  */
+ #undef START_IN_KERNEL_MODE
  
- 	memset(&buffer, 0, sizeof(struct calling_interface_buffer));
-+	dell_send_request(&buffer, 17, 11);
-+	if (!(buffer.output[1] & BIT(16)))
-+		return -EINVAL;
+-#define DRV_VER "0.5.21"
++#define DRV_VER "0.5.22"
+ 
+ /*
+  * According to the Atom N270 datasheet,
+@@ -165,12 +165,9 @@ static const struct bios_settings_t bios
+ 	/* Gateway */
+ 	{"Gateway", "AOA110", "v0.3103", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	{"Gateway", "AOA150", "v0.3103", 0x55, 0x58, {0x20, 0x20, 0x00} },
+-	{"Gateway         ", "LT31            ", "v1.3103 ", 0x55, 0x58,
+-		{0x10, 0x0f, 0x00} },
+-	{"Gateway         ", "LT31            ", "v1.3201 ", 0x55, 0x58,
+-		{0x10, 0x0f, 0x00} },
+-	{"Gateway         ", "LT31            ", "v1.3302 ", 0x55, 0x58,
+-		{0x10, 0x0f, 0x00} },
++	{"Gateway", "LT31", "v1.3103", 0x55, 0x58, {0x10, 0x0f, 0x00} },
++	{"Gateway", "LT31", "v1.3201", 0x55, 0x58, {0x10, 0x0f, 0x00} },
++	{"Gateway", "LT31", "v1.3302", 0x55, 0x58, {0x10, 0x0f, 0x00} },
+ 	/* Packard Bell */
+ 	{"Packard Bell", "DOA150", "v0.3104", 0x55, 0x58, {0x21, 0x21, 0x00} },
+ 	{"Packard Bell", "DOA150", "v0.3105", 0x55, 0x58, {0x20, 0x20, 0x00} },
+@@ -495,13 +492,26 @@ static struct platform_driver acerhdf_dr
+ 	.remove = acerhdf_remove,
+ };
+ 
++/* checks if str begins with start */
++static int str_starts_with(const char *str, const char *start)
++{
++	unsigned long str_len = 0, start_len = 0;
 +
- 	buffer.input[0] = (1 | (radio<<8) | (disable << 16));
- 	dell_send_request(&buffer, 17, 11);
++	str_len = strlen(str);
++	start_len = strlen(start);
++
++	if (str_len >= start_len &&
++			!strncmp(str, start, start_len))
++		return 1;
++
++	return 0;
++}
  
+ /* check hardware */
+ static int acerhdf_check_hardware(void)
+ {
+ 	char const *vendor, *version, *product;
+-	int i;
+-	unsigned long prod_len = 0;
++	const struct bios_settings_t *bt = NULL;
+ 
+ 	/* get BIOS data */
+ 	vendor  = dmi_get_system_info(DMI_SYS_VENDOR);
+@@ -523,20 +533,20 @@ static int acerhdf_check_hardware(void)
+ 		kernelmode = 0;
+ 	}
+ 
+-	prod_len = strlen(product);
+-
+ 	if (verbose)
+ 		pr_info("BIOS info: %s %s, product: %s\n",
+ 			vendor, version, product);
+ 
+ 	/* search BIOS version and vendor in BIOS settings table */
+-	for (i = 0; bios_tbl[i].version[0]; i++) {
+-		if (strlen(bios_tbl[i].product) >= prod_len &&
+-		    !strncmp(bios_tbl[i].product, product,
+-			   strlen(bios_tbl[i].product)) &&
+-		    !strcmp(bios_tbl[i].vendor, vendor) &&
+-		    !strcmp(bios_tbl[i].version, version)) {
+-			bios_cfg = &bios_tbl[i];
++	for (bt = bios_tbl; bt->vendor[0]; bt++) {
++		/*
++		 * check if actual hardware BIOS vendor, product and version
++		 * IDs start with the strings of BIOS table entry
++		 */
++		if (str_starts_with(vendor, bt->vendor) &&
++				str_starts_with(product, bt->product) &&
++				str_starts_with(version, bt->version)) {
++			bios_cfg = bt;
+ 			break;
+ 		}
+ 	}
 _
