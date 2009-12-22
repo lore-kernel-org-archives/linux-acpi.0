@@ -1,28 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: disable _OSI(Windows 2009) on Asus K50IJ
-Date: Tue, 22 Dec 2009 02:39:33 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912220239290.5520@localhost.localdomain>
-References: <1261383195.12263.16.camel@rzhang1-desktop>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Tue, 22 Dec 2009 02:54:59 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912220253080.7435@localhost.localdomain>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
+ <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
+ <alpine.LFD.2.00.0912212107560.5520@localhost.localdomain>
+ <4B3035B0.9030303@kernel.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:41227 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751455AbZLVHjk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2009 02:39:40 -0500
-Received: from localhost.localdomain ([74.104.151.18])
- by vms173017.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KV100MBZMM1SRD9@vms173017.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Tue, 22 Dec 2009 01:39:38 -0600 (CST)
-In-reply-to: <1261383195.12263.16.camel@rzhang1-desktop>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <4B3035B0.9030303@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Alex.Haeussler@googlemail.com
 
-applied
+
 
 thanks,
 Len Brown, Intel Open Source Technology Center
 
+On Mon, 21 Dec 2009, Yinghai Lu wrote:
+
+> Len Brown wrote:
+> >>> Shaohua Li (3):
+> >>>      ACPI: Add a generic API for _OSC -v2
+> >>>      ACPI: cleanup pci_root _OSC code.
+> >>>      ACPI: Add platform-wide _OSC support.
+> >> it seems these three patches broke the _OSC on my intel new systems.
+> >>
+> >> revert them fix the problem with AER and pciehp and etc
+> > 
+> > Yinghai,
+> > does 3563ff964fdc36358cef0330936fdac28e65142a work or fail on your 
+> > system?  That is (ACPI: Add platform-wide _OSC support)
+> > on top of 2.6.32 with no other changes.
+> > 
+> 
+> only revert that does NOT make _OSC on my system work again.
+
+Does 3563ff964fdc36358cef0330936fdac28e65142a work or fail on your system? 
+I didn't ask about reverting it, I asked if it works or fails.
+
+If it fails, please describe how.
+
+thanks,
+-Len
