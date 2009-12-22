@@ -1,63 +1,54 @@
-From: Alexander Strakh <strakh@ispras.ru>
-Subject: BUG printk with not null-terminated string in driver /drivers/acpi/osl.c
-Date: Tue, 22 Dec 2009 18:46:02 +0000
-Message-ID: <200912221846.02318.strakh@ispras.ru>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFD] Asynchronous suspend/resume of PCI devices
+Date: Tue, 22 Dec 2009 08:30:01 -0800
+Message-ID: <20091222083001.10ce3948@jbarnes-x200>
+References: <200912200031.38775.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.201]:53275 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141AbZLVOkx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Dec 2009 09:40:53 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <200912200031.38775.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Greg KH <gregkh@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Alan Stern <stern@rowland.harvard.edu>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <willy@linux.intel.com>, Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, Andy Grover <andrew.grover@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-        In driver drivers/acpi/osl.c in function acpi_osi_setup:
-1. If in line 555 *osi_additional_string == 0 then we goto line 1039
-2. In line 1039: if length of str > OSI_STRING_LENGTH_MAX then 
-osi_additional_string not have 0 at the end.
-3. In line 1040 printk called with not null-terminated string.
-1026 int __init acpi_osi_setup(char *str)
-1027 {
-1028         if (str == NULL || *str == '\0') {
-1029                 printk(KERN_INFO PREFIX "_OSI method disabled\n");
-1030                 acpi_gbl_create_osi_method = FALSE;
-1031         } else if (!strcmp("!Linux", str)) {
-1032                 acpi_cmdline_osi_linux(0);      /* !enable */
-1033         } else if (*str == '!') {
-1034                 if (acpi_osi_invalidate(++str) == AE_OK)
-1035                         printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", 
-str);
-1036         } else if (!strcmp("Linux", str)) {
-1037                 acpi_cmdline_osi_linux(1);      /* enable */
-1038         } else if (*osi_additional_string == '\0') {
-1039                 strncpy(osi_additional_string, str, 
-OSI_STRING_LENGTH_MAX);
-1040                 printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
-1041         }
-1042
-1043         return 1;
-1044 }
+On Sun, 20 Dec 2009 00:31:38 +0100
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-Found by Linux Device Drivers Verification (Svace detector)
+> Hi,
+> 
+> I'd like to know your opinions about the viability of suspending and
+> resuming PCI devices asynchronously during system-wide PM transitions
+> (suspend to RAM and hibernation).
+> 
+> Linus says it's generally dangerous, because some PCI devices may
+> indirectly depend on the others, but if that's the case, I wonder if
+> we really can power manage PCI devices at run time.
+> 
+> It follows from my experiments that suspending and resuming PCI
+> devices asynchronously doesn't lead to problems as long as we make
+> sure that every PCI device is suspended before and resumed after its
+> ACPI "shadow" partner. However, I'm not sure if this is generally
+> correct.
+> 
+> What are possible problems we can run into while doing asynchronous
+> suspend and resume of PCI devices?  What do we need to do in general
+> to avoid that problems?
+> 
+> Please tell me what you think.
 
-Add terminate symbol for string in any cases.
+AFAIK it should be *mostly* safe.  Individual drivers are generally
+independent of one another.  However, there are quite a few
+multifunction devices (some exposed as such, some exposed as multiple
+busses and devices on the same device) where interdependencies are
+possible.  In some cases, we just won't see power savings until the
+whole chip is powered down (which may require extra code in the form of
+a "bus" driver of some sort), in other cases a driver may inadvertently
+power down a piece of a device needed by another driver.
 
-Signed-off-by: Alexander Strakh <strakh@ispras.ru>
+That said, the best practice for those sorts of devices is to create a
+bus driver anyway, that binds to the master device and has a few
+child drivers, so maybe even that case won't be much trouble...
 
----
-diff --git a/./0000/drivers/acpi/osl.c b/./0001/drivers/acpi/osl.c
-index 02e8464..9c759f8 100644
---- a/./0000/drivers/acpi/osl.c
-+++ b/./0001/drivers/acpi/osl.c
-@@ -1037,6 +1037,7 @@ int __init acpi_osi_setup(char *str)
- 		acpi_cmdline_osi_linux(1);	/* enable */
- 	} else if (*osi_additional_string == '\0') {
- 		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
-+		osi_additional_string[OSI_STRING_LENGTH_MAX - 1] = 0;
- 		printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
- 	}
- 
+Jesse
