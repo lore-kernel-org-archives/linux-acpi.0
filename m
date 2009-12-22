@@ -1,561 +1,700 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/9] asus_acpi: convert to seq_file
+Subject: [patch 4/9] cmpc_acpi: add support for Classmate PC ACPI devices
 Date: Mon, 21 Dec 2009 16:20:01 -0800
-Message-ID: <200912220020.nBM0K1ZZ004752@imap1.linux-foundation.org>
+Message-ID: <200912220020.nBM0K18A004747@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751557AbZLVAUt (ORCPT
+	by vger.kernel.org with ESMTP id S1751427AbZLVAUn (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:20:49 -0500
+	Mon, 21 Dec 2009 19:20:43 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, adobriyan@gmail.com, corentincj@iksaif.net, len.brown@intel.com, sziwan@users.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, cascardo@holoscopio.com
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
-Cc: Len Brown <len.brown@intel.com>
+This add supports for devices like keyboard, backlight, tablet and
+accelerometer.
+
+This work is supported by International Syst S/A.
+
+[randy.dunlap@oracle.com: cmpc_acpi: depends on ACPI]
+[akpm@linux-foundation.org: readability tweaks]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/asus_acpi.c |  321 +++++++++++++++++------------
- 1 file changed, 194 insertions(+), 127 deletions(-)
+ MAINTAINERS                             |    6 
+ drivers/platform/x86/Kconfig            |   12 
+ drivers/platform/x86/Makefile           |    1 
+ drivers/platform/x86/classmate-laptop.c |  609 ++++++++++++++++++++++
+ 4 files changed, 628 insertions(+)
 
-diff -puN drivers/platform/x86/asus_acpi.c~asus_acpi-convert-to-seq_file drivers/platform/x86/asus_acpi.c
---- a/drivers/platform/x86/asus_acpi.c~asus_acpi-convert-to-seq_file
-+++ a/drivers/platform/x86/asus_acpi.c
-@@ -35,6 +35,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/backlight.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
-@@ -512,26 +513,12 @@ static int read_acpi_int(acpi_handle han
- 	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
- }
+diff -puN MAINTAINERS~cmpc_acpi-add-support-for-classmate-pc-acpi-devices MAINTAINERS
+--- a/MAINTAINERS~cmpc_acpi-add-support-for-classmate-pc-acpi-devices
++++ a/MAINTAINERS
+@@ -1479,6 +1479,12 @@ L:	linux-scsi@vger.kernel.org
+ S:	Supported
+ F:	drivers/scsi/fnic/
  
--/*
-- * We write our info in page, we begin at offset off and cannot write more
-- * than count bytes. We set eof to 1 if we handle those 2 values. We return the
-- * number of bytes written in page
-- */
--static int
--proc_read_info(char *page, char **start, off_t off, int count, int *eof,
--	       void *data)
-+static int asus_info_proc_show(struct seq_file *m, void *v)
- {
--	int len = 0;
- 	int temp;
--	char buf[16];		/* enough for all info */
--	/*
--	 * We use the easy way, we don't care of off and count,
--	 * so we don't set eof to 1
--	 */
++CMPC ACPI DRIVER
++M:	Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
++M:	Daniel Oliveira Nascimento <don@syst.com.br>
++S:	Supported
++F:	drivers/platform/x86/classmate-laptop.c
++
+ CODA FILE SYSTEM
+ M:	Jan Harkes <jaharkes@cs.cmu.edu>
+ M:	coda@cs.cmu.edu
+diff -puN drivers/platform/x86/Kconfig~cmpc_acpi-add-support-for-classmate-pc-acpi-devices drivers/platform/x86/Kconfig
+--- a/drivers/platform/x86/Kconfig~cmpc_acpi-add-support-for-classmate-pc-acpi-devices
++++ a/drivers/platform/x86/Kconfig
+@@ -464,4 +464,16 @@ config TOSHIBA_BT_RFKILL
  
--	len += sprintf(page, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
--	len += sprintf(page + len, "Model reference    : %s\n",
--		       hotk->methods->name);
-+	seq_printf(m, ACPI_HOTK_NAME " " ASUS_ACPI_VERSION "\n");
-+	seq_printf(m, "Model reference    : %s\n", hotk->methods->name);
- 	/*
- 	 * The SFUN method probably allows the original driver to get the list
- 	 * of features supported by a given model. For now, 0x0100 or 0x0800
-@@ -539,8 +526,7 @@ proc_read_info(char *page, char **start,
- 	 * The significance of others is yet to be found.
- 	 */
- 	if (read_acpi_int(hotk->handle, "SFUN", &temp))
--		len +=
--		    sprintf(page + len, "SFUN value         : 0x%04x\n", temp);
-+		seq_printf(m, "SFUN value         : 0x%04x\n", temp);
- 	/*
- 	 * Another value for userspace: the ASYM method returns 0x02 for
- 	 * battery low and 0x04 for battery critical, its readings tend to be
-@@ -549,30 +535,34 @@ proc_read_info(char *page, char **start,
- 	 * silently ignored.
- 	 */
- 	if (read_acpi_int(hotk->handle, "ASYM", &temp))
--		len +=
--		    sprintf(page + len, "ASYM value         : 0x%04x\n", temp);
-+		seq_printf(m, "ASYM value         : 0x%04x\n", temp);
- 	if (asus_info) {
--		snprintf(buf, 16, "%d", asus_info->length);
--		len += sprintf(page + len, "DSDT length        : %s\n", buf);
--		snprintf(buf, 16, "%d", asus_info->checksum);
--		len += sprintf(page + len, "DSDT checksum      : %s\n", buf);
--		snprintf(buf, 16, "%d", asus_info->revision);
--		len += sprintf(page + len, "DSDT revision      : %s\n", buf);
--		snprintf(buf, 7, "%s", asus_info->oem_id);
--		len += sprintf(page + len, "OEM id             : %s\n", buf);
--		snprintf(buf, 9, "%s", asus_info->oem_table_id);
--		len += sprintf(page + len, "OEM table id       : %s\n", buf);
--		snprintf(buf, 16, "%x", asus_info->oem_revision);
--		len += sprintf(page + len, "OEM revision       : 0x%s\n", buf);
--		snprintf(buf, 5, "%s", asus_info->asl_compiler_id);
--		len += sprintf(page + len, "ASL comp vendor id : %s\n", buf);
--		snprintf(buf, 16, "%x", asus_info->asl_compiler_revision);
--		len += sprintf(page + len, "ASL comp revision  : 0x%s\n", buf);
-+		seq_printf(m, "DSDT length        : %d\n", asus_info->length);
-+		seq_printf(m, "DSDT checksum      : %d\n", asus_info->checksum);
-+		seq_printf(m, "DSDT revision      : %d\n", asus_info->revision);
-+		seq_printf(m, "OEM id             : %.*s\n", ACPI_OEM_ID_SIZE, asus_info->oem_id);
-+		seq_printf(m, "OEM table id       : %.*s\n", ACPI_OEM_TABLE_ID_SIZE, asus_info->oem_table_id);
-+		seq_printf(m, "OEM revision       : 0x%x\n", asus_info->oem_revision);
-+		seq_printf(m, "ASL comp vendor id : %.*s\n", ACPI_NAME_SIZE, asus_info->asl_compiler_id);
-+		seq_printf(m, "ASL comp revision  : 0x%x\n", asus_info->asl_compiler_revision);
- 	}
- 
--	return len;
+ 	  If you have a modern Toshiba laptop with a Bluetooth and an
+ 	  RFKill switch (such as the Portege R500), say Y.
++
++config ACPI_CMPC
++	tristate "CMPC Laptop Extras"
++	depends on X86 && ACPI
++	select INPUT
++	select BACKLIGHT_CLASS_DEVICE
++	default n
++	help
++	  Support for Intel Classmate PC ACPI devices, including some
++	  keys as input device, backlight device, tablet and accelerometer
++	  devices.
++
+ endif # X86_PLATFORM_DEVICES
+diff -puN drivers/platform/x86/Makefile~cmpc_acpi-add-support-for-classmate-pc-acpi-devices drivers/platform/x86/Makefile
+--- a/drivers/platform/x86/Makefile~cmpc_acpi-add-support-for-classmate-pc-acpi-devices
++++ a/drivers/platform/x86/Makefile
+@@ -5,6 +5,7 @@
+ obj-$(CONFIG_ASUS_LAPTOP)	+= asus-laptop.o
+ obj-$(CONFIG_EEEPC_LAPTOP)	+= eeepc-laptop.o
+ obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o
++obj-$(CONFIG_ACPI_CMPC)		+= classmate-laptop.o
+ obj-$(CONFIG_COMPAL_LAPTOP)	+= compal-laptop.o
+ obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop.o
+ obj-$(CONFIG_DELL_WMI)		+= dell-wmi.o
+diff -puN /dev/null drivers/platform/x86/classmate-laptop.c
+--- /dev/null
++++ a/drivers/platform/x86/classmate-laptop.c
+@@ -0,0 +1,609 @@
++/*
++ *  Copyright (C) 2009  Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/workqueue.h>
++#include <acpi/acpi_drivers.h>
++#include <linux/backlight.h>
++#include <linux/input.h>
++
++MODULE_LICENSE("GPL");
++
++
++struct cmpc_accel {
++	int sensitivity;
++};
++
++#define CMPC_ACCEL_SENSITIVITY_DEFAULT		5
++
++
++/*
++ * Generic input device code.
++ */
++
++typedef void (*input_device_init)(struct input_dev *dev);
++
++static int cmpc_add_acpi_notify_device(struct acpi_device *acpi, char *name,
++				       input_device_init idev_init)
++{
++	struct input_dev *inputdev;
++	int error;
++
++	inputdev = input_allocate_device();
++	if (!inputdev)
++		return -ENOMEM;
++	inputdev->name = name;
++	inputdev->dev.parent = &acpi->dev;
++	idev_init(inputdev);
++	error = input_register_device(inputdev);
++	if (error) {
++		input_free_device(inputdev);
++		return error;
++	}
++	dev_set_drvdata(&acpi->dev, inputdev);
 +	return 0;
 +}
 +
-+static int asus_info_proc_open(struct inode *inode, struct file *file)
++static int cmpc_remove_acpi_notify_device(struct acpi_device *acpi)
 +{
-+	return single_open(file, asus_info_proc_show, NULL);
- }
- 
-+static const struct file_operations asus_info_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= asus_info_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- /*
-  * /proc handlers
-  * We write our info in page, we begin at offset off and cannot write more
-@@ -638,34 +628,48 @@ write_led(const char __user *buffer, uns
- /*
-  * Proc handlers for MLED
-  */
--static int
--proc_read_mled(char *page, char **start, off_t off, int count, int *eof,
--	       void *data)
-+static int mled_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->mled_status, MLED_ON));
-+	seq_printf(m, "%d\n", read_led(hotk->methods->mled_status, MLED_ON));
-+	return 0;
- }
- 
--static int
--proc_write_mled(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static int mled_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, mled_proc_show, NULL);
-+}
-+
-+static ssize_t mled_proc_write(struct file *file, const char __user *buffer,
-+		size_t count, loff_t *pos)
- {
- 	return write_led(buffer, count, hotk->methods->mt_mled, MLED_ON, 1);
- }
- 
-+static const struct file_operations mled_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= mled_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= mled_proc_write,
-+};
-+
- /*
-  * Proc handlers for LED display
-  */
--static int
--proc_read_ledd(char *page, char **start, off_t off, int count, int *eof,
--	       void *data)
-+static int ledd_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "0x%08x\n", hotk->ledd_status);
-+	seq_printf(m, "0x%08x\n", hotk->ledd_status);
-+	return 0;
- }
- 
--static int
--proc_write_ledd(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static int ledd_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, ledd_proc_show, NULL);
-+}
-+
-+static ssize_t ledd_proc_write(struct file *file, const char __user *buffer,
-+		size_t count, loff_t *pos)
- {
- 	int rv, value;
- 
-@@ -681,61 +685,104 @@ proc_write_ledd(struct file *file, const
- 	return rv;
- }
- 
-+static const struct file_operations ledd_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= ledd_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= ledd_proc_write,
-+};
-+
- /*
-  * Proc handlers for WLED
-  */
--static int
--proc_read_wled(char *page, char **start, off_t off, int count, int *eof,
--	       void *data)
-+static int wled_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->wled_status, WLED_ON));
-+	seq_printf(m, "%d\n", read_led(hotk->methods->wled_status, WLED_ON));
-+	return 0;
- }
- 
--static int
--proc_write_wled(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static int wled_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, wled_proc_show, NULL);
-+}
-+
-+static ssize_t wled_proc_write(struct file *file, const char __user *buffer,
-+		size_t count, loff_t *pos)
- {
- 	return write_led(buffer, count, hotk->methods->mt_wled, WLED_ON, 0);
- }
- 
-+static const struct file_operations wled_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= wled_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= wled_proc_write,
-+};
-+
- /*
-  * Proc handlers for Bluetooth
-  */
--static int
--proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
--		    void *data)
-+static int bluetooth_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
-+	seq_printf(m, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
-+	return 0;
- }
- 
--static int
--proc_write_bluetooth(struct file *file, const char __user *buffer,
--		     unsigned long count, void *data)
-+static int bluetooth_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, bluetooth_proc_show, NULL);
-+}
-+
-+static ssize_t bluetooth_proc_write(struct file *file,
-+		const char __user *buffer, size_t count, loff_t *pos)
- {
- 	/* Note: mt_bt_switch controls both internal Bluetooth adapter's
- 	   presence and its LED */
- 	return write_led(buffer, count, hotk->methods->mt_bt_switch, BT_ON, 0);
- }
- 
-+static const struct file_operations bluetooth_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= bluetooth_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= bluetooth_proc_write,
-+};
-+
- /*
-  * Proc handlers for TLED
-  */
--static int
--proc_read_tled(char *page, char **start, off_t off, int count, int *eof,
--	       void *data)
-+static int tled_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->tled_status, TLED_ON));
-+	seq_printf(m, "%d\n", read_led(hotk->methods->tled_status, TLED_ON));
-+	return 0;
- }
- 
--static int
--proc_write_tled(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static int tled_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, tled_proc_show, NULL);
-+}
-+
-+static ssize_t tled_proc_write(struct file *file, const char __user *buffer,
-+		size_t count, loff_t *pos)
- {
- 	return write_led(buffer, count, hotk->methods->mt_tled, TLED_ON, 0);
- }
- 
-+static const struct file_operations tled_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= tled_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= tled_proc_write,
-+};
-+
- static int get_lcd_state(void)
- {
- 	int lcd = 0;
-@@ -828,16 +875,19 @@ static int set_lcd_state(int value)
- 
- }
- 
--static int
--proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
--	      void *data)
-+static int lcd_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "%d\n", get_lcd_state());
-+	seq_printf(m, "%d\n", get_lcd_state());
-+	return 0;
- }
- 
--static int
--proc_write_lcd(struct file *file, const char __user *buffer,
--	       unsigned long count, void *data)
-+static int lcd_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, lcd_proc_show, NULL);
-+}
-+
-+static ssize_t lcd_proc_write(struct file *file, const char __user *buffer,
-+	       size_t count, loff_t *pos)
- {
- 	int rv, value;
- 
-@@ -847,6 +897,15 @@ proc_write_lcd(struct file *file, const 
- 	return rv;
- }
- 
-+static const struct file_operations lcd_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= lcd_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= lcd_proc_write,
-+};
-+
- static int read_brightness(struct backlight_device *bd)
- {
- 	int value;
-@@ -906,16 +965,19 @@ static int set_brightness_status(struct 
- 	return set_brightness(bd->props.brightness);
- }
- 
--static int
--proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
--	      void *data)
-+static int brn_proc_show(struct seq_file *m, void *v)
- {
--	return sprintf(page, "%d\n", read_brightness(NULL));
-+	seq_printf(m, "%d\n", read_brightness(NULL));
-+	return 0;
- }
- 
--static int
--proc_write_brn(struct file *file, const char __user *buffer,
--	       unsigned long count, void *data)
-+static int brn_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, brn_proc_show, NULL);
-+}
-+
-+static ssize_t brn_proc_write(struct file *file, const char __user *buffer,
-+	       size_t count, loff_t *pos)
- {
- 	int rv, value;
- 
-@@ -928,6 +990,15 @@ proc_write_brn(struct file *file, const 
- 	return rv;
- }
- 
-+static const struct file_operations brn_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= brn_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= brn_proc_write,
-+};
-+
- static void set_display(int value)
- {
- 	/* no sanity check needed for now */
-@@ -941,9 +1012,7 @@ static void set_display(int value)
-  * Now, *this* one could be more user-friendly, but so far, no-one has
-  * complained. The significance of bits is the same as in proc_write_disp()
-  */
--static int
--proc_read_disp(char *page, char **start, off_t off, int count, int *eof,
--	       void *data)
-+static int disp_proc_show(struct seq_file *m, void *v)
- {
- 	int value = 0;
- 
-@@ -951,7 +1020,13 @@ proc_read_disp(char *page, char **start,
- 		printk(KERN_WARNING
- 		       "Asus ACPI: Error reading display status\n");
- 	value &= 0x07;	/* needed for some models, shouldn't hurt others */
--	return sprintf(page, "%d\n", value);
-+	seq_printf(m, "%d\n", value);
++	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
++	input_unregister_device(inputdev);
 +	return 0;
 +}
 +
-+static int disp_proc_open(struct inode *inode, struct file *file)
++/*
++ * Accelerometer code.
++ */
++static acpi_status cmpc_start_accel(acpi_handle handle)
 +{
-+	return single_open(file, disp_proc_show, NULL);
- }
- 
- /*
-@@ -960,9 +1035,8 @@ proc_read_disp(char *page, char **start,
-  * (bitwise) of these will suffice. I never actually tested 3 displays hooked
-  * up simultaneously, so be warned. See the acpi4asus README for more info.
-  */
--static int
--proc_write_disp(struct file *file, const char __user *buffer,
--		unsigned long count, void *data)
-+static ssize_t disp_proc_write(struct file *file, const char __user *buffer,
-+		size_t count, loff_t *pos)
- {
- 	int rv, value;
- 
-@@ -972,25 +1046,27 @@ proc_write_disp(struct file *file, const
- 	return rv;
- }
- 
--typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
--			     int *eof, void *data);
--typedef int (proc_writefunc) (struct file *file, const char __user *buffer,
--			      unsigned long count, void *data);
-+static const struct file_operations disp_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= disp_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= disp_proc_write,
-+};
- 
- static int
--asus_proc_add(char *name, proc_writefunc *writefunc,
--		     proc_readfunc *readfunc, mode_t mode,
-+asus_proc_add(char *name, const struct file_operations *proc_fops, mode_t mode,
- 		     struct acpi_device *device)
- {
--	struct proc_dir_entry *proc =
--	    create_proc_entry(name, mode, acpi_device_dir(device));
-+	struct proc_dir_entry *proc;
++	union acpi_object param[2];
++	struct acpi_object_list input;
++	acpi_status status;
 +
-+	proc = proc_create_data(name, mode, acpi_device_dir(device),
-+				proc_fops, acpi_driver_data(device));
- 	if (!proc) {
- 		printk(KERN_WARNING "  Unable to create %s fs entry\n", name);
- 		return -1;
- 	}
--	proc->write_proc = writefunc;
--	proc->read_proc = readfunc;
--	proc->data = acpi_driver_data(device);
- 	proc->uid = asus_uid;
- 	proc->gid = asus_gid;
- 	return 0;
-@@ -1019,10 +1095,9 @@ static int asus_hotk_add_fs(struct acpi_
- 	if (!acpi_device_dir(device))
- 		return -ENODEV;
- 
--	proc = create_proc_entry(PROC_INFO, mode, acpi_device_dir(device));
-+	proc = proc_create(PROC_INFO, mode, acpi_device_dir(device),
-+			   &asus_info_proc_fops);
- 	if (proc) {
--		proc->read_proc = proc_read_info;
--		proc->data = acpi_driver_data(device);
- 		proc->uid = asus_uid;
- 		proc->gid = asus_gid;
- 	} else {
-@@ -1031,28 +1106,23 @@ static int asus_hotk_add_fs(struct acpi_
- 	}
- 
- 	if (hotk->methods->mt_wled) {
--		asus_proc_add(PROC_WLED, &proc_write_wled, &proc_read_wled,
--			      mode, device);
-+		asus_proc_add(PROC_WLED, &wled_proc_fops, mode, device);
- 	}
- 
- 	if (hotk->methods->mt_ledd) {
--		asus_proc_add(PROC_LEDD, &proc_write_ledd, &proc_read_ledd,
--			      mode, device);
-+		asus_proc_add(PROC_LEDD, &ledd_proc_fops, mode, device);
- 	}
- 
- 	if (hotk->methods->mt_mled) {
--		asus_proc_add(PROC_MLED, &proc_write_mled, &proc_read_mled,
--			      mode, device);
-+		asus_proc_add(PROC_MLED, &mled_proc_fops, mode, device);
- 	}
- 
- 	if (hotk->methods->mt_tled) {
--		asus_proc_add(PROC_TLED, &proc_write_tled, &proc_read_tled,
--			      mode, device);
-+		asus_proc_add(PROC_TLED, &tled_proc_fops, mode, device);
- 	}
- 
- 	if (hotk->methods->mt_bt_switch) {
--		asus_proc_add(PROC_BT, &proc_write_bluetooth,
--			      &proc_read_bluetooth, mode, device);
-+		asus_proc_add(PROC_BT, &bluetooth_proc_fops, mode, device);
- 	}
- 
- 	/*
-@@ -1060,19 +1130,16 @@ static int asus_hotk_add_fs(struct acpi_
- 	 * accessible from the keyboard
- 	 */
- 	if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) {
--		asus_proc_add(PROC_LCD, &proc_write_lcd, &proc_read_lcd, mode,
--			      device);
-+		asus_proc_add(PROC_LCD, &lcd_proc_fops, mode, device);
- 	}
- 
- 	if ((hotk->methods->brightness_up && hotk->methods->brightness_down) ||
- 	    (hotk->methods->brightness_get && hotk->methods->brightness_set)) {
--		asus_proc_add(PROC_BRN, &proc_write_brn, &proc_read_brn, mode,
--			      device);
-+		asus_proc_add(PROC_BRN, &brn_proc_fops, mode, device);
- 	}
- 
- 	if (hotk->methods->display_set) {
--		asus_proc_add(PROC_DISP, &proc_write_disp, &proc_read_disp,
--			      mode, device);
-+		asus_proc_add(PROC_DISP, &disp_proc_fops, mode, device);
- 	}
- 
- 	return 0;
++	param[0].type = ACPI_TYPE_INTEGER;
++	param[0].integer.value = 0x3;
++	param[1].type = ACPI_TYPE_INTEGER;
++	input.count = 2;
++	input.pointer = param;
++	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
++	return status;
++}
++
++static acpi_status cmpc_stop_accel(acpi_handle handle)
++{
++	union acpi_object param[2];
++	struct acpi_object_list input;
++	acpi_status status;
++
++	param[0].type = ACPI_TYPE_INTEGER;
++	param[0].integer.value = 0x4;
++	param[1].type = ACPI_TYPE_INTEGER;
++	input.count = 2;
++	input.pointer = param;
++	status = acpi_evaluate_object(handle, "ACMD", &input, NULL);
++	return status;
++}
++
++static acpi_status cmpc_accel_set_sensitivity(acpi_handle handle, int val)
++{
++	union acpi_object param[2];
++	struct acpi_object_list input;
++
++	param[0].type = ACPI_TYPE_INTEGER;
++	param[0].integer.value = 0x02;
++	param[1].type = ACPI_TYPE_INTEGER;
++	param[1].integer.value = val;
++	input.count = 2;
++	input.pointer = param;
++	return acpi_evaluate_object(handle, "ACMD", &input, NULL);
++}
++
++static acpi_status cmpc_get_accel(acpi_handle handle,
++				  unsigned char *x,
++				  unsigned char *y,
++				  unsigned char *z)
++{
++	union acpi_object param[2];
++	struct acpi_object_list input;
++	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, 0 };
++	unsigned char *locs;
++	acpi_status status;
++
++	param[0].type = ACPI_TYPE_INTEGER;
++	param[0].integer.value = 0x01;
++	param[1].type = ACPI_TYPE_INTEGER;
++	input.count = 2;
++	input.pointer = param;
++	status = acpi_evaluate_object(handle, "ACMD", &input, &output);
++	if (ACPI_SUCCESS(status)) {
++		union acpi_object *obj;
++		obj = output.pointer;
++		locs = obj->buffer.pointer;
++		*x = locs[0];
++		*y = locs[1];
++		*z = locs[2];
++		kfree(output.pointer);
++	}
++	return status;
++}
++
++static void cmpc_accel_handler(struct acpi_device *dev, u32 event)
++{
++	if (event == 0x81) {
++		unsigned char x, y, z;
++		acpi_status status;
++
++		status = cmpc_get_accel(dev->handle, &x, &y, &z);
++		if (ACPI_SUCCESS(status)) {
++			struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
++
++			input_report_abs(inputdev, ABS_X, x);
++			input_report_abs(inputdev, ABS_Y, y);
++			input_report_abs(inputdev, ABS_Z, z);
++			input_sync(inputdev);
++		}
++	}
++}
++
++static ssize_t cmpc_accel_sensitivity_show(struct device *dev,
++					   struct device_attribute *attr,
++					   char *buf)
++{
++	struct acpi_device *acpi;
++	struct input_dev *inputdev;
++	struct cmpc_accel *accel;
++
++	acpi = to_acpi_device(dev);
++	inputdev = dev_get_drvdata(&acpi->dev);
++	accel = dev_get_drvdata(&inputdev->dev);
++
++	return sprintf(buf, "%d\n", accel->sensitivity);
++}
++
++static ssize_t cmpc_accel_sensitivity_store(struct device *dev,
++					    struct device_attribute *attr,
++					    const char *buf, size_t count)
++{
++	struct acpi_device *acpi;
++	struct input_dev *inputdev;
++	struct cmpc_accel *accel;
++	unsigned long sensitivity;
++	int r;
++
++	acpi = to_acpi_device(dev);
++	inputdev = dev_get_drvdata(&acpi->dev);
++	accel = dev_get_drvdata(&inputdev->dev);
++
++	r = strict_strtoul(buf, 0, &sensitivity);
++	if (r)
++		return r;
++
++	accel->sensitivity = sensitivity;
++	cmpc_accel_set_sensitivity(acpi->handle, sensitivity);
++
++	return strnlen(buf, count);
++}
++
++struct device_attribute cmpc_accel_sensitivity_attr = {
++	.attr = { .name = "sensitivity", .mode = 0660 },
++	.show = cmpc_accel_sensitivity_show,
++	.store = cmpc_accel_sensitivity_store
++};
++
++static int cmpc_accel_open(struct input_dev *input)
++{
++	struct acpi_device *acpi;
++
++	acpi = to_acpi_device(input->dev.parent);
++	if (ACPI_SUCCESS(cmpc_start_accel(acpi->handle)))
++		return 0;
++	return -EIO;
++}
++
++static void cmpc_accel_close(struct input_dev *input)
++{
++	struct acpi_device *acpi;
++
++	acpi = to_acpi_device(input->dev.parent);
++	cmpc_stop_accel(acpi->handle);
++}
++
++static void cmpc_accel_idev_init(struct input_dev *inputdev)
++{
++	set_bit(EV_ABS, inputdev->evbit);
++	input_set_abs_params(inputdev, ABS_X, 0, 255, 8, 0);
++	input_set_abs_params(inputdev, ABS_Y, 0, 255, 8, 0);
++	input_set_abs_params(inputdev, ABS_Z, 0, 255, 8, 0);
++	inputdev->open = cmpc_accel_open;
++	inputdev->close = cmpc_accel_close;
++}
++
++static int cmpc_accel_add(struct acpi_device *acpi)
++{
++	int error;
++	struct input_dev *inputdev;
++	struct cmpc_accel *accel;
++
++	accel = kmalloc(sizeof(*accel), GFP_KERNEL);
++	if (!accel)
++		return -ENOMEM;
++
++	accel->sensitivity = CMPC_ACCEL_SENSITIVITY_DEFAULT;
++	cmpc_accel_set_sensitivity(acpi->handle, accel->sensitivity);
++
++	error = device_create_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
++	if (error)
++		goto failed_file;
++
++	error = cmpc_add_acpi_notify_device(acpi, "cmpc_accel",
++					    cmpc_accel_idev_init);
++	if (error)
++		goto failed_input;
++
++	inputdev = dev_get_drvdata(&acpi->dev);
++	dev_set_drvdata(&inputdev->dev, accel);
++
++	return 0;
++
++failed_input:
++	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
++failed_file:
++	kfree(accel);
++	return error;
++}
++
++static int cmpc_accel_remove(struct acpi_device *acpi, int type)
++{
++	struct input_dev *inputdev;
++	struct cmpc_accel *accel;
++
++	inputdev = dev_get_drvdata(&acpi->dev);
++	accel = dev_get_drvdata(&inputdev->dev);
++
++	device_remove_file(&acpi->dev, &cmpc_accel_sensitivity_attr);
++	return cmpc_remove_acpi_notify_device(acpi);
++}
++
++static const struct acpi_device_id cmpc_accel_device_ids[] = {
++	{"ACCE0000", 0},
++	{"", 0}
++};
++MODULE_DEVICE_TABLE(acpi, cmpc_accel_device_ids);
++
++static struct acpi_driver cmpc_accel_acpi_driver = {
++	.owner = THIS_MODULE,
++	.name = "cmpc_accel",
++	.class = "cmpc_accel",
++	.ids = cmpc_accel_device_ids,
++	.ops = {
++		.add = cmpc_accel_add,
++		.remove = cmpc_accel_remove,
++		.notify = cmpc_accel_handler,
++	}
++};
++
++
++/*
++ * Tablet mode code.
++ */
++static acpi_status cmpc_get_tablet(acpi_handle handle,
++				   unsigned long long *value)
++{
++	union acpi_object param;
++	struct acpi_object_list input;
++	unsigned long long output;
++	acpi_status status;
++
++	param.type = ACPI_TYPE_INTEGER;
++	param.integer.value = 0x01;
++	input.count = 1;
++	input.pointer = &param;
++	status = acpi_evaluate_integer(handle, "TCMD", &input, &output);
++	if (ACPI_SUCCESS(status))
++		*value = output;
++	return status;
++}
++
++static void cmpc_tablet_handler(struct acpi_device *dev, u32 event)
++{
++	unsigned long long val = 0;
++	struct input_dev *inputdev = dev_get_drvdata(&dev->dev);
++
++	if (event == 0x81) {
++		if (ACPI_SUCCESS(cmpc_get_tablet(dev->handle, &val)))
++			input_report_switch(inputdev, SW_TABLET_MODE, !val);
++	}
++}
++
++static void cmpc_tablet_idev_init(struct input_dev *inputdev)
++{
++	unsigned long long val = 0;
++	struct acpi_device *acpi;
++
++	set_bit(EV_SW, inputdev->evbit);
++	set_bit(SW_TABLET_MODE, inputdev->swbit);
++
++	acpi = to_acpi_device(inputdev->dev.parent);
++	if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
++		input_report_switch(inputdev, SW_TABLET_MODE, !val);
++}
++
++static int cmpc_tablet_add(struct acpi_device *acpi)
++{
++	return cmpc_add_acpi_notify_device(acpi, "cmpc_tablet",
++					   cmpc_tablet_idev_init);
++}
++
++static int cmpc_tablet_remove(struct acpi_device *acpi, int type)
++{
++	return cmpc_remove_acpi_notify_device(acpi);
++}
++
++static int cmpc_tablet_resume(struct acpi_device *acpi)
++{
++	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
++	unsigned long long val = 0;
++	if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
++		input_report_switch(inputdev, SW_TABLET_MODE, !val);
++	return 0;
++}
++
++static const struct acpi_device_id cmpc_tablet_device_ids[] = {
++	{"TBLT0000", 0},
++	{"", 0}
++};
++MODULE_DEVICE_TABLE(acpi, cmpc_tablet_device_ids);
++
++static struct acpi_driver cmpc_tablet_acpi_driver = {
++	.owner = THIS_MODULE,
++	.name = "cmpc_tablet",
++	.class = "cmpc_tablet",
++	.ids = cmpc_tablet_device_ids,
++	.ops = {
++		.add = cmpc_tablet_add,
++		.remove = cmpc_tablet_remove,
++		.resume = cmpc_tablet_resume,
++		.notify = cmpc_tablet_handler,
++	}
++};
++
++
++/*
++ * Backlight code.
++ */
++
++static acpi_status cmpc_get_brightness(acpi_handle handle,
++				       unsigned long long *value)
++{
++	union acpi_object param;
++	struct acpi_object_list input;
++	unsigned long long output;
++	acpi_status status;
++
++	param.type = ACPI_TYPE_INTEGER;
++	param.integer.value = 0xC0;
++	input.count = 1;
++	input.pointer = &param;
++	status = acpi_evaluate_integer(handle, "GRDI", &input, &output);
++	if (ACPI_SUCCESS(status))
++		*value = output;
++	return status;
++}
++
++static acpi_status cmpc_set_brightness(acpi_handle handle,
++				       unsigned long long value)
++{
++	union acpi_object param[2];
++	struct acpi_object_list input;
++	acpi_status status;
++	unsigned long long output;
++
++	param[0].type = ACPI_TYPE_INTEGER;
++	param[0].integer.value = 0xC0;
++	param[1].type = ACPI_TYPE_INTEGER;
++	param[1].integer.value = value;
++	input.count = 2;
++	input.pointer = param;
++	status = acpi_evaluate_integer(handle, "GWRI", &input, &output);
++	return status;
++}
++
++static int cmpc_bl_get_brightness(struct backlight_device *bd)
++{
++	acpi_status status;
++	acpi_handle handle;
++	unsigned long long brightness;
++
++	handle = bl_get_data(bd);
++	status = cmpc_get_brightness(handle, &brightness);
++	if (ACPI_SUCCESS(status))
++		return brightness;
++	else
++		return -1;
++}
++
++static int cmpc_bl_update_status(struct backlight_device *bd)
++{
++	acpi_status status;
++	acpi_handle handle;
++
++	handle = bl_get_data(bd);
++	status = cmpc_set_brightness(handle, bd->props.brightness);
++	if (ACPI_SUCCESS(status))
++		return 0;
++	else
++		return -1;
++}
++
++static struct backlight_ops cmpc_bl_ops = {
++	.get_brightness = cmpc_bl_get_brightness,
++	.update_status = cmpc_bl_update_status
++};
++
++static int cmpc_bl_add(struct acpi_device *acpi)
++{
++	struct backlight_device *bd;
++
++	bd = backlight_device_register("cmpc_bl", &acpi->dev,
++				       acpi->handle, &cmpc_bl_ops);
++	bd->props.max_brightness = 7;
++	dev_set_drvdata(&acpi->dev, bd);
++	return 0;
++}
++
++static int cmpc_bl_remove(struct acpi_device *acpi, int type)
++{
++	struct backlight_device *bd;
++
++	bd = dev_get_drvdata(&acpi->dev);
++	backlight_device_unregister(bd);
++	return 0;
++}
++
++static const struct acpi_device_id cmpc_device_ids[] = {
++	{"IPML200", 0},
++	{"", 0}
++};
++MODULE_DEVICE_TABLE(acpi, cmpc_device_ids);
++
++static struct acpi_driver cmpc_bl_acpi_driver = {
++	.owner = THIS_MODULE,
++	.name = "cmpc",
++	.class = "cmpc",
++	.ids = cmpc_device_ids,
++	.ops = {
++		.add = cmpc_bl_add,
++		.remove = cmpc_bl_remove
++	}
++};
++
++
++/*
++ * Extra keys code.
++ */
++static int cmpc_keys_codes[] = {
++	KEY_UNKNOWN,
++	KEY_WLAN,
++	KEY_SWITCHVIDEOMODE,
++	KEY_BRIGHTNESSDOWN,
++	KEY_BRIGHTNESSUP,
++	KEY_VENDOR,
++	KEY_MAX
++};
++
++static void cmpc_keys_handler(struct acpi_device *dev, u32 event)
++{
++	struct input_dev *inputdev;
++	int code = KEY_MAX;
++
++	if ((event & 0x0F) < ARRAY_SIZE(cmpc_keys_codes))
++		code = cmpc_keys_codes[event & 0x0F];
++	inputdev = dev_get_drvdata(&dev->dev);;
++	input_report_key(inputdev, code, !(event & 0x10));
++}
++
++static void cmpc_keys_idev_init(struct input_dev *inputdev)
++{
++	int i;
++
++	set_bit(EV_KEY, inputdev->evbit);
++	for (i = 0; cmpc_keys_codes[i] != KEY_MAX; i++)
++		set_bit(cmpc_keys_codes[i], inputdev->keybit);
++}
++
++static int cmpc_keys_add(struct acpi_device *acpi)
++{
++	return cmpc_add_acpi_notify_device(acpi, "cmpc_keys",
++					   cmpc_keys_idev_init);
++}
++
++static int cmpc_keys_remove(struct acpi_device *acpi, int type)
++{
++	return cmpc_remove_acpi_notify_device(acpi);
++}
++
++static const struct acpi_device_id cmpc_keys_device_ids[] = {
++	{"FnBT0000", 0},
++	{"", 0}
++};
++MODULE_DEVICE_TABLE(acpi, cmpc_keys_device_ids);
++
++static struct acpi_driver cmpc_keys_acpi_driver = {
++	.owner = THIS_MODULE,
++	.name = "cmpc_keys",
++	.class = "cmpc_keys",
++	.ids = cmpc_keys_device_ids,
++	.ops = {
++		.add = cmpc_keys_add,
++		.remove = cmpc_keys_remove,
++		.notify = cmpc_keys_handler,
++	}
++};
++
++
++/*
++ * General init/exit code.
++ */
++
++static int cmpc_init(void)
++{
++	int r;
++
++	r = acpi_bus_register_driver(&cmpc_keys_acpi_driver);
++	if (r)
++		goto failed_keys;
++
++	r = acpi_bus_register_driver(&cmpc_bl_acpi_driver);
++	if (r)
++		goto failed_bl;
++
++	r = acpi_bus_register_driver(&cmpc_tablet_acpi_driver);
++	if (r)
++		goto failed_tablet;
++
++	r = acpi_bus_register_driver(&cmpc_accel_acpi_driver);
++	if (r)
++		goto failed_accel;
++
++	return r;
++
++failed_accel:
++	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
++
++failed_tablet:
++	acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
++
++failed_bl:
++	acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
++
++failed_keys:
++	return r;
++}
++
++static void cmpc_exit(void)
++{
++	acpi_bus_unregister_driver(&cmpc_accel_acpi_driver);
++	acpi_bus_unregister_driver(&cmpc_tablet_acpi_driver);
++	acpi_bus_unregister_driver(&cmpc_bl_acpi_driver);
++	acpi_bus_unregister_driver(&cmpc_keys_acpi_driver);
++}
++
++module_init(cmpc_init);
++module_exit(cmpc_exit);
 _
