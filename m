@@ -1,52 +1,29 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
-Date: Tue, 22 Dec 2009 14:45:11 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912221440440.5153@localhost.localdomain>
-References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
- <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
- <alpine.LFD.2.00.0912212107560.5520@localhost.localdomain>
- <4B3035B0.9030303@kernel.org>
- <alpine.LFD.2.00.0912220253080.7435@localhost.localdomain>
- <4B307C4D.501@kernel.org>
+Subject: Re: [patch 2/9] dell_laptop: when the "hardware" switch is disabled,
+ don't actually allow changing the softblock status.
+Date: Tue, 22 Dec 2009 15:10:52 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912221507400.5153@localhost.localdomain>
+References: <200912220019.nBM0JxNK004741@imap1.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms173009pub.verizon.net ([206.46.173.9]:29842 "EHLO
-	vms173009pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474AbZLVTpa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2009 14:45:30 -0500
-In-reply-to: <4B307C4D.501@kernel.org>
+Received: from vms173003pub.verizon.net ([206.46.173.3]:37474 "EHLO
+	vms173003pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751848AbZLVULQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2009 15:11:16 -0500
+Received: from localhost.localdomain ([74.104.151.18])
+ by vms173003.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
+ with ESMTPA id <0KV200HB3LE5VM7B@vms173003.mailsrvcs.net> for
+ linux-acpi@vger.kernel.org; Tue, 22 Dec 2009 14:10:54 -0600 (CST)
+In-reply-to: <200912220019.nBM0JxNK004741@imap1.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, Mario_Limonciello@Dell.com, Matthew Garrett <mjg@redhat.com>
 
-On Mon, 21 Dec 2009, Yinghai Lu wrote:
-
-> Len Brown wrote:
-> > 
-> > Does 3563ff964fdc36358cef0330936fdac28e65142a work or fail on your system? 
-> > I didn't ask about reverting it, I asked if it works or fails.
-> 
-> i don't know.
-> 
-> anything i should search in the bootlog?
-
-Please check out a branch at the commit identified above
-and tell us if the following issue:
-
-"it seems these three patches broke the _OSC on my intel new systems."
-
-"revert them fix the problem with AER and pciehp and etc"
-
-is present or absent on that branch.
-
-If the answer is yes, when stock 2.6.32 works, then the 3 patches
-between that commit and 2.6.32 are at fault.  If the answer is no,
-yet reverting those patches helps top of tree, then the issue must
-be a merge conflict with other changes in 2.6.33.
+waiting for test & ack by mjg, the driver's maintainer.
 
 thanks,
--Len Brown
-Intel Open Source Technolgy Center
+Len Brown, Intel Open Source Technology Center
 
