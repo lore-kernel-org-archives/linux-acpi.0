@@ -1,32 +1,27 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
-Date: Wed, 23 Dec 2009 17:46:38 -0500 (EST)
-Message-ID: <alpine.LFD.2.00.0912231742410.6541@localhost.localdomain>
-References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
- <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
- <alpine.LFD.2.00.0912212107560.5520@localhost.localdomain>
- <4B3035B0.9030303@kernel.org>
- <alpine.LFD.2.00.0912220253080.7435@localhost.localdomain>
- <4B307C4D.501@kernel.org>
- <alpine.LFD.2.00.0912221440440.5153@localhost.localdomain>
- <4B312F09.5020602@kernel.org> <4B312FA9.1020301@kernel.org>
+From: Gabriel Speckhahn <gabspeck@gmail.com>
+Subject: Dear friend!
+Date: Thu, 24 Dec 2009 07:01:48 +0800
+Message-ID: <37b0e2390912231501gbd3b8a7qa979749e4d79faf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <4B312FA9.1020301@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:60255 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264AbZLWXBt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2009 18:01:49 -0500
+Received: by iwn1 with SMTP id 1so5438277iwn.33
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Dec 2009 15:01:48 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: kaio.filipini@gmail.com, life.parasempre@gmail.com, leda@londoncalling.com.br, leocribeiro@gmail.com, leonardo.savtchen@gmail.com, lidispec@yahoo.com.br, linux-acpi@vger.kernel.orgl
 
-applied
+Recommends the net shopping station to you: www.unsico.com
+ this is a scale very big company, it is a network sale company which
+establishes by many famous brand company synthesis.This company mainly
+sells the motor, the computer, the television, the handset and so on,
+its quality may obtain the guarantee.Now they for the expansion
+company scale, enlarge sale dynamics, right now hold promotion.If has
+you to need please to enter the website.
+Anticipates your presence!
 
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-ps. a syntax note...
-For patches like these, that are in response to list discussion,
-please continue sending them as a reply to the list discussion,
-but please put them in standard [PATCH] format, including
-Subject appropriate for check-in summary; and exclude the
-discussion context; as we don't want/need to check that into git.
+Thanks
