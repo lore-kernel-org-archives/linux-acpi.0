@@ -1,96 +1,84 @@
-From: "Chumbalkar, Nagananda" <Nagananda.Chumbalkar@hp.com>
-Subject: RE: [PATCH 2/2] cpufreq: Fix ondemand to not request targets
- outside policy limits
-Date: Wed, 23 Dec 2009 18:24:40 +0000
-Message-ID: <66D9D2F0CDB5C9428E6166B01EC85EE161DF1FE209@GVW0676EXC.americas.hpqcorp.net>
-References: <20091217201800.9473.12769.sendpatchset@localhost.localdomain>
- <200912212340.54067.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC] Asynchronous suspend/resume - test results
+Date: Wed, 23 Dec 2009 21:35:24 +0100
+Message-ID: <200912232135.25041.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.0912211200200.2979-100000@iolanthe.rowland.org> <200912212136.12665.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:25554 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755655AbZLWSZ0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2009 13:25:26 -0500
-In-Reply-To: <200912212340.54067.trenn@suse.de>
-Content-Language: en-US
+Received: from ogre.sisk.pl ([217.79.144.158]:52284 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757035AbZLWUfL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Dec 2009 15:35:11 -0500
+In-Reply-To: <200912212136.12665.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "davej@redhat.com" <davej@redhat.com>, "mjg@redhat.com" <mjg@redhat.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux@brodo.de" <linux@brodo.de>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Booting with debug turned on on an Intel Nehalem server, notice the
-following output in "dmesg":
-
+On Monday 21 December 2009, Rafael J. Wysocki wrote:
+> On Monday 21 December 2009, Alan Stern wrote:
+> > On Mon, 21 Dec 2009, Rafael J. Wysocki wrote:
 ...
-cpufreq-core: target for CPU 0: 0 kHz, relation 0
-acpi-cpufreq: acpi_cpufreq_target 0 (0)
-freq-table: request for target 0 kHz (relation: 0) for cpu 0
-freq-table: target is 9 (1596000 kHz, 9)
-cpufreq-core: notification 0 of frequency transition to 1596000 kHz
-cpufreq-core: notification 1 of frequency transition to 1596000 kHz
-...
-
-There are instances where "ondemand" asks for a target frequency of even 0.
-More generally, "ondemand" can ask for freq_next < policy->min, whenever
-"load" on the CPU drops to a level that satisfies the equation below:
-
-	load < ((threshold - differential) * policy->min / policy->cur)
-
-Hence, the patch below.
-
-NOTE:
-Drivers such as "acpi-cpufreq" can make use of the freq-table helper
-function, cpufreq_frequency_table_target(), which presumably can take
-a target frequency < policy->min, and still provide an "index" that
-corresponds to Pn (lowest supported frequency). This can be seen in the
-"dmesg" output above.
-
-- naga -
- 
-
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de] 
->Sent: Monday, December 21, 2009 4:41 PM
->To: Chumbalkar, Nagananda
->Cc: davej@redhat.com; mjg@redhat.com; cpufreq@vger.kernel.org; 
->linux-acpi@vger.kernel.org; linux@brodo.de
->Subject: [PATCH 2/2] cpufreq: Fix ondemand to not request 
->targets outside policy limits
->
->From: Nagananda.Chumbalkar@hp.com
->
->Dominik said:
->target_freq cannot be below policy->min or above policy->max. 
->If it were, the whole cpufreq subsystem is broken.
->
->But (answer):
->I think the "ondemand" governor can ask for a target frequency that is
->below policy->min.
->...
->A patch such as below may be needed to sanitize the target frequency 
->requested by "ondemand". The "conservative" governor already 
->has this check: 
->
->Signed-off-by: Thomas Renninger <trenn@suse.de>
->
-># diff -bur x/drivers/cpufreq/cpufreq_ondemand.c.orig 
->y/drivers/cpufreq/cpufreq_ondemand.c
->diff --git a/drivers/cpufreq/cpufreq_ondemand.c 
->b/drivers/cpufreq/cpufreq_ondemand.c
->index 4b34ade..bd444dc 100644
->--- a/drivers/cpufreq/cpufreq_ondemand.c
->+++ b/drivers/cpufreq/cpufreq_ondemand.c
->@@ -554,6 +554,9 @@ static void dbs_check_cpu(struct 
->cpu_dbs_info_s *this_dbs_info)
-> 				(dbs_tuners_ins.up_threshold -
-> 				 dbs_tuners_ins.down_differential);
+> > You should also make SCSI targets and hosts async.  Hosts are added in
+> > drivers/scsi/hosts.c:scsi_add_host_with_dma() (in 2.6.32 this was
+> > named scsi_add_host()).  Targets are added in
+> > drivers/scsi/scsi_sysfs.c:scsi_target_add().  And for thoroughness,
+> > SCSI devices are added in scsi_sysfs_add_sdev() in the same file.
 > 
->+		if (freq_next < policy->min)
->+			freq_next = policy->min;
->+
-> 		if (!dbs_tuners_ins.powersave_bias) {
-> 			__cpufreq_driver_target(policy, freq_next,
-> 					CPUFREQ_RELATION_L);
->
+> Thanks a lot for the pointers.
+
+I put device_enable_async_suspend() in all of these places and that resulted in
+major reduction of suspend time without starting the async threads upfront.
+Now, however, starting them upfront helps only a little, within the standard
+deviation from the "non-upfront" case.
+
+In turn, resume _without_ starting the async threads upfront makes a little
+sense on my test boxes.  In fact, it only helped on the nx6325 and made things
+worse on the other two (I added the results from Toshiba Portege R500, but it
+has the same chipset as the Wind U100, ie. ICH7).
+
+The results are as follows:
+
+			HP nx6325	MSI Wind U100	Toshiba Portege R500
+
+sync suspend		1357 (+/- 35)	 656 (+/- 50)	 889 (+/- 29)
+sync resume		3027 (+/- 6)	3372 (+/- 30)	4552 (+/- 35)
+
+async suspend		1053 (+/- 50)	 490 (+/- 42)	 620 (+/- 52)
+async resume		2291 (+/- 7)	3406 (+/- 52)	4557 (+/- 26)
+
+async "upfront" suspend	1040 (+/- 35)	 476 (+/- 9)	 585 (+/- 29)
+async "upfront" resume	1787 (+/- 7)	1724 (+/- 48)	1990 (+/- 25)
+
+The raw data are at
+http://www.sisk.pl/kernel/data/async-suspend-updated.pdf
+http://www.sisk.pl/kernel/data/r500/
+http://www.sisk.pl/kernel/data/nx6325/
+http://www.sisk.pl/kernel/data/wind/
+
+and the previous results were moved into
+http://www.sisk.pl/kernel/data/091220/
+
+The patches used in the testing are in my async branch at
+http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=shortlog;h=refs/heads/async
+The patches in this branch are not for upstream, but it's on top of the 
+linux-next branch containing patches for the 2.6.34 merge window.
+
+...
+> > Although USB host controllers aren't the longest-running devices to
+> > resume, they do tend to be on the longest paths.  Speeding them up
+> > would help.  One change you could try is in the patch below.  
+> > Currently when a controller has to be reset, the root hub beneath it is
+> > also reset and then re-suspended.  However there's no reason to suspend
+> > it if the PM core is only going to resume it a little bit later.  The
+> > patch gets rid of the unnecessary suspend.  Note: I haven't tested it.
+> 
+> OK, I'll try it.
+
+Unfortunately it breaks the second suspend (suspend process returns error code
+and says that the controller was not suspended, more or less).
+
+Rafael
