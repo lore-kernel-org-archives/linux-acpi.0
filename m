@@ -1,60 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC] Asynchronous suspend/resume - test results
-Date: Wed, 23 Dec 2009 21:46:29 +0100
-Message-ID: <200912232146.29339.rjw@sisk.pl>
-References: <200912210140.19713.rjw@sisk.pl> <4B2F22EF.6040500@crca.org.au>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [git pull request] ACPI and driver patches for 2.6.33.merge
+Date: Wed, 23 Dec 2009 17:46:38 -0500 (EST)
+Message-ID: <alpine.LFD.2.00.0912231742410.6541@localhost.localdomain>
+References: <alpine.LFD.2.00.0912161453480.10371@localhost.localdomain>
+ <86802c440912171728s27dd7108k85a0f1563660c95b@mail.gmail.com>
+ <alpine.LFD.2.00.0912212107560.5520@localhost.localdomain>
+ <4B3035B0.9030303@kernel.org>
+ <alpine.LFD.2.00.0912220253080.7435@localhost.localdomain>
+ <4B307C4D.501@kernel.org>
+ <alpine.LFD.2.00.0912221440440.5153@localhost.localdomain>
+ <4B312F09.5020602@kernel.org> <4B312FA9.1020301@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52351 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889AbZLWUqP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Dec 2009 15:46:15 -0500
-In-Reply-To: <4B2F22EF.6040500@crca.org.au>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-reply-to: <4B312FA9.1020301@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Shaohua Li <shaohua.li@intel.com>, Ingo Molnar <mingo@elte.hu>, "Barnes, Jesse" <jesse.barnes@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@crca.org.au>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jiri Slaby <jslaby@suse.cz>
 
-On Monday 21 December 2009, Nigel Cunningham wrote:
-> Hi.
-> 
-> Rafael J. Wysocki wrote:
-> > I'm not sure what the next step should be at this point.  To me, the picture is
-> > quite clear now, but perhaps we ought to run more tests on some other machines
-> > or something.  Please let me know what you think.
-> 
-> Looks great. If you do decide you want other machines tested, I'll
-> happily try the machines around here:
-> 
-> - Dell M1530
-> - Omnibook XE3-GF.
-> - Via LN10000 based Mythtv Box
-> - Desktop machine - Some Intel-based mobo I've forgotten the name of.
+applied
 
-Yes, that would be useful.  If the results are in agreement with my data at
-http://www.sisk.pl/kernel/data/, we will have a strong support for starting the
-async threads upfront during resume. 
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-The patches I used for testing are in the async branch in my tree:
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6.git
-The first of them is
-http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=commit;h=91bbe0161cab7efcda5de3dfdf6a93f07314ed58
-and the others are on top of this one (but it will apply on top of the current
-mainline, so I'd suggest to pull the latest Linus' tree and then rebase the
-commits from my async branch on top of it).
-
-The "upfront * async" results were obtained with the full patchset applied.
-The "sync" results where with /sys/power/pm_async = 0 and the "bare async"
-results were with the last two commits reverted.
- 
-> By the way, I haven't forgotten about sending some real patches for
-> swsusp (ie more than just cleanups). I'm just busy with other things and
-> also thinking carefully about what order to do things in.
-
-Great, I hope you're in contact with Jiri Slaby, as he's also been working on
-this.
-
-Rafael
+ps. a syntax note...
+For patches like these, that are in response to list discussion,
+please continue sending them as a reply to the list discussion,
+but please put them in standard [PATCH] format, including
+Subject appropriate for check-in summary; and exclude the
+discussion context; as we don't want/need to check that into git.
