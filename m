@@ -1,66 +1,99 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 19/34] fujitu-laptop: fix tests of acpi_evaluate_integer()
- return value
-Date: Thu, 24 Dec 2009 01:23:50 -0500
-Message-ID: <3b1c37cab3765b87efbd4ed40301ceaf72b9f5c2.1261635793.git.len.brown@intel.com>
+Subject: [PATCH 31/34] dell-wmi: do not keep driver loaded on unsupported boxes
+Date: Thu, 24 Dec 2009 01:24:02 -0500
+Message-ID: <1fdd407f4e3f2ecb453954cbebb6c22491c61853.1261635793.git.len.brown@intel.com>
 References: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from vms173001pub.verizon.net ([206.46.173.1]:37630 "EHLO
 	vms173001pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755778AbZLXTbU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 14:31:20 -0500
+	with ESMTP id S1755760AbZLXTbV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2009 14:31:21 -0500
 Received: from localhost.localdomain ([unknown] [74.104.151.18])
  by vms173001.mailsrvcs.net
  (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
  with ESMTPA id <0KV600GDH8VGSH71@vms173001.mailsrvcs.net> for
- linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 13:31:02 -0600 (CST)
+ linux-acpi@vger.kernel.org; Thu, 24 Dec 2009 13:31:03 -0600 (CST)
 In-reply-to: <1261635845-18306-1-git-send-email-lenb@kernel.org>
 In-reply-to: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 References: <0ad3dc3af8ba028368263b190a7a270f8d5cf5ae.1261635793.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>, Roel Kluin <roel.kluin@gmail.com>, Len Brown <len.brown@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, Len Brown <len.brown@intel.com>
 
-From: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Fix tests on return value from acpi_evaluate_integer().  Based on a patch by
-Roel Kluin <roel.kluin@gmail.com> and incorporating suggestions from Len
-Brown <lenb@kernel.org>.
+There is no point in having the driver loaded in memory if we fail
+to locate particular WMI GUID.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Signed-off-by: Jonathan Woithe <jwoithe@physics.adelaide.edu.au>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/platform/x86/fujitsu-laptop.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/platform/x86/dell-wmi.c |   41 ++++++++++++++++++--------------------
+ 1 files changed, 19 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index bcd4ba8..3c2d038 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -376,8 +376,8 @@ static int get_lcd_level(void)
+diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
+index 6561dfc..916ccb2 100644
+--- a/drivers/platform/x86/dell-wmi.c
++++ b/drivers/platform/x86/dell-wmi.c
+@@ -325,37 +325,34 @@ static int __init dell_wmi_init(void)
+ 	int err;
  
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "GBLL", NULL, &state);
--	if (status < 0)
--		return status;
-+	if (ACPI_FAILURE(status))
-+		return 0;
+ 	if (wmi_has_guid(DELL_EVENT_GUID)) {
++		printk(KERN_WARNING "dell-wmi: No known WMI GUID found\n");
++		return -ENODEV;
++	}
  
- 	fujitsu->brightness_level = state & 0x0fffffff;
+-		dmi_walk(find_hk_type, NULL);
+-
+-		err = dell_wmi_input_setup();
+-
+-		if (err)
+-			return err;
+-
+-		err = wmi_install_notify_handler(DELL_EVENT_GUID,
+-						 dell_wmi_notify, NULL);
+-		if (err) {
+-			input_unregister_device(dell_wmi_input_dev);
+-			printk(KERN_ERR "dell-wmi: Unable to register"
+-			       " notify handler - %d\n", err);
+-			return err;
+-		}
++	dmi_walk(find_hk_type, NULL);
++	acpi_video = acpi_video_backlight_support();
  
-@@ -398,8 +398,8 @@ static int get_max_brightness(void)
+-		acpi_video = acpi_video_backlight_support();
++	err = dell_wmi_input_setup();
++	if (err)
++		return err;
  
- 	status =
- 	    acpi_evaluate_integer(fujitsu->acpi_handle, "RBLL", NULL, &state);
--	if (status < 0)
--		return status;
-+	if (ACPI_FAILURE(status))
-+		return -1;
+-	} else
+-		printk(KERN_WARNING "dell-wmi: No known WMI GUID found\n");
++	err = wmi_install_notify_handler(DELL_EVENT_GUID,
++					 dell_wmi_notify, NULL);
++	if (err) {
++		input_unregister_device(dell_wmi_input_dev);
++		printk(KERN_ERR
++			"dell-wmi: Unable to register notify handler - %d\n",
++			err);
++		return err;
++	}
  
- 	fujitsu->max_brightness = state;
+ 	return 0;
+ }
  
+ static void __exit dell_wmi_exit(void)
+ {
+-	if (wmi_has_guid(DELL_EVENT_GUID)) {
+-		wmi_remove_notify_handler(DELL_EVENT_GUID);
+-		input_unregister_device(dell_wmi_input_dev);
+-	}
++	wmi_remove_notify_handler(DELL_EVENT_GUID);
++	input_unregister_device(dell_wmi_input_dev);
+ }
+ 
+ module_init(dell_wmi_init);
 -- 
 1.6.0.6
 
